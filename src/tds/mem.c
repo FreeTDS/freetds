@@ -1127,7 +1127,11 @@ tds_init_socket(TDSSOCKET * tds_socket, unsigned int bufsize)
 	if (!tds_socket->recv_packet)
 		goto Cleanup;
 	tds_socket->in_buf = tds_socket->recv_packet->buf;
-	TEST_CALLOC(tds_socket->out_buf, unsigned char, bufsize + TDS_ADDITIONAL_SPACE);
+
+	tds_socket->send_packet = tds_alloc_packet(NULL, bufsize + TDS_ADDITIONAL_SPACE);
+	if (!tds_socket->send_packet)
+		goto Cleanup;
+	tds_socket->out_buf = tds_socket->send_packet->buf;
 
 	tds_socket->out_buf_max = bufsize;
 
@@ -1248,21 +1252,26 @@ tds_alloc_socket(TDSCONTEXT * context, unsigned int bufsize)
 TDSSOCKET *
 tds_realloc_socket(TDSSOCKET * tds, size_t bufsize)
 {
-	unsigned char *new_out_buf;
+	TDSPACKET *packet;
 
-	assert(tds && tds->out_buf);
+	assert(tds && tds->out_buf && tds->send_packet);
 
-	if (tds->out_buf_max == bufsize)
-		return tds;
+	if (bufsize < 512)
+		bufsize = 512;
+
 	tds->conn->env.block_size = bufsize;
 
-	if (tds->out_pos <= bufsize && bufsize > 0 && 
-	    (new_out_buf = (unsigned char *) realloc(tds->out_buf, bufsize + TDS_ADDITIONAL_SPACE)) != NULL) {
-		tds->out_buf = new_out_buf;
-		tds->out_buf_max = bufsize;
-		return tds;
-	}
-	return NULL;
+	if (tds->out_pos > bufsize)
+		return NULL;
+
+	packet = tds_realloc_packet(tds->send_packet, bufsize + TDS_ADDITIONAL_SPACE);
+	if (packet == NULL)
+		return NULL;
+
+	tds->out_buf = packet->buf;
+	tds->out_buf_max = bufsize;
+	tds->send_packet = packet;
+	return tds;
 }
 
 #if ENABLE_ODBC_MARS
@@ -1311,7 +1320,6 @@ tds_free_socket(TDSSOCKET * tds)
 	tds_release_cursor(&tds->cur_cursor);
 	tds_detach_results(tds->current_results);
 	tds_free_all_results(tds);
-	free(tds->out_buf);
 #if ENABLE_ODBC_MARS
 	tds_cond_destroy(&tds->packet_cond);
 #endif
@@ -1319,6 +1327,7 @@ tds_free_socket(TDSSOCKET * tds)
 	if (tds->conn)
 		tds_connection_remove_socket(tds->conn, tds);
 	tds_free_packets(tds->recv_packet);
+	tds_free_packets(tds->send_packet);
 	free(tds);
 }
 

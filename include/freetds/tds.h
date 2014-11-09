@@ -1096,9 +1096,25 @@ struct tds_socket
 	TDSCONNECTION conn[1];
 #endif
 
-	unsigned char *in_buf;		/**< input buffer */
-	unsigned char *out_buf;		/**< output buffer */
-	unsigned int out_buf_max;	/**< allocated output buffer */
+	/** Input buffer.
+	 * Points to receiving packet buffer.
+	 * As input buffer contains just the raw packet actually this pointer
+	 * is the address of recv_packet->buf.
+	 */
+	unsigned char *in_buf;
+
+	/** Output buffer.
+	 * Points to sending packet buffer.
+	 * Output buffer can contain additional data before the raw TDS packet
+	 * so this buffer can point some bytes after send_packet->buf.
+	 */
+	unsigned char *out_buf;
+
+	/** Maximum size of packet pointed by out_buf.
+	 * The buffer is actually a bit larger to make possible to do some
+	 * optimizations (at least TDS_ADDITIONAL_SPACE bytes).
+	 */
+	unsigned int out_buf_max;
 	unsigned in_pos;		/**< current position in in_buf */
 	unsigned out_pos;		/**< current position in out_buf */
 	unsigned in_len;		/**< input buffer length */
@@ -1115,6 +1131,8 @@ struct tds_socket
 #endif
 	/* packet we received */
 	TDSPACKET *recv_packet;
+	/** packet we are preparing to send */
+	TDSPACKET *send_packet;
 
 	/**
 	 * Current query information. 

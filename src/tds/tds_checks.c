@@ -45,6 +45,16 @@
 TDS_RCSID(var, "$Id: tds_checks.c,v 1.35 2011-10-30 17:00:35 freddy77 Exp $");
 
 #if ENABLE_EXTRA_CHECKS
+static void
+tds_check_packet_extra(const TDSPACKET * packet)
+{
+	assert(packet);
+	for (; packet; packet = packet->next) {
+		assert(packet->pos <= packet->capacity);
+		assert(packet->len <= packet->capacity);
+		assert(packet->sid >= -1);
+	}
+}
 
 void
 tds_check_tds_extra(const TDSSOCKET * tds)
@@ -82,15 +92,22 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 	tds_check_env_extra(&tds_conn(tds)->env);
 
 	/* test buffers and positions */
+	tds_check_packet_extra(tds->send_packet);
+	tds_check_packet_extra(tds->recv_packet);
+
 	assert(tds->in_pos <= tds->in_len);
 	assert(tds->in_len <= tds->recv_packet->capacity);
 	/* TODO remove blocksize from env and use out_len ?? */
 /*	assert(tds->out_pos <= tds->out_len); */
 /* 	assert(tds->out_len == 0 || tds->out_buf != NULL); */
+	assert(tds->send_packet->capacity >= tds->out_buf_max + TDS_ADDITIONAL_SPACE);
+	assert(tds->out_buf >= tds->send_packet->buf);
+	assert(tds->out_buf + tds->out_buf_max + TDS_ADDITIONAL_SPACE <=
+		tds->send_packet->buf + tds->send_packet->capacity);
 	assert(tds->out_pos <= tds->out_buf_max);
-	assert(tds->out_buf_max == 0 || tds->out_buf != NULL);
+
 	assert(tds->in_buf == tds->recv_packet->buf);
-	assert(tds->recv_packet->capacity == 0 || tds->in_buf != NULL);
+	assert(tds->recv_packet->capacity > 0);
 
 	/* test res_info */
 	if (tds->res_info)
