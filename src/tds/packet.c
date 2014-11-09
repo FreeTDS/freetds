@@ -74,25 +74,26 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 	if (!packet) {
 		conn->recv_packet = packet = tds_alloc_packet(NULL, MAX(conn->env.block_size + sizeof(TDS72_SMP_HEADER), 512));
 		if (!packet) goto Memory_Error;
+		conn->recv_pos = 0;
 		packet->len = 8;
 	}
 
-	assert(packet->pos < packet->len && packet->len <= packet->capacity);
+	assert(conn->recv_pos < packet->len && packet->len <= packet->capacity);
 
-	len = tds_connection_read(tds, packet->buf+packet->pos, packet->len - packet->pos);
+	len = tds_connection_read(tds, packet->buf + conn->recv_pos, packet->len - conn->recv_pos);
 	if (len < 0)
 		goto Severe_Error;
-	packet->pos += len;
-	assert(packet->pos <= packet->len && packet->len <= packet->capacity);
+	conn->recv_pos += len;
+	assert(conn->recv_pos <= packet->len && packet->len <= packet->capacity);
 
 	/* handle SMP */
-	if (packet->pos > 0 && packet->buf[0] == TDS72_SMP) {
+	if (conn->recv_pos > 0 && packet->buf[0] == TDS72_SMP) {
 		TDS72_SMP_HEADER mars_header;
 		short sid;
 		TDSSOCKET *tds;
 		TDS_UINT size;
 
-		if (packet->pos < 16) {
+		if (conn->recv_pos < 16) {
 			packet->len = 16;
 			return;
 		}
@@ -122,6 +123,7 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 
 			tds_free_packets(packet);
 			conn->recv_packet = NULL;
+			conn->recv_pos = 0;
 			return;
 		}
 
@@ -164,14 +166,14 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 			packet->len = 0x18;
 			return;
 		}
-		packet->pos -= 16;
+		conn->recv_pos -= 16;
 		packet->len -= 16;
-		memmove(packet->buf, packet->buf+16, packet->pos);
+		memmove(packet->buf, packet->buf+16, conn->recv_pos);
 	}
-	assert(packet->pos <= packet->len && packet->len <= packet->capacity);
+	assert(conn->recv_pos <= packet->len && packet->len <= packet->capacity);
 
 	/* normal packet */
-	if (packet->pos >= 8) {
+	if (conn->recv_pos >= 8) {
 		len = TDS_GET_A2BE(&packet->buf[2]);
 		if (len < 8)
 			goto Severe_Error;
@@ -359,8 +361,9 @@ tds_connection_network(TDSCONNECTION *conn, TDSSOCKET *tds, int send)
 			/* try to read a packet */
 			tds_packet_read(conn, tds);
 			packet = conn->recv_packet;
-			if (!packet || packet->pos < packet->len) continue;
+			if (!packet || conn->recv_pos < packet->len) continue;
 			conn->recv_packet = NULL;
+			conn->recv_pos = 0;
 
 			tdsdump_dump_buf(TDS_DBG_NETWORK, "Received packet", packet->buf, packet->len);
 
@@ -712,11 +715,12 @@ tds_packet_write(TDSCONNECTION *conn)
 
 	assert(packet);
 
-	if (packet->pos == 0)
+	if (conn->send_pos == 0)
 		tdsdump_dump_buf(TDS_DBG_NETWORK, "Sending packet", packet->buf, packet->len);
 
 	/* final does not take into account other packets for this session */
-	sent = tds_connection_write(conn->in_net_tds, packet->buf+packet->pos, packet->len-packet->pos, packet->next == NULL);
+	sent = tds_connection_write(conn->in_net_tds, packet->buf + conn->send_pos,
+				    packet->len - conn->send_pos, packet->next == NULL);
 
 	if (TDS_UNLIKELY(sent < 0)) {
 		/* TODO tdserror called ?? */
@@ -725,15 +729,16 @@ tds_packet_write(TDSCONNECTION *conn)
 	}
 
 	/* update sent data */
-	packet->pos += sent;
+	conn->send_pos += sent;
 	/* remove packet if sent all data */
-	if (packet->pos >= packet->len) {
+	if (conn->send_pos >= packet->len) {
 		short sid = packet->sid;
 		tds_mutex_lock(&conn->list_mtx);
 		conn->send_packets = packet->next;
 		tds_mutex_unlock(&conn->list_mtx);
 		packet->next = NULL;
 		tds_free_packets(packet);
+		conn->send_pos = 0;
 		return sid;
 	}
 

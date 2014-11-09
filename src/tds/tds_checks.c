@@ -50,7 +50,6 @@ tds_check_packet_extra(const TDSPACKET * packet)
 {
 	assert(packet);
 	for (; packet; packet = packet->next) {
-		assert(packet->pos <= packet->capacity);
 		assert(packet->len <= packet->capacity);
 		assert(packet->sid >= -1);
 	}
@@ -94,6 +93,13 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 	/* test buffers and positions */
 	tds_check_packet_extra(tds->send_packet);
 	tds_check_packet_extra(tds->recv_packet);
+
+#if ENABLE_ODBC_MARS
+	if (tds->conn->send_packets)
+		assert(tds->conn->send_pos <= tds->conn->send_packets->len);
+	if (tds->conn->recv_packet)
+		assert(tds->conn->recv_pos <= tds->conn->recv_packet->len);
+#endif
 
 	assert(tds->in_pos <= tds->in_len);
 	assert(tds->in_len <= tds->recv_packet->capacity);

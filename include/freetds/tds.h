@@ -1018,7 +1018,7 @@ typedef struct tds_packet
 {
 	struct tds_packet *next;
 	short sid;
-	unsigned pos, len, capacity;
+	unsigned len, capacity;
 	unsigned char buf[1];
 } TDSPACKET;
 
@@ -1066,6 +1066,7 @@ struct tds_connection
 	TDSPACKET *packets;
 	TDSPACKET *recv_packet;
 	TDSPACKET *send_packets;
+	unsigned send_pos, recv_pos;
 
 	tds_mutex list_mtx;
 #define BUSY_SOCKET ((TDSSOCKET*)(TDS_UINTPTR)1)

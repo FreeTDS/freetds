@@ -1026,7 +1026,6 @@ tds_alloc_packet(void *buf, unsigned len)
 {
 	TDSPACKET *packet = (TDSPACKET *) malloc(len + TDS_OFFSET(TDSPACKET, buf));
 	if (TDS_LIKELY(packet)) {
-		packet->pos = 0;
 		packet->len = 0;
 		packet->capacity = len;
 		packet->sid = 0;
