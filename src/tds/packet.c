@@ -437,7 +437,10 @@ tds_connection_network(TDSCONNECTION *conn, TDSSOCKET *tds, int send)
 				s = conn->sessions[packet->sid];
 				if (TDSSOCKET_VALID(s)) {
 					/* append to correct session */
-					tds_append_packet(&conn->packets, packet);
+					if (packet->buf[0] == TDS72_SMP)
+						tds_packet_cache_add(conn, packet);
+					else
+						tds_append_packet(&conn->packets, packet);
 					packet = NULL;
 					/* notify */
 					tds_cond_signal(&s->packet_cond);
