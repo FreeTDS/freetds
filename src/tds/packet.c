@@ -365,7 +365,6 @@ tds_connection_network(TDSCONNECTION *conn, TDSSOCKET *tds, int send)
 			tdsdump_dump_buf(TDS_DBG_NETWORK, "Received packet", packet->buf, packet->len);
 
 			tds_mutex_lock(&conn->list_mtx);
-			assert(packet->sid >= 0);
 			if (packet->sid >= 0 && packet->sid < conn->num_sessions) {
 				s = conn->sessions[packet->sid];
 				if (TDSSOCKET_VALID(s)) {
@@ -376,8 +375,8 @@ tds_connection_network(TDSCONNECTION *conn, TDSSOCKET *tds, int send)
 					tds_cond_signal(&s->packet_cond);
 				}
 			}
-			tds_free_packets(packet);
 			tds_mutex_unlock(&conn->list_mtx);
+			tds_free_packets(packet);
 			/* if we are receiving return the packet */
 			if (!send) break;
 		}
