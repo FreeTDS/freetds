@@ -648,26 +648,27 @@ tds_read_packet(TDSSOCKET * tds)
 static TDSRET
 tds_update_recv_wnd(TDSSOCKET *tds, TDS_UINT new_recv_wnd)
 {
-	TDS72_SMP_HEADER mars;
+	TDS72_SMP_HEADER *mars;
 	TDSPACKET *packet;
 
 	if (!tds->conn->mars || tds->sid < 0)
 		return TDS_SUCCESS;
 
-	mars.signature = TDS72_SMP;
-	mars.type = TDS_SMP_ACK;
-	TDS_PUT_A2LE(&mars.sid, tds->sid);
-	mars.size = TDS_HOST4LE(16);
-	TDS_PUT_A4LE(&mars.seq, tds->send_seq);
-	tds->recv_wnd = new_recv_wnd;
-	TDS_PUT_A4LE(&mars.wnd, tds->recv_wnd);
-
-	packet = tds_get_packet(tds->conn, sizeof(mars));
+	packet = tds_get_packet(tds->conn, sizeof(*mars));
 	if (!packet)
 		return TDS_FAIL;	/* TODO check result */
-	memcpy(packet->buf, &mars, sizeof(mars));
-	packet->len = sizeof(mars);
+
+	packet->len = sizeof(*mars);
 	packet->sid = tds->sid;
+
+	mars = (TDS72_SMP_HEADER *) packet->buf;
+	mars->signature = TDS72_SMP;
+	mars->type = TDS_SMP_ACK;
+	TDS_PUT_A2LE(&mars->sid, tds->sid);
+	mars->size = TDS_HOST4LE(16);
+	TDS_PUT_A4LE(&mars->seq, tds->send_seq);
+	tds->recv_wnd = new_recv_wnd;
+	TDS_PUT_A4LE(&mars->wnd, tds->recv_wnd);
 
 	tds_mutex_lock(&tds->conn->list_mtx);
 	tds_append_packet(&tds->conn->send_packets, packet);
