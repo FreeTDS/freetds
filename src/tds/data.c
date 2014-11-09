@@ -627,7 +627,6 @@ tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			tds_get_n(tds, blob->textvalue, colsize);
 		}
 	} else {		/* non-numeric and non-blob */
-		curcol->column_cur_size = colsize;
 
 		if (USE_ICONV && curcol->char_conv) {
 			if (TDS_FAILED(tds_get_char_data(tds, (char *) dest, colsize, curcol)))
