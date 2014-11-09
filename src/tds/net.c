@@ -1524,8 +1524,9 @@ tds_ssl_init(TDSSOCKET *tds)
 	con = NULL;
 	b = NULL;
 	b2 = NULL;
-	tls_msg = "initializing tls";
+	ret = 1;
 
+	tls_msg = "initializing tls";
 	if (tds_conn(tds)->tls_ctx == NULL)
 		tds_conn(tds)->tls_ctx = tds_init_openssl();
 
@@ -1544,7 +1545,6 @@ tds_ssl_init(TDSSOCKET *tds)
 		b2 = BIO_new(&tds_method);
 	}
 
-	ret = 0;
 	if (b2) {
 		b->shutdown=1;
 		b->init=1;
