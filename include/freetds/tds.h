@@ -1073,6 +1073,8 @@ struct tds_connection
 #define TDSSOCKET_VALID(tds) (((TDS_UINTPTR)(tds)) > 1)
 	struct tds_socket **sessions;
 	unsigned num_sessions;
+	unsigned num_cached_packets;
+	TDSPACKET *packet_cache;
 #endif
 
 	void *tls_session;

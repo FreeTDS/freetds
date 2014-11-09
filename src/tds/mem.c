@@ -1084,6 +1084,7 @@ tds_deinit_connection(TDSCONNECTION *conn)
 	tds_free_packets(conn->packets);
 	tds_free_packets(conn->recv_packet);
 	tds_free_packets(conn->send_packets);
+	tds_free_packets(conn->packet_cache);
 	free(conn->sessions);
 #endif
 }

@@ -590,7 +590,9 @@ tds_check_cancel(TDSCONNECTION *conn)
 			if (TDSSOCKET_VALID(tds=conn->sessions[n]) && tds->in_cancel == 1) {
 				/* send cancel */
 				tds->in_cancel = 2;
+				tds_mutex_unlock(&conn->list_mtx);
 				rc = tds_append_cancel(tds);
+				tds_mutex_lock(&conn->list_mtx);
 				if (rc != TDS_SUCCESS)
 					break;
 			}
