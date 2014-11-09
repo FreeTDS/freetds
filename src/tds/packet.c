@@ -228,13 +228,13 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 
 		if (mars_header.type != TDS_SMP_DATA)
 			return;
-		if (packet->len < 0x18) {
-			packet->len = 0x18;
-			return;
+		if (packet->len < size) {
+			packet = tds_realloc_packet(packet, size);
+			if (!packet) goto Memory_Error;
+			conn->recv_packet = packet;
 		}
-		conn->recv_pos -= 16;
-		packet->len -= 16;
-		memmove(packet->buf, packet->buf+16, conn->recv_pos);
+		packet->len = size;
+		return;
 	}
 	assert(conn->recv_pos <= packet->len && packet->len <= packet->capacity);
 
@@ -440,7 +440,7 @@ tds_connection_network(TDSCONNECTION *conn, TDSSOCKET *tds, int send)
 				s = conn->sessions[packet->sid];
 				if (TDSSOCKET_VALID(s)) {
 					/* append to correct session */
-					if (packet->buf[0] == TDS72_SMP)
+					if (packet->buf[0] == TDS72_SMP && packet->buf[1] != TDS_SMP_DATA)
 						tds_packet_cache_add(conn, packet);
 					else
 						tds_append_packet(&conn->packets, packet);
@@ -551,6 +551,8 @@ tds_read_packet(TDSSOCKET * tds)
 				break;
 
 		if (*p_packet) {
+			size_t hdr_size;
+
 			/* remove our packet from list */
 			TDSPACKET *packet = *p_packet;
 			*p_packet = packet->next;
@@ -560,17 +562,16 @@ tds_read_packet(TDSSOCKET * tds)
 			packet->next = NULL;
 			tds->recv_packet = packet;
 
-			tds->in_buf = packet->buf;
-			tds->in_len = packet->len;
+			hdr_size = packet->buf[0] == TDS72_SMP ? sizeof(TDS72_SMP_HEADER) : 0;
+			tds->in_buf = packet->buf + hdr_size;
+			tds->in_len = packet->len - hdr_size;
 			tds->in_pos  = 8;
 			tds->in_flag = tds->in_buf[0];
+
 			/* send acknowledge if needed */
 			if (tds->recv_seq + 2 >= tds->recv_wnd)
 				tds_update_recv_wnd(tds, tds->recv_seq + 4);
 
-			/* ignore any SMP packet (already handled) */
-			if (tds->in_flag == TDS72_SMP)
-				continue;
 			return tds->in_len;
 		}
 
