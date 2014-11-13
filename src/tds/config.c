@@ -79,10 +79,10 @@
 #endif
 
 static int tds_config_login(TDSLOGIN * connection, TDSLOGIN * login);
-static void tds_config_env_tdsdump(TDSLOGIN * login);
+static int tds_config_env_tdsdump(TDSLOGIN * login);
 static void tds_config_env_tdsver(TDSLOGIN * login);
 static void tds_config_env_tdsport(TDSLOGIN * login);
-static void tds_config_env_tdshost(TDSLOGIN * login);
+static int tds_config_env_tdshost(TDSLOGIN * login);
 static int tds_read_conf_sections(FILE * in, const char *server, TDSLOGIN * login);
 static int tds_read_interfaces(const char *server, TDSLOGIN * login);
 static int parse_server_name_for_port(TDSLOGIN * connection, TDSLOGIN * login);
@@ -575,6 +575,7 @@ void
 tds_parse_conf_section(const char *option, const char *value, void *param)
 {
 	TDSLOGIN *login = (TDSLOGIN *) param;
+	void *s = param;
 
 	tdsdump_log(TDS_DBG_INFO1, "\t%s = '%s'\n", option, value);
 
@@ -590,7 +591,7 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		/* gssapi flag addition */
 		login->gssapi_use_delegation = tds_config_boolean(option, value, login);
 	} else if (!strcmp(option, TDS_STR_DUMPFILE)) {
-		tds_dstr_copy(&login->dump_file, value);
+		s = tds_dstr_copy(&login->dump_file, value);
 	} else if (!strcmp(option, TDS_STR_DEBUGFLAGS)) {
 		char *end;
 		long flags;
@@ -613,7 +614,7 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		}
 
 		tdsdump_log(TDS_DBG_INFO1, "Found host entry %s \n", value);
-		tds_dstr_copy(&login->server_host_name, value);
+		s = tds_dstr_copy(&login->server_host_name, value);
 		for (addrs = login->ip_addrs; addrs != NULL; addrs = addrs->ai_next)
 			tdsdump_log(TDS_DBG_INFO1, "IP addr is %s.\n", tds_addrinfo2str(addrs, tmp, sizeof(tmp)));
 
@@ -626,32 +627,35 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		if (atoi(value))
 			login->text_size = atoi(value);
 	} else if (!strcmp(option, TDS_STR_CHARSET)) {
-		tds_dstr_copy(&login->server_charset, value);
+		s = tds_dstr_copy(&login->server_charset, value);
 		tdsdump_log(TDS_DBG_INFO1, "%s is %s.\n", option, tds_dstr_cstr(&login->server_charset));
 	} else if (!strcmp(option, TDS_STR_CLCHARSET)) {
-		tds_dstr_copy(&login->client_charset, value);
+		s = tds_dstr_copy(&login->client_charset, value);
 		tdsdump_log(TDS_DBG_INFO1, "tds_parse_conf_section: %s is %s.\n", option, tds_dstr_cstr(&login->client_charset));
 	} else if (!strcmp(option, TDS_STR_LANGUAGE)) {
-		tds_dstr_copy(&login->language, value);
+		s = tds_dstr_copy(&login->language, value);
 	} else if (!strcmp(option, TDS_STR_APPENDMODE)) {
 		tds_g_append_mode = tds_config_boolean(option, value, login);
 	} else if (!strcmp(option, TDS_STR_INSTANCE)) {
-		tds_dstr_copy(&login->instance_name, value);
+		s = tds_dstr_copy(&login->instance_name, value);
 	} else if (!strcmp(option, TDS_STR_ENCRYPTION)) {
 		tds_config_encryption(value, login);
 	} else if (!strcmp(option, TDS_STR_ASA_DATABASE)) {
-		tds_dstr_copy(&login->server_name, value);
+		s = tds_dstr_copy(&login->server_name, value);
 	} else if (!strcmp(option, TDS_STR_USENTLMV2)) {
 		login->use_ntlmv2 = tds_config_boolean(option, value, login);
 	} else if (!strcmp(option, TDS_STR_USELANMAN)) {
 		login->use_lanman = tds_config_boolean(option, value, login);
 	} else if (!strcmp(option, TDS_STR_REALM)) {
-		tds_dstr_copy(&login->server_realm_name, value);
+		s = tds_dstr_copy(&login->server_realm_name, value);
 	} else if (!strcmp(option, TDS_STR_SPN)) {
-		tds_dstr_copy(&login->server_spn, value);
+		s = tds_dstr_copy(&login->server_spn, value);
 	} else {
 		tdsdump_log(TDS_DBG_INFO1, "UNRECOGNIZED option '%s' ... ignoring.\n", option);
 	}
+
+	if (!s)
+		login->valid_configuration = 0;
 }
 
 static int
@@ -724,7 +728,7 @@ tds_config_login(TDSLOGIN * connection, TDSLOGIN * login)
 	return res != NULL;
 }
 
-static void
+static int
 tds_config_env_tdsdump(TDSLOGIN * login)
 {
 	char *s;
@@ -734,14 +738,19 @@ tds_config_env_tdsdump(TDSLOGIN * login)
 	if ((s = getenv("TDSDUMP"))) {
 		if (!strlen(s)) {
 			pid = getpid();
-			if (asprintf(&path, pid_logpath, pid) >= 0)
-				if (!tds_dstr_set(&login->dump_file, path))
-					free(path);
+			if (asprintf(&path, pid_logpath, pid) < 0)
+				return 0;
+			if (!tds_dstr_set(&login->dump_file, path)) {
+				free(path);
+				return 0;
+			}
 		} else {
-			tds_dstr_copy(&login->dump_file, s);
+			if (!tds_dstr_copy(&login->dump_file, s))
+				return 0;
 		}
 		tdsdump_log(TDS_DBG_INFO1, "Setting 'dump_file' to '%s' from $TDSDUMP.\n", tds_dstr_cstr(&login->dump_file));
 	}
+	return 1;
 }
 static void
 tds_config_env_tdsport(TDSLOGIN * login)
@@ -769,7 +778,7 @@ tds_config_env_tdsver(TDSLOGIN * login)
 }
 
 /* TDSHOST env var, pkleef@openlinksw.com 01/21/02 */
-static void
+static int
 tds_config_env_tdshost(TDSLOGIN * login)
 {
 	const char *tdshost;
@@ -777,18 +786,20 @@ tds_config_env_tdshost(TDSLOGIN * login)
 	struct tds_addrinfo *addrs;
 
 	if (!(tdshost = getenv("TDSHOST")))
-		return;
+		return 1;
 
 	if (TDS_FAILED(tds_lookup_host_set(tdshost, &login->ip_addrs))) {
 		tdsdump_log(TDS_DBG_WARN, "Name resolution failed for '%s' from $TDSHOST.\n", tdshost);
-		return;
+		return 0;
 	}
 
-	tds_dstr_copy(&login->server_host_name, tdshost);
+	if (!tds_dstr_copy(&login->server_host_name, tdshost))
+		return 0;
 	for (addrs = login->ip_addrs; addrs != NULL; addrs = addrs->ai_next) {
 		tdsdump_log(TDS_DBG_INFO1, "Setting IP Address to %s (%s) from $TDSHOST.\n",
 			    tds_addrinfo2str(addrs, tmp, sizeof(tmp)), tdshost);
 	}
+	return 1;
 }
 #define TDS_FIND(k,b,c) tds_find(k, b, sizeof(b)/sizeof(b[0]), sizeof(b[0]), c)
 
