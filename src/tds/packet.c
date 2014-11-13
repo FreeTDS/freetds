@@ -47,6 +47,7 @@
 #include <freetds/bytes.h>
 #include <freetds/iconv.h>
 #include "replacements.h"
+#include "tds_checks.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
@@ -76,6 +77,7 @@ tds_get_packet(TDSCONNECTION *conn, unsigned len)
 
 		/* return it */
 		if (packet->capacity >= len) {
+			TDS_MARK_UNDEFINED(packet->buf, packet->capacity);
 			packet->next = NULL;
 			packet->len = 0;
 			packet->sid = 0;
@@ -137,6 +139,7 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 	if (!packet) {
 		conn->recv_packet = packet = tds_get_packet(conn, MAX(conn->env.block_size + sizeof(TDS72_SMP_HEADER), 512));
 		if (!packet) goto Memory_Error;
+		TDS_MARK_UNDEFINED(packet->buf, packet->capacity);
 		conn->recv_pos = 0;
 		packet->len = 8;
 	}

@@ -44,6 +44,7 @@
 #include <freetds/iconv.h>
 #include <freetds/bytes.h>
 #include <freetds/stream.h>
+#include "tds_checks.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
@@ -276,8 +277,7 @@ tds_put_byte(TDSSOCKET * tds, unsigned char c)
 int
 tds_init_write_buf(TDSSOCKET * tds)
 {
-	/* TODO needed ?? */
-	memset(tds->out_buf, '\0', tds->out_buf_max);
+	TDS_MARK_UNDEFINED(tds->out_buf, tds->out_buf_max);
 	tds->out_pos = 8;
 	return 0;
 }

@@ -51,6 +51,13 @@ void tds_check_cursor_extra(const TDSCURSOR * cursor);
 void tds_check_dynamic_extra(const TDSDYNAMIC * dynamic);
 #endif
 
+#if defined(HAVE_VALGRIND_MEMCHECK_H) && ENABLE_EXTRA_CHECKS
+#  include <valgrind/memcheck.h>
+#  define TDS_MARK_UNDEFINED(ptr, len) VALGRIND_MAKE_MEM_UNDEFINED(ptr, len)
+#else
+#  define TDS_MARK_UNDEFINED(ptr, len) do {} while(0)
+#endif
+
 #if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility pop
 #endif
