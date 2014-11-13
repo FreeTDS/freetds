@@ -32,7 +32,7 @@ extern "C"
 /* login.c */
 unsigned char *tds7_decrypt_pass(const unsigned char *crypt_pass, int len, unsigned char *clear_pass);
 TDSSOCKET *tds_listen(TDSCONTEXT * ctx, int ip_port);
-void tds_read_login(TDSSOCKET * tds, TDSLOGIN * login);
+int tds_read_login(TDSSOCKET * tds, TDSLOGIN * login);
 int tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login);
 TDSLOGIN *tds_alloc_read_login(TDSSOCKET * tds);
 

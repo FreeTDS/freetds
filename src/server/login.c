@@ -111,13 +111,14 @@ tds_listen(TDSCONTEXT * ctx, int ip_port)
 	return tds;
 }
 
-static void tds_read_string(TDSSOCKET * tds, DSTR * s, int size);
+static int tds_read_string(TDSSOCKET * tds, DSTR * s, int size);
 
-void
+int
 tds_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 {
 	DSTR blockstr;
 	TDS_USMALLINT major;
+	int res = 1;
 
 /*
 	while (len = tds_read_packet(tds)) {
@@ -126,40 +127,44 @@ tds_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	}	
 */
 	tds_dstr_init(&blockstr);
-	tds_read_string(tds, &login->client_host_name, 30);
-	tds_read_string(tds, &login->user_name, 30);
-	tds_read_string(tds, &login->password, 30);
+	res = res && tds_read_string(tds, &login->client_host_name, 30);
+	res = res && tds_read_string(tds, &login->user_name, 30);
+	res = res && tds_read_string(tds, &login->password, 30);
 	tds_get_n(tds, NULL, 31);	/* host process, junk for now */
 	tds_get_n(tds, NULL, 16);	/* magic */
-	tds_read_string(tds, &login->app_name, 30);
-	tds_read_string(tds, &login->server_name, 30);
+	res = res && tds_read_string(tds, &login->app_name, 30);
+	res = res && tds_read_string(tds, &login->server_name, 30);
 	tds_get_n(tds, NULL, 256);	/* secondary passwd...encryption? */
 	major = tds_get_byte(tds);
 	login->tds_version = (major << 8) | tds_get_byte(tds);
 	tds_get_smallint(tds);	/* unused part of protocol field */
-	tds_read_string(tds, &login->library, 10);
+	res = res && tds_read_string(tds, &login->library, 10);
 	tds_get_byte(tds);	/* program version, junk it */
 	tds_get_byte(tds);
 	tds_get_smallint(tds);
 	tds_get_n(tds, NULL, 3);	/* magic */
-	tds_read_string(tds, &login->language, 30);
+	res = res && tds_read_string(tds, &login->language, 30);
 	tds_get_n(tds, NULL, 14);	/* magic */
-	tds_read_string(tds, &login->server_charset, 30);
+	res = res && tds_read_string(tds, &login->server_charset, 30);
 	tds_get_n(tds, NULL, 1);	/* magic */
-	tds_read_string(tds, &blockstr, 6);
+	res = res && tds_read_string(tds, &blockstr, 6);
 	printf("block size %s\n", tds_dstr_cstr(&blockstr));
 	login->block_size = atoi(tds_dstr_cstr(&blockstr));
 	tds_dstr_free(&blockstr);
 	tds_get_n(tds, NULL, tds->in_len - tds->in_pos);	/* read junk at end */
+
+	return res;
 }
 
-static void
+static int
 tds7_read_string(TDSSOCKET * tds, DSTR *s, int len)
 {
-	tds_dstr_alloc(s, len);
+	if (!tds_dstr_alloc(s, len))
+		return 0;
 	/* FIXME possible truncation on char conversion ? */
 	len = tds_get_string(tds, len, tds_dstr_buf(s), len);
 	tds_dstr_setlen(s, len);
+	return 1;
 }
 
 int
@@ -173,6 +178,7 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	char *unicode_string, *psrc;
 	char *pbuf;
 	DSTR database;
+	int res = 1;
 
 	tds_dstr_init(&database);
 
@@ -206,12 +212,13 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	a = tds_get_smallint(tds);	/*total packet size */
 	tds_get_smallint(tds);
 
-	tds7_read_string(tds, &login->client_host_name, host_name_len);
-	tds7_read_string(tds, &login->user_name, user_name_len);
+	res = res &&tds7_read_string(tds, &login->client_host_name, host_name_len);
+	res = res &&tds7_read_string(tds, &login->user_name, user_name_len);
 
 	unicode_len = password_len * 2;
 	unicode_string = (char *) malloc(unicode_len);
-	tds_dstr_alloc(&login->password, password_len);
+	if (!unicode_string || !tds_dstr_alloc(&login->password, password_len))
+		return 0;
 	tds_get_n(tds, unicode_string, unicode_len);
 	tds7_decrypt_pass((unsigned char *) unicode_string, unicode_len, (unsigned char *) unicode_string);
 	pbuf = tds_dstr_buf(&login->password);
@@ -227,12 +234,12 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	tds_dstr_setlen(&login->password, pbuf - tds_dstr_buf(&login->password));
 	free(unicode_string);
 
-	tds7_read_string(tds, &login->app_name, app_name_len);
-	tds7_read_string(tds, &login->server_name, server_name_len);
-	tds7_read_string(tds, &login->library, library_name_len);
-	tds7_read_string(tds, &login->language, language_name_len);
+	res = res &&tds7_read_string(tds, &login->app_name, app_name_len);
+	res = res &&tds7_read_string(tds, &login->server_name, server_name_len);
+	res = res &&tds7_read_string(tds, &login->library, library_name_len);
+	res = res &&tds7_read_string(tds, &login->language, language_name_len);
 	/* TODO use it */
-	tds7_read_string(tds, &database, database_name_len);
+	res = res &&tds7_read_string(tds, &database, database_name_len);
 	tds_dstr_free(&database);
 
 	tds_get_n(tds, NULL, auth_len);
@@ -240,22 +247,24 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	tds_dstr_empty(&login->server_charset);	/*empty char_set for TDS 7.0 */
 	login->block_size = 0;	/*0 block size for TDS 7.0 */
 	login->encryption_level = TDS_ENCRYPTION_OFF;
-	return (0);
 
+	return res;
 }
-static void
+
+static int
 tds_read_string(TDSSOCKET * tds, DSTR * s, int size)
 {
 	int len;
 
 	/* FIXME this can fails... */
-	tds_dstr_alloc(s, size);
+	if (!tds_dstr_alloc(s, size))
+		return 0;
 	tds_get_n(tds, tds_dstr_buf(s), size);
 	len = tds_get_byte(tds);
 	if (len <= size)
 		tds_dstr_setlen(s, len);
+	return 1;
 }
-
 
 /**
  * Allocate a TDSLOGIN structure, read a login packet into it, and return it.
@@ -293,7 +302,10 @@ tds_alloc_read_login(TDSSOCKET * tds)
 	switch (tds->in_flag) {
 	case 0x02: /* TDS4/5 login */
 		tds->conn->tds_version = 0x402;
-		tds_read_login(tds, login);
+		if (!tds_read_login(tds, login)) {
+			tds_free_login(login);
+			return NULL;
+		}
 		if (login->block_size == 0) {
 			login->block_size = 512;
 		}
@@ -301,7 +313,10 @@ tds_alloc_read_login(TDSSOCKET * tds)
 
 	case 0x10: /* TDS7+ login */
 		tds->conn->tds_version = 0x700;
-		tds7_read_login(tds, login);
+		if (!tds7_read_login(tds, login)) {
+			tds_free_login(login);
+			return NULL;
+		}
 		break;
 
 	case 0x12: /* TDS7.1+ prelogin, hopefully followed by a login */
@@ -313,7 +328,10 @@ tds_alloc_read_login(TDSSOCKET * tds)
 			tds_free_login(login);
 			return NULL;
 		}
-		tds7_read_login(tds, login);
+		if (!tds7_read_login(tds, login)) {
+			tds_free_login(login);
+			return NULL;
+		}
 		break;
 
 	default:
