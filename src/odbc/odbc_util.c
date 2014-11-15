@@ -470,7 +470,7 @@ odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void 
 		/* char_conv is only mostly const */
 		memset((TDS_ERRNO_MESSAGE_FLAGS*) &char_conv->suppress, 0, sizeof(char_conv->suppress));
 		char_conv->suppress.e2big = 1;
-		if (tds_iconv(dbc->tds_socket, char_conv, to_client, &ib, &il, &ob, &ol) == (size_t)-1)
+		if (cbBuffer && tds_iconv(dbc->tds_socket, char_conv, to_client, &ib, &il, &ob, &ol) == (size_t)-1 && errno != E2BIG)
 			result = SQL_ERROR;
 		out_len = cbBuffer - ol;
 		while (result != SQL_ERROR && il) {
