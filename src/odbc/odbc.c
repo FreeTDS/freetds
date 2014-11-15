@@ -1989,6 +1989,7 @@ ODBC_FUNC(SQLDescribeCol, (P(SQLHSTMT,hstmt), P(SQLUSMALLINT,icol), PCHAROUT(Col
 {
 	TDS_DESC *ird;
 	struct _drecord *drec;
+	SQLRETURN result;
 
 	ODBC_ENTER_HSTMT;
 
@@ -2007,14 +2008,14 @@ ODBC_FUNC(SQLDescribeCol, (P(SQLHSTMT,hstmt), P(SQLUSMALLINT,icol), PCHAROUT(Col
 	drec = &ird->records[icol - 1];
 
 	/* cbColNameMax can be 0 (to retrieve name length) */
-	if (szColName && cbColNameMax) {
-		SQLRETURN result;
+	if (szColName == NULL)
+		cbColNameMax = 0;
 
-		/* straight copy column name up to cbColNameMax */
-		result = odbc_set_string(stmt->dbc, szColName, cbColNameMax, pcbColName, tds_dstr_cstr(&drec->sql_desc_label), -1);
-		if (result == SQL_SUCCESS_WITH_INFO)
-			odbc_errs_add(&stmt->errs, "01004", NULL);
-	}
+	/* straight copy column name up to cbColNameMax */
+	result = odbc_set_string(stmt->dbc, szColName, cbColNameMax, pcbColName, tds_dstr_cstr(&drec->sql_desc_label), -1);
+	if (szColName && result == SQL_SUCCESS_WITH_INFO)
+		odbc_errs_add(&stmt->errs, "01004", NULL);
+
 	if (pfSqlType) {
 		/* TODO sure ? check documentation for date and intervals */
 		*pfSqlType = drec->sql_desc_concise_type;
