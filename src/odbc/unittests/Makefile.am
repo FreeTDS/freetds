@@ -25,7 +25,7 @@ TESTS		=	\
 			cursor6$(EXEEXT) cursor7$(EXEEXT) utf8$(EXEEXT) utf8_2$(EXEEXT) \
 			stats$(EXEEXT) descrec$(EXEEXT) peter$(EXEEXT) test64$(EXEEXT) \
 			prepare_warn$(EXEEXT) long_error$(EXEEXT) mars1$(EXEEXT) \
-			array_error$(EXEEXT)
+			array_error$(EXEEXT) describecol2$(EXEEXT)
 
 check_PROGRAMS	=	$(TESTS)
 
@@ -70,6 +70,7 @@ cursor1_SOURCES	= cursor1.c common.c common.h
 scroll_SOURCES	= scroll.c common.c common.h
 cursor2_SOURCES	= cursor2.c common.c common.h
 describecol_SOURCES	= describecol.c common.c common.h
+describecol2_SOURCES	= describecol2.c common.c common.h
 copydesc_SOURCES	= copydesc.c common.c common.h
 prepclose_SOURCES = prepclose.c common.c common.h
 warning_SOURCES = warning.c common.c common.h
