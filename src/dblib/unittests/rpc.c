@@ -19,26 +19,6 @@ typedef struct {
 
 static RETPARAM* save_retparam(RETPARAM *param, char *name, char *value, int type, int len);
 
-static const char procedure_sql[] = 
-		"CREATE PROCEDURE %s \n"
-			"  @null_input varchar(30) OUTPUT \n"
-			", @first_type varchar(30) OUTPUT \n"
-			", @nullout int OUTPUT\n"
-			", @nrows int OUTPUT \n"
-			", @c_this_name_is_way_more_than_thirty_characters_charlie varchar(20)\n"
-			", @nv nvarchar(20) = N'hello'\n"
-		"AS \n"
-		"BEGIN \n"
-			"select @null_input = max(convert(varchar(30), name)) from systypes \n"
-			"select @first_type = min(convert(varchar(30), name)) from systypes \n"
-			"select name from sysobjects where 0=1\n"
-			"select distinct convert(varchar(30), name) as 'type'  from systypes \n"
-				"where name in ('int', 'char', 'text') \n"
-			"select @nrows = @@rowcount \n"
-			"select distinct @nv as '@nv', convert(varchar(30), name) as name  from sysobjects where type = 'S' \n"
-			"return 42 \n"
-		"END \n";
-
 static RETCODE
 init_proc(DBPROCESS * dbproc, const char *name)
 {
