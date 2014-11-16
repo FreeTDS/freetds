@@ -88,7 +88,7 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 #endif
 
 	/* test env */
-	tds_check_env_extra(&tds_conn(tds)->env);
+	tds_check_env_extra(&tds->conn->env);
 
 	/* test buffers and positions */
 	tds_check_packet_extra(tds->send_packet);

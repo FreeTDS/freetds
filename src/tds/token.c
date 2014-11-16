@@ -46,7 +46,7 @@
 #endif
 
 /** \cond HIDDEN_SYMBOLS */
-#define USE_ICONV tds_conn(tds)->use_iconv
+#define USE_ICONV (tds->conn->use_iconv)
 /** \endcond */
 
 static TDSRET tds_process_msg(TDSSOCKET * tds, int marker);
@@ -151,7 +151,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		break;
 	case TDS_CAPABILITY_TOKEN:
 		tok_size = tds_get_usmallint(tds);
-		cap = tds_conn(tds)->capabilities.types;
+		cap = tds->conn->capabilities.types;
 		memset(cap, 0, 2*sizeof(*cap));
 		cap[0].type = 1;
 		cap[0].len = sizeof(cap[0].values);
@@ -178,7 +178,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 			 * Sybase 11.0 servers return the wrong length in the capability packet,
 			 * causing us to read past the done packet.
 			 */
-			if (tds_conn(tds)->product_version < TDS_SYB_VER(12, 0, 0) && type == 2)
+			if (tds->conn->product_version < TDS_SYB_VER(12, 0, 0) && type == 2)
 				break;
 		}
 		break;
@@ -337,7 +337,7 @@ tds_process_login_tokens(TDSSOCKET * tds)
 		switch (marker) {
 		case TDS_LOGINACK_TOKEN:
 			/* TODO function */
-			tds_conn(tds)->tds71rev1 = 0;
+			tds->conn->tds71rev1 = 0;
 			len = tds_get_usmallint(tds);
 			if (len < 10)
 				return TDS_FAIL;
@@ -350,7 +350,7 @@ tds_process_login_tokens(TDSSOCKET * tds)
 			ver.reported = (ver.major << 24) | (ver.minor << 16) | (ver.tiny[0] << 8) | ver.tiny[1];
 
 			if (ver.reported == 0x07010000)
-				tds_conn(tds)->tds71rev1 = 1;
+				tds->conn->tds71rev1 = 1;
 
 			/* Log reported server product name, cf. MS-TDS LOGINACK documentation. */
 			switch(ver.reported) {
@@ -380,15 +380,15 @@ tds_process_login_tokens(TDSSOCKET * tds)
 			product_version = 0;
 			/* Compute product name length from packet length. */
 			len -= 10;
-			free(tds_conn(tds)->product_name);
+			free(tds->conn->product_name);
 			if (ver.major >= 7u) {
 				product_version = 0x80000000u;
-				memrc += tds_alloc_get_string(tds, &tds_conn(tds)->product_name, len / 2);
+				memrc += tds_alloc_get_string(tds, &tds->conn->product_name, len / 2);
 			} else if (ver.major >= 5) {
-				memrc += tds_alloc_get_string(tds, &tds_conn(tds)->product_name, len);
+				memrc += tds_alloc_get_string(tds, &tds->conn->product_name, len);
 			} else {
-				memrc += tds_alloc_get_string(tds, &tds_conn(tds)->product_name, len);
-				if (tds_conn(tds)->product_name != NULL && strstr(tds_conn(tds)->product_name, "Microsoft") != NULL)
+				memrc += tds_alloc_get_string(tds, &tds->conn->product_name, len);
+				if (tds->conn->product_name != NULL && strstr(tds->conn->product_name, "Microsoft") != NULL)
 					product_version = 0x80000000u;
 			}
 			
@@ -403,7 +403,7 @@ tds_process_login_tokens(TDSSOCKET * tds)
 			 */
 			if (ver.major == 4 && ver.minor == 2 && (product_version & 0xff0000ffu) == 0x5f0000ffu)
 				product_version = ((product_version & 0xffff00u) | 0x800000u) << 8;
-			tds_conn(tds)->product_version = product_version;
+			tds->conn->product_version = product_version;
 			tdsdump_log(TDS_DBG_FUNC, "Product version %lX\n", (unsigned long) product_version);
 
 			/*
@@ -414,9 +414,9 @@ tds_process_login_tokens(TDSSOCKET * tds)
 			if (ack == 5 || ack == 1)
 				succeed = TDS_SUCCESS;
 			/* authentication is now useless */
-			if (tds_conn(tds)->authentication) {
-				tds_conn(tds)->authentication->free(tds_conn(tds), tds_conn(tds)->authentication);
-				tds_conn(tds)->authentication = NULL;
+			if (tds->conn->authentication) {
+				tds->conn->authentication->free(tds->conn, tds->conn->authentication);
+				tds->conn->authentication = NULL;
 			}
 			break;
 		default:
@@ -462,10 +462,10 @@ tds_process_auth(TDSSOCKET * tds)
 	pdu_size = tds_get_usmallint(tds);
 	tdsdump_log(TDS_DBG_INFO1, "TDS_AUTH_TOKEN PDU size %u\n", pdu_size);
 
-	if (!tds_conn(tds)->authentication)
+	if (!tds->conn->authentication)
 		return TDS_FAIL;
 
-	return tds_conn(tds)->authentication->handle_next(tds, tds_conn(tds)->authentication, pdu_size);
+	return tds->conn->authentication->handle_next(tds, tds->conn->authentication, pdu_size);
 }
 
 /**
@@ -1187,7 +1187,7 @@ tds_process_tabname(TDSSOCKET *tds)
 	/* different structure for tds7.1 */
 	/* hdrsize check is required for tds7.1 revision 1 (mssql without SPs) */
 	/* TODO change tds_version ?? */
-	if (IS_TDS71_PLUS(tds->conn) && (!IS_TDS71(tds->conn) || !tds_conn(tds)->tds71rev1))
+	if (IS_TDS71_PLUS(tds->conn) && (!IS_TDS71(tds->conn) || !tds->conn->tds71rev1))
 		num_names = tds71_read_table_names(tds, hdrsize, &head);
 	else
 		num_names = tds_read_namelist(tds, hdrsize, &head, 1);
@@ -2175,14 +2175,14 @@ tds_process_env_chg(TDSSOCKET * tds)
 		}
 		break;
 	case TDS_ENV_DATABASE:
-		dest = &tds_conn(tds)->env.database;
+		dest = &tds->conn->env.database;
 		break;
 	case TDS_ENV_LANG:
-		dest = &tds_conn(tds)->env.language;
+		dest = &tds->conn->env.language;
 		break;
 	case TDS_ENV_CHARSET:
 		tdsdump_log(TDS_DBG_FUNC, "server indicated charset change to \"%s\"\n", newval);
-		dest = &tds_conn(tds)->env.charset;
+		dest = &tds->conn->env.charset;
 		tds_srv_charset_changed(tds->conn, newval);
 		break;
 	}
@@ -2480,7 +2480,7 @@ tds_process_dynamic(TDSSOCKET * tds)
 	if (drain) {
 		tds_get_n(tds, NULL, drain);
 	}
-	return tds_lookup_dynamic(tds_conn(tds), id);
+	return tds_lookup_dynamic(tds->conn, id);
 }
 
 /**

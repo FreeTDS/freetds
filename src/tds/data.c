@@ -49,7 +49,7 @@
 
 TDS_RCSID(var, "$Id: data.c,v 1.45 2011-10-30 16:47:18 freddy77 Exp $");
 
-#define USE_ICONV tds_conn(tds)->use_iconv
+#define USE_ICONV (tds->conn->use_iconv)
 
 int determine_adjusted_size(const TDSICONV * char_conv, int size);
 static const TDSCOLUMNFUNCS *tds_get_column_funcs(TDSCONNECTION *conn, int type);
@@ -481,7 +481,7 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			tds_get_n(tds, v->data, colsize);
 		}
 #ifdef WORDS_BIGENDIAN
-		if (tds_conn(tds)->emul_little_endian)
+		if (tds->conn->emul_little_endian)
 			tds_swap_datatype(tds_get_conversion_type(type, colsize), v->data);
 #endif
 	}
@@ -682,7 +682,7 @@ tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	 * Nope its an actual MS SQL bug -bsb
 	 */
 	/* TODO test on login, remove configuration -- freddy77 */
-	if (tds_conn(tds)->broken_dates &&
+	if (tds->conn->broken_dates &&
 	    (curcol->column_type == SYBDATETIME ||
 	     curcol->column_type == SYBDATETIME4 ||
 	     curcol->column_type == SYBDATETIMN ||
@@ -699,7 +699,7 @@ tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		memcpy(dest, &dest[colsize / 2], colsize / 2);
 		memcpy(&dest[colsize / 2], temp_buf, colsize / 2);
 	}
-	if (tds_conn(tds)->emul_little_endian) {
+	if (tds->conn->emul_little_endian) {
 		tdsdump_log(TDS_DBG_INFO1, "swapping coltype %d\n", tds_get_conversion_type(curcol->column_type, colsize));
 		tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), dest);
 	}
@@ -885,7 +885,7 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 #ifdef WORDS_BIGENDIAN
 			unsigned char buf[64];
 
-			if (tds_conn(tds)->emul_little_endian && !converted && colsize < 64) {
+			if (tds->conn->emul_little_endian && !converted && colsize < 64) {
 				tdsdump_log(TDS_DBG_INFO1, "swapping coltype %d\n",
 					    tds_get_conversion_type(curcol->column_type, colsize));
 				memcpy(buf, s, colsize);
@@ -946,7 +946,7 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 #ifdef WORDS_BIGENDIAN
 			unsigned char buf[64];
 
-			if (tds_conn(tds)->emul_little_endian && !converted && colsize < 64) {
+			if (tds->conn->emul_little_endian && !converted && colsize < 64) {
 				tdsdump_log(TDS_DBG_INFO1, "swapping coltype %d\n",
 					    tds_get_conversion_type(curcol->column_type, colsize));
 				memcpy(buf, s, colsize);

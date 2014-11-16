@@ -119,7 +119,7 @@ tds_get_usmallint(TDSSOCKET * tds)
 
 	tds_get_n(tds, &bytes, 2);
 #if WORDS_BIGENDIAN
-	if (tds_conn(tds)->emul_little_endian)
+	if (tds->conn->emul_little_endian)
 		return (TDS_USMALLINT) TDS_GET_A2LE(&bytes);
 #endif
 	return (TDS_USMALLINT) TDS_GET_A2(&bytes);
@@ -137,7 +137,7 @@ tds_get_uint(TDSSOCKET * tds)
 
 	tds_get_n(tds, &bytes, 4);
 #if WORDS_BIGENDIAN
-	if (tds_conn(tds)->emul_little_endian)
+	if (tds->conn->emul_little_endian)
 		return TDS_GET_A4LE(&bytes);
 #endif
 	return TDS_GET_A4(&bytes);
@@ -156,7 +156,7 @@ tds_get_uint8(TDSSOCKET * tds)
 
 	tds_get_n(tds, bytes, 8);
 #if WORDS_BIGENDIAN
-	if (tds_conn(tds)->emul_little_endian) {
+	if (tds->conn->emul_little_endian) {
 		l = TDS_GET_A4LE(bytes);
 		h = TDS_GET_A4LE(bytes+1);
 	} else {

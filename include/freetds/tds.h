@@ -1170,13 +1170,12 @@ struct tds_socket
 	tds_mutex wire_mtx;
 };
 
-#define tds_conn(tds) ((tds)->conn)
-#define tds_get_ctx(tds) (tds_conn(tds)->tds_ctx)
-#define tds_set_ctx(tds, val) do { (tds_conn(tds)->tds_ctx) = (val); } while(0)
-#define tds_get_parent(tds) (tds_conn(tds)->parent)
-#define tds_set_parent(tds, val) do { (tds_conn(tds)->parent) = (val); } while(0)
-#define tds_get_s(tds) (tds_conn(tds)->s)
-#define tds_set_s(tds, val) do { (tds_conn(tds)->s) = (val); } while(0)
+#define tds_get_ctx(tds) ((tds)->conn->tds_ctx)
+#define tds_set_ctx(tds, val) do { ((tds)->conn->tds_ctx) = (val); } while(0)
+#define tds_get_parent(tds) ((tds)->conn->parent)
+#define tds_set_parent(tds, val) do { ((tds)->conn->parent) = (val); } while(0)
+#define tds_get_s(tds) ((tds)->conn->s)
+#define tds_set_s(tds, val) do { ((tds)->conn->s) = (val); } while(0)
 
 int tds_init_write_buf(TDSSOCKET * tds);
 void tds_free_result_info(TDSRESULTINFO * info);
@@ -1536,9 +1535,9 @@ int tds_capability_enabled(const TDS_CAPABILITY_TYPE *cap, unsigned cap_num)
 #define IS_TDSDEAD(x) (((x) == NULL) || (x)->state == TDS_DEAD)
 
 /** Check if product is Sybase (such as Adaptive Server Enterrprice). x should be a TDSSOCKET*. */
-#define TDS_IS_SYBASE(x) (!(tds_conn(x)->product_version & 0x80000000u))
+#define TDS_IS_SYBASE(x) (!((x)->conn->product_version & 0x80000000u))
 /** Check if product is Microsft SQL Server. x should be a TDSSOCKET*. */
-#define TDS_IS_MSSQL(x) ((tds_conn(x)->product_version & 0x80000000u)!=0)
+#define TDS_IS_MSSQL(x) (((x)->conn->product_version & 0x80000000u)!=0)
 
 /** Calc a version number for mssql. Use with TDS_MS_VER(7,0,842).
  * For test for a range of version you can use check like

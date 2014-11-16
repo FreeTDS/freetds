@@ -955,7 +955,7 @@ odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned)
 void
 odbc_rdbms_version(TDSSOCKET * tds, char *pversion_string)
 {
-	TDS_UINT version = tds_conn(tds)->product_version;
+	TDS_UINT version = tds->conn->product_version;
 	sprintf(pversion_string, "%.02d.%.02d.%.04d", (int) ((version & 0x7F000000) >> 24),
 		(int) ((version & 0x00FF0000) >> 16), (int) (version & 0x0000FFFF));
 }

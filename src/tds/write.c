@@ -160,7 +160,7 @@ tds_put_int8(TDSSOCKET * tds, TDS_INT8 i)
 #if WORDS_BIGENDIAN
 	TDS_UINT h;
 
-	if (tds_conn(tds)->emul_little_endian) {
+	if (tds->conn->emul_little_endian) {
 		h = (TDS_UINT) i;
 		tds_put_byte(tds, h & 0x000000FF);
 		tds_put_byte(tds, (h & 0x0000FF00) >> 8);
@@ -183,7 +183,7 @@ tds_put_int8(TDSSOCKET * tds, TDS_INT8 i)
 
 	p = &tds->out_buf[tds->out_pos];
 #if WORDS_BIGENDIAN
-	if (tds_conn(tds)->emul_little_endian) {
+	if (tds->conn->emul_little_endian) {
 		TDS_PUT_UA4LE(p, (TDS_UINT) i);
 		TDS_PUT_UA4LE(p+4, (TDS_UINT) (i >> 32));
 	} else {
@@ -204,7 +204,7 @@ tds_put_int(TDSSOCKET * tds, TDS_INT i)
 {
 #if TDS_ADDITIONAL_SPACE < 4
 #if WORDS_BIGENDIAN
-	if (tds_conn(tds)->emul_little_endian) {
+	if (tds->conn->emul_little_endian) {
 		tds_put_byte(tds, i & 0x000000FF);
 		tds_put_byte(tds, (i & 0x0000FF00) >> 8);
 		tds_put_byte(tds, (i & 0x00FF0000) >> 16);
@@ -221,7 +221,7 @@ tds_put_int(TDSSOCKET * tds, TDS_INT i)
 
 	p = &tds->out_buf[tds->out_pos];
 #if WORDS_BIGENDIAN
-	if (tds_conn(tds)->emul_little_endian)
+	if (tds->conn->emul_little_endian)
 		TDS_PUT_UA4LE(p, i);
 	else
 		TDS_PUT_UA4(p, i);
@@ -238,7 +238,7 @@ tds_put_smallint(TDSSOCKET * tds, TDS_SMALLINT si)
 {
 #if TDS_ADDITIONAL_SPACE < 2
 #if WORDS_BIGENDIAN
-	if (tds_conn(tds)->emul_little_endian) {
+	if (tds->conn->emul_little_endian) {
 		tds_put_byte(tds, si & 0x000000FF);
 		tds_put_byte(tds, (si & 0x0000FF00) >> 8);
 		return 0;
@@ -253,7 +253,7 @@ tds_put_smallint(TDSSOCKET * tds, TDS_SMALLINT si)
 
 	p = &tds->out_buf[tds->out_pos];
 #if WORDS_BIGENDIAN
-	if (tds_conn(tds)->emul_little_endian)
+	if (tds->conn->emul_little_endian)
 		TDS_PUT_UA2LE(p, si);
 	else
 		TDS_PUT_UA2(p, si);

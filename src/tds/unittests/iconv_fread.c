@@ -58,9 +58,9 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	tds_iconv_open(tds_conn(tds), "ISO-8859-1");
+	tds_iconv_open(tds->conn, "ISO-8859-1");
 
-	conv = tds_iconv_get(tds_conn(tds), "UTF-8", "ISO-8859-1");
+	conv = tds_iconv_get(tds->conn, "UTF-8", "ISO-8859-1");
 	if (conv == NULL) {
 		fprintf(stderr, "Error creating conversion, giving up!\n");
 		return 1;

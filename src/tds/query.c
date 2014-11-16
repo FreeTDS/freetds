@@ -2115,14 +2115,14 @@ tds_send_cancel(TDSSOCKET * tds)
 	if (tds_mutex_trylock(&tds->conn->list_mtx)) {
 		/* TODO check */
 		/* signal other socket */
-		send(tds_conn(tds)->s_signal, (const void*) &one, sizeof(one), 0);
+		send(tds->conn->s_signal, (const void*) &one, sizeof(one), 0);
 		return TDS_SUCCESS;
 	}
 	if (tds->conn->in_net_tds) {
 		tds_mutex_unlock(&tds->conn->list_mtx);
 		/* TODO check */
 		/* signal other socket */
-		send(tds_conn(tds)->s_signal, (const void*) &one, sizeof(one), 0);
+		send(tds->conn->s_signal, (const void*) &one, sizeof(one), 0);
 		return TDS_SUCCESS;
 	}
 	tds_mutex_unlock(&tds->conn->list_mtx);
@@ -2163,7 +2163,7 @@ tds_send_cancel(TDSSOCKET * tds)
 		static const char one = '1';
 		/* TODO check */
 		/* signal other socket */
-		send(tds_conn(tds)->s_signal, (const void*) &one, sizeof(one), 0);
+		send(tds->conn->s_signal, (const void*) &one, sizeof(one), 0);
 		return TDS_SUCCESS;
 	}
 
@@ -2247,7 +2247,7 @@ tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen)
 	len = idlen < 0 ? strlen(id) : (size_t) idlen;
 
 	/* quote always for mssql */
-	if (TDS_IS_MSSQL(tds) || tds_conn(tds)->product_version >= TDS_SYB_VER(12, 5, 1))
+	if (TDS_IS_MSSQL(tds) || tds->conn->product_version >= TDS_SYB_VER(12, 5, 1))
 		return tds_quote(tds, buffer, ']', id, len);
 
 	/* need quote ?? */

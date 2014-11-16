@@ -214,7 +214,7 @@ tds_open_socket(TDSSOCKET *tds, struct tds_addrinfo *addr, unsigned int port, in
 {
 	ioctl_nonblocking_t ioctl_nonblocking;
 	SOCKLEN_T optlen;
-	TDSCONNECTION *conn = tds_conn(tds);
+	TDSCONNECTION *conn = tds->conn;
 	char ipaddr[128];
 	
 	int retval, len;
@@ -440,7 +440,7 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 		fds[0].fd = tds_get_s(tds);
 		fds[0].events = tds_sel;
 		fds[0].revents = 0;
-		fds[1].fd = tds_conn(tds)->s_signaled;
+		fds[1].fd = tds->conn->s_signaled;
 		fds[1].events = POLLIN;
 		fds[1].revents = 0;
 		rc = poll(fds, 2, timeout);
@@ -451,7 +451,7 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 			rc = fds[0].revents;
 			if (fds[1].revents) {
 #if ENABLE_ODBC_MARS
-				tds_check_cancel(tds_conn(tds));
+				tds_check_cancel(tds->conn);
 #endif
 				rc |= TDSPOLLURG;
 			}
@@ -624,7 +624,7 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 #if !ENABLE_ODBC_MARS
 		if (len > 0 && (len & TDSPOLLURG)) {
 			char buf[32];
-			READSOCKET(tds_conn(tds)->s_signaled, buf, sizeof(buf));
+			READSOCKET(tds->conn->s_signaled, buf, sizeof(buf));
 			/* send cancel */
 			if (!tds->in_cancel)
 				tds_put_cancel(tds);
@@ -632,7 +632,7 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 		}
 #endif
 		if (len > 0) {
-			len = tds_socket_read(tds_conn(tds), tds, buf, buflen);
+			len = tds_socket_read(tds->conn, tds, buf, buflen);
 			if (len == 0)
 				continue;
 			return len;
@@ -643,7 +643,7 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 			if (TDSSOCK_WOULDBLOCK(sock_errno)) /* shouldn't happen, but OK */
 				continue;
 			err = sock_errno;
-			tds_connection_close(tds_conn(tds));
+			tds_connection_close(tds->conn);
 			tdserror(tds_get_ctx(tds), tds, TDSEREAD, err);
 			return -1;
 		}
@@ -663,7 +663,7 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 int
 tds_connection_read(TDSSOCKET * tds, unsigned char *buf, int buflen)
 {
-	TDSCONNECTION *conn = tds_conn(tds);
+	TDSCONNECTION *conn = tds->conn;
 
 #ifdef HAVE_GNUTLS
 	if (conn->tls_session)
@@ -699,7 +699,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen, unsig
 		len = tds_select(tds, TDSSELWRITE, tds->query_timeout);
 
 		if (len > 0) {
-			len = tds_socket_write(tds_conn(tds), tds, buffer, buflen, last);
+			len = tds_socket_write(tds->conn, tds, buffer, buflen, last);
 			if (len == 0)
 				continue;
 			if (len > 0) {
@@ -717,7 +717,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen, unsig
 			if (TDSSOCK_WOULDBLOCK(err)) /* shouldn't happen, but OK, retry */
 				continue;
 			tdsdump_log(TDS_DBG_NETWORK, "select(2) failed: %d (%s)\n", err, sock_strerror(err));
-			tds_connection_close(tds_conn(tds));
+			tds_connection_close(tds->conn);
 			tdserror(tds_get_ctx(tds), tds, TDSEWRIT, err);
 			return -1;
 		}
@@ -753,7 +753,7 @@ int
 tds_connection_write(TDSSOCKET *tds, unsigned char *buf, int buflen, int final)
 {
 	int sent;
-	TDSCONNECTION *conn = tds_conn(tds);
+	TDSCONNECTION *conn = tds->conn;
 
 #if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X) && (!defined(__APPLE__) || !defined(SO_NOSIGPIPE))
 	void (*oldsig) (int);
@@ -1414,12 +1414,12 @@ tds_ssl_init(TDSSOCKET *tds)
 
 	tdsdump_log(TDS_DBG_INFO1, "handshake succeeded!!\n");
 
-	gnutls_transport_set_ptr(session, tds_conn(tds));
+	gnutls_transport_set_ptr(session, tds->conn);
 	gnutls_transport_set_pull_function(session, tds_pull_func);
 	gnutls_transport_set_push_function(session, tds_push_func);
 
-	tds_conn(tds)->tls_session = session;
-	tds_conn(tds)->tls_credentials = xcred;
+	tds->conn->tls_session = session;
+	tds->conn->tls_credentials = xcred;
 
 	return TDS_SUCCESS;
 }
@@ -1529,13 +1529,13 @@ tds_ssl_init(TDSSOCKET *tds)
 	ret = 1;
 
 	tls_msg = "initializing tls";
-	if (tds_conn(tds)->tls_ctx == NULL)
-		tds_conn(tds)->tls_ctx = tds_init_openssl();
+	if (tds->conn->tls_ctx == NULL)
+		tds->conn->tls_ctx = tds_init_openssl();
 
-	if (tds_conn(tds)->tls_ctx) {
+	if (tds->conn->tls_ctx) {
 		/* Initialize TLS session */
 		tls_msg = "initializing session";
-		con = SSL_new(tds_conn(tds)->tls_ctx);
+		con = SSL_new(tds->conn->tls_ctx);
 	}
 	
 	if (con) {
@@ -1578,8 +1578,8 @@ tds_ssl_init(TDSSOCKET *tds)
 			SSL_shutdown(con);
 			SSL_free(con);
 		}
-		SSL_CTX_free(tds_conn(tds)->tls_ctx);
-		tds_conn(tds)->tls_ctx = NULL;
+		SSL_CTX_free(tds->conn->tls_ctx);
+		tds->conn->tls_ctx = NULL;
 		tdsdump_log(TDS_DBG_ERROR, "%s failed\n", tls_msg);
 		return TDS_FAIL;
 	}
@@ -1589,10 +1589,10 @@ tds_ssl_init(TDSSOCKET *tds)
 	b2->shutdown = 1;
 	b2->init = 1;
 	b2->num = -1;
-	b2->ptr = tds_conn(tds);
+	b2->ptr = tds->conn;
 	SSL_set_bio(con, b2, b2);
 
-	tds_conn(tds)->tls_session = con;
+	tds->conn->tls_session = con;
 
 	return TDS_SUCCESS;
 }

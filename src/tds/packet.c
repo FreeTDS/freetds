@@ -263,7 +263,7 @@ static void
 tds_alloc_new_sid(TDSSOCKET *tds)
 {
 	int sid = -1;
-	TDSCONNECTION *conn = tds_conn(tds);
+	TDSCONNECTION *conn = tds->conn;
 	TDSSOCKET **s;
 
 	tds_mutex_lock(&conn->list_mtx);

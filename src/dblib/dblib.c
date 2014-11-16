@@ -3905,7 +3905,7 @@ dbgetpacket(DBPROCESS * dbproc)
 	if (!tds) {
 		return TDS_DEF_BLKSZ;
 	} else {
-		return tds_conn(tds)->env.block_size;
+		return tds->conn->env.block_size;
 	}
 }
 

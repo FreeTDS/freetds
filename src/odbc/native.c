@@ -91,7 +91,7 @@ to_native(struct _hdbc *dbc, struct _hstmt *stmt, char *buf)
 
 	assert(dbc && buf);
 
-	server_scalar = TDS_IS_MSSQL(dbc->tds_socket) && tds_conn(dbc->tds_socket)->product_version >= TDS_MS_VER(7, 0, 0);
+	server_scalar = TDS_IS_MSSQL(dbc->tds_socket) && dbc->tds_socket->conn->product_version >= TDS_MS_VER(7, 0, 0);
 
 	/*
 	 * we can do it because result string will be
