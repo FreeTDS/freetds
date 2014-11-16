@@ -53,7 +53,7 @@ if @null_input is not NULL begin
 	select 'error: should be NULL' as status, @null_input as 'null_input'
 	return -42
 end else begin
-	print '@null_input is NULL, as expected'
+	print 'Good: @null_input is NULL'
 end
 if @c_this_name_is_way_more_than_thirty_characters_charlie is not NULL begin 
 	select 'error: should be NULL' as status, @c_this_name_is_way_more_than_thirty_characters_charlie as '@c_this_name_is_way_more_than_thirty_characters_charlie'
