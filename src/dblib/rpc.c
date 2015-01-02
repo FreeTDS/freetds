@@ -166,7 +166,7 @@ dbrpcparam(DBPROCESS * dbproc, const char paramname[], BYTE status, int type, DB
 	CHECK_CONN(FAIL);
 	CHECK_PARAMETER(dbproc->rpc, SYBERPCS, FAIL);
 
-	if (type == SYBVARCHAR && IS_TDS7_PLUS(dbproc->tds_socket->conn))
+	if (!(status & DBRPCRETURN) && type == SYBVARCHAR && IS_TDS7_PLUS(dbproc->tds_socket->conn))
 		type = XSYBNVARCHAR;
 
 	/* validate datalen parameter */

@@ -108,8 +108,8 @@ colwidth( DBPROCESS * dbproc, int icol )
 	return 255 == width? dbcollen(dbproc, icol) : width;
 }
 
-char param_data1[64];
-int param_data2, param_data3;
+char param_data1[64], param_data3[8000+1], param_data4[2 * 4000 + 1];
+int param_data2, param_data5;
 
 struct parameters_t {
 	char         *name;
@@ -122,7 +122,9 @@ struct parameters_t {
 	{ { "@null_input", DBRPCRETURN, SYBCHAR,  -1,   0, NULL }
 	, { "@first_type", DBRPCRETURN, SYBCHAR,  sizeof(param_data1), 0, (BYTE *) &param_data1 }
 	, { "@nullout",    DBRPCRETURN, SYBINT4,  -1,   0, (BYTE *) &param_data2 }
-	, { "@nrows",      DBRPCRETURN, SYBINT4,  -1,  -1, (BYTE *) &param_data3 }
+	, { "@varchar_tds7_out", DBRPCRETURN, SYBVARCHAR,  sizeof(param_data3),   0, (BYTE *) &param_data3 }
+	, { "@nvarchar_tds7_out", DBRPCRETURN, 231,  sizeof(param_data4),   0, (BYTE *) &param_data4 }
+	, { "@nrows",      DBRPCRETURN, SYBINT4,  -1,  -1, (BYTE *) &param_data5 }
 	, { "@c_this_name_is_way_more_than_thirty_characters_charlie",
 		           0,        SYBVARCHAR,   0,   0, NULL }
 	, { "@nv",         0,        SYBVARCHAR,  -1,   2, (BYTE *) "OK:" }
@@ -133,9 +135,9 @@ main(int argc, char **argv)
 {
 	LOGINREC *login;
 	DBPROCESS *dbproc;
-	RETPARAM save_param;
+	RETPARAM save_param, save_varchar_tds7_param, save_nvarchar_tds7_param;
 	
-	char teststr[1024];
+	char teststr[8000+1], abbrev_data[10+3+1], *output;
 	char *retname = NULL;
 	int i, failed = 0;
 	int rettype = 0, retlen = 0, return_status = 0;
@@ -146,13 +148,15 @@ main(int argc, char **argv)
 
 	static const char dashes30[] = "------------------------------";
 	static const char  *dashes5 = dashes30 + (sizeof(dashes30) - 5), 
-			  *dashes15 = dashes30 + (sizeof(dashes30) - 15);
+			  *dashes20 = dashes30 + (sizeof(dashes30) - 20);
 
 	RETCODE erc, row_code;
 
 	set_malloc_options();
 	
 	memset(&save_param, 0, sizeof(save_param));
+	memset(&save_varchar_tds7_param, 0, sizeof(save_varchar_tds7_param));
+	memset(&save_nvarchar_tds7_param, 0, sizeof(save_nvarchar_tds7_param));
 
 	read_login_info(argc, argv);
 
@@ -228,7 +232,7 @@ main(int argc, char **argv)
 
 	}
 	printf("executing dbrpcsend\n");
-	param_data3 = 0x11223344;
+	param_data5 = 0x11223344;
 	erc = dbrpcsend(dbproc);
 	if (erc == FAIL) {
 		fprintf(stderr, "Failed line %d: dbrpcsend\n", __LINE__);
@@ -305,28 +309,41 @@ main(int argc, char **argv)
 	/* 
 	 * Check output parameter values 
 	 */
-	if (dbnumrets(dbproc) < 4) {	/* dbnumrets missed something */
-		fprintf(stderr, "Expected 4 output parameters.\n");
+	if (dbnumrets(dbproc) != 6) {	/* dbnumrets missed something */
+		fprintf(stderr, "Expected 6 output parameters.\n");
 		exit(1);
 	}
 	printf("retrieving output parameters...\n");
-	printf("%-5s %-15s %5s %6s  %-30s\n", "param", "name", "type", "length", "data"); 
-	printf("%-5s %-15s %5s %5s- %-30s\n", dashes5, dashes15, dashes5, dashes5, dashes30); 
+	printf("%-5s %-20s %5s %6s  %-30s\n", "param", "name", "type", "length", "data");
+	printf("%-5s %-20s %5s %5s- %-30s\n", dashes5, dashes20, dashes5, dashes5, dashes30);
 	for (i = 1; i <= dbnumrets(dbproc); i++) {
 		retname = dbretname(dbproc, i);
 		rettype = dbrettype(dbproc, i);
 		retlen = dbretlen(dbproc, i);
 		dbconvert(dbproc, rettype, dbretdata(dbproc, i), retlen, SYBVARCHAR, (BYTE*) teststr, -1);
-		printf("%-5d %-15s %5d %6d  %-30s\n", i, retname, rettype, retlen, teststr); 
+		if(retlen <= 10) {
+			output = teststr;
+		} else {
+			memcpy(abbrev_data, teststr, 10);
+			sprintf(&abbrev_data[10], "...");
+			output = abbrev_data;
+		}
+		printf("%-5d %-20s %5d %6d  %-30s\n", i, retname, rettype, retlen, output);
 
 		save_retparam(&save_param, retname, teststr, rettype, retlen);
+		if (i == 4) {
+			save_retparam(&save_varchar_tds7_param, retname, teststr, rettype, retlen);
+		}
+		if (i == 5) {
+			save_retparam(&save_nvarchar_tds7_param, retname, teststr, rettype, retlen);
+		}
 	}
 
 	/* 
 	 * Test the last parameter for expected outcome 
 	 */
-	if ((save_param.name == NULL) || strcmp(save_param.name, bindings[3].name)) {
-		fprintf(stderr, "Expected retname to be '%s', got ", bindings[3].name);
+	if ((save_param.name == NULL) || strcmp(save_param.name, bindings[5].name)) {
+		fprintf(stderr, "Expected retname to be '%s', got ", bindings[5].name);
 		if (save_param.name == NULL) 
 			fprintf(stderr, "<NULL> instead.\n");
 		else
@@ -346,12 +363,48 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
+	/*
+	 * Test name, size, contents of the VARCHAR(8000) output parameter
+	 */
+	if ((save_varchar_tds7_param.name == NULL) || strcmp(save_varchar_tds7_param.name, bindings[3].name)) {
+		fprintf(stderr, "Expected retname to be '%s', got ", bindings[3].name);
+		if (save_varchar_tds7_param.name == NULL)
+			fprintf(stderr, "<NULL> instead.\n");
+		else
+			fprintf(stderr, "'%s' instead.\n", save_varchar_tds7_param.name);
+		exit(1);
+	}
+	if (save_varchar_tds7_param.type != SYBVARCHAR) {
+		fprintf(stderr, "Expected rettype to be SYBVARCHAR was %d.\n", save_varchar_tds7_param.type);
+		exit(1);
+	}
+	if (save_varchar_tds7_param.len != 8000) {
+		fprintf(stderr, "Expected retlen to be 8000 was %d.\n", save_varchar_tds7_param.len);
+		exit(1);
+	}
+
+	/*
+	 * Test name, size, contents of the NVARCHAR(4000) output parameter
+	 */
+	if ((save_nvarchar_tds7_param.name == NULL) || strcmp(save_nvarchar_tds7_param.name, bindings[4].name)) {
+		fprintf(stderr, "Expected retname to be '%s', got ", bindings[4].name);
+		if (save_varchar_tds7_param.name == NULL)
+			fprintf(stderr, "<NULL> instead.\n");
+		else
+			fprintf(stderr, "'%s' instead.\n", save_nvarchar_tds7_param.name);
+		exit(1);
+	}
+	if (save_nvarchar_tds7_param.len != 4000) {
+		fprintf(stderr, "Expected retlen to be 4000 was %d.\n", save_nvarchar_tds7_param.len);
+		exit(1);
+	}
+
 	if(42 != return_status) {
 		fprintf(stderr, "Expected status to be 42.\n");
 		exit(1);
 	}
 
-	printf("Good: Got 4 output parameters and 1 return status of %d.\n", return_status);
+	printf("Good: Got 6 output parameters and 1 return status of %d.\n", return_status);
 
 
 	/* Test number of result sets */

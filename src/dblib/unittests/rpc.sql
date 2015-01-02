@@ -5,6 +5,8 @@ CREATE PROCEDURE #t0022
   @null_input varchar(30) OUTPUT 
 , @first_type varchar(30) OUTPUT 
 , @nullout int OUTPUT
+, @varchar_tds7_out varchar(8000) OUTPUT
+, @nvarchar_tds7_out nvarchar(4000) OUTPUT
 , @nrows int OUTPUT 
 , @c_this_name_is_way_more_than_thirty_characters_charlie varchar(20)
 , @nv nvarchar(20) = N'hello'
@@ -28,6 +30,8 @@ select name from sysobjects where 0=1
 select distinct convert(varchar(30), name) as 'type'  from systypes 
 where name in ('int', 'char', 'text') 
 select @nrows = @@rowcount 
+set @varchar_tds7_out = replicate('1', 8000)
+set @nvarchar_tds7_out = replicate(N'ö', 4000)
 select distinct @nv as '@nv', convert(varchar(30), name) as name  from sysobjects where type = 'S' 
 select	  @null_input as 'null_input'
 	, @first_type as 'first_type'
@@ -47,6 +51,8 @@ CREATE PROCEDURE t0022
   @null_input varchar(30) OUTPUT 
 , @first_type varchar(30) OUTPUT 
 , @nullout int OUTPUT
+, @varchar_tds7_out varchar(8000) OUTPUT
+, @nvarchar_tds7_out nvarchar(4000) OUTPUT
 , @nrows int OUTPUT 
 , @c_this_name_is_way_more_than_thirty_characters_charlie varchar(20)
 , @nv nvarchar(20) = N'hello'
@@ -70,6 +76,8 @@ select name from sysobjects where 0=1
 select distinct convert(varchar(30), name) as 'type'  from systypes 
 where name in ('int', 'char', 'text') 
 select @nrows = @@rowcount 
+set @varchar_tds7_out = replicate('1', 8000)
+set @nvarchar_tds7_out = replicate(N'ö', 4000)
 select distinct @nv as '@nv', convert(varchar(30), name) as name  from sysobjects where type = 'S' 
 select	  @null_input as 'null_input'
 	, @first_type as 'first_type'
