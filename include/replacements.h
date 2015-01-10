@@ -44,9 +44,7 @@
 #define poll(fds, nfds, timeout) fakepoll((fds), (nfds), (timeout))
 #endif /* !HAVE_POLL */
 
-#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
-#pragma GCC visibility push(hidden)
-#endif
+#include <freetds/pushvis.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -167,8 +165,6 @@ int tds_socketpair(int domain, int type, int protocol, int sv[2]);
 }
 #endif
 
-#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
-#pragma GCC visibility pop
-#endif
+#include <freetds/popvis.h>
 
 #endif

@@ -51,7 +51,6 @@ TDS_RCSID(var, "$Id: data.c,v 1.45 2011-10-30 16:47:18 freddy77 Exp $");
 
 #define USE_ICONV (tds->conn->use_iconv)
 
-int determine_adjusted_size(const TDSICONV * char_conv, int size);
 static const TDSCOLUMNFUNCS *tds_get_column_funcs(TDSCONNECTION *conn, int type);
 
 #undef MIN

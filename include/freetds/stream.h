@@ -24,6 +24,8 @@
 #error Include tds.h first
 #endif
 
+#include <freetds/pushvis.h>
+
 /** define a stream of data used for input */
 typedef struct tds_input_stream {
 	/** read some data
@@ -104,6 +106,7 @@ typedef struct tds_dynamic_stream {
 
 TDSRET tds_dynamic_stream_init(TDSDYNAMICSTREAM * stream, void **ptr, size_t allocated);
 
+#include <freetds/popvis.h>
 
 #endif
 

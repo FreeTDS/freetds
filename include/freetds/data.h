@@ -24,6 +24,8 @@
 # error Include tds.h before data.h
 #endif
 
+#include <freetds/pushvis.h>
+
 #define TDS_COMMON_FUNCS(name) \
 { \
 	tds_ ## name ## _get_info, \
@@ -77,5 +79,7 @@ TDS_DEFINE_DEFAULT_FUNCS(variant);
 TDS_DEFINE_DEFAULT_FUNCS(msdatetime);
 TDS_DEFINE_DEFAULT_FUNCS(clrudt);
 #endif
+
+#include <freetds/popvis.h>
 
 #endif

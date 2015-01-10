@@ -22,14 +22,10 @@
 
 /* $Id: hmac_md5.h,v 1.3 2010-01-25 23:05:58 freddy77 Exp $ */
 
-#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
-#pragma GCC visibility push(hidden)
-#endif
+#include <freetds/pushvis.h>
 void hmac_md5(const unsigned char key[16],
               const unsigned char* data, size_t data_len,
               unsigned char* digest);
-#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
-#pragma GCC visibility pop
-#endif
+#include <freetds/popvis.h>
 
 #endif

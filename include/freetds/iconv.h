@@ -50,9 +50,7 @@ typedef void *iconv_t;
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
-#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
-#pragma GCC visibility push(hidden)
-#endif
+#include <freetds/pushvis.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -132,8 +130,6 @@ TDSICONV *tds_iconv_get(TDSCONNECTION * conn, const char *client_charset, const 
 }
 #endif
 
-#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
-#pragma GCC visibility pop
-#endif
+#include <freetds/popvis.h>
 
 #endif /* _tds_iconv_h_ */

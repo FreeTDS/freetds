@@ -138,8 +138,8 @@ extern "C"
 
 /* $Id: tdsodbc.h,v 1.134 2012-03-09 21:51:21 freddy77 Exp $ */
 
+#include <freetds/pushvis.h>
 #if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
-#pragma GCC visibility push(hidden)
 #define ODBC_API SQL_API __attribute__((externally_visible))
 #else
 #define ODBC_API SQL_API
@@ -767,9 +767,7 @@ const wchar_t *sqlwstr(const SQLWCHAR * s);
 #error SIZEOF_SQLWCHAR not supported !!
 #endif
 
-#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
-#pragma GCC visibility pop
-#endif
+#include <freetds/popvis.h>
 
 #ifdef __cplusplus
 #if 0

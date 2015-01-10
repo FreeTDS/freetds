@@ -20,9 +20,7 @@
 #ifndef _tdsconvert_h_
 #define _tdsconvert_h_
 
-#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
-#pragma GCC visibility push(hidden)
-#endif
+#include <freetds/pushvis.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -94,8 +92,6 @@ size_t tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATE
 }
 #endif
 
-#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
-#pragma GCC visibility pop
-#endif
+#include <freetds/popvis.h>
 
 #endif /* _tdsconvert_h_ */

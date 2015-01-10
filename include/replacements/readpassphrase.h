@@ -32,9 +32,7 @@
 #ifndef _READPASSPHRASE_H_
 #define _READPASSPHRASE_H_
 
-#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
-#pragma GCC visibility push(hidden)
-#endif
+#include <freetds/pushvis.h>
 
 #ifndef HAVE_READPASSPHRASE
 
@@ -50,8 +48,6 @@ char * readpassphrase(const char *, char *, size_t, int);
 
 #endif /* HAVE_READPASSPHRASE */
 
-#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
-#pragma GCC visibility pop
-#endif
+#include <freetds/popvis.h>
 
 #endif /* !_READPASSPHRASE_H_ */

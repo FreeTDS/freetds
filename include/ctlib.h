@@ -27,9 +27,7 @@
  * Internal (not part of the exposed API) prototypes and such.
  */
 
-#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
-#pragma GCC visibility push(hidden)
-#endif
+#include <freetds/pushvis.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -289,8 +287,6 @@ int _cs_locale_copy_inplace(CS_LOCALE *new_locale, CS_LOCALE *orig);
 }
 #endif
 
-#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
-#pragma GCC visibility pop
-#endif
+#include <freetds/popvis.h>
 
 #endif

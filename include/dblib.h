@@ -20,9 +20,7 @@
 #ifndef _dblib_h_
 #define _dblib_h_
 
-#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
-#pragma GCC visibility push(hidden)
-#endif
+#include <freetds/pushvis.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -204,8 +202,6 @@ extern EHANDLEFUNC _dblib_err_handler;
 }
 #endif
 
-#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
-#pragma GCC visibility pop
-#endif
+#include <freetds/popvis.h>
 
 #endif

@@ -22,9 +22,7 @@
 
 /* $Id: tdsstring.h,v 1.21 2010-01-25 23:05:59 freddy77 Exp $ */
 
-#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
-#pragma GCC visibility push(hidden)
-#endif
+#include <freetds/pushvis.h>
 
 extern const struct tds_dstr tds_str_empty;
 
@@ -80,8 +78,6 @@ DSTR* tds_dstr_alloc(DSTR *s, size_t length) TDS_WUR;
 
 /** @} */
 
-#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
-#pragma GCC visibility pop
-#endif
+#include <freetds/popvis.h>
 
 #endif /* _tdsstring_h_ */

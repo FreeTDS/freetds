@@ -30,6 +30,8 @@
 
 #include <pthread.h>
 
+#include <freetds/pushvis.h>
+
 typedef pthread_mutex_t tds_mutex;
 #define TDS_MUTEX_INITIALIZER PTHREAD_MUTEX_INITIALIZER
 
@@ -91,6 +93,8 @@ static inline int tds_thread_join(tds_thread th, void **ret)
 {
 	return pthread_join(th, ret);
 }
+
+#include <freetds/popvis.h>
 
 #elif defined(_WIN32)
 

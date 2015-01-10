@@ -21,9 +21,7 @@
 #define TDS_CHECKS_H
 
 /* $Id: tds_checks.h,v 1.6 2010-01-25 23:05:59 freddy77 Exp $ */
-#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
-#pragma GCC visibility push(hidden)
-#endif
+#include <freetds/pushvis.h>
 
 #if ENABLE_EXTRA_CHECKS
 #define CHECK_STRUCT_EXTRA(func,s) func(s)
@@ -58,7 +56,6 @@ void tds_check_dynamic_extra(const TDSDYNAMIC * dynamic);
 #  define TDS_MARK_UNDEFINED(ptr, len) do {} while(0)
 #endif
 
-#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
-#pragma GCC visibility pop
-#endif
+#include <freetds/popvis.h>
+
 #endif /* TDS_CHECKS_H */
