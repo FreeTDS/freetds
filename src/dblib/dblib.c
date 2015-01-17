@@ -399,7 +399,6 @@ dbacolptr(DBPROCESS* dbproc, int computeid, int column, int is_bind)
 			return NULL;
 		}
 		info = tds->comp_info[i];
-		info = dbproc->tds_socket->comp_info[i];
 		if (info->computeid == computeid)
 			break;
 	}
