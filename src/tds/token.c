@@ -2622,12 +2622,19 @@ tds_get_token_size(int marker)
 
 #ifdef WORDS_BIGENDIAN
 void
-tds_swap_datatype(int coltype, unsigned char *buf)
+tds_swap_datatype(int coltype, void *b)
 {
+	unsigned char *buf = (unsigned char *) b;
+
 	switch (coltype) {
+	case SYBDATETIME4:
+		tds_swap_bytes(&buf[2], 2);
 	case SYBINT2:
 		tds_swap_bytes(buf, 2);
 		break;
+	case SYBMONEY:
+	case SYBDATETIME:
+		tds_swap_bytes(&buf[4], 4);
 	case SYBINT4:
 	case SYBMONEY4:
 	case SYBREAL:
@@ -2636,15 +2643,6 @@ tds_swap_datatype(int coltype, unsigned char *buf)
 	case SYBINT8:
 	case SYBFLT8:
 		tds_swap_bytes(buf, 8);
-		break;
-	case SYBMONEY:
-	case SYBDATETIME:
-		tds_swap_bytes(buf, 4);
-		tds_swap_bytes(&buf[4], 4);
-		break;
-	case SYBDATETIME4:
-		tds_swap_bytes(buf, 2);
-		tds_swap_bytes(&buf[2], 2);
 		break;
 	case SYBUNIQUE:
 		tds_swap_bytes(buf, 4);
