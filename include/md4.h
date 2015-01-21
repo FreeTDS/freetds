@@ -8,7 +8,7 @@
 struct MD4Context
 {
 	TDS_UINT buf[4];
-	TDS_UINT bits[2];
+	TDS_UINT8 bytes;
 	unsigned char in[64];
 };
 

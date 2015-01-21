@@ -63,8 +63,7 @@ void MD5Init(struct MD5Context *ctx)
     ctx->buf[2] = 0x98badcfe;
     ctx->buf[3] = 0x10325476;
 
-    ctx->bits[0] = 0;
-    ctx->bits[1] = 0;
+    ctx->bytes = 0;
 }
 
 /*
@@ -75,14 +74,10 @@ void MD5Update(struct MD5Context *ctx, unsigned char const *buf, size_t len)
 {
     register word32 t;
 
-    /* Update bitcount */
+    t = ctx->bytes & 0x3f;	/* Bytes already in shsInfo->data */
 
-    t = ctx->bits[0];
-    if ((ctx->bits[0] = t + ((word32) len << 3)) < t)
-	ctx->bits[1]++;		/* Carry from low to high */
-    ctx->bits[1] += (TDS_UINT)len >> 29;
-
-    t = (t >> 3) & 0x3f;	/* Bytes already in shsInfo->data */
+    /* Update bytecount */
+    ctx->bytes += len;
 
     /* Handle any leading odd-sized chunks */
 
@@ -125,7 +120,7 @@ void MD5Final(struct MD5Context *ctx, unsigned char* digest)
     unsigned char *p;
 
     /* Compute number of bytes mod 64 */
-    count = (ctx->bits[0] >> 3) & 0x3F;
+    count = ctx->bytes & 0x3F;
 
     /* Set the first char of padding to 0x80.  This is safe since there is
        always at least one byte free */
@@ -151,8 +146,8 @@ void MD5Final(struct MD5Context *ctx, unsigned char* digest)
     byteReverse(ctx->in, 14);
 
     /* Append length in bits and transform */
-    ((word32 *) ctx->in)[14] = ctx->bits[0];
-    ((word32 *) ctx->in)[15] = ctx->bits[1];
+    ((word32 *) ctx->in)[14] = (word32) (ctx->bytes << 3);
+    ((word32 *) ctx->in)[15] = (word32) (ctx->bytes >> 29);
 
     MD5Transform(ctx->buf, (word32 *) ctx->in);
     byteReverse((unsigned char *) ctx->buf, 4);
