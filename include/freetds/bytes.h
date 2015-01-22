@@ -201,4 +201,36 @@ typedef union {
    TDS_UINT _tds_i = bswap_32(val); TDS_PUT_UA4LE(ptr,_tds_i); } while(0)
 #endif
 
+#if defined(__GNUC__) && defined(__powerpc__)
+# undef TDS_GET_UA2LE
+# undef TDS_GET_UA4LE
+static inline TDS_USMALLINT
+TDS_GET_UA2LE(void *ptr)
+{
+	unsigned long res;
+	__asm__ __volatile__ ("lhbrx %0,0,%1\n" : "=r" (res) : "r" (ptr), "m"(*(TDS_USMALLINT*)ptr));
+	return (TDS_USMALLINT) res;
+}
+static inline TDS_UINT
+TDS_GET_UA4LE(void *ptr)
+{
+	unsigned long res;
+	__asm__ __volatile__ ("lwbrx %0,0,%1\n" : "=r" (res) : "r" (ptr), "m"(*(TDS_UINT*)ptr));
+	return (TDS_UINT) res;
+}
+
+# undef TDS_PUT_UA2LE
+# undef TDS_PUT_UA4LE
+static inline void
+TDS_PUT_UA2LE(void *ptr, unsigned data)
+{
+    asm volatile ("sthbrx %1,0,%2\n" : "=m" (*(TDS_USMALLINT *)ptr) : "r" (data), "r" (ptr));
+}
+static inline void
+TDS_PUT_UA4LE(void *ptr, unsigned data)
+{
+    asm volatile ("stwbrx %1,0,%2\n" : "=m" (*(TDS_UINT *)ptr) : "r" (data), "r" (ptr));
+}
+#endif
+
 #endif
