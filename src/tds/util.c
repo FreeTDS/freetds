@@ -21,18 +21,7 @@
 
 #include <stdarg.h>
 
-#if TIME_WITH_SYS_TIME
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-#endif
-# include <time.h>
-#else
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
-#endif
+#include <freetds/time.h>
 
 #include <assert.h>
 #include <ctype.h>
@@ -62,8 +51,6 @@
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
-
-TDS_RCSID(var, "$Id: util.c,v 1.102 2011-09-01 12:26:51 freddy77 Exp $");
 
 /**
  * Set state of TDS connection, with logging and checking.

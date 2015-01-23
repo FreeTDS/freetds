@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2006-2011  Frediano Ziglio
+ * Copyright (C) 2006-2015  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -22,16 +22,7 @@
 
 #include <stdarg.h>
 
-#if TIME_WITH_SYS_TIME
-# include <sys/time.h>
-# include <time.h>
-#else
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
-#endif
+#include <freetds/time.h>
 
 #include <assert.h>
 #include <stdio.h>
@@ -72,8 +63,6 @@
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
-
-TDS_RCSID(var, "$Id: dblib.c,v 1.407 2012-03-11 15:52:22 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _get_printable_size(TDSCOLUMN * colinfo);

@@ -4,18 +4,7 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#if TIME_WITH_SYS_TIME
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# endif
-# include <time.h>
-#else
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
-#endif
+#include <freetds/time.h>
 
 #if HAVE_ERRNO_H
 #include <errno.h>
@@ -47,9 +36,6 @@
 
 #include <freetds/tds.h>
 #include <freetds/thread.h>
-
-static char software_version[] = "$Id: freeclose.c,v 1.17 2012-03-06 20:45:53 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* this crazy test test that we do not send too much prepare ... */
 

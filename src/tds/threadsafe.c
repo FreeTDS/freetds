@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004  Brian Bruns
- * Copyright (C) 2005-2010  Frediano Ziglio
+ * Copyright (C) 2005-2015  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -27,18 +27,7 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#if TIME_WITH_SYS_TIME
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# endif
-# include <time.h>
-#else
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
-#endif
+#include <freetds/time.h>
 
 #if defined(HAVE_GETUID) && defined(HAVE_GETPWUID)
 #include <pwd.h>
@@ -87,8 +76,6 @@
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
-
-TDS_RCSID(var, "$Id: threadsafe.c,v 1.52 2011-10-21 10:01:00 freddy77 Exp $");
 
 struct tm *
 tds_localtime_r(const time_t *timep, struct tm *result)

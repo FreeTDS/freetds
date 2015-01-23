@@ -21,9 +21,6 @@
 
 #ifndef HAVE_POLL
 
-static char software_version[] = "$Id: fakepoll.c,v 1.12 2011-05-16 08:51:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -41,18 +38,7 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#if TIME_WITH_SYS_TIME
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# endif
-# include <time.h>
-#else
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
-#endif
+#include <freetds/time.h>
 
 #include <string.h>
 #include <assert.h>

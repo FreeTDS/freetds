@@ -28,12 +28,7 @@
 #include <freetds/convert.h>
 #include "replacements.h"
 
-#if HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
-
-static char software_version[] = "$Id: convert.c,v 1.26 2009-02-06 14:26:54 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+#include <freetds/time.h>
 
 int g_result = 0;
 static TDSCONTEXT *ctx;

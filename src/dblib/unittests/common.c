@@ -12,18 +12,13 @@
 #include <sys/param.h>
 #endif /* HAVE_SYS_PARAM_H */
 
-#if HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif /* HAVE_SYS_TIME_H */
+#include <freetds/time.h>
 
 #if HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
 #endif /* HAVE_SYS_RESOURCE_H */
 
 #include "replacements.h"
-
-static char software_version[] = "$Id: common.c,v 1.43 2011-06-07 14:09:17 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
 {

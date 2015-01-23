@@ -4,18 +4,7 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#if TIME_WITH_SYS_TIME
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# endif
-# include <time.h>
-#else
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
-#endif
+#include <freetds/time.h>
 
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
@@ -38,9 +27,6 @@
  * With a trick we simulate a connection close then we try to 
  * prepare or execute a query. This should fail and return an error message.
  */
-
-static char software_version[] = "$Id: timeout4.c,v 1.7 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if HAVE_FSTAT && defined(S_IFSOCK)
 

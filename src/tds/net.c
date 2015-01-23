@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003  Brian Bruns
- * Copyright (C) 2004-2011  Ziglio Frediano
+ * Copyright (C) 2004-2015  Ziglio Frediano
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -23,18 +23,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#if TIME_WITH_SYS_TIME
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# endif
-# include <time.h>
-#else
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
-#endif
+#include <freetds/time.h>
 
 #if HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -104,8 +93,6 @@
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
-
-TDS_RCSID(var, "$Id: net.c,v 1.134 2012-02-26 22:22:32 freddy77 Exp $");
 
 /* error is always returned */
 #define TDSSELERR   0

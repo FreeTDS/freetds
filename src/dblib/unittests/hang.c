@@ -8,18 +8,7 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#if TIME_WITH_SYS_TIME
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# endif
-# include <time.h>
-#else
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
-#endif
+#include <freetds/time.h>
 
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
@@ -42,9 +31,6 @@
 #endif /* HAVE_NET_INET_IN_H */
 
 #include <freetds/sysdep_private.h>
-
-static char software_version[] = "$Id: hang.c,v 1.3 2008-11-25 22:58:29 jklowden Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *UNITTEST;
 

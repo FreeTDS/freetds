@@ -2,9 +2,7 @@
 
 #include <stdio.h>
 
-#if HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
+#include <freetds/time.h>
 
 #include <sys/types.h>
 
@@ -15,9 +13,6 @@
 #include <signal.h>
 #include <ctpublic.h>
 #include "common.h"
-
-static char software_version[] = "$Id: cancel.c,v 1.15 2011-05-16 08:51:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if defined(HAVE_ALARM) && defined(HAVE_SETITIMER)
 
