@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998-1999  Brian Bruns
- * Copyright (C) 2005-2011  Frediano Ziglio
+ * Copyright (C) 2005-2015  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -34,14 +34,16 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#include <freetds/time.h>
 #include <freetds/tds.h>
 #include <freetds/bytes.h>
 #include <freetds/string.h>
+#include <freetds/iconv.h>
 #include "md4.h"
 #include "md5.h"
 #include "hmac_md5.h"
 #include "des.h"
-#include <freetds/iconv.h>
+#include "replacements.h"
 
 #ifdef HAVE_GNUTLS
 #include <gnutls/gnutls.h>
@@ -581,24 +583,17 @@ static const unsigned char ntlm_id[] = "NTLMSSP";
  * This takes GMT as input
  */
 static void
-unix_to_nt_time(TDS_UINT8 * nt, time_t t)
+unix_to_nt_time(TDS_UINT8 * nt, struct timeval *tv)
 {
+	/* C time start on 1970, nt time on 1600 */
 #define TIME_FIXUP_CONSTANT (((TDS_UINT8) 134774U) * 86400U)
 
 	TDS_UINT8 t2;
 
-	if (t == (time_t) - 1) {
-		*nt = (TDS_UINT8) - ((TDS_INT8) 1);
-		return;
-	}
-	if (t == 0) {
-		*nt = 0;
-		return;
-	}
-
-	t2 = t;
+	t2 = tv->tv_sec;
 	t2 += TIME_FIXUP_CONSTANT;
-	t2 *= 1000 * 1000 * 10;
+	t2 *= 1000u * 1000u * 10u;
+	t2 += tv->tv_usec * 10u;
 
 	*nt = t2;
 }
@@ -606,10 +601,11 @@ unix_to_nt_time(TDS_UINT8 * nt, time_t t)
 static void
 fill_names_blob_prefix(names_blob_prefix_t * prefix)
 {
+	struct timeval tv;
 	TDS_UINT8 nttime = 0;
 
-	/* TODO use more precision, not only seconds */
-	unix_to_nt_time(&nttime, time(NULL));
+	gettimeofday(&tv, NULL);
+	unix_to_nt_time(&nttime, &tv);
 
 	prefix->response_type = 0x01;
 	prefix->max_response_type = 0x01;
