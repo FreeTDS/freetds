@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2005-2014  Frediano Ziglio
+ * Copyright (C) 2005-2015  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -58,7 +58,7 @@ static TDSRET tds_process_col_name(TDSSOCKET * tds);
 static TDSRET tds_process_col_fmt(TDSSOCKET * tds);
 static TDSRET tds_process_tabname(TDSSOCKET *tds);
 static TDSRET tds_process_colinfo(TDSSOCKET * tds, char **names, int num_names);
-static TDSRET tds_process_compute(TDSSOCKET * tds, TDS_INT * computeid);
+static TDSRET tds_process_compute(TDSSOCKET * tds);
 static TDSRET tds_process_cursor_tokens(TDSSOCKET * tds);
 static TDSRET tds_process_row(TDSSOCKET * tds);
 static TDSRET tds_process_nbcrow(TDSSOCKET * tds);
@@ -693,7 +693,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 			if (tds->res_info)
 				tds->res_info->rows_exist = 1;
 			SET_RETURN(TDS_COMPUTE_RESULT, COMPUTE);
-			rc = tds_process_compute(tds, NULL);
+			rc = tds_process_compute(tds);
 			break;
 		case TDS_RETURNSTATUS_TOKEN:
 			ret_status = tds_get_int(tds);
@@ -1890,10 +1890,9 @@ tds5_process_result(TDSSOCKET * tds)
  * tds_process_compute() processes compute rows and places them in the row
  * buffer.
  * \tds
- * \param pcomputeid store id of compute token
  */
 static TDSRET
-tds_process_compute(TDSSOCKET * tds, TDS_INT * pcomputeid)
+tds_process_compute(TDSSOCKET * tds)
 {
 	unsigned int i;
 	TDSCOLUMN *curcol;
@@ -1924,8 +1923,6 @@ tds_process_compute(TDSSOCKET * tds, TDS_INT * pcomputeid)
 			return TDS_FAIL;
 		}
 	}
-	if (pcomputeid)
-		*pcomputeid = id;
 	return TDS_SUCCESS;
 }
 
