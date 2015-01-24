@@ -3363,8 +3363,6 @@ parse_int8(const char *buf, const char *pend, TDS_UINT8 * res, int * p_sign)
 			return TDS_CONVERT_SYNTAX;
 
 		/* add a digit to number and check for overflow */
-		if (num > ((((TDS_UINT8) 1) << 63) / ((TDS_UINT8) 5)))
-			return TDS_CONVERT_OVERFLOW;
 		prev = num;
 		num = num * 10u + (*p - '0');
 		if (num < prev)
