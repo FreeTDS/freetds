@@ -51,7 +51,7 @@
 static char buf[4096+80];
 static char buf_out[4096+80];
 
-int last_errno = 0;
+static int last_errno = 0;
 
 static TDSRET
 convert(TDSSOCKET *tds, TDSICONV *conv, TDS_ICONV_DIRECTION direction,

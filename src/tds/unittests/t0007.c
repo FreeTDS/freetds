@@ -22,10 +22,7 @@
 
 static TDSCONTEXT ctx;
 
-void test0(const char *src, int len, int dsttype, const char *result, int line);
-void test(const char *src, int dsttype, const char *result, int line);
-
-void
+static void
 test0(const char *src, int len, int dsttype, const char *result, int line)
 {
 	int i, res;
@@ -86,7 +83,7 @@ test0(const char *src, int len, int dsttype, const char *result, int line)
 	}
 }
 
-void
+static void
 test(const char *src, int dsttype, const char *result, int line)
 {
 	test0(src, strlen(src), dsttype, result, line);

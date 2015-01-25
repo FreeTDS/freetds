@@ -20,12 +20,7 @@
 
 #include <freetds/string.h>
 
-static char software_version[] = "$Id: t0002.c,v 1.15 2011-05-16 13:31:11 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
-char *value_as_string(TDSSOCKET * tds, int col_idx);
-
-char *
+static char *
 value_as_string(TDSSOCKET * tds, int col_idx)
 {
 	static char result[256];

@@ -21,9 +21,7 @@
 static char software_version[] = "$Id: t0004.c,v 1.22 2011-06-29 13:22:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-char *varchar_as_string(TDSSOCKET * tds, int col_idx);
-
-char *
+static char *
 varchar_as_string(TDSSOCKET * tds, int col_idx)
 {
 	static char result[256];

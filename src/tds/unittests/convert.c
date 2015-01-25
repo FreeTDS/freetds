@@ -30,7 +30,7 @@
 
 #include <freetds/time.h>
 
-int g_result = 0;
+static int g_result = 0;
 static TDSCONTEXT *ctx;
 
 static void
