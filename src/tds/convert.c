@@ -804,6 +804,11 @@ tds_convert_int8(const TDS_INT8 *src, int desttype, CONV_RESULT * cr)
 	TDS_INT8 buf;
 	TDS_CHAR tmp_str[24];
 
+	switch (desttype) {
+	case CASE_ALL_BINARY:
+		return binary_to_result(src, sizeof(TDS_INT8), cr);
+	}
+
 	memcpy(&buf, src, sizeof(buf));
 	if (IS_INT(buf))
 		return tds_convert_int((TDS_INT) buf, desttype, cr);
@@ -813,9 +818,6 @@ tds_convert_int8(const TDS_INT8 *src, int desttype, CONV_RESULT * cr)
 	case CASE_ALL_CHAR:
 		sprintf(tmp_str, "%" PRId64, buf);
 		return string_to_result(tmp_str, cr);
-		break;
-	case CASE_ALL_BINARY:
-		return binary_to_result(src, sizeof(TDS_INT8), cr);
 		break;
 	case SYBINT1:
 	case SYBUINT1:
@@ -883,6 +885,11 @@ tds_convert_uint8(const TDS_UINT8 *src, int desttype, CONV_RESULT * cr)
 	TDS_UINT8 buf;
 	TDS_CHAR tmp_str[24];
 
+	switch (desttype) {
+	case CASE_ALL_BINARY:
+		return binary_to_result(src, sizeof(TDS_INT8), cr);
+	}
+
 	memcpy(&buf, src, sizeof(buf));
 	/* IS_INT does not work here due to unsigned/signed conversions */
 	if (buf <= (TDS_UINT8) TDS_INT_MAX)
@@ -893,9 +900,6 @@ tds_convert_uint8(const TDS_UINT8 *src, int desttype, CONV_RESULT * cr)
 	case CASE_ALL_CHAR:
 		sprintf(tmp_str, "%" PRIu64, buf);
 		return string_to_result(tmp_str, cr);
-		break;
-	case CASE_ALL_BINARY:
-		return binary_to_result(src, sizeof(TDS_INT8), cr);
 		break;
 	case SYBINT1:
 	case SYBUINT1:

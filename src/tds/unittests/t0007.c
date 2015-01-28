@@ -23,13 +23,24 @@
 static TDSCONTEXT ctx;
 
 static void
-test0(const char *src, int len, int dsttype, const char *result, int line)
+test2(const char *src, int len, int midtype, int dsttype, const char *result, int line)
 {
 	int i, res;
 	char buf[256];
-	CONV_RESULT cr;
+	CONV_RESULT cr, cr_mid;
+	int srctype = SYBVARCHAR;
 
-	res = tds_convert(&ctx, SYBVARCHAR, src, len, dsttype, &cr);
+	if (midtype) {
+		res = tds_convert(&ctx, SYBVARCHAR, src, len, midtype, &cr_mid);
+		if (res < 0) {
+			fprintf(stderr, "Unexpected failure converting %*.*s\n", len, len, src);
+			exit(1);
+		}
+		src = (const char *) &cr_mid;
+		len = res;
+		srctype = midtype;
+	}
+	res = tds_convert(&ctx, srctype, src, len, dsttype, &cr);
 	if (res < 0)
 		strcpy(buf, "error");
 	else {
@@ -84,11 +95,18 @@ test0(const char *src, int len, int dsttype, const char *result, int line)
 }
 
 static void
+test0(const char *src, int len, int dsttype, const char *result, int line)
+{
+	return test2(src, len, 0, dsttype, result, line);
+}
+
+static void
 test(const char *src, int dsttype, const char *result, int line)
 {
 	test0(src, strlen(src), dsttype, result, line);
 }
 
+#define test2(s,m,d,r) test2(s,strlen(s),m,d,r,__LINE__)
 #define test0(s,l,d,r) test0(s,l,d,r,__LINE__)
 #define test(s,d,r) test(s,d,r,__LINE__)
 
@@ -136,6 +154,9 @@ main(int argc, char **argv)
 {
 	int *type1, *type2;
 	const char **value;
+	int big_endian = 1;
+	if (((char *) &big_endian)[0] == 1)
+		big_endian = 0;
 
 	memset(&ctx, 0, sizeof(ctx));
 
@@ -278,6 +299,21 @@ main(int argc, char **argv)
 	test("02Jan2006", SYBDATETIME, "38717 0");
 	test("20060102", SYBDATETIME, "38717 0");
 	test("060102", SYBDATETIME, "38717 0");
+
+	test2("123", SYBINT1, SYBBINARY, "len=1 7B");
+	if (big_endian) {
+		test2("12345", SYBINT2, SYBBINARY, "len=2 30 39");
+		test2("123456789", SYBINT4, SYBBINARY, "len=4 07 5B CD 15");
+		test2("123456789", SYBUINT8, SYBBINARY, "len=8 00 00 00 00 07 5B CD 15");
+		test2("123456789", SYBINT8, SYBBINARY, "len=8 00 00 00 00 07 5B CD 15");
+		test2("-123456789", SYBINT8, SYBBINARY, "len=8 FF FF FF FF F8 A4 32 EB");
+	} else {
+		test2("12345", SYBINT2, SYBBINARY, "len=2 39 30");
+		test2("123456789", SYBINT4, SYBBINARY, "len=4 15 CD 5B 07");
+		test2("123456789", SYBUINT8, SYBBINARY, "len=8 15 CD 5B 07 00 00 00 00");
+		test2("123456789", SYBINT8, SYBBINARY, "len=8 15 CD 5B 07 00 00 00 00");
+		test2("-123456789", SYBINT8, SYBBINARY, "len=8 EB 32 A4 F8 FF FF FF FF");
+	}
 
 	/* now try many int conversion operations */
 	for (value = int_values; *value; ++value)
