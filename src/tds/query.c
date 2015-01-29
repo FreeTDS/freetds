@@ -242,12 +242,9 @@ tds5_fix_dot_query(const char *query, size_t *query_len, TDSPARAMINFO * params)
 		e = tds_next_placeholder(s);
 		len = e ? e - s : strlen(s);
 		if (pos + len + 12 >= size) {
-			char *p;
 			size = pos + len + 30;
-			p = (char*) realloc(out, size);
-			if (!p)
+			if (!TDS_RESIZE(out, size))
 				goto memory_error;
-			out = p;
 		}
 		memcpy(out + pos, s, len);
 		pos += len;
@@ -913,7 +910,7 @@ static char *
 tds7_build_param_def_from_query(TDSSOCKET * tds, const char* converted_query, size_t converted_query_len, TDSPARAMINFO * params, size_t *out_len)
 {
 	size_t len = 0, size = 512;
-	char *param_str, *p;
+	char *param_str;
 	char declaration[40];
 	int i, count;
 
@@ -938,10 +935,9 @@ tds7_build_param_def_from_query(TDSSOCKET * tds, const char* converted_query, si
 
 		/* realloc on insufficient space */
 		while ((len + (2u * 40u)) > size) {
-			p = (char *) realloc(param_str, size += 512u);
-			if (!p)
+			size += 512u;
+			if (!TDS_RESIZE(param_str, size))
 				goto Cleanup;
-			param_str = p;
 		}
 
 		/* get this parameter declaration */
@@ -979,7 +975,6 @@ tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t quer
 {
 	size_t size = 512;
 	char *param_str;
-	char *p;
 	char declaration[40];
 	size_t l = 0;
 	int i;
@@ -1041,10 +1036,9 @@ tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t quer
 		/* realloc on insufficient space */
 		il = ids[i].p ? ids[i].len : 2 * tds_dstr_len(&params->columns[i]->column_name);
 		while ((l + (2u * 40u) + il) > size) {
-			p = (char *) realloc(param_str, size += 512);
-			if (!p)
+			size += 512u;
+			if (!TDS_RESIZE(param_str, size))
 				goto Cleanup;
-			param_str = p;
 		}
  
 		/* this part of buffer can be not-ascii compatible, use all ucs2... */

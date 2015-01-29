@@ -395,17 +395,12 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 		if (!len)
 			return SQL_SUCCESS;
 
-		if (blob->textvalue)
-			p = (TDS_CHAR *) realloc(blob->textvalue, len + curcol->column_cur_size);
-		else {
-			assert(curcol->column_cur_size == 0);
-			p = (TDS_CHAR *) malloc(len);
-		}
+		assert(blob->textvalue || curcol->column_cur_size == 0);
+		p = TDS_RESIZE(blob->textvalue, len + curcol->column_cur_size);
 		if (!p) {
 			odbc_errs_add(&stmt->errs, "HY001", NULL); /* Memory allocation error */
 			return SQL_ERROR;
 		}
-		blob->textvalue = p;
 
 		p += curcol->column_cur_size;
 		if (binary_convert) {

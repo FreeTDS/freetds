@@ -911,13 +911,11 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		tdsdump_log(TDS_DBG_FUNC, "bcp_record_size     = %d\n", bcp_record_size);
 
 		if (bcp_record_size > bcpinfo->bindinfo->row_size) {
-			/* FIXME remove memory leak */
-			bcpinfo->bindinfo->current_row = (unsigned char*) realloc(bcpinfo->bindinfo->current_row, bcp_record_size);
-			bcpinfo->bindinfo->row_free = tds_bcp_row_free;
-			if (bcpinfo->bindinfo->current_row == NULL) {
+			if (!TDS_RESIZE(bcpinfo->bindinfo->current_row, bcp_record_size)) {
 				tdsdump_log(TDS_DBG_FUNC, "could not realloc current_row\n");
 				return TDS_FAIL;
 			}
+			bcpinfo->bindinfo->row_free = tds_bcp_row_free;
 			bcpinfo->bindinfo->row_size = bcp_record_size;
 		}
 	}

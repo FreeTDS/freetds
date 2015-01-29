@@ -1273,6 +1273,8 @@ TDSSOCKET *tds_alloc_additional_socket(TDSCONNECTION *conn);
 void tds_set_current_results(TDSSOCKET *tds, TDSRESULTINFO *info);
 void tds_detach_results(TDSRESULTINFO *info);
 void * tds_realloc(void **pp, size_t new_size);
+#define TDS_RESIZE(p, n_elem) \
+	tds_realloc((void **) &(p), sizeof(*(p)) * (size_t) (n_elem))
 
 TDSPACKET *tds_alloc_packet(void *buf, unsigned len);
 TDSPACKET *tds_realloc_packet(TDSPACKET *packet, unsigned len);

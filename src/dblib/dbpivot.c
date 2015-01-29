@@ -911,7 +911,6 @@ dbpivot(DBPROCESS *dbproc, int nkeys, int *keys, int ncols, int *cols, DBPIVOT_F
 	enum { logalot = 1 };
 	struct pivot_t P, *pp;
 	struct agg_t input, *pout = NULL;
-	struct key_t *pacross;
 	struct metadata_t *metadata, *pmeta;
 	size_t i, nmeta = 0;
 
@@ -939,10 +938,9 @@ dbpivot(DBPROCESS *dbproc, int nkeys, int *keys, int ncols, int *cols, DBPIVOT_F
 	
 	P.dbproc = dbproc;
 	if ((pp = tds_find(&P, pivots, npivots, sizeof(*pivots), pivot_key_equal)) == NULL ) {
-		pp = realloc(pivots, (1 + npivots) * sizeof(*pivots)); 
+		pp = TDS_RESIZE(pivots, 1 + npivots);
 		if (!pp)
 			return FAIL;
-		pivots = pp;
 		pp += npivots++;
 	} else {
 		agg_free(pp->output);
@@ -994,22 +992,17 @@ dbpivot(DBPROCESS *dbproc, int nkeys, int *keys, int ncols, int *cols, DBPIVOT_F
 	
 	while ((pp->status = dbnextrow(dbproc)) == REG_ROW) {
 		/* add to unique list of crosstab columns */
-		if ((pacross = tds_find(&input.col_key, pp->across, pp->nacross, sizeof(*pp->across), key_equal)) == NULL ) {
-			pacross = realloc(pp->across, (1 + pp->nacross) * sizeof(*pp->across)); 
-			if (!pacross)
+		if (tds_find(&input.col_key, pp->across, pp->nacross, sizeof(*pp->across), key_equal) == NULL) {
+			if (!TDS_RESIZE(pp->across, 1 + pp->nacross))
 				return FAIL;
-			pp->across = pacross;
-			pacross += pp->nacross++;
-			key_cpy(pacross, &input.col_key);
+			key_cpy(pp->across + pp->nacross, &input.col_key);
 		}
 		assert(pp->across);
 		
 		if ((pout = tds_find(&input, pp->output, pp->nout, sizeof(*pp->output), agg_equal)) == NULL ) {
-			pout = realloc(pp->output, (1 + pp->nout) * sizeof(*pp->output)); 
-			if (!pout)
+			if (!TDS_RESIZE(pp->output, 1 + pp->nout))
 				return FAIL;
-			pp->output = pout;
-			pout += pp->nout++;
+			pout = pp->output + pp->nout++;
 
 			
 			if ((pout->row_key.keys = calloc(input.row_key.nkeys, sizeof(*pout->row_key.keys))) == NULL)

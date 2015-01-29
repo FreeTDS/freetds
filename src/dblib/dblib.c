@@ -1353,14 +1353,12 @@ dbcmd(DBPROCESS * dbproc, const char cmdstring[])
 		strcpy((char *) dbproc->dbbuf, cmdstring);
 		dbproc->dbbufsz = (int)strlen(cmdstring) + 1;
 	} else {
-		void *p;
 		size_t newsz = strlen(cmdstring) + dbproc->dbbufsz;
 
-		if ((p = realloc(dbproc->dbbuf, newsz)) == NULL) {
+		if (!TDS_RESIZE(dbproc->dbbuf, newsz)) {
 			dbperror(dbproc, SYBEMEM, errno);
 			return FAIL;
 		}
-		dbproc->dbbuf = (unsigned char *) p;
 		strcat((char *) dbproc->dbbuf, cmdstring);
 		dbproc->dbbufsz = (int)newsz;
 	}

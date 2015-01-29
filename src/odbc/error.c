@@ -395,13 +395,8 @@ odbc_errs_add(struct _sql_errors *errs, const char *sqlstate, const char *msg)
 		return;
 
 	n = errs->num_errors;
-	if (errs->errs)
-		p = (struct _sql_error *) realloc(errs->errs, sizeof(struct _sql_error) * (n + 1));
-	else
-		p = (struct _sql_error *) malloc(sizeof(struct _sql_error));
-	if (!p)
+	if (!TDS_RESIZE(errs->errs, n + 1))
 		return;
-	errs->errs = p;
 
 	memset(&errs->errs[n], 0, sizeof(struct _sql_error));
 	errs->errs[n].native = 0;

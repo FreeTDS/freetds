@@ -97,13 +97,8 @@ desc_alloc_records(TDS_DESC * desc, unsigned count)
 		return SQL_SUCCESS;
 	}
 
-	if (desc->records)
-		drecs = (struct _drecord *) realloc(desc->records, sizeof(struct _drecord) * (count + 0));
-	else
-		drecs = (struct _drecord *) malloc(sizeof(struct _drecord) * (count + 0));
-	if (!drecs)
+	if (!TDS_RESIZE(desc->records, count))
 		return SQL_ERROR;
-	desc->records = drecs;
 	memset(desc->records + desc->header.sql_desc_count, 0, sizeof(struct _drecord) * (count - desc->header.sql_desc_count));
 
 	for (i = desc->header.sql_desc_count; i < count; ++i) {

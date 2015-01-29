@@ -281,34 +281,28 @@ tds_alloc_param_result(TDSPARAMINFO * old_param)
 {
 	TDSPARAMINFO *param_info;
 	TDSCOLUMN *colinfo;
-	TDSCOLUMN **cols;
 
 	colinfo = tds_alloc_column();
 	if (!colinfo)
 		return NULL;
 
-	if (!old_param || !old_param->num_cols) {
-		cols = (TDSCOLUMN **) malloc(sizeof(TDSCOLUMN *));
-	} else {
-		cols = (TDSCOLUMN **) realloc(old_param->columns, sizeof(TDSCOLUMN *) * (old_param->num_cols + 1u));
+	param_info = old_param;
+	if (!param_info) {
+		param_info = (TDSPARAMINFO *) calloc(1, sizeof(TDSPARAMINFO));
+		if (!param_info)
+			goto Cleanup;
+		param_info->ref_count = 1;
 	}
-	if (!cols)
+
+	if (!TDS_RESIZE(param_info->columns, param_info->num_cols + 1u))
 		goto Cleanup;
 
-	if (!old_param) {
-		param_info = (TDSPARAMINFO *) calloc(1, sizeof(TDSPARAMINFO));
-		if (!param_info) {
-			free(cols);
-			goto Cleanup;
-		}
-		param_info->ref_count = 1;
-	} else {
-		param_info = old_param;
-	}
-	param_info->columns = cols;
 	param_info->columns[param_info->num_cols++] = colinfo;
 	return param_info;
+
       Cleanup:
+	if (!old_param)
+		free(param_info);
 	free(colinfo);
 	return NULL;
 }
@@ -437,11 +431,7 @@ tds_alloc_compute_results(TDSSOCKET * tds, TDS_USMALLINT num_cols, TDS_USMALLINT
 		return NULL;
 
 	n = tds->num_comp_info;
-	if (n == 0)
-		comp_info = (TDSCOMPUTEINFO **) malloc(sizeof(TDSCOMPUTEINFO *));
-	else
-		comp_info = (TDSCOMPUTEINFO **) realloc(tds->comp_info, sizeof(TDSCOMPUTEINFO *) * (n + 1u));
-
+	comp_info = TDS_RESIZE(tds->comp_info, n + 1u);
 	if (!comp_info) {
 		tds_free_compute_result(cur_comp_info);
 		return NULL;
