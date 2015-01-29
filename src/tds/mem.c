@@ -1726,4 +1726,32 @@ tds_free_bcp_column_data(BCPCOLDATA * coldata)
 	free(coldata);
 }
 
+/**
+ * Reallocate a pointer and update it if success
+ * \param pp pointer to pointer to be reallocated
+ * \param new_size new size to be allocated
+ * \return new pointer allocated, NULL on failure
+ */
+void *
+tds_realloc(void **pp, size_t new_size)
+{
+	void *p;
+
+	/* some implementation of malloc/realloc does not like size==0 */
+	if (!new_size)
+		new_size = 1;
+
+	/* use malloc if not allocated before, some implementation require it */
+	if (*pp)
+		p = realloc(*pp, new_size);
+	else
+		p = malloc(new_size);
+
+	/* update pointer only on success */
+	if (p)
+		*pp = p;
+
+	return p;
+}
+
 /** @} */
