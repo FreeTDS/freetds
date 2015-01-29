@@ -318,6 +318,8 @@ tds72_get_varmax(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	TDSRET res;
 	TDSVARMAXSTREAM r;
 	TDSDYNAMICSTREAM w;
+	size_t allocated = 0;
+	void *pp = (void**) &(((TDSBLOB*) curcol->column_data)->textvalue);
 
 	len = tds_get_int8(tds);
 
@@ -327,11 +329,17 @@ tds72_get_varmax(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		return TDS_SUCCESS;
 	}
 
+	/* try to allocate an initial buffer */
+	if (len > (TDS_INT8) (~((size_t) 0) >> 1))
+		return TDS_FAIL;
+	if (len > 0)
+		allocated = (size_t) len;
+
 	r.stream.read = tds_varmax_stream_read;
 	r.tds = tds;
 	r.chunk_left = 0;
 
-	res = tds_dynamic_stream_init(&w, (void**) &(((TDSBLOB*) curcol->column_data)->textvalue), 0);
+	res = tds_dynamic_stream_init(&w, pp, allocated);
 	if (TDS_FAILED(res))
 		return res;
 

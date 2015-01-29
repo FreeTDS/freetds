@@ -326,12 +326,11 @@ tds_dynamic_stream_write(TDSOUTSTREAM *stream, size_t len)
 	size_t wanted;
 
 	s->size += len;
-	/* TODO use a more smart algorithm */
-	wanted = s->size + 2048;
-	if (wanted > s->allocated) {
-		void *p = realloc(*s->buf, wanted);
-		if (TDS_UNLIKELY(!p)) return -1;
-		*s->buf = p;
+	/* grow linearly till some limit then exponentially */
+	if (s->size + 256 > s->allocated) {
+		wanted = s->size + (s->size < 4096 ? 1024 : s->size / 8u);
+		if (TDS_UNLIKELY(!tds_realloc(s->buf, wanted)))
+			return -1;
 		s->allocated = wanted;
 	}
 	assert(s->allocated > s->size);
@@ -358,10 +357,14 @@ tds_dynamic_stream_init(TDSDYNAMICSTREAM * stream, void **ptr, size_t allocated)
 	stream->stream.write = tds_dynamic_stream_write;
 	stream->buf = ptr;
 	if (allocated < initial_size) {
-		if (*ptr) free(*ptr);
-		*ptr = malloc(initial_size);
-		if (TDS_UNLIKELY(!*ptr)) return TDS_FAIL;
+		free(*ptr);
+		*ptr = NULL;
 		allocated = initial_size;
+	}
+	if (!*ptr) {
+		*ptr = malloc(allocated);
+		if (TDS_UNLIKELY(!*ptr))
+			return TDS_FAIL;
 	}
 	stream->allocated = allocated;
 	stream->size = 0;
