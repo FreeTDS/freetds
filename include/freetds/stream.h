@@ -62,7 +62,7 @@ TDSRET tds_copy_stream(TDSSOCKET * tds, TDSINSTREAM * istream, TDSOUTSTREAM * os
 /** input stream to read data from tds protocol */
 typedef struct tds_datain_stream {
 	TDSINSTREAM stream;
-	size_t wire_size;
+	size_t wire_size;	/**< bytes still to read */
 	TDSSOCKET *tds;
 } TDSDATAINSTREAM;
 
@@ -86,7 +86,9 @@ typedef struct tds_staticin_stream {
 
 void tds_staticin_stream_init(TDSSTATICINSTREAM * stream, const void *ptr, size_t len);
 
-/** output stream to write data to a static buffer */
+/** output stream to write data to a static buffer.
+ * stream.buffer contains the pointer where stream will write to.
+ */
 typedef struct tds_staticout_stream {
 	TDSOUTSTREAM stream;
 } TDSSTATICOUTSTREAM;
