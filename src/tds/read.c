@@ -213,45 +213,27 @@ TDSRET
 tds_get_char_data(TDSSOCKET * tds, char *row_buffer, size_t wire_size, TDSCOLUMN * curcol)
 {
 	size_t in_left;
-	TDSBLOB *blob = NULL;
-	char *dest = row_buffer;
 
-	if (is_blob_col(curcol)) {
-		blob = (TDSBLOB *) row_buffer;
-		dest = blob->textvalue;
-	}
+	assert(curcol->char_conv);
 
-	/* 
-	 * dest is usually a column buffer, allocated when the column's metadata are processed 
-	 * and reused for each row.  
-	 * For blobs, dest is blob->textvalue, and can be reallocated or freed
-	 * TODO: reallocate if blob and no space 
+	/*
+	 * row_buffer is a column buffer, allocated when the column's metadata are processed
+	 * and reused for each row.
 	 */
-	 
+
 	/* silly case, empty string */
 	if (wire_size == 0) {
 		curcol->column_cur_size = 0;
-		if (blob)
-			TDS_ZERO_FREE(blob->textvalue);
 		return TDS_SUCCESS;
 	}
 
-	if (curcol->char_conv) {
-		in_left = blob ? curcol->column_cur_size : curcol->column_size;
-		curcol->column_cur_size = read_and_convert(tds, curcol->char_conv, &wire_size, dest, in_left);
-		if (TDS_UNLIKELY(wire_size > 0)) {
-			tds_get_n(tds, NULL, wire_size);
-			tdsdump_log(TDS_DBG_NETWORK, "error: tds_get_char_data: discarded %u on wire while reading %d into client. \n", 
-							 (unsigned int) wire_size, curcol->column_cur_size);
-			return TDS_FAIL;
-		}
-	} else {
-		curcol->column_cur_size = (TDS_INT)wire_size;
-		if (tds_get_n(tds, dest, wire_size) == NULL) {
-			tdsdump_log(TDS_DBG_NETWORK, "error: tds_get_char_data: failed to read %u from wire. \n",
-				    (unsigned int) wire_size);
-			return TDS_FAIL;
-		}
+	in_left = curcol->column_size;
+	curcol->column_cur_size = read_and_convert(tds, curcol->char_conv, &wire_size, row_buffer, in_left);
+	if (TDS_UNLIKELY(wire_size > 0)) {
+		tds_get_n(tds, NULL, wire_size);
+		tdsdump_log(TDS_DBG_NETWORK, "error: tds_get_char_data: discarded %u on wire while reading %d into client. \n",
+						 (unsigned int) wire_size, curcol->column_cur_size);
+		return TDS_FAIL;
 	}
 	return TDS_SUCCESS;
 }

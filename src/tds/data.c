@@ -52,6 +52,8 @@ static const TDSCOLUMNFUNCS *tds_get_column_funcs(TDSCONNECTION *conn, int type)
 
 #undef MIN
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
+#undef MAX
+#define MAX(a,b) (((a) > (b)) ? (a) : (b))
 
 /**
  * Set type of column initializing all dependency 
@@ -277,6 +279,31 @@ tds_generic_row_len(TDSCOLUMN *col)
 	return col->column_size;
 }
 
+static TDSRET
+tds_get_char_dynamic(TDSSOCKET *tds, TDSCOLUMN *curcol, void **pp, size_t allocated, TDSINSTREAM *r_stream)
+{
+	TDSRET res;
+	TDSDYNAMICSTREAM w;
+
+	/*
+	 * Blobs don't use a column's fixed buffer because the official maximum size is 2 GB.
+	 * Instead, they're reallocated as necessary, based on the data's size.
+	 */
+	res = tds_dynamic_stream_init(&w, pp, allocated);
+	if (TDS_FAILED(res))
+		return res;
+
+	if (USE_ICONV && curcol->char_conv)
+		res = tds_convert_stream(tds, curcol->char_conv, to_client, r_stream, &w.stream);
+	else
+		res = tds_copy_stream(tds, r_stream, &w.stream);
+	if (TDS_FAILED(res))
+		return res;
+
+	curcol->column_cur_size = w.size;
+	return res;
+}
+
 typedef struct tds_varmax_stream {
 	TDSINSTREAM stream;
 	TDSSOCKET *tds;
@@ -312,11 +339,9 @@ static TDSRET
 tds72_get_varmax(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
 	TDS_INT8 len;
-	TDSRET res;
 	TDSVARMAXSTREAM r;
-	TDSDYNAMICSTREAM w;
 	size_t allocated = 0;
-	void *pp = (void**) &(((TDSBLOB*) curcol->column_data)->textvalue);
+	void **pp = (void**) &(((TDSBLOB*) curcol->column_data)->textvalue);
 
 	len = tds_get_int8(tds);
 
@@ -329,26 +354,18 @@ tds72_get_varmax(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	/* try to allocate an initial buffer */
 	if (len > (TDS_INT8) (~((size_t) 0) >> 1))
 		return TDS_FAIL;
-	if (len > 0)
+	if (len > 0) {
+		TDS_ZERO_FREE(*pp);
 		allocated = (size_t) len;
+		if (is_unicode_type(curcol->on_server.column_type))
+			allocated /= 2;
+	}
 
 	r.stream.read = tds_varmax_stream_read;
 	r.tds = tds;
 	r.chunk_left = 0;
 
-	res = tds_dynamic_stream_init(&w, pp, allocated);
-	if (TDS_FAILED(res))
-		return res;
-
-	if (USE_ICONV && curcol->char_conv)
-		res = tds_convert_stream(tds, curcol->char_conv, to_client, &r.stream, &w.stream);
-	else
-		res = tds_copy_stream(tds, &r.stream, &w.stream);
-	if (TDS_FAILED(res))
-		return res;
-
-	curcol->column_cur_size = w.size;
-	return TDS_SUCCESS;
+	return tds_get_char_dynamic(tds, curcol, pp, allocated, &r.stream);
 }
 
 TDS_COMPILE_CHECK(tds_variant_size,  sizeof(((TDSVARIANT*)0)->data) == sizeof(((TDSBLOB*)0)->textvalue));
@@ -469,21 +486,17 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	if (v->data)
 		TDS_ZERO_FREE(v->data);
 	if (colsize) {
-		if (USE_ICONV && curcol->char_conv) {
-			curcol->column_cur_size = determine_adjusted_size(curcol->char_conv, colsize);
-			v->data = (TDS_CHAR*) malloc(curcol->column_cur_size);
-			if (!v->data)
-				return TDS_FAIL;
-			if (TDS_FAILED(tds_get_char_data(tds, (char *) v, colsize, curcol)))
-				return TDS_FAIL;
-			colsize = curcol->column_cur_size;
+		TDSRET res;
+		TDSDATAINSTREAM r;
+
+		if (USE_ICONV && curcol->char_conv)
 			v->type = tds_get_cardinal_type(type, 0);
-		} else {
-			v->data = (TDS_CHAR*) malloc(colsize);
-			if (!v->data)
-				return TDS_FAIL;
-			tds_get_n(tds, v->data, colsize);
-		}
+
+		tds_datain_stream_init(&r, tds, colsize);
+		res = tds_get_char_dynamic(tds, curcol, (void **) &v->data, colsize, &r.stream);
+		if (TDS_FAILED(res))
+			return res;
+		colsize = curcol->column_cur_size;
 #ifdef WORDS_BIGENDIAN
 		if (tds->conn->emul_little_endian)
 			tds_swap_datatype(tds_get_conversion_type(type, colsize), v->data);
@@ -585,93 +598,72 @@ tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	 */
 	dest = curcol->column_data;
 	if (is_blob_col(curcol)) {
-		TDS_CHAR *p;
-		int new_blob_size;
+		TDSDATAINSTREAM r;
+		size_t allocated;
 
 		blob = (TDSBLOB *) dest; 	/* cf. column_varint_size case 4, above */
 
-		/* 
-		 * Blobs don't use a column's fixed buffer because the official maximum size is 2 GB.
-		 * Instead, they're reallocated as necessary, based on the data's size.  
-		 * Here we allocate memory, if need be.  
-		 */
-		/* TODO this can lead to a big waste of memory */
-		if (USE_ICONV)
-			new_blob_size = determine_adjusted_size(curcol->char_conv, colsize);
-		else
-			new_blob_size = colsize;
-		if (new_blob_size == 0) {
+		/* empty string */
+		if (colsize == 0) {
 			curcol->column_cur_size = 0;
 			if (blob->textvalue)
 				TDS_ZERO_FREE(blob->textvalue);
 			return TDS_SUCCESS;
 		}
 
-		p = blob->textvalue; /* save pointer in case realloc fails */
-		if (!p) {
-			p = (TDS_CHAR *) malloc(new_blob_size);
-		} else {
-			/* TODO perhaps we should store allocated bytes too ? */
-			if (new_blob_size > curcol->column_cur_size ||  (curcol->column_cur_size - new_blob_size) > 10240) {
-				p = (TDS_CHAR *) realloc(p, new_blob_size);
-			}
+		allocated = MAX(curcol->column_cur_size, 0);
+		if (colsize > allocated) {
+			TDS_ZERO_FREE(blob->textvalue);
+			allocated = colsize;
+			if (is_unicode_type(curcol->on_server.column_type))
+				allocated /= 2;
 		}
-		
-		if (!p)
+
+		tds_datain_stream_init(&r, tds, colsize);
+		return tds_get_char_dynamic(tds, curcol, (void **) &blob->textvalue, allocated, &r.stream);
+	}
+
+	/* non-numeric and non-blob */
+
+	if (USE_ICONV && curcol->char_conv) {
+		if (TDS_FAILED(tds_get_char_data(tds, (char *) dest, colsize, curcol)))
 			return TDS_FAIL;
-		blob->textvalue = p;
-		curcol->column_cur_size = new_blob_size;
-		
-		/* read the data */
-		if (USE_ICONV && curcol->char_conv) {
-			if (TDS_FAILED(tds_get_char_data(tds, (char *) blob, colsize, curcol)))
-				return TDS_FAIL;
-		} else {
-			assert(colsize == new_blob_size);
-			tds_get_n(tds, blob->textvalue, colsize);
-		}
-	} else {		/* non-numeric and non-blob */
-
-		if (USE_ICONV && curcol->char_conv) {
-			if (TDS_FAILED(tds_get_char_data(tds, (char *) dest, colsize, curcol)))
-				return TDS_FAIL;
-		} else {	
-			/*
-			 * special case, some servers seem to return more data in some conditions 
-			 * (ASA 7 returning 4 byte nullable integer)
-			 */
-			int discard_len = 0;
-			if (colsize > curcol->column_size) {
-				discard_len = colsize - curcol->column_size;
-				colsize = curcol->column_size;
-			}
-			if (tds_get_n(tds, dest, colsize) == NULL)
-				return TDS_FAIL;
-			if (discard_len > 0)
-				tds_get_n(tds, NULL, discard_len);
-			curcol->column_cur_size = colsize;
-		}
-
-		/* pad (UNI)CHAR and BINARY types */
-		fillchar = 0;
-		switch (curcol->column_type) {
-		/* extra handling for SYBLONGBINARY */
-		case SYBLONGBINARY:
-			if (curcol->column_usertype != USER_UNICHAR_TYPE)
-				break;
-		case SYBCHAR:
-		case XSYBCHAR:
-			if (curcol->column_size != curcol->on_server.column_size)
-				break;
-			/* FIXME use client charset */
-			fillchar = ' ';
-		case SYBBINARY:
-		case XSYBBINARY:
-			if (colsize < curcol->column_size)
-				memset(dest + colsize, fillchar, curcol->column_size - colsize);
+	} else {
+		/*
+		 * special case, some servers seem to return more data in some conditions
+		 * (ASA 7 returning 4 byte nullable integer)
+		 */
+		int discard_len = 0;
+		if (colsize > curcol->column_size) {
+			discard_len = colsize - curcol->column_size;
 			colsize = curcol->column_size;
-			break;
 		}
+		if (tds_get_n(tds, dest, colsize) == NULL)
+			return TDS_FAIL;
+		if (discard_len > 0)
+			tds_get_n(tds, NULL, discard_len);
+		curcol->column_cur_size = colsize;
+	}
+
+	/* pad (UNI)CHAR and BINARY types */
+	fillchar = 0;
+	switch (curcol->column_type) {
+	/* extra handling for SYBLONGBINARY */
+	case SYBLONGBINARY:
+		if (curcol->column_usertype != USER_UNICHAR_TYPE)
+			break;
+	case SYBCHAR:
+	case XSYBCHAR:
+		if (curcol->column_size != curcol->on_server.column_size)
+			break;
+		/* FIXME use client charset */
+		fillchar = ' ';
+	case SYBBINARY:
+	case XSYBBINARY:
+		if (colsize < curcol->column_size)
+			memset(dest + colsize, fillchar, curcol->column_size - colsize);
+		colsize = curcol->column_size;
+		break;
 	}
 
 #ifdef WORDS_BIGENDIAN
