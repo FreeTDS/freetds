@@ -22,9 +22,6 @@
 #include <assert.h>
 #include <freetds/convert.h>
 
-static char software_version[] = "$Id: dataread.c,v 1.21 2011-05-16 13:31:11 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static int g_result = 0;
 static TDSLOGIN *login;
 static TDSSOCKET *tds;
@@ -119,7 +116,7 @@ test0(const char *type, ...)
 
 		assert(i_row < num_data);
 
-		if (is_blob_col(curcol)) {
+		if (is_blob_col(curcol) && curcol->column_type != SYBVARIANT) {
 			TDSBLOB *blob = (TDSBLOB *) src;
 
 			src = blob->textvalue;
@@ -227,6 +224,10 @@ main(int argc, char **argv)
 		test("NVARCHAR(20)", "Excellent test", NULL);
 		test("NCHAR(20)", "Excellent test", "Excellent test      ");
 		test("NTEXT", "Excellent test", NULL);
+	}
+
+	if (IS_TDS71_PLUS(tds->conn)) {
+		test("SQL_VARIANT", "test123", NULL);
 	}
 
 	try_tds_logout(login, tds, 0);
