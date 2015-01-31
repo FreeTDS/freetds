@@ -221,7 +221,6 @@ tds_get_string(TDSSOCKET * tds, size_t string_len, char *dest, size_t dest_size)
  * \param wire_size   size to read from wire (in bytes)
  * \param curcol      column information
  * \return TDS_SUCCESS or TDS_FAIL (probably memory error on text data)
- * \todo put a TDSICONV structure in every TDSCOLUMN
  */
 TDSRET
 tds_get_char_data(TDSSOCKET * tds, char *row_buffer, size_t wire_size, TDSCOLUMN * curcol)
@@ -251,15 +250,6 @@ tds_get_char_data(TDSSOCKET * tds, char *row_buffer, size_t wire_size, TDSCOLUMN
 	}
 
 	if (curcol->char_conv) {
-		/*
-		 * TODO The conversion should be selected from curcol and tds version
-		 * TDS7.1/single -> use curcol collation
-		 * TDS7/single -> use server single byte
-		 * TDS7+/unicode -> use server (always unicode)
-		 * TDS5/4.2 -> use server 
-		 * TDS5/UTF-8 -> use server
-		 * TDS5/UTF-16 -> use UTF-16
-		 */
 		in_left = blob ? curcol->column_cur_size : curcol->column_size;
 		curcol->column_cur_size = read_and_convert(tds, curcol->char_conv, &wire_size, dest, in_left);
 		if (TDS_UNLIKELY(wire_size > 0)) {
