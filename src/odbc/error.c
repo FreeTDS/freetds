@@ -387,7 +387,6 @@ odbc_errs_pop(struct _sql_errors *errs)
 void
 odbc_errs_add(struct _sql_errors *errs, const char *sqlstate, const char *msg)
 {
-	struct _sql_error *p;
 	int n;
 
 	assert(sqlstate);
