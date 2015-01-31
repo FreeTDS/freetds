@@ -186,30 +186,20 @@ tds_get_uint8(TDSSOCKET * tds)
 size_t
 tds_get_string(TDSSOCKET * tds, size_t string_len, char *dest, size_t dest_size)
 {
-	size_t wire_bytes;
-
-	/*
-	 * FIX: 02-Jun-2000 by Scott C. Gray (SCG)
-	 * Bug to malloc(0) on some platforms.
-	 */
-	if (string_len == 0)
-		return 0;
-
-	wire_bytes = IS_TDS7_PLUS(tds->conn) ? string_len * 2 : string_len;
+	size_t wire_bytes = string_len;
+	unsigned conv = client2server_chardata;
 
 	if (IS_TDS7_PLUS(tds->conn)) {
-		if (dest == NULL) {
-			tds_get_n(tds, NULL, wire_bytes);
-			return string_len;
-		}
+		wire_bytes *= 2u;
+		conv = client2ucs2;
+	}
 
-		return read_and_convert(tds, tds->conn->char_convs[client2ucs2], &wire_bytes, dest, dest_size);
-	} else {
-		/* FIXME convert to client charset */
-		assert(dest_size >= (size_t) string_len);
-		tds_get_n(tds, dest, string_len);
+	if (dest == NULL) {
+		tds_get_n(tds, NULL, wire_bytes);
 		return string_len;
 	}
+
+	return read_and_convert(tds, tds->conn->char_convs[conv], &wire_bytes, dest, dest_size);
 }
 
 /**
