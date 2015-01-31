@@ -426,7 +426,7 @@ create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbs
 		strcat(ls_command, colinfo.Name);
 		strcat(ls_command, " ");
 
-		strcat(ls_command, colinfo.TypeDeclaration);
+		strcat(ls_command, colinfo.ServerTypeDeclaration);
 
 		if (colinfo.Null == TRUE) {
 			strcat(ls_command, " NULL");

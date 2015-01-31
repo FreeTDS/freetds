@@ -355,7 +355,9 @@ typedef struct
     BYTE  CaseSensitive;
     BYTE  Updatable;
     BOOL  Identity;
-    DBCHAR  TypeDeclaration[256];
+    SHORT ServerType;
+    DBINT ServerMaxLength;
+    DBCHAR  ServerTypeDeclaration[256];
 } DBCOL2;
 /* end dbcolinfo stuff */
 

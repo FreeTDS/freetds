@@ -6257,9 +6257,12 @@ dbtablecolinfo (DBPROCESS *dbproc, DBINT column, DBCOL *pdbcol )
 
 	if (pdbcol->SizeOfStruct >= sizeof(DBCOL2)) {
 		DBCOL2 *col = (DBCOL2 *) pdbcol;
-		TDSRET rc =
-			tds_get_column_declaration(dbproc->tds_socket, colinfo, col->TypeDeclaration);
+		TDSRET rc;
 
+		col->ServerType = colinfo->on_server.column_type;
+		col->ServerMaxLength = colinfo->on_server.column_size;
+
+		rc = tds_get_column_declaration(dbproc->tds_socket, colinfo, col->ServerTypeDeclaration);
 		if (TDS_FAILED(rc))
 			return FAIL;
 	}
