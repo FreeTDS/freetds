@@ -156,17 +156,6 @@ tds_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	return res;
 }
 
-static int
-tds7_read_string(TDSSOCKET * tds, DSTR *s, int len)
-{
-	if (!tds_dstr_alloc(s, len))
-		return 0;
-	/* FIXME possible truncation on char conversion ? */
-	len = tds_get_string(tds, len, tds_dstr_buf(s), len);
-	tds_dstr_setlen(s, len);
-	return 1;
-}
-
 int
 tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 {
@@ -212,8 +201,8 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	a = tds_get_smallint(tds);	/*total packet size */
 	tds_get_smallint(tds);
 
-	res = res &&tds7_read_string(tds, &login->client_host_name, host_name_len);
-	res = res &&tds7_read_string(tds, &login->user_name, user_name_len);
+	res = res && tds_dstr_get(tds, &login->client_host_name, host_name_len);
+	res = res && tds_dstr_get(tds, &login->user_name, user_name_len);
 
 	unicode_len = password_len * 2;
 	unicode_string = (char *) malloc(unicode_len);
@@ -234,12 +223,12 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	tds_dstr_setlen(&login->password, pbuf - tds_dstr_buf(&login->password));
 	free(unicode_string);
 
-	res = res &&tds7_read_string(tds, &login->app_name, app_name_len);
-	res = res &&tds7_read_string(tds, &login->server_name, server_name_len);
-	res = res &&tds7_read_string(tds, &login->library, library_name_len);
-	res = res &&tds7_read_string(tds, &login->language, language_name_len);
+	res = res && tds_dstr_get(tds, &login->app_name, app_name_len);
+	res = res && tds_dstr_get(tds, &login->server_name, server_name_len);
+	res = res && tds_dstr_get(tds, &login->library, library_name_len);
+	res = res && tds_dstr_get(tds, &login->language, language_name_len);
 	/* TODO use it */
-	res = res &&tds7_read_string(tds, &database, database_name_len);
+	res = res && tds_dstr_get(tds, &database, database_name_len);
 	tds_dstr_free(&database);
 
 	tds_get_n(tds, NULL, auth_len);
