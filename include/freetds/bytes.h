@@ -86,6 +86,22 @@
 #define TDS_PUT_A4LE(ptr,val) TDS_PUT_UA4LE(ptr,val)
 #define TDS_PUT_A4BE(ptr,val) TDS_PUT_UA4BE(ptr,val)
 
+#if defined(__GNUC__)
+#  define TDS_MAY_ALIAS __attribute__((__may_alias__))
+#else
+#  define TDS_MAY_ALIAS
+#endif
+
+typedef union {
+	TDS_USMALLINT usi;
+	TDS_UCHAR uc[2];
+} TDS_MAY_ALIAS TDS_BYTE_CONVERT2;
+
+typedef union {
+	TDS_UINT ui;
+	TDS_UCHAR uc[4];
+} TDS_MAY_ALIAS TDS_BYTE_CONVERT4;
+
 /* architecture dependent */
 /* map to generic macros or redefine for aligned and same endianess */
 #ifdef WORDS_BIGENDIAN
@@ -97,8 +113,8 @@
 # define TDS_GET_UA4(ptr) TDS_GET_UA4BE(ptr)
 # undef TDS_GET_A2BE
 # undef TDS_GET_A4BE
-# define TDS_GET_A2BE(ptr) (*((TDS_USMALLINT*)(ptr)))
-# define TDS_GET_A4BE(ptr) (*((TDS_UINT*)(ptr)))
+# define TDS_GET_A2BE(ptr) (((TDS_BYTE_CONVERT2*)(ptr))->usi)
+# define TDS_GET_A4BE(ptr) (((TDS_BYTE_CONVERT4*)(ptr))->ui)
 
 # define TDS_PUT_A1(ptr,val)  TDS_PUT_A1BE(ptr,val)
 # define TDS_PUT_UA1(ptr,val) TDS_PUT_UA1BE(ptr,val)
@@ -108,8 +124,8 @@
 # define TDS_PUT_UA4(ptr,val) TDS_PUT_UA4BE(ptr,val)
 # undef TDS_PUT_A2BE
 # undef TDS_PUT_A4BE
-# define TDS_PUT_A2BE(ptr,val) (*((TDS_USMALLINT*)(ptr)) = (val))
-# define TDS_PUT_A4BE(ptr,val) (*((TDS_UINT*)(ptr)) = (val))
+# define TDS_PUT_A2BE(ptr,val) (((TDS_BYTE_CONVERT2*)(ptr))->usi = (val))
+# define TDS_PUT_A4BE(ptr,val) (((TDS_BYTE_CONVERT4*)(ptr))->ui = (val))
 # define TDS_HOST2LE(val) TDS_BYTE_SWAP16(val)
 # define TDS_HOST4LE(val) TDS_BYTE_SWAP32(val)
 # define TDS_HOST2BE(val) (val)
@@ -123,8 +139,8 @@
 # define TDS_GET_UA4(ptr) TDS_GET_UA4LE(ptr)
 # undef TDS_GET_A2LE
 # undef TDS_GET_A4LE
-# define TDS_GET_A2LE(ptr) (*((TDS_USMALLINT*)(ptr)))
-# define TDS_GET_A4LE(ptr) (*((TDS_UINT*)(ptr)))
+# define TDS_GET_A2LE(ptr) (((TDS_BYTE_CONVERT2*)(ptr))->usi)
+# define TDS_GET_A4LE(ptr) (((TDS_BYTE_CONVERT4*)(ptr))->ui)
 
 # define TDS_PUT_A1(ptr,val)  TDS_PUT_A1LE(ptr,val)
 # define TDS_PUT_UA1(ptr,val) TDS_PUT_UA1LE(ptr,val)
@@ -134,8 +150,8 @@
 # define TDS_PUT_UA4(ptr,val) TDS_PUT_UA4LE(ptr,val)
 # undef TDS_PUT_A2LE
 # undef TDS_PUT_A4LE
-# define TDS_PUT_A2LE(ptr,val) (*((TDS_USMALLINT*)(ptr)) = (val))
-# define TDS_PUT_A4LE(ptr,val) (*((TDS_UINT*)(ptr)) = (val))
+# define TDS_PUT_A2LE(ptr,val) (((TDS_BYTE_CONVERT2*)(ptr))->usi = (val))
+# define TDS_PUT_A4LE(ptr,val) (((TDS_BYTE_CONVERT4*)(ptr))->ui = (val))
 # define TDS_HOST2LE(val) (val)
 # define TDS_HOST4LE(val) (val)
 # define TDS_HOST2BE(val) TDS_BYTE_SWAP16(val)
