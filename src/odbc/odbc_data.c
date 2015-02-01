@@ -34,6 +34,7 @@
 #include <ctype.h>
 
 #include <freetds/odbc.h>
+#include <odbcss.h>
 
 /**
  * Convert type from database to ODBC
@@ -177,6 +178,8 @@ data_clrudt_server_to_sql_type(TDSCOLUMN *col)
 static void
 data_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
 {
+	const char *type;
+
 #define SET_INFO(type, prefix, suffix) do { \
 	drec->sql_desc_literal_prefix = prefix; \
 	drec->sql_desc_literal_suffix = suffix; \
@@ -199,9 +202,15 @@ data_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
 		SET_INFO("char", "'", "'");
 	case XSYBVARCHAR:
 	case SYBVARCHAR:
-		if (col->on_server.column_type == SYBNVARCHAR || col->on_server.column_type == XSYBNVARCHAR)
-			SET_INFO2("nvarchar", "'", "'", col->on_server.column_size / 2);
-		SET_INFO("varchar", "'", "'");
+		type = "varchar";
+		if (col->on_server.column_type == SYBNVARCHAR || col->on_server.column_type == XSYBNVARCHAR) {
+			drec->sql_desc_length = col->on_server.column_size / 2u;
+			type = "nvarchar";
+		}
+		if (is_blob_col(col))
+			drec->sql_desc_octet_length = drec->sql_desc_length =
+				SQL_SS_LENGTH_UNLIMITED;
+		SET_INFO(type, "'", "'");
 	case SYBTEXT:
 		if (col->on_server.column_type == SYBNTEXT)
 			SET_INFO2("ntext", "'", "'", col->on_server.column_size / 2);
@@ -259,6 +268,9 @@ data_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
 	case SYBIMAGE:
 		SET_INFO("image", "0x", "");
 	case SYBVARBINARY:
+		if (is_blob_col(col))
+			drec->sql_desc_octet_length = drec->sql_desc_length =
+				SQL_SS_LENGTH_UNLIMITED;
 		SET_INFO("varbinary", "0x", "");
 	case SYBNUMERIC:
 		drec->sql_desc_octet_length = col->column_prec + 2;

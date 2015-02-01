@@ -35,6 +35,7 @@
 #include <freetds/string.h>
 #include <freetds/convert.h>
 #include <freetds/enum_cap.h>
+#include <odbcss.h>
 
 #ifdef DMALLOC
 #include <dmalloc.h>
@@ -722,19 +723,25 @@ odbc_sql_to_displaysize(int sqltype, TDSCOLUMN *col)
 	SQLINTEGER size = 0;
 
 	switch (sqltype) {
-	case SQL_CHAR:
 	case SQL_VARCHAR:
+		if (is_blob_col(col))
+			return SQL_SS_LENGTH_UNLIMITED;
+	case SQL_CHAR:
 	case SQL_LONGVARCHAR:
 		size = col->on_server.column_size;
 		break;
 	/* FIXME sure ?? *2 or not ?? */
-	case SQL_WCHAR:
 	case SQL_WVARCHAR:
+		if (is_blob_col(col))
+			return SQL_SS_LENGTH_UNLIMITED;
+	case SQL_WCHAR:
 	case SQL_WLONGVARCHAR:
 		size = col->on_server.column_size / 2;
 		break;
-	case SQL_BINARY:
 	case SQL_VARBINARY:
+		if (is_blob_col(col))
+			return SQL_SS_LENGTH_UNLIMITED;
+	case SQL_BINARY:
 	case SQL_LONGVARBINARY:
 		size = col->column_size * 2;
 		break;
