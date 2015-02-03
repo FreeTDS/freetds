@@ -6,6 +6,10 @@ log () {
 	echo "@!@!@!@!@!@!@!@!@!@!@!@!@!@!@!@- $1 -@!@!@!@!@!@!@!@!@!@!@!@!@!@!@!@"
 }
 
+cd "`dirname $0`/.."
+DIR="`pwd -P`"
+cd - > /dev/null
+
 FILE=`echo "$1" | sed "s,^\\./,$PWD/,"`
 
 # execute with valgrind
@@ -14,7 +18,7 @@ if test -f "$HOME/bin/vg_test"; then
 	log "START $1"
 	log "TEST 1"
 	log "VALGRIND 1"
-	classifier --timeout=600 --num-fd=3 "$HOME/bin/vg_test" "$@"
+	"$DIR/misc/grabcov" -o "$FILE.cov_info" -- classifier --timeout=600 --num-fd=3 "$HOME/bin/vg_test" "$@"
 	RES=$?
 	log "RESULT $RES"
 	log "FILE $FILE"
@@ -25,7 +29,7 @@ fi
 if test $RES != 0; then
 	log "START $1"
 	log "TEST 1"
-	classifier --timeout=600 "$@"
+	"$DIR/misc/grabcov" -o "$FILE.cov_info" -- classifier --timeout=600 "$@"
 	RES=$?
 	log "RESULT $RES"
 
@@ -34,6 +38,6 @@ if test $RES != 0; then
 	log "END $1"
 fi
 
-# return always succes, test verified later
+# return always success, test verified later
 exit 0
 

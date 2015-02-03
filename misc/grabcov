@@ -1,0 +1,62 @@
+#!/bin/sh
+
+error() {
+	echo "$@" >&2
+	exit 1
+}
+
+handle_exit() {
+	set +e
+	rm -rf "$GCOV_PREFIX"
+}
+
+set -e
+
+unset out res dir arg
+
+cd "`dirname $0`/.."
+dir="`pwd -P`"
+cd - > /dev/null
+
+# parse arguments
+out=
+while test $# -gt 0; do
+	arg="$1"
+	case "$arg" in
+	-o)
+		shift
+		out="$1"
+		;;
+	--)
+		shift
+		break
+		;;
+	-*)
+		error "Invalid option $arg"
+		;;
+	*)
+		break
+		;;
+	esac
+	shift
+done
+
+test "$1" != "" || error "You must specify a command"
+test "$out" != "" || error "Output file not specified"
+
+export GCOV_PREFIX="$dir/cov_dir.$$"
+mkdir $GCOV_PREFIX
+trap handle_exit EXIT
+set +e
+"$@"
+res=$?
+
+if test -d "$GCOV_PREFIX"; then
+	if $dir/misc/coverage.sh "$GCOV_PREFIX" "$out" > /dev/null 2>&1 ; then
+		gzip -9 "$out" 2> /dev/null
+	else
+		rm -f "$out"
+	fi
+fi
+
+exit $res
