@@ -221,7 +221,7 @@ col_buffer(struct col_t *pcol)
 		assert( false && pcol->type );
 		break;
 	}
-	return false;
+	return NULL;
 
 }
 

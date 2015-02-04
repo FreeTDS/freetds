@@ -218,7 +218,7 @@ static const char p32i[] = {
 	 P32I_INDEX_ROW(n,16, 2, 8, 24, 14) :\
 	 P32I_INDEX_ROW(n,20, 32, 27, 3, 9) :\
 	 P32I_INDEX_ROW(n,24, 19, 13, 30, 6) :\
-	 P32I_INDEX_ROW(n,28, 22, 11, 4, 25) : 0xbeef)
+	 P32I_INDEX_ROW(n,28, 22, 11, 4, 25) : 0x7f)
 
 static const char pbox[32] = {
 	P32I_INDEX( 1),
