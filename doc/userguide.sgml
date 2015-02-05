@@ -265,9 +265,9 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 <para>&freetds; uses <acronym>GNU</> <application>Autoconf</application>, <application>Automake</application>, and <application>libtool</application><footnote>
 		<itemizedlist spacing="compact">
 			<title>Versions used for this release</title>
-			<listitem><para>autoconf (GNU Autoconf) 2.65</para></listitem>
-			<listitem><para>automake (GNU automake) 1.11.1</para></listitem>
-			<listitem><para>ltmain.sh (GNU libtool) 2.2.6b</para></listitem>
+			<listitem><para>autoconf (GNU Autoconf) 2.69</para></listitem>
+			<listitem><para>automake (GNU automake) 1.15</para></listitem>
+			<listitem><para>ltmain.sh (GNU libtool) 2.4.2</para></listitem>
 			</itemizedlist>
 	</footnote> to increase portability.</para>
 
@@ -763,7 +763,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 						<row>
 							<entry>Microsoft SQL Server 2005</entry>
 							<entry>7.2</entry>
-							<entry>Includes support for varchar(max), varbinary(max), xml datatypes and MARS<footnote><para><emphasis>Multiple Active Result Sets</>. &freetds; does not support MARS.</para></footnote>.</entry>
+							<entry>Includes support for varchar(max), varbinary(max), xml datatypes and MARS<footnote><para><emphasis>Multiple Active Result Sets</>.</para></footnote>.</entry>
 							</row>
 						<row>
 							<entry>Microsoft SQL Server 2008</entry>
@@ -1821,7 +1821,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 	 * application call
 	 */
 	const char servername[] = "JDBC"; <footnote><para>refers to the <literal>[JDBC]</> entry in &freetdsconf;.</para></footnote>
-	sprintf(tmp, "DRIVER=FreeTDS<footnote><para>refers to the <literal>[FreeTDS]</> entry in <filename>odbcinst.ini</>.</para></footnote>;SERVERNAME=%s;UID=%s;PWD=%s;DATABASE=%s;",
+	sprintf(tmp, "DRIVER=FreeTDS<footnote id="dsn_odbcinst"><para>refers to the <literal>[FreeTDS]</> entry in <filename>odbcinst.ini</>.</para></footnote>;SERVERNAME=%s;UID=%s;PWD=%s;DATABASE=%s;",
 		servername, username, password, dbname);
 	res = SQLDriverConnect(Connection, NULL, (SQLCHAR *) tmp, SQL_NTS,
 				(SQLCHAR *) tmp, sizeof(tmp), &amp;len, SQL_DRIVER_NOPROMPT);
@@ -1841,7 +1841,7 @@ You can even establish a connection without reference to either <filename>odbc.i
 	 * application call
 	 */
 	const char servername[] = "jdbc.sybase.com"; <footnote><para>refers to the real server name.</para></footnote>
-	sprintf(tmp, "DRIVER=FreeTDS<footnote><para>refers to the <literal>[FreeTDS]</> entry in <filename>odbcinst.ini</>.</para></footnote>;SERVER=%s;UID=%s;PWD=%s;DATABASE=%s;TDS_Version=5.0;Port=4444;",
+	sprintf(tmp, "DRIVER=FreeTDS<footnoteref linkend="dsn_odbcinst" />;SERVER=%s;UID=%s;PWD=%s;DATABASE=%s;TDS_Version=5.0;Port=4444;",
 		servername, username, password, dbname);
 	res = SQLDriverConnect(Connection, NULL, (SQLCHAR *) tmp, SQL_NTS,
 				(SQLCHAR *) tmp, sizeof(tmp), &amp;len, SQL_DRIVER_NOPROMPT);
