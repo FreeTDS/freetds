@@ -3699,6 +3699,45 @@ tds_submit_commit(TDSSOCKET *tds, int cont)
 	return tds_query_flush_packet(tds);
 }
 
+static const TDSCONTEXT empty_ctx;
+
+TDSRET
+tds_disconnect(TDSSOCKET * tds)
+{
+	TDS_INT old_timeout;
+	const TDSCONTEXT *old_ctx;
+
+	CHECK_TDS_EXTRA(tds);
+ 
+	tdsdump_log(TDS_DBG_FUNC, "tds_disconnect() \n");
+ 
+	if (!IS_TDS50(tds->conn))
+		return TDS_SUCCESS;
+
+	old_timeout = tds->query_timeout;
+	old_ctx = tds_get_ctx(tds);
+
+	/* avoid to stall forever */
+	tds->query_timeout = 5;
+
+	/* do not report errors to upper libraries */
+	tds_set_ctx(tds, &empty_ctx);
+
+	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING) {
+		tds->query_timeout = old_timeout;
+		tds_set_ctx(tds, old_ctx);
+		return TDS_FAIL;
+	}
+ 
+	tds->out_flag = TDS_NORMAL;
+	tds_put_byte(tds, TDS_LOGOUT_TOKEN);
+	tds_put_byte(tds, 0);
+ 
+	tds_query_flush_packet(tds);
+ 
+	return tds_process_simple_query(tds);
+}
+ 
 /*
  * TODO add function to return type suitable for param
  * ie:

@@ -120,6 +120,7 @@ try_tds_logout(TDSLOGIN * login, TDSSOCKET * tds, int verbose)
 	if (verbose) {
 		fprintf(stdout, "Entered tds_try_logout()\n");
 	}
+	tds_close_socket(tds);
 	tds_free_socket(tds);
 	tds_free_login(login);
 	tds_free_context(test_context);

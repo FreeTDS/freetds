@@ -920,6 +920,7 @@ main(int argc, char **argv)
 
 	/* close up shop */
 	free(mybuf);
+	tds_close_socket(tds);
 	tds_free_socket(tds);
 	tds_free_login(login);
 	tds_free_context(context);

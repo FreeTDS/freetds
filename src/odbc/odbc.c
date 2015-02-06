@@ -2334,6 +2334,7 @@ SQLDisconnect(SQLHDBC hdbc)
 #ifdef ENABLE_ODBC_WIDE
 	dbc->mb_conv = NULL;
 #endif
+	tds_close_socket(dbc->tds_socket);
 	tds_free_socket(dbc->tds_socket);
 	dbc->tds_socket = NULL;
 	dbc->cursor_support = 0;
@@ -4111,6 +4112,8 @@ _SQLFreeConnect(SQLHDBC hdbc)
 
 	tdsdump_log(TDS_DBG_FUNC, "_SQLFreeConnect(%p)\n", 
 			hdbc);
+
+	tds_close_socket(dbc->tds_socket);
 
 	/* TODO if connected return error */
 	tds_free_socket(dbc->tds_socket);

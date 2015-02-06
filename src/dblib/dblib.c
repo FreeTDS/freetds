@@ -1469,6 +1469,7 @@ dbclose(DBPROCESS * dbproc)
 		dblib_del_connection(&g_dblib_ctx, dbproc->tds_socket);
 		tds_mutex_unlock(&dblib_mutex);
 
+		tds_close_socket(tds);
 		tds_free_socket(tds);
 		dblib_release_tds_ctx(1);
 	}
@@ -1542,6 +1543,7 @@ dbexit()
 		if (tds) {
 			++count;
 			dbproc = (DBPROCESS *) tds_get_parent(tds);
+			tds_close_socket(tds);
 			tds_free_socket(tds);
 			if (dbproc) {
 				/* avoid locking in dbclose */
