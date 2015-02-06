@@ -1265,8 +1265,10 @@ collate2charset(int sql_collate, int lcid)
 	case 0x41b:
 	case 0x41c:
 	case 0x424:
+	case 0x442:
 		/* case 0x81a: seem wrong in XP table TODO check */
 	case 0x104e:		/* ?? */
+	case 0x141a:
 		cp = TDS_CHARSET_CP1250;
 		break;
 	case 0x402:
@@ -1297,6 +1299,7 @@ collate2charset(int sql_collate, int lcid)
 	case 0x180c:
 	case 0x1c09:
 	case 0x1c0a:
+	case 0x201a:
 	case 0x2009:
 	case 0x200a:
 	case 0x2409:
@@ -1314,6 +1317,15 @@ collate2charset(int sql_collate, int lcid)
 	case 0x400a:
 	case 0x403:
 	case 0x406:
+	case 0x417:
+	case 0x42e:
+	case 0x43b:
+	case 0x452:
+	case 0x462:
+	case 0x47a:
+	case 0x47c:
+	case 0x47e:
+	case 0x483:
 	case 0x407:		/* 0x10407 */
 	case 0x409:
 	case 0x40a:
@@ -1335,6 +1347,8 @@ collate2charset(int sql_collate, int lcid)
 	case 0x440a:
 	case 0x441:
 	case 0x456:
+	case 0x46d:
+	case 0x485:
 	case 0x480a:
 	case 0x4c0a:
 	case 0x500a:
@@ -1347,7 +1361,9 @@ collate2charset(int sql_collate, int lcid)
 	case 0x814:
 	case 0x816:
 	case 0x81d:
+	case 0x83b:
 	case 0x83e:
+	case 0x85f:
 	case 0xc07:
 	case 0xc09:
 	case 0xc0a:
@@ -1379,8 +1395,10 @@ collate2charset(int sql_collate, int lcid)
 	case 0x3c01:
 	case 0x4001:
 	case 0x401:
+	case 0x480:
 	case 0x420:
 	case 0x429:
+	case 0x48c:
 	case 0x801:
 	case 0xc01:
 		cp = TDS_CHARSET_CP1256;
