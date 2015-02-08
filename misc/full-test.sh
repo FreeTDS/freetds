@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# test a test using watching for errors and logging all
+# run a test watching for errors and logging all
 
 log () {
 	echo "@!@!@!@!@!@!@!@!@!@!@!@!@!@!@!@- $1 -@!@!@!@!@!@!@!@!@!@!@!@!@!@!@!@"
@@ -8,9 +8,8 @@ log () {
 
 FILE=`echo "$1" | sed "s,^\\./,$PWD/,"`
 
-#execute with valgrind
-RES=0
-VG=0
+# execute with valgrind
+RES=1
 if test -f "$HOME/bin/vg_test"; then
 	log "START $1"
 	log "TEST 1"
@@ -20,11 +19,10 @@ if test -f "$HOME/bin/vg_test"; then
 	log "RESULT $RES"
 	log "FILE $FILE"
 	log "END $1"
-	VG=1
 fi
 
 # try to execute normally
-if test $RES != 0 -o $VG = 0; then
+if test $RES != 0; then
 	log "START $1"
 	log "TEST 1"
 	classifier --timeout=600 "$@"
