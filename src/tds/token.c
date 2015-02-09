@@ -826,6 +826,10 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 			SET_RETURN(TDS_MSG_RESULT, MSG);
 			rc = tds_process_default_tokens(tds, marker);
 			break;
+		case TDS_ENVCHANGE_TOKEN:
+			SET_RETURN(TDS_MSG_RESULT, ENV);
+			rc = tds_process_default_tokens(tds, marker);
+			break;
 		default:
 			SET_RETURN(TDS_OTHERS_RESULT, OTHERS);
 			rc = tds_process_default_tokens(tds, marker);

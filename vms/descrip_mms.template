@@ -469,6 +469,7 @@ dblibcheck :
 	@ run/nodebug []null2$(E)
 	@ run/nodebug []setnull$(E)
 	@ run/nodebug []numeric$(E)
+	@ run/nodebug []pending$(E)
 	@ set default [---]
 
 tdsodbccheck : 
@@ -579,7 +580,7 @@ dblibtests : [.src.dblib.unittests]rpc$(E)  [.src.dblib.unittests]t0001$(E) [.sr
 	[.src.dblib.unittests]done_handling$(E) [.src.dblib.unittests]timeout$(E) \
 	[.src.dblib.unittests]hang$(E) [.src.dblib.unittests]null$(E) \
 	[.src.dblib.unittests]null2$(E) [.src.dblib.unittests]setnull$(E) \
-	[.src.dblib.unittests]numeric$(E)
+	[.src.dblib.unittests]numeric$(E) [.src.dblib.unittests]pending$(E)
 	@ continue
 
 odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.odbc.unittests]t0003$(E) \
@@ -1103,6 +1104,12 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
 [.src.dblib.unittests]common$(OBJ) : [.src.dblib.unittests]common.c [.src.dblib.unittests]common.h
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[.src.dblib.unittests]pending$(E) : [.src.dblib.unittests]pending$(OBJ) [.src.dblib.unittests]common$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library
+
+[.src.dblib.unittests]pending$(OBJ) : [.src.dblib.unittests]pending.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
 # tdsodbc test detailed dependencies
