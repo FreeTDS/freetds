@@ -346,7 +346,7 @@ done
 # test autodiscovery
 set_pwd_file $ROOT/PWD.sybase15
 # using tsql directly with grep do not update coverage informations
-echo -e 'select @@version\ngo\nbye' | TDSVER=0.0 cov discovery ./src/apps/tsql -S "$tSRV" -U "$tUID" -P "$tPWD" > out.txt || true
+echo -e 'select @@version\ngo\nbye' | TDSVER=auto cov discovery ./src/apps/tsql -S "$tSRV" -U "$tUID" -P "$tPWD" > out.txt || true
 if grep -q 'Adaptive Server Enterprise' out.txt; then
 	echo "autodiscovery ok"
 else
