@@ -1,9 +1,7 @@
-Building FreeTDS from CVS
+Building FreeTDS from git
 James Cameron <james.cameron@compaq.com>
 
-The CVS archive is maintained on Source Forge.  See the User Guide or 
-start at http://sourceforge.net/projects/freetds/ for information on 
-connecting to the CVS server.  Then follow these steps:
+The git repository is maintained on Gitorious. Follow these steps:
 
 1) satisfy build dependencies, ensure that the following packages are
    installed:
@@ -42,25 +40,4 @@ connecting to the CVS server.  Then follow these steps:
 4) install the package,
 
 	make install
-	
-+++
 
-You are not required to rely on SourceForge's anonymous CVS server, which at
-the present time (July 2004) runs up to 1 hour behind the development server. 
-You can fetch the CVS tarball (the basis for a CVS server, not a snapshot) from
-SourceForge at:
-
-http://cvs.sourceforge.net/cvstarballs/freetds-cvsroot.tar.bz2
-
-We have a backup location, too, via anonymous ftp:
-	
-	ftp://rt.fm/pub/freetds/ (thanks to Joshua Stein <jcs@rt.fm>)
-	
-Nightly tarballs have been discontinued or deprecated, depending on which 
-Sourceforge document you believe.  Either way, you can now fetch 
-the CVS tree via rsync:
-
-$ rsync -av rsync://freetds.cvs.sourceforge.net/cvsroot/freetds/* .
-	
---
-$Id: INSTALL.CVS,v 1.10 2010-06-20 08:38:41 freddy77 Exp $
