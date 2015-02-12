@@ -46,7 +46,7 @@ if DISTCHECK_BUILD
 # if we are inside a make distcheck copy our real password file
 	if test ! -f PWD -a -f $(srcdir)/../PWD; then cp $(srcdir)/../PWD PWD; fi
 endif
-# this prevent the store of passwords in CVS
+# this prevent the store of passwords in the source repository
 	if test ! -f PWD; then cp $(srcdir)/PWD.in PWD; fi
 
 snapshot:
