@@ -1015,21 +1015,21 @@ tds_process_col_name(TDSSOCKET * tds)
 	tds_free_all_results(tds);
 	tds->rows_affected = TDS_NO_COUNT;
 
-	if ((info = tds_alloc_results(num_names)) != NULL) {
+	if ((info = tds_alloc_results(num_names)) == NULL)
+		goto memory_error;
 
-		tds->res_info = info;
-		tds_set_current_results(tds, info);
+	tds->res_info = info;
+	tds_set_current_results(tds, info);
 
-		cur = head;
-		for (col = 0; col < num_names; ++col) {
-			curcol = info->columns[col];
-			if (!tds_dstr_copy(&curcol->column_name, cur->name))
-				goto memory_error;
-			cur = cur->next;
-		}
-		tds_free_namelist(head);
-		return TDS_SUCCESS;
+	cur = head;
+	for (col = 0; col < num_names; ++col) {
+		curcol = info->columns[col];
+		if (!tds_dstr_copy(&curcol->column_name, cur->name))
+			goto memory_error;
+		cur = cur->next;
 	}
+	tds_free_namelist(head);
+	return TDS_SUCCESS;
 
 memory_error:
 	tds_free_namelist(head);
@@ -1726,7 +1726,6 @@ tds_process_result(TDSSOCKET * tds)
 	unsigned int col, num_cols;
 	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
-	TDSCURSOR *cursor;
 
 	CHECK_TDS_EXTRA(tds);
 
@@ -1738,19 +1737,13 @@ tds_process_result(TDSSOCKET * tds)
 	/* read number of columns and allocate the columns structure */
 	num_cols = tds_get_usmallint(tds);
 
-	if (tds->cur_cursor) {
-		cursor = tds->cur_cursor; 
-		if ((cursor->res_info = tds_alloc_results(num_cols)) == NULL)
-			return TDS_FAIL;
-		info = cursor->res_info;
-		tds_set_current_results(tds, cursor->res_info);
-	} else {
-		if ((tds->res_info = tds_alloc_results(num_cols)) == NULL)
-			return TDS_FAIL;
-	
-		info = tds->res_info;
-		tds_set_current_results(tds, tds->res_info);
-	}
+	if ((info = tds_alloc_results(num_cols)) == NULL)
+		return TDS_FAIL;
+	tds_set_current_results(tds, info);
+	if (tds->cur_cursor)
+		tds->cur_cursor->res_info = info;
+	else
+		tds->res_info = info;
 
 	/*
 	 * loop through the columns populating COLINFO struct from
@@ -2501,18 +2494,16 @@ tds_process_dyn_result(TDSSOCKET * tds)
 	tds_get_usmallint(tds);	/* header size */
 	num_cols = tds_get_usmallint(tds);
 
+	/* read number of columns and allocate the columns structure */
+	if ((info = tds_alloc_results(num_cols)) == NULL)
+		return TDS_FAIL;
 	if (tds->cur_dyn) {
 		dyn = tds->cur_dyn;
 		tds_free_param_results(dyn->res_info);
-		/* read number of columns and allocate the columns structure */
-		if ((dyn->res_info = tds_alloc_results(num_cols)) == NULL)
-			return TDS_FAIL;
-		info = dyn->res_info;
+		dyn->res_info = info;
 	} else {
 		tds_free_param_results(tds->param_info);
-		if ((tds->param_info = tds_alloc_results(num_cols)) == NULL)
-			return TDS_FAIL;
-		info = tds->param_info;
+		tds->param_info = info;
 	}
 	tds_set_current_results(tds, info);
 
@@ -2545,18 +2536,16 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 	tds_get_uint(tds);	/* header size */
 	num_cols = tds_get_usmallint(tds);
 
+	/* read number of columns and allocate the columns structure */
+	if ((info = tds_alloc_results(num_cols)) == NULL)
+		return TDS_FAIL;
 	if (tds->cur_dyn) {
 		dyn = tds->cur_dyn;
 		tds_free_param_results(dyn->res_info);
-		/* read number of columns and allocate the columns structure */
-		if ((dyn->res_info = tds_alloc_results(num_cols)) == NULL)
-			return TDS_FAIL;
-		info = dyn->res_info;
+		dyn->res_info = info;
 	} else {
 		tds_free_param_results(tds->param_info);
-		if ((tds->param_info = tds_alloc_results(num_cols)) == NULL)
-			return TDS_FAIL;
-		info = tds->param_info;
+		tds->param_info = info;
 	}
 	tds_set_current_results(tds, info);
 
@@ -2679,6 +2668,7 @@ tds_process_compute_names(TDSSOCKET * tds)
 	int num_cols = 0;
 	TDS_USMALLINT compute_id = 0;
 	TDSCOMPUTEINFO *info;
+	int col;
 
 	struct namelist *head = NULL, *cur;
 
@@ -2699,28 +2689,27 @@ tds_process_compute_names(TDSSOCKET * tds)
 
 	tdsdump_log(TDS_DBG_INFO1, "processing tds5 compute names. num_cols = %d\n", num_cols);
 
-	if ((tds->comp_info = tds_alloc_compute_results(tds, num_cols, 0)) != NULL) {
-		int col;
+	if ((tds->comp_info = tds_alloc_compute_results(tds, num_cols, 0)) == NULL)
+		goto memory_error;
 
-		tdsdump_log(TDS_DBG_INFO1, "processing tds5 compute names. num_comp_info = %d\n", tds->num_comp_info);
+	tdsdump_log(TDS_DBG_INFO1, "processing tds5 compute names. num_comp_info = %d\n", tds->num_comp_info);
 
-		info = tds->comp_info[tds->num_comp_info - 1];
-		tds_set_current_results(tds, info);
+	info = tds->comp_info[tds->num_comp_info - 1];
+	tds_set_current_results(tds, info);
 
-		info->computeid = compute_id;
+	info->computeid = compute_id;
 
-		cur = head;
-		for (col = 0; col < num_cols; col++) {
-			TDSCOLUMN *curcol = info->columns[col];
+	cur = head;
+	for (col = 0; col < num_cols; col++) {
+		TDSCOLUMN *curcol = info->columns[col];
 
-			if (!tds_dstr_copy(&curcol->column_name, cur->name))
-				goto memory_error;
+		if (!tds_dstr_copy(&curcol->column_name, cur->name))
+			goto memory_error;
 
-			cur = cur->next;
-		}
-		tds_free_namelist(head);
-		return TDS_SUCCESS;
+		cur = cur->next;
 	}
+	tds_free_namelist(head);
+	return TDS_SUCCESS;
 
 memory_error:
 	tds_free_namelist(head);
