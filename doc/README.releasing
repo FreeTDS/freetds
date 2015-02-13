@@ -1,25 +1,24 @@
 It's pretty simple, basically:
 
-0) Form a branch in cvs:
+0) Form a branch in git:
 
-	$ cvs tag branch-0_xx
-	$ cvs tag -b Branch-0_xx
- 
-   Use the form Branch-0_xx, where xx is the release number.  This affects only
-   the repository, not the working directory.  
- 
-1) Change the version number in configure.ac and UG.  
-2) Update web pages regarding purpose and status of rc.  
-3) Put out a release candidates until everyone's happy.  
-   jkl has a "make dist" script on /etc/nightly.freetds that works well.  
-4) ftp tarball to 
+	$ git tag branch-0_xx
+	$ git branch Branch-0_xx
+	$ git push origin branch-0_xx Branch-0_xx
+
+   Use the form Branch-0_xx, where xx is the release number.
+
+1) Change the version number in configure.ac and UG.
+2) Update web pages regarding purpose and status of rc.
+3) Put out a release candidates until everyone's happy.
+   jkl has a "make dist" script on /etc/nightly.freetds that works well.
+4) ftp tarball to
 	ftp://login.ibiblio.org/pub/linux/ALPHA/freetds/current
-5) ftp user guide to www.freetds.org/userguide/.  
+5) ftp user guide to www.freetds.org/userguide/.
    repeat 3-4 as necessary.
-6) Log into ibiblio.  Trim rc# from tarball.  Update web site.  
-7) Create rpm with 'rpmbuild -ta freetds-0.61.tar.gz', post these to 
-   ibiblio as well.
-   
+6) Log into ibiblio.  Trim rc# from tarball.  Update web site.
+7) Create rpm with 'rpmbuild -ta freetds-0.61.tar.gz', post these as well.
+
 Announcements to:
 
 	freshmeat.net
@@ -27,10 +26,10 @@ Announcements to:
 	comp.databases.sybase
 	comp.databases.ms-sqlserver
 	linuxpr.com
-	
 
-We received this bit of advice on the mailing list on 
-Wed Oct 15 14:51:06 EDT 2003.  
+
+We received this bit of advice on the mailing list on
+Wed Oct 15 14:51:06 EDT 2003.
 
 Please, please, *please* follow the common rules of good release
 engineering (in descending order of importance - two orders of magnitude
@@ -51,4 +50,4 @@ less important per step ;-)
     convention for naming - .tar.gz for tar and gzip, rather than .tgz.
 
 --
-$Id: README.releasing,v 1.11 2008-01-10 15:26:51 freddy77 Exp $
+$Id$

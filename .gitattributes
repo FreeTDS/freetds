@@ -1,2 +1,3 @@
 include/freetds/version.h.in ident
 doc/htdoc/faq.html ident
+doc/README.releasing ident

@@ -38,7 +38,7 @@ doxy: doxyfile  $(libtds_la_SOURCES)
 	$(DOXYGEN) doxyfile
 endif
 
-# Perl is needed to build from a CVS checkout.  
+# Perl is needed to build from a repository checkout.
 # Perl is *not* needed to build from a tarball.  
 
 ## We have to build num_limits.h because automake can't infer the

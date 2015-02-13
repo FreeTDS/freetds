@@ -4,7 +4,7 @@ project.  There are likely to be portions of code that do not follow this
 style, but ideally all would.
 
 We are of course not trying to dictate how you code, but patches or submissions 
-to CVS should be converted to this style prior to committing.  The indent 
+to git should be converted to this style prior to committing.  The indent
 program found on most Unix systems will do this nicely.
 
 Code Blocks

@@ -69,7 +69,7 @@
 				</simplelist>
 			</footnote>
 		can be found on the &freetds;
-		<ulink url="http://www.freetds.org/userguide/">web site</ulink>, where you will also find the most up to date <ulink url="http://www.freetds.org/faq.html">FAQ</ulink>, as well as links to the anonymous and browseable CVS tree.  If you find something wrong, unclear, badly put, misleading, or incorrigible, I hope you will let us know.  Post your musings or rants to the mailing list (see <link linkend="contrib">Helping</link>).  Patches to <filename>doc/userguide.sgml</> are especially welcome, of course.  By taking the time let us know what you think, perhaps the path to enlightenment will be made a little smoother for the fellow behind you.</para>
+		<ulink url="http://www.freetds.org/userguide/">web site</ulink>, where you will also find the most up to date <ulink url="http://www.freetds.org/faq.html">FAQ</ulink>, as well as links to the anonymous and browseable git repository.  If you find something wrong, unclear, badly put, misleading, or incorrigible, I hope you will let us know.  Post your musings or rants to the mailing list (see <link linkend="contrib">Helping</link>).  Patches to <filename>doc/userguide.sgml</> are especially welcome, of course.  By taking the time let us know what you think, perhaps the path to enlightenment will be made a little smoother for the fellow behind you.</para>
 
 <para>A few technical notes.  This guide is written in SGML DocBook format, specifications for which are found in the <ulink url="http://www.docbook.org/tdg/en/html/docbook.html">DocBook book</ulink>.  It was converted to HTML with <ulink url="http://openjade.sourceforge.net">OpenJade</ulink>.
 		The SGML text is distributed with the rest of the source code, and may be edited with your favorite or least favorite text editor.</para>
@@ -276,27 +276,25 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 <para>If the following nevertheless reads like gibberish, you might very well want to use something prepackaged (see <link linkend="alternatives">Alternatives</link>).  If it reads like a vaguely intelligible alien script that might yield to intensive research, we've included links to some of the usual suspects at the end of this chapter.  If it reads like a bad explanation of something you could explain better, please send us your version!</para>
 		</sect1>
 	<sect1 id="packages">
-		<title>What to build: Packages, Tarballs, and the <productname>CVS</productname> repository</title>
+		<title>What to build: Packages, Tarballs, and the <productname>git</productname> repository</title>
 
 <para>The latest &freetds; package is always available from
 			<ulink url="ftp://ibiblio.unc.edu/pub/Linux/ALPHA/freetds/freetds-release.tgz">
 				<citetitle>iBiblio</citetitle></ulink>
 			and its mirrors.</para>
 
-<para>Code changes by the developers are immediately available in the <productname>CVS</productname> repository.  If you've run into a problem, you may want to check out from <productname>CVS</productname> to see if it's fixed there.</para>
+<para>Code changes by the developers are immediately available in the <productname>git</productname> repository.  If you've run into a problem, you may want to check out from <productname>git</productname> to see if it's fixed there.</para>
 
-<para>No password is needed to obtain the current CVS copy of FreeTDS; you need only have a CVS client installed on your machine.  Then:
+<para>No password is needed to obtain the current git copy of FreeTDS; you need only have a git client installed on your machine.  Then:
 <screen>
-	<prompt>$ </prompt><userinput>cvs -d:pserver:anonymous@freetds.cvs.sourceforge.net:/cvsroot/freetds login</userinput>
-	<prompt>$ </prompt><userinput>cvs -z3 -d:pserver:anonymous@freetds.cvs.sourceforge.net:/cvsroot/freetds checkout -P freetds</userinput>
-	<prompt>Password: </prompt>
+	<prompt>$ </prompt><userinput>git clone git@gitorious.org:freetds/freetds.git</userinput>
 	<prompt>$ </prompt></screen></para>
 
-<para>For those behind firewalls or otherwise unable to access <productname>CVS</productname>, nightly snapshots of <productname>CVS</productname> are rolled up into tarballs for your convenience.  They can be downloaded from
-			<ulink url="ftp://ftp.ibiblio.org/pub/Linux/ALPHA/freetds/freetds-current.tgz">ibiblio.org</ulink>.  Tarballs are generated around 3am EST (GMT-5).</para>
+<para>For those behind firewalls or otherwise unable to access <productname>git</productname>, nightly snapshots of <productname>git</productname> are rolled up into tarballs for your convenience.  They can be downloaded from
+			<ulink url="ftp://ftp.freetds.org/pub/freetds/current/freetds-current.tgz">www.freetds.org</ulink>.</para>
 
-<para>In general, the <productname>CVS</productname> HEAD revision (the basis of the current nightly snapshot) works better and has more functionality than the release version.  Bugs sometimes persist in the release version but are usually fixed in short order (once identified) in <productname>CVS</productname> HEAD.</para>
-		<tip><para>As with any project of this sort, if you want to use the <productname>CVS</productname> HEAD revision, it's a good idea to join the mailing list.
+<para>In general, the <productname>git</productname> master branch (the basis of the current nightly snapshot) works better and has more functionality than the release version.  Bugs sometimes persist in the release version but are usually fixed in short order (once identified) in <productname>git</productname> master.</para>
+		<tip><para>As with any project of this sort, if you want to use the <productname>git</productname> master branch, it's a good idea to join the mailing list.
 </para></tip>
 		</sect1>
 	<sect1 id="config">
@@ -314,7 +312,7 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 	<prompt>$ </prompt><userinput>make install</userinput></screen>
 	
 
-<para>Building from CVS is described in the file <filename>INSTALL.CVS</filename>.</para>
+<para>Building from git is described in the file <filename>INSTALL.GIT</filename>.</para>
 			
 			</sect2>
 		<sect2 id="Everyone"><title>For Everyone Else </title>
@@ -498,10 +496,10 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 				<orderedlist>
 					<listitem><para>Download the tarball and unpack it.</para>
 
-<para>Alternatively, get the latest build from <productname>CVS</productname>
+<para>Alternatively, get the latest build from <productname>git</productname>
 							<footnote>
 
-<para><productname>CVS</productname> users will need the GNU autotools: Autoconf, Automake, and libtool.</para>
+<para><productname>git</productname> users will need the GNU autotools: Autoconf, Automake, and libtool.</para>
 								</footnote>
 							.
 </para></listitem>
