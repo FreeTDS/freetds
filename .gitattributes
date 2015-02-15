@@ -1,1 +1,2 @@
 include/freetds/version.h.in ident
+doc/htdoc/faq.html ident

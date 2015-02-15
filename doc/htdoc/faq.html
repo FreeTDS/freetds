@@ -3,7 +3,7 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html xmlns="http://www.w3.org/1999/xhtml">
-<!-- $Id: faq.html,v 1.34 2011-09-21 16:21:32 jklowden Exp $ -->
+<!-- $Id$ -->
 
 <head>
 	<title>FreeTDS Frequently Asked Questions</title>
@@ -196,7 +196,7 @@
   <h3 id="Does.FreeTDS.support.Microsoft.servers">Does FreeTDS support Microsoft servers?</h3>
 
   <p>Yes. Microsoft servers don't usually accept TDS 5.0
-  connections. Use one of versions 4.2, 7.0 or 8.0 of the protocol.
+  connections. Use one of versions 7.0, 7.1, 7.2 or 7.3 of the protocol.
   See the <a href=
   "userguide/choosingtdsprotocol.htm">User
   Guide</a> for details.</p>
@@ -244,7 +244,7 @@
 	<dt><a href="mailto:freddy77_A_gmail_D_com">Frediano Ziglio</a></dt>
 		<dd>Wrote great swaths of the ODBC driver and keeps the TDS
 		library up to date with protocol changes.  Also contributed
-		most of the current encryption logic. </dd>
+		most of the current encryption logic. Project maintainer since 2015.</dd>
 	</dl>
       <p>For a more complete history, see AUTHORS in the distribution.  
       Thanks also go to the folks at A2i, Inc. <a href=
@@ -385,7 +385,7 @@
 
   <p><kbd>libtds.so</kbd> doesn't exist and isn't needed.  Any reference to
   it in your linker commands can be safely removed.  Any test for its existence 
-  should be modified to test instead for the appropriate client library.  
+  should be modified to test instead for the appropriate client library.</p>
 	
   <p>As of version 0.82, the TDS utility library is not built 
   as a shared object.  The static library <kbd>libtds.a</kbd>, 
@@ -395,7 +395,7 @@
   Because <kbd>libtds</kbd> is statically linked to the client libraries, 
   they each now contain all the TDS functionality they need.  </p>
   
-  <p>In the past, <kbd>libtds</kbd> was distrbuted as a shared object.  
+  <p>In the past, <kbd>libtds</kbd> was distributed as a shared object.
   We found that did more harm than good.  
   Proper versioning and support was a burden on the 
   developers, and it was just one more thing for a client application
@@ -759,9 +759,9 @@
   <!-- footer -->
   <hr size="1" />
   <font size="-1">Updates and comments <a href=
-  "mailto:jklowden@freetds.org">FreeTDS FAQ Master</a> 
+  "mailto:freetds@lists.ibiblio.org">FreeTDS mailing list</a>
   <br/>
-    <i>$Id: faq.html,v 1.34 2011-09-21 16:21:32 jklowden Exp $</i>
+    <i>$Id$</i>
 	</font>
 <hr/>
   <p>
