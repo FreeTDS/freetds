@@ -1403,7 +1403,6 @@ dbsqlexec(DBPROCESS * dbproc)
  * \param name database to use.
  * \retval SUCCEED query was processed without errors.
  * \retval FAIL query was not processed
- * \todo \a name should be quoted.
  * \sa dbchange(), dbname().
  */
 RETCODE
