@@ -5902,6 +5902,12 @@ _SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLS
 		/* TODO check specifications */
 		p = "1995";
 		break;
+	case SQL_INFO_FREETDS_TDS_VERSION:
+		if (!dbc->tds_socket)
+			return SQL_ERROR;
+		sprintf(buf, "%u.%u", TDS_MAJOR(dbc->tds_socket->conn), TDS_MINOR(dbc->tds_socket->conn));
+		p = buf;
+		break;
 	default:
 		odbc_log_unimplemented_type("SQLGetInfo", fInfoType);
 		odbc_errs_add(&dbc->errs, "HY092", "Option not supported");
