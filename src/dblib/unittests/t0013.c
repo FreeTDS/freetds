@@ -96,7 +96,8 @@ test(int argc, char **argv, int over4k)
 
 	blob = malloc(isiz);
 	assert(blob);
-	fread((void *) blob, isiz, 1, fp);
+	result = fread((void *) blob, isiz, 1, fp);
+	assert(result == 1);
 	fclose(fp);
 
 	drop_table();

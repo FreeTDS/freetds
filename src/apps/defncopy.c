@@ -494,6 +494,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 		int is_null;
 
 		/* get size of decimal, numeric, char, and image types */
+		ret = -1;
 		if (0 == strcasecmp("decimal", ddl[i].type) || 0 == strcasecmp("numeric", ddl[i].type)) {
 			if (ddl[i].precision && 0 != strcasecmp("NULL", ddl[i].precision)) {
 				rtrim(ddl[i].precision);

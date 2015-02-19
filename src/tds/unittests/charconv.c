@@ -204,6 +204,9 @@ test(TDSSOCKET *tds, enum Odd odd_type)
 			err = add_odd(buf, &l, odd_type);
 			l = 4096+30;
 			break;
+		default:
+			exit(1);
+			return;
 		}
 
 		/* convert it */

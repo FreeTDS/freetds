@@ -78,7 +78,8 @@ test(int argc, char **argv, int over4k)
 	result = fseek(fp, 0, SEEK_SET);
 
 	blob = (char *) malloc(isiz);
-	fread((void *) blob, isiz, 1, fp);
+	result = fread((void *) blob, isiz, 1, fp);
+	assert(result == 1);
 	fclose(fp);
 
 	/* FIXME this test seem to not work using temporary tables (sybase?)... */
