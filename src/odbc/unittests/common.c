@@ -326,6 +326,30 @@ odbc_driver_is_freetds(void)
 	return freetds_driver;
 }
 
+int
+odbc_tds_version(void)
+{
+	static int tds_version = -1;
+
+	ODBC_BUF *odbc_buf = NULL;
+	SQLTCHAR buf[64];
+	SQLSMALLINT len;
+
+	if (!odbc_driver_is_freetds())
+		return 0;
+
+	if (tds_version < 0) {
+		unsigned M, m;
+
+		buf[0] = 0;
+		SQLGetInfo(odbc_conn, 1300 /* SQL_INFO_FREETDS_TDS_VERSION */, buf, sizeof(buf), &len);
+		if (sscanf(C(buf), "%u.%u", &M, &m) == 2)
+			tds_version = M * 0x100u + m;
+	}
+	ODBC_FREE();
+	return tds_version < 0 ? 0: tds_version;
+}
+
 static char db_str_version[32];
 
 const char *odbc_db_version(void)

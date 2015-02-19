@@ -168,6 +168,7 @@ int odbc_db_is_microsoft(void);
 const char *odbc_db_version(void);
 unsigned int odbc_db_version_int(void);
 int odbc_driver_is_freetds(void);
+int odbc_tds_version(void);
 
 #define ODBC_VECTOR_SIZE(x) (sizeof(x)/sizeof(x[0]))
 #define int2ptr(i) ((void*)(((char*)0)+(i)))
