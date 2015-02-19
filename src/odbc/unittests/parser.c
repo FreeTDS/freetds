@@ -257,6 +257,41 @@ odbc_get_cmd_line(char **p_s, int *cond)
 			continue;
 		}
 
+		if (strcmp(cmd, "tds_version_cmp") == 0) {
+			const char *bool_name = odbc_get_tok(&p);
+			const char *cmp = odbc_get_tok(&p);
+			const char *s_ver = odbc_get_tok(&p);
+			int ver = odbc_tds_version();
+			int expected;
+			int res;
+			unsigned M, m;
+
+			if (!cmp || !s_ver)
+				odbc_fatal(": missing parameters\n");
+			if (sscanf(s_ver, "%u.%u", &M, &m) != 2)
+				odbc_fatal(": invalid version %s\n", s_ver);
+			expected = M * 0x100u + m;
+
+			if (strcmp(cmp, ">") == 0)
+				res = ver > expected;
+			else if (strcmp(cmp, ">=") == 0)
+				res = ver >= expected;
+			else if (strcmp(cmp, "<") == 0)
+				res = ver < expected;
+			else if (strcmp(cmp, "<=") == 0)
+				res = ver <= expected;
+			else if (strcmp(cmp, "==") == 0)
+				res = ver == expected;
+			else if (strcmp(cmp, "!=") == 0)
+				res = ver != expected;
+			else
+				odbc_fatal(": invalid operator %s\n", cmp);
+
+			if (*cond)
+				odbc_set_bool(bool_name, res);
+			continue;
+		}
+
 		*p_s = p;
 		return cmd;
 	}
