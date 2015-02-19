@@ -139,11 +139,13 @@ DoTest(int version3)
 	CHECK_TYPE(SQL_VARCHAR, SQL_VARCHAR);
 
 	CHECK_TYPE(SQL_DATE, date_time_supported && !version3 ? SQL_DATE : SQL_UNKNOWN_TYPE);
-	CHECK_TYPE(SQL_TIME, date_time_supported && !version3 ? SQL_TIME : SQL_UNKNOWN_TYPE);
+	if (!odbc_db_is_microsoft())
+		CHECK_TYPE(SQL_TIME, date_time_supported && !version3 ? SQL_TIME : SQL_UNKNOWN_TYPE);
 	/* MS ODBC returns S1004 (HY004), TODO support it */
 	if (odbc_driver_is_freetds() || version3) {
 		CHECK_TYPE(SQL_TYPE_DATE, date_time_supported && version3 ? SQL_TYPE_DATE : SQL_UNKNOWN_TYPE);
-		CHECK_TYPE(SQL_TYPE_TIME, date_time_supported && version3 ? SQL_TYPE_TIME : SQL_UNKNOWN_TYPE);
+		if (!odbc_db_is_microsoft())
+			CHECK_TYPE(SQL_TYPE_TIME, date_time_supported && version3 ? SQL_TYPE_TIME : SQL_UNKNOWN_TYPE);
 	}
 	/* TODO MS ODBC handle SQL_TIMESTAMP even for ODBC 3 */
 	if (odbc_driver_is_freetds())

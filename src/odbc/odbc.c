@@ -6038,8 +6038,9 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 	TDS_INT result_type;
 	TDS_INT compute_id;
 	int varchar_pos = -1, n;
-	static const char sql_templ[] = "EXEC sp_datatype_info %d";
-	char sql[sizeof(sql_templ) + 30];
+	static const char sql_templ_default[] = "sp_datatype_info %d";
+	const char *sql_templ = sql_templ_default;
+	char sql[sizeof(sql_templ_default) + 36];
 	int odbc3;
 
 	ODBC_ENTER_HSTMT;
@@ -6048,6 +6049,11 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 
 	tds = stmt->dbc->tds_socket;
 	odbc3 = (stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3);
+
+	if (IS_TDS73_PLUS(tds->conn))
+		sql_templ = "sp_datatype_info_100 %d";
+	else if (IS_TDS72_PLUS(tds->conn))
+		sql_templ = "sp_datatype_info_90 %d";
 
 	/* For MSSQL6.5 and Sybase 11.9 sp_datatype_info work */
 	/* TODO what about early Sybase products ? */
