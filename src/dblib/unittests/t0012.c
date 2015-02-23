@@ -101,6 +101,5 @@ main(int argc, char *argv[])
 	dbexit();
 
 	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
-	free_bread_crumb();
 	return failed ? 1 : 0;
 }

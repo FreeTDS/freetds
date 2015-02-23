@@ -31,18 +31,15 @@ main(int argc, char *argv[])
 	read_login_info(argc, argv);
 
 	fprintf(stdout, "Starting %s\n", argv[0]);
-	add_bread_crumb();
 
 	/* Fortify_EnterScope(); */
 	dbinit();
 
-	add_bread_crumb();
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
 	fprintf(stdout, "About to logon\n");
 
-	add_bread_crumb();
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
@@ -50,13 +47,10 @@ main(int argc, char *argv[])
 
 	fprintf(stdout, "About to open\n");
 
-	add_bread_crumb();
 	dbproc = dbopen(login, SERVER);
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
-	add_bread_crumb();
 	dbloginfree(login);
-	add_bread_crumb();
 
 	fprintf(stdout, "creating table\n");
 	sql_cmd(dbproc);
@@ -96,45 +90,32 @@ main(int argc, char *argv[])
 	fprintf(stdout, "select\n");
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
-	add_bread_crumb();
-
 
 	if (dbresults(dbproc) != SUCCEED) {
-		add_bread_crumb();
 		failed = 1;
 		fprintf(stdout, "Was expecting a result set.\n");
 		exit(1);
 	}
-	add_bread_crumb();
 
-
-	for (i = 1; i <= dbnumcols(dbproc); i++) {
-		add_bread_crumb();
+	for (i = 1; i <= dbnumcols(dbproc); i++)
 		printf("col %d is %s\n", i, dbcolname(dbproc, i));
-		add_bread_crumb();
-	}
 
-	add_bread_crumb();
 	fprintf(stdout, "binding row columns\n");
 	if (SUCCEED != dbbind(dbproc, 1, INTBIND, 0, (BYTE *) & rowint)) {
 		failed = 1;
 		fprintf(stderr, "Had problem with bind col1\n");
 		abort();
 	}
-	add_bread_crumb();
 	if (SUCCEED != dbbind(dbproc, 2, STRINGBIND, 0, (BYTE *) rowchar)) {
 		failed = 1;
 		fprintf(stderr, "Had problem with bind col2\n");
 		abort();
 	}
-	add_bread_crumb();
 	if (SUCCEED != dbbind(dbproc, 3, STRINGBIND, 0, (BYTE *) rowdate)) {
 		failed = 1;
 		fprintf(stderr, "Had problem with bind col3\n");
 		abort();
 	}
-
-	add_bread_crumb();
 
 	fprintf(stdout, "testing compute clause 1\n");
 
@@ -169,8 +150,6 @@ main(int argc, char *argv[])
 	}
 
 
-	add_bread_crumb();
-
 	fprintf(stdout, "testing compute clause 2\n");
 
 	if (dbnumalts(dbproc, 2) != 1) {
@@ -203,8 +182,6 @@ main(int argc, char *argv[])
 		abort();
 	}
 
-	add_bread_crumb();
-
 	while ((rowtype = dbnextrow(dbproc)) != NO_MORE_ROWS) {
 
 		if (rowtype == REG_ROW) {
@@ -223,11 +200,8 @@ main(int argc, char *argv[])
 		}
 	}
 
-	add_bread_crumb();
 	dbexit();
-	add_bread_crumb();
 
 	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
-	free_bread_crumb();
 	return failed ? 1 : 0;
 }

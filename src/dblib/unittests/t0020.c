@@ -39,18 +39,15 @@ main(int argc, char **argv)
 	read_login_info(argc, argv);
 
 	fprintf(stdout, "Starting %s\n", argv[0]);
-	add_bread_crumb();
 
 	/* Fortify_EnterScope(); */
 	dbinit();
 
-	add_bread_crumb();
 	dberrhandle(err_handler);
 	dbmsghandle(syb_msg_handler);
 
 	fprintf(stdout, "About to logon\n");
 
-	add_bread_crumb();
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
@@ -58,13 +55,10 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "About to open\n");
 
-	add_bread_crumb();
 	dbproc = dbopen(login, SERVER);
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
-	add_bread_crumb();
 	dbloginfree(login);
-	add_bread_crumb();
 
 	sql_cmd(dbproc);
 	fprintf(stderr, "The following invalid column error is normal.\n");
@@ -91,11 +85,8 @@ main(int argc, char **argv)
 		while (dbnextrow(dbproc) != NO_MORE_ROWS);
 	}
 
-	add_bread_crumb();
 	dbexit();
-	add_bread_crumb();
 
 	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
-	free_bread_crumb();
 	return failed ? 1 : 0;
 }

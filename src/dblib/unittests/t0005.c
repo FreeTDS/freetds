@@ -24,18 +24,14 @@ main(int argc, char **argv)
 
 	read_login_info(argc, argv);
 	fprintf(stdout, "Starting %s\n", argv[0]);
-	add_bread_crumb();
-
 
 	dbinit();
 
-	add_bread_crumb();
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
 	fprintf(stdout, "About to logon\n");
 
-	add_bread_crumb();
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
@@ -44,15 +40,10 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "About to open\n");
 
-	add_bread_crumb();
 	dbproc = dbopen(login, SERVER);
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
-	add_bread_crumb();
 	dbloginfree(login);
-	add_bread_crumb();
-
-	add_bread_crumb();
 
 	fprintf(stdout, "creating table\n");
 	if (SUCCEED != sql_cmd(dbproc)) {
@@ -81,47 +72,30 @@ main(int argc, char **argv)
 
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
-	add_bread_crumb();
-
 
 	if (dbresults(dbproc) != SUCCEED) {
-		add_bread_crumb();
 		fprintf(stdout, "Was expecting a result set.");
 		exit(1);
 	}
-	add_bread_crumb();
 
-	for (i = 1; i <= dbnumcols(dbproc); i++) {
-		add_bread_crumb();
+	for (i = 1; i <= dbnumcols(dbproc); i++)
 		printf("col %d is %s\n", i, dbcolname(dbproc, i));
-		add_bread_crumb();
-	}
 
-	add_bread_crumb();
 	dbbind(dbproc, 1, INTBIND, 0, (BYTE *) & testint);
-	add_bread_crumb();
 	dbbind(dbproc, 2, STRINGBIND, 0, (BYTE *) teststr);
-	add_bread_crumb();
-
-	add_bread_crumb();
 
 	for (i = 1; i < 5; i++) {
 	char expected[1024];
 
 		sprintf(expected, "row %04d", i);
 
-		add_bread_crumb();
-
-
 		testint = -1;
 		strcpy(teststr, "bogus");
 
-		add_bread_crumb();
 		if (REG_ROW != dbnextrow(dbproc)) {
 			fprintf(stderr, "Failed.  Expected a row\n");
 			exit(1);
 		}
-		add_bread_crumb();
 		if (testint != i) {
 			fprintf(stderr, "Failed.  Expected i to be %d, was %d\n", i, (int) testint);
 			abort();
@@ -147,46 +121,30 @@ main(int argc, char **argv)
 		fprintf(stderr, "%s:%d: dbsqlexec should have succeeded but didn't\n", __FILE__, __LINE__);
 		failed = 1;
 	}
-	add_bread_crumb();
 
 	if (dbresults(dbproc) != SUCCEED) {
-		add_bread_crumb();
 		fprintf(stdout, "Was expecting a result set.");
 		exit(1);
 	}
-	add_bread_crumb();
 
-	for (i = 1; i <= dbnumcols(dbproc); i++) {
-		add_bread_crumb();
+	for (i = 1; i <= dbnumcols(dbproc); i++)
 		printf("col %d is %s\n", i, dbcolname(dbproc, i));
-		add_bread_crumb();
-	}
 
-	add_bread_crumb();
 	dbbind(dbproc, 1, INTBIND, 0, (BYTE *) & testint);
-	add_bread_crumb();
 	dbbind(dbproc, 2, STRINGBIND, 0, (BYTE *) teststr);
-	add_bread_crumb();
-
-	add_bread_crumb();
 
 	for (i = 1; i < 5; i++) {
 	char expected[1024];
 
 		sprintf(expected, "row %04d", i);
 
-		add_bread_crumb();
-
-
 		testint = -1;
 		strcpy(teststr, "bogus");
 
-		add_bread_crumb();
 		if (REG_ROW != dbnextrow(dbproc)) {
 			fprintf(stderr, "Failed.  Expected a row\n");
 			exit(1);
 		}
-		add_bread_crumb();
 		if (testint != i) {
 			fprintf(stderr, "Failed.  Expected i to be %d, was %d\n", i, (int) testint);
 			abort();
@@ -214,20 +172,15 @@ main(int argc, char **argv)
 	dbcancel(dbproc);
 
 	fprintf(stdout, "Dropping proc\n");
-	add_bread_crumb();
 	sql_cmd(dbproc);
-	add_bread_crumb();
 	dbsqlexec(dbproc);
-	add_bread_crumb();
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
-	add_bread_crumb();
 
 	fprintf(stdout, "creating proc\n");
 	sql_cmd(dbproc);
 	if (dbsqlexec(dbproc) == FAIL) {
-		add_bread_crumb();
 		fprintf(stderr, "%s:%d: failed to create procedure\n", __FILE__, __LINE__);
 		failed = 1;
 	}
@@ -238,46 +191,32 @@ main(int argc, char **argv)
 	fprintf(stdout, "calling proc\n");
 	sql_cmd(dbproc);
 	if (dbsqlexec(dbproc) == FAIL) {
-		add_bread_crumb();
 		fprintf(stderr, "%s:%d: failed to call procedure\n", __FILE__, __LINE__);
 		failed = 1;
 	}
 	if (dbresults(dbproc) != SUCCEED) {
-		add_bread_crumb();
 		fprintf(stdout, "Was expecting a result set.");
 		exit(1);
 	}
-	add_bread_crumb();
 
-	for (i = 1; i <= dbnumcols(dbproc); i++) {
-		add_bread_crumb();
+	for (i = 1; i <= dbnumcols(dbproc); i++)
 		printf("col %d is %s\n", i, dbcolname(dbproc, i));
-		add_bread_crumb();
-	}
 
-	add_bread_crumb();
 	dbbind(dbproc, 1, INTBIND, 0, (BYTE *) & testint);
-	add_bread_crumb();
 	dbbind(dbproc, 2, STRINGBIND, 0, (BYTE *) teststr);
-	add_bread_crumb();
 
 	for (i = 1; i < 6; i++) {
 	char expected[1024];
 
 		sprintf(expected, "row %04d", i);
 
-		add_bread_crumb();
-
-
 		testint = -1;
 		strcpy(teststr, "bogus");
 
-		add_bread_crumb();
 		if (REG_ROW != dbnextrow(dbproc)) {
 			fprintf(stderr, "Failed.  Expected a row\n");
 			exit(1);
 		}
-		add_bread_crumb();
 		if (testint != i) {
 			fprintf(stderr, "Failed.  Expected i to be %d, was %d\n", i, (int) testint);
 			abort();
@@ -288,7 +227,6 @@ main(int argc, char **argv)
 		}
 		printf("Read a row of data -> %d %s\n", (int) testint, teststr);
 	}
-	add_bread_crumb();
 
 	fprintf(stdout, "Calling dbsqlexec before dbnextrow returns NO_MORE_ROWS\n");
 	fprintf(stdout, "The following command should succeed because\n"
@@ -302,7 +240,6 @@ main(int argc, char **argv)
 		fprintf(stderr, "%s:%d: dbsqlexec should have succeeded but didn't\n", __FILE__, __LINE__);
 		failed = 1;
 	}
-	add_bread_crumb();
 
 	dbcancel(dbproc);
 
@@ -313,9 +250,7 @@ main(int argc, char **argv)
 	}
 
 	dbexit();
-	add_bread_crumb();
 
 	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
-	free_bread_crumb();
 	return failed ? 1 : 0;
 }

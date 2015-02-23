@@ -22,20 +22,14 @@ main(int argc, char **argv)
 
 	read_login_info(argc, argv);
 	fprintf(stdout, "Starting %s\n", argv[0]);
-	add_bread_crumb();
 
 	/* Fortify_EnterScope(); */
 	dbinit();
 
-	add_bread_crumb();
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
 	fprintf(stdout, "About to logon\n");
-
-	add_bread_crumb();
-
-	fprintf(stdout, "after bread crumb\n");
 
 	login = dblogin();
 	fprintf(stdout, "after dblogin\n");
@@ -45,10 +39,6 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "About to open [%s]\n", USER);
 
-	add_bread_crumb();
-
-	fprintf(stdout, "After second bread crumb\n");
-
 	dbproc = dbopen(login, SERVER);
 	fprintf(stdout, "After dbopen [%s]\n", SERVER);
 
@@ -56,12 +46,9 @@ main(int argc, char **argv)
 		fprintf(stdout, "About to dbuse [%s]\n", DATABASE);
 		dbuse(dbproc, DATABASE);
 	}
-	add_bread_crumb();
 	dbloginfree(login);
-	add_bread_crumb();
 
 	fprintf(stdout, "After dbuse [%s]\n", DATABASE);
-	add_bread_crumb();
 
 	fprintf(stdout, "creating table\n");
 	sql_cmd(dbproc);
@@ -82,7 +69,6 @@ main(int argc, char **argv)
 	fprintf(stdout, "select one resultset\n");
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
-	add_bread_crumb();
 
 	nresults = 0;
 
@@ -95,7 +81,6 @@ main(int argc, char **argv)
 
 	/* dbmorecmds should return success 0 times for select 1 */
 	if (nresults != 1) {
-		add_bread_crumb();
 		failed = 1;
 		fprintf(stdout, "Was expecting nresults == 1.\n");
 		exit(1);
@@ -119,19 +104,14 @@ main(int argc, char **argv)
 
 	/* dbmorecmds should return success 2 times for select 2 */
 	if (nresults != 2) {	/* two results sets plus a return code */
-		add_bread_crumb();
 		failed = 1;
 		fprintf(stdout, "nresults was %d; was expecting nresults = 2.\n", nresults);
 		exit(1);
 	}
 
 	/* end of test processing */
-
-	add_bread_crumb();
 	dbexit();
-	add_bread_crumb();
 
 	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
-	free_bread_crumb();
 	return failed ? 1 : 0;
 }

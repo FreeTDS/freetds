@@ -47,22 +47,18 @@ init(DBPROCESS * dbproc, const char *name)
 
 	fprintf(stdout, "Dropping %s.%s..%s\n", SERVER, DATABASE, name);
 	sql_cmd(dbproc);
-	add_bread_crumb();
 	dbsqlexec(dbproc);
-	add_bread_crumb();
 	while ((rc=dbresults(dbproc)) == SUCCEED) {
 		/* nop */
 	}
 	if (rc != NO_MORE_RESULTS)
 		return 1;
-	add_bread_crumb();
 
 	fprintf(stdout, "Creating %s.%s..%s\n", SERVER, DATABASE, name);
 	sql_cmd(dbproc);
 	sql_cmd(dbproc);
 
 	if (dbsqlexec(dbproc) == FAIL) {
-		add_bread_crumb();
 		res = 1;
 	}
 	while ((rc=dbresults(dbproc)) == SUCCEED) {
@@ -183,17 +179,14 @@ main(int argc, char **argv)
 	read_login_info(argc, argv);
 
 	fprintf(stdout, "Starting %s\n", argv[0]);
-	add_bread_crumb();
 
 	dbinit();
 
-	add_bread_crumb();
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
 	fprintf(stdout, "About to logon\n");
 
-	add_bread_crumb();
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
@@ -202,15 +195,10 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "About to open %s.%s\n", SERVER, DATABASE);
 
-	add_bread_crumb();
 	dbproc = dbopen(login, SERVER);
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
-	add_bread_crumb();
 	dbloginfree(login);
-	add_bread_crumb();
-
-	add_bread_crumb();
 
 	if (init(dbproc, table_name))
 		exit(1);
@@ -268,7 +256,6 @@ main(int argc, char **argv)
 
 	printf("done\n");
 
-	add_bread_crumb();
 
 #if 1
 	sql_cmd(dbproc);
@@ -286,22 +273,16 @@ main(int argc, char **argv)
 		fprintf(stdout, "BCP=nodrop: '%s..%s' kept\n", DATABASE, table_name);
 	} else {
 		fprintf(stdout, "Dropping table %s\n", table_name);
-		add_bread_crumb();
 		sql_cmd(dbproc);
-		add_bread_crumb();
 		dbsqlexec(dbproc);
-		add_bread_crumb();
 		while (dbresults(dbproc) != NO_MORE_RESULTS) {
 			/* nop */
 		}
 	}
-	add_bread_crumb();
 	dbexit();
-	add_bread_crumb();
 
 	failed = 0;
 
 	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
-	free_bread_crumb();
 	return failed ? 1 : 0;
 }

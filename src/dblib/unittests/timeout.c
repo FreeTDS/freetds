@@ -108,25 +108,20 @@ main(int argc, char **argv)
 	read_login_info(argc, argv);
 
 	fprintf(stdout, "Starting %s\n", argv[0]);
-	add_bread_crumb();
 
 	dbinit();
 
-	add_bread_crumb();
-	
 	dberrhandle(timeout_err_handler);
 	dbmsghandle(syb_msg_handler);
 
 	fprintf(stdout, "About to logon\n");
 
-	add_bread_crumb();
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
 	DBSETLAPP(login, "#t0022");
 
 	fprintf(stdout, "About to open %s.%s\n", SERVER, DATABASE);
-	add_bread_crumb();
 
 	/*
 	 * One way to test the login timeout is to connect to a discard server (grep discard /etc/services).
@@ -147,9 +142,7 @@ main(int argc, char **argv)
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
 	
-	add_bread_crumb();
 	dbloginfree(login);
-	add_bread_crumb();
 
 	/* send something that will take awhile to execute */
 	printf ("using %d %d-second query timeouts\n", max_timeouts, timeout_seconds);
@@ -180,8 +173,6 @@ main(int argc, char **argv)
 		fprintf(stderr, "dbsqlok should fail for timeout\n");
 		exit(1);
 	}
-
-	add_bread_crumb();
 
 	/* retrieve outputs per usual */
 	r = 0;
@@ -233,10 +224,7 @@ main(int argc, char **argv)
 	} /* while dbresults */
 	
 	dbexit();
-	add_bread_crumb();
 
 	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
-	free_bread_crumb();
-
 	return failed ? 1 : 0;
 }

@@ -20,19 +20,6 @@
 
 #include "replacements.h"
 
-typedef struct _tag_memcheck_t
-{
-	int item_number;
-	unsigned int special;
-	struct _tag_memcheck_t *next;
-}
-memcheck_t;
-
-
-static memcheck_t *breadcrumbs = NULL;
-static int num_breadcrumbs = 0;
-static const unsigned int BREADCRUMB = 0xABCD7890;
-
 #if !defined(PATH_MAX)
 #define PATH_MAX 256
 #endif
@@ -334,64 +321,6 @@ sql_reopen(const char *fn)
 		return FAIL;
 	}
 	return SUCCEED;
-}
-
-void
-check_crumbs(void)
-{
-	int i;
-	memcheck_t *ptr = breadcrumbs;
-
-	i = num_breadcrumbs;
-	while (ptr != NULL) {
-		if (ptr->special != BREADCRUMB || ptr->item_number != i) {
-			fprintf(stderr, "Somebody overwrote one of the bread crumbs!!!\n");
-			abort();
-		}
-
-		i--;
-		ptr = ptr->next;
-	}
-}
-
-
-
-void
-add_bread_crumb(void)
-{
-	memcheck_t *tmp;
-
-	check_crumbs();
-
-	tmp = (memcheck_t *) calloc(sizeof(memcheck_t), 1);
-	if (tmp == NULL) {
-		fprintf(stderr, "Out of memory");
-		abort();
-		exit(1);
-	}
-
-	num_breadcrumbs++;
-
-	tmp->item_number = num_breadcrumbs;
-	tmp->special = BREADCRUMB;
-	tmp->next = breadcrumbs;
-
-	breadcrumbs = tmp;
-}
-
-void
-free_bread_crumb(void)
-{
-	memcheck_t *tmp, *ptr = breadcrumbs;
-
-	check_crumbs();
-
-	while (ptr) {
-		tmp = ptr->next;
-		free(ptr);
-		ptr = tmp;
-	}
-	num_breadcrumbs = 0;
 }
 
 int

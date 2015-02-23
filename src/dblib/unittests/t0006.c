@@ -27,8 +27,6 @@ get_results(DBPROCESS * dbproc, int start)
 		current++;
 		sprintf(expected, "row %04d", current);
 
-		add_bread_crumb();
-
 		if (testint != current) {
 			fprintf(stderr, "Failed.  Expected i to be %d, was %d\n", current, (int) testint);
 			abort();
@@ -55,18 +53,15 @@ main(int argc, char **argv)
 
 	read_login_info(argc, argv);
 	fprintf(stdout, "Starting %s\n", argv[0]);
-	add_bread_crumb();
 
 	/* Fortify_EnterScope(); */
 	dbinit();
 
-	add_bread_crumb();
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
 	fprintf(stdout, "About to logon\n");
 
-	add_bread_crumb();
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
@@ -75,21 +70,16 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "About to open\n");
 
-	add_bread_crumb();
 	dbproc = dbopen(login, SERVER);
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
-	add_bread_crumb();
 	dbloginfree(login);
-	add_bread_crumb();
 
 #ifdef MICROSOFT_DBLIB
 	dbsetopt(dbproc, DBBUFFER, "5000");
 #else
 	dbsetopt(dbproc, DBBUFFER, "5000", 0);
 #endif
-
-	add_bread_crumb();
 
 	fprintf(stdout, "creating table\n");
 	sql_cmd(dbproc);
@@ -116,62 +106,41 @@ main(int argc, char **argv)
 		fprintf(stderr, "%s:%d: dbsqlexec failed\n", __FILE__, __LINE__);
 		failed = 1;
 	}
-	add_bread_crumb();
 
 
 	if (dbresults(dbproc) != SUCCEED) {
-		add_bread_crumb();
 		fprintf(stdout, "%s:%d: Was expecting a result set.", __FILE__, __LINE__);
 		failed = 1;
 		exit(1);
 	}
-	add_bread_crumb();
 
-	for (i = 1; i <= dbnumcols(dbproc); i++) {
-		add_bread_crumb();
+	for (i = 1; i <= dbnumcols(dbproc); i++)
 		printf("col %d is %s\n", i, dbcolname(dbproc, i));
-		add_bread_crumb();
-	}
 
-	add_bread_crumb();
 	dbbind(dbproc, 1, INTBIND, 0, (BYTE *) & testint);
-	add_bread_crumb();
 	dbbind(dbproc, 2, STRINGBIND, 0, (BYTE *) teststr);
-	add_bread_crumb();
 
 	get_results(dbproc, 1);
-	add_bread_crumb();
 
 	testint = -1;
 	strcpy(teststr, "bogus");
 	fprintf(stdout, "second select\n");
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
-	add_bread_crumb();
-
 
 	if ((rc = dbresults(dbproc)) != SUCCEED) {
-		add_bread_crumb();
 		fprintf(stdout, "%s:%d: Was expecting a result set. (rc=%d)\n", __FILE__, __LINE__, rc);
 		failed = 1;
 	}
 
 	if (!failed) {
-		add_bread_crumb();
-
-		add_bread_crumb();
 		dbbind(dbproc, 1, INTBIND, 0, (BYTE *) & testint);
-		add_bread_crumb();
 		dbbind(dbproc, 2, STRINGBIND, 0, (BYTE *) teststr);
-		add_bread_crumb();
 
 		get_results(dbproc, 25);
 	}
-	add_bread_crumb();
 	dbexit();
-	add_bread_crumb();
 
 	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
-	free_bread_crumb();
 	return failed ? 1 : 0;
 }

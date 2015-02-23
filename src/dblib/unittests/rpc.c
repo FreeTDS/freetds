@@ -26,21 +26,16 @@ init_proc(DBPROCESS * dbproc, const char *name)
 
 	if (name[0] != '#') {
 		fprintf(stdout, "Dropping procedure %s\n", name);
-		add_bread_crumb();
 		sql_cmd(dbproc);
-		add_bread_crumb();
 		dbsqlexec(dbproc);
-		add_bread_crumb();
 		while (dbresults(dbproc) != NO_MORE_RESULTS) {
 			/* nop */
 		}
-		add_bread_crumb();
 	}
 
 	fprintf(stdout, "Creating procedure %s\n", name);
 	sql_cmd(dbproc);
 	if ((ret = dbsqlexec(dbproc)) == FAIL) {
-		add_bread_crumb();
 		if (name[0] == '#')
 			fprintf(stdout, "Failed to create procedure %s. Wrong permission or not MSSQL.\n", name);
 		else
@@ -162,17 +157,14 @@ main(int argc, char **argv)
 	read_login_info(argc, argv);
 
 	fprintf(stdout, "Starting %s\n", argv[0]);
-	add_bread_crumb();
 
 	dbinit();
 
-	add_bread_crumb();
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
 	fprintf(stdout, "About to logon\n");
 
-	add_bread_crumb();
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
@@ -184,15 +176,10 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "About to open %s.%s\n", SERVER, DATABASE);
 
-	add_bread_crumb();
 	dbproc = dbopen(login, SERVER);
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
-	add_bread_crumb();
 	dbloginfree(login);
-	add_bread_crumb();
-
-	add_bread_crumb();
 
 	dberrhandle(ignore_err_handler);
 	dbmsghandle(ignore_msg_handler);
@@ -241,8 +228,6 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	add_bread_crumb();
-
 	/* retrieve outputs per usual */
 	printf("fetching results\n");
 	while ((erc = dbresults(dbproc)) != NO_MORE_RESULTS) {
@@ -289,7 +274,6 @@ main(int argc, char **argv)
 			if (empty_resultset)
 				++num_empty_resultset;
 		} else {
-			add_bread_crumb();
 			fprintf(stderr, "Expected a result set.\n");
 			exit(1);
 		}
@@ -314,13 +298,11 @@ main(int argc, char **argv)
 	printf("%-5s %-15s %5s %6s  %-30s\n", "param", "name", "type", "length", "data"); 
 	printf("%-5s %-15s %5s %5s- %-30s\n", dashes5, dashes15, dashes5, dashes5, dashes30); 
 	for (i = 1; i <= dbnumrets(dbproc); i++) {
-		add_bread_crumb();
 		retname = dbretname(dbproc, i);
 		rettype = dbrettype(dbproc, i);
 		retlen = dbretlen(dbproc, i);
 		dbconvert(dbproc, rettype, dbretdata(dbproc, i), retlen, SYBVARCHAR, (BYTE*) teststr, -1);
 		printf("%-5d %-15s %5d %6d  %-30s\n", i, retname, rettype, retlen, teststr); 
-		add_bread_crumb();
 
 		save_retparam(&save_param, retname, teststr, rettype, retlen);
 	}
@@ -368,24 +350,17 @@ main(int argc, char **argv)
 	}
 	printf("Good: Got %d resultsets and %d empty resultset.\n", num_resultset, num_empty_resultset);
 
-	add_bread_crumb();
 
 
 	fprintf(stdout, "Dropping procedure\n");
-	add_bread_crumb();
 	sql_cmd(dbproc);
-	add_bread_crumb();
 	dbsqlexec(dbproc);
-	add_bread_crumb();
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
-	add_bread_crumb();
 	dbexit();
-	add_bread_crumb();
 
 	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
-	free_bread_crumb();
 
 	free(save_param.name);
 	free(save_param.value);

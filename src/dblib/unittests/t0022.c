@@ -27,17 +27,14 @@ main(int argc, char **argv)
 	read_login_info(argc, argv);
 
 	fprintf(stdout, "Starting %s\n", argv[0]);
-	add_bread_crumb();
 
 	dbinit();
 
-	add_bread_crumb();
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
 	fprintf(stdout, "About to logon\n");
 
-	add_bread_crumb();
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
@@ -45,20 +42,14 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "About to open\n");
 
-	add_bread_crumb();
 	dbproc = dbopen(login, SERVER);
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
-	add_bread_crumb();
 	dbloginfree(login);
-	add_bread_crumb();
 
 	fprintf(stdout, "Dropping proc\n");
-	add_bread_crumb();
 	sql_cmd(dbproc);
-	add_bread_crumb();
 	dbsqlexec(dbproc);
-	add_bread_crumb();
 	while ((erc = dbresults(dbproc)) == SUCCEED) {
 		fprintf(stdout, "dbresult succeeded dropping procedure\n");
 		while ((erc = dbnextrow(dbproc)) == SUCCEED) {
@@ -68,12 +59,10 @@ main(int argc, char **argv)
 		assert(erc == NO_MORE_ROWS);
 	}
 	assert(erc == NO_MORE_RESULTS);
-	add_bread_crumb();
 
 	fprintf(stdout, "creating proc\n");
 	sql_cmd(dbproc);
 	if (dbsqlexec(dbproc) == FAIL) {
-		add_bread_crumb();
 		fprintf(stdout, "Failed to create proc t0022.\n");
 		exit(1);
 	}
@@ -87,12 +76,9 @@ main(int argc, char **argv)
 
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
-	add_bread_crumb();
-
 
 	while ((erc = dbresults(dbproc)) != NO_MORE_RESULTS) {
 		if (erc == FAIL) {
-			add_bread_crumb();
 			fprintf(stdout, "Was expecting a result set.\n");
 			exit(1);
 		}
@@ -101,8 +87,6 @@ main(int argc, char **argv)
 		}
 		assert(erc == NO_MORE_ROWS);
 	}
-
-	add_bread_crumb();
 
 #if defined(DBTDS_7_0) && defined(DBTDS_7_1) && defined(DBTDS_7_2) && defined(DBTDS_7_3)
 	if ((dbnumrets(dbproc) == 0)
@@ -120,12 +104,10 @@ main(int argc, char **argv)
 			/* nop */
 		}
 		dbexit();
-		free_bread_crumb();
 		exit(0);
 	}
 #endif
 	for (i = 1; i <= dbnumrets(dbproc); i++) {
-		add_bread_crumb();
 		retname = dbretname(dbproc, i);
 		printf("ret name %d is %s\n", i, retname);
 		rettype = dbrettype(dbproc, i);
@@ -134,7 +116,6 @@ main(int argc, char **argv)
 		printf("ret len %d is %d\n", i, retlen);
 		dbconvert(dbproc, rettype, dbretdata(dbproc, i), retlen, SYBVARCHAR, (BYTE*) teststr, -1);
 		printf("ret data %d is %s\n", i, teststr);
-		add_bread_crumb();
 	}
 	if ((retname == NULL) || strcmp(retname, "@b")) {
 		fprintf(stdout, "Was expecting a retname to be @b.\n");
@@ -154,11 +135,8 @@ main(int argc, char **argv)
 	}
 
 	fprintf(stdout, "Dropping proc\n");
-	add_bread_crumb();
 	sql_cmd(dbproc);
-	add_bread_crumb();
 	dbsqlexec(dbproc);
-	add_bread_crumb();
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
@@ -239,11 +217,8 @@ main(int argc, char **argv)
 	/* end chapter 2 */
 
 
-	add_bread_crumb();
 	dbexit();
-	add_bread_crumb();
 
 	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
-	free_bread_crumb();
 	return failed ? 1 : 0;
 }

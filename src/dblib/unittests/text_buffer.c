@@ -23,18 +23,15 @@ main(int argc, char **argv)
 	read_login_info(argc, argv);
 
 	fprintf(stdout, "Starting %s\n", argv[0]);
-	add_bread_crumb();
 
 	/* Fortify_EnterScope(); */
 	dbinit();
 
-	add_bread_crumb();
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
 	fprintf(stdout, "About to logon\n");
 
-	add_bread_crumb();
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
@@ -43,20 +40,16 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "About to open\n");
 
-	add_bread_crumb();
 	dbproc = dbopen(login, SERVER);
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
-	add_bread_crumb();
 	dbloginfree(login);
-	add_bread_crumb();
 
 #ifdef MICROSOFT_DBLIB
 	dbsetopt(dbproc, DBBUFFER, "100");
 #else
 	dbsetopt(dbproc, DBBUFFER, "100", 0);
 #endif
-	add_bread_crumb();
 
 	fprintf(stdout, "creating table\n");
 	sql_cmd(dbproc);
@@ -81,30 +74,18 @@ main(int argc, char **argv)
 	fprintf(stdout, "select\n");
 	dbcmd(dbproc, "select * from #dblib order by i");
 	dbsqlexec(dbproc);
-	add_bread_crumb();
-
 
 	if (dbresults(dbproc) != SUCCEED) {
-		add_bread_crumb();
 		fprintf(stdout, "Was expecting a result set.");
 		return 1;
 	}
-	add_bread_crumb();
 
 	for (i = 1; i <= dbnumcols(dbproc); i++) {
-		add_bread_crumb();
 		printf("col %d is %s\n", i, dbcolname(dbproc, i));
-		add_bread_crumb();
 	}
 
-	add_bread_crumb();
 	dbbind(dbproc, 1, INTBIND, 0, (BYTE *) & testint);
-	add_bread_crumb();
 	dbbind(dbproc, 2, STRINGBIND, 0, (BYTE *) teststr);
-	add_bread_crumb();
-
-	add_bread_crumb();
-
 
 	if (REG_ROW != dbnextrow(dbproc)) {
 		fprintf(stderr, "dblib failed for %s:%d\n", __FILE__, __LINE__);
@@ -143,11 +124,8 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	add_bread_crumb();
 	dbexit();
-	add_bread_crumb();
 
 	fprintf(stdout, "%s %s\n", __FILE__, (0 ? "failed!" : "OK"));
-	free_bread_crumb();
 	return 0;
 }

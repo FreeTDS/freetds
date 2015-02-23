@@ -42,19 +42,13 @@ start_query(DBPROCESS * dbproc)
 	if (SUCCEED != dbsqlexec(dbproc)) {
 		return 0;
 	}
-	add_bread_crumb();
 
-	if (dbresults(dbproc) != SUCCEED) {
-		add_bread_crumb();
+	if (dbresults(dbproc) != SUCCEED)
 		return 0;
-	}
-	add_bread_crumb();
 
-	for (i = 1; i <= dbnumcols(dbproc); i++) {
-		add_bread_crumb();
+	for (i = 1; i <= dbnumcols(dbproc); i++)
 		printf("col %d is named \"%s\"\n", i, dbcolname(dbproc, i));
-		add_bread_crumb();
-	}
+
 	return 1;
 }
 
@@ -76,17 +70,14 @@ main(int argc, char **argv)
 	read_login_info(argc, argv);
 
 	fprintf(stdout, "Starting %s\n", argv[0]);
-	add_bread_crumb();
 
 	dbinit();
 
-	add_bread_crumb();
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
 	fprintf(stdout, "About to logon\n");
 
-	add_bread_crumb();
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
@@ -94,15 +85,10 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "About to open\n");
 
-	add_bread_crumb();
 	dbproc = dbopen(login, SERVER);
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
-	add_bread_crumb();
 	dbloginfree(login);
-	add_bread_crumb();
-
-	add_bread_crumb();
 
 	create_tables(dbproc, 10);
 
@@ -111,20 +97,13 @@ main(int argc, char **argv)
 		failed = 1;
 	}
 
-	add_bread_crumb();
 	dbbind(dbproc, 1, INTBIND, 0, (BYTE *) & testint);
-	add_bread_crumb();
 	dbbind(dbproc, 2, STRINGBIND, 0, (BYTE *) teststr);
-	add_bread_crumb();
-
-	add_bread_crumb();
 
 	for (i = 1; i <= 2; i++) {
 		char expected[1024];
 
 		sprintf(expected, "row %07d", i);
-
-		add_bread_crumb();
 
 		if (i % 5 == 0) {
 			dbclrbuf(dbproc, 5);
@@ -133,12 +112,10 @@ main(int argc, char **argv)
 		testint = -1;
 		strcpy(teststr, "bogus");
 
-		add_bread_crumb();
 		if (REG_ROW != dbnextrow(dbproc)) {
 			fprintf(stderr, "Failed.  Expected a row\n");
 			abort();
 		}
-		add_bread_crumb();
 		if (testint != i) {
 			fprintf(stderr, "Failed.  Expected i to be %d, was %d\n", i, (int) testint);
 			abort();
@@ -161,7 +138,6 @@ main(int argc, char **argv)
 		failed = 1;
 	}
 
-	add_bread_crumb();
 	dbcancel(dbproc);
 	
 	/* 
@@ -211,12 +187,8 @@ main(int argc, char **argv)
 	}
 
 
-
-	add_bread_crumb();
 	dbexit();
-	add_bread_crumb();
 
 	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
-	free_bread_crumb();
 	return failed ? 1 : 0;
 }
