@@ -59,10 +59,6 @@
 
 #include <olectl.h>
 
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
-
 typedef struct
 {
 	DSTR origdsn;		/**< original name of the data source */

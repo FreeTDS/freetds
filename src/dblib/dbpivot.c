@@ -53,10 +53,6 @@
 #include <syberror.h>
 #include <dblib.h>
 
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
-
 #define TDS_FIND(k,b,c) tds_find(k, b, sizeof(b)/sizeof(b[0]), sizeof(b[0]), c)
 
 /* avoid conflicts */

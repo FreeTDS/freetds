@@ -45,9 +45,6 @@
 #include <freetds/iconv.h>
 #include <freetds/string.h>
 #include "replacements.h"
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
 
 TDS_RCSID(var, "$Id: login.c,v 1.224 2011-09-25 11:40:45 freddy77 Exp $");
 

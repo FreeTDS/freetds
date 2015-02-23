@@ -45,9 +45,6 @@
 #include <freetds/stream.h>
 #include <freetds/string.h>
 #include "replacements.h"
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
 
 /** \cond HIDDEN_SYMBOLS */
 #ifndef MAX

@@ -39,10 +39,6 @@
 #include "replacements.h"
 #include "sqlwparams.h"
 
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
-
 TDS_RCSID(var, "$Id: error.c,v 1.70 2012-03-09 21:51:21 freddy77 Exp $");
 
 static void odbc_errs_pop(struct _sql_errors *errs);

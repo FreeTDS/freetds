@@ -41,10 +41,6 @@
 #include "tds_checks.h"
 #include "replacements.h"
 
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
-
 /** \cond HIDDEN_SYMBOLS */
 #define USE_ICONV (tds->conn->use_iconv)
 /** \endcond */

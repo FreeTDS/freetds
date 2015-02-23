@@ -31,10 +31,6 @@
 #include <freetds/string.h>
 #include "replacements.h"
 
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
-
 TDS_RCSID(var, "$Id: connectparams.c,v 1.94 2011-09-25 11:36:24 freddy77 Exp $");
 
 #define ODBC_PARAM(p) static const char odbc_param_##p[] = #p;

@@ -51,10 +51,6 @@
 #include <langinfo.h>
 #endif /* HAVE_LANGINFO_H */
 
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
-
 TDS_RCSID(var, "$Id: mem.c,v 1.225 2012-03-11 15:52:22 freddy77 Exp $");
 
 static void tds_free_env(TDSCONNECTION * conn);

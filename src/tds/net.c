@@ -90,10 +90,6 @@
 #include <openssl/ssl.h>
 #endif
 
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
-
 /* error is always returned */
 #define TDSSELERR   0
 #define TDSPOLLURG 0x8000u

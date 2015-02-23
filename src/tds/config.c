@@ -74,9 +74,6 @@
 #include <freetds/configs.h>
 #include <freetds/string.h>
 #include "replacements.h"
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
 
 static int tds_config_login(TDSLOGIN * connection, TDSLOGIN * login);
 static int tds_config_env_tdsdump(TDSLOGIN * login);

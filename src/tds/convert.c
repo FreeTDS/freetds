@@ -48,9 +48,6 @@
 #include <freetds/convert.h>
 #include <freetds/bytes.h>
 #include "replacements.h"
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
 
 typedef unsigned short utf16_t;
 

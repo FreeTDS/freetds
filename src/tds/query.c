@@ -40,9 +40,6 @@
 #include <freetds/string.h>
 #include "tds_checks.h"
 #include "replacements.h"
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
 
 #include <assert.h>
 

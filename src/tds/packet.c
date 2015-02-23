@@ -48,9 +48,6 @@
 #include <freetds/iconv.h>
 #include "replacements.h"
 #include "tds_checks.h"
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
 
 #undef MAX
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))

@@ -31,10 +31,6 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
-
 #include <freetds/tds.h>
 #include <freetds/string.h>
 

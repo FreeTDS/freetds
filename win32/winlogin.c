@@ -58,10 +58,6 @@
 
 #include <shlobj.h>
 
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
-
 /* This is defined in ... */
 extern HINSTANCE hinstFreeTDS;
 

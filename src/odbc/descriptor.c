@@ -34,10 +34,6 @@
 #include <freetds/odbc.h>
 #include <freetds/string.h>
 
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
-
 static void desc_free_record(struct _drecord *drec);
 
 TDS_DESC *

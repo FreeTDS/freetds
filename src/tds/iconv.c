@@ -41,9 +41,6 @@
 #if HAVE_ICONV
 #include <iconv.h>
 #endif
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
 
 TDS_RCSID(var, "$Id: iconv.c,v 1.150 2011-06-03 21:04:15 freddy77 Exp $");
 

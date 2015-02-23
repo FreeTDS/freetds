@@ -22,10 +22,6 @@
 #include <freetds/tds.h>
 #include <sybdb.h>
 
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
-
 #ifdef dbopen
 #undef dbopen
 #endif

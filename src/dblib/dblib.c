@@ -60,10 +60,6 @@
 #include <syberror.h>
 #include <dblib.h>
 
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
-
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _get_printable_size(TDSCOLUMN * colinfo);
 static char *_dbprdate(char *timestr);

@@ -31,10 +31,6 @@
 #include <sybdb.h>
 #include <dblib.h>
 
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
-
 TDS_RCSID(var, "$Id: xact.c,v 1.15 2011-05-16 08:51:40 freddy77 Exp $");
 
 

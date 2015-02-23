@@ -49,10 +49,6 @@
 #include "tds_checks.h"
 #include <freetds/thread.h>
 
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
-
 /* for now all messages go to the log */
 int tds_debug_flags = TDS_DBGFLAG_ALL | TDS_DBGFLAG_SOURCE;
 int tds_g_append_mode = 0;

@@ -52,10 +52,6 @@
 #include <openssl/rand.h>
 #endif
 
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
-
 /**
  * \ingroup libtds
  * \defgroup auth Authentication

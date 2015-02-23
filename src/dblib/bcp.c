@@ -49,10 +49,6 @@
 #include <syberror.h>
 #include <dblib.h>
 
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
-
 #define HOST_COL_CONV_ERROR 1
 #define HOST_COL_NULL_ERROR 2
 

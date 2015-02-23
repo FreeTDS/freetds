@@ -32,10 +32,6 @@
 #include <syberror.h>
 #include <dblib.h>
 
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
-
 TDS_RCSID(var, "$Id: dbutil.c,v 1.52 2011-06-07 09:58:49 freddy77 Exp $");
 
 /*

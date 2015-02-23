@@ -48,10 +48,6 @@
 #include "tds_checks.h"
 #include <freetds/thread.h>
 
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
-
 /**
  * Set state of TDS connection, with logging and checking.
  * \param tds	  state information for the socket and the TDS protocol

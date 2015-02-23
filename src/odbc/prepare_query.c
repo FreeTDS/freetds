@@ -37,10 +37,6 @@
 #include <freetds/odbc.h>
 #include <freetds/convert.h>
 
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
-
 TDS_RCSID(var, "$Id: prepare_query.c,v 1.81 2011-06-05 09:21:49 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))

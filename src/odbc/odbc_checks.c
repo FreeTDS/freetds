@@ -34,10 +34,6 @@
 #include <freetds/odbc.h>
 #include <freetds/string.h>
 
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
-
 TDS_RCSID(var, "$Id: odbc_checks.c,v 1.22 2011-05-16 08:51:40 freddy77 Exp $");
 
 #if ENABLE_EXTRA_CHECKS

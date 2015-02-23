@@ -45,10 +45,6 @@
 #include <freetds/bytes.h>
 #include <freetds/iconv.h>
 
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
-
 TDS_RCSID(var, "$Id: iconv.c,v 1.22 2011-05-16 08:51:40 freddy77 Exp $");
 
 /**

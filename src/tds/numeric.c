@@ -31,9 +31,6 @@
 #include <freetds/convert.h>
 #include <freetds/bytes.h>
 #include <stdlib.h>
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
 
 TDS_RCSID(var, "$Id: numeric.c,v 1.50 2011-06-11 07:42:26 freddy77 Exp $");
 

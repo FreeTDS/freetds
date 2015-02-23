@@ -45,9 +45,6 @@
 #include <freetds/bytes.h>
 #include <freetds/stream.h>
 #include "tds_checks.h"
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
 
 TDS_RCSID(var, "$Id: write.c,v 1.84 2011-06-18 17:52:24 freddy77 Exp $");
 

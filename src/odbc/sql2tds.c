@@ -36,10 +36,6 @@
 #include <freetds/iconv.h>
 #include <freetds/string.h>
 
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
-
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIMEALL * dta)
 {
