@@ -2688,22 +2688,6 @@ You'll note this is the same program as for <systemitem class="library">DBD::Syb
 	Now everything should run.  There is a sample PHP script in the &freetds; samples directory called <filename>odbctest.php</filename>.</para>
 	</sect2>
 	</sect1>
-	<sect1 id="SybSQL">
-	<title>SybSQL</title>
-
-<para><productname>SybSQL</productname> is a <productname>Qt</productname>-based <acronym>GUI</> interface to <productname>Sybase</productname> databases that uses the &dblib; <acronym>API</>.</para>
-
-<para><productname>SybSQL</productname> has a fairly basic build process that simply uses a Makefile.  In order for <productname>SybSQL</productname> to find <productname>Qt</productname> and &freetds; you need to define <envar>QTDIR</envar> and <envar>SYBASE</envar> environment variables.  If you have <productname>Qt</productname> installed, you may have <envar>QTDIR</envar> defined already.  To verify, type <command>echo $QTDIR</command> at the shell prompt.  This example uses my own installation path of <filename>qt-2.3.1</filename> (from RedHat 7.2), YMMV.
-<screen>
-	<prompt>$ </prompt><userinput>export QTDIR=/usr/lib/qt-2.3.1</userinput>
-	<prompt>$ </prompt><userinput>export SYBASE=/usr/local</userinput>
-	<prompt>$ </prompt><userinput>make</userinput></screen>
-	When finished you'll have an executable named <filename>sybsql</filename> that you can run.</para>
-
-<para>One caveat to the way in which <productname>SybSQL</productname> and &freetds; interact is that <productname>SybSQL</productname> expects to be running under <productname>OpenClient</productname>, and makes the assumption that a valid <envar>$SYBASE</envar><filename>/interfaces</filename> file exists.  Since &freetds; has deprecated use of the <filename>interfaces</filename> file in favor of the &freetdsconf; config file, you may have to create a <filename>interfaces</> file just to satisfy <productname>SybSQL</productname>.</para>
-
-<para>By defining <envar>SYBASE</envar> to the parent directory of the <filename>interfaces</filename> file, you may put it wherever you like; it does not have to be in <filename>/usr/local</filename>.  When using &freetdsconf;, &freetds; does not rely on the <envar>SYBASE</envar> variable for finding its own components, so it is safe to point it elsewhere.</para>
-		</sect1>
 	<sect1 id="Python">
 		<title>Python</title>
 	<sect2 id="pymssql">
