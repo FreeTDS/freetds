@@ -3069,14 +3069,7 @@ If you get output as above, the servername is listening.  If you get a 'Connecti
 		<itemizedlist mark='bullet'>
 			<listitem><para>Logging.  If everything seems a bit sluggish, check to make sure logging is turned off. <envar>TDSDUMP</> should not be defined, and there should be no <literal>dump file</>  mentioned in &freetdsconf;.  You can double-check by setting <envar>TDSDUMPCONFIG</> temporarily, which will log only the startup process.</para>
 				</listitem>
-			<listitem><para>DNS.  If connecting to the server takes 30 seconds or 1 minute, you could do worse than to check your <filename>resolv.conf</>.  Use <command>host</> or <command>nslookup</> to confirm that &freetds; can actually resolve the name/address you provided in &freetdsconf;.  Give particular attention to reverse DNS lookups, if you were forced (or thought you were forced) to identify the server by number, instead of by name, as Vint intended.  You can defeat &freetds;'s automatic reverse-DNS lookup feature by inserting
-<programlisting>
-	#define NOREVERSELOOKUPS
-	</programlisting>
-
-in <filename>src/tds/config.c</>, rebuilding, and reinstalling.
-
-	<Note><para> Reverse lookup code was removed because it was poorly implemented.</para></Note></para>
+			<listitem><para>DNS.  If connecting to the server takes 30 seconds or 1 minute, you could do worse than to check your <filename>resolv.conf</>.  Use <command>host</> or <command>nslookup</> to confirm that &freetds; can actually resolve the name/address you provided in &freetdsconf;.</para>
 				</listitem>
 			<listitem><para>Packet size.  The default packet size setting in &freetdsconf; (see <literal>initial block size</>) is usually fine. Slowness can potentially be due to multiple packet to use.  Under <productname><acronym>GNU</>/Linux</productname> system we use an optimization to reduce network traffic; you shouldn't see much difference using this system.</para>
 				</listitem>
