@@ -1588,7 +1588,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 			</variablelist>
 		
 
-<para>In sum, &freetds; supports three ODBC three choices:</para>
+<para>In sum, &freetds; supports three ODBC choices:</para>
 				
 		<variablelist id="tab.ODBC.configuration.choices"><title>ODBC configuration choices</title>
 			<varlistentry>
