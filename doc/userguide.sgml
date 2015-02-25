@@ -292,7 +292,7 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 
 <para>Code changes by the developers are immediately available in the <productname>git</productname> repository.  If you've run into a problem, you may want to check out from <productname>git</productname> to see if it's fixed there.</para>
 
-<para>No password is needed to obtain the current git copy of FreeTDS; you need only have a git client installed on your machine.  Then:
+<para>No password is needed to obtain the current git copy of &freetds;; you need only have a git client installed on your machine.  Then:
 <screen>
 	<prompt>$ </prompt><userinput>git clone git@gitorious.org:freetds/freetds.git</userinput>
 	<prompt>$ </prompt></screen></para>
@@ -326,13 +326,13 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 			<TITLEABBREV>(&freetds; for Dummies?)</TITLEABBREV>
 			
 
-<para>The <acronym>GNU</> development system can generate code for a wide variety of hardware architectures and operating systems, virtually all of which can run <productname>FreeTDS</> in consequence.  The work of building and installing the <productname>FreeTDS</> libraries begins with the command <Command>configure</Command>, which generates the <filename>Makefile</filename> that governs how the code is compiled, linked, and installed.  Once you've <quote>configured</quote> the project, <command>make</> will manage the rest of the build.</para>
+<para>The <acronym>GNU</> development system can generate code for a wide variety of hardware architectures and operating systems, virtually all of which can run &freetds; in consequence.  The work of building and installing the &freetds; libraries begins with the command <Command>configure</Command>, which generates the <filename>Makefile</filename> that governs how the code is compiled, linked, and installed.  Once you've <quote>configured</quote> the project, <command>make</> will manage the rest of the build.</para>
 			<sidebar><title>ODBC Preparation</title>
 
-<para>If you intend to build the <productname>FreeTDS</> ODBC driver &mdash; and want to use a Driver Manager (DM), as most people do &mdash; install the Driver Manager before configuring <productname>FreeTDS</>.  <Command>configure</> will detect the the DM and use its header (<filename>.h</>) files for ODBC constants and such.  If your DM is installed in an unusual directory, you may have to provide the directory name as a parameter to <Command>configure</>.</para>
+<para>If you intend to build the &freetds; ODBC driver &mdash; and want to use a Driver Manager (DM), as most people do &mdash; install the Driver Manager before configuring &freetds;.  <Command>configure</> will detect the the DM and use its header (<filename>.h</>) files for ODBC constants and such.  If your DM is installed in an unusual directory, you may have to provide the directory name as a parameter to <Command>configure</>.</para>
 				
 
-<para><productname>FreeTDS</> doesn't <emphasis>require</> a DM.  You can build the ODBC driver without one, as long as you have the requisite header files: <filename>sql.h</>, <filename>sqlext.h</> and <filename>sqltypes.h</>.  These can be taken from either the iODBC or UnixODBC distributions. Put them wherever you like (e.g.,  <filename>/usr/local/include</filename>).  Because <productname>FreeTDS</> won't detect your (missing) DM, it won't automatically build the ODBC driver, so you'll have to tell <Command>configure</> what to do and where to look.  Cf. <link linkend="withOdbcNoDM"><option>--with-odbc-nodm</></link>.</para>
+<para>&freetds; doesn't <emphasis>require</> a DM.  You can build the ODBC driver without one, as long as you have the requisite header files: <filename>sql.h</>, <filename>sqlext.h</> and <filename>sqltypes.h</>.  These can be taken from either the iODBC or UnixODBC distributions. Put them wherever you like (e.g.,  <filename>/usr/local/include</filename>).  Because &freetds; won't detect your (missing) DM, it won't automatically build the ODBC driver, so you'll have to tell <Command>configure</> what to do and where to look.  Cf. <link linkend="withOdbcNoDM"><option>--with-odbc-nodm</></link>.</para>
 				</sidebar>
 
 <para>The simplest form of running <Command>configure</> is:
@@ -465,7 +465,7 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 					
 					<varlistentry>
 						<term><Option>--enable-sspi</Option></term>
-						<listitem><para>Enable SSPI support. SSPI is a Micrsoft library that allows you to use your current logged-in account for authentication.  With this option enabled, FreeTDS supports "trusted logins" for Win32/64, just as Microsoft's own implementations do.
+						<listitem><para>Enable SSPI support. SSPI is a Micrsoft library that allows you to use your current logged-in account for authentication.  With this option enabled, &freetds; supports "trusted logins" for Win32/64, just as Microsoft's own implementations do.
 </para></listitem>
 						</varlistentry>
 					
@@ -657,7 +657,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 <screen>
 	<prompt>$ </prompt><userinput>./configure --disable-libiconv --disable-odbc</userinput></screen>
 </para></step>
-	<step><para>Overwrite FreeTDS's <filename>libtool</> with a symbolic link to your (better) one
+	<step><para>Overwrite &freetds;'s <filename>libtool</> with a symbolic link to your (better) one
 <screen>
 	<footnote><para> If you run <command>configure</> again, you'll need to perform this step
 	again, because <command>libtool</> will have been regenerated in its fossilized state.</para></footnote>
@@ -979,7 +979,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 							<entry id="asa.database"><literal>ASA database</></entry>
 							<entry>valid database name</entry>
 							<entry>servername [<replaceable>section</>] name</entry>
-							<entry>Specifies the name of the default database when connecting to an ASA server.  A TDS 5.0 login packet has a field called <literal>lservname</>.   For most TDS servers, <literal>lservname</> is a user-defined string with no inherent meaning.  ASA servers, however, requires that <literal>lservname</>  contain a valid database name, and sets that as the default database for the connection.  FreeTDS normally fills <literal>lservname</>  with the [<replaceable>section</>] text..   This entry instead sets the database name independently of the [<replaceable>section</>] name.   </entry>
+							<entry>Specifies the name of the default database when connecting to an ASA server.  A TDS 5.0 login packet has a field called <literal>lservname</>.   For most TDS servers, <literal>lservname</> is a user-defined string with no inherent meaning.  ASA servers, however, requires that <literal>lservname</>  contain a valid database name, and sets that as the default database for the connection. &freetds; normally fills <literal>lservname</>  with the [<replaceable>section</>] text..   This entry instead sets the database name independently of the [<replaceable>section</>] name.   </entry>
 							</row>
 						
 						<row>
@@ -1161,7 +1161,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 <para>For an English-speaking American, not much.  &freetds;  originated in the United States, and uses U.S. conventions if no <filename>locales.conf</filename> is present.  The <filename>locales.conf</filename> provided with the installation also reflects these conventions.</para>
 			<important>
 
-<para><filename>locales.conf</> will probably be dropped from <productname>FreeTDS</> one day.  Its only real purpose now is to control the format of date strings.  The Right Way&trade; to deduce the appropriate default date format is from the application's locale settings, while allowing an override in &freetdsconf;.  That's the direction we're headed.</para>
+<para><filename>locales.conf</> will probably be dropped from &freetds; one day.  Its only real purpose now is to control the format of date strings.  The Right Way&trade; to deduce the appropriate default date format is from the application's locale settings, while allowing an override in &freetdsconf;.  That's the direction we're headed.</para>
 
 <para>If your purpose is to affect the client charset description, use &freetdsconf; instead.</para>
 				</important>
@@ -1368,7 +1368,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 		<sect2 id="tsql"><title><application>tsql</application></title>
 			
 
-<para>The <firstterm>tsql</> utility is provided as part of FreeTDS expressly for troubleshooting.  <command>tsql</> is superficially similar to an <command>isql</>, but uses <filename>libtds</filename> directly, bypassing the client libraries (e.g., &dblib;).  It can also  report where it looks for &freetdsconf; and other compile-time settings (with <command>tsql -C</>).</para>
+<para>The <firstterm>tsql</> utility is provided as part of &freetds; expressly for troubleshooting.  <command>tsql</> is superficially similar to an <command>isql</>, but uses <filename>libtds</filename> directly, bypassing the client libraries (e.g., &dblib;).  It can also  report where it looks for &freetdsconf; and other compile-time settings (with <command>tsql -C</>).</para>
 			<example id="e.g.tsqlShowsettings">
 				<title>Show compile-time settings with <command>tsql</></title>
 <screen>
@@ -1537,7 +1537,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 	src/odbc/unittests
 	src/tds/unittests</computeroutput></screen>
 	
-				The unit tests rely on the <filename>PWD</> file in root of the FreeTDS source tree.
+				The unit tests rely on the <filename>PWD</> file in root of the &freetds; source tree.
 				<filename>PWD</> holds a username, password, servername, and database to be used for the unit tests.  We try to make sure to leave nothing behind: any data and objects created are either temporary or removed at the end of the test.  The tests should all work, subject to disclaimers in the directory's <filename>README</>.</para>
 
 <para>To invoke the tests, edit the <filename>PWD</> file and issue the command <command>make check</command>.  In order to execute all tests successfully, you must indicate a working, available servername in <filename>PWD</>.
@@ -1565,7 +1565,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 <para>The ODBC 3.0 specification introduced a new function: <function>SQLDriverConnect</>.
 			The connection attributes are provided as a single argument, a string of concatenated name-value pairs.  <function>SQLDriverConnect</> subsumed the functionality of <function>SQLConnect</>, in that the name-value pair string allowed the caller to pass &mdash;  in addition the the original <literal>DSN</>, <literal>UID</>, and <literal>PWD</> &mdash; any other parameters the driver could accept. Moreover, the application can specify which driver to use.  In effect, it became possible to specify the entire set of DSN properties as parameters to <function>SQLDriverConnect</>, obviating the need for <filename>odbc.ini</>.  This led to the use of the so-called <firstterm>DSN-less</> configuration, a setup with no <filename>odbc.ini</>.</para>
 
-<para>But <productname>FreeTDS</> did not start out as an ODBC driver (remember &dblib; and &ctlib;), and has always had its own way to store server properties: &freetdsconf;.  When Brian added the &freetds; ODBC driver, he began by supporting the old <function>SQLConnect</>, using <filename>odbc.ini</> to describe the DSN.  That choice complied with the expectations of the Driver Managers, and minimized the amount of duplicated information in the configuration files.  But it can be a little confusing, too, because <filename>odbc.ini</> in effect points to &freetdsconf;.  We call this configuration <firstterm>ODBC-combined</>, because it supports all three <productname>FreeTDS</> libraries.</para>
+<para>But &freetds; did not start out as an ODBC driver (remember &dblib; and &ctlib;), and has always had its own way to store server properties: &freetdsconf;.  When Brian added the &freetds; ODBC driver, he began by supporting the old <function>SQLConnect</>, using <filename>odbc.ini</> to describe the DSN.  That choice complied with the expectations of the Driver Managers, and minimized the amount of duplicated information in the configuration files.  But it can be a little confusing, too, because <filename>odbc.ini</> in effect points to &freetdsconf;.  We call this configuration <firstterm>ODBC-combined</>, because it supports all three &freetds; libraries.</para>
 
 <para>As progress on the the &freetds; ODBC library progressed, the driver was made able to read the connection attributes directly from <filename>odbc.ini</>, rather than leaning on &freetdsconf;.  For installations that don't need &dblib; and &ctlib;, this <firstterm>ODBC-only</> setup is simpler.</para>
 
@@ -1633,7 +1633,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 	<sect1 id="OdbcConnAttr">
 		<title>Connection attributes</title>
 
-<para>The following tables define all possible ODBC connection attributes for the <productname>FreeTDS</> ODBC driver.  Which ones you'll need depends on how you set yourself up.  They may appear in your connection string, or in <filename>odbc.ini</>.</para>
+<para>The following tables define all possible ODBC connection attributes for the &freetds; ODBC driver.  Which ones you'll need depends on how you set yourself up.  They may appear in your connection string, or in <filename>odbc.ini</>.</para>
 		
 
 <para><table id="tab.Connection.attributes.stringonly"><title>Connection attributes used only in connection strings</title>
@@ -1651,7 +1651,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 							<entry><literal>DSN</></entry>
 							<entry>A valid DSN entry</entry>
 							<entry>none</entry>
-							<entry>The <literal>DSN</> to which <productname>FreeTDS</> should connect. <productname>FreeTDS</> will search <filename>odbc.ini</> for entry.  It lets you specify a connection as for <function>SQLConnect</>, but using <function>SQLDriverConnect</>.   Do not use <literal>Servername</> and <literal>DSN</> together. </entry>
+							<entry>The <literal>DSN</> to which &freetds; should connect. &freetds; will search <filename>odbc.ini</> for entry.  It lets you specify a connection as for <function>SQLConnect</>, but using <function>SQLDriverConnect</>.   Do not use <literal>Servername</> and <literal>DSN</> together. </entry>
 							</row>
 						<row>
 							<entry><literal>UID</></entry>
@@ -1712,7 +1712,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 							</row>
 						<row>
 							<entry><literal>ClientCharset</></entry>
-							<entry>A name recognized by the iconv library linked to FreeTDS.  Corresponds to <literal>client charset</> in &freetdsconf;.</entry>
+							<entry>A name recognized by the iconv library linked to &freetds;.  Corresponds to <literal>client charset</> in &freetdsconf;.</entry>
 							<entry>ISO 8859-1</entry>
 							<entry>Character set (encoding) used by the client.</entry>
 							</row>
@@ -1933,7 +1933,7 @@ You can even establish a connection without reference to either <filename>odbc.i
 			<command>TDSVER=7.0 tsql -H <replaceable>hostname</> -p <replaceable>port</></command></para>
 
 <para>If <command>tsql</> works and <command>isql</> doesn't, you've isolated the problem to the ODBC setup.  &freetds; might have some interoperability problems, but mere connection to the database isn't one of them!  If <command>tsql</>
-			doesn't work, turn on logging with <envar>TDSDUMP</>.  The log will tell you what TCP/IP name (and address) <productname>FreeTDS</> is attempting to connect to, and what version of the TDS protocol it's using.</para>
+			doesn't work, turn on logging with <envar>TDSDUMP</>.  The log will tell you what TCP/IP name (and address) &freetds; is attempting to connect to, and what version of the TDS protocol it's using.</para>
 		
 		<sect2 id="with.iodbc">
 			<title>With iODBC</title>	
@@ -2224,7 +2224,7 @@ from your Active Directory.  You could use <ulink url="http://www.samba.org/">Sa
 <Note><para>The &freetds; connection pool currently only supports <acronym>TDS</> version 4.2.  <emphasis>This restriction applies to both the client-to-pool and pool-to-server connections!</emphasis>
 </para></Note>
 
-<para>After FreeTDS has been installed, you will find an executable named <command>tdspool</command> in the <filename>/usr/local/bin</filename> directory (or whatever directory was specified with the <command>configure</> <option>--with-prefix flag</> option).</para>
+<para>After &freetds; has been installed, you will find an executable named <command>tdspool</command> in the <filename>/usr/local/bin</filename> directory (or whatever directory was specified with the <command>configure</> <option>--with-prefix flag</> option).</para>
 
 <para>Edit <filename>pool.conf</filename> in the &freetds;'s <filename>etc</filename> directory.  The <filename>pool.conf</filename> file is formatted like &freetdsconf;, with a section name in brackets and options for each section in key/value pairs.</para>
 
@@ -2329,11 +2329,11 @@ from your Active Directory.  You could use <ulink url="http://www.samba.org/">Sa
 
 <para>Contributed by <ulink url="mailto:bradleyb@u.washington.edu">Bradley Bell</ulink>.</para>
 
-<para>To set up FreeTDS over stunnel between a Linux webserver and a W2k SQL server:</para>
+<para>To set up &freetds; over stunnel between a Linux webserver and a W2k SQL server:</para>
 		<orderedlist>
 			<listitem>
 
-<para>Get unencrypted freetds working</para></listitem>
+<para>Get unencrypted &freetds; working</para></listitem>
 			<listitem>
 
 <para>Install openssl and stunnel on the Linux box:
@@ -2367,7 +2367,7 @@ from your Active Directory.  You could use <ulink url="http://www.samba.org/">Sa
 </para></listitem>
 			<listitem>
 
-<para>Set up FreeTDS to use the tunnel.  If this is your unencrypted entry in
+<para>Set up &freetds; to use the tunnel.  If this is your unencrypted entry in
 					&freetdsconf;:</para>
 				<example id="e.g.Unencrypted">
 					<title>Unencrypted entry in &freetdsconf;</title>
@@ -2698,9 +2698,9 @@ You'll note this is the same program as for <systemitem class="library">DBD::Syb
 		<title>Python</title>
 	<sect2 id="pymssql">
 	<title>pymssql</title>
-<para>The <productname>pymssql</productname> module is a simple database interface to Microsoft SQL Server for <productname>Python</productname> that builds on top of FreeTDS to provide a Python DB-API v2 (<ulink url="http://www.python.org/dev/peps/pep-0249/">PEP-249</ulink>) interface to SQL Server.</para>
+<para>The <productname>pymssql</productname> module is a simple database interface to Microsoft SQL Server for <productname>Python</productname> that builds on top of &freetds; to provide a Python DB-API v2 (<ulink url="http://www.python.org/dev/peps/pep-0249/">PEP-249</ulink>) interface to SQL Server.</para>
 
-<para>The 2.x branch of <productname>pymssql</productname> take advantage of recent releases (0.91 and newer) of FreeTDS and by doing that removes many of the limitations previously found with older FreeTDS versions and the 1.x branch.</para>
+<para>The 2.x branch of <productname>pymssql</productname> take advantage of recent releases (0.91 and newer) of &freetds; and by doing that removes many of the limitations previously found with older &freetds; versions and the 1.x branch.</para>
 
 <para><productname>pymssql</productname> features include:</para>
 
@@ -2726,7 +2726,7 @@ You'll note this is the same program as for <systemitem class="library">DBD::Syb
 	<prompt>$ </prompt><userinput>export CFLAGS="-DHAVE_FREETDS"</userinput>
 	<prompt>$ </prompt><userinput>export LD_LIBRARY_PATH=/usr/local/freetds/lib:${LD_LIBRARY_PATH}</userinput>
 	<prompt>$ </prompt><userinput>python setup.py install</userinput></screen>
-	Edit the example.py and fix the bottom stuff, FreeTDS lacks the 110
+	Edit the example.py and fix the bottom stuff, &freetds; lacks the 110
 	symbols for version use 100
 <screen>
 	<prompt>$ </prompt><userinput>python example.py</userinput></screen></para>
@@ -2915,7 +2915,7 @@ If you get output as above, the servername is listening.  If you get a 'Connecti
 <screen>
 	<prompt>$ </prompt><userinput>./tsql -S <replaceable>myserver</> -U <replaceable>user</></userinput></screen>
 	</example>
-	If this fails, FreeTDS is either not finding your &freetdsconf; file, finding the wrong one, or there is an error in the file.</para>
+	If this fails, &freetds; is either not finding your &freetdsconf; file, finding the wrong one, or there is an error in the file.</para>
 	</sect2>
 	</sect1>
 
@@ -3330,13 +3330,13 @@ For &odbc; setup issues, the <command>osql</command> script is intended to confi
 		</sect1>
 	<sect1 id="APIreference"><title>API Reference Manual</title>
 
-<para>The <ulink url="../reference/index.html">reference manual</ulink> is installed as part of <productname>FreeTDS</>.  It can be regenerated at any time using <productname>Doxygen</productname> with <command>cd <filename>doc</>; make doc</command>.</para>
+<para>The <ulink url="../reference/index.html">reference manual</ulink> is installed as part of &freetds;.  It can be regenerated at any time using <productname>Doxygen</productname> with <command>cd <filename>doc</>; make doc</command>.</para>
 
 <para>The reference manual is a work in progress: only &dblib; is completely documented, and quite minimally at that.  Should you find it inadequate, you may be interested to learn it's not hard to add to, technically.  <productname>Doxygen</productname> generates a manual from encoded comments in the source code.  Its markup syntax is not hard to learn.  You can read more about it at the <ulink url="http://www.doxygen.org">Doxygen website</>.</para>
 
 <para>Basic API coverage information for the db-lib, ct-lib, and ODBC client libraries is maintained in <filename>doc/api_status.txt</>, included in the source distribution.  For your convenience and enjoyment, we include that file in the following sections.  In each table, we note for the function
 			<footnote><para>Sybase and Microsoft sometimes use slightly different names for the same function.  It is the intention of the <option>--enable-msdblib</> option to align
-					<productname>FreeTDS</> with one or the other's convention.</para></footnote>
+					&freetds; with one or the other's convention.</para></footnote>
 			the extent to which it is implemented.  The <emphasis>Status</> field may be:
 			
 			<variablelist id="dblib.api.status">
@@ -3383,7 +3383,7 @@ For &odbc; setup issues, the <command>osql</command> script is intended to confi
 			<ulink url="http://download.sybase.com/pdfdocs/cng1250j/dblib.pdf">downloaded</ulink>
 			as a PDF file.
 			
-			<footnote><para>Links such as these are quite perishable.  Should you find them broken, please check the <ulink url="http://www.freetds.org/userguide/dblib.api.summary.htm">FreeTDS User Guide</ulink> posted on our website.  If it's out of date, please let us know, so we can correct it.  Thanks.</para></footnote></para>
+			<footnote><para>Links such as these are quite perishable.  Should you find them broken, please check the <ulink url="http://www.freetds.org/userguide/dblib.api.summary.htm">&freetds; User Guide</ulink> posted on our website.  If it's out of date, please let us know, so we can correct it.  Thanks.</para></footnote></para>
 		&dblibapisgml;
 		</sect1>
 	
@@ -3392,7 +3392,7 @@ For &odbc; setup issues, the <command>osql</command> script is intended to confi
 
 <para>Sybase ct-lib documentation can be found
 			<ulink url="http://manuals.sybase.com/onlinebooks/group-cnarc/cng1110e/ctref/@Generic__BookView">online</ulink>
-			and in <ulink url="http://download.sybase.com/pdfdocs/cng1000e/ref.pdf">PDF</ulink> form. <footnote><para>Links such as these are quite perishable.  Should you find them broken, please check the <ulink url="http://www.freetds.org/userguide/ctlib.api.summary.htm">FreeTDS User Guide</ulink> posted on our website.  If it's out of date, please let us know, so we can correct it.  Thanks.</para></footnote></para>
+			and in <ulink url="http://download.sybase.com/pdfdocs/cng1000e/ref.pdf">PDF</ulink> form. <footnote><para>Links such as these are quite perishable.  Should you find them broken, please check the <ulink url="http://www.freetds.org/userguide/ctlib.api.summary.htm">&freetds; User Guide</ulink> posted on our website.  If it's out of date, please let us know, so we can correct it.  Thanks.</para></footnote></para>
 		&ctlibapisgml;
 		</sect1>
 	
@@ -3403,7 +3403,7 @@ For &odbc; setup issues, the <command>osql</command> script is intended to confi
 			<ulink url="http://msdn.microsoft.com/en-us/library/ms714177.aspx">online</ulink>.</para>
 		
 
-<para>The functions are linked to the reference page on Microsoft's website.  <footnote><para>Links such as these are quite perishable.  Should you find them broken, please check the <ulink url="http://www.freetds.org/userguide/odbc.api.summary.htm">FreeTDS User Guide</ulink> posted on our website.  If it's out of date, please let us know, so we can correct it.  Thanks.</para></footnote></para>
+<para>The functions are linked to the reference page on Microsoft's website.  <footnote><para>Links such as these are quite perishable.  Should you find them broken, please check the <ulink url="http://www.freetds.org/userguide/odbc.api.summary.htm">&freetds; User Guide</ulink> posted on our website.  If it's out of date, please let us know, so we can correct it.  Thanks.</para></footnote></para>
 		&odbcapisgml;
 		</sect1>
 	
@@ -4712,13 +4712,13 @@ Important to understand: <command>ldd</command> is <emphasis>not</emphasis> figu
 
 <para>While UTF-8 solves many technical problems, it doesn't magically transform every <acronym>ASCII</>-assuming system into a Unicode system.  For example, to display Unicode data correctly &mdash; even Unicode data in UTF-8 format &mdash; the system still needs a suitable font.  And it must distinguish the buffer size (and byte count) from the character count.</para>
 		</section>
-	<section id="UnicodeFreeTDS"><title>Unicode and FreeTDS</title>
+	<section id="UnicodeFreeTDS"><title>Unicode and &freetds;</title>
 
 <para>Microsoft servers using TDS 7.0 and above (anything since SQL Server 6.5) transmit their data in UCS-2 format (16-bit integers).  Because most applications linked to &freetds; are not prepared to deal with UCS-2 data, &freetds; can convert the data to something more acceptable, including <acronym>ASCII</>.  To do so, it employs an  <productname>iconv</productname>  library.  &freetds; determines the server's encoding from the TDS protocol and information reported by the server (generally per connection, but in the case of TDS 7.1, per result set column).  It discovers the client's encoding in &freetdsconf;.  &freetds; will happily convert and convey your data in any <emphasis>single-byte</emphasis> format that <productname>iconv</productname> can provide.  In practice, this normally means some form of ISO 8859-x or UTF-8.</para>
 
 <para>At some future time, &freetds; aims to support Unicode and other multi-byte character sets.  It does not do so at the current time.</para>
 
-<para>Sybase servers, by the way, adhere to a <quote>server makes right</quote> policy: they transmit their data in whatever character set the client requested at login time.  The list of available character sets is fairly short, but includes UTF-8.  While  <productname>FreeTDS</> <emphasis>could</> convert Sybase data streams as easily as it does Microsoft data streams, to our knowledge no one is doing so.  The Sybase server can perform the conversion itself, making <productname>FreeTDS</>'s capability in this regard largely redundant and irrelevant.</para>
+<para>Sybase servers, by the way, adhere to a <quote>server makes right</quote> policy: they transmit their data in whatever character set the client requested at login time.  The list of available character sets is fairly short, but includes UTF-8.  While  &freetds; <emphasis>could</> convert Sybase data streams as easily as it does Microsoft data streams, to our knowledge no one is doing so.  The Sybase server can perform the conversion itself, making &freetds;'s capability in this regard largely redundant and irrelevant.</para>
 		<section id="moreinfo"><title>For further information</title>
 			<simplelist type=vert columns=1>
 				<member><ulink url="http://www.cl.cam.ac.uk/~mgk25/unicode.html">UTF-8 and Unicode FAQ for Unix/Linux</ulink>, by Markus Kuhn.  As the man says, very comprehensive.  	</member>
