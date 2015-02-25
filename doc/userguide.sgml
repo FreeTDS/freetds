@@ -3981,7 +3981,9 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 				pcol->size = dbcollen(dbproc, c);
 
 				if (SYBCHAR != pcol->type) {			<co id="samplecode.results.dbcollen">
-					pcol->size = dbwillconvert(pcol->type, SYBCHAR);
+					pcol->size = dbprcollen(dbproc, c);
+					if (pcol->size > 255)
+						pcol->size = 255;
 				}
 
 				printf("%*s ", pcol->size, pcol->name);
@@ -4066,7 +4068,7 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 				<calloutlist id="co.fetching"><title>Data-fetching Notes</title>
 					<callout arearefs="samplecode.results.dbresults"><para>As soon as <function>dbresults()</> reports <symbol>SUCCESS</>, the row's metadata are available.</para></callout>
 					<callout arearefs="samplecode.results.c"><para>&dblib; columns start with 1.</para></callout>
-					<callout arearefs="samplecode.results.dbcollen"><para><function>dbcollen()</> returns the sizeof the native data (e.g. 4 bytes for a T-SQL <symbol>INT</>).  We'll use <function>dbbind()</> to convert everything to strings.  If the column is <symbol>[VAR]CHAR</>, we want the column's defined size, otherwise we want its maximum size when represented as a string, which FreeTDS's <function>dbwillconvert()</> returns (for fixed-length datatypes).  <footnote><para>For IMAGE data, we need to multiply by 2, because <function>dbbind()</> will convert each byte to a hexadecimal pair.  The example program will report an error with IMAGE data.</para></footnote></para></callout>
+					<callout arearefs="samplecode.results.dbcollen"><para><function>dbcollen()</> returns the sizeof the native data (e.g. 4 bytes for a T-SQL <symbol>INT</>).  We'll use <function>dbbind()</> to convert everything to strings.  If the column is <symbol>[VAR]CHAR</>, we want the column's defined size, otherwise we want its maximum size when represented as a string.</para></callout>
 					<callout arearefs="samplecode.results.dbbind"><para><symbol>NTBSTRINGBIND</> null-terminates the character array for us.  <quote>NTB</> might perhaps stand for <quote>null terminating byte</>.</para></callout>
 					<callout arearefs="samplecode.results.dbnullbind"><para>A zero-length string is not a NULL!  <function>dbnullbind()</> arranges for the passed buffer to be set to -1 whenever that column is NULL for a particular row.</para></callout>
 					<callout arearefs="samplecode.results.dbnextrow"><para>Each time <function>dbnextrow()</> returns <symbol>REG_ROW</>, it has filled the bound buffers with the converted values for the row.</para></callout>
