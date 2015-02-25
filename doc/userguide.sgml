@@ -764,7 +764,8 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 							</row>
 						<row>
 							<entry>Microsoft SQL Server 2008</entry>
-							<entry>7.2 (unchanged)</entry>
+							<entry>7.3</entry>
+							<entry>Includes support for time, date, datetime2, datetimeoffset.</entry>
 							</row>
 						</tbody>
 					</tgroup>
@@ -904,7 +905,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 					<tbody>
 						<row>
 							<entry><literal>tds version</></entry>
-							<entry>4.2, 5.0, 7.0, 7.1, 7.2, <literal>auto</></entry>
+							<entry>4.2, 5.0, 7.0, 7.1, 7.2, 7.3, <literal>auto</></entry>
 							<entry><parameter>--with-tdsver</> value (<literal>5.0</> if unspecified)
 								Overridden by <link  linkend="TDSVER">TDSVER</link>.</entry>
 							<entry>The <acronym>TDS</> protocol version to use when connecting.  <quote><literal>auto</></quote> tells &freetds; to use an autodetection (trial-and-error) algorithm to choose the protocol version. </entry>
@@ -1244,7 +1245,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 					<term id="TDSPORT"><envar>TDSPORT</envar></term>
 					<listitem>
 
-<para>specifies a TCP port number at which the servername is listening.  It overrides the default port (1433 for TDS 4.2/7.0/7.1/7.2, 4000 for TDS 5.0) as well as any port specified in the &freetdsconf; file.</para>
+<para>specifies a TCP port number at which the servername is listening.  It overrides the default port (1433 for TDS 4.2/7.0/7.1/7.2/7.3, 4000 for TDS 5.0) as well as any port specified in the &freetdsconf; file.</para>
 						</listitem>
 					</varlistentry>
 				<varlistentry>
@@ -2024,7 +2025,7 @@ You can even establish a connection without reference to either <filename>odbc.i
 		
 
 <para>In this example we want to force connections to a server named <literal>mssql</literal> to emulate a little endian client.  We are using protocol version 4.2 here, version 7.0 or above will automatically emulate little endian mode regardless of the &freetdsconf; setting.
-			<emphasis>You shouldn't use this option, set another protocol version instead (7.0, 7.1 or 7.2)</emphasis>.</para>
+			<emphasis>You shouldn't use this option, set another protocol version instead (7.0, 7.1, 7.2 or 7.3)</emphasis>.</para>
 		<example id="e.g.LittleEndian">
 			<title>Emulate Little Endian &freetdsconf; setting</title>
 <programlisting>
