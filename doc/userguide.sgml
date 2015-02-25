@@ -26,6 +26,10 @@
 		<othername>K.</othername>
 		<surname>Lowden</surname>
 		</author>
+	<author>
+		<firstname>Frediano</firstname>
+		<surname>Ziglio</surname>
+		</author>
 	<copyright>
 		<year>2001</year>
 		<year>2002</year>
@@ -39,6 +43,10 @@
 		<year>2010</year>
 		<year>2011</year>
 		<holder>Brian Bruns and James K. Lowden</holder>
+		</copyright>
+	<copyright>
+		<year>2015</year>
+		<holder>Frediano Ziglio</holder>
 		</copyright>
 	<legalnotice><para>Permission is granted to copy, distribute and/or modify this document
 			under the terms of the GNU Free Documentation License, Version 1.1
@@ -174,7 +182,7 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 
 <para>Brian Bruns, a Sybase DBA and originator of the &freetds; project, had some &dblib; programs he wanted to run under Linux, and thus began the &freetds; project. The original work focused on &dblib; and version 5.0 of the protocol, but quickly expanded to include a &ctlib; compatible layer and <acronym>TDS</> version 4.2.  Later support for &odbc; and <acronym>TDS 7.0 and 7.1</> was added. Craig Spannring wrote a Java  <acronym>JDBC</> driver which became <productname>FreeTDS/JDBC</productname>.</para>
 
-<para>As the project matured, it gained new participants.  Frediano Ziglio greatly expanded the &odbc; driver, and continues to improve both it and the underlying TDS library.  Bill Thompson wrote most of the present BCP system and added cursors to our &ctlib;.  Your humble author joined the project to add documentation, and in 2002 became its maintainer.  Such are the rewards for doing a good deed.</para>
+<para>As the project matured, it gained new participants.  Frediano Ziglio greatly expanded the &odbc; driver, and continues to improve both it and the underlying TDS library.  Bill Thompson wrote most of the present BCP system and added cursors to our &ctlib;.  James K. Lowden joined the project to add documentation, and in 2002 became its maintainer.  Such are the rewards for doing a good deed.</para>
 
 <para>There have been many other contributions.  Please see the <filename>AUTHORS</> in the distribution for a (we hope) complete list.</para>
 		</sect1>
@@ -3237,7 +3245,7 @@ For &odbc; setup issues, the <command>osql</command> script is intended to confi
 		<sect2 id="Correct">
 			<title>Correct this User Guide</title>
 
-<para>Any corrections or suggestions, be they typographical, grammatical, structural, factual, or mineral are most  welcome.  Please send it to <ulink url="mailto:jklowden@freetds.org">&freetds; FAQ Master</ulink>, or post a message to the list.</para>
+<para>Any corrections or suggestions, be they typographical, grammatical, structural, factual, or mineral are most  welcome.  Please send it to the <ulink url="mailto:freetds@lists.ibiblio.org">&freetds; mailing list</ulink>.</para>
 
 <para>The User Guide is maintained in <acronym>SGML</> DocBook format; the file in your distibution is  <filename>doc/userguide.sgml</>.  It is a flat ASCII file that you can edit with any text editor.  You don't have to know <acronym>SGML</> to correct or add to the User Guide, however.  Just open it up, find the place you're interested in, and type away.  Do a <command>diff -u <replaceable>old_version</> <replaceable>your_version</></command> and post your patch to the SourceForge site.  Any errors or lackings in your markup will be graciously emended by yours truly.</para>
 			</sect2>
@@ -3251,7 +3259,7 @@ For &odbc; setup issues, the <command>osql</command> script is intended to confi
 		<sect2 id="webmaster">
 			<title>Be the Webmaster</title>
 
-<para>The FAQ and in particular the news don't get updated often enough.  If that's your thing, drop a line to your friendly project maintainer, <ulink url="mailto:jklowden@freetds.org">James K. Lowden</ulink>.</para>
+<para>The FAQ and in particular the news don't get updated often enough.  If that's your thing, drop a line to the <ulink url="mailto:freetds@lists.ibiblio.org">&freetds; mailing list</ulink>.</para>
 			</sect2>
 		</sect1>
 
