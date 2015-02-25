@@ -17,7 +17,7 @@ inside (not recursively)
 - odbc
 All libraries depends on replacements one (except replacements obviously),
 dblib, ctlib and odbc depends on tds.
-You should add ws2_32.lib do dependencies.
+You should add ws2_32.lib to dependencies.
 
 replacements and TDS library are designed to be static libraries.
 

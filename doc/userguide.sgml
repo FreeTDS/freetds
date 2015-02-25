@@ -2102,7 +2102,7 @@ You can even establish a connection without reference to either <filename>odbc.i
 	INSERT INTO tablename (greeting) VALUES (N'Hall&aring;')</screen></informalexample>				</para>
 	<bridgehead renderas='sect3'>Commentary</bridgehead>
 
-<para>What's surprising about this?  Versions 7.0 and later of the TDS protocol use UCS-2 to send SQL text.  No matter how your local client is configured &mdash; with <acronym>UCS-2</> or <acronym>ISO 8859-1</> or anything else &mdash; it's converted to <acronym>UCS-2</> before it's sent to the server.  And obviously arrives at the server as <acronym>UCS-2</>.  If the column into which it's being inserted is also <acronym>UCS-2</>, there's no need of <emphasis>any</> conversion, much less two, and <emphasis>certainly</> no need to lose infomation.</para>
+<para>What's surprising about this?  Versions 7.0 and later of the TDS protocol use UCS-2 to send SQL text.  No matter how your local client is configured &mdash; with <acronym>UCS-2</> or <acronym>ISO 8859-1</> or anything else &mdash; it's converted to <acronym>UCS-2</> before it's sent to the server.  And obviously arrives at the server as <acronym>UCS-2</>.  If the column into which it's being inserted is also <acronym>UCS-2</>, there's no need of <emphasis>any</> conversion, much less two, and <emphasis>certainly</> no need to lose information.</para>
 
 <para>Why this happens is anyone's guess.  Here's one: it makes the datatype of the column unimportant.  Regardless of whether you use char/varchar/text or nchar/nvarchar/ntext or a mixture of the two, the arriving SQL (if na&iuml;vely written) will store exactly the same characters.</para>
 			</sect2>
@@ -3714,7 +3714,7 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 				<bridgehead id="samplecode.results.metadata.and.data" renderas="sect3">Data and Metadata</>
 
 
-	<para>Observe that a row is set of columns, and each column has attributes such as type and size.  The column attributes of a row are collectively known as <firstterm>metadata</>.  The server always returns metadata before any data (even for a a <symbol>SELECT</> statement that produced no rows).</para>
+	<para>Observe that a row is set of columns, and each column has attributes such as type and size.  The column attributes of a row are collectively known as <firstterm>metadata</>.  The server always returns metadata before any data (even for a <symbol>SELECT</> statement that produced no rows).</para>
 
 
 	<para> <table id="tab.result.fetching.functions"><title>Result-fetching functions</title>
