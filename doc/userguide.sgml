@@ -279,9 +279,8 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 		<title>What to build: Packages, Tarballs, and the <productname>git</productname> repository</title>
 
 <para>The latest &freetds; package is always available from
-			<ulink url="ftp://ibiblio.unc.edu/pub/Linux/ALPHA/freetds/freetds-release.tgz">
-				<citetitle>iBiblio</citetitle></ulink>
-			and its mirrors.</para>
+			<ulink url="ftp://ftp.freetds.org/pub/freetds/stable/freetds-stable.tgz">
+				<citetitle>ftp.freetds.org</citetitle></ulink>.</para>
 
 <para>Code changes by the developers are immediately available in the <productname>git</productname> repository.  If you've run into a problem, you may want to check out from <productname>git</productname> to see if it's fixed there.</para>
 
@@ -291,7 +290,7 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 	<prompt>$ </prompt></screen></para>
 
 <para>For those behind firewalls or otherwise unable to access <productname>git</productname>, nightly snapshots of <productname>git</productname> are rolled up into tarballs for your convenience.  They can be downloaded from
-			<ulink url="ftp://ftp.freetds.org/pub/freetds/current/freetds-current.tgz">www.freetds.org</ulink>.</para>
+			<ulink url="ftp://ftp.freetds.org/pub/freetds/current/freetds-current.tgz">ftp.freetds.org</ulink>.</para>
 
 <para>In general, the <productname>git</productname> master branch (the basis of the current nightly snapshot) works better and has more functionality than the release version.  Bugs sometimes persist in the release version but are usually fixed in short order (once identified) in <productname>git</productname> master.</para>
 		<tip><para>As with any project of this sort, if you want to use the <productname>git</productname> master branch, it's a good idea to join the mailing list.
@@ -3244,7 +3243,7 @@ For &odbc; setup issues, the <command>osql</command> script is intended to confi
 		<sect2 id="Documentapi">
 			<title>Document an <acronym>API</></title>
 
-<para>We have just begun an independent reference manual to &freetds;; the main <acronym>API</> documents are the work of the server vendors.  We're using <ulink url="http://www.stack.nl/~dimitri/doxygen/">Doxygen</>, which extracts documentation directly from comments in the source code, and we're maybe 25% done.</para>
+<para>We have just begun an independent reference manual to &freetds;; the main <acronym>API</> documents are the work of the server vendors.  We're using <ulink url="http://www.doxygen.org">Doxygen</>, which extracts documentation directly from comments in the source code, and we're maybe 25% done.</para>
 
 <para>The <acronym>TDS</> protocol is partly documented, as are the <acronym>API</>s to <filename>libtds</filename> and &dblib;, but much remains.</para>
 			</sect2>
@@ -3324,7 +3323,7 @@ For &odbc; setup issues, the <command>osql</command> script is intended to confi
 
 <para>The <ulink url="../reference/index.html">reference manual</ulink> is installed as part of <productname>FreeTDS</>.  It can be regenerated at any time using <productname>Doxygen</productname> with <command>cd <filename>doc</>; make doc</command>.</para>
 
-<para>The reference manual is a work in progress: only &dblib; is completely documented, and quite minimally at that.  Should you find it inadequate, you may be interested to learn it's not hard to add to, technically.  <productname>Doxygen</productname> generates a manual from encoded comments in the source code.  Its markup syntax is not hard to learn.  You can read more about it at the <ulink url="http://www.stack.nl/~dimitri/doxygen/">Doxygen website</>.</para>
+<para>The reference manual is a work in progress: only &dblib; is completely documented, and quite minimally at that.  Should you find it inadequate, you may be interested to learn it's not hard to add to, technically.  <productname>Doxygen</productname> generates a manual from encoded comments in the source code.  Its markup syntax is not hard to learn.  You can read more about it at the <ulink url="http://www.doxygen.org">Doxygen website</>.</para>
 
 <para>Basic API coverage information for the db-lib, ct-lib, and ODBC client libraries is maintained in <filename>doc/api_status.txt</>, included in the source distribution.  For your convenience and enjoyment, we include that file in the following sections.  In each table, we note for the function
 			<footnote><para>Sybase and Microsoft sometimes use slightly different names for the same function.  It is the intention of the <option>--enable-msdblib</> option to align
@@ -4638,7 +4637,7 @@ Important to understand: <command>ldd</command> is <emphasis>not</emphasis> figu
 <para>For better or worse, &freetds; brings the otherwise innocent programmer into contact with the arcane business of how data are stored and transported.  &freetds; is a data communications library that of course connects to databases, which are charged with storing information in a way that is neutral to all architectures and languages.  On the surface, that might not seem very complex, even worth discussing.  Under the surface, things are not so simple.</para>
 	<section id="ascii"><title><acronym>ASCII</>: What everyone knows</title>
 
-<para>The world we are all familiar with, programmingwise, is <acronym>ASCII</>.  Our email (mostly), our <quote>text</quote> files, our web pages (mostly), all use <acronym>ASCII</> to represent English (or English-like) text. Perhaps because <ulink url="http://czyborra.com/charsets/iso646.html"><acronym>ASCII</></ulink> <footnote><para>czyborra.com is offline at the time of this writing (December 2003).  It contained good information, so it's still included here, in case it comes back to life.</para></footnote>  was standardized back in 1972 by the ISO, it seems like the <quote>natural</quote> way to store information.  But let's look under the hood a little bit, and examine our assumptions.</para>
+<para>The world we are all familiar with, programmingwise, is <acronym>ASCII</>.  Our email (mostly), our <quote>text</quote> files, our web pages (mostly), all use <acronym>ASCII</> to represent English (or English-like) text. Perhaps because <ulink url="http://czyborra.com/charsets/iso646.html"><acronym>ASCII</></ulink> was standardized back in 1972 by the ISO, it seems like the <quote>natural</quote> way to store information.  But let's look under the hood a little bit, and examine our assumptions.</para>
 
 <para>Our so-called <quote>text</quote> files are nothing special, nothing but a little agreement we enter into with our operating system.  The only reason we can <quote>read</quote> them with <command>cat</command> or <command>vi</command> is that the operating system and its tools are in on the agreement.  A file is only a stream of bytes, after all, no more <quote>text</quote> than an executable.  The only thing distinguishing a <quote>text</quote> file from any other, is our understanding to treat it like one.  We agree that the number 65 will represent the letter <literal>A</literal>, 66, <literal>B</literal>, and so on, 127 values in all.  See <command>man ascii</command> for further details.</para>
 
@@ -4674,7 +4673,7 @@ Important to understand: <command>ldd</command> is <emphasis>not</emphasis> figu
 
 <para>The basic problem, from a programmer's perspective, is the ancient agreement Unix entered into 30 years ago, the <quote><acronym>ASCII</> Compact,</quote> alluded to earlier.  Assumptions about <acronym>ASCII</> are littered throughout Unix-like systems, beginning with C's convention of representing strings as arrays of characters ending in a zero.  Returning to our HELLO example earlier, C will store <literal>HELLO</literal> as  <literal>72 69 76 76 79 0</literal>, in very nice <acronym>ASCII</>.  Many many parts of the operating system and its associated tools and applications will recognize that as a 5-letter word because it's terminated by a null (zero).  In UCS-2 Unicode, though, that same <literal>HELLO</literal> uses 2 bytes for every character and becomes <literal>72 0 69 0 76 0 76 0 79 0 0 0</literal>.  Practically the whole OS will think that's a 1-letter word, <quote>H</quote>.  Not a good thing.</para>
 
-<para>Even if every OS were magically rid of all <acronym>ASCII</> assumptions and C strings, there would still be the problem of Endianism.  <ulink url="http://whatis.techtarget.com/definition/0,,sid9_gci211659,00.html">Technical</ulink> <ulink url="http://www.noveltheory.com/TechPapers/endian.asp">explanations</ulink> on the subject are not hard to find.  The long and short of it is, given a 16-bit integer (2 bytes), different hardware architectures will store the value differently.  Asked to store our friend <quote>A</quote>, (0x41), for instance, a Sparc processor will put the least significant byte at the higher address (00 41) whereas an Intel processor will put it in the lower address (41 00).  Put aside the questions of left, right, and wrong; architectures are a fact of life.  Endianism shows up wherever integers are stored and retrieved in heterogeneous environments.</para>
+<para>Even if every OS were magically rid of all <acronym>ASCII</> assumptions and C strings, there would still be the problem of Endianism.  <ulink url="http://whatis.techtarget.com/definition/0,,sid9_gci211659,00.html">Technical</ulink> explanations on the subject are not hard to find.  The long and short of it is, given a 16-bit integer (2 bytes), different hardware architectures will store the value differently.  Asked to store our friend <quote>A</quote>, (0x41), for instance, a Sparc processor will put the least significant byte at the higher address (00 41) whereas an Intel processor will put it in the lower address (41 00).  Put aside the questions of left, right, and wrong; architectures are a fact of life.  Endianism shows up wherever integers are stored and retrieved in heterogeneous environments.</para>
 
 <para>The Unicode folks knew about Endianism, of course, and had to address it.  A Unicode bytestream is supposed to begin with a byte-order mark.  Needless to say, perhaps, many don't.</para>
 		</section>
@@ -4714,7 +4713,7 @@ Important to understand: <command>ldd</command> is <emphasis>not</emphasis> figu
 		<section id="moreinfo"><title>For further information</title>
 			<simplelist type=vert columns=1>
 				<member><ulink url="http://www.cl.cam.ac.uk/~mgk25/unicode.html">UTF-8 and Unicode FAQ for Unix/Linux</ulink>, by Markus Kuhn.  As the man says, very comprehensive.  	</member>
-				<member><ulink url="http://www.wps.com/projects/codes/">ASCII: American Standard Code for Information Infiltration</ulink>, by Tom Jennings.  Everything you ever wanted know about ASCII, but didn't know whom to ask.    </member>
+				<member><ulink url="http://worldpowersystems.com/J/codes/">ASCII: American Standard Code for Information Infiltration</ulink>, by Tom Jennings.  Everything you ever wanted know about ASCII, but didn't know whom to ask.    </member>
 				<member><ulink url="http://tronweb.super-nova.co.jp/characcodehist.html">A Brief History of Character Codes</ulink>, by Steven J. Searle.  Includes useful references.  </member>
 				<member><ulink url="http://www.unicode.org/">Unicode Home Page</ulink>.  </member>
 <!--member><ulink url=""></ulink>.  </member -->
