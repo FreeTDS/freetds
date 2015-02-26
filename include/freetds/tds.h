@@ -430,7 +430,7 @@ extern const char *const tds_type_names[256];
 #define is_similar_type(x, y) (is_char_type(x) && is_char_type(y))
 
 
-#define TDS_MAX_CAPABILITY	22
+#define TDS_MAX_CAPABILITY	26
 #define MAXPRECISION 		77
 #define TDS_MAX_CONN		4096
 #define TDS_MAX_DYNID_LEN	30

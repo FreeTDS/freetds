@@ -739,7 +739,7 @@ tds_alloc_locale(void)
 	REQ(i,CSR_MULTI) REQ(i,CON_INBAND) REQ(i,PROTO_TEXT) REQ(i,PROTO_BULK) \
 	REQ(i,DATA_SENSITIVITY) REQ(i,DATA_BOUNDARY) REQ(i,PROTO_DYNPROC) REQ(i,DATA_FLTN) \
 	REQ(i,DATA_BITN) REQ(i,DATA_INT8) REQ(i,WIDETABLE) \
-	REQ(i,DATA_UINT2) REQ(i,DATA_UINT4) REQ(i,DATA_UINT8) REQ(i,DATA_UINTN)
+	REQ(i,DATA_UINT2) REQ(i,DATA_UINT4) REQ(i,DATA_UINT8) REQ(i,DATA_UINTN) REQ(i,LARGEIDENT)
 #define REQ(i,n) |(((TDS_REQ_ ## n / 8) == i)?(1<<(TDS_REQ_ ## n & 7)):0)
 #define REQB(i) 0 SUPPORTED_REQ_CAP(i)
 
@@ -751,9 +751,9 @@ tds_alloc_locale(void)
 
 
 static const TDS_CAPABILITIES defaultcaps = { {
-     /* type,  len, data, data, data, data, data, data, data, data, data (9 bytes) */
-	{ 0x01, 0x09, { REQB(8), REQB(7), REQB(6), REQB(5), REQB(4), REQB(3), REQB(2), REQB(1), REQB(0) } },
-	{ 0x02, 0x09, { RESB(8), RESB(7), RESB(6), RESB(5), RESB(4), RESB(3), RESB(2), RESB(1), RESB(0) } }
+     /* type,  len, data, data, data, data, data, data, data, data, data, data, data (11 bytes) */
+	{ 1, 11, { REQB(10), REQB(9), REQB(8), REQB(7), REQB(6), REQB(5), REQB(4), REQB(3), REQB(2), REQB(1), REQB(0) } },
+	{ 2, 11, { RESB(10), RESB(9), RESB(8), RESB(7), RESB(6), RESB(5), RESB(4), RESB(3), RESB(2), RESB(1), RESB(0) } }
 } };
 
 /**
