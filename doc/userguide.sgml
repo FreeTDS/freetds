@@ -209,7 +209,7 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 
 <para>The &dblib; and &ctlib; <acronym>API</>s have been usable for several years.  They have been successfully  substituted for Sybase's own libraries in a variety of venues, including <productname>Perl</productname> and <productname>PHP</productname>.</para>
 
-<para>The <systemitem class="library">ODBC</> driver should be fully ODBC 3.0 compliant.</para>
+<para>The <systemitem class="library">ODBC</> driver should be fully ODBC 3.5 compliant.</para>
 
 <para>Basic <link linkend="apireference">API coverage</link> information for all libraries may be found in this manual.  It is maintained in <filename>doc/api_status.txt</>, included in the source distribution.</para>
 
@@ -635,7 +635,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 						url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 				
 
-<para>Further information can be found in the <filename></> in the source distribution.</para>
+<para>Further information can be found in the <filename>vms/README.vms</> in the source distribution.</para>
 				
 				</sect3>
 			</sect2>
@@ -1329,7 +1329,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 			</sect2>
 		</sect1>
 	<sect1 id="PortOverride">
-		<title>Port override syntax</title>
+		<title>Port/instance override syntax</title>
 		
 
 <para>The port to which to connect can be overridden using a &freetds; extended syntax.</para>
@@ -1535,6 +1535,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 	<computeroutput>src/ctlib/unittests
 	src/dblib/unittests
 	src/odbc/unittests
+	src/replacements/unittests
 	src/tds/unittests</computeroutput></screen>
 	
 				The unit tests rely on the <filename>PWD</> file in root of the &freetds; source tree.
@@ -1787,6 +1788,24 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 							<entry>Any valid SPN</entry>
 							<entry>MSSQLSvc/server FQDN:port</entry>
 							<entry>Full server Kerberos SPN.</entry>
+							</row>
+						<row>
+							<entry><literal>DumpFile</></entry>
+							<entry>Any</entry>
+							<entry></entry>
+							<entry>File name where to dump logs.</entry>
+							</row>
+						<row>
+							<entry><literal>DumpFileAppend</></entry>
+							<entry>Yes/No</entry>
+							<entry>No</entry>
+							<entry></entry>
+							</row>
+						<row>
+							<entry><literal>DumpFlags</></entry>
+							<entry>Any</entry>
+							<entry></entry>
+							<entry>Debug flags. See freetds.conf entries.</entry>
 							</row>
 						</tbody>
 					</tgroup>
@@ -2050,7 +2069,13 @@ You can even establish a connection without reference to either <filename>odbc.i
 
 <para><acronym>TDS</> 7.0 uses 2-byte Unicode (technically, <acronym>UCS-2</>) to transfer character data between servers and clients.  Included in <quote>character data</quote> are query text (i.e., <acronym>SQL</>), metadata (table names and such), and <foreignphrase>bona fide</> data of datatypes <literal>nchar</>, <literal>nvarchar</>, and <literal>ntext</>.  (Background information on Unicode and how it affects &freetds; can be found in the <link linkend="Unicode">appendix</link>.)</para>
 
-<para>Because most Unix tools and environments do not support <acronym>UCS-2</>, &freetds; provides for conversion by the client to other character sets.  The mechanism used is determined by the <filename>configure</> script, which looks for a <function>iconv(3)</> function, an implementation of the <ulink url="http://www.opengroup.org/onlinepubs/7908799/xsh/iconv.html">iconv</ulink> standard.    If no <function>iconv</> library is found, or if it is explicitly disabled, &freetds; will use its built-in <function>iconv</> substitute, and will be capable of converting among only <acronym>ISO 8859-1</>, <acronym>UTF-8</>, and <acronym>UCS-2</>.</para>
+<para>Because most Unix tools and environments do not support <acronym>UCS-2</>, &freetds; provides for conversion by
+the client to other character sets.
+The mechanism used is determined by the <filename>configure</> script, which looks for a <function>iconv(3)</> function,
+an implementation of the <ulink url="http://www.opengroup.org/onlinepubs/7908799/xsh/iconv.html">iconv</ulink> standard.
+If no <function>iconv</> library is found, or if it is explicitly disabled, &freetds; will use its built-in
+<function>iconv</> substitute, and will be capable of converting among only <acronym>ISO 8859-1</>, <acronym>UTF-8</>,
+<acronym>UCS-2</>, <acronym>UTF-16</> and <acronym>UTF-16</>.</para>
 
 <para>To learn what character set the client wants, &freetds; prefers the applicable <link linkend="clientcharset">&freetdsconf;</link> <literal>client charset</> property.  If that is not set, it parses the <envar>LANG</> environment variable.  In either case, the found string is passed to <function>iconv</>(3) (or its built-in replacement).  <footnote><para>The built-in replacement expects GNU iconv names: <literal>ISO-8859-1</>, <literal>US-ASCII</>, or <literal>UTF-8</>.</para></footnote>.  If neither is found, <acronym>UCS-2</> data are converted to <acronym>ISO 8859-1</>.</para>
 		
@@ -3143,7 +3168,8 @@ For &odbc; setup issues, the <command>osql</command> script is intended to confi
 		<sect2 id="help.permissions">
 			<title>Check permissions</title>
 
-<para>If your query works in <command>tsql</command> but not with Apache, make sure the account running Apache can find and read <filename>freetds.conf</filename>.  </para>
+<para>If your query works in <command>tsql</command> but not with Apache, make sure the account running Apache can find and read <filename>freetds.conf</filename>.
+Also consider security settings like firewalls, SELinux/AppArmor or similars.</para>
 			</sect2>
 		
 		</sect1>
@@ -4518,7 +4544,9 @@ Important to understand: <command>ldd</command> is <emphasis>not</emphasis> figu
 
 			<section id="linker.dynamic.win32">
 				<title>A Word about Windows&reg;</title>
-<para>WIndows executables use the older COFF format, which has no provision for an <literal>RPATH</>.  The runtime linker searches the <literal>PATH</> instead, after some built-in locations that usually include the current working directory.  Neither <command>ldd</command> nor any similar utility is included in the basic product.  </para>
+<para>Windows executables use PE format (derived from the older COFF format), which has no provision for an <literal>RPATH</>.
+The runtime linker searches the <literal>PATH</> instead, after some built-in locations that usually include the current working directory.
+Neither <command>ldd</command> nor any similar utility is included in the basic product.</para>
 
 <para>It has been said that Unix is for <emphasis>programmers</emphasis> and Windows is for <emphasis>users</>, and perhaps that roughly describes the  intention.  But the Unix features listed above &mdash; <literal>RPATH</> and <command>ldd</command> &mdash; as well as a canonical filesystem hierarchy and dynamic library versioning, all promote a better <emphasis>user</emphasis> experience.  Because of them, the problem of DLL conflicts in Windows hardly exists in Unix.  Yet they are neither new nor secrect nor patented nor complicated; Microsoft could have adopted them years ago (as Apple finally did).  We therefore know that the 20-year old phenomemon known as &ldquo;DLL hell&rdquo; is not inevitable, but a <emphasis>choice</> signifying nothing so much as Microsoft's indifference to its customers.  </para>
 
@@ -4716,7 +4744,8 @@ Important to understand: <command>ldd</command> is <emphasis>not</emphasis> figu
 
 <para>Microsoft servers using TDS 7.0 and above (anything since SQL Server 6.5) transmit their data in UCS-2 format (16-bit integers).  Because most applications linked to &freetds; are not prepared to deal with UCS-2 data, &freetds; can convert the data to something more acceptable, including <acronym>ASCII</>.  To do so, it employs an  <productname>iconv</productname>  library.  &freetds; determines the server's encoding from the TDS protocol and information reported by the server (generally per connection, but in the case of TDS 7.1, per result set column).  It discovers the client's encoding in &freetdsconf;.  &freetds; will happily convert and convey your data in any <emphasis>single-byte</emphasis> format that <productname>iconv</productname> can provide.  In practice, this normally means some form of ISO 8859-x or UTF-8.</para>
 
-<para>At some future time, &freetds; aims to support Unicode and other multi-byte character sets.  It does not do so at the current time.</para>
+<para>At some future time, &freetds; aims to support Unicode and other multi-byte character sets.
+It does not do so at the current time, beside using wide functions in ODBC.</para>
 
 <para>Sybase servers, by the way, adhere to a <quote>server makes right</quote> policy: they transmit their data in whatever character set the client requested at login time.  The list of available character sets is fairly short, but includes UTF-8.  While  &freetds; <emphasis>could</> convert Sybase data streams as easily as it does Microsoft data streams, to our knowledge no one is doing so.  The Sybase server can perform the conversion itself, making &freetds;'s capability in this regard largely redundant and irrelevant.</para>
 		<section id="moreinfo"><title>For further information</title>
