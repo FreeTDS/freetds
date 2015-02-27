@@ -849,6 +849,10 @@ AC_ARG_ENABLE(odbc-wide,
   AS_HELP_STRING([--disable-odbc-wide], [disable wide string support in odbc]))
 if test "$enable_odbc_wide" != "no" ; then
 	AC_DEFINE_UNQUOTED(ENABLE_ODBC_WIDE, 1, [Define to enable ODBC wide string support])
+
+	AC_ARG_ENABLE(odbc-wide-tests,
+	  AS_HELP_STRING([--enable-odbc-wide-tests], [enable compiling ODBC tests to use wide functions]))
+	AM_CONDITIONAL(ODBC_WIDE_TESTS, test "$enable_odbc_wide_tests" = "yes")
 fi
 
 AC_ARG_ENABLE(distcheck_build,

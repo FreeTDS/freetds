@@ -103,7 +103,15 @@ long_error_SOURCES = long_error.c common.c common.h
 mars1_SOURCES = mars1.c common.c common.h
 array_error_SOURCES = array_error.c common.c common.h
 
-AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC) -DFREETDS_TOPDIR=\"$(top_srcdir)\"
+GLOBAL_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC) -DFREETDS_TOPDIR=\"$(top_srcdir)\"
+if ODBC_WIDE_TESTS
+AM_CPPFLAGS	=	$(GLOBAL_CPPFLAGS) -DUNICODE -D_UNICODE
+else
+AM_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
+endif
+# this test cannot work using wide characters as use UTF-8 and single byte encoding
+utf8_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
+
 if MINGW32
 AM_LDFLAGS	=	-no-fast-install
 else
