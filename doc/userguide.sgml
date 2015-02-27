@@ -2,6 +2,8 @@
 	<!ENTITY dblibapisgml SYSTEM "../dblib.api.sgml">
 	<!ENTITY ctlibapisgml SYSTEM "../ctlib.api.sgml">
 	<!ENTITY  odbcapisgml SYSTEM "../odbc.api.sgml">
+	<!ENTITY % ug.desc SYSTEM "../userguide_desc.sgml">
+	%ug.desc;
 	<!ENTITY % comment "IGNORE" >
 	<!ENTITY ora "O'Reilly &amp; Associates">
 	<!ENTITY freetds "<productname>FreeTDS</productname>">
@@ -13,8 +15,7 @@
 ]>
 <book>
 <bookinfo>
-	<date>$Date: 2012-01-04 22:10:44 $</date>
-	<releaseinfo>$Revision: 1.144 $</releaseinfo>
+	<date>&ug.date;</date>
 	<title>&freetds; User Guide</title>
 	<subtitle>A Guide to Installing, Configuring, and Running &freetds;</subtitle>
 	<author>
@@ -71,9 +72,8 @@
 
 <para>The version you're reading is:</para>
 			<simplelist type='vert'>
-				<member>$Revision: 1.144 $</>
-				<member>$Date: 2012-01-04 22:10:44 $</>
-				<member>CVS control number $Id: userguide.sgml,v 1.144 2012-01-04 22:10:44 jklowden Exp $.</>
+				<member>&ug.date;</>
+				<member>&ug.id;</>
 				</simplelist>
 			</footnote>
 		can be found on the &freetds;
@@ -641,7 +641,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 			</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
 
-<para>As of this writing ($Date: 2012-01-04 22:10:44 $), the regular distribution compiles on OS X.  </para>
+<para>As of this writing (&ug.date;), the regular distribution compiles on OS X.  </para>
 			
 <![ %comment [
 	<!-- cf http://www.is-thought.co.uk/book/sgml-8.htm -->

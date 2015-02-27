@@ -22,3 +22,4 @@ ctlib.api.body
 dblib.api.body
 odbc.api.body
 freetds.conf.5
+userguide_desc.sgml
