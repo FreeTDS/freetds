@@ -888,6 +888,19 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 					buflen = (int)tds_strftime((TDS_CHAR *)data, 256,
 								 bcpdatefmt, &when, 3);
 				} else {
+					TDS_INT destlen = datalen;
+					/*
+					 * An empty string is denoted in the output file by a single ASCII NUL
+					 * byte that we request by specifying a destination length of -1.  (Not
+					 * to be confused with a database NULL, which is denoted in the output
+					 * file with an empty string!)
+					 */
+					if (srclen == 0
+					    && (curcol->column_type == SYBVARCHAR
+						|| curcol->column_type == SYBCHAR)) {
+						destlen = -1;
+					}
+
 					/*
 					 * For null columns, the above work to determine the output buffer size is moot,
 					 * because bcpcol->data_size is zero, so dbconvert() won't write anything,
@@ -895,7 +908,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 					 */
 					/* TODO check for text !!! */
 					buflen =  dbconvert(dbproc, srctype, src, srclen, hostcol->datatype,
-							    data, datalen);
+							    data, destlen);
 					/*
 					 * Special case:  When outputting database varchar data
 					 * (either varchar or nullable char) dbconvert may have
@@ -1271,8 +1284,14 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 
 				/* trim trailing blanks from character data */
 				if (desttype == SYBCHAR || desttype == SYBVARCHAR) {
-					bcpcol->bcp_column_data->datalen = rtrim((char *) bcpcol->bcp_column_data->data,
-											  bcpcol->bcp_column_data->datalen);
+					/* A single NUL byte indicates an empty string. */
+					if (bcpcol->bcp_column_data->datalen == 1
+					    && bcpcol->bcp_column_data->data[0] == '\0') {
+						bcpcol->bcp_column_data->datalen = 0;
+					} else {
+						bcpcol->bcp_column_data->datalen = rtrim((char *) bcpcol->bcp_column_data->data,
+												  bcpcol->bcp_column_data->datalen);
+					}
 				}
 			}
 #if USING_SYBEBCNN

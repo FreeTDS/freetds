@@ -139,6 +139,57 @@ VALUES (
 	, 1234 -- not_null_smallint
 	, 123  -- not_null_tinyint
 )
+INSERT all_types_bcp_unittest
+				( not_null_bit
+
+				, not_null_char
+				, not_null_varchar
+
+				, not_null_datetime
+				, not_null_smalldatetime
+
+				, not_null_money
+				, not_null_smallmoney
+
+				, not_null_float
+				, not_null_real
+
+				, not_null_decimal
+				, not_null_numeric
+
+				, not_null_int
+				, not_null_smallint
+				, not_null_tinyint
+
+				, nullable_char
+				, nullable_varchar
+
+				)
+VALUES (
+	  1 -- not_null_bit
+
+	, '' -- not_null_char empty string
+	, '' -- not_null_varchar empty string
+
+	, 'Dec 17 2003  3:44PM' -- not_null_datetime
+	, 'Dec 17 2003  3:44PM' -- not_null_smalldatetime
+
+	, 12.34 -- not_null_money
+	, 12.34 -- not_null_smallmoney
+
+	, 12.34 -- not_null_float
+	, 12.34 -- not_null_real
+
+	, 12.34 -- not_null_decimal
+	, 12.34 -- not_null_numeric
+
+	, 1234 -- not_null_int
+	, 1234 -- not_null_smallint
+	, 123  -- not_null_tinyint
+
+	, '' -- nullable_char empty string
+	, '' -- nullable_varchar empty string
+)
 go
 select colid, cast(c.name as varchar(30)) as name, c.length , '  '+ substring('NY', convert(bit,(c.status & 8))+1,1) as Nulls from syscolumns as c left join systypes as t on c.usertype = t.usertype where c.id = object_id('all_types_bcp_unittest') order by colid
 go
