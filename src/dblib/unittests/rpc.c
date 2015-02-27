@@ -90,7 +90,7 @@ ignore_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char 
 	
 	if (recursion_depth++) {
 		printf("error %d: \"%s\"\n", dberr, dberrstr? dberrstr : "");
-		printf("logic error: recursive call to ingnore_err_handler\n");
+		printf("logic error: recursive call to ignore_err_handler\n");
 		exit(1);
 	}
 	dbsetuserdata(dbproc, (BYTE*) &dberr);
@@ -168,7 +168,7 @@ main(int argc, char **argv)
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
-	DBSETLAPP(login, "#t0022");
+	DBSETLAPP(login, "rpc");
 	dberrhandle(ignore_err_handler);
 	DBSETLPACKET(login, -1);
 	dberrhandle(syb_err_handler);
@@ -180,6 +180,21 @@ main(int argc, char **argv)
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
 	dbloginfree(login);
+
+	printf("Check if server support long identifiers\n");
+	sql_cmd(dbproc);
+	i = 103;
+	dbsetuserdata(dbproc, (BYTE*) &i);
+	dbsqlexec(dbproc);
+	while (dbresults(dbproc) != NO_MORE_RESULTS)
+		while (dbnextrow(dbproc) != NO_MORE_ROWS)
+			continue;
+	dbsetuserdata(dbproc, NULL);
+	if (i == 0) {
+		fprintf(stderr, "This server does not support long identifiers\n");
+		dbexit();
+		return 0;
+	}
 
 	dberrhandle(ignore_err_handler);
 	dbmsghandle(ignore_msg_handler);

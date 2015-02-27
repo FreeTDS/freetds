@@ -1,3 +1,6 @@
+SELECT 'x' AS this_is_a_really_really_long_identifier
+go
+
 CREATE PROCEDURE #t0022 
   @null_input varchar(30) OUTPUT 
 , @first_type varchar(30) OUTPUT 
