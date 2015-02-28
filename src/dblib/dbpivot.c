@@ -737,7 +737,7 @@ reinit_results(TDSSOCKET * tds, size_t num_cols, const struct metadata_t meta[])
 	}
 		
 	if (num_cols > 0) {
-		static char dashes[31] = "------------------------------";
+		static const char dashes[31] = "------------------------------";
 		tdsdump_log(TDS_DBG_INFO1, " %-20s %-15s %-15s %-7s\n", "name", "size/wsize", "type/wtype", "utype");
 		tdsdump_log(TDS_DBG_INFO1, " %-20s %15s %15s %7s\n", dashes+10, dashes+30-15, dashes+30-15, dashes+30-7);
 	}
