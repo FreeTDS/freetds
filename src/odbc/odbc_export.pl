@@ -10,6 +10,8 @@ my @fmt=split(/,\s*/,
 my %fmt;
 @fmt{@types} = @fmt;
 
+print "#undef tdsdump_log\n\n";
+
 while(<IN>) {
 	chomp;
 	while(/ODBC_FUNC/) {
@@ -88,11 +90,23 @@ while(<IN>) {
 		$pass_all =~ s/\(ODBC_CHAR\*\) ?//g;
 
 		my $log_w = $log;
-		$log_w =~ s/STRING\((.*?),(.*?)\)/sqlwstr($1)/g;
+		my $n = 0;
+		$log_w =~ s/STRING\((.*?),(.*?)\)/sprintf("SQLWSTR($1)",$n++)/ge;
 		$log_w =~ s/\"$func/"${func}W/;
+		if ($n) {
+			$log_w = "if (TDS_UNLIKELY(tds_write_dump)) {
+		SQLWSTR_BUFS($n);
+		$log_w
+		SQLWSTR_FREE();
+	}";
+		} else {
+			$log_w =~ s/\btdsdump_log\b/TDSDUMP_LOG_FAST/g;
+		}
 
 		$log =~ s/%ls/%s/g;
 		$log =~ s/STRING\((.*?),(.*?)\)/(const char*) $1/g;
+
+		$log =~ s/\btdsdump_log\b/TDSDUMP_LOG_FAST/g;
 
 		print "#ifdef ENABLE_ODBC_WIDE
 static SQLRETURN _$func($params_all, int wide);
@@ -115,6 +129,8 @@ SQLRETURN ODBC_PUBLIC ODBC_API $func($params_a) {
 	}
 }
 close(IN);
+
+print "#define tdsdump_log TDSDUMP_LOG_FAST\n";
 
 exit 0;
 

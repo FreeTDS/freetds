@@ -408,7 +408,7 @@ tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...)
 #endif
 	tds_mutex_unlock(&g_dump_mutex);
 }				/* tdsdump_log()  */
-#define tdsdump_log if (TDS_UNLIKELY(tds_write_dump)) tdsdump_log
+#define tdsdump_log TDSDUMP_LOG_FAST
 
 
 /**

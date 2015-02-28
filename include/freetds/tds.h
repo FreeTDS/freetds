@@ -1413,7 +1413,8 @@ void tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...
 	__attribute__ ((__format__ (__printf__, 3, 4)))
 #endif
 ;
-#define tdsdump_log if (TDS_UNLIKELY(tds_write_dump)) tdsdump_log
+#define TDSDUMP_LOG_FAST if (TDS_UNLIKELY(tds_write_dump)) tdsdump_log
+#define tdsdump_log TDSDUMP_LOG_FAST
 
 extern int tds_write_dump;
 extern int tds_debug_flags;

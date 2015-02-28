@@ -24,8 +24,6 @@
 
 #include <freetds/odbc.h>
 
-TDS_RCSID(var, "$Id: sqlwchar.c,v 1.4 2012-03-09 21:51:21 freddy77 Exp $");
-
 #if SIZEOF_SQLWCHAR != SIZEOF_WCHAR_T
 size_t sqlwcslen(const SQLWCHAR * s)
 {
@@ -37,28 +35,46 @@ size_t sqlwcslen(const SQLWCHAR * s)
 }
 
 #ifdef ENABLE_ODBC_WIDE
-const wchar_t *sqlwstr(const SQLWCHAR *str)
+/**
+ * Convert a SQLWCHAR string into a wchar_t
+ * Used only for debugging purpose
+ * \param str string to convert
+ * \param bufs linked list of buffer
+ * \return string converted
+ */
+const wchar_t *sqlwstr(const SQLWCHAR *str, SQLWSTRBUF **bufs)
 {
-	/*
-	 * TODO not thread safe but at least does not use same static buffer
-	 * used only for debugging purpose
-	 */
-	static wchar_t buf[16][256];
-	static unsigned next = 0;
-
-	wchar_t *dst_start, *dst, *dst_end;
+	wchar_t *dst, *dst_end;
 	const SQLWCHAR *src = str;
+	SQLWSTRBUF *buf;
 
-	dst = dst_start = buf[next];
-	next = (next+1) % TDS_VECTOR_SIZE(buf);
-	dst_end = dst + (TDS_VECTOR_SIZE(buf[0]) - 1);
-	*dst_end = L'\0';
+	if (!str)
+		return NULL;
+
+	/* allocate buffer for string, we do not care for memory errors */
+	buf = (SQLWSTRBUF *) calloc(1, sizeof(*buf));
+	if (!buf)
+		return NULL;
+	buf->next = *bufs;
+	*bufs = buf;
+
+	dst = buf->buf;
+	dst_end = dst + (TDS_VECTOR_SIZE(buf->buf) - 1);
 
 	for (; *src && dst < dst_end; *dst++ = *src++)
 		continue;
 	*dst = L'\0';
 
-	return dst_start;
+	return buf->buf;
+}
+
+void sqlwstr_free(SQLWSTRBUF *bufs)
+{
+	while (bufs) {
+		SQLWSTRBUF *buf = bufs;
+		bufs = buf->next;
+		free(buf);
+	}
 }
 #endif
 #endif

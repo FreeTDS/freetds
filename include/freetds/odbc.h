@@ -747,10 +747,22 @@ SQLRETURN odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const s
  */
 #if SIZEOF_SQLWCHAR != SIZEOF_WCHAR_T
 size_t sqlwcslen(const SQLWCHAR * s);
-const wchar_t *sqlwstr(const SQLWCHAR * s);
+
+typedef struct sqlwstr_buf {
+	struct sqlwstr_buf *next;
+	wchar_t buf[256];
+} SQLWSTRBUF;
+const wchar_t *sqlwstr(const SQLWCHAR * s, SQLWSTRBUF **bufs);
+void sqlwstr_free(SQLWSTRBUF *bufs);
+#define SQLWSTR_BUFS(n) SQLWSTRBUF *bufs = NULL
+#define SQLWSTR(s) sqlwstr(s, &bufs)
+#define SQLWSTR_FREE() sqlwstr_free(bufs)
 #else
 #define sqlwcslen(s) wcslen(s)
-#define sqlwstr(s) ((const wchar_t*)(s))
+
+#define SQLWSTR_BUFS(n) do {} while(0)
+#define SQLWSTR(s) ((const wchar_t*)(s))
+#define SQLWSTR_FREE() do {} while(0)
 #endif
 
 #if SIZEOF_SQLWCHAR == 2
