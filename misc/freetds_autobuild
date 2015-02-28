@@ -131,6 +131,7 @@ ln -s $WORKDIR freetds
 cd $FTDSDIR
 REV="$(git rev-parse HEAD)"
 git archive HEAD | tar -C $WORKDIR -xvf -
+cp doc/userguide_desc.sgml $WORKDIR/doc/
 if [ "$REV" != "$(git rev-parse HEAD)" ]; then
 	echo "Revision changed while archiving" >&2
 	exit 1
