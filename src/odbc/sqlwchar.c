@@ -22,6 +22,10 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
 #include <freetds/odbc.h>
 
 #if SIZEOF_SQLWCHAR != SIZEOF_WCHAR_T
