@@ -1254,19 +1254,16 @@ tds_clrudt_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 	return TDS_SUCCESS;
 }
 
-#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
-#  define TDS_DECLARE_FUNCS(name) \
-     extern __attribute__ ((visibility ("hidden"))) const TDSCOLUMNFUNCS tds_ ## name ## _funcs
-#else
-#  define TDS_DECLARE_FUNCS(name) \
+#define TDS_DECLARE_FUNCS(name) \
      extern const TDSCOLUMNFUNCS tds_ ## name ## _funcs
-#endif
 
+#include <freetds/pushvis.h>
 TDS_DECLARE_FUNCS(generic);
 TDS_DECLARE_FUNCS(numeric);
 TDS_DECLARE_FUNCS(variant);
 TDS_DECLARE_FUNCS(msdatetime);
 TDS_DECLARE_FUNCS(clrudt);
+#include <freetds/popvis.h>
 
 static const TDSCOLUMNFUNCS *
 tds_get_column_funcs(TDSCONNECTION *conn, int type)
