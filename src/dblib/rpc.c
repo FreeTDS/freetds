@@ -166,9 +166,6 @@ dbrpcparam(DBPROCESS * dbproc, const char paramname[], BYTE status, int type, DB
 	CHECK_CONN(FAIL);
 	CHECK_PARAMETER(dbproc->rpc, SYBERPCS, FAIL);
 
-	if (!(status & DBRPCRETURN) && type == SYBVARCHAR && IS_TDS7_PLUS(dbproc->tds_socket->conn))
-		type = XSYBNVARCHAR;
-
 	/* validate datalen parameter */
 
 	if (is_fixed_type(type)) {
@@ -206,6 +203,14 @@ dbrpcparam(DBPROCESS * dbproc, const char paramname[], BYTE status, int type, DB
 	}
 	
 	/* end validation */
+
+	/* This trick is to allow for client using utf8 to insert any character into a NVARCHAR parameter
+	 * The 4000 check is to allow varchar with more then 4000 characters (varchar is limited to 8000
+	 * characters) which can't be converted to nvarchar (which is limited to 4000 character)
+	 */
+	if (type == SYBVARCHAR && IS_TDS7_PLUS(dbproc->tds_socket->conn)
+	    && maxlen <= 4000 && datalen <= 4000)
+		type = XSYBNVARCHAR;
 
 	/* allocate */
 	param = (DBREMOTE_PROC_PARAM *) malloc(sizeof(DBREMOTE_PROC_PARAM));
