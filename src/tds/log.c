@@ -156,28 +156,14 @@ tdsdump_open(const char *filename)
 
 	if (result) {
 		char today[64];
-		struct tm *tm;
-#ifdef HAVE_LOCALTIME_R
 		struct tm res;
-#endif
 		time_t t;
 
 		time(&t);
-#ifdef HAVE_LOCALTIME_R
-#if HAVE_FUNC_LOCALTIME_R_TM
-		tm = localtime_r(&t, &res);
-#elif HAVE_FUNC_LOCALTIME_R_INT
-		tm = NULL;
-		if (!localtime_r(&t, &res))
-			tm = &res;
-#else
-#error One should be defined
-#endif
-#else
-		tm = localtime(&t);
-#endif
+		today[0] = 0;
+		if (tds_localtime_r(&t, &res))
+			strftime(today, sizeof(today), "%Y-%m-%d %H:%M:%S", &res);
 
-		strftime(today, sizeof(today), "%Y-%m-%d %H:%M:%S", tm);
 		tdsdump_log(TDS_DBG_INFO1, "Starting log file for FreeTDS %s\n"
 			    "\ton %s with debug flags 0x%x.\n", VERSION, today, tds_debug_flags);
 	}
