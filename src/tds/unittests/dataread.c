@@ -17,6 +17,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
+/*
+ * Test data from server
+ * The test do a select for a given type, convert to char and compare result
+ */
 #include "common.h"
 
 #include <assert.h>
