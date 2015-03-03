@@ -5,9 +5,6 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.41 2012-01-14 19:46:32 jklowden Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static RETCODE init_proc(DBPROCESS * dbproc, const char *name);
 int ignore_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 int ignore_msg_handler(DBPROCESS * dbproc, DBINT msgno, int state, int severity, char *text, char *server, char *proc, int line);
@@ -60,6 +57,14 @@ save_retparam(RETPARAM *param, char *name, char *value, int type, int len)
 	param->len = len;
 	
 	return param;
+}
+
+static void
+free_retparam(RETPARAM *param)
+{
+	free(param->name);
+	free(param->value);
+	param->name = param->value = NULL;
 }
 
 int
@@ -145,6 +150,7 @@ main(int argc, char **argv)
 	char *proc_name = proc;
 
 	int num_resultset = 0, num_empty_resultset = 0;
+	int num_params = 6;
 
 	static const char dashes30[] = "------------------------------";
 	static const char  *dashes5 = dashes30 + (sizeof(dashes30) - 5), 
@@ -205,6 +211,7 @@ main(int argc, char **argv)
 
 	printf("trying to create a temporary stored procedure\n");
 	if (FAIL == init_proc(dbproc, proc_name)) {
+		num_params = 4;
 		printf("trying to create a permanent stored procedure\n");
 		if (FAIL == init_proc(dbproc, ++proc_name))
 			exit(EXIT_FAILURE);
@@ -223,8 +230,10 @@ main(int argc, char **argv)
 		failed = 1;
 	}
 
-	for (pb = bindings; pb < bindings + sizeof(bindings)/sizeof(bindings[0]); pb++) {
+	for (pb = bindings, i = 0; pb < bindings + sizeof(bindings)/sizeof(bindings[0]); pb++, i++) {
 		printf("executing dbrpcparam for %s\n", pb->name);
+		if (num_params == 4 && (i == 3 || i == 4))
+			continue;
 		if ((erc = dbrpcparam(dbproc, pb->name, pb->status, pb->type, pb->maxlen, pb->datalen, pb->value)) == FAIL) {
 			fprintf(stderr, "Failed line %d: dbrpcparam\n", __LINE__);
 			failed++;
@@ -309,8 +318,8 @@ main(int argc, char **argv)
 	/* 
 	 * Check output parameter values 
 	 */
-	if (dbnumrets(dbproc) != 6) {	/* dbnumrets missed something */
-		fprintf(stderr, "Expected 6 output parameters.\n");
+	if (dbnumrets(dbproc) != num_params) {	/* dbnumrets missed something */
+		fprintf(stderr, "Expected %d output parameters.\n", num_params);
 		exit(1);
 	}
 	printf("retrieving output parameters...\n");
@@ -363,40 +372,42 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	/*
-	 * Test name, size, contents of the VARCHAR(8000) output parameter
-	 */
-	if ((save_varchar_tds7_param.name == NULL) || strcmp(save_varchar_tds7_param.name, bindings[3].name)) {
-		fprintf(stderr, "Expected retname to be '%s', got ", bindings[3].name);
-		if (save_varchar_tds7_param.name == NULL)
-			fprintf(stderr, "<NULL> instead.\n");
-		else
-			fprintf(stderr, "'%s' instead.\n", save_varchar_tds7_param.name);
-		exit(1);
-	}
-	if (save_varchar_tds7_param.type != SYBVARCHAR) {
-		fprintf(stderr, "Expected rettype to be SYBVARCHAR was %d.\n", save_varchar_tds7_param.type);
-		exit(1);
-	}
-	if (save_varchar_tds7_param.len != 8000) {
-		fprintf(stderr, "Expected retlen to be 8000 was %d.\n", save_varchar_tds7_param.len);
-		exit(1);
-	}
+	if (num_params == 6) {
+		/*
+		 * Test name, size, contents of the VARCHAR(8000) output parameter
+		 */
+		if ((save_varchar_tds7_param.name == NULL) || strcmp(save_varchar_tds7_param.name, bindings[3].name)) {
+			fprintf(stderr, "Expected retname to be '%s', got ", bindings[3].name);
+			if (save_varchar_tds7_param.name == NULL)
+				fprintf(stderr, "<NULL> instead.\n");
+			else
+				fprintf(stderr, "'%s' instead.\n", save_varchar_tds7_param.name);
+			exit(1);
+		}
+		if (save_varchar_tds7_param.type != SYBVARCHAR) {
+			fprintf(stderr, "Expected rettype to be SYBVARCHAR was %d.\n", save_varchar_tds7_param.type);
+			exit(1);
+		}
+		if (save_varchar_tds7_param.len != 8000) {
+			fprintf(stderr, "Expected retlen to be 8000 was %d.\n", save_varchar_tds7_param.len);
+			exit(1);
+		}
 
-	/*
-	 * Test name, size, contents of the NVARCHAR(4000) output parameter
-	 */
-	if ((save_nvarchar_tds7_param.name == NULL) || strcmp(save_nvarchar_tds7_param.name, bindings[4].name)) {
-		fprintf(stderr, "Expected retname to be '%s', got ", bindings[4].name);
-		if (save_varchar_tds7_param.name == NULL)
-			fprintf(stderr, "<NULL> instead.\n");
-		else
-			fprintf(stderr, "'%s' instead.\n", save_nvarchar_tds7_param.name);
-		exit(1);
-	}
-	if (save_nvarchar_tds7_param.len != 4000) {
-		fprintf(stderr, "Expected retlen to be 4000 was %d.\n", save_nvarchar_tds7_param.len);
-		exit(1);
+		/*
+		 * Test name, size, contents of the NVARCHAR(4000) output parameter
+		 */
+		if ((save_nvarchar_tds7_param.name == NULL) || strcmp(save_nvarchar_tds7_param.name, bindings[4].name)) {
+			fprintf(stderr, "Expected retname to be '%s', got ", bindings[4].name);
+			if (save_varchar_tds7_param.name == NULL)
+				fprintf(stderr, "<NULL> instead.\n");
+			else
+				fprintf(stderr, "'%s' instead.\n", save_nvarchar_tds7_param.name);
+			exit(1);
+		}
+		if (save_nvarchar_tds7_param.len != 4000) {
+			fprintf(stderr, "Expected retlen to be 4000 was %d.\n", save_nvarchar_tds7_param.len);
+			exit(1);
+		}
 	}
 
 	if(42 != return_status) {
@@ -430,8 +441,9 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 
-	free(save_param.name);
-	free(save_param.value);
+	free_retparam(&save_param);
+	free_retparam(&save_varchar_tds7_param);
+	free_retparam(&save_nvarchar_tds7_param);
 
 	return failed ? 1 : 0;
 }
