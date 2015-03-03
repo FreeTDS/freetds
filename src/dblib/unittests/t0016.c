@@ -5,9 +5,6 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0016.c,v 1.32 2011-06-07 14:09:17 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static int failed = 0;
 
 static void
@@ -26,6 +23,7 @@ failure(const char *fmt, ...)
 #define TABLE_NAME "#dblib0016"
 
 static void test_file(const char *fn);
+static int compare_files(const char *fn1, const char *fn2);
 static DBPROCESS *dbproc;
 
 int
@@ -107,7 +105,7 @@ test_file(const char *fn)
 	const char *err_file = "t0016.err";
 	DBINT rows_copied;
 
-	FILE *input_file, *output_file;
+	FILE *input_file;
 
 	char in_file[256];
 	snprintf(in_file, sizeof(in_file), "%s/%s.in", FREETDS_SRCDIR, fn);
@@ -221,47 +219,84 @@ test_file(const char *fn)
 	while (dbresults(dbproc) != NO_MORE_RESULTS)
 		continue;
 
+	if (failed)
+		return;
+
+	if (compare_files(in_file, out_file))
+		printf("Input and output files are equal\n");
+	else
+		failed = 1;
+}
+
+static size_t fgets_raw(char *s, int len, FILE *f)
+{
+	char *p = s;
+
+	while (len > 1) {
+		int c = getc(f);
+		if (c == EOF) {
+			if (ferror(f))
+				return 0;
+			break;
+		}
+		*p++ = c;
+		--len;
+		if (c == '\n')
+			break;
+	}
+	if (len > 0)
+		*p = 0;
+	return p - s;
+}
+
+static int compare_files(const char *fn1, const char *fn2)
+{
+	int equal = 1;
+	FILE *f1, *f2;
+	size_t s1, s2;
+
 	/* check input and output should be the same */
-	input_file = fopen(in_file, "r");
-	output_file = fopen(out_file, "r");
-	if (!failed && input_file != NULL && output_file != NULL) {
-		char *p1, *p2;
+	f1 = fopen(fn1, "r");
+	f2 = fopen(fn2, "r");
+	if (f1 != NULL && f2 != NULL) {
 		int line = 1;
 
 		for (;; ++line) {
-			p1 = fgets(line1, sizeof(line1), input_file);
-			p2 = fgets(line2, sizeof(line2), output_file);
+			s1 = fgets_raw(line1, sizeof(line1), f1);
+			s2 = fgets_raw(line2, sizeof(line2), f2);
 
 			/* EOF or error of one */
-			if (!!p1 != !!p2) {
+			if (!!s1 != !!s2) {
+				equal = 0;
 				failure("error reading a file or EOF of a file\n");
 				break;
 			}
 
 			/* EOF or error of both */
-			if (!p1) {
-				if (feof(input_file) && feof(output_file))
+			if (!s1) {
+				if (feof(f1) && feof(f2))
 					break;
+				equal = 0;
 				failure("error reading a file\n");
 				break;
 			}
 
-			if (strcmp(line1, line2) != 0) {
+			if (s1 != s2 || memcmp(line1, line2, s1) != 0) {
+				equal = 0;
 				failure("File different at line %d\n"
 					" input: %s"
 					" output: %s",
 					line, line1, line2);
 			}
 		}
-
-		if (!failed)
-			printf("Input and output files are equal\n");
 	} else {
-		if (!failed)
-			failure("error opening files\n");
+		equal = 0;
+		failure("error opening files\n");
 	}
-	if (input_file)
-		fclose(input_file);
-	if (output_file)
-		fclose(output_file);
+	if (f1)
+		fclose(f1);
+	if (f2)
+		fclose(f2);
+
+	return equal;
 }
