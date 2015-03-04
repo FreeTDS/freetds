@@ -35,7 +35,7 @@ else()
 	set(libs tdsodbc odbcinst)
 endif()
 
-add_library(o_common STATIC common.c common.h c2string.c)
+add_library(o_common STATIC common.c common.h c2string.c parser.c parser.h)
 
 foreach(target ${tests})
 	add_executable(o_${target} ${target}.c)

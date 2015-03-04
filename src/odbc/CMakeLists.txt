@@ -29,7 +29,7 @@ add_library(tdsodbc SHARED
 	odbc.c connectparams.c convert_tds2sql.c
 	descriptor.c prepare_query.c odbc_util.c
 	native.c sql2tds.c error.c odbc_checks.c sqlwchar.c sqlwparams.h
-	odbc_export.h error_export.h ${win_SRCS}
+	odbc_export.h error_export.h odbc_data.c ${win_SRCS}
 )
 # TODO libiconv, odbcinstlib and other dynamics
 target_link_libraries(tdsodbc tds replacements ${libs} ${lib_NETWORK} ${lib_BASE})
