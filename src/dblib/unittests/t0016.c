@@ -24,6 +24,7 @@ failure(const char *fmt, ...)
 
 static void test_file(const char *fn);
 static int compare_files(const char *fn1, const char *fn2);
+static unsigned count_file_rows(FILE *f);
 static DBPROCESS *dbproc;
 
 int
@@ -104,6 +105,7 @@ test_file(const char *fn)
 	const char *out_file = "t0016.out";
 	const char *err_file = "t0016.err";
 	DBINT rows_copied;
+	unsigned num_rows = 2;
 
 	FILE *input_file;
 
@@ -119,6 +121,7 @@ test_file(const char *fn)
 		fprintf(stderr, "could not open %s\n", in_file);
 		exit(1);
 	}
+	num_rows = count_file_rows(input_file);
 	fclose(input_file);
 
 	dberrhandle(ignore_err_handler);
@@ -175,7 +178,7 @@ test_file(const char *fn)
 
 
 	ret = bcp_exec(dbproc, &rows_copied);
-	if (ret != SUCCEED || rows_copied != 2)
+	if (ret != SUCCEED || rows_copied != num_rows)
 		failure("bcp_exec failed\n");
 
 	printf("%d rows copied in\n", rows_copied);
@@ -208,7 +211,7 @@ test_file(const char *fn)
 		failure("return from bcp_colfmt = %d\n", ret);
 
 	ret = bcp_exec(dbproc, &rows_copied);
-	if (ret != SUCCEED || rows_copied != 2)
+	if (ret != SUCCEED || rows_copied != num_rows)
 		failure("bcp_exec failed\n");
 
 	printf("%d rows copied out\n", rows_copied);
@@ -299,4 +302,23 @@ static int compare_files(const char *fn1, const char *fn2)
 		fclose(f2);
 
 	return equal;
+}
+
+static unsigned count_file_rows(FILE *f)
+{
+	size_t s;
+	unsigned rows = 1;
+	char last = '\n';
+
+	assert(f);
+
+	while ((s = fgets_raw(line1, sizeof(line1), f)) != 0) {
+		last = line1[s-1];
+		if (last == '\n')
+			++rows;
+	}
+	if (last == '\n')
+		--rows;
+	assert(!ferror(f));
+	return rows;
 }
