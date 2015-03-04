@@ -14,3 +14,7 @@ target_link_libraries(sybdb tds replacements ${lib_NETWORK} ${lib_BASE})
 if(NOT WIN32)
 	set_target_properties(sybdb PROPERTIES SOVERSION "5.0.0")
 endif()
+
+if(MINGW OR CYGWIN)
+	set_target_properties(sybdb PROPERTIES LINK_FLAGS "--static")
+endif(MINGW OR CYGWIN)

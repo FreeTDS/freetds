@@ -35,5 +35,5 @@ add_library(tdsodbc SHARED
 target_link_libraries(tdsodbc tds replacements ${libs} ${lib_NETWORK} ${lib_BASE})
 
 if(MINGW OR CYGWIN)
-	set_target_properties(tdsodbc PROPERTIES LINK_FLAGS "-Wl,--kill-at -Wl,--enable-stdcall-fixup")
+	set_target_properties(tdsodbc PROPERTIES LINK_FLAGS "--static -Wl,--kill-at -Wl,--enable-stdcall-fixup")
 endif(MINGW OR CYGWIN)

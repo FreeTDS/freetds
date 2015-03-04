@@ -14,3 +14,7 @@ target_link_libraries(ct tds replacements ${lib_NETWORK} ${lib_BASE})
 if(NOT WIN32)
 	set_target_properties(ct PROPERTIES SOVERSION "4.0.0")
 endif()
+
+if(MINGW OR CYGWIN)
+	set_target_properties(ct PROPERTIES LINK_FLAGS "--static")
+endif(MINGW OR CYGWIN)
