@@ -799,6 +799,9 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 				return FALSE;
 			}
 			break;
+		default:
+			fprintf(stderr, "Type %d not handled by datacopy\n", srcdata[col]->coltype);
+			exit(1);
 		}
 	}
 
@@ -861,6 +864,9 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 					bcp_collen(dbdest, strlen(srcdata[col]->data), col + 1);
 				}
 				break;
+			default:
+				fprintf(stderr, "Type %d not handled by datacopy\n", srcdata[col]->coltype);
+				exit(1);
 			}
 		}
 		if (bcp_sendrow(dbdest) == FAIL) {
