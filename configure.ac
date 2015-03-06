@@ -479,7 +479,8 @@ AC_CHECK_FUNCS([_atoi64 vsnprintf _vsnprintf _vscprintf gettimeofday \
 nl_langinfo locale_charset setenv putenv \
 getuid getpwuid getpwuid_r fstat alarm fork \
 gethrtime localtime_r setitimer _lseeki64 _telli64 \
-_fseeki64 _ftelli64 setrlimit pthread_cond_timedwait])
+_fseeki64 _ftelli64 setrlimit pthread_cond_timedwait \
+_lock_file _unlock_file])
 OLD_LIBS="$LIBS"
 LIBS="$LIBS $NETWORK_LIBS"
 AC_CHECK_FUNCS([inet_ntoa_r getipnodebyaddr getipnodebyname \

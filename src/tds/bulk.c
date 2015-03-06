@@ -938,6 +938,14 @@ typedef struct tds_file_stream {
 } TDSFILESTREAM;
 
 /** \cond HIDDEN_SYMBOLS */
+#if defined(_WIN32) && defined(HAVE__LOCK_FILE) && defined(HAVE__UNLOCK_FILE)
+#define TDS_HAVE_STDIO_LOCKED 1
+#define flockfile(s) _lock_file(s)
+#define funlockfile(s) _unlock_file(s)
+#define getc_unlocked(s) _getc_nolock(s)
+#define feof_unlocked(s) _feof_nolock(s)
+#endif
+
 #ifndef TDS_HAVE_STDIO_LOCKED
 #undef getc_unlocked
 #undef feof_unlocked

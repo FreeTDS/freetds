@@ -179,7 +179,7 @@ set(FUNCS _atoi64 asprintf vasprintf strtok_r readpassphrase
 	inet_ntoa_r getipnodebyaddr getipnodebyname
 	getaddrinfo inet_ntop gethostname poll socketpair
 	clock_gettime fseeko pthread_cond_timedwait
-	pthread_condattr_setclock)
+	pthread_condattr_setclock _lock_file _unlock_file)
 
 foreach(func ${FUNCS})
 	string(TOUPPER "HAVE_${func}" var)
