@@ -501,7 +501,7 @@ AC_TRY_LINK([#ifdef HAVE_SYS_TYPES_H
 AC_DEFINE(HAVE_GETADDRINFO, 1, [Define if you have getaddrinfo function]))
 
 LIBS="$OLD_LIBS"
-AC_REPLACE_FUNCS([asprintf vasprintf atoll strtok_r readpassphrase \
+AC_REPLACE_FUNCS([asprintf vasprintf strtok_r readpassphrase \
 strlcpy strlcat basename getopt strsep])
 AC_FUNC_FSEEKO
 TDS_GETTIMEMILLI

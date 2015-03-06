@@ -24,13 +24,6 @@
 /* Define to 1 if you have the `asprintf' function. */
 #define HAVE_ASPRINTF @D_ASPRINTF@
 
-/* Define to 1 if you have the `atoll' function. */
-#ifdef __VAX
-#undef HAVE_ATOLL 
-#else
-#define HAVE_ATOLL 1
-#endif
-
 /* Define to 1 if you have the `basename' function. */
 #ifndef __CRTL_VER
 #define __CRTL_VER __VMS_VER

@@ -25,9 +25,6 @@
 /* Define to 1 if you have the `asprintf' function. */
 /* #undef HAVE_ASPRINTF */
 
-/* Define to 1 if you have the `atoll' function. */
-#define HAVE_ATOLL 1
-
 /* Define to 1 if you have the <dlfcn.h> header file. */
 /* #undef HAVE_DLFCN_H */
 

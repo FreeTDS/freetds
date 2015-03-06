@@ -6,7 +6,6 @@ libreplacements_la_SOURCES=	iconv.c gettimeofday.c fakepoll.c getpassarg.c socke
 libreplacements_la_LDFLAGS=
 libreplacements_la_LIBADD=	@LTLIBOBJS@
 EXTRA_DIST=	asprintf.c \
-		atoll.c \
 		basename.c \
 		getopt.c \
 		readpassphrase.c \

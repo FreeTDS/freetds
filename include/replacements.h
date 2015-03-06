@@ -68,10 +68,6 @@ int asprintf(char **ret, const char *fmt, ...);
 int vasprintf(char **ret, const char *fmt, va_list ap);
 #endif /* !HAVE_VASPRINTF */
 
-#if !HAVE_ATOLL && !HAVE__ATOI64
-tds_sysdep_int64_type atoll(const char *nptr);
-#endif /* !HAVE_ATOLL */
-
 #if !HAVE_STRTOK_R
 /* Some MingW define strtok_r macro thread-safe but not reentrant but we
    need both so avoid using the macro */

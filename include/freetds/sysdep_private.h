@@ -97,7 +97,6 @@ typedef DWORD pid_t;
 #define strcasecmp stricmp
 #undef strncasecmp
 #define strncasecmp strnicmp
-#define atoll _atoi64
 #define vsnprintf _vsnprintf
 #define snprintf _snprintf
 

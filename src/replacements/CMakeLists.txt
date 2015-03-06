@@ -2,7 +2,7 @@ include_directories(.)
 
 include(CheckFunctionExists)
 
-set(FUNCS asprintf vasprintf atoll strtok_r readpassphrase
+set(FUNCS asprintf vasprintf strtok_r readpassphrase
 strlcpy strlcat basename getopt strsep)
 
 set(add_SRCS)
