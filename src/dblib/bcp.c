@@ -700,6 +700,116 @@ bcp_getl(LOGINREC * login)
 	return (tdsl->bulk_copy);
 }
 
+static int
+_bcp_out_column(DBPROCESS * dbproc, TDSCOLUMN *curcol, BCP_HOSTCOLINFO *hostcol, TDS_UCHAR *data, TDS_INT datalen, const char *bcpdatefmt)
+{
+	BYTE *src;
+	int srclen;
+	int buflen;
+	int srctype = tds_get_conversion_type(curcol->column_type, curcol->column_size);
+
+	src = curcol->column_data;
+	if (is_blob_col(curcol))
+		src = (BYTE *) ((TDSBLOB *) src)->textvalue;
+
+	if (is_numeric_type(curcol->column_type))
+		srclen = sizeof(TDS_NUMERIC);
+	else
+		srclen = curcol->column_cur_size;
+
+	/*
+	 * if we are converting datetime to string, need to override any
+	 * date time formats already established
+	 */
+	if (is_datetime_type(srctype)
+	    && (hostcol->datatype == SYBCHAR || hostcol->datatype == SYBVARCHAR)) {
+		TDSDATEREC when;
+
+		tds_datecrack(srctype, src, &when);
+		buflen = (int)tds_strftime((TDS_CHAR *)data, 256,
+					 bcpdatefmt, &when, 3);
+	} else {
+		TDS_INT destlen = datalen;
+		/*
+		 * An empty string is denoted in the output file by a single ASCII NUL
+		 * byte that we request by specifying a destination length of -1.  (Not
+		 * to be confused with a database NULL, which is denoted in the output
+		 * file with an empty string!)
+		 */
+		if (srclen == 0
+		    && (curcol->column_type == SYBVARCHAR
+			|| curcol->column_type == SYBCHAR)) {
+			destlen = -1;
+		}
+
+		/*
+		 * For null columns, the above work to determine the output buffer size is moot,
+		 * because bcpcol->data_size is zero, so dbconvert() won't write anything,
+		 * and returns zero.
+		 */
+		/* TODO check for text !!! */
+		buflen =  dbconvert(dbproc, srctype, src, srclen, hostcol->datatype,
+				    data, destlen);
+		/*
+		 * Special case:  When outputting database varchar data
+		 * (either varchar or nullable char) dbconvert may have
+		 * trimmed trailing blanks such that nothing is left.
+		 * In this case we need to put a single blank to the output file.
+		 */
+		if (( curcol->column_type == SYBVARCHAR ||
+			 (curcol->column_type == SYBCHAR && curcol->column_nullable)
+		    ) && srclen > 0 && buflen == 0) {
+			strcpy ((char *)data, " ");
+			buflen = 1;
+		}
+	}
+	return buflen;
+}
+
+static RETCODE
+bcp_write_prefix(FILE *hostfile, BCP_HOSTCOLINFO *hostcol, TDSCOLUMN *curcol, int buflen)
+{
+	union {
+		TDS_TINYINT ti;
+		TDS_SMALLINT si;
+		TDS_INT li;
+	} u;
+	int plen;
+
+	/* compute prefix len if needed */
+	if ((plen = hostcol->prefix_len) == -1) {
+		if (is_blob_type(hostcol->datatype))
+			plen = 4;
+		else if (!(is_fixed_type(hostcol->datatype)))
+			plen = 2;
+		else if (curcol->column_nullable)
+			plen = 1;
+		else
+			plen = 0;
+		/* cache */
+		hostcol->prefix_len = plen;
+	}
+
+	/* output prefix to file */
+	switch (plen) {
+	default:
+		return SUCCEED;
+	case 1:
+		u.ti = buflen;
+		break;
+	case 2:
+		u.si = buflen;
+		break;
+	case 4:
+		u.li = buflen;
+		break;
+	}
+	if (fwrite(&u, plen, 1, hostfile) == 1)
+		return SUCCEED;
+
+	return FAIL;
+}
+
 /**
  * \ingroup dblib_bcp_internal
  * \brief
@@ -724,13 +834,8 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	TDSCOLUMN *curcol = NULL;
 	BCP_HOSTCOLINFO *hostcol;
 	int buflen;
-	int plen;
 
 	TDS_INT result_type;
-
-	TDS_TINYINT ti;
-	TDS_SMALLINT si;
-	TDS_INT li;
 
 	int row_of_query;
 	int rows_written;
@@ -798,10 +903,10 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 		case SYBCHAR:
 		case SYBVARCHAR:
 			switch (curcol->column_type) {
+			case SYBCHAR:
 			case SYBVARCHAR:
 				buflen = curcol->column_size + 1;
 				break;
-			case SYBCHAR:
 			case SYBTEXT:
 				/* FIXME column_size ?? if 2gb ?? */
 				buflen = curcol->column_size + 1;
@@ -853,7 +958,6 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 
 		/* Go through the hostfile columns, finding those that relate to database columns. */
 		for (i = 0; i < dbproc->hostfileinfo->host_colcount; i++) {
-			size_t written = 0;
 			hostcol = dbproc->hostfileinfo->host_columns[i];
 			if (hostcol->tab_colnum < 1 || hostcol->tab_colnum > resinfo->num_cols)
 				continue;
@@ -863,100 +967,12 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 			if (curcol->column_cur_size < 0) {
 				buflen = 0;
 			} else {
-				BYTE *src;
-				int srclen;
-				int srctype = tds_get_conversion_type(curcol->column_type, curcol->column_size);
-
-				src = curcol->column_data;
-				if (is_blob_col(curcol))
-					src = (BYTE *) ((TDSBLOB *) src)->textvalue;
-
-				if (is_numeric_type(curcol->column_type))
-					srclen = sizeof(TDS_NUMERIC);
-				else
-					srclen = curcol->column_cur_size;
-
-				/*
-				 * if we are converting datetime to string, need to override any
-				 * date time formats already established
-				 */
-				if (is_datetime_type(srctype)
-				    && (hostcol->datatype == SYBCHAR || hostcol->datatype == SYBVARCHAR)) {
-					TDSDATEREC when;
-
-					tds_datecrack(srctype, src, &when);
-					buflen = (int)tds_strftime((TDS_CHAR *)data, 256,
-								 bcpdatefmt, &when, 3);
-				} else {
-					TDS_INT destlen = datalen;
-					/*
-					 * An empty string is denoted in the output file by a single ASCII NUL
-					 * byte that we request by specifying a destination length of -1.  (Not
-					 * to be confused with a database NULL, which is denoted in the output
-					 * file with an empty string!)
-					 */
-					if (srclen == 0
-					    && (curcol->column_type == SYBVARCHAR
-						|| curcol->column_type == SYBCHAR)) {
-						destlen = -1;
-					}
-
-					/*
-					 * For null columns, the above work to determine the output buffer size is moot,
-					 * because bcpcol->data_size is zero, so dbconvert() won't write anything,
-					 * and returns zero.
-					 */
-					/* TODO check for text !!! */
-					buflen =  dbconvert(dbproc, srctype, src, srclen, hostcol->datatype,
-							    data, destlen);
-					/*
-					 * Special case:  When outputting database varchar data
-					 * (either varchar or nullable char) dbconvert may have
-					 * trimmed trailing blanks such that nothing is left.
-					 * In this case we need to put a single blank to the output file.
-					 */
-					if (( curcol->column_type == SYBVARCHAR ||
-						 (curcol->column_type == SYBCHAR && curcol->column_nullable)
-					    ) && srclen > 0 && buflen == 0) {
-						strcpy ((char *)data, " ");
-						buflen = 1;
-					}
-				}
+				buflen = _bcp_out_column(dbproc, curcol, hostcol, data, datalen, bcpdatefmt);
 			}
 
 			/* The prefix */
-			if ((plen = hostcol->prefix_len) == -1) {
-				if (is_blob_type(hostcol->datatype))
-					plen = 4;
-				else if (!(is_fixed_type(hostcol->datatype)))
-					plen = 2;
-				else if (curcol->column_nullable)
-					plen = 1;
-				else
-					plen = 0;
-				/* cache */
-				hostcol->prefix_len = plen;
-			}
-			switch (plen) {
-			case 0:
-				break;
-			case 1:
-				ti = buflen;
-				written = fwrite(&ti, sizeof(ti), 1, hostfile);
-				break;
-			case 2:
-				si = buflen;
-				written = fwrite(&si, sizeof(si), 1, hostfile);
-				break;
-			case 4:
-				li = buflen;
-				written = fwrite(&li, sizeof(li), 1, hostfile);
-				break;
-			}
-			if( plen != 0 && written != 1 ) {
-				dbperror(dbproc, SYBEBCWE, errno);
-				goto Cleanup;
-			}
+			if (bcp_write_prefix(hostfile, hostcol, curcol, buflen) != SUCCEED)
+				goto write_error;
 
 			/* The data */
 			if (hostcol->column_len != -1) {
@@ -964,20 +980,14 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 			}
 
 			if (buflen > 0) {
-				written = fwrite(data, buflen, 1, hostfile);
-				if (written < 1) {
-					dbperror(dbproc, SYBEBCWE, errno);
-					goto Cleanup;
-				}
+				if (fwrite(data, buflen, 1, hostfile) != 1)
+					goto write_error;
 			}
 
 			/* The terminator */
 			if (hostcol->terminator && hostcol->term_len > 0) {
-				written = fwrite(hostcol->terminator, hostcol->term_len, 1, hostfile);
-				if (written < 1) {
-					dbperror(dbproc, SYBEBCWE, errno);
-					goto Cleanup;
-				}
+				if (fwrite(hostcol->terminator, hostcol->term_len, 1, hostfile) != 1)
+					goto write_error;
 			}
 		}
 		rows_written++;
@@ -1002,6 +1012,9 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	*rows_copied = rows_written;
 	free(data);
 	return SUCCEED;
+
+write_error:
+	dbperror(dbproc, SYBEBCWE, errno);
 
 Cleanup:
 	if (hostfile)
