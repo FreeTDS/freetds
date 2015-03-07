@@ -721,26 +721,24 @@ _bcp_out_column(DBPROCESS * dbproc, TDSCOLUMN *curcol, BCP_HOSTCOLINFO *hostcol,
 	 * if we are converting datetime to string, need to override any
 	 * date time formats already established
 	 */
-	if (is_datetime_type(srctype)
-	    && (hostcol->datatype == SYBCHAR || hostcol->datatype == SYBVARCHAR)) {
+	if (is_datetime_type(srctype) && is_ascii_type(hostcol->datatype)) {
 		TDSDATEREC when;
 
 		tds_datecrack(srctype, src, &when);
 		buflen = (int)tds_strftime((TDS_CHAR *)data, 256,
 					 bcpdatefmt, &when, 3);
-	} else {
-		TDS_INT destlen = datalen;
+	} else if (srclen == 0 && is_variable_type(curcol->column_type)
+		   && is_ascii_type(hostcol->datatype)) {
 		/*
 		 * An empty string is denoted in the output file by a single ASCII NUL
 		 * byte that we request by specifying a destination length of -1.  (Not
 		 * to be confused with a database NULL, which is denoted in the output
 		 * file with an empty string!)
 		 */
-		if (srclen == 0
-		    && (curcol->column_type == SYBVARCHAR
-			|| curcol->column_type == SYBCHAR)) {
-			destlen = -1;
-		}
+		data[0] = 0;
+		buflen = 1;
+	} else {
+		TDS_INT destlen = datalen;
 
 		/*
 		 * For null columns, the above work to determine the output buffer size is moot,
