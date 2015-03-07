@@ -2225,7 +2225,7 @@ tds_quote(TDSSOCKET * tds, char *buffer, char quoting, const char *id, size_t le
  * \param buffer buffer to store quoted id. If NULL do not write anything 
  *        (useful to compute quote length)
  * \param id     id to quote
- * \param idlen  id length
+ * \param idlen  id length (< 0 for NUL terminated)
  * \result written chars (not including needed terminator)
  */
 size_t
