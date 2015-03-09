@@ -1,4 +1,22 @@
-$Id: NEWS,v 1.44 2008-01-10 22:57:39 jklowden Exp $
+$Id$
+
+Summary of Changes in release 0.91
+--------------------------------------------
+1.  Full Kerberos and SSPI support for passwordless login to
+    Microsoft SQL Server from Unix and Windows clients.
+    Includes Kerberos delegation option.
+2.  Full support for DB-Library under Win32/64 via NMAKE.EXE.
+3.  Built-in support for UTF-8.
+4.  Support for wide characters in ODBC.
+5.  Support for varchar(max) and varbinary(max).
+6.  Better thread-safety in ODBC.
+7.  Distinguish between connect and login errors.
+8.  Bulk-copy functions in CT-Library.
+
+TDS versions now reflect Microsoft's nomenclature.  The previous
+version numbers (8.0 and 9.0) are now 7.1 and 7.2.  See the UG
+for details.
+
 
 Executive Summary of Changes in release 0.82
 --------------------------------------------
@@ -15,8 +33,8 @@ Details
 -------
 
 db-lib
-- timeouts work! 
-- corrected dbnextrow 
+- timeouts work!
+- corrected dbnextrow
 - implemented dbsetnull and dbsetinterrupt
 - improved error reporting and checking
 - fixed rpc parameter processing, now php works correctly
@@ -26,7 +44,7 @@ ct-lib
 
 odbc
 - cursors (mssql)
-- fixed database setting 
+- fixed database setting
 - return error always if odbc returns SQL_ERROR
 - fixed SQLGetData result
 
@@ -188,14 +206,14 @@ libTDS API changes
 - removed tds_ctx_set_parent/tds_ctx_get_parent, use parent member
 - added void * parent argument to tds_alloc_context
 - tds_process_tokens return a TDS_CANCELLED if handle cancellation
-- removed query_timeout_func and query_timeout_param from 
+- removed query_timeout_func and query_timeout_param from
   TDSCONNECTION and TDSLOGIN
 - add tds_free_row
 - renamed TDSLOCALE->char_set to server_charset
 
 * 0.63
 - ODBC: use tds_dstr* functions to store descriptor information
-- header privatizations (removing tds.h dependency).  This is quite 
+- header privatizations (removing tds.h dependency).  This is quite
   important for future binary compatibility.
 - ODBC: SQLFetch returns error correctly
 - ODBC: fix problem rebinding parameters
@@ -230,21 +248,21 @@ libTDS API changes
   - Sybase and blobs
     ported code for string building from ODBC to libtds
 - extended TDSSOCKET::iconv_info as an array.  Keep converters for non-UCS-2
-  server charsets.  Every TDSCOLINFO holding character data should point to 
-  one of these elements.  
+  server charsets.  Every TDSCOLINFO holding character data should point to
+  one of these elements.
 - dblib: src/dblib/unittests/t0017.c (bcp) fixed
 - changed tds_get_char_data(), ML 2 May 2003, "tds_get_char_data and iconv".
 - rewrote tds_iconv:
  - use iconv() signature.
- - rely on TDSCOLINFO::iconv_info for conversion descriptor, instead 
-   of inferring it from the column sizes.  
+ - rely on TDSCOLINFO::iconv_info for conversion descriptor, instead
+   of inferring it from the column sizes.
  - on read error, emit Msg 2403, Severity 16 (EX_INFO):
-   "WARNING! Some character(s) could not be converted into client's character 
+   "WARNING! Some character(s) could not be converted into client's character
    set. Unconverted bytes were changed to question marks ('?')."
  - on write error emit Msg 2402, Severity 16 (EX_USER):
-   "Error converting client characters into server's character set. Some 
+   "Error converting client characters into server's character set. Some
    character(s) could not be converted."
-   and return an error code.  Do not proceed.  
+   and return an error code.  Do not proceed.
  - Cf. ML 16 Apr 2003. "conversion error management".
 - added doxygen to the nightly build
 - "make install" put the UG in PREFIX/share/doc/freetds/userguide
@@ -277,17 +295,17 @@ libTDS API changes
 - namespace cleanup
 - public domain versions of functions for OSs that lack them
 - autoconf portability improvements
-- builds in HP-UX, Win32, and cygwin 
+- builds in HP-UX, Win32, and cygwin
 - No dependency on OpenSSL
 	
 * Sep 2002
 - Version 0.60
-- Support for SQL Server 2000 datatypes and domain logins.  
+- Support for SQL Server 2000 datatypes and domain logins.
 - Support and convertibility of all major datatypes.
-- Much expanded coverage of the ODBC API.  
-- An all-new BCP implementation, including host variable support.  
-- Character set conversions, via the iconv library.  
-- Threadsafe operation.  
+- Much expanded coverage of the ODBC API.
+- An all-new BCP implementation, including host variable support.
+- Character set conversions, via the iconv library.
+- Threadsafe operation.
 
 * [late 2001?]
 - tdspool now working for big endian systems
@@ -345,7 +363,7 @@ libTDS API changes
 
 * Sep 1999 Brian Bruns <camber@ais.org>
 - Version 0.47
-- Added workaround for SQL 7.0 bug handling datetime/money 
+- Added workaround for SQL 7.0 bug handling datetime/money
   for big endian (testing/bug report - Paul Schaap)
 - Added TDS 7.0 login function (untested)
 - Fixed many big endian bugs
@@ -401,7 +419,7 @@ libTDS API changes
 - Row buffering is now supported for dblib.
 - Better row handling (side effect of above)
 - Improved conversion code
-- Preliminary ODBC layer 
+- Preliminary ODBC layer
 - PHP now runs basic scripts, maybe more
 - Many many bug fixes
 - General cleanup (better error handling, C++ friendly headers, etc...)
@@ -426,60 +444,60 @@ libTDS API changes
 
 Pre-GNUification log by Brian <camber@ais.org>:
 
-2/8/98	Should be able to send the first packet to a server soon, my output is 
+2/8/98	Should be able to send the first packet to a server soon, my output is
 	only slightly different than open clients.
-	This codes pretty crappy right now. I need to clean up alot of stuff, 
+	This codes pretty crappy right now. I need to clean up alot of stuff,
 	remove hardcode values, etc...but I'm anxious to see something work!
-2/7/98	Broke the code up a bit, tds.c now handles all wire level stuff, 
-	dblib.c handles dblib specific stuff. So, in the future there can be 
+2/7/98	Broke the code up a bit, tds.c now handles all wire level stuff,
+	dblib.c handles dblib specific stuff. So, in the future there can be
 	ctlib.c and obdc.c can also sit on top of tds.c to handle the other CLIs
-3/16/98 Been working on the code here and there...We can now send a query to 
+3/16/98 Been working on the code here and there...We can now send a query to
 	the server, dbnumcols() and dbcolname() both work. Almost ready to get
 	some data back. I put in a dummy dbbind to just handle strings so,
-	I could do some work on dbnextrow().  However, we will have revisit 
+	I could do some work on dbnextrow().  However, we will have revisit
 	almost everything later.
 3/23/98	Haven't been able to work on it lately.  Still trying to decide on the
 	best way to propagate the row data from tds.c to dblib.c to the calling
  	func.  Not that hard, but nothing strikes me as the "Right Way" (tm).
-4/2/98	Ok we are ready to release 0.01 (marked by the fact that a simple dblib 
+4/2/98	Ok we are ready to release 0.01 (marked by the fact that a simple dblib
 	program actually works!)
-5/1/98  Haven't updated in quite a while. A few more dblib commands are 
+5/1/98  Haven't updated in quite a while. A few more dblib commands are
 	supported. dbconvert() support is preliminary. Fixed alot of bugs. A
-	little bit of cleanup. dbbind() sorta works now, needs work still. 
-	At least one mem leak that I know of (haven't gotten around to fixing 
+	little bit of cleanup. dbbind() sorta works now, needs work still.
+	At least one mem leak that I know of (haven't gotten around to fixing
 	it.  Wish I had more time to work on it...
 5/2/98  Decided to release what I have. executing sp_who seems to mostly work..
 	a step in the right direction.  Version 0.02.  Seem to have generated a
 	little interest after mentioning it in a usenet post.
-5/6/98	Can compile against sqsh!!! Did a reorg on tds.c, all dblib func that 
+5/6/98	Can compile against sqsh!!! Did a reorg on tds.c, all dblib func that
 	read data now go through tds_process_messages() which read the marker
 	and calls other routines as necessary. sqsh's output is a little screwy
-	(well I don't have a real dbprrow() yet, but the number of result sets 
+	(well I don't have a real dbprrow() yet, but the number of result sets
 	coming back is too many).  So, anyway Version 0.04
-5/9/98  Decided to upload some new code, mostly just stubs.  Sybperl compiles 
+5/9/98  Decided to upload some new code, mostly just stubs.  Sybperl compiles
 	I can't get my perl to work with it. (I need to download perl and link
 	statically, the one that comes on the system won't do).  Anyway,
 	most of dblib is present in stub form.
-5/17/98 Managed to scrape up some time and release new code. Duplicate result 
-	sets went away, and handling of more datatypes (money, bit, more int 
+5/17/98 Managed to scrape up some time and release new code. Duplicate result
+	sets went away, and handling of more datatypes (money, bit, more int
 	stuff).  Also, improved dbprhead()/row() function.
 5/26/98 Ok, I'm doing the long overdue cleaning up of the code. All the kludges
-	should be gone.  Thanks, to everyone who contributed 
+	should be gone.  Thanks, to everyone who contributed
 	code/idea/corrections.
-6/3/98  The majority of the overhaul is done...still some work to do, but this 
-        is much better than before. I'm bumping the version to 0.1 signifying 
+6/3/98  The majority of the overhaul is done...still some work to do, but this
+        is much better than before. I'm bumping the version to 0.1 signifying
         that I actually use sqsh compiled against it on a regular basis.	
 6/5/98	TDS 4.2 support seems to be working properly
-6/26/98 Gregg Jenson has added support for err and msg handling among other 
+6/26/98 Gregg Jenson has added support for err and msg handling among other
 	things. I've added some prelimary ctlib support (nothing working yet)
 7/3/98	I think we are about ready to release 0.2. Gregg sent some datetime code
-	which appears to work great.  I added TDS 4.6 support (small changes 
+	which appears to work great.  I added TDS 4.6 support (small changes
 	really) and tested all the byte order issues on an RS/6000.  Also, ctlib
-	code will run the unittest.c and will compile all modules in sqsh 1.6, 
+	code will run the unittest.c and will compile all modules in sqsh 1.6,
 	however there are many missing functions before it will link!
 7/10/98 Haven't been able to work on it lately (moved this week). Anyway,
         trying to add some functions to server.
 7/13/98	Tom Poindexter made some changes to get sybtcl to work.
-8/8/98	Haven't had much time lately (again), however some small stuff has 
-	been fixed and the protocol version stuff has (mostly) been moved to a 
+8/8/98	Haven't had much time lately (again), however some small stuff has
+	been fixed and the protocol version stuff has (mostly) been moved to a
 	runtime option. sybperl is supposedly running for simple stuff.
