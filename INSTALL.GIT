@@ -1,7 +1,7 @@
 Building FreeTDS from git
 James Cameron <james.cameron@compaq.com>
 
-The git repository is maintained on Gitorious. Follow these steps:
+The git repository is maintained on GitHub. Follow these steps:
 
 1) satisfy build dependencies, ensure that the following packages are
    installed:

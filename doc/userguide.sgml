@@ -294,7 +294,7 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 
 <para>No password is needed to obtain the current git copy of &freetds;; you need only have a git client installed on your machine.  Then:
 <screen>
-	<prompt>$ </prompt><userinput>git clone git@gitorious.org:freetds/freetds.git</userinput>
+	<prompt>$ </prompt><userinput>git clone https://github.com/FreeTDS/freetds.git</userinput>
 	<prompt>$ </prompt></screen></para>
 
 <para>For those behind firewalls or otherwise unable to access <productname>git</productname>, nightly snapshots of <productname>git</productname> are rolled up into tarballs for your convenience.  They can be downloaded from
