@@ -25,7 +25,7 @@ find_program(PERL perl)
 #endif(PERL)
 
 if(WIN32)
-	set(add_SRCS sspi.c)
+	set(add_SRCS sspi.c md5.c)
 else(WIN32)
 	set(add_SRCS challenge.c md4.c md5.c des.c gssapi.c hmac_md5.c)
 endif(WIN32)
