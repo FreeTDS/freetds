@@ -117,6 +117,7 @@ typedef DWORD pid_t;
 #define getpid()           GetCurrentProcessId()
 #define strdup(s)          _strdup(s)
 #define unlink(f)          _unlink(f)
+#define putenv(s)          _putenv(s)
 #undef fileno
 #define fileno(f)          _fileno(f)
 #define stricmp(s1,s2)     _stricmp(s1,s2)
