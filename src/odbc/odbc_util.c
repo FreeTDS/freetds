@@ -476,13 +476,15 @@ odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void 
 			char_conv->suppress.e2big = 1;
 			if (tds_iconv(dbc->tds_socket, char_conv, to_client, &ib, &il, &ob, &ol) == (size_t)-1)
 				result = SQL_ERROR;
+			ol = sizeof(discard) - ol;
+			/* if there are still left space copy the partial conversion */
 			if (out_len < cbBuffer) {
-				int max_copy = out_len - cbBuffer;
-				if (max_copy > sizeof(discard) - ol)
-					max_copy = sizeof(discard) - ol;
+				size_t max_copy = cbBuffer - out_len;
+				if (max_copy > ol)
+					max_copy = ol;
 				memcpy(((char *) buffer) + out_len, discard, max_copy);
 			}
-			out_len += sizeof(discard) - ol;
+			out_len += ol;
 		}
 		if (out_len >= cbBuffer && result != SQL_ERROR)
 			result = SQL_SUCCESS_WITH_INFO;
