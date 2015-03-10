@@ -1,6 +1,6 @@
 # $Id: Makefile.am,v 1.74 2012-03-06 20:40:12 freddy77 Exp $
 
-SUBDIRS			=	unittests
+SUBDIRS			=	. unittests
 AM_CPPFLAGS		=	-I$(top_srcdir)/include
 
 noinst_LTLIBRARIES	=	libtds.la

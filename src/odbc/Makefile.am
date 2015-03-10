@@ -1,5 +1,5 @@
 # $Id: Makefile.am,v 1.52 2012-02-26 22:09:20 freddy77 Exp $
-SUBDIRS		= unittests
+SUBDIRS		=	. unittests
 AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC)
 
 lib_LTLIBRARIES	=	libtdsodbc.la
