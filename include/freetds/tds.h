@@ -1232,7 +1232,7 @@ int tds_get_cardinal_type(int datatype, int usertype);
 
 
 /* iconv.c */
-void tds_iconv_open(TDSCONNECTION * conn, const char *charset);
+TDSRET tds_iconv_open(TDSCONNECTION * conn, const char *charset);
 void tds_iconv_close(TDSCONNECTION * conn);
 void tds_srv_charset_changed(TDSCONNECTION * conn, const char *charset);
 void tds7_srv_charset_changed(TDSCONNECTION * conn, int sql_collate, int lcid);

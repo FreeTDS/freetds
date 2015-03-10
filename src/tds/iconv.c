@@ -319,7 +319,7 @@ tds_iconv_alloc(TDSCONNECTION * conn)
  * (one for other iconv implementations and another for Sybase). For every
  * canonic charset name we cache the iconv name found during discovery. 
  */
-void
+TDSRET
 tds_iconv_open(TDSCONNECTION * conn, const char *charset)
 {
 	static const char UCS_2LE[] = "UCS-2LE";
@@ -341,8 +341,7 @@ tds_iconv_open(TDSCONNECTION * conn, const char *charset)
 			tdsdump_log(TDS_DBG_FUNC, "error: tds_iconv_init() returned %d; "
 						  "could not find a name for %s that your iconv accepts.\n"
 						  "use: \"configure --disable-libiconv\"", ret, names[ret-1]);
-			assert(ret == 0);
-			return;
+			return TDS_FAIL;
 		}
 		iconv_initialized = 1;
 	}
@@ -356,7 +355,7 @@ tds_iconv_open(TDSCONNECTION * conn, const char *charset)
 
 	fOK = tds_iconv_info_init(conn->char_convs[client2ucs2], canonic_charset, TDS_CHARSET_UCS_2LE);
 	if (!fOK)
-		return;
+		return TDS_FAIL;
 
 	/* 
 	 * How many UTF-8 bytes we need is a function of what the input character set is.
@@ -377,7 +376,7 @@ tds_iconv_open(TDSCONNECTION * conn, const char *charset)
 		tdsdump_log(TDS_DBG_FUNC, "preparing iconv for \"%s\" <-> \"%s\" conversion\n", charset, conn->env.charset);
 		fOK = tds_iconv_info_init(conn->char_convs[client2server_chardata], canonic_charset, canonic_env_charset);
 		if (!fOK)
-			return;
+			return TDS_FAIL;
 	} else {
 		conn->char_convs[client2server_chardata]->from.charset = canonic_charsets[canonic_charset];
 		conn->char_convs[client2server_chardata]->to.charset = canonic_charsets[canonic_charset];
@@ -396,6 +395,7 @@ tds_iconv_open(TDSCONNECTION * conn, const char *charset)
 	fOK = tds_iconv_info_init(conn->char_convs[iso2server_metadata], TDS_CHARSET_ISO_8859_1, canonic);
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_iconv_open: done\n");
+	return TDS_SUCCESS;
 }
 
 /**
