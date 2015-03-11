@@ -123,6 +123,7 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	bindinfo->row_size = resinfo->row_size;
 
 	/* Copy the column metadata */
+	rc = TDS_FAIL;
 	for (i = 0; i < bindinfo->num_cols; i++) {
 
 		curcol = bindinfo->columns[i];
@@ -167,6 +168,8 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 			curcol->bcp_column_data = 
 				tds_alloc_bcp_column_data(MAX(curcol->column_size,curcol->on_server.column_size));
 		}
+		if (!curcol->bcp_column_data)
+			goto cleanup;
 	}
 
 	if (!IS_TDS7_PLUS(tds->conn)) {
