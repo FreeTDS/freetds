@@ -7222,9 +7222,10 @@ odbc_stat_execute(TDS_STMT * stmt _WIDE, const char *begin, int nparams, ...)
 	assert(p - proc + 1 <= len);
 
 	/* set it */
-	/* FIXME is neither mb or wide, is always utf encoded !!! */
-	retcode = odbc_set_stmt_query(stmt, (ODBC_CHAR *) proc, p - proc _wide0);
-	free(proc);
+	/* proc is neither mb or wide, is always utf encoded */
+	retcode = odbc_set_stmt_query(stmt, (ODBC_CHAR *) "-", 1 _wide0);
+	free(stmt->query);
+	stmt->query = proc;
 
 	if (retcode != SQL_SUCCESS)
 		ODBC_RETURN(stmt, retcode);
