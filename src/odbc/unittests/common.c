@@ -547,7 +547,7 @@ odbc_from_sqlwchar(char *dst, const SQLWCHAR *src, int n)
 	}
 	for (i = 0; i < n; ++i) {
 		assert(src[i] < 256);
-		dst[i] = src[i];
+		dst[i] = (char) src[i];
 	}
 	return n;
 }

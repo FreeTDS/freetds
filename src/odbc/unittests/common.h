@@ -1,4 +1,5 @@
 #ifdef _WIN32
+#define _CRT_SECURE_NO_WARNINGS 1
 #include <winsock2.h>
 #include <windows.h>
 #include <direct.h>
@@ -21,8 +22,7 @@
 #include <sqlext.h>
 #include <sqlucode.h>
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.39 2012-03-04 11:33:07 freddy77 Exp $";
-static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
+#include <freetds/sysdep_private.h>
 
 #ifndef HAVE_SQLLEN
 #ifndef SQLULEN

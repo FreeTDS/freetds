@@ -209,7 +209,7 @@ odbc_wide2utf(const SQLWCHAR *s, int len)
 	for (p = out; len > 0; --len) {
 		SQLWCHAR u = *s++;
 		if ((u & MASK(7)) == 0) {
-			*p++ = u;
+			*p++ = (char) u;
 			continue;
 		}
 		if ((u & MASK(11)) == 0) {

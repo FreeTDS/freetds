@@ -177,7 +177,7 @@ static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 	char buf[128];
 	struct sockaddr_in sin;
 	fd_set fds_read, fds_write, fds_error;
-	int max_fd = 0;
+	TDS_SYS_SOCKET max_fd = 0;
 
 	memset(&sin, 0, sizeof(sin));
 	sock_len = sizeof(sin);
@@ -372,7 +372,7 @@ main(int argc, char **argv)
 	odbc_reset_statement();
 
 	tds_mutex_lock(&mtx);
-	if (inserts > 1 || round_trips > num_inserts * 2 + 6) {
+	if (inserts > 1 || round_trips > (unsigned) (num_inserts * 2 + 6)) {
 		fprintf(stderr, "Too much round trips (%u) or insert (%u) !!!\n", round_trips, inserts);
 		tds_mutex_unlock(&mtx);
 		return 1;

@@ -344,7 +344,7 @@ tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, uns
 				borrow = Int64div32(&packet[i], borrow, factor);
 #else
 				TDS_DWORD n = (((TDS_DWORD) borrow) << (8 * sizeof(TDS_WORD))) + packet[--i];
-				packet[i] = n / factor;
+				packet[i] = (TDS_WORD) (n / factor);
 				borrow = n % factor;
 #endif
 			}

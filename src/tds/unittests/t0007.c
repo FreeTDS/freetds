@@ -97,7 +97,7 @@ test2(const char *src, int len, int midtype, int dsttype, const char *result, in
 static void
 test0(const char *src, int len, int dsttype, const char *result, int line)
 {
-	return test2(src, len, 0, dsttype, result, line);
+	test2(src, len, 0, dsttype, result, line);
 }
 
 static void

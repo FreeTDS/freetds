@@ -52,8 +52,7 @@
 #include <sqlext.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqlodbc.c,v 1.18 2011-05-16 08:51:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+#include <freetds/sysdep_private.h>
 
 static char * next_query(void);
 static void print_results(SQLHSTMT hStmt);
@@ -546,7 +545,8 @@ print_results(SQLHSTMT hStmt)
 			assert(namelen < sizeof(name));
 			name[namelen] = '\0';
 			metadata[c].name = strdup((char *) name);
-			metadata[c].width = (ndigits > metadata[c].size)? ndigits : metadata[c].size;
+			metadata[c].width =
+				(ndigits >= 0 && (unsigned) ndigits > metadata[c].size)? ndigits : metadata[c].size;
 			
 			if (is_character_data(metadata[c].type)) {
 				SQLHDESC hDesc;
@@ -734,13 +734,14 @@ get_printable_size(int type, int size)	/* adapted from src/dblib/dblib.c */
 static int
 set_format_string(struct METADATA * meta, const char separator[])
 {
-	int width, ret;
+	int ret;
+	unsigned width;
 	const char *size_and_width;
 	assert(meta);
 
 	if(0 == strcmp(options.colsep, default_colsep)) { 
 		/* right justify numbers, left justify strings */
-		size_and_width = is_character_data(meta->type)? "%%-%d.%ds%s" : "%%%d.%ds%s";
+		size_and_width = is_character_data(meta->type)? "%%-%u.%us%s" : "%%%u.%us%s";
 		
 		width = meta->width; /* get_printable_size(meta->type, meta->size); */
 		if (width < strlen(meta->name))

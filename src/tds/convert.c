@@ -407,7 +407,7 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 			return rc;
 		if (!IS_USMALLINT(tds_i))
 			return TDS_CONVERT_OVERFLOW;
-		cr->usi = tds_i;
+		cr->usi = (TDS_USMALLINT) tds_i;
 		return sizeof(TDS_USMALLINT);
 		break;
 	case SYBINT4:
@@ -421,7 +421,7 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 			return rc;
 		if (!IS_UINT(tds_i8))
 			return TDS_CONVERT_OVERFLOW;
-		cr->ui = tds_i8;
+		cr->ui = (TDS_UINT) tds_i8;
 		return sizeof(TDS_UINT);
 		break;
 	case SYBINT8:

@@ -12,7 +12,7 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int ntimeouts = 0, ncancels = 0;
 const int max_timeouts = 3, timeout_seconds = 3;
-int start_time;
+time_t start_time;
 
 int timeout_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 int chkintr(DBPROCESS * dbproc);

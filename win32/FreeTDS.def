@@ -76,7 +76,7 @@ EXPORTS
 	ConfigDSN
 	ConfigDriver
 	ConfigTranslator
-	DllRegisterServer
-	DllUnregisterServer
+	DllRegisterServer PRIVATE
+	DllUnregisterServer PRIVATE
 	SQLGetTypeInfoW = SQLGetTypeInfo
 

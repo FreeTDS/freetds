@@ -125,7 +125,7 @@ odbc_wstr2str(TDS_STMT * stmt, const char *src, int* len)
         /* convert */
         p = out;
 	for (; srclen && *wp < 256; --srclen)
-		*p++ = *wp++;
+		*p++ = (char) *wp++;
 
 	/* still characters, wrong format */
 	if (srclen) {

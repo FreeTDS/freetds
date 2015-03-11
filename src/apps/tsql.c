@@ -51,6 +51,8 @@
 # include <unistd.h>
 #elif defined(_WIN32)
 # include <io.h>
+# undef isatty
+# define isatty(fd) _isatty(fd)
 #endif /* HAVE_UNISTD_H */
 
 /* HP-UX require some constants defined by limits.h */

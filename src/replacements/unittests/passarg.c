@@ -31,6 +31,8 @@
 
 #include <assert.h>
 
+#include <freetds/sysdep_private.h>
+
 #include "replacements.h"
 
 int main(void)

@@ -91,8 +91,7 @@ int getopt(int argc, const char *argv[], char *optstring);
 #endif
 #endif /* MicrosoftsDbLib */
 
-static char software_version[] = "$Id: defncopy.c,v 1.26 2011-06-06 07:50:13 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+#include <freetds/sysdep_private.h>
 
 #ifndef MicrosoftsDbLib
 static int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -708,7 +707,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 			options->output_filename = strdup(optarg);
 			break;
 		case 'v':
-			printf("%s\n\n%s", software_version, 
+			printf("%s\n\n%s", argv[0],
 				"Copyright (C) 2004  James K. Lowden\n"
 				"This program  is free software; you can redistribute it and/or\n"
 				"modify it under the terms of the GNU General Public\n"

@@ -203,7 +203,7 @@ main(int argc, char **argv)
 			srclen = sizeof(tds_float);
 			break;
 		case SYBREAL:
-			tds_real = 3.14159;
+			tds_real = (TDS_REAL) 3.14159;
 			src = (char *) &tds_real;
 			srclen = sizeof(tds_real);
 			break;

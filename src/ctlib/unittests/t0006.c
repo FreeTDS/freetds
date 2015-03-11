@@ -5,10 +5,8 @@
 #endif /* HAVE_STRING_H */
 
 #include <stdio.h>
+#include <assert.h>
 #include <ctpublic.h>
-
-static char software_version[] = "$Id: t0006.c,v 1.15 2011-05-16 08:51:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 CS_CONTEXT *ctx;
 static int allSuccess = 1;
@@ -35,6 +33,8 @@ DoTest(
 	int i;
 	char buffer[1024];
 	const char *err = "";
+
+	assert(tolen >= 0);
 
 	memset(&destfmt, 0, sizeof(destfmt));
 	destfmt.datatype = totype;
@@ -73,7 +73,7 @@ DoTest(
 
 	/* test buffer */
 	if (todata && memcmp(todata, buffer, tolen) != 0) {
-		unsigned n;
+		int n;
 		for (n = 0; n < tolen; ++n)
 			printf("%02x ", ((unsigned char*)todata)[n]);
 		printf("\n");

@@ -150,7 +150,7 @@ main(int argc, char **argv)
 
 	dbbind(dbproc, 1, VARYBINBIND, sizeof(testvbin), (BYTE *) &testvbin);
 	dbbind(dbproc, 2, VARYCHARBIND, sizeof(testvstr), (BYTE *) &testvstr);
-+	dbbind(dbproc, 3, BINARYBIND, sizeof(testint), (BYTE *) &testint);
+	dbbind(dbproc, 3, BINARYBIND, sizeof(testint), (BYTE *) &testint);
 
 	for (i = 1; i <= 2; i++) {
 		char expected[1024];

@@ -55,11 +55,11 @@ main(int argc, char **argv)
 
 	memset(&ctx, 0, sizeof(ctx));
 
-	sybreal[0] = 1.1;
-	sybreal[1] = 12345678;
-	sybreal[2] = 0.012345678;
-	sybreal[3] = 1.234567890e+20;
-	sybreal[4] = 1.234567890e-20;
+	sybreal[0] = (float) 1.1;
+	sybreal[1] = (float) 12345678;
+	sybreal[2] = (float) 0.012345678;
+	sybreal[3] = (float) 1.234567890e+20;
+	sybreal[4] = (float) 1.234567890e-20;
 
 	sybflt8[0] = 1.1;
 	sybflt8[1] = 1234567890123456.0;

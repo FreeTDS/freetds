@@ -1057,7 +1057,7 @@ tds7_srv_charset_changed(TDSCONNECTION * conn, int sql_collate, int lcid)
 static size_t
 skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, const char **input, size_t * input_size)
 {
-	int charsize = CHARSIZE(charset);
+	unsigned charsize = CHARSIZE(charset);
 	char ib[16];
 	char ob[16];
 	ICONV_CONST char *pib;

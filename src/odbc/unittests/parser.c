@@ -60,7 +60,7 @@ parse_cstr(char *s)
 				odbc_fatal(": wrong string format\n");
 			memcpy(hexbuf, ++s, 2);
 			hexbuf[2] = 0;
-			*d++ = strtoul(hexbuf, NULL, 16);
+			*d++ = (char) strtoul(hexbuf, NULL, 16);
 			s += 2;
 			break;
 		default:

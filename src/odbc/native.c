@@ -201,7 +201,7 @@ parse_const_param(const char *s, TDS_SERVER_TYPE *type)
 	if (isdigit(*s) || *s == '+' || *s == '-') {
 		errno = 0;
 		strtod(s, &end);
-		if (end != s && strcspn(s, ".eE") < (end-s)&& errno == 0) {
+		if (end != s && strcspn(s, ".eE") < (size_t) (end-s) && errno == 0) {
 			*type = SYBFLT8;
 			return end;
 		}

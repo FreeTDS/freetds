@@ -2,9 +2,6 @@
 #ifndef COMMON_h
 #define COMMON_h
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.22 2011-06-07 14:09:17 freddy77 Exp $";
-static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
-
 #include <config.h>
 
 #include <stdarg.h>
@@ -29,6 +26,8 @@ static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_wa
 
 #include <sqlfront.h>
 #include <sqldb.h>
+
+#include <freetds/sysdep_private.h>
 
 #if !defined(EXIT_FAILURE)
 #define EXIT_FAILURE 1

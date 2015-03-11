@@ -38,6 +38,7 @@
 #endif
 
 #include <freetds/time.h>
+#include <freetds/sysdep_private.h>
 
 #if HAVE_LOCALE_H
 #include <locale.h>

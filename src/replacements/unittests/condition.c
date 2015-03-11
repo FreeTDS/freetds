@@ -88,7 +88,10 @@ int main(void)
 
 	check(ptr2int(res) != 0, "error signaling condition");
 
+	/* under Windows mutex are recursive */
+#ifndef _WIN32
 	check(tds_mutex_trylock(&mtx) == 0, "mutex should be locked");
+#endif
 
 	/* check timed version */
 

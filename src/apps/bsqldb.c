@@ -51,8 +51,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.55 2012-03-06 20:33:14 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+#include <freetds/sysdep_private.h>
 
 #ifdef _WIN32
 #define NULL_DEVICE "NUL:"

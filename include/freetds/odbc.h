@@ -682,7 +682,7 @@ odbc_server_to_sql_type(TDSCOLUMN *col)
 static inline void
 odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
 {
-	return ((TDS_FUNCS *) col->funcs)->set_type_info(col, drec, odbc_ver);
+	((TDS_FUNCS *) col->funcs)->set_type_info(col, drec, odbc_ver);
 }
 
 int odbc_sql_to_c_type_default(int sql_type);
