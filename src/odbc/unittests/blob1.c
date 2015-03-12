@@ -219,7 +219,7 @@ add_test(SQLSMALLINT c_type, SQLSMALLINT sql_type, const char *db_type, unsigned
 		fill_chars(t->buf, NBYTES, t->gen1, t->gen2);
 	else
 		memset(t->buf, 0, buf_len);
-	t->vind = SQL_LEN_DATA_AT_EXEC(buf_len);
+	t->vind = SQL_LEN_DATA_AT_EXEC((SQLLEN) buf_len);
 }
 
 static void
