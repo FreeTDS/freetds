@@ -438,6 +438,7 @@ odbc_check_cursor(void)
 		if (strcmp(C(sqlstate), "01S02") == 0) {
 			printf("Your connection seems to not support cursors, probably you are using wrong protocol version or Sybase\n");
 			odbc_disconnect();
+			ODBC_FREE();
 			exit(0);
 		}
 		ReportODBCError("SQLSetStmtAttr", SQL_HANDLE_STMT, odbc_stmt, retcode, __LINE__, __FILE__);
