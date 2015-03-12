@@ -74,10 +74,6 @@ static const char *ucs2name;
 enum
 { POS_ISO1, POS_UTF8, POS_UCS2LE, POS_UCS2BE };
 
-#if ENABLE_EXTRA_CHECKS
-int tds_iconv_force_double = 0;
-#endif
-
 /**
  * Initialize charset searching for UTF-8, UCS-2 and ISO8859-1
  */
