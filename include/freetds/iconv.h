@@ -88,20 +88,13 @@ typedef struct tdsiconvdir
 	TDS_ENCODING charset;
 
 	iconv_t cd;
-	iconv_t cd2;
-
-	unsigned char num_got;
-	unsigned char num_left;
-	char left[6];
 } TDSICONVDIR;
 
 struct tdsiconvinfo
 {
 	struct tdsiconvdir to, from;
 
-#define TDS_ENCODING_INDIRECT 1
-#define TDS_ENCODING_SWAPBYTE 2
-#define TDS_ENCODING_MEMCPY   4
+#define TDS_ENCODING_MEMCPY   1
 	unsigned int flags;
 
 	/* 
