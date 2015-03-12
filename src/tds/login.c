@@ -393,7 +393,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 	/* set up iconv if not already initialized*/
 	if (tds->conn->char_convs[client2ucs2]->to.cd == (iconv_t) -1) {
 		if (!tds_dstr_isempty(&login->client_charset)) {
-			if (TDS_FAILED(tds_iconv_open(tds->conn, tds_dstr_cstr(&login->client_charset))))
+			if (TDS_FAILED(tds_iconv_open(tds->conn, tds_dstr_cstr(&login->client_charset), login->use_utf16)))
 				return -TDSEMEM;
 		}
 	}

@@ -314,7 +314,7 @@ tds_iconv_alloc(TDSCONNECTION * conn)
  * canonic charset name we cache the iconv name found during discovery. 
  */
 TDSRET
-tds_iconv_open(TDSCONNECTION * conn, const char *charset)
+tds_iconv_open(TDSCONNECTION * conn, const char *charset, int use_utf16)
 {
 	static const char UCS_2LE[] = "UCS-2LE";
 	int canonic;
@@ -347,7 +347,15 @@ tds_iconv_open(TDSCONNECTION * conn, const char *charset)
 
 	tdsdump_log(TDS_DBG_FUNC, "preparing iconv for \"%s\" <-> \"%s\" conversion\n", charset, UCS_2LE);
 
-	fOK = tds_iconv_info_init(conn->char_convs[client2ucs2], canonic_charset, TDS_CHARSET_UCS_2LE);
+	fOK = 0;
+	if (use_utf16) {
+		canonic = TDS_CHARSET_UTF_16LE;
+		fOK = tds_iconv_info_init(conn->char_convs[client2ucs2], canonic_charset, canonic);
+	}
+	if (!fOK) {
+		canonic = TDS_CHARSET_UCS_2LE;
+		fOK = tds_iconv_info_init(conn->char_convs[client2ucs2], canonic_charset, canonic);
+	}
 	if (!fOK)
 		return TDS_FAIL;
 
@@ -379,7 +387,6 @@ tds_iconv_open(TDSCONNECTION * conn, const char *charset)
 	/* 
 	 * ISO8859-1 <-> server meta data
 	 */
-	canonic = TDS_CHARSET_UCS_2LE;
 	if (!IS_TDS7_PLUS(conn)) {
 		canonic = TDS_CHARSET_ISO_8859_1;
 		if (canonic_env_charset >= 0)
@@ -387,6 +394,8 @@ tds_iconv_open(TDSCONNECTION * conn, const char *charset)
 	}
 	tdsdump_log(TDS_DBG_FUNC, "preparing iconv for \"%s\" <-> \"%s\" conversion\n", "ISO-8859-1", canonic_charsets[canonic].name);
 	fOK = tds_iconv_info_init(conn->char_convs[iso2server_metadata], TDS_CHARSET_ISO_8859_1, canonic);
+	if (!fOK)
+		return TDS_FAIL;
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_iconv_open: done\n");
 	return TDS_SUCCESS;

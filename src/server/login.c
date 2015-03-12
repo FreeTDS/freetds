@@ -106,7 +106,7 @@ tds_listen(TDSCONTEXT * ctx, int ip_port)
 	tds_set_s(tds, fd);
 	tds->out_flag = TDS_LOGIN;
 	/* TODO proper charset */
-	tds_iconv_open(tds->conn, "ISO8859-1");
+	tds_iconv_open(tds->conn, "ISO8859-1", 0);
 	/* get_incoming(tds->s); */
 	return tds;
 }

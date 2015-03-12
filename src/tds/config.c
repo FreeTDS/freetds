@@ -230,6 +230,7 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "connect_timeout", connection->connect_timeout);
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "client_host_name", tds_dstr_cstr(&connection->client_host_name));
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "client_charset", tds_dstr_cstr(&connection->client_charset));
+		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "use_utf16", connection->use_utf16);
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "app_name", tds_dstr_cstr(&connection->app_name));
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "user_name", tds_dstr_cstr(&connection->user_name));
 		/* tdsdump_log(TDS_DBG_PASSWD, "\t%20s = %s\n", "password", tds_dstr_cstr(&connection->password)); 
@@ -629,6 +630,8 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 	} else if (!strcmp(option, TDS_STR_CLCHARSET)) {
 		s = tds_dstr_copy(&login->client_charset, value);
 		tdsdump_log(TDS_DBG_INFO1, "tds_parse_conf_section: %s is %s.\n", option, tds_dstr_cstr(&login->client_charset));
+	} else if (!strcmp(option, TDS_STR_USE_UTF_16)) {
+		login->use_utf16 = tds_config_boolean(option, value, login);
 	} else if (!strcmp(option, TDS_STR_LANGUAGE)) {
 		s = tds_dstr_copy(&login->language, value);
 	} else if (!strcmp(option, TDS_STR_APPENDMODE)) {
@@ -677,6 +680,7 @@ tds_config_login(TDSLOGIN * connection, TDSLOGIN * login)
 		tdsdump_log(TDS_DBG_INFO1, "tds_config_login: %s is %s.\n", "client_charset",
 			    tds_dstr_cstr(&connection->client_charset));
 	}
+	connection->use_utf16 = login->use_utf16;
 	if (!tds_dstr_isempty(&login->database)) {
 		res = tds_dstr_dup(&connection->database, &login->database);
 		tdsdump_log(TDS_DBG_INFO1, "tds_config_login: %s is %s.\n", "database_name",

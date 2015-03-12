@@ -323,7 +323,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	tds_iconv_open(tds->conn, "ISO-8859-1");
+	tds_iconv_open(tds->conn, "ISO-8859-1", 0);
 
 	conv = tds_iconv_get(tds->conn, "UTF-8", "ISO-8859-1");
 	if (conv == NULL) {

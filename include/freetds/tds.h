@@ -481,6 +481,7 @@ extern const char *const tds_type_names[256];
 #define TDS_STR_EMUL_LE	"emulate little endian"
 #define TDS_STR_CHARSET	"charset"
 #define TDS_STR_CLCHARSET	"client charset"
+#define TDS_STR_USE_UTF_16	"use utf-16"
 #define TDS_STR_LANGUAGE	"language"
 #define TDS_STR_APPENDMODE	"dump file append"
 #define TDS_STR_DATEFMT	"date format"
@@ -565,6 +566,7 @@ typedef struct tds_login
 	unsigned int use_ntlmv2:1;
 	unsigned int use_lanman:1;
 	unsigned int mars:1;
+	unsigned int use_utf16:1;
 	unsigned int valid_configuration:1;
 } TDSLOGIN;
 
@@ -1233,7 +1235,7 @@ int tds_get_cardinal_type(int datatype, int usertype);
 
 
 /* iconv.c */
-TDSRET tds_iconv_open(TDSCONNECTION * conn, const char *charset);
+TDSRET tds_iconv_open(TDSCONNECTION * conn, const char *charset, int use_utf16);
 void tds_iconv_close(TDSCONNECTION * conn);
 void tds_srv_charset_changed(TDSCONNECTION * conn, const char *charset);
 void tds7_srv_charset_changed(TDSCONNECTION * conn, int sql_collate, int lcid);
