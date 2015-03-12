@@ -768,15 +768,23 @@ void sqlwstr_free(SQLWSTRBUF *bufs);
 #if SIZEOF_SQLWCHAR == 2
 # if WORDS_BIGENDIAN
 #  define ODBC_WIDE_NAME "UCS-2BE"
+#  define ODBC_WIDE_NAME_UTF "UTF-16BE"
 # else
 #  define ODBC_WIDE_NAME "UCS-2LE"
+#  define ODBC_WIDE_NAME_UTF "UTF-16LE"
 # endif
+const char *odbc_get_wide_name(TDSCONNECTION *conn);
 #elif SIZEOF_SQLWCHAR == 4
 # if WORDS_BIGENDIAN
 #  define ODBC_WIDE_NAME "UCS-4BE"
 # else
 #  define ODBC_WIDE_NAME "UCS-4LE"
 # endif
+static inline const char *
+odbc_get_wide_name(TDSCONNECTION *conn)
+{
+	return ODBC_WIDE_NAME;
+}
 #else
 #error SIZEOF_SQLWCHAR not supported !!
 #endif

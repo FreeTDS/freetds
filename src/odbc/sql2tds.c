@@ -192,7 +192,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 
 		tds_set_param_type(conn, curcol, dest_type);
 
-                curcol->char_conv = tds_iconv_get(conn, ODBC_WIDE_NAME, conv->to.charset.name);
+                curcol->char_conv = tds_iconv_get(conn, odbc_get_wide_name(conn), conv->to.charset.name);
 		memcpy(curcol->column_collation, conn->collation, sizeof(conn->collation));
 	} else {
 #ifdef ENABLE_ODBC_WIDE

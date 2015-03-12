@@ -28,6 +28,9 @@
 
 #include <freetds/odbc.h>
 
+#include <freetds/iconv.h>
+#include "../tds/encodings.h"
+
 #if SIZEOF_SQLWCHAR != SIZEOF_WCHAR_T
 size_t sqlwcslen(const SQLWCHAR * s)
 {
@@ -81,5 +84,14 @@ void sqlwstr_free(SQLWSTRBUF *bufs)
 	}
 }
 #endif
+#endif
+
+#if SIZEOF_SQLWCHAR == 2
+const char *odbc_get_wide_name(TDSCONNECTION *conn)
+{
+	if (conn->char_convs[client2ucs2]->to.charset.canonic == TDS_CHARSET_UTF_16LE)
+		return ODBC_WIDE_NAME_UTF;
+	return ODBC_WIDE_NAME;
+}
 #endif
 
