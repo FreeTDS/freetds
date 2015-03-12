@@ -2369,8 +2369,8 @@ ct_res_info(CS_COMMAND * cmd, CS_INT type, CS_VOID * buffer, CS_INT buflen, CS_I
 		memcpy(buffer, &int_val, sizeof(CS_INT));
 		break;
 	case CS_ROW_COUNT:
-		/* TODO 64 -> 32 bit conversion check overflow */
-		int_val = tds->rows_affected;
+		/* 64 -> 32 bit conversion saturate to the maximum */
+		int_val = tds->rows_affected > 0x7fffffff ? 0x7fffffff : (CS_INT) tds->rows_affected;
 		tdsdump_log(TDS_DBG_FUNC, "ct_res_info(): Number of rows is %d\n", int_val);
 		memcpy(buffer, &int_val, sizeof(CS_INT));
 		break;
@@ -2530,7 +2530,7 @@ ct_cmd_props(CS_COMMAND * cmd, CS_INT action, CS_INT property, CS_VOID * buffer,
 			}
 			if (property == CS_CUR_NAME) {
 				size_t len = strlen(cursor->cursor_name);
-				if (len >= buflen)
+				if ((CS_INT) len >= buflen)
 					return CS_FAIL;
 				strcpy((char*) buffer, cursor->cursor_name);
 				if (outlen) *outlen = len;
@@ -2589,7 +2589,7 @@ ct_compute_info(CS_COMMAND * cmd, CS_INT type, CS_INT colnum, CS_VOID * buffer, 
 			*outlen = sizeof(CS_INT);
 		break;
 	case CS_COMP_BYLIST:
-		if (buflen < (resinfo->by_cols * sizeof(CS_SMALLINT))) {
+		if (buflen < (CS_INT) (resinfo->by_cols * sizeof(CS_SMALLINT))) {
 			return CS_FAIL;
 		} else {
 			dest_by_col_ptr = (CS_SMALLINT *) buffer;
