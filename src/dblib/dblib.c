@@ -2486,7 +2486,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 
 		switch (destlen) {
 		case 0:
-			ret = FAIL;
+			ret = -1;
 			break;
 		case -1:	/* rtrim and null terminate */
 			for (i = len - 1; i >= 0 && dres.c[i] == ' '; --i) {
