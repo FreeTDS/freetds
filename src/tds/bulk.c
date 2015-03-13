@@ -973,15 +973,14 @@ tds_file_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
 	TDSFILESTREAM *s = (TDSFILESTREAM *) stream;
 	int c;
 	char *p = (char *) ptr;
-/** \cond HIDDEN_SYMBOLS */
-#define GETC() do { c = getc_unlocked(s->f); if (c==EOF) return -1; } while(0)
-/** \endcond */
 
 	while (len) {
 		if (memcmp(s->left, s->terminator - s->left_pos, s->term_len) == 0)
 			return p - (char *) ptr;
 
-		GETC();
+		c = getc_unlocked(s->f);
+		if (c == EOF)
+			return -1;
 
 		*p++ = s->left[s->left_pos];
 		--len;
