@@ -2744,10 +2744,11 @@ You'll note this is the same program as for <systemitem class="library">DBD::Syb
 	</sect2>
 	<sect2 id="Sybase.Python.Module">
 	<title>Sybase module</title>
-<para>You can obtain the <productname>Python</productname> Sybase module <ulink url="http://object-craft.com.au/projects/sybase/download.html">here</ulink>.  This example uses version 0.34, the most current at the time of this writing, please adjust accordingly if using a different version.
+<para>You can obtain the <productname>Python</productname> Sybase module <ulink url="http://object-craft.com.au/projects/sybase/download.html">here</ulink>.
+This example uses version 0.37, the most current at the time of this writing, please adjust accordingly if using a different version.
 	<screen>
-	<prompt>$ </prompt><userinput>tar xvfz sybase-0.34.tgz</userinput>
-	<prompt>$ </prompt><userinput>cd sybase-0.34</userinput>
+	<prompt>$ </prompt><userinput>tar xvfz sybase-0.37.tgz</userinput>
+	<prompt>$ </prompt><userinput>cd sybase-0.37</userinput>
 	<prompt>$ </prompt><userinput>export SYBASE=/usr/local/freetds</userinput>
 	<prompt>$ </prompt><userinput>export CFLAGS="-DHAVE_FREETDS"</userinput>
 	<prompt>$ </prompt><userinput>export LD_LIBRARY_PATH=/usr/local/freetds/lib:${LD_LIBRARY_PATH}</userinput>
@@ -2762,10 +2763,9 @@ You'll note this is the same program as for <systemitem class="library">DBD::Syb
 	<sect1 id="qt">
 		<title>Qt</title>
 
-<para><productname>Qt</> has two drivers to access SQL Server databases: QTDS and QODBC.
-			At the time of writing (January 2010) QTDS has a performance problem because rather than maintaining a connection, it instead re-connects for every query.  So use QODBC.</para>
+<para><productname>To access SQL Server databases using Qt</> use QODBC.</para>
 
-<para>There are however some problems with wide character support on Qt because Qt assumes sizeof(SQLWCHAR) == 2.  On some DMs, though &mdash; including <productname>iODBC</>,  the default on <productname>Ubuntu</> &mdash; sizeof(SQLWCHAR) == 4, which could lead to invalid character conversion.</para>
+<para>There are some problems with wide character support on Qt because Qt assumes sizeof(SQLWCHAR) == 2.  On some DMs, though &mdash; including <productname>iODBC</>,  the default on <productname>Ubuntu</> &mdash; sizeof(SQLWCHAR) == 4, which could lead to invalid character conversion.</para>
 		</sect1>
 	
 	<sect1 id="uodbc">
