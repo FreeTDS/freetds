@@ -3071,6 +3071,31 @@ dbcollen(DBPROCESS * dbproc, int column)
 	return colinfo->column_size;
 }
 
+/**
+ * \ingroup dblib_core
+ * \brief Get size of a result column needed to print column.
+ *
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param column Nth in the result set, starting from 1.
+ * \return size of the column in characters (not of data in any particular row).  On error, -1.
+ * \sa dbcolname(), dbcoltype(), dbdata(), dbdatlen(), dbnumcols().
+ */
+DBINT
+dbprcollen(DBPROCESS * dbproc, int column)
+{
+	TDSCOLUMN *colinfo;
+
+	tdsdump_log(TDS_DBG_FUNC, "dbprcollen(%p, %d)\n", dbproc, column);
+	CHECK_PARAMETER(dbproc, SYBENULL, 0);
+
+	colinfo = dbcolptr(dbproc, column);
+	if (!colinfo)
+		return 0;
+
+	return _get_printable_size(colinfo);
+}
+
+
 /* dbvarylen(), pkleef@openlinksw.com 01/21/02 */
 /**
  * \ingroup dblib_core
@@ -3576,10 +3601,6 @@ dbprrow(DBPROCESS * dbproc)
 	return SUCCEED;
 }
 
-/*
- * src/tds/convert.c::tds_willconvert() returns same information.
- * Available to user via dbwillconvert(). 
- */
 static int
 _get_printable_size(TDSCOLUMN * colinfo)
 {
@@ -3605,7 +3626,16 @@ _get_printable_size(TDSCOLUMN * colinfo)
 		return 21;
 	case SYBVARCHAR:
 	case SYBCHAR:
+	case SYBTEXT:
+	case SYBNTEXT:
+	case SYBNVARCHAR:
+	case SYBLONGCHAR:
 		return colinfo->column_size;
+	case SYBBINARY:
+	case SYBIMAGE:
+	case SYBLONGBINARY:
+	case SYBVARBINARY:
+		return colinfo->column_size * 2u;
 	case SYBFLT8:
 	case SYBREAL:
 		return 11;	/* FIX ME -- we do not track precision */

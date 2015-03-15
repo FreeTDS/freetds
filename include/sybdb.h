@@ -787,6 +787,7 @@ DBPIVOT_FUNC dbpivot_lookup_name( const char name[] );
 #endif
 
 void dbprhead(DBPROCESS * dbproc);
+DBINT dbprcollen(DBPROCESS * dbproc, int column);
 RETCODE dbprrow(DBPROCESS * dbproc);
 const char *dbprtype(int token);
 DBBOOL DRBUF(DBPROCESS * dbprocess);
