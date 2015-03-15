@@ -10,7 +10,7 @@
 	<!ENTITY dblib '<systemitem class="library">DB-Library</systemitem>'>
 	<!ENTITY ctlib '<systemitem class="library">CT-Library</systemitem>'>
 	<!ENTITY odbc  '<systemitem class="library">ODBC</systemitem>'> 
-	<!ENTITY version "0.91"> <!--  echo  $(( (100 - 82)/2 + 82))-->
+	<!ENTITY version "0.95"> <!--  echo  $(( (100 - 91)/2 + 91))-->
 	<!ENTITY freetdsconf "<filename>freetds.conf</filename>">
 ]>
 <book>
@@ -695,7 +695,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 				know it is easily done:
 				
 <screen>
-	<prompt>$ </prompt><userinput>rpmbuild -ta freetds-0.91.tar.bz2</userinput></screen></para>
+	<prompt>$ </prompt><userinput>rpmbuild -ta freetds-0.95.tar.bz2</userinput></screen></para>
 			</sect2>
 	
 		</sect1>
