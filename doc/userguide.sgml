@@ -191,16 +191,9 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 		<sect2 id="Current">
 			<title>Current Projects</title>
 
-<para>&freetds; consists of two projects.  The &freetds; C libraries and &freetds;/ <acronym>JDBC</>.</para>
-			<itemizedlist mark=opencircle>
-				<listitem><para>The &freetds; C libraries support three separate <acronym>API</>s: &dblib;, &ctlib;, and &odbc;.  Underlying these three is libtds, which handles the low-level details of the <acronym>TDS</> protocol, such as sending, receiving, and datatype conversion.  This document and the <ulink url="http://www.freetds.org/">FreeTDS</ulink> website are dedicated to these libraries.
-</para></listitem>
-				<listitem><para>If Java is your game, we refer you to the
-						<ulink url="http://sourceforge.net/projects/jtds/">jTDS</ulink>
-						project on SourceForge.  It is a fork of the
-						<productname>FreeTDS/JDBC</productname> project, by Craig Spannring, and is a free, native 100% Java implementation of a Type 4  <acronym>JDBC</> driver.
-</para></listitem>
-				</itemizedlist>
+<para>&freetds; consists of some C libraries.</para>
+<para>The &freetds; libraries support three separate <acronym>API</>s: &dblib;, &ctlib;, and &odbc;.  Underlying these three is libtds, which handles the low-level details of the <acronym>TDS</> protocol, such as sending, receiving, and datatype conversion.  This document and the <ulink url="http://www.freetds.org/">FreeTDS</ulink> website are dedicated to these libraries.
+</para>
 			</sect2>
 		<sect2 id="Status">
 			<title>Status</title>
@@ -222,7 +215,7 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 <para>Who uses it?  Oh, pretty much everyone.  &freetds; users number in the tens of thousands.  It's used by large corporations, by the U.S. federal government (e.g. <ulink url="http://www.ncbi.nlm.nih.gov/books/bv.fcgi?rid=toolkit.chapter.ch_dbapi">Database Access Library</ulink> at the National Center for Biotechnology Information) and, judging by the mailing list, by many webservers running Apache and PHP.  Sybase recommends &freetds; for their EAServer product.  Microsoft recommends &freetds; to their customers who want access to Microsoft SQL Server from non-Win32 clients.  So do we.</para>
 			</sect2>
 		<sect2 id="Languages">
-			<title>Languages besides C and Java</title>
+			<title>Languages besides C</title>
 
 <para>You may be wondering how these libraries fit with Perl, PHP, TCL, Python, or other popular scripting languages.  Most of these languages have bindings to Sybase that use either the &dblib; or &ctlib; <acronym>API</>, for which &freetds; is intended as a drop-in replacement.  For instance, Michael Peppler's <systemitem class="library">DBD::Sybase</systemitem> works very well using &freetds; to access Sybase or Microsoft <productname>SQL Server</productname>s.  <productname>PHP</productname> has options for <filename>sybase</filename> (&dblib;) and <filename>sybase-ct</filename> (&ctlib;) <acronym>API</>s.</para>
 			</sect2>
@@ -230,6 +223,14 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 			<title>Alternatives</title>
 			<variablelist id="tab.alternatives">
 				<title>Should &freetds; not suit your needs, some alternatives</title>
+				<varlistentry>
+					<term>jTDS</term>
+					<listitem><para>If Java is your game, we refer you to the
+						<ulink url="http://sourceforge.net/projects/jtds/">jTDS</ulink>
+						project on SourceForge.  It is a fork of the
+						<productname>FreeTDS/JDBC</productname> project, by Craig Spannring, and is a free, native 100% Java implementation of a Type 4  <acronym>JDBC</> driver.</para>
+						</listitem>
+					</varlistentry>
 				<varlistentry>
 					<term>Sybase OpenClient</term>
 					<listitem>
