@@ -2838,14 +2838,18 @@ This example uses version 0.37, the most current at the time of this writing, pl
 <screen>
 	<userinput>SELECT CAST(mycol as TEXT) FROM mytable</userinput></screen></para>
 
-<para>A related problem is that some people have reported problems with <type>text</type> field using <acronym>TDS</> version 7.0.  One known workaround is to convert long strings to <type>varchar(8000)</type> in your query text with <command>CAST( <parameter>variable_name</parameter> as <type>varchar</type>(8000) ) as <parameter>variable_name</parameter></command>.  Text datatype handling is fixed in &freetds; 0.60, except for bcp operations.</para>
-
-<para>There is also a bug (<quote>Lions and tigers and bugs!  Oh, my!</quote>) in Microsoft's implementation of <type>text</type> fields.  Disregardless [sic] of their documentation, you must explicitly set the value of <envar>TEXTSIZE</envar>, else the text fields will be represented to have a maximum size of 4 gigabytes or so.  The usual manifestation is some sort of spurious <quote>out of memory</quote> error or segment fault.  To avoid this, set <envar>TEXTSIZE</envar> to some reasonable value before querying any <type>TEXT</type> fields.  For example, in <application>isql</application>:
+<para>There is also a bug (<quote>Lions and tigers and bugs!  Oh, my!</quote>) in Microsoft's implementation of <type>text</type> fields.
+Disregardless [sic] of their documentation, you must explicitly set the value of <envar>TEXTSIZE</envar>,
+else the text fields will be represented to have a maximum size of 4 gigabytes or so.
+If you encounter some spurious <quote>out of memory</quote> error try to set <envar>TEXTSIZE</envar> to some reasonable value before querying any <type>TEXT</type> fields.  For example, in <application>isql</application>:
 <screen>
 	<prompt>1> </prompt><userinput>set <envar>TEXTSIZE</envar> 10000</userinput>
 	<prompt>2> </prompt><userinput>go</userinput></screen>
 	
-				Another way to handle control the default <envar>TEXTSIZE</envar> is to use the setting in <link linkend="freetdsconfformat">&freetdsconf;</link>.</para>
+				Another way to handle control the default <envar>TEXTSIZE</envar> is to use the setting in <link linkend="freetdsconfformat">&freetdsconf;</link>.
+As most of the time data contained in BLOBs fields are much smaller than larger supported fields, we try to avoid considering field sizes
+for BLOBs allocating memory as needed instead, so you should not have to reduce this value unless you really want the server to limit
+data returned by queries.</para>
 			</sect2>
 
 			<sect2 id="Endianism">
@@ -4551,7 +4555,9 @@ Important to understand: <command>ldd</command> is <emphasis>not</emphasis> figu
 The runtime linker searches the <literal>PATH</> instead, after some built-in locations that usually include the current working directory.
 Neither <command>ldd</command> nor any similar utility is included in the basic product.</para>
 
-<para>It has been said that Unix is for <emphasis>programmers</emphasis> and Windows is for <emphasis>users</>, and perhaps that roughly describes the  intention.  But the Unix features listed above &mdash; <literal>RPATH</> and <command>ldd</command> &mdash; as well as a canonical filesystem hierarchy and dynamic library versioning, all promote a better <emphasis>user</emphasis> experience.  Because of them, the problem of DLL conflicts in Windows hardly exists in Unix.  Yet they are neither new nor secrect nor patented nor complicated; Microsoft could have adopted them years ago (as Apple finally did).  We therefore know that the 20-year old phenomemon known as &ldquo;DLL hell&rdquo; is not inevitable, but a <emphasis>choice</> signifying nothing so much as Microsoft's indifference to its customers.  </para>
+<para>It has been said that Unix is for <emphasis>programmers</emphasis> and Windows is for <emphasis>users</>, and perhaps that roughly describes the  intention.  But the Unix features listed above &mdash; <literal>RPATH</> and <command>ldd</command> &mdash; as well as a canonical filesystem hierarchy and dynamic library versioning, all promote a better <emphasis>user</emphasis> experience.  Because of them, the problem of DLL conflicts in Windows hardly exists in Unix.  Yet they are neither new nor secrect nor patented nor complicated; Microsoft could have adopted them years ago (as Apple finally did).  We therefore know that the 20-year old phenomemon known as &ldquo;DLL hell&rdquo; is not inevitable, but a <emphasis>choice</> signifying nothing so much as Microsoft's indifference to its customers.
+Recently Microsoft added support to configure different search paths and other attributes based on <literal>Application Manifests</literal>
+and <literal>Application Configuration Files</literal>.</para>
 
 				</section>
 
@@ -4589,7 +4595,8 @@ Neither <command>ldd</command> nor any similar utility is included in the basic 
 	<sect1 id="interfaceslocation">
 		<title>Where it goes</title>
 
-<para>Anywhere.  The <envar>SYBASE</envar> environment variable must contain the location of  <filename>interfaces</filename>; that is how &freetds; will find it.</para>
+<para>Anywhere.  The <envar>SYBASE</envar> environment variable must contain the location of  <filename>interfaces</filename>; that is how &freetds; will find it.
+By the way before looking for <filename>$SYBASE/interfaces</filename> file FreeTDS try to open file specified programmatically (for instance by <function>dbsetifile()</function> using &dblib;) and <filename>.interfaces</filename> in your home directory.</para>
 		</sect1>
 	<sect1 id="interfacespurpose">
 		<title>What it does</title>
