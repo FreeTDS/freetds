@@ -1191,6 +1191,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 			}
 
 			if (col_bytes > 0x7fffffffl) {
+				free(coldata);
 				*row_error = TRUE;
 				tdsdump_log(TDS_DBG_FUNC, "data from file is too large!\n");
 				dbperror(dbproc, SYBEBCOR, 0);
