@@ -2068,7 +2068,7 @@ You can even establish a connection without reference to either <filename>odbc.i
 	<sect1 id="Localization">
 		<title>Localization and <acronym>TDS</> 7.0</title>
 
-<para><acronym>TDS</> 7.0 uses 2-byte Unicode (technically, <acronym>UCS-2</>) to transfer character data between servers and clients.  Included in <quote>character data</quote> are query text (i.e., <acronym>SQL</>), metadata (table names and such), and <foreignphrase>bona fide</> data of datatypes <literal>nchar</>, <literal>nvarchar</>, and <literal>ntext</>.  (Background information on Unicode and how it affects &freetds; can be found in the <link linkend="Unicode">appendix</link>.)</para>
+<para><acronym>TDS</> 7.0 uses 2-byte Unicode (technically, <acronym>UCS-2</>, recently <acronym>UTF-16</>) to transfer character data between servers and clients.  Included in <quote>character data</quote> are query text (i.e., <acronym>SQL</>), metadata (table names and such), and <foreignphrase>bona fide</> data of datatypes <literal>nchar</>, <literal>nvarchar</>, and <literal>ntext</>.  (Background information on Unicode and how it affects &freetds; can be found in the <link linkend="Unicode">appendix</link>.)</para>
 
 <para>Because most Unix tools and environments do not support <acronym>UCS-2</>, &freetds; provides for conversion by
 the client to other character sets.
@@ -4703,7 +4703,9 @@ Neither <command>ldd</command> nor any similar utility is included in the basic 
 
 <para>In the same sense that 7-bit <acronym>ASCII</> was extended to 8 bits, Unicode extends the most prevalent <quote>8-bit <acronym>ASCII</></quote>,  <acronym>ISO 8859-1</>, to 16 and 32 bits.  The first 256 values remain in Unicode as in <acronym>ISO 8859-1</>: 65 is still <literal>A</literal>, except instead of being 8 bits (0x40), it's 16 bits (0x0040).  Unlike the 8-bit extensions, Unicode has a unique 1:1 map of numbers to characters, so no language context or <quote>character set</quote> name is needed to decode a Unicode string.</para>
 
-<para>UCS-2 is the system employed by Microsoft NT-based systems.  Microsoft database servers store UCS-2 strings in <type>nchar</type> and <type>nvarchar</type> datatypes.  Microsoft also designed version 7.0 (and up) of the <acronym>TDS</> protocol around UCS-2: all metadata (table names and such) are encoded according to UCS-2 on the wire.</para>
+<para>UCS-2 was the initial system employed by Microsoft NT-based systems while recent versions moved to UTF-16.
+Microsoft database servers store UCS-2/UTF-16 strings in <type>nchar</type> and <type>nvarchar</type> datatypes.
+Microsoft also designed version 7.0 (and up) of the <acronym>TDS</> protocol around UCS-2/UTF-16: all metadata (table names and such) are encoded according to these encoding on the wire.</para>
 		</section>
 	<section id="Unicodegoodbad"><title>Unicode's Pluses and Minuses</title>
 
