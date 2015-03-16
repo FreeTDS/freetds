@@ -1,5 +1,30 @@
 $Id$
 
+Summary of Changes in release 0.95
+--------------------------------------------
+- Support for build with CMake under Windows.
+- Support MSSQL 2008.
+- Bulk-copy improvements, support for empty fields.
+- Support for query notifications in ODBC.
+- IPv6 support.
+- dbpivot and dbprcollen extensions for dblib.
+- moved from CVS to git.
+- Support MARS under ODBC.
+- Better thread support.
+- Allow to specify server SPN for GSSAPI.
+- Sybase graceful disconnects.
+- Better support for VARCHAR(MAX)/VARBINARY(MAX).
+
+Implementation:
+- Introdude streams support to make easier handling large data and
+  making conversions faster.
+- Use array of flags to make faster to retrieve data type features.
+- Use callbacks for handling various type functions.
+- Optimize data conversions.
+- Store TDS packets in a new structure to handle multiple packets.
+- New DSTR implementation.
+- Faster logging.
+
 Summary of Changes in release 0.91
 --------------------------------------------
 1.  Full Kerberos and SSPI support for passwordless login to

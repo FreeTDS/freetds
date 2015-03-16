@@ -11,11 +11,6 @@ other about the project's priorities and needs.
 To Do List	$Id: TODO,v 1.176 2010-09-15 09:27:37 freddy77 Exp $
 ------------
 
-Bug? ML 2007-05-30 "dbsqlexec() never returns" 
-	tds_send_cancel in tds_goodwrite (wrong??)
-BUG: sending ICONV charset name, not TDS name in 
-	5.0 login packet.  
-	
 Must be fixed:
 . ctlib parameters, handle all case even in tds7
   . handle and test prepared query
@@ -30,10 +25,6 @@ Must be fixed:
 Work in progress:
 
 . log and call error handler on problems with tds_iconv_init().
-. iconv
-  - support string conversions for Sybase
-. add doc/htdoc/Makefile with "publish" target to commit cvs and update
-  freetds.org
 . be able to disable iconv for BCP (see Sybase documentation)
 
 For future versions (in priority order within library):
@@ -75,8 +66,6 @@ For future versions (in priority order within library):
   with the client's charset.  More flexibility one both sides would be good.  
 . date/time on Sybase (from 12.5)
 . encrypted connection for Sybase
-. new mssql2005 protocol
-. new mssql2008 types
 
   db-lib
 . add DBTEXTLIMIT (dbsetopt), PHP require it to support textlimit ini value

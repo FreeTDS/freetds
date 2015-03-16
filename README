@@ -1,5 +1,5 @@
-README for FreeTDS 0.91
-Wednesday 17 August 2011
+README for FreeTDS 0.95
+Release date TBD
 
 * to build FreeTDS read the file INSTALL or
   the FreeTDS Users Guide (doc/userguide.tgz) and
@@ -19,7 +19,6 @@ Other files you might want to peruse:
 
 AUTHORS		Who's involved
 BUGS		Some things we fixed, or think we did
-ChangeLog	Detailed list of changes
 NEWS		Summary of feature changes and fixes
 README		This file
 TODO		The roadmap, such as it is
