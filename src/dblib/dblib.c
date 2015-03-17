@@ -4304,6 +4304,7 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
 {
 	char *cmd;
 	RETCODE rc;
+	int i;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbsetopt(%p, %d, %s, %d)\n", dbproc, option, char_param, int_param);
 	CHECK_CONN(FAIL);
@@ -4370,7 +4371,17 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
 		/* server option */
 		/* requires param "0" to "2147483647" */
 		/* limit text/image from network */
-		break;
+		if (!char_param)
+			char_param = "0";
+		i = atoi(char_param);
+		if (i < 0 || i > 2147483647)
+			return FAIL;
+		if (asprintf(&cmd, "set textsize %d\n", i) < 0)
+			return FAIL;
+		rc = dbstring_concat(&(dbproc->dboptcmd), cmd);
+		free(cmd);
+		return rc;
+
 	case DBAUTH:
 		/* ??? */
 		break;
