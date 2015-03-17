@@ -3180,6 +3180,7 @@ BYTE *
 dbdata(DBPROCESS * dbproc, int column)
 {
 	TDSCOLUMN *colinfo;
+	BYTE *res;
 	const static BYTE empty[1] = { 0 };
 
 	tdsdump_log(TDS_DBG_FUNC, "dbdata(%p, %d)\n", dbproc, column);
@@ -3191,14 +3192,12 @@ dbdata(DBPROCESS * dbproc, int column)
 	if (colinfo->column_cur_size < 0)
 		return NULL;
 
-	if (is_blob_col(colinfo)) {
-		BYTE *res = (BYTE *) ((TDSBLOB *) colinfo->column_data)->textvalue;
-		if (!res)
-			return (BYTE *) empty;
-		return res;
-	}
-
-	return (BYTE *) colinfo->column_data;
+	res = colinfo->column_data;
+	if (is_blob_col(colinfo))
+		res = (BYTE *) ((TDSBLOB *) res)->textvalue;
+	if (!res)
+		return (BYTE *) empty;
+	return res;
 }
 
 /**
