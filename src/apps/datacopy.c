@@ -548,17 +548,12 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 
 	DBINT src_numcols = 0;
 
-	DBINT src_datlen;
-
 	typedef struct migcoldata
 	{
 		DBINT coltype;
-		DBINT collen;
-		DBINT nullind;
-		DBCHAR *data;
 	} MIGCOLDATA;
 
-	MIGCOLDATA **srcdata;
+	MIGCOLDATA *srcdata;
 
 	DBINT rows_read = 0;
 	DBINT rows_sent = 0;
@@ -621,187 +616,33 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 		return FALSE;
 	}
 
-	srcdata = (MIGCOLDATA **) malloc(sizeof(MIGCOLDATA *) * src_numcols);
+	srcdata = (MIGCOLDATA *) calloc(sizeof(MIGCOLDATA), src_numcols);
 
 	for (col = 0; col < src_numcols; col++) {
 
-		srcdata[col] = (MIGCOLDATA *) calloc(1, sizeof(MIGCOLDATA));
-		srcdata[col]->coltype = dbcoltype(dbsrc, col + 1);
-		srcdata[col]->collen = dbcollen(dbsrc, col + 1);
+		srcdata[col].coltype = dbcoltype(dbsrc, col + 1);
 
-		switch (srcdata[col]->coltype) {
+		switch (srcdata[col].coltype) {
 		case SYBBIT:
-			srcdata[col]->data = malloc(sizeof(DBBIT));
-			if (srcdata[col]->data == (char *) NULL) {
-				printf("allocation error\n");
-				return FALSE;
-			}
-			dbbind(dbsrc, col + 1, BITBIND, sizeof(DBBIT), (BYTE *) srcdata[col]->data);
-			dbnullbind(dbsrc, col + 1, &(srcdata[col]->nullind));
-			if (bcp_bind(dbdest, (BYTE *) srcdata[col]->data, 0, -1, NULL, 0, SYBBIT, col + 1) == FAIL) {
-				printf("bcp_bind error\n");
-				return FALSE;
-			}
-			break;
 		case SYBINT1:
-			srcdata[col]->data = malloc(sizeof(DBTINYINT));
-			if (srcdata[col]->data == (char *) NULL) {
-				printf("allocation error\n");
-				return FALSE;
-			}
-			dbbind(dbsrc, col + 1, TINYBIND, sizeof(DBTINYINT), (BYTE *) srcdata[col]->data);
-			dbnullbind(dbsrc, col + 1, &(srcdata[col]->nullind));
-			if (bcp_bind(dbdest, (BYTE *) srcdata[col]->data, 0, -1, NULL, 0, SYBINT1, col + 1) == FAIL) {
-				printf("bcp_bind error\n");
-				return FALSE;
-			}
-			break;
-
 		case SYBINT2:
-			srcdata[col]->data = malloc(sizeof(DBSMALLINT));
-			if (srcdata[col]->data == (char *) NULL) {
-				printf("allocation error\n");
-				return FALSE;
-			}
-			dbbind(dbsrc, col + 1, SMALLBIND, sizeof(DBSMALLINT), (BYTE *) srcdata[col]->data);
-			dbnullbind(dbsrc, col + 1, &(srcdata[col]->nullind));
-			if (bcp_bind(dbdest, (BYTE *) srcdata[col]->data, 0, -1, NULL, 0, SYBINT2, col + 1) == FAIL) {
-				printf("bcp_bind error\n");
-				return FALSE;
-			}
-			break;
-
 		case SYBINT4:
-			srcdata[col]->data = malloc(sizeof(DBINT));
-			if (srcdata[col]->data == (char *) NULL) {
-				printf("allocation error\n");
-				return FALSE;
-			}
-			dbbind(dbsrc, col + 1, INTBIND, sizeof(DBINT), (BYTE *) srcdata[col]->data);
-			dbnullbind(dbsrc, col + 1, &(srcdata[col]->nullind));
-			if (bcp_bind(dbdest, (BYTE *) srcdata[col]->data, 0, -1, NULL, 0, SYBINT4, col + 1) == FAIL) {
-				printf("bcp_bind error\n");
-				return FALSE;
-			}
-			break;
-
+		case SYBINT8:
 		case SYBFLT8:
-			srcdata[col]->data = malloc(sizeof(DBFLT8));
-			if (srcdata[col]->data == (char *) NULL) {
-				printf("allocation error\n");
-				return FALSE;
-			}
-			dbbind(dbsrc, col + 1, FLT8BIND, sizeof(DBFLT8), (BYTE *) srcdata[col]->data);
-			dbnullbind(dbsrc, col + 1, &(srcdata[col]->nullind));
-			if (bcp_bind(dbdest, (BYTE *) srcdata[col]->data, 0, -1, NULL, 0, SYBFLT8, col + 1) == FAIL) {
-				printf("bcp_bind error\n");
-				return FALSE;
-			}
-			break;
-
 		case SYBREAL:
-			srcdata[col]->data = malloc(sizeof(DBREAL));
-			if (srcdata[col]->data == (char *) NULL) {
-				printf("allocation error\n");
-				return FALSE;
-			}
-			dbbind(dbsrc, col + 1, REALBIND, sizeof(DBREAL), (BYTE *) srcdata[col]->data);
-			dbnullbind(dbsrc, col + 1, &(srcdata[col]->nullind));
-			if (bcp_bind(dbdest, (BYTE *) srcdata[col]->data, 0, -1, NULL, 0, SYBREAL, col + 1) == FAIL) {
-				printf("bcp_bind error\n");
-				return FALSE;
-			}
-			break;
-
 		case SYBMONEY:
-			srcdata[col]->data = malloc(sizeof(DBMONEY));
-			if (srcdata[col]->data == (char *) NULL) {
-				printf("allocation error\n");
-				return FALSE;
-			}
-			dbbind(dbsrc, col + 1, MONEYBIND, sizeof(DBMONEY), (BYTE *) srcdata[col]->data);
-			dbnullbind(dbsrc, col + 1, &(srcdata[col]->nullind));
-			if (bcp_bind(dbdest, (BYTE *) srcdata[col]->data, 0, -1, NULL, 0, SYBMONEY, col + 1) == FAIL) {
-				printf("bcp_bind error\n");
-				return FALSE;
-			}
-			break;
-
 		case SYBMONEY4:
-			srcdata[col]->data = malloc(sizeof(DBMONEY4));
-			if (srcdata[col]->data == (char *) NULL) {
-				printf("allocation error\n");
-				return FALSE;
-			}
-			dbbind(dbsrc, col + 1, SMALLMONEYBIND, sizeof(DBMONEY4), (BYTE *) srcdata[col]->data);
-			dbnullbind(dbsrc, col + 1, &(srcdata[col]->nullind));
-			if (bcp_bind(dbdest, (BYTE *) srcdata[col]->data, 0, -1, NULL, 0, SYBMONEY4, col + 1) == FAIL) {
-				printf("bcp_bind error\n");
-				return FALSE;
-			}
-			break;
-
 		case SYBDATETIME:
-			srcdata[col]->data = malloc(sizeof(DBDATETIME));
-			if (srcdata[col]->data == (char *) NULL) {
-				printf("allocation error\n");
-				return FALSE;
-			}
-			dbbind(dbsrc, col + 1, DATETIMEBIND, sizeof(DBDATETIME), (BYTE *) srcdata[col]->data);
-			dbnullbind(dbsrc, col + 1, &(srcdata[col]->nullind));
-			if (bcp_bind(dbdest, (BYTE *) srcdata[col]->data, 0, -1, NULL, 0, SYBDATETIME, col + 1) == FAIL) {
-				printf("bcp_bind error\n");
-				return FALSE;
-			}
-			break;
-
 		case SYBDATETIME4:
-			srcdata[col]->data = malloc(sizeof(DBDATETIME4));
-			if (srcdata[col]->data == (char *) NULL) {
-				printf("allocation error\n");
-				return FALSE;
-			}
-			dbbind(dbsrc, col + 1, SMALLDATETIMEBIND, sizeof(DBDATETIME), (BYTE *) srcdata[col]->data);
-			dbnullbind(dbsrc, col + 1, &(srcdata[col]->nullind));
-			if (bcp_bind(dbdest, (BYTE *) srcdata[col]->data, 0, -1, NULL, 0, SYBDATETIME4, col + 1) == FAIL) {
-				printf("bcp_bind error\n");
-				return FALSE;
-			}
-			break;
-
+		case SYBCHAR:
+		case SYBTEXT:
+		case SYBBINARY:
+		case SYBIMAGE:
 		case SYBNUMERIC:
 		case SYBDECIMAL:
-			srcdata[col]->data = malloc(sizeof(DBNUMERIC));
-			if (srcdata[col]->data == (char *) NULL) {
-				printf("allocation error\n");
-				return FALSE;
-			}
-			((DBNUMERIC *) srcdata[col]->data)->precision = 18;
-			((DBNUMERIC *) srcdata[col]->data)->scale = 0;
-			dbbind(dbsrc, col + 1, SRCNUMERICBIND, sizeof(DBNUMERIC), (BYTE *) srcdata[col]->data);
-			dbnullbind(dbsrc, col + 1, &(srcdata[col]->nullind));
-			if (bcp_bind(dbdest, (BYTE *) srcdata[col]->data, 0, sizeof(DBNUMERIC), NULL, 0, SYBNUMERIC, col + 1) ==
-			    FAIL) {
-				printf("bcp_bind error\n");
-				return FALSE;
-			}
-			break;
-		case SYBTEXT:
-		case SYBCHAR:
-			srcdata[col]->data = malloc(srcdata[col]->collen + 1);
-			if (srcdata[col]->data == (char *) NULL) {
-				printf("allocation error\n");
-				return FALSE;
-			}
-			dbbind(dbsrc, col + 1, NTBSTRINGBIND, srcdata[col]->collen + 1, (BYTE *) srcdata[col]->data);
-			dbnullbind(dbsrc, col + 1, &(srcdata[col]->nullind));
-			if (bcp_bind(dbdest, (BYTE *) srcdata[col]->data, 0, -1, NULL, 0, SYBCHAR, col + 1) == FAIL) {
-				printf("bcp_bind error\n");
-				return FALSE;
-			}
 			break;
 		default:
-			fprintf(stderr, "Type %d not handled by datacopy\n", srcdata[col]->coltype);
+			fprintf(stderr, "Type %d not handled by datacopy\n", srcdata[col].coltype);
 			exit(1);
 		}
 	}
@@ -811,62 +652,35 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 	while (dbnextrow(dbsrc) != NO_MORE_ROWS) {
 		rows_read++;
 		for (col = 0; col < src_numcols; col++) {
-			switch (srcdata[col]->coltype) {
+			BYTE *data = dbdata(dbsrc, col + 1);
+
+			switch (srcdata[col].coltype) {
 			case SYBBIT:
 			case SYBINT1:
 			case SYBINT2:
 			case SYBINT4:
+			case SYBINT8:
 			case SYBFLT8:
 			case SYBREAL:
 			case SYBDATETIME:
 			case SYBDATETIME4:
 			case SYBMONEY:
 			case SYBMONEY4:
-				if (srcdata[col]->nullind == -1) {	/* NULL data retrieved from source */
-					bcp_collen(dbdest, 0, col + 1);
-				} else {
-					bcp_collen(dbdest, -1, col + 1);
-				}
-				break;
-			case SYBNUMERIC:
-				if (srcdata[col]->nullind == -1) {	/* NULL data retrieved from source */
-					bcp_collen(dbdest, 0, col + 1);
-				} else {
-					bcp_collen(dbdest, sizeof(DBNUMERIC), col + 1);
-				}
-				break;
-			case SYBDECIMAL:
-				if (srcdata[col]->nullind == -1) {	/* NULL data retrieved from source */
-					bcp_collen(dbdest, 0, col + 1);
-				} else {
-					bcp_collen(dbdest, sizeof(DBDECIMAL), col + 1);
-				}
-				break;
-			case SYBTEXT:
 			case SYBCHAR:
-				if (srcdata[col]->nullind == -1) {	/* NULL data retrieved from source */
+			case SYBTEXT:
+			case SYBBINARY:
+			case SYBIMAGE:
+			case SYBNUMERIC:
+			case SYBDECIMAL:
+				bcp_colptr(dbdest, data, col + 1);
+				if (data == NULL) {	/* NULL data retrieved from source */
 					bcp_collen(dbdest, 0, col + 1);
 				} else {
-
-					/*
-					 * if there is zero length data, then the
-					 * input data MUST have been all blanks,
-					 * trimmed down to nothing by the bind
-					 * type of NTBSTRINGBIND.
-					 * so find out the source data length and
-					 * re-set the data accordingly...
-					 */
-
-					if (strlen(srcdata[col]->data) == 0) {
-						src_datlen = dbdatlen(dbsrc, col + 1);
-						memset(srcdata[col]->data, ' ', src_datlen);
-						srcdata[col]->data[src_datlen] = '\0';
-					}
-					bcp_collen(dbdest, strlen(srcdata[col]->data), col + 1);
+					bcp_collen(dbdest, dbdatlen(dbsrc, col + 1), col + 1);
 				}
 				break;
 			default:
-				fprintf(stderr, "Type %d not handled by datacopy\n", srcdata[col]->coltype);
+				fprintf(stderr, "Type %d not handled by datacopy\n", srcdata[col].coltype);
 				exit(1);
 			}
 		}
