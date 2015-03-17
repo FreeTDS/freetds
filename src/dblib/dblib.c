@@ -1842,7 +1842,6 @@ dbcolname(DBPROCESS * dbproc, int column)
 	TDSCOLUMN *colinfo;
 	
 	tdsdump_log(TDS_DBG_FUNC, "dbcolname(%p, %d)\n", dbproc, column);
-	CHECK_PARAMETER(dbproc, SYBENULL, 0);
 
 	colinfo = dbcolptr(dbproc, column);
 	if (!colinfo)
@@ -2854,7 +2853,6 @@ dbcoltype(DBPROCESS * dbproc, int column)
 	TDSCOLUMN *colinfo;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbcoltype(%p, %d)\n", dbproc, column);
-	CHECK_PARAMETER(dbproc, SYBENULL, 0);
 
 	colinfo = dbcolptr(dbproc, column);
 	if (!colinfo)
@@ -2884,7 +2882,6 @@ dbcolutype(DBPROCESS * dbproc, int column)
 	TDSCOLUMN *colinfo;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbcolutype(%p, %d)\n", dbproc, column);
-	CHECK_PARAMETER(dbproc, SYBENULL, 0);
 
 	colinfo = dbcolptr(dbproc, column);
 	if (!colinfo)
@@ -2909,7 +2906,6 @@ dbcoltypeinfo(DBPROCESS * dbproc, int column)
 	TDSCOLUMN *colinfo;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbcoltypeinfo(%p, %d)\n", dbproc, column);
-	CHECK_PARAMETER(dbproc, SYBENULL, 0);
 
 	colinfo = dbcolptr(dbproc, column);
 	if (!colinfo)
@@ -2941,7 +2937,6 @@ dbcolinfo (DBPROCESS *dbproc, CI_TYPE type, DBINT column, DBINT computeid, DBCOL
 	int i;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbcolinfo(%p, %d, %d, %d, %p)\n", dbproc, type, column, computeid, pdbcol);
-	CHECK_PARAMETER(dbproc, SYBENULL, FAIL);
 
 	colinfo = dbcolptr(dbproc, column);
 	if (!colinfo)
@@ -3036,7 +3031,6 @@ dbcolsource(DBPROCESS * dbproc, int column)
 	TDSCOLUMN *colinfo;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbcolsource(%p, %d)\n", dbproc, column);
-	CHECK_PARAMETER(dbproc, SYBENULL, 0);
 
 	colinfo = dbcolptr(dbproc, column);
 	if (!colinfo)
@@ -3062,7 +3056,6 @@ dbcollen(DBPROCESS * dbproc, int column)
 	TDSCOLUMN *colinfo;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbcollen(%p, %d)\n", dbproc, column);
-	CHECK_PARAMETER(dbproc, SYBENULL, -1);
 
 	colinfo = dbcolptr(dbproc, column);
 	if (!colinfo)
@@ -3086,7 +3079,6 @@ dbprcollen(DBPROCESS * dbproc, int column)
 	TDSCOLUMN *colinfo;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbprcollen(%p, %d)\n", dbproc, column);
-	CHECK_PARAMETER(dbproc, SYBENULL, 0);
 
 	colinfo = dbcolptr(dbproc, column);
 	if (!colinfo)
@@ -3113,7 +3105,6 @@ dbvarylen(DBPROCESS * dbproc, int column)
 	TDSCOLUMN *colinfo;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbvarylen(%p, %d)\n", dbproc, column);
-	CHECK_PARAMETER(dbproc, SYBENULL, FALSE);
 
 	colinfo = dbcolptr(dbproc, column);
 	if (!colinfo)
@@ -3164,7 +3155,6 @@ dbdatlen(DBPROCESS * dbproc, int column)
 	TDSCOLUMN *colinfo;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbdatlen(%p, %d)\n", dbproc, column);
-	CHECK_PARAMETER(dbproc, SYBENULL, -1);
 
 	colinfo = dbcolptr(dbproc, column);
 	if (!colinfo)
@@ -3193,7 +3183,6 @@ dbdata(DBPROCESS * dbproc, int column)
 	const static BYTE empty[1] = { 0 };
 
 	tdsdump_log(TDS_DBG_FUNC, "dbdata(%p, %d)\n", dbproc, column);
-	CHECK_PARAMETER(dbproc, SYBENULL, 0);
 
 	colinfo = dbcolptr(dbproc, column);
 	if (!colinfo)
@@ -6313,7 +6302,6 @@ dbtxtimestamp(DBPROCESS * dbproc, int column)
 	TDSBLOB *blob;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbtxtimestamp(%p, %d)\n", dbproc, column);
-	CHECK_PARAMETER(dbproc, SYBENULL, 0);
 
 	colinfo = dbcolptr(dbproc, column);
 	if (!colinfo || !is_blob_col(colinfo))
@@ -6344,7 +6332,6 @@ dbtxptr(DBPROCESS * dbproc, int column)
 	TDSBLOB *blob;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbtxptr(%p, %d)\n", dbproc, column);
-	CHECK_PARAMETER(dbproc, SYBENULL, 0);
 
 	colinfo = dbcolptr(dbproc, column);
 	if (!colinfo || !is_blob_col(colinfo))
