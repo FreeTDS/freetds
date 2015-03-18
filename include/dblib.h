@@ -176,6 +176,7 @@ int _dblib_handle_err_message(const TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDS
 int _dblib_check_and_handle_interrupt(void * vdbproc);
 
 void _dblib_setTDS_version(TDSLOGIN * tds_login, DBINT version);
+void _dblib_convert_err(DBPROCESS * dbproc, TDS_INT len);
 
 DBINT _convert_char(int srctype, BYTE * src, int destype, BYTE * dest, DBINT destlen);
 DBINT _convert_intn(int srctype, BYTE * src, int destype, BYTE * dest, DBINT destlen);

@@ -2370,33 +2370,9 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 	len = tds_convert(g_dblib_ctx.tds_ctx, srctype, (const TDS_CHAR *) src, srclen, desttype, &dres);
 	tdsdump_log(TDS_DBG_INFO1, "dbconvert() called tds_convert returned %d\n", len);
 
-	switch (len) {
-	case TDS_CONVERT_NOAVAIL:
-		dbperror(dbproc, SYBERDCN, 0);
+	if (len < 0) {
+		_dblib_convert_err(dbproc, len);
 		return -1;
-		break;
-	case TDS_CONVERT_SYNTAX:
-		dbperror(dbproc, SYBECSYN, 0);
-		return -1;
-		break;
-	case TDS_CONVERT_NOMEM:
-		dbperror(dbproc, SYBEMEM, ENOMEM);
-		return -1;
-		break;
-	case TDS_CONVERT_OVERFLOW:
-		dbperror(dbproc, SYBECOFL, 0);
-		return -1;
-		break;
-	case TDS_CONVERT_FAIL:
-		dbperror(dbproc, SYBECINTERNAL, 0);
-		return -1;
-		break;
-	default:
-		if (len < 0) { /* logic error: should be captured above */
-			dbperror(dbproc, SYBECINTERNAL, 0);
-			return -1;
-		}
-		break;
 	}
 
 	switch (desttype) {
@@ -7349,31 +7325,9 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 
 	tdsdump_log(TDS_DBG_INFO1, "copy_data_to_host_var(): tds_convert returned %d\n", len);
 
-	switch (len) {
-	case TDS_CONVERT_NOAVAIL:
-		dbperror(dbproc, SYBERDCN, 0);
+	if (len < 0) {
+		_dblib_convert_err(dbproc, len);
 		return;
-		break;
-	case TDS_CONVERT_SYNTAX:
-		dbperror(dbproc, SYBECSYN, 0);
-		return;
-		break;
-	case TDS_CONVERT_NOMEM:
-		dbperror(dbproc, SYBEMEM, ENOMEM);
-		return;
-		break;
-	case TDS_CONVERT_OVERFLOW:
-		dbperror(dbproc, SYBECOFL, 0);
-		return;
-		break;
-	case TDS_CONVERT_FAIL:
-		return;
-		break;
-	default:
-		if (len < 0) {
-			return;
-		}
-		break;
 	}
 
 	switch (desttype) {

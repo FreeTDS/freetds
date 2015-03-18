@@ -27,7 +27,12 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
+#if HAVE_ERRNO_H
+# include <errno.h>
+#endif /* HAVE_ERRNO_H */
+
 #include <freetds/tds.h>
+#include <freetds/convert.h>
 #include <sybdb.h>
 #include <syberror.h>
 #include <dblib.h>
@@ -233,3 +238,27 @@ _dblib_setTDS_version(TDSLOGIN * tds_login, DBINT version)
 		break;
 	}
 }
+
+void
+_dblib_convert_err(DBPROCESS * dbproc, TDS_INT len)
+{
+	switch (len) {
+	case TDS_CONVERT_NOAVAIL:
+		dbperror(dbproc, SYBERDCN, 0);
+		break;
+	case TDS_CONVERT_SYNTAX:
+		dbperror(dbproc, SYBECSYN, 0);
+		break;
+	case TDS_CONVERT_NOMEM:
+		dbperror(dbproc, SYBEMEM, ENOMEM);
+		break;
+	case TDS_CONVERT_OVERFLOW:
+		dbperror(dbproc, SYBECOFL, 0);
+		break;
+	default:
+	case TDS_CONVERT_FAIL:
+		dbperror(dbproc, SYBECINTERNAL, 0);
+		break;
+	}
+}
+
