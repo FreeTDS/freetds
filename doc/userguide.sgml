@@ -1059,6 +1059,12 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 							<entry>no</entry>
 							<entry>Use NTLMv2.  An alternative to the <literal>UseNTLMv2</> option in <filename>odbc.ini</>.  </entry>
 							</row>
+						<row>
+							<entry><literal>use utf-16</></entry>
+							<entry>yes/no</entry>
+							<entry>no</entry>
+							<entry>Instead of using UCS-2 for database wide character encoding use UTF-16.  Newer Windows versions use this encoding instead of UCS-2. This could result in some issues if clients assume that a character is always 2 bytes.</entry>
+							</row>
 						</tbody>
 					</tgroup>
 				</table>
