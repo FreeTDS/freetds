@@ -410,7 +410,7 @@ create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbs
 
 	while (NO_MORE_RESULTS != dbresults(dbsrc));
 
-	sprintf(ls_command, "CREATE TABLE %s.%s ", owner, dobjname);
+	sprintf(ls_command, "CREATE TABLE %s%s%s ", owner, owner[0] ? "." : "", dobjname);
 
 	num_cols = dbnumcols(dbsrc);
 
