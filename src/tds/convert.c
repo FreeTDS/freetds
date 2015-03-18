@@ -957,7 +957,7 @@ tds_convert_uint8(const TDS_UINT8 *src, int desttype, CONV_RESULT * cr)
 }
 
 static TDS_INT
-tds_convert_numeric(const TDS_NUMERIC * src, TDS_INT srclen, int desttype, CONV_RESULT * cr)
+tds_convert_numeric(const TDS_NUMERIC * src, int desttype, CONV_RESULT * cr)
 {
 	char tmpstr[MAXPRECISION];
 	TDS_INT i, ret;
@@ -1138,7 +1138,7 @@ tds_convert_numeric(const TDS_NUMERIC * src, TDS_INT srclen, int desttype, CONV_
 }
 
 static TDS_INT
-tds_convert_money4(const TDS_MONEY4 * src, int srclen, int desttype, CONV_RESULT * cr)
+tds_convert_money4(const TDS_MONEY4 * src, int desttype, CONV_RESULT * cr)
 {
 	TDS_MONEY4 mny;
 	long dollars;
@@ -1721,7 +1721,7 @@ tds_convert_flt8(const TDS_FLOAT* src, int desttype, CONV_RESULT * cr)
 }
 
 static TDS_INT
-tds_convert_unique(const TDS_CHAR * src, TDS_INT srclen, int desttype, CONV_RESULT * cr)
+tds_convert_unique(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 {
 	/*
 	 * raw data is equivalent to structure and always aligned, 
@@ -1809,14 +1809,14 @@ tds_convert(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, TDS_U
 		length = tds_convert_char(src, srclen, desttype, cr);
 		break;
 	case SYBMONEY4:
-		length = tds_convert_money4((const TDS_MONEY4 *) src, srclen, desttype, cr);
+		length = tds_convert_money4((const TDS_MONEY4 *) src, desttype, cr);
 		break;
 	case SYBMONEY:
 		length = tds_convert_money((const TDS_MONEY *) src, desttype, cr);
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
-		length = tds_convert_numeric((const TDS_NUMERIC *) src, srclen, desttype, cr);
+		length = tds_convert_numeric((const TDS_NUMERIC *) src, desttype, cr);
 		break;
 	case SYBBIT:
 	case SYBBITN:
@@ -1867,7 +1867,7 @@ tds_convert(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, TDS_U
 		length = tds_convert_binary((const TDS_UCHAR *) src, srclen, desttype, cr);
 		break;
 	case SYBUNIQUE:
-		length = tds_convert_unique(src, srclen, desttype, cr);
+		length = tds_convert_unique(src, desttype, cr);
 		break;
 	case SYBNVARCHAR:
 	case SYBNTEXT:
