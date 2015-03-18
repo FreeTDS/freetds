@@ -64,6 +64,7 @@ typedef struct pd
 	int packetsize;
 	OBJECTINFO src, dest;
 	char *owner;
+	int textsize;
 	int tflag;
 	int aflag;
 	int cflag;
@@ -80,6 +81,7 @@ static int login_to_databases(BCPPARAMDATA * pdata, DBPROCESS ** dbsrc, DBPROCES
 static int create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbsrc, DBPROCESS * dbdest);
 static int check_table_structures(char *sobjname, char *dobjname, DBPROCESS * dbsrc, DBPROCESS * dbdest);
 static int transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest);
+static RETCODE set_textsize(DBPROCESS *dbproc, int textsize);
 
 static int err_handler(DBPROCESS *, int, int, int, char *, char *);
 static int msg_handler(DBPROCESS *, DBINT, int, int, char *, char *, char *, int);
@@ -104,6 +106,10 @@ main(int argc, char **argv)
 	}
 
 	if (login_to_databases(&params, &dbsrc, &dbtarget) == FALSE)
+		return 1;
+
+	if (set_textsize(dbtarget, params.textsize) != SUCCEED
+	    || set_textsize(dbsrc, params.textsize) != SUCCEED)
 		return 1;
 
 	if (params.cflag) {
@@ -199,11 +205,12 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 
 	/* set some defaults */
 
+	pdata->textsize = -1;
 	pdata->batchsize = 1000;
 
 	/* get the rest of the arguments */
 
-	while ((opt = getopt(argc, argv, "b:p:tac:dS:D:v")) != -1) {
+	while ((opt = getopt(argc, argv, "b:p:tac:dS:D:T:v")) != -1) {
 		switch (opt) {
 		case 'b':
 			pdata->bflag++;
@@ -239,6 +246,13 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 			pdata->Dflag++;
 			if (process_objectinfo(&pdata->dest, optarg, "Enter Destination Password: ") == FALSE)
 				return FALSE;
+			break;
+		case 'T':
+			pdata->textsize = opt = atoi(optarg);
+			if (opt < 0 || opt > 0x7fffffff) {
+				fprintf(stderr, "Invalid textsize specified.\n");
+				return FALSE;
+			}
 			break;
 		case 'v':
 			pdata->vflag++;
@@ -455,6 +469,23 @@ create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbs
 		continue;
 
 	return TRUE;
+}
+
+static RETCODE
+set_textsize(DBPROCESS *dbproc, int textsize)
+{
+	char buf[32];
+
+	if (textsize < 0)
+		return SUCCEED;
+
+	sprintf(buf, "%d", textsize);
+	if (dbsetopt(dbproc, DBTEXTSIZE, buf, -1) == FAIL) {
+		fprintf(stderr, "dbsetopt failed\n");
+		return FAIL;
+	}
+
+	return SUCCEED;
 }
 
 static int
@@ -735,7 +766,7 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 static void
 pusage(void)
 {
-	fprintf(stderr, "usage: datacopy [-t | -a | -c owner] [-b batchsize] [-p packetsize] [-v] [-d]\n");
+	fprintf(stderr, "usage: datacopy [-t | -a | -c owner] [-b batchsize] [-p packetsize] [-T textsize] [-v] [-d]\n");
 	fprintf(stderr, "       [-S server/username/password/database/table]\n");
 	fprintf(stderr, "       [-D server/username/password/database/table]\n");
 	fprintf(stderr, "       -t : truncate target table before loading data\n");
@@ -745,6 +776,7 @@ pusage(void)
 	fprintf(stderr, "       (larger batch size = faster)\n");
 	fprintf(stderr, "       -p : alter the default TDS packet size from the default\n");
 	fprintf(stderr, "       (larger packet size = faster)\n");
+	fprintf(stderr, "       -T : Text and image size\n");
 	fprintf(stderr, "       -v : produce verbose output (timings etc.)\n");
 	fprintf(stderr, "       -d : produce TDS DUMP log (serious debug only!)\n");
 }
