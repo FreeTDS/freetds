@@ -1075,6 +1075,8 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 	/* for each host file column defined by calls to bcp_colfmt */
 
 	for (i = 0; i < dbproc->hostfileinfo->host_colcount; i++) {
+		offset_type col_start;
+
 		tdsdump_log(TDS_DBG_FUNC, "parsing host column %d\n", i + 1);
 		hostcol = dbproc->hostfileinfo->host_columns[i];
 
@@ -1159,6 +1161,8 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 		if (is_fixed_type(hostcol->datatype)) {
 			collen = tds_get_size_by_type(hostcol->datatype);
 		}
+
+		col_start = ftello(hostfile);
 
 		/*
 		 * The data file either contains prefixes stating the length, or is delimited.  
@@ -1288,10 +1292,9 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 				if (bcpcol->bcp_column_data->datalen == -1) {
 					hostcol->column_error = HOST_COL_CONV_ERROR;
 					*row_error = 1;
-					/* FIXME possible integer overflow if off_t is 64bit and long int 32bit */
 					tdsdump_log(TDS_DBG_FUNC, 
-						"_bcp_read_hostfile failed to convert %d bytes at offset 0x%lx in the data file.\n", 
-						    collen, (unsigned long int) ftello(hostfile) - collen);
+						"_bcp_read_hostfile failed to convert %d bytes at offset 0x" PRIx64 " in the data file.\n",
+						    collen, (TDS_INT8) col_start);
 				}
 
 				/* trim trailing blanks from character data */
