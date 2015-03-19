@@ -1217,13 +1217,14 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 			 */
 		} else {	/* unterminated field */
 
-			coldata = (TDS_CHAR *) calloc(1, 1 + collen);
+			coldata = (TDS_CHAR *) malloc(1 + collen);
 			if (coldata == NULL) {
 				*row_error = TRUE;
 				dbperror(dbproc, SYBEMEM, errno);
 				return FAIL;
 			}
 
+			coldata[collen] = 0;
 			if (collen) {
 				/* 
 				 * Read and convert the data
