@@ -11,12 +11,18 @@
 .Nm
 .Op Fl vd
 .Bro
-.Fl t Ba Fl a Ba Fl c Ar owner
+.Fl t
+|
+.Fl a
+|
+.Fl c
+.Ar owner
 .Brc
 .Op Fl b Ar batchsize
 .Op Fl p Ar packetsize
 .Op Fl S Ar server/username/password/database/table_or_view
 .Op Fl D Ar server/username/password/database/table
+.Op Fl T Ar textsize
 .\"
 .Sh DESCRIPTION
 .Nm
@@ -55,6 +61,8 @@ effectively 'committed' to the database. The default is 1000.
 .It Fl p Ar packetsize
 The number of bytes, per network packet, sent to and from the
 servers. Increased packet size can enhance performance.
+.It Fl T Ar textsize
+Specify size of TEXT/IMAGE column from network.
 .It Fl v
 Produce verbose output, including diagnostic timings.
 .It Fl d
