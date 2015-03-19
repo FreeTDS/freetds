@@ -1031,7 +1031,6 @@ struct tds_connection
 
 	TDS_SYS_SOCKET s;		/**< tcp socket, INVALID_SOCKET if not connected */
 	TDS_SYS_SOCKET s_signal, s_signaled;
-	void *parent;
 	const TDSCONTEXT *tds_ctx;
 
 	/** environment is shared between all sessions */
@@ -1124,6 +1123,8 @@ struct tds_socket
 	unsigned char in_flag;		/**< input buffer type */
 	unsigned char out_flag;		/**< output buffer type */
 
+	void *parent;
+
 #if ENABLE_ODBC_MARS
 	short sid;
 	tds_condition packet_cond;
@@ -1172,8 +1173,8 @@ struct tds_socket
 
 #define tds_get_ctx(tds) ((tds)->conn->tds_ctx)
 #define tds_set_ctx(tds, val) do { ((tds)->conn->tds_ctx) = (val); } while(0)
-#define tds_get_parent(tds) ((tds)->conn->parent)
-#define tds_set_parent(tds, val) do { ((tds)->conn->parent) = (val); } while(0)
+#define tds_get_parent(tds) ((tds)->parent)
+#define tds_set_parent(tds, val) do { ((tds)->parent) = (val); } while(0)
 #define tds_get_s(tds) ((tds)->conn->s)
 #define tds_set_s(tds, val) do { ((tds)->conn->s) = (val); } while(0)
 

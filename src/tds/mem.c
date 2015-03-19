@@ -1083,7 +1083,6 @@ tds_init_connection(TDSCONNECTION *conn, TDSCONTEXT *context, unsigned int bufsi
 	conn->env.block_size = bufsize;
 	conn->s_signal = conn->s_signaled = conn->s = INVALID_SOCKET;
 	conn->use_iconv = 1;
-	conn->parent = NULL;
 	conn->tds_ctx = context;
 
 	if (tds_iconv_alloc(conn))
@@ -1109,6 +1108,8 @@ Cleanup:
 static TDSSOCKET *
 tds_init_socket(TDSSOCKET * tds_socket, unsigned int bufsize)
 {
+	tds_socket->parent = NULL;
+
 	tds_socket->recv_packet = tds_alloc_packet(NULL, bufsize);
 	if (!tds_socket->recv_packet)
 		goto Cleanup;

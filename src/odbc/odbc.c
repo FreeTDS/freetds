@@ -836,7 +836,7 @@ odbc_unlock_statement(TDS_STMT* stmt)
 	tds_mutex_lock(&stmt->dbc->mtx);
 	tds = stmt->tds;
 	if (stmt->dbc->current_statement == stmt) {
-		assert(tds);
+		assert(tds == stmt->dbc->tds_socket);
 		if (tds->state == TDS_IDLE) {
 			stmt->dbc->current_statement = NULL;
 			tds_set_parent(tds, stmt->dbc);
@@ -845,6 +845,7 @@ odbc_unlock_statement(TDS_STMT* stmt)
 #if ENABLE_ODBC_MARS
 	} else if (tds) {
 		if (tds->state == TDS_IDLE || tds->state == TDS_DEAD) {
+			assert(tds != stmt->dbc->tds_socket);
 			tds_free_socket(tds);
 			stmt->tds = NULL;
 		}
