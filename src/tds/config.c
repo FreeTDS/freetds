@@ -680,7 +680,8 @@ tds_config_login(TDSLOGIN * connection, TDSLOGIN * login)
 		tdsdump_log(TDS_DBG_INFO1, "tds_config_login: %s is %s.\n", "client_charset",
 			    tds_dstr_cstr(&connection->client_charset));
 	}
-	connection->use_utf16 = login->use_utf16;
+	if (login->use_utf16)
+		connection->use_utf16 = login->use_utf16;
 	if (!tds_dstr_isempty(&login->database)) {
 		res = tds_dstr_dup(&connection->database, &login->database);
 		tdsdump_log(TDS_DBG_INFO1, "tds_config_login: %s is %s.\n", "database_name",
