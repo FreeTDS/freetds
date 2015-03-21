@@ -45,7 +45,7 @@ desc_alloc(SQLHANDLE parent, int desc_type, int alloc_type)
 	if (!desc || tds_mutex_init(&desc->mtx))
 		return NULL;
 
-	/* set defualt header values */
+	/* set default header values */
 	desc->htype = SQL_HANDLE_DESC;
 	desc->type = desc_type;
 	desc->parent = parent;
