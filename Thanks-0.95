@@ -1,0 +1,69 @@
+
+- Alexandros Giouzenis <alexandrosg@gmail.com>
+- Ben Slade
+  - datacopy password prompt
+- Christos Zoulas
+  - improve defncopy and fisql
+  - server maintainer
+  - some build fixes
+- Constantin Vasilyev
+- Craig A. Berry <craigberry@mac.com>
+  - BCP improvements
+  - VMS support
+- Daniel Fazekas <fdsubs@t-online.hu>
+  - some fixes for dblib
+- Ed Avis
+- Frediano Ziglio <freddy77@gmail.com>
+  - ... lot of stuff ...
+  - ... really! ...
+- Fredy Paquet
+- Ian Lister
+- James K. Lowden <jklowden@freetds.org>
+  - documentation update
+  - Makefiles improvements
+  - dbpivot
+  - improve error reporting
+  - ... lot of stuff ...
+- Jason Yanowitz
+- Jun Kang Chin
+  - UTF-16 encoding from server ("use utf-16")
+- Justin T Pryzby
+- Ken Collins
+  - Kerberos SSPI fix
+- Ladislav Karrach <lacak@zoznam.sk>
+  - help fixing a problem with transaction with newer protocol
+  - Visual Studio support updates
+  - add DATETIME2BIND support in dblib and other new types improvements
+- Marc Abramowitz <marc@marc-abramowitz.com>
+  - improved logging and error reporting
+  - Travis continue integration
+  - documentation updates
+- Martin Wilck
+  - fix for ctlib cursors
+- Matt Lilley
+  - fix MARS problem
+- Matthew Green
+  - improved datacopy
+- Mikhail Denisenko <denisenkom@gmail.com>
+  - NBCROW support
+- Mikhail Teterin
+- Peter Deacon <peterd@iea-software.com>
+  - IPv6 support
+- Pietro Cerutti
+- Ramiro Morales <ramiro@rmorales.net>
+  - pymssql support
+  - fix some bugs with dblib RPC
+  - many build fixes
+- Richard Hughes <richard.freetds@rhughes.net>
+  - query notification in ODBC
+- Samuel Ferencik <samuel.ferencik@barclays.com>
+  - help fixing NTLM problem with small buffers
+  - improved ctlib
+- Sebastien Flaesch
+- Shiva Ramabadran <sramabadran@users.noreply.github.com>
+- Steve Langasek <steve.langasek@canonical.com>
+  - fix some compatibility and bugs
+- Tony Esposito
+  - DYNPROC fix for Sybase
+- Willi Langenberger
+
