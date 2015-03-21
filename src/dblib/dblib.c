@@ -2525,26 +2525,22 @@ DBINT
 dbconvert_ps(DBPROCESS * dbproc,
 	     int srctype, const BYTE * src, DBINT srclen, int desttype, BYTE * dest, DBINT destlen, DBTYPEINFO * typeinfo)
 {
-	DBNUMERIC *s;
-	DBNUMERIC *d;
-
 	tdsdump_log(TDS_DBG_FUNC, "dbconvert_ps(%p)\n", dbproc);
 	/* dbproc can be NULL*/
 
 	if (is_numeric_type(desttype)) {
+		DBNUMERIC *d = (DBNUMERIC *) dest;
+
 		if (typeinfo == NULL) {
 			if (is_numeric_type(srctype)) {
-				s = (DBNUMERIC *) src;
-				d = (DBNUMERIC *) dest;
+				DBNUMERIC *s = (DBNUMERIC *) src;
 				d->precision = s->precision;
 				d->scale = s->scale;
 			} else {
-				d = (DBNUMERIC *) dest;
 				d->precision = 18;
 				d->scale = 0;
 			}
 		} else {
-			d = (DBNUMERIC *) dest;
 			d->precision = typeinfo->precision;
 			d->scale = typeinfo->scale;
 		}
