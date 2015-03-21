@@ -2,18 +2,63 @@ $Id$
 
 Summary of Changes in release 0.95
 --------------------------------------------
+User visible (not in a particular order):
 - Support for build with CMake under Windows.
-- Support MSSQL 2008.
-- Bulk-copy improvements, support for empty fields.
-- Support for query notifications in ODBC.
-- IPv6 support.
-- dbpivot and dbprcollen extensions for dblib.
-- moved from CVS to git.
+- Support MSSQL 2008:
+  - new date/time types;
+  - NBCROWs;
+  - able to retrieve CLR UDT types in binary format.
+- Moved from CVS to git.
 - Support MARS under ODBC.
+- IPv6 support.
+- Support unsigned Sybase types.
+- Sybase use some characters conversion like MSSQL.
+- Bulk-copy improvements:
+  - more types;
+  - support for empty fields;
+  - no needs for seekable file;
+  - avoid possible buffer overflows;
+  - less memory consumption;
+  - handle different BIT fields in Sybase;
+  - -T option for datacopy.
+- datacopy:
+  - prompting for password (use "-" password on command line);
+  - empty user/password (to use Kerberos).
+- Support for query notifications in ODBC.
+- Support for protocols 7.2 and 7.3 under dblib and ctlib.
+- dblib:
+  - dbpivot extension;
+  - dbprcollen extension to get printable column size;
+  - add DBCOL2 structure for dbtablecolinfo;
+  - support DBTEXTSIZE option for dbsetopt;
+  - support SRCNUMERICBIND and SRCDECIMALBIND binding;
+  - DATETIME2BIND extension binding to support new mssql 2008 type;
+-  ODBC:
+  - add SQL_INFO_FREETDS_TDS_VERSION option to SQLGetInfo to retrieve FreeTDS
+    version;
+  - add --enable-odbc-wide-tests configure option to use wide functions in
+    unit tests.
 - Better thread support.
 - Allow to specify server SPN for GSSAPI.
 - Sybase graceful disconnects.
 - Better support for VARCHAR(MAX)/VARBINARY(MAX).
+- Better error reporting from login failure.
+- More strict test for configuration errors, fails if configuration is wrong.
+- "use utf-16" option to enable use of UTF-16 for server encoding (MSSQL).
+- Remove support for Dev-C++.
+- Remove support for bad iconv, use libiconv instead (Tru64 and HP-UX should
+  be affected), connect will fail.
+- New NTLM options:
+  - "use lanman";
+  - "use ntlmv2".
+- New Kerberos options:
+  - "realm" ("REALM" in ODBC);
+  - "spn" ("ServerSPN" in ODBC).
+- Many bug fixes, majors:
+  - SSPI with Kerberos on some setup;
+  - SQLCancel threading;
+  - ctlib numeric;
+  - ODBC statistic function quotings.
 
 Implementation:
 - Introdude streams support to make easier handling large data and
@@ -22,8 +67,15 @@ Implementation:
 - Use callbacks for handling various type functions.
 - Optimize data conversions.
 - Store TDS packets in a new structure to handle multiple packets.
-- New DSTR implementation.
+- New DSTR implementation which use less memory.
 - Faster logging.
+- Put mostly data handling in src/tds/data.c.
+- Move mostly headers to include/freetds directory.
+- Add a include/freetds/proto.h header to separate protocol declarations.
+- Add src/tds/packet.c to separate code handling TDS packets.
+- Modify libTDS error codes, not only TDS_FAIL.
+- Use DSTR for names in TDSCOLUMN.
+- Generate graphs in Doxygen.
 
 Summary of Changes in release 0.91
 --------------------------------------------
