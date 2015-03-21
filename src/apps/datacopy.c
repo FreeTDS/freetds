@@ -72,6 +72,7 @@ typedef struct pd
 	int Dflag;
 	int bflag;
 	int pflag;
+	int Eflag;
 	int vflag;
 } BCPPARAMDATA;
 
@@ -210,7 +211,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 
 	/* get the rest of the arguments */
 
-	while ((opt = getopt(argc, argv, "b:p:tac:dS:D:T:v")) != -1) {
+	while ((opt = getopt(argc, argv, "b:p:tac:dS:D:T:Ev")) != -1) {
 		switch (opt) {
 		case 'b':
 			pdata->bflag++;
@@ -253,6 +254,9 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 				fprintf(stderr, "Invalid textsize specified.\n");
 				return FALSE;
 			}
+			break;
+		case 'E':
+			pdata->Eflag++;
 			break;
 		case 'v':
 			pdata->vflag++;
@@ -422,7 +426,8 @@ create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbs
 		return FALSE;
 	}
 
-	while (NO_MORE_RESULTS != dbresults(dbsrc));
+	while (dbresults(dbsrc) != NO_MORE_RESULTS)
+		continue;
 
 	sprintf(ls_command, "CREATE TABLE %s%s%s ", owner, owner[0] ? "." : "", dobjname);
 
@@ -595,6 +600,9 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 	struct timeval end_time;
 	double elapsed_time;
 
+	DBCOL2 colinfo;
+	BOOL identity_column_exists = FALSE;
+
 	if (params.vflag) {
 		printf("\nStarting copy...\n");
 	}
@@ -651,6 +659,14 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 
 	for (col = 0; col < src_numcols; col++) {
 
+		/* Find out if there is an identity column. */
+		colinfo.SizeOfStruct = sizeof(colinfo);
+
+		if (dbtablecolinfo(dbsrc, col+1, (DBCOL *) &colinfo) != SUCCEED)
+			return FALSE;
+		if (colinfo.Identity)
+			identity_column_exists = TRUE;
+
 		srcdata[col].coltype = dbcoltype(dbsrc, col + 1);
 
 		switch (srcdata[col].coltype) {
@@ -677,6 +693,10 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 			exit(1);
 		}
 	}
+
+	/* Take appropriate action if there's an identity column and we've been asked to preserve identity values. */
+	if (params.Eflag && identity_column_exists)
+		bcp_control(dbdest, BCPKEEPIDENTITY, 1);
 
 	gettimeofday(&start_time, 0);
 
@@ -766,7 +786,7 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 static void
 pusage(void)
 {
-	fprintf(stderr, "usage: datacopy [-t | -a | -c owner] [-b batchsize] [-p packetsize] [-T textsize] [-v] [-d]\n");
+	fprintf(stderr, "usage: datacopy [-t | -a | -c owner] [-b batchsize] [-p packetsize] [-T textsize] [-v] [-d] [-E]\n");
 	fprintf(stderr, "       [-S server/username/password/database/table]\n");
 	fprintf(stderr, "       [-D server/username/password/database/table]\n");
 	fprintf(stderr, "       -t : truncate target table before loading data\n");
@@ -777,6 +797,7 @@ pusage(void)
 	fprintf(stderr, "       -p : alter the default TDS packet size from the default\n");
 	fprintf(stderr, "       (larger packet size = faster)\n");
 	fprintf(stderr, "       -T : Text and image size\n");
+	fprintf(stderr, "       -E : keep identity values\n");
 	fprintf(stderr, "       -v : produce verbose output (timings etc.)\n");
 	fprintf(stderr, "       -d : produce TDS DUMP log (serious debug only!)\n");
 }
