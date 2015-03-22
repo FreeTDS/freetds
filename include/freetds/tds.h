@@ -1225,7 +1225,7 @@ int tds_config_boolean(const char *option, const char *value, TDSLOGIN * login);
 TDSLOCALE *tds_get_locale(void);
 TDSRET tds_alloc_row(TDSRESULTINFO * res_info);
 TDSRET tds_alloc_compute_row(TDSCOMPUTEINFO * res_info);
-BCPCOLDATA * tds_alloc_bcp_column_data(int column_size);
+BCPCOLDATA * tds_alloc_bcp_column_data(unsigned int column_size);
 unsigned char *tds7_crypt_pass(const unsigned char *clear_pass, size_t len, unsigned char *crypt_pass);
 TDSDYNAMIC *tds_lookup_dynamic(TDSCONNECTION * conn, const char *id);
 /*@observer@*/ const char *tds_prtype(int token);

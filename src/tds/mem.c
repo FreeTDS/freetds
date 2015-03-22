@@ -1689,12 +1689,14 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgno)
 }
 
 BCPCOLDATA *
-tds_alloc_bcp_column_data(int column_size)
+tds_alloc_bcp_column_data(unsigned int column_size)
 {
 	BCPCOLDATA *coldata;
 
 	TEST_MALLOC(coldata, BCPCOLDATA);
 
+	if (column_size > 4 * 1024)
+		column_size = 4 * 1024;
 	TEST_CALLOC(coldata->data, unsigned char, column_size);
 
 	return coldata;

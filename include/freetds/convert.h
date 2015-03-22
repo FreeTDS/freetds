@@ -34,6 +34,7 @@ extern "C"
 
 typedef union conv_result
 {
+	/* fixed */
 	TDS_TINYINT ti;
 	TDS_SMALLINT si;
 	TDS_USMALLINT usi;
@@ -43,16 +44,19 @@ typedef union conv_result
 	TDS_UINT8 ubi;
 	TDS_FLOAT f;
 	TDS_REAL r;
-	TDS_CHAR *c;
 	TDS_MONEY m;
 	TDS_MONEY4 m4;
 	TDS_DATETIME dt;
 	TDS_DATETIME4 dt4;
 	TDS_DATETIMEALL dta;
 	TDS_NUMERIC n;
-	TDS_CHAR *ib;
 	TDS_UNIQUE u;
-	/* sizef types */
+
+	/* variable */
+	TDS_CHAR *c;
+	TDS_CHAR *ib;
+
+	/* sized buffer types */
 	struct cc_t {
 		TDS_CHAR *c;
 		TDS_UINT len;

@@ -699,8 +699,16 @@ bcp_getl(LOGINREC * login)
 	return (tdsl->bulk_copy);
 }
 
+/**
+ * Convert column for output (usually to a file)
+ * Conversion is slightly different from input as:
+ * - date is formatted differently;
+ * - you have to set properly numeric while on input the column metadata are
+ *   used;
+ * - we need to make sure buffer is always at least a minimum bytes.
+ */
 static int
-_bcp_out_column(DBPROCESS * dbproc, TDSCOLUMN *curcol, BCP_HOSTCOLINFO *hostcol, TDS_UCHAR *data, TDS_INT datalen, const char *bcpdatefmt)
+_bcp_convert_out(DBPROCESS * dbproc, TDSCOLUMN *curcol, BCP_HOSTCOLINFO *hostcol, TDS_UCHAR **p_data, const char *bcpdatefmt)
 {
 	BYTE *src;
 	int srclen;
@@ -711,10 +719,7 @@ _bcp_out_column(DBPROCESS * dbproc, TDSCOLUMN *curcol, BCP_HOSTCOLINFO *hostcol,
 	if (is_blob_col(curcol))
 		src = (BYTE *) ((TDSBLOB *) src)->textvalue;
 
-	if (is_numeric_type(curcol->column_type))
-		srclen = sizeof(TDS_NUMERIC);
-	else
-		srclen = curcol->column_cur_size;
+	srclen = curcol->column_cur_size;
 
 	/*
 	 * if we are converting datetime to string, need to override any
@@ -724,7 +729,7 @@ _bcp_out_column(DBPROCESS * dbproc, TDSCOLUMN *curcol, BCP_HOSTCOLINFO *hostcol,
 		TDSDATEREC when;
 
 		tds_datecrack(srctype, src, &when);
-		buflen = (int)tds_strftime((TDS_CHAR *)data, 256,
+		buflen = (int)tds_strftime((TDS_CHAR *)(*p_data), 256,
 					 bcpdatefmt, &when, 3);
 	} else if (srclen == 0 && is_variable_type(curcol->column_type)
 		   && is_ascii_type(hostcol->datatype)) {
@@ -734,29 +739,49 @@ _bcp_out_column(DBPROCESS * dbproc, TDSCOLUMN *curcol, BCP_HOSTCOLINFO *hostcol,
 		 * to be confused with a database NULL, which is denoted in the output
 		 * file with an empty string!)
 		 */
-		data[0] = 0;
+		(*p_data)[0] = 0;
 		buflen = 1;
+	} else if (is_numeric_type(hostcol->datatype)) {
+		TDS_NUMERIC *num = (TDS_NUMERIC *) (*p_data);
+		if (is_numeric_type(srctype)) {
+			TDS_NUMERIC *nsrc = (TDS_NUMERIC *) src;
+			num->precision = nsrc->precision;
+			num->scale = nsrc->scale;
+		} else {
+			num->precision = 18;
+			num->scale = 0;
+		}
+		buflen = tds_convert(dbproc->tds_socket->conn->tds_ctx, srctype, (const TDS_CHAR *) src, srclen, hostcol->datatype, (CONV_RESULT *) num);
+	} else if (!is_variable_type(hostcol->datatype)) {
+		buflen = tds_convert(dbproc->tds_socket->conn->tds_ctx, srctype, (const TDS_CHAR *) src, srclen, hostcol->datatype, (CONV_RESULT *) (*p_data));
 	} else {
-		TDS_INT destlen = datalen;
+		CONV_RESULT cr;
 
 		/*
 		 * For null columns, the above work to determine the output buffer size is moot,
 		 * because bcpcol->data_size is zero, so dbconvert() won't write anything,
 		 * and returns zero.
 		 */
-		/* TODO check for text !!! */
-		buflen =  dbconvert(dbproc, srctype, src, srclen, hostcol->datatype,
-				    data, destlen);
+		buflen = tds_convert(dbproc->tds_socket->conn->tds_ctx, srctype, (const TDS_CHAR *) src, srclen, hostcol->datatype, (CONV_RESULT *) &cr);
+		if (buflen < 0)
+			return buflen;
+
+		if (buflen >= 256) {
+			free(*p_data);
+			*p_data = (TDS_UCHAR *) cr.c;
+		} else {
+			memcpy(*p_data, cr.c, buflen);
+			free(cr.c);
+		}
+
 		/*
 		 * Special case:  When outputting database varchar data
-		 * (either varchar or nullable char) dbconvert may have
+		 * (either varchar or nullable char) conversion may have
 		 * trimmed trailing blanks such that nothing is left.
 		 * In this case we need to put a single blank to the output file.
 		 */
-		if (( curcol->column_type == SYBVARCHAR ||
-			 (curcol->column_type == SYBCHAR && curcol->column_nullable)
-		    ) && srclen > 0 && buflen == 0) {
-			strcpy ((char *)data, " ");
+		if (is_char_type(curcol->column_type) && srclen > 0 && buflen == 0) {
+			strcpy ((char *) (*p_data), " ");
 			buflen = 1;
 		}
 	}
@@ -823,7 +848,6 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 {
 	FILE *hostfile = NULL;
 	TDS_UCHAR *data = NULL;
-	TDS_INT    datalen;
 	int i;
 
 	TDSSOCKET *tds;
@@ -873,56 +897,9 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	row_of_query = 0;
 	rows_written = 0;
 
-	/*
-	 * Before we start retrieving the data, go through the defined
-	 * host file columns. If the host file column is related to a
-	 * table column, then allocate some space sufficient to hold
-	 * the resulting data (converted to whatever host file format)
-	 */
-
 	/* allocate at least 256 bytes */
-	datalen = 256;
-
-	for (i = 0; i < dbproc->hostfileinfo->host_colcount; i++) {
-
-		hostcol = dbproc->hostfileinfo->host_columns[i];
-		if (hostcol->tab_colnum < 1 || hostcol->tab_colnum > resinfo->num_cols)
-			continue;
-
-		curcol = resinfo->columns[hostcol->tab_colnum - 1];
-
-		if (hostcol->datatype == 0)
-			hostcol->datatype = curcol->column_type;
-
-		/* work out how much space to allocate for output data */
-		buflen = 0;
-		switch (hostcol->datatype) {
-		case SYBCHAR:
-		case SYBVARCHAR:
-			switch (curcol->column_type) {
-			case SYBCHAR:
-			case SYBVARCHAR:
-				buflen = curcol->column_size + 1;
-				break;
-			case SYBTEXT:
-				/* FIXME column_size ?? if 2gb ?? */
-				buflen = curcol->column_size + 1;
-				break;
-			case SYBBINARY:
-			case SYBVARBINARY:
-			case SYBIMAGE:
-				buflen = curcol->column_size * 2 + 1;
-				break;
-			}
-			break;
-		}
-
-		if (buflen > datalen)
-			datalen = buflen;
-	}
-
 	/* allocate data for buffer conversion */
-	data = (TDS_UCHAR *) malloc(datalen);
+	data = (TDS_UCHAR *) malloc(256);
 	if (!data) {
 		dbperror(dbproc, SYBEMEM, errno);
 		goto Cleanup;
@@ -964,7 +941,11 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 			if (curcol->column_cur_size < 0) {
 				buflen = 0;
 			} else {
-				buflen = _bcp_out_column(dbproc, curcol, hostcol, data, datalen, bcpdatefmt);
+				buflen = _bcp_convert_out(dbproc, curcol, hostcol, &data, bcpdatefmt);
+			}
+			if (buflen < 0) {
+				_dblib_convert_err(dbproc, buflen);
+				goto Cleanup;
 			}
 
 			/* The prefix */
@@ -1039,6 +1020,40 @@ _bcp_check_eof(DBPROCESS * dbproc, FILE *file, int icol)
 	} 
 	dbperror(dbproc, SYBEBCRE, errnum);
 	return FAIL;
+}
+
+/**
+ * Convert column for input to a table
+ */
+static TDSRET
+_bcp_convert_in(DBPROCESS *dbproc, int srctype, const TDS_CHAR *src, TDS_UINT srclen,
+	     int desttype, BCPCOLDATA *coldata)
+{
+	int variable = 1;
+	CONV_RESULT cr, *p_cr;
+	TDS_INT len;
+
+	coldata->is_null = 0;
+
+	if (!is_variable_type(desttype)) {
+		variable = 0;
+		p_cr = (CONV_RESULT *) coldata->data;
+	} else {
+		p_cr = &cr;
+	}
+
+	len = tds_convert(dbproc->tds_socket->conn->tds_ctx, srctype, src, srclen, desttype, p_cr);
+	if (len < 0) {
+		_dblib_convert_err(dbproc, len);
+		return TDS_FAIL;
+	}
+
+	coldata->datalen = len;
+	if (variable) {
+		free(coldata->data);
+		coldata->data = (TDS_UCHAR *) cr.c;
+	}
+	return TDS_SUCCESS;
 }
 
 /** 
@@ -1157,9 +1172,8 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 
 		/* Fixed Length data - this overrides anything else specified */
 
-		if (is_fixed_type(hostcol->datatype)) {
+		if (is_fixed_type(hostcol->datatype))
 			collen = tds_get_size_by_type(hostcol->datatype);
-		}
 
 		col_start = ftello(hostfile);
 
@@ -1251,45 +1265,13 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 				bcpcol->bcp_column_data->is_null = 1;
 				bcpcol->bcp_column_data->datalen = 0;
 			} else {
-				bcpcol->bcp_column_data->is_null = 0;
+				TDSRET rc;
+
 				desttype = tds_get_conversion_type(bcpcol->column_type, bcpcol->column_size);
 
-				/* special hack for text columns */
-
-				if (bcpcol->column_size == 4096 && collen > bcpcol->column_size) { /* "4096" might not matter */
-					BYTE *oldbuffer = bcpcol->bcp_column_data->data;
-					switch (desttype) {
-					case SYBTEXT:
-					case SYBNTEXT:
-					case SYBIMAGE:
-					case SYBVARBINARY:
-					case XSYBVARBINARY:
-					case SYBLONGBINARY:	/* Reallocate enough space for the data from the file. */
-						bcpcol->column_size = 8 + collen;	/* room to breathe */
-						bcpcol->bcp_column_data->data = 
-							(BYTE *) realloc(bcpcol->bcp_column_data->data, bcpcol->column_size);
-						if (!bcpcol->bcp_column_data->data) {
-							dbperror(dbproc, SYBEMEM, errno);
-							free(oldbuffer);
-							free(coldata);
-							return FAIL;
-						}
-						break;
-					default:
-						break;
-					}
-				}
-				/* end special hack for text columns */
-
-				/*
-				 * FIXME bcpcol->bcp_column_data->data && bcpcol->column_size ??
-				 * It seems a buffer overflow waiting...
-				 */
-				bcpcol->bcp_column_data->datalen =
-					dbconvert(dbproc, hostcol->datatype, (const BYTE *) coldata, collen, desttype, 
-									bcpcol->bcp_column_data->data, bcpcol->column_size);
-
-				if (bcpcol->bcp_column_data->datalen == -1) {
+				rc = _bcp_convert_in(dbproc, hostcol->datatype, (const TDS_CHAR*) coldata, collen,
+						     desttype, bcpcol->bcp_column_data);
+				if (TDS_FAILED(rc)) {
 					hostcol->column_error = HOST_COL_CONV_ERROR;
 					*row_error = 1;
 					tdsdump_log(TDS_DBG_FUNC, 
@@ -2122,11 +2104,10 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 {
 	TDS_INT desttype;
 	int collen, coltype;
-	int data_is_null;
 	int bytes_read;
-	int converted_data_size;
 	BYTE *dataptr;
 	DBPROCESS *dbproc = (DBPROCESS *) bcpinfo->parent;
+	TDSRET rc;
 
 	tdsdump_log(TDS_DBG_FUNC, "_bcp_get_col_data(%p, %p)\n", bcpinfo, bindcol);
 	CHECK_CONN(TDS_FAIL);
@@ -2134,7 +2115,6 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 
 	dataptr = (BYTE *) bindcol->column_varaddr;
 
-	data_is_null = 0;
 	collen = 0;
 
 	/* If a prefix length specified, read the correct  amount of data. */
@@ -2156,21 +2136,18 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 			break;
 		}
 		if (collen <= 0)
-			data_is_null = 1;
-
+			goto null_data;
 	}
 
 	/* if (Max) column length specified take that into consideration. */
 
-	if (!data_is_null && bindcol->column_bindlen >= 0) {
+	if (bindcol->column_bindlen >= 0) {
 		if (bindcol->column_bindlen == 0)
-			data_is_null = 1;
-		else {
-			if (collen)
-				collen = (int) ((bindcol->column_bindlen < (TDS_UINT)collen) ? bindcol->column_bindlen : (TDS_UINT)collen);
-			else
-				collen = (int) bindcol->column_bindlen;
-		}
+			goto null_data;
+		if (collen)
+			collen = (int) ((bindcol->column_bindlen < (TDS_UINT)collen) ? bindcol->column_bindlen : (TDS_UINT)collen);
+		else
+			collen = (int) bindcol->column_bindlen;
 	}
 
 	desttype = tds_get_conversion_type(bindcol->column_type, bindcol->column_size);
@@ -2192,25 +2169,22 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 			collen = bytes_read;
 
 		if (collen == 0)
-			data_is_null = 1;
+			goto null_data;
 	}
 
-	if (data_is_null) {
-		bindcol->bcp_column_data->datalen = 0;
-		bindcol->bcp_column_data->is_null = 1;
-	} else {
-		if ((converted_data_size =
-		     dbconvert(dbproc, coltype,
-			       (BYTE *) dataptr, collen,
-			       desttype, bindcol->bcp_column_data->data, bindcol->column_size)) == -1) {
-			return TDS_FAIL;
-		}
+	if (collen < 0)
+		collen = (int) strlen((char *) dataptr);
 
-		bindcol->bcp_column_data->datalen = converted_data_size;
-		bindcol->bcp_column_data->is_null = 0;
-		assert(converted_data_size > 0);
-	}
+	rc = _bcp_convert_in(dbproc, coltype, (const TDS_CHAR*) dataptr, collen,
+					    desttype, bindcol->bcp_column_data);
+	if (TDS_FAILED(rc))
+		return rc;
 
+	return TDS_SUCCESS;
+
+null_data:
+	bindcol->bcp_column_data->datalen = 0;
+	bindcol->bcp_column_data->is_null = 1;
 	return TDS_SUCCESS;
 }
 
