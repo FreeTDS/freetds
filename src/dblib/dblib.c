@@ -2384,11 +2384,11 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 			ret = -1;
 		} else {
 			memcpy(dest, dres.ib, len);
-			free(dres.ib);
 			if (len < destlen)
 				memset(dest + len, 0, destlen - len);
 			ret = len;
 		}
+		free(dres.ib);
 		break;
 	case SYBINT1:
 		memcpy(dest, &(dres.ti), 1);
