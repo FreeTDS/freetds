@@ -43,6 +43,7 @@
 #include <freetds/tds.h>
 #include <freetds/iconv.h>
 #include <freetds/convert.h>
+#include <freetds/bytes.h>
 #include <replacements.h>
 #include <sybfront.h>
 #include <sybdb.h>
@@ -55,8 +56,6 @@
 #ifndef MAX
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
-
-TDS_RCSID(var, "$Id: bcp.c,v 1.220 2012-03-09 19:20:30 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -2121,9 +2120,6 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 static TDSRET
 _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 {
-	TDS_TINYINT ti;
-	TDS_SMALLINT si;
-	TDS_INT li;
 	TDS_INT desttype;
 	int collen, coltype;
 	int data_is_null;
@@ -2147,22 +2143,19 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 
 		switch (bindcol->bcp_prefix_len) {
 		case 1:
-			memcpy(&ti, dataptr, 1);
+			collen = TDS_GET_UA1(dataptr);
 			dataptr += 1;
-			collen = ti;
 			break;
 		case 2:
-			memcpy(&si, dataptr, 2);
+			collen = (TDS_SMALLINT) TDS_GET_UA2(dataptr);
 			dataptr += 2;
-			collen = si;
 			break;
 		case 4:
-			memcpy(&li, dataptr, 4);
+			collen = (TDS_INT) TDS_GET_UA4(dataptr);
 			dataptr += 4;
-			collen = li;
 			break;
 		}
-		if (collen == 0)
+		if (collen <= 0)
 			data_is_null = 1;
 
 	}
