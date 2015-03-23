@@ -2,7 +2,7 @@ README for FreeTDS 0.95
 Release date TBD
 
 * to build FreeTDS read the file INSTALL or
-  the FreeTDS Users Guide (doc/userguide.tgz) and
+  the FreeTDS Users Guide (doc/userguide/index.html) and
   http://www.freetds.org/userguide/
 
 FreeTDS is a free implementation of Sybase's DB-Library, CT-Library,
@@ -26,7 +26,7 @@ TODO		The roadmap, such as it is
 Also, doc/api_status.txt shows which functions are implemented.
 
 For details on what's new in this version, see NEWS.  For unbearable
-detail, see ChangeLog.
+detail, see git log.
 
 Documentation
 =============
