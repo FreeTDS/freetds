@@ -777,7 +777,7 @@ bcp_write_prefix(FILE *hostfile, BCP_HOSTCOLINFO *hostcol, TDSCOLUMN *curcol, in
 	if ((plen = hostcol->prefix_len) == -1) {
 		if (is_blob_type(hostcol->datatype))
 			plen = 4;
-		else if (!(is_fixed_type(hostcol->datatype)))
+		else if (!is_fixed_type(hostcol->datatype) && !is_numeric_type(hostcol->datatype))
 			plen = 2;
 		else if (curcol->column_nullable)
 			plen = 1;
