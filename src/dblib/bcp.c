@@ -1294,7 +1294,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 					hostcol->column_error = HOST_COL_CONV_ERROR;
 					*row_error = 1;
 					tdsdump_log(TDS_DBG_FUNC, 
-						"_bcp_read_hostfile failed to convert %d bytes at offset 0x" PRIx64 " in the data file.\n",
+						"_bcp_read_hostfile failed to convert %d bytes at offset 0x%" PRIx64 " in the data file.\n",
 						    collen, (TDS_INT8) col_start);
 				}
 
