@@ -69,8 +69,7 @@ tds_money_to_string(const TDS_MONEY * money, char *s)
 	char *p;
 
 	/* sometimes money it's only 4-byte aligned so always compute 64-bit */
-	/* FIXME align money/double/bigint in row to 64-bit */
-	mymoney = (((TDS_INT8)(((TDS_INT*)money)[0])) << 32) | ((TDS_UINT*) money)[1];
+	mymoney = (((TDS_INT8) money->tdsoldmoney.mnyhigh) << 32) | money->tdsoldmoney.mnylow;
 
 	p = s;
 	if (mymoney < 0) {
