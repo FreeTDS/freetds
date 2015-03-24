@@ -380,20 +380,6 @@ typedef enum tds_encryption_level {
 			x==TDS_DONEPROC_TOKEN    || \
 			x==TDS_DONEINPROC_TOKEN)
 
-#define is_hard_end_token(x) (x==TDS_DONE_TOKEN    || \
-			x==TDS_DONEPROC_TOKEN)
-
-#define is_msg_token(x) (x==TDS_INFO_TOKEN    || \
-			x==TDS_ERROR_TOKEN    || \
-			x==TDS_EED_TOKEN)
-
-#define is_result_token(x) (x==TDS_RESULT_TOKEN || \
-			x==TDS_ROWFMT2_TOKEN    || \
-			x==TDS7_RESULT_TOKEN    || \
-			x==TDS_COLFMT_TOKEN     || \
-			x==TDS_COLNAME_TOKEN    || \
-			x==TDS_RETURNSTATUS_TOKEN)
-
 enum {
 	TDS_TYPEFLAG_INVALID  = 0,
 	TDS_TYPEFLAG_NULLABLE = 1,
