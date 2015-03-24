@@ -546,7 +546,6 @@ typedef struct tds_login
 
 	unsigned int bulk_copy:1;
 	unsigned int suppress_language:1;
-	unsigned int broken_dates:1;
 	unsigned int emul_little_endian:1;
 	unsigned int gssapi_use_delegation:1;
 	unsigned int use_ntlmv2:1;
@@ -1042,7 +1041,6 @@ struct tds_connection
 	TDS_UCHAR tds72_transaction[8];
 
 	TDS_CAPABILITIES capabilities;
-	unsigned int broken_dates:1;
 	unsigned int emul_little_endian:1;
 	unsigned int use_iconv:1;
 	unsigned int tds71rev1:1;

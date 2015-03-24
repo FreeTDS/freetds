@@ -667,34 +667,6 @@ tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	}
 
 #ifdef WORDS_BIGENDIAN
-	/*
-	 * MS SQL Server 7.0 has broken date types from big endian
-	 * machines, this swaps the low and high halves of the
-	 * affected datatypes
-	 *
-	 * Thought - this might be because we don't have the
-	 * right flags set on login.  -mjs
-	 *
-	 * Nope its an actual MS SQL bug -bsb
-	 */
-	/* TODO test on login, remove configuration -- freddy77 */
-	if (tds->conn->broken_dates &&
-	    (curcol->column_type == SYBDATETIME ||
-	     curcol->column_type == SYBDATETIME4 ||
-	     curcol->column_type == SYBDATETIMN ||
-	     curcol->column_type == SYBMONEY ||
-	     curcol->column_type == SYBMONEY4 || (curcol->column_type == SYBMONEYN && curcol->column_size > 4)))
-		/*
-		 * above line changed -- don't want this for 4 byte SYBMONEYN
-		 * values (mlilback, 11/7/01)
-		 */
-	{
-		unsigned char temp_buf[8];
-
-		memcpy(temp_buf, dest, colsize / 2);
-		memcpy(dest, &dest[colsize / 2], colsize / 2);
-		memcpy(&dest[colsize / 2], temp_buf, colsize / 2);
-	}
 	if (tds->conn->emul_little_endian) {
 		tdsdump_log(TDS_DBG_INFO1, "swapping coltype %d\n", tds_get_conversion_type(curcol->column_type, colsize));
 		tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), dest);

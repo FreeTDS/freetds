@@ -384,10 +384,16 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 	tds->conn->tds_version = login->tds_version;
 	tds->conn->emul_little_endian = login->emul_little_endian;
 #ifdef WORDS_BIGENDIAN
-	if (IS_TDS7_PLUS(tds->conn)) {
-		/* TDS 7/8 only supports little endian */
+	/*
+	 * Enable automatically little endian emulation.
+	 * TDS 7/8 only supports little endian.
+	 * This is done even for 4.2 to ensure that when we connect to a
+	 * MSSQL we use it and avoid to make additional checks for
+	 * broken 7.0 servers.
+	 * Note that 4.2 should not be used anymore for real jobs.
+	 */
+	if (IS_TDS7_PLUS(tds->conn) || IS_TDS42(tds->conn))
 		tds->conn->emul_little_endian = 1;
-	}
 #endif
 
 	/* set up iconv if not already initialized*/
