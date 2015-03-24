@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2005-2011 Frediano Ziglio
+ * Copyright (C) 2005-2015 Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -725,7 +725,7 @@ tds_alloc_locale(void)
 }
 
 /*
- * Default capabilities as of December 2006.  
+ * Default capabilities.
  */
 #undef REQ
 #define SUPPORTED_REQ_CAP(i) \
@@ -827,7 +827,7 @@ tds_init_login(TDSLOGIN *login, TDSLOCALE * locale)
 	}
 	memset(hostname, '\0', sizeof(hostname));
 	gethostname(hostname, sizeof(hostname));
-	hostname[sizeof(hostname) - 1] = '\0';	/* make sure it's truncated */
+	hostname[sizeof(hostname) - 1] = '\0';	/* make sure it's terminated */
 	if (!tds_dstr_copy(&login->client_host_name, hostname))
 		return NULL;
 
