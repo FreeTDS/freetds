@@ -176,7 +176,7 @@ tds_check_column_extra(const TDSCOLUMN * column)
 	assert(column_varint_size == 8 || (column_varint_size <= 5 && column_varint_size != 3));
 
 	assert(column->column_scale <= column->column_prec);
-	assert(column->column_prec <= 77);
+	assert(column->column_prec <= MAXPRECISION);
 
 	/* I don't like this that much... freddy77 */
 	if (column->column_type == 0)
@@ -213,7 +213,7 @@ tds_check_column_extra(const TDSCOLUMN * column)
 	if (is_numeric_type(column->column_type)) {
 		/* I don't like that much this difference between numeric and not numeric - freddy77 */
 		/* TODO what should be the size ?? */
-		assert(column->column_prec >= 1 && column->column_prec <= 77);
+		assert(column->column_prec >= 1 && column->column_prec <= MAXPRECISION);
 		assert(column->column_scale <= column->column_prec);
 /*		assert(column->column_cur_size == tds_numeric_bytes_per_prec[column->column_prec] + 2 || column->column_cur_size == -1); */
 	} else {

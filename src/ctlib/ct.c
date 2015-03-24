@@ -1,7 +1,7 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001  Brian Bruns
  * Copyright (C) 2002, 2003, 2004, 2005  James K. Lowden
- * Copyright (C) 2011, 2012  Frediano Ziglio
+ * Copyright (C) 2011-2015  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -39,8 +39,6 @@
 #include <freetds/enum_cap.h>
 #include <freetds/data.h>
 #include "replacements.h"
-
-TDS_RCSID(var, "$Id: ct.c,v 1.225 2012-03-11 15:52:22 freddy77 Exp $");
 
 
 static const char * ct_describe_cmd_state(CS_INT state);
@@ -4116,7 +4114,7 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *d
 		param->scale = datafmt->scale;
 		param->precision = datafmt->precision;
 		if (param->scale < 0 || param->precision < 0
-		    || param->precision > 77 || param->scale > param->precision)
+		    || param->precision > MAXPRECISION || param->scale > param->precision)
 			return CS_FAIL;
 	}
 

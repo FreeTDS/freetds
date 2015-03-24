@@ -2166,11 +2166,11 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 	unsigned char sign;
 
 	/* FIXME: application can pass invalid value for precision and scale ?? */
-	if (cr->n.precision > 77)
+	if (cr->n.precision > MAXPRECISION)
 		return TDS_CONVERT_FAIL;
 
 	if (cr->n.precision == 0)
-		cr->n.precision = 77;	/* assume max precision */
+		cr->n.precision = MAXPRECISION;	/* assume max precision */
 
 	if (cr->n.scale > cr->n.precision)
 		return TDS_CONVERT_FAIL;

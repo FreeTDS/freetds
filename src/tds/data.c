@@ -427,7 +427,7 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		num->scale     = tds_get_byte(tds);
 		colsize -= 2;
 		/* check prec/scale, don't let server crash us */
-		if (num->precision < 1 || num->precision > 77
+		if (num->precision < 1 || num->precision > MAXPRECISION
 		    || num->scale > num->precision)
 			goto error_type;
 		if (colsize > sizeof(num->array))
@@ -942,7 +942,7 @@ tds_numeric_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 	col->column_scale = tds_get_byte(tds);       /* scale */
 
 	/* check prec/scale, don't let server crash us */
-	if (col->column_prec < 1 || col->column_prec > 77
+	if (col->column_prec < 1 || col->column_prec > MAXPRECISION
 	    || col->column_scale > col->column_prec)
 		return TDS_FAIL;
 

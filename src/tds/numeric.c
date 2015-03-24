@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998-1999  Brian Bruns
- * Copyright (C) 2005-2010  Frediano Ziglio
+ * Copyright (C) 2005-2015  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -31,8 +31,6 @@
 #include <freetds/convert.h>
 #include <freetds/bytes.h>
 #include <stdlib.h>
-
-TDS_RCSID(var, "$Id: numeric.c,v 1.50 2011-06-11 07:42:26 freddy77 Exp $");
 
 /**
  * tds_numeric_bytes_per_prec is indexed by precision and will
@@ -253,10 +251,10 @@ tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, uns
 	unsigned int i, packet_len;
 	int scale_diff, bytes;
 
-	if (numeric->precision < 1 || numeric->precision > 77 || numeric->scale > numeric->precision)
+	if (numeric->precision < 1 || numeric->precision > MAXPRECISION || numeric->scale > numeric->precision)
 		return TDS_CONVERT_FAIL;
 
-	if (new_prec < 1 || new_prec > 77 || new_scale > new_prec)
+	if (new_prec < 1 || new_prec > MAXPRECISION || new_scale > new_prec)
 		return TDS_CONVERT_FAIL;
 
 	scale_diff = new_scale - numeric->scale;
