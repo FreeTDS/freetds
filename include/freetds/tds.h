@@ -1333,10 +1333,6 @@ TDSRET tds_multiple_execute(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDSDYNAMIC * 
 
 /* token.c */
 TDSRET tds_process_cancel(TDSSOCKET * tds);
-#ifdef WORDS_BIGENDIAN
-void tds_swap_datatype(int coltype, void *buf);
-#endif
-void tds_swap_numeric(TDS_NUMERIC *num);
 int tds_get_token_size(int marker);
 TDSRET tds_process_login_tokens(TDSSOCKET * tds);
 TDSRET tds_process_simple_query(TDSSOCKET * tds);

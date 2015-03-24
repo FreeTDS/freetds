@@ -2606,52 +2606,6 @@ tds_get_token_size(int marker)
 	}
 }
 
-#ifdef WORDS_BIGENDIAN
-void
-tds_swap_datatype(int coltype, void *b)
-{
-	unsigned char *buf = (unsigned char *) b;
-
-	switch (coltype) {
-	case SYBDATETIME4:
-		tds_swap_bytes(&buf[2], 2);
-	case SYBINT2:
-		tds_swap_bytes(buf, 2);
-		break;
-	case SYBMONEY:
-	case SYBDATETIME:
-		tds_swap_bytes(&buf[4], 4);
-	case SYBINT4:
-	case SYBMONEY4:
-	case SYBREAL:
-		tds_swap_bytes(buf, 4);
-		break;
-	case SYBINT8:
-	case SYBFLT8:
-		tds_swap_bytes(buf, 8);
-		break;
-	case SYBUNIQUE:
-		tds_swap_bytes(buf, 4);
-		tds_swap_bytes(&buf[4], 2);
-		tds_swap_bytes(&buf[6], 2);
-		break;
-	}
-}
-#endif
-
-/**
- * Converts numeric from Microsoft representation to internal one (Sybase).
- * \param num numeric data to convert
- */
-void
-tds_swap_numeric(TDS_NUMERIC *num)
-{
-	/* swap the sign */
-	num->array[0] = (num->array[0] == 0) ? 1 : 0;
-	/* swap the data */
-	tds_swap_bytes(&(num->array[1]), tds_numeric_bytes_per_prec[num->precision] - 1);
-}
-
 
 /**
  * tds_process_compute_names() processes compute result sets.

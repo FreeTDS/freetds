@@ -49,6 +49,10 @@ TDS_RCSID(var, "$Id: data.c,v 1.45 2011-10-30 16:47:18 freddy77 Exp $");
 #define USE_ICONV (tds->conn->use_iconv)
 
 static const TDSCOLUMNFUNCS *tds_get_column_funcs(TDSCONNECTION *conn, int type);
+#ifdef WORDS_BIGENDIAN
+static void tds_swap_datatype(int coltype, void *b);
+#endif
+static void tds_swap_numeric(TDS_NUMERIC *num);
 
 #undef MIN
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
@@ -1251,3 +1255,50 @@ tds_get_column_funcs(TDSCONNECTION *conn, int type)
 	return &tds_generic_funcs;
 }
 #include "tds_types.h"
+
+#ifdef WORDS_BIGENDIAN
+static void
+tds_swap_datatype(int coltype, void *b)
+{
+	unsigned char *buf = (unsigned char *) b;
+
+	switch (coltype) {
+	case SYBDATETIME4:
+		tds_swap_bytes(&buf[2], 2);
+	case SYBINT2:
+		tds_swap_bytes(buf, 2);
+		break;
+	case SYBMONEY:
+	case SYBDATETIME:
+		tds_swap_bytes(&buf[4], 4);
+	case SYBINT4:
+	case SYBMONEY4:
+	case SYBREAL:
+		tds_swap_bytes(buf, 4);
+		break;
+	case SYBINT8:
+	case SYBFLT8:
+		tds_swap_bytes(buf, 8);
+		break;
+	case SYBUNIQUE:
+		tds_swap_bytes(buf, 4);
+		tds_swap_bytes(&buf[4], 2);
+		tds_swap_bytes(&buf[6], 2);
+		break;
+	}
+}
+#endif
+
+/**
+ * Converts numeric from Microsoft representation to internal one (Sybase).
+ * \param num numeric data to convert
+ */
+static void
+tds_swap_numeric(TDS_NUMERIC *num)
+{
+	/* swap the sign */
+	num->array[0] = (num->array[0] == 0) ? 1 : 0;
+	/* swap the data */
+	tds_swap_bytes(&(num->array[1]), tds_numeric_bytes_per_prec[num->precision] - 1);
+}
+
