@@ -241,6 +241,7 @@ tdsdump_start(FILE *file, const char *fname, int line)
 	fputs(buf, file);
 }
 
+#undef tdsdump_dump_buf
 /**
  * Dump the contents of data into the log file in a human readable format.
  * \param file       source file name
@@ -338,6 +339,7 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
 	tds_mutex_unlock(&g_dump_mutex);
 
 }				/* tdsdump_dump_buf()  */
+#define tdsdump_dump_buf TDSDUMP_BUF_FAST
 
 
 #undef tdsdump_log

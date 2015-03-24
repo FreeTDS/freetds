@@ -1418,6 +1418,8 @@ void tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...
 ;
 #define TDSDUMP_LOG_FAST if (TDS_UNLIKELY(tds_write_dump)) tdsdump_log
 #define tdsdump_log TDSDUMP_LOG_FAST
+#define TDSDUMP_BUF_FAST if (TDS_UNLIKELY(tds_write_dump)) tdsdump_dump_buf
+#define tdsdump_dump_buf TDSDUMP_BUF_FAST
 
 extern int tds_write_dump;
 extern int tds_debug_flags;
