@@ -527,7 +527,7 @@ tds_alloc_row(TDSRESULTINFO * res_info)
 	}
 	res_info->row_size = row_size;
 
-	ptr = (unsigned char *) malloc(res_info->row_size);
+	ptr = (unsigned char *) calloc(1, res_info->row_size);
 	res_info->current_row = ptr;
 	if (!ptr)
 		return TDS_FAIL;
@@ -545,7 +545,6 @@ tds_alloc_row(TDSRESULTINFO * res_info)
 		row_size -= row_size % TDS_ALIGN_SIZE;
 	}
 
-	memset(ptr, '\0', res_info->row_size);
 	return TDS_SUCCESS;
 }
 
