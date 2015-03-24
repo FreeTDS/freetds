@@ -38,6 +38,7 @@
 #endif /* HAVE_STRING_H */
 
 #include <freetds/tds.h>
+#include <freetds/bytes.h>
 #include "md4.h"
 
 TDS_RCSID(var, "$Id: md4.c,v 1.9 2011-05-16 08:51:40 freddy77 Exp $");
@@ -48,20 +49,14 @@ TDS_RCSID(var, "$Id: md4.c,v 1.9 2011-05-16 08:51:40 freddy77 Exp $");
 #ifndef WORDS_BIGENDIAN
 #define byteReverse(buf, len)	/* Nothing */
 #else
-static void byteReverse(unsigned char *buf, unsigned longs);
-
-
 /*
  * Note: this code is harmless on little-endian machines.
  */
 static void
 byteReverse(unsigned char *buf, unsigned longs)
 {
-	word32 t;
-
 	do {
-		t = (word32) ((unsigned) buf[3] << 8 | buf[2]) << 16 | ((unsigned) buf[1] << 8 | buf[0]);
-		*(word32 *) buf = t;
+		*(word32 *) buf = TDS_GET_A4LE(buf);
 		buf += 4;
 	} while (--longs);
 }
