@@ -368,6 +368,7 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 						<term><Option>--with-libiconv-prefix=<replaceable>DIR</>
 							</Option></term>
 						<listitem><para>Specifies the location of the iconv library to use.  <Command>configure</> will search for libiconv in the usual places; use <Option>--with-libiconv-prefix</Option>  if it's unsuccessful (assuming you want to use iconv, of course).  Overridden by <Option>--disable-libiconv</Option>, below.</para>
+<para>Version 0.95 removed support for iconv which cannot convert from any encoding to any encoding. This affect potentially systems like Tru64 and HP-UX were iconv mainly convert from/to ucs2. It's recommended to use GNU libiconv in this case.</para>
 							</listitem>
 						</varlistentry>
 					<varlistentry>
@@ -441,6 +442,16 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 						<listitem><para>Debug-mode compiles are enabled by default, and will remain so at least until version 1.0.  You can speed things up ever so slightly by disabling it.
 </para></listitem>
 						</varlistentry>
+					<varlistentry>
+						<term><Option>--disable-odbc-wide</Option></term>
+						<listitem><para>Disable support for wide characaters in ODBC.
+</para></listitem>
+						</varlistentry>
+					<varlistentry>
+						<term><Option>--disable-sspi</Option></term>
+						<listitem><para>Disable SSPI support. SSPI is a Micrsoft library that allows you to use your current logged-in account for authentication.  With this option enabled (the default), &freetds; supports "trusted logins" for Win32/64, just as Microsoft's own implementations do.
+</para></listitem>
+						</varlistentry>
 					</variablelist>
 				
 				<variablelist id="tab.turnon"><title>Things you can turn on</title>
@@ -465,12 +476,6 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 						</varlistentry>
 					
 					<varlistentry>
-						<term><Option>--enable-sspi</Option></term>
-						<listitem><para>Enable SSPI support. SSPI is a Micrsoft library that allows you to use your current logged-in account for authentication.  With this option enabled, &freetds; supports "trusted logins" for Win32/64, just as Microsoft's own implementations do.
-</para></listitem>
-						</varlistentry>
-					
-					<varlistentry>
 						<term><Option>--enable-extra-checks</Option></term>
 						<listitem><para>Intended for debugging purposes, enables certain internal consistency checks against problems like memory corruption and buffer exhaustion.
 </para></listitem>
@@ -479,6 +484,12 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 					<varlistentry>
 						<term><Option>--enable-developing</Option></term>
 						<listitem><para>Enable some code still in development. Should be used only by a developer or a brave user :)
+</para></listitem>
+						</varlistentry>
+
+					<varlistentry>
+						<term><Option>--enable-odbc-wide-tests</Option></term>
+						<listitem><para>Compile ODBC tests to use wide characters. Test will use wide versions.
 </para></listitem>
 						</varlistentry>
 					
