@@ -1,5 +1,5 @@
 .\" cf. groff_mdoc
-.Dd December 8, 2012
+.Dd March 25, 2015
 .Os FreeTDS @VERSION@
 .Dt FREEBCP 1
 .Sh NAME
@@ -37,6 +37,9 @@
 .Op Fl T Ar textsize
 .Op Fl A Ar packet_size
 .Op Fl O Ar options
+.Op Fl i Ar inputfile
+.Op Fl o Ar outputfile
+.Op Fl C Ar charset
 .Op Fl EdVv
 .\"
 .Sh DESCRIPTION
@@ -188,6 +191,12 @@ delimiter. May be more than one character.  Default is tab
 .It Fl v
 .It Fl V
 Print the version information and exit.
+.It Fl i Ar inputfile
+Read input data from file specified.
+.It Fl o Ar outputfile
+Write output data to file specified.
+.It Fl C Ar charset
+Specify character set to use to talk to server.
 .El
 .Sh ENVIRONMENT
 .Ev DSQUERY

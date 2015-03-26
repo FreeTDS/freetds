@@ -1,5 +1,5 @@
 .\" cf. groff_mdoc
-.Dd April 26, 2012
+.Dd March 25, 2015
 .Os FreeTDS @VERSION@
 .Dt FISQL FreeTDS "FreeTDS Reference Manual"
 .\"
@@ -12,6 +12,7 @@
 .Nm
 .Op Fl eFgpnvXY
 .Op Fl a Ar display_charset
+.Op Fl A Ar packet_size
 .Op Fl c Ar cmdend
 .Op Fl D Ar database
 .Op Fl E Ar editor
@@ -47,6 +48,8 @@ on a line by itself as a separator between batches.
 .Bl -tag -width indent
 .It Fl a Ar display_charset
 The client charset name. Not implemented.
+.It Fl A Ar packet_size
+Set protocol packet size. You should not need to set this parameter.
 .It Fl c Ar cmdend
 Command terminator, defaults to
 .Ql go Ns .

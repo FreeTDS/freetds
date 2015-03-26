@@ -1,5 +1,5 @@
 .\" cf. groff_mdoc
-.Dd April 26, 2012
+.Dd March 25, 2015
 .Os FreeTDS @VERSION@
 .Dt DATACOPY FreeTDS "FreeTDS Reference Manual"
 .\"
@@ -9,7 +9,7 @@
 .\"
 .Sh SYNOPSIS
 .Nm
-.Op Fl vd
+.Op Fl vdE
 .Bro
 .Fl t
 |
@@ -79,6 +79,8 @@ location/name of the target table.
 If not specified, 
 .Nm
 prompts the user for the information.
+.It Fl E
+Keep identity values.
 .Sh SEE ALSO
 .Xr freebcp 1 , Xr defncopy 1 , Xr bsqldb 1 , Xr tsql 1 , 
 .%B FreeTDS User Guide.

@@ -1,7 +1,7 @@
 .\" cf. groff_mdoc
-.Dd April 26, 2012
-.Os FreeTDS @VERSION@
+.Dd March 26, 2015
 .Dt BSQLDB 1
+.Os FreeTDS @VERSION@
 .Sh NAME
 .Nm bsqldb
 .Nd batch SQL script processor using DB-Library
@@ -17,6 +17,7 @@
 .Op Fl e Ar error_file
 .Op Fl H Ar hostname
 .Op Fl t Ar field_term
+.Op Fl R Ar pivot_description
 .\"
 .Sh DESCRIPTION
 .Nm
@@ -64,6 +65,20 @@ Verbose mode, for more information about the DB-Library interaction.
 This also reports the result set metadata, including and return code. All
 verbose data are written to standard error (or 
 .Fl e Ns ), so as not to interfere with the data stream.
+.It Fl R Ar pivot_description
+Specify pivot trasformation. The format is
+.Ao Ar down\ columns Ac
+.Ao Ar across\ columns Ac
+.Ao Ar function Ac
+.Ao Ar value Ac .
+Columns are specified but numbers.
+The format of
+.Ar down columns
+and
+.Ar across columns
+is a comma separated list of columns.
+.Ar function
+is either count, sum, min or max.
 .El
 .\"
 .Sh ENVIRONMENT

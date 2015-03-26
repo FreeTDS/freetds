@@ -1,5 +1,5 @@
 .\" cf. groff_mdoc
-.Dd April 26, 2012
+.Dd March 25, 2015
 .Os FreeTDS @VERSION@
 .Dt TSQL FreeTDS "FreeTDS Reference Manual"
 .Sh NAME
@@ -87,6 +87,18 @@ Print version
 .It Fl q
 Quiet
 .El
+.It Fl a Ar appname
+application name.
+.It Fl t Ar colterm
+column terminator.
+.It Fl r Ar rowterm
+row terminator.
+.It Fl r Ar rowterm
+row terminator.
+.It Fl J Ar charset
+character set.
+.It Fl v
+verbose mode.
 .El
 .\"
 .Sh NOTES

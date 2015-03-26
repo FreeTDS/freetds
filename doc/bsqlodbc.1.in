@@ -1,5 +1,5 @@
 .\" cf. groff_mdoc
-.Dd April 26, 2012
+.Dd March 25, 2015
 .Os FreeTDS @VERSION@
 .Dt BSQLODBC FreeTDS "FreeTDS Reference Manual"
 .\"
@@ -10,7 +10,7 @@
 .Sh SYNOPSIS
 .Pp
 .Nm
-.Op Fl qv
+.Op Fl hqv
 .Op Fl U Ar username
 .Op Fl P Ar password
 .Op Fl S Ar server
@@ -19,6 +19,7 @@
 .Op Fl o Ar output_file
 .Op Fl e Ar error_file
 .Op Fl t Ar field_term
+.Op Fl V Ar odbc_version
 .\"
 .Sh DESCRIPTION
 .Pp
@@ -83,6 +84,8 @@ This also reports the result set metadata, including and return code. All
 verbose data are written to standard error (or 
 .Fl e Ns ),
 so as not to interfere with the data stream.
+.It Fl V Ar odbc_version
+Specify ODBC version (2 or 3).
 .El
 .\"
 .Sh NOTES
