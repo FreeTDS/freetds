@@ -98,7 +98,7 @@ CheckData(const char *s, int line)
 static void
 CheckReturnCode(SQLRETURN result, SQLSMALLINT expected, int line)
 {
-	if (ReturnCode == expected && (expected != INVALID_RETURN || strcmp(OutString, "Test") == 0)
+	if (ReturnCode == expected && (expected != INVALID_RETURN || strcmp(OutString, "Invalid!") == 0)
 	    && (expected == INVALID_RETURN || strcmp(OutString, "This is bogus!") == 0))
 		return;
 
@@ -143,12 +143,15 @@ Test(int level)
 	SQLBindParameter(odbc_stmt, 1, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &ReturnCode, 0, &cbReturnCode);
 	SQLBindParameter(odbc_stmt, 2, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &InParam, 0, &cbInParam);
 	SQLBindParameter(odbc_stmt, 3, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &OutParam, 0, &cbOutParam);
-	strcpy(OutString, "Test");
+	strcpy(OutString, "Invalid!");
 	SQLBindParameter(odbc_stmt, 4, SQL_PARAM_OUTPUT, SQL_C_CHAR, SQL_VARCHAR, OUTSTRING_LEN, 0, OutString, OUTSTRING_LEN,
 			 &cbOutString);
 
 	CHKExecute("S");
 
+	/* first select, check data are returned.
+	 * SET statements before does not affect results
+	 */
 	CheckData("");
 	CHKFetch("S");
 	CheckData("Here is the first row");
@@ -169,16 +172,23 @@ Test(int level)
 		expected = level > 10 ? SQL_ERROR : SQL_SUCCESS_WITH_INFO;
 		if (result != expected)
 			ODBC_REPORT_ERROR("SQLMoreResults returned unexpected result");
-		if (odbc_use_version3 && !g_second_select && g_nocount) {
-			CheckReturnCode(result, 0);
-			ReturnCode = INVALID_RETURN;
-			TestResult(result, level, "SQLMoreResults");
-			ReturnCode = 0;
+		if (!g_second_select && g_nocount) {
+			if (ReturnCode == INVALID_RETURN) {
+				result = SQLMoreResults(odbc_stmt);
+			} else {
+				CheckReturnCode(result, 0);
+				ReturnCode = INVALID_RETURN;
+				TestResult(result, level, "SQLMoreResults");
+				ReturnCode = 0;
+			}
 		} else {
 			TestResult(result, level, "SQLMoreResults");
 		}
+
+		/* a recordset with only warnings/errors do not contains rows */
 		ODBC_CHECK_ROWS(-1);
 	} else {
+		/* in ODBC 2 errors/warnings are not handled as different recordset */
 		TestResult(result, level, "SQLFetch");
 	}
 
@@ -209,7 +219,14 @@ Test(int level)
 	CheckReturnCode(result, INVALID_RETURN);
 
 	CheckData("");
-	CHKFetch("S");
+	if (g_nocount && odbc_use_version3 && g_second_select && level >= 10) {
+		if (CHKFetch("SE") == SQL_ERROR) {
+			SQLMoreResults(odbc_stmt);
+			CHKFetch("S");
+		}
+	} else {
+		CHKFetch("S");
+	}
 	CheckData("Here is the last row");
 
 	CHKFetch("No");
