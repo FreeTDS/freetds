@@ -486,6 +486,10 @@ extern const char *const tds_type_names[256];
 #define TDS_STR_REALM	"realm"
 /* Kerberos SPN */
 #define TDS_STR_SPN	"spn"
+/* CA file */
+#define TDS_STR_CAFILE	"ca file"
+/* CRL file */
+#define TDS_STR_CRLFILE	"crl file"
 
 
 /* TODO do a better check for alignment than this */
@@ -523,6 +527,8 @@ typedef struct tds_login
 	DSTR server_host_name;
 	DSTR server_realm_name;		/**< server realm name (in freetds.conf) */
 	DSTR server_spn;		/**< server SPN (in freetds.conf) */
+	DSTR cafile;			/**< certificate authorities file */
+	DSTR crlfile;			/**< certificare revocation file */
 	DSTR app_name;
 	DSTR user_name;	    	/**< account for login */
 	DSTR password;	    	/**< password of account login */

@@ -249,6 +249,8 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "emul_little_endian", connection->emul_little_endian);
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "server_realm_name", tds_dstr_cstr(&connection->server_realm_name));
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "server_spn", tds_dstr_cstr(&connection->server_spn));
+		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "cafile", tds_dstr_cstr(&connection->cafile));
+		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "crlfile", tds_dstr_cstr(&connection->crlfile));
 
 		tdsdump_close();
 	}
@@ -650,6 +652,10 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		s = tds_dstr_copy(&login->server_realm_name, value);
 	} else if (!strcmp(option, TDS_STR_SPN)) {
 		s = tds_dstr_copy(&login->server_spn, value);
+	} else if (!strcmp(option, TDS_STR_CAFILE)) {
+		s = tds_dstr_copy(&login->cafile, value);
+	} else if (!strcmp(option, TDS_STR_CRLFILE)) {
+		s = tds_dstr_copy(&login->crlfile, value);
 	} else {
 		tdsdump_log(TDS_DBG_INFO1, "UNRECOGNIZED option '%s' ... ignoring.\n", option);
 	}

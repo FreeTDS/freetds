@@ -1094,6 +1094,23 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 							<entry>no</entry>
 							<entry>Instead of using UCS-2 for database wide character encoding use UTF-16.  Newer Windows versions use this encoding instead of UCS-2. This could result in some issues if clients assume that a character is always 2 bytes.</entry>
 							</row>
+						<row>
+							<entry><literal>ca file</></entry>
+							<entry>any filename</entry>
+							<entry>none</entry>
+							<entry>File that hold root certificates (in PEM format) to verify server certificate, used during an encrypted connection.
+If not specify or empty any certificate will be accepted from server.
+If a certiticate is not installed server can generate a self signed certificate, in this case is useful to disable certificate validation (which is the default).
+Note that is not possible to specify a directory as usually database servers does not use a certificate signed by a public global certification authority.
+</entry>
+							</row>
+						<row>
+							<entry><literal>crl file</></entry>
+							<entry>any filename</entry>
+							<entry>none</entry>
+							<entry>File that hold certificate revocation list. Only used if <literal>ca file</> is also specified.
+</entry>
+							</row>
 						</tbody>
 					</tgroup>
 				</table>

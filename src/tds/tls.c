@@ -182,6 +182,28 @@ GCRY_THREAD_OPTION_PTHREAD_IMPL;
 #define tds_gcry_init() do {} while(0)
 #endif
 
+static int
+tds_verify_certificate(gnutls_session_t session)
+{
+	unsigned int status;
+	int ret;
+
+	ret = gnutls_certificate_verify_peers2(session, &status);
+	if (ret < 0) {
+		tdsdump_log(TDS_DBG_ERROR, "Error verifying certificate: %s\n", gnutls_strerror(ret));
+		return GNUTLS_E_CERTIFICATE_ERROR;
+	}
+
+	/* Certificate is not trusted */
+	if (status != 0) {
+		tdsdump_log(TDS_DBG_ERROR, "Certificate status: %u\n", status);
+		return GNUTLS_E_CERTIFICATE_ERROR;
+	}
+
+	/* notify gnutls to continue handshake normally */
+	return 0;
+}
+
 TDSRET
 tds_ssl_init(TDSSOCKET *tds)
 {
@@ -218,6 +240,20 @@ tds_ssl_init(TDSSOCKET *tds)
 	ret = gnutls_certificate_allocate_credentials(&xcred);
 	if (ret != 0)
 		goto cleanup;
+
+	if (!tds_dstr_isempty(&tds->login->cafile)) {
+		tls_msg = "loading CA file";
+		ret = gnutls_certificate_set_x509_trust_file(xcred, tds_dstr_cstr(&tds->login->cafile), GNUTLS_X509_FMT_PEM);
+		if (ret <= 0)
+			goto cleanup;
+		if (!tds_dstr_isempty(&tds->login->crlfile)) {
+			tls_msg = "loading CRL file";
+			ret = gnutls_certificate_set_x509_crl_file(xcred, tds_dstr_cstr(&tds->login->crlfile), GNUTLS_X509_FMT_PEM);
+			if (ret <= 0)
+				goto cleanup;
+		}
+		gnutls_certificate_set_verify_function(xcred, tds_verify_certificate);
+	}
 
 	/* Initialize TLS session */
 	tls_msg = "initializing session";
@@ -388,12 +424,31 @@ tds_ssl_init(TDSSOCKET *tds)
 	if (!ctx)
 		goto cleanup;
 
+	if (!tds_dstr_isempty(&tds->login->cafile)) {
+		tls_msg = "loading CA file";
+		ret = SSL_CTX_load_verify_locations(ctx, tds_dstr_cstr(&tds->login->cafile), NULL);
+		if (ret != 1)
+			goto cleanup;
+		if (!tds_dstr_isempty(&tds->login->crlfile)) {
+			X509_STORE *store = SSL_CTX_get_cert_store(ctx);
+			X509_LOOKUP *lookup;
+
+			tls_msg = "loading CRL file";
+			if (!(lookup = X509_STORE_add_lookup(store, X509_LOOKUP_file()))
+			    || (!X509_load_crl_file(lookup, tds_dstr_cstr(&tds->login->crlfile), X509_FILETYPE_PEM)))
+				goto cleanup;
+
+			X509_STORE_set_flags(store, X509_V_FLAG_CRL_CHECK | X509_V_FLAG_CRL_CHECK_ALL);
+		}
+		SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL);
+	}
+
 	/* Initialize TLS session */
 	tls_msg = "initializing session";
 	con = SSL_new(ctx);
 	if (!con)
 		goto cleanup;
-	
+
 	tls_msg = "creating bio";
 	b = BIO_new(&tds_method_login);
 	if (!b)
