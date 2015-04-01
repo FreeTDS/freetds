@@ -21,6 +21,10 @@
 #ifndef _odbcss_h_
 #define _odbcss_h_
 
+#ifdef TDSODBC_BCP
+#include <sql.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -43,7 +47,6 @@ extern "C" {
 #define SQL_COPT_SS_BASE	1200
 
 #ifdef TDSODBC_BCP
-#include <sql.h>
 
 #ifndef SUCCEED
 #define SUCCEED 1
@@ -246,10 +249,10 @@ bcp_bind(HDBC hdbc, const BYTE * varaddr, int prefixlen, int varlen,
 
 #define bcp_init bcp_initA
 
-#endif
+#endif /* TDSODBC_BCP */
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif /* _odbcss_h_ */

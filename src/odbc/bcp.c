@@ -47,8 +47,6 @@
 #define TDSODBC_BCP
 #include <odbcss.h>
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.220 2012-03-09 19:20:30 freddy77 Exp $");
-
 static TDSRET
 _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset);
 static SQLLEN
@@ -430,7 +428,7 @@ _tdsodbc_dbconvert(TDS_DBC *dbc, int srctype, const TDS_CHAR * src, SQLLEN src_l
 		/* test precision so client do not crash our library */
 		if (num.precision <= 0 || num.precision > 38 || num.scale > num.precision)
 			/* TODO add proper error */
-			return SQL_ERROR;
+			return -1;
 		len = tds_numeric_bytes_per_prec[num.precision];
 		memcpy(num.array + 1, sql_num->val, len - 1);
 		tds_swap_bytes(num.array + 1, len - 1);
