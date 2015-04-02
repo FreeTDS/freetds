@@ -1333,7 +1333,6 @@ tds_ssl_init(TDSSOCKET *tds)
 	session = NULL;	
 	tls_msg = "initializing tls";
 
-	/* FIXME place somewhere else, deinit at end */
 	ret = 0;
 	if (!tls_initialized) {
 		tds_mutex_lock(&tls_mutex);
