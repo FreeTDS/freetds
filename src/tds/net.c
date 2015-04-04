@@ -415,6 +415,9 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 		if (TDS_IS_SOCKET_INVALID(tds_get_s(tds)))
 			return -1;
 
+		if ((tds_sel & TDSSELREAD) != 0 && tds->conn->tls_session && tds_ssl_pending(tds->conn))
+			return POLLIN;
+
 		fds[0].fd = tds_get_s(tds);
 		fds[0].events = tds_sel;
 		fds[0].revents = 0;
