@@ -75,20 +75,11 @@
 
 #include <freetds/tds.h>
 #include <freetds/string.h>
+#include <freetds/tls.h>
 #include "replacements.h"
 
 #include <signal.h>
 #include <assert.h>
-
-#ifdef HAVE_GNUTLS
-#if defined(_THREAD_SAFE) && defined(TDS_HAVE_PTHREAD_MUTEX)
-#include <freetds/thread.h>
-#include <gcrypt.h>
-#endif
-#include <gnutls/gnutls.h>
-#elif defined(HAVE_OPENSSL)
-#include <openssl/ssl.h>
-#endif
 
 /* error is always returned */
 #define TDSSELERR   0
@@ -652,13 +643,8 @@ tds_connection_read(TDSSOCKET * tds, unsigned char *buf, int buflen)
 {
 	TDSCONNECTION *conn = tds->conn;
 
-#ifdef HAVE_GNUTLS
 	if (conn->tls_session)
-		return gnutls_record_recv((gnutls_session) conn->tls_session, buf, buflen);
-#elif defined(HAVE_OPENSSL)
-	if (conn->tls_session)
-		return SSL_read((SSL*) conn->tls_session, buf, buflen);
-#endif
+		return tds_ssl_read(conn, buf, buflen);
 
 #if ENABLE_ODBC_MARS
 	return tds_socket_read(conn, tds, buf, buflen);
@@ -751,15 +737,9 @@ tds_connection_write(TDSSOCKET *tds, unsigned char *buf, int buflen, int final)
 	}
 #endif
 
-#ifdef HAVE_GNUTLS
 	if (conn->tls_session)
-		sent = gnutls_record_send((gnutls_session) conn->tls_session, buf, buflen);
+		sent = tds_ssl_write(conn, buf, buflen);
 	else
-#elif defined(HAVE_OPENSSL)
-	if (conn->tls_session)
-		sent = SSL_write((SSL*) conn->tls_session, buf, buflen);
-	else
-#endif
 #if ENABLE_ODBC_MARS
 		sent = tds_socket_write(conn, tds, buf, buflen, final);
 #else

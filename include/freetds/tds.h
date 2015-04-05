@@ -1410,8 +1410,6 @@ TDSERRNO tds_open_socket(TDSSOCKET * tds, struct tds_addrinfo *ipaddr, unsigned 
 void tds_close_socket(TDSSOCKET * tds);
 int tds7_get_instance_ports(FILE *output, struct tds_addrinfo *addr);
 int tds7_get_instance_port(struct tds_addrinfo *addr, const char *instance);
-TDSRET tds_ssl_init(TDSSOCKET *tds);
-void tds_ssl_deinit(TDSCONNECTION *conn);
 const char *tds_prwsaerror(int erc);
 int tds_connection_read(TDSSOCKET * tds, unsigned char *buf, int buflen);
 int tds_connection_write(TDSSOCKET *tds, unsigned char *buf, int buflen, int final);

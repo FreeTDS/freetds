@@ -311,6 +311,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\include\freetds\tls.h"
+				>
+			</File>
+			<File
 				RelativePath=".\tds_checks.h"
 				>
 			</File>

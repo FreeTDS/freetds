@@ -44,9 +44,8 @@
 #include <freetds/tds.h>
 #include <freetds/iconv.h>
 #include <freetds/string.h>
+#include <freetds/tls.h>
 #include "replacements.h"
-
-TDS_RCSID(var, "$Id: login.c,v 1.224 2011-09-25 11:40:45 freddy77 Exp $");
 
 static TDSRET tds_send_login(TDSSOCKET * tds, TDSLOGIN * login);
 static TDSRET tds71_do_login(TDSSOCKET * tds, TDSLOGIN * login);
@@ -1090,10 +1089,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 
 		return tds7_send_login(tds, login);
 	}
-#if !defined(HAVE_GNUTLS) && !defined(HAVE_OPENSSL)
-	tdsdump_log(TDS_DBG_ERROR, "server required encryption but support is not compiled in\n");
-	return TDS_FAIL;
-#else
+
 	/*
 	 * if server has a certificate it require at least a crypted login
 	 * (even if data is not encrypted)
@@ -1112,6 +1108,5 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 		tds_ssl_deinit(tds->conn);
 
 	return ret;
-#endif
 }
 

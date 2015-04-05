@@ -30,6 +30,7 @@
 
 #include <freetds/tds.h>
 #include <freetds/iconv.h>
+#include <freetds/tls.h>
 #include "tds_checks.h"
 #include <freetds/string.h>
 #include "replacements.h"
@@ -1054,9 +1055,7 @@ tds_deinit_connection(TDSCONNECTION *conn)
 		tds_dynamic_deallocated(conn, conn->dyns);
 	while (conn->cursors)
 		tds_cursor_deallocated(conn, conn->cursors);
-#if defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL)
 	tds_ssl_deinit(conn);
-#endif
 	/* close connection and free inactive sockets */
 	tds_connection_close(conn);
 	CLOSESOCKET(conn->s_signal);
