@@ -1065,10 +1065,28 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 							<entry>Enable delegation flag using Kerberos.</entry>
 							</row>
 						<row>
+							<entry><literal>realm</></entry>
+							<entry>any</entry>
+							<entry>default Kerberos realm</entry>
+							<entry>Specify Kerberos realm.</entry>
+							</row>
+						<row>
+							<entry><literal>SPN</></entry>
+							<entry>any</entry>
+							<entry>MSSQLSvc/fqdn:port</entry>
+							<entry>Specify Kerberos SPN.</entry>
+							</row>
+						<row>
 							<entry><literal>use ntlmv2</></entry>
 							<entry>yes/no</entry>
 							<entry>no</entry>
 							<entry>Use NTLMv2.  An alternative to the <literal>UseNTLMv2</> option in <filename>odbc.ini</>.  </entry>
+							</row>
+						<row>
+							<entry><literal>use lanman</></entry>
+							<entry>yes/no</entry>
+							<entry>no</entry>
+							<entry>Use LAN MANAGER for NTLM.  This is a very old encryption.  Should not be enabled unless you have a really old server.</entry>
 							</row>
 						<row>
 							<entry><literal>use utf-16</></entry>
