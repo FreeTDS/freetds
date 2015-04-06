@@ -1316,8 +1316,8 @@ tds_ssl_init(TDSSOCKET *tds)
 	session = NULL;	
 	tls_msg = "initializing tls";
 
-	ret = 0;
 	if (!tls_initialized) {
+		ret = 0;
 		tds_mutex_lock(&tls_mutex);
 		if (!tls_initialized) {
 			tds_gcry_init();
@@ -1329,57 +1329,51 @@ tds_ssl_init(TDSSOCKET *tds)
 			}
 		}
 		tds_mutex_unlock(&tls_mutex);
-	}
-	if (ret == 0) {
-		tls_msg = "allocating credentials";
-		ret = gnutls_certificate_allocate_credentials(&xcred);
+		if (ret != 0)
+			goto cleanup;
 	}
 
-	if (ret == 0) {
-		/* Initialize TLS session */
-		tls_msg = "initializing session";
-		ret = gnutls_init(&session, GNUTLS_CLIENT);
-	}
-	
-	if (ret == 0) {
-		gnutls_transport_set_ptr(session, tds);
-		gnutls_transport_set_pull_function(session, tds_pull_func_login);
-		gnutls_transport_set_push_function(session, tds_push_func_login);
+	tls_msg = "allocating credentials";
+	ret = gnutls_certificate_allocate_credentials(&xcred);
+	if (ret != 0)
+		goto cleanup;
 
-		/* NOTE: there functions return int however they cannot fail */
+	/* Initialize TLS session */
+	tls_msg = "initializing session";
+	ret = gnutls_init(&session, GNUTLS_CLIENT);
+	if (ret != 0)
+		goto cleanup;
 
-		/* use default priorities... */
-		gnutls_set_default_priority(session);
+	gnutls_transport_set_ptr(session, tds);
+	gnutls_transport_set_pull_function(session, tds_pull_func_login);
+	gnutls_transport_set_push_function(session, tds_push_func_login);
 
-		/* ... but overwrite some */
-		gnutls_cipher_set_priority(session, cipher_priority);
-		gnutls_compression_set_priority(session, comp_priority);
-		gnutls_kx_set_priority(session, kx_priority);
-		gnutls_mac_set_priority(session, mac_priority);
-		/* mssql does not like padding too much */
+	/* NOTE: there functions return int however they cannot fail */
+
+	/* use default priorities... */
+	gnutls_set_default_priority(session);
+
+	/* ... but overwrite some */
+	gnutls_cipher_set_priority(session, cipher_priority);
+	gnutls_compression_set_priority(session, comp_priority);
+	gnutls_kx_set_priority(session, kx_priority);
+	gnutls_mac_set_priority(session, mac_priority);
+	/* mssql does not like padding too much */
 #ifdef HAVE_GNUTLS_RECORD_DISABLE_PADDING
-		gnutls_record_disable_padding(session);
+	gnutls_record_disable_padding(session);
 #endif
 
-		/* put the anonymous credentials to the current session */
-		tls_msg = "setting credential";
-		ret = gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE, xcred);
-	}
-	
-	if (ret == 0) {
-		/* Perform the TLS handshake */
-		tls_msg = "handshake";
-		ret = gnutls_handshake (session);
-	}
+	/* put the anonymous credentials to the current session */
+	tls_msg = "setting credential";
+	ret = gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE, xcred);
+	if (ret != 0)
+		goto cleanup;
 
-	if (ret != 0) {
-		if (session)
-			gnutls_deinit(session);
-		if (xcred)
-			gnutls_certificate_free_credentials(xcred);
-		tdsdump_log(TDS_DBG_ERROR, "%s failed: %s\n", tls_msg, gnutls_strerror (ret));
-		return TDS_FAIL;
-	}
+	/* Perform the TLS handshake */
+	tls_msg = "handshake";
+	ret = gnutls_handshake (session);
+	if (ret != 0)
+		goto cleanup;
 
 	tdsdump_log(TDS_DBG_INFO1, "handshake succeeded!!\n");
 
@@ -1391,6 +1385,14 @@ tds_ssl_init(TDSSOCKET *tds)
 	tds->conn->tls_credentials = xcred;
 
 	return TDS_SUCCESS;
+
+cleanup:
+	if (session)
+		gnutls_deinit(session);
+	if (xcred)
+		gnutls_certificate_free_credentials(xcred);
+	tdsdump_log(TDS_DBG_ERROR, "%s failed: %s\n", tls_msg, gnutls_strerror (ret));
+	return TDS_FAIL;
 }
 
 void
@@ -1487,6 +1489,7 @@ tds_ssl_init(TDSSOCKET *tds)
 	"DHE-DSS-AES128-SHA AES128-SHA RC2-CBC-MD5 RC4-SHA RC4-MD5"
 
 	SSL *con;
+	SSL_CTX *ctx;
 	BIO *b, *b2;
 
 	int ret;
@@ -1497,61 +1500,49 @@ tds_ssl_init(TDSSOCKET *tds)
 	b2 = NULL;
 	ret = 1;
 
+	tds_ssl_deinit(tds->conn);
+
 	tls_msg = "initializing tls";
-	if (tds->conn->tls_ctx == NULL)
-		tds->conn->tls_ctx = tds_init_openssl();
+	ctx = tds_init_openssl();
+	if (!ctx)
+		goto cleanup;
 
-	if (tds->conn->tls_ctx) {
-		/* Initialize TLS session */
-		tls_msg = "initializing session";
-		con = SSL_new(tds->conn->tls_ctx);
-	}
+	/* Initialize TLS session */
+	tls_msg = "initializing session";
+	con = SSL_new(ctx);
+	if (!con)
+		goto cleanup;
 	
-	if (con) {
-		tls_msg = "creating bio";
-		b = BIO_new(&tds_method_login);
-	}
+	tls_msg = "creating bio";
+	b = BIO_new(&tds_method_login);
+	if (!b)
+		goto cleanup;
 
-	if (b) {
-		b2 = BIO_new(&tds_method);
-	}
+	b2 = BIO_new(&tds_method);
+	if (!b2)
+		goto cleanup;
 
-	if (b2) {
-		b->shutdown=1;
-		b->init=1;
-		b->num= -1;
-		b->ptr = tds;
-		SSL_set_bio(con, b, b);
-		b = NULL;
+	b->shutdown=1;
+	b->init=1;
+	b->num= -1;
+	b->ptr = tds;
+	SSL_set_bio(con, b, b);
+	b = NULL;
 
-		/* use priorities... */
-		SSL_set_cipher_list(con, OPENSSL_CIPHERS);
+	/* use priorities... */
+	SSL_set_cipher_list(con, OPENSSL_CIPHERS);
 
 #ifdef SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS
-		/* this disable a security improvement but allow connection... */
-		SSL_set_options(con, SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS);
+	/* this disable a security improvement but allow connection... */
+	SSL_set_options(con, SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS);
 #endif
 
-		/* Perform the TLS handshake */
-		tls_msg = "handshake";
-		SSL_set_connect_state(con);
-		ret = SSL_connect(con) != 1 || con->state != SSL_ST_OK;
-	}
-
-	if (ret != 0) {
-		if (b2)
-			BIO_free(b2);
-		if (b)
-			BIO_free(b);
-		if (con) {
-			SSL_shutdown(con);
-			SSL_free(con);
-		}
-		SSL_CTX_free(tds->conn->tls_ctx);
-		tds->conn->tls_ctx = NULL;
-		tdsdump_log(TDS_DBG_ERROR, "%s failed\n", tls_msg);
-		return TDS_FAIL;
-	}
+	/* Perform the TLS handshake */
+	tls_msg = "handshake";
+	SSL_set_connect_state(con);
+	ret = SSL_connect(con) != 1 || con->state != SSL_ST_OK;
+	if (ret != 0)
+		goto cleanup;
 
 	tdsdump_log(TDS_DBG_INFO1, "handshake succeeded!!\n");
 
@@ -1562,8 +1553,22 @@ tds_ssl_init(TDSSOCKET *tds)
 	SSL_set_bio(con, b2, b2);
 
 	tds->conn->tls_session = con;
+	tds->conn->tls_ctx = ctx;
 
 	return TDS_SUCCESS;
+
+cleanup:
+	if (b2)
+		BIO_free(b2);
+	if (b)
+		BIO_free(b);
+	if (con) {
+		SSL_shutdown(con);
+		SSL_free(con);
+	}
+	SSL_CTX_free(ctx);
+	tdsdump_log(TDS_DBG_ERROR, "%s failed\n", tls_msg);
+	return TDS_FAIL;
 }
 
 void
