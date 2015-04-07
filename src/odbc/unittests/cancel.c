@@ -14,7 +14,6 @@
 
 #ifdef _WIN32
 #undef HAVE_ALARM
-#define sleep(s) Sleep((s)*1000)
 #endif
 
 static SQLTCHAR sqlstate[SQL_SQLSTATE_SIZE + 1];
@@ -69,14 +68,14 @@ static TDS_THREAD_PROC_DECLARE(wait_thread_proc, arg)
 {
 	int n;
 
-	sleep(4);
+	tds_sleep_s(4);
 
 	printf(">>>> SQLCancel() ...\n");
 	CHKCancel("S");
 	printf(">>>> ... SQLCancel done\n");
 	
 	for (n = 0; n < 4; ++n) {
-		sleep(1);
+		tds_sleep_s(1);
 		tds_mutex_lock(&mtx);
 		if (exit_thread) {
 			tds_mutex_unlock(&mtx);

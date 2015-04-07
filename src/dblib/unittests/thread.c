@@ -11,10 +11,6 @@
 
 #ifdef TDS_HAVE_MUTEX
 
-#if defined(__MINGW32__) || defined(_WIN32)
-#define sleep(s) Sleep((s)*1000)
-#endif
-
 static tds_mutex mutex = TDS_MUTEX_INITIALIZER;
 
 static int result = 0;
@@ -127,7 +123,7 @@ static TDS_THREAD_PROC_DECLARE(thread_test, arg)
 	tds_mutex_lock(&mutex);
 	while (thread_count < NUM_THREAD) {
 		tds_mutex_unlock(&mutex);
-		sleep(1);
+		tds_sleep_s(1);
 		tds_mutex_lock(&mutex);
 	}
 	tds_mutex_unlock(&mutex);
@@ -213,7 +209,7 @@ main(int argc, char **argv)
 			return 1;
 		}
 		/* MSSQL rejects the connections if they come in too fast */
-		sleep(1);
+		tds_sleep_s(1);
 	}
 
 	for (i = 0; i < NUM_THREAD; ++i) {

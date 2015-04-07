@@ -317,6 +317,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\sleep.c"
+				>
+			</File>
+			<File
 				RelativePath=".\strlcat.c"
 				>
 			</File>

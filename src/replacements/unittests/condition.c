@@ -37,10 +37,6 @@
 
 #if !defined(TDS_NO_THREADSAFE)
 
-#if defined(__MINGW32__) || defined(_WIN32)
-#define sleep(s) Sleep((s)*1000)
-#endif
-
 static tds_mutex mtx = TDS_MUTEX_INITIALIZER;
 
 static TDS_THREAD_PROC_DECLARE(signal_proc, arg)
@@ -79,7 +75,7 @@ int main(void)
 
 	check(tds_thread_create(&th, signal_proc, &cond) != 0, "error creating thread");
 
-	sleep(1);
+	tds_sleep_ms(100);
 
 	check(tds_cond_wait(&cond, &mtx), "failed waiting condition");
 

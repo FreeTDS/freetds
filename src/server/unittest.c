@@ -38,13 +38,6 @@
 #include <freetds/string.h>
 #include <freetds/server.h>
 
-#ifdef __MINGW32__
-#define sleep(s) Sleep((s)*1000)
-#endif
-
-static char software_version[] = "$Id: unittest.c,v 1.20 2011-05-16 08:51:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static void dump_login(TDSLOGIN * login);
 
 int
@@ -107,7 +100,7 @@ main(int argc, char **argv)
 	tds_send_row(tds, resinfo);
 	tds_send_done_token(tds, 16, 1);
 	tds_flush_packet(tds);
-	sleep(30);
+	tds_sleep_s(30);
 
 	tds_free_results(resinfo);
 	tds_free_socket(tds);

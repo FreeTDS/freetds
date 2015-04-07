@@ -14,13 +14,6 @@
  * Test from Ou Liu, cf "Query Time Out", 2006-08-08
  */
 
-static char software_version[] = "$Id: timeout2.c,v 1.10 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
-#if defined(__MINGW32__) || defined(_WIN32)
-#define sleep(s) Sleep((s)*1000)
-#endif
-
 int
 main(int argc, char *argv[])
 {
@@ -47,7 +40,7 @@ main(int argc, char *argv[])
 
 		if (i == 0) {
 			printf("Sleep 15 seconds to test if timeout occurs\n");
-			sleep(15);
+			tds_sleep_s(15);
 		}
 
 		SQLFreeStmt(odbc_stmt, SQL_CLOSE);

@@ -18,7 +18,7 @@ endforeach(func)
 add_library(replacements STATIC
 	iconv.c gettimeofday.c fakepoll.c
 	getpassarg.c socketpair.c win_mutex.c
-	tds_cond.c getaddrinfo.c
+	tds_cond.c getaddrinfo.c sleep.c
 	${add_SRCS}
 )
 if (NOT WIN32)

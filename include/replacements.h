@@ -157,6 +157,9 @@ extern int optind, offset, opterr, optreset;
 int tds_socketpair(int domain, int type, int protocol, int sv[2]);
 #endif
 
+void tds_sleep_s(unsigned sec);
+void tds_sleep_ms(unsigned ms);
+
 #ifdef __cplusplus
 }
 #endif
