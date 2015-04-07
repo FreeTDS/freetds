@@ -61,7 +61,7 @@ test(int srctype, const void *srcdata, int srclen, int dsttype, int dstlen)
 	*p = 0;
 
 	correct = 0;
-	if (len == -1 || len == FAIL) {
+	if (len == -1) {
 		if (strcmp(cur_result, "error") == 0)
 			correct = 1;
 	} else {
@@ -98,6 +98,19 @@ main(int argc, char *argv[])
 	TEST((SYBCHAR, "ciao\0\0", 6, SYBCHAR, 4), "error");
 	TEST((SYBCHAR, "ciao  ", 6, SYBCHAR, 6), "len=6 63 69 61 6F 20 20 2A 2A 2A 2A");
 	TEST((SYBCHAR, "ciao\0\0", 6, SYBCHAR, 6), "len=6 63 69 61 6F 00 00 2A 2A 2A 2A");
+
+	/* convert from NULL to BINARY */
+	TEST((SYBBINARY,    "", 0, SYBBINARY, 6), "len=6 00 00 00 00 00 00 2A 2A 2A 2A");
+	TEST((SYBVARBINARY, "", 0, SYBBINARY, 6), "len=6 00 00 00 00 00 00 2A 2A 2A 2A");
+	TEST((SYBIMAGE,     "", 0, SYBBINARY, 6), "len=6 00 00 00 00 00 00 2A 2A 2A 2A");
+	TEST((SYBBINARY,    "", 0, SYBVARBINARY, 6), "len=6 00 00 00 00 00 00 2A 2A 2A 2A");
+	TEST((SYBVARBINARY, "", 0, SYBVARBINARY, 6), "len=6 00 00 00 00 00 00 2A 2A 2A 2A");
+	TEST((SYBIMAGE,     "", 0, SYBVARBINARY, 6), "len=6 00 00 00 00 00 00 2A 2A 2A 2A");
+	TEST((SYBBINARY,    "", 0, SYBIMAGE, 6), "len=6 00 00 00 00 00 00 2A 2A 2A 2A");
+	TEST((SYBVARBINARY, "", 0, SYBIMAGE, 6), "len=6 00 00 00 00 00 00 2A 2A 2A 2A");
+	TEST((SYBIMAGE,     "", 0, SYBIMAGE, 6), "len=6 00 00 00 00 00 00 2A 2A 2A 2A");
+
+	TEST((SYBBINARY, "", 0, SYBBINARY, -1), "len=0 2A 2A 2A 2A 2A 2A 2A 2A 2A 2A");
 
 	dbexit();
 	if (!failure)

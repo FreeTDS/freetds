@@ -559,6 +559,7 @@ dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr)
 	 */
 	switch (bindtype) {
 	case DATETIMEBIND:
+	case DATETIME2BIND:
 	case DECIMALBIND:
 	case SRCDECIMALBIND:
 	case FLT8BIND:
@@ -572,12 +573,22 @@ dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr)
 	case SMALLMONEYBIND:
 	case TINYBIND:
 	case BIGINTBIND:
+	case BITBIND:
 		memcpy(varaddr, pnullrep->bindval, pnullrep->len);
 		return SUCCEED;
-	default:
+	case CHARBIND:
+	case STRINGBIND:
+	case NTBSTRINGBIND:
+	case BINARYBIND:
+	case VARYCHARBIND:
+	case VARYBINBIND:
 		if (pnullrep->bindval && (varlen <= 0 || (size_t)varlen >= pnullrep->len)) {
 			memcpy(varaddr, pnullrep->bindval, pnullrep->len);
 		}
+		break;
+	default:
+		dbperror(dbproc, SYBEBTYP, 0);
+		return FAIL;
 	}
 
 	/* 
@@ -586,22 +597,17 @@ dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr)
 	 * Apply terminator (if applicable) and go home.  
 	 */
 	if (varlen <= 0) {
+		varlen = pnullrep->len;
 		switch (bindtype) {
 		case STRINGBIND:
 		case NTBSTRINGBIND:
-			varaddr[pnullrep->len] = '\0';
-			/* fall thru */
-		case CHARBIND:
-		case VARYCHARBIND:
+			++varlen;
 			break;
 #if 0
 		case BOUNDARYBIND:
 		case SENSITIVITYBIND:
 #endif
-		default:
-			assert(!"unknown bindtype with unknown varlen");
 		}
-		return SUCCEED;
 	}
 	
 	if (varlen < (long)pnullrep->len) {
@@ -613,7 +619,7 @@ dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr)
 	tdsdump_log(TDS_DBG_FUNC, "varaddr(%p) varlen %d < %lu?\n",
 				varaddr, varlen, (unsigned long int) pnullrep->len);
 
-	assert(varlen > 0);
+	assert(varlen >= 0);
 
 	/*
 	 * CHARBIND		Empty string (padded with blanks)
@@ -637,6 +643,9 @@ dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr)
 			break;
 		case BINARYBIND:
 			memset(varaddr, 0, varlen);
+			break;
+		case VARYCHARBIND:
+		case VARYBINBIND:
 			break;
 		default:
 			assert(!"unknown bindtype");
@@ -2236,8 +2245,8 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 	if (src == NULL || srclen == 0) {
 		int bind = dbbindtype(desttype);
 		int size = tds_get_size_by_type(desttype);
-		
-		if (SYBCHAR == desttype) {
+
+		if (bind == NTBSTRINGBIND) {
 			if (destlen > 0) {
 				size = destlen;
 				bind = CHARBIND;
@@ -2245,6 +2254,11 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 				size = 1;
 				bind = NTBSTRINGBIND;
 			}
+		} else if (bind == BINARYBIND) {
+			if (destlen > 0)
+				size = destlen;
+			else
+				size = 0;
 		}
 
 		dbgetnull(dbproc, bind, size, dest);
