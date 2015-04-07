@@ -9,6 +9,8 @@
 #include <unistd.h>
 #endif
 
+#include "replacements.h"
+
 #ifdef TDS_HAVE_MUTEX
 
 static tds_mutex mutex = TDS_MUTEX_INITIALIZER;

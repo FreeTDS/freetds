@@ -6,6 +6,8 @@
 
 #include <assert.h>
 
+#include "replacements.h"
+
 /*
  * Test timeout on prepare
  * It execute a query wait for timeout and then try to issue a new prepare/execute
