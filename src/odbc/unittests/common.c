@@ -1,9 +1,5 @@
 #include "common.h"
 
-#if HAVE_UNISTD_H
-#include <unistd.h>
-#endif /* HAVE_UNISTD_H */
-
 #include <assert.h>
 #include <ctype.h>
 
