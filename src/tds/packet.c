@@ -201,13 +201,13 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 			if (size != sizeof(mars_header))
 				goto Severe_Error;
 		} else if (mars_header.type == TDS_SMP_DATA) {
-			if (size < 0x18)
+			if (size < 0x18 || size > 0xffffu + sizeof(mars_header))
 				goto Severe_Error;
 			/* avoid recursive SMP */
-			if (packet->len > 16 && packet->buf[16] == TDS72_SMP)
+			if (conn->recv_pos > 16 && packet->buf[16] == TDS72_SMP)
 				goto Severe_Error;
 			/* TODO is possible to put 2 TDS packet inside a single DATA ?? */
-			if (packet->len >= 20 && TDS_GET_A2BE(&packet->buf[18]) != size - 16)
+			if (conn->recv_pos >= 20 && TDS_GET_A2BE(&packet->buf[18]) != size - 16)
 				goto Severe_Error;
 			tds->recv_seq = TDS_GET_A4LE(&mars_header.seq);
 			/*
