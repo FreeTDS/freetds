@@ -35,86 +35,34 @@ REPLACEMENTS_OUT = $(REPLACEMENTS_DIR)\$(PLATFORM)\$(CONFIGURATION)
 TDS_OUT          = $(TDS_DIR)\$(PLATFORM)\$(CONFIGURATION)
 APPS_OUT         = $(APPS_DIR)\$(PLATFORM)\$(CONFIGURATION)
 
-DBLIB_SRC = 	$(DBLIB_DIR)\bcp.c \
-		$(DBLIB_DIR)\dblib.c \
-		$(DBLIB_DIR)\dbopen.c \
-		$(DBLIB_DIR)\dbutil.c \
-		$(DBLIB_DIR)\rpc.c \
-		$(DBLIB_DIR)\xact.c 
-
 DBLIB_OBJ = 	$(DBLIB_OUT)\bcp.obj \
 		$(DBLIB_OUT)\dblib.obj \
 		$(DBLIB_OUT)\dbopen.obj \
+		$(DBLIB_OUT)\dbpivot.obj \
 		$(DBLIB_OUT)\dbutil.obj \
 		$(DBLIB_OUT)\rpc.obj \
 		$(DBLIB_OUT)\xact.obj 
-
-CTLIB_SRC =	$(CTLIB_DIR)\blk.c \
-		$(CTLIB_DIR)\cs.c \
-		$(CTLIB_DIR)\ct.c \
-		$(CTLIB_DIR)\ctutil.c
 
 CTLIB_OBJ =	$(CTLIB_OUT)\blk.obj \
 		$(CTLIB_OUT)\cs.obj \
 		$(CTLIB_OUT)\ct.obj \
 		$(CTLIB_OUT)\ctutil.obj
 
-REPLACEMENTS_SRC =	$(REPLACEMENTS_DIR)\asprintf.c \
-			$(REPLACEMENTS_DIR)\basename.c \
-			$(REPLACEMENTS_DIR)\fakepoll.c \
-			$(REPLACEMENTS_DIR)\gettimeofday.c \
-			$(REPLACEMENTS_DIR)\getopt.c \
-			$(REPLACEMENTS_DIR)\iconv.c \
-			$(REPLACEMENTS_DIR)\readpassphrase.c \
-			$(REPLACEMENTS_DIR)\strlcat.c \
-			$(REPLACEMENTS_DIR)\strlcpy.c \
-			$(REPLACEMENTS_DIR)\strtok_r.c \
-			$(REPLACEMENTS_DIR)\vasprintf.c \
-			$(REPLACEMENTS_DIR)\win_mutex.c
-
 REPLACEMENTS_OBJ =	$(REPLACEMENTS_OUT)\asprintf.obj \
 			$(REPLACEMENTS_OUT)\basename.obj \
 			$(REPLACEMENTS_OUT)\fakepoll.obj \
 			$(REPLACEMENTS_OUT)\gettimeofday.obj \
 			$(REPLACEMENTS_OUT)\getopt.obj \
+			$(REPLACEMENTS_OUT)\getpassarg.obj \
 			$(REPLACEMENTS_OUT)\iconv.obj \
 			$(REPLACEMENTS_OUT)\readpassphrase.obj \
 			$(REPLACEMENTS_OUT)\strlcat.obj \
 			$(REPLACEMENTS_OUT)\strlcpy.obj \
+			$(REPLACEMENTS_OUT)\strsep.obj \
 			$(REPLACEMENTS_OUT)\strtok_r.obj \
+			$(REPLACEMENTS_OUT)\socketpair.obj \
 			$(REPLACEMENTS_OUT)\vasprintf.obj \
 			$(REPLACEMENTS_OUT)\win_mutex.obj
-
-TDS_SRC =	$(TDS_DIR)\bulk.c \
-		$(TDS_DIR)\challenge.c \
-		$(TDS_DIR)\config.c \
-		$(TDS_DIR)\convert.c \
-		$(TDS_DIR)\data.c \
-		$(TDS_DIR)\des.c \
-		$(TDS_DIR)\getmac.c \
-		$(TDS_DIR)\gssapi.c \
-		$(TDS_DIR)\hmac_md5.c \
-		$(TDS_DIR)\iconv.c \
-		$(TDS_DIR)\locale.c \
-		$(TDS_DIR)\log.c \
-		$(TDS_DIR)\login.c \
-		$(TDS_DIR)\md4.c \
-		$(TDS_DIR)\md5.c \
-		$(TDS_DIR)\mem.c \
-		$(TDS_DIR)\net.c \
-		$(TDS_DIR)\numeric.c \
-		$(TDS_DIR)\query.c \
-		$(TDS_DIR)\read.c \
-		$(TDS_DIR)\sspi.c \
-		$(TDS_DIR)\stream.c \
-		$(TDS_DIR)\tds_checks.c \
-		$(TDS_DIR)\tdsstring.c \
-		$(TDS_DIR)\threadsafe.c \
-		$(TDS_DIR)\tls.c \
-		$(TDS_DIR)\token.c \
-		$(TDS_DIR)\util.c \
-		$(TDS_DIR)\vstrbuild.c \
-		$(TDS_DIR)\write.c 
 
 TDS_OBJ =	$(TDS_OUT)\bulk.obj \
 		$(TDS_OUT)\challenge.obj \
@@ -134,6 +82,7 @@ TDS_OBJ =	$(TDS_OUT)\bulk.obj \
 		$(TDS_OUT)\mem.obj \
 		$(TDS_OUT)\net.obj \
 		$(TDS_OUT)\numeric.obj \
+		$(TDS_OUT)\packet.obj \
 		$(TDS_OUT)\query.obj \
 		$(TDS_OUT)\read.obj \
 		$(TDS_OUT)\sspi.obj \
@@ -146,14 +95,6 @@ TDS_OBJ =	$(TDS_OUT)\bulk.obj \
 		$(TDS_OUT)\util.obj \
 		$(TDS_OUT)\vstrbuild.obj \
 		$(TDS_OUT)\write.obj 
-
-# not yet:	$(APPS_DIR)\bsqlodbc.c 
-
-APPS_SRC =	$(APPS_DIR)\bsqldb.c \
-		$(APPS_DIR)\datacopy.c \
-		$(APPS_DIR)\defncopy.c \
-		$(APPS_DIR)\freebcp.c \
-		$(APPS_DIR)\tsql.c 
 
 APPS_OBJ =	$(APPS_OUT)\bsqldb.obj \
 		$(APPS_OUT)\datacopy.obj \
@@ -297,12 +238,12 @@ $(TDS_OUT)\tds.lib: $(TDS_OUT) $(TDS_OBJ)
 # set compiler flags
 #
 INC = 	-I "include" -I "win32" -I "include\x64" 
-FLG = 	-nologo	-W3 -Wp64 -EHsc -TC -Gm  -errorReport:prompt 
+FLG = 	-nologo	-W3 -EHsc -TC -Gm  -errorReport:prompt 
 DEF = 	-D "_MBCS" -D "_LIB" -D "WIN32" \
 	-D MSDBLIB \
 	-D "_CRT_SECURE_NO_WARNINGS" -D _CRT_NONSTDC_NO_DEPRECATE
-DBG = -MTd -Od -D "_DEBUG"  -ZI -RTC1	
-REL = -MT  -O2 -D "_NDEBUG" -Zi
+DBG = -MTd -Od -D "_DEBUG"  -Zi -RTC1	
+REL = -MT  -O2 -D "_NDEBUG" -Zi 
 
 MSLIBS = Ws2_32.lib shell32.lib	
 
@@ -428,5 +369,5 @@ $(APPS_EXE): $(DBLIB_OUT)\db-lib.lib
 {$(APPS_DIR)}.c{$(APPS_DIR)\x64\release}.exe:
 	@if not exist $(APPS_OUT) $(MKDIR) $(APPS_OUT)
 	$(CC64) $(REL) -Fe$@ -Fd"$(APPS_OUT)\vc80.pdb" \
-	$< -link -LIBPATH:$(DBLIB_OUT) db-lib.lib $(MSLIBS)
+	$< -link -LIBPATH:$(DBLIB_OUT) db-lib.lib $(MSLIBS) /OPT:REF
 
