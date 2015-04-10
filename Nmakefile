@@ -200,7 +200,7 @@ include\freetds\version.h:
 	move /Y $@.err $@
 
 src\tds\tds_types.h:
-	perl src\tds\types.pl misc\types.csv > $@.err
+	perl src\tds\types.pl misc\types.csv include\freetds\proto.h > $@.err
 	move /Y $@.err $@
 
 src\tds\tds_willconvert.h: src\tds\tds_willconvert.pl
