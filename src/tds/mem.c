@@ -832,6 +832,7 @@ tds_init_login(TDSLOGIN *login, TDSLOCALE * locale)
 		return NULL;
 
 	login->valid_configuration = 1;
+	login->check_ssl_hostname = 1;
 
 	return login;
 }
@@ -937,6 +938,7 @@ tds_alloc_login(int use_environment)
 	const char *server_name = TDS_DEF_SERVER;
 
 	TEST_MALLOC(login, TDSLOGIN);
+	login->check_ssl_hostname = 1;
 	tds_dstr_init(&login->server_name);
 	tds_dstr_init(&login->language);
 	tds_dstr_init(&login->server_charset);

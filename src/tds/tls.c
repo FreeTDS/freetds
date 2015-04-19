@@ -182,11 +182,97 @@ GCRY_THREAD_OPTION_PTHREAD_IMPL;
 #define tds_gcry_init() do {} while(0)
 #endif
 
+/* This piece of code is copied from GnuTLS new sources to handle IP in the certificate */
+#if GNUTLS_VERSION_NUMBER < 0x030306
+static int
+check_ip(gnutls_x509_crt_t cert, const void *ip, unsigned ip_size)
+{
+	char temp[16];
+	size_t temp_size;
+	unsigned i;
+	int ret = 0;
+
+	/* try matching against:
+	 *  1) a IPaddress alternative name (subjectAltName) extension
+	 *     in the certificate
+	 */
+
+	/* Check through all included subjectAltName extensions, comparing
+	 * against all those of type IPAddress.
+	 */
+	for (i = 0; ret >= 0; ++i) {
+		temp_size = sizeof(temp);
+		ret = gnutls_x509_crt_get_subject_alt_name(cert, i,
+							   temp,
+							   &temp_size,
+							   NULL);
+
+		if (ret == GNUTLS_SAN_IPADDRESS) {
+			if (temp_size == ip_size && memcmp(temp, ip, ip_size) == 0)
+				return 1;
+		} else if (ret == GNUTLS_E_SHORT_MEMORY_BUFFER) {
+			ret = 0;
+		}
+	}
+
+	/* not found a matching IP */
+	return 0;
+}
+
+static int
+tds_check_ip(gnutls_x509_crt_t cert, const char *hostname)
+{
+	int ret;
+	union {
+		struct in_addr v4;
+		struct in6_addr v6;
+	} ip;
+	unsigned ip_size;
+
+	/* check whether @hostname is an ip address */
+	if (strchr(hostname, ':') != NULL) {
+		ip_size = 16;
+		ret = inet_pton(AF_INET6, hostname, &ip.v6);
+	} else {
+		ip_size = 4;
+		ret = inet_aton(hostname, &ip.v4);
+	}
+
+	if (ret != 0)
+		ret = check_ip(cert, &ip, ip_size);
+
+	/* There are several misconfigured servers, that place their IP
+	 * in the DNS field of subjectAlternativeName. Don't break these
+	 * configurations and verify the IP as it would have been a DNS name. */
+
+	return ret;
+}
+
+/* function for replacing old GnuTLS version */
+static int
+tds_x509_crt_check_hostname(gnutls_x509_crt_t cert, const char *hostname)
+{
+	int ret;
+
+	ret = tds_check_ip(cert, hostname);
+	if (ret)
+		return ret;
+
+	return gnutls_x509_crt_check_hostname(cert, hostname);
+}
+#define gnutls_x509_crt_check_hostname tds_x509_crt_check_hostname
+
+#endif
+
 static int
 tds_verify_certificate(gnutls_session_t session)
 {
 	unsigned int status;
 	int ret;
+	TDSSOCKET *tds = (TDSSOCKET *) gnutls_transport_get_ptr(session);
+
+	if (!tds->login)
+		return GNUTLS_E_CERTIFICATE_ERROR;
 
 	ret = gnutls_certificate_verify_peers2(session, &status);
 	if (ret < 0) {
@@ -198,6 +284,27 @@ tds_verify_certificate(gnutls_session_t session)
 	if (status != 0) {
 		tdsdump_log(TDS_DBG_ERROR, "Certificate status: %u\n", status);
 		return GNUTLS_E_CERTIFICATE_ERROR;
+	}
+
+	/* check hostname */
+	if (tds->login->check_ssl_hostname) {
+		const gnutls_datum_t *cert_list;
+		unsigned int list_size;
+		gnutls_x509_crt_t cert;
+
+		cert_list = gnutls_certificate_get_peers(session, &list_size);
+		if (!cert_list) {
+			tdsdump_log(TDS_DBG_ERROR, "Error getting TLS session peers\n");
+			return GNUTLS_E_CERTIFICATE_ERROR;
+		}
+		gnutls_x509_crt_init(&cert);
+		gnutls_x509_crt_import(cert, &cert_list[0], GNUTLS_X509_FMT_DER);
+		ret = gnutls_x509_crt_check_hostname(cert, tds_dstr_cstr(&tds->login->server_host_name));
+		gnutls_x509_crt_deinit(cert);
+		if (!ret) {
+			tdsdump_log(TDS_DBG_ERROR, "Certificate hostname does not match\n");
+			return GNUTLS_E_CERTIFICATE_ERROR;
+		}
 	}
 
 	/* notify gnutls to continue handshake normally */

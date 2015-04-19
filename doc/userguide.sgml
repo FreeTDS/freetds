@@ -1111,6 +1111,13 @@ Note that is not possible to specify a directory as usually database servers doe
 							<entry>File that hold certificate revocation list. Only used if <literal>ca file</> is also specified.
 </entry>
 							</row>
+						<row>
+							<entry><literal>check certificate hostname</></entry>
+							<entry>yes/no</entry>
+							<entry>yes</entry>
+							<entry>Check is the hostname is valid in the certificate. Only used if <literal>ca file</> is also specified.
+</entry>
+							</row>
 						</tbody>
 					</tgroup>
 				</table>

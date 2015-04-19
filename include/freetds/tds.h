@@ -490,6 +490,8 @@ extern const char *const tds_type_names[256];
 #define TDS_STR_CAFILE	"ca file"
 /* CRL file */
 #define TDS_STR_CRLFILE	"crl file"
+/* check SSL hostname */
+#define TDS_STR_CHECKSSLHOSTNAME	"check certificate hostname"
 
 
 /* TODO do a better check for alignment than this */
@@ -559,6 +561,7 @@ typedef struct tds_login
 	unsigned int mars:1;
 	unsigned int use_utf16:1;
 	unsigned int valid_configuration:1;
+	unsigned int check_ssl_hostname:1;
 } TDSLOGIN;
 
 typedef struct tds_headers
