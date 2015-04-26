@@ -502,6 +502,188 @@ tds_init_openssl(void)
 	return SSL_CTX_new (meth);
 }
 
+static int
+check_wildcard(const char *host, const char *match)
+{
+	const char *p, *w;
+	size_t n, lh, lm;
+
+	/* U-label (binary) */
+	for (p = match; *p; ++p)
+		if ((unsigned char) *p >= 0x80)
+			return strcmp(host, match) == 0;
+
+	for (;;) {
+		/* A-label (starts with xn--) */
+		if (strncasecmp(match, "xn--", 4) == 0)
+			break;
+
+		/* match must not be in domain and domain should contains 2 parts */
+		w = strchr(match, '*');
+		p = strchr(match, '.');
+		if (!w || !p		/* no wildcard or domain */
+		    || p[1] == '.'	/* empty domain */
+		    || w > p || strchr(p, '*') != NULL)	/* wildcard in domain */
+			break;
+		p = strchr(p+1, '.');
+		if (!p || p[1] == 0)	/* not another domain */
+			break;
+
+		/* check start */
+		n = w - match;	/* prefix len */
+		if (n > 0 && strncasecmp(host, match, n) != 0)
+			return 0;
+
+		/* check end */
+		lh = strlen(host);
+		lm = strlen(match);
+		n = lm - n - 1;	/* suffix len */
+		if (lm - 1 > lh || strcasecmp(host+lh-n, match+lm-n) != 0 || host[0] == '.')
+			return 0;
+
+		return 1;
+	}
+	return strcasecmp(host, match) == 0;
+}
+
+#if ENABLE_EXTRA_CHECKS
+static void
+tds_check_wildcard_test(void)
+{
+	assert(check_wildcard("foo", "foo") == 1);
+	assert(check_wildcard("FOO", "foo") == 1);
+	assert(check_wildcard("foo", "FOO") == 1);
+	assert(check_wildcard("\x90oo", "\x90OO") == 0);
+	assert(check_wildcard("xn--foo", "xn--foo") == 1);
+	assert(check_wildcard("xn--FOO", "XN--foo") == 1);
+	assert(check_wildcard("xn--a.example.org", "xn--*.example.org") == 0);
+	assert(check_wildcard("a.*", "a.*") == 1);
+	assert(check_wildcard("a.b", "a.*") == 0);
+	assert(check_wildcard("ab", "a*") == 0);
+	assert(check_wildcard("a.example.", "*.example.") == 0);
+	assert(check_wildcard("a.example.com", "*.example.com") == 1);
+	assert(check_wildcard("a.b.example.com", "a.*.example.com") == 0);
+	assert(check_wildcard("foo.example.com", "foo*.example.com") == 1);
+	assert(check_wildcard("fou.example.com", "foo*.example.com") == 0);
+	assert(check_wildcard("baz.example.com", "*baz.example.com") == 1);
+	assert(check_wildcard("buzz.example.com", "b*z.example.com") == 1);
+	assert(check_wildcard("bz.example.com", "b*z.example.com") == 1);
+	assert(check_wildcard(".example.com", "*.example.com") == 0);
+	assert(check_wildcard("example.com", "*.example.com") == 0);
+}
+#else
+#define tds_check_wildcard_test() do { } while(0)
+#endif
+
+static int
+check_name_match(ASN1_STRING *name, const char *hostname)
+{
+	char *name_utf8 = NULL;
+	int ret, name_len;
+
+	name_len = ASN1_STRING_to_UTF8((unsigned char **) &name_utf8, name);
+	if (name_len < 0)
+		return 0;
+
+	tdsdump_log(TDS_DBG_INFO1, "Got name %s\n", name_utf8);
+	ret = 0;
+	if (strlen(name_utf8) == name_len && check_wildcard(name_utf8, hostname) == 0)
+		ret = 1;
+	OPENSSL_free(name_utf8);
+	return ret;
+}
+
+static int
+check_alt_names(X509 *cert, const char *hostname)
+{
+	STACK_OF(GENERAL_NAME) *alt_names;
+	int i, num;
+	int ret = 1;
+	union {
+		struct in_addr v4;
+		struct in6_addr v6;
+	} ip;
+	unsigned ip_size = 0;
+
+	/* check whether @hostname is an ip address */
+	if (strchr(hostname, ':') != NULL) {
+		ip_size = 16;
+		ret = inet_pton(AF_INET6, hostname, &ip.v6);
+	} else {
+		ip_size = 4;
+		ret = inet_aton(hostname, &ip.v4);
+	}
+	if (ret == 0)
+		return -1;
+
+	ret = -1;
+
+	alt_names = X509_get_ext_d2i(cert, NID_subject_alt_name, NULL, NULL);
+	if (!alt_names)
+		return ret;
+
+	num = sk_GENERAL_NAME_num(alt_names);
+	tdsdump_log(TDS_DBG_INFO1, "Alt names number %d\n", num);
+	for (i = 0; i < num; ++i) {
+		const char *altptr;
+		size_t altlen;
+
+		const GENERAL_NAME *name = sk_GENERAL_NAME_value(alt_names, i);
+		if (!name)
+			continue;
+
+		altptr = (const char *) ASN1_STRING_data(name->d.ia5);
+		altlen = (size_t) ASN1_STRING_length(name->d.ia5);
+
+		if (name->type == GEN_DNS && ip_size == 0) {
+			ret = 0;
+			if (!check_name_match(name->d.dNSName, hostname))
+				continue;
+		} else if (name->type == GEN_IPADD && ip_size != 0) {
+			ret = 0;
+			if (altlen != ip_size || memcmp(altptr, &ip, altlen) != 0)
+				continue;
+		} else {
+			continue;
+		}
+
+		sk_GENERAL_NAME_pop_free(alt_names, GENERAL_NAME_free);
+		return 1;
+	}
+	sk_GENERAL_NAME_pop_free(alt_names, GENERAL_NAME_free);
+	return ret;
+}
+
+static int
+check_hostname(X509 *cert, const char *hostname)
+{
+	int ret, i;
+	X509_NAME *subject;
+	ASN1_STRING *name;
+
+	/* check by subject */
+	ret = check_alt_names(cert, hostname);
+	if (ret >= 0)
+		return ret;
+
+	/* check by common name (old method) */
+	subject= X509_get_subject_name(cert);
+	if (!subject)
+		return 0;
+
+	i = -1;
+	while (X509_NAME_get_index_by_NID(subject, NID_commonName, i) >=0)
+		i = X509_NAME_get_index_by_NID(subject, NID_commonName, i);
+	if (i < 0)
+		return 0;
+
+	name = X509_NAME_ENTRY_get_data(X509_NAME_get_entry(subject, i));
+	if (!name)
+		return 0;
+
+	return check_name_match(name, hostname);
+}
+
 int
 tds_ssl_init(TDSSOCKET *tds)
 {
@@ -523,6 +705,8 @@ tds_ssl_init(TDSSOCKET *tds)
 	b = NULL;
 	b2 = NULL;
 	ret = 1;
+
+	tds_check_wildcard_test();
 
 	tds_ssl_deinit(tds->conn);
 
@@ -569,6 +753,7 @@ tds_ssl_init(TDSSOCKET *tds)
 	b->init=1;
 	b->num= -1;
 	b->ptr = tds;
+	BIO_set_conn_hostname(b, tds_dstr_cstr(&tds->login->server_host_name));
 	SSL_set_bio(con, b, b);
 	b = NULL;
 
@@ -586,6 +771,16 @@ tds_ssl_init(TDSSOCKET *tds)
 	ret = SSL_connect(con) != 1 || con->state != SSL_ST_OK;
 	if (ret != 0)
 		goto cleanup;
+
+	/* check certificate hostname */
+	if (!tds_dstr_isempty(&tds->login->cafile) && tds->login->check_ssl_hostname) {
+		X509 *cert;
+
+		cert =  SSL_get_peer_certificate(con);
+		tls_msg = "checking hostname";
+		if (!cert || !check_hostname(cert, tds_dstr_cstr(&tds->login->server_host_name)))
+			goto cleanup;
+	}
 
 	tdsdump_log(TDS_DBG_INFO1, "handshake succeeded!!\n");
 

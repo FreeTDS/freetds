@@ -33,6 +33,7 @@
 #  include <gnutls/x509.h>
 #elif defined(HAVE_OPENSSL)
 #  include <openssl/ssl.h>
+#  include <openssl/x509v3.h>
 #endif
 
 #include <freetds/pushvis.h>
