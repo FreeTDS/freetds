@@ -1096,10 +1096,11 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 							</row>
 						<row>
 							<entry><literal>ca file</></entry>
-							<entry>any filename</entry>
+							<entry>any filename or <literal>system</></entry>
 							<entry>none</entry>
 							<entry>File that hold root certificates (in PEM format) to verify server certificate, used during an encrypted connection.
 If not specify or empty any certificate will be accepted from server.
+If you specify <literal>system</> &freetds; will use system wide certificate list.
 If a certiticate is not installed server can generate a self signed certificate, in this case is useful to disable certificate validation (which is the default).
 Note that is not possible to specify a directory as usually database servers does not use a certificate signed by a public global certification authority.
 </entry>

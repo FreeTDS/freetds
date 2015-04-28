@@ -38,6 +38,14 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#if HAVE_DIRENT_H
+#include <dirent.h>
+#endif /* HAVE_DIRENT_H */
+
+#if HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif /* HAVE_SYS_STAT_H */
+
 #include <freetds/tds.h>
 #include <freetds/string.h>
 #include <freetds/tls.h>
@@ -264,6 +272,61 @@ tds_x509_crt_check_hostname(gnutls_x509_crt_t cert, const char *hostname)
 
 #endif
 
+#if GNUTLS_VERSION_MAJOR < 3
+static int
+tds_certificate_set_x509_system_trust(gnutls_certificate_credentials cred)
+{
+	static const char ca_directory[] = "/etc/ssl/certs";
+	DIR *dir;
+	struct dirent *dent;
+#ifdef HAVE_READDIR_R
+	struct dirent ent;
+#endif
+	int rc;
+	int ncerts;
+	size_t ca_file_length;
+	char *ca_file;
+
+
+	dir = opendir(ca_directory);
+	if (!dir)
+		return 0;
+
+	ca_file_length = strlen(ca_directory) + sizeof(dent->d_name) + 2;
+	ca_file = alloca(ca_file_length);
+
+	ncerts = 0;
+	for (;;) {
+		struct stat st;
+
+#ifdef HAVE_READDIR_R
+		if (readdir_r(dir, &ent, &dent))
+			dent = NULL;
+#else
+		dent = readdir(dir);
+#endif
+		if (!dent)
+			break;
+
+		snprintf(ca_file, ca_file_length, "%s/%s", ca_directory, dent->d_name);
+		if (stat(ca_file, &st) != 0)
+			continue;
+
+		if (!S_ISREG(st.st_mode))
+			continue;
+
+		rc = gnutls_certificate_set_x509_trust_file(cred, ca_file, GNUTLS_X509_FMT_PEM);
+		if (rc >= 0)
+			ncerts += rc;
+	}
+
+	closedir(dir);
+	return ncerts;
+}
+#define gnutls_certificate_set_x509_system_trust tds_certificate_set_x509_system_trust
+
+#endif
+
 static int
 tds_verify_certificate(gnutls_session_t session)
 {
@@ -350,7 +413,10 @@ tds_ssl_init(TDSSOCKET *tds)
 
 	if (!tds_dstr_isempty(&tds->login->cafile)) {
 		tls_msg = "loading CA file";
-		ret = gnutls_certificate_set_x509_trust_file(xcred, tds_dstr_cstr(&tds->login->cafile), GNUTLS_X509_FMT_PEM);
+		if (strcasecmp(tds_dstr_cstr(&tds->login->cafile), "system") == 0)
+			ret = gnutls_certificate_set_x509_system_trust(xcred);
+		else
+			ret = gnutls_certificate_set_x509_trust_file(xcred, tds_dstr_cstr(&tds->login->cafile), GNUTLS_X509_FMT_PEM);
 		if (ret <= 0)
 			goto cleanup;
 		if (!tds_dstr_isempty(&tds->login->crlfile)) {
@@ -717,7 +783,10 @@ tds_ssl_init(TDSSOCKET *tds)
 
 	if (!tds_dstr_isempty(&tds->login->cafile)) {
 		tls_msg = "loading CA file";
-		ret = SSL_CTX_load_verify_locations(ctx, tds_dstr_cstr(&tds->login->cafile), NULL);
+		if (strcasecmp(tds_dstr_cstr(&tds->login->cafile), "system") == 0)
+			ret = SSL_CTX_set_default_verify_paths(ctx);
+		else
+			ret = SSL_CTX_load_verify_locations(ctx, tds_dstr_cstr(&tds->login->cafile), NULL);
 		if (ret != 1)
 			goto cleanup;
 		if (!tds_dstr_isempty(&tds->login->crlfile)) {

@@ -302,7 +302,7 @@ AC_CHECK_HEADERS([errno.h libgen.h \
 	sys/time.h sys/types.h sys/resource.h \
 	sys/wait.h unistd.h netdb.h \
 	wchar.h inttypes.h winsock2.h \
-	localcharset.h valgrind/memcheck.h malloc.h])
+	localcharset.h valgrind/memcheck.h malloc.h dirent.h])
 AC_CHECK_HEADERS([windows.h sql.h odbcss.h],[],[],[[#ifdef HAVE_WINDOWS_H
 # include <windows.h>
 #endif
@@ -487,7 +487,7 @@ nl_langinfo locale_charset setenv putenv \
 getuid getpwuid getpwuid_r fstat alarm fork \
 gethrtime localtime_r setitimer _lseeki64 _telli64 \
 _fseeki64 _ftelli64 setrlimit pthread_cond_timedwait \
-_lock_file _unlock_file usleep nanosleep])
+_lock_file _unlock_file usleep nanosleep readdir_r])
 OLD_LIBS="$LIBS"
 LIBS="$LIBS $NETWORK_LIBS"
 AC_CHECK_FUNCS([inet_ntoa_r getipnodebyaddr getipnodebyname \
