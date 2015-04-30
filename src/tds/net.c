@@ -1303,15 +1303,18 @@ tds_ssl_init(TDSSOCKET *tds)
 		if (!tls_initialized) {
 			tds_gcry_init();
 			ret = gnutls_global_init();
-			if (ret == 0) {
-				gnutls_global_set_log_level(11);
-				gnutls_global_set_log_function(tds_tls_log);
+			if (ret == 0)
 				tls_initialized = 1;
-			}
 		}
 		tds_mutex_unlock(&tls_mutex);
 		if (ret != 0)
 			goto cleanup;
+	}
+
+	if (tds_write_dump && tls_initialized < 2) {
+		gnutls_global_set_log_level(11);
+		gnutls_global_set_log_function(tds_tls_log);
+		tls_initialized = 2;
 	}
 
 	tls_msg = "allocating credentials";
