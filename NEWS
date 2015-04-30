@@ -54,6 +54,10 @@ User visible (not in a particular order):
 - New Kerberos options:
   - "realm" ("REALM" in ODBC);
   - "spn" ("ServerSPN" in ODBC).
+- New certificate options:
+ - "ca file";
+ - "crl file";
+ - "check certificate hostname".
 - Many bug fixes, majors:
   - SSPI with Kerberos on some setup;
   - SQLCancel threading;
