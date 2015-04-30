@@ -429,6 +429,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\tls.c"
+				>
+			</File>
+			<File
 				RelativePath=".\token.c"
 				>
 			</File>

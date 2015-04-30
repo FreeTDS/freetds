@@ -1419,6 +1419,8 @@ int tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds);
 #if ENABLE_ODBC_MARS
 void tds_connection_close(TDSCONNECTION *conn);
 #endif
+int tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen);
+int tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen, unsigned char last);
 
 /* packet.c */
 int tds_read_packet(TDSSOCKET * tds);

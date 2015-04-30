@@ -110,6 +110,7 @@ TDS_SRC =	$(TDS_DIR)\bulk.c \
 		$(TDS_DIR)\tds_checks.c \
 		$(TDS_DIR)\tdsstring.c \
 		$(TDS_DIR)\threadsafe.c \
+		$(TDS_DIR)\tls.c \
 		$(TDS_DIR)\token.c \
 		$(TDS_DIR)\util.c \
 		$(TDS_DIR)\vstrbuild.c \
@@ -140,6 +141,7 @@ TDS_OBJ =	$(TDS_OUT)\bulk.obj \
 		$(TDS_OUT)\tds_checks.obj \
 		$(TDS_OUT)\tdsstring.obj \
 		$(TDS_OUT)\threadsafe.obj \
+		$(TDS_OUT)\tls.obj \
 		$(TDS_OUT)\token.obj \
 		$(TDS_OUT)\util.obj \
 		$(TDS_OUT)\vstrbuild.obj \
