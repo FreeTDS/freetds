@@ -68,6 +68,7 @@ foreach(fn
 	libgen.h
 	limits.h
 	locale.h
+	malloc.h
 	netdb.h
 	netinet/in.h
 	netinet/tcp.h

@@ -34,6 +34,10 @@
 
 #include <assert.h>
 
+#if HAVE_MALLOC_H
+#include <malloc.h>
+#endif /* HAVE_MALLOC_H */
+
 #include <freetds/tds.h>
 #include <freetds/string.h>
 #include <freetds/convert.h>
