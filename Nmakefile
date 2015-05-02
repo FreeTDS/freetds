@@ -173,7 +173,7 @@ apps: $(DBLIB_OUT)\db-lib.lib $(APPS_EXE)
 tsql: $(APPS_OUT)\tsql.exe 
 bsqldb: $(APPS_OUT)\bsqldb.exe
 help:
-	@echo targets: db-lib, apps, tsql, bsqldb
+	@echo targets: db-lib, libct, apps, tsql, bsqldb
 
 ##(APPS_OUT)\bsqldb.exe: $(APPS_DIR)\bsqldb.exe $(DBLIB_OUT)\db-lib.lib
 # Don't know how to create this dependency without explicitly defining every output. 
