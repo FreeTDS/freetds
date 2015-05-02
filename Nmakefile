@@ -1,5 +1,5 @@
 # $Id: Nmakefile,v 1.14 2011-07-07 07:24:22 freddy77 Exp $
-# Build FreeTDS and assorted utilities for Win32/Win64 without an IDE. 
+# Build FreeTDS and assorted utilities for Win32/x64 without an IDE. 
 # Makefiles, unlike Visual Studio project files, are stable over time.  
 # Contributed to the public domain by James K. Lowden, February 2009
 
@@ -116,9 +116,6 @@ bsqldb: $(APPS_OUT)\bsqldb.exe
 help:
 	@echo targets: db-lib, libct, apps, tsql, bsqldb
 
-##(APPS_OUT)\bsqldb.exe: $(APPS_DIR)\bsqldb.exe $(DBLIB_OUT)\db-lib.lib
-# Don't know how to create this dependency without explicitly defining every output. 
-
 #
 # Sadly the environment settings for building for different architectures
 # is undocumented.  Microsoft's directions are to run the requisite 
@@ -153,9 +150,9 @@ build-win32d:
 build-win32r: 
 	$(MAKE) -fNmakefile -nologo apps PLATFORM=win32 CONFIGURATION=release
 build-win64d: 
-	$(MAKE) -fNmakefile -nologo apps PLATFORM=win64 CONFIGURATION=debug
+	$(MAKE) -fNmakefile -nologo apps PLATFORM=x64 CONFIGURATION=debug
 build-win64r: 
-	$(MAKE) -fNmakefile -nologo apps PLATFORM=win64 CONFIGURATION=release
+	$(MAKE) -fNmakefile -nologo apps PLATFORM=x64 CONFIGURATION=release
 
 clean:
 	@if "" equ "$(PLATFORM)" 	PLATFORM not defined, see comments in Nmakefile >&2 && exit 1
