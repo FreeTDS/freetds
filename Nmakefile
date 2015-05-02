@@ -38,6 +38,7 @@ APPS_OUT         = $(APPS_DIR)\$(PLATFORM)\$(CONFIGURATION)
 DBLIB_SRC = 	$(DBLIB_DIR)\bcp.c \
 		$(DBLIB_DIR)\dblib.c \
 		$(DBLIB_DIR)\dbopen.c \
+		$(DBLIB_DIR)\dbpivot.c \
 		$(DBLIB_DIR)\dbutil.c \
 		$(DBLIB_DIR)\rpc.c \
 		$(DBLIB_DIR)\xact.c 
@@ -45,6 +46,7 @@ DBLIB_SRC = 	$(DBLIB_DIR)\bcp.c \
 DBLIB_OBJ = 	$(DBLIB_OUT)\bcp.obj \
 		$(DBLIB_OUT)\dblib.obj \
 		$(DBLIB_OUT)\dbopen.obj \
+		$(DBLIB_OUT)\dbpivot.obj \
 		$(DBLIB_OUT)\dbutil.obj \
 		$(DBLIB_OUT)\rpc.obj \
 		$(DBLIB_OUT)\xact.obj 
