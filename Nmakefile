@@ -62,10 +62,12 @@ CTLIB_OBJ =	$(CTLIB_OUT)\blk.obj \
 REPLACEMENTS_SRC =	$(REPLACEMENTS_DIR)\asprintf.c \
 			$(REPLACEMENTS_DIR)\basename.c \
 			$(REPLACEMENTS_DIR)\fakepoll.c \
+			$(REPLACEMENTS_DIR)\getpassarg.c \
 			$(REPLACEMENTS_DIR)\gettimeofday.c \
 			$(REPLACEMENTS_DIR)\getopt.c \
 			$(REPLACEMENTS_DIR)\iconv.c \
 			$(REPLACEMENTS_DIR)\readpassphrase.c \
+			$(REPLACEMENTS_DIR)\socketpair.c \
 			$(REPLACEMENTS_DIR)\strlcat.c \
 			$(REPLACEMENTS_DIR)\strlcpy.c \
 			$(REPLACEMENTS_DIR)\strtok_r.c \
@@ -75,10 +77,12 @@ REPLACEMENTS_SRC =	$(REPLACEMENTS_DIR)\asprintf.c \
 REPLACEMENTS_OBJ =	$(REPLACEMENTS_OUT)\asprintf.obj \
 			$(REPLACEMENTS_OUT)\basename.obj \
 			$(REPLACEMENTS_OUT)\fakepoll.obj \
+			$(REPLACEMENTS_OUT)\getpassarg.obj \
 			$(REPLACEMENTS_OUT)\gettimeofday.obj \
 			$(REPLACEMENTS_OUT)\getopt.obj \
 			$(REPLACEMENTS_OUT)\iconv.obj \
 			$(REPLACEMENTS_OUT)\readpassphrase.obj \
+			$(REPLACEMENTS_OUT)\socketpair.obj \
 			$(REPLACEMENTS_OUT)\strlcat.obj \
 			$(REPLACEMENTS_OUT)\strlcpy.obj \
 			$(REPLACEMENTS_OUT)\strtok_r.obj \
