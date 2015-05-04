@@ -8,10 +8,11 @@ if(COMMAND cmake_policy)
 endif(COMMAND cmake_policy)
 
 set(PACKAGE freetds)
-file(STRINGS "configure" VERSION LIMIT_COUNT 1 REGEX "^[ 	]*VERSION[ 	]*=.*0")
-if(VERSION MATCHES "VERSION[      ]*=[      ]*'?([^' 	]+)")
+file(STRINGS "configure.ac" VERSION LIMIT_COUNT 1 REGEX "^AC_INIT\\(FreeTDS,[ 	]*0[.].*\\)$")
+if(VERSION MATCHES "AC_INIT\\(FreeTDS,[      ]*(.+)\\)$")
 	set(VERSION ${CMAKE_MATCH_1})
 	string(REGEX REPLACE "^dev[.]" "" VER "${VERSION}")
+	string(REGEX REPLACE "^([0-9]+\\.[0-9]+)(rc|RC)" "\\1.dev." VER "${VER}")
 	if("${VER}.0" MATCHES "^([0-9]+)[.]([0-9]+)[.]([^.]*)")
 		set(MAJOR ${CMAKE_MATCH_1})
 		set(MINOR ${CMAKE_MATCH_2})
@@ -28,16 +29,10 @@ else()
 endif()
 
 # get build number from date
+# use same formula used in configure.ac
 unset(BUILD_NUMBER)
-execute_process(COMMAND "cmd" " /C date /T" OUTPUT_VARIABLE BUILD_NUMBER)
-if(BUILD_NUMBER STREQUAL "")
-	execute_process(COMMAND "date" "+%d/%m/%Y" OUTPUT_VARIABLE BUILD_NUMBER)
-endif()
-if(BUILD_NUMBER MATCHES "(..)/(..)/..(..).*")
-	math(EXPR BUILD_NUMBER "${CMAKE_MATCH_3} * 372 + ${CMAKE_MATCH_2} * 31 + ${CMAKE_MATCH_1}")
-else()
-	message(FATAL_ERROR "Unable to compute current date --${BUILD_NUMBER}--")
-endif()
+string(TIMESTAMP BUILD_NUMBER "( %Y - 2000 ) * 366 + 1%j - 1000")
+math(EXPR BUILD_NUMBER "${BUILD_NUMBER}")
 
 set(FREETDS_TOPDIR ${CMAKE_CURRENT_LIST_DIR})
 
