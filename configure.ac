@@ -25,7 +25,10 @@ AC_CONFIG_MACRO_DIR([m4])
 dnl configuration directory will be /usr/local/etc
 AC_PREFIX_DEFAULT(/usr/local)
 
-ver=$(echo $VERSION.0 | sed 's/^dev\.//; s,^\([0-9]*\.[0-9]*\)\(rc\|RC\),\1.dev.,g')
+dnl 0.X.Y -> 0.X.Y
+dnl 0.X.dev.date -> 0.(X-1).9999
+dnl 0.XrcY -> 0.(X-1).9999
+ver=[$(echo $VERSION.0 | sed 's/^dev\.//; s,^\([0-9]*\.[0-9]*\)\(rc\|RC\),\1.dev.,g')]
 MAJOR=[$(echo $ver | sed 's,^\([0-9]*\)\.\([0-9]*\).*,\1,g')]
 MINOR=[$(echo $ver | sed 's,^\([0-9]*\)\.\([0-9]*\).*,\2,g')]
 SUBVERSION=[$(echo $ver | sed 's,^[0-9]*\.[^.]*\.\([^.]*\).*,\1,g')]
