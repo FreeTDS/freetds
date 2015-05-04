@@ -28,14 +28,18 @@ AC_PREFIX_DEFAULT(/usr/local)
 dnl 0.X.Y -> 0.X.Y
 dnl 0.X.dev.date -> 0.(X-1).9999
 dnl 0.XrcY -> 0.(X-1).9999
-ver=[$(echo $VERSION.0 | sed 's/^dev\.//; s,^\([0-9]*\.[0-9]*\)\(rc\|RC\),\1.dev.,g')]
-MAJOR=[$(echo $ver | sed 's,^\([0-9]*\)\.\([0-9]*\).*,\1,g')]
-MINOR=[$(echo $ver | sed 's,^\([0-9]*\)\.\([0-9]*\).*,\2,g')]
-SUBVERSION=[$(echo $ver | sed 's,^[0-9]*\.[^.]*\.\([^.]*\).*,\1,g')]
-BUILD_NUMBER=$(( ( $(date +%Y) - 2000 ) * 366 + $(date +1%j) - 1000 ))
-if test "$SUBVERSION" = "dev"; then
-	MINOR=$(expr $MINOR - 1)
-	SUBVERSION=9999
+ver=[`echo $VERSION.0 | sed 's,^\([0-9][0-9]*\.[0-9][0-9]*\)\(rc\|RC\),\1.dev.,g; s/\.dev\./.9999./'`]
+match=['^\([0-9][0-9]*\)\.\([0-9][0-9]*\)\.\([0-9][0-9]*\).*']
+if test "`echo $ver | sed \"s,$match,,\"`" != ""; then
+	AC_MSG_ERROR([Invalid version $VERSION specified])
+fi
+MAJOR=[`echo $ver | sed "s,$match,\1,"`]
+MINOR=[`echo $ver | sed "s,$match,\2,"`]
+SUBVERSION=[`echo $ver | sed "s,$match,\3,"`]
+BUILD_NUMBER="`date +1%j` - 1000 + ( `date +%Y` - 2000 )"
+BUILD_NUMBER="`expr $BUILD_NUMBER \* 366`"
+if test "$SUBVERSION" = "9999"; then
+	MINOR=`expr $MINOR - 1`
 fi
 AC_SUBST(MAJOR)
 AC_SUBST(MINOR)
