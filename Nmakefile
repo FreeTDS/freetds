@@ -196,7 +196,7 @@ $(DBLIB_OUT) $(CTLIB_OUT) $(REPLACEMENTS_OUT) $(TDS_OUT) $(APPS_OUT):
 # Generate distributed header files
 #
 include\freetds\version.h:
-	perl -e"@a=localtime; printf qq(#undef  TDS_VERSION_NO\n#define TDS_VERSION_NO \"freetds v0.83.dev.%d%02d%02d\"\n), 1900+$$a[5], 1+$$a[-1], $$a[3]" \
+	perl -e"@a=localtime; printf qq(#undef  TDS_VERSION_NO\n#define TDS_VERSION_NO \"freetds v0.9x.dev.%d%02d%02d\"\n), 1900+$$a[5], 1+$$a[-1], $$a[3]" \
 	> $@.err 
 	move /Y $@.err $@
 
