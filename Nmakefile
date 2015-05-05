@@ -200,7 +200,7 @@ include\freetds\version.h:
 	> $@.err 
 	$(MV) $@.err $@
 
-src\tds\tds_types.h:
+src\tds\tds_types.h: misc\types.csv include\freetds\proto.h
 	perl src\tds\types.pl misc\types.csv include\freetds\proto.h > $@.err
 	$(MV) $@.err $@
 
