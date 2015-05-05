@@ -26,7 +26,8 @@ AC_PREFIX_DEFAULT(/usr/local)
 dnl 0.X.Y -> 0.X.Y
 dnl 0.X.dev.date -> 0.(X-1).9999
 dnl 0.XrcY -> 0.(X-1).9999
-ver=[`echo $VERSION.0 | sed 's,^\([0-9][0-9]*\.[0-9][0-9]*\)\(rc\|RC\),\1.dev.,g; s/\.dev\./.9999./'`]
+dnl dev.0.X.Y -> 0.X.Y
+ver=[`echo $VERSION.0 | sed 's,^dev\.,,; s,^\([0-9][0-9]*\.[0-9][0-9]*\)rc,\1.dev.,g; s/\.dev\./.9999./'`]
 match=['^\([0-9][0-9]*\)\.\([0-9][0-9]*\)\.\([0-9][0-9]*\).*']
 if test "`echo $ver | sed \"s,$match,,\"`" != ""; then
 	AC_MSG_ERROR([Invalid version $VERSION specified])
