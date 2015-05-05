@@ -1,7 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.71 2012-01-17 03:46:35 jklowden Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -12,10 +11,9 @@ dnl ------------------------------------------------------------
 # ------------------------------------------------------------
 # Initialization
 # ------------------------------------------------------------
-AC_INIT(FreeTDS, 0.92.dev.esyscmd(printf $(date +"%Y%m%d")))
+AC_INIT(FreeTDS, 0.95rc1)
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.71 $)
 
 AM_INIT_AUTOMAKE([dist-bzip2 parallel-tests])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES(yes)])
