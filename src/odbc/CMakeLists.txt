@@ -1,22 +1,20 @@
-find_program(PERL perl)
-
 add_subdirectory(unittests)
 
 # TODO checks
 add_definitions(-DUNIXODBC -DHAVE_SQLGETPRIVATEPROFILESTRING -DDLL_EXPORT)
 
-#if(PERL)
-#	add_custom_command(OUTPUT odbc_export.h
-#		COMMAND ${PERL} odbc_export.pl odbc.c > odbc_export.h
-#		MAIN_DEPENDENCY odbc_export.pl
-#		DEPENDS odbc.c
-#		WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
-#	add_custom_command(OUTPUT error_export.h
-#		COMMAND ${PERL} odbc_export.pl error.c > error_export.h
-#		MAIN_DEPENDENCY odbc_export.pl
-#		DEPENDS error.c
-#		WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
-#endif(PERL)
+if(PERL_FOUND AND NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
+	add_custom_command(OUTPUT odbc_export.h
+		COMMAND ${PERL_EXECUTABLE} odbc_export.pl odbc.c > odbc_export.h
+		MAIN_DEPENDENCY odbc_export.pl
+		DEPENDS odbc.c
+		WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
+	add_custom_command(OUTPUT error_export.h
+		COMMAND ${PERL_EXECUTABLE} odbc_export.pl error.c > error_export.h
+		MAIN_DEPENDENCY odbc_export.pl
+		DEPENDS error.c
+		WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
+endif(PERL_FOUND AND NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
 
 if(WIN32)
 	set(win_SRCS ../../win32/winlogin.c ../../win32/winsetup.c ../../win32/initnet.c ../../win32/FreeTDS_w.def ../../win32/setup.rc)
