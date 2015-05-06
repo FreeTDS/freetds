@@ -52,16 +52,19 @@
   bunch of implementation and conceptual gaps in <tt>db-lib</tt>.
   That's why <tt>sqsh</tt> and Perl's <tt>DBD::Sybase</tt> use
   <tt>ct-lib</tt>. <tt>ct-lib</tt> is not our most complete
-  implementation.</p>
+  implementation, but is getting some attention from the
+  developers. We're committed to making it work perfectly with
+  <tt>DBD::Sybase</tt>.</p>
 
   <h2>odbc</h2>
 
   <p><tt>ODBC</tt> is our most recent addition. Its chief advantage
   is that it makes FreeTDS servers look like other <tt>ODBC</tt>
   servers, a big help to people who know <tt>ODBC</tt> and/or write
-  applications for several kinds of servers. Currently this library
-  is quite complete and can be used in connector software like
-  Oracle one.</p>
+  applications for several kinds of servers. Recent releases of
+  FreeTDS have included large expansions of functionality in the
+  <tt>ODBC</tt> library, and the git version almost always includes
+  still more features.</p>
 
   <h2>Bottom line</h2>
 
