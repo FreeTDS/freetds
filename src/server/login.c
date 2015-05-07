@@ -102,7 +102,7 @@ tds_listen(TDSCONTEXT * ctx, int ip_port)
 		return NULL;
 	}
 	CLOSESOCKET(s);
-	tds = tds_alloc_socket(ctx, 8192);
+	tds = tds_alloc_socket(ctx, 4096);
 	tds_set_s(tds, fd);
 	tds->out_flag = TDS_LOGIN;
 	/* TODO proper charset */
