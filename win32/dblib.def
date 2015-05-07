@@ -98,6 +98,10 @@ EXPORTS
 	dbnumcols
 	dbnumcompute
 	dbnumrets
+	dbpivot_count
+	dbpivot_max
+	dbpivot_min
+	dbpivot_sum
 	dbprcollen
 	dbprhead
 	dbprrow
@@ -114,6 +118,7 @@ EXPORTS
 	dbretstatus
 	dbrettype
 	dbrows
+	dbrows_pivoted
 	dbrowtype
 	dbrpcinit
 	dbrpcparam
