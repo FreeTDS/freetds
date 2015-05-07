@@ -44,6 +44,7 @@
 #include <freetds/tds.h>
 #include <freetds/iconv.h>
 #include <freetds/string.h>
+#include <freetds/bytes.h>
 #include <freetds/tls.h>
 #include "replacements.h"
 
@@ -963,7 +964,7 @@ tds7_crypt_pass(const unsigned char *clear_pass, size_t len, unsigned char *cryp
 static TDSRET
 tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 {
-	int i, len;
+	int i, pkt_len;
 	const char *instance_name = tds_dstr_isempty(&login->instance_name) ? "MSSQLServer" : tds_dstr_cstr(&login->instance_name);
 	int instance_name_len = strlen(instance_name) + 1;
 	TDS_CHAR crypt_flag;
@@ -972,7 +973,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 
 #define START_POS 21
 #define UI16BE(n) ((n) >> 8), ((n) & 0xffu)
-#define SET_UI16BE(i,n) do { buf[i] = ((n) >> 8); buf[i+1] = ((n) & 0xffu); } while(0)
+#define SET_UI16BE(i,n) TDS_PUT_UA2BE(&buf[i],n)
 	TDS_UCHAR buf[] = {
 		/* netlib version */
 		0, UI16BE(START_POS), UI16BE(6),
@@ -1049,7 +1050,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	ret = tds_read_packet(tds);
 	if (ret <= 0 || tds->in_flag != TDS_REPLY)
 		return TDS_FAIL;
-	len = tds->in_len - tds->in_pos;
+	pkt_len = tds->in_len - tds->in_pos;
 
 	/* the only thing we care is flag */
 	p = tds->in_buf + tds->in_pos;
@@ -1057,26 +1058,26 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	crypt_flag = 2;
 	for (i = 0;; i += 5) {
 		TDS_UCHAR type;
-		int off, l;
+		int off, len;
 
-		if (i >= len)
+		if (i >= pkt_len)
 			return TDS_FAIL;
 		type = p[i];
 		if (type == 0xff)
 			break;
 		/* check packet */
-		if (i+4 >= len)
+		if (i+4 >= pkt_len)
 			return TDS_FAIL;
-		off = (((int) p[i+1]) << 8) | p[i+2];
-		l = (((int) p[i+3]) << 8) | p[i+4];
-		if (off > len || (off+l) > len)
+		off = TDS_GET_UA2BE(&p[i+1]);
+		len = TDS_GET_UA2BE(&p[i+3]);
+		if (off > pkt_len || (off+len) > pkt_len)
 			return TDS_FAIL;
-		if (type == 1 && l >= 1) {
+		if (type == 1 && len >= 1) {
 			crypt_flag = p[off];
 		}
 	}
 	/* we readed all packet */
-	tds->in_pos += len;
+	tds->in_pos += pkt_len;
 	/* TODO some mssql version do not set last packet, update tds according */
 
 	tdsdump_log(TDS_DBG_INFO1, "detected flag %d\n", crypt_flag);
