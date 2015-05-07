@@ -289,7 +289,7 @@ tds_alloc_read_login(TDSSOCKET * tds)
 
 	/* Use the packet type to determine which login format to expect */
 	switch (tds->in_flag) {
-	case 0x02: /* TDS4/5 login */
+	case TDS_LOGIN: /* TDS4/5 login */
 		tds->conn->tds_version = 0x402;
 		if (!tds_read_login(tds, login)) {
 			tds_free_login(login);
@@ -300,7 +300,7 @@ tds_alloc_read_login(TDSSOCKET * tds)
 		}
 		break;
 
-	case 0x10: /* TDS7+ login */
+	case TDS7_LOGIN: /* TDS7+ login */
 		tds->conn->tds_version = 0x700;
 		if (!tds7_read_login(tds, login)) {
 			tds_free_login(login);
@@ -308,7 +308,7 @@ tds_alloc_read_login(TDSSOCKET * tds)
 		}
 		break;
 
-	case 0x12: /* TDS7.1+ prelogin, hopefully followed by a login */
+	case TDS71_PRELOGIN: /* TDS7.1+ prelogin, hopefully followed by a login */
 		tds->conn->tds_version = 0x701;
 		/* ignore client and just send our reply TODO... finish */
 		tds71_send_prelogin(tds);
