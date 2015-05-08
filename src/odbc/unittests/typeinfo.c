@@ -131,6 +131,8 @@ DoTest(int version3)
 	/* test for date/time support */
 	if (odbc_command_with_result(odbc_stmt, "select cast(getdate() as date)") == SQL_SUCCESS)
 		date_time_supported = 1;
+	if (odbc_db_is_microsoft() && odbc_tds_version() < 0x703)
+		date_time_supported = 0;
 	SQLCloseCursor(odbc_stmt);
 
 #define CHECK_TYPE(in,out) CheckType(in, out, #in, __LINE__)

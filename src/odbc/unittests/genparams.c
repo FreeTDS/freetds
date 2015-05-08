@@ -411,7 +411,7 @@ AllTests(void)
 	/* TODO use collate in sintax if available */
 	TestOutput("VARCHAR(20)", "0xf8f9", SQL_C_CHAR, SQL_VARCHAR, "2 \xf8\xf9");
 
-	if ((odbc_db_is_microsoft() && odbc_db_version_int() >= 0x08000000u)
+	if ((odbc_db_is_microsoft() && odbc_db_version_int() >= 0x08000000u && odbc_tds_version() > 0x700)
 	    || (!odbc_db_is_microsoft() && strncmp(odbc_db_version(), "15.00.", 6) >= 0)) {
 		TestOutput("BIGINT", "-987654321065432", SQL_C_BINARY, SQL_BIGINT, big_endian ? "FFFC7DBBCF083228" : "283208CFBB7DFCFF");
 		TestInput(SQL_C_SBIGINT, "BIGINT", SQL_BIGINT, "BIGINT", "-12345678901234");
