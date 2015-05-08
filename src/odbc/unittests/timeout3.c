@@ -180,7 +180,7 @@ main(int argc, char *argv[])
 
 	init_connect();
 	CHKSetConnectAttr(SQL_ATTR_CONNECTION_TIMEOUT, (SQLPOINTER) 10, sizeof(SQLINTEGER), "SI");
-	CHKSetConnectAttr(SQL_ATTR_LOGIN_TIMEOUT, (SQLPOINTER) 10, sizeof(SQLINTEGER), "SI");
+	CHKSetConnectAttr(SQL_ATTR_LOGIN_TIMEOUT, (SQLPOINTER) 10, SQL_IS_UINTEGER, "SI");
 
 	/* this is expected to work with unixODBC */
 	printf("try to connect to our port just to check connection timeout\n");
