@@ -524,7 +524,7 @@ AC_HAVE_MALLOC_OPTIONS
 AC_MSG_RESULT(checking compile-time options)
 
 AC_ARG_WITH(tdsver,
-AS_HELP_STRING([--with-tdsver=VERSION], [TDS protocol version (4.2/4.6/5.0/7.0/7.1) [5.0]]))
+AS_HELP_STRING([--with-tdsver=VERSION], [TDS protocol version (4.2/4.6/5.0/7.0/7.1/7.2/7.3) [5.0]]))
 if test "$with_tdsver" = "4.2"; then
 	AC_DEFINE(TDS42, 1, [Define to use TDS 4.2 by default])
 elif test "$with_tdsver" = "4.6"; then
@@ -533,6 +533,10 @@ elif test "$with_tdsver" = "7.0"; then
 	AC_DEFINE(TDS70, 1, [Define to use TDS 7.0 by default])
 elif test "$with_tdsver" = "7.1"; then
 	AC_DEFINE(TDS71, 1, [Define to use TDS 7.1 by default])
+elif test "$with_tdsver" = "7.2"; then
+	AC_DEFINE(TDS72, 1, [Define to use TDS 7.2 by default])
+elif test "$with_tdsver" = "7.3"; then
+	AC_DEFINE(TDS73, 1, [Define to use TDS 7.3 by default])
 else
 	AC_DEFINE(TDS50, 1, [Define to use TDS 5.0 by default])
 fi
