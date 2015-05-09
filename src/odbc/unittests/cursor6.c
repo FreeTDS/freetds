@@ -1,6 +1,6 @@
 #include "common.h"
 
-/* Test SQLFetchScroll with no binded columns */
+/* Test SQLFetchScroll with no bound columns */
 
 static char software_version[] = "$Id: cursor6.c,v 1.7 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };

@@ -81,7 +81,7 @@ odbc_check_drecord(TDS_DESC * desc, struct _drecord *drec)
 {
 	assert(drec->sql_desc_concise_type != SQL_INTERVAL && drec->sql_desc_concise_type != SQL_DATETIME);
 
-	/* unbinded columns have type == 0 */
+	/* unbound columns have type == 0 */
 	/* TODO test errors on code if type == 0 */
 	if (desc->type == DESC_IPD || desc->type == DESC_IRD) {
 		assert((drec->sql_desc_type == 0 && drec->sql_desc_concise_type == 0) || odbc_get_concise_sql_type(drec->sql_desc_type, drec->sql_desc_datetime_interval_code) == drec->sql_desc_concise_type);

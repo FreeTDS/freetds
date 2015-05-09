@@ -318,7 +318,7 @@ main(int argc, char **argv)
 		fprintf(stderr, "Cannot bind to a port\n");
 		return 1;
 	}
-	printf("Fake server binded at port %d\n", port);
+	printf("Fake server bound at port %d\n", port);
 
 	/* override connections */
 	if (is_freetds) {
