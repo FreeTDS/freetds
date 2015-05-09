@@ -157,7 +157,7 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 			--p;
 			break;
 		case '?':
-			/* find binded parameter */
+			/* find bound parameter */
 			if (stmt->param_num > stmt->apd->header.sql_desc_count
 			    || stmt->param_num > stmt->ipd->header.sql_desc_count) {
 				tds_free_param_result(temp_params);

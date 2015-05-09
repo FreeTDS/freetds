@@ -77,7 +77,7 @@ test0(int n,  const char * expected)
 	if (strcmp(expected, "aaaaaaaaaaaaaaa") == 0)
 		expected_ind = -1;
 
-	/* do not check indicator if not binded */
+	/* do not check indicator if not bound */
 	if (!use_nullbind)
 		ind = expected_ind;
 	if (ind != expected_ind || strcmp(expected, text_buf) != 0) {

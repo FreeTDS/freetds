@@ -176,7 +176,7 @@ main(int argc, char *argv[])
 		fprintf(stderr, "Cannot bind to a port\n");
 		return 1;
 	}
-	printf("Fake server binded at port %d\n", port);
+	printf("Fake server bound at port %d\n", port);
 
 	init_connect();
 	CHKSetConnectAttr(SQL_ATTR_CONNECTION_TIMEOUT, (SQLPOINTER) 10, sizeof(SQLINTEGER), "SI");
