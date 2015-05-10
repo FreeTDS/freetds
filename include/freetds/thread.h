@@ -174,11 +174,11 @@ static inline int tds_thread_join(tds_thread th, void **ret)
 {
 	if (WaitForSingleObject(th, INFINITE) == WAIT_OBJECT_0) {
 		DWORD_PTR r;
-		if (GetExitCodeThread(th, &r)) {
+		if (ret && GetExitCodeThread(th, &r))
 			*ret = (void*) r;
-			CloseHandle(th);
-			return 0;
-		}
+
+		CloseHandle(th);
+		return 0;
 	}
 	CloseHandle(th);
 	return 22 /* EINVAL */;
