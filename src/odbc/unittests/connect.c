@@ -97,16 +97,20 @@ main(int argc, char *argv[])
 	}
 	odbc_disconnect();
 
-	/* this is expected to work with iODBC */
-	init_connect();
-	sprintf(tmp, "DRIVER=%s;SERVERNAME=%s;UID=%s;PWD=%s;DATABASE=%s;", odbc_driver, odbc_server, odbc_user, odbc_password, odbc_database);
-	rc = CHKDriverConnect(NULL, T(tmp), SQL_NTS, (SQLTCHAR *) tmp, sizeof(tmp)/sizeof(SQLTCHAR), &len, SQL_DRIVER_NOPROMPT, "SIE");
-	if (rc == SQL_ERROR) {
-		printf("Unable to open data source (ret=%d)\n", rc);
-	} else {
-		++succeeded;
+	/* this is expected to work with iODBC
+	 * (passing shared object name as driver)
+	 */
+	if (odbc_driver[0]) {
+		init_connect();
+		sprintf(tmp, "DRIVER=%s;SERVERNAME=%s;UID=%s;PWD=%s;DATABASE=%s;", odbc_driver, odbc_server, odbc_user, odbc_password, odbc_database);
+		rc = CHKDriverConnect(NULL, T(tmp), SQL_NTS, (SQLTCHAR *) tmp, sizeof(tmp)/sizeof(SQLTCHAR), &len, SQL_DRIVER_NOPROMPT, "SIE");
+		if (rc == SQL_ERROR) {
+			printf("Unable to open data source (ret=%d)\n", rc);
+		} else {
+			++succeeded;
+		}
+		odbc_disconnect();
 	}
-	odbc_disconnect();
 
 #ifdef _WIN32
 	if (get_entry("SERVER")) {
@@ -114,6 +118,8 @@ main(int argc, char *argv[])
 		sprintf(tmp, "DRIVER=FreeTDS;SERVER=%s;UID=%s;PWD=%s;DATABASE=%s;", entry, odbc_user, odbc_password, odbc_database);
 		if (get_entry("TDS_Version"))
 			sprintf(strchr(tmp, 0), "TDS_Version=%s;", entry);
+		if (get_entry("Port"))
+			sprintf(strchr(tmp, 0), "Port=%s;", entry);
 		rc = CHKDriverConnect(NULL, T(tmp), SQL_NTS, (SQLTCHAR *) tmp, sizeof(tmp)/sizeof(SQLTCHAR), &len, SQL_DRIVER_NOPROMPT, "SIE");
 		if (rc == SQL_ERROR) {
 			printf("Unable to open data source (ret=%d)\n", rc);
