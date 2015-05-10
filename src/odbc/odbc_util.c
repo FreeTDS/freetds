@@ -37,8 +37,6 @@
 #include <freetds/enum_cap.h>
 #include <odbcss.h>
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.130 2011-09-07 09:40:47 freddy77 Exp $");
-
 /**
  * \ingroup odbc_api
  * \defgroup odbc_util ODBC utility

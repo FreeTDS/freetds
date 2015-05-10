@@ -38,8 +38,6 @@
 #include <freetds/odbc.h>
 #include <freetds/string.h>
 
-TDS_RCSID(var, "$Id: native.c,v 1.31 2011-06-03 21:14:48 freddy77 Exp $");
-
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 #define TDS_ISALPHA(c) isalpha((unsigned char) (c))
 

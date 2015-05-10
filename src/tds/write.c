@@ -46,8 +46,6 @@
 #include <freetds/stream.h>
 #include "tds_checks.h"
 
-TDS_RCSID(var, "$Id: write.c,v 1.84 2011-06-18 17:52:24 freddy77 Exp $");
-
 /**
  * \addtogroup network
  * @{ 

@@ -57,8 +57,6 @@
 #include "sqlwparams.h"
 #include <odbcss.h>
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.593 2012-03-11 15:52:22 freddy77 Exp $");
-
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
 static SQLRETURN _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt);

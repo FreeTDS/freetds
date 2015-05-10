@@ -41,8 +41,6 @@
 #include <freetds/bytes.h>
 #include "md4.h"
 
-TDS_RCSID(var, "$Id: md4.c,v 1.9 2011-05-16 08:51:40 freddy77 Exp $");
-
 #undef word32
 #define word32 TDS_UINT
 

@@ -39,8 +39,6 @@
 #include "replacements.h"
 #include "sqlwparams.h"
 
-TDS_RCSID(var, "$Id: error.c,v 1.70 2012-03-09 21:51:21 freddy77 Exp $");
-
 static void odbc_errs_pop(struct _sql_errors *errs);
 static const char *odbc_get_msg(const char *sqlstate);
 static void odbc_get_v2state(const char *sqlstate, char *dest_state);

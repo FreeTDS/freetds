@@ -36,8 +36,6 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: blk.c,v 1.58 2011-09-25 11:36:24 freddy77 Exp $");
-
 static void _blk_null_error(TDSBCPINFO *bcpinfo, int index, int offset);
 static TDSRET _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bcpcol, int offset);
 static CS_RETCODE _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred);

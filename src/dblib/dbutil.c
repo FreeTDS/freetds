@@ -37,8 +37,6 @@
 #include <syberror.h>
 #include <dblib.h>
 
-TDS_RCSID(var, "$Id: dbutil.c,v 1.52 2011-06-07 09:58:49 freddy77 Exp $");
-
 /*
  * test include consistency 
  * I don't think all compiler are able to compile this code... if not comment it

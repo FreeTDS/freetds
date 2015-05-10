@@ -42,8 +42,6 @@
 #include <freetds/bytes.h>
 #include "des.h"
 
-TDS_RCSID(var, "$Id: des.c,v 1.16 2011-05-16 08:51:40 freddy77 Exp $");
-
 static void permute_ip(des_cblock inblock, DES_KEY * key, des_cblock outblock);
 static void permute_fp(des_cblock inblock, DES_KEY * key, des_cblock outblock);
 static void perminit_ip(DES_KEY * key);

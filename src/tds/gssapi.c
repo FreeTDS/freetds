@@ -65,8 +65,6 @@
 #include <freetds/string.h>
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: gssapi.c,v 1.25 2011-11-07 09:56:24 freddy77 Exp $");
-
 /**
  * \ingroup libtds
  * \defgroup auth Authentication

@@ -52,8 +52,6 @@
 #include <langinfo.h>
 #endif /* HAVE_LANGINFO_H */
 
-TDS_RCSID(var, "$Id: mem.c,v 1.225 2012-03-11 15:52:22 freddy77 Exp $");
-
 static void tds_free_env(TDSCONNECTION * conn);
 static void tds_free_compute_results(TDSSOCKET * tds);
 static void tds_free_compute_result(TDSCOMPUTEINFO * comp_info);

@@ -42,8 +42,6 @@
 #include <iconv.h>
 #endif
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.150 2011-06-03 21:04:15 freddy77 Exp $");
-
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
 

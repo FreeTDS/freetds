@@ -37,8 +37,6 @@
 #include <freetds/iconv.h>
 #include <freetds/string.h>
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.80 2011-09-18 17:22:29 freddy77 Exp $");
-
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
 /**
