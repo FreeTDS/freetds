@@ -328,19 +328,18 @@ odbc_tds_version(void)
 	static int tds_version = -1;
 
 	ODBC_BUF *odbc_buf = NULL;
-	SQLTCHAR buf[64];
+	SQLUINTEGER version;
 	SQLSMALLINT len;
 
 	if (!odbc_driver_is_freetds())
 		return 0;
 
 	if (tds_version < 0) {
-		unsigned M, m;
-
-		buf[0] = 0;
-		SQLGetInfo(odbc_conn, 1300 /* SQL_INFO_FREETDS_TDS_VERSION */, buf, sizeof(buf), &len);
-		if (sscanf(C(buf), "%u.%u", &M, &m) == 2)
-			tds_version = M * 0x100u + m;
+		version = 0;
+		len = 0;
+		SQLGetInfo(odbc_conn, 1300 /* SQL_INFO_FREETDS_TDS_VERSION */, &version, sizeof(version), &len);
+		if (len == sizeof(version))
+			tds_version = (version >> 16) << 8 | (version & 0xff);
 	}
 	ODBC_FREE();
 	return tds_version < 0 ? 0: tds_version;
