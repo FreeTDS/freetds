@@ -45,19 +45,66 @@ static tds_mutex mtx;
 static TDS_SYS_SOCKET
 odbc_find_last_socket(void)
 {
-	TDS_SYS_SOCKET max_socket = INVALID_SOCKET;
+	typedef struct {
+		TDS_SYS_SOCKET sock;
+		int local_port;
+		int remote_port;
+	} sock_info;
+	sock_info found[8];
+	unsigned num_found = 0, n;
 	int i;
 
 	for (i = 4; i <= (4096*4); i += 4) {
-		struct sockaddr addr;
-		socklen_t addr_len;
+		struct sockaddr remote_addr, local_addr;
+		struct sockaddr_in *in;
+		socklen_t remote_addr_len, local_addr_len;
+		sock_info *info;
 
-		if (tds_getpeername((TDS_SYS_SOCKET) i, &addr, &addr_len))
+		/* check if is a socket */
+		if (tds_getpeername((TDS_SYS_SOCKET) i, &remote_addr, &remote_addr_len))
 			continue;
-		max_socket = (TDS_SYS_SOCKET) i;
+		if (tds_getsockname((TDS_SYS_SOCKET) i, &local_addr, &local_addr_len))
+			continue;
+
+		/* save in the array */
+		if (num_found < 8) {
+			info = &found[num_found++ % 8u];
+		} else {
+			memmove(found, found+1, sizeof(found) - sizeof(found[0]));
+			info = &found[7];
+		}
+		info->sock = (TDS_SYS_SOCKET) i;
+		info->local_port = 0;
+		info->remote_port = 0;
+
+		/* now check if is a socketpair */
+		in = (struct sockaddr_in *) &remote_addr;
+		if (in->sin_family != AF_INET)
+			continue;
+		if (in->sin_addr.s_addr != htonl(INADDR_LOOPBACK))
+			continue;
+		info->remote_port = in->sin_port;
+		in = (struct sockaddr_in *) &local_addr;
+		if (in->sin_family != AF_INET)
+			continue;
+		if (in->sin_addr.s_addr != htonl(INADDR_LOOPBACK))
+			continue;
+		info->local_port = in->sin_port;
+		for (n = 0; n < num_found - 1; ++n) {
+			if (found[n].remote_port != info->local_port
+			    || found[n].local_port != info->remote_port)
+				continue;
+			--num_found;
+			memmove(found+n, found+n+1, num_found-n-1);
+			--num_found;
+			break;
+		}
 	}
-	
-	return max_socket;
+
+	/* return last */
+	if (num_found == 0)
+		return INVALID_SOCKET;
+	return found[num_found-1].sock;
 }
 #endif
 
