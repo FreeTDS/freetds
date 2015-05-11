@@ -303,10 +303,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\sybase_character_sets.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\include\freetds\tds.h"
 				>
 			</File>
