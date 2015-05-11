@@ -559,8 +559,8 @@ if tds71p
 	attr SQL_DESC_TYPE_NAME sql_variant
 endif
 
-tds_version_cmp tds72p >= 7.2
-if tds72p
+tds_version_cmp tds73p >= 7.3
+if tds73p
 	set DESC_PRECISION 2
 	set DESC_SCALE 2
 	select time(4) '12:34:56'
@@ -628,7 +628,10 @@ if tds72p
 	attr SQL_DESC_CONCISE_TYPE SQL_TYPE_DATE
 	attr SQL_DESC_TYPE SQL_TYPE_DATE
 	attr SQL_DESC_TYPE_NAME date
+endif
 
+tds_version_cmp tds72p >= 7.2
+if tds72p
 	select varchar(max) 'test'
 	attr SQL_DESC_SCALE 0
 	attr SQL_DESC_DISPLAY_SIZE 0
