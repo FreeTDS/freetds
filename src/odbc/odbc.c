@@ -5902,8 +5902,7 @@ _SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLS
 	case SQL_INFO_FREETDS_TDS_VERSION:
 		if (!dbc->tds_socket)
 			return SQL_ERROR;
-		sprintf(buf, "%u.%u", TDS_MAJOR(dbc->tds_socket->conn), TDS_MINOR(dbc->tds_socket->conn));
-		p = buf;
+		UIVAL = TDS_MAJOR(dbc->tds_socket->conn) << 16 | TDS_MINOR(dbc->tds_socket->conn);
 		break;
 	default:
 		odbc_log_unimplemented_type("SQLGetInfo", fInfoType);
