@@ -742,6 +742,17 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 		<title>Choosing a <acronym>TDS</> protocol version</title>
 
 <para>The <acronym>TDS</> protocol version is probably something you'd rather not know even existed, much less something you'd have to choose.  But there's not that much to it, really.  Unless you run into an incompatibility, you're best off running with the highest protocol version supported by your server.  That's what the vendors' own products do, which is why when you read the Sybase or Microsoft documentation you find no mention of <acronym>TDS</> versions.
+
+<tip>
+	<title>Avoid obsolete versions.</title>
+
+	<para>In former versions of Microsoft SQL Server protocol 7.1 was referred as 8.0 while 7.2 was referred as 9.0.</para>
+
+	<para>For compatibility reasons version 8.0 is still handled by &freetds; but you should avoid to use it as
+	it could be removed in a future version or it could clash with a future SQL server version.</para>
+
+	</tip>
+
 			<table id="tab.Protocol.by.Product">
 				<title>Versions of the <acronym>TDS</> Protocol, by Product</title>
 				<tgroup cols="3">
