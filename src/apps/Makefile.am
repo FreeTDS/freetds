@@ -6,11 +6,10 @@ SUBDIRS		= fisql
 
 DIST_SUBDIRS	= $(SUBDIRS)
 
+bin_PROGRAMS	= tsql freebcp bsqldb defncopy datacopy
 # build bsqlodbc only if the ODBC library was to be built
 if ODBC
-bin_PROGRAMS	= tsql freebcp bsqldb defncopy datacopy bsqlodbc
-else
-bin_PROGRAMS	= tsql freebcp bsqldb defncopy datacopy
+bin_PROGRAMS	+= bsqlodbc
 endif
 
 

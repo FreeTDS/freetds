@@ -2,8 +2,7 @@
 
 AM_CPPFLAGS	= -I$(top_srcdir)/include 
 
-if MINGW32
-else
+if !MINGW32
 bin_PROGRAMS	= fisql
 
 fisql_SOURCES	= fisql.c  \
