@@ -12,7 +12,6 @@ TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 # TODO add flags test again when needed
 
 check_PROGRAMS	=	$(TESTS)
-bin_PROGRAMS	=	collations
 
 t0001_SOURCES	=	t0001.c common.c common.h
 t0002_SOURCES	=	t0002.c common.c common.h
@@ -29,7 +28,10 @@ dataread_SOURCES	=	dataread.c common.c common.h
 utf8_1_SOURCES	=	utf8_1.c common.c common.h utf8.c
 utf8_2_SOURCES	=	utf8_2.c common.c common.h
 utf8_3_SOURCES	=	utf8_3.c common.c common.h utf8.c
+if ENABLE_DEVELOPING
+noinst_PROGRAMS	=	collations
 collations_SOURCES	=	collations.c common.c common.h
+endif
 numeric_SOURCES =       numeric.c
 iconv_fread_SOURCES	= iconv_fread.c
 charconv_SOURCES	= charconv.c

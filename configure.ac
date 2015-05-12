@@ -849,6 +849,7 @@ AC_ARG_ENABLE(developing,
 if test "$enable_developing" = "yes" ; then
 	AC_DEFINE_UNQUOTED(ENABLE_DEVELOPING, 1, [Define to enable work in progress code])
 fi
+AM_CONDITIONAL(ENABLE_DEVELOPING, test "$enable_developing" = "yes")
 
 AC_ARG_ENABLE(mars,
   AS_HELP_STRING([--enable-mars], [enable MARS code (EXPERIMENTAL)]))
