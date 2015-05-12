@@ -26,52 +26,35 @@ $alternates{'MACTURK'}  = 'MACTURKISH';
 
 $alternates{'KOI8'}  = 'KOI8-R';
 
-$filename = "${srcdir}sybase_character_sets.h";
-open(OUT, ">$filename") or die qq($basename: could not open "$filename"\n);
-print OUT "/*\n";
-print OUT " * This file produced from $0\n";
-print OUT ' * $Id: encodings.pl,v 1.12 2010-11-26 19:46:55 freddy77 Exp $', "\n";
-print OUT " */\n";
-
 # look up the canonical name
-$comma = ' ';
+%sybase = ();
 while(<DATA>){
 	next if /^#/;
 	next if /^\s*$/;
 	($name) = split;
 	$Name = uc $name;
 	$iconv_name = $alternates{$Name};
-	
+
 	if( !$iconv_name ) { # try predictable transformations
 		$Name =~ s/ISO8859(\d{1,2})$/ISO-8859-$1/;
 		$Name =~ s/ISO(\d{1,2})$/ISO-8859-$1/;
 		
 		$iconv_name = $alternates{$Name};
 	}
-	
+
 	if( !$iconv_name ) { # try crude transformation
 		$Name =~ s/[\-\_]+//g;
 		$iconv_name = $alternates{$Name};
 	}
-	
-	$name = qq/"$name"/;
-	if( $iconv_name ) { 	# found, print element
-		$iconv_name = qq/"$iconv_name",/;
-		printf OUT "\t$comma { %20s %-15s }\n", $iconv_name , $name;
-	} else {		# not found, print comment
-		$iconv_name = qq/"",/;
-		printf OUT "\t /* %20s %-15s */\n", $iconv_name , $name;
 
+	if( $iconv_name ) {	# found, save
+		$sybase{$name} = $iconv_name;
+	} else {	# not found, print comment
 		# grep for similar names, as an aid to the to programmer.  
 		$name =~ s/[\-\_]+//g;
 		print STDERR $Name.":  $name alternative_character_sets.h\n";
 	}
-	$comma = ',';
 }
-print  OUT "\t/* stopper row */\n";
-printf OUT "\t$comma { %20s %-15s }\n", 'NULL,' , 'NULL';
-close(OUT);
-
 
 
 print "/*\n";
@@ -107,17 +90,10 @@ while(<IN>)
 close(IN);
 
 # from sybase to canonic
-%sybase = ();
-$filename = "${srcdir}sybase_character_sets.h";
-open(IN, "<$filename") or die qq($basename: could not open "$filename"\n);
-while(<IN>)
+foreach my $name (keys %sybase)
 {
-	if (/{\s*"(.+)"\s*,\s*"(.+)"\s*}/)
-	{
-		$sybase{$2} = $alternates{$1};
-	}
+	$sybase{$name} = $alternates{$sybase{$name}};
 }
-close(IN);
 
 # give an index to all canonic
 %index = ();
