@@ -11,7 +11,7 @@ MINGW_SOURCES   =	../../win32/initnet.c
 else
 MINGW_SOURCES   =
 endif
-EXTRA_DIST	=	dbopen.c buffering.h db-lib.vcproj CMakeLists.txt
+EXTRA_DIST	=	dbopen.c buffering.h CMakeLists.txt
 libsybdb_la_SOURCES=	dblib.c dbutil.c rpc.c bcp.c xact.c dbpivot.c $(DBOPEN) $(MINGW_SOURCES)
 if MACOSX
 SYMBOLS		=

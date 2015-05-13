@@ -19,7 +19,6 @@ EXTRA_DIST=	asprintf.c \
 		strsep.c \
 		vasprintf.c \
 		socketpair.c \
-		replacements.vcproj \
 		ptw32_MCS_lock.c \
 		CMakeLists.txt
 
