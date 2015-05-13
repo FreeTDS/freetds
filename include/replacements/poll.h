@@ -1,11 +1,9 @@
-/* $Id: fakepoll.h,v 1.5 2011-05-16 08:51:40 freddy77 Exp $ */
-
 /** \file
  *  \brief Provide poll call where missing
  */
 
-#if !defined(_FAKE_POLL_H) && !defined(HAVE_POLL)
-#define _FAKE_POLL_H
+#if !defined(_REPLACEMENTS_POLL_H) && !defined(HAVE_POLL)
+#define _REPLACEMENTS_POLL_H
 
 #include <config.h>
 
@@ -76,6 +74,8 @@ typedef struct pollfd pollfd_t;
 # endif
 #endif
 
-int fakepoll(struct pollfd fds[], int nfds, int timeout);
+#undef poll
+#define poll(fds, nfds, timeout) tds_poll(fds, nfds, timeout)
+int poll(struct pollfd fds[], int nfds, int timeout);
 
 #endif

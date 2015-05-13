@@ -50,7 +50,7 @@ CTLIB_OBJ =	$(CTLIB_OUT)\blk.obj \
 
 REPLACEMENTS_OBJ =	$(REPLACEMENTS_OUT)\asprintf.obj \
 			$(REPLACEMENTS_OUT)\basename.obj \
-			$(REPLACEMENTS_OUT)\fakepoll.obj \
+			$(REPLACEMENTS_OUT)\poll.obj \
 			$(REPLACEMENTS_OUT)\gettimeofday.obj \
 			$(REPLACEMENTS_OUT)\getopt.obj \
 			$(REPLACEMENTS_OUT)\getpassarg.obj \

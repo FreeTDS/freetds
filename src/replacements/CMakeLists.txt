@@ -16,7 +16,7 @@ foreach(func ${FUNCS})
 endforeach(func)
 
 add_library(replacements STATIC
-	iconv.c gettimeofday.c fakepoll.c
+	iconv.c gettimeofday.c poll.c
 	getpassarg.c socketpair.c win_mutex.c
 	tds_cond.c getaddrinfo.c sleep.c
 	${add_SRCS}

@@ -40,8 +40,7 @@
 #endif
 
 #if !HAVE_POLL
-#include <fakepoll.h>
-#define poll(fds, nfds, timeout) fakepoll((fds), (nfds), (timeout))
+#include <replacements/poll.h>
 #endif /* !HAVE_POLL */
 
 #include <freetds/pushvis.h>

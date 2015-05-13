@@ -2,8 +2,8 @@
  * poll(2) implemented with select(2), for systems without poll(2). 
  * Warning: a call to this poll() takes about 4K of stack space.
  *
- * This file and the accompanying fakepoll.h  
- * are based on fakepoll.h in C++ by 
+ * This file and the accompanying poll.h
+ * are based on poll.h in C++ by
  * 
  * Greg Parker	 gparker-web@sealiesoftware.com     December 2000
  * This code is in the public domain. 
@@ -44,7 +44,7 @@
 #include <assert.h>
 
 int
-fakepoll(struct pollfd fds[], int nfds, int timeout)
+poll(struct pollfd fds[], int nfds, int timeout)
 {
 	struct timeval tv, *tvp;
 	fd_set fdsr, fdsw, fdsp;

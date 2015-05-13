@@ -3,7 +3,7 @@ SUBDIRS=	. unittests
 AM_CPPFLAGS=			-I$(top_srcdir)/include -I$(top_srcdir)/src/replacements
 noinst_LTLIBRARIES=		libreplacements.la
 libreplacements_la_SOURCES =	\
-	iconv.c gettimeofday.c fakepoll.c getpassarg.c socketpair.c win_mutex.c \
+	iconv.c gettimeofday.c poll.c getpassarg.c socketpair.c win_mutex.c \
 	tds_cond.c getaddrinfo.c sleep.c
 
 libreplacements_la_LDFLAGS=
