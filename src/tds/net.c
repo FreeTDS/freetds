@@ -865,7 +865,7 @@ tds7_get_instance_ports(FILE *output, struct tds_addrinfo *addr)
 			name = strtok_r(msg+3, sep, &save);
 			while (name && output) {
 				int i;
-				static const char *names[] = { "ServerName", "InstanceName", "IsClustered", "Version", 
+				static const char *const names[] = { "ServerName", "InstanceName", "IsClustered", "Version",
 							       "tcp", "np", "via" };
 
 				for (i=0; name && i < TDS_VECTOR_SIZE(names); i++) {
