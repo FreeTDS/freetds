@@ -41,6 +41,12 @@
 
 static tds_mutex mtx;
 
+typedef union {
+	struct sockaddr sa;
+	struct sockaddr_in sin;
+	char dummy[256];
+} long_sockaddr;
+
 #ifdef _WIN32
 static TDS_SYS_SOCKET
 odbc_find_last_socket(void)
@@ -55,41 +61,48 @@ odbc_find_last_socket(void)
 	int i;
 
 	for (i = 4; i <= (4096*4); i += 4) {
-		struct sockaddr remote_addr, local_addr;
+		long_sockaddr remote_addr, local_addr;
 		struct sockaddr_in *in;
 		socklen_t remote_addr_len, local_addr_len;
 		sock_info *info;
 
 		/* check if is a socket */
-		if (tds_getpeername((TDS_SYS_SOCKET) i, &remote_addr, &remote_addr_len))
+		remote_addr_len = sizeof(remote_addr);
+		if (tds_getpeername((TDS_SYS_SOCKET) i, &remote_addr.sa, &remote_addr_len))
 			continue;
-		if (tds_getsockname((TDS_SYS_SOCKET) i, &local_addr, &local_addr_len))
+		if (remote_addr.sa.sa_family != AF_INET
+#ifdef AF_INET6
+		    && remote_addr.sa.sa_family != AF_INET6
+#endif
+		    )
+			continue;
+		local_addr_len = sizeof(local_addr);
+		if (tds_getsockname((TDS_SYS_SOCKET) i, &local_addr.sa, &local_addr_len))
 			continue;
 
 		/* save in the array */
-		if (num_found < 8) {
-			info = &found[num_found++ % 8u];
-		} else {
+		if (num_found >= 8) {
 			memmove(found, found+1, sizeof(found) - sizeof(found[0]));
-			info = &found[7];
+			num_found = 7;
 		}
+		info = &found[num_found++];
 		info->sock = (TDS_SYS_SOCKET) i;
-		info->local_port = 0;
-		info->remote_port = 0;
+		info->local_port = -1;
+		info->remote_port = -1;
 
 		/* now check if is a socketpair */
-		in = (struct sockaddr_in *) &remote_addr;
+		in = &remote_addr.sin;
 		if (in->sin_family != AF_INET)
 			continue;
 		if (in->sin_addr.s_addr != htonl(INADDR_LOOPBACK))
 			continue;
-		info->remote_port = in->sin_port;
-		in = (struct sockaddr_in *) &local_addr;
+		info->remote_port = ntohs(in->sin_port);
+		in = &local_addr.sin;
 		if (in->sin_family != AF_INET)
 			continue;
 		if (in->sin_addr.s_addr != htonl(INADDR_LOOPBACK))
 			continue;
-		info->local_port = in->sin_port;
+		info->local_port = ntohs(in->sin_port);
 		for (n = 0; n < num_found - 1; ++n) {
 			if (found[n].remote_port != info->local_port
 			    || found[n].local_port != info->remote_port)
@@ -108,7 +121,7 @@ odbc_find_last_socket(void)
 }
 #endif
 
-static struct sockaddr remote_addr;
+static long_sockaddr remote_addr;
 static socklen_t remote_addr_len;
 
 static TDS_SYS_SOCKET fake_sock;
@@ -235,12 +248,12 @@ static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 	}
 	CLOSESOCKET(s);
 
-	if (TDS_IS_SOCKET_INVALID(server_sock = socket(AF_INET, SOCK_STREAM, 0))) {
+	if (TDS_IS_SOCKET_INVALID(server_sock = socket(remote_addr.sa.sa_family, SOCK_STREAM, 0))) {
 		perror("socket");
 		exit(1);
 	}
 
-	if (connect(server_sock, &remote_addr, remote_addr_len)) {
+	if (connect(server_sock, &remote_addr.sa, remote_addr_len)) {
 		perror("connect");
 		exit(1);
 	}
@@ -349,7 +362,7 @@ main(int argc, char **argv)
 	}
 
 	remote_addr_len = sizeof(remote_addr);
-	if (tds_getpeername(last_socket, &remote_addr, &remote_addr_len)) {
+	if (tds_getpeername(last_socket, &remote_addr.sa, &remote_addr_len)) {
 		fprintf(stderr, "Unable to get remote address\n");
 		return 1;
 	}
