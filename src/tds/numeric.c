@@ -331,7 +331,7 @@ tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, uns
 			for (i = packet_len; i > 0; ) {
 #if defined(__GNUC__) && __GNUC__ >= 3 && defined(__i386__)
 				--i;
-				__asm__ __volatile__ ("divl %4": "=a"(packet[i]), "=d"(borrow): "0"(packet[i]), "1"(borrow), "r"(factor));
+				__asm__ ("divl %4": "=a"(packet[i]), "=d"(borrow): "0"(packet[i]), "1"(borrow), "r"(factor));
 #elif defined(__WATCOMC__) && defined(DOS32X)
 				TDS_WORD Int64div32(TDS_WORD* low,TDS_WORD high,TDS_WORD factor);
 				#pragma aux Int64div32 = "mov eax, dword ptr[esi]" \
