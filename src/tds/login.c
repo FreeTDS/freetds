@@ -51,6 +51,8 @@
 static TDSRET tds_send_login(TDSSOCKET * tds, TDSLOGIN * login);
 static TDSRET tds71_do_login(TDSSOCKET * tds, TDSLOGIN * login);
 static TDSRET tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login);
+static unsigned char *tds7_crypt_pass(const unsigned char *clear_pass,
+				      size_t len, unsigned char *crypt_pass);
 
 void
 tds_set_version(TDSLOGIN * tds_login, TDS_TINYINT major_ver, TDS_TINYINT minor_ver)
@@ -951,7 +953,7 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
  * the calling function is responsible for ensuring crypt_pass is at least 
  * 'len' characters
  */
-unsigned char *
+static unsigned char *
 tds7_crypt_pass(const unsigned char *clear_pass, size_t len, unsigned char *crypt_pass)
 {
 	size_t i;
