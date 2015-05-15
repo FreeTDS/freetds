@@ -46,6 +46,7 @@
 #include <freetds/string.h>
 #include <freetds/bytes.h>
 #include <freetds/tls.h>
+#include <freetds/stream.h>
 #include "replacements.h"
 
 static TDSRET tds_send_login(TDSSOCKET * tds, TDSLOGIN * login);
@@ -727,21 +728,38 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	unsigned char option_flag3 = TDS_UNKNOWN_COLLATION_HANDLING;
 
 	unsigned char hwaddr[6];
-	size_t unicode_left, packet_size, current_pos;
+	size_t packet_size, current_pos;
 	TDSRET rc;
 
+	void *data;
+	TDSDYNAMICSTREAM data_stream;
+	TDSSTATICINSTREAM input;
+
 	const char *user_name = tds_dstr_cstr(&login->user_name);
+	unsigned char *pwd;
 
 	/* FIXME: These are defined as size_t, but should be TDS_SMALLINT. */
 	size_t user_name_len = strlen(user_name);
-	size_t host_name_len = tds_dstr_len(&login->client_host_name);
-	size_t app_name_len = tds_dstr_len(&login->app_name);
-	size_t password_len = tds_dstr_len(&login->password);
-	size_t server_name_len = tds_dstr_len(&login->server_name);
-	size_t library_len = tds_dstr_len(&login->library);
-	size_t language_len = tds_dstr_len(&login->language);
-	size_t database_len = tds_dstr_len(&login->database);
 	size_t auth_len = 0;
+
+	/* fields */
+	enum {
+		HOST_NAME,
+		USER_NAME,
+		PASSWORD,
+		APP_NAME,
+		SERVER_NAME,
+		LIBRARY_NAME,
+		LANGUAGE,
+		DATABASE_NAME,
+		DBFILE_NAME,
+		NEW_PASSWORD,
+		NUM_DATA_FIELDS
+	};
+	struct {
+		const void *ptr;
+		unsigned pos, len;
+	} data_fields[NUM_DATA_FIELDS], *field;
 
 	tds->out_flag = TDS7_LOGIN;
 
@@ -751,13 +769,13 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 		tds->conn->authentication = NULL;
 	}
 
-	/* avoid overflow limiting password */
-	if (password_len > 128)
-		password_len = 128;
+	current_pos = packet_size = IS_TDS72_PLUS(tds->conn) ? 86 + 8 : 86;	/* ? */
 
-	current_pos = IS_TDS72_PLUS(tds->conn) ? 86 + 8 : 86;	/* ? */
-
-	packet_size = current_pos + (host_name_len + app_name_len + server_name_len + library_len + language_len + database_len) * 2;
+	/* initialize ouput buffer for strings */
+	data = NULL;
+	rc = tds_dynamic_stream_init(&data_stream, &data, 0);
+	if (TDS_FAILED(rc))
+		return rc;
 
 	/* check ntlm */
 #ifdef HAVE_SSPI
@@ -765,7 +783,7 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 		tdsdump_log(TDS_DBG_INFO2, "using SSPI authentication for '%s' account\n", user_name);
 		tds->conn->authentication = tds_sspi_get_auth(tds);
 		if (!tds->conn->authentication)
-			return TDS_FAIL;
+			goto cleanup;
 		auth_len = tds->conn->authentication->packet_len;
 		packet_size += auth_len;
 #else
@@ -773,7 +791,7 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 		tdsdump_log(TDS_DBG_INFO2, "using NTLM authentication for '%s' account\n", user_name);
 		tds->conn->authentication = tds_ntlm_get_auth(tds);
 		if (!tds->conn->authentication)
-			return TDS_FAIL;
+			goto cleanup;
 		auth_len = tds->conn->authentication->packet_len;
 		packet_size += auth_len;
 	} else if (user_name_len == 0) {
@@ -782,16 +800,56 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 		tdsdump_log(TDS_DBG_INFO2, "using GSS authentication\n");
 		tds->conn->authentication = tds_gss_get_auth(tds);
 		if (!tds->conn->authentication)
-			return TDS_FAIL;
+			goto cleanup;
 		auth_len = tds->conn->authentication->packet_len;
 		packet_size += auth_len;
 # else
 		tdsdump_log(TDS_DBG_ERROR, "requested GSS authentication but not compiled in\n");
-		return TDS_FAIL;
+		goto cleanup;
 # endif
 #endif
-	} else
-		packet_size += (user_name_len + password_len) * 2;
+	}
+
+
+#define SET_FIELD_DSTR(field, dstr) do { \
+	data_fields[field].ptr = tds_dstr_cstr(&(dstr)); \
+	data_fields[field].len = tds_dstr_len(&(dstr)); \
+	} while(0)
+
+	/* setup data fields */
+	SET_FIELD_DSTR(HOST_NAME, login->client_host_name);
+	if (tds->conn->authentication) {
+		data_fields[USER_NAME].len = 0;
+		data_fields[PASSWORD].len = 0;
+	} else {
+		SET_FIELD_DSTR(USER_NAME, login->user_name);
+		SET_FIELD_DSTR(PASSWORD, login->password);
+	}
+	SET_FIELD_DSTR(APP_NAME, login->app_name);
+	SET_FIELD_DSTR(SERVER_NAME, login->server_name);
+	SET_FIELD_DSTR(LIBRARY_NAME, login->library);
+	SET_FIELD_DSTR(LANGUAGE, login->language);
+	SET_FIELD_DSTR(DATABASE_NAME, login->database);
+	data_fields[DBFILE_NAME].len = 0;
+	data_fields[NEW_PASSWORD].len = 0;
+
+	/* convert data fields */
+	for (field = data_fields; field < data_fields + TDS_VECTOR_SIZE(data_fields); ++field) {
+		size_t data_pos;
+
+		data_pos = data_stream.size;
+		field->pos = current_pos + data_pos;
+		if (field->len) {
+			tds_staticin_stream_init(&input, field->ptr, field->len);
+			rc = tds_convert_stream(tds, tds->conn->char_convs[client2ucs2], to_server, &input.stream, &data_stream.stream);
+			if (TDS_FAILED(rc))
+				goto cleanup;
+		}
+		field->len = data_stream.size - data_pos;
+	}
+	pwd = (unsigned char *) data + data_fields[PASSWORD].pos - current_pos;
+	tds7_crypt_pass(pwd, data_fields[PASSWORD].len, pwd);
+	packet_size += data_stream.size;
 
 #if !defined(TDS_DEBUG_LOGIN)
 	tdsdump_log(TDS_DBG_INFO2, "quietly sending TDS 7+ login packet\n");
@@ -847,10 +905,13 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	tds_put_n(tds, time_zone, sizeof(time_zone));
 	tds_put_n(tds, collation, sizeof(collation));
 
+#define PUT_STRING_FIELD_PTR(field) do { \
+	TDS_PUT_SMALLINT(tds, data_fields[field].pos); \
+	TDS_PUT_SMALLINT(tds, data_fields[field].len / 2u); \
+	} while(0)
+
 	/* host name */
-	TDS_PUT_SMALLINT(tds, current_pos);
-	TDS_PUT_SMALLINT(tds, host_name_len);
-	current_pos += host_name_len * 2;
+	PUT_STRING_FIELD_PTR(HOST_NAME);
 	if (tds->conn->authentication) {
 		tds_put_smallint(tds, 0);
 		tds_put_smallint(tds, 0);
@@ -858,86 +919,44 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 		tds_put_smallint(tds, 0);
 	} else {
 		/* username */
-		TDS_PUT_SMALLINT(tds, current_pos);
-		TDS_PUT_SMALLINT(tds, user_name_len);
-		current_pos += user_name_len * 2;
+		PUT_STRING_FIELD_PTR(USER_NAME);
 		/* password */
-		TDS_PUT_SMALLINT(tds, current_pos);
-		TDS_PUT_SMALLINT(tds, password_len);
-		current_pos += password_len * 2;
+		PUT_STRING_FIELD_PTR(PASSWORD);
 	}
 	/* app name */
-	TDS_PUT_SMALLINT(tds, current_pos);
-	TDS_PUT_SMALLINT(tds, app_name_len);
-	current_pos += app_name_len * 2;
+	PUT_STRING_FIELD_PTR(APP_NAME);
 	/* server name */
-	TDS_PUT_SMALLINT(tds, current_pos);
-	TDS_PUT_SMALLINT(tds, server_name_len);
-	current_pos += server_name_len * 2;
+	PUT_STRING_FIELD_PTR(SERVER_NAME);
 	/* unknown */
 	tds_put_smallint(tds, 0);
 	tds_put_smallint(tds, 0);
 	/* library name */
-	TDS_PUT_SMALLINT(tds, current_pos);
-	TDS_PUT_SMALLINT(tds, library_len);
-	current_pos += library_len * 2;
+	PUT_STRING_FIELD_PTR(LIBRARY_NAME);
 	/* language  - kostya@warmcat.excom.spb.su */
-	TDS_PUT_SMALLINT(tds, current_pos);
-	TDS_PUT_SMALLINT(tds, language_len);
-	current_pos += language_len * 2;
+	PUT_STRING_FIELD_PTR(LANGUAGE);
 	/* database name */
-	TDS_PUT_SMALLINT(tds, current_pos);
-	TDS_PUT_SMALLINT(tds, database_len);
-	current_pos += database_len * 2;
+	PUT_STRING_FIELD_PTR(DATABASE_NAME);
 
 	/* MAC address */
 	tds_getmac(tds_get_s(tds), hwaddr);
 	tds_put_n(tds, hwaddr, 6);
 
 	/* authentication stuff */
-	TDS_PUT_SMALLINT(tds, current_pos);
+	TDS_PUT_SMALLINT(tds, current_pos + data_stream.size);
 	TDS_PUT_SMALLINT(tds, auth_len);	/* this matches numbers at end of packet */
-	current_pos += auth_len;
 
 	/* db file */
-	TDS_PUT_SMALLINT(tds, current_pos);
-	tds_put_smallint(tds, 0);
+	PUT_STRING_FIELD_PTR(DBFILE_NAME);
 
 	if (IS_TDS72_PLUS(tds->conn)) {
 		/* new password */
-		TDS_PUT_SMALLINT(tds, current_pos);
-		tds_put_smallint(tds, 0);
+		PUT_STRING_FIELD_PTR(NEW_PASSWORD);
 
 		/* SSPI long */
 		tds_put_int(tds, 0);
 	}
 
-	/* FIXME here we assume single byte, do not use *2 to compute bytes, convert before !!! */
-	tds_put_string(tds, tds_dstr_cstr(&login->client_host_name), (int)host_name_len);
-	if (!tds->conn->authentication) {
-		char unicode_string[256], *punicode = unicode_string;
-		const char *p;
-		TDSICONV *char_conv = tds->conn->char_convs[client2ucs2];
-
-		tds_put_string(tds, tds_dstr_cstr(&login->user_name), (int)user_name_len);
-		p = tds_dstr_cstr(&login->password);
-		unicode_left = sizeof(unicode_string);
-
-		memset(&char_conv->suppress, 0, sizeof(char_conv->suppress));
-		if (tds_iconv(tds, tds->conn->char_convs[client2ucs2], to_server, &p, &password_len, &punicode, &unicode_left) ==
-		    (size_t) - 1) {
-			tdsdump_log(TDS_DBG_INFO1, "password \"%s\" could not be converted to UCS-2\n", p);
-			assert(0);
-		}
-		password_len = punicode - unicode_string;
-		tds7_crypt_pass((unsigned char *) unicode_string, password_len, (unsigned char *) unicode_string);
-		tds_put_n(tds, unicode_string, password_len);
-	}
-	tds_put_string(tds, tds_dstr_cstr(&login->app_name), (int)app_name_len);
-	tds_put_string(tds, tds_dstr_cstr(&login->server_name), (int)server_name_len);
-	tds_put_string(tds, tds_dstr_cstr(&login->library), (int)library_len);
-	tds_put_string(tds, tds_dstr_cstr(&login->language), (int)language_len);
-	tds_put_string(tds, tds_dstr_cstr(&login->database), (int)database_len);
+	tds_put_n(tds, data, data_stream.size);
 
 	if (tds->conn->authentication)
 		tds_put_n(tds, tds->conn->authentication->packet, auth_len);
@@ -945,7 +964,12 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	rc = tds_flush_packet(tds);
 	tdsdump_on();
 
+	free(data);
 	return rc;
+
+cleanup:
+	free(data);
+	return TDS_FAIL;
 }
 
 /**
