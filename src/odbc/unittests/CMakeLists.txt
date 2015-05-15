@@ -39,6 +39,7 @@ add_library(o_common STATIC common.c common.h c2string.c parser.c parser.h)
 
 foreach(target ${tests})
 	add_executable(o_${target} ${target}.c)
+	set_target_properties(o_${target} PROPERTIES OUTPUT_NAME ${target})
 	target_link_libraries(o_${target} o_common replacements ${libs} ${lib_NETWORK} ${lib_BASE})
 	add_test(NAME o_${target} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND ${target})
 endforeach(target)

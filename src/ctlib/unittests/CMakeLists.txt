@@ -10,5 +10,6 @@ foreach(target t0001 t0002 t0003 t0004
 	blk_out ct_cursor ct_cursors
 	ct_dynamic blk_in2 datafmt)
 	add_executable(c_${target} ${target}.c)
+	set_target_properties(c_${target} PROPERTIES OUTPUT_NAME ${target})
 	target_link_libraries(c_${target} c_common ct replacements ${lib_NETWORK} ${lib_BASE})
 endforeach(target)
