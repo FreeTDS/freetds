@@ -18,9 +18,8 @@
 
 TDS_RCSID(var, "$Id: strtok_r.c,v 1.8 2011-05-16 08:51:40 freddy77 Exp $");
 
-#undef strtok_r
 char *
-strtok_r(char *str, const char *sep, char **lasts)
+tds_strtok_r(char *str, const char *sep, char **lasts)
 {
 	char *p;
 
@@ -65,7 +64,7 @@ test(const char *s, const char *sep)
 	s2 = c2;
 	for (;;) {
 		p1 = strtok(s1, sep);
-		p2 = strtok_r(s2, sep, &last);
+		p2 = tds_strtok_r(s2, sep, &last);
 		s1 = s2 = NULL;
 		if ((p1 && !p2) || (!p1 && p2)) {
 			fprintf(stderr, "ptr mistmach %p %p\n", p1, p2);

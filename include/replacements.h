@@ -60,22 +60,29 @@ int vsnprintf(char *ret, size_t max, const char *fmt, va_list ap);
 #endif /*  HAVE_VSNPRINTF */
 
 #if !HAVE_ASPRINTF
-int asprintf(char **ret, const char *fmt, ...);
+#undef asprintf
+int tds_asprintf(char **ret, const char *fmt, ...);
+#define asprintf tds_asprintf
 #endif /* !HAVE_ASPRINTF */
 
 #if !HAVE_VASPRINTF
-int vasprintf(char **ret, const char *fmt, va_list ap);
+#undef vasprintf
+int tds_vasprintf(char **ret, const char *fmt, va_list ap);
+#define vasprintf tds_vasprintf
 #endif /* !HAVE_VASPRINTF */
 
 #if !HAVE_STRTOK_R
 /* Some MingW define strtok_r macro thread-safe but not reentrant but we
    need both so avoid using the macro */
 #undef strtok_r
-char *strtok_r(char *str, const char *sep, char **lasts);
+char *tds_strtok_r(char *str, const char *sep, char **lasts);
+#define strtok_r tds_strtok_r
 #endif /* !HAVE_STRTOK_R */
 
 #if !HAVE_STRSEP
-char *strsep(char **stringp, const char *delim);
+#undef strsep
+char *tds_strsep(char **stringp, const char *delim);
+#define strsep tds_strsep
 #endif /* !HAVE_STRSEP */
 
 #if HAVE_STRLCPY
@@ -144,8 +151,18 @@ char *getpassarg(char *arg);
 # if !defined(strncasecmp) && defined(_MSC_VER)
 #     define  strncasecmp(x,y,z) strnicmp((x),(y),(z))
 # endif
-int gettimeofday (struct timeval *tv, void *tz);
-int getopt(int argc, char * const argv[], const char *optstring);
+
+#undef gettimeofday
+int tds_gettimeofday (struct timeval *tv, void *tz);
+#define gettimeofday tds_gettimeofday
+
+#endif
+
+#if !HAVE_GETOPT
+#undef getopt
+int tds_getopt(int argc, char * const argv[], const char *optstring);
+#define getopt tds_getopt
+
 extern char *optarg;
 extern int optind, offset, opterr, optreset;
 #endif

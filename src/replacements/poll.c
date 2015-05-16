@@ -44,7 +44,7 @@
 #include <assert.h>
 
 int
-poll(struct pollfd fds[], int nfds, int timeout)
+tds_poll(struct pollfd fds[], int nfds, int timeout)
 {
 	struct timeval tv, *tvp;
 	fd_set fdsr, fdsw, fdsp;

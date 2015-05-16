@@ -31,7 +31,7 @@
 /* Taken from glibc 2.6.1 */
 
 char *
-strsep(char **stringp, const char *delim)
+tds_strsep(char **stringp, const char *delim)
 {
 	char *begin, *end;
 

@@ -75,7 +75,7 @@ typedef struct pollfd pollfd_t;
 #endif
 
 #undef poll
+int tds_poll(struct pollfd fds[], int nfds, int timeout);
 #define poll(fds, nfds, timeout) tds_poll(fds, nfds, timeout)
-int poll(struct pollfd fds[], int nfds, int timeout);
 
 #endif

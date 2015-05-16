@@ -94,7 +94,7 @@ static volatile sig_atomic_t signo;
 static void handler(int);
 
 char *
-readpassphrase(const char *prompt, char *buf, size_t bufsiz, int flags)
+tds_readpassphrase(const char *prompt, char *buf, size_t bufsiz, int flags)
 {
 	ssize_t nr;
 	int input, output, save_errno;
@@ -232,7 +232,7 @@ static void handler(int s)
 #else /* _WIN32 */
 
 char *
-readpassphrase(const char *prompt, char *buf, size_t bufsiz, int flags)
+tds_readpassphrase(const char *prompt, char *buf, size_t bufsiz, int flags)
 {
 	int save_errno, ch;
 	char *p, *end;

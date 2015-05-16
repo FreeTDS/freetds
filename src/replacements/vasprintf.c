@@ -45,7 +45,7 @@
 
 #define CHUNKSIZE 512
 int
-vasprintf(char **ret, const char *fmt, va_list ap)
+tds_vasprintf(char **ret, const char *fmt, va_list ap)
 {
 #if HAVE__VSCPRINTF
 	int len = _vscprintf(fmt, ap);
