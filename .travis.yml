@@ -16,7 +16,7 @@ script:
   tds version = ${TDSVER}\n
   encryption = require" >> /tmp/freetds.conf.local
 - echo -e "SELECT @@VERSION\nGO\n"
-  | TDSDUMPCONFIG=stdout ./src/apps/tsql -H ${TDSPWDSRV} -p ${TDSPORT} -U $TDSPWDUID -P $TDSPWDPWD
+  | TDSDUMPCONFIG=stdout ./src/apps/tsql -H "$TDSPWDSRV" -p "$TDSPORT" -U "$TDSPWDUID" -P "$TDSPWDPWD"
   | awk '(/encrypt level/ || data)   { print $0 }
          (/^Microsoft SQL Server/)   { data = 1; print ""; print }
          (/1 row affected/)          { exit }'
