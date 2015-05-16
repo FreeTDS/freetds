@@ -5,6 +5,7 @@
 
 use strict;
 
+# get list of exported symbols from a list of object files
 sub getExpSymbols($)
 {
 	my $objs = shift;
@@ -20,6 +21,7 @@ sub getExpSymbols($)
 	return \%out;
 }
 
+# get a list of imported symbols from a list of object files
 sub getImpSymbols($)
 {
 	my $objs = shift;
@@ -36,6 +38,9 @@ sub getImpSymbols($)
 
 my %tdsSymbols = %{&getExpSymbols('src/tds/*.o')};
 
+# read a list of symbols from misc/check_symbols.txt file
+# list is prefixed with ! is symbol should not be used
+# by upper layer libraries
 my %syms;
 open(F, '<', './misc/check_symbols.txt') or die('getting list');
 while (<F>) {

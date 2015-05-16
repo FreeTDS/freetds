@@ -54,7 +54,7 @@ do
 		exit 0
 		;;
 	*)
-		echo 'Option not supported! Try --help' 1>&2
+		echo "Option '$param' not supported! Try --help" 1>&2
 		exit 1
 		;;
 	esac
