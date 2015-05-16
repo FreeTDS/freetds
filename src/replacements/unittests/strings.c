@@ -30,6 +30,14 @@
 
 #include "replacements.h"
 
+#if !HAVE_STRLCPY
+#include "../strlcpy.c"
+#endif
+
+#if !HAVE_STRLCAT
+#include "../strlcat.c"
+#endif
+
 int main(void)
 {
 	char *buf = (char *) malloc(10);
