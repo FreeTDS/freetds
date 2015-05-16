@@ -334,6 +334,11 @@ tds_verify_certificate(gnutls_session_t session)
 	int ret;
 	TDSSOCKET *tds = (TDSSOCKET *) gnutls_transport_get_ptr(session);
 
+#ifdef ENABLE_DEVELOPING
+	unsigned int list_size;
+	const gnutls_datum_t *cert_list;
+#endif
+
 	if (!tds->login)
 		return GNUTLS_E_CERTIFICATE_ERROR;
 
@@ -342,6 +347,40 @@ tds_verify_certificate(gnutls_session_t session)
 		tdsdump_log(TDS_DBG_ERROR, "Error verifying certificate: %s\n", gnutls_strerror(ret));
 		return GNUTLS_E_CERTIFICATE_ERROR;
 	}
+
+#ifdef ENABLE_DEVELOPING
+	cert_list = gnutls_certificate_get_peers(session, &list_size);
+	if (cert_list) {
+		gnutls_x509_crt_t cert;
+		gnutls_datum_t cinfo;
+		char buf[8192];
+		size_t size;
+
+		gnutls_x509_crt_init(&cert);
+
+		gnutls_x509_crt_import(cert, &cert_list[0], GNUTLS_X509_FMT_DER);
+
+		/* This is the preferred way of printing short information about
+		 * a certificate. */
+		size = sizeof(buf);
+		ret = gnutls_x509_crt_export(cert, GNUTLS_X509_FMT_PEM, buf, &size);
+		if (ret == 0) {
+			FILE *f = fopen("cert.dat", "wb");
+			if (f) {
+				fwrite(buf, size, 1, f);
+				fclose(f);
+			}
+		}
+
+		ret = gnutls_x509_crt_print(cert, GNUTLS_CRT_PRINT_ONELINE, &cinfo);
+		if (ret == 0) {
+			tdsdump_log(TDS_DBG_INFO1, "Certificate info: %s\n", cinfo.data);
+			gnutls_free(cinfo.data);
+		}
+
+		gnutls_x509_crt_deinit(cert);
+	}
+#endif
 
 	/* Certificate is not trusted */
 	if (status != 0) {
