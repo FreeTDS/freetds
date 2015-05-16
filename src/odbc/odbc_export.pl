@@ -78,9 +78,13 @@ while(<IN>) {
 			} else {
 				die $type;
 			}
-			$sep = ', ';
+			$sep = "\t\t\t";
 		}
-		$log .= ")\\n\", ".$log_p.");";
+		$params_all =~ s/\t\t\t/,\n    /g;
+		$pass_aw  =~ s/\t\t\t/,\n\t\t/g;
+		$log        =~ s/\t\t\t/, /g;
+		$log_p      =~ s/\t\t\t/,\n\t\t\t/g;
+		$log .= ")\\n\",\n\t\t\t".$log_p.");";
 
 		my $params_a = $params_all;
 		$params_a =~ s/ODBC_CHAR \*/SQLCHAR */g;
@@ -110,20 +114,25 @@ while(<IN>) {
 
 		print "#ifdef ENABLE_ODBC_WIDE
 static SQLRETURN _$func($params_all, int wide);
-SQLRETURN ODBC_PUBLIC ODBC_API $func($params_a) {
-	$log
-	return _$func($pass_aw, 0);
-}
-SQLRETURN ODBC_PUBLIC ODBC_API ${func}W($params_w) {
+
+SQLRETURN ODBC_PUBLIC ODBC_API ${func}W(
+    $params_w)
+{
 	$log_w
 	return _$func($pass_aw, 1);
 }
-#else
-SQLRETURN ODBC_PUBLIC ODBC_API $func($params_a) {
-	$log
-	return _$func($pass_all);
-}
 #endif
+
+SQLRETURN ODBC_PUBLIC ODBC_API $func(
+    $params_a)
+{
+	$log
+#ifdef ENABLE_ODBC_WIDE
+	return _$func($pass_aw, 0);
+#else
+	return _$func($pass_all);
+#endif
+}
 
 ";
 	}
