@@ -32,7 +32,7 @@ where name in ('int', 'char', 'text')
 select @nrows = @@rowcount 
 set @varchar_tds7_out = replicate(char(247), 8000)
 set @nvarchar_tds7_out = replicate(nchar(246), 4000)
-select distinct @nv as '@nv', convert(varchar(30), name) as name  from sysobjects where type = 'S' 
+select distinct @nv as '@nv', convert(varchar(30), name) as name  from systypes
 select	  @null_input as 'null_input'
 	, @first_type as 'first_type'
 	, @nullout as 'nullout'

@@ -27,7 +27,7 @@ static const char procedure_sql[] =
 				"where name in ('int', 'char', 'text') \n"
 			"select @nrows = @@rowcount \n"
 			/* #3 many rows: */
-			"select distinct convert(varchar(30), name) as name  from sysobjects where type = 'S' \n"
+			"select distinct convert(varchar(30), name) as name  from systypes \n"
 			"return 42 \n"
 		"END \n";
 
