@@ -11,6 +11,12 @@ add_library(ct SHARED
 
 target_link_libraries(ct tds replacements ${lib_NETWORK} ${lib_BASE})
 
+add_library(libct STATIC
+	ct.c cs.c blk.c ctutil.c
+)
+
+target_link_libraries(libct tds replacements ${lib_NETWORK} ${lib_BASE})
+
 if(NOT WIN32)
 	set_target_properties(ct PROPERTIES SOVERSION "4.0.0")
 endif()
