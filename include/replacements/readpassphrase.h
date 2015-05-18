@@ -44,7 +44,9 @@
 #define RPP_SEVENBIT    0x10		/* Strip the high bit from input. */
 #define RPP_STDIN       0x20		/* Read from stdin, not /dev/tty */
 
-char * readpassphrase(const char *, char *, size_t, int);
+#undef readpassphrase
+char * tds_readpassphrase(const char *, char *, size_t, int);
+#define readpassphrase tds_readpassphrase
 
 #endif /* HAVE_READPASSPHRASE */
 

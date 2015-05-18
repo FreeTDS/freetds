@@ -940,7 +940,7 @@ tds7_get_instance_port(struct tds_addrinfo *addr, const char *instance)
 	for (num_try = 0; num_try < 16; ++num_try) {
 		/* send the request */
 		msg[0] = 4;
-		tds_strlcpy(msg + 1, instance, sizeof(msg) - 1);
+		strlcpy(msg + 1, instance, sizeof(msg) - 1);
 		sendto(s, msg, (int)strlen(msg) + 1, 0, addr->ai_addr, addr->ai_addrlen);
 
 		fd.fd = s;

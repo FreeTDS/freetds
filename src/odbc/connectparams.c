@@ -502,7 +502,7 @@ tdoParseProfile(const char *option, const char *value, void *param)
 	ProfileParam *p = (ProfileParam *) param;
 
 	if (strcasecmp(p->entry, option) == 0) {
-		tds_strlcpy(p->buffer, value, p->buffer_len);
+		strlcpy(p->buffer, value, p->buffer_len);
 
 		p->ret_val = strlen(p->buffer);
 		p->found = 1;
@@ -554,7 +554,7 @@ SQLGetPrivateProfileString(LPCSTR pszSection, LPCSTR pszEntry, LPCSTR pszDefault
 	tds_read_conf_section(hFile, pszSection, tdoParseProfile, &param);
 
 	if (pszDefault && !param.found) {
-		tds_strlcpy(pRetBuffer, pszDefault, nRetBuffer);
+		strlcpy(pRetBuffer, pszDefault, nRetBuffer);
 
 		param.ret_val = strlen(pRetBuffer);
 	}
@@ -693,8 +693,8 @@ definePropertyString(HODBCINSTPROPERTY hLastProperty, const char *name, const ch
 {
 	hLastProperty = addProperty(hLastProperty);
 	hLastProperty->nPromptType = ODBCINST_PROMPTTYPE_TEXTEDIT;
-	tds_strlcpy(hLastProperty->szName, name, INI_MAX_PROPERTY_NAME);
-	tds_strlcpy(hLastProperty->szValue, value, INI_MAX_PROPERTY_VALUE);
+	strlcpy(hLastProperty->szName, name, INI_MAX_PROPERTY_NAME);
+	strlcpy(hLastProperty->szValue, value, INI_MAX_PROPERTY_VALUE);
 	hLastProperty->pszHelp = (char *) strdup(comment);
 	return hLastProperty;
 }
@@ -706,8 +706,8 @@ definePropertyBoolean(HODBCINSTPROPERTY hLastProperty, const char *name, const c
 	hLastProperty->nPromptType = ODBCINST_PROMPTTYPE_LISTBOX;
 	hLastProperty->aPromptData = malloc(sizeof(aBoolean));
 	memcpy(hLastProperty->aPromptData, aBoolean, sizeof(aBoolean));
-	tds_strlcpy(hLastProperty->szName, name, INI_MAX_PROPERTY_NAME);
-	tds_strlcpy(hLastProperty->szValue, value, INI_MAX_PROPERTY_VALUE);
+	strlcpy(hLastProperty->szName, name, INI_MAX_PROPERTY_NAME);
+	strlcpy(hLastProperty->szValue, value, INI_MAX_PROPERTY_VALUE);
 	hLastProperty->pszHelp = (char *) strdup(comment);
 	return hLastProperty;
 }
@@ -717,8 +717,8 @@ definePropertyHidden(HODBCINSTPROPERTY hLastProperty, const char *name, const ch
 {
 	hLastProperty = addProperty(hLastProperty);
 	hLastProperty->nPromptType = ODBCINST_PROMPTTYPE_HIDDEN;
-	tds_strlcpy(hLastProperty->szName, name, INI_MAX_PROPERTY_NAME);
-	tds_strlcpy(hLastProperty->szValue, value, INI_MAX_PROPERTY_VALUE);
+	strlcpy(hLastProperty->szName, name, INI_MAX_PROPERTY_NAME);
+	strlcpy(hLastProperty->szValue, value, INI_MAX_PROPERTY_VALUE);
 	hLastProperty->pszHelp = (char *) strdup(comment);
 	return hLastProperty;
 }
@@ -730,8 +730,8 @@ definePropertyList(HODBCINSTPROPERTY hLastProperty, const char *name, const char
 	hLastProperty->nPromptType = ODBCINST_PROMPTTYPE_LISTBOX;
 	hLastProperty->aPromptData = malloc(size);
 	memcpy(hLastProperty->aPromptData, list, size);
-	tds_strlcpy(hLastProperty->szName, name, INI_MAX_PROPERTY_NAME);
-	tds_strlcpy(hLastProperty->szValue, value, INI_MAX_PROPERTY_VALUE);
+	strlcpy(hLastProperty->szName, name, INI_MAX_PROPERTY_NAME);
+	strlcpy(hLastProperty->szValue, value, INI_MAX_PROPERTY_VALUE);
 	hLastProperty->pszHelp = (char *) strdup(comment);
 	return hLastProperty;
 }
