@@ -85,10 +85,9 @@ char *tds_strsep(char **stringp, const char *delim);
 #define strsep tds_strsep
 #endif /* !HAVE_STRSEP */
 
-#if HAVE_STRLCPY
-#define tds_strlcpy(d,s,l) strlcpy(d,s,l)
-#else
+#if !HAVE_STRLCPY
 size_t tds_strlcpy(char *dest, const char *src, size_t len);
+#define strlcpy(d,s,l) tds_strlcpy(d,s,l)
 #endif
 
 #if HAVE_GETADDRINFO
@@ -117,10 +116,9 @@ void tds_freeaddrinfo(struct tds_addrinfo *addr);
 #define AI_FQDN 0
 #endif
 
-#if HAVE_STRLCAT
-#define tds_strlcat(d,s,l) strlcat(d,s,l)
-#else
+#if !HAVE_STRLCAT
 size_t tds_strlcat(char *dest, const char *src, size_t len);
+#define strlcat(d,s,l) tds_strlcat(d,s,l)
 #endif
 
 #if HAVE_BASENAME

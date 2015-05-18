@@ -194,7 +194,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 	}
 
 	/* argument 2 - the direction */
-	tds_strlcpy(pdata->dbdirection, argv[2], sizeof(pdata->dbdirection));
+	strlcpy(pdata->dbdirection, argv[2], sizeof(pdata->dbdirection));
 
 	if (strcasecmp(pdata->dbdirection, "in") == 0) {
 		pdata->direction = DB_IN;

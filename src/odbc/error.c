@@ -330,13 +330,13 @@ odbc_get_v2state(const char *sqlstate, char *dest_state)
 
 	while (pmap->v3[0]) {
 		if (!strcasecmp(pmap->v3, sqlstate)) {
-			tds_strlcpy(dest_state, pmap->v2, 6);
+			strlcpy(dest_state, pmap->v2, 6);
 			return;
 		}
 		++pmap;
 	}
 	/* return the original if a v2 state is not found */
-	tds_strlcpy(dest_state, sqlstate, 6);
+	strlcpy(dest_state, sqlstate, 6);
 }
 
 void
@@ -393,7 +393,7 @@ odbc_errs_add(struct _sql_errors *errs, const char *sqlstate, const char *msg)
 
 	memset(&errs->errs[n], 0, sizeof(struct _sql_error));
 	errs->errs[n].native = 0;
-	tds_strlcpy(errs->errs[n].state3, sqlstate, 6);
+	strlcpy(errs->errs[n].state3, sqlstate, 6);
 	odbc_get_v2state(errs->errs[n].state3, errs->errs[n].state2);
 
 	/* TODO why driver ?? -- freddy77 */
@@ -432,7 +432,7 @@ odbc_errs_add_rdbms(struct _sql_errors *errs, TDS_UINT native, const char *sqlst
 	errs->errs[n].row = row;
 	errs->errs[n].native = native;
 	if (sqlstate)
-		tds_strlcpy(errs->errs[n].state2, sqlstate, 6);
+		strlcpy(errs->errs[n].state2, sqlstate, 6);
 	else
 		errs->errs[n].state2[0] = '\0';
 	strcpy(errs->errs[n].state3, errs->errs[n].state2);

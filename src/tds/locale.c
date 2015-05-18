@@ -78,7 +78,7 @@ tds_get_locale(void)
 			const char *strip = "@._";
 
 			/* do not change environment !!! */
-			tds_strlcpy(buf, s, sizeof(buf));
+			strlcpy(buf, s, sizeof(buf));
 
 			/* search full name */
 			rewind(in);

@@ -318,10 +318,10 @@ db_env_chg(TDSSOCKET * tds, int type, char *oldval, char *newval)
 	dbproc->envchange_rcv |= (1 << (type - 1));
 	switch (type) {
 	case TDS_ENV_DATABASE:
-		tds_strlcpy(dbproc->dbcurdb, newval, sizeof(dbproc->dbcurdb));
+		strlcpy(dbproc->dbcurdb, newval, sizeof(dbproc->dbcurdb));
 		break;
 	case TDS_ENV_CHARSET:
-		tds_strlcpy(dbproc->servcharset, newval, sizeof(dbproc->servcharset));
+		strlcpy(dbproc->servcharset, newval, sizeof(dbproc->servcharset));
 		break;
 	default:
 		break;
@@ -1120,7 +1120,7 @@ init_dboptions(void)
 		return NULL;
 	}
 	for (i = 0; i < DBNUMOPTIONS; i++) {
-		tds_strlcpy(dbopts[i].text, opttext[i], sizeof(dbopts[i].text));
+		strlcpy(dbopts[i].text, opttext[i], sizeof(dbopts[i].text));
 		dbopts[i].param = NULL;
 		dbopts[i].factive = FALSE;
 	}
@@ -2932,8 +2932,8 @@ dbcolinfo (DBPROCESS *dbproc, CI_TYPE type, DBINT column, DBINT computeid, DBCOL
 
 	if (type == CI_REGULAR) {
 
-		tds_strlcpy(pdbcol->Name, dbcolname(dbproc, column), sizeof(pdbcol->Name));
-		tds_strlcpy(pdbcol->ActualName, dbcolname(dbproc, column), sizeof(pdbcol->ActualName));
+		strlcpy(pdbcol->Name, dbcolname(dbproc, column), sizeof(pdbcol->Name));
+		strlcpy(pdbcol->ActualName, dbcolname(dbproc, column), sizeof(pdbcol->ActualName));
 
 		pdbcol->Type = dbcoltype(dbproc, column);
 		pdbcol->UserType = dbcolutype(dbproc, column);
@@ -2973,8 +2973,8 @@ dbcolinfo (DBPROCESS *dbproc, CI_TYPE type, DBINT column, DBINT computeid, DBCOL
 
 		colinfo = info->columns[column - 1];
 
-		tds_strlcpy(pdbcol->Name, tds_dstr_cstr(&colinfo->column_name), sizeof(pdbcol->Name));
-		tds_strlcpy(pdbcol->ActualName, tds_dstr_cstr(&colinfo->column_name), sizeof(pdbcol->ActualName));
+		strlcpy(pdbcol->Name, tds_dstr_cstr(&colinfo->column_name), sizeof(pdbcol->Name));
+		strlcpy(pdbcol->ActualName, tds_dstr_cstr(&colinfo->column_name), sizeof(pdbcol->ActualName));
 
 		pdbcol->Type = dbalttype(dbproc, computeid, column);
 		pdbcol->UserType = dbaltutype(dbproc, computeid, column);
@@ -6244,8 +6244,8 @@ dbtablecolinfo (DBPROCESS *dbproc, DBINT column, DBCOL *pdbcol )
 	if (!colinfo)
 		return FAIL;
 
-	tds_strlcpy(pdbcol->Name, tds_dstr_cstr(&colinfo->column_name), sizeof(pdbcol->Name));
-	tds_strlcpy(pdbcol->ActualName, tds_dstr_cstr(&colinfo->column_name), sizeof(pdbcol->ActualName));
+	strlcpy(pdbcol->Name, tds_dstr_cstr(&colinfo->column_name), sizeof(pdbcol->Name));
+	strlcpy(pdbcol->ActualName, tds_dstr_cstr(&colinfo->column_name), sizeof(pdbcol->ActualName));
 
 	pdbcol->Type = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
 	pdbcol->UserType = colinfo->column_usertype;

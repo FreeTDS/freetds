@@ -146,22 +146,22 @@ _ct_handle_server_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAG
 
 	memset(&errmsg, '\0', sizeof(errmsg));
 	errmsg.msgnumber = msg->msgno;
-	tds_strlcpy(errmsg.text, msg->message, sizeof(errmsg.text));
+	strlcpy(errmsg.text, msg->message, sizeof(errmsg.text));
 	errmsg.textlen = strlen(errmsg.text);
 	errmsg.sqlstate[0] = 0;
 	if (msg->sql_state)
-		tds_strlcpy((char *) errmsg.sqlstate, msg->sql_state, sizeof(errmsg.sqlstate));
+		strlcpy((char *) errmsg.sqlstate, msg->sql_state, sizeof(errmsg.sqlstate));
 	errmsg.sqlstatelen = strlen((char *) errmsg.sqlstate);
 	errmsg.state = msg->state;
 	errmsg.severity = msg->severity;
 	errmsg.line = msg->line_number;
 	if (msg->server) {
 		errmsg.svrnlen = strlen(msg->server);
-		tds_strlcpy(errmsg.svrname, msg->server, CS_MAX_NAME);
+		strlcpy(errmsg.svrname, msg->server, CS_MAX_NAME);
 	}
 	if (msg->proc_name) {
 		errmsg.proclen = strlen(msg->proc_name);
-		tds_strlcpy(errmsg.proc, msg->proc_name, CS_MAX_NAME);
+		strlcpy(errmsg.proc, msg->proc_name, CS_MAX_NAME);
 	}
 	/* if there is no connection, attempt to call the context handler */
 	if (!con) {

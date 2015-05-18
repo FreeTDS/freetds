@@ -499,7 +499,7 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 		str_copy:
 			if (out_len)
 				*out_len = tds_dstr_len(s);
-			tds_strlcpy((char *) buffer, tds_dstr_cstr(s), buflen);
+			strlcpy((char *) buffer, tds_dstr_cstr(s), buflen);
 			break;
 		case CS_LOC_PROP:
 			if (buflen != CS_UNUSED || !con->locale || !buffer)

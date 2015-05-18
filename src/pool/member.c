@@ -84,7 +84,7 @@ pool_mbr_login(TDS_POOL * pool)
 #if HAVE_GETHOSTNAME
 	if (gethostname(hostname, MAXHOSTNAMELEN) < 0)
 #endif
-		tds_strlcpy(hostname, "tdspool", MAXHOSTNAMELEN);
+		strlcpy(hostname, "tdspool", MAXHOSTNAMELEN);
 	tds_set_host(login, hostname);
 	tds_set_library(login, "TDS-Library");
 	tds_set_server(login, pool->server);

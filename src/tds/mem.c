@@ -181,7 +181,7 @@ tds_alloc_dynamic(TDSCONNECTION * conn, const char *id)
 	dyn->next = conn->dyns;
 	conn->dyns = dyn;
 
-	tds_strlcpy(dyn->id, id, TDS_MAX_DYNID_LEN);
+	strlcpy(dyn->id, id, TDS_MAX_DYNID_LEN);
 
 	return dyn;
 

@@ -98,7 +98,7 @@ tds_getnameinfo(const struct sockaddr *sa, size_t salen, char *host, size_t host
 #elif HAVE_INET_NTOA_R
 	inet_ntoa_r(sin->sin_addr, host, hostlen);
 #else
-	tds_strlcpy(hostip, inet_ntoa(sin->sin_addr), hostlen);
+	strlcpy(hostip, inet_ntoa(sin->sin_addr), hostlen);
 #endif
 
 	return 0;
