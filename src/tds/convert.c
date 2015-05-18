@@ -2373,8 +2373,7 @@ is_dd_mon_yyyy(char *t)
 	if (*instr == '-') {
 		instr++;
 
-		strncpy(month, instr, 3);
-		month[3] = '\0';
+		strlcpy(month, instr, 4);
 
 		if (!is_monthname(month))
 			return (0);
@@ -2405,8 +2404,7 @@ is_dd_mon_yyyy(char *t)
 
 	} else {
 
-		strncpy(month, instr, 3);
-		month[3] = '\0';
+		strlcpy(month, instr, 4);
 
 		if (!is_monthname(month))
 			return (0);
@@ -2601,8 +2599,7 @@ store_dd_mon_yyy_date(char *datestr, struct tds_time *t)
 	int year;
 
 	tdsdump_log(TDS_DBG_INFO1, "store_dd_mon_yyy_date: %s\n", datestr);
-	strncpy(dd, datestr, 2);
-	dd[2] = '\0';
+	strlcpy(dd, datestr, 3);
 	mday = atoi(dd);
 
 	if (mday > 0 && mday < 32)
@@ -2611,8 +2608,7 @@ store_dd_mon_yyy_date(char *datestr, struct tds_time *t)
 		return 0;
 
 	if (datestr[2] == '-') {
-		strncpy(mon, &datestr[3], 3);
-		mon[3] = '\0';
+		strlcpy(mon, &datestr[3], 4);
 
 		if (store_monthname(mon, t) < 0) {
 			tdsdump_log(TDS_DBG_INFO1, "store_dd_mon_yyy_date: store_monthname failed\n");
@@ -2625,8 +2621,7 @@ store_dd_mon_yyy_date(char *datestr, struct tds_time *t)
 
 		return store_year(year, t);
 	} else {
-		strncpy(mon, &datestr[2], 3);
-		mon[3] = '\0';
+		strlcpy(mon, &datestr[2], 4);
 
 		if (store_monthname(mon, t) < 0) {
 			tdsdump_log(TDS_DBG_INFO1, "store_dd_mon_yyy_date: store_monthname failed\n");

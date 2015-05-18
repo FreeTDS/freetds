@@ -2278,7 +2278,6 @@ ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 	TDSSOCKET *tds;
 	TDSRESULTINFO *resinfo;
 	TDSCOLUMN *curcol;
-	int len;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_describe(%p, %d, %p)\n", cmd, item, datafmt);
 
@@ -2292,13 +2291,9 @@ ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 		return CS_FAIL;
 
 	curcol = resinfo->columns[item - 1];
-	len = tds_dstr_len(&curcol->column_name);
-	if (len >= CS_MAX_NAME)
-		len = CS_MAX_NAME - 1;
-	strncpy(datafmt->name, tds_dstr_cstr(&curcol->column_name), len);
 	/* name is always null terminated */
-	datafmt->name[len] = 0;
-	datafmt->namelen = len;
+	strlcpy(datafmt->name, tds_dstr_cstr(&curcol->column_name), sizeof(datafmt->name));
+	datafmt->namelen = strlen(datafmt->name);
 	/* need to turn the SYBxxx into a CS_xxx_TYPE */
 	datafmt->datatype = _ct_get_client_type(curcol);
 	tdsdump_log(TDS_DBG_INFO1, "ct_describe() datafmt->datatype = %d server type %d\n", datafmt->datatype,

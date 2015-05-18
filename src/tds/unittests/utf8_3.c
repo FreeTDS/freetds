@@ -22,6 +22,7 @@
 #include <freetds/string.h>
 #include <ctype.h>
 #include <assert.h>
+#include <replacements.h>
 
 static char software_version[] = "$Id: utf8_3.c,v 1.8 2011-05-16 13:31:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
@@ -79,12 +80,7 @@ test(const char *buf)
 		curcol = tds->current_results->columns[0];
 
 		if (strcmp(tmp, tds_dstr_cstr(&curcol->column_name)) != 0) {
-			int l = tds_dstr_len(&curcol->column_name);
-
-			if (l > (sizeof(query) -1))
-				l = (sizeof(query) -1);
-			strncpy(query, tds_dstr_cstr(&curcol->column_name), l);
-			query[l] = 0;
+			strlcpy(query, tds_dstr_cstr(&curcol->column_name), sizeof(query));
 			fprintf(stderr, "Wrong result Got: '%s' len %u\n        Expected: '%s' len %u\n", query,
 				(unsigned) tds_dstr_len(&curcol->column_name), tmp, (unsigned int) strlen(tmp));
 			exit(1);

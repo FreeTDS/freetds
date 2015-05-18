@@ -17,6 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 #include "common.h"
+#include <replacements.h>
 
 static char software_version[] = "$Id: t0004.c,v 1.22 2011-06-29 13:22:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
@@ -27,8 +28,7 @@ varchar_as_string(TDSSOCKET * tds, int col_idx)
 	static char result[256];
 	const void *value = tds->res_info->columns[col_idx]->column_data;
 
-	strncpy(result, (const char *) value, sizeof(result) - 1);
-	result[sizeof(result) - 1] = '\0';
+	strlcpy(result, (const char *) value, sizeof(result));
 	return result;
 }
 

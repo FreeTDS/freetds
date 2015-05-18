@@ -214,8 +214,7 @@ read_col_name(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int 
 			return 0;
 		}
 		cur->column_name = (char *) malloc(namelen + 1);
-		strncpy(cur->column_name, (char *) &buf[pos], namelen);
-		cur->column_name[namelen] = '\0';
+		strlcpy(cur->column_name, (char *) &buf[pos], namelen + 1);
 
 		pos += namelen;
 
@@ -233,9 +232,8 @@ read_col_name(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int 
 
 	for (col = 0; col < info->num_cols; col++) {
 		curcol = info->columns[col];
-		strncpy(curcol->column_name, cur->column_name, sizeof(curcol->column_name));
+		strlcpy(curcol->column_name, cur->column_name, sizeof(curcol->column_name));
 		/* FIXME ucs2 client and others */
-		curcol->column_name[sizeof(curcol->column_name) - 1] = 0;
 		curcol->column_namelen = strlen(curcol->column_name);
 		prev = cur;
 		cur = cur->next;
@@ -345,8 +343,7 @@ read_result(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int *b
 
 		namelen = buf[pos++];
 
-		strncpy(curcol->column_name, (char *) &buf[pos], namelen);
-		curcol->column_name[namelen] = '\0';
+		strlcpy(curcol->column_name, (char *) &buf[pos], namelen + 1);
 		pos += namelen;
 
 		curcol->column_namelen = namelen;
