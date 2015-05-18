@@ -25,7 +25,7 @@ TESTS		=	\
 			cursor6$(EXEEXT) cursor7$(EXEEXT) utf8$(EXEEXT) utf8_2$(EXEEXT) \
 			stats$(EXEEXT) descrec$(EXEEXT) peter$(EXEEXT) test64$(EXEEXT) \
 			prepare_warn$(EXEEXT) long_error$(EXEEXT) mars1$(EXEEXT) \
-			array_error$(EXEEXT) describecol2$(EXEEXT)
+			array_error$(EXEEXT) describecol2$(EXEEXT) closestmt$(EXEEXT)
 
 check_PROGRAMS	=	$(TESTS)
 
@@ -102,6 +102,7 @@ prepare_warn_SOURCES = prepare_warn.c common.c common.h
 long_error_SOURCES = long_error.c common.c common.h
 mars1_SOURCES = mars1.c common.c common.h
 array_error_SOURCES = array_error.c common.c common.h
+closestmt_SOURCES = closestmt.c common.c common.h
 
 GLOBAL_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC) -DFREETDS_TOPDIR=\"$(top_srcdir)\"
 if ODBC_WIDE_TESTS
