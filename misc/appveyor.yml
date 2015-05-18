@@ -1,0 +1,101 @@
+skip_tags: false
+
+branches:
+  only:
+    - appveyor-0.95
+
+services:
+- mssql2008r2sp2
+
+version: "{build}"
+
+shallow_clone: true
+
+environment:
+
+  global:
+    # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
+    # /E:ON and /V:ON options are not enabled in the batch script intepreter
+    # See: http://stackoverflow.com/a/13751649/163740
+    WITH_COMPILER: "cmd /E:ON /V:ON /C ..\\misc\\run_with_compiler.cmd"
+    OPENSSL_VER: 1_0_2c
+    WIN_ICONV_VER: 0.0.6
+
+  matrix:
+  - PLAT: Win32
+    WIDTH: 32
+    VS_VERSION: "2008"
+
+  - PLAT: Win64
+    WIDTH: 64
+    VS_VERSION: "2008"
+
+  - PLAT: Win32
+    WIDTH: 32
+    VS_VERSION: "2010"
+
+  - PLAT: Win64
+    WIDTH: 64
+    VS_VERSION: "2010"
+
+configuration:
+  - release
+
+install:
+  # OpenSSL
+  - appveyor DownloadFile https://slproweb.com/download/%PLAT%OpenSSL-%OPENSSL_VER%.exe
+  - "%PLAT%OpenSSL-%OPENSSL_VER%.exe /SP- /SILENT /SUPPRESSMSGBOXES /NORESTART /DIR=\"C:\\OpenSSL\""
+  # win-iconv
+  - appveyor DownloadFile https://github.com/win-iconv/win-iconv/archive/%WIN_ICONV_VER%.zip
+  - 7z x %WIN_ICONV_VER%.zip
+  - ren win-iconv-%WIN_ICONV_VER% iconv
+  - mkdir iconv-build
+  - cd iconv-build
+  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DBUILD_STATIC=on -D BUILD_SHARED=off -DBUILD_EXECUTABLE=off -DBUILD_TEST=on ..\\iconv"
+  - "%WITH_COMPILER% nmake"
+  - win_iconv_test.exe
+  - cd ..\iconv
+  - mkdir include
+  - mkdir lib
+  - copy iconv.h include
+  - copy ..\iconv-build\iconv.lib lib
+  - cd ..
+
+build_script:
+  # build FreeTDS
+  - mkdir build
+  - cd build
+  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Release .."
+  - "%WITH_COMPILER% nmake"
+  - src\apps\tsql.exe -C
+  - cd ..
+
+test_script:
+  - set INSTANCENAME=SQL2008R2SP2
+  - "powershell misc\\sql-server-activate-tcp-fixed-port.ps1"
+  # Create freetds.conf
+  - cd build
+  - echo [global]> freetds.conf.local
+  - echo port = 1433>> freetds.conf.local
+  - echo tds version = 7.1>> freetds.conf.local
+  - echo [local]>> freetds.conf.local
+  - echo host = 127.0.0.1>> freetds.conf.local
+  # Create PWD
+  - echo UID=sa> PWD
+  - echo PWD=Password12!>> PWD
+  - echo SRV=local>> PWD
+  - echo DB=tempdb>> PWD
+  - set FREETDSCONF=%CD%\freetds.conf.local
+  - set TDSDUMP=%CD%\conndump
+  - set TDSDUMPCONFIG=%CD%\confdump
+  - set PATH=%CD%\src\ctlib;%CD%\src\dblib;%PATH%
+  - "%WITH_COMPILER% nmake check || cmd /c \"exit /b 0\""
+  - cd ..
+
+after_test:
+  - type %CD%\build\confdump
+  - type %CD%\build\conndump
+  #- net stop  MSSQL$%INSTANCENAME%
+
+artifacts:
+  - path: vs*.zip
