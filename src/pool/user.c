@@ -288,7 +288,7 @@ pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser)
 		puser->user_state = TDS_SRV_WAIT;
 		waiters++;
 	} else {
-		pmbr->state = TDS_QUERYING;
+		pmbr->state = TDS_WRITING;
 		pool_assign_member(pmbr, puser);
 		/* cf. net.c for better technique.  */
 		ret = WRITESOCKET(tds_get_s(pmbr->tds), puser->tds->in_buf, puser->tds->in_len);

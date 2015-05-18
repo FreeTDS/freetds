@@ -813,7 +813,7 @@ tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 
 	/* TODO problem with thread safety */
 	tds->out_flag = TDS_BULK;
-	tds_set_state(tds, TDS_QUERYING);
+	tds_set_state(tds, TDS_WRITING);
 
 	if (IS_TDS7_PLUS(tds->conn))
 		tds7_bcp_send_colmetadata(tds, bcpinfo);
@@ -1087,7 +1087,7 @@ tds_writetext_start(TDSSOCKET *tds, const char *objname, const char *textptr, co
 
 	/* FIXME better transition state */
 	tds->out_flag = TDS_BULK;
-	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+	if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 		return TDS_FAIL;
 	tds_put_int(tds, size);
 	return TDS_SUCCESS;

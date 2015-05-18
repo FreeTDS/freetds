@@ -759,7 +759,7 @@ typedef struct tds_result_info
 typedef enum tds_states
 {
 	TDS_IDLE,	/**< no data expected */
-	TDS_QUERYING,	/**< client is sending request */
+	TDS_WRITING,	/**< client is sending request */
 	TDS_PENDING,	/**< cilent is waiting for data */
 	TDS_READING,	/**< client is reading data */
 	TDS_DEAD	/**< no connection */

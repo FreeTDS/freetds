@@ -60,7 +60,7 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 	TDS_STATE prior_state;
 	static const char state_names[][10] = {
 		"IDLE",
-	        "QUERYING",
+	        "WRITING",
 	        "PENDING",
 	        "READING",
 	        "DEAD"
@@ -74,7 +74,7 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 
 	switch(state) {
 	case TDS_PENDING:
-		if (prior_state == TDS_READING || prior_state == TDS_QUERYING) {
+		if (prior_state == TDS_READING || prior_state == TDS_WRITING) {
 			tds->state = TDS_PENDING;
 			tds_mutex_unlock(&tds->wire_mtx);
 			break;
@@ -101,11 +101,11 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 			break;
 		}
 	case TDS_DEAD:
-		if (prior_state == TDS_READING || prior_state == TDS_QUERYING)
+		if (prior_state == TDS_READING || prior_state == TDS_WRITING)
 			tds_mutex_unlock(&tds->wire_mtx);
 		tds->state = state;
 		break;
-	case TDS_QUERYING:
+	case TDS_WRITING:
 		CHECK_TDS_EXTRA(tds);
 
 		if (tds_mutex_trylock(&tds->wire_mtx))

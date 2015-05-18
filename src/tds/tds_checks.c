@@ -64,7 +64,7 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 	/* test state and connection */
 	switch (tds->state) {
 	case TDS_DEAD:
-	case TDS_QUERYING:
+	case TDS_WRITING:
 	case TDS_PENDING:
 	case TDS_IDLE:
 	case TDS_READING:
