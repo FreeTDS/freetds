@@ -177,7 +177,7 @@ WORKDIR=$PWD
 ./misc/test-auto.sh --no-build --no-header >> logs/log.txt
 grab_logs
 
-if test \( "$OUTDIR" = "out" -o "$OUTDIR" = "out92" \) -a -r doc/doxy.log; then
+if test \( "$OUTDIR" = "out" -o "$OUTDIR" = "out96" \) -a -r doc/doxy.log; then
 	./misc/fixdoxyres < doc/doxy.log > doc/doxy.html
 	upload_file "doxy.html" "doc/doxy.html"
 	if test -d doc/reference; then
