@@ -1,5 +1,5 @@
 foreach(target mutex1 condition strings passarg strtok_r)
 	add_executable(r_${target} ${target}.c)
-	set_target_properties(r__${target} PROPERTIES OUTPUT_NAME ${target})
+	set_target_properties(r_${target} PROPERTIES OUTPUT_NAME ${target})
 	target_link_libraries(r_${target} replacements ${lib_BASE})
 endforeach(target)
