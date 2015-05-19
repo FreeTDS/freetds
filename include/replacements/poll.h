@@ -30,6 +30,8 @@
 #define FD_SETSIZE OPEN_MAX
 #endif
 
+#include <freetds/pushvis.h>
+
 #ifndef _WIN32
 /* poll flags */
 # define POLLIN  0x0001
@@ -77,5 +79,7 @@ typedef struct pollfd pollfd_t;
 #undef poll
 int tds_poll(struct pollfd fds[], int nfds, int timeout);
 #define poll(fds, nfds, timeout) tds_poll(fds, nfds, timeout)
+
+#include <freetds/popvis.h>
 
 #endif
