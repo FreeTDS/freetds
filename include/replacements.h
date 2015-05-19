@@ -160,10 +160,9 @@ extern char *optarg;
 extern int optind, offset, opterr, optreset;
 #endif
 
-#if HAVE_SOCKETPAIR
-#define tds_socketpair(d,t,p,s) socketpair(d,t,p,s)
-#else
+#if !HAVE_SOCKETPAIR
 int tds_socketpair(int domain, int type, int protocol, int sv[2]);
+#define socketpair(d,t,p,s) tds_socketpair(d,t,p,s)
 #endif
 
 void tds_sleep_s(unsigned sec);
