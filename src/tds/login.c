@@ -311,7 +311,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 	int erc = -TDSEFCON;
 	int connect_timeout = 0;
 	int db_selected = 0;
-	struct tds_addrinfo *addrs;
+	struct addrinfo *addrs;
 	int orig_port;
 
 	/*

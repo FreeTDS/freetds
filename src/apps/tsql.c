@@ -392,14 +392,14 @@ static int
 get_default_instance_port(const char hostname[])
 {
 	int port;
-	struct tds_addrinfo *addr;
+	struct addrinfo *addr;
 	
 	if ((addr = tds_lookup_host(hostname)) == NULL)
 		return 0;
 
 	port = tds7_get_instance_port(addr, "MSSQLSERVER");
 
-	tds_freeaddrinfo(addr);
+	freeaddrinfo(addr);
 	
 	return port;
 }
@@ -520,7 +520,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 
 	if ((global_opt_flags & OPT_INSTANCES) && hostname) {
 		static const char template[] = "%s.instances";
-		struct tds_addrinfo *addr;
+		struct addrinfo *addr;
 		char *filename = getenv("TDSDUMP");
 
 		if (filename) {
@@ -532,7 +532,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 		}
 		if ((addr = tds_lookup_host(hostname)) != NULL) {
 			tds7_get_instance_ports(stderr, addr);
-			tds_freeaddrinfo(addr);
+			freeaddrinfo(addr);
 		}
 		tdsdump_close();
 		exit(0);

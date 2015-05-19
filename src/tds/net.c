@@ -152,7 +152,7 @@ typedef u_long ioctl_nonblocking_t;
 #endif
 
 static void
-tds_addrinfo_set_port(struct tds_addrinfo *addr, unsigned int port)
+tds_addrinfo_set_port(struct addrinfo *addr, unsigned int port)
 {
 	assert(addr != NULL);
 
@@ -170,21 +170,21 @@ tds_addrinfo_set_port(struct tds_addrinfo *addr, unsigned int port)
 }
 
 const char*
-tds_addrinfo2str(struct tds_addrinfo *addr, char *name, int namemax)
+tds_addrinfo2str(struct addrinfo *addr, char *name, int namemax)
 {
 #ifndef NI_NUMERICHOST
 #define NI_NUMERICHOST 0
 #endif
 	if (!name || namemax <= 0)
 		return "";
-	if (tds_getnameinfo(addr->ai_addr, addr->ai_addrlen, name, namemax, NULL, 0, NI_NUMERICHOST) == 0)
+	if (getnameinfo(addr->ai_addr, addr->ai_addrlen, name, namemax, NULL, 0, NI_NUMERICHOST) == 0)
 		return name;
 	name[0] = 0;
 	return name;
 }
 
 TDSERRNO
-tds_open_socket(TDSSOCKET *tds, struct tds_addrinfo *addr, unsigned int port, int timeout, int *p_oserr)
+tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int timeout, int *p_oserr)
 {
 	ioctl_nonblocking_t ioctl_nonblocking;
 	SOCKLEN_T optlen;
@@ -763,7 +763,7 @@ tds_connection_write(TDSSOCKET *tds, unsigned char *buf, int buflen, int final)
  * @remark experimental, cf. MC-SQLR.pdf.
  */
 int
-tds7_get_instance_ports(FILE *output, struct tds_addrinfo *addr)
+tds7_get_instance_ports(FILE *output, struct addrinfo *addr)
 {
 	int num_try;
 	ioctl_nonblocking_t ioctl_nonblocking;
@@ -898,7 +898,7 @@ tds7_get_instance_ports(FILE *output, struct tds_addrinfo *addr)
  * @return port number or 0 if error
  */
 int
-tds7_get_instance_port(struct tds_addrinfo *addr, const char *instance)
+tds7_get_instance_port(struct addrinfo *addr, const char *instance)
 {
 	int num_try;
 	ioctl_nonblocking_t ioctl_nonblocking;

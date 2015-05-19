@@ -141,7 +141,7 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 	char *path;
 	pid_t pid;
 	int opened = 0, found;
-	struct tds_addrinfo *addrs;
+	struct addrinfo *addrs;
 
 	/* allocate a new structure with hard coded and build-time defaults */
 	connection = tds_alloc_login(0);
@@ -607,7 +607,7 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 			login->connect_timeout = atoi(value);
 	} else if (!strcmp(option, TDS_STR_HOST)) {
 		char tmp[128];
-		struct tds_addrinfo *addrs;
+		struct addrinfo *addrs;
 
 		if (TDS_FAILED(tds_lookup_host_set(value, &login->ip_addrs))) {
 			tdsdump_log(TDS_DBG_WARN, "Found host entry %s however name resolution failed. \n", value);
@@ -797,7 +797,7 @@ tds_config_env_tdshost(TDSLOGIN * login)
 {
 	const char *tdshost;
 	char tmp[128];
-	struct tds_addrinfo *addrs;
+	struct addrinfo *addrs;
 
 	if (!(tdshost = getenv("TDSHOST")))
 		return 1;
@@ -918,10 +918,10 @@ tds_set_interfaces_file_loc(const char *interf)
  * string.
  */
 /* TODO callers seem to set always connection info... change it */
-struct tds_addrinfo *
+struct addrinfo *
 tds_lookup_host(const char *servername)	/* (I) name of the server                  */
 {
-	struct tds_addrinfo hints, *addr = NULL;
+	struct addrinfo hints, *addr = NULL;
 	assert(servername != NULL);
 
 	memset(&hints, '\0', sizeof(hints));
@@ -931,20 +931,20 @@ tds_lookup_host(const char *servername)	/* (I) name of the server               
 	hints.ai_flags |= AI_ADDRCONFIG;
 #endif
 
-	if (tds_getaddrinfo(servername, NULL, &hints, &addr))
+	if (getaddrinfo(servername, NULL, &hints, &addr))
 		return NULL;
 	return addr;
 }
 
 TDSRET
-tds_lookup_host_set(const char *servername, struct tds_addrinfo **addr)
+tds_lookup_host_set(const char *servername, struct addrinfo **addr)
 {
-	struct tds_addrinfo *newaddr;
+	struct addrinfo *newaddr;
 	assert(servername != NULL && addr != NULL);
 
 	if ((newaddr = tds_lookup_host(servername)) != NULL) {
 		if (*addr != NULL)
-			tds_freeaddrinfo(*addr);
+			freeaddrinfo(*addr);
 		*addr = newaddr;
 		return TDS_SUCCESS;
 	}
@@ -1093,7 +1093,7 @@ search_interface_file(TDSLOGIN * login, const char *dir, const char *file, const
 	if (server_found) {
 
 		if (TDS_SUCCEED(tds_lookup_host_set(tmp_ip, &login->ip_addrs))) {
-			struct tds_addrinfo *addrs;
+			struct addrinfo *addrs;
 			if (!tds_dstr_copy(&login->server_host_name, tmp_ip))
 				return 0;
 			for (addrs = login->ip_addrs; addrs != NULL; addrs = addrs->ai_next) {

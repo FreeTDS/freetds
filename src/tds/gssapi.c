@@ -174,7 +174,7 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	static gss_OID_desc nt_principal = { 10, (void*) "\x2a\x86\x48\x86\xf7\x12\x01\x02\x02\x01" };
 	const char *server_name;
 	/* Storage for getaddrinfo calls */
-	struct tds_addrinfo *addrs = NULL;
+	struct addrinfo *addrs = NULL;
 
 	struct tds_gss_auth *auth = (struct tds_gss_auth *) calloc(1, sizeof(struct tds_gss_auth));
 
@@ -188,11 +188,11 @@ tds_gss_get_auth(TDSSOCKET * tds)
 
 	server_name = tds_dstr_cstr(&tds->login->server_host_name);
 	if (strchr(server_name, '.') == NULL) {
-		struct tds_addrinfo hints;
+		struct addrinfo hints;
 		memset(&hints, 0, sizeof(hints));
 		hints.ai_family = AF_UNSPEC;
 		hints.ai_flags = AI_V4MAPPED|AI_ADDRCONFIG|AI_CANONNAME|AI_FQDN;
-		if (!tds_getaddrinfo(server_name, NULL, &hints, &addrs) && addrs->ai_canonname
+		if (!getaddrinfo(server_name, NULL, &hints, &addrs) && addrs->ai_canonname
 		    && strchr(addrs->ai_canonname, '.') != NULL)
 			server_name = addrs->ai_canonname;
 	}
@@ -208,7 +208,7 @@ tds_gss_get_auth(TDSSOCKET * tds)
 			auth->sname = NULL;
 	}
 	if (addrs)
-		tds_freeaddrinfo(addrs);
+		freeaddrinfo(addrs);
 	if (auth->sname == NULL) {
 		tds_gss_free(tds->conn, (TDSAUTHENTICATION *) auth);
 		return NULL;

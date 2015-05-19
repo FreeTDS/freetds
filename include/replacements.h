@@ -86,12 +86,7 @@ size_t tds_strlcpy(char *dest, const char *src, size_t len);
 #define strlcpy(d,s,l) tds_strlcpy(d,s,l)
 #endif
 
-#if HAVE_GETADDRINFO
-#define tds_addrinfo addrinfo
-#define tds_getaddrinfo getaddrinfo
-#define tds_getnameinfo getnameinfo
-#define tds_freeaddrinfo freeaddrinfo
-#else
+#if !HAVE_GETADDRINFO
 typedef struct tds_addrinfo {
 	int ai_flags;
 	int ai_family;
@@ -106,6 +101,10 @@ typedef struct tds_addrinfo {
 int tds_getaddrinfo(const char *node, const char *service, const struct tds_addrinfo *hints, struct tds_addrinfo **res);
 int tds_getnameinfo(const struct sockaddr *sa, size_t salen, char *host, size_t hostlen, char *serv, size_t servlen, int flags);
 void tds_freeaddrinfo(struct tds_addrinfo *addr);
+#define addrinfo tds_addrinfo
+#define getaddrinfo(n,s,h,r) tds_getaddrinfo(n,s,h,r)
+#define getnameinfo(a,b,c,d,e,f,g) tds_getnameinfo(a,b,c,d,e,f,g)
+#define freeaddrinfo(a) tds_freeaddrinfo(a)
 #endif
 
 #ifndef AI_FQDN

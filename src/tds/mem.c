@@ -1002,7 +1002,7 @@ tds_free_login(TDSLOGIN * login)
 	tds_dstr_free(&login->server_host_name);
 
 	if (login->ip_addrs != NULL)
-		tds_freeaddrinfo(login->ip_addrs);
+		freeaddrinfo(login->ip_addrs);
 
 	tds_dstr_free(&login->database);
 	tds_dstr_free(&login->dump_file);

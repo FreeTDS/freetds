@@ -543,8 +543,8 @@ typedef struct tds_login
 	DSTR client_charset;
 	DSTR database;
 
-	struct tds_addrinfo *ip_addrs;	  		/**< ip(s) of server */
-	struct tds_addrinfo *connected_addr;	/* ip of connected server */
+	struct addrinfo *ip_addrs;	  		/**< ip(s) of server */
+	struct addrinfo *connected_addr;	/* ip of connected server */
 	DSTR instance_name;
 	DSTR dump_file;
 	int debug_flags;
@@ -1218,9 +1218,9 @@ void tds_parse_conf_section(const char *option, const char *value, void *param);
 TDSLOGIN *tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale);
 void tds_fix_login(TDSLOGIN* login);
 TDS_USMALLINT * tds_config_verstr(const char *tdsver, TDSLOGIN* login);
-struct tds_addrinfo *tds_lookup_host(const char *servername);
-TDSRET tds_lookup_host_set(const char *servername, struct tds_addrinfo **addr);
-const char *tds_addrinfo2str(struct tds_addrinfo *addr, char *name, int namemax);
+struct addrinfo *tds_lookup_host(const char *servername);
+TDSRET tds_lookup_host_set(const char *servername, struct addrinfo **addr);
+const char *tds_addrinfo2str(struct addrinfo *addr, char *name, int namemax);
 
 TDSRET tds_set_interfaces_file_loc(const char *interfloc);
 extern const char STD_DATETIME_FMT[];
@@ -1427,10 +1427,10 @@ extern int tds_debug_flags;
 extern int tds_g_append_mode;
 
 /* net.c */
-TDSERRNO tds_open_socket(TDSSOCKET * tds, struct tds_addrinfo *ipaddr, unsigned int port, int timeout, int *p_oserr);
+TDSERRNO tds_open_socket(TDSSOCKET * tds, struct addrinfo *ipaddr, unsigned int port, int timeout, int *p_oserr);
 void tds_close_socket(TDSSOCKET * tds);
-int tds7_get_instance_ports(FILE *output, struct tds_addrinfo *addr);
-int tds7_get_instance_port(struct tds_addrinfo *addr, const char *instance);
+int tds7_get_instance_ports(FILE *output, struct addrinfo *addr);
+int tds7_get_instance_port(struct addrinfo *addr, const char *instance);
 const char *tds_prwsaerror(int erc);
 int tds_connection_read(TDSSOCKET * tds, unsigned char *buf, int buflen);
 int tds_connection_write(TDSSOCKET *tds, unsigned char *buf, int buflen, int final);
