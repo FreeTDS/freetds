@@ -814,7 +814,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 
 	assert(options && argv);
 	
-	options->appname = tds_basename(argv[0]);
+	options->appname = basename(argv[0]);
 	options->colsep = default_colsep; /* may be overridden by -t */
 	options->odbc_version = SQL_OV_ODBC3;	  /* may be overridden by -V */
 	

@@ -139,7 +139,7 @@ read_login_info(int argc, char **argv)
 	ARGV0 = strdup(argv[0]);
 #endif
 	
-	BASENAME = tds_basename(ARGV0);
+	BASENAME = basename(ARGV0);
 #if defined(_WIN32) || defined(__VMS)
 	s1 = strrchr(BASENAME, '.');
 	if (s1) *s1 = 0;

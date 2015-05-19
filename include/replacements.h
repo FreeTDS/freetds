@@ -117,10 +117,9 @@ size_t tds_strlcat(char *dest, const char *src, size_t len);
 #define strlcat(d,s,l) tds_strlcat(d,s,l)
 #endif
 
-#if HAVE_BASENAME
-#define tds_basename(s) basename(s)
-#else
+#if !HAVE_BASENAME
 char *tds_basename(char *path);
+#define basename(path) tds_basename(path)
 #endif
 
 char *getpassarg(char *arg);

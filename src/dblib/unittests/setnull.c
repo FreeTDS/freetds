@@ -62,7 +62,7 @@ char_test(const char *null, int bindlen, const char *expected)
 	}
 
 	if (strcmp(db_c, expected) != 0) {
-		fprintf(stderr, "Invalid NULL '%s' returned expected '%s' (%s:%d)\n", db_c, expected, tds_basename(__FILE__), __LINE__);
+		fprintf(stderr, "Invalid NULL '%s' returned expected '%s' (%s:%d)\n", db_c, expected, basename(__FILE__), __LINE__);
 		failed = 1;
 	}
 }
@@ -142,7 +142,7 @@ main(int argc, char **argv)
 	}
 
 	if (db_i != 0xdeadbeef) {
-		fprintf(stderr, "Invalid NULL %ld returned (%s:%d)\n", (long int) db_i, tds_basename(__FILE__), __LINE__);
+		fprintf(stderr, "Invalid NULL %ld returned (%s:%d)\n", (long int) db_i, basename(__FILE__), __LINE__);
 		failed = 1;
 	}
 

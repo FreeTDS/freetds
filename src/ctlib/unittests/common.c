@@ -123,7 +123,7 @@ establish_login(int argc, char **argv)
 	int ch;
 #endif
 
-	BASENAME = tds_basename((char *)argv[0]);
+	BASENAME = basename((char *)argv[0]);
 	DIRNAME = dirname((char *)argv[0]);
 	
 #if !defined(__MINGW32__) && !defined(_MSC_VER)
