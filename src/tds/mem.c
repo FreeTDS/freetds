@@ -1099,7 +1099,7 @@ tds_init_connection(TDSCONNECTION *conn, TDSCONTEXT *context, unsigned int bufsi
 	if (tds_iconv_alloc(conn))
 		goto Cleanup;
 
-	if (tds_socketpair(AF_UNIX, SOCK_STREAM, 0, sv))
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sv))
 		goto Cleanup;
 	conn->s_signal   = sv[0];
 	conn->s_signaled = sv[1];
