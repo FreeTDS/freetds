@@ -34,7 +34,7 @@
  * trashing he argument in the process.
  */
 char *
-getpassarg(char *arg)
+tds_getpassarg(char *arg)
 {
 	char pwd[256], *ptr, *q;
 

@@ -121,8 +121,6 @@ char *tds_basename(char *path);
 #define basename(path) tds_basename(path)
 #endif
 
-char *getpassarg(char *arg);
-
 /* 
  * Microsoft's C Runtime library is missing strcasecmp and strncasecmp. 
  * Other Win32 C runtime libraries, notably minwg, may define it. 
@@ -164,6 +162,7 @@ int tds_socketpair(int domain, int type, int protocol, int sv[2]);
 #define socketpair(d,t,p,s) tds_socketpair(d,t,p,s)
 #endif
 
+char *tds_getpassarg(char *arg);
 void tds_sleep_s(unsigned sec);
 void tds_sleep_ms(unsigned ms);
 

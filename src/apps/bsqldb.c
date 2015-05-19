@@ -936,7 +936,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 			  parse_pivot_description(options, optarg);
 			  break;
 		case 'P':
-			password = getpassarg(optarg);
+			password = tds_getpassarg(optarg);
 			break;
 		case 'S':
 			options->servername = strdup(optarg);

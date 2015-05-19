@@ -275,7 +275,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 			break;
 		case 'P':
 			pdata->Pflag++;
-			pdata->pass = getpassarg(optarg);
+			pdata->pass = tds_getpassarg(optarg);
 			break;
 		case 'i':
 			free(pdata->inputfile);

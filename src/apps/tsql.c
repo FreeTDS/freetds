@@ -462,7 +462,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 			break;
 		case 'P':
 			free(password);
-			password = getpassarg(optarg);
+			password = tds_getpassarg(optarg);
 			break;
 		case 'I':
 			free(confile);

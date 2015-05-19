@@ -686,7 +686,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 			fdomain = FALSE;
 			break;
 		case 'P':
-			password = getpassarg(optarg);
+			password = tds_getpassarg(optarg);
 			DBSETLPWD(login, password);
 			memset(password, 0, strlen(password));
 			free(password);
