@@ -32,9 +32,13 @@
 #ifndef _READPASSPHRASE_H_
 #define _READPASSPHRASE_H_
 
-#include <freetds/pushvis.h>
+#ifdef HAVE_READPASSPHRASE
 
-#ifndef HAVE_READPASSPHRASE
+# include <readpassphrase.h>
+
+#else /* !HAVE_READPASSPHRASE */
+
+#include <freetds/pushvis.h>
 
 #define RPP_ECHO_OFF    0x00		/* Turn off echo (default). */
 #define RPP_ECHO_ON     0x01		/* Leave echo on. */
@@ -48,8 +52,8 @@
 char * tds_readpassphrase(const char *, char *, size_t, int);
 #define readpassphrase tds_readpassphrase
 
-#endif /* HAVE_READPASSPHRASE */
-
 #include <freetds/popvis.h>
+
+#endif /* !HAVE_READPASSPHRASE */
 
 #endif /* !_READPASSPHRASE_H_ */

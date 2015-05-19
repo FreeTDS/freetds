@@ -25,11 +25,7 @@
 #include <stdarg.h>
 #include "tds_sysdep_public.h"
 
-#ifndef HAVE_READPASSPHRASE
-# include <replacements/readpassphrase.h>
-#else
-# include <readpassphrase.h>
-#endif
+#include <replacements/readpassphrase.h>
 
 /* these headers are needed for basename */
 #ifdef HAVE_STRING_H
