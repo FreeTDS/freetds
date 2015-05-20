@@ -1825,19 +1825,42 @@ tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags)
  * \param dyn  dynamic request to check
  */
 int
-tds_needs_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
+tds_needs_unprepare(TDSCONNECTION * conn, TDSDYNAMIC * dyn)
 {
-	CHECK_TDS_EXTRA(tds);
+	CHECK_CONN_EXTRA(conn);
 	CHECK_DYNAMIC_EXTRA(dyn);
 
 	/* check if statement is prepared */
-	if (IS_TDS7_PLUS(tds->conn) && !dyn->num_id)
+	if (IS_TDS7_PLUS(conn) && !dyn->num_id)
 		return 0;
 
 	if (dyn->emulated || !dyn->id[0])
 		return 0;
 
 	return 1;
+}
+
+/**
+ * Unprepare dynamic on idle.
+ * This let libTDS close the prepared statement when possible.
+ * \tds
+ * \param dyn  dynamic request to close
+ */
+TDSRET
+tds_deferred_unprepare(TDSCONNECTION * conn, TDSDYNAMIC * dyn)
+{
+	CHECK_CONN_EXTRA(conn);
+	CHECK_DYNAMIC_EXTRA(dyn);
+
+	if (!tds_needs_unprepare(conn, dyn)) {
+		tds_dynamic_deallocated(conn, dyn);
+		return TDS_SUCCESS;
+	}
+
+	dyn->defer_close = 1;
+	conn->pending_close = 1;
+
+	return TDS_SUCCESS;
 }
 
 /**
@@ -3019,6 +3042,24 @@ tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, 
 }
 
 /**
+ * Check if a cursor is allocated into the server.
+ * If not is allocated it assure is removed from the connection list
+ * \tds
+ * \return 0 if not allocated <>0 otherwise
+ */
+static int
+tds_cursor_check_allocated(TDSCONNECTION * conn, TDSCURSOR * cursor)
+{
+	if (cursor->srv_status == TDS_CUR_ISTAT_UNUSED || (cursor->srv_status & TDS_CUR_ISTAT_DEALLOC) != 0
+	    || (IS_TDS7_PLUS(conn) && (cursor->srv_status & TDS_CUR_ISTAT_CLOSED) != 0)) {
+		tds_cursor_deallocated(conn, cursor);
+		return 0;
+	}
+
+	return 1;
+}
+
+/**
  * Send a deallocation request to server
  */
 TDSRET
@@ -3031,11 +3072,8 @@ tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor)
 	if (!cursor)
 		return TDS_FAIL;
 
-	if (cursor->srv_status == TDS_CUR_ISTAT_UNUSED || (cursor->srv_status & TDS_CUR_ISTAT_DEALLOC) != 0 
-	    || (IS_TDS7_PLUS(tds->conn) && (cursor->srv_status & TDS_CUR_ISTAT_CLOSED) != 0)) {
-		tds_cursor_deallocated(tds->conn, cursor);
+	if (!tds_cursor_check_allocated(tds->conn, cursor))
 		return TDS_SUCCESS;
-	}
 
 	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_dealloc() cursor id = %d\n", cursor->cursor_id);
 
@@ -3067,6 +3105,28 @@ tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor)
 	}
 
 	return res;
+}
+
+/**
+ * Deallocate cursor on idle.
+ * This let libTDS close the cursor when possible.
+ * \tds
+ * \param cursor   cursor to close
+ */
+TDSRET
+tds_deferred_cursor_dealloc(TDSCONNECTION *conn, TDSCURSOR * cursor)
+{
+	CHECK_CONN_EXTRA(conn);
+	CHECK_CURSOR_EXTRA(cursor);
+
+	/* do not mark if already deallocated */
+	if (!tds_cursor_check_allocated(conn, cursor))
+		return TDS_SUCCESS;
+
+	cursor->defer_close = 1;
+	conn->pending_close = 1;
+
+	return TDS_SUCCESS;
 }
 
 /**
