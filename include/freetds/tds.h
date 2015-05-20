@@ -759,7 +759,8 @@ typedef struct tds_result_info
 typedef enum tds_states
 {
 	TDS_IDLE,	/**< no data expected */
-	TDS_WRITING,	/**< client is sending request */
+	TDS_WRITING,	/**< client is writing data */
+	TDS_SENDING,	/**< client would send data */
 	TDS_PENDING,	/**< cilent is waiting for data */
 	TDS_READING,	/**< client is reading data */
 	TDS_DEAD	/**< no connection */
@@ -1153,6 +1154,7 @@ struct tds_socket
 	TDSCOMPUTEINFO **comp_info;
 	TDSPARAMINFO *param_info;
 	TDSCURSOR *cur_cursor;		/**< cursor in use */
+	TDS_TINYINT bulk_query;		/**< true is query sent was a bulk query so we need to switch state to QUERYING */
 	TDS_TINYINT has_status; 	/**< true is ret_status is valid */
 	TDS_INT ret_status;     	/**< return status from store procedure */
 	TDS_STATE state;

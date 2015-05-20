@@ -548,7 +548,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_process_tokens(%p, %p, %p, 0x%x)\n", tds, result_type, done_flags, flag);
 	
-	if (tds->state == TDS_IDLE) {
+	if (tds->state == TDS_IDLE || tds->state == TDS_SENDING) {
 		tdsdump_log(TDS_DBG_FUNC, "tds_process_tokens() state is COMPLETED\n");
 		*result_type = TDS_DONE_RESULT;
 		return TDS_NO_MORE_RESULTS;
@@ -852,7 +852,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 			return rc;
 		}
 
-		if (tds->state == TDS_IDLE)
+		if (tds->state == TDS_IDLE || tds->state == TDS_SENDING)
 			return cancel_seen ? TDS_CANCELLED : TDS_NO_MORE_RESULTS;
 
 		if (tds->state == TDS_DEAD) {
@@ -2095,9 +2095,15 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 		tdsdump_log(TDS_DBG_FUNC, "tds_process_end() state set to TDS_IDLE\n");
 		/* reset of in_cancel should must done before setting IDLE */
 		tds->in_cancel = 0;
-		tds_set_state(tds, TDS_IDLE);
-		if (tds->conn->pending_close)
-			tds_process_pending_closes(tds);
+		if (tds->bulk_query) {
+			tds->out_flag = TDS_BULK;
+			tds_set_state(tds, TDS_SENDING);
+			tds->bulk_query = 0;
+		} else {
+			tds_set_state(tds, TDS_IDLE);
+			if (tds->conn->pending_close)
+				tds_process_pending_closes(tds);
+		}
 	}
 
 	if (IS_TDSDEAD(tds))
