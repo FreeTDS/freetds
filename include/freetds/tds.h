@@ -910,6 +910,10 @@ typedef struct tds_cursor
 	char *cursor_name;		/**< name of the cursor */
 	TDS_INT cursor_id;		/**< cursor id returned by the server after cursor declare */
 	TDS_TINYINT options;		/**< read only|updatable TODO use it */
+	/**
+	 * true if cursor was marker to be closed when connection is idle
+	 */
+	TDS_TINYINT defer_close;
 	char *query;                 	/**< SQL query */
 	/* TODO for updatable columns */
 	/* TDS_TINYINT number_upd_cols; */	/**< number of updatable columns */
@@ -954,6 +958,10 @@ typedef struct tds_dynamic
 	 * to prepare query under Sybase that have BLOBs as parameters.
 	 */
 	TDS_TINYINT emulated;
+	/**
+	 * true if dynamic was marker to be closed when connection is idle
+	 */
+	TDS_TINYINT defer_close;
 	/* int dyn_state; */ /* TODO use it */
 	TDSPARAMINFO *res_info;	/**< query results */
 	/**
@@ -1053,6 +1061,7 @@ struct tds_connection
 	unsigned int emul_little_endian:1;
 	unsigned int use_iconv:1;
 	unsigned int tds71rev1:1;
+	unsigned int pending_close:1;	/**< true is connection has pending closing (cursors or dynamic) */
 #if ENABLE_ODBC_MARS
 	unsigned int mars:1;
 
@@ -1304,7 +1313,8 @@ TDSRET tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn);
 TDSRET tds_send_cancel(TDSSOCKET * tds);
 const char *tds_next_placeholder(const char *start);
 int tds_count_placeholders(const char *query);
-int tds_needs_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn);
+int tds_needs_unprepare(TDSCONNECTION * conn, TDSDYNAMIC * dyn);
+TDSRET tds_deferred_unprepare(TDSCONNECTION * conn, TDSDYNAMIC * dyn);
 TDSRET tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn);
 TDSRET tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params, TDSHEADERS * head);
 TDSRET tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option, TDS_OPTION_ARG *param, TDS_INT param_size);
@@ -1332,6 +1342,7 @@ TDSRET tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_FETCH fe
 TDSRET tds_cursor_get_cursor_info(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_UINT * row_number, TDS_UINT * row_count);
 TDSRET tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor);
 TDSRET tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor);
+TDSRET tds_deferred_cursor_dealloc(TDSCONNECTION *conn, TDSCURSOR * cursor);
 TDSRET tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, TDS_INT i_row, TDSPARAMINFO * params);
 TDSRET tds_cursor_setname(TDSSOCKET * tds, TDSCURSOR * cursor);
 
