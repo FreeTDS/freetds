@@ -371,7 +371,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 	if (!query)
 		return TDS_FAIL;
  
-	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+	if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 		return TDS_FAIL;
  
 	query_len = strlen(query);
@@ -1177,7 +1177,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 	if (!query || !dyn_out)
 		return TDS_FAIL;
 
-	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+	if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 		return TDS_FAIL;
 
 	/* allocate a structure for this thing */
@@ -1324,7 +1324,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params,
 		size_t converted_query_len;
 		const char *converted_query;
 
-		if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+		if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 			return TDS_FAIL;
 
 		converted_query = tds_convert_string(tds, tds->conn->char_convs[client2ucs2], query, (int)query_len, &converted_query_len);
@@ -1397,7 +1397,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params,
 		if (!dyn->query)
 			ret = TDS_FAIL;
 		if (TDS_SUCCEED(ret))
-			if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+			if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 				ret = TDS_FAIL;
 		if (TDS_SUCCEED(ret)) {
 			ret = tds_send_emulated_execute(tds, dyn->query, dyn->params);
@@ -1414,7 +1414,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params,
 	tds_release_cur_dyn(tds);
 	tds->cur_dyn = dyn;
 
-	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+	if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 		return TDS_FAIL;
 
 	tds->out_flag = TDS_NORMAL;
@@ -1467,7 +1467,7 @@ tds71_submit_prepexec(TDSSOCKET * tds, const char *query, const char *id, TDSDYN
 	if (!query || !dyn_out || !IS_TDS7_PLUS(tds->conn))
 		return TDS_FAIL;
 
-	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+	if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 		return TDS_FAIL;
 
 	/* allocate a structure for this thing */
@@ -1732,7 +1732,7 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_submit_execute()\n");
 
-	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+	if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 		return TDS_FAIL;
 
 	tds_set_cur_dyn(tds, dyn);
@@ -1827,19 +1827,42 @@ tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags)
  * \param dyn  dynamic request to check
  */
 int
-tds_needs_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
+tds_needs_unprepare(TDSCONNECTION * conn, TDSDYNAMIC * dyn)
 {
-	CHECK_TDS_EXTRA(tds);
+	CHECK_CONN_EXTRA(conn);
 	CHECK_DYNAMIC_EXTRA(dyn);
 
 	/* check if statement is prepared */
-	if (IS_TDS7_PLUS(tds->conn) && !dyn->num_id)
+	if (IS_TDS7_PLUS(conn) && !dyn->num_id)
 		return 0;
 
 	if (dyn->emulated || !dyn->id[0])
 		return 0;
 
 	return 1;
+}
+
+/**
+ * Unprepare dynamic on idle.
+ * This let libTDS close the prepared statement when possible.
+ * \tds
+ * \param dyn  dynamic request to close
+ */
+TDSRET
+tds_deferred_unprepare(TDSCONNECTION * conn, TDSDYNAMIC * dyn)
+{
+	CHECK_CONN_EXTRA(conn);
+	CHECK_DYNAMIC_EXTRA(dyn);
+
+	if (!tds_needs_unprepare(conn, dyn)) {
+		tds_dynamic_deallocated(conn, dyn);
+		return TDS_SUCCESS;
+	}
+
+	dyn->defer_close = 1;
+	conn->pending_close = 1;
+
+	return TDS_SUCCESS;
 }
 
 /**
@@ -1862,7 +1885,7 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_submit_unprepare() %s\n", dyn->id);
 
-	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+	if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 		return TDS_FAIL;
 
 	tds_set_cur_dyn(tds, dyn);
@@ -1996,7 +2019,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params, TDS
 	assert(tds);
 	assert(rpc_name);
 
-	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+	if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 		return TDS_FAIL;
 
 	/* distinguish from dynamic query  */
@@ -2311,12 +2334,12 @@ tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, in
 
 	if (IS_TDS50(tds->conn)) {
 		if (!*something_to_send) {
-			if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+			if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 				return TDS_FAIL;
 
 			tds->out_flag = TDS_NORMAL;
 		}
-		if (tds->state != TDS_QUERYING || tds->out_flag != TDS_NORMAL)
+		if (tds->state != TDS_WRITING || tds->out_flag != TDS_NORMAL)
 			return TDS_FAIL;
 
 		tds_put_byte(tds, TDS_CURDECLARE_TOKEN);
@@ -2351,10 +2374,10 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *
 	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_open() cursor id = %d\n", cursor->cursor_id);
 
 	if (!*something_to_send) {
-		if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+		if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 			return TDS_FAIL;
 	}
-	if (tds->state != TDS_QUERYING)
+	if (tds->state != TDS_WRITING)
 		return TDS_FAIL;
 
 	tds_set_cur_cursor(tds, cursor);
@@ -2501,12 +2524,12 @@ tds_cursor_setrows(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 
 	if (IS_TDS50(tds->conn)) {
 		if (!*something_to_send) {
-			if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+			if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 				return TDS_FAIL;
 
 			tds->out_flag = TDS_NORMAL;
 		}
-		if (tds->state != TDS_QUERYING  || tds->out_flag != TDS_NORMAL)
+		if (tds->state != TDS_WRITING  || tds->out_flag != TDS_NORMAL)
 			return TDS_FAIL;
 
 		tds_set_cur_cursor(tds, cursor);
@@ -2594,7 +2617,7 @@ tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_FETCH fetch_typ
 
 	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_fetch() cursor id = %d\n", cursor->cursor_id);
 
-	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+	if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 		return TDS_FAIL;
 
 	tds_set_cur_cursor(tds, cursor);
@@ -2684,7 +2707,7 @@ tds_cursor_get_cursor_info(TDSSOCKET *tds, TDSCURSOR *cursor, TDS_UINT *prow_num
 
 	if (IS_TDS7_PLUS(tds->conn)) {
 		/* Change state to querying */
-		if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+		if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 			return TDS_FAIL;
 
 		/* Remember the server has been sent a command for this cursor */
@@ -2790,7 +2813,7 @@ tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor)
 
 	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_close() cursor id = %d\n", cursor->cursor_id);
 
-	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+	if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 		return TDS_FAIL;
 
 	tds_set_cur_cursor(tds, cursor);
@@ -2854,7 +2877,7 @@ tds_cursor_setname(TDSSOCKET * tds, TDSCURSOR * cursor)
 	if (!IS_TDS7_PLUS(tds->conn))
 		return TDS_SUCCESS;
 
-	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+	if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 		return TDS_FAIL;
 
 	tds_set_cur_cursor(tds, cursor);
@@ -2918,7 +2941,7 @@ tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, 
 	if (op == TDS_CURSOR_UPDATE && (!params || params->num_cols <= 0))
 		return TDS_FAIL;
 
-	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+	if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 		return TDS_FAIL;
 
 	tds_set_cur_cursor(tds, cursor);
@@ -3021,6 +3044,24 @@ tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, 
 }
 
 /**
+ * Check if a cursor is allocated into the server.
+ * If not is allocated it assure is removed from the connection list
+ * \tds
+ * \return 0 if not allocated <>0 otherwise
+ */
+static int
+tds_cursor_check_allocated(TDSCONNECTION * conn, TDSCURSOR * cursor)
+{
+	if (cursor->srv_status == TDS_CUR_ISTAT_UNUSED || (cursor->srv_status & TDS_CUR_ISTAT_DEALLOC) != 0
+	    || (IS_TDS7_PLUS(conn) && (cursor->srv_status & TDS_CUR_ISTAT_CLOSED) != 0)) {
+		tds_cursor_deallocated(conn, cursor);
+		return 0;
+	}
+
+	return 1;
+}
+
+/**
  * Send a deallocation request to server
  */
 TDSRET
@@ -3033,16 +3074,13 @@ tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor)
 	if (!cursor)
 		return TDS_FAIL;
 
-	if (cursor->srv_status == TDS_CUR_ISTAT_UNUSED || (cursor->srv_status & TDS_CUR_ISTAT_DEALLOC) != 0 
-	    || (IS_TDS7_PLUS(tds->conn) && (cursor->srv_status & TDS_CUR_ISTAT_CLOSED) != 0)) {
-		tds_cursor_deallocated(tds->conn, cursor);
+	if (!tds_cursor_check_allocated(tds->conn, cursor))
 		return TDS_SUCCESS;
-	}
 
 	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_dealloc() cursor id = %d\n", cursor->cursor_id);
 
 	if (IS_TDS50(tds->conn)) {
-		if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+		if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 			return TDS_FAIL;
 		tds_set_cur_cursor(tds, cursor);
 
@@ -3069,6 +3107,28 @@ tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor)
 	}
 
 	return res;
+}
+
+/**
+ * Deallocate cursor on idle.
+ * This let libTDS close the cursor when possible.
+ * \tds
+ * \param cursor   cursor to close
+ */
+TDSRET
+tds_deferred_cursor_dealloc(TDSCONNECTION *conn, TDSCURSOR * cursor)
+{
+	CHECK_CONN_EXTRA(conn);
+	CHECK_CURSOR_EXTRA(cursor);
+
+	/* do not mark if already deallocated */
+	if (!tds_cursor_check_allocated(conn, cursor))
+		return TDS_SUCCESS;
+
+	cursor->defer_close = 1;
+	conn->pending_close = 1;
+
+	return TDS_SUCCESS;
 }
 
 /**
@@ -3262,7 +3322,7 @@ tds_multiple_init(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDS_MULTIPLE_TYPE type,
 	multiple->type = type;
 	multiple->flags = 0;
 
-	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+	if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 		return TDS_FAIL;
 
 	packet_type = TDS_QUERY;
@@ -3353,7 +3413,7 @@ tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option,
 	if (IS_TDS50(tds->conn)) {
 		TDSRET rc;
  
-		if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+		if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 			return TDS_FAIL;
  
 		tds->out_flag = TDS_NORMAL;
@@ -3621,7 +3681,7 @@ tds_submit_begin_tran(TDSSOCKET *tds)
 	if (!IS_TDS72_PLUS(tds->conn))
 		return tds_submit_query(tds, "BEGIN TRANSACTION");
 
-	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+	if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 		return TDS_FAIL;
 
 	tds_start_query(tds, TDS7_TRANS);
@@ -3649,7 +3709,7 @@ tds_submit_rollback(TDSSOCKET *tds, int cont)
 	if (!IS_TDS72_PLUS(tds->conn))
 		return tds_submit_query(tds, cont ? "IF @@TRANCOUNT > 0 ROLLBACK BEGIN TRANSACTION" : "IF @@TRANCOUNT > 0 ROLLBACK");
 
-	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+	if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 		return TDS_FAIL;
 
 	tds_start_query(tds, TDS7_TRANS);
@@ -3680,7 +3740,7 @@ tds_submit_commit(TDSSOCKET *tds, int cont)
 	if (!IS_TDS72_PLUS(tds->conn))
 		return tds_submit_query(tds, cont ? "IF @@TRANCOUNT > 0 COMMIT BEGIN TRANSACTION" : "IF @@TRANCOUNT > 0 COMMIT");
 
-	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+	if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 		return TDS_FAIL;
 
 	tds_start_query(tds, TDS7_TRANS);
@@ -3720,7 +3780,7 @@ tds_disconnect(TDSSOCKET * tds)
 	/* do not report errors to upper libraries */
 	tds_set_ctx(tds, &empty_ctx);
 
-	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING) {
+	if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING) {
 		tds->query_timeout = old_timeout;
 		tds_set_ctx(tds, old_ctx);
 		return TDS_FAIL;

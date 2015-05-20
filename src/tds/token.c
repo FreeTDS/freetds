@@ -548,7 +548,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_process_tokens(%p, %p, %p, 0x%x)\n", tds, result_type, done_flags, flag);
 	
-	if (tds->state == TDS_IDLE) {
+	if (tds->state == TDS_IDLE || tds->state == TDS_SENDING) {
 		tdsdump_log(TDS_DBG_FUNC, "tds_process_tokens() state is COMPLETED\n");
 		*result_type = TDS_DONE_RESULT;
 		return TDS_NO_MORE_RESULTS;
@@ -852,7 +852,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 			return rc;
 		}
 
-		if (tds->state == TDS_IDLE)
+		if (tds->state == TDS_IDLE || tds->state == TDS_SENDING)
 			return cancel_seen ? TDS_CANCELLED : TDS_NO_MORE_RESULTS;
 
 		if (tds->state == TDS_DEAD) {
@@ -1986,6 +1986,66 @@ tds_process_nbcrow(TDSSOCKET * tds)
 }
 
 /**
+ * Attempt to close all deferred closes (dynamics and cursors).
+ * \tds
+ */
+static void
+tds_process_pending_closes(TDSSOCKET *tds)
+{
+	TDSDYNAMIC *dyn, *next_dyn;
+	TDSCURSOR *cursor, *next_cursor;
+	int all_closed = 1;
+
+	/* avoid recursions */
+	tds->conn->pending_close = 0;
+
+	/* scan all cursors to close */
+	cursor = tds->conn->cursors;
+	if (cursor)
+		++cursor->ref_count;
+	for (; cursor; cursor = next_cursor) {
+		next_cursor = cursor->next;
+		if (next_cursor)
+			++next_cursor->ref_count;
+
+		if (cursor->defer_close) {
+			cursor->status.dealloc = TDS_CURSOR_STATE_REQUESTED;
+			if (TDS_FAILED(tds_cursor_close(tds, cursor))
+			    || TDS_FAILED(tds_process_simple_query(tds))) {
+				all_closed = 0;
+			} else {
+				cursor->defer_close = 0;
+				tds_cursor_dealloc(tds, cursor);
+			}
+		}
+		tds_release_cursor(&cursor);
+	}
+
+	/* scan all dynamic to close */
+	dyn = tds->conn->dyns;
+	if (dyn)
+		++dyn->ref_count;
+	for (; dyn; dyn = next_dyn) {
+		next_dyn = dyn->next;
+		if (next_dyn)
+			++next_dyn->ref_count;
+
+		if (dyn->defer_close) {
+			if (TDS_FAILED(tds_submit_unprepare(tds, dyn))
+			    || TDS_FAILED(tds_process_simple_query(tds))) {
+				all_closed = 0;
+			} else {
+				dyn->defer_close = 0;
+			}
+		}
+		tds_release_dynamic(&dyn);
+	}
+
+	if (!all_closed)
+		tds->conn->pending_close = 1;
+}
+
+/**
  * tds_process_end() processes any of the DONE, DONEPROC, or DONEINPROC
  * tokens.
  * \param tds        state information for the socket and the TDS protocol
@@ -2035,7 +2095,15 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 		tdsdump_log(TDS_DBG_FUNC, "tds_process_end() state set to TDS_IDLE\n");
 		/* reset of in_cancel should must done before setting IDLE */
 		tds->in_cancel = 0;
-		tds_set_state(tds, TDS_IDLE);
+		if (tds->bulk_query) {
+			tds->out_flag = TDS_BULK;
+			tds_set_state(tds, TDS_SENDING);
+			tds->bulk_query = 0;
+		} else {
+			tds_set_state(tds, TDS_IDLE);
+			if (tds->conn->pending_close)
+				tds_process_pending_closes(tds);
+		}
 	}
 
 	if (IS_TDSDEAD(tds))
