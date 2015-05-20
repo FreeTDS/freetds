@@ -731,7 +731,7 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	size_t packet_size, current_pos;
 	TDSRET rc;
 
-	void *data;
+	void *data = NULL;
 	TDSDYNAMICSTREAM data_stream;
 	TDSSTATICINSTREAM input;
 
@@ -771,19 +771,13 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 
 	current_pos = packet_size = IS_TDS72_PLUS(tds->conn) ? 86 + 8 : 86;	/* ? */
 
-	/* initialize ouput buffer for strings */
-	data = NULL;
-	rc = tds_dynamic_stream_init(&data_stream, &data, 0);
-	if (TDS_FAILED(rc))
-		return rc;
-
 	/* check ntlm */
 #ifdef HAVE_SSPI
 	if (strchr(user_name, '\\') != NULL || user_name_len == 0) {
 		tdsdump_log(TDS_DBG_INFO2, "using SSPI authentication for '%s' account\n", user_name);
 		tds->conn->authentication = tds_sspi_get_auth(tds);
 		if (!tds->conn->authentication)
-			goto cleanup;
+			return TDS_FAIL;
 		auth_len = tds->conn->authentication->packet_len;
 		packet_size += auth_len;
 #else
@@ -791,7 +785,7 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 		tdsdump_log(TDS_DBG_INFO2, "using NTLM authentication for '%s' account\n", user_name);
 		tds->conn->authentication = tds_ntlm_get_auth(tds);
 		if (!tds->conn->authentication)
-			goto cleanup;
+			return TDS_FAIL;
 		auth_len = tds->conn->authentication->packet_len;
 		packet_size += auth_len;
 	} else if (user_name_len == 0) {
@@ -800,16 +794,21 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 		tdsdump_log(TDS_DBG_INFO2, "using GSS authentication\n");
 		tds->conn->authentication = tds_gss_get_auth(tds);
 		if (!tds->conn->authentication)
-			goto cleanup;
+			return TDS_FAIL;
 		auth_len = tds->conn->authentication->packet_len;
 		packet_size += auth_len;
 # else
 		tdsdump_log(TDS_DBG_ERROR, "requested GSS authentication but not compiled in\n");
-		goto cleanup;
+		return TDS_FAIL;
 # endif
 #endif
 	}
 
+
+	/* initialize ouput buffer for strings */
+	rc = tds_dynamic_stream_init(&data_stream, &data, 0);
+	if (TDS_FAILED(rc))
+		return rc;
 
 #define SET_FIELD_DSTR(field, dstr) do { \
 	data_fields[field].ptr = tds_dstr_cstr(&(dstr)); \
@@ -842,8 +841,10 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 		if (field->len) {
 			tds_staticin_stream_init(&input, field->ptr, field->len);
 			rc = tds_convert_stream(tds, tds->conn->char_convs[client2ucs2], to_server, &input.stream, &data_stream.stream);
-			if (TDS_FAILED(rc))
-				goto cleanup;
+			if (TDS_FAILED(rc)) {
+				free(data);
+				return TDS_FAIL;
+			}
 		}
 		field->len = data_stream.size - data_pos;
 	}
@@ -966,10 +967,6 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 
 	free(data);
 	return rc;
-
-cleanup:
-	free(data);
-	return TDS_FAIL;
 }
 
 /**
