@@ -231,6 +231,9 @@ tds_dynamic_deallocated(TDSCONNECTION *conn, TDSDYNAMIC *dyn)
 	*victim = dyn->next;
 	dyn->next = NULL;
 
+	/* assure there is no id left */
+	dyn->num_id = 0;
+
 	tds_release_dynamic(&dyn);
 }
 

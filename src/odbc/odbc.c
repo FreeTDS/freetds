@@ -7245,54 +7245,64 @@ odbc_free_dynamic(TDS_STMT * stmt)
 		return TDS_SUCCESS;
 
 	tds = stmt->dbc->tds_socket;
-	if (!tds_needs_unprepare(tds, stmt->dyn)) {
+	if (!tds_needs_unprepare(tds->conn, stmt->dyn)) {
 		tds_release_dynamic(&stmt->dyn);
 		return SQL_SUCCESS;
 	}
 
-	if (!odbc_lock_statement(stmt))
-		return SQL_ERROR;
+	if (odbc_lock_statement(stmt)) {
+		if (TDS_SUCCEED(tds_submit_unprepare(stmt->tds, stmt->dyn))
+		    && TDS_SUCCEED(tds_process_simple_query(stmt->tds))) {
+			odbc_unlock_statement(stmt);
+			tds_release_dynamic(&stmt->dyn);
+			return SQL_SUCCESS;
+		}
+	}
 
-	tds = stmt->tds;
-	if (TDS_SUCCEED(tds_submit_unprepare(tds, stmt->dyn))
-	    && TDS_SUCCEED(tds_process_simple_query(tds))) {
+	if (TDS_SUCCEED(tds_deferred_unprepare(tds->conn, stmt->dyn))) {
 		tds_release_dynamic(&stmt->dyn);
 		return SQL_SUCCESS;
 	}
 
-	/* TODO if fail add to odbc to free later, when we are in idle */
 	ODBC_SAFE_ERROR(stmt);
 	return SQL_ERROR;
 }
 
+/**
+ * Close server cursors
+ */
 static SQLRETURN
 odbc_free_cursor(TDS_STMT * stmt)
 {
 	TDSCURSOR *cursor = stmt->cursor;
 	TDSSOCKET *tds;
-	int error = 1;
 
 	if (!cursor)
 		return SQL_SUCCESS;
 
-	if (!odbc_lock_statement(stmt))
-		return SQL_ERROR;
+	/* if possible deallocate now */
+	if (odbc_lock_statement(stmt)) {
+		tds = stmt->tds;
 
-	tds = stmt->tds;
-	cursor->status.dealloc   = TDS_CURSOR_STATE_REQUESTED;
-	/* TODO if fail add to odbc to free later, when we are in idle */
-	if (TDS_SUCCEED(tds_cursor_close(tds, cursor))) {
-		if (TDS_SUCCEED(tds_process_simple_query(tds)))
-			error = 0;
-		/* TODO check error */
-		tds_cursor_dealloc(tds, cursor);
+		cursor->status.dealloc   = TDS_CURSOR_STATE_REQUESTED;
+		if (TDS_SUCCEED(tds_cursor_close(tds, cursor))) {
+			if (TDS_SUCCEED(tds_process_simple_query(tds))) {
+				/* TODO check error */
+				tds_cursor_dealloc(tds, cursor);
+				tds_release_cursor(&stmt->cursor);
+				return SQL_SUCCESS;
+			}
+		}
 	}
-	if (error) {
-		ODBC_SAFE_ERROR(stmt);
-		return SQL_ERROR;
+
+	tds = stmt->dbc->tds_socket;
+	if (TDS_SUCCEED(tds_deferred_cursor_dealloc(tds->conn, cursor))) {
+		tds_release_cursor(&stmt->cursor);
+		return SQL_SUCCESS;
 	}
-	tds_release_cursor(&stmt->cursor);
-	return SQL_SUCCESS;
+
+	ODBC_SAFE_ERROR(stmt);
+	return SQL_ERROR;
 }
 
 SQLRETURN ODBC_PUBLIC ODBC_API

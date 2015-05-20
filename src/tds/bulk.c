@@ -339,6 +339,9 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_send_bcp_record(%p, %p, %p, ignored, %d)\n", tds, bcpinfo, get_col_data, offset);
 
+	if (tds->out_flag != TDS_BULK || tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
+		return TDS_FAIL;
+
 	if (IS_TDS7_PLUS(tds->conn)) {
 
 		tds_put_byte(tds, TDS_ROW_TOKEN);   /* 0xd1 */
@@ -363,7 +366,7 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 			rc = get_col_data(bcpinfo, bindcol, offset);
 			if (TDS_FAILED(rc)) {
 				tdsdump_log(TDS_DBG_INFO1, "get_col_data (column %d) failed\n", i + 1);
-	 			return rc;
+				goto cleanup;
 			}
 			tdsdump_log(TDS_DBG_INFO1, "gotten column %d length %d null %d\n",
 					i + 1, bindcol->bcp_column_data->datalen, bindcol->bcp_column_data->is_null);
@@ -387,7 +390,7 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 			bindcol->column_data = save_data;
 
 			if (TDS_FAILED(rc))
-				return rc;
+				goto cleanup;
 		}
 	}  /* IS_TDS7_PLUS */
 	else {
@@ -406,15 +409,17 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 		 */
 		row_pos = 2;
 
+		rc = TDS_FAIL;
 		if ((row_pos = tds_bcp_add_fixed_columns(bcpinfo, get_col_data, NULL, offset, record, row_pos)) < 0)
-			return TDS_FAIL;
+			goto cleanup;
 
 		row_sz_pos = row_pos;
 
 		/* potential variable columns to write */
 
 		if ((row_pos = tds_bcp_add_variable_columns(bcpinfo, get_col_data, NULL, offset, record, row_pos, &var_cols_written)) < 0)
-			return TDS_FAIL;
+			goto cleanup;
+
 
 		if (var_cols_written) {
 			TDS_PUT_UA2(&record[row_sz_pos], row_pos);
@@ -435,7 +440,7 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 			if (is_blob_type(bindcol->column_type)) {
 				rc = get_col_data(bcpinfo, bindcol, offset);
 				if (TDS_FAILED(rc))
-					return rc;
+					goto cleanup;
 				/* unknown but zero */
 				tds_put_smallint(tds, 0);
 				tds_put_byte(tds, bindcol->column_type);
@@ -453,7 +458,12 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 		}
 	}
 
+	tds_set_state(tds, TDS_SENDING);
 	return TDS_SUCCESS;
+
+cleanup:
+	tds_set_state(tds, TDS_SENDING);
+	return rc;
 }
 
 /**
@@ -701,6 +711,9 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	tdsdump_log(TDS_DBG_FUNC, "tds7_bcp_send_colmetadata(%p, %p)\n", tds, bcpinfo);
 	assert(tds && bcpinfo);
 
+	if (tds->out_flag != TDS_BULK || tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
+		return TDS_FAIL;
+
 	/* 
 	 * Deep joy! For TDS 7 we have to send a colmetadata message followed by row data
 	 */
@@ -758,6 +771,7 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 
 	}
 
+	tds_set_state(tds, TDS_SENDING);
 	return TDS_SUCCESS;
 }
 
@@ -773,7 +787,9 @@ tds_bcp_done(TDSSOCKET *tds, int *rows_copied)
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_done(%p, %p)\n", tds, rows_copied);
 
-	/* TODO check proper tds state */
+	if (tds->out_flag != TDS_BULK || tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
+		return TDS_FAIL;
+
 	tds_flush_packet(tds);
 
 	tds_set_state(tds, TDS_PENDING);
@@ -801,7 +817,12 @@ tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_start(%p, %p)\n", tds, bcpinfo);
 
-	tds_submit_query(tds, bcpinfo->insert_stmt);
+	rc = tds_submit_query(tds, bcpinfo->insert_stmt);
+	if (TDS_FAILED(rc))
+		return rc;
+
+	/* set we want to switch to bulk state */
+	tds->bulk_query = 1;
 
 	/*
 	 * In TDS 5 we get the column information as a result set from the "insert bulk" command.
@@ -811,9 +832,9 @@ tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	if (TDS_FAILED(rc))
 		return rc;
 
-	/* TODO problem with thread safety */
 	tds->out_flag = TDS_BULK;
-	tds_set_state(tds, TDS_QUERYING);
+	if (tds_set_state(tds, TDS_SENDING) != TDS_SENDING)
+		return TDS_FAIL;
 
 	if (IS_TDS7_PLUS(tds->conn))
 		tds7_bcp_send_colmetadata(tds, bcpinfo);
@@ -1079,17 +1100,21 @@ tds_writetext_start(TDSSOCKET *tds, const char *objname, const char *textptr, co
 	if (TDS_FAILED(rc))
 		return rc;
 
-	/* FIXME in this case processing all results can bring state to IDLE... not threading safe */
+	/* set we want to switch to bulk state */
+	tds->bulk_query = 1;
+
 	/* read the end token */
 	rc = tds_process_simple_query(tds);
 	if (TDS_FAILED(rc))
 		return rc;
 
-	/* FIXME better transition state */
 	tds->out_flag = TDS_BULK;
-	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+	if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 		return TDS_FAIL;
+
 	tds_put_int(tds, size);
+
+	tds_set_state(tds, TDS_SENDING);
 	return TDS_SUCCESS;
 }
 
@@ -1104,12 +1129,13 @@ tds_writetext_start(TDSSOCKET *tds, const char *objname, const char *textptr, co
 TDSRET
 tds_writetext_continue(TDSSOCKET *tds, const TDS_UCHAR *text, TDS_UINT size)
 {
-	/* TODO check state */
-	if (tds->out_flag != TDS_BULK)
+	if (tds->out_flag != TDS_BULK || tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 		return TDS_FAIL;
 
-	/* TODO check size letft */
+	/* TODO check size left */
 	tds_put_n(tds, text, size);
+
+	tds_set_state(tds, TDS_SENDING);
 	return TDS_SUCCESS;
 }
 
@@ -1120,8 +1146,7 @@ tds_writetext_continue(TDSSOCKET *tds, const TDS_UCHAR *text, TDS_UINT size)
 TDSRET
 tds_writetext_end(TDSSOCKET *tds)
 {
-	/* TODO check state */
-	if (tds->out_flag != TDS_BULK)
+	if (tds->out_flag != TDS_BULK || tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 		return TDS_FAIL;
 
 	tds_flush_packet(tds);
