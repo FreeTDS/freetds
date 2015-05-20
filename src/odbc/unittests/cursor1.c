@@ -84,10 +84,7 @@ Test0(int use_sql, const char *create_sql, const char *insert_sql, const char *s
 		/* delete a row */
 		i = 1;
 		if (i > 0 && i <= num_row) {
-			if (mssql2005)
-				CHKSetPos(i, use_sql ? SQL_POSITION : SQL_DELETE, SQL_LOCK_NO_CHANGE, "SI");
-			else
-				CHKSetPos(i, use_sql ? SQL_POSITION : SQL_DELETE, SQL_LOCK_NO_CHANGE, "S");
+			CHKSetPos(i, use_sql ? SQL_POSITION : SQL_DELETE, SQL_LOCK_NO_CHANGE, mssql2005 ? "SI": "S");
 			if (use_sql) {
 				SWAP_STMT(stmt2);
 				CHKPrepare(T("DELETE FROM #test WHERE CURRENT OF C1"), SQL_NTS, "S");
