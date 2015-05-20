@@ -22,8 +22,8 @@ main(int argc, char *argv[])
 	/* create a table with some rows */
 	odbc_command("create table #tmp (i int, c varchar(100))");
 	odbc_command("insert into #tmp values(1, 'some data')");
-	for (i = 1; i <= 8; ++i) {
-		sprintf(sql, "insert into #tmp select i+%d, c from #tmp where i <= %d", i, i);
+	for (i = 0; i < 8; ++i) {
+		sprintf(sql, "insert into #tmp select i+%d, c from #tmp where i <= %d", 1 << i, 1 << i);
 		odbc_command(sql);
 	}
 
@@ -35,7 +35,7 @@ main(int argc, char *argv[])
 
 	CHKExecute("S");
 
-	for (i = 0; i < 5; ++i)
+	for (i = 1; i < 5; ++i)
 		CHKFetch("S");
 	CHKFetch("No");
 	CHKMoreResults("No");
@@ -50,6 +50,7 @@ main(int argc, char *argv[])
 	SWAP_STMT(stmt);
 	CHKFreeStmt(SQL_DROP, "S");
 
+	SWAP_STMT(stmt);
 	odbc_disconnect();
 	return 0;
 }
