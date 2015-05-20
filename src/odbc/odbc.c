@@ -7270,6 +7270,9 @@ odbc_free_dynamic(TDS_STMT * stmt)
 	return SQL_ERROR;
 }
 
+/**
+ * Close server cursors
+ */
 static SQLRETURN
 odbc_free_cursor(TDS_STMT * stmt)
 {
