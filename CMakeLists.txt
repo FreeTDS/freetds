@@ -200,7 +200,7 @@ set(FUNCS _atoi64 asprintf vasprintf strtok_r readpassphrase
 	getaddrinfo inet_ntop gethostname poll socketpair
 	clock_gettime fseeko pthread_cond_timedwait
 	pthread_condattr_setclock _lock_file _unlock_file usleep nanosleep
-	readdir_t)
+	readdir_r)
 
 foreach(func ${FUNCS})
 	string(TOUPPER "HAVE_${func}" var)
