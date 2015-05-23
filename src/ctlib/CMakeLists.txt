@@ -11,6 +11,8 @@ add_library(ct SHARED
 	${win_SRCS}
 )
 
+target_link_libraries(ct tds replacements ${lib_NETWORK} ${lib_BASE})
+
 add_library(ct-static STATIC
 	ct.c cs.c blk.c ctutil.c
 )
@@ -19,7 +21,7 @@ SET_TARGET_PROPERTIES(ct-static PROPERTIES OUTPUT_NAME ${static_lib_name})
 SET_TARGET_PROPERTIES(ct PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 SET_TARGET_PROPERTIES(ct-static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 
-target_link_libraries(ct tds replacements ${lib_NETWORK} ${lib_BASE})
+target_link_libraries(ct-static tds replacements ${lib_NETWORK} ${lib_BASE})
 
 if(NOT WIN32)
 	set_target_properties(ct PROPERTIES SOVERSION "4.0.0")
