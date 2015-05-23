@@ -1,7 +1,9 @@
 add_subdirectory(unittests)
 
+set(static_lib_name ct)
 if(WIN32)
 	set(win_SRCS ../../win32/initnet.c ctlib.def)
+	set(static_lib_name libct)
 endif()
 
 add_library(ct SHARED
@@ -9,9 +11,13 @@ add_library(ct SHARED
 	${win_SRCS}
 )
 
-add_library(libct STATIC
+add_library(ct-static STATIC
 	ct.c cs.c blk.c ctutil.c
 )
+# See http://www.cmake.org/Wiki/CMake_FAQ#How_do_I_make_my_shared_and_static_libraries_have_the_same_root_name.2C_but_different_suffixes.3F
+SET_TARGET_PROPERTIES(ct-static PROPERTIES OUTPUT_NAME ${static_lib_name})
+SET_TARGET_PROPERTIES(ct PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+SET_TARGET_PROPERTIES(ct-static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 
 target_link_libraries(ct tds replacements ${lib_NETWORK} ${lib_BASE})
 
