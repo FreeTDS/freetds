@@ -743,16 +743,6 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 
 <para>The <acronym>TDS</> protocol version is probably something you'd rather not know even existed, much less something you'd have to choose.  But there's not that much to it, really.  Unless you run into an incompatibility, you're best off running with the highest protocol version supported by your server.  That's what the vendors' own products do, which is why when you read the Sybase or Microsoft documentation you find no mention of <acronym>TDS</> versions.
 
-<tip>
-	<title>Avoid obsolete versions.</title>
-
-	<para>In former versions of Microsoft SQL Server protocol 7.1 was referred as 8.0 while 7.2 was referred as 9.0.</para>
-
-	<para>For compatibility reasons version 8.0 is still handled by &freetds; but you should avoid to use it as
-	it could be removed in a future version or it could clash with a future SQL server version.</para>
-
-	</tip>
-
 			<table id="tab.Protocol.by.Product">
 				<title>Versions of the <acronym>TDS</> Protocol, by Product</title>
 				<tgroup cols="3">
@@ -798,6 +788,11 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 							<entry>7.3</entry>
 							<entry>Includes support for time, date, datetime2, datetimeoffset.</entry>
 							</row>
+						<row>
+							<entry>N/A</entry>
+							<entry>8.0</entry>
+							<entry>&freetds; will alias this version to 7.1 for backwards compatibility reasons, but this should be avoided due to future compatibility concerns. See note below on obsolete versions.</entry>
+							</row>
 						</tbody>
 					</tgroup>
 				</table></para>
@@ -817,7 +812,20 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 <para> The protocol version may also affect how database servers interpret
 			commands.  For example, Microsoft SQL Server 2000 is known to behave differently with versions 4.2
 			and 7.0.  Version 7.0 is recommended for compatibility with SQL Server tools.</para>
-				
+
+<sect2>
+	<title>Regarding obsolete versions</title>
+
+	<para>In the earlier days of &freetds;, Microsoft did not release official specs for the TDS protocol.
+When MSSQL 2000 (product 8.0) was released, there was semi-official indications from the Microsoft community
+that the TDS protocol would be version 8.0.
+So the &freetds; developers adopted that version for &freetds;.
+Years later, when Microsoft started releasing official specs of the protocol, it became obvious that the TDS
+versions that &freetds; had labeled 8.0 and 9.0 were actually versions 7.1 and 7.2 respectively.</para>
+
+	<para>For compatibility reasons version 8.0 is still handled by &freetds; but you should avoid using it as it could be removed in a future version of &freetds; or it could clash with a future SQL server version.</para>
+
+</sect2>
 		</sect1>
 	<sect1 id="name.lookup"> <title><replaceable>servername</> Lookup</title>
 <!--
