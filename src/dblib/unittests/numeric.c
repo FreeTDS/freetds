@@ -36,7 +36,7 @@ zero_end(DBNUMERIC *num)
 static int msdblib;
 
 static void
-test(int bind_type, const char *bind_name, int override_prec, int override_scale, int out_prec, int out_scale)
+test(int bind_type, const char *bind_name, int override_prec, int override_scale, int out_prec, int out_scale, int line)
 {
 	LOGINREC *login;
 	DBPROCESS *dbproc;
@@ -45,8 +45,8 @@ test(int bind_type, const char *bind_name, int override_prec, int override_scale
 	DBTYPEINFO ti;
 	int i;
 
-	printf("*** Starting test msdblib %d bind %s prec %d scale %d out prec %d out scale %d\n",
-		msdblib, bind_name, override_prec, override_scale, out_prec, out_scale);
+	printf("*** Starting test msdblib %d bind %s prec %d scale %d out prec %d out scale %d line %d\n",
+		msdblib, bind_name, override_prec, override_scale, out_prec, out_scale, line);
 	chk(sql_rewind(), "sql_rewind");
 	login = dblogin();
 
@@ -165,7 +165,7 @@ test(int bind_type, const char *bind_name, int override_prec, int override_scale
 	dbclose(dbproc);
 }
 
-#define test(a,b,c,d,e) test(a, #a, b, c, d, e)
+#define test(a,b,c,d,e) test(a, #a, b, c, d, e, __LINE__)
 
 int
 main(int argc, char **argv)
