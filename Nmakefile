@@ -212,10 +212,17 @@ src\tds\encodings.h: src\tds\encodings.pl src\tds\alternative_character_sets.h
 src\tds\num_limits.h: src\tds\num_limits.pl
 	perl src\tds\num_limits.pl > $@.tmp
 	$(MV) $@.tmp $@
+
+win32\config.h:
+	perl -e"BEGIN { @ts=localtime; $$v=sprintf \"%d%02d%02d\", 1900+$$ts[5], 1+$$ts[-1], $$ts[3]; }" \
+	-pe"s/\@VERSION\@/0.95.dev.$$v/" win32\config.h.in \
+	> $@.tmp 
+	move /Y $@.tmp $@
 !ENDIF
 
 GENERATED_FILES = include\freetds\version.h src\tds\tds_types.h \
-	src\tds\tds_willconvert.h src\tds\encodings.h src\tds\num_limits.h
+	src\tds\tds_willconvert.h src\tds\encodings.h src\tds\num_limits.h \
+	win32\config.h
 $(CTLIB_OUT)\libct.lib: $(GENERATED_FILES) $(CTLIB_OUT) $(CTLIB_OBJ) $(REPLACEMENTS_OUT)\replacements.lib $(TDS_OUT)\tds.lib
 	@echo building $@ >&2
 	lib -nologo -out:"$@"	$(CTLIB_OBJ) \
