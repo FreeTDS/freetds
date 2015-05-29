@@ -1414,7 +1414,11 @@ void tdsdump_col(const TDSCOLUMN *col);
 #undef tdsdump_log
 void tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...)
 #if defined(__GNUC__) && __GNUC__ >= 2
+#if defined(__MINGW32__)
+	__attribute__ ((__format__ (ms_printf, 3, 4)))
+#else
 	__attribute__ ((__format__ (__printf__, 3, 4)))
+#endif
 #endif
 ;
 #define TDSDUMP_LOG_FAST if (TDS_UNLIKELY(tds_write_dump)) tdsdump_log
