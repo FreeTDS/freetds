@@ -875,7 +875,9 @@ parse_pivot_description(OPTIONS *options, const char *optarg)
 		}
 	}
 	if (options->fverbose)
-		printf("found %td row and %td col keys\n", options->pivot.row_key.nkeys, options->pivot.col_key.nkeys);
+		printf("found %lu row and %lu col keys\n",
+		       (unsigned long) options->pivot.row_key.nkeys,
+		       (unsigned long) options->pivot.col_key.nkeys);
 
 	if ((pend = strchr(p, ' ')) == NULL) {
 		fprintf(stderr, "bsqldb(): no name in %s\n", p);
