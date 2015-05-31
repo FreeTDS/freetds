@@ -418,22 +418,17 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
  
 		if (!count) {
 			param_definition = tds7_build_param_def_from_params(tds, converted_query, converted_query_len, params, &definition_len);
-			if (!param_definition) {
-				tds_convert_string_free(query, converted_query);
-				tds_set_state(tds, TDS_IDLE);
-				return TDS_FAIL;
-			}
 		} else {
 			/*
 			 * TODO perhaps functions that calls tds7_build_param_def_from_query
 			 * should call also tds7_build_param_def_from_params ??
 			 */
 			param_definition = tds7_build_param_def_from_query(tds, converted_query, converted_query_len, params, &definition_len);
-			if (!param_definition) {
-				tds_convert_string_free(query, converted_query);
-				tds_set_state(tds, TDS_IDLE);
-				return TDS_FAIL;
-			}
+		}
+		if (!param_definition) {
+			tds_convert_string_free(query, converted_query);
+			tds_set_state(tds, TDS_IDLE);
+			return TDS_FAIL;
 		}
  
 		if (tds_start_query_head(tds, TDS_RPC, head) != TDS_SUCCESS) {
@@ -893,6 +888,7 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 
 /**
  * Return string with parameters definition, useful for TDS7+
+ * Looks like "@P1 INT, @P2 VARCHAR(100)"
  * \param tds     state information for the socket and the TDS protocol
  * \param converted_query     query to send to server in ucs2 encoding
  * \param converted_query_len query length in bytes
@@ -929,7 +925,7 @@ tds7_build_param_def_from_query(TDSSOCKET * tds, const char* converted_query, si
 		}
 
 		/* realloc on insufficient space */
-		while ((len + (2u * 40u)) > size) {
+		while ((len + (2u * sizeof(declaration))) > size) {
 			size += 512u;
 			if (!TDS_RESIZE(param_str, size))
 				goto Cleanup;
@@ -989,32 +985,30 @@ tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t quer
 	if (!param_str)
 		goto Cleanup;
 
-	if (!params)
+	if (!params || !params->num_cols)
 		goto no_params;
 
 	/* try to detect missing names */
-	if (params->num_cols) {
-		ids = (struct tds_ids *) calloc(params->num_cols, sizeof(struct tds_ids));
-		if (!ids)
-			goto Cleanup;
-		if (tds_dstr_isempty(&params->columns[0]->column_name)) {
-			const char *s = query, *e, *id_end;
-			const char *query_end = query + query_len;
+	ids = (struct tds_ids *) calloc(params->num_cols, sizeof(struct tds_ids));
+	if (!ids)
+		goto Cleanup;
+	if (tds_dstr_isempty(&params->columns[0]->column_name)) {
+		const char *s = query, *e, *id_end;
+		const char *query_end = query + query_len;
 
-			for (i = 0;  i < params->num_cols; s = e + 2) {
-				e = tds_next_placeholder_ucs2le(s, query_end, 1);
-				if (e == query_end)
+		for (i = 0;  i < params->num_cols; s = e + 2) {
+			e = tds_next_placeholder_ucs2le(s, query_end, 1);
+			if (e == query_end)
+				break;
+			if (e[0] != '@')
+				continue;
+			/* find end of param name */
+			for (id_end = e + 2; id_end != query_end; id_end += 2)
+				if (!id_end[1] && (id_end[0] != '_' && id_end[1] != '#' && !isalnum((unsigned char) id_end[0])))
 					break;
-				if (e[0] != '@')
-					continue;
-				/* find end of param name */
-				for (id_end = e + 2; id_end != query_end; id_end += 2)
-					if (!id_end[1] && (id_end[0] != '_' && id_end[1] != '#' && !isalnum((unsigned char) id_end[0])))
-						break;
-				ids[i].p = e;
-				ids[i].len = id_end - e;
-				++i;
-			}
+			ids[i].p = e;
+			ids[i].len = id_end - e;
+			++i;
 		}
 	}
  
@@ -1030,7 +1024,7 @@ tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t quer
  
 		/* realloc on insufficient space */
 		il = ids[i].p ? ids[i].len : 2 * tds_dstr_len(&params->columns[i]->column_name);
-		while ((l + (2u * 40u) + il) > size) {
+		while ((l + (2u * sizeof(declaration)) + il) > size) {
 			size += 512u;
 			if (!TDS_RESIZE(param_str, size))
 				goto Cleanup;
