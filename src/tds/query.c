@@ -929,7 +929,7 @@ tds7_build_param_def_from_query(TDSSOCKET * tds, const char* converted_query, si
 		}
 
 		/* realloc on insufficient space */
-		while ((len + (2u * 40u)) > size) {
+		while ((len + (2u * sizeof(declaration))) > size) {
 			size += 512u;
 			if (!TDS_RESIZE(param_str, size))
 				goto Cleanup;
@@ -1030,7 +1030,7 @@ tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t quer
  
 		/* realloc on insufficient space */
 		il = ids[i].p ? ids[i].len : 2 * tds_dstr_len(&params->columns[i]->column_name);
-		while ((l + (2u * 40u) + il) > size) {
+		while ((l + (2u * sizeof(declaration)) + il) > size) {
 			size += 512u;
 			if (!TDS_RESIZE(param_str, size))
 				goto Cleanup;
