@@ -418,22 +418,17 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
  
 		if (!count) {
 			param_definition = tds7_build_param_def_from_params(tds, converted_query, converted_query_len, params, &definition_len);
-			if (!param_definition) {
-				tds_convert_string_free(query, converted_query);
-				tds_set_state(tds, TDS_IDLE);
-				return TDS_FAIL;
-			}
 		} else {
 			/*
 			 * TODO perhaps functions that calls tds7_build_param_def_from_query
 			 * should call also tds7_build_param_def_from_params ??
 			 */
 			param_definition = tds7_build_param_def_from_query(tds, converted_query, converted_query_len, params, &definition_len);
-			if (!param_definition) {
-				tds_convert_string_free(query, converted_query);
-				tds_set_state(tds, TDS_IDLE);
-				return TDS_FAIL;
-			}
+		}
+		if (!param_definition) {
+			tds_convert_string_free(query, converted_query);
+			tds_set_state(tds, TDS_IDLE);
+			return TDS_FAIL;
 		}
  
 		if (tds_start_query_head(tds, TDS_RPC, head) != TDS_SUCCESS) {
