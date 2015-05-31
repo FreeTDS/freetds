@@ -888,6 +888,7 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 
 /**
  * Return string with parameters definition, useful for TDS7+
+ * Looks like "@P1 INT, @P2 VARCHAR(100)"
  * \param tds     state information for the socket and the TDS protocol
  * \param converted_query     query to send to server in ucs2 encoding
  * \param converted_query_len query length in bytes
