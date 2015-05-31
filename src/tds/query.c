@@ -984,32 +984,30 @@ tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t quer
 	if (!param_str)
 		goto Cleanup;
 
-	if (!params)
+	if (!params || !params->num_cols)
 		goto no_params;
 
 	/* try to detect missing names */
-	if (params->num_cols) {
-		ids = (struct tds_ids *) calloc(params->num_cols, sizeof(struct tds_ids));
-		if (!ids)
-			goto Cleanup;
-		if (tds_dstr_isempty(&params->columns[0]->column_name)) {
-			const char *s = query, *e, *id_end;
-			const char *query_end = query + query_len;
+	ids = (struct tds_ids *) calloc(params->num_cols, sizeof(struct tds_ids));
+	if (!ids)
+		goto Cleanup;
+	if (tds_dstr_isempty(&params->columns[0]->column_name)) {
+		const char *s = query, *e, *id_end;
+		const char *query_end = query + query_len;
 
-			for (i = 0;  i < params->num_cols; s = e + 2) {
-				e = tds_next_placeholder_ucs2le(s, query_end, 1);
-				if (e == query_end)
+		for (i = 0;  i < params->num_cols; s = e + 2) {
+			e = tds_next_placeholder_ucs2le(s, query_end, 1);
+			if (e == query_end)
+				break;
+			if (e[0] != '@')
+				continue;
+			/* find end of param name */
+			for (id_end = e + 2; id_end != query_end; id_end += 2)
+				if (!id_end[1] && (id_end[0] != '_' && id_end[1] != '#' && !isalnum((unsigned char) id_end[0])))
 					break;
-				if (e[0] != '@')
-					continue;
-				/* find end of param name */
-				for (id_end = e + 2; id_end != query_end; id_end += 2)
-					if (!id_end[1] && (id_end[0] != '_' && id_end[1] != '#' && !isalnum((unsigned char) id_end[0])))
-						break;
-				ids[i].p = e;
-				ids[i].len = id_end - e;
-				++i;
-			}
+			ids[i].p = e;
+			ids[i].len = id_end - e;
+			++i;
 		}
 	}
  
