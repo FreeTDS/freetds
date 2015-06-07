@@ -243,7 +243,7 @@ tds_check_ip(gnutls_x509_crt_t cert, const char *hostname)
 		ret = inet_pton(AF_INET6, hostname, &ip.v6);
 	} else {
 		ip_size = 4;
-		ret = inet_aton(hostname, &ip.v4);
+		ret = inet_pton(AF_INET, hostname, &ip.v4);
 	}
 
 	if (ret != 0)
@@ -716,7 +716,7 @@ check_alt_names(X509 *cert, const char *hostname)
 		ret = inet_pton(AF_INET6, hostname, &ip.v6);
 	} else {
 		ip_size = 4;
-		ret = inet_aton(hostname, &ip.v4);
+		ret = inet_pton(AF_INET, hostname, &ip.v4);
 	}
 	if (ret == 0)
 		return -1;
