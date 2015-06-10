@@ -218,7 +218,7 @@ tds_generic_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 	case 2:
 		/* assure > 0 */
 		col->column_size = tds_get_smallint(tds);
-		/* under TDS9 this means ?var???(MAX) */
+		/* under TDS7.2 this means ?var???(MAX) */
 		if (col->column_size < 0 && IS_TDS72_PLUS(tds->conn)) {
 			col->column_size = 0x3ffffffflu;
 			col->column_varint_size = 8;
