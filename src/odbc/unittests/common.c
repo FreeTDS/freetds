@@ -135,12 +135,15 @@ odbc_read_login_info(void)
 	strcpy(odbc_driver, path);
 
 	/* craft out odbc.ini, avoid to read wrong one */
-	in = fopen("odbc.ini", "w");
+	snprintf(path, sizeof(path), "odbc.ini.%d", (int) getpid());
+	in = fopen(path, "w");
 	if (in) {
 		fprintf(in, "[%s]\nDriver = %s\nDatabase = %s\nServername = %s\n", odbc_server, odbc_driver, odbc_database, odbc_server);
 		fclose(in);
 		setenv("ODBCINI", "./odbc.ini", 1);
 		setenv("SYSODBCINI", "./odbc.ini", 1);
+		rename(path, "odbc.ini");
+		unlink(path);
 	}
 #endif
 	return 0;
