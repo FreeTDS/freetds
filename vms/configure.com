@@ -52,6 +52,17 @@ $   d_have_iconv = "0"
 $   SAY "Using replacement iconv()"
 $ ENDIF
 $!
+$! Set socketpair (available with VMS 8.2 and later)
+$!
+$ IF F$EXTRACT(1,3,F$EDIT(F$GETSYI("VERSION"),"TRIM")) .GES. "8.2"
+$ THEN
+$   d_socketpair = "1"
+$   SAY "Using system-supplied socketpair()"
+$ ELSE
+$   d_socketpair = "0"
+$   SAY "Using replacement socketpair()"
+$ ENDIF
+$!
 $! Generate config.h
 $!
 $ open/write vmsconfigtmp vmsconfigtmp.com
@@ -73,6 +84,8 @@ $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@D_HAVE_ICONV@"",""''d_have_iconv'"");"
 $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@D_SNPRINTF@"",""''d_snprintf'"");"
+$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
+$ write vmsconfigtmp "eve_global_replace(""@D_SOCKETPAIR@"",""''d_socketpair'"");"
 $ write vmsconfigtmp "out_file := GET_INFO (COMMAND_LINE, ""output_file"");"
 $ write vmsconfigtmp "WRITE_FILE (main_buffer, out_file);"
 $ write vmsconfigtmp "quit;"
@@ -119,6 +132,13 @@ $ else
 $   snprintfobj = "[.src.replacements]snprintf$(OBJ),"
 $ endif
 $!
+$ if d_socketpair .eqs. "1"
+$ then
+$   socketpairobj = " "
+$ else
+$   socketpairobj = "[.src.replacements]socketpair$(OBJ),"
+$ endif
+$!
 $ if P1 .eqs. "--disable-thread-safe"
 $ then
 $   enable_thread_safe = " "
@@ -143,6 +163,8 @@ $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@LIBICONVOBJ@"",""''libiconvobj'"");"
 $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@SNPRINTFOBJ@"",""''snprintfobj'"");"
+$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
+$ write vmsconfigtmp "eve_global_replace(""@SOCKETPAIROBJ@"",""''socketpairobj'"");"
 $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@ENABLE_THREAD_SAFE@"",""''enable_thread_safe'"");"
 $ write vmsconfigtmp "out_file := GET_INFO (COMMAND_LINE, ""output_file"");"

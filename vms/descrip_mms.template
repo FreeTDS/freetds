@@ -114,6 +114,7 @@ VASPRINTFOBJ = @VASPRINTFOBJ@
 STRTOK_ROBJ = @STRTOK_ROBJ@
 LIBICONVOBJ = @LIBICONVOBJ@
 SNPRINTFOBJ = @SNPRINTFOBJ@
+SOCKETPAIROBJ = @SOCKETPAIROBJ@
 
 TDSOBJS = [.src.tds]bulk$(OBJ), [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ), \
 	[.src.tds]convert$(OBJ), [.src.tds]data$(OBJ), [.src.tds]des$(OBJ), [.src.tds]getmac$(OBJ), \
@@ -126,7 +127,7 @@ TDSOBJS = [.src.tds]bulk$(OBJ), [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ
 	[.src.tds]stream$(OBJ), \
 	[.src.replacements]strlcpy$(OBJ), [.src.replacements]getpassarg$(OBJ), \
 	[.src.replacements]sleep$(OBJ), \
-	$(ASPRINTFOBJ) $(VASPRINTFOBJ) $(SNPRINTFOBJ) $(STRTOK_ROBJ) $(LIBICONVOBJ) \
+	$(ASPRINTFOBJ) $(VASPRINTFOBJ) $(SNPRINTFOBJ) $(STRTOK_ROBJ) $(LIBICONVOBJ) $(SOCKETPAIROBJ) \
 	[.vms]getpass$(OBJ)
 
 CTLIBOBJS = [.src.ctlib]blk$(OBJ), [.src.ctlib]cs$(OBJ), [.src.ctlib]ct$(OBJ), \
