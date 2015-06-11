@@ -751,12 +751,14 @@ tds_alloc_locale(void)
 #define RESB(i) 0 SUPPORTED_RES_CAP(i)
 
 static const TDS_CAPABILITIES defaultcaps = { {
-     /* type,  len, data, data, data, data, data, data, data, data, data, data, data (11 bytes) */
-	{ 1, 11, { REQB(10), REQB(9), REQB(8), REQB(7), REQB(6), REQB(5), REQB(4), REQB(3), REQB(2), REQB(1), REQB(0) } },
-	{ 2, 11, { RESB(10), RESB(9), RESB(8), RESB(7), RESB(6), RESB(5), RESB(4), RESB(3), RESB(2), RESB(1), RESB(0) } }
+     /* type,  len, data, data, data, data, data, data, data, data, data, data, data, data, data, data (14 bytes) */
+	{ 1, 14, { REQB(13), REQB(12), REQB(11), REQB(10), REQB(9), REQB(8), REQB(7),
+	           REQB(6),  REQB(5),  REQB(4),  REQB(3),  REQB(2), REQB(1), REQB(0) } },
+	{ 2, 14, { RESB(13), RESB(12), RESB(11), RESB(10), RESB(9), RESB(8), RESB(7),
+	           RESB(6),  RESB(5),  RESB(4),  RESB(3),  RESB(2), RESB(1), RESB(0) } }
 } };
 /* check we match the values size */
-TDS_COMPILE_CHECK(tds_values_len, sizeof(defaultcaps.types[0].values) == 11);
+TDS_COMPILE_CHECK(tds_values_len, sizeof(defaultcaps.types[0].values) == 14);
 /* check we match the default size */
 TDS_COMPILE_CHECK(tds_cap_len, sizeof(defaultcaps) == TDS_MAX_CAPABILITY);
 
