@@ -2997,7 +2997,7 @@ tds_willconvert(int srctype, int desttype)
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_willconvert(%d, %d)\n", srctype, desttype);
 
-	for (i = 0; i < sizeof(answers) / sizeof(ANSWER); i++) {
+	for (i = 0; i < TDS_VECTOR_SIZE(answers); i++) {
 		if (srctype == answers[i].srctype && desttype == answers[i].desttype) {
 			tdsdump_log(TDS_DBG_FUNC, "tds_willconvert(%d, %d) returns %s\n", answers[i].srctype, answers[i].desttype,
 				    answers[i].yn? "yes":"no");
