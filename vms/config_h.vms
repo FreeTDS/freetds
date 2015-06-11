@@ -170,7 +170,8 @@
 #undef HAVE_SETHOSTENT_R
 
 /* Define to 1 if you have the `socketpair' function. */
-#if __CRTL_VER >= 80200000
+/* Must be undefined, not defined to 0, when not present. */
+#if @D_SOCKETPAIR@
 #define HAVE_SOCKETPAIR 1
 #endif
 
