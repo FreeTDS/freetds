@@ -251,12 +251,12 @@ buffer_row2idx(const DBPROC_ROWBUF *buf, int row_number)
 	 * March through the buffers from tail to head, stop if we find our row.  
 	 * A full queue is indicated by tail == head (which means we can't write).
 	 */
-	for (ii=0, i = buf->tail; i != buf->head || ii == 0; i = buffer_idx_increment(buf, i)) {
+	for (ii=0, i = buf->tail; i != buf->head || ii == 0; ++ii, i = buffer_idx_increment(buf, i)) {
 		if( buffer_idx2row(buf, i) == row_number) {
 			idx = i;
 			break;
 		}
-		assert(ii++ < buf->capacity); /* prevent infinite loop */
+		assert(ii < buf->capacity); /* prevent infinite loop */
 	} 
 	
 	return idx;
