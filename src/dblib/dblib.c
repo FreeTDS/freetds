@@ -2034,13 +2034,7 @@ dbnextrow(DBPROCESS * dbproc)
 	CHECK_CONN(FAIL);
 
 	tds = dbproc->tds_socket;
-	if (IS_TDSDEAD(tds)) {
-		dbperror(dbproc, SYBEDDNE, 0);
-		return FAIL;
-	}
-
 	resinfo = tds->res_info;
-
 
 	tdsdump_log(TDS_DBG_FUNC, "dbnextrow() dbresults_state = %d (%s)\n", 
 					dbproc->dbresults_state, prdbresults_state(dbproc->dbresults_state, prbuf));
