@@ -26,6 +26,10 @@
 #include <windows.h>
 #endif
 
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif /* HAVE_UNISTD_H */
+
 #if HAVE_ERRNO_H
 #include <errno.h>
 #endif
