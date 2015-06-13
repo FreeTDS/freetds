@@ -58,6 +58,8 @@ math(EXPR BUILD_NUMBER "${BUILD_NUMBER}")
 set(FREETDS_TOPDIR ${CMAKE_CURRENT_LIST_DIR})
 
 enable_testing()
+set(CMAKE_CTEST_COMMAND ctest -V)
+add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
 
 # TODO depends on configure
 add_definitions(-D_REENTRANT -D_THREAD_SAFE)
