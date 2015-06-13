@@ -1,9 +1,7 @@
 #ifndef COMMON_h
 #define COMMON_h
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.10 2011-05-16 08:51:40 freddy77 Exp $";
-static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
-
+#undef NDEBUG
 #include <config.h>
 
 #include <stdarg.h>

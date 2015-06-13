@@ -2,6 +2,8 @@
 #ifndef COMMON_h
 #define COMMON_h
 
+#undef NDEBUG
+
 #include <config.h>
 
 #include <stdarg.h>
