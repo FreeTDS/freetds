@@ -183,7 +183,7 @@ tds_tls_deinit(void)
 }
 #endif
 
-#if defined(_THREAD_SAFE) && defined(TDS_HAVE_PTHREAD_MUTEX)
+#if defined(_THREAD_SAFE) && defined(TDS_HAVE_PTHREAD_MUTEX) && !defined(GNUTLS_USE_NETTLE)
 GCRY_THREAD_OPTION_PTHREAD_IMPL;
 #define tds_gcry_init() gcry_control(GCRYCTL_SET_THREAD_CBS, &gcry_threads_pthread)
 #else

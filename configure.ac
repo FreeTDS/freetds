@@ -726,9 +726,17 @@ AC_ARG_WITH(gnutls,
 AS_HELP_STRING([--with-gnutls], [build with TLS support]))
 if test "$with_gnutls" = "yes"; then
 	AC_DEFINE(HAVE_GNUTLS, 1, [Define to 1 if you have GNU tls.])
+	gnutls_backend=unknown
 	if test "$PKG_CONFIG" != "" && "$PKG_CONFIG" --exists gnutls > /dev/null 2>&1; then
 		CPPFLAGS="$CPPFLAGS `$PKG_CONFIG --cflags gnutls`"
 		NETWORK_LIBS="$NETWORK_LIBS `$PKG_CONFIG --libs gnutls`"
+		if "$PKG_CONFIG" --libs --static gnutls | grep gcrypt > /dev/null 2>&1 ; then
+			gnutls_backend=gcrypt
+		fi
+		if "$PKG_CONFIG" --libs --static gnutls | grep nettle > /dev/null 2>&1 ; then
+			gnutls_backend=nettle
+			AC_DEFINE(GNUTLS_USE_NETTLE, 1, [Define to 1 if GNU tls use nettle as backend.])
+		fi
 	else
 		CPPFLAGS="$CPPFLAGS `libgnutls-config --cflags`"
 		NETWORK_LIBS="$NETWORK_LIBS `libgnutls-config --libs`"
@@ -792,7 +800,7 @@ AM_CONDITIONAL(ENABLE_THREADSAFE, test "$enable_threadsafe" != "no")
 # newer gcc are configured to fail to resolve references to libraries not
 # explicitly listed on the linker commandline.
 # So to make build add explicitly gcrypt library.
-if test "$enable_threadsafe" != "no" -a "$with_gnutls" = "yes"; then
+if test "$enable_threadsafe" != "no" -a "$with_gnutls" = "yes" -a "$gnutls_backend" != "nettle"; then
 	if test "$PKG_CONFIG" != "" && "$PKG_CONFIG" --exists gcrypt> /dev/null 2>&1; then
 		CPPFLAGS="$CPPFLAGS `$PKG_CONFIG --cflags gcrypt`"
 		NETWORK_LIBS="$NETWORK_LIBS `$PKG_CONFIG --libs gcrypt`"
