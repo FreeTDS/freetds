@@ -239,10 +239,13 @@ buffer_idx2row(const DBPROC_ROWBUF *buf, int idx)
 static int
 buffer_row2idx(const DBPROC_ROWBUF *buf, int row_number)
 {
-	int i, ii, idx = -1;
+	int i = buf->tail;
+#ifndef NDEBUG
+	int ii = 0;
+#endif
 
 	BUFFER_CHECK(buf);
-	if (buf->tail == buf->capacity) {
+	if (i == buf->capacity) {
 		assert (buf->head == 0);
 		return -1;	/* no rows buffered */
 	}
@@ -251,15 +254,16 @@ buffer_row2idx(const DBPROC_ROWBUF *buf, int row_number)
 	 * March through the buffers from tail to head, stop if we find our row.  
 	 * A full queue is indicated by tail == head (which means we can't write).
 	 */
-	for (ii=0, i = buf->tail; i != buf->head || ii == 0; ++ii, i = buffer_idx_increment(buf, i)) {
-		if( buffer_idx2row(buf, i) == row_number) {
-			idx = i;
-			break;
-		}
-		assert(ii < buf->capacity); /* prevent infinite loop */
-	} 
+	do {
+		if (buffer_idx2row(buf, i) == row_number)
+			return i;
+
+		assert(ii++ < buf->capacity); /* prevent infinite loop */
+
+		i = buffer_idx_increment(buf, i);
+	} while (i != buf->head);
 	
-	return idx;
+	return -1;
 }
 
 /**
