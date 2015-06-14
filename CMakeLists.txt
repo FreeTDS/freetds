@@ -127,6 +127,12 @@ foreach(fn
 	config_write("#cmakedefine ${var} 1\n\n")
 endforeach(fn)
 
+find_package(OpenSSL)
+if(OPENSSL_FOUND)
+	config_write("#define HAVE_OPENSSL 1\n\n")
+	include_directories(${OPENSSL_INCLUDE_DIR})
+endif(OPENSSL_FOUND)
+
 set(CMAKE_THREAD_PREFER_PTHREAD ON)
 find_package(Threads REQUIRED)
 
@@ -301,11 +307,13 @@ else(WIN32)
 	config_write("/* define to format string used for 64bit integers */\n#define TDS_I64_PREFIX \"ll\"\n\n")
 	config_write("#define UNIXODBC 1\n\n#define _GNU_SOURCE 1\n\n")
 
-	include(FindGnuTLS)
-	if(GNUTLS_FOUND)
-		config_write("#define HAVE_GNUTLS 1\n#define HAVE_GNUTLS_RECORD_DISABLE_PADDING 1\n")
-		set(lib_GNUTLS ${GNUTLS_LIBRARIES} gcrypt)
-	endif(GNUTLS_FOUND)
+	if(NOT OPENSSL_FOUND)
+		include(FindGnuTLS)
+		if(GNUTLS_FOUND)
+			config_write("#define HAVE_GNUTLS 1\n#define HAVE_GNUTLS_RECORD_DISABLE_PADDING 1\n")
+			set(lib_GNUTLS ${GNUTLS_LIBRARIES} gcrypt)
+		endif(GNUTLS_FOUND)
+	endif(NOT OPENSSL_FOUND)
 
 	if(NOT HAVE_CLOCK_GETTIME AND NOT HAVE_GETHRTIME)
 		search_library(clock_gettime HAVE_CLOCK_GETTIME lib_RT "rt;posix4")
@@ -341,8 +349,14 @@ if(WIN32)
 	set(lib_NETWORK ws2_32)
 else(WIN32)
 	# TODO check libraries
-	set(lib_NETWORK ${lib_GNUTLS} gssapi_krb5)
+	set(lib_NETWORK gssapi_krb5)
 endif(WIN32)
+
+if(OPENSSL_FOUND)
+	set(lib_NETWORK ${lib_NETWORK} ${OPENSSL_LIBRARIES})
+elseif(GNUTLS_FOUND)
+	set(lib_NETWORK ${lib_NETWORK} ${lib_GNUTLS})
+endif(OPENSSL_FOUND)
 
 include_directories(${CMAKE_BINARY_DIR}/include include win32)
 
