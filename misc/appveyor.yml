@@ -1,0 +1,141 @@
+skip_tags: false
+
+branches:
+  except:
+    - camber
+    - origin
+    - BRANCH0_60
+    - BRANCH0_61
+    - BRANCH0_62
+    - BRANCH0_63
+    - BRANCH0_64
+    - BRANCH0_82
+    - Branch-0_91
+
+services:
+- mssql2008r2sp2
+
+version: "{build}"
+
+shallow_clone: true
+
+environment:
+
+  global:
+    # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
+    # /E:ON and /V:ON options are not enabled in the batch script intepreter
+    # See: http://stackoverflow.com/a/13751649/163740
+    WITH_COMPILER: "cmd /E:ON /V:ON /C ..\\misc\\run_with_compiler.cmd"
+    OPENSSL_VER: 1_0_2c
+    WIN_ICONV_VER: 0.0.6
+
+  matrix:
+  - PLAT: Win32
+    WIDTH: 32
+    VS_VERSION: "2008"
+
+  - PLAT: Win64
+    WIDTH: 64
+    VS_VERSION: "2008"
+
+  - PLAT: Win32
+    WIDTH: 32
+    VS_VERSION: "2010"
+
+  - PLAT: Win64
+    WIDTH: 64
+    VS_VERSION: "2010"
+
+configuration:
+  - release
+
+install:
+  # OpenSSL
+  - appveyor DownloadFile https://slproweb.com/download/%PLAT%OpenSSL-%OPENSSL_VER%.exe
+  - "%PLAT%OpenSSL-%OPENSSL_VER%.exe /SP- /SILENT /SUPPRESSMSGBOXES /NORESTART /DIR=\"C:\\OpenSSL\""
+  # win-iconv
+  - appveyor DownloadFile https://github.com/win-iconv/win-iconv/archive/%WIN_ICONV_VER%.zip
+  - 7z x %WIN_ICONV_VER%.zip
+  - ren win-iconv-%WIN_ICONV_VER% iconv
+  - mkdir iconv-build
+  - cd iconv-build
+  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DBUILD_STATIC=on -D BUILD_SHARED=off -DBUILD_EXECUTABLE=off -DBUILD_TEST=on ..\\iconv"
+  - "%WITH_COMPILER% nmake"
+  - win_iconv_test.exe
+  - cd ..\iconv
+  - mkdir include
+  - mkdir lib
+  - copy iconv.h include
+  - copy ..\iconv-build\iconv.lib lib
+  - cd ..
+
+build_script:
+  # build FreeTDS
+  - mkdir build
+  - cd build
+  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Release .."
+  - "%WITH_COMPILER% nmake"
+  - src\apps\tsql.exe -C
+  - cd ..
+
+test_script:
+  - set INSTANCENAME=SQL2008R2SP2
+  - "powershell misc\\sql-server-activate-tcp-fixed-port.ps1"
+  # Create freetds.conf
+  - cd build
+  - echo [global]> freetds.conf.local
+  - echo port = 1433>> freetds.conf.local
+  - echo tds version = 7.1>> freetds.conf.local
+  - echo [local]>> freetds.conf.local
+  - echo host = 127.0.0.1>> freetds.conf.local
+  # Create PWD
+  - echo UID=sa> PWD
+  - echo PWD=Password12!>> PWD
+  - echo SRV=local>> PWD
+  - echo DB=tempdb>> PWD
+  - set FREETDSCONF=%CD%\freetds.conf.local
+  - set TDSDUMP=%CD%\conndump
+  - set TDSDUMPCONFIG=%CD%\confdump
+  # Add dirs of our just built DLLs to PATH envvar so everything works
+  - set PATH=%CD%\src\ctlib;%CD%\src\dblib;%PATH%
+  # register ODBC driver
+  - copy src\odbc\tdsodbc.dll %WINDIR%\system32
+  #- regsvr32 /s %WINDIR%\system32\tdsodbc.dll
+  - C:\Windows\SysWOW64\ODBCCONF.exe INSTALLDRIVER "FreeTDS|Driver=tdsodbc.dll|Setup=tdsodbc.dll||"
+  - C:\Windows\SysWOW64\ODBCCONF.exe CONFIGDRIVER "FreeTDS" "APILevel=1"
+  - C:\Windows\SysWOW64\ODBCCONF.exe CONFIGDRIVER "FreeTDS" "ConnectFunctions=YYY"
+  - C:\Windows\SysWOW64\ODBCCONF.exe CONFIGDRIVER "FreeTDS" "DriverODBCVer=02.50"
+  - C:\Windows\SysWOW64\ODBCCONF.exe CONFIGDRIVER "FreeTDS" "FileUsage=0"
+  - C:\Windows\SysWOW64\ODBCCONF.exe CONFIGDRIVER "FreeTDS" "CPTimeout=60"
+  # Build and run tests
+  - "%WITH_COMPILER% nmake check || cmd /c \"exit /b 0\""
+  - cd ..
+
+after_test:
+  - type %CD%\build\confdump
+  - type %CD%\build\conndump
+  # Create zipball artifact
+  - cd build
+  - set DESTDIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
+  - mkdir %DESTDIR%
+  - mkdir %DESTDIR%\static
+  - copy src\dblib\db-lib.lib %DESTDIR%\static\
+  - copy src\ctlib\libct.lib %DESTDIR%\static\
+  - copy src\tds\tds.lib %DESTDIR%\static\
+  - mkdir %DESTDIR%\include
+  - cd ..\include
+  #- cp sqlfront.h sybdb.h sybfront.h tds_sysdep_public.h ../%DESTDIR%/include/
+  - cp sqlfront.h sybdb.h sybfront.h ../build/%DESTDIR%/include/
+  - cd ..\build
+  - mkdir %DESTDIR%\dynamic
+  - copy src\ctlib\ct.dll %DESTDIR%\dynamic\
+  - copy src\ctlib\ct.lib %DESTDIR%\dynamic\
+  - copy src\dblib\sybdb.dll %DESTDIR%\dynamic\
+  - copy src\dblib\sybdb.lib %DESTDIR%\dynamic\
+  - copy src\odbc\tdsodbc.dll %DESTDIR%\dynamic\
+  - copy src\odbc\tdsodbc.lib %DESTDIR%\dynamic\
+  - 7z a ..\%DESTDIR%.zip %DESTDIR%
+  - cd ..
+
+artifacts:
+  - path: vs*.zip
