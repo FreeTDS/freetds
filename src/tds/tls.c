@@ -62,8 +62,8 @@
 
 #ifdef HAVE_GNUTLS
 #define SSL_RET ssize_t
-#define SSL_PULL_ARGS gnutls_transport_ptr ptr, void *data, size_t len
-#define SSL_PUSH_ARGS gnutls_transport_ptr ptr, const void *data, size_t len
+#define SSL_PULL_ARGS gnutls_transport_ptr_t ptr, void *data, size_t len
+#define SSL_PUSH_ARGS gnutls_transport_ptr_t ptr, const void *data, size_t len
 #define SSL_PTR ptr
 #else
 #define SSL_RET int
@@ -274,7 +274,7 @@ tds_x509_crt_check_hostname(gnutls_x509_crt_t cert, const char *hostname)
 
 #if GNUTLS_VERSION_MAJOR < 3
 static int
-tds_certificate_set_x509_system_trust(gnutls_certificate_credentials cred)
+tds_certificate_set_x509_system_trust(gnutls_certificate_credentials_t cred)
 {
 	static const char ca_directory[] = "/etc/ssl/certs";
 	DIR *dir;
@@ -416,8 +416,8 @@ tds_verify_certificate(gnutls_session_t session)
 TDSRET
 tds_ssl_init(TDSSOCKET *tds)
 {
-	gnutls_session session;
-	gnutls_certificate_credentials xcred;
+	gnutls_session_t session;
+	gnutls_certificate_credentials_t xcred;
 	int ret;
 	const char *tls_msg;
 
@@ -528,11 +528,11 @@ void
 tds_ssl_deinit(TDSCONNECTION *conn)
 {
 	if (conn->tls_session) {
-		gnutls_deinit((gnutls_session) conn->tls_session);
+		gnutls_deinit((gnutls_session_t) conn->tls_session);
 		conn->tls_session = NULL;
 	}
 	if (conn->tls_credentials) {
-		gnutls_certificate_free_credentials((gnutls_certificate_credentials) conn->tls_credentials);
+		gnutls_certificate_free_credentials((gnutls_certificate_credentials_t) conn->tls_credentials);
 		conn->tls_credentials = NULL;
 	}
 }
