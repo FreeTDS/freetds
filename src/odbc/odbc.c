@@ -4320,6 +4320,7 @@ _SQLFreeDesc(SQLHDESC hdesc)
 		for (i = 0; i < TDS_MAX_APP_DESC; ++i) {
 			if (dbc->uad[i] == desc) {
 				dbc->uad[i] = NULL;
+				tds_mutex_unlock(&desc->mtx);
 				desc_free(desc);
 				break;
 			}
