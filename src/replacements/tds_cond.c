@@ -68,7 +68,7 @@ new_cond_signal(tds_condition * cond)
 }
 
 static int
-new_cond_timedwait(tds_condition * cond, tds_mutex * mtx, int timeout_sec)
+new_cond_timedwait(tds_condition * cond, tds_raw_mutex * mtx, int timeout_sec)
 {
 	if (sleep_cv(&cond->cv, &mtx->crit, timeout_sec < 0 ? INFINITE : timeout_sec * 1000))
 		return 0;
@@ -101,7 +101,7 @@ old_cond_signal(tds_condition * cond)
 }
 
 static int
-old_cond_timedwait(tds_condition * cond, tds_mutex * mtx, int timeout_sec)
+old_cond_timedwait(tds_condition * cond, tds_raw_mutex * mtx, int timeout_sec)
 {
 	int res;
 
@@ -124,15 +124,15 @@ detect_cond(void)
 	wake_cv  = (wake_cv_t)  GetProcAddress(mod, "WakeConditionVariable");
 
 	if (init_cv && sleep_cv && wake_cv) {
-		tds_cond_init      = new_cond_init;
-		tds_cond_destroy   = new_cond_destroy;
-		tds_cond_signal    = new_cond_signal;
-		tds_cond_timedwait = new_cond_timedwait;
+		tds_raw_cond_init      = new_cond_init;
+		tds_raw_cond_destroy   = new_cond_destroy;
+		tds_raw_cond_signal    = new_cond_signal;
+		tds_raw_cond_timedwait = new_cond_timedwait;
 	} else {
-		tds_cond_init      = old_cond_init;
-		tds_cond_destroy   = old_cond_destroy;
-		tds_cond_signal    = old_cond_signal;
-		tds_cond_timedwait = old_cond_timedwait;
+		tds_raw_cond_init      = old_cond_init;
+		tds_raw_cond_destroy   = old_cond_destroy;
+		tds_raw_cond_signal    = old_cond_signal;
+		tds_raw_cond_timedwait = old_cond_timedwait;
 	}
 }
 
@@ -140,34 +140,34 @@ static int
 detect_cond_init(tds_condition * cond)
 {
 	detect_cond();
-	return tds_cond_init(cond);
+	return tds_raw_cond_init(cond);
 }
 
 static int
 detect_cond_destroy(tds_condition * cond)
 {
 	detect_cond();
-	return tds_cond_destroy(cond);
+	return tds_raw_cond_destroy(cond);
 }
 
 static int
 detect_cond_signal(tds_condition * cond)
 {
 	detect_cond();
-	return tds_cond_signal(cond);
+	return tds_raw_cond_signal(cond);
 }
 
 static int
-detect_cond_timedwait(tds_condition * cond, tds_mutex * mtx, int timeout_sec)
+detect_cond_timedwait(tds_condition * cond, tds_raw_mutex * mtx, int timeout_sec)
 {
 	detect_cond();
-	return tds_cond_timedwait(cond, mtx, timeout_sec);
+	return tds_raw_cond_timedwait(cond, mtx, timeout_sec);
 }
 
-int (*tds_cond_init) (tds_condition * cond) = detect_cond_init;
-int (*tds_cond_destroy) (tds_condition * cond) = detect_cond_destroy;
-int (*tds_cond_signal) (tds_condition * cond) = detect_cond_signal;
-int (*tds_cond_timedwait) (tds_condition * cond, tds_mutex * mtx, int timeout_sec) = detect_cond_timedwait;
+int (*tds_raw_cond_init) (tds_condition * cond) = detect_cond_init;
+int (*tds_raw_cond_destroy) (tds_condition * cond) = detect_cond_destroy;
+int (*tds_raw_cond_signal) (tds_condition * cond) = detect_cond_signal;
+int (*tds_raw_cond_timedwait) (tds_condition * cond, tds_raw_mutex * mtx, int timeout_sec) = detect_cond_timedwait;
 
 #elif defined(TDS_HAVE_PTHREAD_MUTEX) && !defined(TDS_NO_THREADSAFE)
 
@@ -186,7 +186,7 @@ int (*tds_cond_timedwait) (tds_condition * cond, tds_mutex * mtx, int timeout_se
 #define USE_MONOTONIC_CLOCK_IN_COND 1
 #endif
 
-int tds_cond_init(tds_condition *cond)
+int tds_raw_cond_init(tds_condition *cond)
 {
 #ifdef USE_MONOTONIC_CLOCK_IN_COND
 	int res;
@@ -203,7 +203,7 @@ int tds_cond_init(tds_condition *cond)
 #endif
 }
 
-int tds_cond_timedwait(tds_condition *cond, pthread_mutex_t *mtx, int timeout_sec)
+int tds_raw_cond_timedwait(tds_condition *cond, tds_raw_mutex *mtx, int timeout_sec)
 {
 	struct timespec ts;
 #ifndef USE_CLOCK_IN_COND
@@ -211,7 +211,7 @@ int tds_cond_timedwait(tds_condition *cond, pthread_mutex_t *mtx, int timeout_se
 #endif
 
 	if (timeout_sec < 0)
-		return tds_cond_wait(cond, mtx);
+		return tds_raw_cond_wait(cond, mtx);
 
 #ifdef USE_CLOCK_IN_COND
 #  if defined(USE_MONOTONIC_CLOCK_IN_COND)
