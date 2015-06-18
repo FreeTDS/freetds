@@ -1,7 +1,7 @@
 #ifndef MD5_H
 #define MD5_H
 
-/* $Id: md5.h,v 1.6 2010-01-25 23:05:58 freddy77 Exp $ */
+#ifndef HAVE_NETTLE
 
 #include <freetds/pushvis.h>
 
@@ -22,5 +22,28 @@ void MD5Transform(TDS_UINT buf[4], TDS_UINT const in[16]);
 typedef struct MD5Context MD5_CTX;
 
 #include <freetds/popvis.h>
+
+#else
+
+#include <nettle/md5.h>
+
+typedef struct md5_ctx MD5_CTX;
+
+static inline void MD5Init(MD5_CTX *ctx)
+{
+	nettle_md5_init(ctx);
+}
+
+static inline void MD5Update(MD5_CTX *ctx, unsigned char const *buf, size_t len)
+{
+	nettle_md5_update(ctx, len, buf);
+}
+
+static inline void MD5Final(MD5_CTX *ctx, unsigned char *digest)
+{
+	nettle_md5_digest(ctx, 16, digest);
+}
+
+#endif
 
 #endif /* !MD5_H */
