@@ -33,6 +33,8 @@
  */
 #include <config.h>
 
+#ifndef HAVE_NETTLE
+
 #if HAVE_STRING_H
 #include <string.h>
 #endif /* HAVE_STRING_H */
@@ -260,3 +262,5 @@ MD4Transform(word32 buf[4], word32 const in[16])
 	buf[2] += c;
 	buf[3] += d;
 }
+
+#endif
