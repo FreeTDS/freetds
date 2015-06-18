@@ -736,6 +736,10 @@ if test "$with_gnutls" = "yes"; then
 		if "$PKG_CONFIG" --libs --static gnutls | grep nettle > /dev/null 2>&1 ; then
 			gnutls_backend=nettle
 			AC_DEFINE(GNUTLS_USE_NETTLE, 1, [Define to 1 if GNU tls use nettle as backend.])
+			if "$PKG_CONFIG" --exists nettle > /dev/null 2>&1; then
+				AC_DEFINE(HAVE_NETTLE, 1, [Define to 1 if nettle is present.])
+				NETWORK_LIBS="$NETWORK_LIBS `$PKG_CONFIG --libs nettle`"
+			fi
 		fi
 	else
 		CPPFLAGS="$CPPFLAGS `libgnutls-config --cflags`"
