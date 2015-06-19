@@ -1377,13 +1377,15 @@ tds_convert_datetimeall(const TDSCONTEXT * tds_ctx, int srctype, const TDS_DATET
 		/* TODO */
 		break;
 	case SYBDATETIME:
-		/* TODO check overflow */
-		cr->dt.dtdays = dta->date;
+		if (!IS_INT(dta->date))
+			return TDS_CONVERT_OVERFLOW;
+		cr->dt.dtdays = (TDS_INT) dta->date;
 		cr->dt.dttime = (dta->time * 3u + 50000u) / 100000u;
 		return sizeof(TDS_DATETIME);
 	case SYBDATETIME4:
-		/* TODO check overflow */
-		cr->dt4.days = dta->date;
+		if (!IS_USMALLINT(dta->date))
+			return TDS_CONVERT_OVERFLOW;
+		cr->dt4.days = (TDS_USMALLINT) dta->date;
 		cr->dt4.minutes = (dta->time + 30u * 10000000u) / (60u * 10000000u);
 		return sizeof(TDS_DATETIME4);
 	case SYBMSDATETIMEOFFSET:
@@ -1415,7 +1417,7 @@ tds_convert_datetimeall(const TDSCONTEXT * tds_ctx, int srctype, const TDS_DATET
 }
 
 static TDS_INT
-tds_convert_datetime(const TDSCONTEXT * tds_ctx, const TDS_DATETIME * dt, int desttype, CONV_RESULT * cr)
+tds_convert_datetime(const TDSCONTEXT * tds_ctx, const TDS_DATETIME * dt, int desttype, unsigned precision, CONV_RESULT * cr)
 {
 	char whole_date_string[64];
 	TDSDATEREC when;
@@ -1433,6 +1435,8 @@ tds_convert_datetime(const TDSCONTEXT * tds_ctx, const TDS_DATETIME * dt, int de
 		cr->dt = *dt;
 		return sizeof(TDS_DATETIME);
 	case SYBDATETIME4:
+		if (!IS_USMALLINT(dt->dtdays))
+			return TDS_CONVERT_OVERFLOW;
 		cr->dt4.days = dt->dtdays;
 		cr->dt4.minutes = (dt->dttime / 300) / 60;
 		return sizeof(TDS_DATETIME4);
@@ -1441,8 +1445,7 @@ tds_convert_datetime(const TDSCONTEXT * tds_ctx, const TDS_DATETIME * dt, int de
 	case SYBMSTIME:
 	case SYBMSDATETIME2:
 		memset(&cr->dta, 0, sizeof(cr->dta));
-		/* FIXME must be 0 if came from DATETIME4 */
-		cr->dta.time_prec = 3;
+		cr->dta.time_prec = precision;
 		if (desttype == SYBMSDATETIMEOFFSET)
 			cr->dta.has_offset = 1;
 		if (desttype != SYBMSDATE) {
@@ -1495,7 +1498,7 @@ tds_convert_datetime4(const TDSCONTEXT * tds_ctx, const TDS_DATETIME4 * dt4, int
 	/* convert to DATETIME and use tds_convert_datetime */
 	dt.dtdays = dt4->days;
 	dt.dttime = dt4->minutes * (60u * 300u);
-	return tds_convert_datetime(tds_ctx, &dt, desttype, cr);
+	return tds_convert_datetime(tds_ctx, &dt, desttype, 0, cr);
 }
 
 static TDS_INT
@@ -1857,7 +1860,7 @@ tds_convert(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, TDS_U
 		length = tds_convert_datetimeall(tds_ctx, srctype, (const TDS_DATETIMEALL *) src, desttype, cr);
 		break;
 	case SYBDATETIME:
-		length = tds_convert_datetime(tds_ctx, (const TDS_DATETIME* ) src, desttype, cr);
+		length = tds_convert_datetime(tds_ctx, (const TDS_DATETIME* ) src, desttype, 3, cr);
 		break;
 	case SYBDATETIME4:
 		length = tds_convert_datetime4(tds_ctx, (const TDS_DATETIME4* ) src, desttype, cr);
