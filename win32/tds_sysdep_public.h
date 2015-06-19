@@ -22,11 +22,6 @@
 
 /* $Id: tds_sysdep_public.h,v 1.10 2011-08-08 07:27:57 freddy77 Exp $ */
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 /*
 ** This is where platform-specific changes need to be made.
 */
@@ -52,10 +47,6 @@ extern "C"
 #endif
 #if defined(MSDBLIB) && defined(SYBDBLIB)
 #error MSDBLIB and SYBDBLIB cannot both be defined
-#endif
-
-#ifdef __cplusplus
-}
 #endif
 
 #endif				/* _tds_sysdep_public_h_ */
