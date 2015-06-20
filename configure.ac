@@ -296,13 +296,13 @@ AC_CHECK_MEMBERS([struct tm.__tm_zone],,,[#include <sys/types.h>
 ])
 AC_CHECK_HEADERS([errno.h libgen.h \
 	limits.h locale.h poll.h \
-	readpassphrase.h signal.h stddef.h \
+	signal.h stddef.h \
 	sys/param.h sys/select.h sys/stat.h \
 	sys/time.h sys/types.h sys/resource.h \
 	sys/wait.h unistd.h netdb.h \
 	wchar.h inttypes.h winsock2.h \
 	localcharset.h valgrind/memcheck.h malloc.h dirent.h])
-AC_CHECK_HEADERS([windows.h sql.h odbcss.h],[],[],[[#ifdef HAVE_WINDOWS_H
+AC_CHECK_HEADERS([windows.h sql.h],[],[],[[#ifdef HAVE_WINDOWS_H
 # include <windows.h>
 #endif
 #ifdef HAVE_SQL_H
@@ -481,10 +481,10 @@ TDS_NULL_IS_ZERO
 # ------------------------------------------------------------
 # Checks for library functions.
 # ------------------------------------------------------------
-AC_CHECK_FUNCS([_atoi64 vsnprintf _vsnprintf _vscprintf gettimeofday \
+AC_CHECK_FUNCS([vsnprintf _vsnprintf _vscprintf gettimeofday \
 nl_langinfo locale_charset setenv putenv \
 getuid getpwuid getpwuid_r fstat alarm fork \
-gethrtime localtime_r setitimer _lseeki64 _telli64 \
+gethrtime localtime_r setitimer \
 _fseeki64 _ftelli64 setrlimit pthread_cond_timedwait \
 _lock_file _unlock_file usleep nanosleep readdir_r])
 OLD_LIBS="$LIBS"
