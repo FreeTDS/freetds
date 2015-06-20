@@ -13,22 +13,24 @@ libtdsodbc_la_LIBADD =	../tds/libtds.la ../replacements/libreplacements.la $(ODB
 libtdsodbc_la_LDFLAGS = $(FREETDS_SYMBOLIC) $(FREETDS_ODBC_MODULE)
 
 if MINGW32
-libtdsodbc_la_SOURCES += ../../win32/winlogin.c ../../win32/winsetup.c winmain.c
+libtdsodbc_la_SOURCES += winlogin.c winsetup.c winmain.c
 endif
 
 if MINGW32
-libtdsodbc_la_LIBADD +=	../../win32/setup.res
-libtdsodbc_la_LDFLAGS += -Wl,--kill-at -Wl,--enable-stdcall-fixup -Wl,-s -Wl,$(top_srcdir)/win32/FreeTDS.def -Wl,../../win32/setup.res
+libtdsodbc_la_LIBADD +=	setup.res
+libtdsodbc_la_LDFLAGS += -Wl,--kill-at -Wl,--enable-stdcall-fixup -Wl,-s -Wl,$(top_srcdir)/win32/FreeTDS.def -Wl,setup.res
 
 .rc.res:
-	$(RC) -i $< -I $(top_builddir)/win32 --input-format=rc -o $@ -O coff
+	$(RC) -i $< --input-format=rc -o $@ -O coff
 else
 if !MACOSX
 libtdsodbc_la_LDFLAGS += -export-symbols-regex '^(SQL|ODBCINST).*'
 endif
 endif
 
-EXTRA_DIST = CMakeLists.txt winmain.c
+EXTRA_DIST = CMakeLists.txt winmain.c winlogin.c winsetup.c \
+	     version.rc version.rc.in setup.rc resource.h
+CLEANFILES = setup.res
 
 ## Need blank statement to avoid compiling odbc.c
 odbc: $(EXTRA_LTLIBRARIES)

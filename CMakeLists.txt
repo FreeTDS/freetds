@@ -380,5 +380,5 @@ configure_file(${CMAKE_BINARY_DIR}/include/config.h.in ${CMAKE_BINARY_DIR}/inclu
 configure_file(${CMAKE_SOURCE_DIR}/include/tds_sysdep_public.h.in ${CMAKE_BINARY_DIR}/include/tds_sysdep_public.h)
 configure_file(${CMAKE_SOURCE_DIR}/include/freetds/version.h.in ${CMAKE_BINARY_DIR}/include/freetds/version.h)
 if(NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
-	configure_file(${CMAKE_SOURCE_DIR}/win32/version.rc.in ${CMAKE_SOURCE_DIR}/win32/version.rc)
+	configure_file(${CMAKE_SOURCE_DIR}/src/odbc/version.rc.in ${CMAKE_SOURCE_DIR}/src/odbc/version.rc)
 endif(NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")

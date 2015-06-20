@@ -934,7 +934,8 @@ AC_CONFIG_FILES(include/freetds/version.h \
 	src/apps/fisql/Makefile \
 	freetds.spec \
 	win32/Makefile \
-	win32/version.rc win32/freetds.nsh \
+	win32/freetds.nsh \
+	src/odbc/version.rc \
 	vms/Makefile \
 	doc/freebcp.1 doc/tsql.1 doc/osql.1 \
 	doc/bsqldb.1 doc/bsqlodbc.1 doc/defncopy.1 \

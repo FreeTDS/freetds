@@ -17,7 +17,7 @@ if(PERL_FOUND AND NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
 endif(PERL_FOUND AND NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
 
 if(WIN32)
-	set(win_SRCS ../../win32/winlogin.c ../../win32/winsetup.c winmain.c ../../win32/FreeTDS_w.def ../../win32/setup.rc)
+	set(win_SRCS winlogin.c winsetup.c winmain.c ../../win32/FreeTDS_w.def setup.rc)
 	set(libs odbccp32)
 else()
 	set(libs ${lib_ODBCINST})
