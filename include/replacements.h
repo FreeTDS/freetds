@@ -24,6 +24,7 @@
 
 #include <stdarg.h>
 #include "tds_sysdep_public.h"
+#include <freetds/sysdep_private.h>
 
 #include <replacements/readpassphrase.h>
 
@@ -158,7 +159,7 @@ extern int optind, offset, opterr, optreset;
 #endif
 
 #if !HAVE_SOCKETPAIR
-int tds_socketpair(int domain, int type, int protocol, int sv[2]);
+int tds_socketpair(int domain, int type, int protocol, TDS_SYS_SOCKET sv[2]);
 #define socketpair(d,t,p,s) tds_socketpair(d,t,p,s)
 #endif
 

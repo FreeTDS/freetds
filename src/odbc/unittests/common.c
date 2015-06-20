@@ -606,7 +606,7 @@ odbc_get_sqlchar(ODBC_BUF** buf, SQLWCHAR *s)
 }
 
 #ifndef _WIN32
-int
+TDS_SYS_SOCKET
 odbc_find_last_socket(void)
 {
 	int max_socket = -1, i;
