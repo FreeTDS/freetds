@@ -39,28 +39,25 @@ char *UNITTEST;
 static int end_socket = -1;
 
 static int
-shutdown_last_socket(void)
+shutdown_socket(DBPROCESS *dbproc)
 {
-	int max_socket = -1, i;
+	union {
+		struct sockaddr sa;
+		char data[256];
+	} u;
+	SOCKLEN_T addrlen;
+	struct stat file_stat;
 	TDS_SYS_SOCKET sockets[2];
 
-	for (i = 3; i < 1024; ++i) {
-		struct stat file_stat;
-		if (fstat(i, &file_stat))
-			continue;
-		if ((file_stat.st_mode & S_IFSOCK) == S_IFSOCK) {
-			union {
-				struct sockaddr sa;
-				char data[256];
-			} u;
-			SOCKLEN_T addrlen;
+	TDS_SYS_SOCKET socket = DBIOWDESC(dbproc);
 
-			addrlen = sizeof(u);
-			if (tds_getsockname(i, &u.sa, &addrlen) >= 0 && (u.sa.sa_family == AF_INET || u.sa.sa_family == AF_INET6))
-				max_socket = i;
-		}
-	}
-	if (max_socket < 0)
+	if (fstat(socket, &file_stat))
+		return 0;
+	if ((file_stat.st_mode & S_IFSOCK) != S_IFSOCK)
+		return 0;
+
+	addrlen = sizeof(u);
+	if (tds_getsockname(socket, &u.sa, &addrlen) < 0 || (u.sa.sa_family != AF_INET && u.sa.sa_family != AF_INET6))
 		return 0;
 
 	/* replace socket with a new one */
@@ -68,8 +65,8 @@ shutdown_last_socket(void)
 		return 0;
 
 	/* substitute socket */
-	close(max_socket);
-	dup2(sockets[0], max_socket);
+	close(socket);
+	dup2(sockets[0], socket);
 
 	/* close connection */
 	close(sockets[0]);
@@ -116,7 +113,7 @@ test(int close_socket)
 		return 1;
 	}
 
-	if (!shutdown_last_socket()) {
+	if (!shutdown_socket(dbproc)) {
 		fprintf(stderr, "Error shutting down connection\n");
 		return 1;
 	}
