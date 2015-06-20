@@ -166,16 +166,16 @@ typedef void *(WINAPI *tds_thread_proc)(void *arg);
 
 static inline int tds_thread_create(tds_thread *ret, tds_thread_proc proc, void *arg)
 {
-	*ret = CreateThread(NULL, 0, (DWORD_PTR (WINAPI *)(void*)) proc, arg, 0, NULL);
+	*ret = CreateThread(NULL, 0, (DWORD (WINAPI *)(void*)) proc, arg, 0, NULL);
 	return *ret != NULL ? 0 : 11 /* EAGAIN */;
 }
 
 static inline int tds_thread_join(tds_thread th, void **ret)
 {
 	if (WaitForSingleObject(th, INFINITE) == WAIT_OBJECT_0) {
-		DWORD_PTR r;
+		DWORD r;
 		if (ret && GetExitCodeThread(th, &r))
-			*ret = (void*) r;
+			*ret = (void*) (((char*)0) + r);
 
 		CloseHandle(th);
 		return 0;
