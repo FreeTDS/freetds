@@ -68,6 +68,7 @@ include(CheckTypeSize)
 include(CheckFunctionExists)
 include(CheckLibraryExists)
 include(CheckStructHasMember)
+include(CheckPrototypeDefinition)
 
 find_package(Perl)
 
@@ -152,16 +153,43 @@ endmacro(ADD_HEADER)
 add_header(HAVE_WCHAR_H wchar.h)
 add_header(HAVE_WINDOWS_H windows.h)
 add_header(HAVE_SQL_H sql.h)
-foreach(fn char double float int short long "long double" "long long" "SQLWCHAR" "void *" wchar_t __int64)
+add_header(HAVE_SQLEXT_H sqlext.h)
+foreach(fn char double float int short long "long double" "long long" "SQLWCHAR" "void *" wchar_t __int64
+	  SQLLEN SQLROWOFFSET SQLROWSETSIZE SQLSETPOSIROW)
 	string(REGEX REPLACE "[/. ]" "_" var "${fn}")
 	string(REPLACE "*" "P" var "${var}")
+	string(TOUPPER "HAVE_${var}" have)
 	string(TOUPPER "SIZEOF_${var}" var)
 	CHECK_TYPE_SIZE(${fn} ${var})
-	if(NOT HAVE_${var})
+	if(HAVE_${var})
+		set(${have} 1 CACHE INTERNAL "Have type ${fn}")
+	else()
 		set(${var} 0)
 	endif()
 	config_write("#define ${var} \\@${var}\\@\n\n")
 endforeach(fn)
+
+foreach(fn SQLLEN SQLROWOFFSET SQLROWSETSIZE SQLSETPOSIROW)
+	config_write("/* Define to 1 if you have type <${fn}>. */\n#cmakedefine HAVE_${fn} 1\n\n")
+endforeach(fn)
+
+check_prototype_definition(SQLColAttribute
+"SQLRETURN  SQL_API SQLColAttribute (SQLHSTMT StatementHandle,
+	SQLUSMALLINT ColumnNumber, SQLUSMALLINT FieldIdentifier,
+	SQLPOINTER CharacterAttribute, SQLSMALLINT BufferLength,
+	SQLSMALLINT *StringLength, SQLLEN * NumericAttribute)"
+	SQL_SUCCESS
+	"${CMAKE_EXTRA_INCLUDE_FILES}"
+	TDS_SQLCOLATTRIBUTE_SQLLEN)
+config_write("/* Define to 1 if last argument of SQLColAttribute it's SQLLEN * */\n#cmakedefine TDS_SQLCOLATTRIBUTE_SQLLEN 1\n\n")
+
+check_prototype_definition(SQLParamOptions
+	"SQLRETURN SQL_API SQLParamOptions(SQLHSTMT hstmt, SQLULEN crow, SQLULEN *pirow)"
+	SQL_SUCCESS
+	"${CMAKE_EXTRA_INCLUDE_FILES}"
+	TDS_SQLPARAMOPTIONS_SQLLEN)
+config_write("/* Define to 1 if SQLParamOptions accept SQLULEN as arguments */\n#cmakedefine TDS_SQLPARAMOPTIONS_SQLLEN 1\n\n")
+
 set(CMAKE_EXTRA_INCLUDE_FILES)
 
 macro(SELECT_TYPE VAR SIZE TYPES ERROR)
@@ -262,6 +290,8 @@ config_write("#ifdef _MSC_VER
 if(WIN32)
 	config_write("/* Define to 1 if you want to use SSPI for Win32 */\n#define HAVE_SSPI 1\n\n")
 	config_write("/* define to format string used for 64bit integers */\n#define TDS_I64_PREFIX \"I64\"\n\n")
+	config_write("/* Define to 1 if you have the SQLGetPrivateProfileString function. */\n#define HAVE_SQLGETPRIVATEPROFILESTRING 1\n\n")
+
 else(WIN32)
 	# this section make just work on Linux, many definition are not checked
 	config_write("#define HAVE_FUNC_GETPWUID_R_5 1\n\n")
@@ -295,12 +325,6 @@ config_write("
 #define HAVE_RL_INHIBIT_COMPLETION 1
 #define HAVE_RL_ON_NEW_LINE 1
 #define HAVE_RL_RESET_LINE_STATE 1
-
-// odbc
-#define HAVE_SQLLEN 1
-#define HAVE_SQLSETPOSIROW 1
-#define TDS_SQLCOLATTRIBUTE_SQLLEN 1
-#define TDS_SQLPARAMOPTIONS_SQLLEN 1
 
 // iconv
 #define HAVE_ICONV 1
