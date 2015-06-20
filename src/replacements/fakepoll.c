@@ -24,6 +24,10 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif /* HAVE_UNISTD_H */
+
 #include "replacements.h"
 
 #if HAVE_SYS_TYPES_H
@@ -33,10 +37,6 @@
 #if HAVE_ERRNO_H
 #include <errno.h>
 #endif /* HAVE_ERRNO_H */
-
-#if HAVE_UNISTD_H
-#include <unistd.h>
-#endif /* HAVE_UNISTD_H */
 
 #include <freetds/time.h>
 
