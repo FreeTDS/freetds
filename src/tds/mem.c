@@ -1089,7 +1089,7 @@ tds_deinit_connection(TDSCONNECTION *conn)
 static TDSCONNECTION *
 tds_init_connection(TDSCONNECTION *conn, TDSCONTEXT *context, unsigned int bufsize)
 {
-	int sv[2];
+	TDS_SYS_SOCKET sv[2];
 
 	conn->env.block_size = bufsize;
 	conn->s_signal = conn->s_signaled = conn->s = INVALID_SOCKET;

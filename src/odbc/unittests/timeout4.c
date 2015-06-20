@@ -35,8 +35,8 @@ static int end_socket = -1;
 static int
 shutdown_last_socket(void)
 {
-	int max_socket = odbc_find_last_socket();
-	int sockets[2];
+	TDS_SYS_SOCKET max_socket = odbc_find_last_socket();
+	TDS_SYS_SOCKET sockets[2];
 
 	if (max_socket < 0)
 		return 0;

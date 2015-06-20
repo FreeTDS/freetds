@@ -42,7 +42,7 @@ static int
 shutdown_last_socket(void)
 {
 	int max_socket = -1, i;
-	int sockets[2];
+	TDS_SYS_SOCKET sockets[2];
 
 	for (i = 3; i < 1024; ++i) {
 		struct stat file_stat;
