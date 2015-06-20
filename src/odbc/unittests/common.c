@@ -605,34 +605,6 @@ odbc_get_sqlchar(ODBC_BUF** buf, SQLWCHAR *s)
 	return out;
 }
 
-#ifndef _WIN32
-TDS_SYS_SOCKET
-odbc_find_last_socket(void)
-{
-	int max_socket = -1, i;
-
-	for (i = 3; i < 1024; ++i) {
-		struct stat file_stat;
-		union {
-			struct sockaddr sa;
-			char data[256];
-		} u;
-		SOCKLEN_T addrlen;
-
-		if (fstat(i, &file_stat))
-			continue;
-		if ((file_stat.st_mode & S_IFSOCK) != S_IFSOCK)
-			continue;
-		addrlen = sizeof(u);
-		if (tds_getsockname(i, &u.sa, &addrlen) < 0)
-			continue;
-		if (u.sa.sa_family != AF_INET && u.sa.sa_family != AF_INET6)
-			continue;
-		max_socket = i;
-	}
-	return max_socket;
-}
-#else
 typedef union {
 	struct sockaddr sa;
 	struct sockaddr_in sin;
@@ -651,13 +623,26 @@ odbc_find_last_socket(void)
 	unsigned num_found = 0, n;
 	int i;
 
+#ifdef _WIN32
 	for (i = 4; i <= (4096*4); i += 4) {
+#else
+	for (i = 3; i < 1024; ++i) {
+#endif
 		long_sockaddr remote_addr, local_addr;
 		struct sockaddr_in *in;
 		socklen_t remote_addr_len, local_addr_len;
 		sock_info *info;
 
 		/* check if is a socket */
+#ifndef _WIN32
+		struct stat file_stat;
+
+		if (fstat(i, &file_stat))
+			continue;
+		if ((file_stat.st_mode & S_IFSOCK) != S_IFSOCK)
+			continue;
+#endif
+
 		remote_addr_len = sizeof(remote_addr);
 		if (tds_getpeername((TDS_SYS_SOCKET) i, &remote_addr.sa, &remote_addr_len))
 			continue;
@@ -710,5 +695,4 @@ odbc_find_last_socket(void)
 		return INVALID_SOCKET;
 	return found[num_found-1].sock;
 }
-#endif
 
