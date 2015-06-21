@@ -75,7 +75,6 @@ static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_s
 #define DBVERSION_42      3
 #define DBVERSION_70      4
 #define DBVERSION_71      5
-#define DBVERSION_80      DBVERSION_71
 #define DBVERSION_72      6
 #define DBVERSION_73      7
 
