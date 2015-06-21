@@ -559,47 +559,9 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 
 		<sect2 id="Windows"><title>Win32 and Win64</title>
 
-<para>Recently &freetds; has added the possibility to compile using CMake. CMake is able to create project files for different development systems (like Visual C++).
+<para>Officially &freetds; for Windows should be compiled using CMake. CMake is able to create project files for different development systems (like Visual C++).
 Install CMake on your box and point to the source directory to generate wanted files. Refer to CMake documentation on how to do it (I personally use CMake GUI passing source directory and a newly create build directory).
 Once project files are created you can open them with your environment.</para>
-
-			<sect3><title>Use <filename>NMakefile</filename></title>
-
-<para>Building for Windows using Microsoft's compiler is supported via the <filename>NMakefile</filename> included in the distribution.  Set up the command-line build environment per Microsoft's instructions, and run e.g. 
-
-<screen>
-	<prompt>$ </prompt><userinput>nmake -fNmakefile -nologo apps PLATFORM=win32 CONFIGURATION=debug</userinput></screen>
-	
-The assumed availability of standard <filename>.h</filename> files is captured in <filename>win32/config.h</filename>.  If you encounter difficulties related to missing include files, examine the indicated file for an include guard, and compare it to  	<filename>win32/config.h</filename>.  For example, you get an error like this:
-<example><title>Missing include file in Windows</title>
-<screen>
-<computeroutput>&hellip;
-asprintf.c
-include\tds_sysdep_private.h(239) : fatal error C1083: Cannot open include file: 'inttypes.h': No such file or directory
-</computeroutput></screen>
-</example>
-
-<filename>src/replacements/asprintf.c</filename>  includes <filename>include/tds_sysdep_private.h</filename>, where you find 
-
-<screen><computeroutput>238  #ifdef HAVE_INTTYPES_H
-239  #include &lt;inttypes.h&gt;
-240  #endif
-</computeroutput></screen>
-
-and, sure enough, <filename>asprintf.c</filename> earlier includes <filename>win32/config.h</filename>, which says
-
-<screen>91  /* Define to 1 if you have the &lt;inttypes.h&gt; header file. */
-92  #define HAVE_INTTYPES_H 1</screen>
-
-Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your system.  </para>
-
-<para>Let's review: <filename>config.h</filename> has preprocessor definitions that (try to) describe the build environment to the compiler.  In this example, it got one wrong, causing the compiler to look for a file that isn't present, creating the error.  The solution is <emphasis> not</emphasis> to change the &freetds; source code, but merely to comment out line 92 in <filename>config.h</filename>.   </para>
-
-<note><para>Perhaps you're shaking your head at such an <quote>old school</quote> approach.  Over the years, Microsoft's proprietary project-configuration files have proved difficult to support.  Every version is different, and there are a great many versions in use <quote>in the wild</quote> at any one time.  As the project changes, it becomes impossible to maintain these kinds of files.  </para>
-
-	<para>For Windows applications that use &freetds; the hard-won wisdom is <emphasis>just use the <filename>NMakefile</filename>, please, thanks!</emphasis>  If you like a visual environment and visual debugging, no problem: Microsoft's tools support <quote>Makefile projects</quote>.  The author has direct knowledge of developers for whom that arrangement works quite well. </para></note>
-
-				</sect3>
 
 			<sect3><title>Other ways to build under Windows&reg;</title>
 				
@@ -609,13 +571,11 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 					
 					<listitem><para><application>gcc</> under <application>cygwin</>.</para></listitem>
 					
-					<listitem><para>The Borland Builder 6.0 compiler is also reported to work, but requires some tweaking of the <literal>#include</> statements.  We would apply any patches that make this work cleanly.</para></listitem>
-					
 					</itemizedlist>
 <para>From the Department of Double Emulation: &freetds; builds as a <filename>.dll</> under <productname>WINE</> and as a <filename>.a</> under <productname>Interix</>.  See the mailing list archives (second half of 2003) for details.</para>
 				</sect3>
 			</sect2>
-		
+
 		<sect2 id="VMS"><title>VMS&reg;</title>
 
 <para>&freetds; will probably build and run on most versions of OpenVMS Alpha 7.0 and later with DEC/Compaq C 6.0 or later.  Other prerequisites:
