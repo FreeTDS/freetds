@@ -248,7 +248,7 @@ tds_send_control_token(TDSSOCKET * tds, TDS_SMALLINT numcols)
 {
 	int i;
 
-	tds_put_byte(tds, TDS_CONTROL_TOKEN);
+	tds_put_byte(tds, TDS_CONTROL_FEATUREEXTACK_TOKEN);
 	tds_put_smallint(tds, numcols);
 	for (i = 0; i < numcols; i++) {
 		tds_put_byte(tds, 0);

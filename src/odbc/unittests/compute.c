@@ -78,6 +78,12 @@ main(int argc, char *argv[])
 {
 	odbc_connect();
 
+	/* MSSQL 2012+, compute not supported */
+	if (odbc_db_is_microsoft() && odbc_db_version_int() >= 0x0b000000u) {
+		odbc_disconnect();
+		return 0;
+	}
+
 	odbc_command("create table #tmp1 (c varchar(20), i int)");
 	odbc_command("insert into #tmp1 values('pippo', 12)");
 	odbc_command("insert into #tmp1 values('pippo', 34)");

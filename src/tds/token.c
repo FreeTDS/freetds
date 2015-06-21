@@ -62,6 +62,7 @@ static TDSRET tds_process_compute(TDSSOCKET * tds);
 static TDSRET tds_process_cursor_tokens(TDSSOCKET * tds);
 static TDSRET tds_process_row(TDSSOCKET * tds);
 static TDSRET tds_process_nbcrow(TDSSOCKET * tds);
+static TDSRET tds_process_featureextack(TDSSOCKET * tds);
 static TDSRET tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** info);
 static TDSRET tds7_process_result(TDSSOCKET * tds);
 static TDSDYNAMIC *tds_process_dynamic(TDSSOCKET * tds);
@@ -224,10 +225,13 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	case TDS_CURINFO_TOKEN:
 		return tds_process_cursor_tokens(tds);
 		break;
+	case TDS_CONTROL_FEATUREEXTACK_TOKEN:
+		if (IS_TDS74_PLUS(tds->conn))
+			return tds_process_featureextack(tds);
+
 	case TDS5_DYNAMIC_TOKEN:
 	case TDS_LOGINACK_TOKEN:
 	case TDS_ORDERBY_TOKEN:
-	case TDS_CONTROL_TOKEN:
 		tdsdump_log(TDS_DBG_WARN, "Eating %s token\n", tds_token_name(marker));
 		tds_get_n(tds, NULL, tds_get_usmallint(tds));
 		break;
@@ -237,6 +241,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	case TDS_COLINFO_TOKEN:
 		return tds_process_colinfo(tds, NULL, 0);
 		break;
+	case TDS_SESSIONSTATE_TOKEN:
 	case TDS_ORDERBY2_TOKEN:
 		tdsdump_log(TDS_DBG_WARN, "Eating %s token\n", tds_token_name(marker));
 		tds_get_n(tds, NULL, tds_get_uint(tds));
@@ -1985,6 +1990,26 @@ tds_process_nbcrow(TDSSOCKET * tds)
 	return TDS_SUCCESS;
 }
 
+static TDSRET
+tds_process_featureextack(TDSSOCKET * tds)
+{
+	CHECK_TDS_EXTRA(tds);
+
+	/* TODO do something with it */
+	for (;;) {
+		TDS_UINT data_len;
+		TDS_TINYINT feature_id;
+
+		feature_id = tds_get_byte(tds);
+		if (feature_id == 0xff)
+			break;
+
+		data_len = tds_get_uint(tds);
+		tds_get_n(tds, NULL, data_len);
+	}
+	return TDS_SUCCESS;
+}
+
 /**
  * Attempt to close all deferred closes (dynamics and cursors).
  * \tds
@@ -3074,8 +3099,8 @@ tds_token_name(unsigned char marker)
 		return "PARAM";
 	case TDS_LOGINACK_TOKEN:
 		return "LOGINACK";
-	case TDS_CONTROL_TOKEN:
-		return "CONTROL";
+	case TDS_CONTROL_FEATUREEXTACK_TOKEN:
+		return "CONTROL/FEATUREEXTACK";
 	case TDS_ROW_TOKEN:
 		return "ROW";
 	case TDS_NBC_ROW_TOKEN:
@@ -3088,6 +3113,8 @@ tds_token_name(unsigned char marker)
 		return "CAPABILITY";
 	case TDS_ENVCHANGE_TOKEN:
 		return "ENVCHANGE";
+	case TDS_SESSIONSTATE_TOKEN:
+		return "SESSIONSTATE";
 	case TDS_EED_TOKEN:
 		return "EED";
 	case TDS_DBRPC_TOKEN:

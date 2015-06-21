@@ -469,6 +469,8 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 				tds_set_version(tds_login, 7, 2);
 			} else if (*(int *) buffer == CS_TDS_73) {
 				tds_set_version(tds_login, 7, 3);
+			} else if (*(int *) buffer == CS_TDS_74) {
+				tds_set_version(tds_login, 7, 4);
 			} else {
 				return CS_FAIL;
 			}
@@ -569,6 +571,9 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 				break;
 			case 0x703:
 				(*(int *) buffer = CS_TDS_73);
+				break;
+			case 0x704:
+				(*(int *) buffer = CS_TDS_74);
 				break;
 			default:
 				return CS_FAIL;

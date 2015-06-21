@@ -711,7 +711,8 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 		tds70Version[] = { 0x00, 0x00, 0x00, 0x70 },
 		tds71Version[] = { 0x01, 0x00, 0x00, 0x71 },
 		tds72Version[] = { 0x02, 0x00, 0x09, 0x72 },
-		tds73Version[] = { 0x03, 0x00, 0x0B, 0x73 }, 
+		tds73Version[] = { 0x03, 0x00, 0x0B, 0x73 },
+		tds74Version[] = { 0x04, 0x00, 0x00, 0x74 },
 		connection_id[] = { 0x00, 0x00, 0x00, 0x00 }, 
 		time_zone[] = { 0x88, 0xff, 0xff, 0xff }, 
 		collation[] = { 0x36, 0x04, 0x00, 0x00 }, 
@@ -870,8 +871,11 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	case 0x703:
 		ptds7version = tds73Version;
 		break;
+	case 0x704:
+		ptds7version = tds74Version;
+		break;
 	default:
-		assert(0 && 0x700 <= login->tds_version && login->tds_version <= 0x703);
+		assert(0 && 0x700 <= login->tds_version && login->tds_version <= 0x704);
 	}
 	
 	tds_put_n(tds, ptds7version, sizeof(tds70Version));

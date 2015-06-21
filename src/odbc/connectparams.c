@@ -650,6 +650,7 @@ static const char *const aTDSver[] = {
 	"7.1",
 	"7.2",
 	"7.3",
+	"7.4",
 	NULL
 };
 
@@ -765,7 +766,8 @@ ODBCINSTGetProperties(HODBCINSTPROPERTY hLastProperty)
 		" 7.0 MSSQL 7\n"
 		" 7.1 MSSQL 2000\n"
 		" 7.2 MSSQL 2005\n"
-		" 7.3 MSSQL 2008"
+		" 7.3 MSSQL 2008\n"
+		" 7.4 MSSQL 2012 or 2014"
 		);
 
 	hLastProperty = definePropertyList(hLastProperty, odbc_param_Language, "us_english", (void*) aLanguage, sizeof(aLanguage),

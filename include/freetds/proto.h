@@ -88,13 +88,15 @@ typedef struct tdsunique
 #define TDS_INFO_TOKEN            171	/* 0xAB                              */
 #define TDS_PARAM_TOKEN           172	/* 0xAC    RETURNVALUE?              */
 #define TDS_LOGINACK_TOKEN        173	/* 0xAD                              */
-#define TDS_CONTROL_TOKEN         174	/* 0xAE    TDS_CONTROL               */
+#define TDS_CONTROL_FEATUREEXTACK_TOKEN \
+				  174	/* 0xAE    TDS_CONTROL/TDS_FEATUREEXTACK */
 #define TDS_ROW_TOKEN             209	/* 0xD1                              */
 #define TDS_NBC_ROW_TOKEN         210	/* 0xD2    as of TDS 7.3.B           */
 #define TDS_CMP_ROW_TOKEN         211	/* 0xD3                              */
 #define TDS5_PARAMS_TOKEN         215	/* 0xD7    TDS 5.0 only              */
 #define TDS_CAPABILITY_TOKEN      226	/* 0xE2                              */
 #define TDS_ENVCHANGE_TOKEN       227	/* 0xE3                              */
+#define TDS_SESSIONSTATE_TOKEN    228	/* 0xE4    TDS 7.4                   */
 #define TDS_EED_TOKEN             229	/* 0xE5                              */
 #define TDS_DBRPC_TOKEN           230	/* 0xE6                              */
 #define TDS5_DYNAMIC_TOKEN        231	/* 0xE7    TDS 5.0 only              */

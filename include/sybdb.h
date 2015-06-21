@@ -77,6 +77,7 @@ static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_s
 #define DBVERSION_71      5
 #define DBVERSION_72      6
 #define DBVERSION_73      7
+#define DBVERSION_74      8
 
 /* these two are defined by Microsoft for dbsetlversion() */
 #define DBVER42 	  DBVERSION_42
@@ -100,6 +101,7 @@ static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_s
 #define DBTDS_7_1               9	/* Microsoft SQL Server 2000 */
 #define DBTDS_7_2               10	/* Microsoft SQL Server 2005 */
 #define DBTDS_7_3               11	/* Microsoft SQL Server 2008 */
+#define DBTDS_7_4               12	/* Microsoft SQL Server 2012/2014 */
 
 #define DBTXPLEN 16
 

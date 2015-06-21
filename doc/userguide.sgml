@@ -170,6 +170,11 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 				<listitem><para>Introduced for <productname>SQL Server 2008</productname>.  Includes support for extended date/time, table as parameters.</para></listitem>
 				</varlistentry>
 
+			<varlistentry>
+				<term>TDS 7.4 Microsoft</term>
+				<listitem><para>Introduced for <productname>SQL Server 2012</productname>.  Includes support for session recovery.</para></listitem>
+				</varlistentry>
+
 			</variablelist>
 		</sect1>
 	
@@ -374,7 +379,7 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 					<varlistentry>
 						<term><Option>--with-tdsver=<replaceable>VER</>
 							</Option></term>
-						<listitem><para>Specifies the default <acronym>TDS</> version.  (There are a couple of ways to set the <acronym>TDS</> version at run-time.  This parameter takes effect if no run-time settings are provided.) Acceptable values of <parameter>VER</> are <literal>4.2</literal>, <literal>4.6</literal>, <literal>5.0</literal>, <literal>7.0</literal>, <literal>7.1</literal>, <literal>7.2</literal> and <literal>7.3</literal>.</para>
+						<listitem><para>Specifies the default <acronym>TDS</> version.  (There are a couple of ways to set the <acronym>TDS</> version at run-time.  This parameter takes effect if no run-time settings are provided.) Acceptable values of <parameter>VER</> are <literal>4.2</literal>, <literal>4.6</literal>, <literal>5.0</literal>, <literal>7.0</literal>, <literal>7.1</literal>, <literal>7.2</literal>, <literal>7.3</literal> and <literal>7.4</literal>.</para>
 
 <para>The default is <literal>5.0</literal> if this argument is not passed to <Command>configure</Command>.</para>
 							</listitem>
@@ -749,6 +754,11 @@ Once project files are created you can open them with your environment.</para>
 							<entry>Includes support for time, date, datetime2, datetimeoffset.</entry>
 							</row>
 						<row>
+							<entry>Microsoft SQL Server 2012 or 2014</entry>
+							<entry>7.4</entry>
+							<entry>Includes support for session recovery.</entry>
+							</row>
+						<row>
 							<entry>N/A</entry>
 							<entry>8.0</entry>
 							<entry>&freetds; will alias this version to 7.1 for backwards compatibility reasons, but this should be avoided due to future compatibility concerns. See note below on obsolete versions.</entry>
@@ -904,7 +914,7 @@ versions that &freetds; had labeled 8.0 and 9.0 were actually versions 7.1 and 7
 					<tbody>
 						<row>
 							<entry><literal>tds version</></entry>
-							<entry>4.2, 5.0, 7.0, 7.1, 7.2, 7.3, <literal>auto</></entry>
+							<entry>4.2, 5.0, 7.0, 7.1, 7.2, 7.3, 7.4, <literal>auto</></entry>
 							<entry><parameter>--with-tdsver</> value (<literal>5.0</> if unspecified)
 								Overridden by <link  linkend="TDSVER">TDSVER</link>.</entry>
 							<entry>The <acronym>TDS</> protocol version to use when connecting.  <quote><literal>auto</></quote> tells &freetds; to use an autodetection (trial-and-error) algorithm to choose the protocol version. </entry>
@@ -1293,7 +1303,7 @@ Note that is not possible to specify a directory as usually database servers doe
 					<term id="TDSPORT"><envar>TDSPORT</envar></term>
 					<listitem>
 
-<para>specifies a TCP port number at which the servername is listening.  It overrides the default port (1433 for TDS 4.2/7.0/7.1/7.2/7.3, 4000 for TDS 5.0) as well as any port specified in the &freetdsconf; file.</para>
+<para>specifies a TCP port number at which the servername is listening.  It overrides the default port (1433 for TDS 4.2/7.0/7.1/7.2/7.3/7.4, 4000 for TDS 5.0) as well as any port specified in the &freetdsconf; file.</para>
 						</listitem>
 					</varlistentry>
 				<varlistentry>
@@ -2092,7 +2102,7 @@ You can even establish a connection without reference to either <filename>odbc.i
 		
 
 <para>In this example we want to force connections to a server named <literal>mssql</literal> to emulate a little endian client.  We are using protocol version 4.2 here, version 7.0 or above will automatically emulate little endian mode regardless of the &freetdsconf; setting.
-			<emphasis>You shouldn't use this option, set another protocol version instead (7.0, 7.1, 7.2 or 7.3)</emphasis>.</para>
+			<emphasis>You shouldn't use this option, set another protocol version instead (7.0, 7.1, 7.2, 7.3 or 7.4)</emphasis>.</para>
 		<example id="e.g.LittleEndian">
 			<title>Emulate Little Endian &freetdsconf; setting</title>
 <programlisting>

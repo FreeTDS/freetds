@@ -213,6 +213,9 @@ DBVERSION_72;
 #ifdef TDS73
 DBVERSION_73;
 #endif
+#ifdef TDS74
+DBVERSION_74;
+#endif
 
 
 static int
@@ -952,6 +955,9 @@ dbsetlversion (LOGINREC * login, BYTE version)
 		return SUCCEED;
 	case DBVERSION_73:
 		tds_set_version(login->tds_login, 7, 3);
+		return SUCCEED;
+	case DBVERSION_74:
+		tds_set_version(login->tds_login, 7, 4);
 		return SUCCEED;
 	}
 	
@@ -6590,6 +6596,8 @@ dbtds(DBPROCESS * dbproc)
 			return DBTDS_7_2;
 		case 0x703:
 			return DBTDS_7_3;
+		case 0x704:
+			return DBTDS_7_4;
 		default:
 			return DBTDS_UNKNOWN;
 		}

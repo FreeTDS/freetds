@@ -444,6 +444,9 @@ extern const char *const tds_type_names[256];
 #elif TDS73
 #define TDS_DEFAULT_VERSION	0x703
 #define TDS_DEF_PORT		1433
+#elif TDS74
+#define TDS_DEFAULT_VERSION	0x704
+#define TDS_DEF_PORT		1433
 #else
 #define TDS_DEFAULT_VERSION	0x500
 #define TDS_DEF_PORT		4000
@@ -1539,6 +1542,7 @@ int tds_capability_enabled(const TDS_CAPABILITY_TYPE *cap, unsigned cap_num)
 #define IS_TDS71_PLUS(x) ((x)->tds_version>=0x701)
 #define IS_TDS72_PLUS(x) ((x)->tds_version>=0x702)
 #define IS_TDS73_PLUS(x) ((x)->tds_version>=0x703)
+#define IS_TDS74_PLUS(x) ((x)->tds_version>=0x704)
 
 #define TDS_MAJOR(x) ((x)->tds_version >> 8)
 #define TDS_MINOR(x) ((x)->tds_version & 0xff)

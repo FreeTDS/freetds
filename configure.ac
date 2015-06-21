@@ -537,6 +537,8 @@ elif test "$with_tdsver" = "7.2"; then
 	AC_DEFINE(TDS72, 1, [Define to use TDS 7.2 by default])
 elif test "$with_tdsver" = "7.3"; then
 	AC_DEFINE(TDS73, 1, [Define to use TDS 7.3 by default])
+elif test "$with_tdsver" = "7.4"; then
+	AC_DEFINE(TDS74, 1, [Define to use TDS 7.4 by default])
 else
 	AC_DEFINE(TDS50, 1, [Define to use TDS 5.0 by default])
 fi
