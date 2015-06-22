@@ -13,7 +13,7 @@ libtdsodbc_la_LIBADD =	../tds/libtds.la ../replacements/libreplacements.la $(ODB
 libtdsodbc_la_LDFLAGS = $(FREETDS_SYMBOLIC) $(FREETDS_ODBC_MODULE)
 
 if MINGW32
-libtdsodbc_la_SOURCES += ../../win32/winlogin.c ../../win32/winsetup.c ../../win32/initnet.c
+libtdsodbc_la_SOURCES += ../../win32/winlogin.c ../../win32/winsetup.c winmain.c
 endif
 
 if MINGW32
@@ -28,7 +28,7 @@ libtdsodbc_la_LDFLAGS += -export-symbols-regex '^(SQL|ODBCINST).*'
 endif
 endif
 
-EXTRA_DIST = CMakeLists.txt
+EXTRA_DIST = CMakeLists.txt winmain.c
 
 ## Need blank statement to avoid compiling odbc.c
 odbc: $(EXTRA_LTLIBRARIES)

@@ -2,7 +2,8 @@ add_subdirectory(unittests)
 
 set(static_lib_name ct)
 if(WIN32)
-	set(win_SRCS ../../win32/initnet.c ctlib.def)
+	add_definitions(-DDLL_EXPORT)
+	set(win_SRCS winmain.c ctlib.def)
 	set(static_lib_name libct)
 endif()
 
