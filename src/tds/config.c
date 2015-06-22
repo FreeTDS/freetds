@@ -739,6 +739,10 @@ tds_config_login(TDSLOGIN * connection, TDSLOGIN * login)
 	/* copy other info not present in configuration file */
 	connection->capabilities = login->capabilities;
 
+	connection->use_new_password = login->use_new_password;
+	if (res)
+		res = tds_dstr_dup(&connection->new_password, &login->new_password);
+
 	return res != NULL;
 }
 

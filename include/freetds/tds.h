@@ -537,6 +537,7 @@ typedef struct tds_login
 	DSTR app_name;
 	DSTR user_name;	    	/**< account for login */
 	DSTR password;	    	/**< password of account login */
+	DSTR new_password;	    	/**< new password to set (TDS 7.2+) */
 
 	DSTR library;	/* Ct-Library, DB-Library,  TDS-Library or ODBC */
 	TDS_TINYINT encryption_level;
@@ -563,6 +564,7 @@ typedef struct tds_login
 	unsigned int use_lanman:1;
 	unsigned int mars:1;
 	unsigned int use_utf16:1;
+	unsigned int use_new_password:1;
 	unsigned int valid_configuration:1;
 	unsigned int check_ssl_hostname:1;
 } TDSLOGIN;

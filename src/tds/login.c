@@ -717,8 +717,7 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 		time_zone[] = { 0x88, 0xff, 0xff, 0xff }, 
 		collation[] = { 0x36, 0x04, 0x00, 0x00 }, 
 		
-		sql_type_flag = 0x00, 
-		reserved_flag = 0x00;
+		sql_type_flag = 0x00;
 
 	const unsigned char *ptds7version = tds70Version;
 	
@@ -726,7 +725,7 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	
 	unsigned char option_flag1 = TDS_SET_LANG_ON | TDS_USE_DB_NOTIFY | TDS_INIT_DB_FATAL;
 	unsigned char option_flag2 = login->option_flag2;
-	unsigned char option_flag3 = TDS_UNKNOWN_COLLATION_HANDLING;
+	unsigned char option_flag3 = 0;
 
 	unsigned char hwaddr[6];
 	size_t packet_size, current_pos;
@@ -832,6 +831,10 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	SET_FIELD_DSTR(DATABASE_NAME, login->database);
 	data_fields[DBFILE_NAME].len = 0;
 	data_fields[NEW_PASSWORD].len = 0;
+	if (IS_TDS72_PLUS(tds->conn) && login->use_new_password) {
+		option_flag3 |= TDS_CHANGE_PASSWORD;
+		SET_FIELD_DSTR(NEW_PASSWORD, login->new_password);
+	}
 
 	/* convert data fields */
 	for (field = data_fields; field < data_fields + TDS_VECTOR_SIZE(data_fields); ++field) {
@@ -851,6 +854,8 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	}
 	pwd = (unsigned char *) data + data_fields[PASSWORD].pos - current_pos;
 	tds7_crypt_pass(pwd, data_fields[PASSWORD].len, pwd);
+	pwd = (unsigned char *) data + data_fields[NEW_PASSWORD].pos - current_pos;
+	tds7_crypt_pass(pwd, data_fields[NEW_PASSWORD].len, pwd);
 	packet_size += data_stream.size;
 
 #if !defined(TDS_DEBUG_LOGIN)
@@ -905,7 +910,9 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	tds_put_byte(tds, option_flag2);
 
 	tds_put_byte(tds, sql_type_flag);
-	tds_put_byte(tds, IS_TDS73_PLUS(tds->conn) ? option_flag3 : reserved_flag);
+	if (IS_TDS73_PLUS(tds->conn))
+		option_flag3 |= TDS_UNKNOWN_COLLATION_HANDLING;
+	tds_put_byte(tds, option_flag3);
 
 	tds_put_n(tds, time_zone, sizeof(time_zone));
 	tds_put_n(tds, collation, sizeof(collation));
