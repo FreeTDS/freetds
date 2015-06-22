@@ -10,7 +10,7 @@ ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = 	interfaces PWD.in BUGS \
 		freetds.conf locales.conf \
 		autogen.sh freetds.spec.in freetds.spec tds.dox \
-		config.rpath Nmakefile CMakeLists.txt
+		config.rpath CMakeLists.txt
 
 
 ETC	=	$(DESTDIR)$(sysconfdir)
