@@ -388,8 +388,10 @@ odbc_errs_add(struct _sql_errors *errs, const char *sqlstate, const char *msg)
 		return;
 
 	n = errs->num_errors;
-	if (!TDS_RESIZE(errs->errs, n + 1))
+	if (!TDS_RESIZE(errs->errs, n + 1)) {
+		errs->lastrc = SQL_ERROR;
 		return;
+	}
 
 	memset(&errs->errs[n], 0, sizeof(struct _sql_error));
 	errs->errs[n].native = 0;

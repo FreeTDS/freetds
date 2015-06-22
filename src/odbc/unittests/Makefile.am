@@ -27,7 +27,7 @@ TESTS		=	\
 			prepare_warn$(EXEEXT) long_error$(EXEEXT) mars1$(EXEEXT) \
 			array_error$(EXEEXT) describecol2$(EXEEXT) closestmt$(EXEEXT)
 
-check_PROGRAMS	=	$(TESTS)
+check_PROGRAMS	=	$(TESTS) oldpwd$(EXEEXT)
 
 t0001_SOURCES	=	t0001.c common.c common.h
 t0002_SOURCES	=	t0002.c common.c common.h
@@ -103,6 +103,7 @@ long_error_SOURCES = long_error.c common.c common.h
 mars1_SOURCES = mars1.c common.c common.h
 array_error_SOURCES = array_error.c common.c common.h
 closestmt_SOURCES = closestmt.c common.c common.h
+oldpwd_SOURCES = oldpwd.c common.c common.h
 
 GLOBAL_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC) -DFREETDS_TOPDIR=\"$(top_srcdir)\"
 if ODBC_WIDE_TESTS
@@ -112,6 +113,7 @@ AM_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
 endif
 # this test cannot work using wide characters as use UTF-8 and single byte encoding
 utf8_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
+oldpwd_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
 
 if MINGW32
 AM_LDFLAGS	=	-no-fast-install

@@ -345,6 +345,7 @@ struct _hdbc
 	TDSSOCKET *tds_socket;
 	DSTR dsn;
 	DSTR server;		/* aka Instance */
+	DSTR oldpwd;
 #ifdef ENABLE_ODBC_WIDE
 	DSTR original_charset;
 	TDSICONV *mb_conv;
@@ -362,7 +363,8 @@ struct _hdbc
 	/** descriptors associated to connection */
 	TDS_DESC *uad[TDS_MAX_APP_DESC];
 	/** <>0 if server handle cursors */
-	unsigned int cursor_support;
+	unsigned int cursor_support:1;
+	unsigned int use_oldpwd:1;
 	TDS_INT default_query_timeout;
 };
 

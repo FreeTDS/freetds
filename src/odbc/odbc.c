@@ -365,10 +365,9 @@ odbc_connect(TDS_DBC * dbc, TDSLOGIN * login)
 	dbc->mb_conv = NULL;
 #endif
 	dbc->tds_socket = tds_alloc_socket(env->tds_ctx, 512);
-	if (!dbc->tds_socket) {
-		odbc_errs_add(&dbc->errs, "HY001", NULL);
-		return SQL_ERROR;
-	}
+	if (!dbc->tds_socket)
+		goto memory_error;
+
 	dbc->tds_socket->conn->use_iconv = 0;
 	tds_set_parent(dbc->tds_socket, (void *) dbc);
 
@@ -384,13 +383,17 @@ odbc_connect(TDS_DBC * dbc, TDSLOGIN * login)
 #ifdef ENABLE_ODBC_WIDE
 	/* force utf-8 in order to support wide characters */
 	if (!tds_dstr_dup(&dbc->original_charset, &login->client_charset) 
-	    || !tds_dstr_copy(&login->client_charset, "UTF-8")) {
-		tds_free_socket(dbc->tds_socket);
-		dbc->tds_socket = NULL;
-		odbc_errs_add(&dbc->errs, "HY001", NULL);
-		return SQL_ERROR;
-	}
+	    || !tds_dstr_copy(&login->client_charset, "UTF-8"))
+		goto memory_error;
 #endif
+
+	/* replace password with old one */
+	if (dbc->use_oldpwd) {
+		if (!tds_dstr_dup(&login->new_password, &login->password)
+		    || !tds_dstr_dup(&login->password, &dbc->oldpwd))
+			goto memory_error;
+		login->use_new_password = 1;
+	}
 
 	if (TDS_FAILED(tds_connect_and_login(dbc->tds_socket, login))) {
 		tds_free_socket(dbc->tds_socket);
@@ -428,6 +431,12 @@ odbc_connect(TDS_DBC * dbc, TDSLOGIN * login)
 
 	/* this overwrite any error arrived (wanted behavior, Sybase return error for conversion errors) */
 	ODBC_RETURN(dbc, SQL_SUCCESS);
+
+memory_error:
+	tds_free_socket(dbc->tds_socket);
+	dbc->tds_socket = NULL;
+	odbc_errs_add(&dbc->errs, "HY001", NULL);
+	ODBC_RETURN_(dbc);
 }
 
 static SQLRETURN
@@ -1580,6 +1589,7 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 #ifdef ENABLE_ODBC_WIDE
 	tds_dstr_init(&dbc->original_charset);
 #endif
+	tds_dstr_init(&dbc->oldpwd);
 	dbc->attr.translate_option = 0;
 	dbc->attr.txn_isolation = SQL_TXN_READ_COMMITTED;
 	dbc->attr.mars_enabled = SQL_MARS_ENABLED_NO;
@@ -4119,6 +4129,8 @@ _SQLFreeConnect(SQLHDBC hdbc)
 #endif
 	tds_dstr_free(&dbc->attr.current_catalog);
 	tds_dstr_free(&dbc->attr.translate_lib);
+	tds_dstr_zero(&dbc->oldpwd);
+	tds_dstr_free(&dbc->oldpwd);
 
 #ifdef ENABLE_ODBC_WIDE
 	tds_dstr_free(&dbc->original_charset);
@@ -6296,6 +6308,16 @@ ODBC_FUNC(SQLSetConnectAttr, (P(SQLHDBC,hdbc), P(SQLINTEGER,Attribute), P(SQLPOI
 	case SQL_ATTR_TRANSLATE_LIB:
 	case SQL_ATTR_TRANSLATE_OPTION:
 		odbc_errs_add(&dbc->errs, "HYC00", NULL);
+		break;
+	case SQL_COPT_SS_OLDPWD:
+		if (!IS_VALID_LEN(StringLength)) {
+			odbc_errs_add(&dbc->errs, "HY090", NULL);
+			break;
+		}
+		if (!odbc_dstr_copy(dbc, &dbc->oldpwd, StringLength, (ODBC_CHAR *) ValuePtr))
+			odbc_errs_add(&dbc->errs, "HY001", NULL);
+		else
+			dbc->use_oldpwd = 1;
 		break;
 	default:
 		odbc_errs_add(&dbc->errs, "HY092", NULL);

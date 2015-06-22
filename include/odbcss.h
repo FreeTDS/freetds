@@ -29,3 +29,7 @@
 #ifndef SQL_SS_LENGTH_UNLIMITED
 #define SQL_SS_LENGTH_UNLIMITED 0
 #endif
+
+#ifndef SQL_COPT_SS_OLDPWD
+#define SQL_COPT_SS_OLDPWD 1226
+#endif
