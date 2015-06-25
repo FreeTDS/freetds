@@ -206,16 +206,16 @@ check_attr_ard(ATTR_PARAMS)
 	case type_INTEGER:
 		i = 0xdeadbeef;
 		ret = SQLGetDescField(desc, 1, attr->value, (SQLPOINTER) & i, sizeof(SQLINTEGER), &ind);
+		li = i;
 		break;
 	case type_SMALLINT:
 		si = 0xbeef;
 		ret = SQLGetDescField(desc, 1, attr->value, (SQLPOINTER) & si, sizeof(SQLSMALLINT), &ind);
-		i = si;
+		li = si;
 		break;
 	case type_LEN:
 		li = 0xdeadbeef;
 		ret = SQLGetDescField(desc, 1, attr->value, (SQLPOINTER) & li, sizeof(SQLLEN), &ind);
-		i = li;
 		break;
 	case type_CHARP:
 		ret = SQLGetDescField(desc, 1, attr->value, buf, sizeof(buf), &ind);
@@ -229,7 +229,7 @@ check_attr_ard(ATTR_PARAMS)
 	}
 	if (!SQL_SUCCEEDED(ret))
 		odbc_fatal(": failure not expected\n");
-	if (i != lookup(expected_value, attr->lookup)) {
+	if (li != lookup(expected_value, attr->lookup)) {
 		g_result = 1;
 		fprintf(stderr, "Line %u: invalid %s got %s expected %s\n", odbc_line_num, attr->name, unlookup(i, attr->lookup), expected_value);
 	}
