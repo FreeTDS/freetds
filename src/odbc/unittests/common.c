@@ -15,6 +15,10 @@
 #include <netinet/in.h>
 #endif /* HAVE_NETINET_IN_H */
 
+#ifdef UNIXODBC
+#include <odbcinst.h>
+#endif
+
 #ifndef _WIN32
 #include <freetds/sysdep_private.h>
 #else
@@ -36,7 +40,6 @@ char odbc_password[512];
 char odbc_database[512];
 char odbc_driver[1024];
 
-#ifndef _WIN32
 static int
 check_lib(char *path, const char *file)
 {
@@ -52,7 +55,6 @@ check_lib(char *path, const char *file)
 	path[len] = 0;
 	return 0;
 }
-#endif
 
 /* some platforms do not have setenv, define a replacement */
 #if !HAVE_SETENV
@@ -88,10 +90,11 @@ odbc_read_login_info(void)
 	FILE *in = NULL;
 	char line[512];
 	char *s1, *s2;
-#ifndef _WIN32
-	const char **search_p;
+	const char *const *search_p;
 	char path[1024];
 	int len;
+#ifdef _WIN32
+	UWORD old_config_mode;
 #endif
 
 	setbuf(stdout, NULL);
@@ -126,9 +129,12 @@ odbc_read_login_info(void)
 	}
 	fclose(in);
 
-#ifndef _WIN32
 	/* find our driver */
+#ifndef _WIN32
 	if (!getcwd(path, sizeof(path)))
+#else
+	if (!_getcwd(path, sizeof(path)))
+#endif
 		return 0;
 #ifdef __VMS
 	{
@@ -138,7 +144,11 @@ odbc_read_login_info(void)
 	}
 #endif
 	len = strlen(path);
-	if (len < 10 || strcmp(path + len - 10, "/unittests") != 0)
+	if (len < 10 || (strcasecmp(path + len - 10, "/unittests") != 0
+#ifdef _WIN32
+	    && strcasecmp(path + len - 10, "\\unittests") != 0
+#endif
+	    ))
 		return 0;
 	path[len - 9] = 0;
 	for (search_p = search_driver; *search_p; ++search_p) {
@@ -149,6 +159,7 @@ odbc_read_login_info(void)
 		return 0;
 	strcpy(odbc_driver, path);
 
+#ifndef _WIN32
 	/* craft out odbc.ini, avoid to read wrong one */
 	snprintf(path, sizeof(path), "odbc.ini.%d", (int) getpid());
 	in = fopen(path, "w");
@@ -159,6 +170,14 @@ odbc_read_login_info(void)
 		setenv("SYSODBCINI", "./odbc.ini", 1);
 		rename(path, "odbc.ini");
 		unlink(path);
+	}
+#else
+	if (SQLGetConfigMode(&old_config_mode)) {
+		SQLSetConfigMode(ODBC_USER_DSN);
+		SQLWritePrivateProfileString(odbc_server, "Driver", odbc_driver, "odbc.ini");
+		SQLWritePrivateProfileString(odbc_server, "Database", odbc_database, "odbc.ini");
+		SQLWritePrivateProfileString(odbc_server, "Servername", odbc_server, "odbc.ini");
+		SQLSetConfigMode(old_config_mode);
 	}
 #endif
 	return 0;
