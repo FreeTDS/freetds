@@ -68,6 +68,19 @@ odbc_setenv(const char *name, const char *value, int overwrite)
 }
 #endif
 
+/* this should be extended with all possible systems... */
+static const char *const search_driver[] = {
+	".libs/libtdsodbc.so",
+	".libs/libtdsodbc.sl",
+	".libs/libtdsodbc.dylib",
+	".libs/libtdsodbc.dll",
+	"_libs/libtdsodbc.dll",
+	"debug/tdsodbc.dll",
+	"release/tdsodbc.dll",
+	"libtdsodbc.so",
+	NULL
+};
+
 int
 odbc_read_login_info(void)
 {
@@ -76,6 +89,7 @@ odbc_read_login_info(void)
 	char line[512];
 	char *s1, *s2;
 #ifndef _WIN32
+	const char **search_p;
 	char path[1024];
 	int len;
 #endif
@@ -127,10 +141,11 @@ odbc_read_login_info(void)
 	if (len < 10 || strcmp(path + len - 10, "/unittests") != 0)
 		return 0;
 	path[len - 9] = 0;
-	/* TODO this must be extended with all possible systems... */
-	if (!check_lib(path, ".libs/libtdsodbc.so") && !check_lib(path, ".libs/libtdsodbc.sl")
-	    && !check_lib(path, ".libs/libtdsodbc.dll") && !check_lib(path, ".libs/libtdsodbc.dylib")
-	    && !check_lib(path, "_libs/libtdsodbc.exe"))
+	for (search_p = search_driver; *search_p; ++search_p) {
+		if (check_lib(path, *search_p))
+			break;
+	}
+	if (!*search_p)
 		return 0;
 	strcpy(odbc_driver, path);
 
