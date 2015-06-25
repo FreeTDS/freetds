@@ -2,7 +2,7 @@ add_subdirectory(unittests)
 
 if(WIN32)
 	add_definitions(-DDLL_EXPORT)
-	set(win_SRCS winmain.c ../../win32/dblib.def dbopen.c)
+	set(win_SRCS winmain.c dblib.def dbopen.c)
 endif()
 
 # TODO add dbopen.c if necessary

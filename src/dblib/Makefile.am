@@ -10,7 +10,7 @@ endif
 if MINGW32
 libsybdb_la_SOURCES +=	winmain.c
 endif
-EXTRA_DIST	=	dbopen.c buffering.h CMakeLists.txt winmain.c
+EXTRA_DIST	=	dbopen.c buffering.h CMakeLists.txt winmain.c dblib.def
 libsybdb_la_LDFLAGS=	-version-info 5:0:0 $(FREETDS_SYMBOLIC)
 if !MACOSX
 libsybdb_la_LDFLAGS +=	-export-symbols-regex '^(db|bcp_|tdsdump_open|tdsdbopen|.*_xact|close_commit|open_commit|.?asprintf).*'
