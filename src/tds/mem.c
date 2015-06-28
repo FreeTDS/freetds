@@ -475,6 +475,9 @@ tds_set_current_results(TDSSOCKET *tds, TDSRESULTINFO *info)
 	tds->current_results = info;
 }
 
+/**
+ * Detach result info from it current socket
+ */
 void
 tds_detach_results(TDSRESULTINFO *info)
 {
@@ -1317,6 +1320,11 @@ tds_connection_remove_socket(TDSCONNECTION *conn, TDSSOCKET *tds)
 void
 tds_free_socket(TDSSOCKET * tds)
 {
+#if ENABLE_EXTRA_CHECKS
+	TDSDYNAMIC *dyn;
+	TDSCURSOR *cur;
+#endif
+
 	if (!tds)
 		return;
 
@@ -1324,6 +1332,18 @@ tds_free_socket(TDSSOCKET * tds)
 	tds_release_cur_dyn(tds);
 	tds_release_cursor(&tds->cur_cursor);
 	tds_detach_results(tds->current_results);
+#if ENABLE_EXTRA_CHECKS
+	for (dyn = tds->conn->dyns; dyn; dyn = dyn->next) {
+		if (dyn->res_info && dyn->res_info->attached_to == tds) {
+			assert(0);
+		}
+	}
+	for (cur = tds->conn->cursors; cur; cur = cur->next) {
+		if (cur->res_info && cur->res_info->attached_to == tds) {
+			assert(0);
+		}
+	}
+#endif
 	tds_free_all_results(tds);
 #if ENABLE_ODBC_MARS
 	tds_cond_destroy(&tds->packet_cond);
