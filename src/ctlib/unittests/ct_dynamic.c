@@ -347,6 +347,46 @@ main(int argc, char *argv[])
 	}
 	chk(ret == CS_END_RESULTS, "ct_results() unexpected return.\n", (int) ret);
 
+	/*
+	 * check we can prepare again dynamic with same name after deallocation
+	 */
+	strcpy(cmdbuf, "select name from #ct_dynamic where age = ?");
+	ret = ct_dynamic(cmd, CS_PREPARE, "age", CS_NULLTERM, cmdbuf, CS_NULLTERM);
+	chk(ret == CS_SUCCEED, "ct_dynamic failed\n");
+
+	chk(ct_send(cmd) == CS_SUCCEED, "ct_send(CS_PREPARE) failed\n");
+
+	while ((ret = ct_results(cmd, &res_type)) == CS_SUCCEED) {
+		switch ((int) res_type) {
+
+		case CS_CMD_SUCCEED:
+		case CS_CMD_DONE:
+			break;
+
+		case CS_CMD_FAIL:
+			break;
+
+		default:
+			goto ERR;
+		}
+	}
+	chk(ret == CS_END_RESULTS, "ct_results() unexpected return.\n", (int) ret);
+
+	ret = ct_dynamic(cmd2, CS_EXECUTE, "age", CS_NULLTERM, NULL, CS_UNUSED);
+	chk(ret == CS_SUCCEED, "ct_dynamic failed\n");
+
+	intvar = 32;
+	intvarsize = 4;
+	intvarind = 0;
+
+	datafmt.name[0] = 0;
+	datafmt.namelen = 0;
+	datafmt.datatype = CS_INT_TYPE;
+	datafmt.status = CS_INPUTVALUE;
+
+	ret = ct_setparam(cmd2, &datafmt, (CS_VOID *) & intvar, &intvarsize, &intvarind);
+	chk(ct_send(cmd2) == CS_SUCCEED, "ct_send(CS_EXECUTE) failed\n");
+
 	/* all tests succeeded */
 	errCode = 0;
 
