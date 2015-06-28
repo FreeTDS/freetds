@@ -1104,6 +1104,9 @@ ct_send(CS_COMMAND * cmd)
 			tds_free_all_results(tds);
 		}
 
+		if (TDS_SUCCEED(ret))
+			cmd->results_state = _CS_RES_INIT;
+
 		ct_set_command_state(cmd, _CS_COMMAND_SENT);
 		return CS_SUCCEED;
 	}
