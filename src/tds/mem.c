@@ -470,6 +470,8 @@ void
 tds_set_current_results(TDSSOCKET *tds, TDSRESULTINFO *info)
 {
 	tds_detach_results(info);
+	if (tds->current_results)
+		tds->current_results->attached_to = NULL;
 	if (info)
 		info->attached_to = tds;
 	tds->current_results = info;
@@ -610,6 +612,8 @@ tds_free_results(TDSRESULTINFO * res_info)
 
 	if (--res_info->ref_count != 0)
 		return;
+
+	tds_detach_results(res_info);
 
 	if (res_info->num_cols && res_info->columns) {
 		for (i = 0; i < res_info->num_cols; i++)
