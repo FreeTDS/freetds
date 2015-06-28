@@ -330,14 +330,15 @@ odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void 
 	if (len < 0)
 		len = strlen(s);
 
+	if (cbBuffer < 0)
+		cbBuffer = 0;
+
 #ifdef ENABLE_ODBC_WIDE
 	if ((flag & 1) != 0) {
 		/* wide characters */
 		const unsigned char *p = (const unsigned char*) s;
 		SQLWCHAR *dest = (SQLWCHAR*) buffer;
 
-		if (cbBuffer < 0)
-			cbBuffer = 0;
 		if (flag&0x20)
 			cbBuffer /= SIZEOF_SQLWCHAR;
 #ifndef NDEBUG
@@ -392,7 +393,6 @@ odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void 
 		const unsigned char *p = (const unsigned char*) s;
 		unsigned char *dest = (unsigned char*) buffer;
 
-		assert(cbBuffer >= 0);
 #ifndef NDEBUG
 		initial_size = cbBuffer;
 #endif
@@ -486,7 +486,7 @@ odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void 
 		}
 		if (out_len >= cbBuffer && result != SQL_ERROR)
 			result = SQL_SUCCESS_WITH_INFO;
-		if (buffer && cbBuffer >= 0)
+		if (buffer && cbBuffer > 0)
 			((char *) buffer)[cbBuffer-1 < out_len ? cbBuffer-1:out_len] = 0;
 	}
 #else
