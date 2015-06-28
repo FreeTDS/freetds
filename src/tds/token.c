@@ -53,7 +53,7 @@ static TDSRET tds_process_msg(TDSSOCKET * tds, int marker);
 static TDSRET tds_process_compute_result(TDSSOCKET * tds);
 static TDSRET tds_process_compute_names(TDSSOCKET * tds);
 static TDSRET tds7_process_compute_result(TDSSOCKET * tds);
-static TDSRET tds_process_result(TDSSOCKET * tds);
+static TDSRET tds5_process_result(TDSSOCKET * tds);
 static TDSRET tds_process_col_name(TDSSOCKET * tds);
 static TDSRET tds_process_col_fmt(TDSSOCKET * tds);
 static TDSRET tds_process_tabname(TDSSOCKET *tds);
@@ -71,7 +71,7 @@ static TDSRET tds_process_env_chg(TDSSOCKET * tds);
 static TDSRET tds_process_param_result_tokens(TDSSOCKET * tds);
 static TDSRET tds_process_params_result_token(TDSSOCKET * tds);
 static TDSRET tds_process_dyn_result(TDSSOCKET * tds);
-static TDSRET tds5_process_result(TDSSOCKET * tds);
+static TDSRET tds5_process_result2(TDSSOCKET * tds);
 static TDSRET tds5_process_dyn_result2(TDSSOCKET * tds);
 static TDSRET tds_process_default_tokens(TDSSOCKET * tds, int marker);
 static TDSRET tds5_process_optioncmd(TDSSOCKET * tds);
@@ -195,10 +195,10 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		return tds5_process_optioncmd(tds);
 		break;
 	case TDS_RESULT_TOKEN:
-		return tds_process_result(tds);
+		return tds5_process_result(tds);
 		break;
 	case TDS_ROWFMT2_TOKEN:
-		return tds5_process_result(tds);
+		return tds5_process_result2(tds);
 		break;
 	case TDS_COLNAME_TOKEN:
 		return tds_process_col_name(tds);
@@ -604,11 +604,11 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 			break;
 		case TDS_RESULT_TOKEN:
 			SET_RETURN(TDS_ROWFMT_RESULT, ROWFMT);
-			rc = tds_process_result(tds);
+			rc = tds5_process_result(tds);
 			break;
 		case TDS_ROWFMT2_TOKEN:
 			SET_RETURN(TDS_ROWFMT_RESULT, ROWFMT);
-			rc = tds5_process_result(tds);
+			rc = tds5_process_result2(tds);
 			break;
 		case TDS_COLNAME_TOKEN:
 			rc = tds_process_col_name(tds);
@@ -1725,13 +1725,13 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 }
 
 /**
- * tds_process_result() is the TDS 5.0 result set processing routine.  It 
- * is responsible for populating the tds->res_info structure.
+ * tds5_process_result() is the TDS 5.0 result set processing routine.
+ * It is responsible for populating the tds->res_info structure.
  * This is a TDS 5.0 only function
  * \tds
  */
 static TDSRET
-tds_process_result(TDSSOCKET * tds)
+tds5_process_result(TDSSOCKET * tds)
 {
 	unsigned int col, num_cols;
 	TDSCOLUMN *curcol;
@@ -1772,13 +1772,13 @@ tds_process_result(TDSSOCKET * tds)
 }
 
 /**
- * tds5_process_result() is the new TDS 5.0 result set processing routine.  
+ * tds5_process_result2() is the new TDS 5.0 result set processing routine.
  * It is responsible for populating the tds->res_info structure.
  * This is a TDS 5.0 only function
  * \tds
  */
 static TDSRET
-tds5_process_result(TDSSOCKET * tds)
+tds5_process_result2(TDSSOCKET * tds)
 {
 	unsigned int colnamelen;
 	TDS_USMALLINT col, num_cols;
@@ -1787,7 +1787,7 @@ tds5_process_result(TDSSOCKET * tds)
 
 	CHECK_TDS_EXTRA(tds);
 
-	tdsdump_log(TDS_DBG_INFO1, "tds5_process_result\n");
+	tdsdump_log(TDS_DBG_INFO1, "tds5_process_result2\n");
 
 	/*
 	 * free previous resultset
