@@ -539,14 +539,14 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 	unsigned return_flag = 0;
 
 /** \cond HIDDEN_SYMBOLS */
-#define SET_RETURN(ret, f) \
+#define SET_RETURN(ret, f) do { \
 	*result_type = ret; \
 	return_flag = TDS_RETURN_##f | TDS_STOPAT_##f; \
 	if (flag & TDS_STOPAT_##f) {\
 		tds_unget_byte(tds); \
 		tdsdump_log(TDS_DBG_FUNC, "tds_process_tokens::SET_RETURN stopping on current token\n"); \
-		break; \
-	}
+		goto set_return_exit; \
+	} } while(0)
 /** \endcond */
 
 	CHECK_TDS_EXTRA(tds);
@@ -846,6 +846,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 			break;
 		}
 
+	set_return_exit:
 		if (TDS_FAILED(rc)) {
 			tds_set_state(tds, TDS_PENDING);
 			return rc;
