@@ -1879,14 +1879,20 @@ ct_con_drop(CS_CONNECTION * con)
 			currptr = con->cmds;
 			while (currptr != NULL) {
 				freeptr = currptr;
-				if (currptr->cmd)
+				if (currptr->cmd) {
 					currptr->cmd->con = NULL;
+					currptr->cmd->dyn = NULL;
+				}
 				currptr = currptr->next;
 				free(freeptr);
 			}
 		}
+		while (con->dynlist)
+			_ct_deallocate_dynamic(con, con->dynlist);
 		if (con->locale)
 			_cs_locale_free(con->locale);
+		tds_free_socket(con->tds_socket);
+		con->tds_socket = NULL;
 		free(con->server_addr);
 		free(con);
 	}
