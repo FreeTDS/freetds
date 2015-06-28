@@ -18,21 +18,6 @@
  * Boston, MA 02111-1307, USA.
  */
 
-/*
- * PROGRAMMER   NAME            CONTACT
- *==============================================================
- * BSB          Brian Bruns     camber@ais.org
- * PAH          Peter Harvey    pharvey@codebydesign.com
- * SMURPH       Steve Murphree  smurph@smcomp.com
- *
- ***************************************************************
- * DATE         PROGRAMMER  CHANGE
- *==============================================================
- *                          Original.
- * 03.FEB.02    PAH         Started adding use of SQLGetPrivateProfileString().
- * 04.FEB.02	PAH         Fixed small error preventing SQLBindParameter from being called
- */
-
 #include <config.h>
 
 #include <stdarg.h>
