@@ -8,15 +8,10 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: ct_dynamic.c,v 1.4 2011-05-16 08:51:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 #define QUERY_STRING "insert into #ctparam_lang (name,age,cost,bdate,fval) values (@in1, @in2, @moneyval, @dateval, @floatval)"
 
-CS_RETCODE ex_servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * errmsg);
-CS_RETCODE ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);
-
-int insert_test(CS_CONNECTION * conn, CS_COMMAND * cmd, short useNames);
+static CS_RETCODE ex_servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * errmsg);
+static CS_RETCODE ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);
 
 int
 main(int argc, char *argv[])
@@ -34,7 +29,7 @@ main(int argc, char *argv[])
 	CS_CHAR cmdbuf[4096];
 	CS_CHAR name[257];
 	CS_INT datalength;
-	short int ind;
+	CS_SMALLINT ind;
 	CS_INT count;
 	CS_INT num_cols;
 	CS_INT row_count = 0;
@@ -50,9 +45,9 @@ main(int argc, char *argv[])
 	if (argc > 1 && (0 == strcmp(argv[1], "-v")))
 		verbose = 1;
 
-	fprintf(stdout, "%s: use ct_dynamic/ct_param to prepare and execute  a statement \n", __FILE__);
+	printf("%s: use ct_dynamic/ct_param to prepare and execute  a statement \n", __FILE__);
 	if (verbose) {
-		fprintf(stdout, "Trying login\n");
+		printf("Trying login\n");
 	}
 	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
@@ -244,6 +239,8 @@ main(int argc, char *argv[])
 			goto ERR;
 		}
 	}
+
+	/* execute dynamic on a second command to check it still works */
 	ret = ct_dynamic(cmd2, CS_EXECUTE, "age", CS_NULLTERM, NULL, CS_UNUSED);
 
 	intvar = 44;
@@ -440,7 +437,7 @@ main(int argc, char *argv[])
 	}
       ERR:
 	if (verbose) {
-		fprintf(stdout, "Trying logout\n");
+		printf("Trying logout\n");
 	}
 
 	ct_cmd_drop(cmd2);
@@ -455,37 +452,37 @@ main(int argc, char *argv[])
 }
 
 
-CS_RETCODE
+static CS_RETCODE
 ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg)
 {
-	fprintf(stdout, "\nOpen Client Message:\n");
-	fprintf(stdout, "Message number: LAYER = (%d) ORIGIN = (%d) ", CS_LAYER(errmsg->msgnumber), CS_ORIGIN(errmsg->msgnumber));
-	fprintf(stdout, "SEVERITY = (%d) NUMBER = (%d)\n", CS_SEVERITY(errmsg->msgnumber), CS_NUMBER(errmsg->msgnumber));
-	fprintf(stdout, "Message String: %s\n", errmsg->msgstring);
+	printf("\nOpen Client Message:\n");
+	printf("Message number: LAYER = (%d) ORIGIN = (%d) ", CS_LAYER(errmsg->msgnumber), CS_ORIGIN(errmsg->msgnumber));
+	printf("SEVERITY = (%d) NUMBER = (%d)\n", CS_SEVERITY(errmsg->msgnumber), CS_NUMBER(errmsg->msgnumber));
+	printf("Message String: %s\n", errmsg->msgstring);
 	if (errmsg->osstringlen > 0) {
-		fprintf(stdout, "Operating System Error: %s\n", errmsg->osstring);
+		printf("Operating System Error: %s\n", errmsg->osstring);
 	}
 	fflush(stdout);
 
 	return CS_SUCCEED;
 }
 
-CS_RETCODE
+static CS_RETCODE
 ex_servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * srvmsg)
 {
-	fprintf(stdout, "\nServer message:\n");
-	fprintf(stdout, "Message number: %d, Severity %d, ", srvmsg->msgnumber, srvmsg->severity);
-	fprintf(stdout, "State %d, Line %d\n", srvmsg->state, srvmsg->line);
+	printf("\nServer message:\n");
+	printf("Message number: %d, Severity %d, ", srvmsg->msgnumber, srvmsg->severity);
+	printf("State %d, Line %d\n", srvmsg->state, srvmsg->line);
 
 	if (srvmsg->svrnlen > 0) {
-		fprintf(stdout, "Server '%s'\n", srvmsg->svrname);
+		printf("Server '%s'\n", srvmsg->svrname);
 	}
 
 	if (srvmsg->proclen > 0) {
-		fprintf(stdout, " Procedure '%s'\n", srvmsg->proc);
+		printf(" Procedure '%s'\n", srvmsg->proc);
 	}
 
-	fprintf(stdout, "Message String: %s\n", srvmsg->text);
+	printf("Message String: %s\n", srvmsg->text);
 	fflush(stdout);
 
 	return CS_SUCCEED;
