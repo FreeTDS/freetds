@@ -789,6 +789,12 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 				*result_type = TDS_NO_MORE_RESULTS;
 				rc = TDS_NO_MORE_RESULTS;
 				break;
+			case TDS_OP_UNPREPARE:
+				if (done_flags && (*done_flags & TDS_DONE_ERROR) == 0)
+					tds_dynamic_deallocated(tds->conn, tds->cur_dyn);
+				*result_type = TDS_NO_MORE_RESULTS;
+				rc = TDS_NO_MORE_RESULTS;
+				break;
 			case TDS_OP_CURSOR:
 			case TDS_OP_CURSORPREPARE:
 			case TDS_OP_CURSOREXECUTE:
@@ -797,7 +803,6 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 			case TDS_OP_CURSORFETCH:
 			case TDS_OP_CURSOROPTION:
 			case TDS_OP_PREPEXECRPC:
-			case TDS_OP_UNPREPARE:
 				*result_type = TDS_NO_MORE_RESULTS;
 				rc = TDS_NO_MORE_RESULTS;
 				break;
