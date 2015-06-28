@@ -576,31 +576,18 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 			 * from sql server we don't want to pass back the
 			 * TDS_ROWFMT_RESULT to the calling API
 			 */
-
-			if (tds->current_op == TDS_OP_CURSORFETCH) {
-				rc = tds7_process_result(tds);
-				if (TDS_FAILED(rc))
-					break;
-				marker = tds_get_byte(tds);
-				if (marker != TDS_TABNAME_TOKEN)
-					tds_unget_byte(tds);
-				else
-					rc = tds_process_tabname(tds);
-			} else {
+			if (tds->current_op != TDS_OP_CURSORFETCH)
 				SET_RETURN(TDS_ROWFMT_RESULT, ROWFMT);
 
-				rc = tds7_process_result(tds);
-				if (TDS_FAILED(rc))
-					break;
-				/* handle browse information (if presents) */
-				marker = tds_get_byte(tds);
-				if (marker != TDS_TABNAME_TOKEN) {
-					tds_unget_byte(tds);
-					rc = TDS_SUCCESS;
-					break;
-				}
+			rc = tds7_process_result(tds);
+			if (TDS_FAILED(rc))
+				break;
+			/* handle browse information (if present) */
+			marker = tds_get_byte(tds);
+			if (marker != TDS_TABNAME_TOKEN)
+				tds_unget_byte(tds);
+			else
 				rc = tds_process_tabname(tds);
-			}
 			break;
 		case TDS_RESULT_TOKEN:
 			SET_RETURN(TDS_ROWFMT_RESULT, ROWFMT);
@@ -616,13 +603,14 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 		case TDS_COLFMT_TOKEN:
 			SET_RETURN(TDS_ROWFMT_RESULT, ROWFMT);
 			rc = tds_process_col_fmt(tds);
+			if (TDS_FAILED(rc))
+				break;
 			/* handle browse information (if present) */
 			marker = tds_get_byte(tds);
-			if (marker != TDS_TABNAME_TOKEN) {
+			if (marker != TDS_TABNAME_TOKEN)
 				tds_unget_byte(tds);
-				break;
-			}
-			rc = tds_process_tabname(tds);
+			else
+				rc = tds_process_tabname(tds);
 			break;
 		case TDS_PARAM_TOKEN:
 			tds_unget_byte(tds);
