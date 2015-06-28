@@ -2019,13 +2019,7 @@ ODBC_FUNC(SQLDescribeCol, (P(SQLHSTMT,hstmt), P(SQLUSMALLINT,icol), PCHAROUT(Col
 		}
 	}
 	if (pibScale) {
-		if (drec->sql_desc_type == SQL_NUMERIC || drec->sql_desc_type == SQL_DECIMAL
-		    || drec->sql_desc_type == SQL_DATETIME || drec->sql_desc_type == SQL_FLOAT) {
-			*pibScale = drec->sql_desc_scale;
-		} else {
-			/* TODO test setting desc directly, SQLDescribeCol return just descriptor data ?? */
-			*pibScale = 0;
-		}
+		*pibScale = drec->sql_desc_scale;
 	}
 	if (pfNullable) {
 		*pfNullable = drec->sql_desc_nullable;
