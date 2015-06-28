@@ -359,6 +359,86 @@ odbc_driver_is_freetds(void)
 	return freetds_driver;
 }
 
+/* Detect protocol version using queries
+ * This to make possible protocol discovery on drivers like MS
+ */
+static int
+odbc_tds_version_long(void)
+{
+	SQLRETURN ret;
+	SQLSMALLINT scale, nullable, type;
+	SQLULEN prec;
+	ODBC_BUF *odbc_buf = NULL;
+
+	/* statement must be in a consistent state to do the check */
+	CHKExecDirect(T("select 1"), SQL_NTS, "S");
+	odbc_reset_statement();
+
+	/* select cast(123 as sql_variant) -> nvarchar('123') is 7.0 failure query is 5.0 ?? */
+	ret = CHKExecDirect(T("select cast('123' as sql_variant)"), SQL_NTS, "SNoE");
+	odbc_reset_statement();
+	if (ret == SQL_ERROR) {
+		ODBC_FREE();
+		return 0x500;
+	}
+
+	/* see how bigint is returned, numeric means 7.0 */
+	CHKExecDirect(T("select cast('123' as bigint)"), SQL_NTS, "S");
+	CHKDescribeCol(1, NULL, 0, NULL, &type, &prec, &scale, &nullable, "S");
+	odbc_reset_statement();
+	if (type == SQL_NUMERIC || type == SQL_DECIMAL) {
+		ODBC_FREE();
+		return 0x700;
+	}
+	if (type != SQL_BIGINT) {
+		fprintf(stderr, "Strange type returned trying to detect protocol version\n");
+		odbc_disconnect();
+		ODBC_FREE();
+		exit(1);
+	}
+
+	/* select cast('123' as varchar(max)) -> ??? SQL_VARCHAR is 7.2 ?? */
+	ret = CHKExecDirect(T("select cast('123' as varchar(max))"), SQL_NTS, "SE");
+	if (ret == SQL_ERROR) {
+		odbc_reset_statement();
+		ODBC_FREE();
+		return 0x701;
+	}
+	CHKDescribeCol(1, NULL, 0, NULL, &type, &prec, &scale, &nullable, "S");
+	odbc_reset_statement();
+	if (type == SQL_LONGVARCHAR) {
+		ODBC_FREE();
+		return 0x701;
+	}
+	if (type != SQL_VARCHAR) {
+		fprintf(stderr, "Strange type returned trying to detect protocol version\n");
+		odbc_disconnect();
+		ODBC_FREE();
+		exit(1);
+	}
+
+	/* select cast('12:13:14.1234' as time(4)) -> NVARCHAR('12:13:14.1234') is 7.2 else 7.3 */
+	ret = CHKExecDirect(T("select cast('12:13:14.1234' as time(4))"), SQL_NTS, "SE");
+	if (ret == SQL_ERROR) {
+		odbc_reset_statement();
+		ODBC_FREE();
+		return 0x702;
+	}
+	CHKDescribeCol(1, NULL, 0, NULL, &type, &prec, &scale, &nullable, "S");
+	odbc_reset_statement();
+	if (scale == 4)
+		return 0x703;
+	if (scale != 0 || type != SQL_WVARCHAR) {
+		fprintf(stderr, "Strange type or scale returned trying to detect protocol version\n");
+		odbc_disconnect();
+		ODBC_FREE();
+		exit(1);
+	}
+
+	ODBC_FREE();
+	return 0x702;
+}
+
 int
 odbc_tds_version(void)
 {
@@ -368,18 +448,18 @@ odbc_tds_version(void)
 	SQLUINTEGER version;
 	SQLSMALLINT len;
 
-	if (!odbc_driver_is_freetds())
-		return 0;
-
-	if (tds_version < 0) {
+	if (odbc_driver_is_freetds() && tds_version < 0) {
 		version = 0;
 		len = 0;
 		SQLGetInfo(odbc_conn, 1300 /* SQL_INFO_FREETDS_TDS_VERSION */, &version, sizeof(version), &len);
 		if (len == sizeof(version))
 			tds_version = (version >> 16) << 8 | (version & 0xff);
 	}
+	if (tds_version < 0) {
+		tds_version = odbc_tds_version_long();
+	}
 	ODBC_FREE();
-	return tds_version < 0 ? 0: tds_version;
+	return tds_version;
 }
 
 static char db_str_version[32];

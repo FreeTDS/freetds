@@ -91,12 +91,16 @@ DoTest(int version3)
 	SQLLEN ind1, ind2, ind3, ind4, ind5, ind6;
 	int date_time_supported = 0;
 	int name_version3;
+	int tdsver;
 
 	odbc_use_version3 = version3;
 	name_version3 = version3;
+
 	odbc_connect();
 
 	printf("Using ODBC version %d\n", version3 ? 3 : 2);
+
+	tdsver = odbc_tds_version();
 
 	/* test column name */
 	/* MS ODBC use always ODBC 3 names even in ODBC 2 mode */
@@ -131,7 +135,7 @@ DoTest(int version3)
 	/* test for date/time support */
 	if (odbc_command_with_result(odbc_stmt, "select cast(getdate() as date)") == SQL_SUCCESS)
 		date_time_supported = 1;
-	if (odbc_db_is_microsoft() && odbc_tds_version() < 0x703)
+	if (odbc_db_is_microsoft() && tdsver < 0x703)
 		date_time_supported = 0;
 	SQLCloseCursor(odbc_stmt);
 
@@ -187,7 +191,7 @@ DoTest(int version3)
 		/* mssql 2008 can return a lot of NVARCHAR as new type (ie DATE)
 		 * are converted automatically to NVARCHAR with former protocol
 		 */
-		if (!odbc_db_is_microsoft() || odbc_tds_version() >= 0x703 || odbc_db_version_int() < 0x0a000000)
+		if (!odbc_db_is_microsoft() || tdsver >= 0x703 || odbc_db_version_int() < 0x0a000000)
 			CHKFetch("No");
 		else
 			CHKMoreResults("No");
