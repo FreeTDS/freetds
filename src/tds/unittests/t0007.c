@@ -217,6 +217,8 @@ main(int argc, char **argv)
 	test("18446744073709551618", SYBUINT8, "error");
 	test("18446744073709551619", SYBUINT8, "error");
 	test("18446744073709551620", SYBUINT8, "error");
+	test("20496382304121724025", SYBUINT8, "error");
+	test("20496382308118429681", SYBUINT8, "error");
 	test("-1", SYBUINT8, "error");
 	test("-9223372036854775809", SYBINT8, "error");
 	test("2147483647", SYBINT4, "2147483647");
