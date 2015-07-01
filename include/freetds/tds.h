@@ -1405,6 +1405,7 @@ void tds_swap_bytes(void *buf, int bytes);
 #ifdef ENABLE_DEVELOPING
 unsigned int tds_gettime_ms(void);
 #endif
+char *tds_strndup(const void *s, ssize_t len);
 
 /* log.c */
 void tdsdump_off(void);

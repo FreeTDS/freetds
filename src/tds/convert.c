@@ -1916,10 +1916,8 @@ string_to_datetime(const char *instr, TDS_UINT len, int desttype, CONV_RESULT * 
 	memset(&t, '\0', sizeof(t));
 	t.tm_mday = 1;
 
-	in = (char *) malloc(len + 1);
+	in = tds_strndup(instr, len);
 	test_alloc(in);
-	memcpy(in, instr, len);
-	in[len] = 0;
 
 	tok = strtok_r(in, " ,", &lasts);
 

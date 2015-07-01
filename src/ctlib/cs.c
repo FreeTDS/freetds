@@ -899,12 +899,10 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 			}
 			
 			free(locale->charset);
-			locale->charset = (char *)malloc(buflen + 1);
+			locale->charset = tds_strndup(buffer, buflen);
 			if (!locale->charset)
 				break;
 
-			strncpy(locale->charset, (char *)buffer, buflen);
-			locale->charset[buflen] = '\0';
 			code = CS_SUCCEED;
 			break;
 
@@ -914,12 +912,10 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 			}
 			
 			free(locale->language);
-			locale->language = (char *)malloc(buflen + 1);
+			locale->language = tds_strndup(buffer, buflen);
 			if (!locale->language)
 				break;
 
-			strncpy(locale->language, (char *)buffer, buflen);
-			locale->language[buflen] = '\0';
 			code = CS_SUCCEED;
 			break;
 
@@ -944,21 +940,15 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 			}
 			if (i) {
 				free(locale->language);
-				locale->language = (char *)malloc(i + 1);
+				locale->language = tds_strndup(b, i);
 				if (!locale->language)
 					break;
-
-				strncpy(locale->language, b, i);
-				locale->language[i] = '\0';
 			}
 			if (i != (buflen - 1)) {
 				free(locale->charset);
-				locale->charset = (char *)malloc(buflen - i);
+				locale->charset = tds_strndup(b + i + 1, buflen - i - 1);
 				if (!locale->charset)
 					break;
-				
-				strncpy(locale->charset, b + i + 1, buflen - i - 1);
-				locale->charset[buflen - i - 1] = '\0';
 			}
 			code = CS_SUCCEED;
 			break;
@@ -971,12 +961,10 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 			}
 			
 			free(locale->collate);
-			locale->collate = (char *)malloc(buflen + 1);
+			locale->collate = tds_strndup(buffer, buflen);
 			if (!locale->collate)
 				break;
 
-			strncpy(locale->collate, (char *)buffer, buflen);
-			locale->collate[buflen] = '\0';
 			code = CS_SUCCEED;
 			break;
 		*/

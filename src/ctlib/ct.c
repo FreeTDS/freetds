@@ -364,9 +364,7 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			} else if (buflen == CS_UNUSED) {
 				return CS_SUCCEED;
 			} else {
-				set_buffer = (char *) malloc(buflen + 1);
-				strncpy(set_buffer, (char *) buffer, buflen);
-				set_buffer[buflen] = '\0';
+				set_buffer = tds_strndup(buffer, buflen);
 			}
 		}
 
@@ -608,10 +606,8 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 	} else if (snamelen == CS_NULLTERM) {
 		server = (char *) servername;
 	} else {
-		server = (char *) malloc(snamelen + 1);
+		server = tds_strndup(servername, snamelen);
 		needfree++;
-		strncpy(server, servername, snamelen);
-		server[snamelen] = '\0';
 	}
 	tds_set_server(con->tds_login, server);
 	if (needfree)
@@ -742,9 +738,7 @@ ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen,
 			}
 			switch (cmd->command_state) {
 			case _CS_COMMAND_IDLE:
-				cmd->query = malloc(query_len + 1);
-				strncpy(cmd->query, (const char *) buffer, query_len);
-				cmd->query[query_len] = '\0';
+				cmd->query = tds_strndup(buffer, query_len);
 				if (option == CS_MORE) {
 					ct_set_command_state(cmd, _CS_COMMAND_BUILDING);
 				} else {
@@ -784,10 +778,9 @@ ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen,
 			if (cmd->rpc->name == NULL)
 				return CS_FAIL;
 		} else if (buflen > 0) {
-			cmd->rpc->name = calloc(1, buflen + 1);
+			cmd->rpc->name = tds_strndup(buffer, buflen);
 			if (cmd->rpc->name == NULL)
 				return CS_FAIL;
-			strncpy(cmd->rpc->name, (const char *) buffer, buflen);
 		} else {
 			return CS_FAIL;
 		}
@@ -3109,9 +3102,7 @@ ct_dynamic(CS_COMMAND * cmd, CS_INT type, CS_CHAR * id, CS_INT idlen, CS_CHAR * 
 		} else {
 			query_len = buflen;
 		}
-		dyn->stmt = (char *) malloc(query_len + 1);
-		strncpy(dyn->stmt, (char *) buffer, query_len);
-		dyn->stmt[query_len] = '\0';
+		dyn->stmt = tds_strndup(buffer, query_len);
 
 		cmd->dyn = dyn;
 
@@ -4100,10 +4091,9 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *d
 			if (param->name == NULL)
 				return CS_FAIL;
 		} else if (datafmt->namelen > 0) {
-			param->name = (char*) calloc(1, datafmt->namelen + 1);
+			param->name = tds_strndup(datafmt->name, datafmt->namelen);
 			if (param->name == NULL)
 				return CS_FAIL;
-			strncpy(param->name, datafmt->name, datafmt->namelen);
 		} else {
 			param->name = NULL;
 		}
@@ -4531,9 +4521,7 @@ _ct_allocate_dynamic(CS_CONNECTION * con, char *id, int idlen)
 		id_len = idlen;
 
 	if (dyn != NULL) {
-		dyn->id = (char*) malloc(id_len + 1);
-		strncpy(dyn->id, id, id_len);
-		dyn->id[id_len] = '\0';
+		dyn->id = tds_strndup(id, id_len);
 
 		if (con->dynlist == NULL) {
 			tdsdump_log(TDS_DBG_INFO1, "_ct_allocate_dynamic() attaching dynamic command to head\n");

@@ -54,17 +54,6 @@ static char *odbc_mb2utf(TDS_DBC *dbc, const char *s, int len);
 static char *odbc_wide2utf(const SQLWCHAR *s, int len);
 #endif
 
-static char *
-odbc_strndup(const char *s, int len)
-{
-	char *out = (char*) malloc(len+1);
-	if (!out)
-		return NULL;
-	memcpy(out, s, len);
-	out[len] = 0;
-	return out;
-}
-
 static int
 odbc_set_stmt(TDS_STMT * stmt, char **dest, const ODBC_CHAR *sql, int sql_len _WIDE)
 {
@@ -102,7 +91,7 @@ odbc_set_stmt(TDS_STMT * stmt, char **dest, const ODBC_CHAR *sql, int sql_len _W
 #ifdef ENABLE_ODBC_WIDE
 	*dest = p = wide ? odbc_wide2utf(sql->wide, sql_len) : odbc_mb2utf(stmt->dbc, sql->mb, sql_len);
 #else
-	*dest = p = odbc_strndup((const char*) sql, sql_len);
+	*dest = p = tds_strndup((const char*) sql, sql_len);
 #endif
 	if (!p)
 		return SQL_ERROR;
@@ -257,7 +246,7 @@ odbc_mb2utf(TDS_DBC *dbc, const char *s, int len)
 		return odbc_iso2utf(s, len);
 
 	if (char_conv->flags == TDS_ENCODING_MEMCPY)
-		return odbc_strndup(s, len);
+		return tds_strndup(s, len);
 
 	il = len;
 
