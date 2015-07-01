@@ -70,7 +70,7 @@ static TDS_INT tds_convert_int4(const TDS_INT* src, int desttype, CONV_RESULT * 
 static TDS_INT tds_convert_uint4(const TDS_UINT * src, int desttype, CONV_RESULT * cr);
 static TDS_INT tds_convert_int8(const TDS_INT8 * src, int desttype, CONV_RESULT * cr);
 static TDS_INT tds_convert_uint8(const TDS_UINT8 * src, int desttype, CONV_RESULT * cr);
-static int string_to_datetime(const char *datestr, int desttype, CONV_RESULT * cr);
+static int string_to_datetime(const char *datestr, TDS_UINT len, int desttype, CONV_RESULT * cr);
 static int is_dd_mon_yyyy(char *t);
 static int store_dd_mon_yyy_date(char *datestr, struct tds_time *t);
 
@@ -525,8 +525,7 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 	case SYBMSDATE:
 	case SYBMSDATETIME2:
 	case SYBMSDATETIMEOFFSET:
-		/* FIXME not null terminated */
-		return string_to_datetime(src, desttype, cr);
+		return string_to_datetime(src, srclen, desttype, cr);
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
@@ -1886,7 +1885,7 @@ tds_convert(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, TDS_U
 }
 
 static int
-string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
+string_to_datetime(const char *instr, TDS_UINT len, int desttype, CONV_RESULT * cr)
 {
 	enum states
 	{ GOING_IN_BLIND,
@@ -1914,9 +1913,10 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 	memset(&t, '\0', sizeof(t));
 	t.tm_mday = 1;
 
-	in = (char *) malloc(strlen(instr) + 1);
+	in = (char *) malloc(len + 1);
 	test_alloc(in);
-	strcpy(in, instr);
+	memcpy(in, instr, len);
+	in[len] = 0;
 
 	tok = strtok_r(in, " ,", &lasts);
 
