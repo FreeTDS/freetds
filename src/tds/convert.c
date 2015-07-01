@@ -3197,7 +3197,8 @@ string_to_int(const char *buf, const char *pend, TDS_INT * res)
 	for (; p != pend; ++p) {
 		/* check for trailing spaces */
 		if (*p == blank) {
-			while (++p != pend && *p == blank);
+			while (++p != pend && *p == blank)
+				continue;
 			if (p != pend)
 				return TDS_CONVERT_SYNTAX;
 			break;
@@ -3272,7 +3273,8 @@ parse_int8(const char *buf, const char *pend, TDS_UINT8 * res, int * p_sign)
 	for (; p != pend; ++p) {
 		/* check for trailing spaces */
 		if (*p == blank) {
-			while (p != pend && *++p == blank);
+			while (++p != pend && *p == blank)
+				continue;
 			if (p != pend)
 				return TDS_CONVERT_SYNTAX;
 			break;
