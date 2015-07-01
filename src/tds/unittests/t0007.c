@@ -23,12 +23,17 @@
 static TDSCONTEXT ctx;
 
 static void
-test2(const char *src, int len, int midtype, int dsttype, const char *result, int line)
+test0(const char *src, int len, int midtype, int dsttype, const char *result, int line)
 {
 	int i, res;
 	char buf[256];
 	CONV_RESULT cr, cr_mid;
 	int srctype = SYBVARCHAR;
+	char *copy;
+
+	copy = malloc(len);
+	memcpy(copy, src, len);
+	src = copy;
 
 	if (midtype) {
 		res = tds_convert(&ctx, SYBVARCHAR, src, len, midtype, &cr_mid);
@@ -92,23 +97,11 @@ test2(const char *src, int len, int midtype, int dsttype, const char *result, in
 		fprintf(stderr, "Expected '%s' got '%s' at line %d\n", result, buf, line);
 		exit(1);
 	}
+	free(copy);
 }
 
-static void
-test0(const char *src, int len, int dsttype, const char *result, int line)
-{
-	test2(src, len, 0, dsttype, result, line);
-}
-
-static void
-test(const char *src, int dsttype, const char *result, int line)
-{
-	test0(src, strlen(src), dsttype, result, line);
-}
-
-#define test2(s,m,d,r) test2(s,strlen(s),m,d,r,__LINE__)
-#define test0(s,l,d,r) test0(s,l,d,r,__LINE__)
-#define test(s,d,r) test(s,d,r,__LINE__)
+#define test(s,d,r)    test0(s,strlen(s),0,d,r,__LINE__)
+#define test2(s,m,d,r) test0(s,strlen(s),m,d,r,__LINE__)
 
 static int
 int_types[] = {
@@ -264,10 +257,6 @@ main(int argc, char **argv)
 	test("56248632876323876761", SYBINT8, "error");
 	test("59248632876323876761", SYBINT8, "error");
 	test("12248632876323876761", SYBINT8, "error");
-
-	/* test not terminated string */
-	test0("1234", 2, SYBINT4, "12");
-	test0("123456", 4, SYBINT8, "0x00000000000004d2");
 
 	/* some test for unique */
 	printf("unique type...\n");
