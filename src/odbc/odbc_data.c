@@ -114,7 +114,7 @@ data_generic_server_to_sql_type(TDSCOLUMN *col)
 #endif
 #endif
 	case SYBMSXML:
-		return SQL_CHAR;
+		return SQL_SS_XML;
 		/*
 		 * TODO what should I do with these types ??
 		 * return other types can cause additional problems
@@ -305,6 +305,8 @@ data_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
 	case SYBMSDATE:
 		SET_INFO2("date", "'", "'", 10);
 	case SYBMSXML:
+		drec->sql_desc_octet_length = drec->sql_desc_length =
+			SQL_SS_LENGTH_UNLIMITED;
 		SET_INFO("xml", "'", "'");
 	}
 	SET_INFO("", "", "");
