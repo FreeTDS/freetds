@@ -516,7 +516,6 @@ typedef struct _hchk TDS_CHK;
 typedef struct {
 	/* this must be the first member */
 	TDSCOLUMNFUNCS common;
-	SQLSMALLINT (*server_to_sql_type)(TDSCOLUMN *col);
 	void (*set_type_info)(TDSCOLUMN *col, struct _drecord *drec, SQLINTEGER odbc_ver);
 } TDS_FUNCS;
 
@@ -688,26 +687,12 @@ int odbc_set_stmt_prepared_query(struct _hstmt *stmt, const ODBC_CHAR *sql, int 
 void odbc_set_return_status(struct _hstmt *stmt, unsigned int n_row);
 void odbc_set_return_params(struct _hstmt *stmt, unsigned int n_row);
 
-/**
- * Convert type from database to ODBC
- */
-static inline SQLSMALLINT
-odbc_server_to_sql_type(TDSCOLUMN *col)
-{
-	return ((TDS_FUNCS *) col->funcs)->server_to_sql_type(col);
-}
-
-static inline void
-odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
-{
-	((TDS_FUNCS *) col->funcs)->set_type_info(col, drec, odbc_ver);
-}
+void odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver);
 
 int odbc_sql_to_c_type_default(int sql_type);
 int odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned);
 int odbc_c_to_server_type(int c_type);
 
-SQLINTEGER odbc_sql_to_displaysize(int sqltype, TDSCOLUMN *col);
 int odbc_get_string_size(int size, ODBC_CHAR * str _WIDE);
 void odbc_rdbms_version(TDSSOCKET * tds_socket, char *pversion_string);
 SQLINTEGER odbc_get_param_len(const struct _drecord *drec_axd, const struct _drecord *drec_ixd, const TDS_DESC* axd, unsigned int n_row);

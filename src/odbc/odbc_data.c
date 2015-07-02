@@ -36,149 +36,6 @@
 #include <freetds/odbc.h>
 #include <odbcss.h>
 
-/**
- * Convert type from database to ODBC
- */
-static SQLSMALLINT
-data_generic_server_to_sql_type(TDSCOLUMN *col)
-{
-	int col_type = col->on_server.column_type;
-	int col_size = col->on_server.column_size;
-
-	/* FIXME finish */
-	switch (tds_get_conversion_type(col_type, col_size)) {
-	case XSYBCHAR:
-	case SYBCHAR:
-		return SQL_CHAR;
-	case XSYBVARCHAR:
-	case SYBVARCHAR:
-		return SQL_VARCHAR;
-	case SYBTEXT:
-		return SQL_LONGVARCHAR;
-	case XSYBNCHAR:
-		return SQL_WCHAR;
-	/* TODO really sure ?? SYBNVARCHAR sybase only ?? */
-	case SYBNVARCHAR:
-	case XSYBNVARCHAR:
-		return SQL_WVARCHAR;
-	case SYBNTEXT:
-		return SQL_WLONGVARCHAR;
-	case SYBBIT:
-		return SQL_BIT;
-#if (ODBCVER >= 0x0300)
-	case SYBUINT8:
-	case SYB5INT8:
-	case SYBINT8:
-		/* TODO return numeric for odbc2 and convert bigint to numeric */
-		return SQL_BIGINT;
-#endif
-	case SYBINT4:
-	case SYBUINT4:
-		return SQL_INTEGER;
-	case SYBUINT2:
-	case SYBINT2:
-		return SQL_SMALLINT;
-	case SYBUINT1:
-	case SYBSINT1:
-	case SYBINT1:
-		return SQL_TINYINT;
-	case SYBREAL:
-		return SQL_REAL;
-	case SYBFLT8:
-		return SQL_DOUBLE;
-	case SYBMONEY:
-	case SYBMONEY4:
-		return SQL_DECIMAL;
-	case SYBDATETIME:
-	case SYBDATETIME4:
-#if (ODBCVER >= 0x0300)
-		return SQL_TYPE_TIMESTAMP;
-#else
-		return SQL_TIMESTAMP;
-#endif
-	case XSYBBINARY:
-	case SYBBINARY:
-		return SQL_BINARY;
-	case SYBLONGBINARY:
-	case SYBIMAGE:
-		return SQL_LONGVARBINARY;
-	case XSYBVARBINARY:
-	case SYBVARBINARY:
-		return SQL_VARBINARY;
-#if (ODBCVER >= 0x0300)
-	case SYBUNIQUE:
-#ifdef SQL_GUID
-		return SQL_GUID;
-#else
-		return SQL_CHAR;
-#endif
-#endif
-	case SYBMSXML:
-		return SQL_SS_XML;
-		/*
-		 * TODO what should I do with these types ??
-		 * return other types can cause additional problems
-		 */
-	case SYBVOID:
-	case SYBDATE:
-	case SYBDATEN:
-	case SYBINTERVAL:
-	case SYBTIME:
-	case SYBTIMEN:
-	case SYBUNITEXT:
-	case SYBXML:
-	case SYBMSUDT:
-		/* these types are handled by tds_get_conversion_type */
-	case SYBINTN:
-	case SYBBITN:
-	case SYBFLTN:
-	case SYBMONEYN:
-	case SYBDATETIMN:
-	case SYBUINTN:
-		break;
-	}
-	return SQL_UNKNOWN_TYPE;
-}
-
-static SQLSMALLINT
-data_msdatetime_server_to_sql_type(TDSCOLUMN *col)
-{
-	switch (col->on_server.column_type) {
-	case SYBMSTIME:
-		return SQL_SS_TIME2;
-	case SYBMSDATE:
-		return SQL_TYPE_DATE;
-	case SYBMSDATETIMEOFFSET:
-		return SQL_SS_TIMESTAMPOFFSET;
-	case SYBMSDATETIME2:
-		return SQL_TYPE_TIMESTAMP;
-	}
-	return SQL_UNKNOWN_TYPE;
-}
-
-static SQLSMALLINT
-data_variant_server_to_sql_type(TDSCOLUMN *col)
-{
-	return SQL_SS_VARIANT;
-}
-
-static SQLSMALLINT
-data_numeric_server_to_sql_type(TDSCOLUMN *col)
-{
-	return SQL_NUMERIC;
-}
-
-static SQLSMALLINT
-data_clrudt_server_to_sql_type(TDSCOLUMN *col)
-{
-	return SQL_LONGVARBINARY;
-}
-
-static void
-data_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
-{
-	const char *type;
-
 #define SET_INFO(type, prefix, suffix) do { \
 	drec->sql_desc_literal_prefix = prefix; \
 	drec->sql_desc_literal_suffix = suffix; \
@@ -190,135 +47,305 @@ data_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
 	SET_INFO(type, prefix, suffix); \
 	} while(0)
 
-	drec->sql_desc_unsigned = SQL_FALSE;
-	drec->sql_desc_octet_length = drec->sql_desc_length = col->on_server.column_size;
+static void
+data_msdatetime_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
+{
+	switch (col->on_server.column_type) {
+	case SYBMSTIME:
+		drec->sql_desc_concise_type = SQL_SS_TIME2;
+		/* FIXME check always hh:mm:ss[.fff] */
+		drec->sql_desc_display_size = 19;
+		SET_INFO2("time", "'", "'", col->column_prec + 9);
+	case SYBMSDATE:
+		drec->sql_desc_concise_type = SQL_TYPE_DATE;
+		/* FIXME check always yyyy-mm-dd ?? */
+		drec->sql_desc_display_size = 19;
+		SET_INFO2("date", "'", "'", 10);
+	case SYBMSDATETIMEOFFSET:
+		drec->sql_desc_concise_type = SQL_SS_TIMESTAMPOFFSET;
+		/* TODO dependent on precision (decimal second digits) */
+		/* we always format using yyyy-mm-dd hh:mm:ss[.fff], see convert_tds2sql.c */
+		drec->sql_desc_display_size = 19;
+		SET_INFO2("datetimeoffset", "'", "'", col->column_prec + 27);
+	case SYBMSDATETIME2:
+		drec->sql_desc_concise_type = SQL_TYPE_TIMESTAMP;
+		drec->sql_desc_datetime_interval_code = SQL_CODE_TIMESTAMP;
+		/* TODO dependent on precision (decimal second digits) */
+		/* we always format using yyyy-mm-dd hh:mm:ss[.fff], see convert_tds2sql.c */
+		drec->sql_desc_display_size = 19;
+		SET_INFO2("datetime2", "'", "'", col->column_prec + 20);
+	}
+}
 
-	switch (tds_get_conversion_type(col->column_type, col->column_size)) {
+static void
+data_variant_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
+{
+	drec->sql_desc_concise_type = SQL_SS_VARIANT;
+	drec->sql_desc_display_size = 8000;
+	drec->sql_desc_octet_length = 0;
+	SET_INFO2("sql_variant", "", "", 8000);
+}
+
+static void
+data_numeric_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
+{
+	const char *type_name =
+		col->on_server.column_type == SYBNUMERIC ? "numeric" : "decimal";
+
+	drec->sql_desc_concise_type = SQL_NUMERIC;
+	drec->sql_desc_octet_length = col->column_prec + 2;
+	drec->sql_desc_display_size = col->column_prec + 2;
+	drec->sql_desc_num_prec_radix = 10;
+	SET_INFO2(type_name, "", "", col->column_prec);
+}
+
+static void
+data_clrudt_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
+{
+	drec->sql_desc_concise_type = SQL_LONGVARBINARY;
+	/* TODO ??? */
+	drec->sql_desc_display_size = col->column_size * 2;
+}
+
+static void
+data_generic_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
+{
+	int col_type = col->on_server.column_type;
+	int col_size = col->on_server.column_size;
+
+	switch (tds_get_conversion_type(col_type, col_size)) {
+	case XSYBNCHAR:
+		drec->sql_desc_concise_type = SQL_WCHAR;
+		drec->sql_desc_display_size = col->on_server.column_size / 2;
+		SET_INFO2("nchar", "'", "'", col->on_server.column_size / 2);
+
 	case XSYBCHAR:
 	case SYBCHAR:
-		if (col->on_server.column_type == XSYBNCHAR)
-			SET_INFO2("nchar", "'", "'", col->on_server.column_size / 2);
+		drec->sql_desc_concise_type = SQL_CHAR;
+		drec->sql_desc_display_size = col->on_server.column_size;
 		SET_INFO("char", "'", "'");
-	case XSYBVARCHAR:
-	case SYBVARCHAR:
-		type = "varchar";
-		if (col->on_server.column_type == SYBNVARCHAR || col->on_server.column_type == XSYBNVARCHAR) {
-			drec->sql_desc_length = col->on_server.column_size / 2u;
-			type = "nvarchar";
-		}
-		if (is_blob_col(col))
+
+	/* TODO really sure ?? SYBNVARCHAR sybase only ?? */
+	case SYBNVARCHAR:
+	case XSYBNVARCHAR:
+		drec->sql_desc_concise_type = SQL_WVARCHAR;
+		drec->sql_desc_display_size = col->on_server.column_size / 2;
+		drec->sql_desc_length = col->on_server.column_size / 2u;
+		if (is_blob_col(col)) {
+			drec->sql_desc_display_size = SQL_SS_LENGTH_UNLIMITED;
 			drec->sql_desc_octet_length = drec->sql_desc_length =
 				SQL_SS_LENGTH_UNLIMITED;
-		SET_INFO(type, "'", "'");
+		}
+		SET_INFO("nvarchar", "'", "'");
+
+	case XSYBVARCHAR:
+	case SYBVARCHAR:
+		drec->sql_desc_concise_type = SQL_VARCHAR;
+		drec->sql_desc_display_size = col->on_server.column_size;
+		if (is_blob_col(col)) {
+			drec->sql_desc_display_size = SQL_SS_LENGTH_UNLIMITED;
+			drec->sql_desc_octet_length = drec->sql_desc_length =
+				SQL_SS_LENGTH_UNLIMITED;
+		}
+		SET_INFO("varchar", "'", "'");
+
+	case SYBNTEXT:
+		drec->sql_desc_concise_type = SQL_WLONGVARCHAR;
+		drec->sql_desc_display_size = col->on_server.column_size / 2;
+		SET_INFO2("ntext", "'", "'", col->on_server.column_size / 2);
+
 	case SYBTEXT:
-		if (col->on_server.column_type == SYBNTEXT)
-			SET_INFO2("ntext", "'", "'", col->on_server.column_size / 2);
+		drec->sql_desc_concise_type = SQL_LONGVARCHAR;
+		drec->sql_desc_display_size = col->on_server.column_size;
 		SET_INFO("text", "'", "'");
+
 	case SYBBIT:
 	case SYBBITN:
+		drec->sql_desc_concise_type = SQL_BIT;
+		drec->sql_desc_display_size = 1;
 		drec->sql_desc_unsigned = SQL_TRUE;
 		SET_INFO2("bit", "", "", 1);
+
 #if (ODBCVER >= 0x0300)
+	case SYB5INT8:
 	case SYBINT8:
 		/* TODO return numeric for odbc2 and convert bigint to numeric */
+		drec->sql_desc_concise_type = SQL_BIGINT;
+		drec->sql_desc_display_size = 20;
 		SET_INFO2("bigint", "", "", 19);
 #endif
+
 	case SYBINT4:
+		drec->sql_desc_concise_type = SQL_INTEGER;
+		drec->sql_desc_display_size = 11;	/* -1000000000 */
 		SET_INFO2("int", "", "", 10);
+
 	case SYBINT2:
+		drec->sql_desc_concise_type = SQL_SMALLINT;
+		drec->sql_desc_display_size = 6;	/* -10000 */
 		SET_INFO2("smallint", "", "", 5);
+
 	case SYBUINT1:
 	case SYBINT1:
 		drec->sql_desc_unsigned = SQL_TRUE;
+	case SYBSINT1: /* TODO not another type_name ?? */
+		drec->sql_desc_concise_type = SQL_TINYINT;
+		drec->sql_desc_display_size = 3;	/* 255 */
 		SET_INFO2("tinyint", "", "", 3);
+
 #if (ODBCVER >= 0x0300)
 	case SYBUINT8:
 		drec->sql_desc_unsigned = SQL_TRUE;
+		drec->sql_desc_concise_type = SQL_BIGINT;
+		drec->sql_desc_display_size = 20;
 		/* TODO return numeric for odbc2 and convert bigint to numeric */
 		SET_INFO2("unsigned bigint", "", "", 19);
 #endif
+
 	case SYBUINT4:
 		drec->sql_desc_unsigned = SQL_TRUE;
+		drec->sql_desc_concise_type = SQL_INTEGER;
+		drec->sql_desc_display_size = 10;
 		SET_INFO2("unsigned int", "", "", 10);
+
 	case SYBUINT2:
 		drec->sql_desc_unsigned = SQL_TRUE;
+		drec->sql_desc_concise_type = SQL_SMALLINT;
+		drec->sql_desc_display_size = 5;	/* 65535 */
 		SET_INFO2("unsigned smallint", "", "", 5);
+
 	case SYBREAL:
+		drec->sql_desc_concise_type = SQL_REAL;
+		drec->sql_desc_display_size = 14;
 		SET_INFO2("real", "", "", odbc_ver == SQL_OV_ODBC3 ? 24 : 7);
+
 	case SYBFLT8:
+		drec->sql_desc_concise_type = SQL_DOUBLE;
+		drec->sql_desc_display_size = 24;	/* FIXME -- what should the correct size be? */
 		SET_INFO2("float", "", "", odbc_ver == SQL_OV_ODBC3 ? 53 : 15);
+
 	case SYBMONEY:
+		/* TODO check money format returned by propretary ODBC, scale == 4 but we use 2 digits */
+		drec->sql_desc_concise_type = SQL_DECIMAL;
 		drec->sql_desc_octet_length = 21;
+		drec->sql_desc_display_size = 21;
+		drec->sql_desc_precision = 19;
+		drec->sql_desc_scale     = 4;
 		SET_INFO2("money", "$", "", 19);
+
 	case SYBMONEY4:
+		drec->sql_desc_concise_type = SQL_DECIMAL;
 		drec->sql_desc_octet_length = 12;
+		drec->sql_desc_display_size = 12;
+		drec->sql_desc_precision = 10;
+		drec->sql_desc_scale     = 4;
 		SET_INFO2("money", "$", "", 10);
+
 	case SYBDATETIME:
+		drec->sql_desc_concise_type = SQL_TYPE_TIMESTAMP;
+		drec->sql_desc_display_size = 23;
 		drec->sql_desc_octet_length = sizeof(TIMESTAMP_STRUCT);
+		drec->sql_desc_precision = 3;
+		drec->sql_desc_scale     = 3;
+		drec->sql_desc_datetime_interval_code = SQL_CODE_TIMESTAMP;
 		SET_INFO2("datetime", "'", "'", 23);
+
 	case SYBDATETIME4:
+		drec->sql_desc_concise_type = SQL_TYPE_TIMESTAMP;
+		/* TODO dependent on precision (decimal second digits) */
+		/* we always format using yyyy-mm-dd hh:mm:ss[.fff], see convert_tds2sql.c */
+		drec->sql_desc_display_size = 19;
 		drec->sql_desc_octet_length = sizeof(TIMESTAMP_STRUCT);
+		drec->sql_desc_datetime_interval_code = SQL_CODE_TIMESTAMP;
 		SET_INFO2("datetime", "'", "'", 16);
+
+	case XSYBBINARY:
 	case SYBBINARY:
+		drec->sql_desc_concise_type = SQL_BINARY;
+		drec->sql_desc_display_size = col->column_size * 2;
 		/* handle TIMESTAMP using usertype */
 		if (col->column_usertype == 80)
 			SET_INFO("timestamp", "0x", "");
 		SET_INFO("binary", "0x", "");
+
+	case SYBLONGBINARY:
 	case SYBIMAGE:
+		drec->sql_desc_concise_type = SQL_LONGVARBINARY;
+		drec->sql_desc_display_size = col->column_size * 2;
 		SET_INFO("image", "0x", "");
+
+	case XSYBVARBINARY:
 	case SYBVARBINARY:
-		if (is_blob_col(col))
+		drec->sql_desc_concise_type = SQL_VARBINARY;
+		drec->sql_desc_display_size = col->column_size * 2;
+		if (is_blob_col(col)) {
+			drec->sql_desc_display_size = SQL_SS_LENGTH_UNLIMITED;
 			drec->sql_desc_octet_length = drec->sql_desc_length =
 				SQL_SS_LENGTH_UNLIMITED;
+		}
 		SET_INFO("varbinary", "0x", "");
-	case SYBNUMERIC:
-		drec->sql_desc_octet_length = col->column_prec + 2;
-		SET_INFO2("numeric", "", "", col->column_prec);
-	case SYBDECIMAL:
-		drec->sql_desc_octet_length = col->column_prec + 2;
-		SET_INFO2("decimal", "", "", col->column_prec);
+
 	case SYBINTN:
 	case SYBDATETIMN:
 	case SYBFLTN:
 	case SYBMONEYN:
+	case SYBUINTN:
+	case SYBTIMEN:
+	case SYBDATEN:
 		assert(0);
+
 	case SYBVOID:
-	case SYBNTEXT:
-	case SYBNVARCHAR:
-	case XSYBNVARCHAR:
-	case XSYBNCHAR:
+	case SYBDATE:
+	case SYBINTERVAL:
+	case SYBTIME:
+	case SYBUNITEXT:
+	case SYBXML:
+	case SYBMSUDT:
 		break;
+
 #if (ODBCVER >= 0x0300)
 	case SYBUNIQUE:
+#ifdef SQL_GUID
+		drec->sql_desc_concise_type = SQL_GUID;
+#else
+		drec->sql_desc_concise_type = SQL_CHAR;
+#endif
+		drec->sql_desc_display_size = 36;
 		/* FIXME for Sybase ?? */
 		SET_INFO2("uniqueidentifier", "'", "'", 36);
-	case SYBVARIANT:
-		SET_INFO("sql_variant", "", "");
-		break;
 #endif
-	case SYBMSDATETIMEOFFSET:
-		SET_INFO2("datetimeoffset", "'", "'", col->column_prec + 27);
-	case SYBMSDATETIME2:
-		SET_INFO2("datetime2", "'", "'", col->column_prec + 20);
-	case SYBMSTIME:
-		SET_INFO2("time", "'", "'", col->column_prec + 9);
-	case SYBMSDATE:
-		SET_INFO2("date", "'", "'", 10);
+
 	case SYBMSXML:
+		drec->sql_desc_concise_type = SQL_SS_XML;
+		drec->sql_desc_display_size = SQL_SS_LENGTH_UNLIMITED;
 		drec->sql_desc_octet_length = drec->sql_desc_length =
 			SQL_SS_LENGTH_UNLIMITED;
 		SET_INFO("xml", "'", "'");
 	}
 	SET_INFO("", "", "");
-#undef SET_INFO
-#undef SET_INFO2
+}
+
+void
+odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
+{
+	drec->sql_desc_precision = col->column_prec;
+	drec->sql_desc_scale     = col->column_scale;
+	drec->sql_desc_unsigned = SQL_FALSE;
+	drec->sql_desc_octet_length = drec->sql_desc_length = col->on_server.column_size;
+	drec->sql_desc_num_prec_radix = 0;
+	drec->sql_desc_datetime_interval_code = 0;
+
+	((TDS_FUNCS *) col->funcs)->set_type_info(col, drec, odbc_ver);
+
+	drec->sql_desc_type = drec->sql_desc_concise_type;
+	if (drec->sql_desc_concise_type == SQL_TYPE_TIMESTAMP)
+		drec->sql_desc_type = SQL_DATETIME;
 }
 
 #  define TDS_DEFINE_FUNCS(name) \
 	const TDS_FUNCS tds_ ## name ## _funcs = { \
 		TDS_COMMON_FUNCS(name), \
-		data_ ## name ## _server_to_sql_type, \
-		data_set_type_info, \
+		data_ ## name ## _set_type_info, \
 	}
 TDS_DEFINE_FUNCS(generic);
 TDS_DEFINE_FUNCS(numeric);
