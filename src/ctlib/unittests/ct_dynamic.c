@@ -372,6 +372,12 @@ main(int argc, char *argv[])
 	}
 	chk(ret == CS_END_RESULTS, "ct_results() unexpected return.\n", (int) ret);
 
+	ct_dynamic(cmd, CS_DEALLOC, "invalid", CS_NULLTERM, NULL, CS_UNUSED);
+	ct_send(cmd);
+	while ((ret = ct_results(cmd, &res_type)) == CS_SUCCEED)
+		chk(res_type != CS_ROW_RESULT, "Rows not expected\n");
+	chk(ret == CS_END_RESULTS, "ct_results() unexpected return.\n", (int) ret);
+
 	ret = ct_dynamic(cmd2, CS_EXECUTE, "age", CS_NULLTERM, NULL, CS_UNUSED);
 	chk(ret == CS_SUCCEED, "ct_dynamic failed\n");
 
