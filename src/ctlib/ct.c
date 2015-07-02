@@ -3082,9 +3082,6 @@ ct_dynamic(CS_COMMAND * cmd, CS_INT type, CS_CHAR * id, CS_INT idlen, CS_CHAR * 
 	if (!cmd->con)
 		return CS_FAIL;
 
-	cmd->command_type = CS_DYNAMIC_CMD;
-	cmd->dynamic_cmd = type;
-
 	con = cmd->con;
 
 	switch (type) {
@@ -3127,7 +3124,12 @@ ct_dynamic(CS_COMMAND * cmd, CS_INT type, CS_CHAR * id, CS_INT idlen, CS_CHAR * 
 		param_clear(cmd->dyn->param_list);
 		cmd->dyn->param_list = NULL;
 		break;
+	default:
+		return CS_FAIL;
 	}
+
+	cmd->command_type = CS_DYNAMIC_CMD;
+	cmd->dynamic_cmd = type;
 
 	ct_set_command_state(cmd, _CS_COMMAND_READY);
 	return CS_SUCCEED;
