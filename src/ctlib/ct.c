@@ -4581,6 +4581,9 @@ _ct_deallocate_dynamic(CS_CONNECTION * con, CS_DYNAMIC *dyn)
 
 	tdsdump_log(TDS_DBG_FUNC, "_ct_deallocate_dynamic(%p, %p)\n", con, dyn);
 
+	if (!dyn)
+		return CS_SUCCEED;
+
 	pvictim = &con->dynlist;
 	for (; *pvictim != dyn;) {
 		if (*pvictim == NULL) {
