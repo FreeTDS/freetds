@@ -159,8 +159,7 @@ data_msdatetime_server_to_sql_type(TDSCOLUMN *col)
 static SQLSMALLINT
 data_variant_server_to_sql_type(TDSCOLUMN *col)
 {
-	/* TODO support it */
-	return SQL_UNKNOWN_TYPE;
+	return SQL_SS_VARIANT;
 }
 
 static SQLSMALLINT

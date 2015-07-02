@@ -870,6 +870,12 @@ odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned)
 			return XSYBNVARCHAR;
 	case SQL_VARCHAR:
 		return SYBVARCHAR;
+	case SQL_SS_VARIANT:
+		if (IS_TDS71_PLUS(conn))
+			return SYBVARIANT;
+		if (IS_TDS7_PLUS(conn))
+			return XSYBNVARCHAR;
+		return SYBVARCHAR;
 	case SQL_WLONGVARCHAR:
 		if (IS_TDS7_PLUS(conn))
 			return SYBNTEXT;
@@ -1031,6 +1037,7 @@ odbc_get_param_len(const struct _drecord *drec_axd, const struct _drecord *drec_
 \
 	TYPE_NORMAL(SQL_SS_TIMESTAMPOFFSET) \
 	TYPE_NORMAL(SQL_SS_TIME2) \
+	TYPE_NORMAL(SQL_SS_VARIANT) \
 	TYPE_NORMAL(SQL_TYPE_DATE) \
 \
 	TYPE_VERBOSE_START(SQL_DATETIME) \
