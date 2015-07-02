@@ -79,6 +79,22 @@
 #define SQL_MARS_ENABLED_YES	1
 #endif
 
+#ifndef SQL_SS_VARIANT
+#define SQL_SS_VARIANT	(-150)
+#endif
+
+#ifndef SQL_SS_UDT
+#define SQL_SS_UDT	(-151)
+#endif
+
+#ifndef SQL_SS_XML
+#define SQL_SS_XML	(-152)
+#endif
+
+#ifndef SQL_SS_TABLE
+#define SQL_SS_TABLE	(-153)
+#endif
+
 #ifndef SQL_SS_TIME2
 #define SQL_SS_TIME2	(-154)
 #endif

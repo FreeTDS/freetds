@@ -1,6 +1,7 @@
 #include "common.h"
 #include <ctype.h>
 #include "parser.h"
+#include <freetds/odbc.h>
 
 /*
  * SQLDescribeCol test for precision
@@ -87,6 +88,12 @@ static struct lookup_int sql_types[] = {
 	TYPE(SQL_TYPE_TIME),
 	TYPE(SQL_TYPE_TIMESTAMP),
 	TYPE(SQL_DATETIME),
+	TYPE(SQL_SS_VARIANT),
+	TYPE(SQL_SS_UDT),
+	TYPE(SQL_SS_XML),
+	TYPE(SQL_SS_TABLE),
+	TYPE(SQL_SS_TIME2),
+	TYPE(SQL_SS_TIMESTAMPOFFSET),
 #undef TYPE
 	{ NULL, 0 }
 };
