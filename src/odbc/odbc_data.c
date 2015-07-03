@@ -199,7 +199,7 @@ data_generic_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER od
 		drec->sql_desc_concise_type = SQL_BIGINT;
 		drec->sql_desc_display_size = 20;
 		/* TODO return numeric for odbc2 and convert bigint to numeric */
-		SET_INFO2("unsigned bigint", "", "", 19);
+		SET_INFO2("unsigned bigint", "", "", 20);
 #endif
 
 	case SYBUINT4:
