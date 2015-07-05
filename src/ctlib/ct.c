@@ -666,39 +666,32 @@ Cleanup:
 }
 
 CS_RETCODE
-ct_cmd_alloc(CS_CONNECTION * con, CS_COMMAND ** cmd)
+ct_cmd_alloc(CS_CONNECTION * con, CS_COMMAND ** pcmd)
 {
-	CS_COMMAND_LIST *command_list;
-	CS_COMMAND_LIST *pcommand;
+	CS_COMMAND *pcommand, *cmd;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_cmd_alloc(%p, %p)\n", con, cmd);
+	tdsdump_log(TDS_DBG_FUNC, "ct_cmd_alloc(%p, %p)\n", con, pcmd);
 
-	*cmd = (CS_COMMAND *) calloc(1, sizeof(CS_COMMAND));
-	if (!*cmd)
+	if (!con)
+		return CS_FAIL;
+
+	*pcmd = cmd = (CS_COMMAND *) calloc(1, sizeof(CS_COMMAND));
+	if (!cmd)
 		return CS_FAIL;
 
 	/* so we know who we belong to */
-	(*cmd)->con = con;
+	cmd->con = con;
 
 	/* initialise command state */
-	ct_set_command_state(*cmd, _CS_COMMAND_IDLE);
-
-	command_list = (CS_COMMAND_LIST*) calloc(1, sizeof(CS_COMMAND_LIST));
-	command_list->cmd = *cmd;
-	command_list->next = NULL;
+	ct_set_command_state(cmd, _CS_COMMAND_IDLE);
 
 	if ( con->cmds == NULL ) {
 		tdsdump_log(TDS_DBG_FUNC, "ct_cmd_alloc() : allocating command list to head\n");
-		con->cmds = command_list;
+		con->cmds = cmd;
 	} else {
-		pcommand = con->cmds;
-		for (;;) {
-			tdsdump_log(TDS_DBG_FUNC, "ct_cmd_alloc() : stepping thru existing commands\n");
-			if (pcommand->next == NULL)
-				break;
-			pcommand = pcommand->next;
-		}
-		pcommand->next = command_list;
+		for (pcommand = con->cmds; pcommand->next != NULL; pcommand = pcommand->next)
+			continue;
+		pcommand->next = cmd;
 	}
 
 	return CS_SUCCEED;
@@ -1786,9 +1779,6 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 CS_RETCODE
 ct_cmd_drop(CS_COMMAND * cmd)
 {
-	CS_COMMAND_LIST *victim = NULL;
-	CS_COMMAND_LIST *prev = NULL;
-	CS_COMMAND_LIST *next = NULL;
 	CS_CONNECTION *con;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_cmd_drop(%p)\n", cmd);
@@ -1807,34 +1797,20 @@ ct_cmd_drop(CS_COMMAND * cmd)
 		free(cmd->iodesc);
 
 		/* now remove this command from the list of commands in the connection */
-		if (cmd->con) {
-			con = cmd->con;
-			victim = con->cmds;
+		con = cmd->con;
+		if (con) {
+			CS_COMMAND **pvictim;
 
-			for (;;) {
-				if (victim->cmd == cmd)
-					break;
-				prev = victim;
-				victim = victim->next;
-				if (victim == NULL) {
+			for (pvictim = &con->cmds; *pvictim != cmd; ) {
+				if (*pvictim == NULL) {
 					tdsdump_log(TDS_DBG_FUNC, "ct_cmd_drop() : cannot find command entry in list \n");
 					return CS_FAIL;
 				}
+				pvictim = &(*pvictim)->next;
 			}
-
-			tdsdump_log(TDS_DBG_FUNC, "ct_cmd_drop() : command entry found in list\n");
-
-			next = victim->next;
-			free(victim);
-
-			tdsdump_log(TDS_DBG_FUNC, "ct_cmd_drop() : relinking list\n");
-
-			if (prev)
-				prev->next = next;
-			else
-				con->cmds = next;
-
-			tdsdump_log(TDS_DBG_FUNC, "ct_cmd_drop() : relinked list\n");
+			/* remove from list */
+			*pvictim = cmd->next;
+			cmd->next = NULL;
 		}
 
 		free(cmd);
@@ -1856,7 +1832,7 @@ ct_close(CS_CONNECTION * con, CS_INT option)
 CS_RETCODE
 ct_con_drop(CS_CONNECTION * con)
 {
-	CS_COMMAND_LIST *currptr, *freeptr;
+	CS_COMMAND *cmd, *next_cmd;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_con_drop(%p)\n", con);
 
@@ -1864,17 +1840,12 @@ ct_con_drop(CS_CONNECTION * con)
 		free(con->userdata);
 		if (con->tds_login)
 			tds_free_login(con->tds_login);
-		if (con->cmds) {
-			currptr = con->cmds;
-			while (currptr != NULL) {
-				freeptr = currptr;
-				if (currptr->cmd) {
-					currptr->cmd->con = NULL;
-					currptr->cmd->dyn = NULL;
-				}
-				currptr = currptr->next;
-				free(freeptr);
-			}
+		while ((cmd = con->cmds) != NULL) {
+			next_cmd  = cmd->next;
+			cmd->con  = NULL;
+			cmd->dyn  = NULL;
+			cmd->next = NULL;
+			con->cmds = next_cmd;
 		}
 		while (con->dynlist)
 			_ct_deallocate_dynamic(con, con->dynlist);
@@ -2051,7 +2022,7 @@ CS_RETCODE
 ct_cancel(CS_CONNECTION * conn, CS_COMMAND * cmd, CS_INT type)
 {
 	CS_RETCODE ret;
-	CS_COMMAND_LIST *cmds;
+	CS_COMMAND *cmds;
 	CS_COMMAND *conn_cmd;
 	CS_CONNECTION *cmd_conn;
 
@@ -2148,7 +2119,7 @@ ct_cancel(CS_CONNECTION * conn, CS_COMMAND * cmd, CS_INT type)
 		if (conn) {
 			tdsdump_log(TDS_DBG_FUNC, "CS_CANCEL_ATTN with connection\n");
 			for (cmds = conn->cmds; cmds != NULL; cmds = cmds->next) {
-				conn_cmd = cmds->cmd;
+				conn_cmd = cmds;
 				switch (conn_cmd->command_state) {
 					case _CS_COMMAND_IDLE:
 					case _CS_COMMAND_READY:
@@ -2227,7 +2198,7 @@ ct_cancel(CS_CONNECTION * conn, CS_COMMAND * cmd, CS_INT type)
 			tdsdump_log(TDS_DBG_FUNC, "CS_CANCEL_ALL with connection\n");
 			for (cmds = conn->cmds; cmds != NULL; cmds = cmds->next) {
 				tdsdump_log(TDS_DBG_FUNC, "ct_cancel() cancelling a command for a connection\n");
-				conn_cmd = cmds->cmd;
+				conn_cmd = cmds;
 				switch (conn_cmd->command_state) {
 					case _CS_COMMAND_IDLE:
 					case _CS_COMMAND_BUILDING:
@@ -4558,7 +4529,7 @@ _ct_locate_dynamic(CS_CONNECTION * con, char *id, int idlen)
 static CS_INT
 _ct_deallocate_dynamic(CS_CONNECTION * con, CS_DYNAMIC *dyn)
 {
-	CS_DYNAMIC_LIST **pvictim;
+	CS_DYNAMIC **pvictim;
 
 	tdsdump_log(TDS_DBG_FUNC, "_ct_deallocate_dynamic(%p, %p)\n", con, dyn);
 

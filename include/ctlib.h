@@ -111,8 +111,6 @@ typedef struct _ct_colinfo
 }
 CT_COLINFO;
 
-typedef struct _cs_command_list CS_COMMAND_LIST;
-typedef struct _cs_dynamic CS_DYNAMIC_LIST;
 typedef struct _cs_dynamic CS_DYNAMIC;
 
 struct _cs_connection
@@ -125,8 +123,8 @@ struct _cs_connection
 	void *userdata;
 	int userdata_len;
 	CS_LOCALE *locale;
-	CS_COMMAND_LIST *cmds;
-	CS_DYNAMIC_LIST *dynlist;
+	CS_COMMAND *cmds;
+	CS_DYNAMIC *dynlist;
 	char *server_addr;
 };
 
@@ -211,6 +209,7 @@ struct _cs_dynamic
 
 struct _cs_command
 {
+	struct _cs_command *next;
 	CS_INT command_state;
 	CS_INT results_state;
 	CS_INT cancel_state;
@@ -233,12 +232,6 @@ struct _cs_command
 	TDSCURSOR *cursor;
 	void *userdata;
 	int userdata_len;
-};
-
-struct _cs_command_list
-{
-	struct _cs_command *cmd;
-	struct _cs_command_list *next;
 };
 
 struct _cs_blkdesc
