@@ -535,6 +535,15 @@ odbc_reset_statement_proc(SQLHSTMT *stmt, const char *file, int line)
 }
 
 void
+odbc_test_skipped(void)
+{
+	const char *p = getenv("TDS_SKIP_SUCCESS");
+	if (p && atoi(p) != 0)
+		exit(0);
+	exit(77);
+}
+
+void
 odbc_check_cursor(void)
 {
 	SQLRETURN retcode;
@@ -551,7 +560,7 @@ odbc_check_cursor(void)
 			printf("Your connection seems to not support cursors, probably you are using wrong protocol version or Sybase\n");
 			odbc_disconnect();
 			ODBC_FREE();
-			exit(0);
+			odbc_test_skipped();
 		}
 		ReportODBCError("SQLSetStmtAttr", SQL_HANDLE_STMT, odbc_stmt, retcode, __LINE__, __FILE__);
 	}
