@@ -53,6 +53,7 @@ main(int argc, char *argv[])
 	if (!out || odbc_command2("BEGIN TRANSACTION", "SNoE") != SQL_ERROR) {
 		printf("MARS not supported for this connection\n");
 		odbc_disconnect();
+		odbc_test_skipped();
 		return 0;
 	}
 	odbc_read_error();

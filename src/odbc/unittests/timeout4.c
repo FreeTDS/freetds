@@ -121,6 +121,7 @@ int
 main(void)
 {
 	printf("Not possible for this platform.\n");
+	odbc_test_skipped();
 	return 0;
 }
 #endif

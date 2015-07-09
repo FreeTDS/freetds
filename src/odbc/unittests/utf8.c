@@ -120,12 +120,14 @@ main(int argc, char *argv[])
 	if (!odbc_driver_is_freetds()) {
 		odbc_disconnect();
 		printf("Driver is not FreeTDS, exiting\n");
+		odbc_test_skipped();
 		return 0;
 	}
 
 	if (!odbc_db_is_microsoft() || odbc_db_version_int() < 0x08000000u) {
 		odbc_disconnect();
 		printf("Test for MSSQL only\n");
+		odbc_test_skipped();
 		return 0;
 	}
 
