@@ -537,7 +537,7 @@ typedef struct tds_login
 	DSTR server_spn;		/**< server SPN (in freetds.conf) */
 	DSTR db_filename;		/**< database filename to attach (MSSQL) */
 	DSTR cafile;			/**< certificate authorities file */
-	DSTR crlfile;			/**< certificare revocation file */
+	DSTR crlfile;			/**< certificate revocation file */
 	DSTR app_name;
 	DSTR user_name;	    	/**< account for login */
 	DSTR password;	    	/**< password of account login */
