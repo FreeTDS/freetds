@@ -1372,21 +1372,12 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 				 * received immediately prior to the DONE_PROC
 				 */
 
-				if (cmd->results_state == _CS_RES_STATUS) {
-					if (done_flags & TDS_DONE_ERROR)
-						*result_type = CS_CMD_FAIL;
-					else
-						*result_type = CS_CMD_SUCCEED;
-					cmd->results_state = _CS_RES_CMD_DONE;
-					return CS_SUCCEED;
-				} else {
-					if (cmd->command_type == CS_DYNAMIC_CMD) {
-						*result_type = CS_CMD_SUCCEED;
-						cmd->results_state = _CS_RES_CMD_DONE;
-						return CS_SUCCEED;
-					}
-				}
-
+				if (done_flags & TDS_DONE_ERROR)
+					*result_type = CS_CMD_FAIL;
+				else
+					*result_type = CS_CMD_SUCCEED;
+				cmd->results_state = _CS_RES_CMD_DONE;
+				return CS_SUCCEED;
 				break;
 
 			case TDS_PARAM_RESULT:
