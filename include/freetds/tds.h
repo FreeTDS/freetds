@@ -476,6 +476,7 @@ extern const char *const tds_type_names[256];
 #define TDS_STR_DATEFMT	"date format"
 #define TDS_STR_INSTANCE "instance"
 #define TDS_STR_ASA_DATABASE	"asa database"
+#define TDS_STR_DATABASE	"database"
 #define TDS_STR_ENCRYPTION	 "encryption"
 #define TDS_STR_USENTLMV2	"use ntlmv2"
 #define TDS_STR_USELANMAN	"use lanman"

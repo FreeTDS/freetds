@@ -659,6 +659,8 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		s = tds_dstr_copy(&login->crlfile, value);
 	} else if (!strcmp(option, TDS_STR_CHECKSSLHOSTNAME)) {
 		login->check_ssl_hostname = tds_config_boolean(option, value, login);
+	} else if (!strcmp(option, TDS_STR_DATABASE)) {
+		s = tds_dstr_copy(&login->database, value);
 	} else {
 		tdsdump_log(TDS_DBG_INFO1, "UNRECOGNIZED option '%s' ... ignoring.\n", option);
 	}

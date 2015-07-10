@@ -982,6 +982,14 @@ versions that &freetds; had labeled 8.0 and 9.0 were actually versions 7.1 and 7
 							<entry>servername [<replaceable>section</>] name</entry>
 							<entry>Specifies the name of the default database when connecting to an ASA server.  A TDS 5.0 login packet has a field called <literal>lservname</>.   For most TDS servers, <literal>lservname</> is a user-defined string with no inherent meaning.  ASA servers, however, requires that <literal>lservname</>  contain a valid database name, and sets that as the default database for the connection. &freetds; normally fills <literal>lservname</>  with the [<replaceable>section</>] text..   This entry instead sets the database name independently of the [<replaceable>section</>] name.   </entry>
 							</row>
+
+						<row>
+							<entry><literal>database</></entry>
+							<entry>valid database name</entry>
+							<entry>none</entry>
+							<entry>Specifies the name of the default database.
+This is the name of the database container in the server you are connecting to.</entry>
+							</row>
 						
 						<row>
 							<entry><literal>initial block size</></entry>
