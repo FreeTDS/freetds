@@ -752,7 +752,7 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 		LIBRARY_NAME,
 		LANGUAGE,
 		DATABASE_NAME,
-		DBFILE_NAME,
+		DB_FILENAME,
 		NEW_PASSWORD,
 		NUM_DATA_FIELDS
 	};
@@ -829,8 +829,7 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	SET_FIELD_DSTR(LIBRARY_NAME, login->library);
 	SET_FIELD_DSTR(LANGUAGE, login->language);
 	SET_FIELD_DSTR(DATABASE_NAME, login->database);
-	data_fields[DBFILE_NAME].len = 0;
-	data_fields[NEW_PASSWORD].len = 0;
+	SET_FIELD_DSTR(DB_FILENAME, login->db_filename);
 	if (IS_TDS72_PLUS(tds->conn) && login->use_new_password) {
 		option_flag3 |= TDS_CHANGE_PASSWORD;
 		SET_FIELD_DSTR(NEW_PASSWORD, login->new_password);
@@ -958,7 +957,7 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	TDS_PUT_SMALLINT(tds, auth_len);	/* this matches numbers at end of packet */
 
 	/* db file */
-	PUT_STRING_FIELD_PTR(DBFILE_NAME);
+	PUT_STRING_FIELD_PTR(DB_FILENAME);
 
 	if (IS_TDS72_PLUS(tds->conn)) {
 		/* new password */

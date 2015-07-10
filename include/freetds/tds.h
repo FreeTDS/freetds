@@ -496,6 +496,8 @@ extern const char *const tds_type_names[256];
 #define TDS_STR_CRLFILE	"crl file"
 /* check SSL hostname */
 #define TDS_STR_CHECKSSLHOSTNAME	"check certificate hostname"
+/* database filename to attach on login (MSSQL) */
+#define TDS_STR_DBFILENAME	"database filename"
 
 
 /* TODO do a better check for alignment than this */
@@ -533,6 +535,7 @@ typedef struct tds_login
 	DSTR server_host_name;
 	DSTR server_realm_name;		/**< server realm name (in freetds.conf) */
 	DSTR server_spn;		/**< server SPN (in freetds.conf) */
+	DSTR db_filename;		/**< database filename to attach (MSSQL) */
 	DSTR cafile;			/**< certificate authorities file */
 	DSTR crlfile;			/**< certificare revocation file */
 	DSTR app_name;

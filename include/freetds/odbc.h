@@ -587,7 +587,8 @@ BOOL get_login_info(HWND hwndParent, TDSLOGIN * login);
 	ODBC_PARAM(UseNTLMv2) \
 	ODBC_PARAM(MARS_Connection) \
 	ODBC_PARAM(REALM) \
-	ODBC_PARAM(ServerSPN)
+	ODBC_PARAM(ServerSPN) \
+	ODBC_PARAM(AttachDbFilename)
 
 #define ODBC_PARAM(p) ODBC_PARAM_##p,
 enum {

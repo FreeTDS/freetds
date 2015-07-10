@@ -241,6 +241,9 @@ odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSLOGIN * login)
 		login->mars = 1;
 	}
 
+	if (myGetPrivateProfileString(DSN, odbc_param_AttachDbFilename, tmp) > 0)
+		tds_parse_conf_section(TDS_STR_DBFILENAME, tmp, login);
+
 	return 1;
 }
 
@@ -413,6 +416,8 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 		} else if (CHK_PARAM(MARS_Connection)) {
 			if (tds_config_boolean(option, tds_dstr_cstr(&value), login))
 				login->mars = 1;
+		} else if (CHK_PARAM(AttachDbFilename)) {
+			dest_s = &login->db_filename;
 		}
 
 		if (num_param >= 0 && parsed_params) {
