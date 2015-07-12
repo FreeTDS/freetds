@@ -26,7 +26,6 @@ environment:
     # /E:ON and /V:ON options are not enabled in the batch script intepreter
     # See: http://stackoverflow.com/a/13751649/163740
     WITH_COMPILER: "cmd /E:ON /V:ON /C ..\\misc\\run_with_compiler.cmd"
-    OPENSSL_VER: 1_0_2d
     WIN_ICONV_VER: 0.0.6
 
   matrix:
@@ -50,6 +49,12 @@ configuration:
   - release
 
 install:
+  # xidel (xpath command line tool)
+  - appveyor DownloadFile "http://nbtelecom.dl.sourceforge.net/project/videlibri/Xidel/Xidel 0.9/xidel-0.9.win32.zip"
+  - 7z x xidel-0.9.win32.zip xidel.exe
+  # detect version of Windows OpenSSL binaries published by the Shining Light Productions crew
+  - xidel https://slproweb.com/products/Win32OpenSSL.html --extract "(//td/a[starts-with(@href, '/download') and starts-with(text(), 'Win32 OpenSSL') and ends-with(text(), 'Light')])[1]/translate(substring-before(substring-after(text(), 'Win32 OpenSSL v'), ' Light'), '.', '_')" > openssl_ver.txt
+  - set /P OPENSSL_VER=< openssl_ver.txt
   # OpenSSL
   - appveyor DownloadFile https://slproweb.com/download/%PLAT%OpenSSL-%OPENSSL_VER%.exe
   - "%PLAT%OpenSSL-%OPENSSL_VER%.exe /SP- /SILENT /SUPPRESSMSGBOXES /NORESTART /DIR=\"C:\\OpenSSL\""
