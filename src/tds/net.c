@@ -209,6 +209,7 @@ tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int ti
 		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", sock_strerror(sock_errno));
 		return TDSESOCK;
 	}
+	tds->state = TDS_IDLE;
 
 #ifdef SO_KEEPALIVE
 	len = 1;
