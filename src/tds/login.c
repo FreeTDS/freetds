@@ -827,6 +827,7 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	SET_FIELD_DSTR(LANGUAGE, login->language);
 	SET_FIELD_DSTR(DATABASE_NAME, login->database);
 	SET_FIELD_DSTR(DB_FILENAME, login->db_filename);
+	data_fields[NEW_PASSWORD].len = 0;
 	if (IS_TDS72_PLUS(tds->conn) && login->use_new_password) {
 		option_flag3 |= TDS_CHANGE_PASSWORD;
 		SET_FIELD_DSTR(NEW_PASSWORD, login->new_password);
