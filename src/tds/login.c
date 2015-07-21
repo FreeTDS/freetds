@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2005-2010  Ziglio Frediano
+ * Copyright (C) 2005-2015  Ziglio Frediano
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -538,30 +538,10 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 {
 #ifdef WORDS_BIGENDIAN
 	static const unsigned char be1[] = { 0x02, 0x00, 0x06, 0x04, 0x08, 0x01 };
-#endif
-	static const unsigned char le1[] = { 0x03, 0x01, 0x06, 0x0a, 0x09, 0x01 };
-	static const unsigned char magic2[] = { 0x00, 0x00 };
-
-	static const unsigned char magic3[] = { 0x00, 0x00, 0x00 };
-
-	/* these seem to endian flags as well 13,17 on intel/alpha 12,16 on power */
-
-#ifdef WORDS_BIGENDIAN
 	static const unsigned char be2[] = { 0x00, 12, 16 };
 #endif
+	static const unsigned char le1[] = { 0x03, 0x01, 0x06, 0x0a, 0x09, 0x01 };
 	static const unsigned char le2[] = { 0x00, 13, 17 };
-
-	/* 
-	 * the former byte 0 of magic5 causes the language token and message to be 
-	 * absent from the login acknowledgement if set to 1. There must be a way 
-	 * of setting this in the client layer, but I am not aware of any thing of
-	 * the sort -- bsb 01/17/99
-	 */
-	static const unsigned char magic5[] = { 0x00, 0x00 };
-	static const unsigned char magic6[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-
-	static const unsigned char magic42[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-	static const unsigned char magic50[] = { 0x00, 0x00, 0x00, 0x00 };
 
 	/*
 	 * capabilities are now part of the tds structure.
@@ -626,13 +606,13 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	tds_put_n(tds, le1, 6);
 #endif
 	tds_put_byte(tds, login->bulk_copy);
-	tds_put_n(tds, magic2, 2);
+	tds_put_n(tds, NULL, 2);
 	if (IS_TDS42(tds->conn)) {
 		tds_put_int(tds, 512);
 	} else {
 		tds_put_int(tds, 0);
 	}
-	tds_put_n(tds, magic3, 3);
+	tds_put_n(tds, NULL, 3);
 	tds_put_login_string(tds, tds_dstr_cstr(&login->app_name), TDS_MAXNAME);
 	tds_put_login_string(tds, lservname, TDS_MAXNAME);
 	if (IS_TDS42(tds->conn)) {
@@ -666,9 +646,17 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 #endif
 	tds_put_login_string(tds, tds_dstr_cstr(&login->language), TDS_MAXNAME);	/* language */
 	tds_put_byte(tds, login->suppress_language);
-	tds_put_n(tds, magic5, 2);
+
+	/* oldsecure(2), should be zero, used by old software */
+	tds_put_n(tds, NULL, 2);
+	/* seclogin(1) bitmask */
 	tds_put_byte(tds, login->encryption_level ? 1 : 0);
-	tds_put_n(tds, magic6, 10);
+	/* secbulk(1)
+	 * halogin(1) type of ha login
+	 * hasessionid(6) id of session to reconnect
+	 * secspare(2) not used
+	 */
+	tds_put_n(tds, NULL, 10);
 
 	/* use empty charset to handle conversions on client */
 	tds_put_login_string(tds, "", TDS_MAXNAME);	/* charset */
@@ -684,11 +672,12 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	tds_put_login_string(tds, blockstr, TDS_PKTLEN);
 
 	if (IS_TDS42(tds->conn)) {
-		tds_put_n(tds, magic42, 8);
+		tds_put_n(tds, NULL, 8);
 	} else if (IS_TDS46(tds->conn)) {
-		tds_put_n(tds, magic42, 4);
+		tds_put_n(tds, NULL, 4);
 	} else if (IS_TDS50(tds->conn)) {
-		tds_put_n(tds, magic50, 4);
+		/* just padding to 8 bytes */
+		tds_put_n(tds, NULL, 4);
 		tds_put_byte(tds, TDS_CAPABILITY_TOKEN);
 		tds_put_smallint(tds, sizeof(tds->conn->capabilities));
 		tds_put_n(tds, &tds->conn->capabilities, sizeof(tds->conn->capabilities));
