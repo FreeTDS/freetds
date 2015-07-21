@@ -3034,11 +3034,8 @@ odbc_populate_ird(TDS_STMT * stmt)
 		goto memory_error;
 
 	for (i = 0; i < num_cols; i++) {
-		int type;
-
 		drec = &ird->records[i];
 		col = res_info->columns[i];
-		type = tds_get_conversion_type(col->column_type, col->column_size);
 		drec->sql_desc_auto_unique_value = col->column_identity ? SQL_TRUE : SQL_FALSE;
 		/* TODO SQL_FALSE ?? */
 		drec->sql_desc_case_sensitive = SQL_TRUE;
