@@ -571,6 +571,14 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 		tdsdump_log(TDS_DBG_ERROR, "NT login not support using TDS 4.x or 5.0\n");
 		return TDS_FAIL;
 	}
+	if (tds_dstr_isempty(&login->user_name)) {
+		tdsdump_log(TDS_DBG_ERROR, "Kerberos login not support using TDS 4.x or 5.0\n");
+		return TDS_FAIL;
+	}
+	if (login->encryption_level != TDS_ENCRYPTION_OFF) {
+		tdsdump_log(TDS_DBG_ERROR, "Encryption not support using TDS 4.x or 5.0\n");
+		return TDS_FAIL;
+	}
 
 	if (IS_TDS42(tds->conn)) {
 		memcpy(protocol_version, "\004\002\000\000", 4);
