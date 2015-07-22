@@ -394,7 +394,7 @@ tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
  * \returns string copied or NULL if errors
  */
 char *
-tds_strndup(const void *s, ssize_t len)
+tds_strndup(const void *s, TDS_INTPTR len)
 {
 	char *out;
 
