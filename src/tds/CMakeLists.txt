@@ -8,7 +8,7 @@ if(PERL_FOUND AND NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
 	endif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
 	add_custom_command(OUTPUT tds_willconvert.h
-		COMMAND ${PERL_EXECUTABLE} tds_willconvert.pl > tds_willconvert.h
+		COMMAND ${PERL_EXECUTABLE} tds_willconvert.pl ../../include/freetds/proto.h > tds_willconvert.h
 		MAIN_DEPENDENCY tds_willconvert.pl
 		WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
 	add_custom_command(OUTPUT encodings.h
