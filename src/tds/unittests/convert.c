@@ -48,17 +48,8 @@ free_convert(int type, CONV_RESULT *cr)
 int
 main(int argc, char **argv)
 {
-	/* the conversion pair matrix */
-	typedef struct
-	{
-		int srctype;
-		int desttype;
-		int yn;
-	}
-	ANSWER;
-	const static ANSWER answers[] = {
-#	include "tds_willconvert.h"
-	};
+	int srctype;
+	int desttype;
 
 	/* some default inputs */
 	static const int bit_input = 1;
@@ -108,24 +99,26 @@ main(int argc, char **argv)
 	/*
 	 * Test every possible conversion pair
 	 */
-	for (i = 0; i < sizeof(answers) / sizeof(ANSWER); i++) {
-		if (!answers[i].yn)
+	for (i = 0; i < 0x10000; i++) {
+		srctype  = i >> 8;
+		desttype = i & 0xff;
+		if (!tds_willconvert(srctype, desttype))
 			continue;	/* don't attempt nonconvertible types */
 
-		if (answers[i].srctype == answers[i].desttype)
+		if (srctype == desttype)
 			continue;	/* don't attempt same types */
 
 		cr.n.precision = 8;
 		cr.n.scale = 2;
 
-		switch (answers[i].srctype) {
+		switch (srctype) {
 		case SYBCHAR:
 		case SYBVARCHAR:
 		case SYBTEXT:
 		case SYBBINARY:
 		case SYBVARBINARY:
 		case SYBIMAGE:
-			switch (answers[i].desttype) {
+			switch (desttype) {
 			case SYBCHAR:
 			case SYBVARCHAR:
 			case SYBTEXT:
@@ -240,12 +233,12 @@ main(int argc, char **argv)
 		/*****  not defined yet
 			case SYBBOUNDARY:
 			case SYBSENSITIVITY:
-				fprintf (stderr, "type %d not supported\n", answers[i].srctype );
+				fprintf (stderr, "type %d not supported\n", srctype );
 				continue;
 				break;
 		*****/
 		default:
-			fprintf(stderr, "no such type %d\n", answers[i].srctype);
+			fprintf(stderr, "no such type %d\n", srctype);
 			return -1;
 		}
 
@@ -253,9 +246,9 @@ main(int argc, char **argv)
 		 * Now at last do the conversion
 		 */
 
-		result = tds_convert(ctx, answers[i].srctype, src, srclen, answers[i].desttype, &cr);
+		result = tds_convert(ctx, srctype, src, srclen, desttype, &cr);
 		if (result >= 0)
-			free_convert(answers[i].desttype, &cr);
+			free_convert(desttype, &cr);
 
 		if (result < 0) {
 			if (result == TDS_CONVERT_NOAVAIL)	/* tds_willconvert returned true, but it lied. */
@@ -263,23 +256,23 @@ main(int argc, char **argv)
 
 			fprintf(stderr, "failed (%d) to convert %d (%s, %d bytes) : %d (%s).\n",
 				result,
-				answers[i].srctype, tds_prtype(answers[i].srctype), srclen,
-				answers[i].desttype, tds_prtype(answers[i].desttype));
+				srctype, tds_prtype(srctype), srclen,
+				desttype, tds_prtype(desttype));
 
 			if (result != TDS_CONVERT_NOAVAIL)
 				return result;
 		}
 
 		printf("converted %d (%s, %d bytes) : %d (%s, %d bytes).\n",
-		       answers[i].srctype, tds_prtype(answers[i].srctype), srclen,
-		       answers[i].desttype, tds_prtype(answers[i].desttype), result);
+		       srctype, tds_prtype(srctype), srclen,
+		       desttype, tds_prtype(desttype), result);
 
 		/* 
 		 * In the first iteration, start with varchar -> others.  
 		 * By saving the output, we initialize subsequent inputs.
 		 */
 
-		switch (answers[i].desttype) {
+		switch (desttype) {
 		case SYBNUMERIC:
 		case SYBDECIMAL:
 			numeric = cr.n;
@@ -333,9 +326,9 @@ main(int argc, char **argv)
 		starttime = (double) start.tv_sec + (double) start.tv_usec * 0.000001;
 
 		for (j = 0; result >= 0 && j < iterations; j++) {
-			result = tds_convert(ctx, answers[i].srctype, src, srclen, answers[i].desttype, &cr);
+			result = tds_convert(ctx, srctype, src, srclen, desttype, &cr);
 			if (result >= 0)
-				free_convert(answers[i].desttype, &cr);
+				free_convert(desttype, &cr);
 		}
 		if (result < 0)
 			continue;
@@ -345,7 +338,7 @@ main(int argc, char **argv)
 
 		if (endtime != starttime) {
 			printf("%9.0f iterations/second converting %13s => %s.\n",
-				j / (endtime - starttime), tds_prtype(answers[i].srctype), tds_prtype(answers[i].desttype));
+				j / (endtime - starttime), tds_prtype(srctype), tds_prtype(desttype));
 		}
 
 	}

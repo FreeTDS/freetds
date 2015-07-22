@@ -2974,6 +2974,8 @@ utf16len(const utf16_t * s)
 }
 #endif
 
+#include "tds_willconvert.h"
+
 /**
  * Test if a conversion is possible
  * @param srctype  source type
@@ -2983,34 +2985,24 @@ utf16len(const utf16_t * s)
 unsigned char
 tds_willconvert(int srctype, int desttype)
 {
-	typedef struct
-	{
-		int srctype;
-		int desttype;
-		int yn;
-	}
-	ANSWER;
-	static const ANSWER answers[] = {
-#	include "tds_willconvert.h"
-	};
-	unsigned int i;
-	const ANSWER *p = NULL;
+	TDS_TINYINT cat_from, cat_to;
+	TDS_UINT yn;
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_willconvert(%d, %d)\n", srctype, desttype);
 
-	for (i = 0; i < TDS_VECTOR_SIZE(answers); i++) {
-		if (srctype == answers[i].srctype && desttype == answers[i].desttype) {
-			tdsdump_log(TDS_DBG_FUNC, "tds_willconvert(%d, %d) returns %s\n", answers[i].srctype, answers[i].desttype,
-				    answers[i].yn? "yes":"no");
-			p =  &answers[i];
-			break;
-		}
-	}
-
-	if (!p)
+	/* they must be from 0 to 255 */
+	if (((srctype|desttype) & ~0xff) != 0)
 		return 0;
-		
-	return p->yn;
+
+	cat_from = type2category[srctype];
+	cat_to   = type2category[desttype];
+	yn = category_conversion[cat_from];
+
+	yn = (yn >> cat_to) & 1;
+
+	tdsdump_log(TDS_DBG_FUNC, "tds_willconvert(%d, %d) returns %s\n",
+		    srctype, desttype, yn? "yes":"no");
+	return yn;
 }
 
 #if 0

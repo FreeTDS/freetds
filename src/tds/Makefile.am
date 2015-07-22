@@ -51,9 +51,9 @@ BUILT_SOURCES = tds_willconvert.h encodings.h num_limits.h tds_types.h
 
 clean-local: 
 	cd $(srcdir) && rm -f $(BUILT_SOURCES)
-	
+
 tds_willconvert.h: tds_willconvert.pl Makefile
-	perl $(srcdir)/tds_willconvert.pl > $@.tmp
+	perl $(srcdir)/tds_willconvert.pl $(top_srcdir)/include/freetds/proto.h > $@.tmp
 	mv $@.tmp $@
 
 encodings.h: encodings.pl alternative_character_sets.h Makefile
