@@ -88,6 +88,8 @@ test_script:
   - set FREETDSCONF=%CD%\freetds.conf.local
   - set TDSDUMP=%CD%\conndump
   - set TDSDUMPCONFIG=%CD%\confdump
+  - set TDS_SKIP_SUCCESS=1
+  # Add dirs of our just built DLLs to PATH envvar so everything works
   - set PATH=%CD%\src\ctlib;%CD%\src\dblib;%PATH%
   # register ODBC driver
   - "%WINDIR%\\SysWOW64\\regsvr32 /s src\\odbc\\tdsodbc.dll || %WINDIR%\\system32\\regsvr32 /s src\\odbc\\tdsodbc.dll"
