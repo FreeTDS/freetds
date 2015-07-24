@@ -15,7 +15,7 @@
 #include <netinet/in.h>
 #endif /* HAVE_NETINET_IN_H */
 
-#ifdef UNIXODBC
+#if defined(UNIXODBC) || defined(_WIN32)
 #include <odbcinst.h>
 #endif
 
@@ -24,9 +24,6 @@
 #else
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
-
-static char software_version[] = "$Id: common.c,v 1.63 2012-03-11 13:10:58 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV odbc_env;
 HDBC odbc_conn;
