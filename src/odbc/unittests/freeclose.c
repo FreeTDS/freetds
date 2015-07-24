@@ -65,7 +65,7 @@ init_fake_server(int ip_port)
 	TDS_SYS_SOCKET s;
 
 	memset(&sin, 0, sizeof(sin));
-	sin.sin_addr.s_addr = INADDR_ANY;
+	sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 	sin.sin_port = htons((short) ip_port);
 	sin.sin_family = AF_INET;
 
@@ -78,7 +78,11 @@ init_fake_server(int ip_port)
 		CLOSESOCKET(s);
 		return 1;
 	}
-	listen(s, 5);
+	if (listen(s, 5) < 0) {
+		perror("listen");
+		CLOSESOCKET(s);
+		return 1;
+	}
 	if (tds_thread_create(&fake_thread, fake_thread_proc, int2ptr(s)) != 0) {
 		perror("tds_thread_create");
 		exit(1);
@@ -168,6 +172,7 @@ static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 	memset(&sin, 0, sizeof(sin));
 	sock_len = sizeof(sin);
 	alarm(30);
+	fprintf(stderr, "waiting connect...\n");
 	if ((fake_sock = tds_accept(s, (struct sockaddr *) &sin, &sock_len)) < 0) {
 		perror("accept");
 		exit(1);
@@ -179,6 +184,10 @@ static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 		exit(1);
 	}
 
+	fprintf(stderr, "connecting to server...\n");
+	if (remote_addr.sa.sa_family == AF_INET) {
+		fprintf(stderr, "connecting to %x:%d\n", remote_addr.sin.sin_addr.s_addr, ntohs(remote_addr.sin.sin_port));
+	}
 	if (connect(server_sock, &remote_addr.sa, remote_addr_len)) {
 		perror("connect");
 		exit(1);
@@ -226,10 +235,14 @@ static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 			flow = sending;
 
 			len = READSOCKET(fake_sock, buf, sizeof(buf));
-			if (len == 0)
+			if (len == 0) {
+				fprintf(stderr, "client connection closed\n");
 				break;
-			if (len < 0 && sock_errno != TDSSOCK_EINPROGRESS)
+			}
+			if (len < 0 && sock_errno != TDSSOCK_EINPROGRESS) {
+				fprintf(stderr, "read client error %d\n", sock_errno);
 				break;
+			}
 			count_insert(buf, len);
 			write_all(server_sock, buf, len);
 		}
@@ -243,10 +256,14 @@ static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 			flow = receiving;
 
 			len = READSOCKET(server_sock, buf, sizeof(buf));
-			if (len == 0)
+			if (len == 0) {
+				fprintf(stderr, "server connection closed\n");
 				break;
-			if (len < 0 && sock_errno != TDSSOCK_EINPROGRESS)
+			}
+			if (len < 0 && sock_errno != TDSSOCK_EINPROGRESS) {
+				fprintf(stderr, "read server error %d\n", sock_errno);
 				break;
+			}
 			write_all(fake_sock, buf, len);
 		}
 	}
@@ -274,6 +291,8 @@ main(int argc, char **argv)
 
 	if (tds_mutex_init(&mtx))
 		return 1;
+
+	odbc_mark_sockets_opened();
 
 	odbc_connect();
 
