@@ -185,6 +185,7 @@ void odbc_setenv(const char *name, const char *value, int overwrite);
 #define setenv odbc_setenv
 #endif
 
+void odbc_mark_sockets_opened(void);
 TDS_SYS_SOCKET odbc_find_last_socket(void);
 
 void odbc_c2string(char *out, SQLSMALLINT out_c_type, const void *in, size_t in_len);
