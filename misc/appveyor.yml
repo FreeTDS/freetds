@@ -99,14 +99,7 @@ test_script:
   # Add dirs of our just built DLLs to PATH envvar so everything works
   - set PATH=%CD%\src\ctlib;%CD%\src\dblib;%PATH%
   # register ODBC driver
-  - copy src\odbc\tdsodbc.dll %WINDIR%\system32
-  #- regsvr32 /s %WINDIR%\system32\tdsodbc.dll
-  - C:\Windows\SysWOW64\ODBCCONF.exe INSTALLDRIVER "FreeTDS|Driver=tdsodbc.dll|Setup=tdsodbc.dll||"
-  - C:\Windows\SysWOW64\ODBCCONF.exe CONFIGDRIVER "FreeTDS" "APILevel=1"
-  - C:\Windows\SysWOW64\ODBCCONF.exe CONFIGDRIVER "FreeTDS" "ConnectFunctions=YYY"
-  - C:\Windows\SysWOW64\ODBCCONF.exe CONFIGDRIVER "FreeTDS" "DriverODBCVer=02.50"
-  - C:\Windows\SysWOW64\ODBCCONF.exe CONFIGDRIVER "FreeTDS" "FileUsage=0"
-  - C:\Windows\SysWOW64\ODBCCONF.exe CONFIGDRIVER "FreeTDS" "CPTimeout=60"
+  - "%WINDIR%\\SysWOW64\\regsvr32 /s src\\odbc\\tdsodbc.dll || %WINDIR%\\system32\\regsvr32 /s src\\odbc\\tdsodbc.dll"
   # Build and run tests
   - "%WITH_COMPILER% nmake check || cmd /c \"exit /b 0\""
   - cd ..
