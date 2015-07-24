@@ -77,6 +77,7 @@ static const char *const search_driver[] = {
 	"debug/tdsodbc.dll",
 	"release/tdsodbc.dll",
 	"libtdsodbc.so",
+	"tdsodbc.dll",
 	NULL
 };
 
