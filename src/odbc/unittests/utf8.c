@@ -1,9 +1,8 @@
 #include "common.h"
 
 /* test binding with UTF-8 encoding */
-static char software_version[] = "$Id: utf8.c,v 1.13 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
+#ifndef _WIN32
 static void init_connect(void);
 
 static void
@@ -164,3 +163,14 @@ main(int argc, char *argv[])
 	return 0;
 }
 
+#else
+
+int
+main(void)
+{
+	/* on Windows SQLExecDirect is always converted to SQLExecDirectW by the DM */
+	printf("Not possible for this platform.\n");
+	odbc_test_skipped();
+	return 0;
+}
+#endif
