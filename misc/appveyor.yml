@@ -89,6 +89,9 @@ test_script:
   - set TDSDUMP=%CD%\conndump
   - set TDSDUMPCONFIG=%CD%\confdump
   - set PATH=%CD%\src\ctlib;%CD%\src\dblib;%PATH%
+  # register ODBC driver
+  - "%WINDIR%\\SysWOW64\\regsvr32 /s src\\odbc\\tdsodbc.dll || %WINDIR%\\system32\\regsvr32 /s src\\odbc\\tdsodbc.dll"
+  # Build and run tests
   - "%WITH_COMPILER% nmake check || cmd /c \"exit /b 0\""
   - cd ..
 
