@@ -26,10 +26,10 @@
 #include <freetds/thread.h>
 #include <freetds/data.h>
 
-#if defined(UNIXODBC) || defined(TDS_NO_DM)
+#if defined(UNIXODBC) || defined(_WIN32) || defined(TDS_NO_DM)
 #include <sql.h>
 #include <sqlext.h>
-#ifdef UNIXODBC
+#if defined(UNIXODBC) || defined(_WIN32)
 #include <odbcinst.h>
 #endif
 #else /* IODBC */
