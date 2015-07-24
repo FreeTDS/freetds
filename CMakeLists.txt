@@ -353,6 +353,11 @@ config_write("
 endif(WIN32)
 
 set(lib_BASE ${lib_RT} ${CMAKE_THREAD_LIBS_INIT})
+if(EXISTS "${CMAKE_SOURCE_DIR}/iconv/lib/iconv.lib")
+	set(lib_BASE ${lib_BASE} ${CMAKE_THREAD_LIBS_INIT} "${CMAKE_SOURCE_DIR}/iconv/lib/iconv.lib")
+	config_write("#define HAVE_ICONV 1\n\n")
+	config_write("#define ICONV_CONST \n\n")
+endif()
 
 if(WIN32)
 	set(lib_NETWORK ws2_32)
@@ -367,7 +372,7 @@ elseif(GNUTLS_FOUND)
 	set(lib_NETWORK ${lib_NETWORK} ${lib_GNUTLS})
 endif(OPENSSL_FOUND)
 
-include_directories(${CMAKE_BINARY_DIR}/include include win32)
+include_directories(${CMAKE_BINARY_DIR}/include include win32 iconv/include)
 
 add_subdirectory(src/replacements)
 add_subdirectory(src/tds)
