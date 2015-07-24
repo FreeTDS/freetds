@@ -1,7 +1,7 @@
 # Configure SQL server so it accepts TCP connections.
 #
 # This Windows PowerShell script is used on the Appveyor hosted CI plaform when
-# runing the FreeTDS test suite but could be useful to automate the task in
+# running the FreeTDS test suite but could be useful to automate the task in
 # other scenarios.
 #
 # See
