@@ -84,7 +84,7 @@ static SQLRETURN odbc_free_dynamic(TDS_STMT * stmt);
 static SQLRETURN odbc_free_cursor(TDS_STMT * stmt);
 static SQLRETURN odbc_update_ird(TDS_STMT *stmt, TDS_ERRS *errs);
 static SQLRETURN odbc_prepare(TDS_STMT *stmt);
-static SQLSMALLINT odbc_swap_datetime_sql_type(SQLSMALLINT sql_type);
+static SQLSMALLINT odbc_swap_datetime_sql_type(SQLSMALLINT sql_type, int version);
 static int odbc_process_tokens(TDS_STMT * stmt, unsigned flag);
 static int odbc_lock_statement(TDS_STMT* stmt);
 static void odbc_unlock_statement(TDS_STMT* stmt);
@@ -3727,12 +3727,12 @@ odbc_fix_data_type_col(TDS_STMT *stmt, int idx)
 	switch (tds_get_conversion_type(colinfo->column_type, colinfo->column_size)) {
 	case SYBINT2: {
 		TDS_SMALLINT *data = (TDS_SMALLINT *) colinfo->column_data;
-		*data = odbc_swap_datetime_sql_type(*data);
+		*data = odbc_swap_datetime_sql_type(*data, 0);
 		}
 		break;
 	case SYBINT4: {
 		TDS_INT *data = (TDS_INT *) colinfo->column_data;
-		*data = odbc_swap_datetime_sql_type(*data);
+		*data = odbc_swap_datetime_sql_type(*data, 0);
 		}
 		break;
 	}
@@ -5995,27 +5995,38 @@ odbc_upper_column_names(TDS_STMT * stmt)
 	}
 }
 
+/**
+ * Change sql datatype to a specific version
+ * \param sql_type sql data type to change (any type)
+ * \param version  ODBC version to change to, 2 for ODBC 2, 3 for ODBC 3, 0 swap
+ */
 static SQLSMALLINT
-odbc_swap_datetime_sql_type(SQLSMALLINT sql_type)
+odbc_swap_datetime_sql_type(SQLSMALLINT sql_type, int version)
 {
 	switch (sql_type) {
 	case SQL_TYPE_TIMESTAMP:
-		sql_type = SQL_TIMESTAMP;
+		if (version != 3)
+			sql_type = SQL_TIMESTAMP;
 		break;
 	case SQL_TIMESTAMP:
-		sql_type = SQL_TYPE_TIMESTAMP;
+		if (version != 2)
+			sql_type = SQL_TYPE_TIMESTAMP;
 		break;
 	case SQL_TYPE_DATE:
-		sql_type = SQL_DATE;
+		if (version != 3)
+			sql_type = SQL_DATE;
 		break;
 	case SQL_DATE:
-		sql_type = SQL_TYPE_DATE;
+		if (version != 2)
+			sql_type = SQL_TYPE_DATE;
 		break;
 	case SQL_TYPE_TIME:
-		sql_type = SQL_TIME;
+		if (version != 3)
+			sql_type = SQL_TIME;
 		break;
 	case SQL_TIME:
-		sql_type = SQL_TYPE_TIME;
+		if (version != 2)
+			sql_type = SQL_TYPE_TIME;
 		break;
 	}
 	return sql_type;
@@ -6052,15 +6063,18 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 	/* TODO ODBC3 convert type to ODBC version 2 (date) */
 	if (odbc3) {
 		if (TDS_IS_SYBASE(tds)) {
-			sprintf(sql, sql_templ, odbc_swap_datetime_sql_type(fSqlType));
+			sprintf(sql, sql_templ, odbc_swap_datetime_sql_type(fSqlType, 0));
 			stmt->special_row = ODBC_SPECIAL_GETTYPEINFO;
 		} else {
 			sprintf(sql, sql_templ, fSqlType);
 			strcat(sql, ",3");
 		}
 	} else {
-		/* FIXME MS ODBC translate SQL_TIMESTAMP to SQL_TYPE_TIMESTAMP even for ODBC 2 apps */
-		sprintf(sql, sql_templ, fSqlType);
+		/* MS ODBC translate SQL_TIMESTAMP to SQL_TYPE_TIMESTAMP even for ODBC 2 apps
+		 * other DM just pass value straight.
+		 * Convert always to version 2 to make version 2 datatype works with all DMs
+		 */
+		sprintf(sql, sql_templ, odbc_swap_datetime_sql_type(fSqlType, 2));
 	}
 	if (SQL_SUCCESS != odbc_set_stmt_query(stmt, (ODBC_CHAR*) sql, strlen(sql) _wide0))
 		ODBC_EXIT(stmt, SQL_ERROR);
