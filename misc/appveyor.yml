@@ -122,9 +122,9 @@ after_test:
   - copy src\ctlib\libct.lib %DESTDIR%\static\
   - copy src\tds\tds.lib %DESTDIR%\static\
   - mkdir %DESTDIR%\include
+  - cp include/tds_sysdep_public.h ./%DESTDIR%/include/
   - cd ..\include
-  #- cp sqlfront.h sybdb.h sybfront.h tds_sysdep_public.h ../%DESTDIR%/include/
-  - cp sqlfront.h sybdb.h sybfront.h ../build/%DESTDIR%/include/
+  - cp bkpublic.h cspublic.h cstypes.h ctpublic.h sqldb.h sqlfront.h sybdb.h syberror.h sybfront.h ../build/%DESTDIR%/include/
   - cd ..\build
   - mkdir %DESTDIR%\dynamic
   - copy src\ctlib\ct.dll %DESTDIR%\dynamic\
