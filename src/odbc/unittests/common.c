@@ -758,12 +758,12 @@ fd_is_socket(int fd)
 	return 1;
 }
 
+enum {NUM_FDS = 4096*4};
+static unsigned char fd_bitmask[NUM_FDS / 8];
+
 static int
 mark_fd(int fd)
 {
-	enum {NUM_FDS = 4096*4};
-	static unsigned char fd_bitmask[NUM_FDS / 8];
-
 	unsigned shift;
 	unsigned char mask;
 
@@ -787,6 +787,8 @@ void
 odbc_mark_sockets_opened(void)
 {
 	int i;
+
+	memset(fd_bitmask, 0, sizeof(fd_bitmask));
 	FOR_ALL_SOCKETS(i) {
 		if (fd_is_socket(i))
 			mark_fd(i);

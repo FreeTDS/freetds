@@ -62,6 +62,7 @@ Test(int direct)
 	SQLTCHAR sqlstate[6];
 	time_t start_time, end_time;
 
+	odbc_mark_sockets_opened();
 	odbc_connect();
 
 	if (!shutdown_last_socket()) {

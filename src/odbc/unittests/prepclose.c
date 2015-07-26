@@ -37,8 +37,10 @@ close_last_socket(void)
 	TDS_SYS_SOCKET max_socket = odbc_find_last_socket();
 	TDS_SYS_SOCKET sockets[2];
 
-	if (max_socket < 0)
+	if (max_socket < 0) {
+		fprintf(stderr, "Error finding last socket\n");
 		return 0;
+	}
 
 	/* replace socket with a new one */
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) < 0)
@@ -60,6 +62,7 @@ Test(int direct)
 	SQLTCHAR buf[256];
 	SQLTCHAR sqlstate[6];
 
+	odbc_mark_sockets_opened();
 	odbc_connect();
 
 	if (!close_last_socket()) {
