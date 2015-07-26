@@ -105,7 +105,28 @@ test_script:
 after_test:
   - type %CD%\build\confdump
   - type %CD%\build\conndump
-  #- net stop  MSSQL$%INSTANCENAME%
+  # Create zipball artifact
+  - cd build
+  - set DESTDIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
+  - mkdir %DESTDIR%
+  - mkdir %DESTDIR%\static
+  - copy src\dblib\db-lib.lib %DESTDIR%\static\
+  - copy src\ctlib\libct.lib %DESTDIR%\static\
+  - copy src\tds\tds.lib %DESTDIR%\static\
+  - mkdir %DESTDIR%\include
+  - cp include/tds_sysdep_public.h ./%DESTDIR%/include/
+  - cd ..\include
+  - cp bkpublic.h cspublic.h cstypes.h ctpublic.h sqldb.h sqlfront.h sybdb.h syberror.h sybfront.h ../build/%DESTDIR%/include/
+  - cd ..\build
+  - mkdir %DESTDIR%\dynamic
+  - copy src\ctlib\ct.dll %DESTDIR%\dynamic\
+  - copy src\ctlib\ct.lib %DESTDIR%\dynamic\
+  - copy src\dblib\sybdb.dll %DESTDIR%\dynamic\
+  - copy src\dblib\sybdb.lib %DESTDIR%\dynamic\
+  - copy src\odbc\tdsodbc.dll %DESTDIR%\dynamic\
+  - copy src\odbc\tdsodbc.lib %DESTDIR%\dynamic\
+  - 7z a ..\%DESTDIR%.zip %DESTDIR%
+  - cd ..
 
 artifacts:
   - path: vs*.zip
