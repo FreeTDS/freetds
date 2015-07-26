@@ -163,6 +163,7 @@ Test(int level)
 		SQLTCHAR MessageText[1000];
 		SQLSMALLINT TextLength;
 		SQLRETURN expected;
+		SQLLEN rows;
 
 		if (result != SQL_NO_DATA)
 			ODBC_REPORT_ERROR("SQLFetch should return NO DATA");
@@ -186,7 +187,8 @@ Test(int level)
 		}
 
 		/* a recordset with only warnings/errors do not contains rows */
-		ODBC_CHECK_ROWS(-1);
+		if (CHKRowCount(&rows, "SE") == SQL_SUCCESS && rows != -1)
+			ODBC_REPORT_ERROR("SQLRowCount returned some rows");
 	} else {
 		/* in ODBC 2 errors/warnings are not handled as different recordset */
 		TestResult(result, level, "SQLFetch");
@@ -196,7 +198,10 @@ Test(int level)
 		CheckData("");
 
 	if (!g_second_select) {
-		ODBC_CHECK_ROWS(-1);
+		SQLLEN rows;
+
+		if (CHKRowCount(&rows, "SE") == SQL_SUCCESS && rows != -1)
+			ODBC_REPORT_ERROR("SQLRowCount returned some rows");
 		CheckReturnCode(result, g_nocount ? 0 : INVALID_RETURN);
 
 		result = SQLMoreResults(odbc_stmt);
