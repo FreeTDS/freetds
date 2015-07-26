@@ -107,7 +107,7 @@ test_script:
   # register ODBC driver
   - "%WINDIR%\\SysWOW64\\regsvr32 /s src\\odbc\\tdsodbc.dll || %WINDIR%\\system32\\regsvr32 /s src\\odbc\\tdsodbc.dll"
   # Build and run tests
-  - "%WITH_COMPILER% nmake check || cmd /c \"exit /b 0\""
+  - "%WITH_COMPILER% nmake check"
   - cd ..
 
 after_test:
