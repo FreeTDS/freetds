@@ -179,17 +179,13 @@ DoTest(int version3)
 		if (odbc_db_is_microsoft())
 			CHKFetch("S");
 
-#ifdef TDS_NO_DM
 		/* mssql 2008 can return a lot of NVARCHAR as new type (ie DATE)
 		 * are converted automatically to NVARCHAR with former protocol
 		 */
 		if (!odbc_db_is_microsoft() || odbc_tds_version() >= 0x703 || odbc_db_version_int() < 0x0a000000)
 			CHKFetch("No");
-		else
-			CHKMoreResults("No");
-#else
 		CHKMoreResults("No");
-#endif
+
 		CHKGetTypeInfo(SQL_BINARY, "SI");
 	}
 
