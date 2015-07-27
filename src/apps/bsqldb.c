@@ -17,6 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#undef NDEBUG
 #include <config.h>
 
 #include <stdio.h>
@@ -493,9 +494,12 @@ print_results(DBPROCESS *dbproc)
 					colname = metadata[--altcolid].name;
 				}
 
-				asprintf(&metacompute[i]->meta[c].name, "%s(%s)", dbprtype(dbaltop(dbproc, i+1, c+1)), colname);
-				assert(metacompute[i]->meta[c].name);
-					
+				ret = asprintf(&metacompute[i]->meta[c].name, "%s(%s)", dbprtype(dbaltop(dbproc, i+1, c+1)), colname);
+				if (ret < 0) {
+					fprintf(stderr, "%s:%d: asprintf(), column %d failed\n", options.appname, __LINE__, c+1);
+					return;
+				}
+
 				metacompute[i]->meta[c].width = get_printable_size(metacompute[i]->meta[c].type, 
 										   metacompute[i]->meta[c].size);
 				if (metacompute[i]->meta[c].width < strlen(metacompute[i]->meta[c].name))
