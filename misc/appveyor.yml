@@ -32,18 +32,22 @@ environment:
   - PLAT: Win32
     WIDTH: 32
     VS_VERSION: "2008"
+    TDSVER: "7.0"
 
   - PLAT: Win64
     WIDTH: 64
     VS_VERSION: "2008"
+    TDSVER: "7.1"
 
   - PLAT: Win32
     WIDTH: 32
     VS_VERSION: "2010"
+    TDSVER: "7.2"
 
   - PLAT: Win64
     WIDTH: 64
     VS_VERSION: "2010"
+    TDSVER: "7.3"
 
 configuration:
   - release
@@ -90,7 +94,7 @@ test_script:
   - cd build
   - echo [global]> freetds.conf.local
   - echo port = 1433>> freetds.conf.local
-  - echo tds version = 7.3>> freetds.conf.local
+  - echo tds version = %TDSVER%>> freetds.conf.local
   - echo [local]>> freetds.conf.local
   - echo host = 127.0.0.1>> freetds.conf.local
   # Create PWD
