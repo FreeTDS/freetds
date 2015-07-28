@@ -3241,7 +3241,7 @@ _SQLExecute(TDS_STMT * stmt)
 	int in_row = 0;
 	SQLUSMALLINT param_status;
 	int found_info = 0, found_error = 0;
-	SQLLEN total_rows = TDS_NO_COUNT;
+	TDS_INT8 total_rows = TDS_NO_COUNT;
 	TDSHEADERS head;
 
 	tdsdump_log(TDS_DBG_FUNC, "_SQLExecute(%p)\n", 
