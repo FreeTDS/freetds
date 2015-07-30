@@ -1379,13 +1379,13 @@ tds_convert_datetimeall(const TDSCONTEXT * tds_ctx, int srctype, const TDS_DATET
 		if (!IS_INT(dta->date))
 			return TDS_CONVERT_OVERFLOW;
 		cr->dt.dtdays = (TDS_INT) dta->date;
-		cr->dt.dttime = (dta->time * 3u + 50000u) / 100000u;
+		cr->dt.dttime = (TDS_INT) ((dta->time * 3u + 50000u) / 100000u);
 		return sizeof(TDS_DATETIME);
 	case SYBDATETIME4:
 		if (!IS_USMALLINT(dta->date))
 			return TDS_CONVERT_OVERFLOW;
 		cr->dt4.days = (TDS_USMALLINT) dta->date;
-		cr->dt4.minutes = (dta->time + 30u * 10000000u) / (60u * 10000000u);
+		cr->dt4.minutes = (TDS_USMALLINT) ((dta->time + 30u * 10000000u) / (60u * 10000000u));
 		return sizeof(TDS_DATETIME4);
 	case SYBMSDATETIMEOFFSET:
 	case SYBMSDATE:
@@ -2747,7 +2747,7 @@ store_time(const char *datestr, struct tds_time *t)
 	int state = TDS_HOURS;
 	char last_sep = '\0';
 	const char *s;
-	int hours = 0, minutes = 0, seconds = 0, nanosecs = 0;
+	unsigned int hours = 0, minutes = 0, seconds = 0, nanosecs = 0;
 	int ret = 1;
 	unsigned ns_div = 1;
 
@@ -2760,17 +2760,17 @@ store_time(const char *datestr, struct tds_time *t)
 				ret = 0;
 			switch (state) {
 			case TDS_HOURS:
-				hours = (hours * 10) + (*s - '0');
+				hours = (hours * 10u) + (*s - '0');
 				break;
 			case TDS_MINUTES:
-				minutes = (minutes * 10) + (*s - '0');
+				minutes = (minutes * 10u) + (*s - '0');
 				break;
 			case TDS_SECONDS:
-				seconds = (seconds * 10) + (*s - '0');
+				seconds = (seconds * 10u) + (*s - '0');
 				break;
 			case TDS_FRACTIONS:
 				if (ns_div < 1000000000u) {
-					nanosecs = (nanosecs * 10) + (*s - '0');
+					nanosecs = (nanosecs * 10u) + (*s - '0');
 					ns_div *= 10;
 				}
 				break;
@@ -2787,30 +2787,30 @@ store_time(const char *datestr, struct tds_time *t)
 		if (strcasecmp(s, "pm") == 0) {
 			if (hours == 0)
 				ret = 0;
-			if (hours > 0 && hours < 12)
+			if (hours > 0u && hours < 12u)
 				t->tm_hour = hours + 12;
 			else
 				t->tm_hour = hours;
 		}
 	} else {
-		if (hours >= 0 && hours < 24)
+		if (hours < 24u)
 			t->tm_hour = hours;
 		else
 			ret = 0;
 	}
-	if (minutes >= 0 && minutes < 60)
+	if (minutes < 60u)
 		t->tm_min = minutes;
 	else
 		ret = 0;
-	if (seconds >= 0 && seconds < 60)
+	if (seconds < 60u)
 		t->tm_sec = seconds;
 	else
 		ret = 0;
 	tdsdump_log(TDS_DBG_FUNC, "store_time() nanosecs = %d\n", nanosecs);
 	if (nanosecs) {
-		if (nanosecs >= 0 && nanosecs < ns_div && last_sep == '.')
+		if (nanosecs < ns_div && last_sep == '.')
 			t->tm_ns = nanosecs * (1000000000u / ns_div);
-		else if (nanosecs >= 0 && nanosecs < 1000u)
+		else if (nanosecs < 1000u)
 			t->tm_ns = nanosecs * 1000000u;
 		else
 			ret = 0;
@@ -3069,7 +3069,7 @@ tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
 			dt_time = 0;
 		} else {
 			dms = dta->time % 10000000u;
-			dt_time = dta->time / 10000000u;
+			dt_time = (unsigned int) (dta->time / 10000000u);
 			secs = dt_time % 60;
 			dt_time = dt_time / 60;
 		}
