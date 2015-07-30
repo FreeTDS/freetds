@@ -244,6 +244,16 @@ foreach(func ${FUNCS})
 	config_write("#cmakedefine ${var} 1\n\n")
 endforeach(func)
 
+set(VSPRINTF asprintf vasprintf vsnprintf _vsnprintf snprintf _snprintf _vscprintf)
+
+foreach(func ${VSPRINTF})
+	string(TOUPPER "HAVE_${func}" var)
+	# try to search only if not alreay found
+	if (NOT ${var})
+		check_symbol_exists(${func} stdio.h ${var})
+	endif()
+endforeach(func)
+
 set(CMAKE_REQUIRED_LIBRARIES)
 
 check_struct_has_member("struct tm" "tm_zone" "time.h" HAVE_STRUCT_TM_TM_ZONE)
