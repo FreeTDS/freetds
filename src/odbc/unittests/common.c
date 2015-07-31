@@ -159,7 +159,7 @@ odbc_read_login_info(void)
 
 #ifndef _WIN32
 	/* craft out odbc.ini, avoid to read wrong one */
-	snprintf(path, sizeof(path), "odbc.ini.%d", (int) getpid());
+	sprintf(path, "odbc.ini.%d", (int) getpid());
 	in = fopen(path, "w");
 	if (in) {
 		fprintf(in, "[%s]\nDriver = %s\nDatabase = %s\nServername = %s\n", odbc_server, odbc_driver, odbc_database, odbc_server);
