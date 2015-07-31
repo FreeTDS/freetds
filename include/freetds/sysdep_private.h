@@ -63,7 +63,6 @@ extern "C"
 typedef int pid_t;
 #define strcasecmp stricmp
 #define strncasecmp strnicmp
-#define vsnprintf _vsnprintf
 /* TODO this has nothing to do with ip ... */
 #define getpid() _gethostid()
 #endif	/* defined(DOS32X) */
@@ -97,7 +96,6 @@ typedef DWORD pid_t;
 #define strcasecmp stricmp
 #undef strncasecmp
 #define strncasecmp strnicmp
-#define vsnprintf _vsnprintf
 #define snprintf _snprintf
 
 #ifndef WIN32
