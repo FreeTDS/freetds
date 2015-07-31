@@ -52,15 +52,6 @@ extern "C"
 {
 #endif
 
-#if !HAVE_VSNPRINTF
-#if  HAVE__VSNPRINTF
-#undef vsnprintf
-#define vsnprintf _vsnprintf
-#else
-int vsnprintf(char *ret, size_t max, const char *fmt, va_list ap);
-#endif /* !HAVE__VSNPRINTF */
-#endif /*  HAVE_VSNPRINTF */
-
 #if !HAVE_ASPRINTF
 int asprintf(char **ret, const char *fmt, ...);
 #endif /* !HAVE_ASPRINTF */
