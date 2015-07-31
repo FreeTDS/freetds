@@ -15,15 +15,22 @@ IF "%VS_VERSION%" == "2008" (
     SET WINDOWS_SDK_VERSION="v7.0"
 ) ELSE IF "%VS_VERSION%" == "2010" (
     SET WINDOWS_SDK_VERSION="v7.1"
+) ELSE IF "%VS_VERSION%" == "2015" (
+    ECHO.
 ) ELSE (
     ECHO Unsupported Visual Studio version: "%VS_VERSION%"
     EXIT 1
 )
 
 IF "%WIDTH%"=="64" (
-    ECHO Configuring Windows SDK %WINDOWS_SDK_VERSION% on a 64 bit architecture
-    "%WIN_SDK_ROOT%\%WINDOWS_SDK_VERSION%\Setup\WindowsSdkVer.exe" -q -version:%WINDOWS_SDK_VERSION%
-    "%WIN_SDK_ROOT%\%WINDOWS_SDK_VERSION%\Bin\SetEnv.cmd" /x64 /release
+    IF "%VS_VERSION%" == "2015" (
+        ECHO Using MSVC 2015 build environment for 64 bit architecture
+        "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
+    ) ELSE (
+        ECHO Configuring Windows SDK %WINDOWS_SDK_VERSION% on a 64 bit architecture
+        "%WIN_SDK_ROOT%\%WINDOWS_SDK_VERSION%\Setup\WindowsSdkVer.exe" -q -version:%WINDOWS_SDK_VERSION%
+        "%WIN_SDK_ROOT%\%WINDOWS_SDK_VERSION%\Bin\SetEnv.cmd" /x64 /release
+    )
     ECHO Executing: %COMMAND_TO_RUN%
     call %COMMAND_TO_RUN% || EXIT 1
 ) ELSE (
@@ -34,6 +41,9 @@ IF "%WIDTH%"=="64" (
         ECHO Configuring Windows SDK %WINDOWS_SDK_VERSION% on a 32 bit architecture
         "%WIN_SDK_ROOT%\%WINDOWS_SDK_VERSION%\Setup\WindowsSdkVer.exe" -q -version:%WINDOWS_SDK_VERSION%
         "%WIN_SDK_ROOT%\%WINDOWS_SDK_VERSION%\Bin\SetEnv.cmd" /x86 /release
+    ) ELSE IF "%VS_VERSION%" == "2015" (
+        ECHO Using MSVC 2015 build environment for 32 bit architecture
+        "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
     )
     ECHO Executing: %COMMAND_TO_RUN%
     call %COMMAND_TO_RUN% || EXIT 1
