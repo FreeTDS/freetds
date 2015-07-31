@@ -1,3 +1,5 @@
+os: Visual Studio 2015
+
 skip_tags: false
 
 branches:
@@ -47,6 +49,16 @@ environment:
   - PLAT: Win64
     WIDTH: 64
     VS_VERSION: "2010"
+    TDSVER: "7.3"
+
+  - PLAT: Win32
+    WIDTH: 32
+    VS_VERSION: "2015"
+    TDSVER: "7.3"
+
+  - PLAT: Win64
+    WIDTH: 64
+    VS_VERSION: "2015"
     TDSVER: "7.3"
 
 configuration:
