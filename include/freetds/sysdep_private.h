@@ -96,7 +96,9 @@ typedef DWORD pid_t;
 #define strcasecmp stricmp
 #undef strncasecmp
 #define strncasecmp strnicmp
+#if defined(HAVE__SNPRINTF) && !defined(HAVE_SNPRINTF)
 #define snprintf _snprintf
+#endif
 
 #ifndef WIN32
 #define WIN32 1
