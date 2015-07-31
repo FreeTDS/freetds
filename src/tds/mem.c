@@ -666,11 +666,11 @@ winsock_initialized(void)
 #if defined(_WIN32) || defined(_WIN64)
 	WSADATA wsa_data;
 	int erc;
-	WSAPROTOCOL_INFO protocols[64];
+	WSAPROTOCOL_INFOW protocols[64];
 	DWORD how_much = sizeof(protocols);
 	WORD requested_version = MAKEWORD(2, 2);
 	 
-	if (SOCKET_ERROR != WSAEnumProtocols(NULL, protocols, &how_much)) 
+	if (SOCKET_ERROR != WSAEnumProtocolsW(NULL, protocols, &how_much))
 		return 1;
 
 	if (WSANOTINITIALISED != (erc = WSAGetLastError())) {
