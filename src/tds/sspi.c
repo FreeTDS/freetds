@@ -78,16 +78,7 @@ tds_init_secdll(void)
 	tds_mutex_lock(&sec_mutex);
 	for (;;) {
 		if (!secdll) {
-			OSVERSIONINFO osver;
-
-			memset(&osver, 0, sizeof(osver));
-			osver.dwOSVersionInfoSize = sizeof(osver);
-			if (!GetVersionEx(&osver))
-				break;
-			if (osver.dwPlatformId == VER_PLATFORM_WIN32_NT && osver.dwMajorVersion <= 4)
-				secdll = LoadLibrary("security.dll");
-			else
-				secdll = LoadLibrary("secur32.dll");
+			secdll = LoadLibrary("secur32.dll");
 			if (!secdll)
 				break;
 		}
