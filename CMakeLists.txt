@@ -246,14 +246,37 @@ foreach(func ${FUNCS})
 	config_write("#cmakedefine ${var} 1\n\n")
 endforeach(func)
 
-set(VSPRINTF asprintf vasprintf vsnprintf _vsnprintf snprintf _snprintf _vscprintf)
-
-foreach(func ${VSPRINTF})
-	string(TOUPPER "HAVE_${func}" var)
-	# try to search only if not alreay found
-	if (NOT ${var})
-		check_symbol_exists(${func} stdio.h ${var})
+macro(CHECK_STDIO_FUNCTION_EXISTS FUNCTION)
+	string(TOUPPER "HAVE_${FUNCTION}" VARIABLE)
+	string(TOUPPER "CHECK_${FUNCTION}" CHECK)
+	if (NOT ${VARIABLE})
+		set(MACRO_CHECK_FUNCTION_DEFINITIONS
+			"-D${CHECK}=1 ${CMAKE_REQUIRED_FLAGS}")
+		message(STATUS "Looking for ${FUNCTION}")
+		try_compile(${VARIABLE}
+			${CMAKE_BINARY_DIR}
+			${CMAKE_SOURCE_DIR}/misc/cmake_checks.c
+			COMPILE_DEFINITIONS ${CMAKE_REQUIRED_DEFINITIONS}
+			CMAKE_FLAGS -DCOMPILE_DEFINITIONS:STRING=${MACRO_CHECK_FUNCTION_DEFINITIONS}
+			OUTPUT_VARIABLE OUTPUT)
+		if(${VARIABLE})
+			set(${VARIABLE} 1 CACHE INTERNAL "Have function ${FUNCTION}")
+			message(STATUS "Looking for ${FUNCTION} - found")
+			file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeOutput.log
+				"Determining if the function ${FUNCTION} exists passed with the following output:\n"
+				"${OUTPUT}\n\n")
+		else()
+			message(STATUS "Looking for ${FUNCTION} - not found")
+			set(${VARIABLE} "" CACHE INTERNAL "Have function ${FUNCTION}")
+			file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log
+				"Determining if the function ${FUNCTION} exists failed with the following output:\n"
+				"${OUTPUT}\n\n")
+		endif()
 	endif()
+endmacro()
+
+foreach(func asprintf vasprintf vsnprintf _vsnprintf snprintf _snprintf _vscprintf)
+	check_stdio_function_exists(${func})
 endforeach(func)
 
 set(CMAKE_REQUIRED_LIBRARIES)
