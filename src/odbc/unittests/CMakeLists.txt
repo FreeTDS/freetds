@@ -30,9 +30,9 @@ set(tests
 )
 
 if(WIN32)
-	set(libs odbc32 odbccp32)
+	set(libs odbc32 ${lib_ODBCINST})
 else()
-	set(libs tdsodbc odbcinst)
+	set(libs tdsodbc ${lib_ODBCINST})
 endif()
 
 add_library(o_common STATIC common.c common.h c2string.c parser.c parser.h)
