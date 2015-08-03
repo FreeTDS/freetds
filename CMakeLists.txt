@@ -303,7 +303,15 @@ if(HAVE_READLINE)
 endif(HAVE_READLINE)
 
 config_write("#cmakedefine HAVE_SQLGETPRIVATEPROFILESTRING 1\n\n")
-search_library(SQLGetPrivateProfileString HAVE_SQLGETPRIVATEPROFILESTRING lib_ODBCINST "odbcinst;iodbcinst")
+if(WIN32)
+	set(lib_ODBCINST odbccp32)
+	check_library_exists(legacy_stdio_definitions _vsnwprintf_s "" LEGACY_STDIO)
+	if(LEGACY_STDIO)
+		set(lib_ODBCINST ${lib_ODBCINST} legacy_stdio_definitions)
+	endif(LEGACY_STDIO)
+else()
+	search_library(SQLGetPrivateProfileString HAVE_SQLGETPRIVATEPROFILESTRING lib_ODBCINST "odbcinst;iodbcinst")
+endif()
 
 # flags
 set(ENABLE_ODBC_WIDE    ON  CACHE BOOL "Enable ODBC wide character support")
