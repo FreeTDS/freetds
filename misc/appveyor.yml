@@ -27,6 +27,7 @@ environment:
     # See: http://stackoverflow.com/a/13751649/163740
     WITH_COMPILER: "cmd /E:ON /V:ON /C ..\\misc\\run_with_compiler.cmd"
     WIN_ICONV_VER: 0.0.6
+    OPENSSL_VER: 1.0.2d
 
   matrix:
   - PLAT: Win32
@@ -63,15 +64,12 @@ configuration:
   - release
 
 install:
-  # xidel (xpath command line tool)
-  - appveyor DownloadFile "http://vorboss.dl.sourceforge.net/project/videlibri/Xidel/Xidel 0.9/xidel-0.9.win32.zip" || appveyor DownloadFile "http://nbtelecom.dl.sourceforge.net/project/videlibri/Xidel/Xidel 0.9/xidel-0.9.win32.zip"
-  - 7z x xidel-0.9.win32.zip xidel.exe
-  # detect version of Windows OpenSSL binaries published by the Shining Light Productions crew
-  - xidel https://slproweb.com/products/Win32OpenSSL.html --extract "(//td/a[starts-with(@href, '/download') and starts-with(text(), 'Win32 OpenSSL') and ends-with(text(), 'Light')])[1]/translate(substring-before(substring-after(text(), 'Win32 OpenSSL v'), ' Light'), '.', '_')" > openssl_ver.txt || (ping -n 10 127.0.0.1 >"nul:" & xidel https://slproweb.com/products/Win32OpenSSL.html --extract "(//td/a[starts-with(@href, '/download') and starts-with(text(), 'Win32 OpenSSL') and ends-with(text(), 'Light')])[1]/translate(substring-before(substring-after(text(), 'Win32 OpenSSL v'), ' Light'), '.', '_')" > openssl_ver.txt)
-  - set /P OPENSSL_VER=< openssl_ver.txt
   # OpenSSL
-  - appveyor DownloadFile https://slproweb.com/download/%PLAT%OpenSSL-%OPENSSL_VER%.exe || (ping -n 10 127.0.0.1 >"nul:" & appveyor DownloadFile https://slproweb.com/download/%PLAT%OpenSSL-%OPENSSL_VER%.exe)
-  - "%PLAT%OpenSSL-%OPENSSL_VER%.exe /SP- /SILENT /SUPPRESSMSGBOXES /NORESTART /DIR=\"C:\\OpenSSL\""
+  - appveyor DownloadFile http://www.npcglib.org/~stathis/downloads/openssl-%OPENSSL_VER%-vs%VS_VERSION%.7z || (ping -n 10 127.0.0.1 >"nul:" & appveyor DownloadFile http://www.npcglib.org/~stathis/downloads/openssl-%OPENSSL_VER%-vs%VS_VERSION%.7z)
+  - 7z x openssl-%OPENSSL_VER%-vs%VS_VERSION%.7z
+  - ren openssl-%OPENSSL_VER%-vs%VS_VERSION% openssl
+  # Make sure the OpenSSL import libs are always available where CMake's FindOpenSSL is able to find them
+  - ps: if ($env:WIDTH -eq 64) { cd openssl ; ren -path lib -newName lib32 ; ren -path lib64 -newName lib ; cd .. }
   # win-iconv
   - appveyor DownloadFile https://github.com/win-iconv/win-iconv/archive/%WIN_ICONV_VER%.zip
   - 7z x %WIN_ICONV_VER%.zip
@@ -79,7 +77,7 @@ install:
   - mkdir iconv-build
   - cd iconv-build
   - if exist "C:\\Program Files (x86)\\Windows Kits\\10\\include\\wdf" ren "C:\\Program Files (x86)\\Windows Kits\\10\\include\\wdf" "00wdf"
-  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DBUILD_STATIC=on -D BUILD_SHARED=off -DBUILD_EXECUTABLE=off -DBUILD_TEST=on -DCMAKE_BUILD_TYPE=Release ..\\iconv"
+  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DBUILD_STATIC=on -DBUILD_SHARED=off -DBUILD_EXECUTABLE=off -DBUILD_TEST=on -DCMAKE_BUILD_TYPE=Release ..\\iconv"
   - "%WITH_COMPILER% nmake"
   - win_iconv_test.exe
   - cd ..\iconv
@@ -91,9 +89,11 @@ install:
 
 build_script:
   # build FreeTDS
+  # Add relevant OpenSSL DLLs dir to PATH envvar
+  - ps: if ($env:WIDTH -eq 32) { $env:PATH = $env:APPVEYOR_BUILD_FOLDER + "\openssl\bin;" + $env:PATH } else { $env:PATH = $env:APPVEYOR_BUILD_FOLDER + "\openssl\bin64;" + $env:PATH }
   - mkdir build
   - cd build
-  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Release .."
+  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Release -DOPENSSL_ROOT_DIR=openssl .."
   - "%WITH_COMPILER% nmake"
   - src\apps\tsql.exe -C
   - cd ..
