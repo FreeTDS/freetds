@@ -185,6 +185,10 @@ tds_check_column_extra(const TDSCOLUMN * column)
 	assert(column->funcs);
 	assert(column->column_type > 0);
 
+	/* specific checks, if true fully checked */
+	if (column->funcs->check(column))
+		return;
+
 	/* check type and server type same or SQLNCHAR -> SQLCHAR */
 #define SPECIAL(ttype, server_type, varint) \
 	if (column->column_type == ttype && column->on_server.column_type == server_type && column_varint_size == varint) {} else
@@ -210,16 +214,8 @@ tds_check_column_extra(const TDSCOLUMN * column)
 	varint_ok = varint_ok || tds_get_varint_size(&conn, column->on_server.column_type) == column_varint_size;
 	assert(varint_ok);
 
-	/* check current size <= size */
-	if (is_numeric_type(column->column_type)) {
-		/* I don't like that much this difference between numeric and not numeric - freddy77 */
-		/* TODO what should be the size ?? */
-		assert(column->column_prec >= 1 && column->column_prec <= MAXPRECISION);
-		assert(column->column_scale <= column->column_prec);
-/*		assert(column->column_cur_size == tds_numeric_bytes_per_prec[column->column_prec] + 2 || column->column_cur_size == -1); */
-	} else {
-		assert(column->column_cur_size <= column->column_size);
-	}
+	assert(!is_numeric_type(column->column_type));
+	assert(column->column_cur_size <= column->column_size);
 
 	/* check size of fixed type correct */
 	size = tds_get_size_by_type(column->column_type);
@@ -228,8 +224,7 @@ tds_check_column_extra(const TDSCOLUMN * column)
 		/* check macro */
 		assert(is_fixed_type(column->column_type));
 		/* check current size */
-		if (column->column_type != SYBMSDATE)
-			assert(size == column->column_size);
+		assert(size == column->column_size);
 		/* check cases where server need nullable types */
 		if (column->column_type != column->on_server.column_type && (column->column_type != SYBINT8 || column->on_server.column_type != SYB5INT8)) {
 			assert(!is_fixed_type(column->on_server.column_type));
@@ -237,11 +232,9 @@ tds_check_column_extra(const TDSCOLUMN * column)
 			assert(column->column_size == column->column_cur_size || column->column_cur_size == -1);
 		} else {
 			assert(column_varint_size == 0
-				|| (column->column_type == SYBUNIQUE && column_varint_size == 1)
-				|| (column->column_type == SYBMSDATE  && column_varint_size == 1));
+				|| (column->column_type == SYBUNIQUE && column_varint_size == 1));
 			assert(column->column_size == column->column_cur_size
-				|| (column->column_type == SYBUNIQUE && column->column_cur_size == -1)
-				|| (column->column_type == SYBMSDATE  && column->column_cur_size == -1));
+				|| (column->column_type == SYBUNIQUE && column->column_cur_size == -1));
 		}
 		assert(column->column_size == column->on_server.column_size);
 	} else {

@@ -356,9 +356,11 @@ typedef enum tds_encryption_level {
 # define TDS_COMPILE_CHECK(name,check) \
     extern int name[(check)?1:-1]
 # endif
+# define TDS_EXTRA_CHECK(stmt) stmt
 #else
 # define TDS_COMPILE_CHECK(name,check) \
     extern int disabled_check_##name
+# define TDS_EXTRA_CHECK(stmt)
 #endif
 
 /*
@@ -638,6 +640,7 @@ typedef TDSRET  tds_func_get_data(TDSSOCKET *tds, TDSCOLUMN *col);
 typedef TDS_INT tds_func_row_len(TDSCOLUMN *col);
 typedef TDSRET  tds_func_put_info(TDSSOCKET *tds, TDSCOLUMN *col);
 typedef TDSRET  tds_func_put_data(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7);
+typedef int     tds_func_check(TDSCOLUMN *col);
 
 typedef struct tds_column_funcs
 {
@@ -660,6 +663,23 @@ typedef struct tds_column_funcs
 	 * \param bcp7 1 to send BCP column on TDS7+
 	 */
 	tds_func_put_data *put_data;
+#if ENABLE_EXTRA_CHECKS
+	/**
+	 * Check column is valid.
+	 * Some things should be checked:
+	 * - column_type and on_server.column_type;
+	 * - column_size and on_server.column_size;
+	 * - column_cur_size;
+	 * - column_prec and column_scale;
+	 * - is_XXXX_type macros/functions (nullable/fixed/blob/variable);
+	 * - tds_get_size_by_type;
+	 * - tds_get_conversion_type.
+	 *
+	 * \tds
+	 * \param col  column to check
+	 */
+	tds_func_check    *check;
+#endif
 #if 0
 	TDSRET (*convert)(TDSSOCKET *tds, TDSCOLUMN *col);
 #endif

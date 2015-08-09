@@ -1220,6 +1220,64 @@ tds_clrudt_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 	return TDS_SUCCESS;
 }
 
+#if ENABLE_EXTRA_CHECKS
+int
+tds_generic_check(TDSCOLUMN *col)
+{
+	return 0;
+}
+
+int
+tds_clrudt_check(TDSCOLUMN *col)
+{
+	return 0;
+}
+
+int
+tds_msdatetime_check(TDSCOLUMN *col)
+{
+	assert(col->column_type == col->on_server.column_type);
+	assert(col->on_server.column_size == col->column_size);
+	assert(!is_numeric_type(col->column_type));
+	if (col->column_type == SYBMSDATE) {
+		assert(is_fixed_type(col->column_type));
+	} else {
+		assert(!is_fixed_type(col->column_type));
+	}
+	assert(!is_blob_type(col->column_type));
+	assert(!is_variable_type(col->column_type));
+	assert(is_nullable_type(col->column_type));
+	assert(col->column_varint_size == 1);
+	assert(col->column_prec >= 0 && col->column_prec <= 7);
+	assert(col->column_scale == col->column_prec);
+
+	return 1;
+}
+
+int
+tds_variant_check(TDSCOLUMN *col)
+{
+	return 0;
+}
+
+int
+tds_numeric_check(TDSCOLUMN *col)
+{
+	assert(col->column_type == col->on_server.column_type);
+	assert(col->on_server.column_size == col->column_size);
+	assert(is_numeric_type(col->column_type));
+	assert(!is_fixed_type(col->column_type));
+	assert(!is_blob_type(col->column_type));
+	assert(!is_variable_type(col->column_type));
+	assert(col->column_varint_size == 1);
+	assert(col->column_prec >= 1 && col->column_prec <= MAXPRECISION);
+	assert(col->column_scale <= col->column_prec);
+
+	return 1;
+}
+#endif
+
+
 #define TDS_DECLARE_FUNCS(name) \
      extern const TDSCOLUMNFUNCS tds_ ## name ## _funcs
 
