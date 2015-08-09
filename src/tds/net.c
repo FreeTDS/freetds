@@ -290,7 +290,7 @@ tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int ti
 			goto not_available;
 		
 		*p_oserr = TDSSOCK_ETIMEDOUT;
-		if (tds_select(tds, TDSSELWRITE|TDSSELERR, timeout) <= 0) {
+		if (tds_select(tds, TDSSELWRITE|TDSSELERR, timeout) == 0) {
 			tds_error = TDSECONN;
 			goto not_available;
 		}
