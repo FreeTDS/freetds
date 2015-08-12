@@ -36,7 +36,7 @@
 #include <freetds/iconv.h>
 #include <freetds/string.h>
 
-static TDS_INT
+TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIMEALL * dta)
 {
 	struct tm src_tm;

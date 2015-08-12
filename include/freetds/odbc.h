@@ -343,6 +343,7 @@ struct _hcattr
 	SQLUINTEGER txn_isolation;
 	SQLUINTEGER mars_enabled;
 	SQLUINTEGER cursor_type;
+	SQLUINTEGER bulk_enabled;
 #ifdef TDS_NO_DM
 	SQLUINTEGER trace;
 	DSTR tracefile;
@@ -382,6 +383,9 @@ struct _hdbc
 	unsigned int cursor_support:1;
 	unsigned int use_oldpwd:1;
 	TDS_INT default_query_timeout;
+
+	TDSBCPINFO *bcpinfo;
+	char *bcphint;
 };
 
 struct _hsattr
@@ -621,6 +625,18 @@ int odbc_build_connect_string(TDS_ERRS *errs, TDS_PARSED_PARAM *params, char **o
 #endif
 
 /*
+ * bcp.c
+ */
+void odbc_bcp_free_storage(TDS_DBC *dbc);
+void odbc_bcp_initA(TDS_DBC *dbc, const char *tblname, const char *hfile, const char *errfile, int direction);
+void odbc_bcp_control(TDS_DBC *dbc, int field, void *value);
+void odbc_bcp_colptr(TDS_DBC *dbc, const BYTE * colptr, int table_column);
+void odbc_bcp_sendrow(TDS_DBC *dbc);
+int odbc_bcp_batch(TDS_DBC *dbc);
+int odbc_bcp_done(TDS_DBC *dbc);
+void odbc_bcp_bind(TDS_DBC *dbc, const BYTE * varaddr, int prefixlen, int varlen, const BYTE * terminator, int termlen, int vartype, int table_column);
+
+/*
  * convert_tds2sql.c
  */
 SQLLEN odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen, const struct _drecord *drec_ixd);
@@ -745,6 +761,7 @@ const char *parse_const_param(const char * s, TDS_SERVER_TYPE *type);
  * sql2tds.c
  */
 SQLRETURN odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _drecord *drec_axd, TDSCOLUMN *curcol, int compute_row, const TDS_DESC* axd, unsigned int n_row);
+TDS_INT convert_datetime2server(int bindtype, const void *src, TDS_DATETIMEALL * dta);
 
 /*
  * sqlwchar.c

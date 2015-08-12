@@ -5,7 +5,7 @@ AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC)
 lib_LTLIBRARIES	=	libtdsodbc.la
 ##EXTRA_LTLIBRARIES	=	libtdsodbc.la
 libtdsodbc_la_SOURCES =	odbc.c connectparams.c convert_tds2sql.c \
-	descriptor.c prepare_query.c odbc_util.c \
+	descriptor.c prepare_query.c odbc_util.c bcp.c \
 	native.c sql2tds.c error.c odbc_checks.c sqlwchar.c sqlwparams.h \
 	odbc_export.h error_export.h odbc_data.c
 libtdsodbc_la_LIBADD =	../tds/libtds.la ../replacements/libreplacements.la $(ODBCINSTLIB) $(NETWORK_LIBS) $(LTLIBICONV) $(FREETDS_LIBGCC)

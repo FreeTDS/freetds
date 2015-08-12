@@ -40,6 +40,7 @@
 #include <freetds/convert.h>
 #include "replacements.h"
 #include "sqlwparams.h"
+#define TDSODBC_BCP
 #include <odbcss.h>
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -364,6 +365,8 @@ odbc_connect(TDS_DBC * dbc, TDSLOGIN * login)
 	login->connect_timeout = dbc->attr.connection_timeout;
 	if (dbc->attr.mars_enabled != SQL_MARS_ENABLED_NO)
 		login->mars = 1;
+	if (dbc->attr.bulk_enabled != SQL_BCP_OFF)
+		tds_set_bulk(login, 1);
 
 #ifdef ENABLE_ODBC_WIDE
 	/* force utf-8 in order to support wide characters */
@@ -1578,6 +1581,7 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 	dbc->attr.translate_option = 0;
 	dbc->attr.txn_isolation = SQL_TXN_READ_COMMITTED;
 	dbc->attr.mars_enabled = SQL_MARS_ENABLED_NO;
+	dbc->attr.bulk_enabled = SQL_BCP_OFF;
 
 	tds_mutex_init(&dbc->mtx);
 	*phdbc = (SQLHDBC) dbc;
@@ -4073,6 +4077,7 @@ _SQLFreeConnect(SQLHDBC hdbc)
 	/* TODO if connected return error */
 	tds_free_socket(dbc->tds_socket);
 
+	odbc_bcp_free_storage(dbc);
 	/* free attributes */
 #ifdef TDS_NO_DM
 	tds_dstr_free(&dbc->attr.tracefile);
@@ -4838,6 +4843,9 @@ ODBC_FUNC(SQLGetConnectAttr, (P(SQLHDBC,hdbc), P(SQLINTEGER,Attribute), P(SQLPOI
 	case SQL_ATTR_TRANSLATE_LIB:
 	case SQL_ATTR_TRANSLATE_OPTION:
 		odbc_errs_add(&dbc->errs, "HYC00", NULL);
+		break;
+	case SQL_COPT_SS_BCP:
+		*((SQLUINTEGER *) Value) = dbc->attr.bulk_enabled;
 		break;
 	default:
 		odbc_errs_add(&dbc->errs, "HY092", NULL);
@@ -6282,6 +6290,63 @@ ODBC_FUNC(SQLSetConnectAttr, (P(SQLHDBC,hdbc), P(SQLINTEGER,Attribute), P(SQLPOI
 			odbc_errs_add(&dbc->errs, "HY001", NULL);
 		else
 			dbc->use_oldpwd = 1;
+		break;
+	case SQL_COPT_SS_BCP:
+		dbc->attr.bulk_enabled = u_value;
+		break;
+	case SQL_COPT_TDSODBC_IMPL_BCP_INITA:
+		if (!ValuePtr)
+			odbc_errs_add(&dbc->errs, "HY009", NULL);
+		else {
+			const struct tdsodbc_impl_bcp_init_params *params = (const struct tdsodbc_impl_bcp_init_params*)ValuePtr;
+			odbc_bcp_initA(dbc, params->tblname, params->hfile, params->errfile, params->direction);
+		}
+		break;
+	case SQL_COPT_TDSODBC_IMPL_BCP_CONTROL:
+		if (!ValuePtr)
+			odbc_errs_add(&dbc->errs, "HY009", NULL);
+		else {
+			const struct tdsodbc_impl_bcp_control_params *params = (const struct tdsodbc_impl_bcp_control_params*)ValuePtr;
+			odbc_bcp_control(dbc, params->field, params->value);
+		}
+		break;
+	case SQL_COPT_TDSODBC_IMPL_BCP_COLPTR:
+		if (!ValuePtr)
+			odbc_errs_add(&dbc->errs, "HY009", NULL);
+		else {
+			const struct tdsodbc_impl_bcp_colptr_params *params = (const struct tdsodbc_impl_bcp_colptr_params*)ValuePtr;
+			odbc_bcp_colptr(dbc, params->colptr, params->table_column);
+		}
+		break;
+	case SQL_COPT_TDSODBC_IMPL_BCP_SENDROW:
+		if (ValuePtr)
+			odbc_errs_add(&dbc->errs, "HY000", NULL);
+		else
+			odbc_bcp_sendrow(dbc);
+		break;
+	case SQL_COPT_TDSODBC_IMPL_BCP_BATCH:
+		if (!ValuePtr)
+			odbc_errs_add(&dbc->errs, "HY009", NULL);
+		else {
+			struct tdsodbc_impl_bcp_batch_params *params = (struct tdsodbc_impl_bcp_batch_params*)ValuePtr;
+			params->rows = odbc_bcp_batch(dbc);
+		}
+		break;
+	case SQL_COPT_TDSODBC_IMPL_BCP_DONE:
+		if (!ValuePtr)
+			odbc_errs_add(&dbc->errs, "HY009", NULL);
+		else {
+			struct tdsodbc_impl_bcp_done_params *params = (struct tdsodbc_impl_bcp_done_params*)ValuePtr;
+			params->rows = odbc_bcp_done(dbc);
+		}
+		break;
+	case SQL_COPT_TDSODBC_IMPL_BCP_BIND:
+		if (!ValuePtr)
+			odbc_errs_add(&dbc->errs, "HY009", NULL);
+		else {
+			const struct tdsodbc_impl_bcp_bind_params *params = (const struct tdsodbc_impl_bcp_bind_params*)ValuePtr;
+			odbc_bcp_bind(dbc, params->varaddr, params->prefixlen, params->varlen, params->terminator, params->termlen, params->vartype, params->table_column);
+		}
 		break;
 	default:
 		odbc_errs_add(&dbc->errs, "HY092", NULL);
