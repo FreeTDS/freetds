@@ -30,7 +30,7 @@ const char *expected[] = {
 	"1234","1234","123",
 	"a wide var",
 };
-static const int total_cols = 30;
+static const int total_cols = 29;
 
 const char *expected_special[] = {
 	"2015-03-14 15:26:53.000",
@@ -38,6 +38,8 @@ const char *expected_special[] = {
 	"3.141593000",
 	"3.141593",		/* MS driver has "3141593" here. Bug? Should we be bug-compatible? */
 };
+
+static int tds_version;
 
 static void
 init(void)
@@ -68,8 +70,6 @@ init(void)
 		", not_null_tinyint              tinyint NOT NULL"
 		", not_null_nvarchar             nvarchar(10) NOT NULL"
 		""
-		", nullable_bit                  bit  NULL"
-
 		", nullable_char                 char(10)  NULL"
 		", nullable_varchar              varchar(10)  NULL"
 		""
@@ -90,6 +90,10 @@ init(void)
 		", nullable_tinyint              tinyint  NULL"
 		", nullable_nvarchar             nvarchar(10)  NULL"
 		")");
+
+	if (tds_version < 0x703)
+		return;
+
 		/* Excludes:
 		 * binary
 		 * image
@@ -105,7 +109,8 @@ init(void)
 		"dt datetime not null,"
 		"dt2 datetime2(6) not null,"
 		"num decimal(19,9) not null,"
-		"numstr varchar(64) not null"
+		"numstr varchar(64) not null,"
+		"bitnull bit null"
 		")");
 }
 
@@ -167,7 +172,6 @@ test_bind(void)
 	assert(fOK == SUCCEED);
 
 	/* nulls */
-	fOK = NULL_BIND(not_null_bit, BCP_TYPE_SQLINT4);
 	assert(fOK == SUCCEED);
 	fOK = NULL_BIND(not_null_char, BCP_TYPE_SQLVARCHAR);
 	assert(fOK == SUCCEED);
@@ -218,22 +222,51 @@ report_bcp_error(const char *errmsg, int line, const char *file)
 	odbc_report_error(errmsg, line, file);
 }
 
+static void normal_inserts(void);
+static void normal_select(void);
+static void special_inserts(void);
+static void special_select(void);
+
+const char table_name[] = "all_types_bcp_unittest";
+
 int
 main(int argc, char *argv[])
 {
-	const char *table_name = "all_types_bcp_unittest";
-	int i;
-	int rows_sent;
-	int ok = 1;
 	const char *s;
-	DBDATETIME datetime;
-	SQL_NUMERIC_STRUCT numeric;
-	SQL_TIMESTAMP_STRUCT timestamp;
 
 	odbc_set_conn_attr = set_attr;
 	odbc_connect();
 
+	tds_version = odbc_tds_version();
+
 	init();
+
+	normal_inserts();
+	if (tds_version >= 0x703)
+		special_inserts();
+	normal_select();
+	if (tds_version >= 0x703)
+		special_select();
+
+	if ((s = getenv("BCP")) != NULL && 0 == strcmp(s, "nodrop")) {
+		fprintf(stdout, "BCP=nodrop: '%s' kept\n", table_name);
+	} else {
+		fprintf(stdout, "Dropping table %s\n", table_name);
+		odbc_command("drop table all_types_bcp_unittest");
+		if (tds_version >= 0x703)
+			odbc_command("drop table special_types_bcp_unittest");
+	}
+
+	odbc_disconnect();
+
+	printf("Done.\n");
+	return 0;
+}
+
+static void normal_inserts(void)
+{
+	int i;
+	int rows_sent;
 
 	/* set up and send the bcp */
 	fprintf(stdout, "preparing to insert into %s ... ", table_name);
@@ -264,6 +297,14 @@ main(int argc, char *argv[])
 		printf("%d rows copied.\n", rows_sent);
 
 	printf("done\n");
+}
+
+static void special_inserts(void)
+{
+	int rows_sent;
+	SQL_TIMESTAMP_STRUCT timestamp;
+	DBDATETIME datetime;
+	SQL_NUMERIC_STRUCT numeric;
 
 	printf("sending special types\n");
 	rows_sent = 0;
@@ -292,6 +333,7 @@ main(int argc, char *argv[])
 	bcp_bind(odbc_conn, (unsigned char *) &timestamp, 0, sizeof(timestamp), NULL, 0, BCP_TYPE_SQLDATETIME2, 2);
 	bcp_bind(odbc_conn, (unsigned char *) &numeric, 0, sizeof(numeric), NULL, 0, BCP_TYPE_SQLDECIMAL, 3);
 	bcp_bind(odbc_conn, (unsigned char *) &numeric, 0, sizeof(numeric), NULL, 0, BCP_TYPE_SQLDECIMAL, 4);
+	bcp_bind(odbc_conn, (unsigned char *) &not_null_bit, 0, SQL_NULL_DATA, NULL, 0, BCP_TYPE_SQLINT4, 5);
 
 	if (bcp_sendrow(odbc_conn) == FAIL)
 		report_bcp_error("bcp_sendrow", __LINE__, __FILE__);
@@ -311,11 +353,16 @@ main(int argc, char *argv[])
 		printf("%d rows copied.\n", rows_sent);
 
 	printf("done\n");
+}
 
-#if 1
-	odbc_command("select top 1 * from all_types_bcp_unittest");
+static void normal_select(void)
+{
+	int ok = 1, i;
+
+	odbc_command("select * from all_types_bcp_unittest");
 	CHKFetch("SI");
 
+	/* first columns have values */
 	for (i = 0; i < sizeof(expected)/sizeof(expected[0]); ++i) {
 		char output[128];
 		SQLLEN dataSize;
@@ -325,6 +372,7 @@ main(int argc, char *argv[])
 			ok = 0;
 		}
 	}
+	/* others are NULL */
 	for (; i < total_cols; ++i) {
 		char output[128];
 		SQLLEN dataSize;
@@ -337,6 +385,11 @@ main(int argc, char *argv[])
 	if (!ok)
 		exit(1);
 	CHKCloseCursor("SI");
+}
+
+static void special_select(void)
+{
+	int ok = 1, i;
 
 	odbc_command("select top 1 * from special_types_bcp_unittest");
 	CHKFetch("SI");
@@ -352,18 +405,4 @@ main(int argc, char *argv[])
 	if (!ok)
 		exit(1);
 	CHKCloseCursor("SI");
-
-#endif
-	if ((s = getenv("BCP")) != NULL && 0 == strcmp(s, "nodrop")) {
-		fprintf(stdout, "BCP=nodrop: '%s' kept\n", table_name);
-	} else {
-		fprintf(stdout, "Dropping table %s\n", table_name);
-		odbc_command("drop table all_types_bcp_unittest");
-		odbc_command("drop table special_types_bcp_unittest");
-	}
-
-	odbc_disconnect();
-
-	printf("Done.\n");
-	return 0;
 }

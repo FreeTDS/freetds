@@ -387,10 +387,18 @@ odbc_bcp_bind(TDS_DBC *dbc, const BYTE * varaddr, int prefixlen, int varlen,
 static SQLLEN
 _bcp_iconv_helper(const TDS_DBC *dbc, const TDSCOLUMN *bindcol, const TDS_CHAR * src, size_t srclen, char * dest, size_t destlen)
 {
-	char *orig_dest = dest;
-	if (tds_iconv(dbc->tds_socket, bindcol->char_conv, to_server, &src, &srclen, &dest, &destlen) == (size_t)-1)
-		return -1;
-	return dest - orig_dest;
+	if (bindcol->char_conv) {
+		char *orig_dest = dest;
+
+		if (tds_iconv(dbc->tds_socket, bindcol->char_conv, to_server, &src, &srclen, &dest, &destlen) == (size_t)-1)
+			return -1;
+		return dest - orig_dest;
+	}
+
+	if (destlen > srclen)
+		destlen = srclen;
+	memcpy(dest, src, destlen);
+	return destlen;
 }
 
 static SQLLEN
