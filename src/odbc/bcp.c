@@ -85,10 +85,12 @@ _bcp_get_term_var(const TDS_CHAR * pdata, const TDS_CHAR * term, int term_len);
  * \sa	SQL_COPT_SS_BCP, odbc_bcp_bind(), odbc_bcp_done(), odbc_bcp_exec()
  */
 void
-odbc_bcp_initA(TDS_DBC *dbc, const char *tblname, const char *hfile, const char *errfile, int direction)
+odbc_bcp_init(TDS_DBC *dbc, const ODBC_CHAR *tblname, const ODBC_CHAR *hfile,
+	      const ODBC_CHAR *errfile, int direction _WIDE)
 {
+	/* TODO convert unicode for printing */
 	tdsdump_log(TDS_DBG_FUNC, "bcp_init(%p, %s, %s, %s, %d)\n",
-			dbc, tblname? tblname:"NULL", hfile? hfile:"NULL", errfile? errfile:"NULL", direction);
+			dbc, tblname, hfile, errfile, direction);
 	if (!tblname)
 		ODBCBCP_ERROR_RETURN("HY009");
 
@@ -102,9 +104,6 @@ odbc_bcp_initA(TDS_DBC *dbc, const char *tblname, const char *hfile, const char 
 	if (dbc->tds_socket->conn->tds_version < 0x500)
 		ODBCBCP_ERROR_RETURN("HYC00");
 
-	if (strlen(tblname) > 92 && !IS_TDS7_PLUS(dbc->tds_socket->conn)) 	/* 30.30.30 */
-		ODBCBCP_ERROR_RETURN("HYC00");
-
 	if (direction != BCP_DIRECTION_IN || hfile || errfile)
 		ODBCBCP_ERROR_RETURN("HYC00");
 
@@ -114,9 +113,14 @@ odbc_bcp_initA(TDS_DBC *dbc, const char *tblname, const char *hfile, const char 
 	if (dbc->bcpinfo == NULL)
 		ODBCBCP_ERROR_RETURN("HY001");
 
-	if ((dbc->bcpinfo->tablename = strdup(tblname)) == NULL) {
+	if ((dbc->bcpinfo->tablename = odbc_str_copy(dbc, SQL_NTS, tblname _wide)) == NULL) {
 		odbc_bcp_free_storage(dbc);
 		ODBCBCP_ERROR_RETURN("HY001");
+	}
+
+	if (strlen(dbc->bcpinfo->tablename) > 92 && !IS_TDS7_PLUS(dbc->tds_socket->conn)) { 	/* 30.30.30 */
+		odbc_bcp_free_storage(dbc);
+		ODBCBCP_ERROR_RETURN("HYC00");
 	}
 
 	dbc->bcpinfo->direction = direction;

@@ -6299,9 +6299,21 @@ ODBC_FUNC(SQLSetConnectAttr, (P(SQLHDBC,hdbc), P(SQLINTEGER,Attribute), P(SQLPOI
 			odbc_errs_add(&dbc->errs, "HY009", NULL);
 		else {
 			const struct tdsodbc_impl_bcp_init_params *params = (const struct tdsodbc_impl_bcp_init_params*)ValuePtr;
-			odbc_bcp_initA(dbc, params->tblname, params->hfile, params->errfile, params->direction);
+			odbc_bcp_init(dbc, (const ODBC_CHAR *) params->tblname, (const ODBC_CHAR *) params->hfile,
+				      (const ODBC_CHAR *) params->errfile, params->direction _wide0);
 		}
 		break;
+#ifdef ENABLE_ODBC_WIDE
+	case SQL_COPT_TDSODBC_IMPL_BCP_INITW:
+		if (!ValuePtr)
+			odbc_errs_add(&dbc->errs, "HY009", NULL);
+		else {
+			const struct tdsodbc_impl_bcp_init_params *params = (const struct tdsodbc_impl_bcp_init_params*)ValuePtr;
+			odbc_bcp_init(dbc, (const ODBC_CHAR *) params->tblname, (const ODBC_CHAR *) params->hfile,
+				      (const ODBC_CHAR *) params->errfile, params->direction, 1);
+		}
+		break;
+#endif
 	case SQL_COPT_TDSODBC_IMPL_BCP_CONTROL:
 		if (!ValuePtr)
 			odbc_errs_add(&dbc->errs, "HY009", NULL);

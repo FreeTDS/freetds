@@ -76,6 +76,7 @@ extern "C" {
 #define SQL_COPT_TDSODBC_IMPL_BCP_BATCH	(SQL_COPT_TDSODBC_IMPL_BASE+4)
 #define SQL_COPT_TDSODBC_IMPL_BCP_DONE	(SQL_COPT_TDSODBC_IMPL_BASE+5)
 #define SQL_COPT_TDSODBC_IMPL_BCP_BIND	(SQL_COPT_TDSODBC_IMPL_BASE+6)
+#define SQL_COPT_TDSODBC_IMPL_BCP_INITW	(SQL_COPT_TDSODBC_IMPL_BASE+7)
 
 #define SQL_VARLEN_DATA -10
 
@@ -159,9 +160,9 @@ typedef struct
 
 struct tdsodbc_impl_bcp_init_params
 {
-	const char *tblname;
-	const char *hfile;
-	const char *errfile;
+	const void *tblname;
+	const void *hfile;
+	const void *errfile;
 	int direction;
 };
 
@@ -170,6 +171,13 @@ bcp_initA(HDBC hdbc, const char *tblname, const char *hfile, const char *errfile
 {
 	struct tdsodbc_impl_bcp_init_params params = {tblname, hfile, errfile, direction};
 	return SQL_SUCCEEDED(SQLSetConnectAttr(hdbc, SQL_COPT_TDSODBC_IMPL_BCP_INITA, &params, SQL_IS_POINTER)) ? SUCCEED : FAIL;
+}
+
+static TDSODBC_INLINE RETCODE
+bcp_initW(HDBC hdbc, const char *tblname, const char *hfile, const char *errfile, int direction)
+{
+	struct tdsodbc_impl_bcp_init_params params = {tblname, hfile, errfile, direction};
+	return SQL_SUCCEEDED(SQLSetConnectAttr(hdbc, SQL_COPT_TDSODBC_IMPL_BCP_INITW, &params, SQL_IS_POINTER)) ? SUCCEED : FAIL;
 }
 
 struct tdsodbc_impl_bcp_control_params
@@ -247,7 +255,11 @@ bcp_bind(HDBC hdbc, const BYTE * varaddr, int prefixlen, int varlen,
 	return SQL_SUCCEEDED(SQLSetConnectAttr(hdbc, SQL_COPT_TDSODBC_IMPL_BCP_BIND, &params, SQL_IS_POINTER)) ? SUCCEED : FAIL;
 }
 
+#ifdef UNICODE
+#define bcp_init bcp_initW
+#else
 #define bcp_init bcp_initA
+#endif
 
 #endif /* TDSODBC_BCP */
 
