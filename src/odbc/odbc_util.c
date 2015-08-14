@@ -88,11 +88,7 @@ odbc_set_stmt(TDS_STMT * stmt, char **dest, const ODBC_CHAR *sql, int sql_len _W
 	if (stmt->query)
 		TDS_ZERO_FREE(stmt->query);
 
-#ifdef ENABLE_ODBC_WIDE
-	*dest = p = wide ? odbc_wide2utf(sql->wide, sql_len) : odbc_mb2utf(stmt->dbc, sql->mb, sql_len);
-#else
-	*dest = p = tds_strndup((const char*) sql, sql_len);
-#endif
+	*dest = p = odbc_str_copy(stmt->dbc, sql_len, sql _wide);
 	if (!p)
 		return SQL_ERROR;
 
@@ -113,7 +109,7 @@ odbc_set_stmt_prepared_query(TDS_STMT * stmt, const ODBC_CHAR *sql, int sql_len 
 }
 
 int
-odbc_get_string_size(int size, ODBC_CHAR * str _WIDE)
+odbc_get_string_size(int size, const ODBC_CHAR * str _WIDE)
 {
 	if (str) {
 		if (size == SQL_NTS)
@@ -272,18 +268,32 @@ odbc_mb2utf(TDS_DBC *dbc, const char *s, int len)
 }
 #endif
 
-#ifdef ENABLE_ODBC_WIDE
-DSTR*
-odbc_dstr_copy_flag(TDS_DBC *dbc, DSTR *s, int size, ODBC_CHAR * str, int flag)
+char *
+odbc_str_copy(TDS_DBC *dbc, int size, const ODBC_CHAR * str _WIDE)
 {
-	int wide = flag&1;
-	int len = odbc_get_string_size((flag&0x21) == 0x21 && size >= 0 ? size/SIZEOF_SQLWCHAR : size, str, wide);
+	int len = odbc_get_string_size(size, str _wide);
 	char *buf;
 
+#ifdef ENABLE_ODBC_WIDE
 	if (wide)
 		buf = odbc_wide2utf(str->wide, len);
 	else
 		buf = odbc_mb2utf(dbc, str->mb, len);
+#else
+	buf = tds_strndup(s, (const char *) str, len);
+#endif
+	return buf;
+}
+
+#ifdef ENABLE_ODBC_WIDE
+DSTR*
+odbc_dstr_copy_flag(TDS_DBC *dbc, DSTR *s, int size, ODBC_CHAR * str, int flag)
+{
+	char *buf;
+
+	if ((flag&0x21) == 0x21 && size >= 0)
+		 size /= SIZEOF_SQLWCHAR;
+	buf = odbc_str_copy(dbc, size, str, flag&1);
 	if (!buf)
 		return NULL;
 
