@@ -23,7 +23,7 @@ static int not_null_smallint   = 1234;
 static int not_null_tinyint    = 123;
 static char not_null_nvarchar[] = "a wide var";
 
-const char *expected[] = {
+static const char *expected[] = {
 	"1",
 	"a char    ","a varchar","2003-12-17 15:44:00.000","2003-12-17 15:44:00",
 	"12.34","12.34","12.34","12.3400002","12.34","12.34",
@@ -32,7 +32,7 @@ const char *expected[] = {
 };
 static const int total_cols = 29;
 
-const char *expected_special[] = {
+static const char *expected_special[] = {
 	"2015-03-14 15:26:53.000",
 	"2015-03-14 15:26:53.589793",
 	"3.141593000",
@@ -227,7 +227,7 @@ static void normal_select(void);
 static void special_inserts(void);
 static void special_select(void);
 
-const char table_name[] = "all_types_bcp_unittest";
+static const char table_name[] = "all_types_bcp_unittest";
 
 int
 main(int argc, char *argv[])
