@@ -109,7 +109,7 @@ odbc_bcp_init(TDS_DBC *dbc, const ODBC_CHAR *tblname, const ODBC_CHAR *hfile,
 
 	/* Allocate storage */
 
-	dbc->bcpinfo = (TDSBCPINFO*) calloc(1, sizeof(TDSBCPINFO));
+	dbc->bcpinfo = tds_alloc_bcpinfo();
 	if (dbc->bcpinfo == NULL)
 		ODBCBCP_ERROR_RETURN("HY001");
 
@@ -657,13 +657,8 @@ odbc_bcp_free_storage(TDS_DBC *dbc)
 	tdsdump_log(TDS_DBG_FUNC, "_bcp_free_storage(%p)\n", dbc);
 	assert(dbc);
 
-	if (dbc->bcpinfo) {
-		TDS_ZERO_FREE(dbc->bcpinfo->tablename);
-		TDS_ZERO_FREE(dbc->bcpinfo->insert_stmt);
-		tds_free_results(dbc->bcpinfo->bindinfo);
-		dbc->bcpinfo->bindinfo = NULL;
-		TDS_ZERO_FREE(dbc->bcpinfo);
-	}
+	tds_free_bcpinfo(dbc->bcpinfo);
+	dbc->bcpinfo = NULL;
 	TDS_ZERO_FREE(dbc->bcphint);
 }
 

@@ -47,6 +47,7 @@ typedef struct tdsiconvinfo TDSICONV;
 typedef struct tds_connection TDSCONNECTION;
 typedef struct tds_socket TDSSOCKET;
 typedef struct tds_column TDSCOLUMN;
+typedef struct tds_bcpinfo TDSBCPINFO;
 
 #include <freetds/version.h>
 #include "tds_sysdep_public.h"
@@ -1306,6 +1307,9 @@ void * tds_realloc(void **pp, size_t new_size);
 TDSPACKET *tds_alloc_packet(void *buf, unsigned len);
 TDSPACKET *tds_realloc_packet(TDSPACKET *packet, unsigned len);
 void tds_free_packets(TDSPACKET *packet);
+TDSBCPINFO *tds_alloc_bcpinfo(void);
+void tds_free_bcpinfo(TDSBCPINFO *bcpinfo);
+void tds_deinit_bcpinfo(TDSBCPINFO *bcpinfo);
 
 
 /* login.c */
@@ -1535,7 +1539,7 @@ enum tds_bcp_directions
 	TDS_BCP_QUERYOUT = 3
 };
 
-typedef struct tds_bcpinfo
+struct tds_bcpinfo
 {
 	const char *hint;
 	void *parent;
@@ -1546,7 +1550,7 @@ typedef struct tds_bcpinfo
 	TDS_INT xfer_init;
 	TDS_INT bind_count;
 	TDSRESULTINFO *bindinfo;
-} TDSBCPINFO;
+};
 
 TDSRET tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
 typedef TDSRET (*tds_bcp_get_col_data) (TDSBCPINFO *bulk, TDSCOLUMN *bcpcol, int offset);

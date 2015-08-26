@@ -1490,8 +1490,7 @@ dbclose(DBPROCESS * dbproc)
 		fclose(dbproc->ftos);
 	}
 
-	if (dbproc->bcpinfo)
-		free(dbproc->bcpinfo->tablename);
+	tds_free_bcpinfo(dbproc->bcpinfo);
 	if (dbproc->hostfileinfo) {
 		free(dbproc->hostfileinfo->hostfile);
 		free(dbproc->hostfileinfo->errorfile);

@@ -196,7 +196,7 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 
 	/* Allocate storage */
 	
-	dbproc->bcpinfo = (TDSBCPINFO*) calloc(1, sizeof(TDSBCPINFO));
+	dbproc->bcpinfo = tds_alloc_bcpinfo();
 	if (dbproc->bcpinfo == NULL)
 		goto memory_error;
 
@@ -2295,13 +2295,7 @@ _bcp_free_storage(DBPROCESS * dbproc)
 		TDS_ZERO_FREE(dbproc->hostfileinfo);
 	}
 
-
-	if (dbproc->bcpinfo) {
-		TDS_ZERO_FREE(dbproc->bcpinfo->tablename);
-		TDS_ZERO_FREE(dbproc->bcpinfo->insert_stmt);
-		tds_free_results(dbproc->bcpinfo->bindinfo);
-		dbproc->bcpinfo->bindinfo = NULL;
-		TDS_ZERO_FREE(dbproc->bcpinfo);
-	}
+	tds_free_bcpinfo(dbproc->bcpinfo);
+	dbproc->bcpinfo = NULL;
 }
 

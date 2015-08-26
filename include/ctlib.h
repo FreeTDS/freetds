@@ -236,7 +236,6 @@ struct _cs_command
 
 struct _cs_blkdesc
 {
-	CS_CONNECTION *con;
 	TDSBCPINFO bcpinfo;
 };
 

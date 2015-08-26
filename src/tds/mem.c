@@ -1751,6 +1751,36 @@ tds_free_bcp_column_data(BCPCOLDATA * coldata)
 	free(coldata);
 }
 
+TDSBCPINFO *
+tds_alloc_bcpinfo(void)
+{
+	TDSBCPINFO *bcpinfo;
+
+	TEST_MALLOC(bcpinfo, TDSBCPINFO);
+
+	return bcpinfo;
+Cleanup:
+	return NULL;
+}
+
+void
+tds_deinit_bcpinfo(TDSBCPINFO *bcpinfo)
+{
+	TDS_ZERO_FREE(bcpinfo->tablename);
+	TDS_ZERO_FREE(bcpinfo->insert_stmt);
+	tds_free_results(bcpinfo->bindinfo);
+	bcpinfo->bindinfo = NULL;
+}
+
+void
+tds_free_bcpinfo(TDSBCPINFO *bcpinfo)
+{
+	if (bcpinfo) {
+		tds_deinit_bcpinfo(bcpinfo);
+		free(bcpinfo);
+	}
+}
+
 /**
  * Reallocate a pointer and update it if success
  * \param pp pointer to pointer to be reallocated
