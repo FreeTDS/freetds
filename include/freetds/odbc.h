@@ -467,7 +467,7 @@ struct _hstmt
 	tds_mutex mtx;
 	struct _hdbc *dbc;
 	/** query to execute */
-	char *query;
+	DSTR query;
 	/** socket (only if active) */
 	TDSSOCKET *tds;
 
@@ -739,7 +739,7 @@ void odbc_convert_err_set(struct _sql_errors *errs, TDS_INT err);
  * prepare_query.c
  */
 SQLRETURN prepare_call(struct _hstmt *stmt);
-SQLRETURN native_sql(struct _hdbc *dbc, char *s);
+SQLRETURN native_sql(struct _hdbc *dbc, DSTR *s);
 int parse_prepared_query(struct _hstmt *stmt, int compute_row);
 int start_parse_prepared_query(struct _hstmt *stmt, int compute_row);
 int continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN StrLen_or_Ind);

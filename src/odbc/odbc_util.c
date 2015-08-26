@@ -57,8 +57,6 @@ static char *odbc_wide2utf(const SQLWCHAR *s, int len);
 int
 odbc_set_stmt_query(TDS_STMT * stmt, const ODBC_CHAR *sql, int sql_len _WIDE)
 {
-	char *p;
-
 	if (sql_len == SQL_NTS)
 #ifdef ENABLE_ODBC_WIDE
 		sql_len = wide ? sqlwcslen(sql->wide) : strlen(sql->mb);
@@ -81,11 +79,7 @@ odbc_set_stmt_query(TDS_STMT * stmt, const ODBC_CHAR *sql, int sql_len _WIDE)
 	stmt->num_param_rows = 1;
 	stmt->need_reprepare = 0;
 
-	if (stmt->query)
-		TDS_ZERO_FREE(stmt->query);
-
-	stmt->query = p = odbc_str_copy(stmt->dbc, sql_len, sql _wide);
-	if (!p)
+	if (!odbc_dstr_copy(stmt->dbc, &stmt->query, sql_len, sql))
 		return SQL_ERROR;
 
 	return SQL_SUCCESS;
