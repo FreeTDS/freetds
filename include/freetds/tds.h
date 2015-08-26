@@ -1543,7 +1543,7 @@ struct tds_bcpinfo
 {
 	const char *hint;
 	void *parent;
-	TDS_CHAR *tablename;
+	DSTR tablename;
 	TDS_CHAR *insert_stmt;
 	TDS_INT direction;
 	TDS_INT identity_insert_on;

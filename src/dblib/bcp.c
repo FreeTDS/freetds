@@ -44,6 +44,7 @@
 #include <freetds/iconv.h>
 #include <freetds/convert.h>
 #include <freetds/bytes.h>
+#include <freetds/string.h>
 #include <replacements.h>
 #include <sybfront.h>
 #include <sybdb.h>
@@ -200,7 +201,7 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 	if (dbproc->bcpinfo == NULL)
 		goto memory_error;
 
-	if ((dbproc->bcpinfo->tablename = strdup(tblname)) == NULL)
+	if (!tds_dstr_copy(&dbproc->bcpinfo->tablename, tblname))
 		goto memory_error;
 
 	dbproc->bcpinfo->direction = direction;
@@ -875,11 +876,11 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 		bcpdatefmt = "%Y-%m-%d %H:%M:%S.%z";
 
 	if (dbproc->bcpinfo->direction == DB_QUERYOUT ) {
-		if (TDS_FAILED(tds_submit_query(tds, dbproc->bcpinfo->tablename)))
+		if (TDS_FAILED(tds_submit_query(tds, tds_dstr_cstr(&dbproc->bcpinfo->tablename))))
 			return FAIL;
 	} else {
 		/* TODO quote if needed */
-		if (TDS_FAILED(tds_submit_queryf(tds, "select * from %s", dbproc->bcpinfo->tablename)))
+		if (TDS_FAILED(tds_submit_queryf(tds, "select * from %s", tds_dstr_cstr(&dbproc->bcpinfo->tablename))))
 			return FAIL;
 	}
 
