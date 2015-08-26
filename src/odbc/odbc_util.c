@@ -54,12 +54,10 @@ static char *odbc_mb2utf(TDS_DBC *dbc, const char *s, int len);
 static char *odbc_wide2utf(const SQLWCHAR *s, int len);
 #endif
 
-static int
-odbc_set_stmt(TDS_STMT * stmt, char **dest, const ODBC_CHAR *sql, int sql_len _WIDE)
+int
+odbc_set_stmt_query(TDS_STMT * stmt, const ODBC_CHAR *sql, int sql_len _WIDE)
 {
 	char *p;
-
-	assert(dest == &stmt->prepared_query || dest == &stmt->query);
 
 	if (sql_len == SQL_NTS)
 #ifdef ENABLE_ODBC_WIDE
@@ -75,6 +73,7 @@ odbc_set_stmt(TDS_STMT * stmt, char **dest, const ODBC_CHAR *sql, int sql_len _W
 	stmt->params = NULL;
 	stmt->param_num = 0;
 	stmt->param_count = 0;
+	stmt->is_prepared_query = 0;
 	stmt->prepared_query_is_func = 0;
 	stmt->prepared_query_is_rpc = 0;
 	stmt->prepared_pos = NULL;
@@ -82,30 +81,14 @@ odbc_set_stmt(TDS_STMT * stmt, char **dest, const ODBC_CHAR *sql, int sql_len _W
 	stmt->num_param_rows = 1;
 	stmt->need_reprepare = 0;
 
-	if (stmt->prepared_query)
-		TDS_ZERO_FREE(stmt->prepared_query);
-
 	if (stmt->query)
 		TDS_ZERO_FREE(stmt->query);
 
-	*dest = p = odbc_str_copy(stmt->dbc, sql_len, sql _wide);
+	stmt->query = p = odbc_str_copy(stmt->dbc, sql_len, sql _wide);
 	if (!p)
 		return SQL_ERROR;
 
 	return SQL_SUCCESS;
-}
-
-int
-odbc_set_stmt_query(TDS_STMT * stmt, const ODBC_CHAR *sql, int sql_len _WIDE)
-{
-	return odbc_set_stmt(stmt, &stmt->query, sql, sql_len _wide);
-}
-
-
-int
-odbc_set_stmt_prepared_query(TDS_STMT * stmt, const ODBC_CHAR *sql, int sql_len _WIDE)
-{
-	return odbc_set_stmt(stmt, &stmt->prepared_query, sql, sql_len _wide);
 }
 
 int

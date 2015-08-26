@@ -225,11 +225,8 @@ prepare_call(struct _hstmt * stmt)
 	SQLRETURN rc;
 	TDS_SERVER_TYPE type;
 
-	if (stmt->prepared_query)
-		buf = stmt->prepared_query;
-	else if (stmt->query)
-		buf = stmt->query;
-	else
+	buf = stmt->query;
+	if (!buf)
 		return SQL_ERROR;
 
 	if ((!tds_dstr_isempty(&stmt->attr.qn_msgtext) || !tds_dstr_isempty(&stmt->attr.qn_options)) && !IS_TDS72_PLUS(stmt->dbc->tds_socket->conn)) {

@@ -467,7 +467,7 @@ odbc_prepare(TDS_STMT *stmt)
 	TDSSOCKET *tds = stmt->tds;
 	int in_row = 0;
 
-	if (TDS_FAILED(tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, stmt->params))) {
+	if (TDS_FAILED(tds_submit_prepare(tds, stmt->query, NULL, &stmt->dyn, stmt->params))) {
 		ODBC_SAFE_ERROR(stmt);
 		return SQL_ERROR;
 	}
@@ -3148,10 +3148,7 @@ odbc_cursor_execute(TDS_STMT * stmt)
 	assert(stmt->attr.cursor_type != SQL_CURSOR_FORWARD_ONLY || stmt->attr.concurrency != SQL_CONCUR_READ_ONLY);
 
 	tds_release_cursor(&stmt->cursor);
-	if (stmt->query)
-		cursor = tds_alloc_cursor(tds, tds_dstr_cstr(&stmt->cursor_name), tds_dstr_len(&stmt->cursor_name), stmt->query, strlen(stmt->query));
-	else
-		cursor = tds_alloc_cursor(tds, tds_dstr_cstr(&stmt->cursor_name), tds_dstr_len(&stmt->cursor_name), stmt->prepared_query, strlen(stmt->prepared_query));
+	cursor = tds_alloc_cursor(tds, tds_dstr_cstr(&stmt->cursor_name), tds_dstr_len(&stmt->cursor_name), stmt->query, strlen(stmt->query));
 	if (!cursor) {
 		odbc_unlock_statement(stmt);
 
@@ -3289,9 +3286,6 @@ _SQLExecute(TDS_STMT * stmt)
 		char *name = stmt->query;
 		char *end, tmp;
 
-		if (!name)
-			name = stmt->prepared_query;
-
 		end = name;
 		if (*end == '[')
 			end = (char *) tds_skip_quoted(end);
@@ -3304,7 +3298,7 @@ _SQLExecute(TDS_STMT * stmt)
 		*end = tmp;
 	} else if (stmt->attr.cursor_type != SQL_CURSOR_FORWARD_ONLY || stmt->attr.concurrency != SQL_CONCUR_READ_ONLY) {
 		ret = odbc_cursor_execute(stmt);
-	} else if (stmt->query) {
+	} else if (!stmt->is_prepared_query) {
 		/* not prepared query */
 		/* TODO cursor change way of calling */
 		/* SQLExecDirect */
@@ -3338,7 +3332,7 @@ _SQLExecute(TDS_STMT * stmt)
 					ODBC_RETURN(stmt, SQL_ERROR);
 			}
 			stmt->need_reprepare = 0;
-			ret = tds71_submit_prepexec(tds, stmt->prepared_query, NULL, &stmt->dyn, stmt->params);
+			ret = tds71_submit_prepexec(tds, stmt->query, NULL, &stmt->dyn, stmt->params);
 	} else {
 		/* TODO cursor change way of calling */
 		/* SQLPrepare */
@@ -3356,7 +3350,7 @@ _SQLExecute(TDS_STMT * stmt)
 
 			tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");
 			/* TODO use tds_submit_prepexec (mssql2k, tds71) */
-			if (TDS_FAILED(tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, stmt->params))) {
+			if (TDS_FAILED(tds_submit_prepare(tds, stmt->query, NULL, &stmt->dyn, stmt->params))) {
 				/* TODO ?? tds_free_param_results(params); */
 				ODBC_SAFE_ERROR(stmt);
 				return SQL_ERROR;
@@ -3559,7 +3553,7 @@ SQLExecute(SQLHSTMT hstmt)
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLExecute(%p)\n", hstmt);
 
-	if (!stmt->prepared_query) {
+	if (!stmt->is_prepared_query) {
 		/* TODO error report, only without DM ?? */
 		tdsdump_log(TDS_DBG_FUNC, "SQLExecute returns SQL_ERROR (not prepared)\n");
 		ODBC_EXIT(stmt, SQL_ERROR);
@@ -4207,7 +4201,6 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 		tds_mutex_unlock(&stmt->dbc->mtx);
 
 		free(stmt->query);
-		free(stmt->prepared_query);
 		tds_free_param_results(stmt->params);
 		odbc_errs_reset(&stmt->errs);
 		odbc_unlock_statement(stmt);
@@ -4542,11 +4535,12 @@ ODBC_FUNC(SQLPrepare, (P(SQLHSTMT,hstmt), PCHARIN(SqlStr,SQLINTEGER) WIDE))
 	if (retcode != SQL_SUCCESS)
 		ODBC_EXIT(stmt, retcode);
 
-	if (SQL_SUCCESS != odbc_set_stmt_prepared_query(stmt, szSqlStr, cbSqlStr _wide))
+	if (SQL_SUCCESS != odbc_set_stmt_query(stmt, szSqlStr, cbSqlStr _wide))
 		ODBC_EXIT(stmt, SQL_ERROR);
+	stmt->is_prepared_query = 1;
 
 	/* count parameters */
-	stmt->param_count = tds_count_placeholders(stmt->prepared_query);
+	stmt->param_count = tds_count_placeholders(stmt->query);
 
 	/* trasform to native (one time, not for every SQLExecute) */
 	if (SQL_SUCCESS != prepare_call(stmt))
@@ -6186,7 +6180,7 @@ SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLLEN cbValue)
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLPutData(%p, %p, %i)\n", hstmt, rgbValue, (int)cbValue);
 
-	if (stmt->prepared_query || stmt->prepared_query_is_rpc) {
+	if (stmt->is_prepared_query || stmt->prepared_query_is_rpc) {
 		SQLRETURN ret;
 		const TDSCOLUMN *curcol = stmt->params->columns[stmt->param_num - (stmt->prepared_query_is_func ? 2 : 1)];
 		/* TODO do some more tests before setting this flag */

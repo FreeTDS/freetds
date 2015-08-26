@@ -477,7 +477,7 @@ struct _hstmt
 	struct _hstmt *prev;
 
 	/* begin prepared query stuff */
-	char *prepared_query;
+	unsigned is_prepared_query:1;
 	unsigned prepared_query_is_func:1;
 	unsigned prepared_query_is_rpc:1;
 	unsigned need_reprepare:1;
@@ -688,7 +688,6 @@ typedef union {
 # define ODBC_CHAR SQLCHAR
 #endif
 int odbc_set_stmt_query(struct _hstmt *stmt, const ODBC_CHAR *sql, int sql_len _WIDE);
-int odbc_set_stmt_prepared_query(struct _hstmt *stmt, const ODBC_CHAR *sql, int sql_len _WIDE);
 void odbc_set_return_status(struct _hstmt *stmt, unsigned int n_row);
 void odbc_set_return_params(struct _hstmt *stmt, unsigned int n_row);
 
