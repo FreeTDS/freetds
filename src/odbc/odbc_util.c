@@ -263,7 +263,7 @@ odbc_str_copy(TDS_DBC *dbc, int size, const ODBC_CHAR * str _WIDE)
 	else
 		buf = odbc_mb2utf(dbc, str->mb, len);
 #else
-	buf = tds_strndup(s, (const char *) str, len);
+	buf = tds_strndup((const char *) str, len);
 #endif
 	return buf;
 }
