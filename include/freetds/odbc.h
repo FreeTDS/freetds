@@ -703,13 +703,13 @@ void odbc_rdbms_version(TDSSOCKET * tds_socket, char *pversion_string);
 SQLINTEGER odbc_get_param_len(const struct _drecord *drec_axd, const struct _drecord *drec_ixd, const TDS_DESC* axd, unsigned int n_row);
 
 #ifdef ENABLE_ODBC_WIDE
-DSTR* odbc_dstr_copy_flag(TDS_DBC *dbc, DSTR *s, int size, ODBC_CHAR * str, int flag);
+DSTR* odbc_dstr_copy_flag(TDS_DBC *dbc, DSTR *s, int size, const ODBC_CHAR * str, int flag);
 #define odbc_dstr_copy(dbc, s, len, out) \
 	odbc_dstr_copy_flag(dbc, s, len, sizeof((out)->mb) ? (out) : (out), wide)
 #define odbc_dstr_copy_oct(dbc, s, len, out) \
 	odbc_dstr_copy_flag(dbc, s, len, out, wide|0x20)
 #else
-DSTR* odbc_dstr_copy(TDS_DBC *dbc, DSTR *s, int size, ODBC_CHAR * str);
+DSTR* odbc_dstr_copy(TDS_DBC *dbc, DSTR *s, int size, const ODBC_CHAR * str);
 #define odbc_dstr_copy_oct odbc_dstr_copy
 #endif
 

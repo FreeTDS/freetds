@@ -270,7 +270,7 @@ odbc_str_copy(TDS_DBC *dbc, int size, const ODBC_CHAR * str _WIDE)
 
 #ifdef ENABLE_ODBC_WIDE
 DSTR*
-odbc_dstr_copy_flag(TDS_DBC *dbc, DSTR *s, int size, ODBC_CHAR * str, int flag)
+odbc_dstr_copy_flag(TDS_DBC *dbc, DSTR *s, int size, const ODBC_CHAR * str, int flag)
 {
 	char *buf;
 
@@ -284,7 +284,7 @@ odbc_dstr_copy_flag(TDS_DBC *dbc, DSTR *s, int size, ODBC_CHAR * str, int flag)
 }
 #else
 DSTR*
-odbc_dstr_copy(TDS_DBC *dbc, DSTR *s, int size, ODBC_CHAR * str)
+odbc_dstr_copy(TDS_DBC *dbc, DSTR *s, int size, const ODBC_CHAR * str)
 {
 	return tds_dstr_copyn(s, (const char *) str, odbc_get_string_size(size, str));
 }
