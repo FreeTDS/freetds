@@ -467,7 +467,7 @@ odbc_prepare(TDS_STMT *stmt)
 	TDSSOCKET *tds = stmt->tds;
 	int in_row = 0;
 
-	if (TDS_FAILED(tds_submit_prepare(tds, stmt->query, NULL, &stmt->dyn, stmt->params))) {
+	if (TDS_FAILED(tds_submit_prepare(tds, tds_dstr_cstr(&stmt->query), NULL, &stmt->dyn, stmt->params))) {
 		ODBC_SAFE_ERROR(stmt);
 		return SQL_ERROR;
 	}
@@ -1049,8 +1049,7 @@ ODBC_FUNC(SQLNativeSql, (P(SQLHDBC,hdbc), PCHARIN(SqlStrIn,SQLINTEGER),
 		ODBC_EXIT_(dbc);
 	}
 
-	/* TODO support not null terminated in native_sql */
-	native_sql(dbc, tds_dstr_buf(&query));
+	native_sql(dbc, &query);
 
 	/* FIXME if error set some kind of error */
 	ret = odbc_set_string(dbc, szSqlStr, cbSqlStrMax, pcbSqlStr, tds_dstr_cstr(&query), -1);
@@ -1686,6 +1685,7 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 		ODBC_EXIT_(dbc);
 	}
 	tds_dstr_init(&stmt->cursor_name);
+	tds_dstr_init(&stmt->query);
 
 	stmt->htype = SQL_HANDLE_STMT;
 	stmt->dbc = dbc;
@@ -3148,7 +3148,8 @@ odbc_cursor_execute(TDS_STMT * stmt)
 	assert(stmt->attr.cursor_type != SQL_CURSOR_FORWARD_ONLY || stmt->attr.concurrency != SQL_CONCUR_READ_ONLY);
 
 	tds_release_cursor(&stmt->cursor);
-	cursor = tds_alloc_cursor(tds, tds_dstr_cstr(&stmt->cursor_name), tds_dstr_len(&stmt->cursor_name), stmt->query, strlen(stmt->query));
+	cursor = tds_alloc_cursor(tds, tds_dstr_cstr(&stmt->cursor_name), tds_dstr_len(&stmt->cursor_name),
+			tds_dstr_cstr(&stmt->query), tds_dstr_len(&stmt->query));
 	if (!cursor) {
 		odbc_unlock_statement(stmt);
 
@@ -3283,7 +3284,7 @@ _SQLExecute(TDS_STMT * stmt)
 		/* get rpc name */
 		/* TODO change method */
 		/* TODO cursor change way of calling */
-		char *name = stmt->query;
+		char *name = tds_dstr_buf(&stmt->query);
 		char *end, tmp;
 
 		end = name;
@@ -3304,9 +3305,9 @@ _SQLExecute(TDS_STMT * stmt)
 		/* SQLExecDirect */
 		if (stmt->num_param_rows <= 1) {
 			if (!stmt->params) {
-				ret = tds_submit_query_params(tds, stmt->query, NULL, odbc_init_headers(stmt, &head));
+				ret = tds_submit_query_params(tds, tds_dstr_cstr(&stmt->query), NULL, odbc_init_headers(stmt, &head));
 			} else {
-				ret = tds_submit_execdirect(tds, stmt->query, stmt->params, odbc_init_headers(stmt, &head));
+				ret = tds_submit_execdirect(tds, tds_dstr_cstr(&stmt->query), stmt->params, odbc_init_headers(stmt, &head));
 			}
 		} else {
 			/* pack multiple submit using language */
@@ -3315,7 +3316,7 @@ _SQLExecute(TDS_STMT * stmt)
 			ret = tds_multiple_init(tds, &multiple, TDS_MULTIPLE_QUERY, odbc_init_headers(stmt, &head));
 			for (stmt->curr_param_row = 0; TDS_SUCCEED(ret); ) {
 				/* submit a query */
-				ret = tds_multiple_query(tds, &multiple, stmt->query, stmt->params);
+				ret = tds_multiple_query(tds, &multiple, tds_dstr_cstr(&stmt->query), stmt->params);
 				if (++stmt->curr_param_row >= stmt->num_param_rows)
 					break;
 				/* than process others parameters */
@@ -3332,7 +3333,7 @@ _SQLExecute(TDS_STMT * stmt)
 					ODBC_RETURN(stmt, SQL_ERROR);
 			}
 			stmt->need_reprepare = 0;
-			ret = tds71_submit_prepexec(tds, stmt->query, NULL, &stmt->dyn, stmt->params);
+			ret = tds71_submit_prepexec(tds, tds_dstr_cstr(&stmt->query), NULL, &stmt->dyn, stmt->params);
 	} else {
 		/* TODO cursor change way of calling */
 		/* SQLPrepare */
@@ -3350,7 +3351,7 @@ _SQLExecute(TDS_STMT * stmt)
 
 			tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");
 			/* TODO use tds_submit_prepexec (mssql2k, tds71) */
-			if (TDS_FAILED(tds_submit_prepare(tds, stmt->query, NULL, &stmt->dyn, stmt->params))) {
+			if (TDS_FAILED(tds_submit_prepare(tds, tds_dstr_cstr(&stmt->query), NULL, &stmt->dyn, stmt->params))) {
 				/* TODO ?? tds_free_param_results(params); */
 				ODBC_SAFE_ERROR(stmt);
 				return SQL_ERROR;
@@ -3527,7 +3528,7 @@ ODBC_FUNC(SQLExecDirect, (P(SQLHSTMT,hstmt), PCHARIN(SqlStr,SQLINTEGER) WIDE))
 
 	/* count placeholders */
 	/* note: szSqlStr can be no-null terminated, so first we set query and then count placeholders */
-	stmt->param_count = tds_count_placeholders(stmt->query);
+	stmt->param_count = tds_count_placeholders(tds_dstr_cstr(&stmt->query));
 	stmt->param_data_called = 0;
 
 	if (SQL_SUCCESS != prepare_call(stmt)) {
@@ -4200,7 +4201,7 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 			stmt->dbc->stmt_list = stmt->next;
 		tds_mutex_unlock(&stmt->dbc->mtx);
 
-		free(stmt->query);
+		tds_dstr_free(&stmt->query);
 		tds_free_param_results(stmt->params);
 		odbc_errs_reset(&stmt->errs);
 		odbc_unlock_statement(stmt);
@@ -4540,7 +4541,7 @@ ODBC_FUNC(SQLPrepare, (P(SQLHSTMT,hstmt), PCHARIN(SqlStr,SQLINTEGER) WIDE))
 	stmt->is_prepared_query = 1;
 
 	/* count parameters */
-	stmt->param_count = tds_count_placeholders(stmt->query);
+	stmt->param_count = tds_count_placeholders(tds_dstr_cstr(&stmt->query));
 
 	/* trasform to native (one time, not for every SQLExecute) */
 	if (SQL_SUCCESS != prepare_call(stmt))
@@ -7245,12 +7246,13 @@ odbc_stat_execute(TDS_STMT * stmt _WIDE, const char *begin, int nparams, ...)
 	va_end(marker);
 
 	/* allocate space for string */
-	if (!(proc = (char *) malloc(len))) {
+	if (!tds_dstr_alloc(&stmt->query, len)) {
 		for (i = 0; i < nparams; ++i)
 			tds_dstr_free(&params[i].value);
 		odbc_errs_add(&stmt->errs, "HY001", NULL);
 		return SQL_ERROR;
 	}
+	proc = tds_dstr_buf(&stmt->query);
 
 	/* build string */
 	p = proc;
@@ -7274,17 +7276,9 @@ odbc_stat_execute(TDS_STMT * stmt _WIDE, const char *begin, int nparams, ...)
 		*p++ = ',';
 		tds_dstr_free(&params[i].value);
 	}
-	*--p = '\0';
+	--p;
+	tds_dstr_setlen(&stmt->query, p - proc);
 	assert(p - proc + 1 <= len);
-
-	/* set it */
-	/* proc is neither mb or wide, is always utf encoded */
-	retcode = odbc_set_stmt_query(stmt, (ODBC_CHAR *) "-", 1 _wide0);
-	free(stmt->query);
-	stmt->query = proc;
-
-	if (retcode != SQL_SUCCESS)
-		ODBC_RETURN(stmt, retcode);
 
 	/* execute it */
 	retcode = _SQLExecute(stmt);

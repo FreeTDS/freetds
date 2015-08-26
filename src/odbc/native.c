@@ -74,16 +74,17 @@
  * TRUNCATE -> ??
  */
 static SQLRETURN
-to_native(struct _hdbc *dbc, struct _hstmt *stmt, char *buf)
+to_native(struct _hdbc *dbc, struct _hstmt *stmt, DSTR *str)
 {
 	char *d, *s;
 	int nest_syntax = 0;
+	char *buf = tds_dstr_buf(str);
 
 	/* list of bit, used as stack, is call ? FIXME limites size... */
 	unsigned long is_calls = 0;
 	int server_scalar;
 
-	assert(dbc && buf);
+	assert(dbc);
 
 	server_scalar = TDS_IS_MSSQL(dbc->tds_socket) && dbc->tds_socket->conn->product_version >= TDS_MS_VER(7, 0, 0);
 
@@ -171,7 +172,7 @@ to_native(struct _hdbc *dbc, struct _hstmt *stmt, char *buf)
 			*d++ = *s++;
 		}
 	}
-	*d = '\0';
+	tds_dstr_setlen(str, d - buf);
 	return SQL_SUCCESS;
 }
 
@@ -225,8 +226,7 @@ prepare_call(struct _hstmt * stmt)
 	SQLRETURN rc;
 	TDS_SERVER_TYPE type;
 
-	buf = stmt->query;
-	if (!buf)
+	if (tds_dstr_isempty(&stmt->query))
 		return SQL_ERROR;
 
 	if ((!tds_dstr_isempty(&stmt->attr.qn_msgtext) || !tds_dstr_isempty(&stmt->attr.qn_options)) && !IS_TDS72_PLUS(stmt->dbc->tds_socket->conn)) {
@@ -234,7 +234,7 @@ prepare_call(struct _hstmt * stmt)
 		return SQL_SUCCESS_WITH_INFO;
 	}
 
-	if ((rc = to_native(stmt->dbc, stmt, buf)) != SQL_SUCCESS)
+	if ((rc = to_native(stmt->dbc, stmt, &stmt->query)) != SQL_SUCCESS)
 		return rc;
 
 	/* now detect RPC */
@@ -242,7 +242,7 @@ prepare_call(struct _hstmt * stmt)
 		return SQL_SUCCESS;
 	stmt->prepared_query_is_rpc = 0;
 
-	s = buf;
+	s = buf = tds_dstr_buf(&stmt->query);
 	while (TDS_ISSPACE(*s))
 		++s;
 	if (strncasecmp(s, "exec", 4) == 0) {
@@ -297,7 +297,9 @@ prepare_call(struct _hstmt * stmt)
 	stmt->prepared_query_is_rpc = 1;
 
 	/* remove unneeded exec */
-	memmove(buf, p, strlen(p) + 1);
+	s += strlen(s);
+	memmove(buf, p, s - p);
+	tds_dstr_setlen(&stmt->query, s - p);
 	stmt->prepared_pos = buf + (param_start - p);
 
 	return SQL_SUCCESS;
@@ -305,7 +307,7 @@ prepare_call(struct _hstmt * stmt)
 
 /* TODO handle output parameter and not terminated string */
 SQLRETURN
-native_sql(struct _hdbc * dbc, char *s)
+native_sql(struct _hdbc * dbc, DSTR *s)
 {
 	return to_native(dbc, NULL, s);
 }

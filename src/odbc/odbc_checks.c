@@ -67,7 +67,7 @@ odbc_check_stmt_extra(TDS_STMT * stmt)
 	assert(stmt->curr_param_row >= 0);
 	assert(stmt->curr_param_row <= stmt->num_param_rows);
 	if (stmt->prepared_query_is_rpc) {
-		char *query = stmt->query;
+		const char *query = tds_dstr_cstr(&stmt->query);
 		assert(query);
 		assert(stmt->prepared_pos == NULL || (stmt->prepared_pos >= query && stmt->prepared_pos <= strchr(query,0)));
 	} else {

@@ -324,7 +324,7 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 
 	/* string can be no-nul terminated so copy with memcpy */
 	/* FIXME can fail */
-	blkdesc->bcpinfo.tablename = tds_strndup(tablename, tnamelen);
+	tds_dstr_copyn(&blkdesc->bcpinfo.tablename, tablename, tnamelen);
 
 	blkdesc->bcpinfo.direction = direction;
 	blkdesc->bcpinfo.bind_count = CS_UNUSED;
@@ -491,7 +491,7 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 
 	if (blkdesc->bcpinfo.xfer_init == 0) {
 
-		if (TDS_FAILED(tds_submit_queryf(tds, "select * from %s", blkdesc->bcpinfo.tablename))) {
+		if (TDS_FAILED(tds_submit_queryf(tds, "select * from %s", tds_dstr_cstr(&blkdesc->bcpinfo.tablename)))) {
 			_ctclient_msg(CONN(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}

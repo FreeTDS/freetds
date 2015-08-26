@@ -44,6 +44,7 @@
 #include <freetds/iconv.h>
 #include <freetds/convert.h>
 #include <freetds/odbc.h>
+#include <freetds/string.h>
 #define TDSODBC_BCP
 #include <odbcss.h>
 
@@ -113,12 +114,12 @@ odbc_bcp_init(TDS_DBC *dbc, const ODBC_CHAR *tblname, const ODBC_CHAR *hfile,
 	if (dbc->bcpinfo == NULL)
 		ODBCBCP_ERROR_RETURN("HY001");
 
-	if ((dbc->bcpinfo->tablename = odbc_str_copy(dbc, SQL_NTS, tblname _wide)) == NULL) {
+	if (!odbc_dstr_copy(dbc, &dbc->bcpinfo->tablename, SQL_NTS, tblname)) {
 		odbc_bcp_free_storage(dbc);
 		ODBCBCP_ERROR_RETURN("HY001");
 	}
 
-	if (strlen(dbc->bcpinfo->tablename) > 92 && !IS_TDS7_PLUS(dbc->tds_socket->conn)) { 	/* 30.30.30 */
+	if (tds_dstr_len(&dbc->bcpinfo->tablename) > 92 && !IS_TDS7_PLUS(dbc->tds_socket->conn)) { 	/* 30.30.30 */
 		odbc_bcp_free_storage(dbc);
 		ODBCBCP_ERROR_RETURN("HYC00");
 	}

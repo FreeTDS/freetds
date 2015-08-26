@@ -467,7 +467,7 @@ struct _hstmt
 	tds_mutex mtx;
 	struct _hdbc *dbc;
 	/** query to execute */
-	char *query;
+	DSTR query;
 	/** socket (only if active) */
 	TDSSOCKET *tds;
 
@@ -698,7 +698,6 @@ int odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned
 int odbc_c_to_server_type(int c_type);
 
 int odbc_get_string_size(int size, const ODBC_CHAR * str _WIDE);
-char *odbc_str_copy(TDS_DBC *dbc, int size, const ODBC_CHAR * str _WIDE);
 void odbc_rdbms_version(TDSSOCKET * tds_socket, char *pversion_string);
 SQLINTEGER odbc_get_param_len(const struct _drecord *drec_axd, const struct _drecord *drec_ixd, const TDS_DESC* axd, unsigned int n_row);
 
@@ -739,7 +738,7 @@ void odbc_convert_err_set(struct _sql_errors *errs, TDS_INT err);
  * prepare_query.c
  */
 SQLRETURN prepare_call(struct _hstmt *stmt);
-SQLRETURN native_sql(struct _hdbc *dbc, char *s);
+SQLRETURN native_sql(struct _hdbc *dbc, DSTR *s);
 int parse_prepared_query(struct _hstmt *stmt, int compute_row);
 int start_parse_prepared_query(struct _hstmt *stmt, int compute_row);
 int continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN StrLen_or_Ind);

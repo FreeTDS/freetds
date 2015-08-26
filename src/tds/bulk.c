@@ -97,7 +97,7 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	else
 		fmt = "SET FMTONLY ON %s SET FMTONLY OFF";
 
-	if (TDS_FAILED(rc=tds_submit_queryf(tds, fmt, bcpinfo->tablename)))
+	if (TDS_FAILED(rc=tds_submit_queryf(tds, fmt, tds_dstr_cstr(&bcpinfo->tablename))))
 		/* TODO return an error ?? */
 		/* Attempt to use Bulk Copy with a non-existent Server table (might be why ...) */
 		return rc;
@@ -181,7 +181,7 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 
 	if (bcpinfo->identity_insert_on) {
 
-		rc = tds_submit_queryf(tds, "set identity_insert %s on", bcpinfo->tablename);
+		rc = tds_submit_queryf(tds, "set identity_insert %s on", tds_dstr_cstr(&bcpinfo->tablename));
 		if (TDS_FAILED(rc))
 			goto cleanup;
 
@@ -301,7 +301,7 @@ tds_bcp_start_insert_stmt(TDSSOCKET * tds, TDSBCPINFO * bcpinfo)
 			return TDS_FAIL;
 		}
 
-		erc = asprintf(&query, "insert bulk %s (%s)%s", bcpinfo->tablename, colclause.pb, hint);
+		erc = asprintf(&query, "insert bulk %s (%s)%s", tds_dstr_cstr(&bcpinfo->tablename), colclause.pb, hint);
 
 		free(hint);
 		if (colclause.from_malloc)
@@ -311,7 +311,7 @@ tds_bcp_start_insert_stmt(TDSSOCKET * tds, TDSBCPINFO * bcpinfo)
 			return TDS_FAIL;
 	} else {
 		/* NOTE: if we use "with nodescribe" for following inserts server do not send describe */
-		if (asprintf(&query, "insert bulk %s", bcpinfo->tablename) < 0)
+		if (asprintf(&query, "insert bulk %s", tds_dstr_cstr(&bcpinfo->tablename)) < 0)
 			return TDS_FAIL;
 	}
 
@@ -760,9 +760,10 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		 * different from BCP format
 		 */
 		if (is_blob_type(bcpcol->on_server.column_type)) {
-			/* FIXME strlen return len in bytes not in characters required here */
-			TDS_PUT_SMALLINT(tds, strlen(bcpinfo->tablename));
-			tds_put_string(tds, bcpinfo->tablename, (int)strlen(bcpinfo->tablename));
+			/* FIXME support multibyte string */
+			len = tds_dstr_len(&bcpinfo->tablename);
+			TDS_PUT_SMALLINT(tds, len);
+			tds_put_string(tds, tds_dstr_cstr(&bcpinfo->tablename), len);
 		}
 		/* FIXME support multibyte string */
 		len = tds_dstr_len(&bcpcol->column_name);
