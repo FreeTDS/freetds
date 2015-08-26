@@ -698,7 +698,6 @@ int odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned
 int odbc_c_to_server_type(int c_type);
 
 int odbc_get_string_size(int size, const ODBC_CHAR * str _WIDE);
-char *odbc_str_copy(TDS_DBC *dbc, int size, const ODBC_CHAR * str _WIDE);
 void odbc_rdbms_version(TDSSOCKET * tds_socket, char *pversion_string);
 SQLINTEGER odbc_get_param_len(const struct _drecord *drec_axd, const struct _drecord *drec_ixd, const TDS_DESC* axd, unsigned int n_row);
 

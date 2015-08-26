@@ -49,9 +49,9 @@
  */
 
 #ifdef ENABLE_ODBC_WIDE
-static char *odbc_iso2utf(const char *s, int len);
-static char *odbc_mb2utf(TDS_DBC *dbc, const char *s, int len);
-static char *odbc_wide2utf(const SQLWCHAR *s, int len);
+static DSTR *odbc_iso2utf(DSTR *res, const char *s, int len);
+static DSTR *odbc_mb2utf(TDS_DBC *dbc, DSTR *res, const char *s, int len);
+static DSTR *odbc_wide2utf(DSTR *res, const SQLWCHAR *s, int len);
 #endif
 
 int
@@ -103,8 +103,8 @@ odbc_get_string_size(int size, const ODBC_CHAR * str _WIDE)
 }
 
 #ifdef ENABLE_ODBC_WIDE
-static char *
-odbc_iso2utf(const char *s, int len)
+static DSTR*
+odbc_iso2utf(DSTR *res, const char *s, int len)
 {
 	int i, o_len = len + 1;
 	char *out, *p;
@@ -114,8 +114,9 @@ odbc_iso2utf(const char *s, int len)
 		if ((s[i] & 0x80) != 0)
 			++o_len;
 
-	out = (char *) malloc(o_len);
-	if (!out) return NULL;
+	if (!tds_dstr_alloc(res, o_len))
+		return NULL;
+	out = tds_dstr_buf(res);
 
 	for (p = out; len > 0; --len) {
 		unsigned char u = (unsigned char) *s++;
@@ -126,16 +127,16 @@ odbc_iso2utf(const char *s, int len)
 			*p++ = u;
 		}
 	}
-	*p = 0;
 	assert(p+1-out <= o_len);
-	return out;
+	return tds_dstr_setlen(res, p - out);
 }
 
-static char *
-odbc_wide2utf(const SQLWCHAR *s, int len)
+static DSTR*
+odbc_wide2utf(DSTR *res, const SQLWCHAR *s, int len)
 {
 	int i, o_len = len + 1;
 	char *out, *p;
+
 #if SIZEOF_SQLWCHAR > 2
 # define MASK(n) ((0xffffffffu << (n)) & 0xffffffffu)
 #else
@@ -163,8 +164,9 @@ odbc_wide2utf(const SQLWCHAR *s, int len)
 #endif
 	}
 
-	out = (char *) malloc(o_len);
-	if (!out) return NULL;
+	if (!tds_dstr_alloc(res, o_len))
+		return NULL;
+	out = tds_dstr_buf(res);
 
 	for (p = out; len > 0; --len) {
 		SQLWCHAR u = *s++;
@@ -200,13 +202,12 @@ odbc_wide2utf(const SQLWCHAR *s, int len)
 		}
 		*p++ = 0x80 | (0x3f & u);
 	}
-	*p = 0;
 	assert(p+1-out <= o_len);
-	return out;
+	return tds_dstr_setlen(res, p - out);
 }
 
-static char *
-odbc_mb2utf(TDS_DBC *dbc, const char *s, int len)
+static DSTR*
+odbc_mb2utf(TDS_DBC *dbc, DSTR *res, const char *s, int len)
 {
 	char *buf;
 
@@ -216,19 +217,19 @@ odbc_mb2utf(TDS_DBC *dbc, const char *s, int len)
 	TDSICONV *char_conv = dbc->mb_conv;
 
 	if (!char_conv)
-		return odbc_iso2utf(s, len);
+		return odbc_iso2utf(res, s, len);
 
 	if (char_conv->flags == TDS_ENCODING_MEMCPY)
-		return tds_strndup(s, len);
+		return tds_dstr_copyn(res, s, len);
 
 	il = len;
 
 	/* allocate needed buffer (+1 is to exclude 0 case) */
 	ol = il * char_conv->to.charset.max_bytes_per_char / char_conv->from.charset.min_bytes_per_char + 1;
 	assert(ol > 0);
-	buf = (char *) malloc(ol);
-	if (!buf)
+	if (!tds_dstr_alloc(res, ol))
 		return NULL;
+	buf = tds_dstr_buf(res);
 
 	ib = s;
 	ob = buf;
@@ -240,41 +241,21 @@ odbc_mb2utf(TDS_DBC *dbc, const char *s, int len)
 		free(buf);
 		return NULL;
 	}
-	*ob = 0;
-	return buf;
+	return tds_dstr_setlen(res, ob - buf);
 }
 #endif
-
-char *
-odbc_str_copy(TDS_DBC *dbc, int size, const ODBC_CHAR * str _WIDE)
-{
-	int len = odbc_get_string_size(size, str _wide);
-	char *buf;
-
-#ifdef ENABLE_ODBC_WIDE
-	if (wide)
-		buf = odbc_wide2utf(str->wide, len);
-	else
-		buf = odbc_mb2utf(dbc, str->mb, len);
-#else
-	buf = tds_strndup((const char *) str, len);
-#endif
-	return buf;
-}
 
 #ifdef ENABLE_ODBC_WIDE
 DSTR*
 odbc_dstr_copy_flag(TDS_DBC *dbc, DSTR *s, int size, const ODBC_CHAR * str, int flag)
 {
-	char *buf;
+	int wide = flag&1;
+	int len = odbc_get_string_size((flag&0x21) == 0x21 && size >= 0 ? size/SIZEOF_SQLWCHAR : size, str, wide);
 
-	if ((flag&0x21) == 0x21 && size >= 0)
-		 size /= SIZEOF_SQLWCHAR;
-	buf = odbc_str_copy(dbc, size, str, flag&1);
-	if (!buf)
-		return NULL;
+	if (wide)
+		return odbc_wide2utf(s, str->wide, len);
 
-	return tds_dstr_set(s, buf);
+	return odbc_mb2utf(dbc, s, str->mb, len);
 }
 #else
 DSTR*
