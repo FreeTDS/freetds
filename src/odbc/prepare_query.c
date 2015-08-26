@@ -36,6 +36,7 @@
 
 #include <freetds/odbc.h>
 #include <freetds/convert.h>
+#include <freetds/utils/string.h>
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -43,8 +44,13 @@ static int
 prepared_rpc(struct _hstmt *stmt, bool compute_row)
 {
 	int nparam = stmt->params ? stmt->params->num_cols : 0;
-	const char *p = stmt->prepared_pos - 1;
+	const char *p;
 	TDSCONNECTION *conn = stmt->dbc->tds_socket->conn;
+
+	if (stmt->prepared_pos > tds_dstr_len(&stmt->query))
+		return SQL_ERROR;
+
+	p = tds_dstr_cstr(&stmt->query) + stmt->prepared_pos - 1;
 
 	for (;;) {
 		TDSPARAMINFO *temp_params;
@@ -185,7 +191,7 @@ prepared_rpc(struct _hstmt *stmt, bool compute_row)
 			continue;
 		if (!*p || *p != ',')
 			return SQL_SUCCESS;
-		stmt->prepared_pos = (char *) p + 1;
+		stmt->prepared_pos = p + 1 - tds_dstr_cstr(&stmt->query);
 	}
 }
 
@@ -196,7 +202,7 @@ parse_prepared_query(struct _hstmt *stmt, bool compute_row)
 	TDSPARAMINFO *temp_params;
 	int nparam = stmt->params ? stmt->params->num_cols : 0;
 
-	if (stmt->prepared_pos)
+	if (stmt->prepared_pos > 0)
 		return prepared_rpc(stmt, compute_row);
 
 	tdsdump_log(TDS_DBG_FUNC, "parsing %d parameters\n", nparam);

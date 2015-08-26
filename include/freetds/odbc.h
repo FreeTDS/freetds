@@ -410,7 +410,7 @@ struct _hstmt
 	/** last valid parameter in params, it's a ODBC index (from 1 relative to descriptor) */
 	int param_num;
 	/** position in prepared query to check parameters, used only in RPC */
-	char *prepared_pos;
+	size_t prepared_pos;
 
 	unsigned int curr_param_row, num_param_rows;
 

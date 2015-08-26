@@ -74,7 +74,7 @@ odbc_set_stmt_query(TDS_STMT * stmt, const ODBC_CHAR *sql, int sql_len _WIDE)
 	stmt->is_prepared_query = 0;
 	stmt->prepared_query_is_func = 0;
 	stmt->prepared_query_is_rpc = 0;
-	stmt->prepared_pos = NULL;
+	stmt->prepared_pos = 0;
 	stmt->curr_param_row = 0;
 	stmt->num_param_rows = 1;
 	stmt->need_reprepare = 0;

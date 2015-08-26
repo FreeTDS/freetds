@@ -3315,7 +3315,7 @@ _SQLExecute(TDS_STMT * stmt)
 
 		end = name;
 		end = (char *) odbc_skip_rpc_name(end);
-		stmt->prepared_pos = end;
+		stmt->prepared_pos = end - name;
 		tmp = *end;
 		*end = 0;
 		ret = tds_submit_rpc(tds, name, stmt->params, odbc_init_headers(stmt, &head));

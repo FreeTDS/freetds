@@ -327,7 +327,7 @@ prepare_call(struct _hstmt * stmt)
 	s += strlen(s);
 	memmove(buf, p, s - p);
 	tds_dstr_setlen(&stmt->query, s - p);
-	stmt->prepared_pos = buf + (param_start - p);
+	stmt->prepared_pos = param_start - p;
 
 	return SQL_SUCCESS;
 }
