@@ -7182,6 +7182,9 @@ odbc_stat_execute(TDS_STMT * stmt _WIDE, const char *begin, int nparams, ...)
 
 	assert(nparams < ODBC_MAX_STAT_PARAM);
 
+	for (i = 0; i < nparams; ++i)
+		tds_dstr_init(&params[i].value);
+
 	/* read all params and calc len required */
 	va_start(marker, nparams);
 	len = strlen(begin) + 3;
@@ -7211,7 +7214,6 @@ odbc_stat_execute(TDS_STMT * stmt _WIDE, const char *begin, int nparams, ...)
 
 		p = va_arg(marker, char *);
 		param_len = va_arg(marker, int);
-		tds_dstr_init(&params[i].value);
 #ifdef ENABLE_ODBC_WIDE
 		if (!convert)
 			out = tds_dstr_copyn(&params[i].value, p, param_len);
@@ -7221,7 +7223,7 @@ odbc_stat_execute(TDS_STMT * stmt _WIDE, const char *begin, int nparams, ...)
 		out = odbc_dstr_copy(stmt->dbc, &params[i].value, param_len, (ODBC_CHAR *) p);
 #endif
 		if (!out) {
-			while (--i >= 0)
+			for (i = 0; i < nparams; ++i)
 				tds_dstr_free(&params[i].value);
 			odbc_errs_add(&stmt->errs, "HY001", NULL);
 			return SQL_ERROR;
@@ -7268,11 +7270,13 @@ odbc_stat_execute(TDS_STMT * stmt _WIDE, const char *begin, int nparams, ...)
 		else
 			*p++ = (stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) ? '3': '2';
 		*p++ = ',';
-		tds_dstr_free(&params[i].value);
 	}
 	--p;
 	tds_dstr_setlen(&stmt->query, p - proc);
 	assert(p - proc + 1 <= len);
+
+	for (i = 0; i < nparams; ++i)
+		tds_dstr_free(&params[i].value);
 
 	/* execute it */
 	retcode = _SQLExecute(stmt);
