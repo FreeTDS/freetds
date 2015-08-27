@@ -594,7 +594,7 @@ ODBC_FUNC(SQLDriverConnect, (P(SQLHDBC,hdbc), P(SQLHWND,hwnd), PCHARIN(ConnStrIn
 		ODBC_EXIT_(dbc);
 	}
 
-	odbc_set_string(dbc, szConnStrOut, cbConnStrOutMax, pcbConnStrOut, tds_dstr_buf(&conn_str), tds_dstr_len(&conn_str));
+	odbc_set_dstr(dbc, szConnStrOut, cbConnStrOutMax, pcbConnStrOut, &conn_str);
 	tds_dstr_free(&conn_str);
 
 	/* add login info */
@@ -1063,7 +1063,7 @@ ODBC_FUNC(SQLNativeSql, (P(SQLHDBC,hdbc), PCHARIN(SqlStrIn,SQLINTEGER),
 	native_sql(dbc, &query);
 
 	/* FIXME if error set some kind of error */
-	ret = odbc_set_string(dbc, szSqlStr, cbSqlStrMax, pcbSqlStr, tds_dstr_cstr(&query), -1);
+	ret = odbc_set_dstr(dbc, szSqlStr, cbSqlStrMax, pcbSqlStr, &query);
 
 	tds_dstr_free(&query);
 
@@ -2016,7 +2016,7 @@ ODBC_FUNC(SQLDescribeCol, (P(SQLHSTMT,hstmt), P(SQLUSMALLINT,icol), PCHAROUT(Col
 		cbColNameMax = 0;
 
 	/* straight copy column name up to cbColNameMax */
-	result = odbc_set_string(stmt->dbc, szColName, cbColNameMax, pcbColName, tds_dstr_cstr(&drec->sql_desc_label), -1);
+	result = odbc_set_dstr(stmt->dbc, szColName, cbColNameMax, pcbColName, &drec->sql_desc_label);
 	if (szColName && result == SQL_SUCCESS_WITH_INFO)
 		odbc_errs_add(&stmt->errs, "01004", NULL);
 
@@ -2057,7 +2057,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 	ird = stmt->ird;
 
 #define COUT(src) result = odbc_set_string_oct(stmt->dbc, rgbDesc, cbDescMax, pcbDesc, src ? src : "", -1);
-#define SOUT(src) result = odbc_set_string_oct(stmt->dbc, rgbDesc, cbDescMax, pcbDesc, tds_dstr_cstr(&src), -1);
+#define SOUT(src) result = odbc_set_dstr_oct(stmt->dbc, rgbDesc, cbDescMax, pcbDesc, &src);
 
 /* SQLColAttribute returns always attributes using SQLINTEGER */
 #if ENABLE_EXTRA_CHECKS
@@ -2501,7 +2501,7 @@ ODBC_FUNC(SQLGetDescRec, (P(SQLHDESC,hdesc), P(SQLSMALLINT,RecordNumber), PCHARO
 
 	drec = &desc->records[RecordNumber - 1];
 
-	if ((rc = odbc_set_string(desc_get_dbc(desc), szName, cbNameMax, pcbName, tds_dstr_cstr(&drec->sql_desc_name), -1)) != SQL_SUCCESS)
+	if ((rc = odbc_set_dstr(desc_get_dbc(desc), szName, cbNameMax, pcbName, &drec->sql_desc_name)) != SQL_SUCCESS)
 		odbc_errs_add(&desc->errs, "01004", NULL);
 
 	if (Type)
@@ -2529,7 +2529,7 @@ ODBC_FUNC(SQLGetDescField, (P(SQLHDESC,hdesc), P(SQLSMALLINT,icol), P(SQLSMALLIN
 	ODBC_ENTER_HDESC;
 
 #define COUT(src) result = odbc_set_string_oct(desc_get_dbc(desc), Value, BufferLength, StringLength, src, -1);
-#define SOUT(src) result = odbc_set_string_oct(desc_get_dbc(desc), Value, BufferLength, StringLength, tds_dstr_cstr(&src), -1);
+#define SOUT(src) result = odbc_set_dstr_oct(desc_get_dbc(desc), Value, BufferLength, StringLength, &src);
 
 #if ENABLE_EXTRA_CHECKS
 #define IOUT(type, src) do { \
@@ -4456,12 +4456,12 @@ _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEG
 		break;
 	case SQL_SOPT_SS_QUERYNOTIFICATION_MSGTEXT:
 		{
-			SQLRETURN rc = odbc_set_string_oct(stmt->dbc, Value, BufferLength, StringLength, tds_dstr_cstr(&stmt->attr.qn_msgtext), tds_dstr_len(&stmt->attr.qn_msgtext));
+			SQLRETURN rc = odbc_set_dstr_oct(stmt->dbc, Value, BufferLength, StringLength, &stmt->attr.qn_msgtext);
 			ODBC_EXIT(stmt, rc);
 		}
 	case SQL_SOPT_SS_QUERYNOTIFICATION_OPTIONS:
 		{
-			SQLRETURN rc = odbc_set_string_oct(stmt->dbc, Value, BufferLength, StringLength, tds_dstr_cstr(&stmt->attr.qn_options), tds_dstr_len(&stmt->attr.qn_options));
+			SQLRETURN rc = odbc_set_dstr_oct(stmt->dbc, Value, BufferLength, StringLength, &stmt->attr.qn_options);
 			ODBC_EXIT(stmt, rc);
 		}
 		/* TODO SQL_COLUMN_SEARCHABLE, although ODBC2 */
@@ -4632,7 +4632,7 @@ ODBC_FUNC(SQLGetCursorName, (P(SQLHSTMT,hstmt), PCHAROUT(Cursor,SQLSMALLINT) WID
 
 	ODBC_ENTER_HSTMT;
 
-	if ((rc = odbc_set_string(stmt->dbc, szCursor, cbCursorMax, pcbCursor, tds_dstr_cstr(&stmt->cursor_name), -1)))
+	if ((rc = odbc_set_dstr(stmt->dbc, szCursor, cbCursorMax, pcbCursor, &stmt->cursor_name)))
 		odbc_errs_add(&stmt->errs, "01004", NULL);
 
 	ODBC_EXIT(stmt, rc);

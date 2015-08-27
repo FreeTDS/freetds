@@ -639,6 +639,9 @@ SQLRETURN odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuf
 	odbc_set_string_flag(dbc, buf, buf_len, out_len, s, s_len, (sizeof(*(out_len)) == sizeof(SQLSMALLINT)?0x20:0x30))
 #endif
 
+#define odbc_set_dstr_oct(dbc, buf, buf_len, out_len, s) odbc_set_string_oct(dbc, buf, buf_len, out_len, tds_dstr_cstr(s), tds_dstr_len(s))
+#define odbc_set_dstr(dbc, buf, buf_len, out_len, s) odbc_set_string(dbc, buf, buf_len, out_len, tds_dstr_cstr(s), tds_dstr_len(s))
+
 SQLSMALLINT odbc_get_concise_sql_type(SQLSMALLINT type, SQLSMALLINT interval);
 SQLRETURN odbc_set_concise_sql_type(SQLSMALLINT concise_type, struct _drecord *drec, int check_only);
 SQLSMALLINT odbc_get_concise_c_type(SQLSMALLINT type, SQLSMALLINT interval);
