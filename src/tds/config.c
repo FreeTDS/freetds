@@ -388,7 +388,7 @@ tds_read_conf_file(TDSLOGIN * login, const char *server)
 static int
 tds_read_conf_sections(FILE * in, const char *server, TDSLOGIN * login)
 {
-	DSTR default_instance;
+	DSTR default_instance = DSTR_INITIALIZER;
 	int default_port;
 
 	int found;
@@ -399,7 +399,6 @@ tds_read_conf_sections(FILE * in, const char *server, TDSLOGIN * login)
 		return 0;
 	rewind(in);
 
-	tds_dstr_init(&default_instance);
 	if (!tds_dstr_dup(&default_instance, &login->instance_name))
 		return 0;
 	default_port = login->port;

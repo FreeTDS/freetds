@@ -528,7 +528,7 @@ ODBC_FUNC(SQLDriverConnect, (P(SQLHDBC,hdbc), P(SQLHWND,hwnd), PCHARIN(ConnStrIn
 {
 	TDSLOGIN *login;
 	TDS_PARSED_PARAM params[ODBC_PARAM_SIZE];
-	DSTR conn_str;
+	DSTR conn_str = DSTR_INITIALIZER;
 
 	ODBC_ENTER_HDBC;
 
@@ -552,7 +552,6 @@ ODBC_FUNC(SQLDriverConnect, (P(SQLHDBC,hdbc), P(SQLHWND,hwnd), PCHARIN(ConnStrIn
 	}
 #endif
 
-	tds_dstr_init(&conn_str);
 	if (!odbc_dstr_copy(dbc, &conn_str, cbConnStrIn, szConnStrIn)) {
 		odbc_errs_add(&dbc->errs, "HY001", NULL);
 		ODBC_EXIT_(dbc);
@@ -1031,11 +1030,9 @@ ODBC_FUNC(SQLNativeSql, (P(SQLHDBC,hdbc), PCHARIN(SqlStrIn,SQLINTEGER),
 	PCHAROUT(SqlStr,SQLINTEGER) WIDE))
 {
 	SQLRETURN ret = SQL_SUCCESS;
-	DSTR query;
+	DSTR query = DSTR_INITIALIZER;
 
 	ODBC_ENTER_HDBC;
-
-	tds_dstr_init(&query);
 
 #ifdef TDS_NO_DM
 	if (!szSqlStrIn || !IS_VALID_LEN(cbSqlStrIn)) {
@@ -6222,9 +6219,8 @@ ODBC_FUNC(SQLSetConnectAttr, (P(SQLHDBC,hdbc), P(SQLINTEGER,Attribute), P(SQLPOI
 			break;
 		}
 		{
-			DSTR s;
+			DSTR s = DSTR_INITIALIZER;
 
-			tds_dstr_init(&s);
 			if (!odbc_dstr_copy_oct(dbc, &s, StringLength, (ODBC_CHAR*) ValuePtr)) {
 				odbc_errs_add(&dbc->errs, "HY001", NULL);
 				break;
@@ -6862,13 +6858,11 @@ ODBC_FUNC(SQLTables, (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),
 	const char *proc = NULL;
 	int wildcards;
 	TDSSOCKET *tds;
-	DSTR schema_name, catalog_name, table_type;
+	DSTR schema_name  = DSTR_INITIALIZER;
+	DSTR catalog_name = DSTR_INITIALIZER;
+	DSTR table_type   = DSTR_INITIALIZER;
 
 	ODBC_ENTER_HSTMT;
-
-	tds_dstr_init(&schema_name);
-	tds_dstr_init(&catalog_name);
-	tds_dstr_init(&table_type);
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLTables(%p, %p, %d, %p, %d, %p, %d, %p, %d)\n", 
 			hstmt, szCatalogName, cbCatalogName, szSchemaName, cbSchemaName, szTableName, cbTableName, szTableType, cbTableType);

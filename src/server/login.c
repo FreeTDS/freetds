@@ -116,7 +116,7 @@ static int tds_read_string(TDSSOCKET * tds, DSTR * s, int size);
 int
 tds_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 {
-	DSTR blockstr;
+	DSTR blockstr = DSTR_INITIALIZER;
 	TDS_USMALLINT major;
 	int res = 1;
 
@@ -126,7 +126,6 @@ tds_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 			printf("%d %d %c\n",i, tds->in_buf[i], (tds->in_buf[i]>=' ' && tds->in_buf[i]<='z') ? tds->in_buf[i] : ' ');
 	}	
 */
-	tds_dstr_init(&blockstr);
 	res = res && tds_read_string(tds, &login->client_host_name, 30);
 	res = res && tds_read_string(tds, &login->user_name, 30);
 	res = res && tds_read_string(tds, &login->password, 30);
@@ -166,10 +165,8 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	size_t unicode_len, password_len;
 	char *unicode_string, *psrc;
 	char *pbuf;
-	DSTR database;
+	DSTR database = DSTR_INITIALIZER;
 	int res = 1;
-
-	tds_dstr_init(&database);
 
 	a = tds_get_int(tds);	/*total packet size */
 	a = tds_get_int(tds);	/*TDS version */

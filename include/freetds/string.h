@@ -25,6 +25,7 @@
 #include <freetds/pushvis.h>
 
 extern const struct tds_dstr tds_str_empty;
+#define DSTR_INITIALIZER ((struct tds_dstr*) &tds_str_empty)
 
 /* TODO do some function and use inline if available */
 
@@ -40,7 +41,7 @@ size_t tds_dstr_len(DSTR * s);
 #else
 /** init a string with empty */
 #define tds_dstr_init(s) \
-	do { *(s) = (struct tds_dstr*) &tds_str_empty; } while(0)
+	do { *(s) = DSTR_INITIALIZER; } while(0)
 
 /** test if string is empty */
 #define tds_dstr_isempty(s) \

@@ -270,7 +270,7 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 			  TDS_PARSED_PARAM *parsed_params)
 {
 	const char *p, *end;
-	DSTR *dest_s, value;
+	DSTR *dest_s, value = DSTR_INITIALIZER;
 	enum { CFG_DSN = 1, CFG_SERVER = 2, CFG_SERVERNAME = 4 };
 	unsigned int cfgs = 0;	/* flags for indicate second parse of string */
 	char option[24];
@@ -279,7 +279,6 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 	if (parsed_params)
 		memset(parsed_params, 0, sizeof(*parsed_params)*ODBC_PARAM_SIZE);
 
-	tds_dstr_init(&value);
 	for (p = connect_string; p < connect_string_end && *p;) {
 		int num_param = -1;
 
