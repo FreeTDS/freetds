@@ -8,7 +8,7 @@
 # to test tests with MS dblib
 
 errore() {
-	echo $* >&2
+	echo "$*" >&2
 	exit 1
 }
 
@@ -68,9 +68,8 @@ for h in $HOSTS; do
 		break
 	fi
 done
-if test x$HOST = x; then
-	echo "Valid host not found in $HOSTS" 1>&2
-	exit 1
+if test "$HOST" = ""; then
+	errore "Valid host not found in $HOSTS"
 fi
 
 PACKAGE_VERSION=
