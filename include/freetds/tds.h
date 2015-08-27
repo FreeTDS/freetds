@@ -641,7 +641,7 @@ typedef TDSRET  tds_func_get_data(TDSSOCKET *tds, TDSCOLUMN *col);
 typedef TDS_INT tds_func_row_len(TDSCOLUMN *col);
 typedef TDSRET  tds_func_put_info(TDSSOCKET *tds, TDSCOLUMN *col);
 typedef TDSRET  tds_func_put_data(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7);
-typedef int     tds_func_check(TDSCOLUMN *col);
+typedef int     tds_func_check(const TDSCOLUMN *col);
 
 typedef struct tds_column_funcs
 {

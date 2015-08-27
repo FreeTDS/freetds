@@ -1222,19 +1222,19 @@ tds_clrudt_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 
 #if ENABLE_EXTRA_CHECKS
 int
-tds_generic_check(TDSCOLUMN *col)
+tds_generic_check(const TDSCOLUMN *col)
 {
 	return 0;
 }
 
 int
-tds_clrudt_check(TDSCOLUMN *col)
+tds_clrudt_check(const TDSCOLUMN *col)
 {
 	return 0;
 }
 
 int
-tds_msdatetime_check(TDSCOLUMN *col)
+tds_msdatetime_check(const TDSCOLUMN *col)
 {
 	assert(col->column_type == col->on_server.column_type);
 	assert(col->on_server.column_size == col->column_size);
@@ -1255,13 +1255,13 @@ tds_msdatetime_check(TDSCOLUMN *col)
 }
 
 int
-tds_variant_check(TDSCOLUMN *col)
+tds_variant_check(const TDSCOLUMN *col)
 {
 	return 0;
 }
 
 int
-tds_numeric_check(TDSCOLUMN *col)
+tds_numeric_check(const TDSCOLUMN *col)
 {
 	assert(col->column_type == col->on_server.column_type);
 	assert(col->on_server.column_size == col->column_size);
