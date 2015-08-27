@@ -108,6 +108,9 @@
 /* Define to 1 if you have the `gettimeofday' function. */
 #define HAVE_GETTIMEOFDAY 1
 
+/* Define to 1 if you have the `getopt' function. */
+#define HAVE_GETOPT 1
+
 /* Define to 1 if you have the `getuid' function. */
 #define HAVE_GETUID 1
 
