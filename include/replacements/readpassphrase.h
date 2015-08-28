@@ -29,8 +29,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _READPASSPHRASE_H_
-#define _READPASSPHRASE_H_
+#ifndef FREETDS_READPASSPHRASE_H_
+#define FREETDS_READPASSPHRASE_H_
 
 #ifdef HAVE_READPASSPHRASE
 
@@ -56,4 +56,4 @@ char * tds_readpassphrase(const char *, char *, size_t, int);
 
 #endif /* !HAVE_READPASSPHRASE */
 
-#endif /* !_READPASSPHRASE_H_ */
+#endif /* !FREETDS_READPASSPHRASE_H_ */
