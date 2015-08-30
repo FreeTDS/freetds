@@ -411,8 +411,6 @@ create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbs
 
 	DBINT num_cols;
 	DBCOL2 colinfo;
-#define strcat(d, s) strlcat(d, s, sizeof(d))
-
 
 	sprintf(ls_command, "SET FMTONLY ON select * from %s SET FMTONLY OFF", sobjname);
 
@@ -440,21 +438,20 @@ create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbs
 		if (dbtablecolinfo(dbsrc, i, (DBCOL *) &colinfo) != SUCCEED)
 			return FALSE;
 
-		strcat(ls_command, sep);
+		strlcat(ls_command, sep, sizeof(ls_command));
 		sep = ", ";
 
-		strcat(ls_command, colinfo.Name);
-		strcat(ls_command, " ");
+		strlcat(ls_command, colinfo.Name, sizeof(ls_command));
+		strlcat(ls_command, " ", sizeof(ls_command));
 
-		strcat(ls_command, colinfo.ServerTypeDeclaration);
+		strlcat(ls_command, colinfo.ServerTypeDeclaration, sizeof(ls_command));
 
 		if (colinfo.Null == TRUE) {
-			strcat(ls_command, " NULL");
+			strlcat(ls_command, " NULL", sizeof(ls_command));
 		} else {
-			strcat(ls_command, " NOT NULL");
+			strlcat(ls_command, " NOT NULL", sizeof(ls_command));
 		}
 	}
-#undef strcat
 	if (strlcat(ls_command, " )", sizeof(ls_command)) >= sizeof(ls_command)) {
 		fprintf(stderr, "Buffer overflow building command to create table\n");
 		return FALSE;
