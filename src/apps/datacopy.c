@@ -515,9 +515,7 @@ check_table_structures(char *sobjname, char *dobjname, DBPROCESS * dbsrc, DBPROC
 		return FALSE;
 	}
 
-	while (NO_MORE_RESULTS != dbresults(dbsrc));
-	{
-
+	while (NO_MORE_RESULTS != dbresults(dbsrc)) {
 		if (0 == (src_numcols = dbnumcols(dbsrc))) {
 			printf("Error in dbnumcols\n");
 			return FALSE;
@@ -536,9 +534,7 @@ check_table_structures(char *sobjname, char *dobjname, DBPROCESS * dbsrc, DBPROC
 		return FALSE;
 	}
 
-	while (NO_MORE_RESULTS != dbresults(dbdest));
-	{
-
+	while (NO_MORE_RESULTS != dbresults(dbdest)) {
 		if (0 == (dest_numcols = dbnumcols(dbdest))) {
 			printf("Error in dbnumcols\n");
 			return FALSE;
@@ -637,8 +633,7 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 		return FALSE;
 	}
 
-	if (NO_MORE_RESULTS != dbresults(dbsrc));
-	{
+	if (NO_MORE_RESULTS != dbresults(dbsrc)) {
 		if (0 == (src_numcols = dbnumcols(dbsrc))) {
 			printf("Error in dbnumcols\n");
 			return FALSE;
