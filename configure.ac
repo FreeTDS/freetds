@@ -270,7 +270,7 @@ int main()
 	AC_SUBST(AM_CFLAGS)
 	LIBS="$PTHREAD_LIBS $LIBS"
 	AC_SEARCH_LIBS(pthread_condattr_setclock, [rt posix4 pthread])
-	AC_CHECK_FUNCS([pthread_condattr_setclock])
+	AC_CHECK_FUNCS([pthread_condattr_setclock pthread_cond_timedwait_relative_np])
 fi
 
 # check for SSPI

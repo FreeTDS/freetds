@@ -31,6 +31,7 @@
 
 #include <freetds/tds.h>
 #include <freetds/thread.h>
+#include <freetds/time.h>
 
 #include <errno.h>
 
@@ -176,7 +177,8 @@ int (*tds_raw_cond_timedwait) (tds_condition * cond, tds_raw_mutex * mtx, int ti
 
 /* check if we can use clock_gettime */
 #undef USE_CLOCK_IN_COND
-#if defined(HAVE_CLOCK_GETTIME) && (defined(CLOCK_REALTIME) || defined(CLOCK_MONOTONIC))
+#if !defined(HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE_NP) && \
+	defined(HAVE_CLOCK_GETTIME) && (defined(CLOCK_REALTIME) || defined(CLOCK_MONOTONIC))
 #define USE_CLOCK_IN_COND 1
 #endif
 
@@ -213,22 +215,29 @@ int tds_raw_cond_timedwait(tds_condition *cond, tds_raw_mutex *mtx, int timeout_
 	if (timeout_sec < 0)
 		return tds_raw_cond_wait(cond, mtx);
 
-#ifdef USE_CLOCK_IN_COND
-#  if defined(USE_MONOTONIC_CLOCK_IN_COND)
+#if defined(HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE_NP)
+	ts.tv_sec = timeout_sec;
+	ts.tv_nsec = 0;
+	return pthread_cond_timedwait_relative_np(cond, mtx, &ts);
+#else
+
+#  ifdef USE_CLOCK_IN_COND
+#    if defined(USE_MONOTONIC_CLOCK_IN_COND)
 	clock_gettime(CLOCK_MONOTONIC, &ts);
-#  else
+#    else
 	clock_gettime(CLOCK_REALTIME, &ts);
-#  endif
-#elif defined(HAVE_GETTIMEOFDAY)
+#    endif
+#  elif defined(HAVE_GETTIMEOFDAY)
 	gettimeofday(&tv, NULL);
 	ts.tv_sec = tv.tv_sec;
 	ts.tv_nsec = tv.tv_usec * 1000u;
-#else
-#error No way to get a proper time!
-#endif
+#  else
+#  error No way to get a proper time!
+#  endif
 
 	ts.tv_sec += timeout_sec;
 	return pthread_cond_timedwait(cond, mtx, &ts);
+#endif
 }
 
 #endif

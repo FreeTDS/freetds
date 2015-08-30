@@ -232,7 +232,7 @@ set(FUNCS asprintf vasprintf strtok_r readpassphrase
 	_fseeki64 _ftelli64 setrlimit
 	inet_ntoa_r getipnodebyaddr getipnodebyname
 	getaddrinfo inet_ntop gethostname poll socketpair
-	clock_gettime fseeko pthread_cond_timedwait
+	clock_gettime fseeko pthread_cond_timedwait pthread_cond_timedwait_relative_np
 	pthread_condattr_setclock _lock_file _unlock_file usleep nanosleep
 	readdir_r)
 
