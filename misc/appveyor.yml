@@ -56,7 +56,7 @@ configuration:
 
 install:
   # xidel (xpath command line tool)
-  - appveyor DownloadFile "http://nbtelecom.dl.sourceforge.net/project/videlibri/Xidel/Xidel 0.9/xidel-0.9.win32.zip"
+  - appveyor DownloadFile "http://vorboss.dl.sourceforge.net/project/videlibri/Xidel/Xidel 0.9/xidel-0.9.win32.zip"
   - 7z x xidel-0.9.win32.zip xidel.exe
   # detect version of Windows OpenSSL binaries published by the Shining Light Productions crew
   - xidel https://slproweb.com/products/Win32OpenSSL.html --extract "(//td/a[starts-with(@href, '/download') and starts-with(text(), 'Win32 OpenSSL') and ends-with(text(), 'Light')])[1]/translate(substring-before(substring-after(text(), 'Win32 OpenSSL v'), ' Light'), '.', '_')" > openssl_ver.txt
