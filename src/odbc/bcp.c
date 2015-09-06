@@ -89,9 +89,21 @@ void
 odbc_bcp_init(TDS_DBC *dbc, const ODBC_CHAR *tblname, const ODBC_CHAR *hfile,
 	      const ODBC_CHAR *errfile, int direction _WIDE)
 {
-	/* TODO convert unicode for printing */
-	tdsdump_log(TDS_DBG_FUNC, "bcp_init(%p, %s, %s, %s, %d)\n",
-			dbc, tblname, hfile, errfile, direction);
+	if (TDS_UNLIKELY(tds_write_dump)) {
+#ifdef ENABLE_ODBC_WIDE
+		if (wide) {
+			SQLWSTR_BUFS(3);
+			tdsdump_log(TDS_DBG_FUNC, "bcp_initW(%p, %ls, %ls, %ls, %d)\n",
+				    dbc, SQLWSTR(tblname->wide), SQLWSTR(hfile->wide), SQLWSTR(errfile->wide), direction);
+			SQLWSTR_FREE();
+		} else {
+#endif
+		tdsdump_log(TDS_DBG_FUNC, "bcp_init(%p, %s, %s, %s, %d)\n",
+			    dbc, tblname->mb, hfile->mb, errfile->mb, direction);
+#ifdef ENABLE_ODBC_WIDE
+		}
+#endif
+	}
 	if (!tblname)
 		ODBCBCP_ERROR_RETURN("HY009");
 
