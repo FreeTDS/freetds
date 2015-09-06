@@ -301,7 +301,8 @@ AC_CHECK_HEADERS([errno.h libgen.h \
 	sys/time.h sys/types.h sys/resource.h \
 	sys/wait.h unistd.h netdb.h \
 	wchar.h inttypes.h winsock2.h \
-	localcharset.h valgrind/memcheck.h malloc.h dirent.h])
+	localcharset.h valgrind/memcheck.h malloc.h dirent.h \
+	stdbool.h])
 AC_CHECK_HEADERS([windows.h sql.h],[],[],[[#ifdef HAVE_WINDOWS_H
 # include <windows.h>
 #endif

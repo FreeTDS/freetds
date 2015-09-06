@@ -55,11 +55,7 @@
 
 #define TDS_FIND(k,b,c) tds_find(k, b, sizeof(b)/sizeof(b[0]), sizeof(b[0]), c)
 
-/* avoid conflicts */
-#define boolean TDS_boolean
-typedef enum { false, true } boolean;
-
-typedef boolean (*compare_func)(const void *, const void *);
+typedef bool (*compare_func)(const void *, const void *);
 
 static void *
 tds_find(const void *key, const void *base, size_t nelem, size_t width,
@@ -129,7 +125,7 @@ col_free(struct col_t *p)
 	memset(p, 0, sizeof(*p));
 }
 
-static boolean 
+static bool
 col_equal(const struct col_t *pc1, const struct col_t *pc2)
 {
 	assert( pc1 && pc2 );
@@ -286,7 +282,7 @@ col_cpy(struct col_t *pdest, const struct col_t *psrc)
 	return pdest;
 }
 
-static boolean
+static bool
 col_null( const struct col_t *pcol )
 {
 	assert(pcol);
@@ -459,7 +455,7 @@ bind_type(int sybtype)
 
 struct key_t { int nkeys; struct col_t *keys; }; 
 
-static boolean
+static bool
 key_equal(const void *a, const void *b)
 {
 	const struct key_t *p1 = a, *p2 = b;
@@ -536,7 +532,7 @@ make_col_name(const struct key_t *k)
 struct agg_t { struct key_t row_key, col_key; struct col_t value; }; 
 
 #if 0
-static boolean
+static bool
 agg_key_equal(const void *a, const void *b)
 {
 	int i;
@@ -555,7 +551,7 @@ agg_key_equal(const void *a, const void *b)
 }
 #endif
 
-static boolean
+static bool
 agg_next(const void *a, const void *b)
 {
 	int i;
@@ -605,7 +601,7 @@ agg_free(struct agg_t *p)
 	col_free(&p->value);
 }
 
-static boolean
+static bool
 agg_equal(const void *agg_t1, const void *agg_t2)
 {
 	const struct agg_t *p1 = agg_t1, *p2 = agg_t2;
@@ -703,7 +699,7 @@ set_result_column(TDSSOCKET * tds, TDSCOLUMN * curcol, const char name[], const 
 struct metadata_t { struct key_t *pacross; char *name; struct col_t col; };
 
 
-static boolean
+static bool
 reinit_results(TDSSOCKET * tds, size_t num_cols, const struct metadata_t meta[])
 {
 	TDSRESULTINFO *info;
@@ -769,7 +765,7 @@ struct pivot_t
 	size_t nout, nacross;
 };
 
-static boolean 
+static bool
 pivot_key_equal(const void *a, const void *b)
 {
 	const struct pivot_t *pa = a, *pb = b;
@@ -1263,7 +1259,7 @@ static const struct name_t {
 	, { "max",	dbpivot_max }
 	};
 
-static boolean
+static bool
 name_equal( const struct name_t *n1, const struct name_t *n2 ) 
 {
 	assert(n1 && n2);
