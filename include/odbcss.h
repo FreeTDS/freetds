@@ -174,7 +174,7 @@ bcp_initA(HDBC hdbc, const char *tblname, const char *hfile, const char *errfile
 }
 
 static TDSODBC_INLINE RETCODE
-bcp_initW(HDBC hdbc, const char *tblname, const char *hfile, const char *errfile, int direction)
+bcp_initW(HDBC hdbc, const SQLWCHAR *tblname, const SQLWCHAR *hfile, const SQLWCHAR *errfile, int direction)
 {
 	struct tdsodbc_impl_bcp_init_params params = {tblname, hfile, errfile, direction};
 	return SQL_SUCCEEDED(SQLSetConnectAttr(hdbc, SQL_COPT_TDSODBC_IMPL_BCP_INITW, &params, SQL_IS_POINTER)) ? SUCCEED : FAIL;
