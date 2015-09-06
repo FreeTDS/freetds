@@ -31,9 +31,6 @@
 #include "pool.h"
 #include <freetds/string.h>
 
-static char software_version[] = "$Id: util.c,v 1.15 2011-05-16 08:51:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 void
 dump_buf(const void *buf, int length)
 {

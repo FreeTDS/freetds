@@ -5,9 +5,6 @@
 #include "common.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: setnull.c,v 1.9 2008-11-25 22:58:29 jklowden Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static int failed = 0;
 static DBPROCESS *dbproc = NULL;
 

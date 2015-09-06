@@ -5,9 +5,6 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0002.c,v 1.10 2011-05-16 08:51:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static int sp_who(CS_COMMAND *cmd);
 
 /*

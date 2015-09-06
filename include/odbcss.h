@@ -17,7 +17,6 @@
  * Boston, MA 02111-1307, USA.
  */
 
-/* $Id: odbcss.h,v 1.1 2008-05-07 08:42:30 freddy77 Exp $ */
 #ifndef _odbcss_h_
 #define _odbcss_h_
 

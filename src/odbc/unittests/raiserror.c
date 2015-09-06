@@ -4,9 +4,6 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.26 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
 #define OUTSTRING_LEN 20
 #define INVALID_RETURN (-12345)

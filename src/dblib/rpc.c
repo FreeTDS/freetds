@@ -49,8 +49,6 @@
 #include <sybdb.h>
 #include <dblib.h>
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.77 2011-09-25 11:31:41 freddy77 Exp $");
-
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
 

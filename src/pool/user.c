@@ -46,8 +46,6 @@
 #include <freetds/server.h>
 #include <freetds/string.h>
 
-TDS_RCSID(var, "$Id: user.c,v 1.38 2012-03-11 15:52:22 freddy77 Exp $");
-
 static TDS_POOL_USER *pool_user_find_new(TDS_POOL * pool);
 static int pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser);
 static void pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser);

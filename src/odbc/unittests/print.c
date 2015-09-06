@@ -1,8 +1,5 @@
 #include "common.h"
 
-static char software_version[] = "$Id: print.c,v 1.24 2010-07-05 09:20:33 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static SQLCHAR output[256];
 
 #ifdef TDS_NO_DM

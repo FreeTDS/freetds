@@ -26,8 +26,6 @@
 #include <freetds/sysdep_private.h>
 #include "replacements.h"
 
-/* $Id: strlcat.c,v 1.2 2011-05-16 08:51:40 freddy77 Exp $ */
-
 size_t 
 tds_strlcat(char *dest, const char *src, size_t len)
 {

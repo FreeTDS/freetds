@@ -40,9 +40,6 @@
 #include <freetds/configs.h>
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: locale.c,v 1.31 2011-05-16 08:51:40 freddy77 Exp $");
-
-
 static void tds_parse_locale(const char *option, const char *value, void *param);
 
 /**

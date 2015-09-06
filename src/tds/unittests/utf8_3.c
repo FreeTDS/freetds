@@ -24,9 +24,6 @@
 #include <assert.h>
 #include <replacements.h>
 
-static char software_version[] = "$Id: utf8_3.c,v 1.8 2011-05-16 13:31:11 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static TDSSOCKET *tds;
 
 static void

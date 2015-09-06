@@ -26,8 +26,6 @@
 #undef dbopen
 #endif
 
-TDS_RCSID(var, "$Id: dbopen.c,v 1.15 2011-05-16 08:51:40 freddy77 Exp $");
-
 /**
  * Normally not used. 
  * The function is linked in only if the --enable-sybase-compat configure option is used.  

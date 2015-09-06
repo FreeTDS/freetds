@@ -21,8 +21,6 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.397 2012-03-11 15:52:22 freddy77 Exp $ */
-
 #include <stdarg.h>
 #include <stdio.h>
 #include <time.h>

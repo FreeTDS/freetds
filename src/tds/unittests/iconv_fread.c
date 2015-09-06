@@ -33,9 +33,6 @@
 
 /* test tds_iconv_fread */
 
-static char software_version[] = "$Id: iconv_fread.c,v 1.4 2007-11-26 14:44:37 jklowden Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static char buf[4096+80];
 
 int

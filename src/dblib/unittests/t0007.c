@@ -5,9 +5,6 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0007.c,v 1.23 2010-12-30 18:54:08 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static void
 create_tables(DBPROCESS * dbproc, int rows_to_add)
 {

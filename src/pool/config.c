@@ -35,8 +35,6 @@
 #include "pool.h"
 #include <freetds/configs.h>
 
-TDS_RCSID(var, "$Id: config.c,v 1.17 2011-05-16 08:51:40 freddy77 Exp $");
-
 #define POOL_STR_SERVER	"server"
 #define POOL_STR_PORT	"port"
 #define POOL_STR_USER	"user"

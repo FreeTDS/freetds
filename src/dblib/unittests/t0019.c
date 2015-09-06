@@ -6,9 +6,6 @@
 #include "common.h"
 #include <ctype.h>
 
-static char software_version[] = "$Id: t0019.c,v 1.13 2007-01-15 19:43:09 jklowden Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static int failure = 0;
 
 static const char *cur_result = "";

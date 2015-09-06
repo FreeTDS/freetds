@@ -20,10 +20,8 @@
 #ifndef _tdsbytes_h_
 #define _tdsbytes_h_
 
-/* $Id: tdsbytes.h,v 1.5 2010-07-17 20:05:52 freddy77 Exp $ */
-
 #ifndef _tds_h_
-#error tds.h must be included before tdsbytes.h
+#error tds.h must be included before bytes.h
 #endif
 
 /*

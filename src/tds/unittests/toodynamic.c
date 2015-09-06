@@ -23,9 +23,6 @@
  * generated IDs are reused on a base of 2^16
  */
 
-static char software_version[] = "$Id: toodynamic.c,v 1.2 2011-05-16 13:31:11 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static void
 fatal_error(const char *msg)
 {

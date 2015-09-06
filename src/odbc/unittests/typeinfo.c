@@ -1,8 +1,5 @@
 #include "common.h"
 
-static char software_version[] = "$Id: typeinfo.c,v 1.17 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static void
 TestName(int index, const char *expected_name)
 {

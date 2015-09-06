@@ -20,8 +20,6 @@
 #ifndef _hmac_md5_h_
 #define _hmac_md5_h_
 
-/* $Id: hmac_md5.h,v 1.3 2010-01-25 23:05:58 freddy77 Exp $ */
-
 #include <freetds/pushvis.h>
 void hmac_md5(const unsigned char key[16],
               const unsigned char* data, size_t data_len,

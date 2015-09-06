@@ -38,8 +38,6 @@
 #include "pool.h"
 #include <freetds/tds.h>
 
-TDS_RCSID(var, "$Id: stream.c,v 1.27 2011-05-16 08:51:40 freddy77 Exp $");
-
 int pool_find_end_token(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int len);
 
 struct tmp_col_struct

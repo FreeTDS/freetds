@@ -22,8 +22,6 @@
 #ifndef TDSTHREAD_H
 #define TDSTHREAD_H 1
 
-/* $Id: tdsthread.h,v 1.13 2011-09-09 08:50:47 freddy77 Exp $ */
-
 #undef TDS_HAVE_MUTEX
 
 #if defined(_THREAD_SAFE) && defined(TDS_HAVE_PTHREAD_MUTEX)

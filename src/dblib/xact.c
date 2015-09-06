@@ -31,9 +31,6 @@
 #include <sybdb.h>
 #include <dblib.h>
 
-TDS_RCSID(var, "$Id: xact.c,v 1.15 2011-05-16 08:51:40 freddy77 Exp $");
-
-
 #if defined(DBLIB_UNIMPLEMENTED)
 void
 build_xact_string(char *xact_name, char *service_name, DBINT commid, char *result)

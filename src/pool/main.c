@@ -55,8 +55,6 @@
 
 #include "pool.h"
 
-TDS_RCSID(var, "$Id: main.c,v 1.27 2011-06-03 21:13:27 freddy77 Exp $");
-
 /* to be set by sig term */
 static int term = 0;
 

@@ -18,9 +18,6 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: genparams.c,v 1.49 2011-08-17 13:21:10 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 #ifdef TDS_NO_DM
 static const char tds_no_dm = 1;
 #else

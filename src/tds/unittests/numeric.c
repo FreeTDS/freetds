@@ -23,9 +23,6 @@
 
 /* test numeric scale */
 
-static char software_version[] = "$Id: numeric.c,v 1.5 2009-01-16 20:27:59 jklowden Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static int g_result = 0;
 static TDSCONTEXT ctx;
 

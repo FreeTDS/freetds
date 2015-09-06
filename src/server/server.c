@@ -31,9 +31,6 @@
 #include <freetds/string.h>
 #include <freetds/data.h>
 
-static char software_version[] = "$Id: server.c,v 1.29 2011-05-16 08:51:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 void
 tds_env_change(TDSSOCKET * tds, int type, const char *oldvalue, const char *newvalue)
 {

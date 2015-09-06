@@ -10,9 +10,6 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: t0002.c,v 1.25 2009-04-23 09:36:26 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 int failed = 0;
 
 static void

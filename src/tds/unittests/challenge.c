@@ -27,9 +27,6 @@
 #include "hmac_md5.h"
 #include "des.h"
 
-static char software_version[] = "$Id: challenge.c,v 1.2 2011-08-08 16:56:13 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static char *
 bin2ascii(char *dest, const void *data, size_t len)
 {

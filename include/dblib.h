@@ -30,8 +30,6 @@ extern "C"
 #endif
 #endif
 
-/* $Id: dblib.h,v 1.49 2011-12-05 02:26:31 jklowden Exp $ */
-
 typedef enum tag_DB_RESULT_STATE {
 	  _DB_RES_INIT
 	, _DB_RES_RESULTSET_EMPTY

@@ -7,9 +7,6 @@
 #include "common.h"
 #include <time.h>
 
-static char software_version[] = "$Id: timeout.c,v 1.8 2009-04-18 15:21:49 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 int ntimeouts = 0, ncancels = 0;
 const int max_timeouts = 3, timeout_seconds = 3;
 time_t start_time;

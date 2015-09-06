@@ -42,9 +42,6 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.106 2011-12-05 02:26:31 jklowden Exp $";
-static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
-
 #ifdef FALSE
 #undef FALSE
 #endif

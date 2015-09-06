@@ -20,7 +20,6 @@
 #ifndef TDS_CHECKS_H
 #define TDS_CHECKS_H
 
-/* $Id: tds_checks.h,v 1.6 2010-01-25 23:05:59 freddy77 Exp $ */
 #include <freetds/pushvis.h>
 
 #if ENABLE_EXTRA_CHECKS

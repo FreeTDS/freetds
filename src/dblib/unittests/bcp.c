@@ -13,9 +13,6 @@
 
 #include "bcp.h"
 
-static char software_version[] = "$Id: bcp.c,v 1.18 2009-02-27 15:52:48 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static char cmd[512];
 static int init(DBPROCESS * dbproc, const char *name);
 static void test_bind(DBPROCESS * dbproc);

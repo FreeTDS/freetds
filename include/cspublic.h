@@ -34,9 +34,6 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.61 2008-09-08 17:50:25 jklowden Exp $";
-static const void *const no_unused_cspublic_h_warn[] = { rcsid_cspublic_h, no_unused_cspublic_h_warn };
-
 #define CS_PUBLIC
 #define CS_STATIC static
 

@@ -20,8 +20,6 @@
 #ifndef _replacements_h_
 #define _replacements_h_
 
-/* $Id: replacements.h,v 1.31 2011-09-01 07:52:44 freddy77 Exp $ */
-
 #include <stdarg.h>
 #include "tds_sysdep_public.h"
 #include <freetds/sysdep_private.h>

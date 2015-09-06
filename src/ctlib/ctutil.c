@@ -31,8 +31,6 @@
 /* #include "fortify.h" */
 
 
-TDS_RCSID(var, "$Id: ctutil.c,v 1.38 2011-06-18 17:52:24 freddy77 Exp $");
-
 /*
  * test include consistency 
  * I don't think all compiler are able to compile this code... if not comment it

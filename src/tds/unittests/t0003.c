@@ -18,10 +18,6 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0003.c,v 1.18 2011-05-16 13:31:11 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
-
 int
 main(int argc, char **argv)
 {

@@ -3,9 +3,6 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array.c,v 1.18 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static SQLTCHAR *test_query = NULL;
 static int multiply = 90;
 static int failure = 0;

@@ -24,9 +24,6 @@
 #include "ctlib.h"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.25 2012-03-03 09:20:12 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 char USER[512];
 char SERVER[512];
 char PASSWORD[512];

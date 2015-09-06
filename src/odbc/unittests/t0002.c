@@ -1,8 +1,5 @@
 #include "common.h"
 
-static char software_version[] = "$Id: t0002.c,v 1.17 2010-07-05 09:20:33 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 #define SWAP_STMT() do { SQLHSTMT xyz = odbc_stmt; \
 	odbc_stmt = old_odbc_stmt; old_odbc_stmt = xyz; } while(0)
 

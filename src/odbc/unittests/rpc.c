@@ -6,9 +6,6 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: rpc.c,v 1.15 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static const char procedure_sql[] = 
 		"CREATE PROCEDURE %s \n"
 			"  @null_input varchar(30) OUTPUT \n"

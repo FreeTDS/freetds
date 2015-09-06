@@ -20,8 +20,6 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-/* $Id: tdsiconv.h,v 1.40 2010-07-25 08:40:19 freddy77 Exp $ */
-
 #if HAVE_ICONV
 #include <iconv.h>
 #else

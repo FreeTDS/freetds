@@ -1,9 +1,6 @@
 /* test win64 consistency */
 #include "common.h"
 
-static char software_version[] = "$Id: test64.c,v 1.11 2010-12-30 18:18:11 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 /*
 set ipd processed_ptr with
 SQLParamOptions/SQLSetDescField/SQL_ATTR_PARAMS_PROCESSED_PTR

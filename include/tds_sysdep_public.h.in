@@ -20,8 +20,6 @@
 #ifndef _tds_sysdep_public_h_
 #define _tds_sysdep_public_h_
 
-/* $Id: tds_sysdep_public.h.in,v 1.15 2011-08-08 07:27:57 freddy77 Exp $ */
-
 /*
 ** This is where platform-specific changes need to be made.
 */

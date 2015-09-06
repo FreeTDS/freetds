@@ -37,8 +37,6 @@
 
 #include <freetds/tds.h>
 
-TDS_RCSID(pool_h, "$Id: pool.h,v 1.15 2006-06-12 19:45:59 freddy77 Exp $");
-
 /* defines */
 #define PGSIZ 2048
 #define BLOCKSIZ 512

@@ -17,8 +17,6 @@
  * Boston, MA 02111-1307, USA.
  */
 
-/* $Id: hmac_md5.c,v 1.3 2011-05-16 08:51:40 freddy77 Exp $ */
-
 #include <config.h>
 
 #include <freetds/tds.h>

@@ -30,8 +30,6 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsconvert.h,v 1.29 2011-08-08 12:33:18 freddy77 Exp $ */
-
 typedef union conv_result
 {
 	/* fixed */

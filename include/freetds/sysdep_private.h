@@ -21,18 +21,6 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-/* $Id: tds_sysdep_private.h,v 1.36 2010-12-28 14:37:10 freddy77 Exp $ */
-
-#undef TDS_RCSID
-#if defined(__GNUC__) && __GNUC__ >= 3
-#define TDS_RCSID(name, id) \
-	static const char rcsid_##name[] __attribute__ ((unused)) = id
-#else
-#define TDS_RCSID(name, id) \
-	static const char rcsid_##name[] = id; \
-	static const void *const no_unused_##name##_warn[] = { rcsid_##name, no_unused_##name##_warn }
-#endif
-
 #define TDS_ADDITIONAL_SPACE 16
 
 #ifdef MSG_NOSIGNAL

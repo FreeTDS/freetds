@@ -22,9 +22,6 @@
 #include <ctype.h>
 #include <assert.h>
 
-static char software_version[] = "$Id: utf8_1.c,v 1.15 2011-05-16 13:31:11 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static TDSSOCKET *tds;
 
 /* Some no-ASCII strings (XML coding) */

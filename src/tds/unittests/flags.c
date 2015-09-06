@@ -21,9 +21,6 @@
 
 #include <freetds/convert.h>
 
-static char software_version[] = "$Id: flags.c,v 1.16 2011-05-16 13:31:11 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static TDSLOGIN *login;
 static TDSSOCKET *tds;
 

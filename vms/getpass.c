@@ -46,9 +46,6 @@
 static FILE *tds_rl_instream = NULL;
 static FILE *tds_rl_outstream = NULL;
 
-static char software_version[] = "$Id: getpass.c,v 1.8 2011-05-16 08:51:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 /* 
  * A collection of assorted UNIXy input functions for VMS.  The core
  * functionality is provided by readpassphrase(), and the general 

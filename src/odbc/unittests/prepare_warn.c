@@ -8,9 +8,6 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: prepare_warn.c,v 1.2 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 int
 main(int argc, char **argv)
 {

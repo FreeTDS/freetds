@@ -18,9 +18,6 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: dynamic1.c,v 1.21 2011-08-08 16:57:42 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static int discard_result(TDSSOCKET * tds);
 
 static void

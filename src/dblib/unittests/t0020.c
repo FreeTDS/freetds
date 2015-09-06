@@ -5,11 +5,6 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0020.c,v 1.18 2009-02-27 15:52:48 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
-
-
 int failed = 0;
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);

@@ -28,8 +28,6 @@
 
 #if ! HAVE_BASENAME
 
-TDS_RCSID(var, "$Id: basename.c,v 1.6 2011-05-16 08:51:40 freddy77 Exp $");
-
 #ifdef _WIN32
 #define TDS_ISDIR_SEPARATOR(c) ((c) == '/' || (c) == '\\')
 #else

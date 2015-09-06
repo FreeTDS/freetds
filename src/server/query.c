@@ -27,9 +27,6 @@
 #include <freetds/tds.h>
 #include <freetds/server.h>
 
-static char software_version[] = "$Id: query.c,v 1.20 2011-07-27 16:32:42 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static char *query;
 static size_t query_buflen = 0;
 

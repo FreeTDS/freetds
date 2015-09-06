@@ -61,9 +61,6 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.64 2011-10-14 22:49:34 berryc Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 void pusage(void);
 int process_parameters(int, char **, struct pd *);
 static int unescape(char arg[]);
@@ -219,7 +216,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 		switch (ch) {
 		case 'v':
 		case 'V':
-			printf("freebcp version %s\n", software_version);
+			printf("freebcp version %s\n", TDS_VERSION_NO);
 			return FALSE;
 			break;
 		case 'm':

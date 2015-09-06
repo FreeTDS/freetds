@@ -5,10 +5,6 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: text_buffer.c,v 1.6 2009-02-27 15:52:48 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
-
 int
 main(int argc, char **argv)
 {

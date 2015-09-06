@@ -5,9 +5,6 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0014.c,v 1.32 2010-12-30 18:11:07 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 #define BLOB_BLOCK_SIZE 4096
 
 char *testargs[] = { "", FREETDS_SRCDIR "/data.bin", "t0014.out" };

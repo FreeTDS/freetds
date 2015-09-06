@@ -154,8 +154,6 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.134 2012-03-09 21:51:21 freddy77 Exp $ */
-
 #include <freetds/pushvis.h>
 #if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #define ODBC_API SQL_API __attribute__((externally_visible))

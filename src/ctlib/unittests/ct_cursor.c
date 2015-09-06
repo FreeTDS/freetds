@@ -9,9 +9,6 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: ct_cursor.c,v 1.5 2011-05-16 08:51:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static int update_second_table(CS_COMMAND * cmd2, char *value);
 
 int

@@ -4,9 +4,6 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: getdata.c,v 1.21 2011-08-11 09:38:07 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static void
 test_err(const char *data, int c_type, const char *state)
 {

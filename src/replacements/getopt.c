@@ -54,16 +54,6 @@
 
 #include <freetds/sysdep_private.h>
 
-#if defined(LIBC_SCCS) && !defined(lint)
-# if 0
-  static char sccsid[] = "@(#)getopt.c	8.3 (Berkeley) 4/27/95";
-# else
-  __RCSID("$NetBSD: getopt.c,v 1.27 2005/11/29 03:12:00 christos Exp $");
-# endif
-#else
- TDS_RCSID(var, "$Id: getopt.c,v 1.3 2010-02-07 00:33:54 freddy77 Exp $");
-#endif /* LIBC_SCCS and not lint */
-
 #ifdef __weak_alias
 __weak_alias(getopt,_getopt)
 #endif

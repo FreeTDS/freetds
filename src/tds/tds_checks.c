@@ -38,8 +38,6 @@
 #include <freetds/string.h>
 #include "tds_checks.h"
 
-TDS_RCSID(var, "$Id: tds_checks.c,v 1.35 2011-10-30 17:00:35 freddy77 Exp $");
-
 #if ENABLE_EXTRA_CHECKS
 static void
 tds_check_packet_extra(const TDSPACKET * packet)
