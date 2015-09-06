@@ -166,14 +166,14 @@ struct tdsodbc_impl_bcp_init_params
 	int direction;
 };
 
-static TDSODBC_INLINE RETCODE
+static TDSODBC_INLINE RETCODE SQL_API
 bcp_initA(HDBC hdbc, const char *tblname, const char *hfile, const char *errfile, int direction)
 {
 	struct tdsodbc_impl_bcp_init_params params = {tblname, hfile, errfile, direction};
 	return SQL_SUCCEEDED(SQLSetConnectAttr(hdbc, SQL_COPT_TDSODBC_IMPL_BCP_INITA, &params, SQL_IS_POINTER)) ? SUCCEED : FAIL;
 }
 
-static TDSODBC_INLINE RETCODE
+static TDSODBC_INLINE RETCODE SQL_API
 bcp_initW(HDBC hdbc, const SQLWCHAR *tblname, const SQLWCHAR *hfile, const SQLWCHAR *errfile, int direction)
 {
 	struct tdsodbc_impl_bcp_init_params params = {tblname, hfile, errfile, direction};
@@ -186,7 +186,7 @@ struct tdsodbc_impl_bcp_control_params
 	void *value;
 };
 
-static TDSODBC_INLINE RETCODE
+static TDSODBC_INLINE RETCODE SQL_API
 bcp_control(HDBC hdbc, int field, void *value)
 {
 	struct tdsodbc_impl_bcp_control_params params = {field, value};
@@ -199,14 +199,14 @@ struct tdsodbc_impl_bcp_colptr_params
 	int table_column;
 };
 
-static TDSODBC_INLINE RETCODE
+static TDSODBC_INLINE RETCODE SQL_API
 bcp_colptr(HDBC hdbc, const BYTE * colptr, int table_column)
 {
 	struct tdsodbc_impl_bcp_colptr_params params = {colptr, table_column};
 	return SQL_SUCCEEDED(SQLSetConnectAttr(hdbc, SQL_COPT_TDSODBC_IMPL_BCP_COLPTR, &params, SQL_IS_POINTER)) ? SUCCEED : FAIL;
 }
 
-static TDSODBC_INLINE RETCODE
+static TDSODBC_INLINE RETCODE SQL_API
 bcp_sendrow(HDBC hdbc)
 {
 	return SQL_SUCCEEDED(SQLSetConnectAttr(hdbc, SQL_COPT_TDSODBC_IMPL_BCP_SENDROW, NULL, SQL_IS_POINTER)) ? SUCCEED : FAIL;
@@ -217,7 +217,7 @@ struct tdsodbc_impl_bcp_batch_params
 	int rows;
 };
 
-static TDSODBC_INLINE int
+static TDSODBC_INLINE int SQL_API
 bcp_batch(HDBC hdbc)
 {
 	struct tdsodbc_impl_bcp_batch_params params = {-1};
@@ -229,7 +229,7 @@ struct tdsodbc_impl_bcp_done_params
 	int rows;
 };
 
-static TDSODBC_INLINE int
+static TDSODBC_INLINE int SQL_API
 bcp_done(HDBC hdbc)
 {
 	struct tdsodbc_impl_bcp_done_params params = {-1};
@@ -247,7 +247,7 @@ struct tdsodbc_impl_bcp_bind_params
 	int table_column;
 };
 
-static TDSODBC_INLINE RETCODE
+static TDSODBC_INLINE RETCODE SQL_API
 bcp_bind(HDBC hdbc, const BYTE * varaddr, int prefixlen, int varlen,
 	const BYTE * terminator, int termlen, int vartype, int table_column)
 {
