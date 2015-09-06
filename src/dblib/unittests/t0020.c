@@ -77,7 +77,8 @@ main(int argc, char **argv)
 	}
 
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
-		while (dbnextrow(dbproc) != NO_MORE_ROWS);
+		while (dbnextrow(dbproc) != NO_MORE_ROWS)
+			continue;
 	}
 
 	dbexit();

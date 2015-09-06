@@ -116,7 +116,8 @@ to_native(struct _hdbc *dbc, struct _hstmt *stmt, DSTR *str)
 		if (*s == '{') {
 			char *pcall;
 
-			while (TDS_ISSPACE(*++s));
+			while (TDS_ISSPACE(*++s))
+				continue;
 			pcall = s;
 			/* FIXME if nest_syntax > 0 problems */
 			if (server_scalar && strncasecmp(pcall, "fn ", 3) == 0) {
@@ -125,9 +126,11 @@ to_native(struct _hdbc *dbc, struct _hstmt *stmt, DSTR *str)
 			}
 			if (*pcall == '?') {
 				/* skip spaces after ? */
-				while (TDS_ISSPACE(*++pcall));
+				while (TDS_ISSPACE(*++pcall))
+					continue;
 				if (*pcall == '=') {
-					while (TDS_ISSPACE(*++pcall));
+					while (TDS_ISSPACE(*++pcall))
+						continue;
 				} else {
 					/* avoid {?call ... syntax */
 					pcall = s;
@@ -269,7 +272,8 @@ prepare_call(struct _hstmt * stmt)
 	param_start = s;
 	--s;			/* trick, now s point to no blank */
 	for (;;) {
-		while (TDS_ISSPACE(*++s));
+		while (TDS_ISSPACE(*++s))
+			continue;
 		if (!*s)
 			break;
 		switch (*s) {
@@ -286,7 +290,8 @@ prepare_call(struct _hstmt * stmt)
 			--s;
 			break;
 		}
-		while (TDS_ISSPACE(*++s));
+		while (TDS_ISSPACE(*++s))
+			continue;
 		if (!*s)
 			break;
 		if (*s != ',') {

@@ -251,8 +251,9 @@ dbrpcparam(DBPROCESS * dbproc, const char paramname[], BYTE status, int type, DB
 	 * then tack on our parameter's address.  
 	 */
 	for (rpc = dbproc->rpc; rpc->next != NULL; rpc = rpc->next)	/* find "current" procedure */
-		;
-	for (pparam = &rpc->param_list; *pparam != NULL; pparam = &(*pparam)->next);
+		continue;
+	for (pparam = &rpc->param_list; *pparam != NULL; pparam = &(*pparam)->next)
+		continue;
 
 	/* pparam now contains the address of the end of the rpc's parameter list */
 

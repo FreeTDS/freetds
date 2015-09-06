@@ -531,7 +531,8 @@ main(int argc, char *argv[])
 			if (line == NULL) {
 				line = "exit";
 			}
-			for (cp = line; *cp && isspace((unsigned char) *cp); cp++);
+			for (cp = line; *cp && isspace((unsigned char) *cp); cp++)
+				continue;
 			if (*cp) {
 				add_history(line);
 			}
@@ -553,9 +554,11 @@ main(int argc, char *argv[])
 			}
 			/* XXX: isql off-by-one line count error for :r not duplicated */
 			if (!(strncasecmp(line, ":r", 2))) {
-				for (cp = line + 2; *cp && (isspace((unsigned char) *cp)); cp++);
+				for (cp = line + 2; *cp && (isspace((unsigned char) *cp)); cp++)
+					continue;
 				tfn = cp;
-				for (; *cp && !(isspace((unsigned char) *cp)); cp++);
+				for (; *cp && !(isspace((unsigned char) *cp)); cp++)
+					continue;
 				*cp = '\0';
 				if ((fp = fopen(tfn, "r")) == NULL) {
 					fprintf(stderr, "Operating system error: Failed to open %s.\n", tfn);

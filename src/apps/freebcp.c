@@ -504,7 +504,8 @@ file_character(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 			return FALSE;
 		}
 
-		while (NO_MORE_RESULTS != dbresults(dbproc));
+		while (NO_MORE_RESULTS != dbresults(dbproc))
+			continue;
 	}
 
 	bcp_control(dbproc, BCPFIRST, pdata->firstrow);
@@ -601,7 +602,8 @@ file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 			return FALSE;
 		}
 
-		while (NO_MORE_RESULTS != dbresults(dbproc));
+		while (NO_MORE_RESULTS != dbresults(dbproc))
+			continue;
 	}
 
 	bcp_control(dbproc, BCPFIRST, pdata->firstrow);
@@ -661,7 +663,8 @@ file_formatted(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 			return FALSE;
 		}
 
-		while (NO_MORE_RESULTS != dbresults(dbproc));
+		while (NO_MORE_RESULTS != dbresults(dbproc))
+			continue;
 	}
 
 	bcp_control(dbproc, BCPFIRST, pdata->firstrow);
@@ -729,7 +732,8 @@ setoptions(DBPROCESS * dbproc, BCPPARAMDATA * params){
 	}
 	
 	while ((fOK = dbresults(dbproc)) == SUCCEED) {
-		while ((fOK = dbnextrow(dbproc)) == REG_ROW);
+		while ((fOK = dbnextrow(dbproc)) == REG_ROW)
+			continue;
 		if (fOK == FAIL) {
 			fprintf(stderr, "setoptions() failed sending options at %s:%d\n", __FILE__, __LINE__);
 			return FALSE;

@@ -52,7 +52,8 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 		TDS_SERVER_TYPE type;
 		const char *start;
 
-		while (TDS_ISSPACE(*++p));
+		while (TDS_ISSPACE(*++p))
+			continue;
 		if (!*p)
 			return SQL_SUCCESS;
 
@@ -176,7 +177,8 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 		}
 		++nparam;
 
-		while (TDS_ISSPACE(*++p));
+		while (TDS_ISSPACE(*++p))
+			continue;
 		if (!*p || *p != ',')
 			return SQL_SUCCESS;
 		stmt->prepared_pos = (char *) p + 1;

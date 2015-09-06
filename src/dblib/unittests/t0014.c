@@ -148,7 +148,8 @@ test(int argc, char **argv, int over4k)
 					dbmoretext(blobproc, (DBINT) numtowrite, (BYTE *) (blob + numwritten));
 				}
 				dbsqlok(blobproc);
-				while (dbresults(blobproc) != NO_MORE_RESULTS);
+				while (dbresults(blobproc) != NO_MORE_RESULTS)
+					continue;
 			}
 		}
 	}

@@ -3296,7 +3296,8 @@ _SQLExecute(TDS_STMT * stmt)
 		if (*end == '[')
 			end = (char *) tds_skip_quoted(end);
 		else
-			while (!isspace((unsigned char) *++end) && *end);
+			while (!isspace((unsigned char) *++end) && *end)
+				continue;
 		stmt->prepared_pos = end;
 		tmp = *end;
 		*end = 0;

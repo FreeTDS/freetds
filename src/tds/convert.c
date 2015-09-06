@@ -2969,7 +2969,8 @@ utf16len(const utf16_t * s)
 {
 	const utf16_t *p = s;
 
-	while (*p++);
+	while (*p++)
+		continue;
 	return p - s;
 }
 #endif

@@ -183,7 +183,8 @@ tds_copy_hostent(struct hostent *he, struct hostent *result, char *buffer, int b
 		char **addresses;
 
 		/* count addresses */
-		for (n = 0; he->h_addr_list[n]; ++n);
+		for (n = 0; he->h_addr_list[n]; ++n)
+			continue;
 
 		/* copy addresses */
 		addresses = (char **) p;
@@ -218,7 +219,8 @@ tds_copy_hostent(struct hostent *he, struct hostent *result, char *buffer, int b
 		char **aliases;
 
 		/* count aliases */
-		for (n = 0; he->h_aliases[n]; ++n);
+		for (n = 0; he->h_aliases[n]; ++n)
+			continue;
 
 		/* copy aliases */
 		aliases = (char **) p;

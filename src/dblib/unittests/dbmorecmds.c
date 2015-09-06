@@ -71,7 +71,8 @@ main(int argc, char **argv)
 
 	if (dbresults(dbproc) == SUCCEED) {
 		do {
-			while (dbnextrow(dbproc) != NO_MORE_ROWS);
+			while (dbnextrow(dbproc) != NO_MORE_ROWS)
+				continue;
 			nresults++;
 		} while (dbmorecmds(dbproc) == SUCCEED);
 	}
@@ -93,7 +94,8 @@ main(int argc, char **argv)
 
 	do {
 		if (dbresults(dbproc) == SUCCEED) {
-			while (dbnextrow(dbproc) != NO_MORE_ROWS);
+			while (dbnextrow(dbproc) != NO_MORE_ROWS)
+				continue;
 			nresults++;
 		}
 	} while (dbmorecmds(dbproc) == SUCCEED);
