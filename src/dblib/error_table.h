@@ -299,4 +299,4 @@
 {         SYBEXTN,       EXPROGRAM,	"The xlt_todisp and xlt_tosrv parameters to dbfree_xlate() were NULL."},
 {        SYBEXTSN,       EXPROGRAM,	"Warning:  the xlt_tosrv parameter to dbfree_xlate() was NULL.  The space associated with the xlt_todisp parameter has been freed."},
 {        SYBEZTXT,          EXINFO,	"Attempt to send zero length TEXT or  IMAGE to dataserver via dbwritetext()."},
-{               0,               0,	"Please add a description for this error to src/tds/error_table.h ($Id: error_table.h,v 1.3 2003-12-22 08:32:14 freddy77 Exp $)"}
+{               0,               0,	"Please add a description for this error to src/tds/error_table.h"}
