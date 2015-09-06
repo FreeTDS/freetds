@@ -189,23 +189,22 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 	tds_set_param_type(conn, curcol, dest_type);
 
 	/* TODO what happen for unicode types ?? */
-	if (is_char_type(dest_type) && sql_src_type == SQL_C_WCHAR) {
+	if (is_char_type(dest_type)) {
 		TDSICONV *conv = conn->char_convs[is_unicode_type(dest_type) ? client2ucs2 : client2server_chardata];
 
-                curcol->char_conv = tds_iconv_get(conn, odbc_get_wide_name(conn), conv->to.charset.name);
-		memcpy(curcol->column_collation, conn->collation, sizeof(conn->collation));
-	} else {
+		/* use binary format for binary to char */
+		if (sql_src_type == SQL_C_BINARY) {
+			curcol->char_conv = NULL;
+		} else if (sql_src_type == SQL_C_WCHAR) {
+			curcol->char_conv = tds_iconv_get(conn, odbc_get_wide_name(conn), conv->to.charset.name);
+			memcpy(curcol->column_collation, conn->collation, sizeof(conn->collation));
+		} else {
 #ifdef ENABLE_ODBC_WIDE
-		TDSICONV *conv = conn->char_convs[is_unicode_type(dest_type) ? client2ucs2 : client2server_chardata];
-
-		/* use binary format for binary to char */
-		if (is_char_type(dest_type))
-			curcol->char_conv = sql_src_type == SQL_C_BINARY ? NULL : tds_iconv_get(conn, tds_dstr_cstr(&dbc->original_charset), conv->to.charset.name);
+			curcol->char_conv = tds_iconv_get(conn, tds_dstr_cstr(&dbc->original_charset), conv->to.charset.name);
 #else
-		/* use binary format for binary to char */
-		if (sql_src_type == SQL_C_BINARY && is_char_type(dest_type))
 			curcol->char_conv = NULL;
 #endif
+		}
 	}
 	if (is_numeric_type(curcol->column_type)) {
 		curcol->column_prec = drec_ipd->sql_desc_precision;
