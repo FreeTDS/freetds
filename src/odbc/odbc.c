@@ -40,8 +40,16 @@
 #include <freetds/convert.h>
 #include "replacements.h"
 #include "sqlwparams.h"
+
+/* Include odbcss.h with all bcp functions */
+/* The define trick is to make inline functions calls internal
+ * _SQLSetConnectAttr instead of SQLSetConnectAttr */
+ODBC_FUNC(SQLSetConnectAttr, (P(SQLHDBC,hdbc), P(SQLINTEGER,Attribute), P(SQLPOINTER,ValuePtr), P(SQLINTEGER,StringLength) WIDE));
 #define TDSODBC_BCP
+#undef SQLSetConnectAttr
+#define SQLSetConnectAttr(h, n, p, t) _SQLSetConnectAttr(h, n, p, t _wide0)
 #include <odbcss.h>
+#undef SQLSetConnectAttr
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -7440,4 +7448,61 @@ SQLSetScrollOptions(SQLHSTMT hstmt, SQLUSMALLINT fConcurrency, SQLLEN crowKeyset
 }
 
 #include "odbc_export.h"
+
+/* Under Windows driver exports functions */
+/* The win_ prefix is to avoid clash with inline function.
+ * The prefix is removed from exported function use definition file.
+ */
+#ifdef _WIN32
+RETCODE SQL_API
+win_bcp_initA(HDBC hdbc, const char *tblname, const char *hfile, const char *errfile, int direction)
+{
+	return bcp_initA(hdbc, tblname, hfile, errfile, direction);
+}
+
+#ifdef ENABLE_ODBC_WIDE
+RETCODE SQL_API
+win_bcp_initW(HDBC hdbc, const SQLWCHAR *tblname, const SQLWCHAR *hfile, const SQLWCHAR *errfile, int direction)
+{
+	return bcp_initW(hdbc, tblname, hfile, errfile, direction);
+}
+#endif
+
+RETCODE SQL_API
+win_bcp_control(HDBC hdbc, int field, void *value)
+{
+	return bcp_control(hdbc, field, value);
+}
+
+RETCODE SQL_API
+win_bcp_colptr(HDBC hdbc, const BYTE * colptr, int table_column)
+{
+	return bcp_colptr(hdbc, colptr, table_column);
+}
+
+RETCODE SQL_API
+win_bcp_sendrow(HDBC hdbc)
+{
+	return bcp_sendrow(hdbc);
+}
+
+int SQL_API
+win_bcp_batch(HDBC hdbc)
+{
+	return bcp_batch(hdbc);
+}
+
+int SQL_API
+win_bcp_done(HDBC hdbc)
+{
+	return bcp_done(hdbc);
+}
+
+RETCODE SQL_API
+win_bcp_bind(HDBC hdbc, const BYTE * varaddr, int prefixlen, int varlen,
+	const BYTE * terminator, int termlen, int vartype, int table_column)
+{
+	return bcp_bind(hdbc, varaddr, prefixlen, varlen, terminator, termlen, vartype, table_column);
+}
+#endif
 

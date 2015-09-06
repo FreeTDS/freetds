@@ -76,6 +76,13 @@ EXPORTS
 	ConfigDSN
 	ConfigDriver
 	ConfigTranslator
+	bcp_initA = win_bcp_initA
+	bcp_control = win_bcp_control
+	bcp_colptr = win_bcp_colptr
+	bcp_sendrow = win_bcp_sendrow
+	bcp_batch = win_bcp_batch
+	bcp_done = win_bcp_done
+	bcp_bind = win_bcp_bind
 	DllRegisterServer PRIVATE
 	DllUnregisterServer PRIVATE
 	SQLGetTypeInfoW = SQLGetTypeInfo
@@ -111,4 +118,5 @@ EXPORTS
 	SQLStatisticsW
 	SQLTablePrivilegesW
 	SQLTablesW
+	bcp_initW = win_bcp_initW
 
