@@ -60,11 +60,6 @@ void tds_dstr_free(DSTR * s);
 #define tds_dstr_empty(s) \
 	tds_dstr_free(s)
 
-#if ENABLE_EXTRA_CHECKS && defined(__GNUC__) && __GNUC__ >= 4
-#define TDS_WUR __attribute__ ((__warn_unused_result__))
-#else
-#define TDS_WUR
-#endif
 DSTR* tds_dstr_dup(DSTR * s, const DSTR * src) TDS_WUR;
 DSTR* tds_dstr_copy(DSTR * s, const char *src) TDS_WUR;
 DSTR* tds_dstr_copyn(DSTR * s, const char *src, size_t length) TDS_WUR;

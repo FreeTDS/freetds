@@ -363,6 +363,12 @@ typedef enum tds_encryption_level {
 # define TDS_EXTRA_CHECK(stmt)
 #endif
 
+#if ENABLE_EXTRA_CHECKS && defined(__GNUC__) && __GNUC__ >= 4
+#define TDS_WUR __attribute__ ((__warn_unused_result__))
+#else
+#define TDS_WUR
+#endif
+
 /*
  * TODO use system macros for optimization
  * See mcrypt for reference and linux kernel source for optimization
