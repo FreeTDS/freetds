@@ -278,6 +278,13 @@ ct_con_alloc(CS_CONTEXT * ctx, CS_CONNECTION ** con)
 	login = tds_alloc_login(1);
 	if (!login)
 		return CS_FAIL;
+
+	/* set default values */
+	if (!tds_set_library(login, "CT-Library")) {
+		tds_free_login(login);
+		return CS_FAIL;
+	}
+
 	*con = (CS_CONNECTION *) calloc(1, sizeof(CS_CONNECTION));
 	if (!*con) {
 		tds_free_login(login);
@@ -289,8 +296,6 @@ ct_con_alloc(CS_CONTEXT * ctx, CS_CONNECTION ** con)
 	/* so we know who we belong to */
 	(*con)->ctx = ctx;
 
-	/* set default values */
-	tds_set_library((*con)->tds_login, "CT-Library");
 	/* tds_set_client_charset((*con)->tds_login, "iso_1"); */
 	/* tds_set_packet((*con)->tds_login, TDS_DEF_BLKSZ); */
 	return CS_SUCCEED;
@@ -356,6 +361,7 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 
 	if (action == CS_SET) {
 		char *set_buffer = NULL;
+		bool copy_ret = true;
 
 		if (property == CS_USERNAME || property == CS_PASSWORD || property == CS_APPNAME ||
 			property == CS_HOSTNAME || property == CS_SERVERADDR) {
@@ -375,16 +381,16 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 		 */
 		switch (property) {
 		case CS_USERNAME:
-			tds_set_user(tds_login, set_buffer);
+			copy_ret = tds_set_user(tds_login, set_buffer);
 			break;
 		case CS_PASSWORD:
-			tds_set_passwd(tds_login, set_buffer);
+			copy_ret = tds_set_passwd(tds_login, set_buffer);
 			break;
 		case CS_APPNAME:
-			tds_set_app(tds_login, set_buffer);
+			copy_ret = tds_set_app(tds_login, set_buffer);
 			break;
 		case CS_HOSTNAME:
-			tds_set_host(tds_login, set_buffer);
+			copy_ret = tds_set_host(tds_login, set_buffer);
 			break;
 		case CS_PORT:
 			tds_set_port(tds_login, *((int *) buffer));
@@ -478,6 +484,8 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			break;
 		}
 		free(set_buffer);
+		if (!copy_ret)
+			return CS_FAIL;
 	} else if (action == CS_GET) {
 		DSTR *s;
 
@@ -596,6 +604,7 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 	int needfree = 0;
 	CS_CONTEXT *ctx;
 	TDSLOGIN *login;
+	bool copy_ret;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_connect(%p, %s, %d)\n", con, servername ? servername : "NULL", snamelen);
 
@@ -609,9 +618,11 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 		server = tds_strndup(servername, snamelen);
 		needfree++;
 	}
-	tds_set_server(con->tds_login, server);
+	copy_ret = tds_set_server(con->tds_login, server);
 	if (needfree)
 		free(server);
+	if (!copy_ret)
+		return CS_FAIL;
 	ctx = con->ctx;
 	if (!(con->tds_socket = tds_alloc_socket(ctx->tds_ctx, 512)))
 		return CS_FAIL;

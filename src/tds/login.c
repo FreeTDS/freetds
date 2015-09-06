@@ -73,13 +73,14 @@ tds_set_port(TDSLOGIN * tds_login, int port)
 	tds_login->port = port;
 }
 
-void
+bool
 tds_set_passwd(TDSLOGIN * tds_login, const char *password)
 {
 	if (password) {
 		tds_dstr_zero(&tds_login->password);
-		tds_dstr_copy(&tds_login->password, password);
+		return !!tds_dstr_copy(&tds_login->password, password);
 	}
+	return true;
 }
 void
 tds_set_bulk(TDSLOGIN * tds_login, TDS_TINYINT enabled)
@@ -87,22 +88,22 @@ tds_set_bulk(TDSLOGIN * tds_login, TDS_TINYINT enabled)
 	tds_login->bulk_copy = enabled ? 0 : 1;
 }
 
-void
+bool
 tds_set_user(TDSLOGIN * tds_login, const char *username)
 {
-	tds_dstr_copy(&tds_login->user_name, username);
+	return !!tds_dstr_copy(&tds_login->user_name, username);
 }
 
-void
+bool
 tds_set_host(TDSLOGIN * tds_login, const char *hostname)
 {
-	tds_dstr_copy(&tds_login->client_host_name, hostname);
+	return !!tds_dstr_copy(&tds_login->client_host_name, hostname);
 }
 
-void
+bool
 tds_set_app(TDSLOGIN * tds_login, const char *application)
 {
-	tds_dstr_copy(&tds_login->app_name, application);
+	return !!tds_dstr_copy(&tds_login->app_name, application);
 }
 
 /**
@@ -116,7 +117,7 @@ tds_set_app(TDSLOGIN * tds_login, const char *application)
  * \param server	the servername, or NULL, or a zero-length string
  * \todo open the log file earlier, so these messages can be seen.  
  */
-void
+bool
 tds_set_server(TDSLOGIN * tds_login, const char *server)
 {
 #if 0
@@ -139,25 +140,26 @@ tds_set_server(TDSLOGIN * tds_login, const char *server)
 	}
 #endif
 	if (server)
-		tds_dstr_copy(&tds_login->server_name, server);
+		return !!tds_dstr_copy(&tds_login->server_name, server);
+	return true;
 }
 
-void
+bool
 tds_set_library(TDSLOGIN * tds_login, const char *library)
 {
-	tds_dstr_copy(&tds_login->library, library);
+	return !!tds_dstr_copy(&tds_login->library, library);
 }
 
-void
+bool
 tds_set_client_charset(TDSLOGIN * tds_login, const char *charset)
 {
-	tds_dstr_copy(&tds_login->client_charset, charset);
+	return !!tds_dstr_copy(&tds_login->client_charset, charset);
 }
 
-void
+bool
 tds_set_language(TDSLOGIN * tds_login, const char *language)
 {
-	tds_dstr_copy(&tds_login->language, language);
+	return !!tds_dstr_copy(&tds_login->language, language);
 }
 
 struct tds_save_msg

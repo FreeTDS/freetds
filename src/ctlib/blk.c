@@ -323,8 +323,9 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 	tds_deinit_bcpinfo(&blkdesc->bcpinfo);
 
 	/* string can be no-nul terminated so copy with memcpy */
-	/* FIXME can fail */
-	tds_dstr_copyn(&blkdesc->bcpinfo.tablename, tablename, tnamelen);
+	if (!tds_dstr_copyn(&blkdesc->bcpinfo.tablename, tablename, tnamelen)) {
+		return CS_FAIL;
+	}
 
 	blkdesc->bcpinfo.direction = direction;
 	blkdesc->bcpinfo.bind_count = CS_UNUSED;

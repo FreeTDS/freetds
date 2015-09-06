@@ -161,7 +161,8 @@ odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name)
 	if (colpos > 0 && stmt->tds != NULL && (resinfo = stmt->tds->current_results) != NULL) {
 		if (colpos <= resinfo->num_cols) {
 			/* no overflow possible, name is always shorter */
-			tds_dstr_copy(&resinfo->columns[colpos - 1]->column_name, name);
+			if (!tds_dstr_copy(&resinfo->columns[colpos - 1]->column_name, name))
+				odbc_errs_add(&stmt->errs, "HY001", NULL);
 			tds_dstr_empty(&resinfo->columns[colpos - 1]->table_column_name);
 		}
 	}
@@ -169,8 +170,9 @@ odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name)
 
 	if (colpos > 0 && colpos <= stmt->ird->header.sql_desc_count) {
 		--colpos;
-		tds_dstr_copy(&stmt->ird->records[colpos].sql_desc_label, name);
-		tds_dstr_copy(&stmt->ird->records[colpos].sql_desc_name, name);
+		if (!tds_dstr_copy(&stmt->ird->records[colpos].sql_desc_label, name)
+		    || !tds_dstr_copy(&stmt->ird->records[colpos].sql_desc_name, name))
+			odbc_errs_add(&stmt->errs, "HY001", NULL);
 	}
 }
 

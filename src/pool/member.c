@@ -76,18 +76,21 @@ pool_mbr_login(TDS_POOL * pool)
 	char hostname[MAXHOSTNAMELEN];
 
 	login = tds_alloc_login(1);
-	tds_set_passwd(login, pool->password);
-	tds_set_user(login, pool->user);
-	tds_set_app(login, "tdspool");
 #if HAVE_GETHOSTNAME
 	if (gethostname(hostname, MAXHOSTNAMELEN) < 0)
 #endif
 		strlcpy(hostname, "tdspool", MAXHOSTNAMELEN);
-	tds_set_host(login, hostname);
-	tds_set_library(login, "TDS-Library");
-	tds_set_server(login, pool->server);
-	tds_set_client_charset(login, "iso_1");
-	tds_set_language(login, "us_english");
+	if (!tds_set_passwd(login, pool->password)
+	    || !tds_set_user(login, pool->user)
+	    || !tds_set_app(login, "tdspool")
+	    || !tds_set_host(login, hostname)
+	    || !tds_set_library(login, "TDS-Library")
+	    || !tds_set_server(login, pool->server)
+	    || !tds_set_client_charset(login, "iso_1")
+	    || !tds_set_language(login, "us_english")) {
+		tds_free_login(login);
+		return NULL;
+	}
 	tds_set_packet(login, 512);
 	context = tds_alloc_context(NULL);
 	tds = tds_alloc_socket(context, 512);

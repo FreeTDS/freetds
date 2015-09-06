@@ -1320,15 +1320,15 @@ void tds_deinit_bcpinfo(TDSBCPINFO *bcpinfo);
 /* login.c */
 void tds_set_packet(TDSLOGIN * tds_login, int packet_size);
 void tds_set_port(TDSLOGIN * tds_login, int port);
-void tds_set_passwd(TDSLOGIN * tds_login, const char *password);
+bool tds_set_passwd(TDSLOGIN * tds_login, const char *password) TDS_WUR;
 void tds_set_bulk(TDSLOGIN * tds_login, TDS_TINYINT enabled);
-void tds_set_user(TDSLOGIN * tds_login, const char *username);
-void tds_set_app(TDSLOGIN * tds_login, const char *application);
-void tds_set_host(TDSLOGIN * tds_login, const char *hostname);
-void tds_set_library(TDSLOGIN * tds_login, const char *library);
-void tds_set_server(TDSLOGIN * tds_login, const char *server);
-void tds_set_client_charset(TDSLOGIN * tds_login, const char *charset);
-void tds_set_language(TDSLOGIN * tds_login, const char *language);
+bool tds_set_user(TDSLOGIN * tds_login, const char *username) TDS_WUR;
+bool tds_set_app(TDSLOGIN * tds_login, const char *application) TDS_WUR;
+bool tds_set_host(TDSLOGIN * tds_login, const char *hostname) TDS_WUR;
+bool tds_set_library(TDSLOGIN * tds_login, const char *library) TDS_WUR;
+bool tds_set_server(TDSLOGIN * tds_login, const char *server) TDS_WUR;
+bool tds_set_client_charset(TDSLOGIN * tds_login, const char *charset) TDS_WUR;
+bool tds_set_language(TDSLOGIN * tds_login, const char *language) TDS_WUR;
 void tds_set_version(TDSLOGIN * tds_login, TDS_TINYINT major_ver, TDS_TINYINT minor_ver);
 int tds_connect_and_login(TDSSOCKET * tds, TDSLOGIN * login);
 

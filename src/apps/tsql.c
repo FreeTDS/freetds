@@ -583,29 +583,27 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 	}
 
 	/* all validated, let's do it */
+	if (!tds_set_user(login, username)
+	    || !tds_set_app(login, appname)
+	    || !tds_set_library(login, "TDS-Library")
+	    || !tds_set_language(login, "us_english")
+	    || !tds_set_passwd(login, password))
+		goto out_of_memory;
+	if (charset && !tds_set_client_charset(login, charset))
+		goto out_of_memory;
 
 	/* if it's a servername */
 	if (servername) {
-		tds_set_user(login, username);
-		tds_set_app(login, appname);
-		tds_set_library(login, "TDS-Library");
-		tds_set_server(login, servername);
-		if (charset) tds_set_client_charset(login, charset);
-		tds_set_language(login, "us_english");
-		tds_set_passwd(login, password);
+		if (!tds_set_server(login, servername))
+			goto out_of_memory;
 		if (confile) {
 			tds_set_interfaces_file_loc(confile);
 		}
 		/* else we specified hostname/port */
 	} else {
-		tds_set_user(login, username);
-		tds_set_app(login, appname);
-		tds_set_library(login, "TDS-Library");
-		tds_set_server(login, hostname);
+		if (!tds_set_server(login, hostname))
+			goto out_of_memory;
 		tds_set_port(login, port);
-		if (charset) tds_set_client_charset(login, charset);
-		tds_set_language(login, "us_english");
-		tds_set_passwd(login, password);
 	}
 
 	memset(password, 0, strlen(password));
@@ -616,6 +614,11 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 	free(username);
 	free(password);
 	free(servername);
+	return;
+
+out_of_memory:
+	fprintf(stderr, "%s: out of memory\n", argv[0]);
+	exit(1);
 }
 
 static int
@@ -766,7 +769,8 @@ main(int argc, char **argv)
 		if (!charset)
 			charset = "ISO-8859-1";
 
-		tds_set_client_charset(login, charset);
+		if (!tds_set_client_charset(login, charset))
+			return 1;
 		if (!tds_dstr_dup(&connection->client_charset, &login->client_charset))
 			return 1;
 	}

@@ -730,7 +730,11 @@ dblogin(void)
 	}
 
 	/* set default values for loginrec */
-	tds_set_library(loginrec->tds_login, "DB-Library");
+	if (!tds_set_library(loginrec->tds_login, "DB-Library")) {
+		dbperror(NULL, SYBEMEM, errno);
+		free(loginrec);
+		return NULL;
+	}
 
 	return loginrec;
 }
@@ -765,6 +769,8 @@ dbloginfree(LOGINREC * login)
 RETCODE
 dbsetlname(LOGINREC * login, const char *value, int which)
 {
+	bool copy_ret;
+
 	tdsdump_log(TDS_DBG_FUNC, "dbsetlname(%p, %s, %d)\n", login, value, which);
 
 	if( login == NULL ) {
@@ -779,39 +785,35 @@ dbsetlname(LOGINREC * login, const char *value, int which)
 
 	switch (which) {
 	case DBSETHOST:
-		tds_set_host(login->tds_login, value);
-		return SUCCEED;
+		copy_ret = tds_set_host(login->tds_login, value);
 		break;
 	case DBSETUSER:
-		tds_set_user(login->tds_login, value);
-		return SUCCEED;
+		copy_ret = tds_set_user(login->tds_login, value);
 		break;
 	case DBSETPWD:
-		tds_set_passwd(login->tds_login, value);
-		return SUCCEED;
+		copy_ret = tds_set_passwd(login->tds_login, value);
 		break;
 	case DBSETAPP:
-		tds_set_app(login->tds_login, value);
-		return SUCCEED;
+		copy_ret = tds_set_app(login->tds_login, value);
 		break;
 	case DBSETCHARSET:
-		tds_set_client_charset(login->tds_login, value ? value : "");
-		return SUCCEED;
+		copy_ret = tds_set_client_charset(login->tds_login, value ? value : "");
 		break;
 	case DBSETNATLANG:
-		tds_set_language(login->tds_login, value);
-		return SUCCEED;
+		copy_ret = tds_set_language(login->tds_login, value);
 		break;
 	case DBSETDBNAME:
-		if (!tds_dstr_copy(&login->tds_login->database, value ? value : ""))
-			return FAIL;
-		return SUCCEED;
+		copy_ret = !!tds_dstr_copy(&login->tds_login->database, value ? value : "");
 		break;
 	default:
 		dbperror(NULL, SYBEASUL, 0); /* Attempt to set unknown LOGINREC field */
 		return FAIL;
 		break;
 	}
+
+	if (!copy_ret)
+		return FAIL;
+	return SUCCEED;
 }
 
 /** \internal
@@ -1195,7 +1197,11 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 	dbproc->avail_flag = TRUE;
 	dbproc->command_state = DBCMDNONE;
 
-	tds_set_server(login->tds_login, server);
+	if (!tds_set_server(login->tds_login, server)) {
+		dbperror(NULL, SYBEMEM, 0);
+		free(dbproc);
+		return NULL;
+	}
 	tdsdump_log(TDS_DBG_FUNC, "tdsdbopen: tds_set_server(%p, \"%s\")\n", login->tds_login, server);
 
 	if ((dbproc->tds_socket = tds_alloc_socket(dblib_get_tds_ctx(), 512)) == NULL ){

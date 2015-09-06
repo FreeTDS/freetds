@@ -79,14 +79,17 @@ try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verb
 		fprintf(stderr, "tds_alloc_login() failed.\n");
 		return TDS_FAIL;
 	}
-	tds_set_passwd(*login, PASSWORD);
-	tds_set_user(*login, USER);
-	tds_set_app(*login, appname);
-	tds_set_host(*login, "myhost");
-	tds_set_library(*login, "TDS-Library");
-	tds_set_server(*login, SERVER);
-	tds_set_client_charset(*login, CHARSET);
-	tds_set_language(*login, "us_english");
+	if (!tds_set_passwd(*login, PASSWORD)
+	    || !tds_set_user(*login, USER)
+	    || !tds_set_app(*login, appname)
+	    || !tds_set_host(*login, "myhost")
+	    || !tds_set_library(*login, "TDS-Library")
+	    || !tds_set_server(*login, SERVER)
+	    || !tds_set_client_charset(*login, CHARSET)
+	    || !tds_set_language(*login, "us_english")) {
+		fprintf(stderr, "tds_alloc_login() failed.\n");
+		return TDS_FAIL;
+	}
 
 	if (verbose) {
 		fprintf(stdout, "Connecting to database\n");
