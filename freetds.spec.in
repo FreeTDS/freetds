@@ -71,7 +71,7 @@ fi
 if test ! -r "$ODBCDIR/include/sql.h"; then
 	ODBCDIR=/usr
 fi
-%configure --with-tdsver=4.2 --with-unixodbc="$ODBCDIR"
+%configure --with-tdsver=4.2 --with-unixodbc="$ODBCDIR --with-gnutls"
 make RPM_OPT_FLAGS="$RPM_OPT_FLAGS"
  
 %install 
