@@ -141,13 +141,13 @@ rm -rf $RPM_BUILD_ROOT
 * Wed Feb  5 2003 Ian Grant <Ian.Grant@cl.cam.ac.uk>
 - 0.61 tweaked. Added libtdssrv libraries and tools in /usr/bin + man pages
 
-* Sun Dec 30 2002 David Hollis <dhollis@davehollis.com>
+* Mon Dec 30 2002 David Hollis <dhollis@davehollis.com>
 - 0.60 tweaked.  Move .a & .la files to -devel package
 
 * Thu Dec 20 2001 Brian Bruns <camber@ais.org> 
 - Modifications for 0.53 ver and removing interfaces file
 
-* Wed Jun 28 2001 Brian Bruns <camber@ais.org> 
+* Fri Jun 28 2001 Brian Bruns <camber@ais.org>
 - Modifications for 0.52 ver and ODBC drivers 
 
 * Wed Feb 14 2001 David Hollis <dhollis@emagisoft.com> 
