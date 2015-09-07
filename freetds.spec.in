@@ -4,12 +4,8 @@
 # compute some additional dependency from vendor name
 # 
 
-# RedHat
-%define tds_builddep_redhat unixODBC-devel >= 2.0.0
-%define tds_dep_suse glibc-locale
-
 # SUSE
-%define tds_builddep_suse unixODBC-devel >= 2.0.0
+%define tds_dep_suse glibc-locale
 
 %undefine tds_builddep
 %{expand:%%{expand:%%{?tds_builddep_%{?_vendor}:%%%%define tds_builddep %%{?tds_builddep_%{?_vendor}}}}}
@@ -24,8 +20,8 @@ License: LGPL
 Group: System Environment/Libraries 
 Source: http://ibiblio.org/pub/Linux/ALPHA/freetds/stable/%{name}-%{version}.tar.bz2
 BuildRoot: %{_tmppath}/%{name}-buildroot
-%{?tds_builddep:BuildRequires: %{tds_builddep}}
-%{?tds_dep:Requires: %tds_dep}
+BuildRequires: unixODBC-devel >= 2.0.0 gnutls-devel %{?tds_builddep}
+Requires: gnutls %{?tds_dep}
 Summary: FreeTDS is a free re-implementation of the TDS (Tabular DataStream) protocol that is used by Sybase and Microsoft for their database products. 
  
 %description 
