@@ -205,8 +205,9 @@ tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int ti
 
 	conn->s = socket(addr->ai_family, SOCK_STREAM, 0);
 	if (TDS_IS_SOCKET_INVALID(conn->s)) {
-		*p_oserr = sock_errno;
-		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", sock_strerror(sock_errno));
+		char *errstr = sock_strerror(*p_oserr = sock_errno);
+		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", errstr);
+		sock_strerror_free(errstr);
 		return TDSESOCK;
 	}
 	tds->state = TDS_IDLE;
@@ -272,7 +273,9 @@ tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int ti
 		tdsdump_log(TDS_DBG_INFO2, "connection established\n");
 	} else {
 		int err = *p_oserr = sock_errno;
-		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: connect(2) returned \"%s\"\n", sock_strerror(err));
+		char *errstr = sock_strerror(err);
+		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: connect(2) returned \"%s\"\n", errstr);
+		sock_strerror_free(errstr);
 #if DEBUGGING_CONNECTING_PROBLEM
 		if (err != ECONNREFUSED && err != ENETUNREACH && err != TDSSOCK_EINPROGRESS) {
 			tdsdump_dump_buf(TDS_DBG_ERROR, "Contents of sockaddr_in", addr->ai_addr, addr->ai_addrlen);
@@ -301,13 +304,15 @@ tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int ti
 	optlen = sizeof(len);
 	len = 0;
 	if (tds_getsockopt(conn->s, SOL_SOCKET, SO_ERROR, (char *) &len, &optlen) != 0) {
-		*p_oserr = sock_errno;
-		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) failed: %s\n", sock_strerror(sock_errno));
+		char *errstr = sock_strerror(*p_oserr = sock_errno);
+		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) failed: %s\n", errstr);
+		sock_strerror_free(errstr);
 		goto not_available;
 	}
 	if (len != 0) {
-		*p_oserr = len;
-		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) reported: %s\n", sock_strerror(len));
+		char *errstr = sock_strerror(*p_oserr = len);
+		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) reported: %s\n", errstr);
+		sock_strerror_free(errstr);
 		goto not_available;
 	}
 
@@ -441,14 +446,18 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 		}
 
 		if (rc < 0) {
+			char *errstr;
+
 			switch (sock_errno) {
 			case TDSSOCK_EINTR:
 				/* FIXME this should be global maximun, not loop one */
 				seconds += poll_seconds;
 				break;	/* let interrupt handler be called */
 			default: /* documented: EFAULT, EBADF, EINVAL */
+				errstr = sock_strerror(sock_errno);
 				tdsdump_log(TDS_DBG_ERROR, "error: poll(2) returned %d, \"%s\"\n",
-						sock_errno, sock_strerror(sock_errno));
+						sock_errno, errstr);
+				sock_strerror_free(errstr);
 				return rc;
 			}
 		}
@@ -521,6 +530,7 @@ static int
 tds_socket_write(TDSCONNECTION *conn, TDSSOCKET *tds, const unsigned char *buf, int buflen, int last)
 {
 	int err, len;
+	char *errstr;
 
 #ifdef USE_MSGMORE
 	len = send(conn->s, buf, buflen, last ? MSG_NOSIGNAL : MSG_NOSIGNAL|MSG_MORE);
@@ -542,7 +552,9 @@ tds_socket_write(TDSCONNECTION *conn, TDSSOCKET *tds, const unsigned char *buf, 
 	assert(len < 0);
 
 	/* detect connection close */
-	tdsdump_log(TDS_DBG_NETWORK, "send(2) failed: %d (%s)\n", err, sock_strerror(err));
+	errstr = sock_strerror(err);
+	tdsdump_log(TDS_DBG_NETWORK, "send(2) failed: %d (%s)\n", err, errstr);
+	sock_strerror_free(errstr);
 	tds_connection_close(conn);
 	tdserror(conn->tds_ctx, tds, TDSEWRIT, err);
 	return -1;
@@ -691,9 +703,13 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen, unsig
 		/* error */
 		if (len < 0) {
 			int err = sock_errno;
+			char *errstr;
+
 			if (TDSSOCK_WOULDBLOCK(err)) /* shouldn't happen, but OK, retry */
 				continue;
-			tdsdump_log(TDS_DBG_NETWORK, "select(2) failed: %d (%s)\n", err, sock_strerror(err));
+			errstr = sock_strerror(err);
+			tdsdump_log(TDS_DBG_NETWORK, "select(2) failed: %d (%s)\n", err, errstr);
+			sock_strerror_free(errstr);
 			tds_connection_close(tds->conn);
 			tdserror(tds_get_ctx(tds), tds, TDSEWRIT, err);
 			return -1;
@@ -784,7 +800,9 @@ tds7_get_instance_ports(FILE *output, struct addrinfo *addr)
 
 	/* create an UDP socket */
 	if (TDS_IS_SOCKET_INVALID(s = socket(addr->ai_family, SOCK_DGRAM, 0))) {
-		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", sock_strerror(sock_errno));
+		char *errstr = sock_strerror(sock_errno);
+		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", errstr);
+		sock_strerror_free(errstr);
 		return 0;
 	}
 
@@ -918,7 +936,9 @@ tds7_get_instance_port(struct addrinfo *addr, const char *instance)
 
 	/* create an UDP socket */
 	if (TDS_IS_SOCKET_INVALID(s = socket(addr->ai_family, SOCK_DGRAM, 0))) {
-		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", sock_strerror(sock_errno));
+		char *errstr = sock_strerror(sock_errno);
+		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", errstr);
+		sock_strerror_free(errstr);
 		return 0;
 	}
 
@@ -1033,124 +1053,28 @@ tds7_get_instance_port(struct addrinfo *addr, const char *instance)
 }
 
 #if defined(_WIN32)
-const char *
-tds_prwsaerror( int erc ) 
+static const char tds_unknown_wsaerror[] = "undocumented WSA error code";
+
+char *
+tds_prwsaerror(int erc)
 {
-	switch(erc) {
-	case WSAEINTR: /* 10004 */
-		return "WSAEINTR: Interrupted function call.";
-	case WSAEACCES: /* 10013 */
-		return "WSAEACCES: Permission denied.";
-	case WSAEFAULT: /* 10014 */
-		return "WSAEFAULT: Bad address.";
-	case WSAEINVAL: /* 10022 */
-		return "WSAEINVAL: Invalid argument.";
-	case WSAEMFILE: /* 10024 */
-		return "WSAEMFILE: Too many open files.";
-	case WSAEWOULDBLOCK: /* 10035 */
-		return "WSAEWOULDBLOCK: Resource temporarily unavailable.";
-	case WSAEINPROGRESS: /* 10036 */
-		return "WSAEINPROGRESS: Operation now in progress.";
-	case WSAEALREADY: /* 10037 */
-		return "WSAEALREADY: Operation already in progress.";
-	case WSAENOTSOCK: /* 10038 */
-		return "WSAENOTSOCK: Socket operation on nonsocket.";
-	case WSAEDESTADDRREQ: /* 10039 */
-		return "WSAEDESTADDRREQ: Destination address required.";
-	case WSAEMSGSIZE: /* 10040 */
-		return "WSAEMSGSIZE: Message too long.";
-	case WSAEPROTOTYPE: /* 10041 */
-		return "WSAEPROTOTYPE: Protocol wrong type for socket.";
-	case WSAENOPROTOOPT: /* 10042 */
-		return "WSAENOPROTOOPT: Bad protocol option.";
-	case WSAEPROTONOSUPPORT: /* 10043 */
-		return "WSAEPROTONOSUPPORT: Protocol not supported.";
-	case WSAESOCKTNOSUPPORT: /* 10044 */
-		return "WSAESOCKTNOSUPPORT: Socket type not supported.";
-	case WSAEOPNOTSUPP: /* 10045 */
-		return "WSAEOPNOTSUPP: Operation not supported.";
-	case WSAEPFNOSUPPORT: /* 10046 */
-		return "WSAEPFNOSUPPORT: Protocol family not supported.";
-	case WSAEAFNOSUPPORT: /* 10047 */
-		return "WSAEAFNOSUPPORT: Address family not supported by protocol family.";
-	case WSAEADDRINUSE: /* 10048 */
-		return "WSAEADDRINUSE: Address already in use.";
-	case WSAEADDRNOTAVAIL: /* 10049 */
-		return "WSAEADDRNOTAVAIL: Cannot assign requested address.";
-	case WSAENETDOWN: /* 10050 */
-		return "WSAENETDOWN: Network is down.";
-	case WSAENETUNREACH: /* 10051 */
-		return "WSAENETUNREACH: Network is unreachable.";
-	case WSAENETRESET: /* 10052 */
-		return "WSAENETRESET: Network dropped connection on reset.";
-	case WSAECONNABORTED: /* 10053 */
-		return "WSAECONNABORTED: Software caused connection abort.";
-	case WSAECONNRESET: /* 10054 */
-		return "WSAECONNRESET: Connection reset by peer.";
-	case WSAENOBUFS: /* 10055 */
-		return "WSAENOBUFS: No buffer space available.";
-	case WSAEISCONN: /* 10056 */
-		return "WSAEISCONN: Socket is already connected.";
-	case WSAENOTCONN: /* 10057 */
-		return "WSAENOTCONN: Socket is not connected.";
-	case WSAESHUTDOWN: /* 10058 */
-		return "WSAESHUTDOWN: Cannot send after socket shutdown.";
-	case WSAETIMEDOUT: /* 10060 */
-		return "WSAETIMEDOUT: Connection timed out.";
-	case WSAECONNREFUSED: /* 10061 */
-		return "WSAECONNREFUSED: Connection refused.";
-	case WSAEHOSTDOWN: /* 10064 */
-		return "WSAEHOSTDOWN: Host is down.";
-	case WSAEHOSTUNREACH: /* 10065 */
-		return "WSAEHOSTUNREACH: No route to host.";
-	case WSAEPROCLIM: /* 10067 */
-		return "WSAEPROCLIM: Too many processes.";
-	case WSASYSNOTREADY: /* 10091 */
-		return "WSASYSNOTREADY: Network subsystem is unavailable.";
-	case WSAVERNOTSUPPORTED: /* 10092 */
-		return "WSAVERNOTSUPPORTED: Winsock.dll version out of range.";
-	case WSANOTINITIALISED: /* 10093 */
-		return "WSANOTINITIALISED: Successful WSAStartup not yet performed.";
-	case WSAEDISCON: /* 10101 */
-		return "WSAEDISCON: Graceful shutdown in progress.";
-	case WSATYPE_NOT_FOUND: /* 10109 */
-		return "WSATYPE_NOT_FOUND: Class type not found.";
-	case WSAHOST_NOT_FOUND: /* 11001 */
-		return "WSAHOST_NOT_FOUND: Host not found.";
-	case WSATRY_AGAIN: /* 11002 */
-		return "WSATRY_AGAIN: Nonauthoritative host not found.";
-	case WSANO_RECOVERY: /* 11003 */
-		return "WSANO_RECOVERY: This is a nonrecoverable error.";
-	case WSANO_DATA: /* 11004 */
-		return "WSANO_DATA: Valid name, no data record of requested type.";
-	case WSA_INVALID_HANDLE: /* OS dependent */
-		return "WSA_INVALID_HANDLE: Specified event object handle is invalid.";
-	case WSA_INVALID_PARAMETER: /* OS dependent */
-		return "WSA_INVALID_PARAMETER: One or more parameters are invalid.";
-	case WSA_IO_INCOMPLETE: /* OS dependent */
-		return "WSA_IO_INCOMPLETE: Overlapped I/O event object not in signaled state.";
-	case WSA_IO_PENDING: /* OS dependent */
-		return "WSA_IO_PENDING: Overlapped operations will complete later.";
-	case WSA_NOT_ENOUGH_MEMORY: /* OS dependent */
-		return "WSA_NOT_ENOUGH_MEMORY: Insufficient memory available.";
-	case WSA_OPERATION_ABORTED: /* OS dependent */
-		return "WSA_OPERATION_ABORTED: Overlapped operation aborted.";
-#if defined(WSAINVALIDPROCTABLE)
-	case WSAINVALIDPROCTABLE: /* OS dependent */
-		return "WSAINVALIDPROCTABLE: Invalid procedure table from service provider.";
-#endif
-#if defined(WSAINVALIDPROVIDER)
-	case WSAINVALIDPROVIDER: /* OS dependent */
-		return "WSAINVALIDPROVIDER: Invalid service provider version number.";
-#endif
-#if defined(WSAPROVIDERFAILEDINIT)
-	case WSAPROVIDERFAILEDINIT: /* OS dependent */
-		return "WSAPROVIDERFAILEDINIT: Unable to initialize a service provider.";
-#endif
-	case WSASYSCALLFAILURE: /* OS dependent */
-		return "WSASYSCALLFAILURE: System call failure.";
+	char *errstr = NULL;
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM, NULL, erc,
+		      MAKELANGID(LANG_NEUTRAL,SUBLANG_DEFAULT), (LPTSTR)&errstr, 0, NULL);
+	if (errstr) {
+		size_t len = strlen(errstr);
+		while (len > 0 && (errstr[len-1] == '\r' || errstr[len-1] == '\n'))
+			errstr[len-1] = 0;
+		return errstr;
 	}
-	return "undocumented WSA error code";
+	return (char*) tds_unknown_wsaerror;
+}
+
+void
+tds_prwsaerror_free(char *s)
+{
+	if (s != tds_unknown_wsaerror)
+		LocalFree((HLOCAL) s);
 }
 #endif
 

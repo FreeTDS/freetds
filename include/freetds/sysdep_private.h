@@ -77,6 +77,7 @@ void tds_socket_done(void);
 #define TDSSOCK_WOULDBLOCK(e) ((e)==WSAEWOULDBLOCK)
 #define sock_errno WSAGetLastError()
 #define sock_strerror(n) tds_prwsaerror(n)
+#define sock_strerror_free(s) tds_prwsaerror_free(s)
 #ifndef __MINGW32__
 typedef DWORD pid_t;
 #endif
@@ -120,6 +121,7 @@ typedef DWORD pid_t;
 
 #ifndef sock_strerror
 #define sock_strerror(n) strerror(n)
+#define sock_strerror_free(s) do {} while(0)
 #endif
 
 #ifndef TDSSOCK_EINTR

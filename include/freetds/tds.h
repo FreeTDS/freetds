@@ -1481,7 +1481,8 @@ TDSERRNO tds_open_socket(TDSSOCKET * tds, struct addrinfo *ipaddr, unsigned int 
 void tds_close_socket(TDSSOCKET * tds);
 int tds7_get_instance_ports(FILE *output, struct addrinfo *addr);
 int tds7_get_instance_port(struct addrinfo *addr, const char *instance);
-const char *tds_prwsaerror(int erc);
+char *tds_prwsaerror(int erc);
+void tds_prwsaerror_free(char *s);
 int tds_connection_read(TDSSOCKET * tds, unsigned char *buf, int buflen);
 int tds_connection_write(TDSSOCKET *tds, unsigned char *buf, int buflen, int final);
 #define TDSSELREAD  POLLIN
