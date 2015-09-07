@@ -67,7 +67,7 @@ fi
 if test ! -r "$ODBCDIR/include/sql.h"; then
 	ODBCDIR=/usr
 fi
-%configure --with-tdsver=4.2 --with-unixodbc="$ODBCDIR"
+%configure --with-tdsver=auto --with-unixodbc="$ODBCDIR" --with-gnutls
 make RPM_OPT_FLAGS="$RPM_OPT_FLAGS"
  
 %install 
@@ -123,6 +123,10 @@ rm -rf $RPM_BUILD_ROOT
 %doc doc/userguide doc/images doc/reference
  
 %changelog
+* Fri Nov 13 2015 Frediano Ziglio <freddy77@gmail.com>
+- set default protocol version to "auto" (automatic)
+- enable gnutls in RPM packages
+
 * Wed Mar 28 2007 Frediano Ziglio <freddy77@gmail.com>
 - removed libtdssrv
 
