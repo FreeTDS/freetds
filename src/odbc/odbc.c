@@ -4629,7 +4629,6 @@ ODBC_FUNC(SQLSetCursorName, (P(SQLHSTMT,hstmt), PCHARIN(Cursor,SQLSMALLINT) WIDE
 }
 
 ODBC_FUNC(SQLGetCursorName, (P(SQLHSTMT,hstmt), PCHAROUT(Cursor,SQLSMALLINT) WIDE))
-#include "sqlwparams.h"
 {
 	SQLRETURN rc;
 
@@ -4764,7 +4763,6 @@ ODBC_FUNC(SQLColumns, (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),	/* o
 	PCHARIN(TableName,SQLSMALLINT),	/* object_name */
 	PCHARIN(ColumnName,SQLSMALLINT)	/* column_name */
 	WIDE))
-#include "sqlwparams.h"
 {
 	int retcode;
 
@@ -4790,7 +4788,6 @@ ODBC_FUNC(SQLColumns, (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),	/* o
 
 ODBC_FUNC(SQLGetConnectAttr, (P(SQLHDBC,hdbc), P(SQLINTEGER,Attribute), P(SQLPOINTER,Value), P(SQLINTEGER,BufferLength),
 	P(SQLINTEGER *,StringLength) WIDE))
-#include "sqlwparams.h"
 {
 	const char *p = NULL;
 
