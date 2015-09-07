@@ -194,27 +194,22 @@ static tds_mutex dblib_mutex = TDS_MUTEX_INITIALIZER;
 static int g_dblib_version =
 #ifdef TDS42
 	DBVERSION_42;
-#endif
-#ifdef TDS50
-DBVERSION_100;
-#endif
-#ifdef TDS46
-DBVERSION_46;
-#endif
-#ifdef TDS70
-DBVERSION_70;
-#endif
-#ifdef TDS71
-DBVERSION_71;
-#endif
-#ifdef TDS72
-DBVERSION_72;
-#endif
-#ifdef TDS73
-DBVERSION_73;
-#endif
-#ifdef TDS74
-DBVERSION_74;
+#elif TDS50
+	DBVERSION_100;
+#elif TDS46
+	DBVERSION_46;
+#elif TDS70
+	DBVERSION_70;
+#elif TDS71
+	DBVERSION_71;
+#elif TDS72
+	DBVERSION_72;
+#elif TDS73
+	DBVERSION_73;
+#elif TDS74
+	DBVERSION_74;
+#else
+	DBVERSION_UNKNOWN;
 #endif
 
 

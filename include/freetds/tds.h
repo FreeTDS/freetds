@@ -440,6 +440,9 @@ extern const char *const tds_type_names[256];
 #elif TDS46
 #define TDS_DEFAULT_VERSION	0x406
 #define TDS_DEF_PORT		4000
+#elif TDS50
+#define TDS_DEFAULT_VERSION	0x500
+#define TDS_DEF_PORT		4000
 #elif TDS70
 #define TDS_DEFAULT_VERSION	0x700
 #define TDS_DEF_PORT		1433
@@ -456,8 +459,8 @@ extern const char *const tds_type_names[256];
 #define TDS_DEFAULT_VERSION	0x704
 #define TDS_DEF_PORT		1433
 #else
-#define TDS_DEFAULT_VERSION	0x500
-#define TDS_DEF_PORT		4000
+#define TDS_DEFAULT_VERSION	0x000
+#define TDS_DEF_PORT		1433
 #endif
 
 /* normalized strings from freetds.conf file */

@@ -1307,7 +1307,9 @@ tds_get_compiletime_settings(void)
 #		else
 			, 0
 #		endif
-#		ifdef TDS46
+#		ifdef TDS42
+			, "4.2"
+#		elif TDS46
 			, "4.6"
 #		elif TDS50
 			, "5.0"
@@ -1322,7 +1324,7 @@ tds_get_compiletime_settings(void)
 #		elif TDS74
 			, "7.4"
 #		else
-			, "4.2"
+			, "auto"
 #		endif
 #		ifdef IODBC
 			, 1

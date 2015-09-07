@@ -523,7 +523,7 @@ AC_HAVE_MALLOC_OPTIONS
 AC_MSG_RESULT(checking compile-time options)
 
 AC_ARG_WITH(tdsver,
-AS_HELP_STRING([--with-tdsver=VERSION], [TDS protocol version (4.2/4.6/5.0/7.0/7.1/7.2/7.3/7.4) [5.0]]))
+AS_HELP_STRING([--with-tdsver=VERSION], [TDS protocol version (4.2/4.6/5.0/7.0/7.1/7.2/7.3/7.4/auto) [auto]]))
 case "$with_tdsver" in
 4.2) AC_DEFINE(TDS42, 1, [Define to use TDS 4.2 by default]) ;;
 4.6) AC_DEFINE(TDS46, 1, [Define to use TDS 4.6 by default]) ;;
@@ -532,7 +532,8 @@ case "$with_tdsver" in
 7.2) AC_DEFINE(TDS72, 1, [Define to use TDS 7.2 by default]) ;;
 7.3) AC_DEFINE(TDS73, 1, [Define to use TDS 7.3 by default]) ;;
 7.4) AC_DEFINE(TDS74, 1, [Define to use TDS 7.4 by default]) ;;
-*)   AC_DEFINE(TDS50, 1, [Define to use TDS 5.0 by default]) ;;
+""|auto) ;;
+*)   AC_ERROR([Invalid value specified for --with-tdsver: $with_tdsver]) ;;
 esac
 
 AC_ARG_WITH(iodbc,
