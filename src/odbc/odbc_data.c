@@ -50,30 +50,30 @@
 static void
 data_msdatetime_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
 {
+	int decimals = col->column_prec ? col->column_prec + 1: 0;
+
 	switch (col->on_server.column_type) {
 	case SYBMSTIME:
 		drec->sql_desc_concise_type = SQL_SS_TIME2;
-		/* FIXME check always hh:mm:ss[.fff] */
-		drec->sql_desc_display_size = 19;
-		SET_INFO2("time", "'", "'", col->column_prec + 9);
+		/* always hh:mm:ss[.fff] */
+		drec->sql_desc_display_size = 8 + decimals;
+		SET_INFO2("time", "'", "'", 8 + decimals);
 	case SYBMSDATE:
 		drec->sql_desc_concise_type = SQL_TYPE_DATE;
-		/* FIXME check always yyyy-mm-dd ?? */
-		drec->sql_desc_display_size = 19;
+		/* always yyyy-mm-dd ?? */
+		drec->sql_desc_display_size = 10;
 		SET_INFO2("date", "'", "'", 10);
 	case SYBMSDATETIMEOFFSET:
 		drec->sql_desc_concise_type = SQL_SS_TIMESTAMPOFFSET;
-		/* TODO dependent on precision (decimal second digits) */
-		/* we always format using yyyy-mm-dd hh:mm:ss[.fff], see convert_tds2sql.c */
-		drec->sql_desc_display_size = 19;
-		SET_INFO2("datetimeoffset", "'", "'", col->column_prec + 27);
+		/* we always format using yyyy-mm-dd hh:mm:ss[.fff] +HH:MM, see convert_tds2sql.c */
+		drec->sql_desc_display_size = 26 + decimals;
+		SET_INFO2("datetimeoffset", "'", "'", 26 + decimals);
 	case SYBMSDATETIME2:
 		drec->sql_desc_concise_type = SQL_TYPE_TIMESTAMP;
 		drec->sql_desc_datetime_interval_code = SQL_CODE_TIMESTAMP;
-		/* TODO dependent on precision (decimal second digits) */
 		/* we always format using yyyy-mm-dd hh:mm:ss[.fff], see convert_tds2sql.c */
-		drec->sql_desc_display_size = 19;
-		SET_INFO2("datetime2", "'", "'", col->column_prec + 20);
+		drec->sql_desc_display_size = 19 + decimals;
+		SET_INFO2("datetime2", "'", "'", 19 + decimals);
 	}
 }
 
