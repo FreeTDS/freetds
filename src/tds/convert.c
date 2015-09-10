@@ -3125,7 +3125,6 @@ tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
 	dr->quarter = months / 3;
 	dr->day = days;
 	dr->dayofyear = ydays;
-	dr->week = -1;
 	dr->weekday = wday;
 	dr->hour = hours;
 	dr->minute = mins;
