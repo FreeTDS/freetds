@@ -105,6 +105,7 @@ static struct lookup_int sql_c_types[] = {
 	TYPE(SQL_C_CHAR),
 	TYPE(SQL_C_WCHAR),
 	TYPE(SQL_C_LONG),
+	TYPE(SQL_C_SBIGINT),
 	TYPE(SQL_C_SHORT),
 	TYPE(SQL_C_TIMESTAMP),
 #undef TYPE
