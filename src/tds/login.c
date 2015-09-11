@@ -707,19 +707,21 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	static const unsigned char 
 		client_progver[] = {   6, 0x83, 0xf2, 0xf8 }, 
 
-		tds70Version[] = { 0x00, 0x00, 0x00, 0x70 },
-		tds71Version[] = { 0x01, 0x00, 0x00, 0x71 },
-		tds72Version[] = { 0x02, 0x00, 0x09, 0x72 },
-		tds73Version[] = { 0x03, 0x00, 0x0B, 0x73 },
-		tds74Version[] = { 0x04, 0x00, 0x00, 0x74 },
 		connection_id[] = { 0x00, 0x00, 0x00, 0x00 }, 
-		time_zone[] = { 0x88, 0xff, 0xff, 0xff }, 
 		collation[] = { 0x36, 0x04, 0x00, 0x00 }, 
-		
+
 		sql_type_flag = 0x00;
 
-	const unsigned char *ptds7version = tds70Version;
-	
+	enum {
+		tds70Version = 0x70000000,
+		tds71Version = 0x71000001,
+		tds72Version = 0x72090002,
+		tds73Version = 0x730B0003,
+		tds74Version = 0x74000004,
+	};
+	TDS_INT time_zone = -120;
+	TDS_INT tds7version = tds70Version;
+
 	TDS_INT block_size = 4096;
 	
 	unsigned char option_flag1 = TDS_SET_LANG_ON | TDS_USE_DB_NOTIFY | TDS_INIT_DB_FATAL;
@@ -864,25 +866,25 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	TDS_PUT_INT(tds, packet_size);
 	switch (login->tds_version) {
 	case 0x700:
-		ptds7version = tds70Version;
+		tds7version = tds70Version;
 		break;
 	case 0x701:
-		ptds7version = tds71Version;
+		tds7version = tds71Version;
 		break;
 	case 0x702:
-		ptds7version = tds72Version;
+		tds7version = tds72Version;
 		break;
 	case 0x703:
-		ptds7version = tds73Version;
+		tds7version = tds73Version;
 		break;
 	case 0x704:
-		ptds7version = tds74Version;
+		tds7version = tds74Version;
 		break;
 	default:
 		assert(0 && 0x700 <= login->tds_version && login->tds_version <= 0x704);
 	}
 	
-	tds_put_n(tds, ptds7version, sizeof(tds70Version));
+	tds_put_int(tds, tds7version);
 
 	if (4096 <= login->block_size && login->block_size < 65536u)
 		block_size = login->block_size;
@@ -913,7 +915,7 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 		option_flag3 |= TDS_UNKNOWN_COLLATION_HANDLING;
 	tds_put_byte(tds, option_flag3);
 
-	tds_put_n(tds, time_zone, sizeof(time_zone));
+	tds_put_int(tds, time_zone);
 	tds_put_n(tds, collation, sizeof(collation));
 
 #define PUT_STRING_FIELD_PTR(field) do { \
