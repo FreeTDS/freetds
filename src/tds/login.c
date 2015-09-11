@@ -675,7 +675,7 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	tds_put_byte(tds, 1);
 
 	/* network packet size */
-	if (login->block_size < 65536 && login->block_size > 0)
+	if (login->block_size < 65536u && login->block_size >= 512)
 		sprintf(blockstr, "%d", login->block_size);
 	else
 		strcpy(blockstr, "512");
@@ -884,7 +884,7 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	
 	tds_put_n(tds, ptds7version, sizeof(tds70Version));
 
-	if (512 <= login->block_size && login->block_size < 1000000)
+	if (4096 <= login->block_size && login->block_size < 65536u)
 		block_size = login->block_size;
 
 	tds_put_int(tds, block_size);	/* desired packet size being requested by client */
