@@ -3360,7 +3360,8 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 	if (param == NULL)
 		return CS_FAIL;
 
-	tds = con->tds_socket;
+	if (!con || (tds=con->tds_socket) == NULL)
+		return CS_FAIL;
 
 	/*
 	 * Set the tds command
