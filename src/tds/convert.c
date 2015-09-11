@@ -3185,6 +3185,17 @@ string_to_int(const char *buf, const char *pend, TDS_INT * res)
 			break;
 		}
 
+		/* strip any decimal part */
+		if (*p == '.') {
+			while (++p != pend && isdigit((unsigned char) *p))
+				continue;
+			while (p != pend && *p == blank)
+				++p;
+			if (p != pend)
+				return TDS_CONVERT_SYNTAX;
+			break;
+		}
+
 		/* must be a digit */
 		if (!isdigit((unsigned char) *p))
 			return TDS_CONVERT_SYNTAX;
@@ -3256,6 +3267,17 @@ parse_int8(const char *buf, const char *pend, TDS_UINT8 * res, int * p_sign)
 		if (*p == blank) {
 			while (++p != pend && *p == blank)
 				continue;
+			if (p != pend)
+				return TDS_CONVERT_SYNTAX;
+			break;
+		}
+
+		/* strip any decimal part */
+		if (*p == '.') {
+			while (++p != pend && isdigit((unsigned char) *p))
+				continue;
+			while (p != pend && *p == blank)
+				++p;
 			if (p != pend)
 				return TDS_CONVERT_SYNTAX;
 			break;
