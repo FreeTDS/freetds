@@ -71,7 +71,7 @@ static TDS_INT tds_convert_uint4(const TDS_UINT * src, int desttype, CONV_RESULT
 static TDS_INT tds_convert_int8(const TDS_INT8 * src, int desttype, CONV_RESULT * cr);
 static TDS_INT tds_convert_uint8(const TDS_UINT8 * src, int desttype, CONV_RESULT * cr);
 static int string_to_datetime(const char *datestr, TDS_UINT len, int desttype, CONV_RESULT * cr);
-static int is_dd_mon_yyyy(char *t);
+static bool is_dd_mon_yyyy(char *t);
 static int store_dd_mon_yyy_date(char *datestr, struct tds_time *t);
 
 #define test_alloc(x) {if ((x)==NULL) return TDS_CONVERT_NOMEM;}
@@ -135,12 +135,12 @@ static int store_mday(const char *, struct tds_time *);
 static int store_year(int, struct tds_time *);
 
 /* static int days_this_year (int years); */
-static int is_timeformat(const char *);
-static int is_numeric(const char *);
-static int is_alphabetic(const char *);
-static int is_ampm(const char *);
+static bool is_timeformat(const char *);
+static bool is_numeric(const char *);
+static bool is_alphabetic(const char *);
+static bool is_ampm(const char *);
 #define is_monthname(s) (store_monthname(s, NULL) >= 0)
-static int is_numeric_dateformat(const char *);
+static bool is_numeric_dateformat(const char *);
 
 #if 0
 static TDS_UINT utf16len(const utf16_t * s);
@@ -339,7 +339,7 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 	char mynumber[28];
 
 	const char *ptr, *pend;
-	int point_found;
+	bool point_found;
 	unsigned int places;
 	TDS_INT tds_i;
 	TDS_INT8 tds_i8;
@@ -461,7 +461,7 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 		/* TODO code similar to string_to_numeric... */
 		i = 0;
 		places = 0;
-		point_found = 0;
+		point_found = false;
 		pend = src + srclen;
 
 		/* skip leading blanks */
@@ -498,7 +498,7 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 			} else if (*ptr == '.') {	/* found a decimal point */
 				if (point_found)	/* already had one. error */
 					return TDS_CONVERT_SYNTAX;
-				point_found = 1;
+				point_found = true;
 			} else	/* first invalid character */
 				return TDS_CONVERT_SYNTAX;	/* lose the rest.          */
 		}
@@ -2159,7 +2159,8 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 
 	char *ptr;
 	const char *pstr;
-	int old_digits_left, digits_left, digit_found = 0;
+	int old_digits_left, digits_left;
+	bool digit_found = false;
 
 	int i = 0;
 	int j = 0;
@@ -2199,7 +2200,7 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 	 * appear like overflow
 	 */
 	for (; pstr != pend && *pstr == '0'; ++pstr)
-		digit_found = 1;
+		digit_found = true;
 
 	/* 
 	 * Having disposed of any sign and leading blanks, 
@@ -2220,7 +2221,7 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 			/* copy digit to destination */
 			if (--digits_left >= 0)
 				*ptr++ = *pstr;
-			digit_found = 1;
+			digit_found = true;
 		} else if (*pstr == '.') {			/* found a decimal point */
 			if (places)				/* found a decimal point previously: return error */
 				return TDS_CONVERT_SYNTAX;
@@ -2228,7 +2229,8 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 			digits_left = cr->n.scale;
 			places = 1;
 		} else if (*pstr == ' ') {
-			for (; pstr != pend && *pstr == ' '; ++pstr) ; /* skip contiguous blanks */
+			for (; pstr != pend && *pstr == ' '; ++pstr) /* skip contiguous blanks */
+				continue;
 			if (pstr == pend)
 				break;				/* success: found only trailing blanks */
 			return TDS_CONVERT_SYNTAX;		/* bzzt: found something after the blank(s) */
@@ -2279,7 +2281,7 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 		--j;
 
 	for (;;) {
-		char is_zero = 1;
+		bool is_zero = true;
 		TDS_UINT carry = 0;
 		i = j;
 		if (!packed_num[j])
@@ -2287,7 +2289,7 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 		do {
 			TDS_UINT tmp = packed_num[i];
 			if (tmp)
-				is_zero = 0;
+				is_zero = false;
 
 			/* divide for 256 for find another byte */
 			/*
@@ -2310,21 +2312,19 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 	return sizeof(TDS_NUMERIC);
 }
 
-static int
+static bool
 is_numeric_dateformat(const char *t)
 {
 	const char *instr;
-	int ret = 1;
 	int slashes = 0;
 	int hyphens = 0;
 	int periods = 0;
 	int digits = 0;
 
 	for (instr = t; *instr; instr++) {
-		if (!isdigit((unsigned char) *instr) && *instr != '/' && *instr != '-' && *instr != '.') {
-			ret = 0;
-			break;
-		}
+		if (!isdigit((unsigned char) *instr) && *instr != '/' && *instr != '-' && *instr != '.')
+			return false;
+
 		if (*instr == '/')
 			slashes++;
 		else if (*instr == '-')
@@ -2336,14 +2336,14 @@ is_numeric_dateformat(const char *t)
 
 	}
 	if (hyphens + slashes + periods != 2)
-		ret = 0;
+		return false;
 	if (hyphens == 1 || slashes == 1 || periods == 1)
-		ret = 0;
+		return false;
 
 	if (digits < 4 || digits > 8)
-		ret = 0;
+		return false;
 
-	return (ret);
+	return true;
 
 }
 
@@ -2353,7 +2353,7 @@ is_numeric_dateformat(const char *t)
 /*    DD-MON-YY   */
 /*    DDMONYY     */
 /*    DDMONYYYY   */
-static int
+static bool
 is_dd_mon_yyyy(char *t)
 {
 	char *instr;
@@ -2362,12 +2362,12 @@ is_dd_mon_yyyy(char *t)
 	instr = t;
 
 	if (!isdigit((unsigned char) *instr))
-		return (0);
+		return false;
 
 	instr++;
 
 	if (!isdigit((unsigned char) *instr))
-		return (0);
+		return false;
 
 	instr++;
 
@@ -2377,30 +2377,30 @@ is_dd_mon_yyyy(char *t)
 		strlcpy(month, instr, 4);
 
 		if (!is_monthname(month))
-			return (0);
+			return false;
 
 		instr += 3;
 
 		if (*instr != '-')
-			return (0);
+			return false;
 
 		instr++;
 		if (!isdigit((unsigned char) *instr))
-			return (0);
+			return false;
 
 		instr++;
 		if (!isdigit((unsigned char) *instr))
-			return (0);
+			return false;
 
 		instr++;
 
 		if (*instr) {
 			if (!isdigit((unsigned char) *instr))
-				return (0);
+				return false;
 
 			instr++;
 			if (!isdigit((unsigned char) *instr))
-				return (0);
+				return false;
 		}
 
 	} else {
@@ -2408,90 +2408,81 @@ is_dd_mon_yyyy(char *t)
 		strlcpy(month, instr, 4);
 
 		if (!is_monthname(month))
-			return (0);
+			return false;
 
 		instr += 3;
 
 		if (!isdigit((unsigned char) *instr))
-			return (0);
+			return false;
 
 		instr++;
 		if (!isdigit((unsigned char) *instr))
-			return (0);
+			return false;
 
 		instr++;
 		if (*instr) {
 			if (!isdigit((unsigned char) *instr))
-				return (0);
+				return false;
 
 			instr++;
 			if (!isdigit((unsigned char) *instr))
-				return (0);
+				return false;
 		}
 	}
 
-	return (1);
+	return true;
 
 }
 
-static int
+static bool
 is_ampm(const char *datestr)
 {
-	int ret = 0;
-
 	if (strcasecmp(datestr, "am") == 0)
-		ret = 1;
-	else if (strcasecmp(datestr, "pm") == 0)
-		ret = 1;
-	else
-		ret = 0;
+		return true;
 
-	return ret;
+	if (strcasecmp(datestr, "pm") == 0)
+		return true;
+
+	return false;
 }
 
-static int
+static bool
 is_alphabetic(const char *datestr)
 {
 	const char *s;
-	int ret = 1;
 
 	for (s = datestr; *s; s++) {
 		if (!isalpha((unsigned char) *s))
-			ret = 0;
+			return false;
 	}
-	return (ret);
+	return true;
 }
 
-static int
+static bool
 is_numeric(const char *datestr)
 {
 	const char *s;
-	int ret = 1;
 
 	for (s = datestr; *s; s++) {
 		if (!isdigit((unsigned char) *s))
-			ret = 0;
+			return false;
 	}
-	return (ret);
+	return true;
 }
 
-static int
+static bool
 is_timeformat(const char *datestr)
 {
 	const char *s;
-	int ret = 1;
 
 	for (s = datestr; *s; s++) {
 		if (!isdigit((unsigned char) *s) && *s != ':' && *s != '.')
 			break;
 	}
-	if (*s) {
-		if (strcasecmp(s, "am") != 0 && strcasecmp(s, "pm") != 0)
-			ret = 0;
-	}
+	if (*s)
+		return is_ampm(s);
 
-
-	return (ret);
+	return true;
 }
 
 static int
