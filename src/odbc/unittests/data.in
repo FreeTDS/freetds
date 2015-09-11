@@ -199,3 +199,17 @@ if not msdb
 	endif
 endif
 
+select VARCHAR(20) "  15.0000  " SQL_C_NUMERIC "38 0 1 0F"
+select VARCHAR(20) "  15.0000  " SQL_C_LONG "15"
+if bigint
+	select VARCHAR(20) "  13.0000  " SQL_C_SBIGINT "13"
+endif
+
+# mssql 2008 give a warning for truncation (01004)
+if freetds
+	select VARCHAR(20) "  15.1245  " SQL_C_NUMERIC "38 0 1 0F"
+	select VARCHAR(20) "  15.1234  " SQL_C_LONG "15"
+	if bigint
+		select VARCHAR(20) "  12.98  " SQL_C_SBIGINT "12"
+	endif
+endif

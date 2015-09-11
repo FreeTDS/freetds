@@ -199,9 +199,6 @@ main(int argc, char *argv[])
 
 	printf("\n");
 
-	/* mssql 2008 give a warning for truncation (01004) */
-	Test("VARCHAR(20)", "  15.1245  ", SQL_C_NUMERIC, "38 0 1 0F");
-
 	odbc_disconnect();
 
 	if (!result)
