@@ -1129,6 +1129,11 @@ tds_init_connection(TDSCONNECTION *conn, TDSCONTEXT *context, unsigned int bufsi
 	return conn;
 
 Cleanup:
+	if (!TDS_IS_SOCKET_INVALID(conn->s_signal)) {
+		CLOSESOCKET(conn->s_signal);
+		CLOSESOCKET(conn->s_signaled);
+	}
+	tds_iconv_free(conn);
 	return NULL;
 }
 
@@ -1165,6 +1170,8 @@ tds_init_socket(TDSSOCKET * tds_socket, unsigned int bufsize)
 	return tds_socket;
 
       Cleanup:
+	tds_free_packets(tds_socket->recv_packet);
+	tds_free_packets(tds_socket->send_packet);
 	return NULL;
 }
 
