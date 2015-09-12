@@ -31,7 +31,7 @@
 #include <freetds/tds.h>
 #include <freetds/iconv.h>
 #include <freetds/tls.h>
-#include "tds_checks.h"
+#include <freetds/checks.h>
 #include <freetds/string.h>
 #include "replacements.h"
 #include <freetds/enum_cap.h>

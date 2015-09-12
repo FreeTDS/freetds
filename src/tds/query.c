@@ -38,7 +38,7 @@
 #include <freetds/iconv.h>
 #include <freetds/convert.h>
 #include <freetds/string.h>
-#include "tds_checks.h"
+#include <freetds/checks.h>
 #include "replacements.h"
 
 #include <assert.h>

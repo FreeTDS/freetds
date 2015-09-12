@@ -46,7 +46,7 @@
 #endif
 
 #include <freetds/tds.h>
-#include "tds_checks.h"
+#include <freetds/checks.h>
 #include <freetds/thread.h>
 
 /* for now all messages go to the log */

@@ -48,7 +48,7 @@
 #include <freetds/bytes.h>
 #include <freetds/stream.h>
 #include <freetds/string.h>
-#include "tds_checks.h"
+#include <freetds/checks.h>
 
 static size_t read_and_convert(TDSSOCKET * tds, TDSICONV * char_conv,
 			       size_t * wire_size, char *outbuf, size_t outbytesleft);

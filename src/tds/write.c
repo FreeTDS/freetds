@@ -44,7 +44,7 @@
 #include <freetds/iconv.h>
 #include <freetds/bytes.h>
 #include <freetds/stream.h>
-#include "tds_checks.h"
+#include <freetds/checks.h>
 
 /**
  * \addtogroup network

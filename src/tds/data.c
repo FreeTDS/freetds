@@ -40,7 +40,7 @@
 #include <freetds/tds.h>
 #include <freetds/bytes.h>
 #include <freetds/iconv.h>
-#include "tds_checks.h"
+#include <freetds/checks.h>
 #include <freetds/stream.h>
 #include <freetds/data.h>
 

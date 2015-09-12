@@ -36,7 +36,7 @@
 #include <freetds/tds.h>
 #include <freetds/convert.h>
 #include <freetds/string.h>
-#include "tds_checks.h"
+#include <freetds/checks.h>
 
 #if ENABLE_EXTRA_CHECKS
 static void
