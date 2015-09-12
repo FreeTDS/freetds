@@ -91,7 +91,6 @@ pool_mbr_login(TDS_POOL * pool)
 		tds_free_login(login);
 		return NULL;
 	}
-	tds_set_packet(login, 512);
 	context = tds_alloc_context(NULL);
 	tds = tds_alloc_socket(context, 512);
 	connection = tds_read_config_info(tds, login, context->locale);
