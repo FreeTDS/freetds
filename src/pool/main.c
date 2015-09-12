@@ -238,7 +238,7 @@ main(int argc, char **argv)
 	signal(SIGINT, term_handler);
 	if (argc < 2) {
 		fprintf(stderr, "Usage: tdspool <pool name>\n");
-		return 1;
+		return EXIT_FAILURE;
 	}
 	pool = pool_init(argv[1]);
 	pool_main_loop(pool);
