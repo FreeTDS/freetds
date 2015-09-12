@@ -109,7 +109,7 @@ pool_schedule_waiters(TDS_POOL * pool)
 	/* first see if there are free members to do the request */
 	free_mbrs = 0;
 	for (i = 0; i < pool->num_members; i++) {
-		pmbr = (TDS_POOL_MEMBER *) & pool->members[i];
+		pmbr = &pool->members[i];
 		if (pmbr->tds && pmbr->state == TDS_IDLE)
 			free_mbrs++;
 	}
@@ -118,7 +118,7 @@ pool_schedule_waiters(TDS_POOL * pool)
 		return;
 
 	for (i = 0; i < pool->max_users; i++) {
-		puser = (TDS_POOL_USER *) & pool->users[i];
+		puser = &pool->users[i];
 		if (puser->user_state == TDS_SRV_WAIT) {
 			/* place back in query state */
 			puser->user_state = TDS_SRV_QUERY;
@@ -193,7 +193,7 @@ pool_main_loop(TDS_POOL * pool)
 
 		/* add the user sockets to the read list */
 		for (i = 0; i < pool->max_users; i++) {
-			puser = (TDS_POOL_USER *) & pool->users[i];
+			puser = &pool->users[i];
 			/* skip dead connections */
 			if (!IS_TDSDEAD(puser->tds)) {
 				if (tds_get_s(puser->tds) > maxfd)
@@ -204,7 +204,7 @@ pool_main_loop(TDS_POOL * pool)
 
 		/* add the pool member sockets to the read list */
 		for (i = 0; i < pool->num_members; i++) {
-			pmbr = (TDS_POOL_MEMBER *) & pool->members[i];
+			pmbr = &pool->members[i];
 			if (!IS_TDSDEAD(pmbr->tds)) {
 				if (tds_get_s(pmbr->tds) > maxfd)
 					maxfd = tds_get_s(pmbr->tds);
@@ -214,14 +214,14 @@ pool_main_loop(TDS_POOL * pool)
 	}			/* while !term */
 	CLOSESOCKET(s);
 	for (i = 0; i < pool->max_users; i++) {
-		puser = (TDS_POOL_USER *) & pool->users[i];
+		puser = &pool->users[i];
 		if (!IS_TDSDEAD(puser->tds)) {
 			fprintf(stderr, "Closing user %d\n", i);
 			tds_close_socket(puser->tds);
 		}
 	}
 	for (i = 0; i < pool->num_members; i++) {
-		pmbr = (TDS_POOL_MEMBER *) & pool->members[i];
+		pmbr = &pool->members[i];
 		if (!IS_TDSDEAD(pmbr->tds)) {
 			fprintf(stderr, "Closing member %d\n", i);
 			tds_close_socket(pmbr->tds);

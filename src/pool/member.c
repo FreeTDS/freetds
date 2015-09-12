@@ -214,7 +214,7 @@ pool_process_members(TDS_POOL * pool, fd_set * fds)
 	time_t time_now;
 
 	for (i = 0; i < pool->num_members; i++) {
-		pmbr = (TDS_POOL_MEMBER *) & pool->members[i];
+		pmbr = &pool->members[i];
 
 		if (!pmbr->tds)
 			break;	/* dead connection */

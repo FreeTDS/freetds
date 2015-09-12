@@ -69,7 +69,7 @@ pool_user_find_new(TDS_POOL * pool)
 
 	/* first check for dead users to reuse */
 	for (i=0; i<pool->max_users; i++) {
-		puser = (TDS_POOL_USER *) & pool->users[i];
+		puser = &pool->users[i];
 		if (!puser->tds)
 			return puser;
 	}
@@ -81,7 +81,7 @@ pool_user_find_new(TDS_POOL * pool)
 	}
 
 	/* else take one off the top of the pool->users */
-	puser = (TDS_POOL_USER *) & pool->users[pool->max_users];
+	puser = &pool->users[pool->max_users];
 	pool->max_users++;
 
 	return puser;
@@ -152,7 +152,7 @@ pool_process_users(TDS_POOL * pool, fd_set * fds)
 
 	for (i = 0; i < pool->max_users; i++) {
 
-		puser = (TDS_POOL_USER *) & pool->users[i];
+		puser = &pool->users[i];
 
 		if (!puser->tds)
 			continue;	/* dead connection */
