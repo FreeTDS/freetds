@@ -47,6 +47,8 @@ typedef union conv_result
 	TDS_DATETIME dt;
 	TDS_DATETIME4 dt4;
 	TDS_DATETIMEALL dta;
+	TDS_TIME time;
+	TDS_DATE date;
 	TDS_NUMERIC n;
 	TDS_UNIQUE u;
 

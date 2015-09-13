@@ -3034,6 +3034,8 @@ tds_prtype(int type)
 		TYPE(SYBMSTIME, "time");
 		TYPE(SYBMSDATETIME2, "datetime2");
 		TYPE(SYBMSDATETIMEOFFSET, "datetimeoffset");
+		TYPE(SYBDATE, "date");
+		TYPE(SYBTIME, "time");
 	default:
 		break;
 	}

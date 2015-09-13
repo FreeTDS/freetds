@@ -189,13 +189,15 @@ if msdb
 	select HIERARCHYID "/1.2/" SQL_C_BINARY "6340"
 endif
 
-# test sybase new types
+# test sybase date/time types
 if not msdb
 	# FIXME sure ?? with date and time always ??
 	sql_cond cond1 "SELECT CAST('1923-12-02' AS DATE) WHERE 0=1"
 	if cond1
-		select DATE "1923-12-02" SQL_C_CHAR "23 1923-12-02 00:00:00.000"
-		select TIME "12:23:45" SQL_C_CHAR "23 1900-01-01 12:23:45.000"
+		select DATE "1923-12-02" SQL_C_CHAR "10 1923-12-02"
+		select TIME "12:23:45" SQL_C_CHAR "12 12:23:45.000"
+		select TIME "12:23:45.983" SQL_C_CHAR "12 12:23:45.983"
+		# TODO binary
 	endif
 endif
 

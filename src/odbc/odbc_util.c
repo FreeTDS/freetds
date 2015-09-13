@@ -799,11 +799,17 @@ odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned)
 	case SQL_TIMESTAMP:
 		/* ODBC version 3 */
 	case SQL_TYPE_DATE:
+		if (IS_TDS50(conn) && tds_capability_has_req(conn, TDS_REQ_DATA_DATE))
+			return SYBDATE;
 		if (IS_TDS73_PLUS(conn))
 			return SYBMSDATE;
+		goto type_timestamp;
 	case SQL_TYPE_TIME:
+		if (IS_TDS50(conn) && tds_capability_has_req(conn, TDS_REQ_DATA_TIME))
+			return SYBTIME;
 		if (IS_TDS73_PLUS(conn))
 			return SYBMSTIME;
+	type_timestamp:
 	case SQL_TYPE_TIMESTAMP:
 		if (IS_TDS73_PLUS(conn))
 			return SYBMSDATETIME2;
