@@ -464,8 +464,8 @@ static NULLREP default_null_representations[MAXBINDTYPES] = {
 	/* DECIMALBIND       18 */	, { (BYTE*) &null_NUMERIC, sizeof(null_NUMERIC) }
 	/* SRCNUMERICBIND    19 */	, { (BYTE*) &null_NUMERIC, sizeof(null_NUMERIC) }
 	/* SRCDECIMALBIND    20 */	, { (BYTE*) &null_NUMERIC, sizeof(null_NUMERIC) }
-	/* 	             21 */	, {         NULL, 0 }
-	/* 	             22 */	, {         NULL, 0 }
+	/* DATEBIND          21 */	, { (BYTE*) &null_INT, sizeof(null_INT) }
+	/* TIMEBIND          22 */	, { (BYTE*) &null_INT, sizeof(null_INT) }
 	/* 	             23 */	, {         NULL, 0 }
 	/* 	             24 */	, {         NULL, 0 }
 	/* 	             25 */	, {         NULL, 0 }
@@ -494,6 +494,9 @@ dbbindtype(int datatype)
 	
 	case SYBDATETIME:	return DATETIMEBIND;
 	case SYBDATETIME4:	return SMALLDATETIMEBIND;
+
+	case SYBDATE:		return DATEBIND;
+	case SYBTIME:		return TIMEBIND;
 	
 	case SYBDECIMAL:	return DECIMALBIND;
 	case SYBNUMERIC:	return NUMERICBIND;
@@ -577,6 +580,8 @@ dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr)
 	case TINYBIND:
 	case BIGINTBIND:
 	case BITBIND:
+	case TIMEBIND:
+	case DATEBIND:
 		memcpy(varaddr, pnullrep->bindval, pnullrep->len);
 		return SUCCEED;
 	case CHARBIND:
@@ -1946,6 +1951,8 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 	case SMALLMONEYBIND:
 	case TINYBIND:
 	case BIGINTBIND:
+	case DATEBIND:
+	case TIMEBIND:
 		bindlen = (int)default_null_representations[bindtype].len;
 		break;
 
@@ -2159,6 +2166,12 @@ dblib_bound_type(int bindtype)
 	case SMALLDATETIMEBIND:
 		return SYBDATETIME4;
 		break;
+	case DATEBIND:
+		return SYBDATE;
+		break;
+	case TIMEBIND:
+		return SYBTIME;
+		break;
 	case MONEYBIND:
 		return SYBMONEY;
 		break;
@@ -2362,6 +2375,8 @@ dbconvert_ps(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen,
 		case SYBMONEY4:
 		case SYBDATETIME:
 		case SYBDATETIME4:
+		case SYBDATE:
+		case SYBTIME:
 		case SYBUNIQUE:
 			ret = tds_get_size_by_type(desttype);
 			memcpy(dest, src, ret);
@@ -2431,6 +2446,8 @@ dbconvert_ps(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen,
 	case SYBMONEY4:
 	case SYBDATETIME:
 	case SYBDATETIME4:
+	case SYBTIME:
+	case SYBDATE:
 	case SYBUNIQUE:
 	case SYBMSDATE:
 	case SYBMSTIME:
@@ -3594,6 +3611,10 @@ _get_printable_size(TDSCOLUMN * colinfo)
 	case SYBDATETIME4:
 	case SYBDATETIMN:
 		return 26;
+	case SYBTIME:
+		return 15;
+	case SYBDATE:
+		return 10;
 	case SYBUNIQUE:
 		return 36;
 	case SYBBIT:
@@ -7138,6 +7159,8 @@ tds_prdatatype(TDS_SERVER_TYPE datatype_token)
 	case SYBMSTIME:		return "SYBMSTIME";
 	case SYBMSDATETIME2:	return "SYBMSDATETIME2";
 	case SYBMSDATETIMEOFFSET: return "SYBMSDATETIMEOFFSET";
+	case SYBDATE:		return "SYBDATE";
+	case SYBTIME:		return "SYBTIME";
 	default: break;
 	}
 	return "(unknown)";
@@ -7285,6 +7308,8 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 		case SYBMONEY4:
 		case SYBDATETIME:
 		case SYBDATETIME4:
+		case SYBDATE:
+		case SYBTIME:
 		case SYBUNIQUE:
 			ret = tds_get_size_by_type(desttype);
 			memcpy(dest, src, ret);
@@ -7354,6 +7379,8 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 	case SYBMONEY4:
 	case SYBDATETIME:
 	case SYBDATETIME4:
+	case SYBDATE:
+	case SYBTIME:
 	case SYBNUMERIC:
 	case SYBDECIMAL:
 	case SYBUNIQUE:

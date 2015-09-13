@@ -205,8 +205,12 @@ enum
 #define SYBMONEYN	SYBMONEYN
 	SYBDATETIMN = 111,	/* 0x6F */
 #define SYBDATETIMN	SYBDATETIMN
-	SYBNVARCHAR = 103	/* 0x67 */
+	SYBNVARCHAR = 103,	/* 0x67 */
 #define SYBNVARCHAR	SYBNVARCHAR
+	SYBDATE = 49,		/* 0x31 */
+#define SYBDATE SYBDATE
+	SYBTIME = 51,		/* 0x33 */
+#define SYBTIME SYBTIME
 };
 
 #define SYBAOPCNT  0x4b
@@ -494,6 +498,8 @@ typedef int (*MHANDLEFUNC) (DBPROCESS * dbproc, DBINT msgno, int msgstate, int s
 #define DECIMALBIND       18
 #define SRCNUMERICBIND    19
 #define SRCDECIMALBIND    20
+#define DATEBIND          21
+#define TIMEBIND          22
 #define BIGINTBIND        30
 #define DATETIME2BIND     31
 #define MAXBINDTYPES      32	/* keep last */
