@@ -3303,7 +3303,7 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 			srctype = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
 			if (srctype == SYBDATETIME || srctype == SYBDATETIME4) {
 				tds_datecrack(srctype, dbdata(dbproc, col + 1), &when);
-				len = (int)tds_strftime(buffer, buf_len, "%b %d %Y %I:%M%p", &when, 3);
+				len = (int)tds_strftime(buffer, buf_len, STD_DATETIME_FMT, &when, 3);
 			} else {
 				len = dbconvert(dbproc, srctype, dbdata(dbproc, col + 1), dbdatlen(dbproc, col + 1), 
 						desttype, (BYTE *) buffer, buf_len);
