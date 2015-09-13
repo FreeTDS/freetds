@@ -1501,6 +1501,48 @@ tds_convert_datetime4(const TDSCONTEXT * tds_ctx, const TDS_DATETIME4 * dt4, int
 }
 
 static TDS_INT
+tds_convert_time(const TDSCONTEXT * tds_ctx, const TDS_TIME * time, int desttype, CONV_RESULT * cr)
+{
+	TDS_DATETIME dt;
+
+	switch (desttype) {
+	case CASE_ALL_BINARY:
+		return binary_to_result(time, sizeof(TDS_TIME), cr);
+	case SYBTIME:
+		cr->time = *time;
+		return sizeof(TDS_TIME);
+	default:
+		break;
+	}
+
+	/* convert to DATETIME and use tds_convert_datetime */
+	dt.dtdays = 0;
+	dt.dttime = *time;
+	return tds_convert_datetime(tds_ctx, &dt, desttype, 0, cr);
+}
+
+static TDS_INT
+tds_convert_date(const TDSCONTEXT * tds_ctx, const TDS_DATE * date, int desttype, CONV_RESULT * cr)
+{
+	TDS_DATETIME dt;
+
+	switch (desttype) {
+	case CASE_ALL_BINARY:
+		return binary_to_result(date, sizeof(TDS_DATE), cr);
+	case SYBDATE:
+		cr->date = *date;
+		return sizeof(TDS_DATE);
+	default:
+		break;
+	}
+
+	/* convert to DATETIME and use tds_convert_datetime */
+	dt.dtdays = *date;
+	dt.dttime = 0;
+	return tds_convert_datetime(tds_ctx, &dt, desttype, 0, cr);
+}
+
+static TDS_INT
 tds_convert_real(const TDS_REAL* src, int desttype, CONV_RESULT * cr)
 {
 	TDS_REAL the_value;
@@ -1863,6 +1905,12 @@ tds_convert(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, TDS_U
 		break;
 	case SYBDATETIME4:
 		length = tds_convert_datetime4(tds_ctx, (const TDS_DATETIME4* ) src, desttype, cr);
+		break;
+	case SYBTIME:
+		length = tds_convert_time(tds_ctx, (const TDS_TIME *) src, desttype, cr);
+		break;
+	case SYBDATE:
+		length = tds_convert_date(tds_ctx, (const TDS_DATE *) src, desttype, cr);
 		break;
 	case SYBLONGBINARY:
 	case CASE_ALL_BINARY:
@@ -3085,8 +3133,21 @@ tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
 		dms = 0;
 		dt_days = dt4->days;
 		dt_time = dt4->minutes;
-	} else
+	} else if (datetype == SYBDATE) {
+		dt_days = *((const TDS_DATE *) di);
+		dms = 0;
+		secs = 0;
+		dt_time = 0;
+	} else if (datetype == SYBTIME) {
+		dt_time = *((const TDS_TIME *) di);
+		dms = ((dt_time % 300) * 1000 + 150) / 300 * 10000u;
+		dt_time = dt_time / 300;
+		secs = dt_time % 60;
+		dt_time = dt_time / 60;
+		dt_days = 0;
+	} else {
 		return TDS_FAIL;
+	}
 
 	/*
 	 * -53690 is minimun  (1753-1-1) (Gregorian calendar start in 1732) 

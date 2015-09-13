@@ -768,6 +768,12 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 	case SYBDATETIME:
 		fmt = "DATETIME";
 		break;
+	case SYBDATE:
+		fmt = "DATE";
+		break;
+	case SYBTIME:
+		fmt = "TIME";
+		break;
 	case SYBBIT:
 		fmt = "BIT";
 		break;

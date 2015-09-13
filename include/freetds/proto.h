@@ -66,6 +66,9 @@ typedef struct tdsunique
 	TDS_UCHAR Data4[8];
 } TDS_UNIQUE;
 
+typedef TDS_INT TDS_DATE;
+typedef TDS_INT TDS_TIME;
+
 #define TDS5_PARAMFMT2_TOKEN       32	/* 0x20 */
 #define TDS_LANGUAGE_TOKEN         33	/* 0x21    TDS 5.0 only              */
 #define TDS_ORDERBY2_TOKEN         34	/* 0x22 */
