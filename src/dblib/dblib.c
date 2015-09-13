@@ -2420,65 +2420,26 @@ dbconvert_ps(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen,
 		free(dres.ib);
 		break;
 	case SYBINT1:
-		memcpy(dest, &(dres.ti), 1);
-		ret = 1;
-		break;
 	case SYBINT2:
-		memcpy(dest, &(dres.si), 2);
-		ret = 2;
-		break;
 	case SYBINT4:
-		memcpy(dest, &(dres.i), 4);
-		ret = 4;
-		break;
 	case SYBINT8:
-		memcpy(dest, &(dres.bi), 8);
-		ret = 8;
-		break;
 	case SYBFLT8:
-		memcpy(dest, &(dres.f), 8);
-		ret = 8;
-		break;
 	case SYBREAL:
-		memcpy(dest, &(dres.r), 4);
-		ret = 4;
-		break;
 	case SYBBIT:
 	case SYBBITN:
-		memcpy(dest, &(dres.ti), 1);
-		ret = 1;
-		break;
 	case SYBMONEY:
-		memcpy(dest, &(dres.m), sizeof(TDS_MONEY));
-		ret = sizeof(TDS_MONEY);
-		break;
 	case SYBMONEY4:
-		memcpy(dest, &(dres.m4), sizeof(TDS_MONEY4));
-		ret = sizeof(TDS_MONEY4);
-		break;
 	case SYBDATETIME:
-		memcpy(dest, &(dres.dt), sizeof(TDS_DATETIME));
-		ret = sizeof(TDS_DATETIME);
-		break;
 	case SYBDATETIME4:
-		memcpy(dest, &(dres.dt4), sizeof(TDS_DATETIME4));
-		ret = sizeof(TDS_DATETIME4);
-		break;
-	case SYBNUMERIC:
-	case SYBDECIMAL:
-		memcpy(dest, &(dres.n), sizeof(TDS_NUMERIC));
-		ret = sizeof(TDS_NUMERIC);
-		break;
 	case SYBUNIQUE:
-		memcpy(dest, &(dres.u), sizeof(TDS_UNIQUE));
-		ret = sizeof(TDS_UNIQUE);
-		break;
 	case SYBMSDATE:
 	case SYBMSTIME:
 	case SYBMSDATETIME2:
 	case SYBMSDATETIMEOFFSET:
-		memcpy(dest, &(dres.dta), sizeof(TDS_DATETIMEALL));
-		ret = sizeof(TDS_DATETIMEALL);
+	case SYBNUMERIC:
+	case SYBDECIMAL:
+		memcpy(dest, &(dres.ti), len);
+		ret = len;
 		break;
 	case SYBCHAR:
 	case SYBVARCHAR:
@@ -7382,51 +7343,25 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 		TDS_ZERO_FREE(dres.ib);
 		break;
 	case SYBINT1:
-		memcpy(dest, &(dres.ti), 1);
-		break;
 	case SYBINT2:
-		memcpy(dest, &(dres.si), 2);
-		break;
 	case SYBINT4:
-		memcpy(dest, &(dres.i), 4);
-		break;
 	case SYBINT8:
-		memcpy(dest, &(dres.bi), 8);
-		break;
 	case SYBFLT8:
-		memcpy(dest, &(dres.f), 8);
-		break;
 	case SYBREAL:
-		memcpy(dest, &(dres.r), 4);
-		break;
 	case SYBBIT:
 	case SYBBITN:
-		memcpy(dest, &(dres.ti), 1);
-		break;
 	case SYBMONEY:
-		memcpy(dest, &(dres.m), sizeof(TDS_MONEY));
-		break;
 	case SYBMONEY4:
-		memcpy(dest, &(dres.m4), sizeof(TDS_MONEY4));
-		break;
 	case SYBDATETIME:
-		memcpy(dest, &(dres.dt), sizeof(TDS_DATETIME));
-		break;
 	case SYBDATETIME4:
-		memcpy(dest, &(dres.dt4), sizeof(TDS_DATETIME4));
-		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
-		memcpy(dest, &(dres.n), sizeof(TDS_NUMERIC));
-		break;
 	case SYBUNIQUE:
-		memcpy(dest, &(dres.u), sizeof(TDS_UNIQUE));
-		break;
 	case SYBMSDATE:
 	case SYBMSTIME:
 	case SYBMSDATETIME2:
 	case SYBMSDATETIMEOFFSET:
-		memcpy(dest, &(dres.dta), sizeof(TDS_DATETIMEALL));
+		memcpy(dest, &(dres.ti), len);
 		break;
 	case SYBCHAR:
 	case SYBVARCHAR:
