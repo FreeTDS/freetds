@@ -673,6 +673,8 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 		case SYBMONEY4:
 		case SYBDATETIME:
 		case SYBDATETIME4:
+		case SYBTIME:
+		case SYBDATE:
 		case SYBCHAR:
 		case SYBTEXT:
 		case SYBBINARY:
@@ -707,6 +709,8 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 			case SYBREAL:
 			case SYBDATETIME:
 			case SYBDATETIME4:
+			case SYBTIME:
+			case SYBDATE:
 			case SYBMONEY:
 			case SYBMONEY4:
 			case SYBCHAR:
