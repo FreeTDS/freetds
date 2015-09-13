@@ -3250,6 +3250,8 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 	case SYBMSDATE:
 	case SYBMSDATETIME2:
 	case SYBMSDATETIMEOFFSET:
+	case SYBTIME:
+	case SYBDATE:
 		/* TODO use an ISO context */
 	case SYBUNIQUE:
 		quote = 1;
