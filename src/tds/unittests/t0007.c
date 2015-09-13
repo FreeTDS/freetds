@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998-1999  Brian Bruns
+ * Copyright (C) 2015  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -15,6 +16,11 @@
  * License along with this library; if not, write to the
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 02111-1307, USA.
+ */
+
+/**
+ * This test exercise manually conversions from types.
+ * Does not require any connection.
  */
 
 #include "common.h"
@@ -87,8 +93,18 @@ test0(const char *src, int len, int midtype, int dsttype, const char *result, in
 				sprintf(strchr(buf, 0), " %02X", (TDS_UCHAR) cr.ib[i]);
 			free(cr.ib);
 			break;
+		case SYBCHAR:
+			sprintf(buf, "len=%d %s", res, cr.c);
+			free(cr.c);
+			break;
 		case SYBDATETIME:
 			sprintf(buf, "%ld %ld", (long int) cr.dt.dtdays, (long int) cr.dt.dttime);
+			break;
+		case SYBDATE:
+			sprintf(buf, "%ld", (long int) cr.date);
+			break;
+		case SYBTIME:
+			sprintf(buf, "%ld", (long int) cr.time);
 			break;
 		}
 	}
@@ -152,6 +168,13 @@ main(int argc, char **argv)
 		big_endian = 0;
 
 	memset(&ctx, 0, sizeof(ctx));
+
+	if ((ctx.locale = tds_get_locale()) == NULL)
+		return 1;
+
+	/* date */
+	free(ctx.locale->date_fmt);
+	ctx.locale->date_fmt = strdup("%Y-%m-%d %H:%M:%S.%z");
 
 	/* test some conversion */
 	printf("some checks...\n");
@@ -291,6 +314,12 @@ main(int argc, char **argv)
 	test("20060102", SYBDATETIME, "38717 0");
 	test("060102", SYBDATETIME, "38717 0");
 
+	test("2006-01-02", SYBDATE, "38717");
+	test("12:34:56.337", SYBTIME, "13588901");
+
+	test2("2006-01-02", SYBDATE, SYBCHAR, "len=23 2006-01-02 00:00:00.000");
+	test2("12:34:56.337", SYBTIME, SYBCHAR, "len=23 1900-01-01 12:34:56.337");
+
 	test2("123", SYBINT1, SYBBINARY, "len=1 7B");
 	if (big_endian) {
 		test2("12345", SYBINT2, SYBBINARY, "len=2 30 39");
@@ -347,6 +376,8 @@ main(int argc, char **argv)
 			return 1;
 		}
 	}
+
+	tds_free_locale(ctx.locale);
 
 	return 0;
 }
