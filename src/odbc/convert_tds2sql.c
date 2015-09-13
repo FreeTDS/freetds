@@ -337,11 +337,19 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 		case SYBMSDATETIME2: prec = dta->time_prec;
 		case SYBDATETIME:  fmt = "%Y-%m-%d %H:%M:%S.%z"; if (prec) break;
 		case SYBDATETIME4: fmt = "%Y-%m-%d %H:%M:%S"; break;
+		case SYBTIME:
+			prec = 3;
+			fmt = "%H:%M:%S.%z";
+			break;
 		case SYBMSTIME:
 			prec = dta->time_prec;
 			fmt = prec ? "%H:%M:%S.%z" : "%H:%M:%S";
 			break;
-		case SYBMSDATE:    fmt = "%Y-%m-%d"; break;
+		case SYBMSDATE:
+		case SYBDATE:
+			prec = 0;
+			fmt = "%Y-%m-%d";
+			break;
 		}
 		if (!fmt) goto normal_conversion;
 
