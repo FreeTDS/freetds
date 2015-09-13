@@ -2022,6 +2022,14 @@ _ct_get_server_type(TDSSOCKET *tds, int datatype)
 	case CS_UNIQUE_TYPE:		return SYBUNIQUE;
 	case CS_LONGBINARY_TYPE:	return SYBLONGBINARY;
 	case CS_UNICHAR_TYPE:		return SYBVARCHAR;
+	case CS_DATE_TYPE:
+		if (!tds || tds_capability_has_req(tds->conn, TDS_REQ_DATA_DATE))
+			return SYBTIME;
+		return SYBDATETIME;
+	case CS_TIME_TYPE:
+		if (!tds || tds_capability_has_req(tds->conn, TDS_REQ_DATA_TIME))
+			return SYBDATE;
+		return SYBDATETIME;
 
 	default:
 		return -1;
