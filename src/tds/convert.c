@@ -525,6 +525,8 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 	case SYBMSDATE:
 	case SYBMSDATETIME2:
 	case SYBMSDATETIMEOFFSET:
+	case SYBTIME:
+	case SYBDATE:
 		return string_to_datetime(src, srclen, desttype, cr);
 		break;
 	case SYBNUMERIC:
@@ -1393,6 +1395,14 @@ tds_convert_datetimeall(const TDSCONTEXT * tds_ctx, int srctype, const TDS_DATET
 	case SYBMSDATETIME2:
 		cr->dta = *dta;
 		return sizeof(TDS_DATETIMEALL);
+	case SYBDATE:
+		if (!IS_INT(dta->date))
+			return TDS_CONVERT_OVERFLOW;
+		cr->date = (TDS_INT) dta->date;
+		return sizeof(TDS_DATE);
+	case SYBTIME:
+		cr->time = (TDS_INT) ((dta->time * 3u + 50000u) / 100000u);
+		return sizeof(TDS_TIME);
 		/* conversions not allowed */
 	case SYBUNIQUE:
 	case SYBBIT:
@@ -1439,6 +1449,12 @@ tds_convert_datetime(const TDSCONTEXT * tds_ctx, const TDS_DATETIME * dt, int de
 		cr->dt4.days = dt->dtdays;
 		cr->dt4.minutes = (dt->dttime / 300) / 60;
 		return sizeof(TDS_DATETIME4);
+	case SYBDATE:
+		cr->date = dt->dtdays;
+		return sizeof(TDS_DATE);
+	case SYBTIME:
+		cr->time = dt->dttime;
+		return sizeof(TDS_TIME);
 	case SYBMSDATETIMEOFFSET:
 	case SYBMSDATE:
 	case SYBMSTIME:
@@ -2167,17 +2183,26 @@ string_to_datetime(const char *instr, TDS_UINT len, int desttype, CONV_RESULT * 
 
 	free(in);
 
+	if (desttype == SYBDATE) {
+		cr->date = dt_days;
+		return sizeof(TDS_DATE);
+	}
+	dt_time = t.tm_hour * 60 + t.tm_min;
 	/* TODO check for overflow */
+	if (desttype == SYBDATETIME4) {
+		cr->dt4.days = dt_days;
+		cr->dt4.minutes = dt_time;
+		return sizeof(TDS_DATETIME4);
+	}
+	dt_time = dt_time * 60 + t.tm_sec;
 	if (desttype == SYBDATETIME) {
 		cr->dt.dtdays = dt_days;
-		dt_time = (t.tm_hour * 60 + t.tm_min) * 60 + t.tm_sec;
 		cr->dt.dttime = dt_time * 300 + (t.tm_ns / 1000000u * 300 + 150) / 1000;
 		return sizeof(TDS_DATETIME);
 	}
-	if (desttype == SYBDATETIME4) {
-		cr->dt4.days = dt_days;
-		cr->dt4.minutes = t.tm_hour * 60 + t.tm_min;
-		return sizeof(TDS_DATETIME4);
+	if (desttype == SYBTIME) {
+		cr->time = dt_time * 300 + (t.tm_ns / 1000000u * 300 + 150) / 1000;
+		return sizeof(TDS_TIME);
 	}
 
 	cr->dta.has_offset = 0;
@@ -2186,7 +2211,6 @@ string_to_datetime(const char *instr, TDS_UINT len, int desttype, CONV_RESULT * 
 	cr->dta.date = dt_days;
 	cr->dta.has_time = 1;
 	cr->dta.time_prec = 7; /* TODO correct value */
-	dt_time = (t.tm_hour * 60 + t.tm_min) * 60 + t.tm_sec;
 	cr->dta.time = ((TDS_UINT8) dt_time) * 10000000u + t.tm_ns / 100u;
 	return sizeof(TDS_DATETIMEALL);
 }
@@ -2923,6 +2947,12 @@ tds_get_null_type(int srctype)
 	case SYBMONEY:
 	case SYBMONEY4:
 		return SYBMONEYN;
+		break;
+	case SYBTIME:
+		return SYBTIMEN;
+		break;
+	case SYBDATE:
+		return SYBDATEN;
 		break;
 	default:
 		break;
