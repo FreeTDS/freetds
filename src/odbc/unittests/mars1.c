@@ -45,7 +45,7 @@ main(int argc, char *argv[])
 
 	out = 0;
 	len = sizeof(out);
-	CHKGetConnectAttr(1224, (SQLPOINTER) &out, sizeof(out), &len, "S");
+	CHKGetConnectAttr(1224, (SQLPOINTER) &out, sizeof(out), &len, "SE");
 
 	/* test we really support MARS on this connection */
 	/* TODO should out be correct ?? */
