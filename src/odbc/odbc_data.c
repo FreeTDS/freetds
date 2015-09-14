@@ -54,21 +54,25 @@ data_msdatetime_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER
 
 	switch (col->on_server.column_type) {
 	case SYBMSTIME:
+		drec->sql_desc_octet_length = 12;
 		drec->sql_desc_concise_type = SQL_SS_TIME2;
 		/* always hh:mm:ss[.fff] */
 		drec->sql_desc_display_size = 8 + decimals;
 		SET_INFO2("time", "'", "'", 8 + decimals);
 	case SYBMSDATE:
+		drec->sql_desc_octet_length = 6;
 		drec->sql_desc_concise_type = SQL_TYPE_DATE;
 		/* always yyyy-mm-dd ?? */
 		drec->sql_desc_display_size = 10;
 		SET_INFO2("date", "'", "'", 10);
 	case SYBMSDATETIMEOFFSET:
+		drec->sql_desc_octet_length = 20;
 		drec->sql_desc_concise_type = SQL_SS_TIMESTAMPOFFSET;
 		/* we always format using yyyy-mm-dd hh:mm:ss[.fff] +HH:MM, see convert_tds2sql.c */
 		drec->sql_desc_display_size = 26 + decimals;
 		SET_INFO2("datetimeoffset", "'", "'", 26 + decimals);
 	case SYBMSDATETIME2:
+		drec->sql_desc_octet_length = 16;
 		drec->sql_desc_concise_type = SQL_TYPE_TIMESTAMP;
 		drec->sql_desc_datetime_interval_code = SQL_CODE_TIMESTAMP;
 		/* we always format using yyyy-mm-dd hh:mm:ss[.fff], see convert_tds2sql.c */
