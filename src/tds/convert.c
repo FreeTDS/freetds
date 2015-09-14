@@ -340,14 +340,14 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 	TDS_INT8 mymoney;
 	char mynumber[28];
 
-	const char *ptr, *pend;
-	bool point_found;
-	unsigned int places;
 	TDS_INT tds_i;
 	TDS_INT8 tds_i8;
 	TDS_UINT8 tds_ui8;
 	TDS_INT rc;
 	TDS_CHAR *ib;
+
+	bool negative;
+	size_t digits, decimals;
 
 	switch (desttype) {
 	case TDS_CONVERT_CHAR:
@@ -460,51 +460,21 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 	case SYBMONEY:
 	case SYBMONEY4:
 
-		/* TODO code similar to string_to_numeric... */
+		src = parse_numeric(src, src + srclen, &negative, &digits, &decimals);
+		if (!src)
+			return TDS_CONVERT_SYNTAX;
+		if (digits > 18)
+			return TDS_CONVERT_OVERFLOW;
+
 		i = 0;
-		places = 0;
-		point_found = false;
-		pend = src + srclen;
-
-		/* skip leading blanks */
-		for (ptr = src; ptr != pend && *ptr == ' '; ++ptr)
-			continue;
-
-		/* handle sign */
-		switch (ptr != pend ? *ptr : 0) {
-		case '-':
+		if (negative)
 			mynumber[i++] = '-';
-			/* fall through */
-		case '+':
-			while (++ptr != pend && *ptr == ' ')
-				continue;
-			break;
-		}
-
-		/* handle numbers which start with a lot of '0' */
-		while (ptr != pend && *ptr == '0')
-			++ptr;
-
-		for (; ptr != pend; ptr++) {	/* deal with the rest */
-			if (TDS_ISDIGIT(*ptr)) {	/* it's a number */
-				/* no more than 4 decimal digits */
-				if (places < 4)
-					mynumber[i++] = *ptr;
-				/* assure not buffer overflow */
-				if (i > 22)
-					return TDS_CONVERT_OVERFLOW;
-				if (point_found) {	/* if we passed a decimal point */
-					/* count digits after that point  */
-					++places;
-				}
-			} else if (*ptr == '.') {	/* found a decimal point */
-				if (point_found)	/* already had one. error */
-					return TDS_CONVERT_SYNTAX;
-				point_found = true;
-			} else	/* first invalid character */
-				return TDS_CONVERT_SYNTAX;	/* lose the rest.          */
-		}
-		for (; places < 4; ++places)
+		for (; digits; --digits)
+			mynumber[i++] = *src++;
+		src++;
+		for (digits = 0; digits < 4 && digits < decimals; ++digits)
+			mynumber[i++] = *src++;
+		for (; digits < 4; ++digits)
 			mynumber[i++] = '0';
 
 		/* convert number and check for overflow */
