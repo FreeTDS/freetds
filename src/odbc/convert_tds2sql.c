@@ -36,6 +36,7 @@
 #include <freetds/convert.h>
 #include <freetds/iconv.h>
 #include <freetds/string.h>
+#include <odbcss.h>
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -143,12 +144,33 @@ odbc_tds_convert_wide_iso(TDSCOLUMN *curcol, TDS_CHAR *src, TDS_UINT srclen, TDS
 	return p - buf;
 }
 
+/* The following structure is going to write in these structure not using them
+ * but just knowing the ABI. Check these ABI. Mainly make sure the alignment
+ * is still correct.
+ */
+TDS_COMPILE_CHECK(ss_time2, sizeof(SQL_SS_TIME2_STRUCT) == 12
+	&& TDS_OFFSET(SQL_SS_TIME2_STRUCT, fraction) == 8);
+TDS_COMPILE_CHECK(ss_timestampoffset, sizeof(SQL_SS_TIMESTAMPOFFSET_STRUCT) == 20
+	&& TDS_OFFSET(SQL_SS_TIMESTAMPOFFSET_STRUCT, fraction) == 12);
+TDS_COMPILE_CHECK(date_struct, sizeof(DATE_STRUCT) == 6
+	&& TDS_OFFSET(DATE_STRUCT, year) == 0
+	&& TDS_OFFSET(DATE_STRUCT, month) == 2
+	&& TDS_OFFSET(DATE_STRUCT, day) == 4);
+TDS_COMPILE_CHECK(timestamp_struct, sizeof(TIMESTAMP_STRUCT) == 16
+	&& TDS_OFFSET(TIMESTAMP_STRUCT, year) == 0
+	&& TDS_OFFSET(TIMESTAMP_STRUCT, month) == 2
+	&& TDS_OFFSET(TIMESTAMP_STRUCT, day) == 4
+	&& TDS_OFFSET(TIMESTAMP_STRUCT, hour) == 6
+	&& TDS_OFFSET(TIMESTAMP_STRUCT, minute) == 8
+	&& TDS_OFFSET(TIMESTAMP_STRUCT, second) == 10
+	&& TDS_OFFSET(TIMESTAMP_STRUCT, fraction) == 12);
+
 /**
  * Handle conversions from MSSQL 2008 DATE/TIME types to binary.
  * These types have a different binary representation in libTDS.
  */
 static SQLLEN
-odbc_convert_msdatetime_to_binary(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_DATETIMEALL * dta, TDS_CHAR * dest, SQLULEN destlen)
+odbc_convert_datetime_to_binary(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_DATETIMEALL * dta, TDS_CHAR * dest, SQLULEN destlen)
 {
 	size_t len, cplen;
 	TDS_USMALLINT buf[10];
@@ -202,7 +224,7 @@ odbc_convert_to_binary(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR
 	case SYBMSDATE:
 	case SYBMSDATETIME2:
 	case SYBMSDATETIMEOFFSET:
-		return odbc_convert_msdatetime_to_binary(stmt, curcol, srctype, (TDS_DATETIMEALL *) src, dest, destlen);
+		return odbc_convert_datetime_to_binary(stmt, curcol, srctype, (TDS_DATETIMEALL *) src, dest, destlen);
 	}
 
 	if (destlen > 0) {
