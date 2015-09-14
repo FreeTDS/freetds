@@ -179,13 +179,13 @@ odbc_convert_datetime_to_binary(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype,
 	tds_datecrack(srctype, dta, &when);
 
 	len = 0;
-	if (srctype != SYBMSTIME) {
+	if (srctype != SYBMSTIME && srctype != SYBTIME) {
 		buf[0] = when.year;
 		buf[1] = when.month + 1;
 		buf[2] = when.day;
 		len = 3;
 	}
-	if (srctype != SYBMSDATE) {
+	if (srctype != SYBMSDATE && srctype != SYBDATE) {
 		buf[len++] = when.hour;
 		buf[len++] = when.minute;
 		buf[len++] = when.second;
@@ -218,12 +218,14 @@ odbc_convert_to_binary(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR
 {
 	SQLLEN ret = srclen;
 
-	/* special case for MS date/time */
+	/* special case for date/time */
 	switch (srctype) {
 	case SYBMSTIME:
 	case SYBMSDATE:
 	case SYBMSDATETIME2:
 	case SYBMSDATETIMEOFFSET:
+	case SYBDATE:
+	case SYBTIME:
 		return odbc_convert_datetime_to_binary(stmt, curcol, srctype, (TDS_DATETIMEALL *) src, dest, destlen);
 	}
 

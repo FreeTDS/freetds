@@ -263,6 +263,30 @@ data_generic_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER od
 		drec->sql_desc_datetime_interval_code = SQL_CODE_TIMESTAMP;
 		SET_INFO2("datetime", "'", "'", 16);
 
+	/* The following two types are just Sybase types but as mainly our ODBC
+	 * driver is much more compatible with Windows use attributes similar
+	 * to MS one. For instance Sybase ODBC returns TIME into a TIME_STRUCT
+	 * however this truncate the precision to 0 as TIME does not have
+	 * fraction of seconds. Also Sybase ODBC have different concepts for
+	 * PRECISION for many types and making these 2 types compatibles with
+	 * Sybase would break this driver compatibility.
+	 */
+	case SYBTIME:
+		drec->sql_desc_concise_type = SQL_SS_TIME2;
+		drec->sql_desc_octet_length = sizeof(SQL_SS_TIME2_STRUCT);
+		/* we always format using hh:mm:ss[.fff], see convert_tds2sql.c */
+		drec->sql_desc_display_size = 12;
+		drec->sql_desc_precision = 3;
+		drec->sql_desc_scale     = 3;
+		SET_INFO2("time", "'", "'", 12);
+
+	case SYBDATE:
+		drec->sql_desc_octet_length = sizeof(DATE_STRUCT);
+		drec->sql_desc_concise_type = SQL_TYPE_DATE;
+		/* we always format using yyyy-mm-dd, see convert_tds2sql.c */
+		drec->sql_desc_display_size = 10;
+		SET_INFO2("date", "'", "'", 10);
+
 	case XSYBBINARY:
 	case SYBBINARY:
 		drec->sql_desc_concise_type = SQL_BINARY;
@@ -299,9 +323,7 @@ data_generic_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER od
 		assert(0);
 
 	case SYBVOID:
-	case SYBDATE:
 	case SYBINTERVAL:
-	case SYBTIME:
 	case SYBUNITEXT:
 	case SYBXML:
 	case SYBMSUDT:
