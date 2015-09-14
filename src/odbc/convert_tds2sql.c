@@ -358,16 +358,18 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 
 		switch (srctype) {
 		case SYBMSDATETIMEOFFSET:
-		case SYBMSDATETIME2: prec = dta->time_prec;
-		case SYBDATETIME:  fmt = "%Y-%m-%d %H:%M:%S.%z"; if (prec) break;
-		case SYBDATETIME4: fmt = "%Y-%m-%d %H:%M:%S"; break;
-		case SYBTIME:
-			prec = 3;
-			fmt = "%H:%M:%S.%z";
+		case SYBMSDATETIME2:
+			prec = dta->time_prec;
+		case SYBDATETIME:
+			fmt = "%Y-%m-%d %H:%M:%S.%z";
+			break;
+		case SYBDATETIME4:
+			fmt = "%Y-%m-%d %H:%M:%S";
 			break;
 		case SYBMSTIME:
 			prec = dta->time_prec;
-			fmt = prec ? "%H:%M:%S.%z" : "%H:%M:%S";
+		case SYBTIME:
+			fmt = "%H:%M:%S.%z";
 			break;
 		case SYBMSDATE:
 		case SYBDATE:

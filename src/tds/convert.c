@@ -2948,10 +2948,14 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 	}
 
 	if (pz) {
-		char buf[12];
-		sprintf(buf, "%07d", dr->decimicrosecond);
-		memcpy(pz, buf, prec);
-		strcpy(pz + prec, format + (pz - our_format) + 2);
+		if (prec || pz <= our_format || pz[-1] != '.') {
+			char buf[12];
+			sprintf(buf, "%07d", dr->decimicrosecond);
+			memcpy(pz, buf, prec);
+			strcpy(pz + prec, format + (pz - our_format) + 2);
+		} else {
+			strcpy(pz - 1, format + (pz - our_format) + 2);
+		}
 	}
 
 	length = strftime(buf, maxsize, our_format, &tm);
