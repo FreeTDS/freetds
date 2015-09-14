@@ -39,11 +39,95 @@ extern "C" {
 #define SQL_SS_LENGTH_UNLIMITED 0
 #endif
 
-#ifndef SQL_COPT_SS_OLDPWD
-#define SQL_COPT_SS_OLDPWD 1226
+#ifndef SQL_COPT_SS_BASE
+#define SQL_COPT_SS_BASE	1200
 #endif
 
-#define SQL_COPT_SS_BASE	1200
+#ifndef SQL_COPT_SS_MARS_ENABLED
+#define SQL_COPT_SS_MARS_ENABLED	(SQL_COPT_SS_BASE+24)
+#endif
+
+#ifndef SQL_COPT_SS_OLDPWD
+#define SQL_COPT_SS_OLDPWD	(SQL_COPT_SS_BASE+26)
+#endif
+
+#define SQL_INFO_FREETDS_TDS_VERSION	1300
+
+#ifndef SQL_MARS_ENABLED_NO
+#define SQL_MARS_ENABLED_NO	0
+#endif
+
+#ifndef SQL_MARS_ENABLED_YES
+#define SQL_MARS_ENABLED_YES	1
+#endif
+
+#ifndef SQL_SS_VARIANT
+#define SQL_SS_VARIANT	(-150)
+#endif
+
+#ifndef SQL_SS_UDT
+#define SQL_SS_UDT	(-151)
+#endif
+
+#ifndef SQL_SS_XML
+#define SQL_SS_XML	(-152)
+#endif
+
+#ifndef SQL_SS_TABLE
+#define SQL_SS_TABLE	(-153)
+#endif
+
+#ifndef SQL_SS_TIME2
+#define SQL_SS_TIME2	(-154)
+#endif
+
+#ifndef SQL_SS_TIMESTAMPOFFSET
+#define SQL_SS_TIMESTAMPOFFSET	(-155)
+#endif
+
+/*
+ * these types are used from conversion from client to server
+ */
+#ifndef SQL_C_SS_TIME2
+#define SQL_C_SS_TIME2	(0x4000)
+#endif
+
+#ifndef SQL_C_SS_TIMESTAMPOFFSET
+#define SQL_C_SS_TIMESTAMPOFFSET	(0x4001)
+#endif
+
+#ifndef SQL_CA_SS_BASE
+#define SQL_CA_SS_BASE 1200
+#endif
+
+#ifndef SQL_CA_SS_UDT_CATALOG_NAME
+#define SQL_CA_SS_UDT_CATALOG_NAME	(SQL_CA_SS_BASE+18)
+#endif
+
+#ifndef SQL_CA_SS_UDT_SCHEMA_NAME
+#define SQL_CA_SS_UDT_SCHEMA_NAME	(SQL_CA_SS_BASE+19)
+#endif
+
+#ifndef SQL_CA_SS_UDT_TYPE_NAME
+#define SQL_CA_SS_UDT_TYPE_NAME	(SQL_CA_SS_BASE+20)
+#endif
+
+#ifndef SQL_CA_SS_UDT_ASSEMBLY_TYPE_NAME
+#define SQL_CA_SS_UDT_ASSEMBLY_TYPE_NAME	(SQL_CA_SS_BASE+21)
+#endif
+
+#ifndef SQL_CA_SS_XML_SCHEMACOLLECTION_CATALOG_NAME
+#define SQL_CA_SS_XML_SCHEMACOLLECTION_CATALOG_NAME	(SQL_CA_SS_BASE+22)
+#endif
+
+#ifndef SQL_CA_SS_XML_SCHEMACOLLECTION_SCHEMA_NAME
+#define SQL_CA_SS_XML_SCHEMACOLLECTION_SCHEMA_NAME	(SQL_CA_SS_BASE+23)
+#endif
+
+#ifndef SQL_CA_SS_XML_SCHEMACOLLECTION_NAME
+#define SQL_CA_SS_XML_SCHEMACOLLECTION_NAME	(SQL_CA_SS_BASE+24)
+#endif
+
 
 #ifdef TDSODBC_BCP
 

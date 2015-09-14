@@ -1,7 +1,7 @@
 #include "common.h"
 #include <ctype.h>
 #include "parser.h"
-#include <freetds/odbc.h>
+#include <odbcss.h>
 
 /*
  * SQLDescribeCol test for precision
