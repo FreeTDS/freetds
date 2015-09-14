@@ -69,6 +69,8 @@ main(int argc, char **argv)
 	TDS_MONEY4 money4;
 	TDS_DATETIME datetime;
 	TDS_DATETIME4 datetime4;
+	TDS_DATE date;
+	TDS_TIME time;
 
 	TDS_TINYINT tds_tinyint;
 	TDS_SMALLINT tds_smallint;
@@ -125,6 +127,12 @@ main(int argc, char **argv)
 			case SYBDATETIME:
 			case SYBDATETIME4:
 				src = "Jan  1, 1999";
+				break;
+			case SYBDATE:
+				src = "2012-11-27";
+				break;
+			case SYBTIME:
+				src = "15:27:12";
 				break;
 			case SYBBINARY:
 			case SYBIMAGE:
@@ -226,6 +234,14 @@ main(int argc, char **argv)
 			src = (char *) &datetime4;
 			srclen = sizeof(datetime4);
 			break;
+		case SYBDATE:
+			src = (char *) &date;
+			srclen = sizeof(date);
+			break;
+		case SYBTIME:
+			src = (char *) &time;
+			srclen = sizeof(time);
+			break;
 		case SYBUNIQUE:
 			src = (char *) &tds_unique;
 			srclen = sizeof(tds_unique);
@@ -288,6 +304,12 @@ main(int argc, char **argv)
 			break;
 		case SYBDATETIME4:
 			datetime4 = cr.dt4;
+			break;
+		case SYBDATE:
+			date = cr.date;
+			break;
+		case SYBTIME:
+			time = cr.time;
 			break;
 		case SYBINT1:
 		case SYBUINT1:
