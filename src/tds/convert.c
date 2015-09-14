@@ -2232,14 +2232,13 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 	TDS_UINT packed_num[(MAXPRECISION + 7) / 8];
 
 	char *ptr;
-	const char *pstr;
-	int old_digits_left, digits_left;
-	bool digit_found = false;
 
 	int i = 0;
 	int j = 0;
-	int bytes, places;
-	unsigned char sign;
+	int bytes;
+
+	bool negative;
+	size_t digits, decimals;
 
 	/* FIXME: application can pass invalid value for precision and scale ?? */
 	if (cr->n.precision > MAXPRECISION)
@@ -2251,30 +2250,13 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 	if (cr->n.scale > cr->n.precision)
 		return TDS_CONVERT_FAIL;
 
+	instr = parse_numeric(instr, pend, &negative, &digits, &decimals);
+	if (!instr)
+		return TDS_CONVERT_SYNTAX;
 
-	/* skip leading blanks */
-	for (pstr = instr;; ++pstr) {
-		if (pstr == pend)
-			return TDS_CONVERT_SYNTAX;
-		if (*pstr != ' ')
-			break;
-	}
+	cr->n.array[0] = negative ? 1 : 0;
 
-	sign = 0;
-	if (*pstr == '-' || *pstr == '+') {	/* deal with a leading sign */
-		if (*pstr == '-')
-			sign = 1;
-		pstr++;
-	}
-	cr->n.array[0] = sign;
-
-	/* 
-	 * skip leading zeroes 
-	 * Not skipping them cause numbers like "000000000000" to 
-	 * appear like overflow
-	 */
-	for (; pstr != pend && *pstr == '0'; ++pstr)
-		digit_found = true;
+	/* translate a number like 000ddddd.ffff to 00000000dddddffff00 */
 
 	/* 
 	 * Having disposed of any sign and leading blanks, 
@@ -2286,48 +2268,23 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 	for (i = 0; i < 8; ++i)
 		*ptr++ = '0';
 
-	places = 0;
-	old_digits_left = 0;
-	digits_left = cr->n.precision - cr->n.scale;
-
-	for (; pstr != pend; ++pstr) {			/* deal with the rest */
-		if (*pstr >= '0' && *pstr <= '9') {	/* it's a number */
-			/* copy digit to destination */
-			if (--digits_left >= 0)
-				*ptr++ = *pstr;
-			digit_found = true;
-		} else if (*pstr == '.') {			/* found a decimal point */
-			if (places)				/* found a decimal point previously: return error */
-				return TDS_CONVERT_SYNTAX;
-			old_digits_left = digits_left;
-			digits_left = cr->n.scale;
-			places = 1;
-		} else if (*pstr == ' ') {
-			for (; pstr != pend && *pstr == ' '; ++pstr) /* skip contiguous blanks */
-				continue;
-			if (pstr == pend)
-				break;				/* success: found only trailing blanks */
-			return TDS_CONVERT_SYNTAX;		/* bzzt: found something after the blank(s) */
-		} else {         				/* first invalid character */
-			return TDS_CONVERT_SYNTAX;
-		}
-	}
-	/* no digits? no number! */
-	if (!digit_found)
-		return TDS_CONVERT_SYNTAX;
-
-	if (!places) {
-		old_digits_left = digits_left;
-		digits_left = cr->n.scale;
-	}
-
 	/* too many digits, error */
-	if (old_digits_left < 0)
+	if (cr->n.precision - cr->n.scale < digits)
 		return TDS_CONVERT_OVERFLOW;
 
+	/* copy digits before the dot */
+	memcpy(ptr, instr, digits);
+	ptr += digits;
+	instr += digits + 1;
+
+	/* copy digits after the dot */
+	if (decimals > cr->n.scale)
+		decimals = cr->n.scale;
+	memcpy(ptr, instr, decimals);
+
 	/* fill up decimal digits */
-	while (--digits_left >= 0)
-		*ptr++ = '0';
+	memset(ptr + decimals, '0', cr->n.scale - decimals);
+	ptr += cr->n.scale;
 
 	/*
 	 * Packaged number explanation: 
@@ -2343,7 +2300,7 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 		TDS_UINT n = *ptr++;
 
 		for (i = 1; i < 8; ++i)
-			n = n * 10 + *ptr++;
+			n = n * 10u + *ptr++;
 		/* fix packet number and store */
 		packed_num[++j] = n - ((TDS_UINT) '0' * 11111111lu);
 		ptr -= 16;
