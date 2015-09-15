@@ -3233,75 +3233,25 @@ tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
 static TDS_INT
 string_to_int(const char *buf, const char *pend, TDS_INT * res)
 {
-	enum
-	{ blank = ' ' };
-	const char *p;
-	int sign;
+	bool negative;
 	unsigned int num;	/* we use unsigned here for best overflow check */
+	size_t digits, decimals;
 
-	p = buf;
-
-	/* ignore leading spaces */
-	while (p != pend && *p == blank)
-		++p;
-	if (p == pend) {
-		*res = 0;
-		return sizeof(TDS_INT);
-	}
-
-	/* check for sign */
-	sign = 0;
-	switch (*p) {
-	case '-':
-		sign = 1;
-		/* fall thru */
-	case '+':
-		/* skip spaces between sign and number */
-		++p;
-		while (p != pend && *p == blank)
-			++p;
-		break;
-	}
-
-	/* a digit must be present */
-	if (p == pend)
+	buf = parse_numeric(buf, pend, &negative, &digits, &decimals);
+	if (!buf)
 		return TDS_CONVERT_SYNTAX;
 
 	num = 0;
-	for (; p != pend; ++p) {
-		/* check for trailing spaces */
-		if (*p == blank) {
-			while (++p != pend && *p == blank)
-				continue;
-			if (p != pend)
-				return TDS_CONVERT_SYNTAX;
-			break;
-		}
-
-		/* strip any decimal part */
-		if (*p == '.') {
-			while (++p != pend && isdigit((unsigned char) *p))
-				continue;
-			while (p != pend && *p == blank)
-				++p;
-			if (p != pend)
-				return TDS_CONVERT_SYNTAX;
-			break;
-		}
-
-		/* must be a digit */
-		if (!isdigit((unsigned char) *p))
-			return TDS_CONVERT_SYNTAX;
-
+	for (; digits; --digits, ++buf) {
 		/* add a digit to number and check for overflow */
 		/* NOTE I didn't forget a digit, I check overflow before multiply to prevent overflow */
 		if (num > 214748364u)
 			return TDS_CONVERT_OVERFLOW;
-		num = num * 10u + (*p - '0');
+		num = num * 10u + (*buf - '0');
 	}
 
 	/* check for overflow and convert unsigned to signed */
-	if (sign) {
+	if (negative) {
 		if (num > 2147483648u)
 			return TDS_CONVERT_OVERFLOW;
 		*res = 0 - num;
@@ -3320,71 +3270,22 @@ string_to_int(const char *buf, const char *pend, TDS_INT * res)
  * \return TDS_CONVERT_* or failure code on error
  */
 static TDS_INT	/* copied from string_ti_int and modified */
-parse_int8(const char *buf, const char *pend, TDS_UINT8 * res, int * p_sign)
+parse_int8(const char *buf, const char *pend, TDS_UINT8 * res, bool * p_negative)
 {
-	enum
-	{ blank = ' ' };
-	const char *p;
-	TDS_UINT8 num, prev;
+	TDS_UINT8 num;
+	size_t digits, decimals;
 
-	p = buf;
-
-	/* ignore leading spaces */
-	while (p != pend && *p == blank)
-		++p;
-	if (p == pend) {
-		*res = 0;
-		return sizeof(TDS_INT8);
-	}
-
-	/* check for sign */
-	switch (*p) {
-	case '-':
-		*p_sign = 1;
-		/* fall thru */
-	case '+':
-		/* skip spaces between sign and number */
-		++p;
-		while (p != pend && *p == blank)
-			++p;
-		break;
-	}
-
-	/* a digit must be present */
-	if (p == pend)
+	buf = parse_numeric(buf, pend, p_negative, &digits, &decimals);
+	if (!buf)
 		return TDS_CONVERT_SYNTAX;
 
 	num = 0;
-	for (; p != pend; ++p) {
-		/* check for trailing spaces */
-		if (*p == blank) {
-			while (++p != pend && *p == blank)
-				continue;
-			if (p != pend)
-				return TDS_CONVERT_SYNTAX;
-			break;
-		}
-
-		/* strip any decimal part */
-		if (*p == '.') {
-			while (++p != pend && isdigit((unsigned char) *p))
-				continue;
-			while (p != pend && *p == blank)
-				++p;
-			if (p != pend)
-				return TDS_CONVERT_SYNTAX;
-			break;
-		}
-
-		/* must be a digit */
-		if (!isdigit((unsigned char) *p))
-			return TDS_CONVERT_SYNTAX;
-
+	for (; digits; --digits, ++buf) {
 		/* add a digit to number and check for overflow */
-		prev = num;
+		TDS_UINT8 prev = num;
 		if (num > (((TDS_UINT8) 1u) << 63) / 5u)
 			return TDS_CONVERT_OVERFLOW;
-		num = num * 10u + (*p - '0');
+		num = num * 10u + (*buf - '0');
 		if (num < prev)
 			return TDS_CONVERT_OVERFLOW;
 	}
@@ -3403,14 +3304,14 @@ string_to_int8(const char *buf, const char *pend, TDS_INT8 * res)
 {
 	TDS_UINT8 num;
 	TDS_INT parse_res;
-	int sign = 0;
+	bool negative;
 
-	parse_res = parse_int8(buf, pend, &num, &sign);
+	parse_res = parse_int8(buf, pend, &num, &negative);
 	if (parse_res < 0)
 		return parse_res;
 
 	/* check for overflow and convert unsigned to signed */
-	if (sign) {
+	if (negative) {
 		if (num > (((TDS_UINT8) 1) << 63))
 			return TDS_CONVERT_OVERFLOW;
 		*res = 0 - num;
@@ -3432,14 +3333,14 @@ string_to_uint8(const char *buf, const char *pend, TDS_UINT8 * res)
 {
 	TDS_UINT8 num;
 	TDS_INT parse_res;
-	int sign = 0;
+	bool negative;
 
-	parse_res = parse_int8(buf, pend, &num, &sign);
+	parse_res = parse_int8(buf, pend, &num, &negative);
 	if (parse_res < 0)
 		return parse_res;
 
 	/* check for overflow */
-	if (sign && num)
+	if (negative && num)
 		return TDS_CONVERT_OVERFLOW;
 
 	*res = num;
