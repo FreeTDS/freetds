@@ -199,8 +199,10 @@ tds_check_column_extra(const TDSCOLUMN * column)
 
 	varint_ok = 0;
 	if (column_varint_size == 8) {
-		assert(column->on_server.column_type == XSYBVARCHAR || column->on_server.column_type == XSYBVARBINARY || column->on_server.column_type == XSYBNVARCHAR || column->on_server.column_type == SYBMSXML || column->on_server.column_type == SYBMSUDT);
-		varint_ok = 1;
+		if (column->on_server.column_type == XSYBVARCHAR
+		    || column->on_server.column_type == XSYBVARBINARY
+		    || column->on_server.column_type == XSYBNVARCHAR)
+			varint_ok = 1;
 	} else if (is_blob_type(column->column_type)) {
 		assert(column_varint_size >= 4);
 	} else if (column->column_type == SYBVARIANT) {
@@ -282,12 +284,20 @@ tds_check_resultinfo_extra(const TDSRESULTINFO * res_info)
 void
 tds_check_cursor_extra(const TDSCURSOR * cursor)
 {
+	assert(cursor);
+
+	assert(cursor->ref_count > 0);
+
+	if (cursor->res_info)
+		tds_check_resultinfo_extra(cursor->res_info);
 }
 
 void
 tds_check_dynamic_extra(const TDSDYNAMIC * dyn)
 {
 	assert(dyn);
+
+	assert(dyn->ref_count > 0);
 
 	if (dyn->res_info)
 		tds_check_resultinfo_extra(dyn->res_info);
