@@ -73,6 +73,8 @@ static TDS_INT tds_convert_uint8(const TDS_UINT8 * src, int desttype, CONV_RESUL
 static int string_to_datetime(const char *datestr, TDS_UINT len, int desttype, CONV_RESULT * cr);
 static bool is_dd_mon_yyyy(char *t);
 static int store_dd_mon_yyy_date(char *datestr, struct tds_time *t);
+static const char *parse_numeric(const char *buf, const char *pend,
+	bool * p_negative, size_t *p_digits, size_t *p_decimals);
 
 #define test_alloc(x) {if ((x)==NULL) return TDS_CONVERT_NOMEM;}
 
@@ -338,14 +340,14 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 	TDS_INT8 mymoney;
 	char mynumber[28];
 
-	const char *ptr, *pend;
-	bool point_found;
-	unsigned int places;
 	TDS_INT tds_i;
 	TDS_INT8 tds_i8;
 	TDS_UINT8 tds_ui8;
 	TDS_INT rc;
 	TDS_CHAR *ib;
+
+	bool negative;
+	size_t digits, decimals;
 
 	switch (desttype) {
 	case TDS_CONVERT_CHAR:
@@ -458,51 +460,21 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 	case SYBMONEY:
 	case SYBMONEY4:
 
-		/* TODO code similar to string_to_numeric... */
+		src = parse_numeric(src, src + srclen, &negative, &digits, &decimals);
+		if (!src)
+			return TDS_CONVERT_SYNTAX;
+		if (digits > 18)
+			return TDS_CONVERT_OVERFLOW;
+
 		i = 0;
-		places = 0;
-		point_found = false;
-		pend = src + srclen;
-
-		/* skip leading blanks */
-		for (ptr = src; ptr != pend && *ptr == ' '; ++ptr)
-			continue;
-
-		/* handle sign */
-		switch (ptr != pend ? *ptr : 0) {
-		case '-':
+		if (negative)
 			mynumber[i++] = '-';
-			/* fall through */
-		case '+':
-			while (++ptr != pend && *ptr == ' ')
-				continue;
-			break;
-		}
-
-		/* handle numbers which start with a lot of '0' */
-		while (ptr != pend && *ptr == '0')
-			++ptr;
-
-		for (; ptr != pend; ptr++) {	/* deal with the rest */
-			if (TDS_ISDIGIT(*ptr)) {	/* it's a number */
-				/* no more than 4 decimal digits */
-				if (places < 4)
-					mynumber[i++] = *ptr;
-				/* assure not buffer overflow */
-				if (i > 22)
-					return TDS_CONVERT_OVERFLOW;
-				if (point_found) {	/* if we passed a decimal point */
-					/* count digits after that point  */
-					++places;
-				}
-			} else if (*ptr == '.') {	/* found a decimal point */
-				if (point_found)	/* already had one. error */
-					return TDS_CONVERT_SYNTAX;
-				point_found = true;
-			} else	/* first invalid character */
-				return TDS_CONVERT_SYNTAX;	/* lose the rest.          */
-		}
-		for (; places < 4; ++places)
+		for (; digits; --digits)
+			mynumber[i++] = *src++;
+		src++;
+		for (digits = 0; digits < 4 && digits < decimals; ++digits)
+			mynumber[i++] = *src++;
+		for (; digits < 4; ++digits)
 			mynumber[i++] = '0';
 
 		/* convert number and check for overflow */
@@ -2230,14 +2202,13 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 	TDS_UINT packed_num[(MAXPRECISION + 7) / 8];
 
 	char *ptr;
-	const char *pstr;
-	int old_digits_left, digits_left;
-	bool digit_found = false;
 
 	int i = 0;
 	int j = 0;
-	int bytes, places;
-	unsigned char sign;
+	int bytes;
+
+	bool negative;
+	size_t digits, decimals;
 
 	/* FIXME: application can pass invalid value for precision and scale ?? */
 	if (cr->n.precision > MAXPRECISION)
@@ -2249,30 +2220,13 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 	if (cr->n.scale > cr->n.precision)
 		return TDS_CONVERT_FAIL;
 
+	instr = parse_numeric(instr, pend, &negative, &digits, &decimals);
+	if (!instr)
+		return TDS_CONVERT_SYNTAX;
 
-	/* skip leading blanks */
-	for (pstr = instr;; ++pstr) {
-		if (pstr == pend)
-			return TDS_CONVERT_SYNTAX;
-		if (*pstr != ' ')
-			break;
-	}
+	cr->n.array[0] = negative ? 1 : 0;
 
-	sign = 0;
-	if (*pstr == '-' || *pstr == '+') {	/* deal with a leading sign */
-		if (*pstr == '-')
-			sign = 1;
-		pstr++;
-	}
-	cr->n.array[0] = sign;
-
-	/* 
-	 * skip leading zeroes 
-	 * Not skipping them cause numbers like "000000000000" to 
-	 * appear like overflow
-	 */
-	for (; pstr != pend && *pstr == '0'; ++pstr)
-		digit_found = true;
+	/* translate a number like 000ddddd.ffff to 00000000dddddffff00 */
 
 	/* 
 	 * Having disposed of any sign and leading blanks, 
@@ -2284,48 +2238,23 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 	for (i = 0; i < 8; ++i)
 		*ptr++ = '0';
 
-	places = 0;
-	old_digits_left = 0;
-	digits_left = cr->n.precision - cr->n.scale;
-
-	for (; pstr != pend; ++pstr) {			/* deal with the rest */
-		if (*pstr >= '0' && *pstr <= '9') {	/* it's a number */
-			/* copy digit to destination */
-			if (--digits_left >= 0)
-				*ptr++ = *pstr;
-			digit_found = true;
-		} else if (*pstr == '.') {			/* found a decimal point */
-			if (places)				/* found a decimal point previously: return error */
-				return TDS_CONVERT_SYNTAX;
-			old_digits_left = digits_left;
-			digits_left = cr->n.scale;
-			places = 1;
-		} else if (*pstr == ' ') {
-			for (; pstr != pend && *pstr == ' '; ++pstr) /* skip contiguous blanks */
-				continue;
-			if (pstr == pend)
-				break;				/* success: found only trailing blanks */
-			return TDS_CONVERT_SYNTAX;		/* bzzt: found something after the blank(s) */
-		} else {         				/* first invalid character */
-			return TDS_CONVERT_SYNTAX;
-		}
-	}
-	/* no digits? no number! */
-	if (!digit_found)
-		return TDS_CONVERT_SYNTAX;
-
-	if (!places) {
-		old_digits_left = digits_left;
-		digits_left = cr->n.scale;
-	}
-
 	/* too many digits, error */
-	if (old_digits_left < 0)
+	if (cr->n.precision - cr->n.scale < digits)
 		return TDS_CONVERT_OVERFLOW;
 
+	/* copy digits before the dot */
+	memcpy(ptr, instr, digits);
+	ptr += digits;
+	instr += digits + 1;
+
+	/* copy digits after the dot */
+	if (decimals > cr->n.scale)
+		decimals = cr->n.scale;
+	memcpy(ptr, instr, decimals);
+
 	/* fill up decimal digits */
-	while (--digits_left >= 0)
-		*ptr++ = '0';
+	memset(ptr + decimals, '0', cr->n.scale - decimals);
+	ptr += cr->n.scale;
 
 	/*
 	 * Packaged number explanation: 
@@ -2341,7 +2270,7 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 		TDS_UINT n = *ptr++;
 
 		for (i = 1; i < 8; ++i)
-			n = n * 10 + *ptr++;
+			n = n * 10u + *ptr++;
 		/* fix packet number and store */
 		packed_num[++j] = n - ((TDS_UINT) '0' * 11111111lu);
 		ptr -= 16;
@@ -3231,75 +3160,25 @@ tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
 static TDS_INT
 string_to_int(const char *buf, const char *pend, TDS_INT * res)
 {
-	enum
-	{ blank = ' ' };
-	const char *p;
-	int sign;
+	bool negative;
 	unsigned int num;	/* we use unsigned here for best overflow check */
+	size_t digits, decimals;
 
-	p = buf;
-
-	/* ignore leading spaces */
-	while (p != pend && *p == blank)
-		++p;
-	if (p == pend) {
-		*res = 0;
-		return sizeof(TDS_INT);
-	}
-
-	/* check for sign */
-	sign = 0;
-	switch (*p) {
-	case '-':
-		sign = 1;
-		/* fall thru */
-	case '+':
-		/* skip spaces between sign and number */
-		++p;
-		while (p != pend && *p == blank)
-			++p;
-		break;
-	}
-
-	/* a digit must be present */
-	if (p == pend)
+	buf = parse_numeric(buf, pend, &negative, &digits, &decimals);
+	if (!buf)
 		return TDS_CONVERT_SYNTAX;
 
 	num = 0;
-	for (; p != pend; ++p) {
-		/* check for trailing spaces */
-		if (*p == blank) {
-			while (++p != pend && *p == blank)
-				continue;
-			if (p != pend)
-				return TDS_CONVERT_SYNTAX;
-			break;
-		}
-
-		/* strip any decimal part */
-		if (*p == '.') {
-			while (++p != pend && isdigit((unsigned char) *p))
-				continue;
-			while (p != pend && *p == blank)
-				++p;
-			if (p != pend)
-				return TDS_CONVERT_SYNTAX;
-			break;
-		}
-
-		/* must be a digit */
-		if (!isdigit((unsigned char) *p))
-			return TDS_CONVERT_SYNTAX;
-
+	for (; digits; --digits, ++buf) {
 		/* add a digit to number and check for overflow */
 		/* NOTE I didn't forget a digit, I check overflow before multiply to prevent overflow */
 		if (num > 214748364u)
 			return TDS_CONVERT_OVERFLOW;
-		num = num * 10u + (*p - '0');
+		num = num * 10u + (*buf - '0');
 	}
 
 	/* check for overflow and convert unsigned to signed */
-	if (sign) {
+	if (negative) {
 		if (num > 2147483648u)
 			return TDS_CONVERT_OVERFLOW;
 		*res = 0 - num;
@@ -3318,71 +3197,22 @@ string_to_int(const char *buf, const char *pend, TDS_INT * res)
  * \return TDS_CONVERT_* or failure code on error
  */
 static TDS_INT	/* copied from string_ti_int and modified */
-parse_int8(const char *buf, const char *pend, TDS_UINT8 * res, int * p_sign)
+parse_int8(const char *buf, const char *pend, TDS_UINT8 * res, bool * p_negative)
 {
-	enum
-	{ blank = ' ' };
-	const char *p;
-	TDS_UINT8 num, prev;
+	TDS_UINT8 num;
+	size_t digits, decimals;
 
-	p = buf;
-
-	/* ignore leading spaces */
-	while (p != pend && *p == blank)
-		++p;
-	if (p == pend) {
-		*res = 0;
-		return sizeof(TDS_INT8);
-	}
-
-	/* check for sign */
-	switch (*p) {
-	case '-':
-		*p_sign = 1;
-		/* fall thru */
-	case '+':
-		/* skip spaces between sign and number */
-		++p;
-		while (p != pend && *p == blank)
-			++p;
-		break;
-	}
-
-	/* a digit must be present */
-	if (p == pend)
+	buf = parse_numeric(buf, pend, p_negative, &digits, &decimals);
+	if (!buf)
 		return TDS_CONVERT_SYNTAX;
 
 	num = 0;
-	for (; p != pend; ++p) {
-		/* check for trailing spaces */
-		if (*p == blank) {
-			while (++p != pend && *p == blank)
-				continue;
-			if (p != pend)
-				return TDS_CONVERT_SYNTAX;
-			break;
-		}
-
-		/* strip any decimal part */
-		if (*p == '.') {
-			while (++p != pend && isdigit((unsigned char) *p))
-				continue;
-			while (p != pend && *p == blank)
-				++p;
-			if (p != pend)
-				return TDS_CONVERT_SYNTAX;
-			break;
-		}
-
-		/* must be a digit */
-		if (!isdigit((unsigned char) *p))
-			return TDS_CONVERT_SYNTAX;
-
+	for (; digits; --digits, ++buf) {
 		/* add a digit to number and check for overflow */
-		prev = num;
+		TDS_UINT8 prev = num;
 		if (num > (((TDS_UINT8) 1u) << 63) / 5u)
 			return TDS_CONVERT_OVERFLOW;
-		num = num * 10u + (*p - '0');
+		num = num * 10u + (*buf - '0');
 		if (num < prev)
 			return TDS_CONVERT_OVERFLOW;
 	}
@@ -3401,14 +3231,14 @@ string_to_int8(const char *buf, const char *pend, TDS_INT8 * res)
 {
 	TDS_UINT8 num;
 	TDS_INT parse_res;
-	int sign = 0;
+	bool negative;
 
-	parse_res = parse_int8(buf, pend, &num, &sign);
+	parse_res = parse_int8(buf, pend, &num, &negative);
 	if (parse_res < 0)
 		return parse_res;
 
 	/* check for overflow and convert unsigned to signed */
-	if (sign) {
+	if (negative) {
 		if (num > (((TDS_UINT8) 1) << 63))
 			return TDS_CONVERT_OVERFLOW;
 		*res = 0 - num;
@@ -3430,18 +3260,99 @@ string_to_uint8(const char *buf, const char *pend, TDS_UINT8 * res)
 {
 	TDS_UINT8 num;
 	TDS_INT parse_res;
-	int sign = 0;
+	bool negative;
 
-	parse_res = parse_int8(buf, pend, &num, &sign);
+	parse_res = parse_int8(buf, pend, &num, &negative);
 	if (parse_res < 0)
 		return parse_res;
 
 	/* check for overflow */
-	if (sign && num)
+	if (negative && num)
 		return TDS_CONVERT_OVERFLOW;
 
 	*res = num;
 	return sizeof(TDS_UINT8);
+}
+
+/**
+ * Parse a string for numbers.
+ *
+ * Syntax can be something like " *[+-] *[0-9]*\.[0-9]* *".
+ *
+ * The function ignore all spaces. It strips leading zeroes which could
+ * possibly lead to overflow.
+ * The function returns a pointer to the integer part followed by *p_digits
+ * digits followed by a dot followed by *p_decimals digits (dot and
+ * fractional digits are optional, in this case *p_decimals is 0).
+ *
+ * @param buf         start of string
+ * @param pend        pointer to string end
+ * @param p_negative  store if number is negative
+ * @param p_digits    store number of integer digits
+ * @param p_decimals  store number of fractional digits
+ * @return pointer to first not zero digit. If NULL this indicate a syntax
+ *         error.
+ */
+static const char *
+parse_numeric(const char *buf, const char *pend, bool *p_negative, size_t *p_digits, size_t *p_decimals)
+{
+	enum { blank = ' ' };
+#define SKIP_IF(cond) while (p != pend && (cond)) ++p;
+	const char *p, *start;
+	bool negative = false;
+
+	*p_decimals = 0;
+	p = buf;
+
+	/* ignore leading spaces */
+	SKIP_IF(*p == blank);
+	if (p == pend) {
+		*p_negative = false;
+		*p_digits = 0;
+		return p;
+	}
+
+	/* check for sign */
+	switch (*p) {
+	case '-':
+		negative = true;
+		/* fall thru */
+	case '+':
+		/* skip spaces between sign and number */
+		++p;
+		SKIP_IF(*p == blank);
+		break;
+	}
+	*p_negative = negative;
+
+	/* a digit must be present */
+	if (p == pend)
+		return NULL;
+
+	/*
+	 * skip leading zeroes
+	 * Not skipping them cause numbers like "000000000000" to
+	 * appear like overflow
+	 */
+	SKIP_IF(*p == '0');
+
+	start = p;
+	SKIP_IF(TDS_ISDIGIT(*p));
+	*p_digits = p - start;
+
+	/* parse decimal part */
+	if (p != pend && *p == '.') {
+		const char *decimals_start = ++p;
+		SKIP_IF(TDS_ISDIGIT(*p));
+		*p_decimals = p - decimals_start;
+	}
+
+	/* check for trailing spaces */
+	SKIP_IF(*p == blank);
+	if (p != pend)
+		return NULL;
+
+	return start;
 }
 
 /** @} */

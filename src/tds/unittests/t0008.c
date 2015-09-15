@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998-1999  Brian Bruns
+ * Copyright (C) 2015  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -89,6 +90,9 @@ main(int argc, char **argv)
 	for (i = 0; i < 20; ++i)
 		strcat(long_test, "1234567890");
 	test(long_test, "error", "", 18, 0, 0);
+
+	memcpy(long_test, "1234.", 5);
+	test(long_test, "prec=18 scale=0", "00 00 00 00 00 00 00 04 D2", 18, 0, 0);
 
 	test("123456789012345678901234567890", "prec=38 scale=0", "00 00 00 00 01 8E E9 0F F6 C3 73 E0 EE 4E 3F 0A D2", 38, 0, 1);
 	test("1234567890123456789012345678901234567890123456789012345678901234567890-00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00", "error", "", 38, 0, 1);
