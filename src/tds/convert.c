@@ -73,6 +73,8 @@ static TDS_INT tds_convert_uint8(const TDS_UINT8 * src, int desttype, CONV_RESUL
 static int string_to_datetime(const char *datestr, TDS_UINT len, int desttype, CONV_RESULT * cr);
 static bool is_dd_mon_yyyy(char *t);
 static int store_dd_mon_yyy_date(char *datestr, struct tds_time *t);
+static const char *parse_numeric(const char *buf, const char *pend,
+	bool * p_negative, size_t *p_digits, size_t *p_decimals);
 
 #define test_alloc(x) {if ((x)==NULL) return TDS_CONVERT_NOMEM;}
 
@@ -3442,6 +3444,87 @@ string_to_uint8(const char *buf, const char *pend, TDS_UINT8 * res)
 
 	*res = num;
 	return sizeof(TDS_UINT8);
+}
+
+/**
+ * Parse a string for numbers.
+ *
+ * Syntax can be something like " *[+-] *[0-9]*\.[0-9]* *".
+ *
+ * The function ignore all spaces. It strips leading zeroes which could
+ * possibly lead to overflow.
+ * The function returns a pointer to the integer part followed by *p_digits
+ * digits followed by a dot followed by *p_decimals digits (dot and
+ * fractional digits are optional, in this case *p_decimals is 0).
+ *
+ * @param buf         start of string
+ * @param pend        pointer to string end
+ * @param p_negative  store if number is negative
+ * @param p_digits    store number of integer digits
+ * @param p_decimals  store number of fractional digits
+ * @return pointer to first not zero digit. If NULL this indicate a syntax
+ *         error.
+ */
+static const char *
+parse_numeric(const char *buf, const char *pend, bool *p_negative, size_t *p_digits, size_t *p_decimals)
+{
+	enum { blank = ' ' };
+#define SKIP_IF(cond) while (p != pend && (cond)) ++p;
+	const char *p, *start;
+	bool negative = false;
+
+	*p_decimals = 0;
+	p = buf;
+
+	/* ignore leading spaces */
+	SKIP_IF(*p == blank);
+	if (p == pend) {
+		*p_negative = false;
+		*p_digits = 0;
+		return p;
+	}
+
+	/* check for sign */
+	switch (*p) {
+	case '-':
+		negative = true;
+		/* fall thru */
+	case '+':
+		/* skip spaces between sign and number */
+		++p;
+		SKIP_IF(*p == blank);
+		break;
+	}
+	*p_negative = negative;
+
+	/* a digit must be present */
+	if (p == pend)
+		return NULL;
+
+	/*
+	 * skip leading zeroes
+	 * Not skipping them cause numbers like "000000000000" to
+	 * appear like overflow
+	 */
+	SKIP_IF(*p == '0');
+
+	start = p;
+	SKIP_IF(TDS_ISDIGIT(*p));
+	*p_digits = p - start;
+
+	/* parse decimal part */
+	if (p != pend && *p == '.') {
+		const char *decimals_start = ++p;
+		SKIP_IF(TDS_ISDIGIT(*p));
+		*p_decimals = p - decimals_start;
+	}
+
+	/* check for trailing spaces */
+	SKIP_IF(*p == blank);
+	if (p != pend)
+		return NULL;
+
+	return start;
 }
 
 /** @} */
