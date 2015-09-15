@@ -72,6 +72,8 @@ main(int argc, char **argv)
 	TDS_DATETIMEALL dta;
 	TDS_DATE date;
 	TDS_TIME time;
+	TDS_BIGDATETIME bigdatetime;
+	TDS_BIGTIME bigtime;
 
 	TDS_TINYINT tds_tinyint;
 	TDS_SMALLINT tds_smallint;
@@ -164,6 +166,12 @@ main(int argc, char **argv)
 			case SYBMSTIME:
 			case SYBTIME:
 				src = "15:27:12";
+				break;
+			case SYB5BIGTIME:
+				src = "15:27:12.327862";
+				break;
+			case SYB5BIGDATETIME:
+				src = "2015-09-12 21:48:12.638161";
 				break;
 			case SYBBINARY:
 			case SYBIMAGE:
@@ -273,6 +281,14 @@ main(int argc, char **argv)
 			src = (char *) &time;
 			srclen = sizeof(time);
 			break;
+		case SYB5BIGTIME:
+			src = (char *) &bigtime;
+			srclen = sizeof(bigtime);
+			break;
+		case SYB5BIGDATETIME:
+			src = (char *) &bigdatetime;
+			srclen = sizeof(bigdatetime);
+			break;
 		case SYBUNIQUE:
 			src = (char *) &tds_unique;
 			srclen = sizeof(tds_unique);
@@ -351,6 +367,12 @@ main(int argc, char **argv)
 			break;
 		case SYBMSDATETIME2:
 			dta = cr.dta;
+			break;
+		case SYB5BIGTIME:
+			bigtime = cr.bigtime;
+			break;
+		case SYB5BIGDATETIME:
+			bigdatetime = cr.bigdatetime;
 			break;
 		case SYBINT1:
 		case SYBUINT1:
