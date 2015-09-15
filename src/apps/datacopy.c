@@ -494,7 +494,7 @@ static int
 check_table_structures(char *sobjname, char *dobjname, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 {
 	char ls_command[256];
-	int i;
+	int i, ret;
 
 	DBINT src_numcols = 0;
 	DBINT dest_numcols = 0;
@@ -515,11 +515,15 @@ check_table_structures(char *sobjname, char *dobjname, DBPROCESS * dbsrc, DBPROC
 		return FALSE;
 	}
 
-	while (NO_MORE_RESULTS != dbresults(dbsrc)) {
-		if (0 == (src_numcols = dbnumcols(dbsrc))) {
-			printf("Error in dbnumcols\n");
-			return FALSE;
-		}
+	while ((ret=dbresults(dbsrc)) == SUCCEED)
+		src_numcols = dbnumcols(dbsrc);
+	if (ret != NO_MORE_RESULTS) {
+		printf("Error in dbresults\n");
+		return FALSE;
+	}
+	if (0 == src_numcols) {
+		printf("Error in dbnumcols 1\n");
+		return FALSE;
 	}
 
 	sprintf(ls_command, "SET FMTONLY ON select * from %s SET FMTONLY OFF", dobjname);
@@ -534,11 +538,15 @@ check_table_structures(char *sobjname, char *dobjname, DBPROCESS * dbsrc, DBPROC
 		return FALSE;
 	}
 
-	while (NO_MORE_RESULTS != dbresults(dbdest)) {
-		if (0 == (dest_numcols = dbnumcols(dbdest))) {
-			printf("Error in dbnumcols\n");
-			return FALSE;
-		}
+	while ((ret=dbresults(dbdest)) == SUCCEED)
+		dest_numcols = dbnumcols(dbdest);
+	if (ret != NO_MORE_RESULTS) {
+		printf("Error in dbresults\n");
+		return FALSE;
+	}
+	if (0 == dest_numcols) {
+		printf("Error in dbnumcols 2\n");
+		return FALSE;
 	}
 
 	if (src_numcols != dest_numcols) {
