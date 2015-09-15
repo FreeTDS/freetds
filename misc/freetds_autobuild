@@ -84,6 +84,7 @@ init_log()
 
 rm -f ~/freetds.log /tmp/sql.log
 
+COMMIT=''
 while test $# -gt 0; do
 	param="$1"
 	shift
@@ -94,8 +95,12 @@ while test $# -gt 0; do
 		WORKDIR=ftds_comp$1
 		shift
 		;;
+	--commit)
+		COMMIT="$1"
+		shift
+		;;
 	--help)
-		echo "Syntax: freetds_autobuild [--version VERSION] [--help]"
+		echo "Syntax: freetds_autobuild [--version VERSION] [--commit COMMIT] [--help]"
 		exit 1
 		;;
 	*)
@@ -129,13 +134,13 @@ test -d $FTDSDIR
 mkdir $WORKDIR
 ln -s $WORKDIR freetds
 cd $FTDSDIR
-REV="$(git rev-parse HEAD)"
-git archive HEAD | tar -C $WORKDIR -xvf -
-cp doc/userguide_desc.sgml $WORKDIR/doc/
-if [ "$REV" != "$(git rev-parse HEAD)" ]; then
-	echo "Revision changed while archiving" >&2
-	exit 1
+if test "$COMMIT" = ""; then
+	REV="$(git rev-parse HEAD)"
+else
+	REV="$COMMIT"
 fi
+git archive $REV | tar -C $WORKDIR -xvf -
+cp doc/userguide_desc.sgml $WORKDIR/doc/
 cd $WORKDIR
 echo "$REV" > git_revision
 if test "$(uname -m)" = "x86_64"; then
