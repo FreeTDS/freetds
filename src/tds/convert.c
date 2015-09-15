@@ -2893,8 +2893,9 @@ tds_get_null_type(int srctype)
  * format a date string according to an "extended" strftime(3) formatting definition.
  * @param buf     output buffer
  * @param maxsize size of buffer in bytes (space include terminator)
- * @param format  format string passed to strftime(3), except that %z represents milliseconds
+ * @param format  format string passed to strftime(3), except that %z represents fraction of seconds.
  * @param dr      date to convert
+ * @param prec    second fraction precision (0-7).
  * @return length of string returned, 0 for error
  */
 size_t
