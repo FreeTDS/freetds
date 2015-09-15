@@ -218,7 +218,9 @@ tds_check_column_extra(const TDSCOLUMN * column)
 	/* check size of fixed type correct */
 	size = tds_get_size_by_type(column->column_type);
 	assert(size != 0 || column->column_type == SYBVOID);
-	if (size >= 0 && column->column_type != SYBBITN) {
+	/* these peculiar types are variable but have only a possible size */
+	if (size >= 0 && (column->column_type != SYBBITN
+		  && column->column_type != SYBDATEN && column->column_type != SYBTIMEN)) {
 		/* check macro */
 		assert(is_fixed_type(column->column_type));
 		/* check current size */
