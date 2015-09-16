@@ -139,6 +139,7 @@ main(int argc, char **argv)
 	/* compare inserted and read back test patterns */
 	if (bytes_returned != TEST_BUF_LEN) {
 		show_error("main(): comparing buffers", "Mismatch in input and output pattern sizes.");
+		printf("Expected %lu got %lu\n", (unsigned long) TEST_BUF_LEN, (unsigned long) bytes_returned);
 		clean_up();
 		return -1;
 	}
