@@ -194,7 +194,8 @@ binary_to_result(int desttype, const void *data, size_t len, CONV_RESULT * cr)
 #define CASE_ALL_CHAR \
 	SYBCHAR: case SYBVARCHAR: case SYBTEXT: case XSYBCHAR: case XSYBVARCHAR
 #define CASE_ALL_BINARY \
-	SYBBINARY: case SYBVARBINARY: case SYBIMAGE: case XSYBBINARY: case XSYBVARBINARY: case TDS_CONVERT_BINARY
+	SYBBINARY: case SYBVARBINARY: case SYBIMAGE: case XSYBBINARY: case XSYBVARBINARY: \
+	case SYBLONGBINARY: case TDS_CONVERT_BINARY
 
 /* TODO implement me */
 /*
@@ -1900,7 +1901,6 @@ tds_convert(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, TDS_U
 	case SYBDATE:
 		length = tds_convert_date(tds_ctx, (const TDS_DATE *) src, desttype, cr);
 		break;
-	case SYBLONGBINARY:
 	case CASE_ALL_BINARY:
 		length = tds_convert_binary((const TDS_UCHAR *) src, srclen, desttype, cr);
 		break;
