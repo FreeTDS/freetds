@@ -116,7 +116,7 @@ Test(int use_threads, int return_data)
 	if (!return_data)
 		CHKExecDirect(T("WAITFOR DELAY '000:05:00'"), SQL_NTS, "E");
 	else
-		odbc_command2("SELECT MAX(p1.k) FROM tab1 p1, tab1 p2, tab1 p3, tab1 p4", "E");
+		odbc_command2("SELECT MAX(p1.k + p2.k * p3.k ^ p4.k) FROM tab1 p1, tab1 p2, tab1 p3, tab1 p4", "E");
 
 	tds_mutex_lock(&mtx);
 	exit_thread = 1;
