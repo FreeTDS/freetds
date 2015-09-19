@@ -69,6 +69,7 @@ main(int argc, char **argv)
 	TDS_MONEY4 money4;
 	TDS_DATETIME datetime;
 	TDS_DATETIME4 datetime4;
+	TDS_DATETIMEALL dta;
 	TDS_DATE date;
 	TDS_TIME time;
 
@@ -90,6 +91,9 @@ main(int argc, char **argv)
 		printf("Computing %d iterations\n", iterations);
 	}
 
+	setbuf(stdout, NULL);
+	setbuf(stderr, NULL);
+
 	ctx = tds_alloc_context(NULL);
 	assert(ctx);
 	if (ctx->locale && !ctx->locale->date_fmt) {
@@ -104,11 +108,29 @@ main(int argc, char **argv)
 	for (i = 0; i < 0x10000; i++) {
 		srctype  = i >> 8;
 		desttype = i & 0xff;
-		if (!tds_willconvert(srctype, desttype))
+		srctype = (srctype + SYBCHAR) & 0xff;
+
+		if (!tds_willconvert(srctype, desttype)) {
+			CONV_RESULT src;
+			memset(&src, 0, sizeof(src));
+			result = tds_convert(ctx, srctype, &src, 4, desttype, &cr);
+			if (result >= 0)
+				free_convert(desttype, &cr);
+			if (result != TDS_CONVERT_NOAVAIL) {
+				printf("NOT EXPECTED: converted %d (%s, %d bytes) : %d (%s, %d bytes).\n",
+				       srctype, tds_prtype(srctype), srclen,
+				       desttype, tds_prtype(desttype), result);
+				exit(1);
+			}
 			continue;	/* don't attempt nonconvertible types */
+		}
 
 		if (srctype == desttype)
 			continue;	/* don't attempt same types */
+
+		/* valid types should have a name ! */
+		assert(tds_prtype(srctype)[0] != 0);
+		assert(tds_prtype(desttype)[0] != 0);
 
 		cr.n.precision = 8;
 		cr.n.scale = 2;
@@ -120,6 +142,11 @@ main(int argc, char **argv)
 		case SYBBINARY:
 		case SYBVARBINARY:
 		case SYBIMAGE:
+		case SYBLONGBINARY:
+		case XSYBBINARY:
+		case XSYBVARBINARY:
+		case XSYBCHAR:
+		case XSYBVARCHAR:
 			switch (desttype) {
 			case SYBCHAR:
 			case SYBVARCHAR:
@@ -128,9 +155,13 @@ main(int argc, char **argv)
 			case SYBDATETIME4:
 				src = "Jan  1, 1999";
 				break;
+			case SYBMSDATE:
+			case SYBMSDATETIME2:
+			case SYBMSDATETIMEOFFSET:
 			case SYBDATE:
 				src = "2012-11-27";
 				break;
+			case SYBMSTIME:
 			case SYBTIME:
 				src = "15:27:12";
 				break;
@@ -246,6 +277,13 @@ main(int argc, char **argv)
 			src = (char *) &tds_unique;
 			srclen = sizeof(tds_unique);
 			break;
+		case SYBMSTIME:
+		case SYBMSDATE:
+		case SYBMSDATETIME2:
+		case SYBMSDATETIMEOFFSET:
+			src = (char *) &dta;
+			srclen = sizeof(dta);
+			break;
 		/*****  not defined yet
 			case SYBBOUNDARY:
 			case SYBSENSITIVITY:
@@ -254,7 +292,7 @@ main(int argc, char **argv)
 				break;
 		*****/
 		default:
-			fprintf(stderr, "no such type %d\n", srctype);
+			fprintf(stderr, "no such type %d (%s)\n", srctype, tds_prtype(srctype));
 			return -1;
 		}
 
@@ -275,11 +313,11 @@ main(int argc, char **argv)
 				srctype, tds_prtype(srctype), srclen,
 				desttype, tds_prtype(desttype));
 
-			if (result != TDS_CONVERT_NOAVAIL)
-				return result;
+			if (result == TDS_CONVERT_NOAVAIL)
+				exit(1);
 		}
 
-		printf("converted %d (%s, %d bytes) : %d (%s, %d bytes).\n",
+		printf("converted %d (%s, %d bytes) -> %d (%s, %d bytes).\n",
 		       srctype, tds_prtype(srctype), srclen,
 		       desttype, tds_prtype(desttype), result);
 
@@ -310,6 +348,9 @@ main(int argc, char **argv)
 			break;
 		case SYBTIME:
 			time = cr.time;
+			break;
+		case SYBMSDATETIME2:
+			dta = cr.dta;
 			break;
 		case SYBINT1:
 		case SYBUINT1:
