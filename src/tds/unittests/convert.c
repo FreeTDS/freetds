@@ -142,6 +142,11 @@ main(int argc, char **argv)
 		case SYBBINARY:
 		case SYBVARBINARY:
 		case SYBIMAGE:
+		case SYBLONGBINARY:
+		case XSYBBINARY:
+		case XSYBVARBINARY:
+		case XSYBCHAR:
+		case XSYBVARCHAR:
 			switch (desttype) {
 			case SYBCHAR:
 			case SYBVARCHAR:
