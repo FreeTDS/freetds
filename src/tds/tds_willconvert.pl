@@ -33,8 +33,17 @@ sub category($) {
 	return qw(INT1 UINT1 INT2 UINT2 INT4 UINT4 INT8 UINT8) if $_ eq 'INTx';
 	return qw(MONEY MONEY4) if $_ eq 'MONEYx';
 	return qw(FLT8 REAL) if $_ eq 'FLTx';
-	return qw(DATETIME DATETIME4) if $_ eq 'DATETIMEx';
+	return qw(DATETIME DATETIME4 DATE TIME MSDATE MSTIME MSDATETIME2 MSDATETIMEOFFSET) if $_ eq 'DATETIMEx';
+	return qw(BIT BITN) if $_ eq 'BITx';
+	return qw(BINARY VARBINARY IMAGE LONGBINARY XBINARY XVARBINARY) if $_ eq 'BINARYx';
+	return qw(CHAR VARCHAR XCHAR XVARCHAR) if $_ eq 'CHARx';
 	return $_;
+}
+
+sub to_type($) {
+	$_ = shift;
+	return 'XSYB'.substr($_, 1) if (substr($_, 0, 1) eq 'X');
+	return "SYB$_";
 }
 
 my @to;
@@ -44,7 +53,7 @@ my %toFrom;
 while(<DATA>) {
 	next if /^\s+To\s*$/;
 	next if /^From/;
-	if( /^\s+VARCHAR CHAR/ ) {
+	if( /^\s+CHARx/ ) {
 		@to = split;
 		next;
 	}
@@ -58,10 +67,12 @@ while(<DATA>) {
 			foreach $to (category($to)) {
 				die if !exists($yn{$yn[$i]});
 				my $yn = $yn{$yn[$i]};
-				my $from = "SYB$from";
+				my $from = to_type($from);
+				next if $from eq 'SYBBOUNDARY';
 				die if !exists($typesNum{$from});
 				$allTypes{$from} = 1;
-				my $to = "SYB$to";
+				my $to = to_type($to);
+				next if $to eq 'SYBBOUNDARY';
 				die if !exists($typesNum{$to});
 				$allTypes{$to} = 1;
 				$fromTo{$from}{$to} = $yn;
@@ -121,20 +132,17 @@ print "};\n";
 __DATA__
           To
 From
-          VARCHAR CHAR TEXT BINARY VARBINARY IMAGE INTx FLTx NUMERIC DECIMAL BIT MONEYx DATETIMEx BOUNDARY UNIQUE SENSITIVITY
-VARCHAR     T      T   T    T      T         T     T    T    T       T       T   T      T         T        T      t
-CHAR        T      T   T    T      T         T     T    T    T       T       T   T      T         T        T      t
-TEXT        T      T   T    T      T         T     T    T    T       T       T   T      T         T        T      t
-BINARY      T      T   T    T      T         T     T    T    T       T       T   T      F         F        F      F
-VARBINARY   T      T   T    T      T         T     T    T    T       T       T   T      F         F        F      F
-IMAGE       T      T   T    T      T         T     T    T    T       T       T   T      F         F        F      F
-INTx        T      T   T    T      T         T     T    T    T       T       T   T      F         F        F      F
-FLTx        T      T   T    T      T         T     T    T    T       T       T   T      F         F        F      F
-NUMERIC     T      T   T    T      T         T     T    T    T       T       T   T      F         F        F      F
-DECIMAL     T      T   T    T      T         T     T    T    T       T       T   T      F         F        F      F
-BIT         T      T   T    T      T         T     T    T    T       T       T   T      F         F        F      F
-MONEYx      T      T   T    T      T         T     T    T    T       T       T   T      F         F        F      F
-DATETIMEx   T      T   T    T      T         T     F    F    F       F       F   F      T         F        F      F
-BOUNDARY    T      T   T    F      F         F     F    F    F       F       F   F      F         T        F      F
-UNIQUE      T      T   T    F      F         F     F    F    F       F       F   F      F         F        T      F
-SENSITIVITY t      t   t    F      F         F     F    F    F       F       F   F      F         F        F      t
+            CHARx TEXT BINARYx INTx FLTx NUMERIC DECIMAL BITx MONEYx DATETIMEx BOUNDARY UNIQUE SENSITIVITY
+CHARx       T     T    T       T    T    T       T       T    T      T         T        T      t
+TEXT        T     T    T       T    T    T       T       T    T      T         T        T      t
+BINARYx     T     T    T       T    T    F       F       F    T      F         F        F      F
+INTx        T     T    T       T    T    T       T       T    T      F         F        F      F
+FLTx        T     T    T       T    T    T       T       T    T      F         F        F      F
+NUMERIC     T     T    T       T    T    T       T       T    T      F         F        F      F
+DECIMAL     T     T    T       T    T    T       T       T    T      F         F        F      F
+BITx        T     T    T       T    T    T       T       T    T      F         F        F      F
+MONEYx      T     T    T       T    T    T       T       T    T      F         F        F      F
+DATETIMEx   T     T    T       F    F    F       F       F    F      T         F        F      F
+BOUNDARY    T     T    F       F    F    F       F       F    F      F         T        F      F
+UNIQUE      T     T    T       F    F    F       F       F    F      F         F        T      F
+SENSITIVITY t     t    F       F    F    F       F       F    F      F         F        F      t
