@@ -69,6 +69,7 @@ main(int argc, char **argv)
 	TDS_MONEY4 money4;
 	TDS_DATETIME datetime;
 	TDS_DATETIME4 datetime4;
+	TDS_DATETIMEALL dta;
 	TDS_DATE date;
 	TDS_TIME time;
 
@@ -128,9 +129,13 @@ main(int argc, char **argv)
 			case SYBDATETIME4:
 				src = "Jan  1, 1999";
 				break;
+			case SYBMSDATE:
+			case SYBMSDATETIME2:
+			case SYBMSDATETIMEOFFSET:
 			case SYBDATE:
 				src = "2012-11-27";
 				break;
+			case SYBMSTIME:
 			case SYBTIME:
 				src = "15:27:12";
 				break;
@@ -246,6 +251,13 @@ main(int argc, char **argv)
 			src = (char *) &tds_unique;
 			srclen = sizeof(tds_unique);
 			break;
+		case SYBMSTIME:
+		case SYBMSDATE:
+		case SYBMSDATETIME2:
+		case SYBMSDATETIMEOFFSET:
+			src = (char *) &dta;
+			srclen = sizeof(dta);
+			break;
 		/*****  not defined yet
 			case SYBBOUNDARY:
 			case SYBSENSITIVITY:
@@ -310,6 +322,9 @@ main(int argc, char **argv)
 			break;
 		case SYBTIME:
 			time = cr.time;
+			break;
+		case SYBMSDATETIME2:
+			dta = cr.dta;
 			break;
 		case SYBINT1:
 		case SYBUINT1:
