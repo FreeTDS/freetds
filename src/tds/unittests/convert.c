@@ -109,11 +109,28 @@ main(int argc, char **argv)
 		srctype  = i >> 8;
 		desttype = i & 0xff;
 		srctype = (srctype + SYBCHAR) & 0xff;
-		if (!tds_willconvert(srctype, desttype))
+
+		if (!tds_willconvert(srctype, desttype)) {
+			CONV_RESULT src;
+			memset(&src, 0, sizeof(src));
+			result = tds_convert(ctx, srctype, &src, 4, desttype, &cr);
+			if (result >= 0)
+				free_convert(desttype, &cr);
+			if (result != TDS_CONVERT_NOAVAIL) {
+				printf("NOT EXPECTED: converted %d (%s, %d bytes) : %d (%s, %d bytes).\n",
+				       srctype, tds_prtype(srctype), srclen,
+				       desttype, tds_prtype(desttype), result);
+				exit(1);
+			}
 			continue;	/* don't attempt nonconvertible types */
+		}
 
 		if (srctype == desttype)
 			continue;	/* don't attempt same types */
+
+		/* valid types should have a name ! */
+		assert(tds_prtype(srctype)[0] != 0);
+		assert(tds_prtype(desttype)[0] != 0);
 
 		cr.n.precision = 8;
 		cr.n.scale = 2;
@@ -291,8 +308,8 @@ main(int argc, char **argv)
 				srctype, tds_prtype(srctype), srclen,
 				desttype, tds_prtype(desttype));
 
-			if (result != TDS_CONVERT_NOAVAIL)
-				return result;
+			if (result == TDS_CONVERT_NOAVAIL)
+				exit(1);
 		}
 
 		printf("converted %d (%s, %d bytes) -> %d (%s, %d bytes).\n",
