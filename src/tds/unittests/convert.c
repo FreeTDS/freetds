@@ -91,6 +91,9 @@ main(int argc, char **argv)
 		printf("Computing %d iterations\n", iterations);
 	}
 
+	setbuf(stdout, NULL);
+	setbuf(stderr, NULL);
+
 	ctx = tds_alloc_context(NULL);
 	assert(ctx);
 	if (ctx->locale && !ctx->locale->date_fmt) {
@@ -105,6 +108,7 @@ main(int argc, char **argv)
 	for (i = 0; i < 0x10000; i++) {
 		srctype  = i >> 8;
 		desttype = i & 0xff;
+		srctype = (srctype + SYBCHAR) & 0xff;
 		if (!tds_willconvert(srctype, desttype))
 			continue;	/* don't attempt nonconvertible types */
 
@@ -266,7 +270,7 @@ main(int argc, char **argv)
 				break;
 		*****/
 		default:
-			fprintf(stderr, "no such type %d\n", srctype);
+			fprintf(stderr, "no such type %d (%s)\n", srctype, tds_prtype(srctype));
 			return -1;
 		}
 
@@ -291,7 +295,7 @@ main(int argc, char **argv)
 				return result;
 		}
 
-		printf("converted %d (%s, %d bytes) : %d (%s, %d bytes).\n",
+		printf("converted %d (%s, %d bytes) -> %d (%s, %d bytes).\n",
 		       srctype, tds_prtype(srctype), srclen,
 		       desttype, tds_prtype(desttype), result);
 
