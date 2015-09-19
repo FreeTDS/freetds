@@ -1348,7 +1348,7 @@ tds_convert_datetimeall(const TDSCONTEXT * tds_ctx, int srctype, const TDS_DATET
 
 		return string_to_result(whole_date_string, cr);
 	case CASE_ALL_BINARY:
-		/* TODO */
+		return binary_to_result(dta, sizeof(TDS_DATETIMEALL), cr);
 		break;
 	case SYBDATETIME:
 		if (!IS_INT(dta->date))
