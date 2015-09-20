@@ -195,7 +195,7 @@ foreach my $type (sort { $$a{value} <=> $$b{value} } values %types) {
 #	die "wrong fields" if $t{nullable} && $t{fixed};
 	die "wrong fields" if $t{variable} && $t{fixed};
 	my @f;
-	foreach my $n (qw(nullable fixed variable numeric collate unicode ascii)) {
+	foreach my $n (qw(nullable fixed variable numeric collate unicode ascii datetime)) {
 		push @f, uc("TDS_TYPEFLAG_$n") if $t{$n} eq '1';
 	}
 	my $f = join("|", @f);
@@ -237,7 +237,7 @@ collapse('TDS_TYPEFLAG_NULLABLE');
 collapse('TDS_TYPEFLAG_NUMERIC');
 collapse('TDS_TYPEFLAG_VARIABLE');
 collapse('TDS_TYPEFLAG_UNICODE');
-collapse('TDS_TYPEFLAG_ASCII');
+collapse('TDS_TYPEFLAG_DATETIME');
 
 # output MS flags
 print q|const unsigned char tds_type_flags_ms[256] = {

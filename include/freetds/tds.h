@@ -395,6 +395,7 @@ enum {
 	TDS_TYPEFLAG_ASCII    = 16,
 	TDS_TYPEFLAG_UNICODE  = 32,
 	TDS_TYPEFLAG_NUMERIC  = 64,
+	TDS_TYPEFLAG_DATETIME = 128,
 };
 
 extern const unsigned char tds_type_flags_ms[256];
@@ -414,8 +415,7 @@ extern const char *const tds_type_names[256];
 /* define is_large_type(x) (x>128) */
 #define is_numeric_type(x)    ((x)==SYBNUMERIC || (x)==SYBDECIMAL)
 /** return true if type is a datetime (but not date or time) */
-#define is_datetime_type(x)   ((x)==SYBDATETIME4 || (x)==SYBDATETIME || ((x)>=SYBMSDATETIME2 && (x)<=SYBMSDATETIMEOFFSET) \
-		|| (x) == SYBDATE || (x) == SYBTIME)
+#define is_datetime_type(x)   ((tds_type_flags_ms[x] & TDS_TYPEFLAG_DATETIME) != 0)
 #define is_unicode_type(x)    ((tds_type_flags_ms[x] & TDS_TYPEFLAG_UNICODE) != 0)
 #define is_collate_type(x)    ((tds_type_flags_ms[x] & TDS_TYPEFLAG_COLLATE) != 0)
 #define is_ascii_type(x)      ((tds_type_flags_ms[x] & TDS_TYPEFLAG_ASCII) != 0)
