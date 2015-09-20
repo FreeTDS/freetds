@@ -710,6 +710,11 @@ tds_generic_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 		break;
 	}
 
+	/* TDS5 wants a table name for LOBs */
+	if (IS_TDS50(tds->conn)
+	    && (col->on_server.column_type == SYBIMAGE || col->on_server.column_type == SYBTEXT))
+		tds_put_smallint(tds, 0);
+
 	/* TDS7.1 output collate information */
 	if (IS_TDS71_PLUS(tds->conn) && is_collate_type(col->on_server.column_type))
 		tds_put_n(tds, tds->conn->collation, 5);
@@ -733,6 +738,10 @@ tds_generic_put_info_len(TDSSOCKET * tds, TDSCOLUMN * col)
 		len = 2;
 		break;
 	}
+
+	if (IS_TDS50(tds->conn)
+	    && (col->on_server.column_type == SYBIMAGE || col->on_server.column_type == SYBTEXT))
+		len += 2;
 
 	/* TDS7.1 output collate information */
 	if (IS_TDS71_PLUS(tds->conn) && is_collate_type(col->on_server.column_type))
