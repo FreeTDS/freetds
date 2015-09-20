@@ -1632,13 +1632,12 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 	tds_put_byte(tds, curcol->column_output);	/* status (input) */
 	if (!IS_TDS7_PLUS(tds->conn))
 		tds_put_int(tds, curcol->column_usertype);	/* usertype */
-	/* FIXME: column_type is wider than one byte.  Do something sensible, not just lop off the high byte. */
 	tds_put_byte(tds, curcol->on_server.column_type);
 
 	if (curcol->funcs->put_info(tds, curcol) != TDS_SUCCESS)
 		return TDS_FAIL;
 
-	/* TODO needed in TDS4.2 ?? now is called only is TDS >= 5 */
+	/* TODO needed in TDS4.2 ?? now is called only if TDS >= 5 */
 	if (!IS_TDS7_PLUS(tds->conn))
 		tds_put_byte(tds, 0x00);	/* locale info length */
 
