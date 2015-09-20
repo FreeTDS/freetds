@@ -342,37 +342,27 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 		}
 	}
 
-	switch (dest_type) {
-	case SYBCHAR:
-	case SYBVARCHAR:
-	case XSYBCHAR:
-	case XSYBVARCHAR:
-	case XSYBNVARCHAR:
-	case XSYBNCHAR:
-	case SYBNVARCHAR:
-	case SYBNTEXT:
-	case SYBTEXT:
-		if (!need_data && (sql_src_type == SQL_C_CHAR || sql_src_type == SQL_C_WCHAR || sql_src_type == SQL_C_BINARY)) {
-			if (curcol->column_data && curcol->column_data_free)
-				curcol->column_data_free(curcol);
-			curcol->column_data_free = NULL;
-			if (is_blob_col(curcol)) {
-				/* trick to set blob without freeing it, _odbc_blob_free does not free TDSBLOB->textvalue */
-				TDSBLOB *blob = (TDSBLOB *) calloc(1, sizeof(TDSBLOB));
-				if (!blob) {
-					odbc_errs_add(&stmt->errs, "HY001", NULL);
-					return SQL_ERROR;
-				}
-				blob->textvalue = src;
-				curcol->column_data = (TDS_UCHAR*) blob;
-				curcol->column_data_free = _odbc_blob_free;
-			} else {
-				curcol->column_data = (TDS_UCHAR*) src;
+	if (is_char_type(dest_type) && !need_data
+	    && (sql_src_type == SQL_C_CHAR || sql_src_type == SQL_C_WCHAR || sql_src_type == SQL_C_BINARY)) {
+		if (curcol->column_data && curcol->column_data_free)
+			curcol->column_data_free(curcol);
+		curcol->column_data_free = NULL;
+		if (is_blob_col(curcol)) {
+			/* trick to set blob without freeing it, _odbc_blob_free does not free TDSBLOB->textvalue */
+			TDSBLOB *blob = (TDSBLOB *) calloc(1, sizeof(TDSBLOB));
+			if (!blob) {
+				odbc_errs_add(&stmt->errs, "HY001", NULL);
+				return SQL_ERROR;
 			}
-			curcol->column_size = len;
-			curcol->column_cur_size = len;
-			return SQL_SUCCESS;
+			blob->textvalue = src;
+			curcol->column_data = (TDS_UCHAR*) blob;
+			curcol->column_data_free = _odbc_blob_free;
+		} else {
+			curcol->column_data = (TDS_UCHAR*) src;
 		}
+		curcol->column_size = len;
+		curcol->column_cur_size = len;
+		return SQL_SUCCESS;
 	}
 
 	/* allocate given space */
