@@ -406,7 +406,10 @@ AllTests(void)
 	/* output from char with conversions */
 	TestOutput("VARCHAR(20)", "foo test", SQL_C_CHAR, SQL_VARCHAR, "6 foo te");
 	/* TODO use collate in sintax if available */
-	TestOutput("VARCHAR(20)", "0xf8f9", SQL_C_CHAR, SQL_VARCHAR, "2 \xf8\xf9");
+	/* while usually on Microsoft database this encoding is valid on Sybase the database
+	 * could use UTF-8 encoding where \xf8\xf9 is an invalid encoded string */
+	if (odbc_db_is_microsoft() && odbc_tds_version() > 0x700)
+		TestOutput("VARCHAR(20)", "0xf8f9", SQL_C_CHAR, SQL_VARCHAR, "2 \xf8\xf9");
 
 	if ((odbc_db_is_microsoft() && odbc_db_version_int() >= 0x08000000u && odbc_tds_version() > 0x700)
 	    || (!odbc_db_is_microsoft() && strncmp(odbc_db_version(), "15.00.", 6) >= 0)) {
@@ -476,6 +479,8 @@ main(int argc, char *argv[])
 		if (use_cursors) {
 			if (!tds_no_dm || !odbc_driver_is_freetds())
 				odbc_reset_statement();
+			/* if connection does not support cursors returns success */
+			setenv("TDS_SKIP_SUCCESS", "1", 1);
 			odbc_check_cursor();
 		}
 

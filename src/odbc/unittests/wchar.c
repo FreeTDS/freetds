@@ -2,9 +2,6 @@
 
 /* test SQL_C_DEFAULT with NCHAR type */
 
-static char software_version[] = "$Id: wchar.c,v 1.4 2010-07-05 09:20:33 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 int
 main(int argc, char *argv[])
 {
@@ -27,7 +24,9 @@ main(int argc, char *argv[])
 
 	odbc_disconnect();
 
-	if (strcmp(buf, "Pippo 123 ") != 0) {
+	/* the second string could came from Sybase configured with UTF-8 */
+	if (strcmp(buf, "Pippo 123 ") != 0
+	    && (odbc_db_is_microsoft() || strcmp(buf, "Pippo 123                     ") != 0)) {
 		fprintf(stderr, "Wrong results '%s'\n", buf);
 		failed = 1;
 	}
