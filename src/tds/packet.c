@@ -128,7 +128,7 @@ tds_packet_cache_add(TDSCONNECTION *conn, TDSPACKET *packet)
 }
 
 /* read partial packet */
-static void
+static bool
 tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 {
 	TDSPACKET *packet = conn->recv_packet;
@@ -161,7 +161,7 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 		/* make sure we read the header */
 		if (conn->recv_pos < sizeof(mars_header)) {
 			packet->data_len = sizeof(mars_header);
-			return;
+			return false;
 		}
 
 		memcpy(&mars_header, packet->buf, sizeof(mars_header));
@@ -191,7 +191,7 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 			/* reset packet to initial state to reuse it */
 			packet->data_len = 8;
 			conn->recv_pos = 0;
-			return;
+			return false;
 		}
 
 		if (!tds) {
@@ -227,14 +227,15 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 			goto Severe_Error;
 
 		if (mars_header.type != TDS_SMP_DATA)
-			return;
+			return conn->recv_pos >= size;
 		if (packet->data_len < size) {
 			packet = tds_realloc_packet(packet, size);
-			if (!packet) goto Memory_Error;
+			if (!packet)
+				goto Memory_Error;
 			conn->recv_packet = packet;
 		}
 		packet->data_len = size;
-		return;
+		return conn->recv_pos >= size;
 	}
 	assert(conn->recv_pos <= packet->data_len && packet->data_len <= packet->capacity);
 
@@ -249,14 +250,16 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 			conn->recv_packet = packet;
 		}
 		packet->data_len = len;
+		return conn->recv_pos >= len;
 	}
-	return;
+	return false;
 
 Memory_Error:
 Severe_Error:
 	tds_connection_close(conn);
 	tds_free_packets(packet);
 	conn->recv_packet = NULL;
+	return false;
 }
 
 static TDSPACKET*
@@ -388,10 +391,9 @@ tds_connection_network(TDSCONNECTION *conn, TDSSOCKET *tds, int send)
 			TDSSOCKET *s;
 
 			/* try to read a packet */
-			tds_packet_read(conn, tds);
-			packet = conn->recv_packet;
-			if (!packet || conn->recv_pos < packet->data_len)
+			if (!tds_packet_read(conn, tds))
 				continue;	/* packet not complete */
+			packet = conn->recv_packet;
 			conn->recv_packet = NULL;
 			conn->recv_pos = 0;
 
