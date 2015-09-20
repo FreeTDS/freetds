@@ -1668,11 +1668,7 @@ tds_put_data_info_length(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 	/* TODO ICONV convert string if needed (see also tds_put_data_info) */
 	if (flags & TDS_PUT_DATA_USE_NAME)
 		len += tds_dstr_len(&curcol->column_name);
-	if (is_numeric_type(curcol->on_server.column_type))
-		len += 2;
-	if (curcol->column_varint_size == 5)
-		return len + 4;
-	return len + curcol->column_varint_size;
+	return len + curcol->funcs->put_info_len(tds, curcol);
 }
 
 /**
