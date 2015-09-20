@@ -36,6 +36,7 @@
 #define CHECK_PARAMINFO_EXTRA(res_info)   CHECK_STRUCT_EXTRA(tds_check_resultinfo_extra,res_info)
 #define CHECK_CURSOR_EXTRA(cursor)        CHECK_STRUCT_EXTRA(tds_check_cursor_extra,cursor)
 #define CHECK_DYNAMIC_EXTRA(dynamic)      CHECK_STRUCT_EXTRA(tds_check_dynamic_extra,dynamic)
+#define CHECK_FREEZE_EXTRA(freeze)        CHECK_STRUCT_EXTRA(tds_check_freeze_extra,freeze)
 #define CHECK_CONN_EXTRA(conn)
 
 #if ENABLE_EXTRA_CHECKS
@@ -46,6 +47,7 @@ void tds_check_column_extra(const TDSCOLUMN * column);
 void tds_check_resultinfo_extra(const TDSRESULTINFO * res_info);
 void tds_check_cursor_extra(const TDSCURSOR * cursor);
 void tds_check_dynamic_extra(const TDSDYNAMIC * dynamic);
+void tds_check_freeze_extra(const TDSFREEZE * freeze);
 #endif
 
 #if defined(HAVE_VALGRIND_MEMCHECK_H) && ENABLE_EXTRA_CHECKS

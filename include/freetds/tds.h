@@ -1060,10 +1060,29 @@ typedef struct tds_packet
 {
 	struct tds_packet *next;
 	uint16_t sid;
+
+#if ENABLE_ODBC_MARS
+	/**
+	 * Data before TDS data, currently can be 0 or sizeof(TDS72_SMP_HEADER)
+	 */
+	uint8_t data_start;
+#endif
+
+	/**
+	 * data length, this does not account SMP header, only TDS part
+	 */
 	unsigned data_len;
 	unsigned capacity;
 	unsigned char buf[1];
 } TDSPACKET;
+
+#if ENABLE_ODBC_MARS
+#define tds_packet_zero_data_start(pkt) do { (pkt)->data_start = 0; } while(0)
+#define tds_packet_get_data_start(pkt) ((pkt)->data_start)
+#else
+#define tds_packet_zero_data_start(pkt) do { } while(0)
+#define tds_packet_get_data_start(pkt) 0
+#endif
 
 typedef struct tds_poll_wakeup
 {
@@ -1115,14 +1134,15 @@ struct tds_connection
 	TDSPACKET *send_packets;
 	unsigned send_pos, recv_pos;
 
-	tds_mutex list_mtx;
 #define BUSY_SOCKET ((TDSSOCKET*)(TDS_UINTPTR)1)
 #define TDSSOCKET_VALID(tds) (((TDS_UINTPTR)(tds)) > 1)
 	struct tds_socket **sessions;
 	unsigned num_sessions;
+#endif
+	tds_mutex list_mtx;
+
 	unsigned num_cached_packets;
 	TDSPACKET *packet_cache;
-#endif
 
 	int spid;
 	int client_spid;
@@ -1163,6 +1183,7 @@ struct tds_socket
 	 * Points to sending packet buffer.
 	 * Output buffer can contain additional data before the raw TDS packet
 	 * so this buffer can point some bytes after send_packet->buf.
+	 * Specifically this will point to send_packet->buf + send_packet->data_start.
 	 */
 	unsigned char *out_buf;
 
@@ -1176,6 +1197,13 @@ struct tds_socket
 	unsigned in_len;		/**< input buffer length */
 	unsigned char in_flag;		/**< input buffer type */
 	unsigned char out_flag;		/**< output buffer type */
+
+	unsigned frozen;
+	/**
+	 * list of packets frozen, points to first one.
+	 * send_packet is the last packet in the list.
+	 */
+	TDSPACKET *frozen_packets;
 
 #if ENABLE_ODBC_MARS
 	/** SID of MARS session.
@@ -1536,6 +1564,45 @@ TDSRET tds_append_fin(TDSSOCKET *tds);
 int tds_put_cancel(TDSSOCKET * tds);
 #endif
 
+typedef struct tds_freeze {
+	/** which socket we refer to */
+	TDSSOCKET *tds;
+	/** first packet frozen */
+	TDSPACKET *pkt;
+	/** position in pkt */
+	unsigned pkt_pos;
+	/** length size (0, 1, 2 or 4) */
+	unsigned size_len;
+} TDSFREEZE;
+
+void tds_freeze(TDSSOCKET *tds, TDSFREEZE *freeze, unsigned size_len);
+size_t tds_freeze_written(TDSFREEZE *freeze);
+TDSRET tds_freeze_abort(TDSFREEZE *freeze);
+TDSRET tds_freeze_close(TDSFREEZE *freeze);
+TDSRET tds_freeze_close_len(TDSFREEZE *freeze, int32_t size);
+
+static void inline
+tds_set_current_send_packet(TDSSOCKET *tds, TDSPACKET *pkt)
+{
+	tds->send_packet = pkt;
+	tds->out_buf = pkt->buf + tds_packet_get_data_start(pkt);
+}
+
+/* Macros to allow some indentation of the packets.
+ *
+ * The 3 nested fake loops require some explanation:
+ * - first is to allows to declare variables;
+ * - second is to force using brackets;
+ * - third is to avoids that a break inside will skip the close.
+ */
+#define TDS_START_LEN_GENERIC(tds_socket, len) do { \
+	TDSFREEZE current_freeze[1]; \
+	tds_freeze((tds_socket), current_freeze, (len)); do { do
+#define TDS_END_LEN while(0); } while(tds_freeze_close(current_freeze), 0); } while(0);
+
+#define TDS_START_LEN_TINYINT(tds_socket) TDS_START_LEN_GENERIC(tds_socket, 1)
+#define TDS_START_LEN_USMALLINT(tds_socket) TDS_START_LEN_GENERIC(tds_socket, 2)
+#define TDS_START_LEN_UINT(tds_socket) TDS_START_LEN_GENERIC(tds_socket, 4)
 
 /* vstrbuild.c */
 TDSRET tds_vstrbuild(char *buffer, int buflen, int *resultlen, const char *text, int textlen, const char *formats, int formatlen,

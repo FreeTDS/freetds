@@ -123,6 +123,20 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 		if (prior_state == TDS_READING || prior_state == TDS_WRITING)
 			tds_mutex_unlock(&tds->wire_mtx);
 		tds->state = state;
+
+		/* invalid, code should have either close or aborted all freezes */
+		if (TDS_UNLIKELY(tds->frozen)) {
+			TDSFREEZE freeze;
+
+			tds->frozen = 1;
+			freeze.tds = tds;
+			freeze.pkt = tds->frozen_packets;
+			freeze.pkt_pos = 8;
+			freeze.size_len = 0;
+			tds_freeze_abort(&freeze);
+
+			tds_connection_close(tds->conn);
+		}
 		break;
 	case TDS_WRITING:
 		CHECK_TDS_EXTRA(tds);

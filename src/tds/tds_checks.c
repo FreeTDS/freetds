@@ -44,7 +44,8 @@ tds_check_packet_extra(const TDSPACKET * packet)
 {
 	assert(packet);
 	for (; packet; packet = packet->next) {
-		assert(packet->data_len <= packet->capacity);
+		assert(tds_packet_get_data_start(packet) == 0 || tds_packet_get_data_start(packet) == sizeof(TDS72_SMP_HEADER));
+		assert(packet->data_len + tds_packet_get_data_start(packet) <= packet->capacity);
 	}
 }
 
@@ -94,11 +95,13 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 
 #if ENABLE_ODBC_MARS
 	if (tds->conn->send_packets)
-		assert(tds->conn->send_pos <= tds->conn->send_packets->data_len);
+		assert(tds->conn->send_pos <= tds->conn->send_packets->data_len + tds->conn->send_packets->data_start);
 	if (tds->conn->recv_packet)
-		assert(tds->conn->recv_pos <= tds->conn->recv_packet->data_len);
+		assert(tds->conn->recv_pos <= tds->conn->recv_packet->data_len + tds->conn->recv_packet->data_start);
 	if (tds->conn->mars)
-		assert(tds->out_buf >= tds->send_packet->buf + sizeof(TDS72_SMP_HEADER));
+		assert(tds->send_packet->data_start == sizeof(TDS72_SMP_HEADER));
+	else
+		assert(tds->send_packet->data_start == 0);
 #endif
 
 	assert(tds->in_pos <= tds->in_len);
@@ -107,12 +110,12 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 /*	assert(tds->out_pos <= tds->out_len); */
 /* 	assert(tds->out_len == 0 || tds->out_buf != NULL); */
 	assert(tds->send_packet->capacity >= tds->out_buf_max + TDS_ADDITIONAL_SPACE);
-	assert(tds->out_buf >= tds->send_packet->buf);
+	assert(tds->out_buf == tds->send_packet->buf + tds_packet_get_data_start(tds->send_packet));
 	assert(tds->out_buf + tds->out_buf_max + TDS_ADDITIONAL_SPACE <=
 		tds->send_packet->buf + tds->send_packet->capacity);
 	assert(tds->out_pos <= tds->out_buf_max + TDS_ADDITIONAL_SPACE);
 
-	assert(tds->in_buf == tds->recv_packet->buf || tds->in_buf == tds->recv_packet->buf + 16);
+	assert(tds->in_buf == tds->recv_packet->buf || tds->in_buf == tds->recv_packet->buf + sizeof(TDS72_SMP_HEADER));
 	assert(tds->recv_packet->capacity > 0);
 
 	/* test res_info */
@@ -149,6 +152,18 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 	/* we can't have normal and parameters results */
 	/* TODO too strict ?? */
 /*	assert(tds->param_info == NULL || tds->res_info == NULL); */
+
+	if (tds->frozen) {
+		TDSPACKET *pkt;
+
+		assert(tds->frozen_packets != NULL);
+		for (pkt = tds->frozen_packets; pkt; pkt = pkt->next) {
+			if (pkt->next == NULL)
+				assert(pkt == tds->send_packet);
+		}
+	} else {
+		assert(tds->frozen_packets == NULL);
+	}
 }
 
 void
@@ -310,6 +325,31 @@ tds_check_dynamic_extra(const TDSDYNAMIC * dyn)
 		tds_check_resultinfo_extra(dyn->params);
 
 	assert(!dyn->emulated || dyn->query);
+}
+
+void
+tds_check_freeze_extra(const TDSFREEZE * freeze)
+{
+	TDSPACKET *pkt;
+
+	assert(freeze);
+	assert(freeze->tds != NULL);
+	assert(freeze->size_len <= 4 && freeze->size_len != 3);
+
+	tds_check_tds_extra(freeze->tds);
+
+	/* check position */
+	if (freeze->pkt == freeze->tds->send_packet)
+		assert(freeze->tds->out_pos >= freeze->pkt_pos);
+	else
+		assert(freeze->pkt->data_len >= freeze->pkt_pos);
+
+	/* check packet is in list */
+	for (pkt = freeze->tds->frozen_packets; ; pkt = pkt->next) {
+		assert(pkt);
+		if (pkt == freeze->pkt)
+			break; /* found */
+	}
 }
 
 void

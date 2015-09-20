@@ -1066,6 +1066,7 @@ tds_alloc_packet(void *buf, unsigned len)
 {
 	TDSPACKET *packet = (TDSPACKET *) malloc(len + TDS_OFFSET(TDSPACKET, buf));
 	if (TDS_LIKELY(packet)) {
+		tds_packet_zero_data_start(packet);
 		packet->data_len = 0;
 		packet->capacity = len;
 		packet->sid = 0;
@@ -1117,12 +1118,12 @@ tds_deinit_connection(TDSCONNECTION *conn)
 	free(conn->product_name);
 	free(conn->server);
 	tds_free_env(conn);
-#if ENABLE_ODBC_MARS
+	tds_free_packets(conn->packet_cache);
 	tds_mutex_free(&conn->list_mtx);
+#if ENABLE_ODBC_MARS
 	tds_free_packets(conn->packets);
 	tds_free_packets(conn->recv_packet);
 	tds_free_packets(conn->send_packets);
-	tds_free_packets(conn->packet_cache);
 	free(conn->sessions);
 #endif
 }
@@ -1141,9 +1142,10 @@ tds_init_connection(TDSCONNECTION *conn, TDSCONTEXT *context, unsigned int bufsi
 	if (tds_iconv_alloc(conn))
 		goto Cleanup;
 
-#if ENABLE_ODBC_MARS
 	if (tds_mutex_init(&conn->list_mtx))
 		goto Cleanup;
+
+#if ENABLE_ODBC_MARS
 	TEST_CALLOC(conn->sessions, TDSSOCKET*, 64);
 	conn->num_sessions = 64;
 #endif
@@ -1158,6 +1160,8 @@ Cleanup:
 static TDSSOCKET *
 tds_init_socket(TDSSOCKET * tds_socket, unsigned int bufsize)
 {
+	TDSPACKET *pkt;
+
 	tds_socket->parent = NULL;
 
 	tds_socket->recv_packet = tds_alloc_packet(NULL, bufsize);
@@ -1165,10 +1169,10 @@ tds_init_socket(TDSSOCKET * tds_socket, unsigned int bufsize)
 		goto Cleanup;
 	tds_socket->in_buf = tds_socket->recv_packet->buf;
 
-	tds_socket->send_packet = tds_alloc_packet(NULL, bufsize + TDS_ADDITIONAL_SPACE);
-	if (!tds_socket->send_packet)
+	pkt = tds_alloc_packet(NULL, bufsize + TDS_ADDITIONAL_SPACE);
+	if (!pkt)
 		goto Cleanup;
-	tds_socket->out_buf = tds_socket->send_packet->buf;
+	tds_set_current_send_packet(tds_socket, pkt);
 
 	tds_socket->out_buf_max = bufsize;
 
@@ -1291,7 +1295,8 @@ tds_alloc_additional_socket(TDSCONNECTION *conn)
 	tds = tds_alloc_socket_base(sizeof(TDS72_SMP_HEADER) + conn->env.block_size);
 	if (!tds)
 		return NULL;
-	tds->out_buf += sizeof(TDS72_SMP_HEADER);
+	tds->send_packet->data_start = sizeof(TDS72_SMP_HEADER);
+	tds->out_buf = tds->send_packet->buf + sizeof(TDS72_SMP_HEADER);
 	tds->out_buf_max -= sizeof(TDS72_SMP_HEADER);
 
 	tds->conn = conn;
@@ -1344,7 +1349,7 @@ tds_realloc_socket(TDSSOCKET * tds, size_t bufsize)
 
 	/* prevent nasty memory conditions, server should send the request at
 	 * the beginning only */
-	if (tds->out_pos > bufsize)
+	if (tds->out_pos > bufsize || tds->frozen)
 		return NULL;
 
 	tds->conn->env.block_size = bufsize;
@@ -1353,9 +1358,11 @@ tds_realloc_socket(TDSSOCKET * tds, size_t bufsize)
 	if (packet == NULL)
 		return NULL;
 
-	tds->out_buf = packet->buf + smp_hdr_len;
+#if ENABLE_ODBC_MARS
+	packet->data_start = smp_hdr_len;
+#endif
 	tds->out_buf_max = bufsize;
-	tds->send_packet = packet;
+	tds_set_current_send_packet(tds, packet);
 	return tds;
 }
 
@@ -1427,7 +1434,10 @@ tds_free_socket(TDSSOCKET * tds)
 
 	tds_connection_remove_socket(tds->conn, tds);
 	tds_free_packets(tds->recv_packet);
-	tds_free_packets(tds->send_packet);
+	if (tds->frozen_packets)
+		tds_free_packets(tds->frozen_packets);
+	else
+		tds_free_packets(tds->send_packet);
 	free(tds);
 }
 

@@ -61,6 +61,7 @@
 #if ENABLE_ODBC_MARS
 static TDSRET tds_update_recv_wnd(TDSSOCKET *tds, TDS_UINT new_recv_wnd);
 static int tds_packet_write(TDSCONNECTION *conn);
+#endif
 
 /* get packet from the cache */
 static TDSPACKET *
@@ -77,6 +78,7 @@ tds_get_packet(TDSCONNECTION *conn, unsigned len)
 		if (packet->capacity >= len) {
 			TDS_MARK_UNDEFINED(packet->buf, packet->capacity);
 			packet->next = NULL;
+			tds_packet_zero_data_start(packet);
 			packet->data_len = 0;
 			packet->sid = 0;
 			break;
@@ -127,6 +129,7 @@ tds_packet_cache_add(TDSCONNECTION *conn, TDSPACKET *packet)
 #endif
 }
 
+#if ENABLE_ODBC_MARS
 /* read partial packet */
 static bool
 tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
@@ -142,6 +145,8 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 		conn->recv_pos = 0;
 		packet->data_len = 8;
 	}
+
+	assert(packet->data_start == 0);
 
 	assert(conn->recv_pos < packet->data_len && packet->data_len <= packet->capacity);
 
@@ -235,7 +240,12 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 			conn->recv_packet = packet;
 		}
 		packet->data_len = size;
-		return conn->recv_pos >= size;
+		if (conn->recv_pos >= size) {
+			packet->data_start = sizeof(TDS72_SMP_HEADER);
+			packet->data_len -= sizeof(TDS72_SMP_HEADER);
+			return true;
+		}
+		return false;
 	}
 	assert(conn->recv_pos <= packet->data_len && packet->data_len <= packet->capacity);
 
@@ -397,7 +407,7 @@ tds_connection_network(TDSCONNECTION *conn, TDSSOCKET *tds, int send)
 			conn->recv_packet = NULL;
 			conn->recv_pos = 0;
 
-			tdsdump_dump_buf(TDS_DBG_NETWORK, "Received packet", packet->buf, packet->data_len);
+			tdsdump_dump_buf(TDS_DBG_NETWORK, "Received packet", packet->buf, packet->data_start + packet->data_len);
 
 			tds_mutex_lock(&conn->list_mtx);
 			if (packet->sid < conn->num_sessions) {
@@ -425,11 +435,10 @@ tds_connection_network(TDSCONNECTION *conn, TDSSOCKET *tds, int send)
 }
 
 static TDSRET
-tds_connection_put_packet(TDSSOCKET *tds)
+tds_connection_put_packet(TDSSOCKET *tds, TDSPACKET *packet)
 {
 	TDSCONNECTION *conn = tds->conn;
 
-	TDSPACKET *packet = tds->send_packet;
 	CHECK_TDS_EXTRA(tds);
 
 	packet->sid = tds->sid;
@@ -455,7 +464,7 @@ tds_connection_put_packet(TDSSOCKET *tds)
 				hdr->signature = TDS72_SMP;
 				hdr->type = TDS_SMP_DATA;
 				TDS_PUT_A2LE(&hdr->sid, packet->sid);
-				TDS_PUT_A4LE(&hdr->size, packet->data_len);
+				TDS_PUT_A4LE(&hdr->size, packet->data_start + packet->data_len);
 				++tds->send_seq;
 				TDS_PUT_A4LE(&hdr->seq, tds->send_seq);
 				/* this is the acknowledge we give to server to stop sending */
@@ -471,7 +480,7 @@ tds_connection_put_packet(TDSSOCKET *tds)
 		/* network ok ? process network */
 		if (!conn->in_net_tds) {
 			tds_connection_network(conn, tds, packet ? 0 : 1);
-			if (packet || tds->sending_packet)
+			if (tds->sending_packet)
 				continue;
 			/* here we are sure we sent the packet */
 			break;
@@ -537,8 +546,6 @@ tds_read_packet(TDSSOCKET * tds)
 				break;
 
 		if (*p_packet) {
-			size_t hdr_size;
-
 			/* remove our packet from list */
 			TDSPACKET *packet = *p_packet;
 			*p_packet = packet->next;
@@ -548,9 +555,8 @@ tds_read_packet(TDSSOCKET * tds)
 			packet->next = NULL;
 			tds->recv_packet = packet;
 
-			hdr_size = packet->buf[0] == TDS72_SMP ? sizeof(TDS72_SMP_HEADER) : 0;
-			tds->in_buf = packet->buf + hdr_size;
-			tds->in_len = packet->data_len - hdr_size;
+			tds->in_buf = packet->buf + packet->data_start;
+			tds->in_len = packet->data_len;
 			tds->in_pos  = 8;
 			tds->in_flag = tds->in_buf[0];
 
@@ -728,18 +734,35 @@ tds_append_syn(TDSSOCKET *tds)
 #endif /* ENABLE_ODBC_MARS */
 
 
+TDS_COMPILE_CHECK(additional, TDS_ADDITIONAL_SPACE != 0);
+
 TDSRET
 tds_write_packet(TDSSOCKET * tds, unsigned char final)
 {
 	TDSRET res;
 	unsigned int left = 0;
-#if ENABLE_ODBC_MARS
-	TDSPACKET *packet_next;
-	unsigned char *next_buf;
+	TDSPACKET *pkt = tds->send_packet, *pkt_next = NULL;
+
+	CHECK_TDS_EXTRA(tds);
+
+#if !ENABLE_ODBC_MARS
+	if (tds->frozen)
 #endif
+	{
+		pkt->next = pkt_next = tds_get_packet(tds->conn, pkt->capacity);
+		if (!pkt_next)
+			return TDS_FAIL;
+
+#if ENABLE_ODBC_MARS
+		if (tds->conn->mars)
+			pkt_next->data_start = sizeof(TDS72_SMP_HEADER);
+#endif
+	}
 
 	if (tds->out_pos > tds->out_buf_max) {
 		left = tds->out_pos - tds->out_buf_max;
+		if (pkt_next)
+			memcpy(pkt_next->buf + tds_packet_get_data_start(pkt_next) + 8, tds->out_buf + tds->out_buf_max, left);
 		tds->out_pos = tds->out_buf_max;
 	}
 
@@ -754,30 +777,19 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 	if (IS_TDS7_PLUS(tds->conn) && !tds->login)
 		tds->out_buf[6] = 0x01;
 
-#if ENABLE_ODBC_MARS
-	tds->send_packet->data_len = tds->out_buf + tds->out_pos - tds->send_packet->buf;
-
-	packet_next = tds_get_packet(tds->conn, tds->send_packet->capacity);
-	if (!packet_next)
-		return TDS_FAIL;
-	next_buf = packet_next->buf;
-
-	if (tds->conn->mars) {
-		TDS72_SMP_HEADER *hdr;
-
-		/* fill SMP data */
-		hdr = (TDS72_SMP_HEADER *) packet_next->buf;
-		hdr->signature = TDS72_SMP;
-		hdr->type = TDS_SMP_DATA;
-
-		next_buf += sizeof(TDS72_SMP_HEADER);
+	if (tds->frozen) {
+		pkt->data_len = tds->out_pos;
+		tds_set_current_send_packet(tds, pkt_next);
+		tds->out_pos = left + 8;
+		CHECK_TDS_EXTRA(tds);
+		return TDS_SUCCESS;
 	}
-	memcpy(next_buf + 8, tds->out_buf + tds->out_buf_max, left);
 
-	res = tds_connection_put_packet(tds);
-
-	tds->send_packet = packet_next;
-	tds->out_buf = next_buf;
+#if ENABLE_ODBC_MARS
+	pkt->data_len = tds->out_pos;
+	pkt->next = NULL;
+	tds_set_current_send_packet(tds, pkt_next);
+	res = tds_connection_put_packet(tds, pkt);
 #else /* !ENABLE_ODBC_MARS */
 	tdsdump_dump_buf(TDS_DBG_NETWORK, "Sending packet", tds->out_buf, tds->out_pos);
 
@@ -837,7 +849,7 @@ tds_packet_write(TDSCONNECTION *conn)
 	assert(packet);
 
 	if (conn->send_pos == 0)
-		tdsdump_dump_buf(TDS_DBG_NETWORK, "Sending packet", packet->buf, packet->data_len);
+		tdsdump_dump_buf(TDS_DBG_NETWORK, "Sending packet", packet->buf, packet->data_start + packet->data_len);
 
 	/* take into account other session packets */
 	if (packet->next != NULL)
@@ -849,7 +861,7 @@ tds_packet_write(TDSCONNECTION *conn)
 		final = 1;
 
 	sent = tds_connection_write(conn->in_net_tds, packet->buf + conn->send_pos,
-				    packet->data_len - conn->send_pos, final);
+				    packet->data_start + packet->data_len - conn->send_pos, final);
 
 	if (TDS_UNLIKELY(sent < 0)) {
 		/* TODO tdserror called ?? */
@@ -860,7 +872,7 @@ tds_packet_write(TDSCONNECTION *conn)
 	/* update sent data */
 	conn->send_pos += sent;
 	/* remove packet if sent all data */
-	if (conn->send_pos >= packet->data_len) {
+	if (conn->send_pos >= packet->data_start + packet->data_len) {
 		uint16_t sid = packet->sid;
 		TDSSOCKET *tds;
 		tds_mutex_lock(&conn->list_mtx);
@@ -878,5 +890,209 @@ tds_packet_write(TDSCONNECTION *conn)
 	return -1;
 }
 #endif /* ENABLE_ODBC_MARS */
+
+/**
+ * Stop writing to server and cache every packet not sending them to server.
+ * This is used to write data without worrying to compute length before.
+ * If size_len is provided the number of bytes written between ::tds_freeze and
+ * ::tds_freeze_close will be written as a number of size size_len.
+ * This call should be followed by a ::tds_freeze_close, ::tds_freeze_close_len or
+ * a ::tds_freeze_abort. Failing to match ::tds_freeze with a close would possibly
+ * result in a disconnection from the server.
+ *
+ * @param[out]  freeze    structure to initialize
+ * @param       size_len  length of the size to automatically write on close (0, 1, 2, or 4)
+ */
+void
+tds_freeze(TDSSOCKET *tds, TDSFREEZE *freeze, unsigned size_len)
+{
+	CHECK_TDS_EXTRA(tds);
+	tds_extra_assert(size_len <= 4 && size_len != 3);
+
+	if (tds->out_pos > tds->out_buf_max)
+		tds_write_packet(tds, 0x0);
+
+	if (!tds->frozen)
+		tds->frozen_packets = tds->send_packet;
+
+	++tds->frozen;
+	freeze->tds = tds;
+	freeze->pkt = tds->send_packet;
+	freeze->pkt_pos = tds->out_pos;
+	freeze->size_len = size_len;
+	if (size_len)
+		tds_put_n(tds, NULL, size_len);
+
+	CHECK_FREEZE_EXTRA(freeze);
+}
+
+/**
+ * Compute how many bytes has been written from freeze
+ *
+ * @return bytes written since ::tds_freeze call
+ */
+size_t
+tds_freeze_written(TDSFREEZE *freeze)
+{
+	TDSSOCKET *tds = freeze->tds;
+	TDSPACKET *pkt = freeze->pkt;
+	size_t size;
+
+	CHECK_FREEZE_EXTRA(freeze);
+
+	/* last packet needs special handling */
+	size = tds->out_pos;
+
+	/* packets before last */
+	for (; pkt->next != NULL; pkt = pkt->next)
+		size += pkt->data_len - 8;
+
+	return size - freeze->pkt_pos;
+}
+
+/**
+ * Discard all data written after the freeze
+ *
+ * After this call freeze should not be used.
+ *
+ * @param[in]  freeze  structure to work on
+ */
+TDSRET
+tds_freeze_abort(TDSFREEZE *freeze)
+{
+	TDSSOCKET *tds = freeze->tds;
+	TDSPACKET *pkt = freeze->pkt;
+
+	CHECK_FREEZE_EXTRA(freeze);
+
+	if (pkt->next) {
+		tds_mutex_lock(&tds->conn->list_mtx);
+		tds_packet_cache_add(tds->conn, pkt->next);
+		tds_mutex_unlock(&tds->conn->list_mtx);
+		pkt->next = NULL;
+
+		tds_set_current_send_packet(tds, pkt);
+	}
+	tds->out_pos = freeze->pkt_pos;
+	pkt->data_len = 8;
+
+	--tds->frozen;
+	if (!tds->frozen)
+		tds->frozen_packets = NULL;
+	freeze->tds = NULL;
+	return TDS_SUCCESS;
+}
+
+/**
+ * Stop keeping data for this specific freeze.
+ *
+ * If size_len was used for ::tds_freeze this function write the written bytes
+ * at position when ::tds_freeze was called.
+ * After this call freeze should not be used.
+ *
+ * @param[in]  freeze  structure to work on
+ */
+TDSRET
+tds_freeze_close(TDSFREEZE *freeze)
+{
+	return tds_freeze_close_len(freeze, freeze->size_len ? tds_freeze_written(freeze) - freeze->size_len : 0);
+}
+
+static void
+tds_freeze_update_size(const TDSFREEZE *freeze, int32_t size)
+{
+	TDSPACKET *pkt;
+	unsigned pos = freeze->pkt_pos;
+	unsigned size_len = freeze->size_len;
+
+	pkt = freeze->pkt;
+	do {
+		if (pos >= pkt->data_len && pkt->next) {
+			pkt = pkt->next;
+			pos = 8;
+		}
+		pkt->buf[tds_packet_get_data_start(pkt) + pos] = size & 0xffu;
+		size >>= 8;
+		pos++;
+	} while (--size_len);
+}
+
+/**
+ * Stop keeping data for this specific freeze.
+ *
+ * Similar to ::tds_freeze_close but specify the size to be written instead
+ * of letting ::tds_freeze_close compute it.
+ * After this call freeze should not be used.
+ *
+ * @param[in]  freeze  structure to work on
+ * @param[in]  size    size to write
+ */
+TDSRET
+tds_freeze_close_len(TDSFREEZE *freeze, int32_t size)
+{
+	TDSSOCKET *tds = freeze->tds;
+	TDSPACKET *pkt;
+#if !ENABLE_ODBC_MARS
+	TDSPACKET *last_pkt_sent = NULL;
+#endif
+
+	CHECK_FREEZE_EXTRA(freeze);
+
+	if (freeze->size_len)
+		tds_freeze_update_size(freeze, size);
+
+	/* if not last freeze we need just to update size */
+	freeze->tds = NULL;
+	if (--tds->frozen != 0)
+		return TDS_SUCCESS;
+
+	tds->frozen_packets = NULL;
+	pkt = freeze->pkt;
+	while (pkt->next) {
+		TDSPACKET *next = pkt->next;
+		TDSRET rc;
+#if ENABLE_ODBC_MARS
+		pkt->next = NULL;
+		freeze->pkt = next;
+		/* packet will get owned by function, no need to release it */
+		rc = tds_connection_put_packet(tds, pkt);
+#else
+		rc = tds_connection_write(tds, pkt->buf, pkt->data_len, 0) <= 0 ?
+			TDS_FAIL : TDS_SUCCESS;
+		last_pkt_sent = pkt;
+#endif
+		if (TDS_UNLIKELY(TDS_FAILED(rc))) {
+			while (next->next) {
+				pkt = next;
+				next = pkt->next;
+			}
+			tds_extra_assert(pkt->next != NULL);
+			tds_extra_assert(pkt->next == tds->send_packet);
+
+			pkt->next = NULL;
+			tds_mutex_lock(&tds->conn->list_mtx);
+			tds_packet_cache_add(tds->conn, freeze->pkt);
+			tds_mutex_unlock(&tds->conn->list_mtx);
+			return rc;
+		}
+		pkt = next;
+	}
+
+	tds_extra_assert(pkt->next == NULL);
+	tds_extra_assert(pkt == tds->send_packet);
+
+#if !ENABLE_ODBC_MARS
+	if (last_pkt_sent) {
+		tds_extra_assert(last_pkt_sent->next == pkt);
+		last_pkt_sent->next = NULL;
+		tds_mutex_lock(&tds->conn->list_mtx);
+		tds_packet_cache_add(tds->conn, freeze->pkt);
+		tds_mutex_unlock(&tds->conn->list_mtx);
+	}
+#endif
+
+	/* keep final packet so we can continue to add data */
+	return TDS_SUCCESS;
+}
 
 /** @} */
