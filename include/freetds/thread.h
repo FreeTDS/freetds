@@ -78,6 +78,7 @@ int tds_raw_cond_timedwait(tds_condition *cond, tds_raw_mutex *mtx, int timeout_
 #define TDS_HAVE_MUTEX 1
 
 typedef pthread_t tds_thread;
+typedef pthread_t tds_thread_id;
 typedef void *(*tds_thread_proc)(void *arg);
 #define TDS_THREAD_PROC_DECLARE(name, arg) \
 	void *name(void *arg)
@@ -90,6 +91,16 @@ static inline int tds_thread_create(tds_thread *ret, tds_thread_proc proc, void 
 static inline int tds_thread_join(tds_thread th, void **ret)
 {
 	return pthread_join(th, ret);
+}
+
+static inline tds_thread_id tds_thread_get_current_id(void)
+{
+	return pthread_self();
+}
+
+static inline int tds_thread_is_current(tds_thread_id th)
+{
+	return pthread_equal(th, pthread_self());
 }
 
 #include <freetds/popvis.h>
@@ -158,6 +169,7 @@ static inline int tds_raw_cond_wait(tds_condition *cond, tds_raw_mutex *mtx)
 }
 
 typedef HANDLE tds_thread;
+typedef DWORD  tds_thread_id;
 typedef void *(WINAPI *tds_thread_proc)(void *arg);
 #define TDS_THREAD_PROC_DECLARE(name, arg) \
 	void *WINAPI name(void *arg)
@@ -180,6 +192,16 @@ static inline int tds_thread_join(tds_thread th, void **ret)
 	}
 	CloseHandle(th);
 	return 22 /* EINVAL */;
+}
+
+static inline tds_thread_id tds_thread_get_current_id(void)
+{
+	return GetCurrentThreadId();
+}
+
+static inline int tds_thread_is_current(tds_thread_id th)
+{
+	return th == GetCurrentThreadId();
 }
 
 #else
@@ -234,6 +256,7 @@ static inline int tds_raw_cond_destroy(tds_condition *cond)
 
 typedef struct {
 } tds_thread;
+typedef int tds_thread_id;
 
 typedef void *(*tds_thread_proc)(void *arg);
 #define TDS_THREAD_PROC_DECLARE(name, arg) \
@@ -244,6 +267,17 @@ typedef void *(*tds_thread_proc)(void *arg);
 
 #define tds_thread_join(th, ret) \
 	FreeTDS_Thread_not_compiled
+
+static inline tds_thread_id tds_thread_get_current_id(void)
+{
+	return 0;
+}
+
+static inline int tds_thread_is_current(tds_thread_id th)
+{
+	return 1;
+}
+
 
 #endif
 
@@ -257,6 +291,7 @@ typedef void *(*tds_thread_proc)(void *arg);
 #    define tds_mutex_lock tds_raw_mutex_lock
 #    define tds_mutex_trylock tds_raw_mutex_trylock
 #    define tds_mutex_unlock tds_raw_mutex_unlock
+#    define tds_mutex_check_owned(mtx) do {} while(0)
 #    define tds_mutex_init tds_raw_mutex_init
 #    define tds_mutex_free tds_raw_mutex_free
 #    define tds_cond_wait tds_raw_cond_wait
@@ -268,6 +303,7 @@ typedef struct tds_mutex
 {
 	tds_raw_mutex mtx;
 	volatile int locked;
+	volatile tds_thread_id locked_by;
 } tds_mutex;
 
 #   define TDS_MUTEX_INITIALIZER { TDS_RAW_MUTEX_INITIALIZER, 0 }
@@ -278,6 +314,7 @@ static inline void tds_mutex_lock(tds_mutex *mtx)
 	tds_raw_mutex_lock(&mtx->mtx);
 	assert(!mtx->locked);
 	mtx->locked = 1;
+	mtx->locked_by = tds_thread_get_current_id();
 }
 
 static inline int tds_mutex_trylock(tds_mutex *mtx)
@@ -288,6 +325,7 @@ static inline int tds_mutex_trylock(tds_mutex *mtx)
 	if (!ret) {
 		assert(!mtx->locked);
 		mtx->locked = 1;
+		mtx->locked_by = tds_thread_get_current_id();
 	}
 	return ret;
 }
@@ -297,6 +335,16 @@ static inline void tds_mutex_unlock(tds_mutex *mtx)
 	assert(mtx && mtx->locked);
 	mtx->locked = 0;
 	tds_raw_mutex_unlock(&mtx->mtx);
+}
+
+static inline void tds_mutex_check_owned(tds_mutex *mtx)
+{
+	int ret;
+	assert(mtx);
+	ret = tds_raw_mutex_trylock(&mtx->mtx);
+	assert(ret);
+	assert(mtx->locked);
+	assert(tds_thread_is_current(mtx->locked_by));
 }
 
 static inline int tds_mutex_init(tds_mutex *mtx)
@@ -318,6 +366,7 @@ static inline int tds_cond_wait(tds_condition *cond, tds_mutex *mtx)
 	mtx->locked = 0;
 	ret = tds_raw_cond_wait(cond, &mtx->mtx);
 	mtx->locked = 1;
+	mtx->locked_by = tds_thread_get_current_id();
 	return ret;
 }
 
@@ -328,6 +377,7 @@ static inline int tds_cond_timedwait(tds_condition *cond, tds_mutex *mtx, int ti
 	mtx->locked = 0;
 	ret = tds_raw_cond_timedwait(cond, &mtx->mtx, timeout_sec);
 	mtx->locked = 1;
+	mtx->locked_by = tds_thread_get_current_id();
 	return ret;
 }
 

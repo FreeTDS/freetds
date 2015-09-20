@@ -104,6 +104,7 @@ tds_packet_cache_add(TDSCONNECTION *conn, TDSPACKET *packet)
 	unsigned count = 1;
 
 	assert(conn && packet);
+	tds_mutex_check_owned(&conn->list_mtx);
 
 	if (conn->num_cached_packets >= 8) {
 		tds_free_packets(packet);
