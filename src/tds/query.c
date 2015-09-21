@@ -3178,8 +3178,8 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 	CHECK_PARAMINFO_EXTRA(params);
 
 	if (src_len < 0) {
-		/* on TDS 4 and 5 TEXT/IMAGE cannot be NULL, use empty */
-		if (!IS_TDS7_PLUS(tds->conn) && (curcol->column_type == SYBIMAGE || curcol->column_type == SYBTEXT))
+		/* on TDS 4 TEXT/IMAGE cannot be NULL, use empty */
+		if (!IS_TDS50_PLUS(tds->conn) && is_blob_type(curcol->column_type))
 			tds_put_string(tds, "''", 2);
 		else
 			tds_put_string(tds, "NULL", 4);
