@@ -3569,18 +3569,7 @@ dbprrow(DBPROCESS * dbproc)
 static int
 _get_printable_size(TDSCOLUMN * colinfo)
 {
-	switch (colinfo->column_type) {
-	case SYBINTN:
-		switch (colinfo->column_size) {
-		case 1:
-			return 3;
-		case 2:
-			return 6;
-		case 4:
-			return 11;
-		case 8:
-			return 21;
-		}
+	switch (tds_get_conversion_type(colinfo->column_type, colinfo->column_size)) {
 	case SYBINT1:
 		return 3;
 	case SYBINT2:
@@ -3609,7 +3598,6 @@ _get_printable_size(TDSCOLUMN * colinfo)
 		return 12;
 	case SYBDATETIME:
 	case SYBDATETIME4:
-	case SYBDATETIMN:
 		return 26;
 	case SYBTIME:
 		return 15;
@@ -3618,7 +3606,6 @@ _get_printable_size(TDSCOLUMN * colinfo)
 	case SYBUNIQUE:
 		return 36;
 	case SYBBIT:
-	case SYBBITN:
 		return 1;
 		/* FIX ME -- not all types present */
 	default:
