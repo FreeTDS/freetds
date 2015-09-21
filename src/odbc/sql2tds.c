@@ -482,6 +482,8 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 	case SYBMSDATE:
 	case SYBMSDATETIME2:
 	case SYBMSDATETIMEOFFSET:
+	case SYB5BIGTIME:
+	case SYB5BIGDATETIME:
 		res = tds_convert(dbc->env->tds_ctx, src_type, src, len, dest_type, (CONV_RESULT*) dest);
 		break;
 	default:
