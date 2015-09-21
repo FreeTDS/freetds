@@ -101,6 +101,8 @@ static const char *parse_numeric(const char *buf, const char *pend,
 
 #define TDS_ISDIGIT(c) ((c) >= '0' && (c) <= '9')
 
+#define BIGDATETIME_BIAS 693961
+
 /**
  * \ingroup libtds
  * \defgroup convert Conversion
@@ -468,6 +470,8 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 	case SYBMSDATETIMEOFFSET:
 	case SYBTIME:
 	case SYBDATE:
+	case SYB5BIGTIME:
+	case SYB5BIGDATETIME:
 		return string_to_datetime(src, srclen, desttype, cr);
 		break;
 	case SYBNUMERIC:
@@ -1296,6 +1300,13 @@ tds_convert_datetimeall(const TDSCONTEXT * tds_ctx, int srctype, const TDS_DATET
 	case SYBTIME:
 		cr->time = (TDS_INT) ((dta->time * 3u + 50000u) / 100000u);
 		return sizeof(TDS_TIME);
+	case SYB5BIGTIME:
+		cr->bigtime = dta->time / 10u;
+		return sizeof(TDS_UINT8);
+	case SYB5BIGDATETIME:
+		cr->bigtime = dta->time / 10u
+			      + (dta->date + BIGDATETIME_BIAS) * ((TDS_UINT8) 86400u * 1000000u);
+		return sizeof(TDS_UINT8);
 		/* conversions not allowed */
 	case SYBUNIQUE:
 	case SYBBIT:
@@ -1364,6 +1375,13 @@ tds_convert_datetime(const TDSCONTEXT * tds_ctx, const TDS_DATETIME * dt, int de
 			cr->dta.date = dt->dtdays;
 		}
 		return sizeof(TDS_DATETIMEALL);
+	case SYB5BIGTIME:
+		cr->bigtime = ((TDS_UINT8) dt->dttime) * 10000u / 3u;
+		return sizeof(TDS_BIGTIME);
+	case SYB5BIGDATETIME:
+		cr->bigdatetime = ((TDS_UINT8) dt->dttime) * 10000u / 3u
+				  + (dt->dtdays + BIGDATETIME_BIAS) * ((TDS_UINT8) 86400u * 1000000u);
+		return sizeof(TDS_BIGDATETIME);
 		/* conversions not allowed */
 	case SYBUNIQUE:
 	case SYBBIT:
@@ -1433,6 +1451,48 @@ tds_convert_date(const TDSCONTEXT * tds_ctx, const TDS_DATE * date, int desttype
 	dt.dttime = 0;
 	return tds_convert_datetime(tds_ctx, &dt, desttype, 0, cr);
 }
+
+static TDS_INT
+tds_convert_bigtime(const TDSCONTEXT * tds_ctx, const TDS_BIGTIME * bigtime, int desttype, CONV_RESULT * cr)
+{
+	TDS_DATETIMEALL dta;
+
+	if (desttype == SYB5BIGTIME) {
+		cr->bigtime = *bigtime;
+		return sizeof(TDS_BIGTIME);
+	}
+
+	/* convert to DATETIMEALL and use tds_convert_datetimeall */
+	memset(&dta, 0, sizeof(dta));
+	dta.time_prec = 6;
+	dta.has_time = 1;
+	dta.time = *bigtime % ((TDS_UINT8) 86400u * 1000000u) * 10u;
+	return tds_convert_datetimeall(tds_ctx, SYBMSTIME, &dta, desttype, cr);
+}
+
+static TDS_INT
+tds_convert_bigdatetime(const TDSCONTEXT * tds_ctx, const TDS_BIGDATETIME * bigdatetime, int desttype, CONV_RESULT * cr)
+{
+	TDS_DATETIMEALL dta;
+	TDS_UINT8 bdt;
+
+	if (desttype == SYB5BIGDATETIME) {
+		cr->bigdatetime = *bigdatetime;
+		return sizeof(TDS_BIGDATETIME);
+	}
+
+	/* convert to DATETIMEALL and use tds_convert_datetimeall */
+	bdt = *bigdatetime;
+	memset(&dta, 0, sizeof(dta));
+	dta.time_prec = 6;
+	dta.has_time = 1;
+	dta.time = bdt % ((TDS_UINT8) 86400u * 1000000u) * 10u;
+	bdt /= (TDS_UINT8) 86400u * 1000000u;
+	dta.has_date = 1;
+	dta.date = bdt - BIGDATETIME_BIAS;
+	return tds_convert_datetimeall(tds_ctx, SYBMSDATETIME2, &dta, desttype, cr);
+}
+
 
 static TDS_INT
 tds_convert_real(const TDS_REAL* src, int desttype, CONV_RESULT * cr)
@@ -1760,6 +1820,12 @@ tds_convert_to_binary(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int de
 	case SYBMSDATETIMEOFFSET:
 		len = sizeof(TDS_DATETIMEALL);
 		break;
+	case SYB5BIGTIME:
+		len = sizeof(TDS_BIGTIME);
+		break;
+	case SYB5BIGDATETIME:
+		len = sizeof(TDS_BIGDATETIME);
+		break;
 	case SYBUNIQUE:
 		len = sizeof(TDS_UNIQUE);
 		break;
@@ -1892,6 +1958,12 @@ tds_convert(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, TDS_U
 		break;
 	case SYBDATE:
 		length = tds_convert_date(tds_ctx, (const TDS_DATE *) src, desttype, cr);
+		break;
+	case SYB5BIGTIME:
+		length = tds_convert_bigtime(tds_ctx, (const TDS_BIGTIME *) src, desttype, cr);
+		break;
+	case SYB5BIGDATETIME:
+		length = tds_convert_bigdatetime(tds_ctx, (const TDS_BIGDATETIME *) src, desttype, cr);
 		break;
 	case CASE_ALL_BINARY:
 		length = tds_convert_binary((const TDS_UCHAR *) src, srclen, desttype, cr);
@@ -2167,6 +2239,15 @@ string_to_datetime(const char *instr, TDS_UINT len, int desttype, CONV_RESULT * 
 	if (desttype == SYBTIME) {
 		cr->time = dt_time * 300 + (t.tm_ns / 1000000u * 300 + 150) / 1000;
 		return sizeof(TDS_TIME);
+	}
+	if (desttype == SYB5BIGTIME) {
+		cr->bigtime = dt_time * (TDS_UINT8) 1000000u + t.tm_ns / 1000u;
+		return sizeof(TDS_BIGTIME);
+	}
+	if (desttype == SYB5BIGDATETIME) {
+		cr->bigdatetime = (dt_days + BIGDATETIME_BIAS) * ((TDS_UINT8) 86400u * 1000000u)
+				  + dt_time * (TDS_UINT8) 1000000u + t.tm_ns / 1000u;
+		return sizeof(TDS_BIGDATETIME);
 	}
 
 	cr->dta.has_offset = 0;
@@ -3101,6 +3182,21 @@ tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
 		secs = dt_time % 60;
 		dt_time = dt_time / 60;
 		dt_days = 0;
+	} else if (datetype == SYB5BIGTIME) {
+		TDS_UINT8 bigtime = *((const TDS_BIGTIME *) di);
+		dt_days = 0;
+		dms = bigtime % 1000000u * 10u;
+		dt_time = (bigtime / 1000000u) % 86400u;
+		secs = dt_time % 60;
+		dt_time = dt_time / 60u;
+	} else if (datetype == SYB5BIGDATETIME) {
+		TDS_UINT8 bigdatetime = *((const TDS_BIGDATETIME*) di);
+		dms = bigdatetime % 1000000u * 10u;
+		bigdatetime /= 1000000u;
+		secs = bigdatetime % 60u;
+		bigdatetime /= 60u;
+		dt_time = bigdatetime % (24u*60u);
+		dt_days = bigdatetime / (24u*60u) - BIGDATETIME_BIAS;
 	} else {
 		return TDS_FAIL;
 	}
