@@ -858,6 +858,12 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 	case SYBMSDATETIMEOFFSET:
 		fmt = "DATETIMEOFFSET";
 		break;
+	case SYB5BIGTIME:
+		fmt = "BIGTIME";
+		break;
+	case SYB5BIGDATETIME:
+		fmt = "BIGDATETIME";
+		break;
 	case SYBUINT2:
 		fmt = "UNSIGNED SMALLINT";
 		break;
