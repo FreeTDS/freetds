@@ -112,6 +112,31 @@ data_clrudt_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odb
 }
 
 static void
+data_sybbigtime_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
+{
+	if (col->on_server.column_type == SYB5BIGTIME) {
+		drec->sql_desc_concise_type = SQL_SS_TIME2;
+		/* we always format using hh:mm:ss[.ffffff], see convert_tds2sql.c */
+		drec->sql_desc_display_size = 15;
+		drec->sql_desc_octet_length = sizeof(SQL_SS_TIME2_STRUCT);
+		drec->sql_desc_precision = 6;
+		drec->sql_desc_scale     = 6;
+		drec->sql_desc_datetime_interval_code = SQL_CODE_TIMESTAMP;
+		SET_INFO2("bigtime", "'", "'", 15);
+	}
+
+	assert(col->on_server.column_type == SYB5BIGDATETIME);
+
+	drec->sql_desc_concise_type = SQL_TYPE_TIMESTAMP;
+	drec->sql_desc_display_size = 26;
+	drec->sql_desc_octet_length = sizeof(TIMESTAMP_STRUCT);
+	drec->sql_desc_precision = 6;
+	drec->sql_desc_scale     = 6;
+	drec->sql_desc_datetime_interval_code = SQL_CODE_TIMESTAMP;
+	SET_INFO2("bigdatetime", "'", "'", 26);
+}
+
+static void
 data_generic_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
 {
 	int col_type = col->on_server.column_type;
@@ -378,3 +403,4 @@ TDS_DEFINE_FUNCS(numeric);
 TDS_DEFINE_FUNCS(variant);
 TDS_DEFINE_FUNCS(msdatetime);
 TDS_DEFINE_FUNCS(clrudt);
+TDS_DEFINE_FUNCS(sybbigtime);
