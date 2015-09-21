@@ -188,9 +188,6 @@ binary_to_result(int desttype, const void *data, size_t len, CONV_RESULT * cr)
 	return (TDS_INT)len;
 }
 
-#define binary_to_result(data, len, cr) \
-	binary_to_result(desttype, data, len, cr)
-
 #define CASE_ALL_CHAR \
 	SYBCHAR: case SYBVARCHAR: case SYBTEXT: case XSYBCHAR: case XSYBVARCHAR
 #define CASE_ALL_BINARY \
@@ -251,9 +248,6 @@ tds_convert_binary(const TDS_UCHAR * src, TDS_INT srclen, int desttype, CONV_RES
 
 		*c = '\0';
 		return (srclen * 2);
-		break;
-	case CASE_ALL_BINARY:
-		return binary_to_result(src, srclen, cr);
 		break;
 	case SYBINT1:
 	case SYBUINT1:
@@ -345,7 +339,6 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 	TDS_INT8 tds_i8;
 	TDS_UINT8 tds_ui8;
 	TDS_INT rc;
-	TDS_CHAR *ib;
 
 	bool negative;
 	size_t digits, decimals;
@@ -363,31 +356,6 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 		return srclen;
 		break;
 
-	case CASE_ALL_BINARY:
-
-		/* skip leading "0x" or "0X" */
-
-		if (srclen >= 2 && src[0] == '0' && (src[1] == 'x' || src[1] == 'X')) {
-			src += 2;
-			srclen -= 2;
-		}
-
-		/* ignore trailing blanks and nulls */
-		/* FIXME is good to ignore null ?? */
-		while (srclen > 0 && (src[srclen - 1] == ' ' || src[srclen - 1] == '\0'))
-			--srclen;
-
-		/* a binary string output will be half the length of */
-		/* the string which represents it in hexadecimal     */
-
-		ib = cr->cb.ib;
-		if (desttype != TDS_CONVERT_BINARY) {
-			cr->ib = (TDS_CHAR *) malloc((srclen + 2u) / 2u);
-			test_alloc(cr->ib);
-			ib = cr->ib;
-		}
-		return tds_char2hex(ib, desttype == TDS_CONVERT_BINARY ? cr->cb.len : 0xffffffffu, src, srclen);
-		break;
 	case SYBINT1:
 	case SYBUINT1:
 		if ((rc = string_to_int(src, src + srclen, &tds_i)) < 0)
@@ -588,50 +556,30 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 static TDS_INT
 tds_convert_bit(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 {
-	switch (desttype) {
-	case CASE_ALL_BINARY:
-		return binary_to_result(src, 1, cr);
-	}
 	return tds_convert_int(src[0] ? 1 : 0, desttype, cr);
 }
 
 static TDS_INT
 tds_convert_int1(const TDS_TINYINT * src, int desttype, CONV_RESULT * cr)
 {
-	switch (desttype) {
-	case CASE_ALL_BINARY:
-		return binary_to_result(src, 1, cr);
-	}
 	return tds_convert_int(*src, desttype, cr);
 }
 
 static TDS_INT
 tds_convert_int2(const TDS_SMALLINT * src, int desttype, CONV_RESULT * cr)
 {
-	switch (desttype) {
-	case CASE_ALL_BINARY:
-		return binary_to_result(src, 2, cr);
-	}
 	return tds_convert_int(*src, desttype, cr);
 }
 
 static TDS_INT
 tds_convert_uint2(const TDS_USMALLINT * src, int desttype, CONV_RESULT * cr)
 {
-	switch (desttype) {
-	case CASE_ALL_BINARY:
-		return binary_to_result(src, 2, cr);
-	}
 	return tds_convert_int(*src, desttype, cr);
 }
 
 static TDS_INT
 tds_convert_int4(const TDS_INT * src, int desttype, CONV_RESULT * cr)
 {
-	switch (desttype) {
-	case CASE_ALL_BINARY:
-		return binary_to_result(src, 4, cr);
-	}
 	return tds_convert_int(*src, desttype, cr);
 }
 
@@ -639,11 +587,6 @@ static TDS_INT
 tds_convert_uint4(const TDS_UINT * src, int desttype, CONV_RESULT * cr)
 {
 	TDS_UINT8 num;
-
-	switch (desttype) {
-	case CASE_ALL_BINARY:
-		return binary_to_result(src, 4, cr);
-	}
 
 	num = *src;
 	return tds_convert_uint8(&num, desttype, cr);
@@ -775,11 +718,6 @@ tds_convert_int8(const TDS_INT8 *src, int desttype, CONV_RESULT * cr)
 	TDS_INT8 buf;
 	TDS_CHAR tmp_str[24];
 
-	switch (desttype) {
-	case CASE_ALL_BINARY:
-		return binary_to_result(src, sizeof(TDS_INT8), cr);
-	}
-
 	memcpy(&buf, src, sizeof(buf));
 	if (IS_INT(buf))
 		return tds_convert_int((TDS_INT) buf, desttype, cr);
@@ -855,11 +793,6 @@ tds_convert_uint8(const TDS_UINT8 *src, int desttype, CONV_RESULT * cr)
 {
 	TDS_UINT8 buf;
 	TDS_CHAR tmp_str[24];
-
-	switch (desttype) {
-	case CASE_ALL_BINARY:
-		return binary_to_result(src, sizeof(TDS_INT8), cr);
-	}
 
 	memcpy(&buf, src, sizeof(buf));
 	/* IS_INT does not work here due to unsigned/signed conversions */
@@ -943,9 +876,6 @@ tds_convert_numeric(const TDS_NUMERIC * src, int desttype, CONV_RESULT * cr)
 		if (tds_numeric_to_string(src, tmpstr) < 0)
 			return TDS_CONVERT_FAIL;
 		return string_to_result(tmpstr, cr);
-		break;
-	case CASE_ALL_BINARY:
-		return binary_to_result(src, sizeof(TDS_NUMERIC), cr);
 		break;
 	case SYBINT1:
 	case SYBUINT1:
@@ -1142,9 +1072,6 @@ tds_convert_money4(const TDS_MONEY4 * src, int desttype, CONV_RESULT * cr)
 		sprintf(p, "%ld.%02lu", dollars / 100, dollars % 100);
 		return string_to_result(tmp_str, cr);
 		break;
-	case CASE_ALL_BINARY:
-		return binary_to_result(src, sizeof(TDS_MONEY4), cr);
-		break;
 	case SYBINT1:
 	case SYBUINT1:
 		dollars = mny.mny4 / 10000;
@@ -1243,10 +1170,6 @@ tds_convert_money(const TDS_MONEY * src, int desttype, CONV_RESULT * cr)
 	case CASE_ALL_CHAR:
 		s = tds_money_to_string((const TDS_MONEY *) src, tmpstr);
 		return string_to_result(s, cr);
-		break;
-
-	case CASE_ALL_BINARY:
-		return binary_to_result(src, sizeof(TDS_MONEY), cr);
 		break;
 	case SYBINT1:
 	case SYBUINT1:
@@ -1347,9 +1270,6 @@ tds_convert_datetimeall(const TDSCONTEXT * tds_ctx, int srctype, const TDS_DATET
 		             dta->time_prec);
 
 		return string_to_result(whole_date_string, cr);
-	case CASE_ALL_BINARY:
-		return binary_to_result(dta, sizeof(TDS_DATETIMEALL), cr);
-		break;
 	case SYBDATETIME:
 		if (!IS_INT(dta->date))
 			return TDS_CONVERT_OVERFLOW;
@@ -1411,8 +1331,6 @@ tds_convert_datetime(const TDSCONTEXT * tds_ctx, const TDS_DATETIME * dt, int de
 		tds_strftime(whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when, 3);
 
 		return string_to_result(whole_date_string, cr);
-	case CASE_ALL_BINARY:
-		return binary_to_result(dt, sizeof(TDS_DATETIME), cr);
 	case SYBDATETIME:
 		cr->dt = *dt;
 		return sizeof(TDS_DATETIME);
@@ -1473,14 +1391,9 @@ tds_convert_datetime4(const TDSCONTEXT * tds_ctx, const TDS_DATETIME4 * dt4, int
 {
 	TDS_DATETIME dt;
 
-	switch (desttype) {
-	case CASE_ALL_BINARY:
-		return binary_to_result(dt4, sizeof(TDS_DATETIME4), cr);
-	case SYBDATETIME4:
+	if (desttype == SYBDATETIME4) {
 		cr->dt4 = *dt4;
 		return sizeof(TDS_DATETIME4);
-	default:
-		break;
 	}
 
 	/* convert to DATETIME and use tds_convert_datetime */
@@ -1494,14 +1407,9 @@ tds_convert_time(const TDSCONTEXT * tds_ctx, const TDS_TIME * time, int desttype
 {
 	TDS_DATETIME dt;
 
-	switch (desttype) {
-	case CASE_ALL_BINARY:
-		return binary_to_result(time, sizeof(TDS_TIME), cr);
-	case SYBTIME:
+	if (desttype == SYBTIME) {
 		cr->time = *time;
 		return sizeof(TDS_TIME);
-	default:
-		break;
 	}
 
 	/* convert to DATETIME and use tds_convert_datetime */
@@ -1515,14 +1423,9 @@ tds_convert_date(const TDSCONTEXT * tds_ctx, const TDS_DATE * date, int desttype
 {
 	TDS_DATETIME dt;
 
-	switch (desttype) {
-	case CASE_ALL_BINARY:
-		return binary_to_result(date, sizeof(TDS_DATE), cr);
-	case SYBDATE:
+	if (desttype == SYBDATE) {
 		cr->date = *date;
 		return sizeof(TDS_DATE);
-	default:
-		break;
 	}
 
 	/* convert to DATETIME and use tds_convert_datetime */
@@ -1548,10 +1451,6 @@ tds_convert_real(const TDS_REAL* src, int desttype, CONV_RESULT * cr)
 	case CASE_ALL_CHAR:
 		sprintf(tmp_str, "%.9g", the_value);
 		return string_to_result(tmp_str, cr);
-		break;
-
-	case CASE_ALL_BINARY:
-		return binary_to_result(src, sizeof(TDS_REAL), cr);
 		break;
 	case SYBINT1:
 	case SYBUINT1:
@@ -1662,10 +1561,6 @@ tds_convert_flt8(const TDS_FLOAT* src, int desttype, CONV_RESULT * cr)
 		sprintf(tmp_str, "%.17g", the_value);
 		return string_to_result(tmp_str, cr);
 		break;
-
-	case CASE_ALL_BINARY:
-		return binary_to_result(src, sizeof(TDS_FLOAT), cr);
-		break;
 	case SYBINT1:
 	case SYBUINT1:
 		if (!IS_TINYINT(the_value))
@@ -1771,9 +1666,6 @@ tds_convert_unique(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 			u->Data4[0], u->Data4[1], u->Data4[2], u->Data4[3], u->Data4[4], u->Data4[5], u->Data4[6], u->Data4[7]);
 		return string_to_result(buf, cr);
 		break;
-	case CASE_ALL_BINARY:
-		return binary_to_result(src, sizeof(TDS_UNIQUE), cr);
-		break;
 	case SYBUNIQUE:
 		/*
 		 * Here we can copy raw to structure because we adjust
@@ -1806,6 +1698,101 @@ tds_convert_unique(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 	return TDS_CONVERT_NOAVAIL;
 }
 
+static TDS_INT
+tds_convert_to_binary(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESULT * cr)
+{
+	size_t len;
+	TDS_CHAR *ib;
+
+	switch (srctype) {
+	case CASE_ALL_BINARY:
+		len = srclen;
+		break;
+	case SYBBIT:
+	case SYBBITN:
+	case SYBINT1:
+	case SYBUINT1:
+		len = 1;
+		break;
+	case SYBINT2:
+	case SYBUINT2:
+		len = 2;
+		break;
+	case SYBINT4:
+	case SYBUINT4:
+		len = 4;
+		break;
+	case SYBINT8:
+	case SYBUINT8:
+		len = sizeof(TDS_INT8);
+		break;
+	case SYBMONEY4:
+		len = sizeof(TDS_MONEY4);
+		break;
+	case SYBMONEY:
+		len = sizeof(TDS_MONEY);
+		break;
+	case SYBNUMERIC:
+	case SYBDECIMAL:
+		len = sizeof(TDS_NUMERIC);
+		break;
+	case SYBREAL:
+		len = sizeof(TDS_REAL);
+		break;
+	case SYBFLT8:
+		len = sizeof(TDS_FLOAT);
+		break;
+	case SYBDATETIME:
+		len = sizeof(TDS_DATETIME);
+		break;
+	case SYBDATETIME4:
+		len = sizeof(TDS_DATETIME4);
+		break;
+	case SYBTIME:
+		len = sizeof(TDS_TIME);
+		break;
+	case SYBDATE:
+		len = sizeof(TDS_DATE);
+		break;
+	case SYBMSTIME:
+	case SYBMSDATE:
+	case SYBMSDATETIME2:
+	case SYBMSDATETIMEOFFSET:
+		len = sizeof(TDS_DATETIMEALL);
+		break;
+	case SYBUNIQUE:
+		len = sizeof(TDS_UNIQUE);
+		break;
+	case CASE_ALL_CHAR:
+
+		/* skip leading "0x" or "0X" */
+		if (srclen >= 2 && src[0] == '0' && (src[1] == 'x' || src[1] == 'X')) {
+			src += 2;
+			srclen -= 2;
+		}
+
+		/* ignore trailing blanks and nulls */
+		/* FIXME is good to ignore null ?? */
+		while (srclen > 0 && (src[srclen - 1] == ' ' || src[srclen - 1] == '\0'))
+			--srclen;
+
+		/* a binary string output will be half the length of */
+		/* the string which represents it in hexadecimal     */
+
+		ib = cr->cb.ib;
+		if (desttype != TDS_CONVERT_BINARY) {
+			cr->ib = (TDS_CHAR *) malloc((srclen + 2u) / 2u);
+			test_alloc(cr->ib);
+			ib = cr->ib;
+		}
+		return tds_char2hex(ib, desttype == TDS_CONVERT_BINARY ? cr->cb.len : 0xffffffffu, src, srclen);
+
+	default:
+		return TDS_CONVERT_NOAVAIL;
+	}
+	return binary_to_result(desttype, src, len, cr);
+}
+
 /**
  * tds_convert
  * convert a type to another.
@@ -1835,6 +1822,11 @@ tds_convert(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, TDS_U
 		srctype = v->type;
 		src = v->data;
 		srclen = v->data_len;
+	}
+
+	switch (desttype) {
+	case CASE_ALL_BINARY:
+		return tds_convert_to_binary(srctype, src, srclen, desttype, cr);
 	}
 
 	switch (srctype) {
