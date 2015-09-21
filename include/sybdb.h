@@ -211,6 +211,10 @@ enum
 #define SYBDATE SYBDATE
 	SYBTIME = 51,		/* 0x33 */
 #define SYBTIME SYBTIME
+	SYBBIGDATETIME = 187,	/* 0xBB */
+#define SYBBIGDATETIME SYBBIGDATETIME
+	SYBBIGTIME = 188,	/* 0xBC */
+#define SYBBIGTIME SYBBIGTIME
 };
 
 #define SYBAOPCNT  0x4b
@@ -500,6 +504,8 @@ typedef int (*MHANDLEFUNC) (DBPROCESS * dbproc, DBINT msgno, int msgstate, int s
 #define SRCDECIMALBIND    20
 #define DATEBIND          21
 #define TIMEBIND          22
+#define BIGDATETIMEBIND   23
+#define BIGTIMEBIND       24
 #define BIGINTBIND        30
 #define DATETIME2BIND     31
 #define MAXBINDTYPES      32	/* keep last */
