@@ -858,6 +858,12 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 	case SYBMSDATETIMEOFFSET:
 		fmt = "DATETIMEOFFSET";
 		break;
+	case SYB5BIGTIME:
+		fmt = "BIGTIME";
+		break;
+	case SYB5BIGDATETIME:
+		fmt = "BIGDATETIME";
+		break;
 	case SYBUINT2:
 		fmt = "UNSIGNED SMALLINT";
 		break;
@@ -3247,6 +3253,8 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 	case SYBMSDATETIMEOFFSET:
 	case SYBTIME:
 	case SYBDATE:
+	case SYB5BIGTIME:
+	case SYB5BIGDATETIME:
 		/* TODO use an ISO context */
 	case SYBUNIQUE:
 		quote = 1;

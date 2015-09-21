@@ -179,7 +179,7 @@ odbc_convert_datetime_to_binary(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype,
 	tds_datecrack(srctype, dta, &when);
 
 	len = 0;
-	if (srctype != SYBMSTIME && srctype != SYBTIME) {
+	if (srctype != SYBMSTIME && srctype != SYBTIME && srctype != SYB5BIGTIME) {
 		buf[0] = when.year;
 		buf[1] = when.month + 1;
 		buf[2] = when.day;
@@ -226,6 +226,8 @@ odbc_convert_to_binary(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR
 	case SYBMSDATETIMEOFFSET:
 	case SYBDATE:
 	case SYBTIME:
+	case SYB5BIGTIME:
+	case SYB5BIGDATETIME:
 		return odbc_convert_datetime_to_binary(stmt, curcol, srctype, (TDS_DATETIMEALL *) src, dest, destlen);
 	}
 
@@ -352,7 +354,7 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 	if (desttype == SQL_C_CHAR || desttype == SQL_C_WCHAR) {
 		char buf[48];
 		TDSDATEREC when;
-		int prec = 3;
+		int prec;
 		const char *fmt = NULL;
 		const TDS_DATETIMEALL *dta = (const TDS_DATETIMEALL *) src;
 
@@ -360,15 +362,27 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 		case SYBMSDATETIMEOFFSET:
 		case SYBMSDATETIME2:
 			prec = dta->time_prec;
+			goto datetime;
+		case SYB5BIGDATETIME:
+			prec = 6;
+			goto datetime;
 		case SYBDATETIME:
-			fmt = "%Y-%m-%d %H:%M:%S.%z";
-			break;
+			prec = 3;
+			goto datetime;
 		case SYBDATETIME4:
-			fmt = "%Y-%m-%d %H:%M:%S";
+			prec = 0;
+		datetime:
+			fmt = "%Y-%m-%d %H:%M:%S.%z";
 			break;
 		case SYBMSTIME:
 			prec = dta->time_prec;
+			goto time;
+		case SYB5BIGTIME:
+			prec = 6;
+			goto time;
 		case SYBTIME:
+			prec = 3;
+		time:
 			fmt = "%H:%M:%S.%z";
 			break;
 		case SYBMSDATE:

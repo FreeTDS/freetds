@@ -76,6 +76,8 @@ test0(const char *src, int len, int midtype, int dsttype, const char *result, in
 		case SYBINT8:
 			sprintf(buf, "0x%08x%08x", (unsigned int) ((cr.bi >> 32) & 0xfffffffflu), (unsigned int) (cr.bi & 0xfffffffflu));
 			break;
+		case SYB5BIGTIME:
+		case SYB5BIGDATETIME:
 		case SYBUINT8:
 			sprintf(buf, "0x%08x%08x", (unsigned int) ((cr.ubi >> 32) & 0xfffffffflu), (unsigned int) (cr.ubi & 0xfffffffflu));
 			break;
@@ -326,6 +328,13 @@ main(int argc, char **argv)
 
 	test2("2006-01-02 12:34:56.337", SYBDATETIME, SYBDATE, "38717");
 	test2("2006-01-02 12:34:56.337", SYBDATETIME, SYBTIME, "13588901");
+
+	test("2006-01-02 12:34:56.337321", SYB5BIGTIME, "0x0000000a8bdf41a9");
+	test("2006-01-23 12:34:56.337321", SYB5BIGDATETIME, "0x00e0e7c784d661a9");
+	test("2006-01-02 12:34:56.337321", SYB5BIGDATETIME, "0x00e0e621122b81a9");
+
+	test2("2006-01-02 12:34:56.337765", SYB5BIGDATETIME, SYBCHAR, "len=26 2006-01-02 12:34:56.337765");
+	test("2006-01-02 12:34:56.337765", SYB5BIGDATETIME, "0x00e0e621122b8365");
 
 	test2("2006-01-02 12:34:56.337", SYBMSDATETIME2, SYBDATE, "38717");
 	test2("2006-01-02 12:34:56.337", SYBMSDATETIME2, SYBTIME, "13588901");

@@ -1,4 +1,6 @@
 Name;vendor;varint;fixed;nullable;variable;blob;numeric;collate;unicode;ascii;datetime;size;nullable type;display size;
+SYB5BIGTIME;SYB;1;0;1;0;0;0;0;0;0;1;8;0;15;
+SYB5BIGDATETIME;SYB;1;0;1;0;0;0;0;0;0;1;8;0;26;
 SYB5INT8;SYB;0;1;0;0;0;0;0;0;0;0;8;SYBINTN;20;
 SYBBINARY;ALL;1;0;0;1;0;0;0;0;0;0;-1;0;2*S;
 SYBBIT;ALL;0;1;0;0;0;0;0;0;0;0;1;SYBBITN;1;

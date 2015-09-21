@@ -631,6 +631,8 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 		case SYBDATETIME4:
 		case SYBTIME:
 		case SYBDATE:
+		case SYB5BIGDATETIME:
+		case SYB5BIGTIME:
 			*resultlen = tds_get_size_by_type(src_type);
 			if (*resultlen > 0)
 				memcpy(dest, srcdata, *resultlen);
@@ -748,6 +750,8 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 	case SYBTIME:
 	case SYBDATE:
 	case SYBUNIQUE:
+	case SYB5BIGDATETIME:
+	case SYB5BIGTIME:
 		*resultlen = tds_get_size_by_type(desttype);
 		memcpy(dest, &(cres.ti), *resultlen);
 		ret = CS_SUCCEED;
