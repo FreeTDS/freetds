@@ -1581,9 +1581,9 @@ TDSRET tds_writetext_end(TDSSOCKET *tds);
 
 
 static inline
-int tds_capability_enabled(const TDS_CAPABILITY_TYPE *cap, unsigned cap_num)
+bool tds_capability_enabled(const TDS_CAPABILITY_TYPE *cap, unsigned cap_num)
 {
-	return cap->values[sizeof(cap->values)-1-(cap_num>>3)] & (1 << (cap_num&7));
+	return (cap->values[sizeof(cap->values)-1-(cap_num>>3)] >> (cap_num&7)) & 1;
 }
 #define tds_capability_has_req(conn, cap) \
 	tds_capability_enabled(&conn->capabilities.types[0], cap)
