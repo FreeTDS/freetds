@@ -179,7 +179,7 @@ odbc_convert_datetime_to_binary(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype,
 	tds_datecrack(srctype, dta, &when);
 
 	len = 0;
-	if (srctype != SYBMSTIME && srctype != SYBTIME) {
+	if (srctype != SYBMSTIME && srctype != SYBTIME && srctype != SYB5BIGTIME) {
 		buf[0] = when.year;
 		buf[1] = when.month + 1;
 		buf[2] = when.day;
@@ -226,6 +226,8 @@ odbc_convert_to_binary(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR
 	case SYBMSDATETIMEOFFSET:
 	case SYBDATE:
 	case SYBTIME:
+	case SYB5BIGTIME:
+	case SYB5BIGDATETIME:
 		return odbc_convert_datetime_to_binary(stmt, curcol, srctype, (TDS_DATETIMEALL *) src, dest, destlen);
 	}
 
