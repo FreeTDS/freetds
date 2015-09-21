@@ -354,7 +354,7 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 	if (desttype == SQL_C_CHAR || desttype == SQL_C_WCHAR) {
 		char buf[48];
 		TDSDATEREC when;
-		int prec = 3;
+		int prec;
 		const char *fmt = NULL;
 		const TDS_DATETIMEALL *dta = (const TDS_DATETIMEALL *) src;
 
@@ -362,15 +362,27 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 		case SYBMSDATETIMEOFFSET:
 		case SYBMSDATETIME2:
 			prec = dta->time_prec;
+			goto datetime;
+		case SYB5BIGDATETIME:
+			prec = 6;
+			goto datetime;
 		case SYBDATETIME:
-			fmt = "%Y-%m-%d %H:%M:%S.%z";
-			break;
+			prec = 3;
+			goto datetime;
 		case SYBDATETIME4:
-			fmt = "%Y-%m-%d %H:%M:%S";
+			prec = 0;
+		datetime:
+			fmt = "%Y-%m-%d %H:%M:%S.%z";
 			break;
 		case SYBMSTIME:
 			prec = dta->time_prec;
+			goto time;
+		case SYB5BIGTIME:
+			prec = 6;
+			goto time;
 		case SYBTIME:
+			prec = 3;
+		time:
 			fmt = "%H:%M:%S.%z";
 			break;
 		case SYBMSDATE:
