@@ -170,6 +170,11 @@ tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE typ
 			curcol->on_server.column_type = XSYBVARBINARY;
 		}
 		break;
+	case SYB5BIGTIME:
+	case SYB5BIGDATETIME:
+		curcol->column_prec = 6;
+		curcol->column_scale = 6;
+		break;
 	default:
 		break;
 	}
