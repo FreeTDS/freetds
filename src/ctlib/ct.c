@@ -2030,6 +2030,14 @@ _ct_get_server_type(TDSSOCKET *tds, int datatype)
 		if (!tds || tds_capability_has_req(tds->conn, TDS_REQ_DATA_TIME))
 			return SYBDATE;
 		return SYBDATETIME;
+	case CS_BIGDATETIME_TYPE:
+		if (!tds || tds_capability_has_req(tds->conn, TDS_REQ_DATA_BIGDATETIME))
+			return SYB5BIGDATETIME;
+		return SYBDATETIME;
+	case CS_BIGTIME_TYPE:
+		if (!tds || tds_capability_has_req(tds->conn, TDS_REQ_DATA_BIGTIME))
+			return SYB5BIGTIME;
+		return SYBDATETIME;
 
 	default:
 		return -1;
