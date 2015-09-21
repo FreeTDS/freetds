@@ -779,7 +779,7 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 			tds_put_int(tds, 0);
 			break;
 		case 4:
-			if (bcp7 && is_blob_type(curcol->on_server.column_type))
+			if ((bcp7 || !IS_TDS7_PLUS(tds->conn)) && is_blob_type(curcol->on_server.column_type))
 				tds_put_byte(tds, 0);
 			else
 				tds_put_int(tds, -1);

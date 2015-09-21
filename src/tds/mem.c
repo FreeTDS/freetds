@@ -656,7 +656,10 @@ tds_free_all_results(TDSSOCKET * tds)
 	tds_free_compute_results(tds);
 	tds->has_status = 0;
 	tds->ret_status = 0;
+	if (tds->cur_dyn)
+		tds_detach_results(tds->cur_dyn->res_info);
 }
+
 /*
  * Return 1 if winsock is initialized, else 0.
  */
