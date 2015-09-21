@@ -57,6 +57,7 @@ static int tds_count_placeholders_ucs2le(const char *query, const char *query_en
 
 #define TDS_PUT_DATA_USE_NAME 1
 #define TDS_PUT_DATA_PREFIX_NAME 2
+#define TDS_PUT_DATA_LONG_STATUS 4
 
 #undef MIN
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
@@ -1635,7 +1636,10 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 	 */
 
 	tdsdump_log(TDS_DBG_ERROR, "tds_put_data_info putting status \n");
-	tds_put_byte(tds, curcol->column_output);	/* status (input) */
+	if (flags & TDS_PUT_DATA_LONG_STATUS)
+		tds_put_int(tds, curcol->column_output);	/* status (input) */
+	else
+		tds_put_byte(tds, curcol->column_output);	/* status (input) */
 	if (!IS_TDS7_PLUS(tds->conn))
 		tds_put_int(tds, curcol->column_usertype);	/* usertype */
 	tds_put_byte(tds, curcol->on_server.column_type);
@@ -1791,17 +1795,25 @@ static void
 tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags)
 {
 	int i, len;
+	bool wide;
 
 	CHECK_TDS_EXTRA(tds);
 	CHECK_PARAMINFO_EXTRA(info);
 
+	wide = !!tds_capability_has_req(tds->conn, TDS_REQ_WIDETABLE);
+
 	/* column descriptions */
-	tds_put_byte(tds, TDS5_PARAMFMT_TOKEN);
+	tds_put_byte(tds, wide ? TDS5_PARAMFMT2_TOKEN : TDS5_PARAMFMT_TOKEN);
 	/* size */
 	len = 2;
 	for (i = 0; i < info->num_cols; i++)
 		len += tds_put_data_info_length(tds, info->columns[i], flags);
-	tds_put_smallint(tds, len);
+	if (wide) {
+		tds_put_int(tds, len + 3 * info->num_cols);
+		flags |= TDS_PUT_DATA_LONG_STATUS;
+	} else {
+		tds_put_smallint(tds, len);
+	}
 	/* number of parameters */
 	tds_put_smallint(tds, info->num_cols);
 	/* column detail for each parameter */
