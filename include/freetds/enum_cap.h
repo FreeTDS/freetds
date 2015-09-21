@@ -85,7 +85,9 @@ typedef enum tds_request_capability
 	,               TDS_REQ_CURINFO3 = 86
 	,                 TDS_REQ_DBRPC2 = 87
 	,                TDS_REQ_MIGRATE = 89
-	,                TDS_REQ_CAP_MAX = 89 /* repeats last enum */
+	,       TDS_REQ_DATA_BIGDATETIME = 93
+	,           TDS_REQ_DATA_BIGTIME = 94
+	,                TDS_REQ_CAP_MAX = 94 /* repeats last enum */
 	} TDS_REQUEST_CAPABILITY;
 
 typedef enum tds_response_capability 
