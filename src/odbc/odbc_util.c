@@ -799,12 +799,16 @@ odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned)
 	case SQL_TIMESTAMP:
 		/* ODBC version 3 */
 	case SQL_TYPE_DATE:
+		if (IS_TDS50(conn) && tds_capability_has_req(conn, TDS_REQ_DATA_BIGDATETIME))
+			return SYB5BIGDATETIME;
 		if (IS_TDS50(conn) && tds_capability_has_req(conn, TDS_REQ_DATA_DATE))
 			return SYBDATE;
 		if (IS_TDS73_PLUS(conn))
 			return SYBMSDATE;
 		goto type_timestamp;
 	case SQL_TYPE_TIME:
+		if (IS_TDS50(conn) && tds_capability_has_req(conn, TDS_REQ_DATA_BIGTIME))
+			return SYB5BIGTIME;
 		if (IS_TDS50(conn) && tds_capability_has_req(conn, TDS_REQ_DATA_TIME))
 			return SYBTIME;
 		if (IS_TDS73_PLUS(conn))
@@ -813,14 +817,20 @@ odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned)
 	case SQL_TYPE_TIMESTAMP:
 		if (IS_TDS73_PLUS(conn))
 			return SYBMSDATETIME2;
+		if (IS_TDS50(conn) && tds_capability_has_req(conn, TDS_REQ_DATA_BIGDATETIME))
+			return SYB5BIGDATETIME;
 		return SYBDATETIME;
 	case SQL_SS_TIME2:
 		if (IS_TDS73_PLUS(conn))
 			return SYBMSTIME;
+		if (IS_TDS50(conn) && tds_capability_has_req(conn, TDS_REQ_DATA_BIGDATETIME))
+			return SYB5BIGDATETIME;
 		return SYBDATETIME;
 	case SQL_SS_TIMESTAMPOFFSET:
 		if (IS_TDS73_PLUS(conn))
 			return SYBMSDATETIMEOFFSET;
+		if (IS_TDS50(conn) && tds_capability_has_req(conn, TDS_REQ_DATA_BIGDATETIME))
+			return SYB5BIGDATETIME;
 		return SYBDATETIME;
 	case SQL_BINARY:
 		return SYBBINARY;
