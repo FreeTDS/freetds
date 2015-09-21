@@ -69,6 +69,9 @@ typedef struct tdsunique
 typedef TDS_INT TDS_DATE;
 typedef TDS_INT TDS_TIME;
 
+typedef TDS_UINT8 TDS_BIGTIME;
+typedef TDS_UINT8 TDS_BIGDATETIME;
+
 #define TDS5_PARAMFMT2_TOKEN       32	/* 0x20 */
 #define TDS_LANGUAGE_TOKEN         33	/* 0x21    TDS 5.0 only              */
 #define TDS_ORDERBY2_TOKEN         34	/* 0x22 */
@@ -222,6 +225,8 @@ typedef enum
 	SYBUINTN = 68,		/* 0x44 */
 	SYBUNITEXT = 174,	/* 0xAE */
 	SYBXML = 163,		/* 0xA3 */
+	SYB5BIGDATETIME = 187,	/* 0xBB */
+	SYB5BIGTIME = 188,	/* 0xBC */
 
 } TDS_SERVER_TYPE;
 
