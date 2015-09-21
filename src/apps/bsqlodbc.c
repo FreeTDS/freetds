@@ -675,58 +675,6 @@ print_results(SQLHSTMT hStmt)
 	} 
 }
 
-#if 0 
-static int
-get_printable_size(int type, int size)	/* adapted from src/dblib/dblib.c */
-{
-	switch (type) {
-	case SYBINTN:
-		switch (size) {
-		case 1:
-			return 3;
-		case 2:
-			return 6;
-		case 4:
-			return 11;
-		case 8:
-			return 21;
-		}
-	case SYBINT1:
-		return 3;
-	case SYBINT2:
-		return 6;
-	case SYBINT4:
-		return 11;
-	case SYBINT8:
-		return 21;
-	case SYBVARCHAR:
-	case SYBCHAR:
-		return size;
-	case SYBFLT8:
-		return 11;	/* FIX ME -- we do not track precision */
-	case SYBREAL:
-		return 11;	/* FIX ME -- we do not track precision */
-	case SYBMONEY:
-		return 12;	/* FIX ME */
-	case SYBMONEY4:
-		return 12;	/* FIX ME */
-	case SYBDATETIME:
-		return 26;	/* FIX ME */
-	case SYBDATETIME4:
-		return 26;	/* FIX ME */
-#if 0	/* seems not to be exported to sybdb.h */
-	case SYBBITN:
-#endif
-	case SYBBIT:
-		return 1;
-		/* FIX ME -- not all types present */
-	default:
-		return 0;
-	}
-
-}
-#endif /* 0, not used */
-
 /** 
  * Build the column header format string, based on the column width. 
  * This is just one solution to the question, "How wide should my columns be when I print them out?"
