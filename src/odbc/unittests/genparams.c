@@ -235,7 +235,7 @@ NullInput(SQLSMALLINT out_c_type, SQLSMALLINT out_sql_type, const char *param_ty
 	/* check if row is present */
 	odbc_reset_statement();
 	if (!odbc_db_is_microsoft() && strcmp(param_type, "TEXT") == 0)
-		odbc_command("SELECT * FROM #tmp_insert WHERE col LIKE ''");
+		odbc_command("SELECT * FROM #tmp_insert WHERE DATALENGTH(col) = 0 OR DATALENGTH(col) IS NULL");
 	else
 		odbc_command("SELECT * FROM #tmp_insert WHERE col IS NULL");
 
