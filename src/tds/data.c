@@ -532,15 +532,6 @@ tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	tdsdump_log(TDS_DBG_INFO1, "tds_get_data: type %d, varint size %d\n", curcol->column_type, curcol->column_varint_size);
 	switch (curcol->column_varint_size) {
 	case 4:
-		/*
-		 * LONGBINARY
-		 * This type just stores a 4-byte length
-		 */
-		if (curcol->column_type == SYBLONGBINARY) {
-			colsize = tds_get_int(tds);
-			break;
-		}
-		
 		/* It's a BLOB... */
 		len = tds_get_byte(tds);
 		blob = (TDSBLOB *) curcol->column_data;
