@@ -113,9 +113,12 @@ main(int argc, char **argv)
 		srctype = (srctype + SYBCHAR) & 0xff;
 
 		if (!tds_willconvert(srctype, desttype)) {
+			/* pass a CONV_RESULT as input for make sure size and alignment is enough
+			 * for all types */
 			CONV_RESULT src;
+
 			memset(&src, 0, sizeof(src));
-			result = tds_convert(ctx, srctype, &src, 4, desttype, &cr);
+			result = tds_convert(ctx, srctype, (const TDS_CHAR *) &src, 4, desttype, &cr);
 			if (result >= 0)
 				free_convert(desttype, &cr);
 			if (result != TDS_CONVERT_NOAVAIL) {
