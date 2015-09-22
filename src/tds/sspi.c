@@ -195,6 +195,7 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 	TimeStamp ts;
 	SEC_WINNT_AUTH_IDENTITY identity;
 	const char *p, *user_name, *server_name;
+	struct addrinfo *addrs = NULL;
 
 	TDSSSPIAUTH *auth;
 	TDSLOGIN *login = tds->login;
@@ -246,18 +247,26 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 	/* build SPN */
 	server_name = tds_dstr_cstr(&login->server_host_name);
 	if (strchr(server_name, '.') == NULL) {
-		struct hostent *host = gethostbyname(server_name);
-		if (host && strchr(host->h_name, '.') != NULL)
-			server_name = host->h_name;
+		struct addrinfo hints;
+		memset(&hints, 0, sizeof(hints));
+		hints.ai_family = AF_UNSPEC;
+		hints.ai_flags = AI_V4MAPPED|AI_ADDRCONFIG|AI_CANONNAME|AI_FQDN;
+		if (!getaddrinfo(server_name, NULL, &hints, &addrs) && addrs->ai_canonname
+		    && strchr(addrs->ai_canonname, '.') != NULL)
+			server_name = addrs->ai_canonname;
 	}
 	if (strchr(server_name, '.') != NULL) {
 		if (asprintf(&auth->sname, "MSSQLSvc/%s:%d", server_name, login->port) < 0) {
+			if (addrs)
+				freeaddrinfo(addrs);
 			sec_fn->FreeCredentialsHandle(&auth->cred);
 			free(auth);
 			return NULL;
 		}
 		tdsdump_log(TDS_DBG_NETWORK, "kerberos name %s\n", auth->sname);
 	}
+	if (addrs)
+		freeaddrinfo(addrs);
 
 	status = sec_fn->InitializeSecurityContext(&auth->cred, NULL, auth->sname,
 		ISC_REQ_CONFIDENTIALITY | ISC_REQ_REPLAY_DETECT | ISC_REQ_CONNECTION | ISC_REQ_ALLOCATE_MEMORY,
