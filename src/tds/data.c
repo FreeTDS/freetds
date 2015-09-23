@@ -18,6 +18,165 @@
  */
 
 /**
+ * \page new_type How to add a new type
+ * \section intro Introduction
+ * Adding a new type in FreeTDS is a quite complicated task involving
+ * different tasks.
+ *
+ * To see an example you can look at
+ * \commit{adb893f1381fd3ea40564c775e30dc8cdc81dcf2}
+ * ("Implement big(date)time types") and parent changes in the source
+ * repository.
+ *
+ * \section tds libTDS changes
+ * <ul>
+ * <li>protocol. First thing to do is add the type to the protocol.
+ *    A type usually have some mnemonic constant and a structure.
+ *    Declare them in \c include/freetds/proto.h file. Note that
+ *    here you should declare the structure the server use not
+ *    the structure to hold the data in libTDS.
+ *    <br>Cfr \commit{a74a06e1f97f3137f6cf1bc7319dd7a2cfb52b1f}.
+ *
+ * <li>base information. Add the type to \c misc/types.csv file
+ *    (I use LibreOffice Calc to do it). This table maintain the
+ *    base information for a type.
+ *    <br>Cfr \commit{680cb3371e042bb372cbc5e6feb4054e50d40c1a}.
+ *
+ * <li>data. There should be some code to handle this type to/from
+ *    the server. This code is implemented in \c include/freetds/data.h
+ *    and \c src/tds/data.c. You can either add a new set of functions
+ *    to handle this new type or add the type handling do another set
+ *    of types depending on how complicated is that type.
+ *    One thing you have to to at this step is determine how you store
+ *    that type in libTDS. This is quite important at upper level
+ *    libraries will have to use these structures or even present
+ *    these data to client code (like DB-Library usually do).
+ *    Due to the way FreeTDS works now you would get a linker error
+ *    in the ODBC part. You can either ignore the error and proceed
+ *    with libTDS, add the code to ODBC or disable temporarily ODBC.
+ *    <br>Cfr \commit{680cb3371e042bb372cbc5e6feb4054e50d40c1a}.
+ *
+ * <li>enable the type from server. In order to receive the new type
+ *    from the server you have to tell the server that we support
+ *    that type. This can be either done changing the protocol (usually
+ *    Microsoft) or enabling some flags (capabilities for Sybase).
+ *    <br>Cfr \commit{a498703ff9e309c656b19dd990f4cad0283a47c7}.
+ *
+ * <li>conversions. Conversions are not hard to write but usually
+ *    require quite a bit of coding. After extending CONV_RESULT
+ *    type in \c include/freetds/convert.h and adding the type to
+ *    the script that generate the conversion tables in
+ *    \c src/tds/tds_willconvert.pl you have to write the big part
+ *    in \c src/tds/covnert.c. You have to implement all kind of
+ *    conversions you declared in the previous file. Reuse the
+ *    functions that are there (for instance there are some
+ *    parser functions). Also if there are similar types it could
+ *    be helpful to convert first your type to a super type then
+ *    use the conversion for that type. For instance for SMALLINT
+ *    type (\c tds_convert_int2) the type is just readed and then
+ *    \c tds_convert_int is called which handle any int (actually
+ *    32 bit integer). Same for data where the \c TDS_DATETIMEALL
+ *    structure is used. Note that conversions to binary (which
+ *    usually are implemented) are done in another function
+ *    (\c tds_convert_to_binary).
+ *    <br>Cfr \commit{9ed52cb78f725607ac109c8c284ca7c4658d87a9}.
+ *
+ * <li>string definition. Add string for your type to
+ *    \c src/tds/token.c in \c tds_prtype.
+ *    <br>Cfr \commit{c0d3b46db7d98436cd76f906b7d455f7651faae}.
+ *
+ * <li>conversion tests. You probably will have done some mistake
+ *    with conversions but don't mind, there are some tests which
+ *    will help sorting this out.
+ *    \c src/tds/unittests/convert.c
+ *    try any possible combination of conversion to check if
+ *    all conversion are implemented (it does not check the
+ *    conversions themself).
+ *    \c src/tds/unittests/t0007.c test that your conversion
+ *    are working. Just add manually the conversions you want
+ *    to try.
+ *    <br>Cfr \commit{bcc09c9a88acd0e9a45b46dab3ca44309917a02}.
+ *
+ * <li>parameter. Add type/parameter declaration in
+ *    \c tds_get_column_declaration in \c src/tds/query.c.
+ *    Also do any necessary step to initialize the parameter
+ *    to send to server.
+ *    <br>Cfr \commit{54fdd3233e430c045cf5524ac385770738d9e92c},
+ *    \commit{88cfea19d91245372779b8893a2d62b42696cd49}.
+ *
+ * <li>emulated prepared/rpc. If needed handle your type
+ *    in \c tds_put_param_as_string in \c src/tds/query.c.
+ *    <br>Cfr \commit{017b7bf2fee0f09847e64546d27382d2f2b756f4}.
+ *
+ * </ul>
+ *
+ * \section odbc ODBC changes
+ * ODBC is the most complicated library to add a type to.
+ * Usually its data are different from libTDS so you have to add additional
+ * code for conversions which are not required by other libraries.
+ * <ul>
+ * <li>type information. Every type in ODBC have related information.
+ *    These information are set in \c src/odbc/odbc_data.c.
+ *    Depending on the changes you did for data in libTDS you should
+ *    handle the new type.
+ *    <br>Cfr \commit{71e189e206dc9b6f6513e0aa0e4133a4f8dec110}.
+ *
+ * <li>type information test. Related to the previous change there
+ *    is \c src/odbc/unittests/describecol.c test. Add a test case
+ *    for new type. You should attempt to run same test also on
+ *    proprietary library if possible.
+ *    <br>Cfr \commit{8a8ec16a6a514a5d6ac66c2470eff51f6a8d4a53}.
+ *
+ * <li>conversions from odbc. Define how the ODBC type should convert
+ *    to the server and implement the conversion.
+ *    <br>Cfr \commit{29606cbf413c44e49ddfcfb8a93b8a6bd2565a84},
+ *    \commit{87c84e20a594472a72990b12d4a1451b22e6714b}.
+ *
+ * <li>conversions to binary. Binary representation in ODBC are usually
+ *    different from server ones. If so implement the proper conversions.
+ *    <br>Cfr \commit{56009f35d3e0def339a0c5cb98d006e5e710d523}.
+ *
+ * <li>conversions to characters. Same problem for character types.
+ *    <br>Cfr \commit{25ff091880dabc32f28a73f09bf31c01314aca2f}.
+ *
+ * <li>conversion test. You probably want to test ODBC conversions.
+ *    This can be done changing \c src/odbc/unittests/data.c test and
+ *    \c src/odbc/unittests/genparams.c.
+ *    <br>Cfr \commit{e69f7d564dac44884f7c5f0106cceafce4af168b}.
+ * </ul>
+ *
+ * \section ctlib CT-Library changes
+ * This is quite easy as usual the conversion in libTDS are fine for
+ * this library.
+ * <ul>
+ * <li>define type in \c include/cspublic.h
+ * <li>implement conversion in \c src/ctlib/cs.h
+ * <li>set corrent conversion from cs types to server in
+ *    \c src/ctlib/ct.c
+ * </ul>
+ * Cfr \commit{c5e71e5ad4a557038ecedcec457e2531ab02a77b}.
+ *
+ * \section dblib DB-Library changes
+ * A bit more complicated than CT-Library but not that much.
+ * <ul>
+ * <li>add type and binding type to \c include/sybdb.h
+ * <li>add NULL handling in \c dbgetnull, \c dbsetnull
+ *    and \c default_null_representation in
+ *    \c src/dblib/dblib.c
+ * <li>add binding to dbbindtype
+ * <li>add support for conversion from/to server
+ * <li>add printable size
+ * <li>return correct type string
+ * </ul>
+ * Cfr \commit{99dd126e0eb248dd3079b2a7cf97437fe3bcd163}.
+ *
+ * \section apps Applications changes
+ * datacopy application requires some changes too to support new types
+ * so add them to \c src/apps/datacopy.c.
+ * <br>Cfr \commit{e59c48ac39c76abb036651f8ec238090eef321c9}.
+ */
+
+/**
  * @file
  * @brief Handle different data handling from network
  */

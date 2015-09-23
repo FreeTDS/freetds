@@ -20,6 +20,7 @@ EXAMPLE_PATH = 		$(SRCDIR)/src/tds/example
 SORT_BRIEF_DOCS = 	YES
 EXTRACT_STATIC = 	YES
 ALIASES += tds="@param tds A pointer to the TDSSOCKET structure managing a client/server operation."
+ALIASES += commit{1}="<a href=\"https://github.com/FreeTDS/freetds/commit/\1\">commit id \1</a>"
 
 CALL_GRAPH = YES
 CALLER_GRAPH = YES
