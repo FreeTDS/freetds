@@ -91,8 +91,6 @@
       <ul>
         <li><a href="#SYBASE">What's this SYBASE environment
         variable for?</a></li>
-
-        <li><a href="#RPM">How do I install the RPM?</a></li>
       </ul>
     </li>
 
@@ -106,7 +104,7 @@
         compile SQSH with FreeTDS?</a></li>
 
         <li><a href="#compiling">How do I
-        compile PHP 3 with FreeTDS?</a></li>
+        compile PHP with FreeTDS?</a></li>
 
         <li><a href="#Which.API">How should I choose among
         <tt>DB-Library</tt>, <tt>CT-Library</tt>, and
@@ -327,14 +325,6 @@
   <tt>/usr/local/freetds/lib</tt>), then your <var>SYBASE</var>
   variable would be set to <tt>/usr/local/freetds</tt>.</p>
 
-  <h3 id="RPM">How do I install the RPM?</h3>
-
-  <p><tt>rpm -ivh freetds-0.52-1.i386.rpm</tt> (as root) will
-  install the libraries.</p>
-
-  <p><tt>rpm -ivh freetds-devel-0.52-1.i386.rpm</tt> (as root) will
-  install the headers and other stuff needed to build other
-  stuff.</p>
   <hr />
   
   <!-- Programming -->
@@ -343,31 +333,9 @@
 
   <h3>How do I compile Sybperl with FreeTDS?</h3>
   <h3>How do I compile SQSH with FreeTDS?</h3>
-  <h3>How do I compile PHP 3 with FreeTDS?</h3>
+  <h3>How do I compile PHP with FreeTDS?</h3>
 
   <p>Please refer to the <a href="userguide/">User Guide</a>.</p>
-
-  <p>One small PHP hint, mailed to the FAQ master in May 2001:</p>
-
-  <p>In the mailing list archives I noticed a few people discussing
-  a problem I just had.</p>
-
-  <blockquote>
-    <p>An attempt to make a connection to a MS SQL server from PHP
-    would fail, leaving a message in the Apache error log:</p>
-    <pre>
-        connect: Network is unreachable
-        DB-Library: Login incorrect</pre>
-
-    <p>The problem turned out to be a very simple one to fix. In
-    the php.ini file under the sybase section, there is a directive
-    that sets the path to the sybase interfaces file
-    "sybase.interface_file = "</p>
-
-    <p>After uncommenting this and setting it to a reasonable value
-    (ie. /usr/local/freetds/interfaces), things started
-    working.</p>
-  </blockquote>
 
   <h3 id="Which.API">How should I choose among <tt>DB-Library</tt>, <tt>CT-Library</tt>,
   and <tt>ODBC</tt>?</h3>
@@ -439,7 +407,6 @@
  
  	<p>In no particular order: </p>
 	<ul>
-		<li>MARS</li>
 		<li>DB-Library browse API</li>
 		<li>Parameterized queries in CT-Library with TDS 7.0+ (i.e. Microsoft servers)</li>
 		<li>CT-Library money functions</li>
@@ -447,7 +414,7 @@
 	
 	<p>For specific functions, consult <code>doc/api_status.txt</code> in your distribution. </p>
 	
-	<p>Very few programs actually need the missing functionality.  Parameterized CT-Library queries would benefit Perl DBD::Sybase users, but the functionality would require departing from Sybase's documented API.  MARS comes up because there must be thousands of people whom Microsoft has convinced they need it, but the benefits are meager compared to the complexity.  </p>
+	<p>Very few programs actually need the missing functionality.  Parameterized CT-Library queries would benefit Perl DBD::Sybase users, but the functionality would require departing from Sybase's documented API.</p>
 	
   <h3 id="pending">Why does each connection support only one query at a time?</h3>
 
@@ -495,10 +462,8 @@
   higher-level library&mdash;to form a "rowset" of some kind if
   desired.</p>
   
-  <p><i>But what about MARS&reg;</i> you ask?  <i>Doesn't that solve the problem?</i>  Well, no.  MARS <i>does</i> make a TDS server more similar to other vendors' servers, and Microsoft benefits from one more just-like-the-others feature for its ODBC driver.  But Microsoft claims a patent on MARS, the documentation is incomplete, and supporting it would introduce significant complexity.</p>
+  <p><i>But what about MARS&reg;</i> you ask?  <i>Doesn't that solve the problem?</i>  Well, no.  MARS <i>does</i> make a TDS server more similar to other vendors' servers, and Microsoft benefits from one more just-like-the-others feature for its ODBC driver.</p>
   
-  <p>MARS might get implemented one day; more surprising things have happened.  But the technical advantages it provides to the programmer are over server-side cursors or simply using another connection are vanishingly small.  </p>
-
   <h4>PHP note</h4>If you use PHP, you will still run into this
   problem even if you create a new connection. The reason is that
   PHP is so nice that it will re-use the first connection if you
@@ -585,45 +550,8 @@
     <li>Check your ./configure and environment variables. The
     <tt>--with-tdsver</tt> determines what flavor of the TDS
     protocol your runs by default; the $TDSVER variable overrides
-    that default. The following combinations are reasonable; see
-    the <a href="userguide/">User Guide</a>
-    for details:</li>
-
-    <li style="list-style: none">
-      <table summary="TDS Protocol Versions">
-        <tr>
-          <td><b>Vendor</b></td>
-
-          <td><b>Version</b></td>
-
-          <td><b>TDS Version</b></td>
-        </tr>
-
-        <tr>
-          <td>Sybase</td>
-
-          <td>4.92+&nbsp;</td>
-
-          <td>5.0</td>
-        </tr>
-
-        <tr>
-          <td>Microsoft</td>
-
-          <td>6.0, 6.5</td>
-
-          <td>4.2</td>
-        </tr>
-
-        <tr>
-          <td>Microsoft</td>
-
-          <td>7.0/2000</td>
-
-          <td>7.0</td>
-        </tr>
-      </table>
-    </li>
+    that default. See the <a href="userguide/">User Guide</a>
+    for details.</li>
 
     <li>
       <p>Edit the <b><tt>PWD</tt></b> file and try <kbd class="input">make
