@@ -6,7 +6,7 @@ TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			utf8_2$(EXEEXT) utf8_3$(EXEEXT) numeric$(EXEEXT) \
 			iconv_fread$(EXEEXT) toodynamic$(EXEEXT) \
 			readconf$(EXEEXT) charconv$(EXEEXT) \
-			nulls$(EXEEXT)
+			nulls$(EXEEXT) corrupt$(EXEEXT)
 
 # flags test commented, not necessary for 0.62
 # TODO add flags test again when needed
@@ -42,6 +42,7 @@ TESTS += challenge$(EXEEXT)
 challenge_SOURCES	= challenge.c
 endif
 readconf_SOURCES	= readconf.c
+corrupt_SOURCES	=	corrupt.c common.c common.h
 
 AM_CPPFLAGS	=	-I$(top_srcdir)/include -I$(srcdir)/.. -I../ -DFREETDS_TOPDIR=\"$(top_srcdir)\"
 if MINGW32

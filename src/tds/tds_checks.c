@@ -105,7 +105,7 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 	assert(tds->out_buf >= tds->send_packet->buf);
 	assert(tds->out_buf + tds->out_buf_max + TDS_ADDITIONAL_SPACE <=
 		tds->send_packet->buf + tds->send_packet->capacity);
-	assert(tds->out_pos <= tds->out_buf_max);
+	assert(tds->out_pos <= tds->out_buf_max + TDS_ADDITIONAL_SPACE);
 
 	assert(tds->in_buf == tds->recv_packet->buf || tds->in_buf == tds->recv_packet->buf + 16);
 	assert(tds->recv_packet->capacity > 0);
