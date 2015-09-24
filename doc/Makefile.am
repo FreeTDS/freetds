@@ -76,8 +76,8 @@ install-data-local: $(INSTALLDIRS) $(noinst_DATA)
 	if test -r $(DOCDIR)/reference ; then d=.; else d="$(srcdir)"; fi; \
 	find $$d/$(DOCDIR)/reference \( -type f -o -type l \) \
 		-exec $(INSTALL) {} $(TARGET_DOCDIR)/reference ';'
-	find $(srcdir)/images -name \*.gif \
-		-exec  $(INSTALL) {} $(TARGET_DOCDIR)/images/ ';'
+	cd $(srcdir) && find images -name \*.gif \
+		-exec  $(INSTALL) {} $(TARGET_DOCDIR)/{} ';'
 
 uninstall-local:
 	rm -rf $(TARGET_DOCDIR)
