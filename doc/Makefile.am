@@ -1,30 +1,9 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
 
-# $Id: Makefile.am,v 1.68 2012-01-17 03:46:35 jklowden Exp $
-
 SHELL = /bin/sh
 DOCDIR = .
-PRODUCT = FreeTDS
 TARGET_DOCDIR = $(DESTDIR)$(docdir)
-
-IMAGES = 	images/important.gif \
-		images/note.gif \
-		images/tip.gif \
-		images/caution.gif \
-		images/warning.gif
-
-CALLOUTS =	images/callouts/1.gif \
-		images/callouts/2.gif \
-		images/callouts/3.gif \
-		images/callouts/4.gif \
-		images/callouts/5.gif \
-		images/callouts/6.gif \
-		images/callouts/7.gif \
-		images/callouts/8.gif \
-		images/callouts/9.gif \
-		images/callouts/10.gif
-
 
 EXTRA_DIST =	api_status.txt bcp.txt cap.txt getting_started.txt \
 		policy.txt CodingStyle tds.html  \
@@ -130,7 +109,6 @@ $(DOCDIR)/userguide/index.htm: 	$(DOCDIR) userguide.sgml userguide_desc.sgml \
 	$(MKDIR_P) $(DOCDIR)/userguide 2>&1
 	touch $(DOCDIR)/userguide/t.htm
 	rm -rf $(DOCDIR)/userguide/*
-	$(MAKE) dblib.api.sgml ctlib.api.sgml odbc.api.sgml
 # if we're not using jade, copy the distribution's userguide
 	if test -z "${DOCBOOK_DSL}" ; then \
 		if test -r $(DISTRIBUTED_UG_DIR) \
