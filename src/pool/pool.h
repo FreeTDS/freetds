@@ -121,6 +121,7 @@ void pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser);
 void dump_buf(const void *buf, int length);
 void dump_login(TDSLOGIN * login);
 void die_if(int expr, const char *msg);
+int pool_write_all(TDS_SYS_SOCKET s, const void *buf, size_t len);
 
 /* config.c */
 int pool_read_conf_file(const char *poolname, TDS_POOL * pool);

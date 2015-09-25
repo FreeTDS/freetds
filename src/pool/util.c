@@ -84,3 +84,22 @@ die_if(int expr, const char *msg)
 		exit(1);
 	}
 }
+
+int
+pool_write_all(TDS_SYS_SOCKET sock, const void *buf, size_t len)
+{
+	int ret;
+	const unsigned char *p = (const unsigned char *) buf;
+
+	while (len) {
+		ret = WRITESOCKET(sock, p, len);
+		/* write failed, cleanup member */
+		if (ret <= 0) {
+			return ret;
+		}
+		p   += ret;
+		len -= ret;
+	}
+	return 1;
+}
+
