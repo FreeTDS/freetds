@@ -236,6 +236,7 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 {
 	TDSSOCKET *tds;
 	TDS_POOL_MEMBER *pmbr;
+	TDS_UCHAR in_flag;
 
 	tds = puser->tds;
 	/* FIXME read entire packet !!! */
@@ -256,11 +257,13 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 		pool_free_user(puser);
 	} else {
 		dump_buf(tds->in_buf, tds->in_len);
+		in_flag = tds->in_buf[0];
 		/* language packet or TDS5 language packet */
-		if (tds->in_buf[0] == 0x01 || tds->in_buf[0] == 0x0F) {
+		if (in_flag == TDS_QUERY || in_flag == TDS_NORMAL || in_flag == TDS_RPC || in_flag == TDS_BULK) {
 			pool_user_query(pool, puser);
-		} else if (tds->in_buf[0] == 0x06) {
+		} else if (in_flag == TDS_CANCEL) {
 			/* cancel */
+			pool_user_query(pool, puser);
 		} else {
 			fprintf(stderr, "Unrecognized packet type, closing user\n");
 			pool_free_user(puser);
