@@ -627,6 +627,8 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	tds_put_login_string(tds, lservname, TDS_MAXNAME);
 	if (IS_TDS42(tds->conn)) {
 		tds_put_login_string(tds, tds_dstr_cstr(&login->password), 255);
+	} else if (login->encryption_level) {
+		tds_put_n(tds, NULL, 256);
 	} else {
 		len = (int)tds_dstr_len(&login->password);
 		if (len > 253)
@@ -660,7 +662,7 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	/* oldsecure(2), should be zero, used by old software */
 	tds_put_n(tds, NULL, 2);
 	/* seclogin(1) bitmask */
-	tds_put_byte(tds, login->encryption_level ? 1 : 0);
+	tds_put_byte(tds, login->encryption_level ? TDS5_SEC_LOG_ENCRYPT2|TDS5_SEC_LOG_NONCE : 0);
 	/* secbulk(1)
 	 * halogin(1) type of ha login
 	 * hasessionid(6) id of session to reconnect

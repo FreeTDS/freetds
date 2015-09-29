@@ -459,3 +459,13 @@ enum {
 #define TDS_PROGNLEN 10	/* maximum program lenght */
 #define TDS_PKTLEN 6	/* maximum packet lenght in login */
 
+/* TDS 5 login security flags */
+enum {
+	TDS5_SEC_LOG_ENCRYPT = 1,
+	TDS5_SEC_LOG_CHALLENGE = 2,
+	TDS5_SEC_LOG_LABELS = 4,
+	TDS5_SEC_LOG_APPDEFINED = 8,
+	TDS5_SEC_LOG_SECSESS = 16,
+	TDS5_SEC_LOG_ENCRYPT2 = 32,
+	TDS5_SEC_LOG_NONCE = 128
+};
