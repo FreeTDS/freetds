@@ -235,6 +235,10 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		tdsdump_log(TDS_DBG_WARN, "Eating %s token\n", tds_token_name(marker));
 		tds_get_n(tds, NULL, tds_get_usmallint(tds));
 		break;
+	case TDS_MSG_TOKEN:
+		tdsdump_log(TDS_DBG_WARN, "Eating %s token\n", tds_token_name(marker));
+		tds_get_n(tds, NULL, tds_get_byte(tds));
+		break;
 	case TDS_TABNAME_TOKEN:	/* used for FOR BROWSE query */
 		return tds_process_tabname(tds);
 		break;
@@ -3130,6 +3134,8 @@ tds_token_name(unsigned char marker)
 		return "DONEPROC";
 	case TDS_DONEINPROC_TOKEN:
 		return "DONEINPROC";
+	case TDS_MSG_TOKEN:
+		return "MSG";
 
 	default:
 		break;

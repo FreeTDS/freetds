@@ -76,6 +76,7 @@ typedef TDS_UINT8 TDS_BIGDATETIME;
 #define TDS_LANGUAGE_TOKEN         33	/* 0x21    TDS 5.0 only              */
 #define TDS_ORDERBY2_TOKEN         34	/* 0x22 */
 #define TDS_ROWFMT2_TOKEN          97	/* 0x61    TDS 5.0 only              */
+#define TDS_MSG_TOKEN             101	/* 0x65    TDS 5.0 only              */
 #define TDS_LOGOUT_TOKEN          113	/* 0x71    TDS 5.0 only? ct_close()  */
 #define TDS_RETURNSTATUS_TOKEN    121	/* 0x79                              */
 #define TDS_PROCID_TOKEN          124	/* 0x7C    TDS 4.2 only - TDS_PROCID */
