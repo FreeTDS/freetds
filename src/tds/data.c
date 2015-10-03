@@ -83,7 +83,7 @@
  *
  * <li>string definition. Add string for your type to
  *    \c src/tds/token.c in \c tds_prtype.
- *    <br>Cfr \commit{c0d3b46db7d98436cd76f906b7d455f7651faae}.
+ *    <br>Cfr \commit{ac0d3b46db7d98436cd76f906b7d455f7651faae}.
  *
  * <li>conversion tests. You probably will have done some mistake
  *    with conversions but don't mind, there are some tests which
@@ -95,7 +95,7 @@
  *    \c src/tds/unittests/t0007.c test that your conversion
  *    are working. Just add manually the conversions you want
  *    to try.
- *    <br>Cfr \commit{bcc09c9a88acd0e9a45b46dab3ca44309917a02}.
+ *    <br>Cfr \commit{abcc09c9a88acd0e9a45b46dab3ca44309917a02}.
  *
  * <li>parameter. Add type/parameter declaration in
  *    \c tds_get_column_declaration in \c src/tds/query.c.
