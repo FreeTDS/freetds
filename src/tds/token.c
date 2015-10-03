@@ -228,7 +228,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	case TDS_CONTROL_FEATUREEXTACK_TOKEN:
 		if (IS_TDS74_PLUS(tds->conn))
 			return tds_process_featureextack(tds);
-
+		/* fall through */
 	case TDS5_DYNAMIC_TOKEN:
 	case TDS_LOGINACK_TOKEN:
 	case TDS_ORDERBY_TOKEN:
@@ -236,8 +236,13 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		tds_get_n(tds, NULL, tds_get_usmallint(tds));
 		break;
 	case TDS_MSG_TOKEN:
-		tdsdump_log(TDS_DBG_WARN, "Eating %s token\n", tds_token_name(marker));
-		tds_get_n(tds, NULL, tds_get_byte(tds));
+		tok_size = tds_get_byte(tds);
+		if (tok_size >= 3) {
+			tds_get_byte(tds);
+			tds5_negotiate_set_msg_type(tds, tds->conn->authentication, tds_get_usmallint(tds));
+			tok_size -= 3;
+		}
+		tds_get_n(tds, NULL, tok_size);
 		break;
 	case TDS_TABNAME_TOKEN:	/* used for FOR BROWSE query */
 		return tds_process_tabname(tds);
@@ -419,18 +424,26 @@ tds_process_login_tokens(TDSSOCKET * tds)
 			 * TDS 4.2 reports 1 on success and is not
 			 * present on failure
 			 */
-			if (ack == 5 || ack == 1)
+			if (ack == 5 || ack == 1) {
 				succeed = TDS_SUCCESS;
-			/* authentication is now useless */
-			if (tds->conn->authentication) {
-				tds->conn->authentication->free(tds->conn, tds->conn->authentication);
-				tds->conn->authentication = NULL;
+				/* authentication is now useless */
+				if (tds->conn->authentication) {
+					tds->conn->authentication->free(tds->conn, tds->conn->authentication);
+					tds->conn->authentication = NULL;
+				}
 			}
 			break;
 		default:
 			if (TDS_FAILED(tds_process_default_tokens(tds, marker)))
 				return TDS_FAIL;
 			break;
+		}
+		if (marker == TDS_DONE_TOKEN && IS_TDS50(tds->conn) && tds->conn->authentication) {
+			TDSAUTHENTICATION *auth = tds->conn->authentication;
+			if (TDS_SUCCEED(auth->handle_next(tds, auth, 0))) {
+				marker = 0;
+				continue;
+			}
 		}
 	} while (marker != TDS_DONE_TOKEN);
 	/* TODO why ?? */

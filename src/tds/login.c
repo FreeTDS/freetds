@@ -463,6 +463,12 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		
 	tds_set_state(tds, TDS_IDLE);
 
+	/* discard possible previous authentication */
+	if (tds->conn->authentication) {
+		tds->conn->authentication->free(tds->conn, tds->conn->authentication);
+		tds->conn->authentication = NULL;
+	}
+
 	if (IS_TDS71_PLUS(tds->conn)) {
 		erc = tds71_do_login(tds, login);
 		db_selected = 1;
@@ -578,8 +584,13 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 		return TDS_FAIL;
 	}
 	if (login->encryption_level != TDS_ENCRYPTION_OFF) {
-		tdsdump_log(TDS_DBG_ERROR, "Encryption not support using TDS 4.x or 5.0\n");
-		return TDS_FAIL;
+		if (IS_TDS42(tds->conn)) {
+			tdsdump_log(TDS_DBG_ERROR, "Encryption not support using TDS 4.x or 5.0\n");
+			return TDS_FAIL;
+		}
+		tds->conn->authentication = tds5_negotiate_get_auth(tds);
+		if (!tds->conn->authentication)
+			return TDS_FAIL;
 	}
 
 	if (IS_TDS42(tds->conn)) {
@@ -765,12 +776,6 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	} data_fields[NUM_DATA_FIELDS], *field;
 
 	tds->out_flag = TDS7_LOGIN;
-
-	/* discard possible previous authentication */
-	if (tds->conn->authentication) {
-		tds->conn->authentication->free(tds->conn, tds->conn->authentication);
-		tds->conn->authentication = NULL;
-	}
 
 	current_pos = packet_size = IS_TDS72_PLUS(tds->conn) ? 86 + 8 : 86;	/* ? */
 

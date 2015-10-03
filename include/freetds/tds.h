@@ -1545,6 +1545,11 @@ TDSAUTHENTICATION * tds_sspi_get_auth(TDSSOCKET * tds);
 void tds_random_buffer(unsigned char *out, int len);
 
 
+/* sec_negotiate.c */
+TDSAUTHENTICATION * tds5_negotiate_get_auth(TDSSOCKET * tds);
+void tds5_negotiate_set_msg_type(TDSSOCKET * tds, TDSAUTHENTICATION * auth, unsigned msg_type);
+
+
 /* bulk.c */
 
 /** bcp direction */

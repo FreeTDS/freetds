@@ -716,6 +716,18 @@ AC_SUBST(ODBCINSTLIB)
 AC_SUBST(ODBCNODMLIB)
 AC_SUBST(ODBCNODMLIBAPP)
 
+AC_DEFUN([TDS_CHECK_GMP], [
+AC_TRY_LINK([#include <stdio.h>
+#include <gmp.h>],
+[mpz_t x; mpz_init(x); mpz_powm(x,x,x,x); mpz_clear(x); return 0;],
+AC_DEFINE(HAVE_GMP, 1, [Define if you have GMP library]),
+[$1])])
+
+AC_DEFUN([TDS_HAVE_GMP],
+[TDS_CHECK_GMP([gmp_save_LIBS="$LIBS"
+LIBS="$LIBS -lgmp"
+TDS_CHECK_GMP([LIBS="$gmp_save_LIBS"])])])
+
 AC_ARG_WITH(gnutls,
 AS_HELP_STRING([--with-gnutls], [build with GnuTLS support]))
 if test "$with_gnutls" = "yes"; then
@@ -734,6 +746,11 @@ if test "$with_gnutls" = "yes"; then
 				AC_DEFINE(HAVE_NETTLE, 1, [Define to 1 if nettle is present.])
 				NETWORK_LIBS="$NETWORK_LIBS `$PKG_CONFIG --libs nettle`"
 			fi
+			ACX_PUSH_LIBS("$NETWORK_LIBS")
+			TDS_HAVE_GMP
+			AC_SEARCH_LIBS(nettle_rsa_public_key_init, [nettle hogweed])
+			NETWORK_LIBS="$LIBS"
+			ACX_POP_LIBS
 		fi
 	else
 		CPPFLAGS="$CPPFLAGS `libgnutls-config --cflags`"
