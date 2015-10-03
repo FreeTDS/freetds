@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 2004-2005  Frediano Ziglio
+ * Copyright (C) 2004-2015  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -39,7 +39,7 @@
  * \ingroup libtds
  * \defgroup dstring Dynamic string functions
  * Handle dynamic string. In this string are always valid 
- * (you don't have NULL pointer, only empty string)
+ * (you don't have NULL pointer, only empty strings)
  */
 
 /* This is in a separate module because we use the pointer to discriminate allocated and not allocated */
@@ -125,6 +125,12 @@ tds_dstr_copy(DSTR * s, const char *src)
 	return tds_dstr_copyn(s, src, strlen(src));
 }
 
+/**
+ * Duplicate a string from another dynamic string
+ * @param s   output string
+ * @param src source string to copy
+ * @return string copied or NULL on memory error
+ */
 DSTR*
 tds_dstr_dup(DSTR * s, const DSTR * src)
 {
@@ -170,31 +176,5 @@ tds_dstr_alloc(DSTR *s, size_t length)
 	*s = p;
 	return s;
 }
-
-#if ENABLE_EXTRA_CHECKS
-void
-tds_dstr_init(DSTR * s)
-{
-	*s = EMPTY;
-}
-
-int
-tds_dstr_isempty(DSTR * s)
-{
-	return (*s)->dstr_size == 0;
-}
-
-char *
-tds_dstr_buf(DSTR * s)
-{
-	return (*s)->dstr_s;
-}
-
-size_t
-tds_dstr_len(DSTR * s)
-{
-	return (*s)->dstr_size;
-}
-#endif
 
 /** @} */
