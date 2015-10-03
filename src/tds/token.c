@@ -49,7 +49,7 @@
 #define USE_ICONV (tds->conn->use_iconv)
 /** \endcond */
 
-static TDSRET tds_process_msg(TDSSOCKET * tds, int marker);
+static TDSRET tds_process_info(TDSSOCKET * tds, int marker);
 static TDSRET tds_process_compute_result(TDSSOCKET * tds);
 static TDSRET tds_process_compute_names(TDSSOCKET * tds);
 static TDSRET tds7_process_compute_result(TDSSOCKET * tds);
@@ -148,7 +148,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	case TDS_ERROR_TOKEN:
 	case TDS_INFO_TOKEN:
 	case TDS_EED_TOKEN:
-		return tds_process_msg(tds, marker);
+		return tds_process_info(tds, marker);
 		break;
 	case TDS_CAPABILITY_TOKEN:
 		tok_size = tds_get_usmallint(tds);
@@ -716,7 +716,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 				tds_unget_byte(tds);
 				break;
 			}
-			tds_process_msg(tds, marker);
+			tds_process_info(tds, marker);
 			if (!tds->cur_dyn || !tds->cur_dyn->emulated)
 				break;
 			marker = tds_get_byte(tds);
@@ -2285,12 +2285,12 @@ tds_process_env_chg(TDSSOCKET * tds)
 }
 
 /**
- * tds_process_msg() is called for MSG, ERR, or EED tokens and is responsible
+ * tds_process_info() is called for INFO, ERR, or EED tokens and is responsible
  * for calling the CLI's message handling routine
  * \returns TDS_SUCCESS if informational, TDS_FAIL if error.
  */
 static TDSRET
-tds_process_msg(TDSSOCKET * tds, int marker)
+tds_process_info(TDSSOCKET * tds, int marker)
 {
 	int rc;
 	unsigned int len_sqlstate;
@@ -2350,12 +2350,12 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 		msg.priv_msg_type = 1;
 		break;
 	default:
-		tdsdump_log(TDS_DBG_ERROR, "tds_process_msg() called with unknown marker '%d'!\n", (int) marker);
+		tdsdump_log(TDS_DBG_ERROR, "tds_process_info() called with unknown marker '%d'!\n", (int) marker);
 		tds_free_msg(&msg);
 		return TDS_FAIL;
 	}
 
-	tdsdump_log(TDS_DBG_ERROR, "tds_process_msg() reading message %d from server\n", msg.msgno);
+	tdsdump_log(TDS_DBG_ERROR, "tds_process_info() reading message %d from server\n", msg.msgno);
 	
 	rc = 0;
 	/* the message */
@@ -2427,7 +2427,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 	} else {
 
 		if (tds_get_ctx(tds)->msg_handler) {
-			tdsdump_log(TDS_DBG_ERROR, "tds_process_msg() calling client msg handler\n");
+			tdsdump_log(TDS_DBG_ERROR, "tds_process_info() calling client msg handler\n");
 			tds_get_ctx(tds)->msg_handler(tds_get_ctx(tds), tds, &msg);
 		} else if (msg.msgno) {
 			tdsdump_log(TDS_DBG_WARN,
@@ -2440,7 +2440,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 	
 	tds_free_msg(&msg);
 	
-	tdsdump_log(TDS_DBG_ERROR, "tds_process_msg() returning TDS_SUCCESS\n");
+	tdsdump_log(TDS_DBG_ERROR, "tds_process_info() returning TDS_SUCCESS\n");
 	
 	return TDS_SUCCESS;
 }
