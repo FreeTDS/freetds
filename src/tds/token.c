@@ -329,7 +329,6 @@ tds_process_login_tokens(TDSSOCKET * tds)
 	CHECK_TDS_EXTRA(tds);
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_process_login_tokens()\n");
-	/* get_incoming(tds->s); */
 	do {
 		struct 	{ unsigned char major, minor, tiny[2]; 
 			  unsigned int reported; 
