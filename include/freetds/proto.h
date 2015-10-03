@@ -104,7 +104,7 @@ typedef TDS_UINT8 TDS_BIGDATETIME;
 #define TDS_ENVCHANGE_TOKEN       227	/* 0xE3                              */
 #define TDS_SESSIONSTATE_TOKEN    228	/* 0xE4    TDS 7.4                   */
 #define TDS_EED_TOKEN             229	/* 0xE5                              */
-#define TDS_DBRPC_TOKEN           230	/* 0xE6                              */
+#define TDS_DBRPC_TOKEN           230	/* 0xE6    TDS 5.0 only              */
 #define TDS5_DYNAMIC_TOKEN        231	/* 0xE7    TDS 5.0 only              */
 #define TDS5_PARAMFMT_TOKEN       236	/* 0xEC    TDS 5.0 only              */
 #define TDS_AUTH_TOKEN            237	/* 0xED    TDS 7.0 only              */
