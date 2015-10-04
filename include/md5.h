@@ -14,7 +14,6 @@ struct MD5Context {
 void MD5Init(struct MD5Context *context);
 void MD5Update(struct MD5Context *context, unsigned char const *buf, size_t len);
 void MD5Final(struct MD5Context *context, unsigned char *digest);
-void MD5Transform(TDS_UINT buf[4], TDS_UINT const in[16]);
 
 /*
  * This is needed to make RSAREF happy on some MS-DOS compilers.

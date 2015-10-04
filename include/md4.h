@@ -15,7 +15,6 @@ struct MD4Context
 void MD4Init(struct MD4Context *context);
 void MD4Update(struct MD4Context *context, unsigned char const *buf, size_t len);
 void MD4Final(struct MD4Context *context, unsigned char *digest);
-void MD4Transform(TDS_UINT buf[4], TDS_UINT const in[16]);
 
 typedef struct MD4Context MD4_CTX;
 

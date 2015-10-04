@@ -48,6 +48,8 @@ static void byteReverse(unsigned char *buf, unsigned longs)
 }
 #endif
 
+static void MD5Transform(word32 buf[4], word32 const in[16]);
+
 /*
  * Start MD5 accumulation.  Set bit count to 0 and buffer to mysterious
  * initialization constants.
@@ -170,7 +172,7 @@ void MD5Final(struct MD5Context *ctx, unsigned char* digest)
  * reflect the addition of 16 longwords of new data.  MD5Update blocks
  * the data and converts bytes into longwords for this routine.
  */
-void MD5Transform(word32 buf[4], word32 const in[16])
+static void MD5Transform(word32 buf[4], word32 const in[16])
 {
     register word32 a, b, c, d;
 

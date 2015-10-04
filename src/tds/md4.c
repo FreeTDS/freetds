@@ -64,6 +64,7 @@ byteReverse(unsigned char *buf, unsigned longs)
 
 #define rotl32(x,n)   (((x) << ((word32)(n))) | ((x) >> (32 - (word32)(n))))
 
+static void MD4Transform(TDS_UINT buf[4], TDS_UINT const in[16]);
 /*
  * Start MD4 accumulation.  Set bit count to 0 and buffer to mysterious
  * initialization constants.
@@ -195,7 +196,7 @@ MD4Final(struct MD4Context *ctx, unsigned char *digest)
 /*
  * The core of the MD4 algorithm
  */
-void
+static void
 MD4Transform(word32 buf[4], word32 const in[16])
 {
 	register word32 a, b, c, d;
