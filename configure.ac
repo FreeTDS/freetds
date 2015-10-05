@@ -300,7 +300,7 @@ AC_CHECK_HEADERS([errno.h libgen.h \
 	sys/wait.h unistd.h netdb.h \
 	wchar.h inttypes.h winsock2.h \
 	localcharset.h valgrind/memcheck.h malloc.h dirent.h \
-	stdbool.h])
+	stdbool.h gnutls/abstract.h])
 AC_CHECK_HEADERS([windows.h sql.h],[],[],[[#ifdef HAVE_WINDOWS_H
 # include <windows.h>
 #endif
@@ -736,9 +736,6 @@ if test "$with_gnutls" = "yes"; then
 	if test "$PKG_CONFIG" != "" && "$PKG_CONFIG" --exists gnutls > /dev/null 2>&1; then
 		CPPFLAGS="$CPPFLAGS `$PKG_CONFIG --cflags gnutls`"
 		NETWORK_LIBS="$NETWORK_LIBS `$PKG_CONFIG --libs gnutls`"
-		if "$PKG_CONFIG" --libs --static gnutls | grep gcrypt > /dev/null 2>&1 ; then
-			gnutls_backend=gcrypt
-		fi
 		if "$PKG_CONFIG" --libs --static gnutls | grep nettle > /dev/null 2>&1 ; then
 			gnutls_backend=nettle
 			AC_DEFINE(GNUTLS_USE_NETTLE, 1, [Define to 1 if GNU tls use nettle as backend.])
@@ -759,6 +756,10 @@ if test "$with_gnutls" = "yes"; then
 	ACX_PUSH_LIBS("$NETWORK_LIBS")
 	AC_CHECK_FUNCS([gnutls_certificate_set_verify_function gnutls_record_disable_padding gnutls_rnd])
 	ACX_POP_LIBS
+	if test "$gnutls_backend" = "unknown"; then
+		gnutls_backend=gcrypt
+		NETWORK_LIBS="$NETWORK_LIBS -ltasn1"
+	fi
 else
 	CHECK_OPENSSL
 fi
@@ -814,7 +815,7 @@ AM_CONDITIONAL(ENABLE_THREADSAFE, test "$enable_threadsafe" != "no")
 # newer gcc are configured to fail to resolve references to libraries not
 # explicitly listed on the linker commandline.
 # So to make build add explicitly gcrypt library.
-if test "$enable_threadsafe" != "no" -a "$with_gnutls" = "yes" -a "$gnutls_backend" != "nettle"; then
+if test "$enable_threadsafe" != "no" -a "$with_gnutls" = "yes" -a "$gnutls_backend" = "gcrypt"; then
 	if test "$PKG_CONFIG" != "" && "$PKG_CONFIG" --exists gcrypt> /dev/null 2>&1; then
 		CPPFLAGS="$CPPFLAGS `$PKG_CONFIG --cflags gcrypt`"
 		NETWORK_LIBS="$NETWORK_LIBS `$PKG_CONFIG --libs gcrypt`"
