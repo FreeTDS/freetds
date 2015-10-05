@@ -45,13 +45,6 @@
 #include "des.h"
 #include "replacements.h"
 
-#ifdef HAVE_GNUTLS
-#include <gnutls/gnutls.h>
-#include <gnutls/crypto.h>
-#elif defined(HAVE_OPENSSL)
-#include <openssl/rand.h>
-#endif
-
 /**
  * \ingroup libtds
  * \defgroup auth Authentication
@@ -132,29 +125,6 @@ convert_to_usc2le_string(TDSSOCKET * tds, const char *s, size_t len, char *out)
 		return (size_t) -1;
 
 	return ob - out;
-}
-
-
-static void
-generate_random_buffer(unsigned char *out, int len)
-{
-	int i;
-
-#ifdef HAVE_GNUTLS
-	if (gnutls_rnd(GNUTLS_RND_RANDOM, out, len) >= 0)
-		return;
-	if (gnutls_rnd(GNUTLS_RND_NONCE, out, len) >= 0)
-		return;
-#elif defined(HAVE_OPENSSL)
-	if (RAND_bytes(out, len) == 1)
-		return;
-	if (RAND_pseudo_bytes(out, len) >= 0)
-		return;
-#endif
-
-	/* TODO find a better random... */
-	for (i = 0; i < len; ++i)
-		out[i] = rand() / (RAND_MAX / 256);
 }
 
 static TDSRET
@@ -335,7 +305,7 @@ tds_answer_challenge(TDSSOCKET * tds,
 		/* NTLM2 */
 		MD5_CTX md5_ctx;
 
-		generate_random_buffer(hash, 8);
+		tds_random_buffer(hash, 8);
 		memset(hash + 8, 0, 16);
 		memcpy(answer->lm_resp, hash, 24);
 
@@ -611,7 +581,7 @@ fill_names_blob_prefix(names_blob_prefix_t * prefix)
 	tds_swap_bytes(&nttime, 8);
 #endif
 	prefix->timestamp = nttime;
-	generate_random_buffer(prefix->challenge, sizeof(prefix->challenge));
+	tds_random_buffer(prefix->challenge, sizeof(prefix->challenge));
 
 	prefix->unknown = 0x00000000;
 }

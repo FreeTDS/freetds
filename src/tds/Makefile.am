@@ -15,7 +15,7 @@ libtds_la_SOURCES=	mem.c token.c util.c login.c read.c \
 	locale.c threadsafe.c vstrbuild.c \
 	tdsstring.c getmac.c data.c net.c tls.c \
 	tds_checks.c log.c \
-	bulk.c packet.c stream.c \
+	bulk.c packet.c stream.c random.c \
 	$(AUTH_FILES)
 libtds_la_LDFLAGS=
 libtds_la_LIBADD=

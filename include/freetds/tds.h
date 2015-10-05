@@ -1541,6 +1541,10 @@ TDSAUTHENTICATION * tds_sspi_get_auth(TDSSOCKET * tds);
 #endif
 
 
+/* random.c */
+void tds_random_buffer(unsigned char *out, int len);
+
+
 /* bulk.c */
 
 /** bcp direction */
