@@ -750,7 +750,7 @@ if test "$with_gnutls" = "yes"; then
 	fi
 	OLDLIBS="$LIBS"
 	LIBS="$LIBS $NETWORK_LIBS"
-	AC_CHECK_FUNCS([gnutls_record_disable_padding gnutls_rnd])
+	AC_CHECK_FUNCS([gnutls_certificate_set_verify_function gnutls_record_disable_padding gnutls_rnd])
 	LIBS="$OLDLIBS"
 else
 	CHECK_OPENSSL

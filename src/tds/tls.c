@@ -464,7 +464,9 @@ tds_ssl_init(TDSSOCKET *tds)
 			if (ret <= 0)
 				goto cleanup;
 		}
+#ifdef HAVE_GNUTLS_CERTIFICATE_SET_VERIFY_FUNCTION
 		gnutls_certificate_set_verify_function(xcred, tds_verify_certificate);
+#endif
 	}
 
 	/* Initialize TLS session */
@@ -503,6 +505,12 @@ tds_ssl_init(TDSSOCKET *tds)
 	ret = gnutls_handshake (session);
 	if (ret != 0)
 		goto cleanup;
+
+#ifndef HAVE_GNUTLS_CERTIFICATE_SET_VERIFY_FUNCTION
+	ret = tds_verify_certificate(session);
+	if (ret != 0)
+		goto cleanup;
+#endif
 
 	tdsdump_log(TDS_DBG_INFO1, "handshake succeeded!!\n");
 
