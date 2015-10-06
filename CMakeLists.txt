@@ -236,12 +236,18 @@ set(FUNCS asprintf vasprintf strtok_r readpassphrase
 	pthread_condattr_setclock _lock_file _unlock_file usleep nanosleep
 	readdir_r)
 
-foreach(func ${FUNCS})
+macro(CHECK_FUNCTION_EXISTS_DEFINE func)
 	string(TOUPPER "HAVE_${func}" var)
 	check_function_exists(${func} ${var})
-	set(HAVE_GETADDRINFO 1 CACHE INTERNAL "")
 	config_write("/* Define to 1 if you have function <${func}>. */\n")
 	config_write("#cmakedefine ${var} 1\n\n")
+endmacro()
+
+# TODO
+set(HAVE_GETADDRINFO 1 CACHE INTERNAL "")
+
+foreach(func ${FUNCS})
+	check_function_exists_define(${func})
 endforeach(func)
 
 macro(CHECK_STDIO_FUNCTION_EXISTS FUNCTION)
@@ -349,8 +355,12 @@ else(WIN32)
 	if(NOT OPENSSL_FOUND)
 		include(FindGnuTLS)
 		if(GNUTLS_FOUND)
-			config_write("#define HAVE_GNUTLS 1\n#define HAVE_GNUTLS_RECORD_DISABLE_PADDING 1\n")
-			config_write("#define HAVE_GNUTLS_RND 1\n")
+			config_write("#define HAVE_GNUTLS 1\n")
+			set(CMAKE_REQUIRED_LIBRARIES ${GNUTLS_LIBRARIES})
+			check_function_exists_define(gnutls_certificate_set_verify_function)
+			check_function_exists_define(gnutls_record_disable_padding)
+			check_function_exists_define(gnutls_rnd)
+			set(CMAKE_REQUIRED_LIBRARIES)
 			pkg_check_modules(NETTLEDEP gnutls)
 			if (";${NETTLEDEP_STATIC_LIBRARIES};" MATCHES ";nettle;")
 				set(lib_GNUTLS ${GNUTLS_LIBRARIES})
