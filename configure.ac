@@ -162,8 +162,7 @@ case $enable_krb5 in
   *) krb5_libs="-l$enable_krb5" ;;
 esac
 
-OLDLIBS="$LIBS"
-LIBS=""
+ACX_PUSH_LIBS("")
 tds_mingw=no
 case $host in
 *-*-mingw*)
@@ -228,17 +227,16 @@ if test -n "$krb5_libs"; then
 fi
 
 NETWORK_LIBS="$LIBS"
-LIBS="$OLDLIBS"
+ACX_POP_LIBS
 AC_SUBST(NETWORK_LIBS)
 
 if test $tds_mingw = no; then
 	# readline test
 	# Readline is needed by the tty session. Set up a special READLINE_LIBS
 	# substitution for it.
-	OLDLIBS="$LIBS"
 	# Readline is linked with curses, and on some systems termcap must be
 	# linked in. Others (inc debian) have termcap built into ncurses.
-	LIBS=""
+	ACX_PUSH_LIBS("")
 	AC_SEARCH_LIBS(tgetent, [readline ncurses curses termcap])
 	AC_CHECK_LIB([readline], [readline], [LIBS="$LIBS -lreadline"
 	  AC_DEFINE(HAVE_READLINE, 1, [Define to 1 if you have the GNU Readline library.])], [LIBS=""] )
@@ -262,7 +260,7 @@ int main()
 }
 ]])],AC_DEFINE(HAVE_RL_INHIBIT_COMPLETION, 1, [Define to 1 if you have rl_inhibit_completion.]))
 	READLINE_LIBS="$LIBS"
-	LIBS="$OLDLIBS"
+	ACX_POP_LIBS
 	AC_SUBST(READLINE_LIBS)
 
 	ACX_PTHREAD
@@ -488,8 +486,8 @@ getuid getpwuid getpwuid_r fstat alarm fork \
 gethrtime localtime_r setitimer \
 _fseeki64 _ftelli64 setrlimit pthread_cond_timedwait \
 _lock_file _unlock_file usleep nanosleep readdir_r])
-OLD_LIBS="$LIBS"
-LIBS="$LIBS $NETWORK_LIBS"
+
+ACX_PUSH_LIBS("$LIBS $NETWORK_LIBS")
 AC_CHECK_FUNCS([inet_ntoa_r getipnodebyaddr getipnodebyname \
 getaddrinfo inet_ntop gethostname poll socketpair])
 AC_TRY_LINK([#ifdef HAVE_SYS_TYPES_H
@@ -507,8 +505,8 @@ AC_TRY_LINK([#ifdef HAVE_SYS_TYPES_H
 #endif],
 [return getaddrinfo(NULL, NULL, NULL, NULL);],
 AC_DEFINE(HAVE_GETADDRINFO, 1, [Define if you have getaddrinfo function]))
+ACX_POP_LIBS
 
-LIBS="$OLD_LIBS"
 AC_REPLACE_FUNCS([asprintf vasprintf strtok_r readpassphrase \
 strlcpy strlcat basename getopt strsep])
 AC_FUNC_FSEEKO
@@ -741,10 +739,9 @@ if test "$with_gnutls" = "yes"; then
 		CPPFLAGS="$CPPFLAGS `libgnutls-config --cflags`"
 		NETWORK_LIBS="$NETWORK_LIBS `libgnutls-config --libs`"
 	fi
-	OLDLIBS="$LIBS"
-	LIBS="$LIBS $NETWORK_LIBS"
+	ACX_PUSH_LIBS("$NETWORK_LIBS")
 	AC_CHECK_FUNCS([gnutls_certificate_set_verify_function gnutls_record_disable_padding gnutls_rnd])
-	LIBS="$OLDLIBS"
+	ACX_POP_LIBS
 else
 	CHECK_OPENSSL
 fi
