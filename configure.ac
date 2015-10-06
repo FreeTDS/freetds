@@ -719,9 +719,9 @@ AC_SUBST(ODBCNODMLIB)
 AC_SUBST(ODBCNODMLIBAPP)
 
 AC_ARG_WITH(gnutls,
-AS_HELP_STRING([--with-gnutls], [build with TLS support]))
+AS_HELP_STRING([--with-gnutls], [build with GnuTLS support]))
 if test "$with_gnutls" = "yes"; then
-	AC_DEFINE(HAVE_GNUTLS, 1, [Define to 1 if you have GNU tls.])
+	AC_DEFINE(HAVE_GNUTLS, 1, [Define to 1 if you have GnuTLS.])
 	gnutls_backend=unknown
 	if test "$PKG_CONFIG" != "" && "$PKG_CONFIG" --exists gnutls > /dev/null 2>&1; then
 		CPPFLAGS="$CPPFLAGS `$PKG_CONFIG --cflags gnutls`"
