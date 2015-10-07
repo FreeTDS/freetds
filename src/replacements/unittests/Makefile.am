@@ -9,6 +9,6 @@ passarg_SOURCES	=	passarg.c
 strtok_r_SOURCES	=	strtok_r.c
 
 AM_CPPFLAGS	=	-I$(top_srcdir)/include -I$(srcdir)/.. -I../
-LIBS		=	../../replacements/libreplacements.la @NETWORK_LIBS@
+LIBS		=	../../replacements/libreplacements.la $(NETWORK_LIBS)
 EXTRA_DIST	=	CMakeLists.txt
 

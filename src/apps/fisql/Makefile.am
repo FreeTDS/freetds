@@ -14,5 +14,5 @@ fisql_SOURCES	= fisql.c  \
 
 fisql_LDADD	= ../../dblib/libsybdb.la \
 		  ../../replacements/libreplacements.la \
-		  $(NETWORK_LIBS) $(LTLIBICONV) $(READLINE_LIBS)
+		  $(LTLIBICONV) $(READLINE_LIBS)
 endif

@@ -14,7 +14,7 @@ if !MACOSX
 libct_la_LDFLAGS +=	-export-symbols-regex '^(cs_|ct_|blk_).*'
 endif
 
-libct_la_LIBADD	=	../tds/libtds.la ../replacements/libreplacements.la $(NETWORK_LIBS) $(LTLIBICONV) $(FREETDS_LIBGCC)
+libct_la_LIBADD	=	../tds/libtds.la ../replacements/libreplacements.la $(LTLIBICONV) $(FREETDS_LIBGCC)
 
 EXTRA_DIST		= ctlib.def CMakeLists.txt winmain.c
 

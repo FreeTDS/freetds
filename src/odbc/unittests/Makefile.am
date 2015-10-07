@@ -116,7 +116,7 @@ endif
 utf8_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
 oldpwd_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
 
-LIBS		=	$(ODBCLIB) $(ODBCNODMLIB) ../../replacements/libreplacements.la @NETWORK_LIBS@
+LIBS		=	$(ODBCLIB) $(ODBCNODMLIB) ../../replacements/libreplacements.la $(NETWORK_LIBS)
 if MINGW32
 AM_LDFLAGS	=	-no-fast-install
 LIBS		+=      $(ODBCINSTLIB)

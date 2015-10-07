@@ -15,30 +15,30 @@ endif
 
 dist_bin_SCRIPTS = osql
 
-freebcp_LDADD	= ../dblib/libsybdb.la ../replacements/libreplacements.la $(LTLIBICONV) $(NETWORK_LIBS)
+freebcp_LDADD	= ../dblib/libsybdb.la ../replacements/libreplacements.la $(LTLIBICONV)
 freebcp_SOURCES = freebcp.c freebcp.h
 
 tsql_LDADD	= ../tds/libtds.la \
 		  ../replacements/libreplacements.la \
-		  $(NETWORK_LIBS) $(LTLIBICONV) $(FREETDS_LIBGCC) $(READLINE_LIBS)
+		  $(LTLIBICONV) $(FREETDS_LIBGCC) $(READLINE_LIBS)
 
 bsqldb_LDADD	= ../dblib/libsybdb.la \
 		  ../replacements/libreplacements.la \
-		  $(NETWORK_LIBS) $(LTLIBICONV)
+		  $(LTLIBICONV)
 
 if ODBC
 bsqlodbc_CPPFLAGS	= $(ODBC_INC) $(AM_CPPFLAGS)
 bsqlodbc_LDADD	= $(ODBCLIB) $(ODBCNODMLIBAPP) \
-		  ../replacements/libreplacements.la $(NETWORK_LIBS) $(LTLIBICONV)
+		  ../replacements/libreplacements.la $(LTLIBICONV)
 endif
 
 defncopy_LDADD	= ../dblib/libsybdb.la \
 		  ../replacements/libreplacements.la \
-		  $(NETWORK_LIBS) $(LTLIBICONV)
+		  $(LTLIBICONV)
 
 datacopy_SOURCES= datacopy.c
 datacopy_LDADD	= ../dblib/libsybdb.la \
 		  ../replacements/libreplacements.la \
-		$(NETWORK_LIBS) $(LTLIBICONV)
+		$(LTLIBICONV)
 
 EXTRA_DIST = CMakeLists.txt

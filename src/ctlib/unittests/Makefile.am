@@ -50,6 +50,6 @@ AM_LDFLAGS	=	-no-fast-install
 else
 AM_LDFLAGS	=	-no-install -L../.libs -R $(abs_builddir)/../.libs
 endif
-LIBS		=	../libct.la ../../replacements/libreplacements.la $(LTLIBICONV) @NETWORK_LIBS@
+LIBS		=	../libct.la ../../replacements/libreplacements.la $(LTLIBICONV)
 CLEANFILES	=	tdsdump.out
 EXTRA_DIST	=	CMakeLists.txt

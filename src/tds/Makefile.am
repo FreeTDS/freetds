@@ -18,7 +18,7 @@ libtds_la_SOURCES=	mem.c token.c util.c login.c read.c \
 	bulk.c packet.c stream.c random.c \
 	$(AUTH_FILES)
 libtds_la_LDFLAGS=
-libtds_la_LIBADD=
+libtds_la_LIBADD = $(NETWORK_LIBS)
 
 noinst_HEADERS		= tds_willconvert.h encodings.h num_limits.h tds_types.h
 EXTRA_DIST		= tds_willconvert.h encodings.h num_limits.h tds_types.h \
