@@ -37,7 +37,7 @@ sub category($) {
 	return qw(BIT BITN) if $_ eq 'BITx';
 	return qw(BINARY VARBINARY IMAGE LONGBINARY XBINARY XVARBINARY) if $_ eq 'BINARYx';
 	return qw(CHAR VARCHAR XCHAR XVARCHAR) if $_ eq 'CHARx';
-	return $_;
+	return ($_);
 }
 
 sub to_type($) {
@@ -64,7 +64,7 @@ while(<DATA>) {
 	foreach $from (category($from)) {
 		my $i = 0;
 		foreach my $to (@to) {
-			foreach $to (category($to)) {
+			foreach my $to (category($to)) {
 				die if !exists($yn{$yn[$i]});
 				my $yn = $yn{$yn[$i]};
 				my $from = to_type($from);
@@ -73,7 +73,7 @@ while(<DATA>) {
 				$allTypes{$from} = 1;
 				my $to = to_type($to);
 				next if $to eq 'SYBBOUNDARY';
-				die if !exists($typesNum{$to});
+				die $to if !exists($typesNum{$to});
 				$allTypes{$to} = 1;
 				$fromTo{$from}{$to} = $yn;
 				$toFrom{$to}{$from} = $yn;
