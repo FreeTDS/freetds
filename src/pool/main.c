@@ -69,7 +69,7 @@ static void pool_main_loop(TDS_POOL * pool);
 static void
 term_handler(int sig)
 {
-	fprintf(stdout, "Shutdown Requested\n");
+	printf("Shutdown Requested\n");
 	term = 1;
 }
 
@@ -242,6 +242,6 @@ main(int argc, char **argv)
 	}
 	pool = pool_init(argv[1]);
 	pool_main_loop(pool);
-	fprintf(stdout, "tdspool Shutdown\n");
+	printf("tdspool Shutdown\n");
 	return EXIT_SUCCESS;
 }
