@@ -43,6 +43,7 @@
 #include <freetds/convert.h>
 #include <freetds/iconv.h>
 #include <freetds/checks.h>
+#include <freetds/bytes.h>
 #include "replacements.h"
 
 /** \cond HIDDEN_SYMBOLS */
@@ -2213,7 +2214,7 @@ tds_process_env_chg(TDSSOCKET * tds)
 		} else {
 			tds_get_n(tds, tds->conn->collation, 5);
 			tds_get_n(tds, NULL, size - 5);
-			lcid = (tds->conn->collation[0] + ((int) tds->conn->collation[1] << 8) + ((int) tds->conn->collation[2] << 16)) & 0xffffflu;
+			lcid = TDS_GET_UA4LE(tds->conn->collation) & 0xffffflu;
 			tds7_srv_charset_changed(tds->conn, tds->conn->collation[4], lcid);
 		}
 		tdsdump_dump_buf(TDS_DBG_NETWORK, "tds->conn->collation now", tds->conn->collation, 5);
