@@ -59,6 +59,7 @@ pool_user_init(TDS_POOL * pool)
 
 	pool->users = (TDS_POOL_USER *)
 		calloc(MAX_POOL_USERS, sizeof(TDS_POOL_USER));
+	pool->ctx = tds_alloc_context(NULL);
 }
 
 static TDS_POOL_USER *
@@ -109,7 +110,7 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s, struct sockaddr_in *sin)
 		perror("accept");
 		return NULL;
 	}
-	tds = tds_alloc_socket(NULL, BLOCKSIZ);
+	tds = tds_alloc_socket(pool->ctx, BLOCKSIZ);
 	if (!tds) {
 		CLOSESOCKET(fd);
 		return NULL;

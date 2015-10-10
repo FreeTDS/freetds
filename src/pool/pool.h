@@ -94,6 +94,7 @@ typedef struct tds_pool
 	TDS_POOL_MEMBER *members;
 	int max_users;
 	TDS_POOL_USER *users;
+	TDSCONTEXT *ctx;
 }
 TDS_POOL;
 
