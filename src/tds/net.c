@@ -532,6 +532,18 @@ tds_socket_write(TDSCONNECTION *conn, TDSSOCKET *tds, const unsigned char *buf, 
 	int err, len;
 	char *errstr;
 
+#if ENABLE_EXTRA_CHECKS
+	/* this simulate the fact that send can return less bytes */
+	if (buflen >= 5) {
+		static int cnt = 0;
+		if (++cnt == 5) {
+			cnt = 0;
+			last = 0;
+			buflen -= 3;
+		}
+	}
+#endif
+
 #ifdef USE_MSGMORE
 	len = send(conn->s, buf, buflen, last ? MSG_NOSIGNAL : MSG_NOSIGNAL|MSG_MORE);
 	/* In case the kernel does not support MSG_MORE, try again without it */
