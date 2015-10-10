@@ -2291,8 +2291,7 @@ tds_process_env_chg(TDSSOCKET * tds)
 	free(oldval);
 	if (newval) {
 		if (dest) {
-			if (*dest)
-				free(*dest);
+			free(*dest);
 			*dest = newval;
 		} else
 			free(newval);
