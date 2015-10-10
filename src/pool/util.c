@@ -26,10 +26,20 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif /* HAVE_UNISTD_H */
+
+#if HAVE_ERRNO_H
+#include <errno.h>
+#endif /* HAVE_ERRNO_H */
+
 #include <ctype.h>
 
 #include "pool.h"
 #include <freetds/string.h>
+#include <freetds/checks.h>
+#include <freetds/bytes.h>
 
 void
 dump_login(TDSLOGIN * login)
@@ -54,6 +64,69 @@ die_if(int expr, const char *msg)
 		fprintf(stderr, "tdspool aborting!\n");
 		exit(1);
 	}
+}
+
+bool
+pool_packet_read(TDSSOCKET *tds)
+{
+	int packet_len;
+	int readed, err;
+
+	tdsdump_log(TDS_DBG_INFO1, "tds in_len %d in_pos %d\n", tds->in_len, tds->in_pos);
+
+	/* determine how much we should read */
+	packet_len = 8;
+	if (tds->in_len >= 4)
+		packet_len = TDS_GET_A2BE(&tds->in_buf[2]);
+
+	if (tds->in_len >= packet_len) {
+		tds->in_pos = 0;
+		tds->in_len = 0;
+		packet_len = 8;
+	}
+	tdsdump_log(TDS_DBG_INFO1, "packet_len %d capacity %d\n", packet_len, tds->recv_packet->capacity);
+	assert(packet_len > tds->in_len);
+	assert(packet_len <= tds->recv_packet->capacity);
+	assert(tds->in_len < tds->recv_packet->capacity);
+
+	readed = read(tds_get_s(tds), &tds->in_buf[tds->in_len], packet_len - tds->in_len);
+	tdsdump_log(TDS_DBG_INFO1, "readed %d\n", readed);
+	if (readed == 0) {
+		/* socket closed */
+		tds->in_len = 0;
+		return false;
+	}
+	if (readed < 0) {
+		/* error */
+		err = sock_errno;
+		if (err == EINTR || TDSSOCK_WOULDBLOCK(err))
+			return true;
+		goto failure;
+	}
+	tds->in_len += readed;
+	if (tds->in_len >= 4) {
+		packet_len = TDS_GET_A2BE(&tds->in_buf[2]);
+		if (packet_len < 8)
+			goto failure;
+		tdsdump_log(TDS_DBG_INFO1, "packet_len %d in_len %d after\n", packet_len, tds->in_len);
+		/* resize packet if not enough */
+		if (packet_len > tds->recv_packet->capacity) {
+			TDSPACKET *packet;
+
+			packet = tds_realloc_packet(tds->recv_packet, packet_len);
+			if (!packet)
+				goto failure;
+			tds->in_buf = packet->buf;
+			tds->recv_packet = packet;
+		}
+		CHECK_TDS_EXTRA(tds);
+		return tds->in_len < packet_len;
+	}
+	return true;
+
+failure:
+	tds->in_len = -1;
+	return false;
 }
 
 int

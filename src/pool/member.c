@@ -58,7 +58,6 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
 static TDSSOCKET *pool_mbr_login(TDS_POOL * pool);
 
 /*
@@ -213,19 +212,19 @@ pool_process_members(TDS_POOL * pool, fd_set * fds)
 		if (FD_ISSET(tds_get_s(tds), fds)) {
 			pmbr->last_used_tm = time_now;
 			cnt++;
-			/* tds->in_len = read(tds->s, tds->in_buf, BLOCKSIZ); */
-			if (pool_packet_read(pmbr))
+			if (pool_packet_read(tds))
 				continue;
 
 			if (tds->in_len == 0) {
 				fprintf(stderr, "Uh oh! member %d disconnected\n", i);
 				/* mark as dead */
 				pool_free_member(pmbr);
-			} else if (tds->in_len == -1) {
+			} else if (tds->in_len < 0) {
 				fprintf(stderr, "Uh oh! member %d disconnected\n", i);
 				perror("read");
 				pool_free_member(pmbr);
 			} else {
+				tdsdump_dump_buf(TDS_DBG_NETWORK, "Got packet from server:", tds->in_buf, tds->in_len);
 				/* fprintf(stderr, "read %d bytes from member %d\n", tds->in_len, i); */
 				if (pmbr->current_user) {
 					puser = pmbr->current_user;
@@ -311,24 +310,3 @@ pool_find_idle_member(TDS_POOL * pool)
 	return NULL;
 }
 
-static int
-pool_packet_read(TDS_POOL_MEMBER * pmbr)
-{
-	TDSSOCKET *tds;
-	int packet_len;
-
-	tds = pmbr->tds;
-
-	if (pmbr->need_more) {
-		tds->in_len += read(tds_get_s(tds), &tds->in_buf[tds->in_len], BLOCKSIZ - tds->in_len);
-	} else {
-		tds->in_len = read(tds_get_s(tds), tds->in_buf, BLOCKSIZ);
-	}
-	packet_len = ntohs(*(short *) &tds->in_buf[2]);
-	if (tds->in_len < packet_len) {
-		pmbr->need_more = 1;
-	} else {
-		pmbr->need_more = 0;
-	}
-	return pmbr->need_more;
-}

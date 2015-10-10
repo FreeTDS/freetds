@@ -68,8 +68,6 @@ TDS_POOL_USER;
 struct tds_pool_member
 {
 	TDSSOCKET *tds;
-	/* sometimes we get a partial packet */
-	int need_more;
 	int state;
 	time_t last_used_tm;
 	TDS_POOL_USER *current_user;
@@ -109,6 +107,7 @@ void pool_free_member(TDS_POOL_MEMBER * pmbr);
 void pool_assign_member(TDS_POOL_MEMBER * pmbr, TDS_POOL_USER *puser);
 void pool_deassign_member(TDS_POOL_MEMBER * pmbr);
 void pool_reset_member(TDS_POOL_MEMBER * pmbr);
+bool pool_packet_read(TDSSOCKET * tds);
 
 /* user.c */
 int pool_process_users(TDS_POOL * pool, fd_set * fds);
