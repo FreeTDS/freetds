@@ -75,9 +75,7 @@ pool_mbr_login(TDS_POOL * pool)
 	char hostname[MAXHOSTNAMELEN];
 
 	login = tds_alloc_login(1);
-#if HAVE_GETHOSTNAME
 	if (gethostname(hostname, MAXHOSTNAMELEN) < 0)
-#endif
 		strlcpy(hostname, "tdspool", MAXHOSTNAMELEN);
 	if (!tds_set_passwd(login, pool->password)
 	    || !tds_set_user(login, pool->user)
