@@ -102,11 +102,6 @@ pool_mbr_login(TDS_POOL * pool)
 		return NULL;
 	}
 	tds_free_login(connection);
-	/*
-	 * FIXME -- tds_connect_and_login no longer preallocates the in_buf need to 
-	 * do something like what tds_read_packet does
-	 */
-	tds->in_buf = (unsigned char *) calloc(BLOCKSIZ, 1);
 
 	if (pool->database && strlen(pool->database)) {
 		query = (char *) malloc(strlen(pool->database) + 5);
