@@ -100,18 +100,26 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s, struct sockaddr_in *sin)
 	socklen_t len;
 	TDSSOCKET *tds;
 
-	puser = pool_user_find_new(pool);
-	if (!puser)
-		return NULL;
-
 	fprintf(stderr, "accepting connection\n");
 	len = sizeof(*sin);
 	if (TDS_IS_SOCKET_INVALID(fd = tds_accept(s, (struct sockaddr *) sin, &len))) {
 		perror("accept");
 		return NULL;
 	}
+
+	puser = pool_user_find_new(pool);
+	if (!puser) {
+		CLOSESOCKET(fd);
+		return NULL;
+	}
+
 	tds = tds_alloc_socket(pool->ctx, BLOCKSIZ);
 	if (!tds) {
+		CLOSESOCKET(fd);
+		return NULL;
+	}
+	if (TDS_FAILED(tds_iconv_open(tds->conn, "UTF-8", 0))) {
+		tds_free_socket(tds);
 		CLOSESOCKET(fd);
 		return NULL;
 	}
@@ -119,6 +127,7 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s, struct sockaddr_in *sin)
 	/* FIX ME - little endian emulation should be config file driven */
 	tds->conn->emul_little_endian = 1;
 	tds_set_s(tds, fd);
+	tds->state = TDS_IDLE;
 	tds->out_flag = TDS_LOGIN;
 	puser->tds = tds;
 	puser->user_state = TDS_SRV_LOGIN;
