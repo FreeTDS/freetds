@@ -1490,7 +1490,7 @@ int tds7_get_instance_port(struct addrinfo *addr, const char *instance);
 char *tds_prwsaerror(int erc);
 void tds_prwsaerror_free(char *s);
 int tds_connection_read(TDSSOCKET * tds, unsigned char *buf, int buflen);
-int tds_connection_write(TDSSOCKET *tds, unsigned char *buf, int buflen, int final);
+int tds_connection_write(TDSSOCKET *tds, const unsigned char *buf, int buflen, int final);
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
 int tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds);

@@ -754,7 +754,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen, unsig
 }
 
 int
-tds_connection_write(TDSSOCKET *tds, unsigned char *buf, int buflen, int final)
+tds_connection_write(TDSSOCKET *tds, const unsigned char *buf, int buflen, int final)
 {
 	int sent;
 	TDSCONNECTION *conn = tds->conn;
