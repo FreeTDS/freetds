@@ -507,9 +507,11 @@ tds_ssl_init(TDSSOCKET *tds)
 		goto cleanup;
 
 #ifndef HAVE_GNUTLS_CERTIFICATE_SET_VERIFY_FUNCTION
-	ret = tds_verify_certificate(session);
-	if (ret != 0)
-		goto cleanup;
+	if (!tds_dstr_isempty(&tds->login->cafile)) {
+		ret = tds_verify_certificate(session);
+		if (ret != 0)
+			goto cleanup;
+	}
 #endif
 
 	tdsdump_log(TDS_DBG_INFO1, "handshake succeeded!!\n");
