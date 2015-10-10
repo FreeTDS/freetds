@@ -667,24 +667,23 @@ int
 tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen, unsigned char last)
 {
 	int len;
+	size_t sent = 0;
 
 	assert(tds && buffer);
 
-	for (;;) {
+	while (sent < buflen) {
 		/* TODO if send buffer is full we block receive !!! */
 		len = tds_select(tds, TDSSELWRITE, tds->query_timeout);
 
 		if (len > 0) {
-			len = tds_socket_write(tds->conn, tds, buffer, buflen, last);
+			len = tds_socket_write(tds->conn, tds, buffer + sent, buflen - sent, last);
 			if (len == 0)
 				continue;
-			if (len > 0) {
-#ifdef USE_CORK
-				if (len < buflen) last = 0;
-#endif
-				break;
-			}
-			return len;
+			if (len < 0)
+				return len;
+
+			sent += len;
+			continue;
 		}
 
 		/* error */
@@ -722,7 +721,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen, unsig
 	}
 #endif
 
-	return len;
+	return (int) sent;
 }
 
 int
