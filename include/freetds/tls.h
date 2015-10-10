@@ -59,7 +59,7 @@ tds_ssl_read(TDSCONNECTION *conn, unsigned char *buf, int buflen)
 }
 
 static inline int
-tds_ssl_write(TDSCONNECTION *conn, unsigned char *buf, int buflen)
+tds_ssl_write(TDSCONNECTION *conn, const unsigned char *buf, int buflen)
 {
 	return gnutls_record_send((gnutls_session_t) conn->tls_session, buf, buflen);
 }
@@ -78,7 +78,7 @@ tds_ssl_read(TDSCONNECTION *conn, unsigned char *buf, int buflen)
 }
 
 static inline int
-tds_ssl_write(TDSCONNECTION *conn, unsigned char *buf, int buflen)
+tds_ssl_write(TDSCONNECTION *conn, const unsigned char *buf, int buflen)
 {
 	return SSL_write((SSL *) conn->tls_session, buf, buflen);
 }
@@ -108,7 +108,7 @@ tds_ssl_read(TDSCONNECTION *conn, unsigned char *buf, int buflen)
 }
 
 static inline int
-tds_ssl_write(TDSCONNECTION *conn, unsigned char *buf, int buflen)
+tds_ssl_write(TDSCONNECTION *conn, const unsigned char *buf, int buflen)
 {
 	return -1;
 }
