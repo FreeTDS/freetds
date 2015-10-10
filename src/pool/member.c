@@ -52,6 +52,7 @@
 
 #include "pool.h"
 #include "replacements.h"
+#include <freetds/string.h>
 
 #ifndef MAXHOSTNAMELEN
 #define MAXHOSTNAMELEN 256
@@ -71,8 +72,6 @@ pool_mbr_login(TDS_POOL * pool)
 	TDSLOGIN *login;
 	TDSSOCKET *tds;
 	TDSLOGIN *connection;
-	TDSRET rc;
-	char *query;
 	char hostname[MAXHOSTNAMELEN];
 
 	login = tds_alloc_login(1);
@@ -91,6 +90,12 @@ pool_mbr_login(TDS_POOL * pool)
 		tds_free_login(login);
 		return NULL;
 	}
+	if (pool->database && strlen(pool->database)) {
+		if (!tds_dstr_copy(&login->database, pool->database)) {
+			tds_free_login(login);
+			return NULL;
+		}
+	}
 	context = tds_alloc_context(NULL);
 	tds = tds_alloc_socket(context, 512);
 	connection = tds_read_config_info(tds, login, context->locale);
@@ -104,19 +109,11 @@ pool_mbr_login(TDS_POOL * pool)
 	tds_free_login(connection);
 
 	if (pool->database && strlen(pool->database)) {
-		query = (char *) malloc(strlen(pool->database) + 5);
-		sprintf(query, "use %s", pool->database);
-		rc = tds_submit_query(tds, query);
-		free(query);
-		if (TDS_FAILED(rc)) {
+		if (strcasecmp(tds->conn->env.database, pool->database) != 0) {
 			fprintf(stderr, "changing database failed\n");
 			return NULL;
 		}
-
-		if (TDS_FAILED(tds_process_simple_query(tds)))
-			return NULL;
 	}
-
 
 	return tds;
 }
