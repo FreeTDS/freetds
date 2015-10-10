@@ -48,7 +48,7 @@
 static void pool_parse(const char *option, const char *value, void *param);
 
 int
-pool_read_conf_file(char *poolname, TDS_POOL * pool)
+pool_read_conf_file(const char *poolname, TDS_POOL * pool)
 {
 	FILE *in;
 	int found = 0;

@@ -63,7 +63,7 @@ int waiters = 0;
 
 static void term_handler(int sig);
 static void pool_schedule_waiters(TDS_POOL * pool);
-static TDS_POOL *pool_init(char *name);
+static TDS_POOL *pool_init(const char *name);
 static void pool_main_loop(TDS_POOL * pool);
 
 static void
@@ -77,7 +77,7 @@ term_handler(int sig)
  * pool_init creates a named pool and opens connections to the database
  */
 static TDS_POOL *
-pool_init(char *name)
+pool_init(const char *name)
 {
 	TDS_POOL *pool;
 

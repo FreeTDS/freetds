@@ -123,7 +123,7 @@ void dump_login(TDSLOGIN * login);
 void die_if(int expr, const char *msg);
 
 /* config.c */
-int pool_read_conf_file(char *poolname, TDS_POOL * pool);
+int pool_read_conf_file(const char *poolname, TDS_POOL * pool);
 
 
 #endif
