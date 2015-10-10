@@ -236,11 +236,14 @@ main(int argc, char **argv)
 
 	signal(SIGTERM, term_handler);
 	signal(SIGINT, term_handler);
+	signal(SIGPIPE, SIG_IGN);
+
 	if (argc < 2) {
 		fprintf(stderr, "Usage: tdspool <pool name>\n");
 		return EXIT_FAILURE;
 	}
 	pool = pool_init(argv[1]);
+	tdsdump_open(getenv("TDSDUMP"));
 	pool_main_loop(pool);
 	printf("tdspool Shutdown\n");
 	return EXIT_SUCCESS;
