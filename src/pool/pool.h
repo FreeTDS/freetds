@@ -71,12 +71,6 @@ struct tds_pool_member
 	int state;
 	time_t last_used_tm;
 	TDS_POOL_USER *current_user;
-	/* 
-	 * these variables are used for tracking the state of the TDS protocol 
-	 * so we know when to return the state to TDS_IDLE.
-	 */
-	int num_bytes_left;
-	unsigned char fragment[PGSIZ];
 };
 
 typedef struct tds_pool
