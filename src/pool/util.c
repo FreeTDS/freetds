@@ -32,35 +32,6 @@
 #include <freetds/string.h>
 
 void
-dump_buf(const void *buf, int length)
-{
-	int i;
-	int j;
-	const int bytesPerLine = 16;
-	const unsigned char *data = (const unsigned char *) buf;
-
-	for (i = 0; i < length; i += bytesPerLine) {
-		fprintf(stderr, "%04x  ", i);
-
-		for (j = i; j < length && (j - i) < bytesPerLine; j++) {
-			fprintf(stderr, "%02x ", data[j]);
-		}
-
-		for (; 0 != (j % bytesPerLine); j++) {
-			fprintf(stderr, "   ");
-		}
-		fprintf(stderr, "  |");
-
-		for (j = i; j < length && (j - i) < bytesPerLine; j++) {
-			fprintf(stderr, "%c", (isprint(data[j])) ? data[j] : '.');
-		}
-
-		fprintf(stderr, "|\n");
-	}
-	fprintf(stderr, "\n");
-}
-
-void
 dump_login(TDSLOGIN * login)
 {
 	fprintf(stderr, "host %s\n", tds_dstr_cstr(&login->client_host_name));

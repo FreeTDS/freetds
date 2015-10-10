@@ -256,7 +256,7 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 		}
 		pool_free_user(puser);
 	} else {
-		dump_buf(tds->in_buf, tds->in_len);
+		tdsdump_dump_buf(TDS_DBG_NETWORK, "Got packet from client:", tds->in_buf, tds->in_len);
 		in_flag = tds->in_buf[0];
 		/* language packet or TDS5 language packet */
 		if (in_flag == TDS_QUERY || in_flag == TDS_NORMAL || in_flag == TDS_RPC || in_flag == TDS_BULK) {
