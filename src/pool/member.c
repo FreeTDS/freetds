@@ -135,12 +135,36 @@ pool_deassign_member(TDS_POOL_MEMBER * pmbr)
 
 /*
  * if a dead connection on the client side left this member in a questionable
- * state, let's clean it up.
+ * state, let's bring in a correct one
+ * We are not sure what the client did so we must try to clean as much as
+ * possible.
+ * Use pool_free_member if the state is really broken.
  */
 void
 pool_reset_member(TDS_POOL_MEMBER * pmbr)
 {
-	pool_free_member(pmbr);
+	// FIXME not wait for server !!! asyncronous
+	TDSSOCKET *tds = pmbr->tds;
+
+	if (pmbr->current_user) {
+		pmbr->current_user->assigned_member = NULL;
+		pool_free_user(pmbr->current_user);
+		pmbr->current_user = NULL;
+	}
+
+	/* cancel whatever pending */
+	tds->state = TDS_IDLE;
+	tds_init_write_buf(tds);
+	tds->out_flag = TDS_CANCEL;
+	tds_flush_packet(tds);
+	tds->state = TDS_PENDING;
+
+	if (tds_read_packet(tds) < 0) {
+		pool_free_member(pmbr);
+		return;
+	}
+
+	pmbr->state = TDS_IDLE;
 }
 
 void
