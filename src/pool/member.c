@@ -118,6 +118,8 @@ pool_mbr_login(TDS_POOL * pool)
 void
 pool_assign_member(TDS_POOL_MEMBER * pmbr, TDS_POOL_USER *puser)
 {
+	if (pmbr->current_user)
+		pmbr->current_user->assigned_member = NULL;
 	pmbr->current_user = puser;
 	puser->assigned_member = pmbr;
 }
@@ -128,6 +130,7 @@ pool_deassign_member(TDS_POOL_MEMBER * pmbr)
 	if (pmbr->current_user)
 		pmbr->current_user->assigned_member = NULL;
 	pmbr->current_user = NULL;
+	pmbr->state = TDS_IDLE;
 }
 
 /*
