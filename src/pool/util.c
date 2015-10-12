@@ -63,7 +63,7 @@ die_if(int expr, const char *msg)
 	if (expr) {
 		fprintf(stderr, "%s\n", msg);
 		fprintf(stderr, "tdspool aborting!\n");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 }
 
