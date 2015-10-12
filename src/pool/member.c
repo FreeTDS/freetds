@@ -143,18 +143,22 @@ pool_reset_member(TDS_POOL_MEMBER * pmbr)
 void
 pool_free_member(TDS_POOL_MEMBER * pmbr)
 {
-	if (!IS_TDSDEAD(pmbr->tds)) {
-		tds_close_socket(pmbr->tds);
-	}
+	TDSSOCKET *tds = pmbr->tds;
+	if (!IS_TDSDEAD(tds))
+		tds_close_socket(tds);
+	if (tds)
+		tds_free_socket(tds);
 	pmbr->tds = NULL;
 	/*
 	 * if he is allocated disconnect the client 
 	 * otherwise we end up with broken client.
 	 */
 	if (pmbr->current_user) {
+		pmbr->current_user->assigned_member = NULL;
 		pool_free_user(pmbr->current_user);
 		pmbr->current_user = NULL;
 	}
+	memset(pmbr, 0, sizeof(*pmbr));
 	pmbr->state = TDS_IDLE;
 }
 
