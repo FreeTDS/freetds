@@ -242,7 +242,6 @@ pool_process_members(TDS_POOL * pool, fd_set * fds)
 	TDSSOCKET *tds;
 	int i, age, ret;
 	int cnt = 0;
-	unsigned char *buf;
 	time_t time_now;
 
 	for (i = 0; i < pool->num_members; i++) {
@@ -272,32 +271,15 @@ pool_process_members(TDS_POOL * pool, fd_set * fds)
 			} else {
 				tdsdump_dump_buf(TDS_DBG_NETWORK, "Got packet from server:", tds->in_buf, tds->in_len);
 				/* fprintf(stderr, "read %d bytes from member %d\n", tds->in_len, i); */
-				if (pmbr->current_user) {
-					puser = pmbr->current_user;
-					buf = tds->in_buf;
-					/* 
-					 * check the netlib final packet flag
-					 * instead of looking for done tokens.
-					 * It's more efficient and generic to 
-					 * all protocol versions. -- bsb 
-					 * 2004-12-12 
-					 */
-					if (buf[1]) {
-					/* if (pool_find_end_token(pmbr, buf + 8, tds->in_len - 8)) { */
-						/* we are done...deallocate member */
-						fprintf(stdout, "deassigning user from member %d\n",i);
-						pool_deassign_member(pmbr);
-
-						pmbr->state = TDS_IDLE;
-						puser->user_state = TDS_SRV_IDLE;
-					}
+				puser = pmbr->current_user;
+				if (puser) {
+					tdsdump_log(TDS_DBG_INFO1, "writing it sock %d\n", tds_get_s(puser->tds));
 					/* cf. net.c for better technique.  */
-					ret = WRITESOCKET(tds_get_s(puser->tds), buf, tds->in_len);
+					/* FIXME handle partial write, stop read on member */
+					ret = pool_write_all(tds_get_s(puser->tds), tds->in_buf, tds->in_len);
 					if (ret < 0) { /* couldn't write, ditch the user */
 						fprintf(stdout, "member %d received error while writing\n",i);
-						pool_free_user(pmbr->current_user);
-						pool_deassign_member(pmbr);
-						pool_reset_member(pmbr);
+						pool_free_member(pmbr);
 					}
 				}
 			}
