@@ -141,6 +141,11 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s, struct sockaddr_in *sin)
 void
 pool_free_user(TDS_POOL_USER * puser)
 {
+	if (puser->assigned_member) {
+		pool_deassign_member(puser->assigned_member);
+		puser->assigned_member = NULL;
+	}
+
 	/* make sure to decrement the waiters list if he is waiting */
 	if (puser->user_state == TDS_SRV_WAIT)
 		waiters--;
