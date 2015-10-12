@@ -164,6 +164,20 @@ pool_reset_member(TDS_POOL_MEMBER * pmbr)
 		return;
 	}
 
+	if (IS_TDS71_PLUS(tds->conn)) {
+		/* this 0x9 final reset the state from mssql 2000 */
+		tds_init_write_buf(tds);
+		tds->out_flag = TDS_QUERY;
+		tds_put_string(tds, reset_sql, sizeof(reset_sql)-1);
+		tds_write_packet(tds, 0x9);
+		tds->state = TDS_PENDING;
+
+		if (tds_read_packet(tds) < 0) {
+			pool_free_member(pmbr);
+			return;
+		}
+	}
+
 	pmbr->state = TDS_IDLE;
 }
 
