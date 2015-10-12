@@ -249,10 +249,12 @@ pool_process_members(TDS_POOL * pool, fd_set * fds)
 	for (i = 0; i < pool->num_members; i++) {
 		pmbr = &pool->members[i];
 
-		if (!pmbr->tds)
-			break;	/* dead connection */
-
 		tds = pmbr->tds;
+		if (!tds) {
+			assert(pmbr->state == TDS_IDLE);
+			continue;	/* dead connection */
+		}
+
 		time_now = time(NULL);
 		if (FD_ISSET(tds_get_s(tds), fds)) {
 			pmbr->last_used_tm = time_now;
