@@ -195,7 +195,9 @@ pool_main_loop(TDS_POOL * pool)
 		for (i = 0; i < pool->max_users; i++) {
 			puser = &pool->users[i];
 			/* skip dead connections */
-			if (!IS_TDSDEAD(puser->tds)) {
+			if (IS_TDSDEAD(puser->tds))
+				continue;
+			if (puser->poll_recv) {
 				if (tds_get_s(puser->tds) > maxfd)
 					maxfd = tds_get_s(puser->tds);
 				FD_SET(tds_get_s(puser->tds), &rfds);

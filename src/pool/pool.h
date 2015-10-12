@@ -61,6 +61,7 @@ typedef struct tds_pool_user
 {
 	TDSSOCKET *tds;
 	TDS_USER_STATE user_state;
+	bool poll_recv;
 	TDS_POOL_MEMBER *assigned_member;
 }
 TDS_POOL_USER;

@@ -71,8 +71,10 @@ pool_user_find_new(TDS_POOL * pool)
 	/* first check for dead users to reuse */
 	for (i=0; i<pool->max_users; i++) {
 		puser = &pool->users[i];
-		if (!puser->tds)
+		if (!puser->tds) {
+			puser->poll_recv = true;
 			return puser;
+		}
 	}
 
 	/* did we exhaust the number of concurrent users? */
@@ -85,6 +87,7 @@ pool_user_find_new(TDS_POOL * pool)
 	puser = &pool->users[pool->max_users];
 	pool->max_users++;
 
+	puser->poll_recv = true;
 	return puser;
 }
 
