@@ -254,26 +254,29 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 {
 	TDSSOCKET *tds;
 	TDS_POOL_MEMBER *pmbr;
-	TDS_UCHAR in_flag;
 
 	tds = puser->tds;
-	/* FIXME read entire packet !!! */
-	tds->in_len = read(tds_get_s(tds), tds->in_buf, tds->recv_packet->capacity);
-	if (tds->in_len == 0) {
-		fprintf(stderr, "user disconnected\n");
-		pool_free_user(puser);
+	if (pool_packet_read(tds))
 		return;
-	} else if (tds->in_len == -1) {
-		perror("read");
-		fprintf(stderr, "cleaning up user\n");
+	if (tds->in_len <= 0) {
+		if (tds->in_len == 0) {
+			fprintf(stderr, "user disconnected\n");
+		} else {
+			perror("read");
+			fprintf(stderr, "cleaning up user\n");
+		}
+
 		if (puser->assigned_member) {
 			fprintf(stderr, "user has assigned member, freeing\n");
 			pmbr = puser->assigned_member;
-			pool_deassign_member(pmbr);
 			pool_reset_member(pmbr);
+		} else {
+			pool_free_user(puser);
 		}
-		pool_free_user(puser);
+		return;
 	} else {
+		TDS_UCHAR in_flag;
+
 		tdsdump_dump_buf(TDS_DBG_NETWORK, "Got packet from client:", tds->in_buf, tds->in_len);
 		in_flag = tds->in_buf[0];
 		/* language packet or TDS5 language packet */
