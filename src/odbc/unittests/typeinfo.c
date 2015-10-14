@@ -140,23 +140,19 @@ DoTest(int version3)
 	/* under Sybase this type require extra handling, check it */
 	CHECK_TYPE(SQL_VARCHAR, SQL_VARCHAR);
 
-	CHECK_TYPE(SQL_DATE, date_time_supported && !version3 ? SQL_DATE : SQL_UNKNOWN_TYPE);
-	if (!odbc_db_is_microsoft())
-		CHECK_TYPE(SQL_TIME, date_time_supported && !version3 ? SQL_TIME : SQL_UNKNOWN_TYPE);
-	/* MS ODBC returns S1004 (HY004), TODO support it */
-	if (odbc_driver_is_freetds() || version3) {
-		CHECK_TYPE(SQL_TYPE_DATE, date_time_supported && version3 ? SQL_TYPE_DATE : SQL_UNKNOWN_TYPE);
+	if (version3) {
+		/* MS ODBC returns S1004 (HY004), TODO support it */
+		CHECK_TYPE(SQL_TYPE_DATE, date_time_supported ? SQL_TYPE_DATE : SQL_UNKNOWN_TYPE);
 		if (!odbc_db_is_microsoft())
-			CHECK_TYPE(SQL_TYPE_TIME, date_time_supported && version3 ? SQL_TYPE_TIME : SQL_UNKNOWN_TYPE);
-	}
-	/* TODO MS ODBC handle SQL_TIMESTAMP even for ODBC 3 */
-	if (odbc_driver_is_freetds())
-		CHECK_TYPE(SQL_TIMESTAMP, version3 ? SQL_UNKNOWN_TYPE : SQL_TIMESTAMP);
-	else
-		CHECK_TYPE(SQL_TIMESTAMP, version3 ? SQL_TYPE_TIMESTAMP : SQL_TIMESTAMP);
-	/* MS ODBC returns S1004 (HY004), TODO support it */
-	if (odbc_driver_is_freetds() || version3) {
-		CHECK_TYPE(SQL_TYPE_TIMESTAMP, version3 ? SQL_TYPE_TIMESTAMP : SQL_UNKNOWN_TYPE);
+			CHECK_TYPE(SQL_TYPE_TIME, date_time_supported ? SQL_TYPE_TIME : SQL_UNKNOWN_TYPE);
+		/* MS ODBC returns S1004 (HY004), TODO support it */
+		CHECK_TYPE(SQL_TYPE_TIMESTAMP, SQL_TYPE_TIMESTAMP);
+	} else {
+		CHECK_TYPE(SQL_DATE, date_time_supported ? SQL_DATE : SQL_UNKNOWN_TYPE);
+		if (!odbc_db_is_microsoft())
+			CHECK_TYPE(SQL_TIME, date_time_supported ? SQL_TIME : SQL_UNKNOWN_TYPE);
+		/* TODO MS ODBC handle SQL_TIMESTAMP even for ODBC 3 */
+		CHECK_TYPE(SQL_TIMESTAMP, SQL_TIMESTAMP);
 	}
 
 	/* TODO implement this part of test */
@@ -183,17 +179,13 @@ DoTest(int version3)
 		if (odbc_db_is_microsoft())
 			CHKFetch("S");
 
-#ifdef TDS_NO_DM
 		/* mssql 2008 can return a lot of NVARCHAR as new type (ie DATE)
 		 * are converted automatically to NVARCHAR with former protocol
 		 */
 		if (!odbc_db_is_microsoft() || odbc_tds_version() >= 0x703 || odbc_db_version_int() < 0x0a000000)
 			CHKFetch("No");
-		else
-			CHKMoreResults("No");
-#else
 		CHKMoreResults("No");
-#endif
+
 		CHKGetTypeInfo(SQL_BINARY, "SI");
 	}
 

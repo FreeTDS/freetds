@@ -113,12 +113,13 @@ endif
 # this test cannot work using wide characters as use UTF-8 and single byte encoding
 utf8_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
 
+LIBS		=	$(ODBCLIB) $(ODBCNODMLIB) ../../replacements/libreplacements.la @NETWORK_LIBS@
 if MINGW32
 AM_LDFLAGS	=	-no-fast-install
+LIBS		+=      $(ODBCINSTLIB)
 else
 AM_LDFLAGS	=	-no-install -L../.libs -R $(abs_builddir)/../.libs
 endif
-LIBS		=	$(ODBCLIB) $(ODBCNODMLIB) ../../replacements/libreplacements.la @NETWORK_LIBS@
 DISTCLEANFILES	=	odbc.ini odbcinst.ini
 EXTRA_DIST	=	data.in describecol.in attributes.in CMakeLists.txt
 

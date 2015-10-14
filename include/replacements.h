@@ -24,6 +24,7 @@
 
 #include <stdarg.h>
 #include "tds_sysdep_public.h"
+#include <freetds/sysdep_private.h>
 
 #ifndef HAVE_READPASSPHRASE
 # include <replacements/readpassphrase.h>
@@ -50,15 +51,6 @@
 extern "C"
 {
 #endif
-
-#if !HAVE_VSNPRINTF
-#if  HAVE__VSNPRINTF
-#undef vsnprintf
-#define vsnprintf _vsnprintf
-#else
-int vsnprintf(char *ret, size_t max, const char *fmt, va_list ap);
-#endif /* !HAVE__VSNPRINTF */
-#endif /*  HAVE_VSNPRINTF */
 
 #if !HAVE_ASPRINTF
 int asprintf(char **ret, const char *fmt, ...);
@@ -151,10 +143,9 @@ extern char *optarg;
 extern int optind, offset, opterr, optreset;
 #endif
 
-#if HAVE_SOCKETPAIR
-#define tds_socketpair(d,t,p,s) socketpair(d,t,p,s)
-#else
-int tds_socketpair(int domain, int type, int protocol, int sv[2]);
+#if !HAVE_SOCKETPAIR
+int tds_socketpair(int domain, int type, int protocol, TDS_SYS_SOCKET sv[2]);
+#define socketpair(d,t,p,s) tds_socketpair(d,t,p,s)
 #endif
 
 void tds_sleep_s(unsigned sec);

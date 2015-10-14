@@ -51,12 +51,17 @@ main(int argc, char *argv[])
 	if (!odbc_driver_is_freetds()) {
 		odbc_disconnect();
 		printf("Driver is not FreeTDS, exiting\n");
+		odbc_test_skipped();
 		return 0;
 	}
 
-	if (!odbc_db_is_microsoft() || odbc_db_version_int() < 0x08000000u) {
+	if (!odbc_db_is_microsoft() || odbc_db_version_int() < 0x08000000u || odbc_tds_version() < 0x701) {
 		odbc_disconnect();
-		printf("Test for MSSQL only\n");
+		/* protocol till 7.1 does not support telling encoding so we
+		 * cannot understand how the string is encoded
+		 */
+		printf("Test for MSSQL only using protocol 7.1\n");
+		odbc_test_skipped();
 		return 0;
 	}
 

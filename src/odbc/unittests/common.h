@@ -66,6 +66,7 @@ void odbc_check_rows(int n, int line, const char * file);
 void odbc_reset_statement_proc(SQLHSTMT *stmt, const char *file, int line);
 #define odbc_reset_statement() odbc_reset_statement_proc(&odbc_stmt, __FILE__, __LINE__)
 void odbc_check_cursor(void);
+void odbc_test_skipped(void);
 
 #define ODBC_REPORT_ERROR(msg) odbc_report_error(msg, __LINE__, __FILE__)
 
@@ -184,9 +185,8 @@ void odbc_setenv(const char *name, const char *value, int overwrite);
 #define setenv odbc_setenv
 #endif
 
-#ifndef _WIN32
-int odbc_find_last_socket(void);
-#endif
+void odbc_mark_sockets_opened(void);
+TDS_SYS_SOCKET odbc_find_last_socket(void);
 
 void odbc_c2string(char *out, SQLSMALLINT out_c_type, const void *in, size_t in_len);
 

@@ -64,7 +64,7 @@ while (<>) {
 		} elsif ($2 eq 'VALGRIND') {
 			$cur->{valgrind} = 0 + $3;
 		} elsif ($2 eq 'RESULT') {
-			$cur->{result} = $3;
+			$cur->{result} = $3 == 77 ? 0 : $3;
 		} elsif ($2 eq 'INFO') {
 			$title = $msg = '';
 			if ($3 =~ /^HOSTNAME (.*)/) {

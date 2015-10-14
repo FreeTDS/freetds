@@ -58,6 +58,8 @@ math(EXPR BUILD_NUMBER "${BUILD_NUMBER}")
 set(FREETDS_TOPDIR ${CMAKE_CURRENT_LIST_DIR})
 
 enable_testing()
+set(CMAKE_CTEST_COMMAND ctest)
+add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
 
 # TODO depends on configure
 add_definitions(-D_REENTRANT -D_THREAD_SAFE)
@@ -124,6 +126,12 @@ foreach(fn
 	config_write("/* Define to 1 if you have the <${fn}> header file. */\n")
 	config_write("#cmakedefine ${var} 1\n\n")
 endforeach(fn)
+
+find_package(OpenSSL)
+if(OPENSSL_FOUND)
+	config_write("#define HAVE_OPENSSL 1\n\n")
+	include_directories(${OPENSSL_INCLUDE_DIR})
+endif(OPENSSL_FOUND)
 
 set(CMAKE_THREAD_PREFER_PTHREAD ON)
 find_package(Threads REQUIRED)
@@ -238,6 +246,39 @@ foreach(func ${FUNCS})
 	config_write("#cmakedefine ${var} 1\n\n")
 endforeach(func)
 
+macro(CHECK_STDIO_FUNCTION_EXISTS FUNCTION)
+	string(TOUPPER "HAVE_${FUNCTION}" VARIABLE)
+	string(TOUPPER "CHECK_${FUNCTION}" CHECK)
+	if (NOT ${VARIABLE})
+		set(MACRO_CHECK_FUNCTION_DEFINITIONS
+			"-D${CHECK}=1 ${CMAKE_REQUIRED_FLAGS}")
+		message(STATUS "Looking for ${FUNCTION}")
+		try_compile(${VARIABLE}
+			${CMAKE_BINARY_DIR}
+			${CMAKE_SOURCE_DIR}/misc/cmake_checks.c
+			COMPILE_DEFINITIONS ${CMAKE_REQUIRED_DEFINITIONS}
+			CMAKE_FLAGS -DCOMPILE_DEFINITIONS:STRING=${MACRO_CHECK_FUNCTION_DEFINITIONS}
+			OUTPUT_VARIABLE OUTPUT)
+		if(${VARIABLE})
+			set(${VARIABLE} 1 CACHE INTERNAL "Have function ${FUNCTION}")
+			message(STATUS "Looking for ${FUNCTION} - found")
+			file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeOutput.log
+				"Determining if the function ${FUNCTION} exists passed with the following output:\n"
+				"${OUTPUT}\n\n")
+		else()
+			message(STATUS "Looking for ${FUNCTION} - not found")
+			set(${VARIABLE} "" CACHE INTERNAL "Have function ${FUNCTION}")
+			file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log
+				"Determining if the function ${FUNCTION} exists failed with the following output:\n"
+				"${OUTPUT}\n\n")
+		endif()
+	endif()
+endmacro()
+
+foreach(func asprintf vasprintf vsnprintf _vsnprintf snprintf _snprintf _vscprintf)
+	check_stdio_function_exists(${func})
+endforeach(func)
+
 set(CMAKE_REQUIRED_LIBRARIES)
 
 check_struct_has_member("struct tm" "tm_zone" "time.h" HAVE_STRUCT_TM_TM_ZONE)
@@ -264,7 +305,15 @@ if(HAVE_READLINE)
 endif(HAVE_READLINE)
 
 config_write("#cmakedefine HAVE_SQLGETPRIVATEPROFILESTRING 1\n\n")
-search_library(SQLGetPrivateProfileString HAVE_SQLGETPRIVATEPROFILESTRING lib_ODBCINST "odbcinst;iodbcinst")
+if(WIN32)
+	set(lib_ODBCINST odbccp32)
+	check_library_exists(legacy_stdio_definitions _vsnwprintf_s "" LEGACY_STDIO)
+	if(LEGACY_STDIO)
+		set(lib_ODBCINST ${lib_ODBCINST} legacy_stdio_definitions)
+	endif(LEGACY_STDIO)
+else()
+	search_library(SQLGetPrivateProfileString HAVE_SQLGETPRIVATEPROFILESTRING lib_ODBCINST "odbcinst;iodbcinst")
+endif()
 
 # flags
 set(ENABLE_ODBC_WIDE    ON  CACHE BOOL "Enable ODBC wide character support")
@@ -299,11 +348,13 @@ else(WIN32)
 	config_write("/* define to format string used for 64bit integers */\n#define TDS_I64_PREFIX \"ll\"\n\n")
 	config_write("#define UNIXODBC 1\n\n#define _GNU_SOURCE 1\n\n")
 
-	include(FindGnuTLS)
-	if(GNUTLS_FOUND)
-		config_write("#define HAVE_GNUTLS 1\n#define HAVE_GNUTLS_RECORD_DISABLE_PADDING 1\n")
-		set(lib_GNUTLS ${GNUTLS_LIBRARIES} gcrypt)
-	endif(GNUTLS_FOUND)
+	if(NOT OPENSSL_FOUND)
+		include(FindGnuTLS)
+		if(GNUTLS_FOUND)
+			config_write("#define HAVE_GNUTLS 1\n#define HAVE_GNUTLS_RECORD_DISABLE_PADDING 1\n")
+			set(lib_GNUTLS ${GNUTLS_LIBRARIES} gcrypt)
+		endif(GNUTLS_FOUND)
+	endif(NOT OPENSSL_FOUND)
 
 	if(NOT HAVE_CLOCK_GETTIME AND NOT HAVE_GETHRTIME)
 		search_library(clock_gettime HAVE_CLOCK_GETTIME lib_RT "rt;posix4")
@@ -334,15 +385,26 @@ config_write("
 endif(WIN32)
 
 set(lib_BASE ${lib_RT} ${CMAKE_THREAD_LIBS_INIT})
+if(EXISTS "${CMAKE_SOURCE_DIR}/iconv/lib/iconv.lib")
+	set(lib_BASE ${lib_BASE} ${CMAKE_THREAD_LIBS_INIT} "${CMAKE_SOURCE_DIR}/iconv/lib/iconv.lib")
+	config_write("#define HAVE_ICONV 1\n\n")
+	config_write("#define ICONV_CONST \n\n")
+endif()
 
 if(WIN32)
 	set(lib_NETWORK ws2_32)
 else(WIN32)
 	# TODO check libraries
-	set(lib_NETWORK ${lib_GNUTLS} gssapi_krb5)
+	set(lib_NETWORK gssapi_krb5)
 endif(WIN32)
 
-include_directories(${CMAKE_BINARY_DIR}/include include win32)
+if(OPENSSL_FOUND)
+	set(lib_NETWORK ${lib_NETWORK} ${OPENSSL_LIBRARIES})
+elseif(GNUTLS_FOUND)
+	set(lib_NETWORK ${lib_NETWORK} ${lib_GNUTLS})
+endif(OPENSSL_FOUND)
+
+include_directories(${CMAKE_BINARY_DIR}/include include win32 iconv/include)
 
 add_subdirectory(src/replacements)
 add_subdirectory(src/tds)

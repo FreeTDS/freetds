@@ -26,7 +26,7 @@ if test -f "$HOME/bin/vg_test"; then
 fi
 
 # try to execute normally
-if test $RES != 0; then
+if test $RES != 0 -a $RES != 77; then
 	log "START $1"
 	log "TEST 1"
 	"$DIR/misc/grabcov" -o "$FILE.cov_info" -- classifier --timeout=600 "$@"
