@@ -118,6 +118,7 @@ pool_mbr_login(TDS_POOL * pool)
 void
 pool_assign_member(TDS_POOL_MEMBER * pmbr, TDS_POOL_USER *puser)
 {
+	assert(pmbr->current_user == NULL);
 	if (pmbr->current_user)
 		pmbr->current_user->assigned_member = NULL;
 	pmbr->current_user = puser;
@@ -308,7 +309,7 @@ pool_find_idle_member(TDS_POOL * pool)
 		pmbr = &pool->members[i];
 		if (pmbr->tds) {
 			active_members++;
-			if (pmbr->state == TDS_IDLE) {
+			if (pmbr->current_user == NULL) {
 				/*
 				 * make sure member wasn't idle more that the timeout 
 				 * otherwise it'll send the query and close leaving a

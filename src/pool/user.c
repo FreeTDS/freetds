@@ -49,6 +49,7 @@
 static TDS_POOL_USER *pool_user_find_new(TDS_POOL * pool);
 static int pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser);
 static void pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser);
+static void pool_user_write(TDS_POOL * pool, TDS_POOL_USER * puser);
 
 extern int waiters;
 
@@ -153,6 +154,7 @@ pool_free_user(TDS_POOL_USER * puser)
 	if (puser->user_state == TDS_SRV_WAIT)
 		waiters--;
 	tds_free_socket(puser->tds);
+	tds_free_login(puser->login);
 	memset(puser, 0, sizeof(TDS_POOL_USER));
 }
 
@@ -185,15 +187,12 @@ pool_process_users(TDS_POOL * pool, fd_set * fds)
 				}
 				/* otherwise we have a good login */
 				break;
-			case TDS_SRV_IDLE:
-				pool_user_read(pool, puser);
-				break;
 			case TDS_SRV_QUERY:
 				/* what is this? a cancel perhaps */
 				pool_user_read(pool, puser);
 				break;
 			/* just to avoid a warning */
-			default:
+			case TDS_SRV_WAIT:
 				break;
 			}	/* switch */
 		}		/* if */
@@ -209,39 +208,110 @@ static int
 pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 {
 	TDSSOCKET *tds;
-	TDSLOGIN *login = tds_alloc_login(1);
-
-	/* FIXME */
-	char msg[256];
+	TDSLOGIN *login;
 
 	tds = puser->tds;
-	tds_read_login(tds, login);
-	dump_login(login);
-	if (!strcmp(tds_dstr_cstr(&login->user_name), pool->user) && !strcmp(tds_dstr_cstr(&login->password), pool->password)) {
+	while (tds->in_len <= tds->in_pos)
+		if (tds_read_packet(tds) < 0)
+			return 1;
+
+	tdsdump_log(TDS_DBG_NETWORK, "got packet type %d\n", tds->in_flag);
+	if (tds->in_flag == TDS71_PRELOGIN) {
+		if (!tds->conn->tds_version)
+			tds->conn->tds_version = 0x701;
 		tds->out_flag = TDS_REPLY;
-		tds_env_change(tds, 1, "master", pool->database);
-		sprintf(msg, "Changed database context to '%s'.", pool->database);
-		tds_send_msg(tds, 5701, 2, 10, msg, "JDBC", "ZZZZZ", 1);
-		if (!login->suppress_language) {
-			tds_env_change(tds, 2, NULL, "us_english");
-			tds_send_msg(tds, 5703, 1, 10, "Changed language setting to 'us_english'.", "JDBC", "ZZZZZ", 1);
-		}
-		tds_env_change(tds, 4, NULL, "512");
-		tds_send_login_ack(tds, "sql server");
-		/* tds_send_capabilities_token(tds); */
-		tds_send_done_token(tds, 0, 1);
-		puser->user_state = TDS_SRV_IDLE;
-
-		/* send it! */
+		// TODO proper one !!
+		// TODO detect TDS version here ??
+		tds_put_n(tds, "\x00\x00\x1a\x00\x06\x01\x00\x20\x00\x01\x02\x00\x21\x00\x01\x03\x00\x22\x00\x00\x04\x00\x22\x00\x01\xff\x0a\x00\x06\x40\x00\x00\x02\x01\x00", 0x23);
 		tds_flush_packet(tds);
-		tds_free_login(login);
-
+		tds->in_pos = tds->in_len;
 		return 0;
+	}
+
+	login = tds_alloc_login(1);
+	if (tds->in_flag == TDS_LOGIN) {
+		if (!tds->conn->tds_version)
+			tds->conn->tds_version = 0x500;
+		tds_read_login(tds, login);
+	} else if (tds->in_flag == TDS7_LOGIN) {
+		if (!tds->conn->tds_version)
+			tds->conn->tds_version = 0x700;
+		tds7_read_login(tds, login);
 	} else {
 		tds_free_login(login);
-		/* send nack before exiting */
 		return 1;
 	}
+
+	/* TODO check server TDS procotol, must match, if not we can't just forward packets */
+
+	tds->in_len = tds->in_pos = 0;
+
+	dump_login(login);
+	if (!strcmp(tds_dstr_cstr(&login->user_name), pool->user) && !strcmp(tds_dstr_cstr(&login->password), pool->password)) {
+		puser->login = login;
+
+		/* try to assign a member, connection can have transactions
+		 * and so on so deassign only when disconnected */
+		pool_user_query(pool, puser);
+
+		tdsdump_log(TDS_DBG_INFO1, "user state %d\n", puser->user_state);
+
+		assert(puser->login || puser->user_state == TDS_SRV_QUERY);
+
+		return 0;
+	}
+
+	tds_free_login(login);
+	/* TODO send nack before exiting */
+	return 1;
+}
+
+static void
+pool_user_send_login_ack(TDS_POOL * pool, TDS_POOL_USER * puser)
+{
+	char msg[256];
+	char block[32];
+	TDSSOCKET *tds = puser->tds, *mtds = puser->assigned_member->tds;
+	TDSLOGIN *login = puser->login;
+
+	/* copy a bit of information, resize socket with block */
+	tds->conn->tds_version = mtds->conn->tds_version;
+	tds->conn->product_version = mtds->conn->product_version;
+	memcpy(tds->conn->collation, mtds->conn->collation, sizeof(tds->conn->collation));
+	tds->conn->tds71rev1 = mtds->conn->tds71rev1;
+	free(tds->conn->product_name);
+	tds->conn->product_name = strdup(mtds->conn->product_name);
+	tds_realloc_socket(tds, mtds->conn->env.block_size);
+	tds->conn->env.block_size = mtds->conn->env.block_size;
+
+	tds->out_flag = TDS_REPLY;
+	tds_env_change(tds, TDS_ENV_DATABASE, "master", pool->database);
+	sprintf(msg, "Changed database context to '%s'.", pool->database);
+	tds_send_msg(tds, 5701, 2, 10, msg, "JDBC", "ZZZZZ", 1);
+	if (!login->suppress_language) {
+		tds_env_change(tds, TDS_ENV_LANG, NULL, "us_english");
+		tds_send_msg(tds, 5703, 1, 10, "Changed language setting to 'us_english'.", "JDBC", "ZZZZZ", 1);
+	}
+
+	if (IS_TDS7_PLUS(tds->conn)) {
+		tds_put_byte(tds, TDS_ENVCHANGE_TOKEN);
+		tds_put_smallint(tds, 8);
+		tds_put_byte(tds, TDS_ENV_SQLCOLLATION);
+		tds_put_byte(tds, 5);
+		tds_put_n(tds, tds->conn->collation, 5);
+		tds_put_byte(tds, 0);
+	}
+
+	sprintf(block, "%d", tds->conn->env.block_size);
+	tds_env_change(tds, TDS_ENV_PACKSIZE, block, block);
+	tds_send_login_ack(tds, mtds->conn->product_name);
+	/* tds_send_capabilities_token(tds); */
+	tds_send_done_token(tds, 0, 0);
+
+	/* send it! */
+	tds_flush_packet(tds);
+	tds_free_login(login);
+	puser->login = NULL;
 }
 
 /*
@@ -275,48 +345,72 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 		}
 		return;
 	} else {
-		TDS_UCHAR in_flag;
+		TDS_UCHAR in_flag = tds->in_buf[0];
 
 		tdsdump_dump_buf(TDS_DBG_NETWORK, "Got packet from client:", tds->in_buf, tds->in_len);
-		in_flag = tds->in_buf[0];
-		/* language packet or TDS5 language packet */
-		if (in_flag == TDS_QUERY || in_flag == TDS_NORMAL || in_flag == TDS_RPC || in_flag == TDS_BULK) {
-			pool_user_query(pool, puser);
-		} else if (in_flag == TDS_CANCEL) {
-			/* cancel */
-			pool_user_query(pool, puser);
-		} else {
+
+		switch (in_flag) {
+		case TDS_QUERY:
+		case TDS_NORMAL:
+		case TDS_RPC:
+		case TDS_BULK:
+		case TDS_CANCEL:
+			pool_user_write(pool, puser);
+			break;
+
+		default:
 			fprintf(stderr, "Unrecognized packet type, closing user\n");
 			pool_free_user(puser);
 		}
 	}
-	/* fprintf(stderr,"read %d bytes from conn %d\n",len,i); */
 }
 
 void
 pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser)
 {
 	TDS_POOL_MEMBER *pmbr;
-	int ret;
-	
-	puser->user_state = TDS_SRV_QUERY;
+
+	tdsdump_log(TDS_DBG_FUNC, "pool_user_query\n");
+
+	assert(puser->assigned_member == NULL);
+	assert(puser->login);
+
 	pmbr = pool_find_idle_member(pool);
 	if (!pmbr) {
-		/* 
-		 * put into wait state 
+		/*
+		 * put into wait state
 		 * check when member is deallocated
 		 */
 		fprintf(stderr, "Not enough free members...placing user in WAIT\n");
 		puser->user_state = TDS_SRV_WAIT;
+		puser->poll_recv = false;
 		waiters++;
-	} else {
-		pmbr->state = TDS_WRITING;
-		pool_assign_member(pmbr, puser);
-		/* cf. net.c for better technique.  */
-		ret = WRITESOCKET(tds_get_s(pmbr->tds), puser->tds->in_buf, puser->tds->in_len);
-		/* write failed, cleanup member */
-		if (ret < 0) {
-			pool_free_member(pmbr);
-		}
+		return;
 	}
+
+	puser->poll_recv = true;
+	pool_assign_member(pmbr, puser);
+	pool_user_send_login_ack(pool, puser);
+	puser->user_state = TDS_SRV_QUERY;
+}
+
+static void
+pool_user_write(TDS_POOL * pool, TDS_POOL_USER * puser)
+{
+	TDS_POOL_MEMBER *pmbr = puser->assigned_member;
+	int ret;
+	TDSSOCKET *tds;
+
+	tdsdump_log(TDS_DBG_INFO1, "trying to send\n");
+
+	tds = puser->tds;
+	tdsdump_log(TDS_DBG_INFO1, "sending %d bytes\n", tds->in_len);
+	pmbr->state = TDS_WRITING;
+	/* cf. net.c for better technique.  */
+	ret = pool_write_all(tds_get_s(pmbr->tds), tds->in_buf + tds->in_pos, tds->in_len - tds->in_pos);
+	/* write failed, cleanup member */
+	if (ret <= 0) {
+		pool_free_member(pmbr);
+	}
+	tds->in_pos = 0;
 }

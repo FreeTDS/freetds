@@ -46,11 +46,8 @@
 typedef enum
 {
 	TDS_SRV_LOGIN,
-	TDS_SRV_IDLE,
-	TDS_SRV_QUERY,
 	TDS_SRV_WAIT,		/* if no members are free wait */
-	TDS_SRV_CANCEL,
-	TDS_SRV_DEAD
+	TDS_SRV_QUERY,
 } TDS_USER_STATE;
 
 /* forward declaration */
@@ -60,6 +57,7 @@ typedef struct tds_pool_member TDS_POOL_MEMBER;
 typedef struct tds_pool_user
 {
 	TDSSOCKET *tds;
+	TDSLOGIN *login;
 	TDS_USER_STATE user_state;
 	bool poll_recv;
 	TDS_POOL_MEMBER *assigned_member;
