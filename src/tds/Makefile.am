@@ -16,7 +16,7 @@ libtds_la_SOURCES=	mem.c token.c util.c login.c read.c \
 	tdsstring.c getmac.c data.c net.c tls.c \
 	tds_checks.c log.c \
 	bulk.c packet.c stream.c random.c \
-	sec_negotiate.c \
+	sec_negotiate_gnutl.h sec_negotiate_openssl.h sec_negotiate.c \
 	$(AUTH_FILES)
 libtds_la_LDFLAGS=
 libtds_la_LIBADD = $(NETWORK_LIBS)
