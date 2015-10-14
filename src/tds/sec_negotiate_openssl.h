@@ -43,9 +43,9 @@ tds5_rsa_encrypt(const char *key, size_t key_len, const void *nonce, size_t nonc
 	RSA *rsa = NULL;
 	BIO *keybio;
 
-	uint8_t *message = NULL;
+	TDS_UCHAR *message = NULL;
 	size_t message_len, pwd_len;
-	uint8_t *em = NULL;
+	TDS_UCHAR *em = NULL;
 
 	int result;
 
@@ -59,7 +59,7 @@ tds5_rsa_encrypt(const char *key, size_t key_len, const void *nonce, size_t nonc
 
 	pwd_len = strlen(pwd);
 	message_len = nonce_len + pwd_len;
-	message = (uint8_t *) malloc(message_len);
+	message = (TDS_UCHAR *) malloc(message_len);
 	if (!message)
 		goto error;
 	memcpy(message, nonce, nonce_len);
