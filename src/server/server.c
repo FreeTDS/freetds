@@ -30,6 +30,7 @@
 #include <freetds/server.h>
 #include <freetds/string.h>
 #include <freetds/data.h>
+#include <freetds/bytes.h>
 
 void
 tds_env_change(TDSSOCKET * tds, int type, const char *oldvalue, const char *newvalue)
@@ -156,27 +157,36 @@ tds_send_err(TDSSOCKET * tds, int severity, int dberr, int oserr, char *dberrstr
 void
 tds_send_login_ack(TDSSOCKET * tds, const char *progname)
 {
+	TDS_UINT ui, version;
+
 	tds_put_byte(tds, TDS_LOGINACK_TOKEN);
 	tds_put_smallint(tds, 10 + (IS_TDS7_PLUS(tds->conn)? 2 : 1) * strlen(progname));	/* length of message */
 	if (IS_TDS50(tds->conn)) {
 		tds_put_byte(tds, 5);
-		tds_put_byte(tds, 5);
-		tds_put_byte(tds, 0);
+		version = 0x05000000u;
 	} else {
 		tds_put_byte(tds, 1);
-		tds_put_byte(tds, TDS_MAJOR(tds->conn));
-		tds_put_byte(tds, TDS_MINOR(tds->conn));
+		/* see src/tds/token.c */
+		if (IS_TDS73_PLUS(tds->conn)) {
+			version = 0x730B0003u;
+		} else if (IS_TDS72_PLUS(tds->conn)) {
+			version = 0x72090002u;
+		} else if (IS_TDS71_PLUS(tds->conn)) {
+			version = tds->conn->tds71rev1 ? 0x07010000u : 0x71000001u;
+		} else {
+			version = (TDS_MAJOR(tds->conn) << 24) | (TDS_MINOR(tds->conn) << 16);
+		}
 	}
-	tds_put_byte(tds, 0);	/* unknown */
-	tds_put_byte(tds, 0);	/* unknown */
+	TDS_PUT_A4BE(&ui, version);
+	tds_put_n(tds, &ui, 4);
+
 	tds_put_byte(tds, strlen(progname));
 	/* FIXME ucs2 */
 	tds_put_string(tds, progname, strlen(progname));
-	/* server version, for mssql 1.0.1 */
-	tds_put_byte(tds, 1);	/* unknown */
-	tds_put_byte(tds, 0);	/* unknown */
-	tds_put_byte(tds, 0);	/* unknown */
-	tds_put_byte(tds, 1);	/* unknown */
+
+	/* server version, always big endian */
+	TDS_PUT_A4BE(&ui, tds->conn->product_version & 0x7fffffffu);
+	tds_put_n(tds, &ui, 4);
 }
 
 void
