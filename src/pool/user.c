@@ -139,7 +139,7 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s, struct sockaddr_in *sin)
 	return puser;
 }
 
-/* 
+/*
  * pool_free_user
  * close out a disconnected user.
  */
@@ -159,7 +159,7 @@ pool_free_user(TDS_POOL_USER * puser)
 	memset(puser, 0, sizeof(TDS_POOL_USER));
 }
 
-/* 
+/*
  * pool_process_users
  * check the fd_set for user input, allocate a pool member to it, and forward
  * the query to that member.
@@ -203,7 +203,7 @@ pool_process_users(TDS_POOL * pool, fd_set * fds)
 
 /*
  * pool_user_login
- * Reads clients login packet and forges a login acknowledgement sequence 
+ * Reads clients login packet and forges a login acknowledgement sequence
  */
 static int
 pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
@@ -317,7 +317,7 @@ pool_user_send_login_ack(TDS_POOL * pool, TDS_POOL_USER * puser)
 
 /*
  * pool_user_read
- * checks the packet type of data coming from the client and allocates a 
+ * checks the packet type of data coming from the client and allocates a
  * pool member if necessary.
  */
 static void
