@@ -21,6 +21,7 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <assert.h>
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -191,7 +192,7 @@ pool_free_member(TDS_POOL_MEMBER * pmbr)
 		tds_free_socket(tds);
 	pmbr->tds = NULL;
 	/*
-	 * if he is allocated disconnect the client 
+	 * if he is allocated disconnect the client
 	 * otherwise we end up with broken client.
 	 */
 	if (pmbr->current_user) {
@@ -230,9 +231,9 @@ pool_mbr_init(TDS_POOL * pool)
 	}
 }
 
-/* 
+/*
  * pool_process_members
- * check the fd_set for members returning data to the client, lookup the 
+ * check the fd_set for members returning data to the client, lookup the
  * client holding this member and forward the results.
  */
 int
@@ -311,7 +312,7 @@ pool_find_idle_member(TDS_POOL * pool)
 			active_members++;
 			if (pmbr->current_user == NULL) {
 				/*
-				 * make sure member wasn't idle more that the timeout 
+				 * make sure member wasn't idle more that the timeout
 				 * otherwise it'll send the query and close leaving a
 				 * hung client
 				 */
