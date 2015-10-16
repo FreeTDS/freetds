@@ -120,14 +120,10 @@ tds_socket_done(void)
 #endif
 
 /* Optimize the way we send packets */
-#undef USE_MSGMORE
 #undef USE_CORK
 #undef USE_NODELAY
-/* On Linux 2.4.x we can use MSG_MORE */
-#if defined(__linux__) && defined(MSG_MORE)
-#define USE_MSGMORE 1
 /* On early Linux use TCP_CORK if available */
-#elif defined(__linux__) && defined(TCP_CORK)
+#if defined(__linux__) && defined(TCP_CORK)
 #define USE_CORK 1
 /* On *BSD try to use TCP_CORK */
 /*
@@ -234,7 +230,7 @@ tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int ti
 #endif
 
 	len = 1;
-#if defined(USE_NODELAY) || defined(USE_MSGMORE)
+#if defined(USE_NODELAY)
 	setsockopt(conn->s, SOL_TCP, TCP_NODELAY, (const void *) &len, sizeof(len));
 #elif defined(USE_CORK)
 	if (setsockopt(conn->s, SOL_TCP, TCP_CORK, (const void *) &len, sizeof(len)) < 0)
@@ -527,7 +523,7 @@ tds_socket_read(TDSCONNECTION * conn, TDSSOCKET *tds, unsigned char *buf, int bu
  * @returns 0 if blocking, <0 error >0 bytes readed
  */
 static int
-tds_socket_write(TDSCONNECTION *conn, TDSSOCKET *tds, const unsigned char *buf, int buflen, int last)
+tds_socket_write(TDSCONNECTION *conn, TDSSOCKET *tds, const unsigned char *buf, int buflen)
 {
 	int err, len;
 	char *errstr;
@@ -538,18 +534,12 @@ tds_socket_write(TDSCONNECTION *conn, TDSSOCKET *tds, const unsigned char *buf, 
 		static int cnt = 0;
 		if (++cnt == 5) {
 			cnt = 0;
-			last = 0;
 			buflen -= 3;
 		}
 	}
 #endif
 
-#ifdef USE_MSGMORE
-	len = send(conn->s, buf, buflen, last ? MSG_NOSIGNAL : MSG_NOSIGNAL|MSG_MORE);
-	/* In case the kernel does not support MSG_MORE, try again without it */
-	if (len < 0 && errno == EINVAL && !last)
-		len = send(conn->s, buf, buflen, MSG_NOSIGNAL);
-#elif defined(__APPLE__) && defined(SO_NOSIGPIPE)
+#if defined(__APPLE__) && defined(SO_NOSIGPIPE)
 	len = send(conn->s, buf, buflen, 0);
 #else
 	len = WRITESOCKET(conn->s, buf, buflen);
@@ -689,7 +679,7 @@ tds_connection_read(TDSSOCKET * tds, unsigned char *buf, int buflen)
  * \return length written (>0), <0 on failure
  */
 int
-tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen, unsigned char last)
+tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen)
 {
 	int len;
 	size_t sent = 0;
@@ -701,7 +691,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen, unsig
 		len = tds_select(tds, TDSSELWRITE, tds->query_timeout);
 
 		if (len > 0) {
-			len = tds_socket_write(tds->conn, tds, buffer + sent, buflen - sent, last);
+			len = tds_socket_write(tds->conn, tds, buffer + sent, buflen - sent);
 			if (len == 0)
 				continue;
 			if (len < 0)
@@ -738,18 +728,6 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen, unsig
 		}
 	}
 
-#ifdef USE_CORK
-	/* force packet flush */
-	if (last) {
-		int opt;
-		TDS_SYS_SOCKET sock = tds_get_s(tds);
-		opt = 0;
-		setsockopt(sock, SOL_TCP, TCP_CORK, (const void *) &opt, sizeof(opt));
-		opt = 1;
-		setsockopt(sock, SOL_TCP, TCP_CORK, (const void *) &opt, sizeof(opt));
-	}
-#endif
-
 	return (int) sent;
 }
 
@@ -772,9 +750,21 @@ tds_connection_write(TDSSOCKET *tds, const unsigned char *buf, int buflen, int f
 		sent = tds_ssl_write(conn, buf, buflen);
 	else
 #if ENABLE_ODBC_MARS
-		sent = tds_socket_write(conn, tds, buf, buflen, final);
+		sent = tds_socket_write(conn, tds, buf, buflen);
 #else
-		sent = tds_goodwrite(tds, buf, buflen, final);
+		sent = tds_goodwrite(tds, buf, buflen);
+#endif
+
+#ifdef USE_CORK
+	/* force packet flush */
+	if (final && sent >= buflen) {
+		int opt;
+		TDS_SYS_SOCKET sock = tds_get_s(tds);
+		opt = 0;
+		setsockopt(sock, SOL_TCP, TCP_CORK, (const void *) &opt, sizeof(opt));
+		opt = 1;
+		setsockopt(sock, SOL_TCP, TCP_CORK, (const void *) &opt, sizeof(opt));
+	}
 #endif
 
 #if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X) && (!defined(__APPLE__) || !defined(SO_NOSIGPIPE))

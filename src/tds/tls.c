@@ -151,16 +151,12 @@ tds_push_func(SSL_PUSH_ARGS)
 	tdsdump_log(TDS_DBG_INFO1, "in tds_push_func\n");
 
 	/* write to socket directly */
-	/* TODO use cork if available here to flush only on last chunk of packet ?? */
 #if ENABLE_ODBC_MARS
 	tds = conn->in_net_tds;
-	/* FIXME with SMP trick to detect final is not ok */
-	return tds_goodwrite(tds, (const unsigned char*) data, len,
-			     conn->send_packets->next == NULL);
 #else
 	tds = (TDSSOCKET *) conn;
-	return tds_goodwrite(tds, (const unsigned char*) data, len, tds->out_buf[1]);
 #endif
+	return tds_goodwrite(tds, (const unsigned char*) data, len);
 }
 
 static int tls_initialized = 0;

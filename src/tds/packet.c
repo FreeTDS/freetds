@@ -786,6 +786,7 @@ static short
 tds_packet_write(TDSCONNECTION *conn)
 {
 	int sent;
+	int final;
 	TDSPACKET *packet = conn->send_packets;
 
 	assert(packet);
@@ -793,9 +794,19 @@ tds_packet_write(TDSCONNECTION *conn)
 	if (conn->send_pos == 0)
 		tdsdump_dump_buf(TDS_DBG_NETWORK, "Sending packet", packet->buf, packet->len);
 
-	/* final does not take into account other packets for this session */
+	/* take into account other session packets */
+	if (packet->next != NULL)
+		final = 0;
+	/* take into account other packets for this session */
+	else if (packet->buf[0] != TDS72_SMP)
+		final = packet->buf[1] & 1;
+	else if (packet->len >= sizeof(TDS72_SMP_HEADER) + 2)
+		final = packet->buf[sizeof(TDS72_SMP_HEADER) + 1] & 1;
+	else
+		final = 1;
+
 	sent = tds_connection_write(conn->in_net_tds, packet->buf + conn->send_pos,
-				    packet->len - conn->send_pos, packet->next == NULL);
+				    packet->len - conn->send_pos, final);
 
 	if (TDS_UNLIKELY(sent < 0)) {
 		/* TODO tdserror called ?? */

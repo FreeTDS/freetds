@@ -1498,7 +1498,7 @@ int tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds);
 void tds_connection_close(TDSCONNECTION *conn);
 #endif
 int tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen);
-int tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen, unsigned char last);
+int tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen);
 
 
 /* packet.c */
