@@ -503,6 +503,17 @@ tds_socket_read(TDSCONNECTION * conn, TDSSOCKET *tds, unsigned char *buf, int bu
 {
 	int len, err;
 
+#if ENABLE_EXTRA_CHECKS
+	/* this simulate the fact that recv can return less bytes */
+	if (buflen >= 5) {
+		static int cnt = 0;
+		if (++cnt == 5) {
+			cnt = 0;
+			buflen -= 3;
+		}
+	}
+#endif
+
 	/* read directly from socket*/
 	len = READSOCKET(conn->s, buf, buflen);
 	if (len > 0)
