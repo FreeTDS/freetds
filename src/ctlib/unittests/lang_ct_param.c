@@ -14,9 +14,6 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: lang_ct_param.c,v 1.9 2011-05-16 08:51:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static const char *query =
 	"insert into #ctparam_lang (name,name2,age,cost,bdate,fval) values (@in1, @in2, @in3, @moneyval, @dateval, @floatval)";
 
@@ -42,7 +39,7 @@ main(int argc, char *argv[])
 	if (argc > 1 && (0 == strcmp(argv[1], "-v")))
 		verbose = 1;
 
-	fprintf(stdout, "%s: submit language query with variables using ct_param \n", __FILE__);
+	printf("%s: submit language query with variables using ct_param\n", __FILE__);
 	if (verbose) {
 		fprintf(stdout, "Trying login\n");
 	}
@@ -111,6 +108,8 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames)
 	char dummy_name[30];
 	char dummy_name2[20];
 	CS_INT destlen;
+	CS_INT rowsAffected = -1;
+	int rows_found;
 
 	/* clear table */
 	run_command(cmd, "delete #ctparam_lang");
@@ -292,6 +291,8 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames)
 				ct_res_info(cmd, CS_ROW_COUNT, &rowsAffected, CS_UNUSED, NULL);
 				if (1 != rowsAffected) 
 					fprintf(stderr, "insert touched %d rows instead of 1\n", rowsAffected);
+				else
+					rows_found = 1;
 			}
 			break;
 
@@ -319,8 +320,15 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames)
 			return 1;
 		}
 	}
-	if (ret != CS_END_RESULTS)
+	if (ret != CS_END_RESULTS) {
 		fprintf(stderr, "ct_results returned unexpected result %d.\n", (int) ret);
+		exit(1);
+	}
+
+	if (!rows_found) {
+		fprintf(stderr, "expected 1 rows inserted, inserted %d.\n", (int) rowsAffected);
+		exit(1);
+	}
 
 	/* test row inserted */
 	ret = run_command(cmd, "if not exists(select * from #ctparam_lang where name = 'joe blow' and name2 is not null and age = 2) select 1");
