@@ -14,8 +14,6 @@
 #include <ctpublic.h>
 #include "common.h"
 
-#define QUERY_STRING "insert into #ctparam_lang (name,age,cost,bdate,fval) values (@in1, @in2, @moneyval, @dateval, @floatval)"
-
 static CS_RETCODE ex_servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * errmsg);
 static CS_RETCODE ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);
 
@@ -87,7 +85,7 @@ main(int argc, char *argv[])
 	if (argc > 1 && (0 == strcmp(argv[1], "-v")))
 		verbose = 1;
 
-	printf("%s: use ct_dynamic/ct_param to prepare and execute  a statement \n", __FILE__);
+	printf("%s: use ct_dynamic to prepare and execute  a statement\n", __FILE__);
 	if (verbose) {
 		printf("Trying login\n");
 	}
