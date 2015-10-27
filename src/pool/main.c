@@ -73,6 +73,15 @@ term_handler(int sig)
 	term = 1;
 }
 
+static void
+check_field(const char *pool_name, bool cond, const char *field_name)
+{
+	if (!cond) {
+		fprintf(stderr, "No %s specified for pool ``%s''.\n", field_name, pool_name);
+		exit(EXIT_FAILURE);
+	}
+}
+
 /*
  * pool_init creates a named pool and opens connections to the database
  */
@@ -89,6 +98,10 @@ pool_init(const char *name)
 		fprintf(stderr, "Configuration for pool ``%s'' not found.\n", name);
 		exit(EXIT_FAILURE);
 	}
+	check_field(name, pool->user,   "user");
+	check_field(name, pool->server, "server");
+	check_field(name, pool->port,   "port");
+
 	pool->num_members = pool->max_open_conn;
 
 	pool->name = strdup(name);
