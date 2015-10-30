@@ -72,7 +72,7 @@ typedef struct {
 #ifndef HAVE_NETTLE
 #define HAVE_NETTLE 1
 
-typedef void nettle_random_func(void *ctx, unsigned len, uint8_t *out);
+typedef void nettle_random_func(void *ctx, size_t len, uint8_t *out);
 
 static inline void
 nettle_mpz_set_str_256_u(mpz_t x, unsigned length, const uint8_t *s)
@@ -192,7 +192,7 @@ sha1(uint8_t *hash, const void *data, size_t len)
 
 
 static void
-rnd_func(void *ctx, unsigned len, uint8_t * out)
+rnd_func(void *ctx, size_t len, uint8_t * out)
 {
 	tds_random_buffer(out, len);
 }
