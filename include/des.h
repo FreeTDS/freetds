@@ -32,7 +32,7 @@ int tds_des_ecb_encrypt(const void *plaintext, int len, DES_KEY * akey, des_cblo
 #ifdef HAVE_NETTLE
 static inline void tds_des_encrypt(DES_KEY * key, des_cblock block)
 {
-	nettle_des_encrypt(key, sizeof(block), block, block);
+	nettle_des_encrypt(key, sizeof(des_cblock), block, block);
 }
 
 static inline int tds_des_set_key(DES_KEY * dkey, const des_cblock user_key, int len)
