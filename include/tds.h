@@ -840,6 +840,8 @@ typedef enum tds_encryption_level {
 #define TDS_GSSAPI_DELEGATION "enable gssapi delegation"
 /* Kerberos realm name */
 #define TDS_STR_REALM	"realm"
+/* Application Intent MSSQL 2012 support*/
+#define TDS_STR_APPLICATION_INTENT "application intent"
 
 
 /* TODO do a better check for alignment than this */
@@ -875,6 +877,7 @@ typedef struct tds_login
 	DSTR database;
 	unsigned int bulk_copy:1;
 	unsigned int suppress_language:1;
+        unsigned int application_intent:1;
 } TDSLOGIN;
 
 typedef struct tds_connection
@@ -913,6 +916,7 @@ typedef struct tds_connection
 	unsigned int suppress_language:1;
 	unsigned int gssapi_use_delegation:1;
 	unsigned int use_ntlmv2:1;
+  	unsigned int application_intent:1;
 } TDSCONNECTION;
 
 typedef struct tds_locale
@@ -1339,7 +1343,8 @@ struct tds_socket
 	unsigned int emul_little_endian:1;
 	unsigned int use_iconv:1;
 	unsigned int tds71rev1:1;
-
+	unsigned int application_intent:1;
+  
 	unsigned char *in_buf;		/**< input buffer */
 	unsigned char *out_buf;		/**< output buffer */
 	unsigned int in_buf_max;	/**< allocated input buffer */

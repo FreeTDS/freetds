@@ -253,6 +253,7 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "broken_dates", connection->broken_dates);
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "emul_little_endian", connection->emul_little_endian);
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "server_realm_name", tds_dstr_cstr(&connection->server_realm_name));
+		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "application_intent", connection->application_intent);
 
 		tdsdump_close();
 	}
@@ -421,7 +422,7 @@ tds_read_conf_sections(FILE * in, const char *server, TDSCONNECTION * connection
 }
 
 static const struct {
-	char value[7];
+	char value[9];
 	unsigned char to_return;
 } boolean_values[] = {
 	{ "yes",	1 },
@@ -429,7 +430,9 @@ static const struct {
 	{ "on",		1 },
 	{ "off",	0 },
 	{ "true",	1 },
-	{ "false",	0 }
+	{ "false",	0 },
+	{ "ReadOnly", 1},
+	{ "ReadWrite", 0}
 };
 
 int
@@ -504,6 +507,7 @@ tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_pars
 			p = *s;
 			s++;
 		}
+		option[i] = '\0';
 
 		/* skip if empty option */
 		if (!i)
@@ -568,6 +572,7 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 
 	if (!strcmp(option, TDS_STR_VERSION)) {
 		tds_config_verstr(value, connection);
+		tdsdump_log(TDS_DBG_FUNC, "Setting TDS Version to  '%s' .\n", value);
 	} else if (!strcmp(option, TDS_STR_BLKSZ)) {
 		int val = atoi(value);
 		if (val >= 512 && val < 65536)
@@ -627,7 +632,11 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		connection->use_ntlmv2 = tds_config_boolean(value);
 	} else if (!strcmp(option, TDS_STR_REALM)) {
 		tds_dstr_copy(&connection->server_realm_name, value);
-	} else {
+	} else if (!strcmp(option, TDS_STR_APPLICATION_INTENT)) {
+		connection->application_intent = tds_config_boolean(value);
+		tdsdump_log(TDS_DBG_FUNC, "Setting Application Intent to  '%s' .\n", value);
+	}
+	else {
 		tdsdump_log(TDS_DBG_INFO1, "UNRECOGNIZED option '%s' ... ignoring.\n", option);
 	}
 }
@@ -693,6 +702,9 @@ tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login)
 
 	if (login->query_timeout)
 		connection->query_timeout = login->query_timeout;
+
+	if(login->application_intent)
+		connection->application_intent = login->application_intent;
 
 	/* copy other info not present in configuration file */
 	memcpy(connection->capabilities, login->capabilities, TDS_MAX_CAPABILITY);

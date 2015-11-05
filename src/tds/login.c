@@ -397,6 +397,8 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 
 	tds->tds_version = connection->tds_version;
 	tds->emul_little_endian = connection->emul_little_endian;
+	tds->application_intent = connection->application_intent;
+	tdsdump_log(TDS_DBG_INFO1,"Application Intent Value is %d\n",tds->application_intent);
 #ifdef WORDS_BIGENDIAN
 	if (IS_TDS7_PLUS(tds)) {
 		/* TDS 7/8 only supports little endian */
@@ -817,7 +819,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	tds_put_byte(tds, option_flag2);
 
-	tds_put_byte(tds, sql_type_flag);
+	tds_put_byte(tds, connection->application_intent ? sql_type_flag|0x20 : sql_type_flag);
 	tds_put_byte(tds, reserved_flag);
 
 	tds_put_n(tds, time_zone, 4);

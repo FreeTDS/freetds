@@ -467,7 +467,8 @@ BOOL get_login_info(HWND hwndParent, TDSCONNECTION * connection);
 	ODBC_PARAM(Trusted_Connection) \
 	ODBC_PARAM(APP) \
 	ODBC_PARAM(WSID) \
-	ODBC_PARAM(UseNTLMv2)
+	ODBC_PARAM(UseNTLMv2)\
+	ODBC_PARAM(ApplicationIntent)
 
 #define ODBC_PARAM(p) ODBC_PARAM_##p,
 enum {

@@ -35,6 +35,7 @@
 
 #ifdef DMALLOC
 #include <dmalloc.h>
+#include "../../include/tds.h"
 #endif
 
 TDS_RCSID(var, "$Id: connectparams.c,v 1.88 2010-11-09 15:46:42 freddy77 Exp $");
@@ -382,6 +383,9 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 			tds_parse_conf_section(TDS_STR_ENCRYPTION, tds_dstr_cstr(&value), connection);
 		} else if (CHK_PARAM(UseNTLMv2)) {
 			tds_parse_conf_section(TDS_STR_USENTLMV2, tds_dstr_cstr(&value), connection);
+		} else if (CHK_PARAM(ApplicationIntent)) {
+			tds_parse_conf_section(TDS_STR_APPLICATION_INTENT, tds_dstr_cstr(&value), connection);
+			tdsdump_log(TDS_DBG_INFO1, "Application Intent %s \n", tds_dstr_cstr(&value) );
 		} else if (CHK_PARAM(Trusted_Connection)) {
 			trusted = tds_config_boolean(tds_dstr_cstr(&value));
 			tdsdump_log(TDS_DBG_INFO1, "trusted %s -> %d\n", tds_dstr_cstr(&value), trusted);
