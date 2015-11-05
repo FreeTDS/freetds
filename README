@@ -36,7 +36,13 @@ A User Guide, in sgml and html form, is included in this distribution.
 Also included is a reference manual, generated in HTML with Doxygen. 
 "make install" installs the HTML documentation, by default to
 /usr/local/share/doc/freetds-<version>.  
+ 
+Implemented the "ApplicationIntent" property that is new in TDS 7.4 in the current stable version of "freetds_0.91".
+You can use this by putting "ApplicationIntent=ReadOnly", in the connection string.
+If you do not set this property the default value is ReadWrite, in which case the user can fire write queries too.
+Remember to set the following as connection string if you want to do any WinAuth connections
 
+"DRIVER=FreeTDS;Server=<IP>;Port=<PORT>;Database=<DB_NAME>;UID=<USERNAME>;PWD=<PASSWORD>;ApplicationIntent=<ReadWrite/ReadOnly>;TDS_Version=7.2;"
 
 Note to Users
 =============
@@ -86,6 +92,11 @@ Side note: Brian, as many free software authors, appreciates postcards
 from all over. So if you live someplace neat (read: not Michigan) and
 want to send one, email him (brian@bruns.org) for his current snail mail
 address.
+
+TODO
+====
+Add test in the php/python for Application Intent.
+
 
 $Id: README,v 1.12.4.1 2011-11-16 01:47:16 jklowden Exp $
 
