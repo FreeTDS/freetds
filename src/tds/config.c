@@ -431,8 +431,8 @@ static const struct {
 	{ "off",	0 },
 	{ "true",	1 },
 	{ "false",	0 },
-	{ "ReadOnly", 1},
-	{ "ReadWrite", 0}
+	{ "ReadOnly",   1 },
+	{ "ReadWrite",  0 }
 };
 
 int
@@ -507,7 +507,6 @@ tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_pars
 			p = *s;
 			s++;
 		}
-		option[i] = '\0';
 
 		/* skip if empty option */
 		if (!i)
@@ -572,7 +571,6 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 
 	if (!strcmp(option, TDS_STR_VERSION)) {
 		tds_config_verstr(value, connection);
-		tdsdump_log(TDS_DBG_FUNC, "Setting TDS Version to  '%s' .\n", value);
 	} else if (!strcmp(option, TDS_STR_BLKSZ)) {
 		int val = atoi(value);
 		if (val >= 512 && val < 65536)

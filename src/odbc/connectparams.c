@@ -35,7 +35,6 @@
 
 #ifdef DMALLOC
 #include <dmalloc.h>
-#include "../../include/tds.h"
 #endif
 
 TDS_RCSID(var, "$Id: connectparams.c,v 1.88 2010-11-09 15:46:42 freddy77 Exp $");
