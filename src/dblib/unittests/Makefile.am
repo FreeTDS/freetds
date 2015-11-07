@@ -1,4 +1,3 @@
-# $Id: Makefile.am,v 1.51 2011-06-08 09:25:53 freddy77 Exp $
 TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) t0005$(EXEEXT) t0006$(EXEEXT)\
 			t0007$(EXEEXT) t0008$(EXEEXT) t0009$(EXEEXT)\
@@ -10,7 +9,8 @@ TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			bcp$(EXEEXT) thread$(EXEEXT) text_buffer$(EXEEXT)\
 			done_handling$(EXEEXT) timeout$(EXEEXT) \
 			hang$(EXEEXT) null$(EXEEXT) null2$(EXEEXT) \
-			setnull$(EXEEXT) numeric$(EXEEXT) pending$(EXEEXT)
+			setnull$(EXEEXT) numeric$(EXEEXT) pending$(EXEEXT) \
+			cancel$(EXEEXT)
 check_PROGRAMS	=	$(TESTS)
 
 SQL_DIST = 	bcp.sql dbmorecmds.sql done_handling.sql rpc.sql \
@@ -56,6 +56,7 @@ null2_SOURCES	=	null2.c common.c common.h
 setnull_SOURCES	=	setnull.c common.c common.h
 numeric_SOURCES =	numeric.c common.c common.h
 pending_SOURCES =	pending.c common.c common.h
+cancel_SOURCES =	cancel.c common.c common.h
 
 AM_CPPFLAGS	= 	-DFREETDS_TOPDIR=\"$(top_srcdir)\" -I$(top_srcdir)/include
 if MINGW32
