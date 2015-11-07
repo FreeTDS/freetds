@@ -509,6 +509,8 @@ extern const char *const tds_type_names[256];
 #define TDS_STR_CHECKSSLHOSTNAME	"check certificate hostname"
 /* database filename to attach on login (MSSQL) */
 #define TDS_STR_DBFILENAME	"database filename"
+/* Application Intent MSSQL 2012 support */
+#define TDS_STR_READONLY_INTENT "read-only intent"
 
 
 /* TODO do a better check for alignment than this */
@@ -582,6 +584,7 @@ typedef struct tds_login
 	unsigned int use_new_password:1;
 	unsigned int valid_configuration:1;
 	unsigned int check_ssl_hostname:1;
+	unsigned int readonly_intent:1;
 } TDSLOGIN;
 
 typedef struct tds_headers
