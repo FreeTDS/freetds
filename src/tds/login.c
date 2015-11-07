@@ -817,7 +817,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	tds_put_byte(tds, option_flag2);
 
-	tds_put_byte(tds, sql_type_flag);
+	tds_put_byte(tds, connection->application_intent ? sql_type_flag|0x20 : sql_type_flag);
 	tds_put_byte(tds, reserved_flag);
 
 	tds_put_n(tds, time_zone, 4);
