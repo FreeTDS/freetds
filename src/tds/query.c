@@ -2183,6 +2183,7 @@ tds_send_cancel(TDSSOCKET * tds)
 	 * this means that either:
 	 * - another thread is processing data
 	 * - we got called from a signal inside processing thread
+	 * - we got called from message handler
 	 */
 	if (tds_mutex_trylock(&tds->wire_mtx)) {
 		static const char one = '1';
