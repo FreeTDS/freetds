@@ -1344,6 +1344,11 @@ tds_get_compiletime_settings(void)
 #		else
 			, 0
 #		endif
+#		if ENABLE_ODBC_MARS
+			, 1
+#		else
+			, 0
+#		endif
 	};
 
 	assert(settings.tdsver);

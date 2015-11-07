@@ -81,8 +81,9 @@ typedef struct tds_compiletime_settings
 	const char *tdsver;	/* TDS protocol version (4.2/4.6/5.0/7.0/7.1) 5.0 */
 	int iodbc;		/* build odbc driver against iODBC in DIR */
 	int unixodbc;		/* build odbc driver against unixODBC in DIR */
-	int openssl;   /*  build against OpenSSL */
-	int gnutls;   /*  build against OpenSSL */
+	int openssl;		/* build against OpenSSL */
+	int gnutls;		/* build against GnuTLS */
+	int mars;		/* MARS enabled */
 } TDS_COMPILETIME_SETTINGS;
 
 /**
