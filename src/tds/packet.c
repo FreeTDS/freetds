@@ -772,7 +772,7 @@ tds_put_cancel(TDSSOCKET * tds)
 	sent = tds_connection_write(tds, out_buf, 8, 1);
 
 	if (sent > 0)
-		tds->in_cancel = 1;
+		tds->in_cancel = 2;
 
 	/* GW added in check for write() returning <0 and SIGPIPE checking */
 	return sent <= 0 ? TDS_FAIL : TDS_SUCCESS;

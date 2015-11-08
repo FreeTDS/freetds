@@ -607,7 +607,7 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 			char buf[32];
 			READSOCKET(tds->conn->s_signaled, buf, sizeof(buf));
 			/* send cancel */
-			if (!tds->in_cancel)
+			if (tds->in_cancel == 1)
 				tds_put_cancel(tds);
 			continue;
 		}
