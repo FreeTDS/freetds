@@ -2188,6 +2188,8 @@ tds_send_cancel(TDSSOCKET * tds)
 	if (tds_mutex_trylock(&tds->wire_mtx)) {
 		static const char one = '1';
 		/* TODO check */
+		if (!tds->in_cancel)
+			tds->in_cancel = 1;
 		/* signal other socket */
 		send(tds->conn->s_signal, (const void*) &one, sizeof(one), 0);
 		return TDS_SUCCESS;
