@@ -627,9 +627,11 @@ typedef struct tds_variant
  */
 typedef struct tds_encoding
 {
+	/** name of the encoding (ie UTF-8) */
 	const char *name;
 	unsigned char min_bytes_per_char;
 	unsigned char max_bytes_per_char;
+	/** internal numeric index into array of all encodings */
 	unsigned char canonic;
 } TDS_ENCODING;
 
@@ -974,9 +976,12 @@ typedef struct tds_cursor
  */
 typedef struct tds_env
 {
+	/** packet size (512-65535) */
 	int block_size;
 	char *language;
+	/** character set encoding */
 	char *charset;
+	/** database name */
 	char *database;
 } TDSENV;
 
