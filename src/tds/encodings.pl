@@ -121,7 +121,6 @@ foreach $n (sort { $index{$a} <=> $index{$b} } keys %charsets)
 	++$i;
 }
 die('too much encodings') if $i >= 256;
-print "\t{\"\",\t0, 0, 0}\n";
 print "};\n\n";
 
 # output all alias
