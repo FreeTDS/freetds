@@ -17,7 +17,8 @@ SQL_DIST = 	bcp.sql dbmorecmds.sql done_handling.sql rpc.sql \
 		t0001.sql t0002.sql t0003.sql t0004.sql t0005.sql t0006.sql t0007.sql t0009.sql \
 		t0011.sql t0012.sql t0013.sql t0014.sql t0015.sql t0016.sql t0017.sql t0018.sql \
 		t0020.sql t0022.sql t0023.sql text_buffer.sql timeout.sql numeric.sql numeric_2.sql \
-		pending.sql
+		pending.sql cancel.sql t0016_10.sql t0016_11.sql t0016_1.sql t0016_2.sql \
+		t0016_3.sql t0016_4.sql t0016_5.sql t0016_6.sql t0016_7.sql t0016_8.sql t0016_9.sql
 
 noinst_SCRIPTS	= $(SQL_DIST)
 
