@@ -66,7 +66,10 @@ else
 AM_LDFLAGS	=	-no-install -L../.libs -R $(abs_builddir)/../.libs
 endif
 LIBS		=	../libsybdb.la ../../replacements/libreplacements.la $(LTLIBICONV)
-EXTRA_DIST	=	t0016.in t0017.in t0017.in.be data.bin CMakeLists.txt $(SQL_DIST)
+EXTRA_DIST	=	t0016.in t0017.in t0017.in.be data.bin CMakeLists.txt $(SQL_DIST) \
+			t0016_1.in t0016_2.in t0016_3.in t0016_4.in t0016_5.in \
+			t0016_6.in t0016_7.in t0016_8.in t0016_9.in t0016_10.in \
+			t0016_11.in
 CLEANFILES	=	tdsdump.out t0013.out t0014.out t0016.out \
 				t0016.err t0017.err t0017.out
 
