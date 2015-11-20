@@ -215,6 +215,14 @@ enum
 #define SYBBIGDATETIME SYBBIGDATETIME
 	SYBBIGTIME = 188,	/* 0xBC */
 #define SYBBIGTIME SYBBIGTIME
+	SYBMSDATE = 40,		/* 0x28 */
+#define SYBMSDATE SYBMSDATE
+	SYBMSTIME = 41,		/* 0x29 */
+#define SYBMSTIME SYBMSTIME
+	SYBMSDATETIME2 = 42,	/* 0x2A */
+#define SYBMSDATETIME2 SYBMSDATETIME2
+	SYBMSDATETIMEOFFSET = 43, /* 0x2B */
+#define SYBMSDATETIMEOFFSET SYBMSDATETIMEOFFSET
 };
 
 #define SYBAOPCNT  0x4b
@@ -247,6 +255,8 @@ typedef unsigned char DBBINARY;
 typedef tds_sysdep_real32_type DBREAL;
 typedef tds_sysdep_real64_type DBFLT8;
 typedef unsigned tds_sysdep_int16_type DBUSMALLINT;
+typedef unsigned tds_sysdep_int32_type DBUINT;
+typedef unsigned tds_sysdep_int64_type DBUBIGINT;
 
 typedef struct 
 {
@@ -291,6 +301,18 @@ typedef struct
 	DBUSMALLINT days;	/* days since Jan-1-1900 */
 	DBUSMALLINT minutes;	/* minutes since midnight */
 } DBDATETIME4;
+
+typedef struct
+{
+	DBUBIGINT  time;	/**< time, 7 digit precision */
+	DBINT      date;	/**< date, 0 = 1900-01-01 */
+	DBSMALLINT offset;	/**< time offset */
+	DBUSMALLINT time_prec:3;
+	DBUSMALLINT _res:10;
+	DBUSMALLINT has_time:1;
+	DBUSMALLINT has_date:1;
+	DBUSMALLINT has_offset:1;
+} DBDATETIMEALL;
 
 #ifdef MSDBLIB
 # define SQLCHAR SYBCHAR
