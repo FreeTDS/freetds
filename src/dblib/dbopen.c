@@ -21,6 +21,7 @@
 
 #include <freetds/tds.h>
 #include <sybdb.h>
+#include <dblib.h>
 
 #ifdef dbopen
 #undef dbopen
@@ -36,9 +37,5 @@ TDS_RCSID(var, "$Id: dbopen.c,v 1.15 2011-05-16 08:51:40 freddy77 Exp $");
 DBPROCESS *
 dbopen(LOGINREC * login, const char *server)
 {
-#if MSDBLIB
-	return tdsdbopen(login, server, 1);
-#else
-	return tdsdbopen(login, server, 0);
-#endif
+	return tdsdbopen(login, server, dblib_msdblib);
 }

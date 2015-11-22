@@ -5614,11 +5614,6 @@ dbdatecmp(DBPROCESS * dbproc, DBDATETIME * d1, DBDATETIME * d2)
 RETCODE
 dbdatecrack(DBPROCESS * dbproc, DBDATEREC * output, DBDATETIME * datetime)
 {
-#if MSDBLIB
-	const int msdblib = 1;
-#else
-	const int msdblib = 0;
-#endif
 	TDSDATEREC dr;
 	struct tds_sybase_dbdaterec *di = (struct tds_sybase_dbdaterec*) output;
 
@@ -5639,7 +5634,7 @@ dbdatecrack(DBPROCESS * dbproc, DBDATEREC * output, DBDATETIME * datetime)
 	di->datesecond = dr.second;
 	di->datemsecond = dr.decimicrosecond / 10000u;
 	/* Revert to compiled-in default if dbproc can't be used to find the runtime override. */
-	if (dbproc ? dbproc->msdblib : msdblib) {
+	if (dbproc ? dbproc->msdblib : dblib_msdblib) {
 		++di->quarter;
 		++di->datemonth;
 		++di->datedweek;
