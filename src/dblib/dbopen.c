@@ -21,6 +21,7 @@
 
 #include <freetds/tds.h>
 #include <sybdb.h>
+#include <dblib.h>
 
 #ifdef dbopen
 #undef dbopen
@@ -34,9 +35,5 @@
 DBPROCESS *
 dbopen(LOGINREC * login, const char *server)
 {
-#if MSDBLIB
-	return tdsdbopen(login, server, 1);
-#else
-	return tdsdbopen(login, server, 0);
-#endif
+	return tdsdbopen(login, server, dblib_msdblib);
 }
