@@ -32,7 +32,10 @@ main(int argc, char *argv[])
 	LOGINREC *login;
 	DBPROCESS *dbproc;
 	char datestring[256];
-	DBDATEREC dateinfo;
+	DBDATEREC  dateinfo;
+#ifdef SYBMSDATETIME2
+	DBDATEREC2 dateinfo2;
+#endif
 	DBDATETIME mydatetime;
 	int output_count = 0;
 
@@ -118,8 +121,43 @@ main(int argc, char *argv[])
 	if (output_count != 2)
 		set_failed();
 
+#ifdef SYBMSDATETIME2
+	/* select */
+	sql_cmd(dbproc);
+	dbsqlexec(dbproc);
+	dbresults(dbproc);
+
+	while (dbnextrow(dbproc) != NO_MORE_ROWS) {
+		++output_count;
+		/* Print the date info  */
+		dbconvert(dbproc, dbcoltype(dbproc, 1), dbdata(dbproc, 1), dbdatlen(dbproc, 1), SYBCHAR, (BYTE*) datestring, -1);
+
+		printf("%s\n", datestring);
+
+		/* Break up the creation date into its constituent parts */
+		if (dbanydatecrack(dbproc, &dateinfo2, dbcoltype(dbproc, 1), dbdata(dbproc, 1)) != SUCCEED)
+			set_failed();
+
+		/* Print the parts of the creation date */
+		printf("\tYear = %d.\n", dateinfo2.dateyear);
+		printf("\tMonth = %d.\n", dateinfo2.datemonth);
+		printf("\tDay of month = %d.\n", dateinfo2.datedmonth);
+		printf("\tDay of year = %d.\n", dateinfo2.datedyear);
+		printf("\tDay of week = %d.\n", dateinfo2.datedweek);
+		printf("\tHour = %d.\n", dateinfo2.datehour);
+		printf("\tMinute = %d.\n", dateinfo2.dateminute);
+		printf("\tSecond = %d.\n", dateinfo2.datesecond);
+		printf("\tNanosecond = %d.\n", dateinfo2.datensecond);
+		if (dateinfo2.dateyear != 1898 || dateinfo2.datensecond != 567000000)
+			set_failed();
+	}
+#endif
+
 	dbclose(dbproc);
 	dbexit();
+
+	if (output_count < 2 || output_count > 3)
+		set_failed();
 
 	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	return failed ? 1 : 0;

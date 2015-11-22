@@ -483,10 +483,45 @@ struct tds_sybase_dbdaterec
 	DBINT datetzone;	/* 0 - 127  	     	  */
 };
 
+struct tds_microsoft_dbdaterec2
+{
+	DBINT year;		/* 1753 - 9999  	   */
+	DBINT quarter;		/* 1 - 4 		   */
+	DBINT month;		/* 1 - 12 		   */
+	DBINT day;		/* 1 - 31 		   */
+	DBINT dayofyear;	/* 1 - 366 		   */
+	DBINT week;            	/* 1 - 54 (for leap years) */
+	DBINT weekday;		/* 1 - 7 (Mon. - Sun.)     */
+	DBINT hour;		/* 0 - 23 		   */
+	DBINT minute;		/* 0 - 59 		   */
+	DBINT second;		/* 0 - 59 		   */
+	DBINT nanosecond;	/* 0 - 999999999	   */
+	DBINT tzone;		/* 0 - 127  (Sybase only)  */
+};
+
+struct tds_sybase_dbdaterec2
+{
+	DBINT dateyear;		/* 1900 and counting	  */
+	DBINT quarter;		/* 0 - 3 (Microsoft only) */
+	DBINT datemonth;	/* 0 - 11   	     	  */
+	DBINT datedmonth;	/* 1 - 31   	     	  */
+	DBINT datedyear;	/* 1 - 366  	     	  */
+	DBINT week;            	/* 1 - 54 (Microsoft only) */
+	DBINT datedweek;	/* 0 - 6    	     	  */
+	DBINT datehour; 	/* 0 - 23   	     	  */
+	DBINT dateminute;	/* 0 - 59   	     	  */
+	DBINT datesecond;	/* 0 - 59   	     	  */
+	DBINT datensecond;	/* 0 - 999999999  	  */
+	DBINT datetzone;	/* 0 - 127  	     	  */
+};
+
+
 #ifdef MSDBLIB
-typedef struct tds_microsoft_dbdaterec DBDATEREC;
+typedef struct tds_microsoft_dbdaterec  DBDATEREC;
+typedef struct tds_microsoft_dbdaterec2 DBDATEREC2;
 #else
-typedef struct tds_sybase_dbdaterec DBDATEREC;
+typedef struct tds_sybase_dbdaterec  DBDATEREC;
+typedef struct tds_sybase_dbdaterec2 DBDATEREC2;
 #endif
 
 typedef int (*EHANDLEFUNC) (DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -717,6 +752,7 @@ DBINT dbcurrow(DBPROCESS * dbproc);
 BYTE *dbdata(DBPROCESS * dbproc, int column);
 int dbdatecmp(DBPROCESS * dbproc, DBDATETIME * d1, DBDATETIME * d2);
 RETCODE dbdatecrack(DBPROCESS * dbproc, DBDATEREC * di, DBDATETIME * dt);
+RETCODE dbanydatecrack(DBPROCESS * dbproc, DBDATEREC2 * di, int type, const void *data);
 DBINT dbdatlen(DBPROCESS * dbproc, int column);
 DBBOOL dbdead(DBPROCESS * dbproc);
 
