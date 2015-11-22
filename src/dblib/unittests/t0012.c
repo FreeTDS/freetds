@@ -128,11 +128,17 @@ main(int argc, char *argv[])
 	dbresults(dbproc);
 
 	while (dbnextrow(dbproc) != NO_MORE_ROWS) {
+		int type = dbcoltype(dbproc, 1);
+
 		++output_count;
 		/* Print the date info  */
-		dbconvert(dbproc, dbcoltype(dbproc, 1), dbdata(dbproc, 1), dbdatlen(dbproc, 1), SYBCHAR, (BYTE*) datestring, -1);
+		dbconvert(dbproc, type, dbdata(dbproc, 1), dbdatlen(dbproc, 1), SYBCHAR, (BYTE*) datestring, -1);
 
 		printf("%s\n", datestring);
+
+		/* network not high enough for this type ! */
+		if (type == SYBCHAR || type == SYBVARCHAR)
+			break;
 
 		/* Break up the creation date into its constituent parts */
 		if (dbanydatecrack(dbproc, &dateinfo2, dbcoltype(dbproc, 1), dbdata(dbproc, 1)) != SUCCEED)
