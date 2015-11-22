@@ -18,6 +18,6 @@ SYMBOLS		=
 else
 SYMBOLS		=	-export-symbols-regex '^(db|bcp_|tdsdump_open|tdsdbopen|.*_xact|close_commit|open_commit|.?asprintf).*'
 endif
-libsybdb_la_LDFLAGS=	-version-info 5:0:0 $(SYMBOLS) $(FREETDS_SYMBOLIC)
+libsybdb_la_LDFLAGS=	-version-info 6:0:1 $(SYMBOLS) $(FREETDS_SYMBOLIC)
 libsybdb_la_LIBADD=	../tds/libtds.la ../replacements/libreplacements.la $(NETWORK_LIBS) $(LTLIBICONV) $(FREETDS_LIBGCC)
 

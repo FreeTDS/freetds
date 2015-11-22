@@ -49,6 +49,7 @@ EXPORTS
 	dbdata
 	dbdatecmp
 	dbdatecrack
+	dbanydatecrack
 	dbdatlen
 	dbdead
 	dberrhandle
