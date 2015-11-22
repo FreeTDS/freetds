@@ -26,6 +26,12 @@ static void set_failed(int line)
 #define datensecond nanosecond
 #endif
 
+static int
+ignore_msg_handler(DBPROCESS * dbproc, DBINT msgno, int state, int severity, char *text, char *server, char *proc, int line)
+{
+	return 0;
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -122,6 +128,8 @@ main(int argc, char *argv[])
 		set_failed();
 
 #ifdef SYBMSDATETIME2
+	dbmsghandle(ignore_msg_handler);
+
 	/* select */
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
