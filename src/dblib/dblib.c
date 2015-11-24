@@ -5592,12 +5592,12 @@ dbdatecmp(DBPROCESS * dbproc, DBDATETIME * d1, DBDATETIME * d2)
 }
 
 static RETCODE
-dblib_datecrack(DBPROCESS * dbproc, BOOL output2, DBDATEREC * output, int type, const void * data)
+dblib_datecrack(DBPROCESS * dbproc, BOOL nano_precision, DBDATEREC * output, int type, const void * data)
 {
 	TDSDATEREC dr;
 	struct tds_sybase_dbdaterec *di = (struct tds_sybase_dbdaterec*) output;
 
-	tdsdump_log(TDS_DBG_FUNC, "dblib_datecrack(%p, %d, %p, %d, %p)\n", dbproc, output2, output, type, data);
+	tdsdump_log(TDS_DBG_FUNC, "dblib_datecrack(%p, %d, %p, %d, %p)\n", dbproc, nano_precision, output, type, data);
 	CHECK_NULP(output, "dbdatecrack", 2, FAIL);
 	CHECK_PARAMETER(data, SYBENDTP, FAIL);
 
@@ -5613,7 +5613,7 @@ dblib_datecrack(DBPROCESS * dbproc, BOOL output2, DBDATEREC * output, int type, 
 	di->datehour = dr.hour;
 	di->dateminute = dr.minute;
 	di->datesecond = dr.second;
-	if (output2)
+	if (nano_precision)
 		/* here we are writing to nanosecond field */
 		di->datemsecond = dr.decimicrosecond * 100u;
 	else
