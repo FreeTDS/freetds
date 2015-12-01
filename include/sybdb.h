@@ -458,7 +458,7 @@ struct tds_microsoft_dbdaterec
 	DBINT minute;		/* 0 - 59 		   */
 	DBINT second;		/* 0 - 59 		   */
 	DBINT millisecond;	/* 0 - 999 		   */
-	DBINT tzone;		/* 0 - 127  (Sybase only)  */	
+	DBINT tzone;		/* -840 - 840		   */
 };					
 
 struct tds_sybase_dbdaterec
@@ -473,8 +473,8 @@ struct tds_sybase_dbdaterec
 	DBINT datehour; 	/* 0 - 23   	     	  */
 	DBINT dateminute;	/* 0 - 59   	     	  */
 	DBINT datesecond;	/* 0 - 59   	     	  */
-	DBINT datemsecond;	/* 0 - 997  	     	  */
-	DBINT datetzone;	/* 0 - 127  	     	  */
+	DBINT datemsecond;	/* 0 - 999  	     	  */
+	DBINT datetzone;	/* -840 - 840 	     	  */
 };
 
 struct tds_microsoft_dbdaterec2

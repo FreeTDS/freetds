@@ -164,7 +164,7 @@ typedef struct tdsdaterec
 	TDS_INT minute;	       /**< 0-59 */
 	TDS_INT second;	       /**< 0-59 */
 	TDS_INT decimicrosecond;   /**< 0-9999999 */
-	TDS_INT tzone;
+	TDS_INT timezone;      /**< -840 - 840 minutes from UTC */
 } TDSDATEREC;
 
 /**
