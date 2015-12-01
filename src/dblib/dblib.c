@@ -5613,6 +5613,7 @@ dblib_datecrack(DBPROCESS * dbproc, BOOL nano_precision, DBDATEREC * output, int
 	di->datehour = dr.hour;
 	di->dateminute = dr.minute;
 	di->datesecond = dr.second;
+	di->datetzone = dr.timezone;
 	if (nano_precision)
 		/* here we are writing to nanosecond field */
 		di->datemsecond = dr.decimicrosecond * 100u;
