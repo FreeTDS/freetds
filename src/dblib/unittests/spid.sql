@@ -1,0 +1,2 @@
+select @@SPID
+go
