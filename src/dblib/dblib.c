@@ -3291,7 +3291,7 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 		} else {
 			desttype = dblib_bound_type(STRINGBIND);
 			srctype = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
-			if (srctype == SYBDATETIME || srctype == SYBDATETIME4) {
+			if (is_datetime_type(srctype)) {
 				tds_datecrack(srctype, dbdata(dbproc, col + 1), &when);
 				len = (int)tds_strftime(buffer, buf_len, STD_DATETIME_FMT, &when, 3);
 			} else {
@@ -3396,7 +3396,7 @@ dbprrow(DBPROCESS * dbproc)
 				} else {
 					desttype = dblib_bound_type(STRINGBIND);
 					srctype = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
-					if (srctype == SYBDATETIME || srctype == SYBDATETIME4) {
+					if (is_datetime_type(srctype)) {
 						tds_datecrack(srctype, dbdata(dbproc, col + 1), &when);
 						len = (int)tds_strftime(dest, sizeof(dest), STD_DATETIME_FMT, &when, 3);
 					} else {
@@ -3526,7 +3526,7 @@ dbprrow(DBPROCESS * dbproc)
 				desttype = dblib_bound_type(STRINGBIND);
 				srctype = dbalttype(dbproc, computeid, col);
 
-				if (srctype == SYBDATETIME || srctype == SYBDATETIME4) {
+				if (is_datetime_type(srctype)) {
 					tds_datecrack(srctype, dbadata(dbproc, computeid, col), &when);
 					len = (int)tds_strftime(dest, sizeof(dest), STD_DATETIME_FMT, &when, 3);
 				} else {
