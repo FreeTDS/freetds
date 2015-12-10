@@ -174,30 +174,30 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 		tds_set_version(login, a & 0xff, (a >> 8) & 0xff);
 	else
 		tds_set_version(login, (a >> 4) & 0xf, a & 0xf);
-	a = tds_get_int(tds);	/*desired packet size being requested by client */
+	tds_get_int(tds);	/*desired packet size being requested by client */
 	tds_get_n(tds, NULL, 24);	/*magic1 */
-	a = tds_get_smallint(tds);	/*current position */
+	tds_get_smallint(tds);	/*current position */
 	host_name_len = tds_get_smallint(tds);
-	a = tds_get_smallint(tds);	/*current position */
+	tds_get_smallint(tds);	/*current position */
 	user_name_len = tds_get_smallint(tds);
-	a = tds_get_smallint(tds);	/*current position */
+	tds_get_smallint(tds);	/*current position */
 	password_len = tds_get_smallint(tds);
-	a = tds_get_smallint(tds);	/*current position */
+	tds_get_smallint(tds);	/*current position */
 	app_name_len = tds_get_smallint(tds);
-	a = tds_get_smallint(tds);	/*current position */
+	tds_get_smallint(tds);	/*current position */
 	server_name_len = tds_get_smallint(tds);
 	tds_get_smallint(tds);
 	tds_get_smallint(tds);
-	a = tds_get_smallint(tds);	/*current position */
+	tds_get_smallint(tds);	/*current position */
 	library_name_len = tds_get_smallint(tds);
-	a = tds_get_smallint(tds);	/*current position */
+	tds_get_smallint(tds);	/*current position */
 	language_name_len = tds_get_smallint(tds);
-	a = tds_get_smallint(tds);
+	tds_get_smallint(tds);
 	database_name_len = tds_get_smallint(tds);
 	tds_get_n(tds, NULL, 6);	/* client mac address */
-	a = tds_get_smallint(tds);	/*partial packet size */
+	tds_get_smallint(tds);	/*partial packet size */
 	auth_len = tds_get_smallint(tds);	/*authentication len */
-	a = tds_get_smallint(tds);	/*total packet size */
+	tds_get_smallint(tds);	/*total packet size */
 	tds_get_smallint(tds);
 
 	res = res && tds_dstr_get(tds, &login->client_host_name, host_name_len);
