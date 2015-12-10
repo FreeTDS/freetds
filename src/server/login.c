@@ -200,6 +200,14 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	tds_get_smallint(tds);	/*total packet size */
 	tds_get_smallint(tds);
 
+	if (IS_TDS72_PLUS(login)) {
+		/* new password */
+		tds_get_smallint(tds);
+		tds_get_smallint(tds);
+		/* SSPI */
+		tds_get_int(tds);
+	}
+
 	res = res && tds_dstr_get(tds, &login->client_host_name, host_name_len);
 	res = res && tds_dstr_get(tds, &login->user_name, user_name_len);
 
