@@ -225,7 +225,8 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 			 &password_len);
 	if (a < 0 ) {
 		fprintf(stderr, "error: %s:%d: tds7_read_login: tds_iconv() failed\n", __FILE__, __LINE__);
-		assert(-1 != a);
+		free(unicode_string);
+		return 0;
 	}
 	tds_dstr_setlen(&login->password, pbuf - tds_dstr_buf(&login->password));
 	free(unicode_string);
