@@ -219,15 +219,16 @@ pool_mbr_init(TDS_POOL * pool)
 
 	for (i = 0; i < pool->num_members; i++) {
 		pmbr = &pool->members[i];
-		if (i < pool->min_open_conn) {
-			pmbr->tds = pool_mbr_login(pool);
-			pmbr->last_used_tm = time(NULL);
-			if (!pmbr->tds) {
-				fprintf(stderr, "Could not open initial connection %d\n", i);
-				exit(1);
-			}
-		}
 		pmbr->state = TDS_IDLE;
+		if (i >= pool->min_open_conn)
+			continue;
+
+		pmbr->tds = pool_mbr_login(pool);
+		pmbr->last_used_tm = time(NULL);
+		if (!pmbr->tds) {
+			fprintf(stderr, "Could not open initial connection %d\n", i);
+			exit(1);
+		}
 	}
 }
 
