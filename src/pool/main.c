@@ -102,6 +102,15 @@ pool_init(const char *name)
 	check_field(name, pool->server, "server");
 	check_field(name, pool->port,   "port");
 
+	if (pool->min_open_conn < 1) {
+		fprintf(stderr, "A minimum of 1 connection is required\n");
+		exit(EXIT_FAILURE);
+	}
+	if (pool->max_open_conn < pool->min_open_conn) {
+		fprintf(stderr, "Max connection less than minimum\n");
+		exit(EXIT_FAILURE);
+	}
+
 	pool->num_members = pool->max_open_conn;
 
 	pool->name = strdup(name);
