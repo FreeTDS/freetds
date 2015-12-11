@@ -175,7 +175,7 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	if ((a & 0xff) == 7)
 		tds_set_version(login, a & 0xff, (a >> 8) & 0xff);
 	else
-		tds_set_version(login, (a >> 4) & 0xf, a & 0xf);
+		tds_set_version(login, (a >> 28) & 0xf, (a >> 24) & 0xf);
 	tds_get_int(tds);	/*desired packet size being requested by client */
 	tds_get_n(tds, NULL, 24);	/*magic1 */
 
