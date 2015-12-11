@@ -253,6 +253,7 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "crlfile", tds_dstr_cstr(&connection->crlfile));
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "check_ssl_hostname", connection->check_ssl_hostname);
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "db_filename", tds_dstr_cstr(&connection->db_filename));
+		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "readonly_intent", connection->readonly_intent);
 
 		tdsdump_close();
 	}
@@ -663,6 +664,9 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		s = tds_dstr_copy(&login->db_filename, value);
 	} else if (!strcmp(option, TDS_STR_DATABASE)) {
 		s = tds_dstr_copy(&login->database, value);
+	} else if (!strcmp(option, TDS_STR_READONLY_INTENT)) {
+		login->readonly_intent = tds_config_boolean(option, value, login);
+		tdsdump_log(TDS_DBG_FUNC, "Setting ReadOnly Intent to '%s'.\n", value);
 	} else {
 		tdsdump_log(TDS_DBG_INFO1, "UNRECOGNIZED option '%s' ... ignoring.\n", option);
 	}
@@ -747,6 +751,8 @@ tds_config_login(TDSLOGIN * connection, TDSLOGIN * login)
 	/* copy other info not present in configuration file */
 	connection->capabilities = login->capabilities;
 
+	if (login->readonly_intent)
+		connection->readonly_intent = login->readonly_intent;
 	connection->use_new_password = login->use_new_password;
 	if (res)
 		res = tds_dstr_dup(&connection->new_password, &login->new_password);
@@ -1307,7 +1313,9 @@ tds_get_compiletime_settings(void)
 #		else
 			, 0
 #		endif
-#		ifdef TDS46
+#		ifdef TDS42
+			, "4.2"
+#		elif TDS46
 			, "4.6"
 #		elif TDS50
 			, "5.0"
@@ -1322,7 +1330,7 @@ tds_get_compiletime_settings(void)
 #		elif TDS74
 			, "7.4"
 #		else
-			, "4.2"
+			, "auto"
 #		endif
 #		ifdef IODBC
 			, 1
@@ -1340,6 +1348,11 @@ tds_get_compiletime_settings(void)
 			, 0
 #		endif
 #		ifdef HAVE_GNUTLS
+			, 1
+#		else
+			, 0
+#		endif
+#		if ENABLE_ODBC_MARS
 			, 1
 #		else
 			, 0

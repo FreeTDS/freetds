@@ -274,6 +274,7 @@ pool_user_send_login_ack(TDS_POOL * pool, TDS_POOL_USER * puser)
 	char block[32];
 	TDSSOCKET *tds = puser->tds, *mtds = puser->assigned_member->tds;
 	TDSLOGIN *login = puser->login;
+	const char *database = pool->database;
 
 	/* copy a bit of information, resize socket with block */
 	tds->conn->tds_version = mtds->conn->tds_version;
@@ -285,9 +286,12 @@ pool_user_send_login_ack(TDS_POOL * pool, TDS_POOL_USER * puser)
 	tds_realloc_socket(tds, mtds->conn->env.block_size);
 	tds->conn->env.block_size = mtds->conn->env.block_size;
 
+	if (!database)
+		database = mtds->conn->env.database;
+
 	tds->out_flag = TDS_REPLY;
-	tds_env_change(tds, TDS_ENV_DATABASE, "master", pool->database);
-	sprintf(msg, "Changed database context to '%s'.", pool->database);
+	tds_env_change(tds, TDS_ENV_DATABASE, "master", database);
+	sprintf(msg, "Changed database context to '%s'.", database);
 	tds_send_msg(tds, 5701, 2, 10, msg, "JDBC", "ZZZZZ", 1);
 	if (!login->suppress_language) {
 		tds_env_change(tds, TDS_ENV_LANG, NULL, "us_english");

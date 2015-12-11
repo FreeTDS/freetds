@@ -1346,7 +1346,7 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 				switch (cmd->results_state) {
 				case _CS_RES_INIT:   /* command had no result set */
 					if (tds->rows_affected != TDS_NO_COUNT) {
-						*result_type = CS_CMD_SUCCEED;
+						*result_type = CS_CMD_DONE;
 						return CS_SUCCEED;
 					}
 					break;

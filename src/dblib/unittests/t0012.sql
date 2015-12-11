@@ -6,3 +6,5 @@ insert into #dblib0012 values ('Dec 25 1898 07:30:00:567PM')
 go
 SELECT dt FROM #dblib0012
 go
+SELECT CAST('Dec 25 1898 07:30:00:567PM' AS DATETIME2)
+go

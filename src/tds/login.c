@@ -721,9 +721,7 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 		client_progver[] = {   6, 0x83, 0xf2, 0xf8 }, 
 
 		connection_id[] = { 0x00, 0x00, 0x00, 0x00 }, 
-		collation[] = { 0x36, 0x04, 0x00, 0x00 }, 
-
-		sql_type_flag = 0x00;
+		collation[] = { 0x36, 0x04, 0x00, 0x00 };
 
 	enum {
 		tds70Version = 0x70000000,
@@ -732,6 +730,7 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 		tds73Version = 0x730B0003,
 		tds74Version = 0x74000004,
 	};
+	TDS_UCHAR sql_type_flag = 0x00;
 	TDS_INT time_zone = -120;
 	TDS_INT tds7version = tds70Version;
 
@@ -917,7 +916,10 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 
 	tds_put_byte(tds, option_flag2);
 
+	if (login->readonly_intent && IS_TDS71_PLUS(tds->conn))
+		sql_type_flag |= TDS_READONLY_INTENT;
 	tds_put_byte(tds, sql_type_flag);
+
 	if (IS_TDS73_PLUS(tds->conn))
 		option_flag3 |= TDS_UNKNOWN_COLLATION_HANDLING;
 	tds_put_byte(tds, option_flag3);

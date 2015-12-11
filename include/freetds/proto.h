@@ -424,6 +424,11 @@ enum option_flag3_values {
 	TDS_EXTENSION			= 0x10, /* TDS 7.4 */
 };
 
+enum type_flags {
+	TDS_OLEDB_ON	= 0x10,
+	TDS_READONLY_INTENT	= 0x20,
+};
+
 /* Sybase dynamic types */
 enum dynamic_types {
 	TDS_DYN_PREPARE		= 0x01,

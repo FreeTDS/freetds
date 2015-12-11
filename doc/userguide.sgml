@@ -1127,6 +1127,14 @@ Note that is not possible to specify a directory as usually database servers doe
 							<entry>Check is the hostname is valid in the certificate. Only used if <literal>ca file</> is also specified.
 </entry>
 							</row>
+						<row>
+							<entry><literal>read-only intent</></entry>
+							<entry>yes/no</entry>
+							<entry>no</entry>
+							<entry>Tell server we only intent to do read-only queries.
+This is supported from MSSQL 2012.
+</entry>
+							</row>
 						</tbody>
 					</tgroup>
 				</table>
@@ -1882,6 +1890,12 @@ This setting allow to do it. You should specify <literal>Database</> attribute t
 							<entry>Any</entry>
 							<entry></entry>
 							<entry>Debug flags. See freetds.conf entries.</entry>
+							</row>
+						<row>
+							<entry><literal>ApplicationIntent</></entry>
+							<entry>ReadWrite/ReadOnly</entry>
+							<entry>ReadWrite</entry>
+							<entry>Tell application intent. See <literal>read-only intent</> on freetds.conf.</entry>
 							</row>
 						</tbody>
 					</tgroup>

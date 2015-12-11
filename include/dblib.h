@@ -160,6 +160,14 @@ struct tds_dblib_dbprocess
 	NULLREP		nullreps[MAXBINDTYPES];
 };
 
+enum {
+#if MSDBLIB
+	dblib_msdblib = 1
+#else
+	dblib_msdblib = 0
+#endif
+};
+
 /*
  * internal prototypes
  */

@@ -1,4 +1,3 @@
-# $Id: Makefile.am,v 1.51 2011-06-08 09:25:53 freddy77 Exp $
 TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) t0005$(EXEEXT) t0006$(EXEEXT)\
 			t0007$(EXEEXT) t0008$(EXEEXT) t0009$(EXEEXT)\
@@ -10,14 +9,16 @@ TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			bcp$(EXEEXT) thread$(EXEEXT) text_buffer$(EXEEXT)\
 			done_handling$(EXEEXT) timeout$(EXEEXT) \
 			hang$(EXEEXT) null$(EXEEXT) null2$(EXEEXT) \
-			setnull$(EXEEXT) numeric$(EXEEXT) pending$(EXEEXT)
+			setnull$(EXEEXT) numeric$(EXEEXT) pending$(EXEEXT) \
+			cancel$(EXEEXT)
 check_PROGRAMS	=	$(TESTS)
 
 SQL_DIST = 	bcp.sql dbmorecmds.sql done_handling.sql rpc.sql \
 		t0001.sql t0002.sql t0003.sql t0004.sql t0005.sql t0006.sql t0007.sql t0009.sql \
 		t0011.sql t0012.sql t0013.sql t0014.sql t0015.sql t0016.sql t0017.sql t0018.sql \
 		t0020.sql t0022.sql t0023.sql text_buffer.sql timeout.sql numeric.sql numeric_2.sql \
-		pending.sql
+		pending.sql cancel.sql t0016_10.sql t0016_11.sql t0016_1.sql t0016_2.sql \
+		t0016_3.sql t0016_4.sql t0016_5.sql t0016_6.sql t0016_7.sql t0016_8.sql t0016_9.sql
 
 noinst_SCRIPTS	= $(SQL_DIST)
 
@@ -56,6 +57,7 @@ null2_SOURCES	=	null2.c common.c common.h
 setnull_SOURCES	=	setnull.c common.c common.h
 numeric_SOURCES =	numeric.c common.c common.h
 pending_SOURCES =	pending.c common.c common.h
+cancel_SOURCES =	cancel.c common.c common.h
 
 AM_CPPFLAGS	= 	-DFREETDS_TOPDIR=\"$(top_srcdir)\" -I$(top_srcdir)/include
 if MINGW32
@@ -64,7 +66,10 @@ else
 AM_LDFLAGS	=	-no-install -L../.libs -R $(abs_builddir)/../.libs
 endif
 LIBS		=	../libsybdb.la ../../replacements/libreplacements.la $(LTLIBICONV)
-EXTRA_DIST	=	t0016.in t0017.in t0017.in.be data.bin CMakeLists.txt $(SQL_DIST)
+EXTRA_DIST	=	t0016.in t0017.in t0017.in.be data.bin CMakeLists.txt $(SQL_DIST) \
+			t0016_1.in t0016_2.in t0016_3.in t0016_4.in t0016_5.in \
+			t0016_6.in t0016_7.in t0016_8.in t0016_9.in t0016_10.in \
+			t0016_11.in
 CLEANFILES	=	tdsdump.out t0013.out t0014.out t0016.out \
 				t0016.err t0017.err t0017.out
 

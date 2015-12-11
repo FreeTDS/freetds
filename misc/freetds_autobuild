@@ -144,13 +144,13 @@ cp doc/userguide_desc.sgml $WORKDIR/doc/
 cd $WORKDIR
 echo "$REV" > git_revision
 if test "$(uname -m)" = "x86_64"; then
-	cp $ROOT/DBD-ODBC-1.37.tar.gz .
+	cp $ROOT/DBD-ODBC-1.52.tar.gz .
 else
-	cp $ROOT/DBD-ODBC-1.37.tar.gz .
+	cp $ROOT/DBD-ODBC-1.52.tar.gz .
 fi
 cp $ROOT/php5.2-latest.tar.bz2 .
 
-LDFLAGS='-lgcov' CFLAGS='-O0 -pipe -g -fprofile-arcs -ftest-coverage' sh autogen.sh --enable-extra-checks --prefix=$HOME/install --with-odbc-nodm=/usr --enable-krb5 $FLAGS_ADD
+LDFLAGS='-lgcov' CFLAGS='-O2 -pipe -g -fprofile-arcs -ftest-coverage' sh autogen.sh --enable-extra-checks --prefix=$HOME/install --with-odbc-nodm=/usr --enable-krb5 $FLAGS_ADD
 
 # compile, test with mssql server
 set_pwd_file $ROOT/PWD.mssql2005

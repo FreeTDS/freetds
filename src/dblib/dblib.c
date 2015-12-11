@@ -194,27 +194,22 @@ static tds_mutex dblib_mutex = TDS_MUTEX_INITIALIZER;
 static int g_dblib_version =
 #ifdef TDS42
 	DBVERSION_42;
-#endif
-#ifdef TDS50
-DBVERSION_100;
-#endif
-#ifdef TDS46
-DBVERSION_46;
-#endif
-#ifdef TDS70
-DBVERSION_70;
-#endif
-#ifdef TDS71
-DBVERSION_71;
-#endif
-#ifdef TDS72
-DBVERSION_72;
-#endif
-#ifdef TDS73
-DBVERSION_73;
-#endif
-#ifdef TDS74
-DBVERSION_74;
+#elif TDS50
+	DBVERSION_100;
+#elif TDS46
+	DBVERSION_46;
+#elif TDS70
+	DBVERSION_70;
+#elif TDS71
+	DBVERSION_71;
+#elif TDS72
+	DBVERSION_72;
+#elif TDS73
+	DBVERSION_73;
+#elif TDS74
+	DBVERSION_74;
+#else
+	DBVERSION_UNKNOWN;
 #endif
 
 
@@ -3296,7 +3291,7 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 		} else {
 			desttype = dblib_bound_type(STRINGBIND);
 			srctype = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
-			if (srctype == SYBDATETIME || srctype == SYBDATETIME4) {
+			if (is_datetime_type(srctype)) {
 				tds_datecrack(srctype, dbdata(dbproc, col + 1), &when);
 				len = (int)tds_strftime(buffer, buf_len, STD_DATETIME_FMT, &when, 3);
 			} else {
@@ -3401,7 +3396,7 @@ dbprrow(DBPROCESS * dbproc)
 				} else {
 					desttype = dblib_bound_type(STRINGBIND);
 					srctype = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
-					if (srctype == SYBDATETIME || srctype == SYBDATETIME4) {
+					if (is_datetime_type(srctype)) {
 						tds_datecrack(srctype, dbdata(dbproc, col + 1), &when);
 						len = (int)tds_strftime(dest, sizeof(dest), STD_DATETIME_FMT, &when, 3);
 					} else {
@@ -3531,7 +3526,7 @@ dbprrow(DBPROCESS * dbproc)
 				desttype = dblib_bound_type(STRINGBIND);
 				srctype = dbalttype(dbproc, computeid, col);
 
-				if (srctype == SYBDATETIME || srctype == SYBDATETIME4) {
+				if (is_datetime_type(srctype)) {
 					tds_datecrack(srctype, dbadata(dbproc, computeid, col), &when);
 					len = (int)tds_strftime(dest, sizeof(dest), STD_DATETIME_FMT, &when, 3);
 				} else {
@@ -5596,39 +5591,18 @@ dbdatecmp(DBPROCESS * dbproc, DBDATETIME * d1, DBDATETIME * d2)
 	return 1;
 }
 
-/**
- * \ingroup dblib_core
- * \brief Break a DBDATETIME value into useful pieces.
- * 
- * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \param di \em output: structure to contain the exploded parts of \a datetime.
- * \param datetime \em input: \c DBDATETIME to be converted.
- * \retval SUCCEED always.
- * \remarks The members of \a di have different names, depending on whether \c --with-msdblib was configured. 
- * 
- * If DBPROCESS is NULL, dbdatecrack() uses the compiled in default 
- * value of MSDBLIB as of when libsybdb was compiled, irrespective of its value when the 
- * application is compiled.  This can lead to incorrect results because Sybase and Microsoft use different
- * ranges -- [0,11] vs. [1,12] -- for the month. 
- * 
- * \sa dbconvert(), dbdata(), dbdatechar(), dbdatename(), dbdatepart(), tdsdbopen().
- */
-RETCODE
-dbdatecrack(DBPROCESS * dbproc, DBDATEREC * output, DBDATETIME * datetime)
+static RETCODE
+dblib_datecrack(DBPROCESS * dbproc, BOOL nano_precision, DBDATEREC * output, int type, const void * data)
 {
-#if MSDBLIB
-	const int msdblib = 1;
-#else
-	const int msdblib = 0;
-#endif
 	TDSDATEREC dr;
 	struct tds_sybase_dbdaterec *di = (struct tds_sybase_dbdaterec*) output;
 
-	tdsdump_log(TDS_DBG_FUNC, "dbdatecrack(%p, %p, %p)\n", dbproc, output, datetime);
+	tdsdump_log(TDS_DBG_FUNC, "dblib_datecrack(%p, %d, %p, %d, %p)\n", dbproc, nano_precision, output, type, data);
 	CHECK_NULP(output, "dbdatecrack", 2, FAIL);
-	CHECK_PARAMETER(datetime, SYBENDTP, FAIL);
+	CHECK_PARAMETER(data, SYBENDTP, FAIL);
 
-	tds_datecrack(SYBDATETIME, datetime, &dr);
+	if (TDS_FAILED(tds_datecrack(type, data, &dr)))
+		return FAIL;
 
 	di->dateyear = dr.year;
 	di->quarter = dr.quarter;
@@ -5639,14 +5613,63 @@ dbdatecrack(DBPROCESS * dbproc, DBDATEREC * output, DBDATETIME * datetime)
 	di->datehour = dr.hour;
 	di->dateminute = dr.minute;
 	di->datesecond = dr.second;
-	di->datemsecond = dr.decimicrosecond / 10000u;
+	di->datetzone = dr.timezone;
+	if (nano_precision)
+		/* here we are writing to nanosecond field */
+		di->datemsecond = dr.decimicrosecond * 100u;
+	else
+		di->datemsecond = dr.decimicrosecond / 10000u;
 	/* Revert to compiled-in default if dbproc can't be used to find the runtime override. */
-	if (dbproc ? dbproc->msdblib : msdblib) {
+	if (dbproc ? dbproc->msdblib : dblib_msdblib) {
 		++di->quarter;
 		++di->datemonth;
 		++di->datedweek;
 	}
 	return SUCCEED;
+}
+
+/**
+ * \ingroup dblib_core
+ * \brief Break a DBDATETIME value into useful pieces.
+ *
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param di \em output: structure to contain the exploded parts of \a datetime.
+ * \param datetime \em input: \c DBDATETIME to be converted.
+ * \retval SUCCEED always.
+ * \remarks The members of \a di have different names, depending on whether \c --with-msdblib was configured.
+ *
+ * If DBPROCESS is NULL, dbdatecrack() uses the compiled in default
+ * value of MSDBLIB as of when libsybdb was compiled, irrespective of its value when the
+ * application is compiled.  This can lead to incorrect results because Sybase and Microsoft use different
+ * ranges -- [0,11] vs. [1,12] -- for the month.
+ *
+ * \sa dbconvert(), dbdata(), dbdatechar(), dbdatename(), dbdatepart(), tdsdbopen().
+ */
+RETCODE
+dbdatecrack(DBPROCESS * dbproc, DBDATEREC * di, DBDATETIME * datetime)
+{
+	return dblib_datecrack(dbproc, FALSE, di, SYBDATETIME, datetime);
+}
+
+/**
+ * \ingroup dblib_core
+ * \brief Break any kind of date or time value into useful pieces.
+ *
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param di \em output: structure to contain the exploded parts of \a datetime.
+ * \param type \em input: \c type of date/time value returned by dbcoltype().
+ * \param data \em input: \c date/time value to be converted.
+ * \retval SUCCEED always.
+ * \remarks The members of \a di have different names, depending on whether \c --with-msdblib was configured.
+ *
+ * This is an extension to dbdatecrack(), see it for more information.
+ *
+ * \sa dbdatecrack(), dbconvert(), dbdata(), dbdatechar(), dbdatename(), dbdatepart(), tdsdbopen().
+ */
+RETCODE
+dbanydatecrack(DBPROCESS * dbproc, DBDATEREC2 * di, int type, const void *data)
+{
+	return dblib_datecrack(dbproc, TRUE, (DBDATEREC *) di, type, data);
 }
 
 #if defined(DBLIB_UNIMPLEMENTED)

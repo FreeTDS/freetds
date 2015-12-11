@@ -81,8 +81,9 @@ typedef struct tds_compiletime_settings
 	const char *tdsver;	/* TDS protocol version (4.2/4.6/5.0/7.0/7.1) 5.0 */
 	int iodbc;		/* build odbc driver against iODBC in DIR */
 	int unixodbc;		/* build odbc driver against unixODBC in DIR */
-	int openssl;   /*  build against OpenSSL */
-	int gnutls;   /*  build against OpenSSL */
+	int openssl;		/* build against OpenSSL */
+	int gnutls;		/* build against GnuTLS */
+	int mars;		/* MARS enabled */
 } TDS_COMPILETIME_SETTINGS;
 
 /**
@@ -163,6 +164,7 @@ typedef struct tdsdaterec
 	TDS_INT minute;	       /**< 0-59 */
 	TDS_INT second;	       /**< 0-59 */
 	TDS_INT decimicrosecond;   /**< 0-9999999 */
+	TDS_INT timezone;      /**< -840 - 840 minutes from UTC */
 } TDSDATEREC;
 
 /**
@@ -439,6 +441,9 @@ extern const char *const tds_type_names[256];
 #elif TDS46
 #define TDS_DEFAULT_VERSION	0x406
 #define TDS_DEF_PORT		4000
+#elif TDS50
+#define TDS_DEFAULT_VERSION	0x500
+#define TDS_DEF_PORT		4000
 #elif TDS70
 #define TDS_DEFAULT_VERSION	0x700
 #define TDS_DEF_PORT		1433
@@ -455,8 +460,8 @@ extern const char *const tds_type_names[256];
 #define TDS_DEFAULT_VERSION	0x704
 #define TDS_DEF_PORT		1433
 #else
-#define TDS_DEFAULT_VERSION	0x500
-#define TDS_DEF_PORT		4000
+#define TDS_DEFAULT_VERSION	0x000
+#define TDS_DEF_PORT		1433
 #endif
 
 /* normalized strings from freetds.conf file */
@@ -505,6 +510,8 @@ extern const char *const tds_type_names[256];
 #define TDS_STR_CHECKSSLHOSTNAME	"check certificate hostname"
 /* database filename to attach on login (MSSQL) */
 #define TDS_STR_DBFILENAME	"database filename"
+/* Application Intent MSSQL 2012 support */
+#define TDS_STR_READONLY_INTENT "read-only intent"
 
 
 /* TODO do a better check for alignment than this */
@@ -578,6 +585,7 @@ typedef struct tds_login
 	unsigned int use_new_password:1;
 	unsigned int valid_configuration:1;
 	unsigned int check_ssl_hostname:1;
+	unsigned int readonly_intent:1;
 } TDSLOGIN;
 
 typedef struct tds_headers
@@ -626,9 +634,11 @@ typedef struct tds_variant
  */
 typedef struct tds_encoding
 {
+	/** name of the encoding (ie UTF-8) */
 	const char *name;
 	unsigned char min_bytes_per_char;
 	unsigned char max_bytes_per_char;
+	/** internal numeric index into array of all encodings */
 	unsigned char canonic;
 } TDS_ENCODING;
 
@@ -973,9 +983,12 @@ typedef struct tds_cursor
  */
 typedef struct tds_env
 {
+	/** packet size (512-65535) */
 	int block_size;
 	char *language;
+	/** character set encoding */
 	char *charset;
+	/** database name */
 	char *database;
 } TDSENV;
 

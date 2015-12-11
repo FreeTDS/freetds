@@ -219,15 +219,20 @@ pool_mbr_init(TDS_POOL * pool)
 
 	for (i = 0; i < pool->num_members; i++) {
 		pmbr = &pool->members[i];
-		if (i < pool->min_open_conn) {
-			pmbr->tds = pool_mbr_login(pool);
-			pmbr->last_used_tm = time(NULL);
-			if (!pmbr->tds) {
-				fprintf(stderr, "Could not open initial connection %d\n", i);
-				exit(1);
-			}
-		}
 		pmbr->state = TDS_IDLE;
+		if (i >= pool->min_open_conn)
+			continue;
+
+		pmbr->tds = pool_mbr_login(pool);
+		pmbr->last_used_tm = time(NULL);
+		if (!pmbr->tds) {
+			fprintf(stderr, "Could not open initial connection %d\n", i);
+			exit(1);
+		}
+		if (!IS_TDS71_PLUS(pmbr->tds->conn)) {
+			fprintf(stderr, "Current pool implementation does not support protocol versions former than 7.1\n");
+			exit(1);
+		}
 	}
 }
 
@@ -329,6 +334,10 @@ pool_find_idle_member(TDS_POOL * pool)
 			if (!pmbr->tds) {
 				fprintf(stderr, "No open connections left, opening member number %d\n", i);
 				pmbr->tds = pool_mbr_login(pool);
+				if (pmbr->tds && !IS_TDS71_PLUS(pmbr->tds->conn)) {
+					tds_free_socket(pmbr->tds);
+					pmbr->tds = NULL;
+				}
 				pmbr->last_used_tm = time(NULL);
 				break;
 			}

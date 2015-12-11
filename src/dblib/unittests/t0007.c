@@ -170,7 +170,7 @@ main(int argc, char **argv)
 			fprintf(stderr, "Failed, line %d.  Expected bin lenght to be %d, was %d\n", __LINE__, (int) sizeof(testint), (int) testvbin.len);
 			abort();
 		}
-		testint = *((DBINT*) testvbin.array);
+		memcpy(&testint, testvbin.array, sizeof(testint));
 		if (testint != i) {
 			fprintf(stderr, "Failed, line %d.  Expected i to be %d, was %d (0x%x)\n", __LINE__, i, (int) testint, (int) testint);
 			abort();

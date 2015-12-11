@@ -3131,7 +3131,7 @@ tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
 	int dt_days;
 	unsigned int dt_time;
 
-	int years, months, days, ydays, wday, hours, mins, secs, dms;
+	int years, months, days, ydays, wday, hours, mins, secs, dms, tzone = 0;
 	int l, n, i, j;
 
 	memset(dr, 0, sizeof(*dr));
@@ -3155,6 +3155,7 @@ tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
 			dt_time = dt_time + 86400 + dta->offset;
 			dt_days += dt_time / 86400;
 			dt_time %= 86400;
+			tzone = dta->offset;
 		}
 	} else if (datetype == SYBDATETIME) {
 		const TDS_DATETIME *dt = (const TDS_DATETIME *) di;
@@ -3234,6 +3235,7 @@ tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
 	dr->minute = mins;
 	dr->second = secs;
 	dr->decimicrosecond = dms;
+	dr->timezone = tzone;
 	return TDS_SUCCESS;
 }
 
