@@ -176,27 +176,51 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 		tds_set_version(login, (a >> 4) & 0xf, a & 0xf);
 	tds_get_int(tds);	/*desired packet size being requested by client */
 	tds_get_n(tds, NULL, 24);	/*magic1 */
+
+	/* hostname */
 	tds_get_smallint(tds);	/*current position */
 	host_name_len = tds_get_smallint(tds);
+
+	/* username */
 	tds_get_smallint(tds);	/*current position */
 	user_name_len = tds_get_smallint(tds);
+
+	/* password */
 	tds_get_smallint(tds);	/*current position */
 	password_len = tds_get_smallint(tds);
+
+	/* app name */
 	tds_get_smallint(tds);	/*current position */
 	app_name_len = tds_get_smallint(tds);
+
+	/* server */
 	tds_get_smallint(tds);	/*current position */
 	server_name_len = tds_get_smallint(tds);
+
+	/* unknown */
 	tds_get_smallint(tds);
 	tds_get_smallint(tds);
+
+	/* library */
 	tds_get_smallint(tds);	/*current position */
 	library_name_len = tds_get_smallint(tds);
+
+	/* language */
 	tds_get_smallint(tds);	/*current position */
 	language_name_len = tds_get_smallint(tds);
+
+	/* database */
 	tds_get_smallint(tds);
 	database_name_len = tds_get_smallint(tds);
-	tds_get_n(tds, NULL, 6);	/* client mac address */
+
+	/* client mac address */
+	tds_get_n(tds, NULL, 6);
+
+	/* authentication */
 	tds_get_smallint(tds);	/*partial packet size */
 	auth_len = tds_get_smallint(tds);	/*authentication len */
+
+	/* db file */
 	tds_get_smallint(tds);	/*total packet size */
 	tds_get_smallint(tds);
 
