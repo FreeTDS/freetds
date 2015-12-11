@@ -127,7 +127,8 @@ tds_send_msg(TDSSOCKET * tds, int msgno, int msgstate, int severity,
 		+ 1		/* severity  */
 		/* FIXME ucs2 */
 		+ (IS_TDS7_PLUS(tds->conn) ? 2 : 1) * (strlen(msgtext) + 1 + strlen(srvname) + 1 + len)
-		+ 1 + 2;	/* line number */
+		+ 1
+		+ (IS_TDS72_PLUS(tds->conn) ? 4 : 2);	/* line number */
 	tds_put_smallint(tds, msgsz);
 	tds_put_int(tds, msgno);
 	tds_put_byte(tds, msgstate);
@@ -145,7 +146,10 @@ tds_send_msg(TDSSOCKET * tds, int msgno, int msgstate, int severity,
 	} else {
 		tds_put_byte(tds, 0);
 	}
-	tds_put_smallint(tds, line);
+	if (IS_TDS72_PLUS(tds->conn))
+		tds_put_int(tds, line);
+	else
+		tds_put_smallint(tds, line);
 }
 
 void
