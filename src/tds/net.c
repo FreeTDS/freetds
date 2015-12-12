@@ -742,6 +742,18 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen)
 	return (int) sent;
 }
 
+void
+tds_socket_flush(TDS_SYS_SOCKET sock)
+{
+#ifdef USE_CORK
+	int opt;
+	opt = 0;
+	setsockopt(sock, SOL_TCP, TCP_CORK, (const void *) &opt, sizeof(opt));
+	opt = 1;
+	setsockopt(sock, SOL_TCP, TCP_CORK, (const void *) &opt, sizeof(opt));
+#endif
+}
+
 int
 tds_connection_write(TDSSOCKET *tds, const unsigned char *buf, int buflen, int final)
 {
@@ -766,17 +778,9 @@ tds_connection_write(TDSSOCKET *tds, const unsigned char *buf, int buflen, int f
 		sent = tds_goodwrite(tds, buf, buflen);
 #endif
 
-#ifdef USE_CORK
 	/* force packet flush */
-	if (final && sent >= buflen) {
-		int opt;
-		TDS_SYS_SOCKET sock = tds_get_s(tds);
-		opt = 0;
-		setsockopt(sock, SOL_TCP, TCP_CORK, (const void *) &opt, sizeof(opt));
-		opt = 1;
-		setsockopt(sock, SOL_TCP, TCP_CORK, (const void *) &opt, sizeof(opt));
-	}
-#endif
+	if (final && sent >= buflen)
+		tds_socket_flush(tds_get_s(tds));
 
 #if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X) && (!defined(__APPLE__) || !defined(SO_NOSIGPIPE))
 	if (signal(SIGPIPE, oldsig) == SIG_ERR) {
