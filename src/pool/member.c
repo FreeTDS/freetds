@@ -294,11 +294,12 @@ pool_process_members(TDS_POOL * pool, fd_set * fds)
 					}
 				}
 			}
-		}
-		age = time_now - pmbr->last_used_tm;
-		if (age > pool->max_member_age && i >= pool->min_open_conn && !pmbr->current_user) {
-			fprintf(stderr, "member %d is %d seconds old...closing\n", i, age);
-			pool_free_member(pool, pmbr);
+		} else {
+			age = time_now - pmbr->last_used_tm;
+			if (age > pool->max_member_age && i >= pool->min_open_conn && !pmbr->current_user) {
+				fprintf(stderr, "member %d is %d seconds old...closing\n", i, age);
+				pool_free_member(pool, pmbr);
+			}
 		}
 	}
 	return cnt;
