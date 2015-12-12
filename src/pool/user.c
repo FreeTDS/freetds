@@ -246,7 +246,11 @@ pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 		return 1;
 	}
 
-	/* TODO check server TDS procotol, must match, if not we can't just forward packets */
+	/* check we support version required */
+	if (!IS_TDS71_PLUS(login)) {
+		tds_free_login(login);
+		return 1;
+	}
 
 	tds->in_len = tds->in_pos = 0;
 
