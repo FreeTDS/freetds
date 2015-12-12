@@ -64,7 +64,7 @@
  * to reconnect.
  */
 static TDSSOCKET *
-pool_mbr_login(TDS_POOL * pool, int tds_version)
+pool_mbr_login(const TDS_POOL * pool, int tds_version)
 {
 	TDSCONTEXT *context;
 	TDSLOGIN *login;
@@ -143,7 +143,7 @@ pool_deassign_member(TDS_POOL_MEMBER * pmbr)
  * Use pool_free_member if the state is really broken.
  */
 void
-pool_reset_member(TDS_POOL_MEMBER * pmbr)
+pool_reset_member(TDS_POOL * pool, TDS_POOL_MEMBER * pmbr)
 {
 	// FIXME not wait for server !!! asyncronous
 	TDSSOCKET *tds = pmbr->tds;
@@ -162,7 +162,7 @@ pool_reset_member(TDS_POOL_MEMBER * pmbr)
 	tds->state = TDS_PENDING;
 
 	if (tds_read_packet(tds) < 0) {
-		pool_free_member(pmbr);
+		pool_free_member(pool, pmbr);
 		return;
 	}
 
@@ -174,7 +174,7 @@ pool_reset_member(TDS_POOL_MEMBER * pmbr)
 		tds->state = TDS_PENDING;
 
 		if (tds_read_packet(tds) < 0) {
-			pool_free_member(pmbr);
+			pool_free_member(pool, pmbr);
 			return;
 		}
 	}
@@ -183,7 +183,7 @@ pool_reset_member(TDS_POOL_MEMBER * pmbr)
 }
 
 void
-pool_free_member(TDS_POOL_MEMBER * pmbr)
+pool_free_member(TDS_POOL * pool, TDS_POOL_MEMBER * pmbr)
 {
 	TDSSOCKET *tds = pmbr->tds;
 	if (!IS_TDSDEAD(tds))
@@ -270,11 +270,11 @@ pool_process_members(TDS_POOL * pool, fd_set * fds)
 			if (tds->in_len == 0) {
 				fprintf(stderr, "Uh oh! member %d disconnected\n", i);
 				/* mark as dead */
-				pool_free_member(pmbr);
+				pool_free_member(pool, pmbr);
 			} else if (tds->in_len < 0) {
 				fprintf(stderr, "Uh oh! member %d disconnected\n", i);
 				perror("read");
-				pool_free_member(pmbr);
+				pool_free_member(pool, pmbr);
 			} else {
 				tdsdump_dump_buf(TDS_DBG_NETWORK, "Got packet from server:", tds->in_buf, tds->in_len);
 				/* fprintf(stderr, "read %d bytes from member %d\n", tds->in_len, i); */
@@ -286,7 +286,7 @@ pool_process_members(TDS_POOL * pool, fd_set * fds)
 					ret = pool_write_all(tds_get_s(puser->tds), tds->in_buf, tds->in_len);
 					if (ret < 0) { /* couldn't write, ditch the user */
 						fprintf(stdout, "member %d received error while writing\n",i);
-						pool_free_member(pmbr);
+						pool_free_member(pool, pmbr);
 					}
 				}
 			}
@@ -294,7 +294,7 @@ pool_process_members(TDS_POOL * pool, fd_set * fds)
 		age = time_now - pmbr->last_used_tm;
 		if (age > pool->max_member_age && i >= pool->min_open_conn && !pmbr->current_user) {
 			fprintf(stderr, "member %d is %d seconds old...closing\n", i, age);
-			pool_free_member(pmbr);
+			pool_free_member(pool, pmbr);
 		}
 	}
 	return cnt;

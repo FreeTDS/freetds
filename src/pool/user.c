@@ -351,7 +351,7 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 		if (puser->assigned_member) {
 			fprintf(stderr, "user has assigned member, freeing\n");
 			pmbr = puser->assigned_member;
-			pool_reset_member(pmbr);
+			pool_reset_member(pool, pmbr);
 		} else {
 			pool_free_user(puser);
 		}
@@ -423,7 +423,7 @@ pool_user_write(TDS_POOL * pool, TDS_POOL_USER * puser)
 	ret = pool_write_all(tds_get_s(pmbr->tds), tds->in_buf + tds->in_pos, tds->in_len - tds->in_pos);
 	/* write failed, cleanup member */
 	if (ret <= 0) {
-		pool_free_member(pmbr);
+		pool_free_member(pool, pmbr);
 	}
 	tds->in_pos = 0;
 }
