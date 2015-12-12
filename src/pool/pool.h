@@ -98,6 +98,7 @@ TDS_POOL;
 int pool_process_members(TDS_POOL * pool, fd_set * fds);
 TDS_POOL_MEMBER *pool_find_idle_member(TDS_POOL * pool, TDS_POOL_USER *user);
 void pool_mbr_init(TDS_POOL * pool);
+void pool_mbr_destroy(TDS_POOL * pool);
 void pool_free_member(TDS_POOL *pool, TDS_POOL_MEMBER * pmbr);
 void pool_assign_member(TDS_POOL_MEMBER * pmbr, TDS_POOL_USER *puser);
 void pool_deassign_member(TDS_POOL_MEMBER * pmbr);
@@ -107,6 +108,7 @@ bool pool_packet_read(TDSSOCKET * tds);
 /* user.c */
 int pool_process_users(TDS_POOL * pool, fd_set * fds);
 void pool_user_init(TDS_POOL * pool);
+void pool_user_destroy(TDS_POOL * pool);
 TDS_POOL_USER *pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s, struct sockaddr_in *sin);
 void pool_free_user(TDS_POOL_USER * puser);
 void pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser);

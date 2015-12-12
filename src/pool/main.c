@@ -122,6 +122,20 @@ pool_init(const char *name)
 }
 
 static void
+pool_destroy(TDS_POOL *pool)
+{
+	pool_mbr_destroy(pool);
+	pool_user_destroy(pool);
+
+	free(pool->user);
+	free(pool->password);
+	free(pool->server);
+	free(pool->database);
+	free(pool->name);
+	free(pool);
+}
+
+static void
 pool_schedule_waiters(TDS_POOL * pool)
 {
 	TDS_POOL_USER *puser;
@@ -237,20 +251,6 @@ pool_main_loop(TDS_POOL * pool)
 		}
 	}			/* while !term */
 	CLOSESOCKET(s);
-	for (i = 0; i < pool->max_users; i++) {
-		puser = &pool->users[i];
-		if (!IS_TDSDEAD(puser->tds)) {
-			fprintf(stderr, "Closing user %d\n", i);
-			tds_close_socket(puser->tds);
-		}
-	}
-	for (i = 0; i < pool->num_members; i++) {
-		pmbr = &pool->members[i];
-		if (!IS_TDSDEAD(pmbr->tds)) {
-			fprintf(stderr, "Closing member %d\n", i);
-			tds_close_socket(pmbr->tds);
-		}
-	}
 }
 
 int
@@ -269,6 +269,7 @@ main(int argc, char **argv)
 	pool = pool_init(argv[1]);
 	tdsdump_open(getenv("TDSDUMP"));
 	pool_main_loop(pool);
+	pool_destroy(pool);
 	printf("tdspool Shutdown\n");
 	return EXIT_SUCCESS;
 }

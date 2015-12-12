@@ -64,6 +64,30 @@ pool_user_init(TDS_POOL * pool)
 	pool->ctx = tds_alloc_context(NULL);
 }
 
+void
+pool_user_destroy(TDS_POOL * pool)
+{
+	TDS_POOL_USER *puser;
+	int i;
+
+	for (i = 0; i < pool->max_users; i++) {
+		puser = &pool->users[i];
+		if (!IS_TDSDEAD(puser->tds)) {
+			fprintf(stderr, "Closing user %d\n", i);
+			tds_close_socket(puser->tds);
+		}
+		if (puser->tds) {
+			tds_free_socket(puser->tds);
+			puser->tds = NULL;
+		}
+	}
+
+	free(pool->users);
+	pool->users = NULL;
+	tds_free_context(pool->ctx);
+	pool->ctx = NULL;
+}
+
 static TDS_POOL_USER *
 pool_user_find_new(TDS_POOL * pool)
 {
