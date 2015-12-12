@@ -188,8 +188,10 @@ pool_free_member(TDS_POOL * pool, TDS_POOL_MEMBER * pmbr)
 	TDSSOCKET *tds = pmbr->tds;
 	if (!IS_TDSDEAD(tds))
 		tds_close_socket(tds);
-	if (tds)
+	if (tds) {
 		tds_free_socket(tds);
+		pool->active_members--;
+	}
 	pmbr->tds = NULL;
 	/*
 	 * if he is allocated disconnect the client 
@@ -212,6 +214,7 @@ pool_mbr_init(TDS_POOL * pool)
 
 	/* allocate room for pool members */
 
+	pool->active_members = 0;
 	pool->members = (TDS_POOL_MEMBER *)
 		calloc(pool->num_members, sizeof(TDS_POOL_MEMBER));
 
@@ -224,11 +227,12 @@ pool_mbr_init(TDS_POOL * pool)
 			continue;
 
 		pmbr->tds = pool_mbr_login(pool, 0);
-		pmbr->last_used_tm = time(NULL);
 		if (!pmbr->tds) {
 			fprintf(stderr, "Could not open initial connection %d\n", i);
 			exit(1);
 		}
+		pmbr->last_used_tm = time(NULL);
+		pool->active_members++;
 		if (!IS_TDS71_PLUS(pmbr->tds->conn)) {
 			fprintf(stderr, "Current pool implementation does not support protocol versions former than 7.1\n");
 			exit(1);
@@ -352,13 +356,14 @@ pool_find_idle_member(TDS_POOL * pool, TDS_POOL_USER *user)
 				fprintf(stderr, "Error opening a new connection to server\n");
 				return NULL;
 			}
+			pmbr->last_used_tm = time(NULL);
 
 			if (!IS_TDS71_PLUS(pmbr->tds->conn)) {
 				tds_free_socket(pmbr->tds);
 				pmbr->tds = NULL;
 				break;
 			}
-			pmbr->last_used_tm = time(NULL);
+			pool->active_members++;
 			return pmbr;
 		}
 	}

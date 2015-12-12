@@ -84,6 +84,7 @@ typedef struct tds_pool
 	int min_open_conn;
 	int max_open_conn;
 	int num_members;
+	int active_members;
 	TDS_POOL_MEMBER *members;
 	int max_users;
 	TDS_POOL_USER *users;
