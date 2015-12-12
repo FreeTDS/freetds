@@ -65,18 +65,6 @@ pool_read_conf_file(const char *poolname, TDS_POOL * pool)
 	return found;
 }
 
-#if 0
-static int
-pool_config_boolean(char *value)
-{
-	if (!strcmp(value, "yes") || !strcmp(value, "on") || !strcmp(value, "true") || !strcmp(value, "1")) {
-		return 1;
-	} else {
-		return 0;
-	}
-}
-#endif
-
 static void
 pool_parse(const char *option, const char *value, void *param)
 {
