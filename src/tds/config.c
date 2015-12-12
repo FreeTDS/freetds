@@ -438,7 +438,7 @@ static const struct {
 };
 
 int
-tds_config_boolean(const char *option, const char *value, TDSLOGIN *login)
+tds_parse_boolean(const char *value, int default_value)
 {
 	int p;
 
@@ -446,6 +446,16 @@ tds_config_boolean(const char *option, const char *value, TDSLOGIN *login)
 		if (!strcasecmp(value, boolean_values[p].value))
 			return boolean_values[p].to_return;
 	}
+	return default_value;
+}
+
+int
+tds_config_boolean(const char *option, const char *value, TDSLOGIN *login)
+{
+	int ret = tds_parse_boolean(value, -1);
+	if (ret >= 0)
+		return ret;
+
 	tdsdump_log(TDS_DBG_ERROR, "UNRECOGNIZED option value '%s' for boolean setting '%s'!\n",
 		    value, option);
 	login->valid_configuration = 0;

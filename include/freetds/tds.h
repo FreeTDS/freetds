@@ -1254,6 +1254,7 @@ const char *tds_addrinfo2str(struct addrinfo *addr, char *name, int namemax);
 
 TDSRET tds_set_interfaces_file_loc(const char *interfloc);
 extern const char STD_DATETIME_FMT[];
+int tds_parse_boolean(const char *value, int default_value);
 int tds_config_boolean(const char *option, const char *value, TDSLOGIN * login);
 
 TDSLOCALE *tds_get_locale(void);
