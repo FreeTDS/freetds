@@ -454,5 +454,6 @@ pool_user_write(TDS_POOL * pool, TDS_POOL_USER * puser)
 	if (ret <= 0) {
 		pool_free_member(pool, pmbr);
 	}
+	tds_socket_flush(tds_get_s(pmbr->tds));
 	tds->in_pos = 0;
 }

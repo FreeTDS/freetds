@@ -328,6 +328,7 @@ pool_process_members(TDS_POOL * pool, fd_set * fds)
 						fprintf(stdout, "member %d received error while writing\n",i);
 						pool_free_member(pool, pmbr);
 					}
+					tds_socket_flush(tds_get_s(puser->tds));
 				}
 			}
 		} else {
