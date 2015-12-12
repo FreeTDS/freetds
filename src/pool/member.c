@@ -362,7 +362,7 @@ pool_find_idle_member(TDS_POOL * pool, TDS_POOL_USER *user)
 			return pmbr;
 		}
 	}
-	fprintf(stderr, "No idle members left, increase MAX_POOL_CONN\n");
+	fprintf(stderr, "No idle members left, increase \"max pool conn\"\n");
 	return NULL;
 }
 
