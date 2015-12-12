@@ -363,6 +363,7 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 		case TDS_RPC:
 		case TDS_BULK:
 		case TDS_CANCEL:
+		case TDS7_TRANS:
 			pool_user_write(pool, puser);
 			break;
 
