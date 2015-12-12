@@ -237,7 +237,10 @@ pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 	} else if (tds->in_flag == TDS7_LOGIN) {
 		if (!tds->conn->tds_version)
 			tds->conn->tds_version = 0x700;
-		tds7_read_login(tds, login);
+		if (!tds7_read_login(tds, login)) {
+			tds_free_login(login);
+			return 1;
+		}
 	} else {
 		tds_free_login(login);
 		return 1;
