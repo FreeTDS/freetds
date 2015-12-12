@@ -95,7 +95,7 @@ TDS_POOL;
 
 /* member.c */
 int pool_process_members(TDS_POOL * pool, fd_set * fds);
-TDS_POOL_MEMBER *pool_find_idle_member(TDS_POOL * pool);
+TDS_POOL_MEMBER *pool_find_idle_member(TDS_POOL * pool, TDS_POOL_USER *user);
 void pool_mbr_init(TDS_POOL * pool);
 void pool_free_member(TDS_POOL_MEMBER * pmbr);
 void pool_assign_member(TDS_POOL_MEMBER * pmbr, TDS_POOL_USER *puser);

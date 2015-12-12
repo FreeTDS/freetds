@@ -59,14 +59,12 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-static TDSSOCKET *pool_mbr_login(TDS_POOL * pool);
-
 /*
  * pool_mbr_login open a single pool login, to be call at init time or
  * to reconnect.
  */
 static TDSSOCKET *
-pool_mbr_login(TDS_POOL * pool)
+pool_mbr_login(TDS_POOL * pool, int tds_version)
 {
 	TDSCONTEXT *context;
 	TDSLOGIN *login;
@@ -88,6 +86,8 @@ pool_mbr_login(TDS_POOL * pool)
 		tds_free_login(login);
 		return NULL;
 	}
+	if (tds_version > 0)
+		login->tds_version = tds_version;
 	if (pool->database && strlen(pool->database)) {
 		if (!tds_dstr_copy(&login->database, pool->database)) {
 			tds_free_login(login);
@@ -223,7 +223,7 @@ pool_mbr_init(TDS_POOL * pool)
 		if (i >= pool->min_open_conn)
 			continue;
 
-		pmbr->tds = pool_mbr_login(pool);
+		pmbr->tds = pool_mbr_login(pool, 0);
 		pmbr->last_used_tm = time(NULL);
 		if (!pmbr->tds) {
 			fprintf(stderr, "Could not open initial connection %d\n", i);
@@ -300,12 +300,20 @@ pool_process_members(TDS_POOL * pool, fd_set * fds)
 	return cnt;
 }
 
+static bool
+compatible_versions(const TDSSOCKET *tds, const TDS_POOL_USER *user)
+{
+	if (tds->conn->tds_version != user->login->tds_version)
+		return false;
+	return true;
+}
+
 /*
  * pool_find_idle_member
  * returns the first pool member in TDS_IDLE state
  */
 TDS_POOL_MEMBER *
-pool_find_idle_member(TDS_POOL * pool)
+pool_find_idle_member(TDS_POOL * pool, TDS_POOL_USER *user)
 {
 	int i, active_members;
 	TDS_POOL_MEMBER *pmbr;
@@ -313,37 +321,46 @@ pool_find_idle_member(TDS_POOL * pool)
 	active_members = 0;
 	for (i = 0; i < pool->num_members; i++) {
 		pmbr = &pool->members[i];
-		if (pmbr->tds) {
-			active_members++;
-			if (pmbr->current_user == NULL) {
-				/*
-				 * make sure member wasn't idle more that the timeout 
-				 * otherwise it'll send the query and close leaving a
-				 * hung client
-				 */
-				pmbr->last_used_tm = time(NULL);
-				return pmbr;
-			}
-		}
+		if (!pmbr->tds)
+			continue;
+
+		active_members++;
+		if (pmbr->current_user)
+			continue;
+
+		if (!compatible_versions(pmbr->tds, user))
+			continue;
+
+		/*
+		 * make sure member wasn't idle more that the timeout
+		 * otherwise it'll send the query and close leaving a
+		 * hung client
+		 */
+		pmbr->last_used_tm = time(NULL);
+		return pmbr;
 	}
 	/* if we have dead connections we can open */
 	if (active_members < pool->num_members) {
-		pmbr = NULL;
 		for (i = 0; i < pool->num_members; i++) {
 			pmbr = &pool->members[i];
+			if (pmbr->tds)
+				continue;
+
+			fprintf(stderr, "No open connections left, opening member number %d\n", i);
+			pmbr->tds = pool_mbr_login(pool, user->login->tds_version);
 			if (!pmbr->tds) {
-				fprintf(stderr, "No open connections left, opening member number %d\n", i);
-				pmbr->tds = pool_mbr_login(pool);
-				if (pmbr->tds && !IS_TDS71_PLUS(pmbr->tds->conn)) {
-					tds_free_socket(pmbr->tds);
-					pmbr->tds = NULL;
-				}
-				pmbr->last_used_tm = time(NULL);
+				fprintf(stderr, "Error opening a new connection to server\n");
+				return NULL;
+			}
+
+			if (!IS_TDS71_PLUS(pmbr->tds->conn)) {
+				tds_free_socket(pmbr->tds);
+				pmbr->tds = NULL;
 				break;
 			}
-		}
-		if (pmbr)
+			pmbr->last_used_tm = time(NULL);
 			return pmbr;
+		}
 	}
 	fprintf(stderr, "No idle members left, increase MAX_POOL_CONN\n");
 	return NULL;

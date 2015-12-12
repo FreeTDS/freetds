@@ -383,7 +383,7 @@ pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser)
 	assert(puser->assigned_member == NULL);
 	assert(puser->login);
 
-	pmbr = pool_find_idle_member(pool);
+	pmbr = pool_find_idle_member(pool, puser);
 	if (!pmbr) {
 		/*
 		 * put into wait state
