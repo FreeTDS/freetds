@@ -322,16 +322,17 @@ compatible_versions(const TDSSOCKET *tds, const TDS_POOL_USER *user)
 TDS_POOL_MEMBER *
 pool_find_idle_member(TDS_POOL * pool, TDS_POOL_USER *user)
 {
-	int i, active_members;
+	int i, first_dead = -1;
 	TDS_POOL_MEMBER *pmbr;
 
-	active_members = 0;
 	for (i = 0; i < pool->num_members; i++) {
 		pmbr = &pool->members[i];
-		if (!pmbr->tds)
+		if (!pmbr->tds) {
+			if (first_dead < 0)
+				first_dead = i;
 			continue;
+		}
 
-		active_members++;
 		if (pmbr->current_user)
 			continue;
 
@@ -347,28 +348,26 @@ pool_find_idle_member(TDS_POOL * pool, TDS_POOL_USER *user)
 		return pmbr;
 	}
 	/* if we have dead connections we can open */
-	if (active_members < pool->num_members) {
-		for (i = 0; i < pool->num_members; i++) {
-			pmbr = &pool->members[i];
-			if (pmbr->tds)
-				continue;
+	i = first_dead;
+	if (pool->active_members < pool->num_members && i >= 0) {
+		pmbr = &pool->members[i];
+		assert(pmbr->tds == NULL);
 
-			fprintf(stderr, "No open connections left, opening member number %d\n", i);
-			pmbr->tds = pool_mbr_login(pool, user->login->tds_version);
-			if (!pmbr->tds) {
-				fprintf(stderr, "Error opening a new connection to server\n");
-				return NULL;
-			}
+		fprintf(stderr, "No open connections left, opening member number %d\n", i);
+		pmbr->tds = pool_mbr_login(pool, user->login->tds_version);
+		if (!pmbr->tds) {
+			fprintf(stderr, "Error opening a new connection to server\n");
+			return NULL;
+		}
+
+		if (IS_TDS71_PLUS(pmbr->tds->conn)) {
 			pmbr->last_used_tm = time(NULL);
-
-			if (!IS_TDS71_PLUS(pmbr->tds->conn)) {
-				tds_free_socket(pmbr->tds);
-				pmbr->tds = NULL;
-				break;
-			}
 			pool->active_members++;
 			return pmbr;
 		}
+
+		tds_free_socket(pmbr->tds);
+		pmbr->tds = NULL;
 	}
 	fprintf(stderr, "No idle members left, increase \"max pool conn\"\n");
 	return NULL;
