@@ -159,16 +159,18 @@ int
 tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 {
 	int a;
-	int host_name_len, user_name_len, app_name_len, server_name_len;
-	int library_name_len, language_name_len;
-	int auth_len, database_name_len;
+	unsigned host_name_len, user_name_len, app_name_len, server_name_len;
+	unsigned library_name_len, language_name_len;
+	unsigned auth_len, database_name_len;
 	size_t unicode_len, password_len;
 	char *unicode_string, *psrc;
 	char *pbuf;
 	DSTR database = DSTR_INITIALIZER;
 	int res = 1;
+	unsigned packet_start, len, start;
+	TDS_UINT packet_len;
 
-	a = tds_get_int(tds);	/*total packet size */
+	packet_len = tds_get_uint(tds);	/*total packet size */
 	a = tds_get_int(tds);	/*TDS version */
 	if ((a & 0xff) == 7)
 		tds_set_version(login, a & 0xff, (a >> 8) & 0xff);
@@ -177,57 +179,57 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	tds_get_int(tds);	/*desired packet size being requested by client */
 	tds_get_n(tds, NULL, 24);	/*magic1 */
 
+	packet_start = IS_TDS72_PLUS(tds->conn) ? 86 + 8 : 86;	/* ? */
+	if (packet_len < packet_start)
+		return 0;
+
+#define READ_BUF(len, base_len) do { \
+	start = tds_get_usmallint(tds); \
+	len   = tds_get_usmallint(tds); \
+	if (len != 0 && (start < packet_start || start + base_len * len > packet_len)) \
+		return 0; \
+	} while(0)
+
 	/* hostname */
-	tds_get_smallint(tds);	/*current position */
-	host_name_len = tds_get_smallint(tds);
+	READ_BUF(host_name_len, 2);
 
 	/* username */
-	tds_get_smallint(tds);	/*current position */
-	user_name_len = tds_get_smallint(tds);
+	READ_BUF(user_name_len, 2);
 
 	/* password */
-	tds_get_smallint(tds);	/*current position */
-	password_len = tds_get_smallint(tds);
+	READ_BUF(password_len, 2);
 
 	/* app name */
-	tds_get_smallint(tds);	/*current position */
-	app_name_len = tds_get_smallint(tds);
+	READ_BUF(app_name_len, 2);
 
 	/* server */
-	tds_get_smallint(tds);	/*current position */
-	server_name_len = tds_get_smallint(tds);
+	READ_BUF(server_name_len, 2);
 
 	/* unknown */
 	tds_get_smallint(tds);
 	tds_get_smallint(tds);
 
 	/* library */
-	tds_get_smallint(tds);	/*current position */
-	library_name_len = tds_get_smallint(tds);
+	READ_BUF(library_name_len, 2);
 
 	/* language */
-	tds_get_smallint(tds);	/*current position */
-	language_name_len = tds_get_smallint(tds);
+	READ_BUF(language_name_len, 2);
 
 	/* database */
-	tds_get_smallint(tds);
-	database_name_len = tds_get_smallint(tds);
+	READ_BUF(database_name_len, 2);
 
 	/* client mac address */
 	tds_get_n(tds, NULL, 6);
 
 	/* authentication */
-	tds_get_smallint(tds);	/*partial packet size */
-	auth_len = tds_get_smallint(tds);	/*authentication len */
+	READ_BUF(auth_len, 1);
 
 	/* db file */
-	tds_get_smallint(tds);	/*total packet size */
-	tds_get_smallint(tds);
+	READ_BUF(len, 2);
 
 	if (IS_TDS72_PLUS(login)) {
 		/* new password */
-		tds_get_smallint(tds);
-		tds_get_smallint(tds);
+		READ_BUF(len, 2);
 		/* SSPI */
 		tds_get_int(tds);
 	}
