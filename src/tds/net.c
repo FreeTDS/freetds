@@ -141,11 +141,24 @@ tds_socket_done(void)
 #define USE_NODELAY 1
 #endif
 
+/**
+ * Set socket to non-blocking
+ * @param sock socket to set
+ * @return 0 on success or error code
+ */
+int
+tds_socket_set_nonblocking(TDS_SYS_SOCKET sock)
+{
 #if !defined(_WIN32)
-typedef unsigned int ioctl_nonblocking_t;
+	unsigned int ioctl_nonblocking = 1;
 #else
-typedef u_long ioctl_nonblocking_t;
+	u_long ioctl_nonblocking = 1;
 #endif
+
+	if (IOCTLSOCKET(sock, FIONBIO, &ioctl_nonblocking) >= 0)
+		return 0;
+	return sock_errno;
+}
 
 static void
 tds_addrinfo_set_port(struct addrinfo *addr, unsigned int port)
@@ -182,7 +195,6 @@ tds_addrinfo2str(struct addrinfo *addr, char *name, int namemax)
 TDSERRNO
 tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int timeout, int *p_oserr)
 {
-	ioctl_nonblocking_t ioctl_nonblocking;
 	SOCKLEN_T optlen;
 	TDSCONNECTION *conn = tds->conn;
 	char ipaddr[128];
@@ -257,10 +269,7 @@ tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int ti
 		timeout = 90000;
 	}
 
-	/* enable non-blocking mode */
-	ioctl_nonblocking = 1;
-	if (IOCTLSOCKET(conn->s, FIONBIO, &ioctl_nonblocking) < 0) {
-		*p_oserr = sock_errno;
+	if ((*p_oserr = tds_socket_set_nonblocking(conn->s)) != 0) {
 		tds_connection_close(conn);
 		return TDSEUSCT; 	/* close enough: "Unable to set communications timer" */
 	}
@@ -799,7 +808,6 @@ int
 tds7_get_instance_ports(FILE *output, struct addrinfo *addr)
 {
 	int num_try;
-	ioctl_nonblocking_t ioctl_nonblocking;
 	struct pollfd fd;
 	int retval;
 	TDS_SYS_SOCKET s;
@@ -827,8 +835,7 @@ tds7_get_instance_ports(FILE *output, struct addrinfo *addr)
 	 * different IP so do not filter by ip with connect
 	 */
 
-	ioctl_nonblocking = 1;
-	if (IOCTLSOCKET(s, FIONBIO, &ioctl_nonblocking) < 0) {
+	if (tds_socket_set_nonblocking(s) != 0) {
 		CLOSESOCKET(s);
 		return 0;
 	}
@@ -936,7 +943,6 @@ int
 tds7_get_instance_port(struct addrinfo *addr, const char *instance)
 {
 	int num_try;
-	ioctl_nonblocking_t ioctl_nonblocking;
 	struct pollfd fd;
 	int retval;
 	TDS_SYS_SOCKET s;
@@ -963,8 +969,7 @@ tds7_get_instance_port(struct addrinfo *addr, const char *instance)
 	 * different IP so do not filter by ip with connect
 	 */
 
-	ioctl_nonblocking = 1;
-	if (IOCTLSOCKET(s, FIONBIO, &ioctl_nonblocking) < 0) {
+	if (tds_socket_set_nonblocking(s) != 0) {
 		CLOSESOCKET(s);
 		return 0;
 	}

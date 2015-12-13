@@ -1514,6 +1514,7 @@ void tds_connection_close(TDSCONNECTION *conn);
 int tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen);
 int tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen);
 void tds_socket_flush(TDS_SYS_SOCKET sock);
+int tds_socket_set_nonblocking(TDS_SYS_SOCKET sock);
 
 
 /* packet.c */
