@@ -67,6 +67,11 @@ die_if(int expr, const char *msg)
 	}
 }
 
+/**
+ * Read part of packet. Function does not block.
+ * @return true if packet is not complete and we must call again,
+ *         false on full packet or error.
+ */
 bool
 pool_packet_read(TDSSOCKET *tds)
 {
@@ -75,57 +80,68 @@ pool_packet_read(TDSSOCKET *tds)
 
 	tdsdump_log(TDS_DBG_INFO1, "tds in_len %d in_pos %d\n", tds->in_len, tds->in_pos);
 
-	/* determine how much we should read */
-	packet_len = 8;
-	if (tds->in_len >= 4)
-		packet_len = TDS_GET_A2BE(&tds->in_buf[2]);
+	// TODO MARS
 
+	/* determine packet size */
+	packet_len = tds->in_len >= 4 ? TDS_GET_A2BE(&tds->in_buf[2]) : 8;
+
+	/* get another packet */
 	if (tds->in_len >= packet_len) {
 		tds->in_pos = 0;
 		tds->in_len = 0;
+	}
+
+	for (;;) {
+		/* determine packet size */
 		packet_len = 8;
-	}
-	tdsdump_log(TDS_DBG_INFO1, "packet_len %d capacity %d\n", packet_len, tds->recv_packet->capacity);
-	assert(packet_len > tds->in_len);
-	assert(packet_len <= tds->recv_packet->capacity);
-	assert(tds->in_len < tds->recv_packet->capacity);
+		if (tds->in_len >= 4) {
+			packet_len = TDS_GET_A2BE(&tds->in_buf[2]);
+			if (packet_len < 8)
+				break;
+			tdsdump_log(TDS_DBG_INFO1, "packet_len %d in_len %d\n", packet_len, tds->in_len);
+			/* resize packet if not enough */
+			if (packet_len > tds->recv_packet->capacity) {
+				TDSPACKET *packet;
 
-	readed = read(tds_get_s(tds), &tds->in_buf[tds->in_len], packet_len - tds->in_len);
-	tdsdump_log(TDS_DBG_INFO1, "readed %d\n", readed);
-	if (readed == 0) {
-		/* socket closed */
-		tds->in_len = 0;
-		return false;
-	}
-	if (readed < 0) {
-		/* error */
-		err = sock_errno;
-		if (err == EINTR || TDSSOCK_WOULDBLOCK(err))
-			return true;
-		goto failure;
-	}
-	tds->in_len += readed;
-	if (tds->in_len >= 4) {
-		packet_len = TDS_GET_A2BE(&tds->in_buf[2]);
-		if (packet_len < 8)
-			goto failure;
-		tdsdump_log(TDS_DBG_INFO1, "packet_len %d in_len %d after\n", packet_len, tds->in_len);
-		/* resize packet if not enough */
-		if (packet_len > tds->recv_packet->capacity) {
-			TDSPACKET *packet;
-
-			packet = tds_realloc_packet(tds->recv_packet, packet_len);
-			if (!packet)
-				goto failure;
-			tds->in_buf = packet->buf;
-			tds->recv_packet = packet;
+				packet = tds_realloc_packet(tds->recv_packet, packet_len);
+				if (!packet)
+					break;
+				tds->in_buf = packet->buf;
+				tds->recv_packet = packet;
+			}
+			CHECK_TDS_EXTRA(tds);
+			if (tds->in_len >= packet_len)
+				return false;
 		}
-		CHECK_TDS_EXTRA(tds);
-		return tds->in_len < packet_len;
-	}
-	return true;
 
-failure:
+		assert(packet_len > tds->in_len);
+		assert(packet_len <= tds->recv_packet->capacity);
+		assert(tds->in_len < tds->recv_packet->capacity);
+
+		readed = read(tds_get_s(tds), &tds->in_buf[tds->in_len], packet_len - tds->in_len);
+		tdsdump_log(TDS_DBG_INFO1, "readed %d\n", readed);
+
+		/* socket closed */
+		if (readed == 0) {
+			tds->in_len = 0;
+			return false;
+		}
+
+		/* error */
+		if (readed < 0) {
+			err = sock_errno;
+			if (err == EINTR)
+				continue;
+			if (TDSSOCK_WOULDBLOCK(err))
+				return true;
+			break;
+		}
+
+		/* got some data */
+		tds->in_len += readed;
+	}
+
+	/* failure */
 	tds->in_len = -1;
 	return false;
 }
