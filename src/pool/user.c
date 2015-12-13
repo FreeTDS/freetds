@@ -136,6 +136,11 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s, struct sockaddr_in *sin)
 		return NULL;
 	}
 
+	if (tds_socket_set_nonblocking(fd) != 0) {
+		CLOSESOCKET(fd);
+		return NULL;
+	}
+
 	puser = pool_user_find_new(pool);
 	if (!puser) {
 		CLOSESOCKET(fd);
