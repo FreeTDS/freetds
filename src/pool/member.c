@@ -275,6 +275,53 @@ pool_mbr_destroy(TDS_POOL * pool)
 	pool->active_members = 0;
 }
 
+static void
+pool_process_data(TDS_POOL *pool, TDS_POOL_MEMBER *pmbr, int member_index)
+{
+	TDSSOCKET *tds = pmbr->tds;
+	TDS_POOL_USER *puser = NULL;
+	int ret;
+
+	for (;;) {
+		if (pool_packet_read(tds))
+			break;
+
+		/* disconnected */
+		if (tds->in_len == 0) {
+			fprintf(stderr, "Uh oh! member %d disconnected\n", member_index);
+			/* mark as dead */
+			pool_free_member(pool, pmbr);
+			return;
+		}
+
+		/* error */
+		if (tds->in_len < 0) {
+			fprintf(stderr, "Uh oh! member %d disconnected\n", member_index);
+			perror("read");
+			pool_free_member(pool, pmbr);
+			return;
+		}
+
+		tdsdump_dump_buf(TDS_DBG_NETWORK, "Got packet from server:", tds->in_buf, tds->in_len);
+		/* fprintf(stderr, "read %d bytes from member %d\n", tds->in_len, member_index); */
+		puser = pmbr->current_user;
+		if (!puser)
+			break;
+
+		tdsdump_log(TDS_DBG_INFO1, "writing it sock %d\n", tds_get_s(puser->tds));
+		/* cf. net.c for better technique.  */
+		/* FIXME handle partial write, stop read on member */
+		// TODO no blocking
+		ret = pool_write_all(tds_get_s(puser->tds), tds->in_buf, tds->in_len);
+		if (ret < 0) { /* couldn't write, ditch the user */
+			fprintf(stdout, "member %d received error while writing\n", member_index);
+			pool_free_member(pool, pmbr);
+			puser = NULL;
+		}
+	}
+	if (puser)
+		tds_socket_flush(tds_get_s(puser->tds));
+}
 
 /* 
  * pool_process_members
@@ -285,9 +332,8 @@ int
 pool_process_members(TDS_POOL * pool, fd_set * fds)
 {
 	TDS_POOL_MEMBER *pmbr;
-	TDS_POOL_USER *puser;
 	TDSSOCKET *tds;
-	int i, age, ret;
+	int i, age;
 	int cnt = 0;
 	time_t time_now;
 
@@ -304,33 +350,7 @@ pool_process_members(TDS_POOL * pool, fd_set * fds)
 		if (FD_ISSET(tds_get_s(tds), fds)) {
 			pmbr->last_used_tm = time_now;
 			cnt++;
-			if (pool_packet_read(tds))
-				continue;
-
-			if (tds->in_len == 0) {
-				fprintf(stderr, "Uh oh! member %d disconnected\n", i);
-				/* mark as dead */
-				pool_free_member(pool, pmbr);
-			} else if (tds->in_len < 0) {
-				fprintf(stderr, "Uh oh! member %d disconnected\n", i);
-				perror("read");
-				pool_free_member(pool, pmbr);
-			} else {
-				tdsdump_dump_buf(TDS_DBG_NETWORK, "Got packet from server:", tds->in_buf, tds->in_len);
-				/* fprintf(stderr, "read %d bytes from member %d\n", tds->in_len, i); */
-				puser = pmbr->current_user;
-				if (puser) {
-					tdsdump_log(TDS_DBG_INFO1, "writing it sock %d\n", tds_get_s(puser->tds));
-					/* cf. net.c for better technique.  */
-					/* FIXME handle partial write, stop read on member */
-					ret = pool_write_all(tds_get_s(puser->tds), tds->in_buf, tds->in_len);
-					if (ret < 0) { /* couldn't write, ditch the user */
-						fprintf(stdout, "member %d received error while writing\n",i);
-						pool_free_member(pool, pmbr);
-					}
-					tds_socket_flush(tds_get_s(puser->tds));
-				}
-			}
+			pool_process_data(pool, pmbr, i);
 		} else {
 			age = time_now - pmbr->last_used_tm;
 			if (age > pool->max_member_age
