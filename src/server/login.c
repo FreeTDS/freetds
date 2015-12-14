@@ -167,16 +167,29 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	char *pbuf;
 	DSTR database = DSTR_INITIALIZER;
 	int res = 1;
+    /* BEGIN: Added by Johnny Zhong, 2015/12/13 */
+    int host_name_offset = 0;
+    /* END:   Added by Johnny Zhong, 2015/12/13 */
 
 	a = tds_get_int(tds);	/*total packet size */
 	a = tds_get_int(tds);	/*TDS version */
+    
+    /* BEGIN: Added by Johnny Zhong, 2015/12/12 */
+    a = ntohl(a);
+    /* END:   Added by Johnny Zhong, 2015/12/12 */
+    
 	if ((a & 0xff) == 7)
 		tds_set_version(login, a & 0xff, (a >> 8) & 0xff);
 	else
 		tds_set_version(login, (a >> 4) & 0xf, a & 0xf);
 	a = tds_get_int(tds);	/*desired packet size being requested by client */
 	tds_get_n(tds, NULL, 24);	/*magic1 */
-	a = tds_get_smallint(tds);	/*current position */
+    
+    /* BEGIN: Added by Johnny Zhong, 2015/12/13 */
+    /* client name offset from the start of LOGIN PACKET (the concept is different from the TCP packet) */
+	host_name_offset = tds_get_smallint(tds);	
+    /* END:   Added by Johnny Zhong, 2015/12/13 */
+    
 	host_name_len = tds_get_smallint(tds);
 	a = tds_get_smallint(tds);	/*current position */
 	user_name_len = tds_get_smallint(tds);
@@ -200,6 +213,11 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	a = tds_get_smallint(tds);	/*total packet size */
 	tds_get_smallint(tds);
 
+    /* BEGIN: Added by Johnny Zhong, 2015/12/11 */
+    /* There are 8 bytes before the LOGIN packet (type, status, length, ..., etc) */ 
+    tds->in_pos = host_name_offset + 8;
+    /* END:   Added by Johnny Zhong, 2015/12/11 */
+    
 	res = res && tds_dstr_get(tds, &login->client_host_name, host_name_len);
 	res = res && tds_dstr_get(tds, &login->user_name, user_name_len);
 

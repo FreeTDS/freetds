@@ -55,7 +55,9 @@ tds_env_change(TDSSOCKET * tds, int type, const char *oldvalue, const char *newv
 	case TDS_ENV_CHARSET:
 		tds_put_byte(tds, TDS_ENVCHANGE_TOKEN);
 		/* totsize = type + newlen + newvalue + oldlen + oldvalue  */
-		totsize = strlen(oldvalue) + strlen(newvalue) + 3;
+        /* BEGIN: Modified by Johnny Zhong, 2015/12/14 */
+		totsize = 2*strlen(oldvalue) + 2*strlen(newvalue) + 3;
+        /* END:   Modified by Johnny Zhong, 2015/12/14 */
 		tds_put_smallint(tds, totsize);
 		tds_put_byte(tds, type);
 		tds_put_byte(tds, strlen(newvalue));
@@ -71,6 +73,9 @@ tds_env_change(TDSSOCKET * tds, int type, const char *oldvalue, const char *newv
 		tds_put_byte(tds, TDS_ENVCHANGE_TOKEN);
 		/* totsize = type + len + oldvalue + len + newvalue */
 		totsize = 3 + strlen(newvalue) + strlen(oldvalue);
+        /* BEGIN: Added by Johnny Zhong, 2015/12/14 */
+        totsize = 3 + 2*strlen(newvalue) + 2*strlen(oldvalue);
+        /* END:   Added by Johnny Zhong, 2015/12/14 */
 		tds_put_smallint(tds, totsize);
 		tds_put_byte(tds, type);
 		tds_put_byte(tds, strlen(newvalue));
@@ -122,12 +127,33 @@ tds_send_msg(TDSSOCKET * tds, int msgno, int msgstate, int severity,
 	if (!procname)
 		procname = "";
 	len = strlen(procname);
-	msgsz = 4		/* msg no    */
-		+ 1		/* msg state */
-		+ 1		/* severity  */
-		/* FIXME ucs2 */
-		+ (IS_TDS7_PLUS(tds->conn) ? 2 : 1) * (strlen(msgtext) + 1 + strlen(srvname) + 1 + len)
-		+ 1 + 2;	/* line number */
+    
+    /* BEGIN: Modified by Johnny Zhong, 2015/12/14 */
+    if (IS_TDS72_PLUS(tds->conn))
+    {
+    	msgsz = 1   /* Token type */
+    	    + 4		/* msg no    */
+    		+ 1		/* msg state */
+    		+ 1		/* severity  */
+    		+ 1     /* Error message length */
+    		+ 2 * strlen(msgtext)
+    		+ 1     /* Server name length */
+    		+ 2 * strlen(srvname)
+    		+ 1     /* Process name length */
+    		+ 2 * len
+    		+ 4;	/* line number */
+    }
+    else
+    {
+        msgsz = 4	/* msg no    */
+    		+ 1		/* msg state */
+    		+ 1		/* severity  */
+    		/* FIXME ucs2 */
+    		+ (IS_TDS7_PLUS(tds->conn) ? 2 : 1) * (strlen(msgtext) + 1 + strlen(srvname) + 1 + len)
+    		+ 1 + 2;	/* line number */
+    }
+    /* END:   Modified by Johnny Zhong, 2015/12/14 */
+    
 	tds_put_smallint(tds, msgsz);
 	tds_put_int(tds, msgno);
 	tds_put_byte(tds, msgstate);
@@ -145,7 +171,17 @@ tds_send_msg(TDSSOCKET * tds, int msgno, int msgstate, int severity,
 	} else {
 		tds_put_byte(tds, 0);
 	}
-	tds_put_smallint(tds, line);
+
+    /* BEGIN: Modified by Johnny Zhong, 2015/12/14 */
+    if (IS_TDS72_PLUS(tds->conn))
+    {
+        tds_put_int(tds, line);
+    }
+    else
+    {
+	    tds_put_smallint(tds, line);
+    }
+    /* END:   Added by Johnny Zhong, 2015/12/14 */
 }
 
 void
