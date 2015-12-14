@@ -126,8 +126,7 @@ tds_send_msg(TDSSOCKET * tds, int msgno, int msgstate, int severity,
 		+ 1		/* msg state */
 		+ 1		/* severity  */
 		/* FIXME ucs2 */
-		+ (IS_TDS7_PLUS(tds->conn) ? 2 : 1) * (strlen(msgtext) + 1 + strlen(srvname) + 1 + len)
-		+ 1
+		+ 4 + (IS_TDS7_PLUS(tds->conn) ? 2 : 1) * (strlen(msgtext) + strlen(srvname) + len)
 		+ (IS_TDS72_PLUS(tds->conn) ? 4 : 2);	/* line number */
 	tds_put_smallint(tds, msgsz);
 	tds_put_int(tds, msgno);
