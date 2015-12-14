@@ -159,64 +159,91 @@ int
 tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 {
 	int a;
-	int host_name_len, user_name_len, app_name_len, server_name_len;
-	int library_name_len, language_name_len;
-	int auth_len, database_name_len;
+	unsigned host_name_len, user_name_len, app_name_len, server_name_len;
+	unsigned library_name_len, language_name_len;
+	unsigned auth_len, database_name_len;
 	size_t unicode_len, password_len;
 	char *unicode_string, *psrc;
 	char *pbuf;
 	DSTR database = DSTR_INITIALIZER;
 	int res = 1;
-    /* BEGIN: Added by Johnny Zhong, 2015/12/13 */
-    int host_name_offset = 0;
-    /* END:   Added by Johnny Zhong, 2015/12/13 */
+	unsigned packet_start, len, start;
+	TDS_UINT packet_len;
+	int host_name_offset = 0;  
 
-	a = tds_get_int(tds);	/*total packet size */
+	packet_len = tds_get_uint(tds);	/*total packet size */
 	a = tds_get_int(tds);	/*TDS version */
     
-    /* BEGIN: Added by Johnny Zhong, 2015/12/12 */
     a = ntohl(a);
-    /* END:   Added by Johnny Zhong, 2015/12/12 */
     
 	if ((a & 0xff) == 7)
 		tds_set_version(login, a & 0xff, (a >> 8) & 0xff);
 	else
 		tds_set_version(login, (a >> 4) & 0xf, a & 0xf);
-	a = tds_get_int(tds);	/*desired packet size being requested by client */
+	tds_get_int(tds);	/*desired packet size being requested by client */
 	tds_get_n(tds, NULL, 24);	/*magic1 */
     
-    /* BEGIN: Added by Johnny Zhong, 2015/12/13 */
-    /* client name offset from the start of LOGIN PACKET (the concept is different from the TCP packet) */
-	host_name_offset = tds_get_smallint(tds);	
-    /* END:   Added by Johnny Zhong, 2015/12/13 */
-    
-	host_name_len = tds_get_smallint(tds);
-	a = tds_get_smallint(tds);	/*current position */
-	user_name_len = tds_get_smallint(tds);
-	a = tds_get_smallint(tds);	/*current position */
-	password_len = tds_get_smallint(tds);
-	a = tds_get_smallint(tds);	/*current position */
-	app_name_len = tds_get_smallint(tds);
-	a = tds_get_smallint(tds);	/*current position */
-	server_name_len = tds_get_smallint(tds);
+    /* host name offset from the start of LOGIN PACKET (the concept is different from the TCP packet) */
+	host_name_offset = tds_get_smallint(tds);
+	
+	/* hostname */
+	host_name_len = tds_get_usmallint(tds);
+	
+	packet_start = host_name_offset;
+	if (packet_len < packet_start)
+		return 0;
+#define READ_BUF(len, base_len) do { \
+	start = tds_get_usmallint(tds); \
+	len   = tds_get_usmallint(tds); \
+	if (len != 0 && (start < packet_start || start + base_len * len > packet_len)) \
+		return 0; \
+	} while(0)
+
+	/* username */
+	READ_BUF(user_name_len, 2);
+
+	/* password */
+	READ_BUF(password_len, 2);
+
+	/* app name */
+	READ_BUF(app_name_len, 2);
+
+	/* server */
+	READ_BUF(server_name_len, 2);
+
+	/* unknown */
 	tds_get_smallint(tds);
-	tds_get_smallint(tds);
-	a = tds_get_smallint(tds);	/*current position */
-	library_name_len = tds_get_smallint(tds);
-	a = tds_get_smallint(tds);	/*current position */
-	language_name_len = tds_get_smallint(tds);
-	a = tds_get_smallint(tds);
-	database_name_len = tds_get_smallint(tds);
-	tds_get_n(tds, NULL, 6);	/* client mac address */
-	a = tds_get_smallint(tds);	/*partial packet size */
-	auth_len = tds_get_smallint(tds);	/*authentication len */
-	a = tds_get_smallint(tds);	/*total packet size */
 	tds_get_smallint(tds);
 
-    /* BEGIN: Added by Johnny Zhong, 2015/12/11 */
-    /* There are 8 bytes before the LOGIN packet (type, status, length, ..., etc) */ 
+	/* library */
+	READ_BUF(library_name_len, 2);
+
+	/* language */
+	READ_BUF(language_name_len, 2);
+
+	/* database */
+	READ_BUF(database_name_len, 2);
+
+	/* client mac address */
+	tds_get_n(tds, NULL, 6);
+
+	/* authentication */
+	READ_BUF(auth_len, 1);
+
+	/* db file */
+	READ_BUF(len, 2);
+
+	if (IS_TDS72_PLUS(login)) {
+		/* new password */
+		READ_BUF(len, 2);
+		/* SSPI */
+		tds_get_int(tds);
+	}
+
+    /* There are 8 bytes before the LOGIN packet (type, status, length, ..., etc). 
+	 * Even the TDS protocol is upgraded in future, according the protocl specs, 
+	 * the offset below should be compatible and correct to retrieve hostname. */ 
     tds->in_pos = host_name_offset + 8;
-    /* END:   Added by Johnny Zhong, 2015/12/11 */
     
 	res = res && tds_dstr_get(tds, &login->client_host_name, host_name_len);
 	res = res && tds_dstr_get(tds, &login->user_name, user_name_len);
@@ -235,7 +262,8 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 			 &password_len);
 	if (a < 0 ) {
 		fprintf(stderr, "error: %s:%d: tds7_read_login: tds_iconv() failed\n", __FILE__, __LINE__);
-		assert(-1 != a);
+		free(unicode_string);
+		return 0;
 	}
 	tds_dstr_setlen(&login->password, pbuf - tds_dstr_buf(&login->password));
 	free(unicode_string);

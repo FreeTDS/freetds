@@ -55,9 +55,7 @@ tds_env_change(TDSSOCKET * tds, int type, const char *oldvalue, const char *newv
 	case TDS_ENV_CHARSET:
 		tds_put_byte(tds, TDS_ENVCHANGE_TOKEN);
 		/* totsize = type + newlen + newvalue + oldlen + oldvalue  */
-        /* BEGIN: Modified by Johnny Zhong, 2015/12/14 */
 		totsize = 2*strlen(oldvalue) + 2*strlen(newvalue) + 3;
-        /* END:   Modified by Johnny Zhong, 2015/12/14 */
 		tds_put_smallint(tds, totsize);
 		tds_put_byte(tds, type);
 		tds_put_byte(tds, strlen(newvalue));
@@ -72,10 +70,7 @@ tds_env_change(TDSSOCKET * tds, int type, const char *oldvalue, const char *newv
 #if 1
 		tds_put_byte(tds, TDS_ENVCHANGE_TOKEN);
 		/* totsize = type + len + oldvalue + len + newvalue */
-		totsize = 3 + strlen(newvalue) + strlen(oldvalue);
-        /* BEGIN: Added by Johnny Zhong, 2015/12/14 */
         totsize = 3 + 2*strlen(newvalue) + 2*strlen(oldvalue);
-        /* END:   Added by Johnny Zhong, 2015/12/14 */
 		tds_put_smallint(tds, totsize);
 		tds_put_byte(tds, type);
 		tds_put_byte(tds, strlen(newvalue));
@@ -128,7 +123,6 @@ tds_send_msg(TDSSOCKET * tds, int msgno, int msgstate, int severity,
 		procname = "";
 	len = strlen(procname);
     
-    /* BEGIN: Modified by Johnny Zhong, 2015/12/14 */
     if (IS_TDS72_PLUS(tds->conn))
     {
     	msgsz = 1   /* Token type */
@@ -152,7 +146,6 @@ tds_send_msg(TDSSOCKET * tds, int msgno, int msgstate, int severity,
     		+ (IS_TDS7_PLUS(tds->conn) ? 2 : 1) * (strlen(msgtext) + 1 + strlen(srvname) + 1 + len)
     		+ 1 + 2;	/* line number */
     }
-    /* END:   Modified by Johnny Zhong, 2015/12/14 */
     
 	tds_put_smallint(tds, msgsz);
 	tds_put_int(tds, msgno);
@@ -172,7 +165,6 @@ tds_send_msg(TDSSOCKET * tds, int msgno, int msgstate, int severity,
 		tds_put_byte(tds, 0);
 	}
 
-    /* BEGIN: Modified by Johnny Zhong, 2015/12/14 */
     if (IS_TDS72_PLUS(tds->conn))
     {
         tds_put_int(tds, line);
@@ -181,7 +173,6 @@ tds_send_msg(TDSSOCKET * tds, int msgno, int msgstate, int severity,
     {
 	    tds_put_smallint(tds, line);
     }
-    /* END:   Added by Johnny Zhong, 2015/12/14 */
 }
 
 void
