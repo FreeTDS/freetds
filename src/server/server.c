@@ -55,7 +55,8 @@ tds_env_change(TDSSOCKET * tds, int type, const char *oldvalue, const char *newv
 	case TDS_ENV_CHARSET:
 		tds_put_byte(tds, TDS_ENVCHANGE_TOKEN);
 		/* totsize = type + newlen + newvalue + oldlen + oldvalue  */
-		totsize = strlen(oldvalue) + strlen(newvalue) + 3;
+		/* FIXME ucs2 */
+		totsize = (IS_TDS7_PLUS(tds->conn) ? 2 : 1) * (strlen(oldvalue) + strlen(newvalue)) + 3;
 		tds_put_smallint(tds, totsize);
 		tds_put_byte(tds, type);
 		tds_put_byte(tds, strlen(newvalue));
