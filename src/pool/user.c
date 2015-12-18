@@ -363,48 +363,53 @@ pool_user_send_login_ack(TDS_POOL * pool, TDS_POOL_USER * puser)
 static void
 pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 {
-	TDSSOCKET *tds;
-	TDS_POOL_MEMBER *pmbr;
+	TDSSOCKET *tds = puser->tds;
+	TDS_POOL_MEMBER *pmbr = NULL;
 
-	tds = puser->tds;
-	if (pool_packet_read(tds))
-		return;
-	if (tds->in_len <= 0) {
-		if (tds->in_len == 0) {
-			fprintf(stderr, "user disconnected\n");
-		} else {
-			perror("read");
-			fprintf(stderr, "cleaning up user\n");
-		}
-
-		if (puser->assigned_member) {
-			fprintf(stderr, "user has assigned member, freeing\n");
-			pmbr = puser->assigned_member;
-			pool_reset_member(pool, pmbr);
-		} else {
-			pool_free_user(puser);
-		}
-		return;
-	} else {
-		TDS_UCHAR in_flag = tds->in_buf[0];
-
-		tdsdump_dump_buf(TDS_DBG_NETWORK, "Got packet from client:", tds->in_buf, tds->in_len);
-
-		switch (in_flag) {
-		case TDS_QUERY:
-		case TDS_NORMAL:
-		case TDS_RPC:
-		case TDS_BULK:
-		case TDS_CANCEL:
-		case TDS7_TRANS:
-			pool_user_write(pool, puser);
+	for (;;) {
+		if (pool_packet_read(tds))
 			break;
+		if (tds->in_len <= 0) {
+			if (tds->in_len == 0) {
+				fprintf(stderr, "user disconnected\n");
+			} else {
+				perror("read");
+				fprintf(stderr, "cleaning up user\n");
+			}
 
-		default:
-			fprintf(stderr, "Unrecognized packet type, closing user\n");
-			pool_free_user(puser);
+			pmbr = puser->assigned_member;
+			if (pmbr) {
+				fprintf(stderr, "user has assigned member, freeing\n");
+				pool_reset_member(pool, pmbr);
+			} else {
+				pool_free_user(puser);
+			}
+			return;
+		} else {
+			TDS_UCHAR in_flag = tds->in_buf[0];
+
+			tdsdump_dump_buf(TDS_DBG_NETWORK, "Got packet from client:", tds->in_buf, tds->in_len);
+
+			switch (in_flag) {
+			case TDS_QUERY:
+			case TDS_NORMAL:
+			case TDS_RPC:
+			case TDS_BULK:
+			case TDS_CANCEL:
+			case TDS7_TRANS:
+				pool_user_write(pool, puser);
+				pmbr = puser->assigned_member;
+				break;
+
+			default:
+				fprintf(stderr, "Unrecognized packet type, closing user\n");
+				pool_free_user(puser);
+				return;
+			}
 		}
 	}
+	if (pmbr)
+		tds_socket_flush(tds_get_s(pmbr->tds));
 }
 
 void
@@ -454,6 +459,5 @@ pool_user_write(TDS_POOL * pool, TDS_POOL_USER * puser)
 	if (ret <= 0) {
 		pool_free_member(pool, pmbr);
 	}
-	tds_socket_flush(tds_get_s(pmbr->tds));
 	tds->in_pos = 0;
 }
