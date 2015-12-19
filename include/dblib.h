@@ -199,7 +199,7 @@ extern EHANDLEFUNC _dblib_err_handler;
 #define DBPERROR_RETURN(x, msg)	if (x) { dbperror(dbproc, (msg), 0); return FAIL; }
 #define DBPERROR_RETURN3(x, msg, a, b, c)	if (x) { dbperror(dbproc, (msg), 0, a, b, c); return FAIL; }
 #define CHECK_CONN(ret) do { CHECK_PARAMETER(dbproc, SYBENULL, (ret)); \
-	if (IS_TDSDEAD(dbproc->tds_socket)) { dbperror(NULL, SYBEDDNE, 0); return (ret); } } while(0)
+	if (IS_TDSDEAD(dbproc->tds_socket)) { dbperror(dbproc, SYBEDDNE, 0); return (ret); } } while(0)
 
 
 #ifdef __cplusplus
