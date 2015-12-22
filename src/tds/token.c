@@ -339,6 +339,8 @@ tds_process_login_tokens(TDSSOCKET * tds)
 	CHECK_TDS_EXTRA(tds);
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_process_login_tokens()\n");
+
+	tds->spid = -1;
 	do {
 		struct 	{ unsigned char major, minor, tiny[2]; 
 			  unsigned int reported; 
@@ -447,9 +449,8 @@ tds_process_login_tokens(TDSSOCKET * tds)
 			}
 		}
 	} while (marker != TDS_DONE_TOKEN);
-	/* TODO why ?? */
-	tds->spid = tds->rows_affected;
-	if (tds->spid == 0) {
+
+	if (tds->spid == -1) {
 		if (TDS_FAILED(tds_set_spid(tds))) {
 			tdsdump_log(TDS_DBG_ERROR, "tds_set_spid() failed\n");
 			succeed = TDS_FAIL;
@@ -457,7 +458,7 @@ tds_process_login_tokens(TDSSOCKET * tds)
 	}
 	if (memrc != 0)
 		succeed = TDS_FAIL;
-		
+
 	tdsdump_log(TDS_DBG_FUNC, "tds_process_login_tokens() returning %s\n", 
 					(succeed == TDS_SUCCESS)? "TDS_SUCCESS" : "TDS_FAIL");
 
