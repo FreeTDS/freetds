@@ -634,6 +634,9 @@ tds_read_packet(TDSSOCKET * tds)
 	/* set the received packet type flag */
 	tds->in_flag = pkt[0];
 
+	/* set the spid */
+	tds->spid = TDS_GET_A2BE(pkt+4);
+
 	/* Set the length and pos (not sure what pos is used for now */
 	tds->in_len = p - pkt;
 	tds->in_pos = 8;
