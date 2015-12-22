@@ -632,9 +632,12 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 		con->tds_socket = NULL;
 		return CS_FAIL;
 	}
-	if (con->server_addr)
+	if (con->server_addr) {
+		if (TDS_FAILED(tds_lookup_host_set(con->server_addr, &login->ip_addrs)))
+			goto Cleanup;
 		if (!tds_dstr_copy(&login->server_host_name, con->server_addr))
 			goto Cleanup;
+	}
 
 	/* override locale settings with CS_CONNECTION settings, if any */
 	if (con->locale) {
