@@ -1528,8 +1528,6 @@ dbclose(DBPROCESS * dbproc)
 
 	dbfreebuf(dbproc);
 	free(dbproc);
-
-	return;
 }
 
 /**
@@ -5721,16 +5719,10 @@ dbrpwset(LOGINREC * login, char *srvname, char *password, int pwlen)
 int
 dbspid(DBPROCESS * dbproc)
 {
-	TDSSOCKET *tds;
-
 	tdsdump_log(TDS_DBG_FUNC, "dbspid(%p)\n", dbproc);
-	CHECK_PARAMETER(dbproc, SYBESPID, -1);
+	CHECK_CONN(-1);
 
-	tds = dbproc->tds_socket;
-	if (IS_TDSDEAD(tds))
-		return -1;
-
-	return tds->spid;
+	return dbproc->tds_socket->spid;
 }
 
 /**
