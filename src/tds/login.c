@@ -47,6 +47,7 @@
 #include <freetds/bytes.h>
 #include <freetds/tls.h>
 #include <freetds/stream.h>
+#include <freetds/checks.h>
 #include "replacements.h"
 
 static TDSRET tds_send_login(TDSSOCKET * tds, TDSLOGIN * login);
@@ -296,6 +297,51 @@ free_save_context(TDSSAVECONTEXT *ctx)
 }
 
 /**
+ * Retrieve and set @@spid
+ * \tds
+ */
+static TDSRET
+tds_set_spid(TDSSOCKET * tds)
+{
+	TDS_INT result_type;
+	TDS_INT done_flags;
+	TDSRET rc;
+	TDSCOLUMN *curcol;
+
+	CHECK_TDS_EXTRA(tds);
+
+	while ((rc = tds_process_tokens(tds, &result_type, &done_flags, TDS_RETURN_ROW|TDS_RETURN_DONE)) == TDS_SUCCESS) {
+
+		switch (result_type) {
+		case TDS_ROW_RESULT:
+			if (tds->res_info->num_cols != 1)
+				break;
+			curcol = tds->res_info->columns[0];
+			switch (tds_get_conversion_type(curcol->column_type, curcol->column_size)) {
+			case SYBINT2:
+				tds->spid = *((TDS_USMALLINT *) curcol->column_data);
+				break;
+			case SYBINT4:
+				tds->spid = *((TDS_UINT *) curcol->column_data);
+				break;
+			default:
+				return TDS_FAIL;
+			}
+			break;
+
+		case TDS_DONE_RESULT:
+			if ((done_flags & TDS_DONE_ERROR) != 0)
+				return TDS_FAIL;
+			break;
+		}
+	}
+	if (rc == TDS_NO_MORE_RESULTS)
+		rc = TDS_SUCCESS;
+
+	return rc;
+}
+
+/**
  * Do a connection to socket
  * @param tds connection structure. This should be a non-connected connection.
  * @return TDS_FAIL or TDS_SUCCESS if a connection was made to the server's port.
@@ -462,6 +508,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 	 */
 		
 	tds_set_state(tds, TDS_IDLE);
+	tds->spid = -1;
 
 	/* discard possible previous authentication */
 	if (tds->conn->authentication) {
@@ -496,17 +543,21 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 	}
 #endif
 
-	if (login->text_size || (!db_selected && !tds_dstr_isempty(&login->database))) {
+	if (login->text_size || (!db_selected && !tds_dstr_isempty(&login->database))
+	    || tds->spid == -1) {
 		char *str;
 		int len;
 
-		len = 64 + tds_quote_id(tds, NULL, tds_dstr_cstr(&login->database),-1);
+		len = 128 + tds_quote_id(tds, NULL, tds_dstr_cstr(&login->database),-1);
 		if ((str = (char *) malloc(len)) == NULL)
 			return TDS_FAIL;
 
 		str[0] = 0;
 		if (login->text_size) {
 			sprintf(str, "set textsize %d ", login->text_size);
+		}
+		if (tds->spid == -1) {
+			strcat(str, "select @@spid ");
 		}
 		if (!db_selected && !tds_dstr_isempty(&login->database)) {
 			strcat(str, "use ");
@@ -517,7 +568,10 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		if (TDS_FAILED(erc))
 			return erc;
 
-		erc = tds_process_simple_query(tds);
+		if (tds->spid == -1)
+			erc = tds_set_spid(tds);
+		else
+			erc = tds_process_simple_query(tds);
 		if (TDS_FAILED(erc))
 			return erc;
 	}

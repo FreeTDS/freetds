@@ -566,10 +566,6 @@ tds_read_packet(TDSSOCKET * tds)
 			tds->in_pos  = 8;
 			tds->in_flag = tds->in_buf[0];
 
-			/* set the spid */
-			if (TDS_IS_MSSQL(tds))
-				tds->spid = TDS_GET_A2BE(tds->in_buf+4);
-
 			/* send acknowledge if needed */
 			if (tds->recv_seq + 2 >= tds->recv_wnd)
 				tds_update_recv_wnd(tds, tds->recv_seq + 4);
@@ -637,10 +633,6 @@ tds_read_packet(TDSSOCKET * tds)
 
 	/* set the received packet type flag */
 	tds->in_flag = pkt[0];
-
-	/* set the spid */
-	if (TDS_IS_MSSQL(tds))
-		tds->spid = TDS_GET_A2BE(pkt+4);
 
 	/* Set the length and pos (not sure what pos is used for now */
 	tds->in_len = p - pkt;

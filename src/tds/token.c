@@ -269,57 +269,6 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 }
 
 /**
- * Retrieve and set @@spid
- * \tds
- */
-static TDSRET
-tds_set_spid(TDSSOCKET * tds)
-{
-	TDS_INT result_type;
-	TDS_INT done_flags;
-	TDSRET rc;
-	TDSCOLUMN *curcol;
-
-	CHECK_TDS_EXTRA(tds);
-
-	if (TDS_FAILED(rc=tds_submit_query(tds, "select @@spid")))
-		return rc;
-
-	while ((rc = tds_process_tokens(tds, &result_type, &done_flags, TDS_RETURN_ROWFMT|TDS_RETURN_ROW|TDS_RETURN_DONE)) == TDS_SUCCESS) {
-
-		switch (result_type) {
-
-			case TDS_ROWFMT_RESULT:
-				if (tds->res_info->num_cols != 1) 
-					return TDS_FAIL;
-				break;
-
-			case TDS_ROW_RESULT:
-				curcol = tds->res_info->columns[0];
-				if (curcol->column_type == SYBINT2 || (curcol->column_type == SYBINTN && curcol->column_size == 2)) {
-					tds->spid = *((TDS_USMALLINT *) curcol->column_data);
-				} else if (curcol->column_type == SYBINT4 || (curcol->column_type == SYBINTN && curcol->column_size == 4)) {
-					tds->spid = *((TDS_UINT *) curcol->column_data);
-				} else
-					return TDS_FAIL;
-				break;
-
-			case TDS_DONE_RESULT:
-				if ((done_flags & TDS_DONE_ERROR) != 0)
-					return TDS_FAIL;
-				break;
-
-			default:
-				break;
-		}
-	}
-	if (rc == TDS_NO_MORE_RESULTS)
-		rc = TDS_SUCCESS;
-
-	return rc;
-}
-
-/**
  * tds_process_login_tokens() is called after sending the login packet 
  * to the server.  It returns the success or failure of the login 
  * dependent on the protocol version. 4.2 sends an ACK token only when
@@ -339,8 +288,6 @@ tds_process_login_tokens(TDSSOCKET * tds)
 	CHECK_TDS_EXTRA(tds);
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_process_login_tokens()\n");
-
-	tds->spid = -1;
 	do {
 		struct 	{ unsigned char major, minor, tiny[2]; 
 			  unsigned int reported; 
@@ -450,12 +397,10 @@ tds_process_login_tokens(TDSSOCKET * tds)
 		}
 	} while (marker != TDS_DONE_TOKEN);
 
-	if (tds->spid == -1) {
-		if (TDS_FAILED(tds_set_spid(tds))) {
-			tdsdump_log(TDS_DBG_ERROR, "tds_set_spid() failed\n");
-			succeed = TDS_FAIL;
-		}
-	}
+	/* set the spid */
+	if (memrc == 0 && TDS_IS_MSSQL(tds))
+		tds->spid = TDS_GET_A2BE(tds->in_buf+4);
+
 	if (memrc != 0)
 		succeed = TDS_FAIL;
 
