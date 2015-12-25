@@ -202,7 +202,7 @@ pool_free_member(TDS_POOL * pool, TDS_POOL_MEMBER * pmbr)
 		tds_close_socket(tds);
 	if (tds) {
 		pool_mbr_free_socket(tds);
-		pool->active_members--;
+		pool->num_active_members--;
 	}
 	pmbr->sock.tds = NULL;
 	/*
@@ -225,7 +225,7 @@ pool_mbr_init(TDS_POOL * pool)
 
 	/* allocate room for pool members */
 
-	pool->active_members = 0;
+	pool->num_active_members = 0;
 	pool->members = (TDS_POOL_MEMBER *)
 		calloc(pool->num_members, sizeof(TDS_POOL_MEMBER));
 
@@ -243,7 +243,7 @@ pool_mbr_init(TDS_POOL * pool)
 			exit(1);
 		}
 		pmbr->last_used_tm = time(NULL);
-		pool->active_members++;
+		pool->num_active_members++;
 		if (!IS_TDS71_PLUS(pmbr->sock.tds->conn)) {
 			fprintf(stderr, "Current pool implementation does not support protocol versions former than 7.1\n");
 			exit(1);
@@ -271,7 +271,7 @@ pool_mbr_destroy(TDS_POOL * pool)
 	free(pool->members);
 	pool->members = NULL;
 	pool->num_members = 0;
-	pool->active_members = 0;
+	pool->num_active_members = 0;
 }
 
 static void
@@ -386,7 +386,7 @@ pool_process_members(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
 		} else {
 			age = time_now - pmbr->last_used_tm;
 			if (age > pool->max_member_age
-			    && pool->active_members > pool->min_open_conn
+			    && pool->num_active_members > pool->min_open_conn
 			    && !pmbr->current_user) {
 				fprintf(stderr, "member %d is %d seconds old...closing\n", i, age);
 				pool_free_member(pool, pmbr);
@@ -439,7 +439,7 @@ pool_find_idle_member(TDS_POOL * pool, TDS_POOL_USER *user)
 	}
 	/* if we have dead connections we can open */
 	i = first_dead;
-	if (pool->active_members < pool->num_members && i >= 0) {
+	if (pool->num_active_members < pool->num_members && i >= 0) {
 		pmbr = &pool->members[i];
 		assert(pmbr->sock.tds == NULL);
 
@@ -453,7 +453,7 @@ pool_find_idle_member(TDS_POOL * pool, TDS_POOL_USER *user)
 
 		if (IS_TDS71_PLUS(pmbr->sock.tds->conn)) {
 			pmbr->last_used_tm = time(NULL);
-			pool->active_members++;
+			pool->num_active_members++;
 			return pmbr;
 		}
 

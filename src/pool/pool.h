@@ -92,7 +92,7 @@ struct tds_pool
 	int min_open_conn;
 	int max_open_conn;
 	int num_members;
-	int active_members;
+	int num_active_members;
 	TDS_POOL_MEMBER *members;
 	/** number of users in wait state */
 	int waiters;
