@@ -67,7 +67,6 @@ struct tds_pool_user
 struct tds_pool_member
 {
 	TDSSOCKET *tds;
-	int state;
 	time_t last_used_tm;
 	TDS_POOL_USER *current_user;
 };

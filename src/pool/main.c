@@ -146,7 +146,7 @@ pool_schedule_waiters(TDS_POOL * pool)
 	free_mbrs = 0;
 	for (i = 0; i < pool->num_members; i++) {
 		pmbr = &pool->members[i];
-		if (pmbr->tds && pmbr->state == TDS_IDLE)
+		if (pmbr->tds)
 			free_mbrs++;
 	}
 

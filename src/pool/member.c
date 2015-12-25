@@ -144,7 +144,6 @@ pool_deassign_member(TDS_POOL_MEMBER * pmbr)
 	if (pmbr->current_user)
 		pmbr->current_user->assigned_member = NULL;
 	pmbr->current_user = NULL;
-	pmbr->state = TDS_IDLE;
 }
 
 /*
@@ -190,8 +189,6 @@ pool_reset_member(TDS_POOL * pool, TDS_POOL_MEMBER * pmbr)
 			return;
 		}
 	}
-
-	pmbr->state = TDS_IDLE;
 }
 
 void
@@ -215,7 +212,6 @@ pool_free_member(TDS_POOL * pool, TDS_POOL_MEMBER * pmbr)
 		pmbr->current_user = NULL;
 	}
 	memset(pmbr, 0, sizeof(*pmbr));
-	pmbr->state = TDS_IDLE;
 }
 
 void
@@ -234,7 +230,6 @@ pool_mbr_init(TDS_POOL * pool)
 
 	for (i = 0; i < pool->num_members; i++) {
 		pmbr = &pool->members[i];
-		pmbr->state = TDS_IDLE;
 		if (i >= pool->min_open_conn)
 			continue;
 
@@ -342,7 +337,6 @@ pool_process_members(TDS_POOL * pool, fd_set * fds)
 
 		tds = pmbr->tds;
 		if (!tds) {
-			assert(pmbr->state == TDS_IDLE);
 			continue;	/* dead connection */
 		}
 

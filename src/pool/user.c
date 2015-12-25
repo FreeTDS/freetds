@@ -452,7 +452,6 @@ pool_user_write(TDS_POOL * pool, TDS_POOL_USER * puser)
 
 	tds = puser->tds;
 	tdsdump_log(TDS_DBG_INFO1, "sending %d bytes\n", tds->in_len);
-	pmbr->state = TDS_WRITING;
 	/* cf. net.c for better technique.  */
 	ret = pool_write_all(tds_get_s(pmbr->tds), tds->in_buf + tds->in_pos, tds->in_len - tds->in_pos);
 	/* write failed, cleanup member */
