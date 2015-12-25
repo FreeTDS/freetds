@@ -52,17 +52,17 @@ typedef enum
 
 /* forward declaration */
 typedef struct tds_pool_member TDS_POOL_MEMBER;
+typedef struct tds_pool_user TDS_POOL_USER;
+typedef struct tds_pool TDS_POOL;
 
-
-typedef struct tds_pool_user
+struct tds_pool_user
 {
 	TDSSOCKET *tds;
 	TDSLOGIN *login;
 	TDS_USER_STATE user_state;
 	bool poll_recv;
 	TDS_POOL_MEMBER *assigned_member;
-}
-TDS_POOL_USER;
+};
 
 struct tds_pool_member
 {
@@ -72,7 +72,7 @@ struct tds_pool_member
 	TDS_POOL_USER *current_user;
 };
 
-typedef struct tds_pool
+struct tds_pool
 {
 	char *name;
 	char *user;
@@ -89,8 +89,7 @@ typedef struct tds_pool
 	int max_users;
 	TDS_POOL_USER *users;
 	TDSCONTEXT *ctx;
-}
-TDS_POOL;
+};
 
 /* prototypes */
 
