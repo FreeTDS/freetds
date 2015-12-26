@@ -5722,7 +5722,7 @@ dbspid(DBPROCESS * dbproc)
 	tdsdump_log(TDS_DBG_FUNC, "dbspid(%p)\n", dbproc);
 	CHECK_CONN(-1);
 
-	return dbproc->tds_socket->spid;
+	return dbproc->tds_socket->conn->spid;
 }
 
 /**

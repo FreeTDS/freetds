@@ -725,8 +725,8 @@ ODBC_FUNC(SQLGetDiagField, (P(SQLSMALLINT,handleType), P(SQLHANDLE,handle), P(SQ
 		break;
 
 	case SQL_DIAG_CONNECTION_NAME:
-		if (dbc && dbc->tds_socket && dbc->tds_socket->spid > 0)
-			cplen = sprintf(tmp, "%d", dbc->tds_socket->spid);
+		if (dbc && dbc->tds_socket && dbc->tds_socket->conn->spid > 0)
+			cplen = sprintf(tmp, "%d", dbc->tds_socket->conn->spid);
 		else
 			cplen = 0;
 

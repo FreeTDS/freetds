@@ -1135,6 +1135,8 @@ struct tds_connection
 	TDSPACKET *packet_cache;
 #endif
 
+	int spid;
+
 	void *tls_session;
 #if defined(HAVE_GNUTLS)
 	void *tls_credentials;
@@ -1223,7 +1225,6 @@ struct tds_socket
 
 	TDSLOGIN *login;	/**< config for login stuff. After login this field is NULL */
 
-	int spid;
 	void (*env_chg_func) (TDSSOCKET * tds, int type, char *oldval, char *newval);
 	TDS_OPERATION current_op;
 

@@ -319,10 +319,10 @@ tds_set_spid(TDSSOCKET * tds)
 			curcol = tds->res_info->columns[0];
 			switch (tds_get_conversion_type(curcol->column_type, curcol->column_size)) {
 			case SYBINT2:
-				tds->spid = *((TDS_USMALLINT *) curcol->column_data);
+				tds->conn->spid = *((TDS_USMALLINT *) curcol->column_data);
 				break;
 			case SYBINT4:
-				tds->spid = *((TDS_UINT *) curcol->column_data);
+				tds->conn->spid = *((TDS_UINT *) curcol->column_data);
 				break;
 			default:
 				return TDS_FAIL;
@@ -508,7 +508,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 	 */
 		
 	tds_set_state(tds, TDS_IDLE);
-	tds->spid = -1;
+	tds->conn->spid = -1;
 
 	/* discard possible previous authentication */
 	if (tds->conn->authentication) {
@@ -544,7 +544,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 #endif
 
 	if (login->text_size || (!db_selected && !tds_dstr_isempty(&login->database))
-	    || tds->spid == -1) {
+	    || tds->conn->spid == -1) {
 		char *str;
 		int len;
 
@@ -556,7 +556,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		if (login->text_size) {
 			sprintf(str, "set textsize %d ", login->text_size);
 		}
-		if (tds->spid == -1) {
+		if (tds->conn->spid == -1) {
 			strcat(str, "select @@spid ");
 		}
 		if (!db_selected && !tds_dstr_isempty(&login->database)) {
@@ -568,7 +568,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		if (TDS_FAILED(erc))
 			return erc;
 
-		if (tds->spid == -1)
+		if (tds->conn->spid == -1)
 			erc = tds_set_spid(tds);
 		else
 			erc = tds_process_simple_query(tds);

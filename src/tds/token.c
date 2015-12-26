@@ -399,7 +399,7 @@ tds_process_login_tokens(TDSSOCKET * tds)
 
 	/* set the spid */
 	if (memrc == 0 && TDS_IS_MSSQL(tds))
-		tds->spid = TDS_GET_A2BE(tds->in_buf+4);
+		tds->conn->spid = TDS_GET_A2BE(tds->in_buf+4);
 
 	if (memrc != 0)
 		succeed = TDS_FAIL;
