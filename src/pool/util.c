@@ -147,20 +147,22 @@ pool_packet_read(TDSSOCKET *tds)
 }
 
 int
-pool_write_all(TDS_SYS_SOCKET sock, const void *buf, size_t len)
+pool_write(TDS_SYS_SOCKET sock, const void *buf, size_t len)
 {
 	int ret;
 	const unsigned char *p = (const unsigned char *) buf;
 
 	while (len) {
 		ret = WRITESOCKET(sock, p, len);
-		/* write failed, cleanup member */
 		if (ret <= 0) {
-			return ret;
+			int err = errno;
+			if (TDSSOCK_WOULDBLOCK(err) || err == EINTR)
+				break;
+			return -1;
 		}
 		p   += ret;
 		len -= ret;
 	}
-	return 1;
+	return p - (const unsigned char *) buf;
 }
 

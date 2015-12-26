@@ -61,12 +61,15 @@ struct tds_pool_user
 	TDSLOGIN *login;
 	TDS_USER_STATE user_state;
 	bool poll_recv;
+	bool poll_send;
 	TDS_POOL_MEMBER *assigned_member;
 };
 
 struct tds_pool_member
 {
 	TDSSOCKET *tds;
+	bool poll_recv;
+	bool poll_send;
 	time_t last_used_tm;
 	TDS_POOL_USER *current_user;
 };
@@ -95,7 +98,7 @@ struct tds_pool
 /* prototypes */
 
 /* member.c */
-int pool_process_members(TDS_POOL * pool, fd_set * fds);
+int pool_process_members(TDS_POOL * pool, fd_set * rfds, fd_set * wfds);
 TDS_POOL_MEMBER *pool_find_idle_member(TDS_POOL * pool, TDS_POOL_USER *user);
 void pool_mbr_init(TDS_POOL * pool);
 void pool_mbr_destroy(TDS_POOL * pool);
@@ -106,7 +109,7 @@ void pool_reset_member(TDS_POOL *pool, TDS_POOL_MEMBER * pmbr);
 bool pool_packet_read(TDSSOCKET * tds);
 
 /* user.c */
-int pool_process_users(TDS_POOL * pool, fd_set * fds);
+int pool_process_users(TDS_POOL * pool, fd_set * rfds, fd_set * wfds);
 void pool_user_init(TDS_POOL * pool);
 void pool_user_destroy(TDS_POOL * pool);
 TDS_POOL_USER *pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s);
@@ -116,7 +119,7 @@ void pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser);
 /* util.c */
 void dump_login(TDSLOGIN * login);
 void die_if(int expr, const char *msg);
-int pool_write_all(TDS_SYS_SOCKET s, const void *buf, size_t len);
+int pool_write(TDS_SYS_SOCKET s, const void *buf, size_t len);
 
 /* config.c */
 int pool_read_conf_file(const char *poolname, TDS_POOL * pool);

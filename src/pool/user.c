@@ -97,6 +97,7 @@ pool_user_find_new(TDS_POOL * pool)
 		puser = &pool->users[i];
 		if (!puser->tds) {
 			puser->poll_recv = true;
+			puser->poll_send = false;
 			return puser;
 		}
 	}
@@ -112,6 +113,7 @@ pool_user_find_new(TDS_POOL * pool)
 	pool->max_users++;
 
 	puser->poll_recv = true;
+	puser->poll_send = false;
 	return puser;
 }
 
@@ -190,7 +192,7 @@ pool_free_user(TDS_POOL *pool, TDS_POOL_USER * puser)
  * the query to that member.
  */
 int
-pool_process_users(TDS_POOL * pool, fd_set * fds)
+pool_process_users(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
 {
 	TDS_POOL_USER *puser;
 	int i;
@@ -203,7 +205,7 @@ pool_process_users(TDS_POOL * pool, fd_set * fds)
 		if (!puser->tds)
 			continue;	/* dead connection */
 
-		if (FD_ISSET(tds_get_s(puser->tds), fds)) {
+		if (puser->poll_recv && FD_ISSET(tds_get_s(puser->tds), rfds)) {
 			cnt++;
 			switch (puser->user_state) {
 			case TDS_SRV_LOGIN:
@@ -222,6 +224,9 @@ pool_process_users(TDS_POOL * pool, fd_set * fds)
 				break;
 			}	/* switch */
 		}		/* if */
+		if (puser->poll_send && FD_ISSET(tds_get_s(puser->tds), wfds)) {
+			pool_user_write(pool, puser);
+		}
 	}			/* for */
 	return cnt;
 }
@@ -400,7 +405,7 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 			}
 		}
 	}
-	if (pmbr)
+	if (pmbr && !pmbr->poll_send)
 		tds_socket_flush(tds_get_s(pmbr->tds));
 }
 
@@ -428,6 +433,7 @@ pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser)
 	}
 
 	puser->poll_recv = true;
+	puser->poll_send = false;
 	pool_assign_member(pmbr, puser);
 	pool_user_send_login_ack(pool, puser);
 	puser->user_state = TDS_SRV_QUERY;
@@ -445,10 +451,19 @@ pool_user_write(TDS_POOL * pool, TDS_POOL_USER * puser)
 	tds = puser->tds;
 	tdsdump_log(TDS_DBG_INFO1, "sending %d bytes\n", tds->in_len);
 	/* cf. net.c for better technique.  */
-	ret = pool_write_all(tds_get_s(pmbr->tds), tds->in_buf + tds->in_pos, tds->in_len - tds->in_pos);
+	ret = pool_write(tds_get_s(pmbr->tds), tds->in_buf + tds->in_pos, tds->in_len - tds->in_pos);
 	/* write failed, cleanup member */
-	if (ret <= 0) {
+	if (ret < 0) {
 		pool_free_member(pool, pmbr);
+		return;
 	}
-	tds->in_pos = 0;
+	tds->in_pos += ret;
+	if (tds->in_pos < tds->in_len) {
+		/* partial write, schedule a future write */
+		pmbr->poll_send = true;
+		puser->poll_recv = false;
+	} else {
+		pmbr->poll_send = false;
+		puser->poll_recv = true;
+	}
 }

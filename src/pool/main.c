@@ -174,8 +174,9 @@ pool_main_loop(TDS_POOL * pool)
 	TDS_POOL_USER *puser;
 	TDS_POOL_MEMBER *pmbr;
 	struct sockaddr_in sin;
-	int s, maxfd, i;
-	fd_set rfds;
+	TDS_SYS_SOCKET s, maxfd;
+	int i;
+	fd_set rfds, wfds;
 	int socktrue = 1;
 
 	/* FIXME -- read the interfaces file and bind accordingly */
@@ -201,6 +202,7 @@ pool_main_loop(TDS_POOL * pool)
 	while (!term) {
 
 		FD_ZERO(&rfds);
+		FD_ZERO(&wfds);
 		/* add the listening socket to the read list */
 		FD_SET(s, &rfds);
 		maxfd = s;
@@ -211,26 +213,34 @@ pool_main_loop(TDS_POOL * pool)
 			/* skip dead connections */
 			if (IS_TDSDEAD(puser->tds))
 				continue;
-			if (puser->poll_recv) {
-				if (tds_get_s(puser->tds) > maxfd)
-					maxfd = tds_get_s(puser->tds);
+			if (!puser->poll_recv && !puser->poll_send)
+				continue;
+			if (tds_get_s(puser->tds) > maxfd)
+				maxfd = tds_get_s(puser->tds);
+			if (puser->poll_recv)
 				FD_SET(tds_get_s(puser->tds), &rfds);
-			}
+			if (puser->poll_send)
+				FD_SET(tds_get_s(puser->tds), &wfds);
 		}
 
 		/* add the pool member sockets to the read list */
 		for (i = 0; i < pool->num_members; i++) {
 			pmbr = &pool->members[i];
-			if (!IS_TDSDEAD(pmbr->tds)) {
-				if (tds_get_s(pmbr->tds) > maxfd)
-					maxfd = tds_get_s(pmbr->tds);
+			if (IS_TDSDEAD(pmbr->tds))
+				continue;
+			if (!pmbr->poll_recv && !pmbr->poll_send)
+				continue;
+			if (tds_get_s(pmbr->tds) > maxfd)
+				maxfd = tds_get_s(pmbr->tds);
+			if (pmbr->poll_recv)
 				FD_SET(tds_get_s(pmbr->tds), &rfds);
-			}
+			if (pmbr->poll_send)
+				FD_SET(tds_get_s(pmbr->tds), &wfds);
 		}
 
 		/* fprintf(stderr, "waiting for a connect\n"); */
 		/* FIXME check return value */
-		select(maxfd + 1, &rfds, NULL, NULL, NULL);
+		select(maxfd + 1, &rfds, &wfds, NULL, NULL);
 		if (term)
 			break;
 
@@ -238,8 +248,9 @@ pool_main_loop(TDS_POOL * pool)
 		if (FD_ISSET(s, &rfds)) {
 			pool_user_create(pool, s);
 		}
-		pool_process_users(pool, &rfds);
-		pool_process_members(pool, &rfds);
+		pool_process_users(pool, &rfds, &wfds);
+		pool_process_members(pool, &rfds, &wfds);
+
 		/* back from members */
 		if (pool->waiters) {
 			pool_schedule_waiters(pool);
