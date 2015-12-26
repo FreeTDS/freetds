@@ -1136,6 +1136,7 @@ struct tds_connection
 #endif
 
 	int spid;
+	int client_spid;
 
 	void *tls_session;
 #if defined(HAVE_GNUTLS)

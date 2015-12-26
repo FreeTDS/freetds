@@ -321,6 +321,7 @@ pool_user_send_login_ack(TDS_POOL * pool, TDS_POOL_USER * puser)
 	tds->conn->product_name = strdup(mtds->conn->product_name);
 	tds_realloc_socket(tds, mtds->conn->env.block_size);
 	tds->conn->env.block_size = mtds->conn->env.block_size;
+	tds->conn->client_spid = mtds->conn->spid;
 
 	if (!database)
 		database = mtds->conn->env.database;

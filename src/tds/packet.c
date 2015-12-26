@@ -731,7 +731,8 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 	tds->out_buf[0] = tds->out_flag;
 	tds->out_buf[1] = final;
 	TDS_PUT_A2BE(tds->out_buf+2, tds->out_pos);
-	TDS_PUT_A4(tds->out_buf+4, 0);
+	TDS_PUT_A2BE(tds->out_buf+4, tds->conn->client_spid);
+	TDS_PUT_A2(tds->out_buf+6, 0);
 	if (IS_TDS7_PLUS(tds->conn) && !tds->login)
 		tds->out_buf[6] = 0x01;
 
