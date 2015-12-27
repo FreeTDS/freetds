@@ -120,16 +120,14 @@ pool_user_find_new(TDS_POOL * pool)
  * accepts a client connection and adds it to the users list and returns it
  */
 TDS_POOL_USER *
-pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s, struct sockaddr_in *sin)
+pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s)
 {
 	TDS_POOL_USER *puser;
 	TDS_SYS_SOCKET fd;
-	socklen_t len;
 	TDSSOCKET *tds;
 
 	fprintf(stderr, "accepting connection\n");
-	len = sizeof(*sin);
-	if (TDS_IS_SOCKET_INVALID(fd = tds_accept(s, (struct sockaddr *) sin, &len))) {
+	if (TDS_IS_SOCKET_INVALID(fd = tds_accept(s, NULL, NULL))) {
 		perror("accept");
 		return NULL;
 	}

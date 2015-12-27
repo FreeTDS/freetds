@@ -235,7 +235,7 @@ pool_main_loop(TDS_POOL * pool)
 
 		/* process the sockets */
 		if (FD_ISSET(s, &rfds)) {
-			pool_user_create(pool, s, &sin);
+			pool_user_create(pool, s);
 		}
 		pool_process_users(pool, &rfds);
 		pool_process_members(pool, &rfds);
