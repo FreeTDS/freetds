@@ -58,9 +58,6 @@
 /* to be set by sig term */
 static int term = 0;
 
-/* number of users in wait state */
-int waiters = 0;
-
 static void term_handler(int sig);
 static void pool_schedule_waiters(TDS_POOL * pool);
 static TDS_POOL *pool_init(const char *name);
@@ -158,7 +155,7 @@ pool_schedule_waiters(TDS_POOL * pool)
 		if (puser->user_state == TDS_SRV_WAIT) {
 			/* place back in query state */
 			puser->user_state = TDS_SRV_QUERY;
-			waiters--;
+			pool->waiters--;
 			/* now try again */
 			pool_user_query(pool, puser);
 			return;
@@ -218,7 +215,7 @@ pool_main_loop(TDS_POOL * pool)
 		pool_process_users(pool, &rfds);
 		pool_process_members(pool, &rfds);
 		/* back from members */
-		if (waiters) {
+		if (pool->waiters) {
 			pool_schedule_waiters(pool);
 		}
 

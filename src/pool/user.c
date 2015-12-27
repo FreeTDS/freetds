@@ -52,8 +52,6 @@ static int pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser);
 static void pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser);
 static void pool_user_write(TDS_POOL * pool, TDS_POOL_USER * puser);
 
-extern int waiters;
-
 void
 pool_user_init(TDS_POOL * pool)
 {
@@ -173,7 +171,7 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s, struct sockaddr_in *sin)
  * close out a disconnected user.
  */
 void
-pool_free_user(TDS_POOL_USER * puser)
+pool_free_user(TDS_POOL *pool, TDS_POOL_USER * puser)
 {
 	if (puser->assigned_member) {
 		pool_deassign_member(puser->assigned_member);
@@ -182,7 +180,7 @@ pool_free_user(TDS_POOL_USER * puser)
 
 	/* make sure to decrement the waiters list if he is waiting */
 	if (puser->user_state == TDS_SRV_WAIT)
-		waiters--;
+		pool->waiters--;
 	tds_free_socket(puser->tds);
 	tds_free_login(puser->login);
 	memset(puser, 0, sizeof(TDS_POOL_USER));
@@ -213,7 +211,7 @@ pool_process_users(TDS_POOL * pool, fd_set * fds)
 			case TDS_SRV_LOGIN:
 				if (pool_user_login(pool, puser)) {
 					/* login failed...free socket */
-					pool_free_user(puser);
+					pool_free_user(pool, puser);
 				}
 				/* otherwise we have a good login */
 				break;
@@ -383,7 +381,7 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 				fprintf(stderr, "user has assigned member, freeing\n");
 				pool_reset_member(pool, pmbr);
 			} else {
-				pool_free_user(puser);
+				pool_free_user(pool, puser);
 			}
 			return;
 		} else {
@@ -404,7 +402,7 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 
 			default:
 				fprintf(stderr, "Unrecognized packet type, closing user\n");
-				pool_free_user(puser);
+				pool_free_user(pool, puser);
 				return;
 			}
 		}
@@ -432,7 +430,7 @@ pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser)
 		fprintf(stderr, "Not enough free members...placing user in WAIT\n");
 		puser->user_state = TDS_SRV_WAIT;
 		puser->poll_recv = false;
-		waiters++;
+		pool->waiters++;
 		return;
 	}
 

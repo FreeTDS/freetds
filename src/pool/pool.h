@@ -85,6 +85,8 @@ struct tds_pool
 	int num_members;
 	int active_members;
 	TDS_POOL_MEMBER *members;
+	/** number of users in wait state */
+	int waiters;
 	int max_users;
 	TDS_POOL_USER *users;
 	TDSCONTEXT *ctx;
@@ -108,7 +110,7 @@ int pool_process_users(TDS_POOL * pool, fd_set * fds);
 void pool_user_init(TDS_POOL * pool);
 void pool_user_destroy(TDS_POOL * pool);
 TDS_POOL_USER *pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s, struct sockaddr_in *sin);
-void pool_free_user(TDS_POOL_USER * puser);
+void pool_free_user(TDS_POOL * pool, TDS_POOL_USER * puser);
 void pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser);
 
 /* util.c */

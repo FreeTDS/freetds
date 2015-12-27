@@ -161,7 +161,7 @@ pool_reset_member(TDS_POOL * pool, TDS_POOL_MEMBER * pmbr)
 
 	if (pmbr->current_user) {
 		pmbr->current_user->assigned_member = NULL;
-		pool_free_user(pmbr->current_user);
+		pool_free_user(pool, pmbr->current_user);
 		pmbr->current_user = NULL;
 	}
 
@@ -208,7 +208,7 @@ pool_free_member(TDS_POOL * pool, TDS_POOL_MEMBER * pmbr)
 	 */
 	if (pmbr->current_user) {
 		pmbr->current_user->assigned_member = NULL;
-		pool_free_user(pmbr->current_user);
+		pool_free_user(pool, pmbr->current_user);
 		pmbr->current_user = NULL;
 	}
 	memset(pmbr, 0, sizeof(*pmbr));
