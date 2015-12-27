@@ -197,27 +197,7 @@ pool_main_loop(TDS_POOL * pool)
 	}
 	listen(s, 5);
 
-	FD_ZERO(&rfds);
-	FD_SET(s, &rfds);
-	maxfd = s;
-
 	while (!term) {
-		/* fprintf(stderr, "waiting for a connect\n"); */
-		/* FIXME check return value */
-		select(maxfd + 1, &rfds, NULL, NULL, NULL);
-		if (term)
-			break;
-
-		/* process the sockets */
-		if (FD_ISSET(s, &rfds)) {
-			pool_user_create(pool, s, &sin);
-		}
-		pool_process_users(pool, &rfds);
-		pool_process_members(pool, &rfds);
-		/* back from members */
-		if (pool->waiters) {
-			pool_schedule_waiters(pool);
-		}
 
 		FD_ZERO(&rfds);
 		/* add the listening socket to the read list */
@@ -245,6 +225,23 @@ pool_main_loop(TDS_POOL * pool)
 					maxfd = tds_get_s(pmbr->tds);
 				FD_SET(tds_get_s(pmbr->tds), &rfds);
 			}
+		}
+
+		/* fprintf(stderr, "waiting for a connect\n"); */
+		/* FIXME check return value */
+		select(maxfd + 1, &rfds, NULL, NULL, NULL);
+		if (term)
+			break;
+
+		/* process the sockets */
+		if (FD_ISSET(s, &rfds)) {
+			pool_user_create(pool, s, &sin);
+		}
+		pool_process_users(pool, &rfds);
+		pool_process_members(pool, &rfds);
+		/* back from members */
+		if (pool->waiters) {
+			pool_schedule_waiters(pool);
 		}
 	}			/* while !term */
 	CLOSESOCKET(s);
