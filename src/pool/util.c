@@ -84,6 +84,10 @@ pool_packet_read(TDSSOCKET *tds)
 
 	/* determine packet size */
 	packet_len = tds->in_len >= 4 ? TDS_GET_A2BE(&tds->in_buf[2]) : 8;
+	if (TDS_UNLIKELY(packet_len < 8)) {
+		tds->in_len = 0;
+		return false;
+	}
 
 	/* get another packet */
 	if (tds->in_len >= packet_len) {
