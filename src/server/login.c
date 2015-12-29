@@ -177,7 +177,11 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	else
 		tds_set_version(login, (a >> 28) & 0xf, (a >> 24) & 0xf);
 	tds_get_int(tds);	/*desired packet size being requested by client */
-	tds_get_n(tds, NULL, 24);	/*magic1 */
+	/* client prog ver (4 byte) + pid (int) + connection id (4 byte) + flag1 (byte) */
+	tds_get_n(tds, NULL, 13);
+	login->option_flag2 = tds_get_byte(tds);
+	/* sql type (byte) + flag3 (byte) + timezone (int) + collation (4 byte) */
+	tds_get_n(tds, NULL, 10);
 
 	packet_start = IS_TDS72_PLUS(tds->conn) ? 86 + 8 : 86;	/* ? */
 	if (packet_len < packet_start)
