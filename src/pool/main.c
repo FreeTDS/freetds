@@ -187,6 +187,7 @@ pool_main_loop(TDS_POOL * pool)
 		perror("socket");
 		exit(1);
 	}
+	tds_socket_set_nonblocking(s);
 	/* don't keep addr in use from s.craig@andronics.com */
 	setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (const void *) &socktrue, sizeof(socktrue));
 
