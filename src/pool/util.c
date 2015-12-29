@@ -166,3 +166,12 @@ pool_write(TDS_SYS_SOCKET sock, const void *buf, size_t len)
 	return p - (const unsigned char *) buf;
 }
 
+void
+pool_event_add(TDS_POOL *pool, TDS_POOL_EVENT *ev)
+{
+	tds_mutex_lock(&pool->events_mtx);
+	ev->next = pool->events;
+	pool->events = ev;
+	tds_mutex_unlock(&pool->events_mtx);
+	WRITESOCKET(pool->event_fd, "x", 1);
+}

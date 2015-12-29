@@ -51,10 +51,17 @@ typedef enum
 } TDS_USER_STATE;
 
 /* forward declaration */
+typedef struct tds_pool_event TDS_POOL_EVENT;
 typedef struct tds_pool_socket TDS_POOL_SOCKET;
 typedef struct tds_pool_member TDS_POOL_MEMBER;
 typedef struct tds_pool_user TDS_POOL_USER;
 typedef struct tds_pool TDS_POOL;
+
+struct tds_pool_event
+{
+	TDS_POOL_EVENT *next;
+	void (*execute)(TDS_POOL_EVENT *event);
+};
 
 struct tds_pool_socket
 {
@@ -91,6 +98,10 @@ struct tds_pool
 	int max_member_age;	/* in seconds */
 	int min_open_conn;
 	int max_open_conn;
+	tds_mutex events_mtx;
+	TDS_SYS_SOCKET event_fd;
+	TDS_POOL_EVENT *events;
+
 	int num_members;
 	int num_active_members;
 	TDS_POOL_MEMBER *members;
@@ -126,6 +137,7 @@ void pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser);
 void dump_login(TDSLOGIN * login);
 void die_if(int expr, const char *msg);
 int pool_write(TDS_SYS_SOCKET s, const void *buf, size_t len);
+void pool_event_add(TDS_POOL *pool, TDS_POOL_EVENT *ev);
 
 /* config.c */
 int pool_read_conf_file(const char *poolname, TDS_POOL * pool);
