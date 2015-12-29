@@ -142,7 +142,7 @@ pool_packet_read(TDSSOCKET *tds)
 	}
 
 	/* failure */
-	tds->in_len = -1;
+	tds->in_len = 0;
 	return false;
 }
 

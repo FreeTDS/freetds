@@ -289,14 +289,6 @@ pool_process_data(TDS_POOL *pool, TDS_POOL_MEMBER *pmbr, int member_index)
 			return;
 		}
 
-		/* error */
-		if (tds->in_len < 0) {
-			fprintf(stderr, "Uh oh! member %d disconnected\n", member_index);
-			perror("read");
-			pool_free_member(pool, pmbr);
-			return;
-		}
-
 		tdsdump_dump_buf(TDS_DBG_NETWORK, "Got packet from server:", tds->in_buf, tds->in_len);
 		/* fprintf(stderr, "read %d bytes from member %d\n", tds->in_len, member_index); */
 		puser = pmbr->current_user;

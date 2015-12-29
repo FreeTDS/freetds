@@ -366,13 +366,8 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 	for (;;) {
 		if (pool_packet_read(tds))
 			break;
-		if (tds->in_len <= 0) {
-			if (tds->in_len == 0) {
-				fprintf(stderr, "user disconnected\n");
-			} else {
-				perror("read");
-				fprintf(stderr, "cleaning up user\n");
-			}
+		if (tds->in_len == 0) {
+			fprintf(stderr, "user disconnected\n");
 
 			pmbr = puser->assigned_member;
 			if (pmbr) {
