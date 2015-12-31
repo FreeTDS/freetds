@@ -191,12 +191,11 @@ pool_free_user(TDS_POOL *pool, TDS_POOL_USER * puser)
  * check the fd_set for user input, allocate a pool member to it, and forward
  * the query to that member.
  */
-int
+void
 pool_process_users(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
 {
 	TDS_POOL_USER *puser;
 	int i;
-	int cnt = 0;
 
 	for (i = 0; i < pool->max_users; i++) {
 
@@ -206,7 +205,6 @@ pool_process_users(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
 			continue;	/* dead connection */
 
 		if (puser->poll_recv && FD_ISSET(tds_get_s(puser->tds), rfds)) {
-			cnt++;
 			switch (puser->user_state) {
 			case TDS_SRV_LOGIN:
 				if (pool_user_login(pool, puser)) {
@@ -228,7 +226,6 @@ pool_process_users(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
 			pool_user_write(pool, puser);
 		}
 	}			/* for */
-	return cnt;
 }
 
 /*

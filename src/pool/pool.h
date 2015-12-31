@@ -109,7 +109,7 @@ void pool_reset_member(TDS_POOL *pool, TDS_POOL_MEMBER * pmbr);
 bool pool_packet_read(TDSSOCKET * tds);
 
 /* user.c */
-int pool_process_users(TDS_POOL * pool, fd_set * rfds, fd_set * wfds);
+void pool_process_users(TDS_POOL * pool, fd_set * rfds, fd_set * wfds);
 void pool_user_init(TDS_POOL * pool);
 void pool_user_destroy(TDS_POOL * pool);
 TDS_POOL_USER *pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s);
