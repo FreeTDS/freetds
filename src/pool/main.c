@@ -143,7 +143,7 @@ pool_schedule_waiters(TDS_POOL * pool)
 	free_mbrs = 0;
 	for (i = 0; i < pool->num_members; i++) {
 		pmbr = &pool->members[i];
-		if (pmbr->tds)
+		if (pmbr->sock.tds)
 			free_mbrs++;
 	}
 
@@ -211,31 +211,31 @@ pool_main_loop(TDS_POOL * pool)
 		for (i = 0; i < pool->max_users; i++) {
 			puser = &pool->users[i];
 			/* skip dead connections */
-			if (IS_TDSDEAD(puser->tds))
+			if (IS_TDSDEAD(puser->sock.tds))
 				continue;
-			if (!puser->poll_recv && !puser->poll_send)
+			if (!puser->sock.poll_recv && !puser->sock.poll_send)
 				continue;
-			if (tds_get_s(puser->tds) > maxfd)
-				maxfd = tds_get_s(puser->tds);
-			if (puser->poll_recv)
-				FD_SET(tds_get_s(puser->tds), &rfds);
-			if (puser->poll_send)
-				FD_SET(tds_get_s(puser->tds), &wfds);
+			if (tds_get_s(puser->sock.tds) > maxfd)
+				maxfd = tds_get_s(puser->sock.tds);
+			if (puser->sock.poll_recv)
+				FD_SET(tds_get_s(puser->sock.tds), &rfds);
+			if (puser->sock.poll_send)
+				FD_SET(tds_get_s(puser->sock.tds), &wfds);
 		}
 
 		/* add the pool member sockets to the read list */
 		for (i = 0; i < pool->num_members; i++) {
 			pmbr = &pool->members[i];
-			if (IS_TDSDEAD(pmbr->tds))
+			if (IS_TDSDEAD(pmbr->sock.tds))
 				continue;
-			if (!pmbr->poll_recv && !pmbr->poll_send)
+			if (!pmbr->sock.poll_recv && !pmbr->sock.poll_send)
 				continue;
-			if (tds_get_s(pmbr->tds) > maxfd)
-				maxfd = tds_get_s(pmbr->tds);
-			if (pmbr->poll_recv)
-				FD_SET(tds_get_s(pmbr->tds), &rfds);
-			if (pmbr->poll_send)
-				FD_SET(tds_get_s(pmbr->tds), &wfds);
+			if (tds_get_s(pmbr->sock.tds) > maxfd)
+				maxfd = tds_get_s(pmbr->sock.tds);
+			if (pmbr->sock.poll_recv)
+				FD_SET(tds_get_s(pmbr->sock.tds), &rfds);
+			if (pmbr->sock.poll_send)
+				FD_SET(tds_get_s(pmbr->sock.tds), &wfds);
 		}
 
 		/* fprintf(stderr, "waiting for a connect\n"); */

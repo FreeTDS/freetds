@@ -51,25 +51,31 @@ typedef enum
 } TDS_USER_STATE;
 
 /* forward declaration */
+typedef struct tds_pool_socket TDS_POOL_SOCKET;
 typedef struct tds_pool_member TDS_POOL_MEMBER;
 typedef struct tds_pool_user TDS_POOL_USER;
 typedef struct tds_pool TDS_POOL;
 
-struct tds_pool_user
+struct tds_pool_socket
 {
 	TDSSOCKET *tds;
-	TDSLOGIN *login;
-	TDS_USER_STATE user_state;
 	bool poll_recv;
 	bool poll_send;
+};
+
+struct tds_pool_user
+{
+	TDS_POOL_SOCKET sock;
+	TDSLOGIN *login;
+	TDS_USER_STATE user_state;
 	TDS_POOL_MEMBER *assigned_member;
 };
 
 struct tds_pool_member
 {
-	TDSSOCKET *tds;
-	bool poll_recv;
-	bool poll_send;
+	TDS_POOL_SOCKET sock;
+	TDS_POOL_MEMBER *next;
+	bool doing_async;
 	time_t last_used_tm;
 	TDS_POOL_USER *current_user;
 };
