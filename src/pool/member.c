@@ -354,13 +354,12 @@ pool_process_data(TDS_POOL *pool, TDS_POOL_MEMBER *pmbr, int member_index)
  * check the fd_set for members returning data to the client, lookup the 
  * client holding this member and forward the results.
  */
-int
+void
 pool_process_members(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
 {
 	TDS_POOL_MEMBER *pmbr;
 	TDSSOCKET *tds;
 	int i, age;
-	int cnt = 0;
 	time_t time_now;
 
 	for (i = 0; i < pool->num_members; i++) {
@@ -384,7 +383,6 @@ pool_process_members(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
 		}
 		if (processed) {
 			pmbr->last_used_tm = time_now;
-			cnt++;
 		} else {
 			age = time_now - pmbr->last_used_tm;
 			if (age > pool->max_member_age
@@ -395,7 +393,6 @@ pool_process_members(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
 			}
 		}
 	}
-	return cnt;
 }
 
 static bool
