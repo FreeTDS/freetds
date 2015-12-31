@@ -48,7 +48,7 @@
 #include <freetds/string.h>
 
 static TDS_POOL_USER *pool_user_find_new(TDS_POOL * pool);
-static int pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser);
+static bool pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser);
 static void pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser);
 
 void
@@ -94,11 +94,8 @@ pool_user_find_new(TDS_POOL * pool)
 	/* first check for dead users to reuse */
 	for (i=0; i<pool->max_users; i++) {
 		puser = &pool->users[i];
-		if (!puser->sock.tds) {
-			puser->sock.poll_recv = true;
-			puser->sock.poll_send = false;
+		if (!puser->sock.tds)
 			return puser;
-		}
 	}
 
 	/* did we exhaust the number of concurrent users? */
@@ -111,10 +108,53 @@ pool_user_find_new(TDS_POOL * pool)
 	puser = &pool->users[pool->max_users];
 	pool->max_users++;
 
-	puser->sock.poll_recv = true;
-	puser->sock.poll_send = false;
 	return puser;
 }
+
+typedef struct {
+	TDS_POOL_EVENT common;
+	TDS_POOL *pool;
+	TDS_POOL_USER *puser;
+	bool success;
+	tds_thread th;
+} LOGIN_EVENT;
+
+static TDS_THREAD_PROC_DECLARE(login_proc, arg)
+{
+	LOGIN_EVENT *ev = (LOGIN_EVENT *) arg;
+
+	ev->success = pool_user_login(ev->pool, ev->puser);
+
+	pool_event_add(ev->pool, &ev->common);
+	return NULL;
+}
+
+static void
+login_execute(TDS_POOL_EVENT *base_event)
+{
+	LOGIN_EVENT *ev = (LOGIN_EVENT *) base_event;
+	TDS_POOL_USER *puser = ev->puser;
+	TDS_POOL *pool = ev->pool;
+
+	tds_thread_join(ev->th, NULL);
+
+	if (!ev->success) {
+		/* login failed...free socket */
+		pool_free_user(pool, puser);
+		return;
+	}
+
+	puser->sock.poll_recv = true;
+
+	/* try to assign a member, connection can have transactions
+	 * and so on so deassign only when disconnected */
+	pool_user_query(pool, puser);
+
+	tdsdump_log(TDS_DBG_INFO1, "user state %d\n", puser->user_state);
+
+	assert(puser->login || puser->user_state == TDS_SRV_QUERY);
+}
+
 
 /*
  * pool_user_create
@@ -126,6 +166,7 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s)
 	TDS_POOL_USER *puser;
 	TDS_SYS_SOCKET fd;
 	TDSSOCKET *tds;
+	LOGIN_EVENT *ev;
 
 	fprintf(stderr, "accepting connection\n");
 	if (TDS_IS_SOCKET_INVALID(fd = tds_accept(s, NULL, NULL))) {
@@ -149,19 +190,35 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s)
 		CLOSESOCKET(fd);
 		return NULL;
 	}
-	if (TDS_FAILED(tds_iconv_open(tds->conn, "UTF-8", 0))) {
+	ev = calloc(1, sizeof(*ev));
+	if (!ev || TDS_FAILED(tds_iconv_open(tds->conn, "UTF-8", 0))) {
+		free(ev);
 		tds_free_socket(tds);
 		CLOSESOCKET(fd);
 		return NULL;
 	}
-	tds_set_parent(tds, NULL);
 	/* FIX ME - little endian emulation should be config file driven */
 	tds->conn->emul_little_endian = 1;
 	tds_set_s(tds, fd);
 	tds->state = TDS_IDLE;
 	tds->out_flag = TDS_LOGIN;
+
 	puser->sock.tds = tds;
-	puser->user_state = TDS_SRV_LOGIN;
+	puser->user_state = TDS_SRV_QUERY;
+	puser->sock.poll_recv = false;
+	puser->sock.poll_send = false;
+
+	/* launch login asyncronously */
+	ev->puser = puser;
+	ev->common.execute = login_execute;
+	ev->pool = pool;
+
+	if (tds_thread_create(&ev->th, login_proc, ev) != 0) {
+		pool_free_user(pool, puser);
+		fprintf(stderr, "error creating thread\n");
+		return NULL;
+	}
+
 	return puser;
 }
 
@@ -205,23 +262,10 @@ pool_process_users(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
 			continue;	/* dead connection */
 
 		if (puser->sock.poll_recv && FD_ISSET(tds_get_s(puser->sock.tds), rfds)) {
-			switch (puser->user_state) {
-			case TDS_SRV_LOGIN:
-				if (pool_user_login(pool, puser)) {
-					/* login failed...free socket */
-					pool_free_user(pool, puser);
-				}
-				/* otherwise we have a good login */
-				break;
-			case TDS_SRV_QUERY:
-				/* what is this? a cancel perhaps */
-				pool_user_read(pool, puser);
-				break;
-			/* just to avoid a warning */
-			case TDS_SRV_WAIT:
-				break;
-			}	/* switch */
-		}		/* if */
+			assert(puser->user_state == TDS_SRV_QUERY);
+			/* what is this? a cancel perhaps */
+			pool_user_read(pool, puser);
+		}
 		if (puser->sock.poll_send && FD_ISSET(tds_get_s(puser->sock.tds), wfds)) {
 			if (!pool_write_data(&puser->assigned_member->sock, &puser->sock))
 				pool_free_member(pool, puser->assigned_member);
@@ -233,7 +277,7 @@ pool_process_users(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
  * pool_user_login
  * Reads clients login packet and forges a login acknowledgement sequence 
  */
-static int
+static bool
 pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 {
 	TDSSOCKET *tds;
@@ -242,7 +286,7 @@ pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 	tds = puser->sock.tds;
 	while (tds->in_len <= tds->in_pos)
 		if (tds_read_packet(tds) < 0)
-			return 1;
+			return false;
 
 	tdsdump_log(TDS_DBG_NETWORK, "got packet type %d\n", tds->in_flag);
 	if (tds->in_flag == TDS71_PRELOGIN) {
@@ -253,11 +297,15 @@ pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 		// TODO detect TDS version here ??
 		tds_put_n(tds, "\x00\x00\x1a\x00\x06\x01\x00\x20\x00\x01\x02\x00\x21\x00\x01\x03\x00\x22\x00\x00\x04\x00\x22\x00\x01\xff\x0a\x00\x06\x40\x00\x00\x02\x01\x00", 0x23);
 		tds_flush_packet(tds);
+
+		/* read another packet */
 		tds->in_pos = tds->in_len;
-		return 0;
+		while (tds->in_len <= tds->in_pos)
+			if (tds_read_packet(tds) < 0)
+				return false;
 	}
 
-	login = tds_alloc_login(1);
+	puser->login = login = tds_alloc_login(1);
 	if (tds->in_flag == TDS_LOGIN) {
 		if (!tds->conn->tds_version)
 			tds->conn->tds_version = 0x500;
@@ -265,41 +313,26 @@ pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 	} else if (tds->in_flag == TDS7_LOGIN) {
 		if (!tds->conn->tds_version)
 			tds->conn->tds_version = 0x700;
-		if (!tds7_read_login(tds, login)) {
-			tds_free_login(login);
-			return 1;
-		}
+		if (!tds7_read_login(tds, login))
+			return false;
 	} else {
-		tds_free_login(login);
-		return 1;
+		return false;
 	}
 
 	/* check we support version required */
-	if (!IS_TDS71_PLUS(login)) {
-		tds_free_login(login);
-		return 1;
-	}
+	// TODO function to check it
+	if (!IS_TDS71_PLUS(login))
+		return false;
 
 	tds->in_len = tds->in_pos = 0;
 
 	dump_login(login);
-	if (!strcmp(tds_dstr_cstr(&login->user_name), pool->user) && !strcmp(tds_dstr_cstr(&login->password), pool->password)) {
-		puser->login = login;
+	if (strcmp(tds_dstr_cstr(&login->user_name), pool->user) != 0
+	    || strcmp(tds_dstr_cstr(&login->password), pool->password) != 0)
+		/* TODO send nack before exiting */
+		return false;
 
-		/* try to assign a member, connection can have transactions
-		 * and so on so deassign only when disconnected */
-		pool_user_query(pool, puser);
-
-		tdsdump_log(TDS_DBG_INFO1, "user state %d\n", puser->user_state);
-
-		assert(puser->login || puser->user_state == TDS_SRV_QUERY);
-
-		return 0;
-	}
-
-	tds_free_login(login);
-	/* TODO send nack before exiting */
-	return 1;
+	return true;
 }
 
 static void
@@ -442,13 +475,16 @@ pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser)
 		fprintf(stderr, "Not enough free members...placing user in WAIT\n");
 		puser->user_state = TDS_SRV_WAIT;
 		puser->sock.poll_recv = false;
+		puser->sock.poll_send = false;
 		pool->waiters++;
 		return;
 	}
 
-	puser->sock.poll_recv = true;
-	puser->sock.poll_send = false;
+	puser->user_state = TDS_SRV_QUERY;
 	pool_assign_member(pmbr, puser);
 	pool_user_send_login_ack(pool, puser);
-	puser->user_state = TDS_SRV_QUERY;
+	puser->sock.poll_recv = true;
+	puser->sock.poll_send = false;
+	pmbr->sock.poll_recv = true;
+	pmbr->sock.poll_send = false;
 }

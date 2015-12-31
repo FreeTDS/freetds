@@ -45,7 +45,6 @@
 /* enums and typedefs */
 typedef enum
 {
-	TDS_SRV_LOGIN,
 	TDS_SRV_WAIT,		/* if no members are free wait */
 	TDS_SRV_QUERY,
 } TDS_USER_STATE;

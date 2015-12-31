@@ -135,8 +135,6 @@ pool_assign_member(TDS_POOL_MEMBER * pmbr, TDS_POOL_USER *puser)
 	if (pmbr->current_user)
 		pmbr->current_user->assigned_member = NULL;
 	pmbr->current_user = puser;
-	pmbr->sock.poll_recv = true;
-	pmbr->sock.poll_send = false;
 	puser->assigned_member = pmbr;
 }
 
