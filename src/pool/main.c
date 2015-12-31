@@ -163,6 +163,28 @@ pool_schedule_waiters(TDS_POOL * pool)
 	}
 }
 
+typedef struct select_info
+{
+	fd_set rfds, wfds;
+	TDS_SYS_SOCKET maxfd;
+} SELECT_INFO;
+
+static void
+pool_select_add_socket(SELECT_INFO *sel, TDS_POOL_SOCKET *sock)
+{
+	/* skip dead connections */
+	if (IS_TDSDEAD(sock->tds))
+		return;
+	if (!sock->poll_recv && !sock->poll_send)
+		return;
+	if (tds_get_s(sock->tds) > sel->maxfd)
+		sel->maxfd = tds_get_s(sock->tds);
+	if (sock->poll_recv)
+		FD_SET(tds_get_s(sock->tds), &sel->rfds);
+	if (sock->poll_send)
+		FD_SET(tds_get_s(sock->tds), &sel->wfds);
+}
+
 /* 
  * pool_main_loop
  * Accept new connections from clients, and handle all input from clients and
@@ -171,12 +193,10 @@ pool_schedule_waiters(TDS_POOL * pool)
 static void
 pool_main_loop(TDS_POOL * pool)
 {
-	TDS_POOL_USER *puser;
-	TDS_POOL_MEMBER *pmbr;
 	struct sockaddr_in sin;
-	TDS_SYS_SOCKET s, maxfd;
+	TDS_SYS_SOCKET s;
 	int i;
-	fd_set rfds, wfds;
+	SELECT_INFO sel;
 	int socktrue = 1;
 
 	/* FIXME -- read the interfaces file and bind accordingly */
@@ -201,55 +221,32 @@ pool_main_loop(TDS_POOL * pool)
 
 	while (!term) {
 
-		FD_ZERO(&rfds);
-		FD_ZERO(&wfds);
+		FD_ZERO(&sel.rfds);
+		FD_ZERO(&sel.wfds);
 		/* add the listening socket to the read list */
-		FD_SET(s, &rfds);
-		maxfd = s;
+		FD_SET(s, &sel.rfds);
+		sel.maxfd = s;
 
 		/* add the user sockets to the read list */
-		for (i = 0; i < pool->max_users; i++) {
-			puser = &pool->users[i];
-			/* skip dead connections */
-			if (IS_TDSDEAD(puser->sock.tds))
-				continue;
-			if (!puser->sock.poll_recv && !puser->sock.poll_send)
-				continue;
-			if (tds_get_s(puser->sock.tds) > maxfd)
-				maxfd = tds_get_s(puser->sock.tds);
-			if (puser->sock.poll_recv)
-				FD_SET(tds_get_s(puser->sock.tds), &rfds);
-			if (puser->sock.poll_send)
-				FD_SET(tds_get_s(puser->sock.tds), &wfds);
-		}
+		for (i = 0; i < pool->max_users; i++)
+			pool_select_add_socket(&sel, &pool->users[i].sock);
 
 		/* add the pool member sockets to the read list */
-		for (i = 0; i < pool->num_members; i++) {
-			pmbr = &pool->members[i];
-			if (IS_TDSDEAD(pmbr->sock.tds))
-				continue;
-			if (!pmbr->sock.poll_recv && !pmbr->sock.poll_send)
-				continue;
-			if (tds_get_s(pmbr->sock.tds) > maxfd)
-				maxfd = tds_get_s(pmbr->sock.tds);
-			if (pmbr->sock.poll_recv)
-				FD_SET(tds_get_s(pmbr->sock.tds), &rfds);
-			if (pmbr->sock.poll_send)
-				FD_SET(tds_get_s(pmbr->sock.tds), &wfds);
-		}
+		for (i = 0; i < pool->num_members; i++)
+			pool_select_add_socket(&sel, &pool->members[i].sock);
 
 		/* fprintf(stderr, "waiting for a connect\n"); */
 		/* FIXME check return value */
-		select(maxfd + 1, &rfds, &wfds, NULL, NULL);
+		select(sel.maxfd + 1, &sel.rfds, &sel.wfds, NULL, NULL);
 		if (term)
 			break;
 
 		/* process the sockets */
-		if (FD_ISSET(s, &rfds)) {
+		if (FD_ISSET(s, &sel.rfds)) {
 			pool_user_create(pool, s);
 		}
-		pool_process_users(pool, &rfds, &wfds);
-		pool_process_members(pool, &rfds, &wfds);
+		pool_process_users(pool, &sel.rfds, &sel.wfds);
+		pool_process_members(pool, &sel.rfds, &sel.wfds);
 
 		/* back from members */
 		if (pool->waiters) {
