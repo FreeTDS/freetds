@@ -23,6 +23,11 @@ AC_CONFIG_MACRO_DIR([m4])
 dnl configuration directory will be /usr/local/etc
 AC_PREFIX_DEFAULT(/usr/local)
 
+dnl This disable address sanitizer leak detector as
+dnl some checks cause leaks which are detected as errors
+ASAN_OPTIONS='detect_leaks=0'
+export ASAN_OPTIONS
+
 dnl 0.X.Y -> 0.X.Y
 dnl 0.X.dev.date -> 0.(X-1).9999
 dnl 0.XrcY -> 0.(X-1).9999
