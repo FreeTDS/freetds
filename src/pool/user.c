@@ -50,7 +50,6 @@
 static TDS_POOL_USER *pool_user_find_new(TDS_POOL * pool);
 static int pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser);
 static void pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser);
-static void pool_user_write(TDS_POOL * pool, TDS_POOL_USER * puser);
 
 void
 pool_user_init(TDS_POOL * pool)
@@ -224,7 +223,8 @@ pool_process_users(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
 			}	/* switch */
 		}		/* if */
 		if (puser->sock.poll_send && FD_ISSET(tds_get_s(puser->sock.tds), wfds)) {
-			pool_user_write(pool, puser);
+			if (!pool_write_data(&puser->assigned_member->sock, &puser->sock))
+				pool_free_member(pool, puser->assigned_member);
 		}
 	}			/* for */
 }
@@ -385,7 +385,8 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 			case TDS_BULK:
 			case TDS_CANCEL:
 			case TDS7_TRANS:
-				pool_user_write(pool, puser);
+				if (!pool_write_data(&puser->sock, &puser->assigned_member->sock))
+					pool_reset_member(pool, puser->assigned_member);
 				pmbr = puser->assigned_member;
 				break;
 
@@ -428,33 +429,4 @@ pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser)
 	pool_assign_member(pmbr, puser);
 	pool_user_send_login_ack(pool, puser);
 	puser->user_state = TDS_SRV_QUERY;
-}
-
-static void
-pool_user_write(TDS_POOL * pool, TDS_POOL_USER * puser)
-{
-	TDS_POOL_MEMBER *pmbr = puser->assigned_member;
-	int ret;
-	TDSSOCKET *tds;
-
-	tdsdump_log(TDS_DBG_INFO1, "trying to send\n");
-
-	tds = puser->sock.tds;
-	tdsdump_log(TDS_DBG_INFO1, "sending %d bytes\n", tds->in_len);
-	/* cf. net.c for better technique.  */
-	ret = pool_write(tds_get_s(pmbr->sock.tds), tds->in_buf + tds->in_pos, tds->in_len - tds->in_pos);
-	/* write failed, cleanup member */
-	if (ret < 0) {
-		pool_free_member(pool, pmbr);
-		return;
-	}
-	tds->in_pos += ret;
-	if (tds->in_pos < tds->in_len) {
-		/* partial write, schedule a future write */
-		pmbr->sock.poll_send = true;
-		puser->sock.poll_recv = false;
-	} else {
-		pmbr->sock.poll_send = false;
-		puser->sock.poll_recv = true;
-	}
 }

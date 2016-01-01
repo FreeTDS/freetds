@@ -276,40 +276,10 @@ pool_mbr_destroy(TDS_POOL * pool)
 }
 
 static void
-pool_mbr_write(TDS_POOL *pool, TDS_POOL_MEMBER *pmbr)
-{
-	TDSSOCKET *tds = pmbr->sock.tds;
-	TDS_POOL_USER *puser;
-	int ret;
-
-	puser = pmbr->current_user;
-	if (!puser)
-		return;
-
-	ret = pool_write(tds_get_s(puser->sock.tds), &tds->in_buf[tds->in_pos], tds->in_len - tds->in_pos);
-	if (ret < 0) { /* couldn't write, ditch the user */
-		fprintf(stdout, "member received error while writing\n");
-		pool_reset_member(pool, pmbr);
-		return;
-	}
-
-	tds->in_pos += ret;
-	if (tds->in_pos < tds->in_len) {
-		/* partial write, schedule a future write */
-		pmbr->sock.poll_recv = false;
-		puser->sock.poll_send = true;
-	} else {
-		pmbr->sock.poll_recv = true;
-		puser->sock.poll_send = false;
-	}
-}
-
-static void
 pool_process_data(TDS_POOL *pool, TDS_POOL_MEMBER *pmbr, int member_index)
 {
 	TDSSOCKET *tds = pmbr->sock.tds;
 	TDS_POOL_USER *puser = NULL;
-	int ret;
 
 	for (;;) {
 		if (pool_packet_read(tds))
@@ -330,21 +300,15 @@ pool_process_data(TDS_POOL *pool, TDS_POOL_MEMBER *pmbr, int member_index)
 			break;
 
 		tdsdump_log(TDS_DBG_INFO1, "writing it sock %d\n", tds_get_s(puser->sock.tds));
-		/* cf. net.c for better technique.  */
-		ret = pool_write(tds_get_s(puser->sock.tds), tds->in_buf, tds->in_len);
-		if (ret < 0) { /* couldn't write, ditch the user */
-			fprintf(stdout, "member %d received error while writing\n", member_index);
-			pool_free_member(pool, pmbr);
+		if (!pool_write_data(&pmbr->sock, &puser->sock)) {
+			fprintf(stdout, "member received error while writing\n");
+			pool_free_user(pool, puser);
 			puser = NULL;
 			return;
 		}
-		tds->in_pos += ret;
-		if (tds->in_pos < tds->in_len) {
+		if (tds->in_pos < tds->in_len)
 			/* partial write, schedule a future write */
-			pmbr->sock.poll_recv = false;
-			puser->sock.poll_send = true;
 			break;
-		}
 	}
 	if (puser && !puser->sock.poll_send)
 		tds_socket_flush(tds_get_s(puser->sock.tds));
@@ -379,7 +343,8 @@ pool_process_members(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
 			processed = true;
 		}
 		if (pmbr->sock.poll_send && FD_ISSET(tds_get_s(tds), wfds)) {
-			pool_mbr_write(pool, pmbr);
+			if (!pool_write_data(&pmbr->current_user->sock, &pmbr->sock))
+				pool_free_member(pool, pmbr);
 			processed = true;
 		}
 		if (processed) {

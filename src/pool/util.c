@@ -144,7 +144,7 @@ pool_packet_read(TDSSOCKET *tds)
 	return false;
 }
 
-int
+static int
 pool_write(TDS_SYS_SOCKET sock, const void *buf, size_t len)
 {
 	int ret;
@@ -172,4 +172,32 @@ pool_event_add(TDS_POOL *pool, TDS_POOL_EVENT *ev)
 	pool->events = ev;
 	tds_mutex_unlock(&pool->events_mtx);
 	WRITESOCKET(pool->event_fd, "x", 1);
+}
+
+bool
+pool_write_data(TDS_POOL_SOCKET *from, TDS_POOL_SOCKET *to)
+{
+	int ret;
+	TDSSOCKET *tds;
+
+	tdsdump_log(TDS_DBG_INFO1, "trying to send\n");
+
+	tds = from->tds;
+	tdsdump_log(TDS_DBG_INFO1, "sending %d bytes\n", tds->in_len);
+	/* cf. net.c for better technique.  */
+	ret = pool_write(tds_get_s(to->tds), tds->in_buf + tds->in_pos, tds->in_len - tds->in_pos);
+	/* write failed, cleanup member */
+	if (ret < 0)
+		return false;
+
+	tds->in_pos += ret;
+	if (tds->in_pos < tds->in_len) {
+		/* partial write, schedule a future write */
+		to->poll_send = true;
+		from->poll_recv = false;
+	} else {
+		to->poll_send = false;
+		from->poll_recv = true;
+	}
+	return true;
 }
