@@ -122,10 +122,8 @@ pool_packet_read(TDSSOCKET *tds)
 		tdsdump_log(TDS_DBG_INFO1, "readed %d\n", readed);
 
 		/* socket closed */
-		if (readed == 0) {
-			tds->in_len = 0;
-			return false;
-		}
+		if (readed == 0)
+			break;
 
 		/* error */
 		if (readed < 0) {
