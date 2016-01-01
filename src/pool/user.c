@@ -173,9 +173,10 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s)
 void
 pool_free_user(TDS_POOL *pool, TDS_POOL_USER * puser)
 {
-	if (puser->assigned_member) {
-		pool_deassign_member(puser->assigned_member);
-		puser->assigned_member = NULL;
+	TDS_POOL_MEMBER *pmbr = puser->assigned_member;
+	if (pmbr) {
+		pool_deassign_member(pmbr);
+		pool_reset_member(pool, pmbr);
 	}
 
 	/* make sure to decrement the waiters list if he is waiting */
@@ -370,14 +371,7 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 			break;
 		if (tds->in_len == 0) {
 			fprintf(stderr, "user disconnected\n");
-
-			pmbr = puser->assigned_member;
-			if (pmbr) {
-				fprintf(stderr, "user has assigned member, freeing\n");
-				pool_reset_member(pool, pmbr);
-			} else {
-				pool_free_user(pool, puser);
-			}
+			pool_free_user(pool, puser);
 			return;
 		} else {
 			TDS_UCHAR in_flag = tds->in_buf[0];
