@@ -1136,6 +1136,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	if (IS_TDS72_PLUS(tds->conn))
 #if ENABLE_ODBC_MARS
 		tds_put_byte(tds, login->mars);
+	login->mars = 0;
 #else
 		tds_put_byte(tds, 0);
 #endif
@@ -1172,6 +1173,10 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 		if (type == 1 && len >= 1) {
 			crypt_flag = p[off];
 		}
+#if ENABLE_ODBC_MARS
+		if (IS_TDS72_PLUS(tds->conn) && type == 4 && len >= 1)
+			login->mars = p[off];
+#endif
 	}
 	/* we readed all packet */
 	tds->in_pos += pkt_len;
