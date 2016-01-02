@@ -39,6 +39,7 @@ check_dbname(const char *dbname)
 {
 	SQLINTEGER len;
 	SQLTCHAR out[512];
+	char sql[1024];
 
 	len = sizeof(out);
 	CHKGetConnectAttr(SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) out, sizeof(out), &len, "SI");
@@ -47,6 +48,12 @@ check_dbname(const char *dbname)
 		fprintf(stderr, "Current database (%s) is not %s\n", C(out), dbname);
 		failed = 1;
 	}
+
+	sprintf(sql, "IF DB_NAME() <> '%s' SELECT 1", dbname);
+	CHKAllocStmt(&odbc_stmt, "S");
+	odbc_check_no_row(sql);
+	SQLFreeStmt(odbc_stmt, SQL_DROP);
+	odbc_stmt = SQL_NULL_HSTMT;
 }
 
 static void
