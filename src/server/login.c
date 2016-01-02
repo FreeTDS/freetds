@@ -165,7 +165,6 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	size_t unicode_len, password_len;
 	char *unicode_string, *psrc;
 	char *pbuf;
-	DSTR database = DSTR_INITIALIZER;
 	int res = 1;
 	unsigned packet_start, len, start;
 	TDS_UINT packet_len;
@@ -265,9 +264,7 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	res = res && tds_dstr_get(tds, &login->server_name, server_name_len);
 	res = res && tds_dstr_get(tds, &login->library, library_name_len);
 	res = res && tds_dstr_get(tds, &login->language, language_name_len);
-	/* TODO use it */
-	res = res && tds_dstr_get(tds, &database, database_name_len);
-	tds_dstr_free(&database);
+	res = res && tds_dstr_get(tds, &login->database, database_name_len);
 
 	tds_get_n(tds, NULL, auth_len);
 
