@@ -872,3 +872,23 @@ odbc_find_last_socket(void)
 	return found[num_found-1].sock;
 }
 
+void
+odbc_check_no_row(const char *query)
+{
+	SQLRETURN rc;
+
+	rc = CHKExecDirect(T(query), SQL_NTS, "SINo");
+	if (rc == SQL_NO_DATA)
+		return;
+
+	do {
+		SQLSMALLINT cols;
+
+		CHKNumResultCols(&cols, "S");
+		if (cols != 0) {
+			fprintf(stderr, "Data not expected here, query:\n\t%s\n", query);
+			odbc_disconnect();
+			exit(1);
+		}
+	} while (CHKMoreResults("SNo") == SQL_SUCCESS);
+}

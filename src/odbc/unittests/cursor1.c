@@ -7,27 +7,6 @@
 static int mssql2005 = 0;
 
 static void
-CheckNoRow(const char *query)
-{
-	SQLRETURN rc;
-
-	rc = CHKExecDirect(T(query), SQL_NTS, "SINo");
-	if (rc == SQL_NO_DATA)
-		return;
-
-	do {
-		SQLSMALLINT cols;
-
-		CHKNumResultCols(&cols, "S");
-		if (cols != 0) {
-			fprintf(stderr, "Data not expected here, query:\n\t%s\n", query);
-			odbc_disconnect();
-			exit(1);
-		}
-	} while (CHKMoreResults("SNo") == SQL_SUCCESS);
-}
-
-static void
 Test0(int use_sql, const char *create_sql, const char *insert_sql, const char *select_sql)
 {
 #define ROWS 4
@@ -129,12 +108,12 @@ Test0(int use_sql, const char *create_sql, const char *insert_sql, const char *s
 	odbc_reset_statement();
 
 	/* test values */
-	CheckNoRow("IF (SELECT COUNT(*) FROM #test) <> 4 SELECT 1");
-	CheckNoRow("IF NOT EXISTS(SELECT * FROM #test WHERE i = 3 AND c = 'ccc') SELECT 1");
-	CheckNoRow("IF NOT EXISTS(SELECT * FROM #test WHERE i = 4 AND c = 'dddd') SELECT 1");
+	odbc_check_no_row("IF (SELECT COUNT(*) FROM #test) <> 4 SELECT 1");
+	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM #test WHERE i = 3 AND c = 'ccc') SELECT 1");
+	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM #test WHERE i = 4 AND c = 'dddd') SELECT 1");
 	if (strstr(select_sql, "#a") == NULL || use_sql) {
-		CheckNoRow("IF NOT EXISTS(SELECT * FROM #test WHERE i = 2 AND c = 'foo') SELECT 1");
-		CheckNoRow("IF NOT EXISTS(SELECT * FROM #test WHERE i = 6 AND c = 'foo') SELECT 1");
+		odbc_check_no_row("IF NOT EXISTS(SELECT * FROM #test WHERE i = 2 AND c = 'foo') SELECT 1");
+		odbc_check_no_row("IF NOT EXISTS(SELECT * FROM #test WHERE i = 6 AND c = 'foo') SELECT 1");
 	}
 }
 

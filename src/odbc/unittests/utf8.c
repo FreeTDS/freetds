@@ -13,26 +13,6 @@ init_connect(void)
 	CHKAllocConnect(&odbc_conn, "S");
 }
 
-static void
-CheckNoRow(const char *query)
-{
-	SQLRETURN rc;
-
-	rc = CHKExecDirect(T(query), SQL_NTS, "SINo");
-	if (rc == SQL_NO_DATA)
-		return;
-
-	do {
-		SQLSMALLINT cols;
-
-		CHKNumResultCols(&cols, "S");
-		if (cols != 0) {
-			fprintf(stderr, "Data not expected here, query:\n\t%s\n", query);
-			exit(1);
-		}
-	} while (CHKMoreResults("SNo") == SQL_SUCCESS);
-}
-
 /* test table name, it contains two japanese characters */
 static const char table_name[] = "mytab\xe7\x8e\x8b\xe9\xb4\xbb";
 
@@ -96,7 +76,7 @@ TestBinding(int minimun)
 	/* check rows */
 	for (n = 1, p = strings_hex; p[0] && p[1]; p += 2, ++n) {
 		sprintf(tmp, "IF NOT EXISTS(SELECT * FROM %s WHERE k = %d AND c = %s AND vc = %s) SELECT 1", table_name, (int) n, p[0], p[1]);
-		CheckNoRow(tmp);
+		odbc_check_no_row(tmp);
 	}
 
 	odbc_reset_statement();
@@ -147,7 +127,7 @@ main(int argc, char *argv[])
 	/* check rows */
 	for (n = 1, p = strings_hex; p[0] && p[1]; p += 2, ++n) {
 		sprintf(tmp, "IF NOT EXISTS(SELECT * FROM %s WHERE k = %d AND c = %s AND vc = %s) SELECT 1", table_name, (int) n, p[0], p[1]);
-		CheckNoRow(tmp);
+		odbc_check_no_row(tmp);
 	}
 
 	TestBinding(0);
