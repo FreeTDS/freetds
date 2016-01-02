@@ -325,16 +325,38 @@ pool_user_send_login_ack(TDS_POOL * pool, TDS_POOL_USER * puser)
 	if (!database)
 		database = mtds->conn->env.database;
 
+	// 7.0
+	// env database
+	// database change message (with server name correct)
+	// env language
+	// language change message
+	// env 0x3 charset ("iso_1")
+	// env 0x5 lcid ("1033")
+	// env 0x6 ("196609" ?? 0x30001)
+	// loginack
+	// env 0x4 packet size
+	// done
+	//
+	// 7.1/7.2/7.3
+	// env database
+	// database change message (with server name correct)
+	// env 0x7 collation
+	// env language
+	// language change message
+	// loginack
+	// env 0x4 packet size
+	// done
 	tds->out_flag = TDS_REPLY;
 	tds_env_change(tds, TDS_ENV_DATABASE, "master", database);
 	sprintf(msg, "Changed database context to '%s'.", database);
-	tds_send_msg(tds, 5701, 2, 10, msg, "JDBC", "ZZZZZ", 1);
+	// FIXME correct server name
+	tds_send_msg(tds, 5701, 2, 0, msg, "JDBC", NULL, 1);
 	if (!login->suppress_language) {
 		tds_env_change(tds, TDS_ENV_LANG, NULL, "us_english");
-		tds_send_msg(tds, 5703, 1, 10, "Changed language setting to 'us_english'.", "JDBC", "ZZZZZ", 1);
+		tds_send_msg(tds, 5703, 1, 0, "Changed language setting to 'us_english'.", "JDBC", NULL, 1);
 	}
 
-	if (IS_TDS7_PLUS(tds->conn)) {
+	if (IS_TDS71_PLUS(tds->conn)) {
 		tds_put_byte(tds, TDS_ENVCHANGE_TOKEN);
 		tds_put_smallint(tds, 8);
 		tds_put_byte(tds, TDS_ENV_SQLCOLLATION);
@@ -343,9 +365,9 @@ pool_user_send_login_ack(TDS_POOL * pool, TDS_POOL_USER * puser)
 		tds_put_byte(tds, 0);
 	}
 
+	tds_send_login_ack(tds, mtds->conn->product_name);
 	sprintf(block, "%d", tds->conn->env.block_size);
 	tds_env_change(tds, TDS_ENV_PACKSIZE, block, block);
-	tds_send_login_ack(tds, mtds->conn->product_name);
 	/* tds_send_capabilities_token(tds); */
 	tds_send_done_token(tds, 0, 0);
 
