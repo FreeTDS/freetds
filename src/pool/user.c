@@ -295,7 +295,17 @@ pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 		tds->out_flag = TDS_REPLY;
 		// TODO proper one !!
 		// TODO detect TDS version here ??
-		tds_put_n(tds, "\x00\x00\x1a\x00\x06\x01\x00\x20\x00\x01\x02\x00\x21\x00\x01\x03\x00\x22\x00\x00\x04\x00\x22\x00\x01\xff\x0a\x00\x06\x40\x00\x00\x02\x01\x00", 0x23);
+		tds_put_n(tds,  "\x00\x00\x1a\x00\x06" /* version */
+				"\x01\x00\x20\x00\x01" /* encryption */
+				"\x02\x00\x21\x00\x01" /* instance ?? */
+				"\x03\x00\x22\x00\x00" /* process id ?? */
+				"\x04\x00\x22\x00\x01" /* MARS */
+				"\xff"
+				"\x0a\x00\x06\x40\x00\x00"
+				"\x02"
+				"\x01"
+				""
+				"\x00", 0x23);
 		tds_flush_packet(tds);
 
 		/* read another packet */
