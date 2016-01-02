@@ -161,11 +161,12 @@ pool_reset_member(TDS_POOL * pool, TDS_POOL_MEMBER * pmbr)
 {
 	// FIXME not wait for server !!! asyncronous
 	TDSSOCKET *tds = pmbr->sock.tds;
+	TDS_POOL_USER *puser;
 
-	if (pmbr->current_user) {
-		pmbr->current_user->assigned_member = NULL;
-		pool_free_user(pool, pmbr->current_user);
-		pmbr->current_user = NULL;
+	puser = pmbr->current_user;
+	if (puser) {
+		pool_deassign_member(pmbr);
+		pool_free_user(pool, puser);
 	}
 
 	/* cancel whatever pending */
@@ -198,22 +199,26 @@ pool_reset_member(TDS_POOL * pool, TDS_POOL_MEMBER * pmbr)
 void
 pool_free_member(TDS_POOL * pool, TDS_POOL_MEMBER * pmbr)
 {
-	TDSSOCKET *tds = pmbr->sock.tds;
-	if (!IS_TDSDEAD(tds))
-		tds_close_socket(tds);
+	TDSSOCKET *tds;
+	TDS_POOL_USER *puser;
+
+	tds = pmbr->sock.tds;
 	if (tds) {
+		if (!IS_TDSDEAD(tds))
+			tds_close_socket(tds);
 		pool_mbr_free_socket(tds);
 		pool->num_active_members--;
+		pmbr->sock.tds = NULL;
 	}
-	pmbr->sock.tds = NULL;
+
 	/*
 	 * if he is allocated disconnect the client 
 	 * otherwise we end up with broken client.
 	 */
-	if (pmbr->current_user) {
-		pmbr->current_user->assigned_member = NULL;
-		pool_free_user(pool, pmbr->current_user);
-		pmbr->current_user = NULL;
+	puser = pmbr->current_user;
+	if (puser) {
+		pool_deassign_member(pmbr);
+		pool_free_user(pool, puser);
 	}
 	memset(pmbr, 0, sizeof(*pmbr));
 }
@@ -255,20 +260,10 @@ pool_mbr_init(TDS_POOL * pool)
 void
 pool_mbr_destroy(TDS_POOL * pool)
 {
-	TDS_POOL_MEMBER *pmbr;
 	int i;
 
-	for (i = 0; i < pool->num_members; i++) {
-		pmbr = &pool->members[i];
-		if (!IS_TDSDEAD(pmbr->sock.tds)) {
-			fprintf(stderr, "Closing member %d\n", i);
-			tds_close_socket(pmbr->sock.tds);
-		}
-		if (pmbr->sock.tds) {
-			pool_mbr_free_socket(pmbr->sock.tds);
-			pmbr->sock.tds = NULL;
-		}
-	}
+	for (i = 0; i < pool->num_members; i++)
+		pool_free_member(pool, &pool->members[i]);
 	free(pool->members);
 	pool->members = NULL;
 	pool->num_members = 0;
@@ -303,7 +298,6 @@ pool_process_data(TDS_POOL *pool, TDS_POOL_MEMBER *pmbr, int member_index)
 		if (!pool_write_data(&pmbr->sock, &puser->sock)) {
 			fprintf(stdout, "member received error while writing\n");
 			pool_free_user(pool, puser);
-			puser = NULL;
 			return;
 		}
 		if (tds->in_pos < tds->in_len)
