@@ -168,32 +168,34 @@ pool_reset_member(TDS_POOL * pool, TDS_POOL_MEMBER * pmbr)
 	}
 
 	/* cancel whatever pending */
-	tds->state = TDS_IDLE;
 	tds_init_write_buf(tds);
+	if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
+		goto failure;
 	tds->out_flag = TDS_CANCEL;
-	tds_flush_packet(tds);
-	tds->state = TDS_PENDING;
+	if (TDS_FAILED(tds_flush_packet(tds)))
+		goto failure;
+	tds_set_state(tds, TDS_PENDING);
+	tds->in_cancel = 2;
 
-	if (tds_read_packet(tds) < 0) {
-		pool_free_member(pool, pmbr);
-		return;
-	}
+	if (TDS_FAILED(tds_process_cancel(tds)))
+		goto failure;
 
 	if (IS_TDS71_PLUS(tds->conn)) {
 		/* this 0x9 final reset the state from mssql 2000 */
-		tds_init_write_buf(tds);
-		tds->out_flag = TDS_QUERY;
+		if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
+			goto failure;
+		tds_start_query(tds, TDS_QUERY);
 		tds_put_string(tds, "SET TRANSACTION ISOLATION LEVEL READ COMMITTED", -1);
 		tds_write_packet(tds, 0x9);
-		tds->state = TDS_PENDING;
+		tds_set_state(tds, TDS_PENDING);
 
-		if (tds_read_packet(tds) < 0) {
-			pool_free_member(pool, pmbr);
-			return;
-		}
+		if (TDS_FAILED(tds_process_simple_query(tds)))
+			goto failure;
 	}
-	tds->in_pos = tds->in_len;
-	tds->state = TDS_IDLE;
+	return;
+
+failure:
+	pool_free_member(pool, pmbr);
 }
 
 void
