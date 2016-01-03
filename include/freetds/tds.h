@@ -1356,6 +1356,8 @@ int tds_connect_and_login(TDSSOCKET * tds, TDSLOGIN * login);
 
 
 /* query.c */
+void tds_start_query(TDSSOCKET *tds, unsigned char packet_type);
+
 TDSRET tds_submit_query(TDSSOCKET * tds, const char *query);
 TDSRET tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params, TDSHEADERS * head);
 TDSRET tds_submit_queryf(TDSSOCKET * tds, const char *queryf, ...);

@@ -339,7 +339,7 @@ tds_start_query_head(TDSSOCKET *tds, unsigned char packet_type, TDSHEADERS * hea
  * \tds
  * \param packet_type  packet type
  */
-static void
+void
 tds_start_query(TDSSOCKET *tds, unsigned char packet_type)
 {
 	/* no need to check return value here because tds_start_query_head() cannot
