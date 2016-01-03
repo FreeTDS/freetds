@@ -3087,9 +3087,9 @@ tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
 		}
 		if (datetype == SYBMSDATETIMEOFFSET) {
 			--dt_days;
-			dt_time = dt_time + 86400 + dta->offset;
-			dt_days += dt_time / 86400;
-			dt_time %= 86400;
+			dt_time = dt_time + 1440 + dta->offset;
+			dt_days += dt_time / 1440;
+			dt_time %= 1440;
 			tzone = dta->offset;
 		}
 	} else if (datetype == SYBDATETIME) {
