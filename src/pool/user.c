@@ -64,20 +64,10 @@ pool_user_init(TDS_POOL * pool)
 void
 pool_user_destroy(TDS_POOL * pool)
 {
-	TDS_POOL_USER *puser;
 	int i;
 
-	for (i = 0; i < pool->max_users; i++) {
-		puser = &pool->users[i];
-		if (!IS_TDSDEAD(puser->sock.tds)) {
-			fprintf(stderr, "Closing user %d\n", i);
-			tds_close_socket(puser->sock.tds);
-		}
-		if (puser->sock.tds) {
-			tds_free_socket(puser->sock.tds);
-			puser->sock.tds = NULL;
-		}
-	}
+	for (i = 0; i < pool->max_users; i++)
+		pool_free_user(pool, &pool->users[i]);
 
 	free(pool->users);
 	pool->users = NULL;
