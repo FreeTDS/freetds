@@ -49,7 +49,7 @@
 
 static TDS_POOL_USER *pool_user_find_new(TDS_POOL * pool);
 static bool pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser);
-static void pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser);
+static bool pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser);
 
 void
 pool_user_init(TDS_POOL * pool)
@@ -253,8 +253,8 @@ pool_process_users(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
 
 		if (puser->sock.poll_recv && FD_ISSET(tds_get_s(puser->sock.tds), rfds)) {
 			assert(puser->user_state == TDS_SRV_QUERY);
-			/* what is this? a cancel perhaps */
-			pool_user_read(pool, puser);
+			if (!pool_user_read(pool, puser))
+				continue;
 		}
 		if (puser->sock.poll_send && FD_ISSET(tds_get_s(puser->sock.tds), wfds)) {
 			if (!pool_write_data(&puser->assigned_member->sock, &puser->sock))
@@ -415,7 +415,7 @@ pool_user_send_login_ack(TDS_POOL * pool, TDS_POOL_USER * puser)
  * checks the packet type of data coming from the client and allocates a 
  * pool member if necessary.
  */
-static void
+static bool
 pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 {
 	TDSSOCKET *tds = puser->sock.tds;
@@ -427,7 +427,7 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 		if (tds->in_len == 0) {
 			fprintf(stderr, "user disconnected\n");
 			pool_free_user(pool, puser);
-			return;
+			return false;
 		} else {
 			TDS_UCHAR in_flag = tds->in_buf[0];
 
@@ -440,20 +440,23 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 			case TDS_BULK:
 			case TDS_CANCEL:
 			case TDS7_TRANS:
-				if (!pool_write_data(&puser->sock, &puser->assigned_member->sock))
+				if (!pool_write_data(&puser->sock, &puser->assigned_member->sock)) {
 					pool_reset_member(pool, puser->assigned_member);
+					return false;
+				}
 				pmbr = puser->assigned_member;
 				break;
 
 			default:
 				fprintf(stderr, "Unrecognized packet type, closing user\n");
 				pool_free_user(pool, puser);
-				return;
+				return false;
 			}
 		}
 	}
 	if (pmbr && !pmbr->sock.poll_send)
 		tds_socket_flush(tds_get_s(pmbr->sock.tds));
+	return true;
 }
 
 void
