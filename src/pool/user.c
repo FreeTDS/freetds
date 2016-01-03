@@ -335,14 +335,15 @@ pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 	return true;
 }
 
-static void
+static bool
 pool_user_send_login_ack(TDS_POOL * pool, TDS_POOL_USER * puser)
 {
 	char msg[256];
 	char block[32];
 	TDSSOCKET *tds = puser->sock.tds, *mtds = puser->assigned_member->sock.tds;
 	TDSLOGIN *login = puser->login;
-	const char *database = pool->database;
+	const char *database;
+	bool dbname_mismatch, odbc_mismatch;
 
 	/* copy a bit of information, resize socket with block */
 	tds->conn->tds_version = mtds->conn->tds_version;
@@ -355,8 +356,36 @@ pool_user_send_login_ack(TDS_POOL * pool, TDS_POOL_USER * puser)
 	tds->conn->env.block_size = mtds->conn->env.block_size;
 	tds->conn->client_spid = mtds->conn->spid;
 
-	if (!database)
-		database = mtds->conn->env.database;
+	/* if database is different use USE statement */
+	database = pool->database;
+	dbname_mismatch = !tds_dstr_isempty(&login->database)
+			  && strcasecmp(tds_dstr_cstr(&login->database), database) != 0;
+	odbc_mismatch = (login->option_flag2 & TDS_ODBC_ON) == 0;
+	if (dbname_mismatch || odbc_mismatch) {
+		char *str;
+		int len = 128 + tds_quote_id(mtds, NULL, tds_dstr_cstr(&login->database),-1);
+		TDSRET ret;
+
+		if ((str = (char *) malloc(len)) == NULL)
+			return false;
+
+		str[0] = 0;
+		/* swicth to dblib options */
+		if (odbc_mismatch)
+			strcat(str, "SET ANSI_DEFAULTS OFF\nSET CONCAT_NULL_YIELDS_NULL OFF\n");
+		if (dbname_mismatch) {
+			strcat(str, "USE ");
+			tds_quote_id(mtds, strchr(str, 0), tds_dstr_cstr(&login->database), -1);
+		}
+		ret = tds_submit_query(mtds, str);
+		free(str);
+		if (TDS_FAILED(ret) || TDS_FAILED(tds_process_simple_query(mtds)))
+			return false;
+		if (dbname_mismatch)
+			database = tds_dstr_cstr(&login->database);
+		else
+			database = mtds->conn->env.database;
+	}
 
 	// 7.0
 	// env database
@@ -406,8 +435,10 @@ pool_user_send_login_ack(TDS_POOL * pool, TDS_POOL_USER * puser)
 
 	/* send it! */
 	tds_flush_packet(tds);
+
 	tds_free_login(login);
 	puser->login = NULL;
+	return true;
 }
 
 /*
@@ -485,7 +516,10 @@ pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser)
 
 	puser->user_state = TDS_SRV_QUERY;
 	pool_assign_member(pmbr, puser);
-	pool_user_send_login_ack(pool, puser);
+	if (!pool_user_send_login_ack(pool, puser)) {
+		pool_free_member(pool, pmbr);
+		return;
+	}
 	puser->sock.poll_recv = true;
 	puser->sock.poll_send = false;
 	pmbr->sock.poll_recv = true;

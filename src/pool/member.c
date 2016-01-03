@@ -192,6 +192,8 @@ pool_reset_member(TDS_POOL * pool, TDS_POOL_MEMBER * pmbr)
 			return;
 		}
 	}
+	tds->in_pos = tds->in_len;
+	tds->state = TDS_IDLE;
 }
 
 void
