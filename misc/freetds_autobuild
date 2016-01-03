@@ -176,6 +176,20 @@ grab_logs() {
 	done >> logs/log.txt
 }
 
+generic_test() {
+	local dir="$1" pwd_file="$2"
+	cd "$dir"
+	WORKDIR=$PWD
+	set_pwd_file $ROOT/$pwd_file
+	init_log
+	./misc/test-auto.sh --no-build >> logs/log.txt
+	grab_logs
+	cd logs
+	../misc/online.pl < log.txt
+	upload "$OUTDIR/$dir" '*.html'
+	cd ..
+}
+
 test1() {
 cd test1
 WORKDIR=$PWD
@@ -279,63 +293,27 @@ if test "$MSSQL_INSTANCE" != ""; then
 fi
 }
 
-test2() {
-cd test2
-WORKDIR=$PWD
-# do tests with sybase server
-set_pwd_file $ROOT/PWD.sybase
-init_log
-./misc/test-auto.sh --no-build >> logs/log.txt
-grab_logs
-cd logs
-../misc/online.pl < log.txt
-upload "$OUTDIR/test2" '*.html'
-cd ..
+test_sybase() {
+	# do tests with sybase server
+	generic_test test2 PWD.sybase
 }
 
-test3() {
-cd test3
-WORKDIR=$PWD
-# do tests with sybase 15 server
-set_pwd_file $ROOT/PWD.sybase15
-init_log
-./misc/test-auto.sh --no-build >> logs/log.txt
-grab_logs
-cd logs
-../misc/online.pl < log.txt
-upload "$OUTDIR/test3" '*.html'
-cd ..
+test_sybase15() {
+	# do tests with sybase 15 server
+	generic_test test3 PWD.sybase15
 }
 
-test4() {
-cd test4
-WORKDIR=$PWD
-# do tests with mssql 2008
-set_pwd_file $ROOT/PWD.mssql2008
-init_log
-./misc/test-auto.sh --no-build >> logs/log.txt
-grab_logs
-cd logs
-../misc/online.pl < log.txt
-upload "$OUTDIR/test4" '*.html'
-cd ..
+test_mssql2008() {
+	# do tests with mssql 2008
+	generic_test test4 PWD.mssql2008
 }
 
-test5() {
-cd test5
-WORKDIR=$PWD
-# do tests with mssql 2000
-set_pwd_file $ROOT/PWD.msde
-init_log
-./misc/test-auto.sh --no-build >> logs/log.txt
-grab_logs
-cd logs
-../misc/online.pl < log.txt
-upload "$OUTDIR/test5" '*.html'
-cd ..
+test_mssql2000() {
+	# do tests with mssql 2000
+	generic_test test5 PWD.msde
 }
 
-left=(test1 test4 test5 test2 test3)
+left=(test1 test_mssql2008 test_mssql2000 test_sybase test_sybase15)
 
 limit=3
 while true; do
