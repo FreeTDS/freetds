@@ -56,11 +56,12 @@ typedef struct tds_pool_socket TDS_POOL_SOCKET;
 typedef struct tds_pool_member TDS_POOL_MEMBER;
 typedef struct tds_pool_user TDS_POOL_USER;
 typedef struct tds_pool TDS_POOL;
+typedef void (*TDS_POOL_EXECUTE)(TDS_POOL_EVENT *event);
 
 struct tds_pool_event
 {
 	TDS_POOL_EVENT *next;
-	void (*execute)(TDS_POOL_EVENT *event);
+	TDS_POOL_EXECUTE execute;
 };
 
 struct tds_pool_socket
@@ -141,7 +142,7 @@ void pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser);
 /* util.c */
 void dump_login(TDSLOGIN * login);
 void die_if(int expr, const char *msg);
-void pool_event_add(TDS_POOL *pool, TDS_POOL_EVENT *ev);
+void pool_event_add(TDS_POOL *pool, TDS_POOL_EVENT *ev, TDS_POOL_EXECUTE execute);
 bool pool_write_data(TDS_POOL_SOCKET *from, TDS_POOL_SOCKET *to);
 
 /* config.c */

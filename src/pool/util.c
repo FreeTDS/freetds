@@ -169,9 +169,10 @@ pool_write(TDS_SYS_SOCKET sock, const void *buf, size_t len)
 }
 
 void
-pool_event_add(TDS_POOL *pool, TDS_POOL_EVENT *ev)
+pool_event_add(TDS_POOL *pool, TDS_POOL_EVENT *ev, TDS_POOL_EXECUTE execute)
 {
 	tds_mutex_lock(&pool->events_mtx);
+	ev->execute = execute;
 	ev->next = pool->events;
 	pool->events = ev;
 	tds_mutex_unlock(&pool->events_mtx);

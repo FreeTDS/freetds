@@ -50,6 +50,7 @@
 static TDS_POOL_USER *pool_user_find_new(TDS_POOL * pool);
 static bool pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser);
 static bool pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser);
+static void login_execute(TDS_POOL_EVENT *base_event);
 
 void
 pool_user_init(TDS_POOL * pool)
@@ -115,7 +116,7 @@ static TDS_THREAD_PROC_DECLARE(login_proc, arg)
 
 	ev->success = pool_user_login(ev->pool, ev->puser);
 
-	pool_event_add(ev->pool, &ev->common);
+	pool_event_add(ev->pool, &ev->common, login_execute);
 	return NULL;
 }
 
@@ -200,7 +201,6 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s)
 
 	/* launch login asyncronously */
 	ev->puser = puser;
-	ev->common.execute = login_execute;
 	ev->pool = pool;
 
 	if (tds_thread_create(&ev->th, login_proc, ev) != 0) {
