@@ -209,7 +209,6 @@ pool_free_member(TDS_POOL * pool, TDS_POOL_MEMBER * pmbr)
 		if (!IS_TDSDEAD(tds))
 			tds_close_socket(tds);
 		pool_mbr_free_socket(tds);
-		pool->num_active_members--;
 		pmbr->sock.tds = NULL;
 	}
 
@@ -222,36 +221,40 @@ pool_free_member(TDS_POOL * pool, TDS_POOL_MEMBER * pmbr)
 		pool_deassign_member(pmbr);
 		pool_free_user(pool, puser);
 	}
-	memset(pmbr, 0, sizeof(*pmbr));
+
+	if (dlist_member_in_list(&pool->active_members, pmbr))
+		pool->num_active_members--;
+	dlist_member_remove(&pool->active_members, pmbr);
+	free(pmbr);
 }
 
 void
 pool_mbr_init(TDS_POOL * pool)
 {
 	TDS_POOL_MEMBER *pmbr;
-	int i;
 
 	/* allocate room for pool members */
 
 	pool->num_active_members = 0;
-	pool->members = (TDS_POOL_MEMBER *)
-		calloc(pool->num_members, sizeof(TDS_POOL_MEMBER));
+	dlist_member_init(&pool->active_members);
 
 	/* open connections for each member */
-	for (i = 0; i < pool->num_members; i++) {
-		pmbr = &pool->members[i];
-		if (i >= pool->min_open_conn)
-			continue;
-
+	while (pool->num_active_members < pool->min_open_conn) {
+		pmbr = calloc(1, sizeof(TDS_POOL_MEMBER));
+		if (!pmbr) {
+			fprintf(stderr, "Out of memory\n");
+			exit(1);
+		}
 		pmbr->sock.poll_recv = true;
 
 		pmbr->sock.tds = pool_mbr_login(pool, 0);
 		if (!pmbr->sock.tds) {
-			fprintf(stderr, "Could not open initial connection %d\n", i);
+			fprintf(stderr, "Could not open initial connection\n");
 			exit(1);
 		}
 		pmbr->last_used_tm = time(NULL);
 		pool->num_active_members++;
+		dlist_member_append(&pool->active_members, pmbr);
 		if (!IS_TDS71_PLUS(pmbr->sock.tds->conn)) {
 			fprintf(stderr, "Current pool implementation does not support protocol versions former than 7.1\n");
 			exit(1);
@@ -262,18 +265,15 @@ pool_mbr_init(TDS_POOL * pool)
 void
 pool_mbr_destroy(TDS_POOL * pool)
 {
-	int i;
+	while (dlist_member_first(&pool->active_members))
+		pool_free_member(pool, dlist_member_first(&pool->active_members));
 
-	for (i = 0; i < pool->num_members; i++)
-		pool_free_member(pool, &pool->members[i]);
-	free(pool->members);
-	pool->members = NULL;
-	pool->num_members = 0;
+	assert(pool->num_active_members == 0);
 	pool->num_active_members = 0;
 }
 
-static void
-pool_process_data(TDS_POOL *pool, TDS_POOL_MEMBER *pmbr, int member_index)
+static bool
+pool_process_data(TDS_POOL *pool, TDS_POOL_MEMBER *pmbr)
 {
 	TDSSOCKET *tds = pmbr->sock.tds;
 	TDS_POOL_USER *puser = NULL;
@@ -284,14 +284,14 @@ pool_process_data(TDS_POOL *pool, TDS_POOL_MEMBER *pmbr, int member_index)
 
 		/* disconnected */
 		if (tds->in_len == 0) {
-			fprintf(stderr, "Uh oh! member %d disconnected\n", member_index);
+			fprintf(stderr, "Uh oh! member disconnected\n");
 			/* mark as dead */
 			pool_free_member(pool, pmbr);
-			return;
+			return false;
 		}
 
 		tdsdump_dump_buf(TDS_DBG_NETWORK, "Got packet from server:", tds->in_buf, tds->in_len);
-		/* fprintf(stderr, "read %d bytes from member %d\n", tds->in_len, member_index); */
+		/* fprintf(stderr, "read %d bytes\n", tds->in_len); */
 		puser = pmbr->current_user;
 		if (!puser)
 			break;
@@ -300,7 +300,7 @@ pool_process_data(TDS_POOL *pool, TDS_POOL_MEMBER *pmbr, int member_index)
 		if (!pool_write_data(&pmbr->sock, &puser->sock)) {
 			fprintf(stdout, "member received error while writing\n");
 			pool_free_user(pool, puser);
-			return;
+			return false;
 		}
 		if (tds->in_pos < tds->in_len)
 			/* partial write, schedule a future write */
@@ -308,6 +308,7 @@ pool_process_data(TDS_POOL *pool, TDS_POOL_MEMBER *pmbr, int member_index)
 	}
 	if (puser && !puser->sock.poll_send)
 		tds_socket_flush(tds_get_s(puser->sock.tds));
+	return true;
 }
 
 /* 
@@ -318,29 +319,30 @@ pool_process_data(TDS_POOL *pool, TDS_POOL_MEMBER *pmbr, int member_index)
 void
 pool_process_members(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
 {
-	TDS_POOL_MEMBER *pmbr;
+	TDS_POOL_MEMBER *pmbr, *next;
 	TDSSOCKET *tds;
-	int i, age;
+	int age;
 	time_t time_now;
 
-	for (i = 0; i < pool->num_members; i++) {
+	for (next = dlist_member_first(&pool->active_members); (pmbr = next) != NULL; ) {
 		bool processed = false;
 
-		pmbr = &pool->members[i];
+		next = dlist_member_next(&pool->active_members, pmbr);
 
 		tds = pmbr->sock.tds;
-		if (!tds) {
-			continue;	/* dead connection */
-		}
+		assert(tds);
 
 		time_now = time(NULL);
 		if (pmbr->sock.poll_recv && FD_ISSET(tds_get_s(tds), rfds)) {
-			pool_process_data(pool, pmbr, i);
+			if (!pool_process_data(pool, pmbr))
+				continue;
 			processed = true;
 		}
 		if (pmbr->sock.poll_send && FD_ISSET(tds_get_s(tds), wfds)) {
-			if (!pool_write_data(&pmbr->current_user->sock, &pmbr->sock))
+			if (!pool_write_data(&pmbr->current_user->sock, &pmbr->sock)) {
 				pool_free_member(pool, pmbr);
+				continue;
+			}
 			processed = true;
 		}
 		if (processed) {
@@ -350,7 +352,7 @@ pool_process_members(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
 			if (age > pool->max_member_age
 			    && pool->num_active_members > pool->min_open_conn
 			    && !pmbr->current_user) {
-				fprintf(stderr, "member %d is %d seconds old...closing\n", i, age);
+				fprintf(stderr, "member is %d seconds old...closing\n", age);
 				pool_free_member(pool, pmbr);
 			}
 		}
@@ -372,16 +374,10 @@ compatible_versions(const TDSSOCKET *tds, const TDS_POOL_USER *user)
 TDS_POOL_MEMBER *
 pool_find_idle_member(TDS_POOL * pool, TDS_POOL_USER *user)
 {
-	int i, first_dead = -1;
 	TDS_POOL_MEMBER *pmbr;
 
-	for (i = 0; i < pool->num_members; i++) {
-		pmbr = &pool->members[i];
-		if (!pmbr->sock.tds) {
-			if (first_dead < 0)
-				first_dead = i;
-			continue;
-		}
+	DLIST_FOREACH(dlist_member, &pool->active_members, pmbr) {
+		assert(pmbr->sock.tds);
 
 		if (pmbr->current_user)
 			continue;
@@ -399,30 +395,38 @@ pool_find_idle_member(TDS_POOL * pool, TDS_POOL_USER *user)
 		pmbr->sock.poll_send = false;
 		return pmbr;
 	}
+
 	/* if we have dead connections we can open */
-	i = first_dead;
-	if (pool->num_active_members < pool->num_members && i >= 0) {
-		pmbr = &pool->members[i];
-		assert(pmbr->sock.tds == NULL);
-
-		fprintf(stderr, "No open connections left, opening member number %d\n", i);
-		pmbr->sock.tds = pool_mbr_login(pool, user->login->tds_version);
-		if (!pmbr->sock.tds) {
-			fprintf(stderr, "Error opening a new connection to server\n");
-			return NULL;
-		}
-		pmbr->sock.poll_recv = true;
-
-		if (IS_TDS71_PLUS(pmbr->sock.tds->conn)) {
-			pmbr->last_used_tm = time(NULL);
-			pool->num_active_members++;
-			return pmbr;
-		}
-
-		pool_mbr_free_socket(pmbr->sock.tds);
-		pmbr->sock.tds = NULL;
+	if (pool->num_active_members >= pool->max_open_conn) {
+		fprintf(stderr, "No idle members left, increase \"max pool conn\"\n");
+		return NULL;
 	}
-	fprintf(stderr, "No idle members left, increase \"max pool conn\"\n");
-	return NULL;
+
+	pmbr = calloc(1, sizeof(*pmbr));
+	if (!pmbr) {
+		fprintf(stderr, "Out of memory\n");
+		return NULL;
+	}
+	pmbr->sock.poll_recv = true;
+
+	fprintf(stderr, "No open connections left, opening new member\n");
+	pmbr->sock.tds = pool_mbr_login(pool, user->login->tds_version);
+	if (!pmbr->sock.tds) {
+		free(pmbr);
+		fprintf(stderr, "Error opening a new connection to server\n");
+		return NULL;
+	}
+
+	if (!IS_TDS71_PLUS(pmbr->sock.tds->conn)) {
+		pool_mbr_free_socket(pmbr->sock.tds);
+		free(pmbr);
+		fprintf(stderr, "Protocol server version not supported\n");
+		return NULL;
+	}
+
+	pmbr->last_used_tm = time(NULL);
+	pool->num_active_members++;
+	dlist_member_append(&pool->active_members, pmbr);
+	return pmbr;
 }
 

@@ -115,8 +115,6 @@ pool_init(const char *name)
 		exit(EXIT_FAILURE);
 	}
 
-	pool->num_members = pool->max_open_conn;
-
 	pool->name = strdup(name);
 
 	pool_mbr_init(pool);
@@ -151,8 +149,7 @@ pool_schedule_waiters(TDS_POOL * pool)
 
 	/* first see if there are free members to do the request */
 	free_mbrs = 0;
-	for (i = 0; i < pool->num_members; i++) {
-		pmbr = &pool->members[i];
+	DLIST_FOREACH(dlist_member, &pool->active_members, pmbr) {
 		if (pmbr->sock.tds)
 			free_mbrs++;
 	}
@@ -225,6 +222,7 @@ pool_process_events(TDS_POOL *pool)
 static void
 pool_main_loop(TDS_POOL * pool)
 {
+	TDS_POOL_MEMBER *pmbr;
 	struct sockaddr_in sin;
 	TDS_SYS_SOCKET s, event_pair[2];
 	int i;
@@ -274,8 +272,8 @@ pool_main_loop(TDS_POOL * pool)
 			pool_select_add_socket(&sel, &pool->users[i].sock);
 
 		/* add the pool member sockets to the read list */
-		for (i = 0; i < pool->num_members; i++)
-			pool_select_add_socket(&sel, &pool->members[i].sock);
+		DLIST_FOREACH(dlist_member, &pool->active_members, pmbr)
+			pool_select_add_socket(&sel, &pmbr->sock);
 
 		/* fprintf(stderr, "waiting for a connect\n"); */
 		/* FIXME check return value */

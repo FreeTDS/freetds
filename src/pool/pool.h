@@ -36,6 +36,7 @@
 #endif
 
 #include <freetds/tds.h>
+#include <freetds/dlist.h>
 
 /* defines */
 #define PGSIZ 2048
@@ -80,11 +81,16 @@ struct tds_pool_user
 struct tds_pool_member
 {
 	TDS_POOL_SOCKET sock;
-	TDS_POOL_MEMBER *next;
+	DLIST_FIELDS(TDS_POOL_MEMBER);
 	bool doing_async;
 	time_t last_used_tm;
 	TDS_POOL_USER *current_user;
 };
+
+#define DLIST_FUNC(suffix) dlist_member_ ## suffix
+#define DLIST_LIST_TYPE dlist_member
+#define DLIST_TYPE TDS_POOL_MEMBER
+#include <freetds/dlist.tmpl.h>
 
 struct tds_pool
 {
@@ -101,9 +107,9 @@ struct tds_pool
 	TDS_SYS_SOCKET event_fd;
 	TDS_POOL_EVENT *events;
 
-	int num_members;
 	int num_active_members;
-	TDS_POOL_MEMBER *members;
+	dlist_member active_members;
+
 	/** number of users in wait state */
 	int waiters;
 	int max_users;
