@@ -444,14 +444,17 @@ connect_execute_ok(TDS_POOL_EVENT *base_event)
 }
 
 /*
- * pool_find_idle_member
- * returns the first pool member in TDS_IDLE state
+ * pool_assign_idle_member
+ * assign a member to the user specified
  */
 TDS_POOL_MEMBER *
-pool_find_idle_member(TDS_POOL * pool, TDS_POOL_USER *puser)
+pool_assign_idle_member(TDS_POOL * pool, TDS_POOL_USER *puser)
 {
 	TDS_POOL_MEMBER *pmbr;
 	CONNECT_EVENT *ev;
+
+	puser->sock.poll_recv = false;
+	puser->sock.poll_send = false;
 
 	DLIST_FOREACH(dlist_member, &pool->active_members, pmbr) {
 		if (pmbr->current_user || pmbr->doing_async)
@@ -462,14 +465,18 @@ pool_find_idle_member(TDS_POOL * pool, TDS_POOL_USER *puser)
 		if (!compatible_versions(pmbr->sock.tds, puser))
 			continue;
 
+		pool_assign_member(pmbr, puser);
+
 		/*
 		 * make sure member wasn't idle more that the timeout
 		 * otherwise it'll send the query and close leaving a
 		 * hung client
 		 */
 		pmbr->last_used_tm = time(NULL);
-		pmbr->sock.poll_recv = true;
+		pmbr->sock.poll_recv = false;
 		pmbr->sock.poll_send = false;
+
+		pool_user_finish_login(pool, puser);
 		return pmbr;
 	}
 
@@ -508,6 +515,7 @@ pool_find_idle_member(TDS_POOL * pool, TDS_POOL_USER *puser)
 	pool->num_active_members++;
 	dlist_member_append(&pool->active_members, pmbr);
 
+	pool_assign_member(pmbr, puser);
 	puser->sock.poll_send = false;
 	puser->sock.poll_recv = false;
 

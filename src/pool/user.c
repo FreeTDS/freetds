@@ -51,6 +51,7 @@ static TDS_POOL_USER *pool_user_find_new(TDS_POOL * pool);
 static bool pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser);
 static bool pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser);
 static void login_execute(TDS_POOL_EVENT *base_event);
+static void end_login_execute(TDS_POOL_EVENT *base_event);
 
 void
 pool_user_init(TDS_POOL * pool)
@@ -500,7 +501,8 @@ pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser)
 	assert(puser->assigned_member == NULL);
 	assert(puser->login);
 
-	pmbr = pool_find_idle_member(pool, puser);
+	puser->user_state = TDS_SRV_QUERY;
+	pmbr = pool_assign_idle_member(pool, puser);
 	if (!pmbr) {
 		/*
 		 * put into wait state
@@ -511,20 +513,67 @@ pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser)
 		puser->sock.poll_recv = false;
 		puser->sock.poll_send = false;
 		pool->waiters++;
-		return;
 	}
+}
 
-	puser->user_state = TDS_SRV_QUERY;
-	pool_assign_member(pmbr, puser);
-	if (pmbr->doing_async)
-		return;
+typedef struct {
+	TDS_POOL_EVENT common;
+	TDS_POOL *pool;
+	TDS_POOL_USER *puser;
+	bool success;
+	tds_thread th;
+} END_LOGIN_EVENT;
 
-	if (!pool_user_send_login_ack(pool, puser)) {
+static TDS_THREAD_PROC_DECLARE(end_login_proc, arg)
+{
+	END_LOGIN_EVENT *ev = (END_LOGIN_EVENT *) arg;
+	TDS_POOL *pool = ev->pool;
+
+	ev->success = pool_user_send_login_ack(pool, ev->puser);
+
+	pool_event_add(pool, &ev->common, end_login_execute);
+	return NULL;
+}
+
+static void
+end_login_execute(TDS_POOL_EVENT *base_event)
+{
+	END_LOGIN_EVENT *ev = (END_LOGIN_EVENT *) base_event;
+	TDS_POOL *pool = ev->pool;
+	TDS_POOL_USER *puser = ev->puser;
+	TDS_POOL_MEMBER *pmbr = puser->assigned_member;
+
+	tds_thread_join(ev->th, NULL);
+
+	if (!ev->success) {
 		pool_free_member(pool, pmbr);
 		return;
 	}
+
 	puser->sock.poll_recv = true;
 	puser->sock.poll_send = false;
 	pmbr->sock.poll_recv = true;
 	pmbr->sock.poll_send = false;
+}
+
+/**
+ * Handle async login
+ */
+void
+pool_user_finish_login(TDS_POOL * pool, TDS_POOL_USER * puser)
+{
+	END_LOGIN_EVENT *ev = calloc(1, sizeof(*ev));
+	if (!ev) {
+		pool_free_member(pool, puser->assigned_member);
+		return;
+	}
+
+	ev->pool  = pool;
+	ev->puser = puser;
+
+	if (tds_thread_create(&ev->th, end_login_proc, ev) != 0) {
+		pool_free_member(pool, puser->assigned_member);
+		free(ev);
+		fprintf(stderr, "error creating thread\n");
+	}
 }

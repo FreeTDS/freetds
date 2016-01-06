@@ -122,7 +122,7 @@ struct tds_pool
 
 /* member.c */
 void pool_process_members(TDS_POOL * pool, fd_set * rfds, fd_set * wfds);
-TDS_POOL_MEMBER *pool_find_idle_member(TDS_POOL * pool, TDS_POOL_USER *user);
+TDS_POOL_MEMBER *pool_assign_idle_member(TDS_POOL * pool, TDS_POOL_USER *user);
 void pool_mbr_init(TDS_POOL * pool);
 void pool_mbr_destroy(TDS_POOL * pool);
 void pool_free_member(TDS_POOL *pool, TDS_POOL_MEMBER * pmbr);
@@ -139,6 +139,7 @@ TDS_POOL_USER *pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s);
 void pool_free_user(TDS_POOL * pool, TDS_POOL_USER * puser);
 void pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser);
 bool pool_user_send_login_ack(TDS_POOL * pool, TDS_POOL_USER * puser);
+void pool_user_finish_login(TDS_POOL * pool, TDS_POOL_USER * puser);
 
 /* util.c */
 void dump_login(TDSLOGIN * login);
