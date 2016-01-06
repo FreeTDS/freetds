@@ -138,6 +138,7 @@ void pool_user_destroy(TDS_POOL * pool);
 TDS_POOL_USER *pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s);
 void pool_free_user(TDS_POOL * pool, TDS_POOL_USER * puser);
 void pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser);
+bool pool_user_send_login_ack(TDS_POOL * pool, TDS_POOL_USER * puser);
 
 /* util.c */
 void dump_login(TDSLOGIN * login);

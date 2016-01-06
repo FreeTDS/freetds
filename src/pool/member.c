@@ -329,6 +329,9 @@ pool_process_members(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
 
 		next = dlist_member_next(&pool->active_members, pmbr);
 
+		if (pmbr->doing_async)
+			continue;
+
 		tds = pmbr->sock.tds;
 		assert(tds);
 
@@ -367,22 +370,96 @@ compatible_versions(const TDSSOCKET *tds, const TDS_POOL_USER *user)
 	return true;
 }
 
+typedef struct {
+	TDS_POOL_EVENT common;
+	TDS_POOL *pool;
+	TDS_POOL_MEMBER *pmbr;
+	int tds_version;
+	tds_thread th;
+} CONNECT_EVENT;
+
+static void connect_execute_ok(TDS_POOL_EVENT *base_event);
+static void connect_execute_ko(TDS_POOL_EVENT *base_event);
+
+static TDS_THREAD_PROC_DECLARE(connect_proc, arg)
+{
+	CONNECT_EVENT *ev = (CONNECT_EVENT *) arg;
+	TDS_POOL_MEMBER *pmbr = ev->pmbr;
+	TDS_POOL *pool = ev->pool;
+
+	for (;;) {
+		pmbr->sock.tds = pool_mbr_login(pool, ev->tds_version);
+		if (!pmbr->sock.tds) {
+			fprintf(stderr, "Error opening a new connection to server\n");
+			break;
+		}
+		if (!IS_TDS71_PLUS(pmbr->sock.tds->conn)) {
+			fprintf(stderr, "Protocol server version not supported\n");
+			break;
+		}
+
+		/* if already attached to a user we can send login directly */
+		if (pmbr->current_user)
+			if (!pool_user_send_login_ack(pool, pmbr->current_user))
+				break;
+
+		pool_event_add(pool, &ev->common, connect_execute_ok);
+		return NULL;
+	}
+
+	/* failure */
+	pool_event_add(pool, &ev->common, connect_execute_ko);
+	return NULL;
+}
+
+static void
+connect_execute_ko(TDS_POOL_EVENT *base_event)
+{
+	CONNECT_EVENT *ev = (CONNECT_EVENT *) base_event;
+
+	tds_thread_join(ev->th, NULL);
+
+	pool_free_member(ev->pool, ev->pmbr);
+}
+
+static void
+connect_execute_ok(TDS_POOL_EVENT *base_event)
+{
+	CONNECT_EVENT *ev = (CONNECT_EVENT *) base_event;
+	TDS_POOL_MEMBER *pmbr = ev->pmbr;
+	TDS_POOL_USER *puser = pmbr->current_user;
+
+	tds_thread_join(ev->th, NULL);
+
+	pmbr->doing_async = false;
+
+	pmbr->last_used_tm = time(NULL);
+
+	if (puser) {
+		pmbr->sock.poll_recv = true;
+		puser->sock.poll_recv = true;
+
+		puser->user_state = TDS_SRV_QUERY;
+	}
+}
+
 /*
  * pool_find_idle_member
  * returns the first pool member in TDS_IDLE state
  */
 TDS_POOL_MEMBER *
-pool_find_idle_member(TDS_POOL * pool, TDS_POOL_USER *user)
+pool_find_idle_member(TDS_POOL * pool, TDS_POOL_USER *puser)
 {
 	TDS_POOL_MEMBER *pmbr;
+	CONNECT_EVENT *ev;
 
 	DLIST_FOREACH(dlist_member, &pool->active_members, pmbr) {
-		assert(pmbr->sock.tds);
-
-		if (pmbr->current_user)
+		if (pmbr->current_user || pmbr->doing_async)
 			continue;
 
-		if (!compatible_versions(pmbr->sock.tds, user))
+		assert(pmbr->sock.tds);
+
+		if (!compatible_versions(pmbr->sock.tds, puser))
 			continue;
 
 		/*
@@ -407,26 +484,32 @@ pool_find_idle_member(TDS_POOL * pool, TDS_POOL_USER *user)
 		fprintf(stderr, "Out of memory\n");
 		return NULL;
 	}
-	pmbr->sock.poll_recv = true;
 
 	fprintf(stderr, "No open connections left, opening new member\n");
-	pmbr->sock.tds = pool_mbr_login(pool, user->login->tds_version);
-	if (!pmbr->sock.tds) {
+
+	ev = calloc(1, sizeof(*ev));
+	if (!ev) {
 		free(pmbr);
-		fprintf(stderr, "Error opening a new connection to server\n");
+		fprintf(stderr, "Out of memory\n");
 		return NULL;
 	}
+	ev->pmbr = pmbr;
+	ev->pool = pool;
+	ev->tds_version = puser->login->tds_version;
 
-	if (!IS_TDS71_PLUS(pmbr->sock.tds->conn)) {
-		pool_mbr_free_socket(pmbr->sock.tds);
+	if (tds_thread_create(&ev->th, connect_proc, ev) != 0) {
 		free(pmbr);
-		fprintf(stderr, "Protocol server version not supported\n");
+		free(ev);
+		fprintf(stderr, "error creating thread\n");
 		return NULL;
 	}
+	pmbr->doing_async = true;
 
-	pmbr->last_used_tm = time(NULL);
 	pool->num_active_members++;
 	dlist_member_append(&pool->active_members, pmbr);
+
+	puser->sock.poll_send = false;
+	puser->sock.poll_recv = false;
+
 	return pmbr;
 }
-

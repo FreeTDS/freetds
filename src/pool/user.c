@@ -335,7 +335,7 @@ pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 	return true;
 }
 
-static bool
+bool
 pool_user_send_login_ack(TDS_POOL * pool, TDS_POOL_USER * puser)
 {
 	char msg[256];
@@ -516,6 +516,9 @@ pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser)
 
 	puser->user_state = TDS_SRV_QUERY;
 	pool_assign_member(pmbr, puser);
+	if (pmbr->doing_async)
+		return;
+
 	if (!pool_user_send_login_ack(pool, puser)) {
 		pool_free_member(pool, pmbr);
 		return;
