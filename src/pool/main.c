@@ -321,6 +321,7 @@ main(int argc, char **argv)
 	pool = pool_init(argv[1]);
 	tdsdump_open(getenv("TDSDUMP"));
 	pool_main_loop(pool);
+	printf("User logins %lu members logins %lu members at end %d\n", pool->user_logins, pool->member_logins, pool->num_active_members);
 	pool_destroy(pool);
 	printf("tdspool Shutdown\n");
 	return EXIT_SUCCESS;

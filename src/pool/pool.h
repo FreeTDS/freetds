@@ -116,6 +116,9 @@ struct tds_pool
 	int max_users;
 	TDS_POOL_USER *users;
 	TDSCONTEXT *ctx;
+
+	unsigned long user_logins;
+	unsigned long member_logins;
 };
 
 /* prototypes */

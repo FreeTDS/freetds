@@ -347,6 +347,8 @@ pool_user_send_login_ack(TDS_POOL * pool, TDS_POOL_USER * puser)
 	const char *server = mtds->conn->server ? mtds->conn->server : "JDBC";
 	bool dbname_mismatch, odbc_mismatch;
 
+	pool->user_logins++;
+
 	/* copy a bit of information, resize socket with block */
 	tds->conn->tds_version = mtds->conn->tds_version;
 	tds->conn->product_version = mtds->conn->product_version;

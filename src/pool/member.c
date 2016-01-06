@@ -264,6 +264,7 @@ pool_mbr_init(TDS_POOL * pool)
 			fprintf(stderr, "Current pool implementation does not support protocol versions former than 7.1\n");
 			exit(1);
 		}
+		pool->member_logins++;
 	}
 }
 
@@ -436,6 +437,7 @@ connect_execute_ok(TDS_POOL_EVENT *base_event)
 
 	tds_thread_join(ev->th, NULL);
 
+	ev->pool->member_logins++;
 	pmbr->doing_async = false;
 
 	pmbr->last_used_tm = time(NULL);
