@@ -63,15 +63,6 @@ configuration:
   - release
 
 install:
-  # xidel (xpath command line tool)
-  - appveyor DownloadFile "http://vorboss.dl.sourceforge.net/project/videlibri/Xidel/Xidel 0.9/xidel-0.9.win32.zip" || appveyor DownloadFile "http://nbtelecom.dl.sourceforge.net/project/videlibri/Xidel/Xidel 0.9/xidel-0.9.win32.zip"
-  - 7z x xidel-0.9.win32.zip xidel.exe
-  # detect version of Windows OpenSSL binaries published by the Shining Light Productions crew
-  - xidel https://slproweb.com/products/Win32OpenSSL.html --extract "(//td/a[starts-with(@href, '/download') and starts-with(text(), 'Win32 OpenSSL') and ends-with(text(), 'Light')])[1]/translate(substring-before(substring-after(text(), 'Win32 OpenSSL v'), ' Light'), '.', '_')" > openssl_ver.txt || (ping -n 10 127.0.0.1 >"nul:" & xidel https://slproweb.com/products/Win32OpenSSL.html --extract "(//td/a[starts-with(@href, '/download') and starts-with(text(), 'Win32 OpenSSL') and ends-with(text(), 'Light')])[1]/translate(substring-before(substring-after(text(), 'Win32 OpenSSL v'), ' Light'), '.', '_')" > openssl_ver.txt)
-  - set /P OPENSSL_VER=< openssl_ver.txt
-  # OpenSSL
-  - appveyor DownloadFile https://slproweb.com/download/%PLAT%OpenSSL-%OPENSSL_VER%.exe || (ping -n 10 127.0.0.1 >"nul:" & appveyor DownloadFile https://slproweb.com/download/%PLAT%OpenSSL-%OPENSSL_VER%.exe)
-  - "%PLAT%OpenSSL-%OPENSSL_VER%.exe /SP- /SILENT /SUPPRESSMSGBOXES /NORESTART /DIR=\"C:\\OpenSSL\""
   # win-iconv
   - appveyor DownloadFile https://github.com/win-iconv/win-iconv/archive/%WIN_ICONV_VER%.zip
   - 7z x %WIN_ICONV_VER%.zip
@@ -95,6 +86,7 @@ build_script:
   - cd build
   - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Release .."
   - "%WITH_COMPILER% nmake"
+  - set PATH=%PATH%;c:\openssl-win%WIDTH%
   - src\apps\tsql.exe -C
   - cd ..
 
