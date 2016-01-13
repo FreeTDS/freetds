@@ -748,10 +748,12 @@ ODBC_FUNC(SQLGetDiagField, (P(SQLSMALLINT,handleType), P(SQLHANDLE,handle), P(SQ
 		case SQL_HANDLE_ENV:
 			break;
 		case SQL_HANDLE_DBC:
-			msg = dbc->tds_socket->conn->server;
+			if (dbc->tds_socket)
+				msg = dbc->tds_socket->conn->server;
 			break;
 		case SQL_HANDLE_STMT:
-			msg = stmt->dbc->tds_socket->conn->server;
+			if (stmt->dbc->tds_socket)
+				msg = stmt->dbc->tds_socket->conn->server;
 			/*
 			 * if dbc->server is not initialized, init it
 			 * from the errs structure
