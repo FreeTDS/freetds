@@ -3,6 +3,11 @@
 #include <odbcss.h>
 #include <assert.h>
 
+#ifdef UNICODE
+typedef SQLWCHAR bcp_init_char_t;
+#else
+typedef char bcp_init_char_t;
+#endif
 
 /*
  * Static data for insertion
@@ -270,7 +275,7 @@ static void normal_inserts(void)
 
 	/* set up and send the bcp */
 	fprintf(stdout, "preparing to insert into %s ... ", table_name);
-	if (bcp_init(odbc_conn, T(table_name), NULL, NULL, BCP_DIRECTION_IN) == FAIL)
+	if (bcp_init(odbc_conn, (bcp_init_char_t *) T(table_name), NULL, NULL, BCP_DIRECTION_IN) == FAIL)
 		report_bcp_error("bcp_init", __LINE__, __FILE__);
 	fprintf(stdout, "OK\n");
 
@@ -309,7 +314,7 @@ static void special_inserts(void)
 	printf("sending special types\n");
 	rows_sent = 0;
 
-	if (bcp_init(odbc_conn, T("special_types_bcp_unittest"), NULL, NULL, BCP_DIRECTION_IN) == FAIL)
+	if (bcp_init(odbc_conn, (bcp_init_char_t *) T("special_types_bcp_unittest"), NULL, NULL, BCP_DIRECTION_IN) == FAIL)
 		report_bcp_error("bcp_init", __LINE__, __FILE__);
 	printf("OK\n");
 
