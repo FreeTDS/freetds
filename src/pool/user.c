@@ -344,6 +344,7 @@ pool_user_send_login_ack(TDS_POOL * pool, TDS_POOL_USER * puser)
 	TDSSOCKET *tds = puser->sock.tds, *mtds = puser->assigned_member->sock.tds;
 	TDSLOGIN *login = puser->login;
 	const char *database;
+	const char *server = mtds->conn->server ? mtds->conn->server : "JDBC";
 	bool dbname_mismatch, odbc_mismatch;
 
 	/* copy a bit of information, resize socket with block */
@@ -412,11 +413,10 @@ pool_user_send_login_ack(TDS_POOL * pool, TDS_POOL_USER * puser)
 	tds->out_flag = TDS_REPLY;
 	tds_env_change(tds, TDS_ENV_DATABASE, "master", database);
 	sprintf(msg, "Changed database context to '%s'.", database);
-	// FIXME correct server name
-	tds_send_msg(tds, 5701, 2, 0, msg, "JDBC", NULL, 1);
+	tds_send_msg(tds, 5701, 2, 0, msg, server, NULL, 1);
 	if (!login->suppress_language) {
 		tds_env_change(tds, TDS_ENV_LANG, NULL, "us_english");
-		tds_send_msg(tds, 5703, 1, 0, "Changed language setting to 'us_english'.", "JDBC", NULL, 1);
+		tds_send_msg(tds, 5703, 1, 0, "Changed language setting to 'us_english'.", server, NULL, 1);
 	}
 
 	if (IS_TDS71_PLUS(tds->conn)) {
