@@ -1147,6 +1147,7 @@ struct tds_connection
 	void *tls_dummy;
 #endif
 	TDSAUTHENTICATION *authentication;
+	char *server;
 };
 
 /**

@@ -743,27 +743,25 @@ ODBC_FUNC(SQLGetDiagField, (P(SQLSMALLINT,handleType), P(SQLHANDLE,handle), P(SQ
 		break;
 
 	case SQL_DIAG_SERVER_NAME:
-		msg = "";
+		msg = NULL;
 		switch (handleType) {
 		case SQL_HANDLE_ENV:
 			break;
 		case SQL_HANDLE_DBC:
-			msg = tds_dstr_cstr(&dbc->server);
+			msg = dbc->tds_socket->conn->server;
 			break;
 		case SQL_HANDLE_STMT:
-			msg = tds_dstr_cstr(&stmt->dbc->server);
+			msg = stmt->dbc->tds_socket->conn->server;
 			/*
 			 * if dbc->server is not initialized, init it
 			 * from the errs structure
 			 */
-			if (!msg[0] && errs->errs[numRecord].server) {
-				if (!tds_dstr_copy(&stmt->dbc->server, errs->errs[numRecord].server))
-					return SQL_ERROR;
+			if (!msg && errs->errs[numRecord].server) {
 				msg = errs->errs[numRecord].server;
 			}
 			break;
 		}
-		result = odbc_set_string_oct(dbc, buffer, cbBuffer, pcbBuffer, msg, -1);
+		result = odbc_set_string_oct(dbc, buffer, cbBuffer, pcbBuffer, msg ? msg : "", -1);
 		break;
 
 	case SQL_DIAG_SQLSTATE:

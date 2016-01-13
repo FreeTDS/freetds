@@ -1554,7 +1554,6 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 
 	dbc->htype = SQL_HANDLE_DBC;
 	dbc->env = env;
-	tds_dstr_init(&dbc->server);
 	tds_dstr_init(&dbc->dsn);
 
 	dbc->attr.cursor_type = SQL_CURSOR_FORWARD_ONLY;
@@ -2374,9 +2373,6 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 		stmt = odbc_get_stmt(tds);
 		if (stmt)
 			errs = &stmt->errs;
-		/* set server info if not setted in dbc */
-		if (msg->server && tds_dstr_isempty(&dbc->server))
-			tds_dstr_copy(&dbc->server, msg->server);
 	} else if (ctx->parent) {
 		errs = &((TDS_ENV *) ctx->parent)->errs;
 	}
@@ -4094,7 +4090,6 @@ _SQLFreeConnect(SQLHDBC hdbc)
 #ifdef ENABLE_ODBC_WIDE
 	tds_dstr_free(&dbc->original_charset);
 #endif
-	tds_dstr_free(&dbc->server);
 	tds_dstr_free(&dbc->dsn);
 
 	for (i = 0; i < TDS_MAX_APP_DESC; i++) {
@@ -5757,7 +5752,7 @@ _SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLS
 		p = "\\";
 		break;
 	case SQL_SERVER_NAME:
-		p = tds_dstr_cstr(&dbc->server);
+		p = dbc->tds_socket->conn->server;
 		break;
 	case SQL_SPECIAL_CHARACTERS:
 		/* TODO others ?? */

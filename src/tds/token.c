@@ -2399,7 +2399,11 @@ tds_process_info(TDSSOCKET * tds, int marker)
 				    msg.state, msg.server, msg.line_number, msg.message);
 		}
 	}
-	
+
+	if (!tds->conn->server) {
+		tds->conn->server = msg.server;
+		msg.server = NULL;
+	}
 	tds_free_msg(&msg);
 	
 	tdsdump_log(TDS_DBG_ERROR, "tds_process_info() returning TDS_SUCCESS\n");

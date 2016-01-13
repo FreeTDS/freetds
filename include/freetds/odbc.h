@@ -274,7 +274,6 @@ struct _hdbc
 	struct _henv *env;
 	TDSSOCKET *tds_socket;
 	DSTR dsn;
-	DSTR server;		/* aka Instance */
 	DSTR oldpwd;
 #ifdef ENABLE_ODBC_WIDE
 	DSTR original_charset;
