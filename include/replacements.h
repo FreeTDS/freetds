@@ -33,6 +33,9 @@
 #ifdef HAVE_LIBGEN_H
 # include <libgen.h>
 #endif
+#ifdef HAVE_GETOPT_H
+# include <getopt.h>
+#endif
 
 #if !HAVE_POLL
 #include <replacements/poll.h>

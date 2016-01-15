@@ -85,6 +85,7 @@ foreach(fn
 	com_err.h
 	dirent.h
 	errno.h
+	getopt.h
 	inttypes.h
 	langinfo.h
 	libgen.h
