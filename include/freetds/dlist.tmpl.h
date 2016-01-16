@@ -111,7 +111,7 @@ static inline bool DLIST_FUNC(in_list)(DLIST_LIST_TYPE *list, DLIST_TYPE *item)
 }
 
 #undef DLIST_FAKE
-#undef DLIST_NAME
+#undef DLIST_FUNC
 #undef DLIST_TYPE
 #undef DLIST_LIST_TYPE
 
