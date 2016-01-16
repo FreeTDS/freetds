@@ -120,6 +120,7 @@ struct tds_pool
 
 	int num_active_members;
 	dlist_members active_members;
+	dlist_members idle_members;
 
 	/** users in wait state */
 	dlist_users waiters;
@@ -139,8 +140,8 @@ TDS_POOL_MEMBER *pool_assign_idle_member(TDS_POOL * pool, TDS_POOL_USER *user);
 void pool_mbr_init(TDS_POOL * pool);
 void pool_mbr_destroy(TDS_POOL * pool);
 void pool_free_member(TDS_POOL *pool, TDS_POOL_MEMBER * pmbr);
-void pool_assign_member(TDS_POOL_MEMBER * pmbr, TDS_POOL_USER *puser);
-void pool_deassign_member(TDS_POOL_MEMBER * pmbr);
+void pool_assign_member(TDS_POOL *pool, TDS_POOL_MEMBER * pmbr, TDS_POOL_USER *puser);
+void pool_deassign_member(TDS_POOL *pool, TDS_POOL_MEMBER * pmbr);
 void pool_reset_member(TDS_POOL *pool, TDS_POOL_MEMBER * pmbr);
 bool pool_packet_read(TDSSOCKET * tds);
 

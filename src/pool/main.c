@@ -164,17 +164,9 @@ static void
 pool_schedule_waiters(TDS_POOL * pool)
 {
 	TDS_POOL_USER *puser;
-	TDS_POOL_MEMBER *pmbr;
-	int free_mbrs;
 
 	/* first see if there are free members to do the request */
-	free_mbrs = 0;
-	DLIST_FOREACH(dlist_member, &pool->active_members, pmbr) {
-		if (pmbr->sock.tds)
-			free_mbrs++;
-	}
-
-	if (!free_mbrs)
+	if (!dlist_member_first(&pool->idle_members))
 		return;
 
 	while ((puser = dlist_user_first(&pool->waiters)) != NULL) {

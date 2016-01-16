@@ -215,7 +215,8 @@ pool_free_user(TDS_POOL *pool, TDS_POOL_USER * puser)
 {
 	TDS_POOL_MEMBER *pmbr = puser->assigned_member;
 	if (pmbr) {
-		pool_deassign_member(pmbr);
+		assert(pmbr->current_user == puser);
+		pool_deassign_member(pool, pmbr);
 		pool_reset_member(pool, pmbr);
 	}
 

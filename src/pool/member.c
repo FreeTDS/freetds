@@ -129,21 +129,28 @@ pool_mbr_login(const TDS_POOL * pool, int tds_version)
 }
 
 void
-pool_assign_member(TDS_POOL_MEMBER * pmbr, TDS_POOL_USER *puser)
+pool_assign_member(TDS_POOL *pool, TDS_POOL_MEMBER * pmbr, TDS_POOL_USER *puser)
 {
 	assert(pmbr->current_user == NULL);
-	if (pmbr->current_user)
+	if (pmbr->current_user) {
 		pmbr->current_user->assigned_member = NULL;
+	} else {
+		dlist_member_remove(&pool->idle_members, pmbr);
+		dlist_member_append(&pool->active_members, pmbr);
+	}
 	pmbr->current_user = puser;
 	puser->assigned_member = pmbr;
 }
 
 void
-pool_deassign_member(TDS_POOL_MEMBER * pmbr)
+pool_deassign_member(TDS_POOL *pool, TDS_POOL_MEMBER * pmbr)
 {
-	if (pmbr->current_user)
+	if (pmbr->current_user) {
 		pmbr->current_user->assigned_member = NULL;
-	pmbr->current_user = NULL;
+		pmbr->current_user = NULL;
+		dlist_member_remove(&pool->active_members, pmbr);
+		dlist_member_append(&pool->idle_members, pmbr);
+	}
 	pmbr->sock.poll_send = false;
 }
 
@@ -163,7 +170,7 @@ pool_reset_member(TDS_POOL * pool, TDS_POOL_MEMBER * pmbr)
 
 	puser = pmbr->current_user;
 	if (puser) {
-		pool_deassign_member(pmbr);
+		pool_deassign_member(pool, pmbr);
 		pool_free_user(pool, puser);
 	}
 
@@ -218,7 +225,7 @@ pool_free_member(TDS_POOL * pool, TDS_POOL_MEMBER * pmbr)
 	 */
 	puser = pmbr->current_user;
 	if (puser) {
-		pool_deassign_member(pmbr);
+		pool_deassign_member(pool, pmbr);
 		pool_free_user(pool, puser);
 	}
 
@@ -238,6 +245,7 @@ pool_mbr_init(TDS_POOL * pool)
 
 	pool->num_active_members = 0;
 	dlist_member_init(&pool->active_members);
+	dlist_member_init(&pool->idle_members);
 
 	/* open connections for each member */
 	while (pool->num_active_members < pool->min_open_conn) {
@@ -255,7 +263,7 @@ pool_mbr_init(TDS_POOL * pool)
 		}
 		pmbr->last_used_tm = time(NULL);
 		pool->num_active_members++;
-		dlist_member_append(&pool->active_members, pmbr);
+		dlist_member_append(&pool->idle_members, pmbr);
 		if (!IS_TDS71_PLUS(pmbr->sock.tds->conn)) {
 			fprintf(stderr, "Current pool implementation does not support protocol versions former than 7.1\n");
 			exit(1);
@@ -269,6 +277,8 @@ pool_mbr_destroy(TDS_POOL * pool)
 {
 	while (dlist_member_first(&pool->active_members))
 		pool_free_member(pool, dlist_member_first(&pool->active_members));
+	while (dlist_member_first(&pool->idle_members))
+		pool_free_member(pool, dlist_member_first(&pool->idle_members));
 
 	assert(pool->num_active_members == 0);
 	pool->num_active_members = 0;
@@ -349,16 +359,24 @@ pool_process_members(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
 			}
 			processed = true;
 		}
-		if (processed) {
+		if (processed)
 			pmbr->last_used_tm = time_now;
-		} else {
-			age = time_now - pmbr->last_used_tm;
-			if (age > pool->max_member_age
-			    && pool->num_active_members > pool->min_open_conn
-			    && !pmbr->current_user) {
-				tdsdump_log(TDS_DBG_INFO1, "member is %d seconds old...closing\n", age);
-				pool_free_member(pool, pmbr);
-			}
+	}
+
+	/* close old connections */
+	time_now = time(NULL);
+	for (next = dlist_member_first(&pool->idle_members); (pmbr = next) != NULL; ) {
+
+		next = dlist_member_next(&pool->idle_members, pmbr);
+
+		assert(pmbr->sock.tds);
+		assert(!pmbr->current_user);
+
+		age = time_now - pmbr->last_used_tm;
+		if (age > pool->max_member_age
+		    && pool->num_active_members > pool->min_open_conn) {
+			tdsdump_log(TDS_DBG_INFO1, "member is %d seconds old...closing\n", age);
+			pool_free_member(pool, pmbr);
 		}
 	}
 }
@@ -453,16 +471,16 @@ pool_assign_idle_member(TDS_POOL * pool, TDS_POOL_USER *puser)
 	puser->sock.poll_recv = false;
 	puser->sock.poll_send = false;
 
-	DLIST_FOREACH(dlist_member, &pool->active_members, pmbr) {
-		if (pmbr->current_user || pmbr->doing_async)
-			continue;
+	DLIST_FOREACH(dlist_member, &pool->idle_members, pmbr) {
+		assert(pmbr->current_user == NULL);
+		assert(!pmbr->doing_async);
 
 		assert(pmbr->sock.tds);
 
 		if (!compatible_versions(pmbr->sock.tds, puser))
 			continue;
 
-		pool_assign_member(pmbr, puser);
+		pool_assign_member(pool, pmbr, puser);
 
 		/*
 		 * make sure member wasn't idle more that the timeout
@@ -477,7 +495,7 @@ pool_assign_idle_member(TDS_POOL * pool, TDS_POOL_USER *puser)
 		return pmbr;
 	}
 
-	/* if we have dead connections we can open */
+	/* if we can open a new connection open it */
 	if (pool->num_active_members >= pool->max_open_conn) {
 		fprintf(stderr, "No idle members left, increase \"max pool conn\"\n");
 		return NULL;
@@ -510,9 +528,9 @@ pool_assign_idle_member(TDS_POOL * pool, TDS_POOL_USER *puser)
 	pmbr->doing_async = true;
 
 	pool->num_active_members++;
-	dlist_member_append(&pool->active_members, pmbr);
+	dlist_member_append(&pool->idle_members, pmbr);
 
-	pool_assign_member(pmbr, puser);
+	pool_assign_member(pool, pmbr, puser);
 	puser->sock.poll_send = false;
 	puser->sock.poll_recv = false;
 
