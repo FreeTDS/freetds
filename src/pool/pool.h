@@ -89,7 +89,7 @@ struct tds_pool_member
 };
 
 #define DLIST_FUNC(suffix) dlist_member_ ## suffix
-#define DLIST_LIST_TYPE dlist_member
+#define DLIST_LIST_TYPE dlist_members
 #define DLIST_TYPE TDS_POOL_MEMBER
 #include <freetds/dlist.tmpl.h>
 
@@ -109,7 +109,7 @@ struct tds_pool
 	TDS_POOL_EVENT *events;
 
 	int num_active_members;
-	dlist_member active_members;
+	dlist_members active_members;
 
 	/** number of users in wait state */
 	int waiters;
