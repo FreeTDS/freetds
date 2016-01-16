@@ -151,7 +151,7 @@ void pool_event_add(TDS_POOL *pool, TDS_POOL_EVENT *ev, TDS_POOL_EXECUTE execute
 bool pool_write_data(TDS_POOL_SOCKET *from, TDS_POOL_SOCKET *to);
 
 /* config.c */
-int pool_read_conf_file(const char *poolname, TDS_POOL * pool);
+int pool_read_conf_file(const char *poolname, TDS_POOL * pool, char **err);
 
 
 #endif

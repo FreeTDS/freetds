@@ -23,6 +23,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <errno.h>
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -30,6 +31,10 @@
 
 #if HAVE_STRING_H
 #include <string.h>
+#endif
+
+#ifdef HAVE_LIMITS_H
+#include <limits.h>
 #endif
 
 #include "pool.h"
@@ -47,32 +52,60 @@
 
 static void pool_parse(const char *option, const char *value, void *param);
 
+typedef struct {
+	TDS_POOL *pool;
+	char **err;
+} conf_params;
+
 int
-pool_read_conf_file(const char *poolname, TDS_POOL * pool)
+pool_read_conf_file(const char *poolname, TDS_POOL * pool, char **err)
 {
 	FILE *in;
 	int found = 0;
+	conf_params params = { pool, err };
 
 	in = fopen(FREETDS_POOLCONFFILE, "r");
 	if (in) {
 		fprintf(stderr, "Found conf file in %s reading sections\n", FREETDS_POOLCONFFILE);
-		tds_read_conf_section(in, "global", pool_parse, pool);
+		tds_read_conf_section(in, "global", pool_parse, &params);
 		rewind(in);
-		found = tds_read_conf_section(in, poolname, pool_parse, pool);
+		found = tds_read_conf_section(in, poolname, pool_parse, &params);
 		fclose(in);
 	}
 
 	return found;
 }
 
+/**
+ * Parse an unsigned number, returns -1 on error.
+ * Returns a signed int to make possible to return negative
+ * values for include numbers (we don't need big numbers)
+ */
+static int
+pool_get_uint(const char *value)
+{
+	char *end;
+	unsigned long int val;
+
+	errno = 0;
+	val = strtoul(value, &end, 0);
+	if (errno != 0 || end == value || val > INT_MAX)
+		return -1;
+	return (int) val;
+}
+
 static void
 pool_parse(const char *option, const char *value, void *param)
 {
-	TDS_POOL *pool = (TDS_POOL *) param;
+	conf_params *params = (conf_params *) param;
+	TDS_POOL *pool = params->pool;
+	int val = 0;
 
 	if (!strcmp(option, POOL_STR_PORT)) {
-		if (atoi(value))
-			pool->port = atoi(value);
+		val = pool_get_uint(value);
+		if (val < 1 || val >= 65536)
+			val = -1;
+		pool->port = val;
 	} else if (!strcmp(option, POOL_STR_SERVER)) {
 		free(pool->server);
 		pool->server = strdup(value);
@@ -86,13 +119,18 @@ pool_parse(const char *option, const char *value, void *param)
 		free(pool->password);
 		pool->password = strdup(value);
 	} else if (!strcmp(option, POOL_STR_MAX_MBR_AGE)) {
-		if (atoi(value))
-			pool->max_member_age = atoi(value);
+		val = pool_get_uint(value);
+		pool->max_member_age = val;
 	} else if (!strcmp(option, POOL_STR_MAX_POOL_CONN)) {
-		if (atoi(value))
-			pool->max_open_conn = atoi(value);
+		val = pool_get_uint(value);
+		pool->max_open_conn = val;
 	} else if (!strcmp(option, POOL_STR_MIN_POOL_CONN)) {
-		if (atoi(value))
-			pool->min_open_conn = atoi(value);
+		val = pool_get_uint(value);
+		pool->min_open_conn = val;
+	}
+	if (val < 0) {
+		free(*params->err);
+		if (asprintf(params->err, "Invalid value '%s' specified for %s", value, option) < 0)
+			*params->err = "Memory error parsing options";
 	}
 }

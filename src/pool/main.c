@@ -86,6 +86,7 @@ static TDS_POOL *
 pool_init(const char *name)
 {
 	TDS_POOL *pool;
+	char *err = NULL;
 
 	/* initialize the pool */
 
@@ -98,8 +99,13 @@ pool_init(const char *name)
 	}
 
 	/* FIXME -- read this from the conf file */
-	if (!pool_read_conf_file(name, pool)) {
+	if (!pool_read_conf_file(name, pool, &err)) {
 		fprintf(stderr, "Configuration for pool ``%s'' not found.\n", name);
+		exit(EXIT_FAILURE);
+	}
+
+	if (err) {
+		fprintf(stderr, "%s\n", err);
 		exit(EXIT_FAILURE);
 	}
 	check_field(name, pool->user,   "user");
@@ -111,7 +117,7 @@ pool_init(const char *name)
 		exit(EXIT_FAILURE);
 	}
 	if (pool->max_open_conn < pool->min_open_conn) {
-		fprintf(stderr, "Max connection less than minimum\n");
+		fprintf(stderr, "Max connections less than minimum\n");
 		exit(EXIT_FAILURE);
 	}
 
