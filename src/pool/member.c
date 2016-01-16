@@ -222,9 +222,10 @@ pool_free_member(TDS_POOL * pool, TDS_POOL_MEMBER * pmbr)
 		pool_free_user(pool, puser);
 	}
 
-	if (dlist_member_in_list(&pool->active_members, pmbr))
+	if (dlist_member_in_list(&pool->active_members, pmbr)) {
 		pool->num_active_members--;
-	dlist_member_remove(&pool->active_members, pmbr);
+		dlist_member_remove(&pool->active_members, pmbr);
+	}
 	free(pmbr);
 }
 
