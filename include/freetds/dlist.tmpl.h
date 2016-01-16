@@ -28,19 +28,13 @@ typedef struct
 
 #define DLIST_FAKE(list) ((DLIST_TYPE *) (((char *) (list)) - TDS_OFFSET(DLIST_TYPE, next)))
 
+#if ENABLE_EXTRA_CHECKS
+void DLIST_FUNC(check)(DLIST_LIST_TYPE *list);
+#else
 static inline void DLIST_FUNC(check)(DLIST_LIST_TYPE *list)
 {
-#if ENABLE_EXTRA_CHECKS
-	DLIST_TYPE *item = list->next;
-	DLIST_TYPE *end  = DLIST_FAKE(list);
-	assert(item != NULL);
-	do {
-		assert(item->prev->next == item);
-		assert(item->next->prev == item);
-		item = item->next;
-	} while (item != end);
-#endif
 }
+#endif
 
 static inline void DLIST_FUNC(init)(DLIST_LIST_TYPE *list)
 {
