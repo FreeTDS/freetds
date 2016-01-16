@@ -56,23 +56,19 @@ static void end_login_execute(TDS_POOL_EVENT *base_event);
 void
 pool_user_init(TDS_POOL * pool)
 {
-	/* allocate room for pool users */
-
-	pool->users = (TDS_POOL_USER *)
-		calloc(MAX_POOL_USERS, sizeof(TDS_POOL_USER));
+	dlist_user_init(&pool->users);
+	dlist_user_init(&pool->waiters);
 	pool->ctx = tds_alloc_context(NULL);
 }
 
 void
 pool_user_destroy(TDS_POOL * pool)
 {
-	int i;
+	while (dlist_user_first(&pool->users))
+		pool_free_user(pool, dlist_user_first(&pool->users));
+	while (dlist_user_first(&pool->waiters))
+		pool_free_user(pool, dlist_user_first(&pool->waiters));
 
-	for (i = 0; i < pool->max_users; i++)
-		pool_free_user(pool, &pool->users[i]);
-
-	free(pool->users);
-	pool->users = NULL;
 	tds_free_context(pool->ctx);
 	pool->ctx = NULL;
 }
@@ -81,24 +77,21 @@ static TDS_POOL_USER *
 pool_user_find_new(TDS_POOL * pool)
 {
 	TDS_POOL_USER *puser;
-	int i;
-
-	/* first check for dead users to reuse */
-	for (i=0; i<pool->max_users; i++) {
-		puser = &pool->users[i];
-		if (!puser->sock.tds)
-			return puser;
-	}
 
 	/* did we exhaust the number of concurrent users? */
-	if (pool->max_users >= MAX_POOL_USERS) {
+	if (pool->num_users >= MAX_POOL_USERS) {
 		fprintf(stderr, "Max concurrent users exceeded, increase in pool.h\n");
 		return NULL;
 	}
 
-	/* else take one off the top of the pool->users */
-	puser = &pool->users[pool->max_users];
-	pool->max_users++;
+	puser = calloc(1, sizeof(*puser));
+	if (!puser) {
+		fprintf(stderr, "Out of memory\n");
+		return NULL;
+	}
+
+	dlist_user_append(&pool->users, puser);
+	pool->num_users++;
 
 	return puser;
 }
@@ -226,12 +219,16 @@ pool_free_user(TDS_POOL *pool, TDS_POOL_USER * puser)
 		pool_reset_member(pool, pmbr);
 	}
 
-	/* make sure to decrement the waiters list if he is waiting */
-	if (puser->user_state == TDS_SRV_WAIT)
-		pool->waiters--;
 	tds_free_socket(puser->sock.tds);
 	tds_free_login(puser->login);
-	memset(puser, 0, sizeof(TDS_POOL_USER));
+
+	/* make sure to decrement the waiters list if he is waiting */
+	if (puser->user_state == TDS_SRV_WAIT)
+		dlist_user_remove(&pool->waiters, puser);
+	else
+		dlist_user_remove(&pool->users, puser);
+	pool->num_users--;
+	free(puser);
 }
 
 /* 
@@ -242,12 +239,11 @@ pool_free_user(TDS_POOL *pool, TDS_POOL_USER * puser)
 void
 pool_process_users(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
 {
-	TDS_POOL_USER *puser;
-	int i;
+	TDS_POOL_USER *puser, *next;
 
-	for (i = 0; i < pool->max_users; i++) {
+	for (next = dlist_user_first(&pool->users); (puser = next) != NULL; ) {
 
-		puser = &pool->users[i];
+		next = dlist_user_next(&pool->users, puser);
 
 		if (!puser->sock.tds)
 			continue;	/* dead connection */
@@ -514,7 +510,8 @@ pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser)
 		puser->user_state = TDS_SRV_WAIT;
 		puser->sock.poll_recv = false;
 		puser->sock.poll_send = false;
-		pool->waiters++;
+		dlist_user_remove(&pool->users, puser);
+		dlist_user_append(&pool->waiters, puser);
 	}
 }
 

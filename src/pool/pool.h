@@ -74,6 +74,7 @@ struct tds_pool_socket
 struct tds_pool_user
 {
 	TDS_POOL_SOCKET sock;
+	DLIST_FIELDS(dlist_user_item);
 	TDSLOGIN *login;
 	TDS_USER_STATE user_state;
 	TDS_POOL_MEMBER *assigned_member;
@@ -91,6 +92,11 @@ struct tds_pool_member
 #define DLIST_NAME(suffix) dlist_member_ ## suffix
 #define DLIST_LIST_TYPE dlist_members
 #define DLIST_TYPE TDS_POOL_MEMBER
+#include <freetds/dlist.tmpl.h>
+
+#define DLIST_NAME(suffix) dlist_user_ ## suffix
+#define DLIST_LIST_TYPE dlist_users
+#define DLIST_TYPE TDS_POOL_USER
 #include <freetds/dlist.tmpl.h>
 
 struct tds_pool
@@ -111,10 +117,10 @@ struct tds_pool
 	int num_active_members;
 	dlist_members active_members;
 
-	/** number of users in wait state */
-	int waiters;
-	int max_users;
-	TDS_POOL_USER *users;
+	/** users in wait state */
+	dlist_users waiters;
+	int num_users;
+	dlist_users users;
 	TDSCONTEXT *ctx;
 
 	unsigned long user_logins;

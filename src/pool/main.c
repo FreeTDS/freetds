@@ -148,7 +148,7 @@ pool_schedule_waiters(TDS_POOL * pool)
 {
 	TDS_POOL_USER *puser;
 	TDS_POOL_MEMBER *pmbr;
-	int i, free_mbrs;
+	int free_mbrs;
 
 	/* first see if there are free members to do the request */
 	free_mbrs = 0;
@@ -160,12 +160,12 @@ pool_schedule_waiters(TDS_POOL * pool)
 	if (!free_mbrs)
 		return;
 
-	for (i = 0; i < pool->max_users; i++) {
-		puser = &pool->users[i];
+	while ((puser = dlist_user_first(&pool->waiters)) != NULL) {
 		if (puser->user_state == TDS_SRV_WAIT) {
 			/* place back in query state */
 			puser->user_state = TDS_SRV_QUERY;
-			pool->waiters--;
+			dlist_user_remove(&pool->waiters, puser);
+			dlist_user_append(&pool->users, puser);
 			/* now try again */
 			pool_user_query(pool, puser);
 			return;
@@ -226,9 +226,9 @@ static void
 pool_main_loop(TDS_POOL * pool)
 {
 	TDS_POOL_MEMBER *pmbr;
+	TDS_POOL_USER *puser;
 	struct sockaddr_in sin;
 	TDS_SYS_SOCKET s, event_pair[2];
-	int i;
 	SELECT_INFO sel;
 	int socktrue = 1;
 
@@ -271,8 +271,8 @@ pool_main_loop(TDS_POOL * pool)
 		sel.maxfd = s > event_pair[0] ? s : event_pair[0];
 
 		/* add the user sockets to the read list */
-		for (i = 0; i < pool->max_users; i++)
-			pool_select_add_socket(&sel, &pool->users[i].sock);
+		DLIST_FOREACH(dlist_user, &pool->users, puser)
+			pool_select_add_socket(&sel, &puser->sock);
 
 		/* add the pool member sockets to the read list */
 		DLIST_FOREACH(dlist_member, &pool->active_members, pmbr)
@@ -299,9 +299,8 @@ pool_main_loop(TDS_POOL * pool)
 		pool_process_members(pool, &sel.rfds, &sel.wfds);
 
 		/* back from members */
-		if (pool->waiters) {
+		if (dlist_user_first(&pool->waiters))
 			pool_schedule_waiters(pool);
-		}
 	}			/* while !term */
 	CLOSESOCKET(event_pair[0]);
 	CLOSESOCKET(s);
