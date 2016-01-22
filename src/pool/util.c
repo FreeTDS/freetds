@@ -138,7 +138,7 @@ pool_packet_read(TDSSOCKET *tds)
 	return false;
 }
 
-static int
+int
 pool_write(TDS_SYS_SOCKET sock, const void *buf, size_t len)
 {
 	int ret;

@@ -66,7 +66,8 @@ static void pool_main_loop(TDS_POOL * pool);
 static void
 term_handler(int sig)
 {
-	printf("Shutdown Requested\n");
+	static const char msg[] = "Shutdown Requested\n";
+	pool_write(1, msg, sizeof(msg)-1);
 	term = 1;
 }
 
