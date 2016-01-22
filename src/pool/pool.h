@@ -146,7 +146,6 @@ void pool_user_finish_login(TDS_POOL * pool, TDS_POOL_USER * puser);
 
 /* util.c */
 void dump_login(TDSLOGIN * login);
-void die_if(int expr, const char *msg);
 void pool_event_add(TDS_POOL *pool, TDS_POOL_EVENT *ev, TDS_POOL_EXECUTE execute);
 bool pool_write_data(TDS_POOL_SOCKET *from, TDS_POOL_SOCKET *to);
 

@@ -57,16 +57,6 @@ dump_login(TDSLOGIN * login)
 	fprintf(stderr, "bsiz %d\n", login->block_size);
 }
 
-void
-die_if(int expr, const char *msg)
-{
-	if (expr) {
-		fprintf(stderr, "%s\n", msg);
-		fprintf(stderr, "tdspool aborting!\n");
-		exit(EXIT_FAILURE);
-	}
-}
-
 /**
  * Read part of packet. Function does not block.
  * @return true if packet is not complete and we must call again,
