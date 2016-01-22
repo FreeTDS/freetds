@@ -161,7 +161,10 @@ typedef union {
 #if defined(__i386__) || defined(__amd64__) || defined(__CRIS__) ||\
   defined(__powerpc__) || defined(__powerpc64__) || defined(__ppc__) || defined(__ppc64__) ||\
   defined(__s390__) || defined(__s390x__) || defined(__m68k__) ||\
-  (defined(_MSC_VER) && (defined(_M_AMD64) || defined(_M_IX86) || defined(_M_X64)))
+  (defined(_MSC_VER) && (defined(_M_AMD64) || defined(_M_IX86) || defined(_M_X64))) ||\
+  defined(__ARM_FEATURE_UNALIGNED) ||\
+  defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_8__) ||\
+  (defined(_M_ARM) && (_M_ARM >= 7))
 # ifdef WORDS_BIGENDIAN
 #  undef TDS_GET_UA2BE
 #  undef TDS_GET_UA4BE
