@@ -66,7 +66,7 @@ pool_read_conf_file(const char *poolname, TDS_POOL * pool, char **err)
 
 	in = fopen(FREETDS_POOLCONFFILE, "r");
 	if (in) {
-		fprintf(stderr, "Found conf file in %s reading sections\n", FREETDS_POOLCONFFILE);
+		tdsdump_log(TDS_DBG_INFO1, "Found conf file in %s reading sections\n", FREETDS_POOLCONFFILE);
 		tds_read_conf_section(in, "global", pool_parse, &params);
 		rewind(in);
 		found = tds_read_conf_section(in, poolname, pool_parse, &params);

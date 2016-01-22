@@ -278,7 +278,6 @@ pool_main_loop(TDS_POOL * pool)
 		DLIST_FOREACH(dlist_member, &pool->active_members, pmbr)
 			pool_select_add_socket(&sel, &pmbr->sock);
 
-		/* fprintf(stderr, "waiting for a connect\n"); */
 		/* FIXME check return value */
 		select(sel.maxfd + 1, &sel.rfds, &sel.wfds, NULL, NULL);
 		if (term)

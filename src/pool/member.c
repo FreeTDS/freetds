@@ -290,21 +290,20 @@ pool_process_data(TDS_POOL *pool, TDS_POOL_MEMBER *pmbr)
 
 		/* disconnected */
 		if (tds->in_len == 0) {
-			fprintf(stderr, "Uh oh! member disconnected\n");
+			tdsdump_log(TDS_DBG_INFO1, "Uh oh! member disconnected\n");
 			/* mark as dead */
 			pool_free_member(pool, pmbr);
 			return false;
 		}
 
 		tdsdump_dump_buf(TDS_DBG_NETWORK, "Got packet from server:", tds->in_buf, tds->in_len);
-		/* fprintf(stderr, "read %d bytes\n", tds->in_len); */
 		puser = pmbr->current_user;
 		if (!puser)
 			break;
 
 		tdsdump_log(TDS_DBG_INFO1, "writing it sock %d\n", tds_get_s(puser->sock.tds));
 		if (!pool_write_data(&pmbr->sock, &puser->sock)) {
-			fprintf(stdout, "member received error while writing\n");
+			tdsdump_log(TDS_DBG_ERROR, "member received error while writing\n");
 			pool_free_user(pool, puser);
 			return false;
 		}
@@ -361,7 +360,7 @@ pool_process_members(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
 			if (age > pool->max_member_age
 			    && pool->num_active_members > pool->min_open_conn
 			    && !pmbr->current_user) {
-				fprintf(stderr, "member is %d seconds old...closing\n", age);
+				tdsdump_log(TDS_DBG_INFO1, "member is %d seconds old...closing\n", age);
 				pool_free_member(pool, pmbr);
 			}
 		}
@@ -396,11 +395,11 @@ static TDS_THREAD_PROC_DECLARE(connect_proc, arg)
 	for (;;) {
 		pmbr->sock.tds = pool_mbr_login(pool, ev->tds_version);
 		if (!pmbr->sock.tds) {
-			fprintf(stderr, "Error opening a new connection to server\n");
+			tdsdump_log(TDS_DBG_ERROR, "Error opening a new connection to server\n");
 			break;
 		}
 		if (!IS_TDS71_PLUS(pmbr->sock.tds->conn)) {
-			fprintf(stderr, "Protocol server version not supported\n");
+			tdsdump_log(TDS_DBG_ERROR, "Protocol server version not supported\n");
 			break;
 		}
 
@@ -499,7 +498,7 @@ pool_assign_idle_member(TDS_POOL * pool, TDS_POOL_USER *puser)
 		return NULL;
 	}
 
-	fprintf(stderr, "No open connections left, opening new member\n");
+	tdsdump_log(TDS_DBG_INFO1, "No open connections left, opening new member\n");
 
 	ev = calloc(1, sizeof(*ev));
 	if (!ev) {

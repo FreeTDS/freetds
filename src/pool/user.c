@@ -160,7 +160,7 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s)
 	TDSSOCKET *tds;
 	LOGIN_EVENT *ev;
 
-	fprintf(stderr, "accepting connection\n");
+	tdsdump_log(TDS_DBG_NETWORK, "accepting connection\n");
 	if (TDS_IS_SOCKET_INVALID(fd = tds_accept(s, NULL, NULL))) {
 		perror("accept");
 		return NULL;
@@ -459,7 +459,7 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 		if (pool_packet_read(tds))
 			break;
 		if (tds->in_len == 0) {
-			fprintf(stderr, "user disconnected\n");
+			tdsdump_log(TDS_DBG_INFO1, "user disconnected\n");
 			pool_free_user(pool, puser);
 			return false;
 		} else {
@@ -482,7 +482,7 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 				break;
 
 			default:
-				fprintf(stderr, "Unrecognized packet type, closing user\n");
+				tdsdump_log(TDS_DBG_ERROR, "Unrecognized packet type, closing user\n");
 				pool_free_user(pool, puser);
 				return false;
 			}
@@ -510,7 +510,7 @@ pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser)
 		 * put into wait state
 		 * check when member is deallocated
 		 */
-		fprintf(stderr, "Not enough free members...placing user in WAIT\n");
+		tdsdump_log(TDS_DBG_INFO1, "Not enough free members...placing user in WAIT\n");
 		puser->user_state = TDS_SRV_WAIT;
 		puser->sock.poll_recv = false;
 		puser->sock.poll_send = false;
