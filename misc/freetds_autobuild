@@ -26,10 +26,12 @@ WORKDIR=ftds_comp
 
 upload()
 {
+	local dir=$1
 	mkdir -p "$HOME/cpp/freetds/html/$1"
 	rm -rf "$HOME/cpp/freetds/html/$1"
 	mkdir -p "$HOME/cpp/freetds/html/$1"
-	cp -r $2 "$HOME/cpp/freetds/html/$1"
+	shift
+	cp -r $@ "$HOME/cpp/freetds/html/$dir"
 #	tar zcf - $2 | ssh -p 443 freddy77@shell-ssh.sourceforge.net "cd $GROUPDIR/$1 && rm -rf * && { tar zxf -; find . -type d -print0 | xargs -0 chmod 2775; find . -type f -print0 | xargs -0 chmod 0664; }"
 }
 
@@ -186,7 +188,7 @@ generic_test() {
 	grab_logs
 	cd logs
 	../misc/online.pl < log.txt
-	upload "$OUTDIR/$dir" '*.html'
+	upload "$OUTDIR/$dir" '*.html' '*.txt'
 	cd ..
 }
 
@@ -222,7 +224,7 @@ fi
 # upload our test results
 cd logs
 perl -pe "\$_ = '' if \$_ =~ /^2:.*content model is mixed but does not allow #PCDATA everywhere/" < log.txt | ../misc/online.pl
-upload "$OUTDIR/test" '*.html'
+upload "$OUTDIR/test" '*.html' '*.txt'
 cd ..
 
 # test connection using named port

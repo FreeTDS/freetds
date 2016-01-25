@@ -34,6 +34,12 @@ sub out_row($) {
 	print OUT "$_\n";
 }
 
+sub check_row_err($) {
+	$_ = shift;
+	$_ = "$_  ";
+	return 1 if /:-\(  /;
+	return 0;
+}
 
 $cur = {};
 while (<>) {
@@ -154,11 +160,9 @@ foreach $i (@files) {
 	printf HTML $Header, $title;
 
 	open(IN, "<test$num.txt") or die qq(could not open "test$num.txt" ($!));
-	@a = <IN>;
+	$_ = do { local $/; <IN> };
 	close(IN);
 
-	$_ = join("", @a);
-	@a = ();
 	$i->{warning} = 'no :-)';
 	$i->{warning} = 'yes :-(' if (/^\+?2:/m);
 	if ($i->{valgrind}) {
@@ -195,11 +199,15 @@ foreach $i (grep { !$_->{test} } @files) {
 out_footer();
 @files = grep { $_->{test} } @files;
 
+my $file_err = 0;
+
 if (!$vg) {
 	out_header('Test  Success  Warnings  Log');
 	foreach $i (@files) {
 		$i->{warning} =~ s/:-\(/:\(/;
-		out_row("$i->{title}  $i->{success}  $i->{warning}  <a href=\"$i->{html}\">log</a>");
+		my $row = "$i->{title}  $i->{success}  $i->{warning}  <a href=\"$i->{html}\">log</a>";
+		$file_err ||= check_row_err($row);
+		out_row($row);
 	}
 	out_footer();
 } else {
@@ -216,12 +224,19 @@ if (!$vg) {
 			}
 		}
 		if (!$i->{valgrind}) {
+			$i->{warning} =~ s/:-\(/:\(/;
 			$norm = "$i->{success}  $i->{warning}  <a href=\"$i->{html}\">log</a>";
 		}
-		out_row("$i->{title}  $norm  $vg");
+		my $row = "$i->{title}  $norm  $vg";
+		$file_err ||= check_row_err($row);
+		out_row($row);
 	}
 	out_footer();
 }
 
 printf OUT $Footer;
+close(OUT);
+
+open(OUT, ">index.txt") or die qq(could not open "index.txt" ($!));
+print OUT ($file_err ? "error.png" : "success.png");
 close(OUT);
