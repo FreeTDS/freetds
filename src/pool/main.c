@@ -27,7 +27,10 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <signal.h>
+#include <fcntl.h>
+#include <errno.h>
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -57,12 +60,15 @@
 
 /* to be set by sig term */
 static int term = 0;
+static int got_sighup = 0;
+static const char *logfile_name = NULL;
 
 static void term_handler(int sig);
 static void pool_schedule_waiters(TDS_POOL * pool);
 static TDS_POOL *pool_init(const char *name);
 static void pool_socket_init(TDS_POOL * pool);
 static void pool_main_loop(TDS_POOL * pool);
+static bool pool_open_logfile(TDS_POOL * pool);
 
 static void
 term_handler(int sig)
@@ -70,6 +76,12 @@ term_handler(int sig)
 	static const char msg[] = "Shutdown Requested\n";
 	pool_write(1, msg, sizeof(msg)-1);
 	term = 1;
+}
+
+static void
+sighup_handler(int sig)
+{
+	got_sighup = 1;
 }
 
 static void
@@ -120,6 +132,8 @@ pool_init(const char *name)
 	}
 
 	pool->name = strdup(name);
+
+	pool_open_logfile(pool);
 
 	pool_mbr_init(pool);
 	pool_user_init(pool);
@@ -222,6 +236,33 @@ pool_process_events(TDS_POOL *pool)
 	}
 }
 
+static bool
+pool_open_logfile(TDS_POOL *pool)
+{
+	int fd;
+
+	tds_g_append_mode = 0;
+	tdsdump_open(getenv("TDSDUMP"));
+
+	if (!logfile_name)
+		return true;
+	fd = open(logfile_name, O_WRONLY|O_CREAT|O_APPEND, 0644);
+	if (fd < 0)
+		return false;
+
+	fflush(stdout);
+	fflush(stderr);
+	while (dup2(fd, fileno(stdout)) < 0 && errno == EINTR)
+		continue;
+	while (dup2(fd, fileno(stderr)) < 0 && errno == EINTR)
+		continue;
+	close(fd);
+	fflush(stdout);
+	fflush(stderr);
+
+	return true;
+}
+
 static void
 pool_socket_init(TDS_POOL * pool)
 {
@@ -295,8 +336,11 @@ pool_main_loop(TDS_POOL * pool)
 
 		/* FIXME check return value */
 		select(sel.maxfd + 1, &sel.rfds, &sel.wfds, NULL, NULL);
-		if (term)
+		if (TDS_UNLIKELY(term))
 			break;
+
+		if (TDS_UNLIKELY(got_sighup))
+			pool_open_logfile(pool);
 
 		/* process events */
 		if (FD_ISSET(wakeup, &sel.rfds)) {
@@ -319,21 +363,38 @@ pool_main_loop(TDS_POOL * pool)
 	}			/* while !term */
 }
 
+static void
+print_usage(const char *progname)
+{
+	fprintf(stderr, "Usage:\t%s [-l <log file>] <pool name>\n", progname);
+}
+
 int
 main(int argc, char **argv)
 {
+	int opt;
 	TDS_POOL *pool;
 
 	signal(SIGTERM, term_handler);
 	signal(SIGINT, term_handler);
+	signal(SIGHUP, sighup_handler);
 	signal(SIGPIPE, SIG_IGN);
 
-	if (argc < 2) {
-		fprintf(stderr, "Usage: tdspool <pool name>\n");
+	while ((opt = getopt(argc, argv, "l:")) != -1) {
+		switch (opt) {
+		case 'l':
+			logfile_name = optarg;
+			break;
+		default:
+			print_usage(argv[0]);
+			return EXIT_FAILURE;
+		}
+	}
+	if (optind >= argc) {
+		print_usage(argv[0]);
 		return EXIT_FAILURE;
 	}
-	pool = pool_init(argv[1]);
-	tdsdump_open(getenv("TDSDUMP"));
+	pool = pool_init(argv[optind]);
 	pool_main_loop(pool);
 	printf("User logins %lu members logins %lu members at end %d\n", pool->user_logins, pool->member_logins, pool->num_active_members);
 	pool_destroy(pool);
