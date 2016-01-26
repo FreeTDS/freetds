@@ -14,7 +14,7 @@ libtds_la_SOURCES=	mem.c token.c util.c login.c read.c \
 	write.c convert.c numeric.c config.c query.c iconv.c \
 	locale.c threadsafe.c vstrbuild.c \
 	tdsstring.c getmac.c data.c net.c tls.c \
-	tds_checks.c log.c \
+	tds_checks.c log.c dlist.c \
 	bulk.c packet.c stream.c random.c \
 	sec_negotiate_gnutls.h sec_negotiate_openssl.h sec_negotiate.c \
 	$(AUTH_FILES)

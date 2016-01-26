@@ -17,96 +17,97 @@
  *
  */
 
-#if !defined(DLIST_FUNC) || !defined(DLIST_TYPE) || !defined(DLIST_LIST_TYPE)
+#if !defined(DLIST_NAME) || !defined(DLIST_TYPE) || !defined(DLIST_LIST_TYPE)
 #error Required defines missing!
 #endif
 
 typedef struct
 {
-	DLIST_FIELDS(DLIST_TYPE);
+	dlist_ring ring;
 } DLIST_LIST_TYPE;
 
-#define DLIST_FAKE(list) ((DLIST_TYPE *) (((char *) (list)) - TDS_OFFSET(DLIST_TYPE, next)))
+#undef DLIST_ITEM
+#define DLIST_ITEM(ring) ((DLIST_TYPE *) (((char *) (ring)) - TDS_OFFSET(DLIST_TYPE, DLIST_NAME(item))))
 
+static inline void DLIST_NAME(check)(DLIST_LIST_TYPE *list)
+{
 #if ENABLE_EXTRA_CHECKS
-void DLIST_FUNC(check)(DLIST_LIST_TYPE *list);
-#else
-static inline void DLIST_FUNC(check)(DLIST_LIST_TYPE *list)
-{
-}
+	assert(list != NULL);
+	dlist_ring_check(&list->ring);
 #endif
-
-static inline void DLIST_FUNC(init)(DLIST_LIST_TYPE *list)
-{
-	list->next = list->prev = DLIST_FAKE(list);
-	DLIST_FUNC(check)(list);
 }
 
-static inline DLIST_TYPE *DLIST_FUNC(first)(DLIST_LIST_TYPE *list)
+static inline void DLIST_NAME(init)(DLIST_LIST_TYPE *list)
 {
-	return list->next == DLIST_FAKE(list) ? NULL : list->next;
+	list->ring.next = list->ring.prev = &list->ring;
+	DLIST_NAME(check)(list);
 }
 
-static inline DLIST_TYPE *DLIST_FUNC(last)(DLIST_LIST_TYPE *list)
+static inline DLIST_TYPE *DLIST_NAME(first)(DLIST_LIST_TYPE *list)
 {
-	return list->prev == DLIST_FAKE(list) ? NULL : list->prev;
+	return list->ring.next == &list->ring ? NULL : DLIST_ITEM(list->ring.next);
 }
 
-static inline DLIST_TYPE *DLIST_FUNC(next)(DLIST_LIST_TYPE *list, DLIST_TYPE *item)
+static inline DLIST_TYPE *DLIST_NAME(last)(DLIST_LIST_TYPE *list)
 {
-	return item->next == DLIST_FAKE(list) ? NULL : item->next;
+	return list->ring.prev == &list->ring ? NULL : DLIST_ITEM(list->ring.prev);
 }
 
-static inline DLIST_TYPE *DLIST_FUNC(prev)(DLIST_LIST_TYPE *list, DLIST_TYPE *item)
+static inline DLIST_TYPE *DLIST_NAME(next)(DLIST_LIST_TYPE *list, DLIST_TYPE *item)
 {
-	return item->prev == DLIST_FAKE(list) ? NULL : item->prev;
+	return item->DLIST_NAME(item).next == &list->ring ? NULL : DLIST_ITEM(item->DLIST_NAME(item).next);
 }
 
-static inline void DLIST_FUNC(prepend)(DLIST_LIST_TYPE *list, DLIST_TYPE *item)
+static inline DLIST_TYPE *DLIST_NAME(prev)(DLIST_LIST_TYPE *list, DLIST_TYPE *item)
 {
-	DLIST_FUNC(check)(list);
-	assert(item->next == NULL && item->prev == NULL);
-	list->next->prev = item;
-	item->next = list->next;
-	item->prev = DLIST_FAKE(list);
-	list->next = item;
-	assert(item->next != NULL && item->prev != NULL);
-	DLIST_FUNC(check)(list);
+	return item->DLIST_NAME(item).prev == &list->ring ? NULL : DLIST_ITEM(item->DLIST_NAME(item).prev);
 }
 
-static inline void DLIST_FUNC(append)(DLIST_LIST_TYPE *list, DLIST_TYPE *item)
+static inline void DLIST_NAME(prepend)(DLIST_LIST_TYPE *list, DLIST_TYPE *item)
 {
-	DLIST_FUNC(check)(list);
-	assert(item->next == NULL && item->prev == NULL);
-	list->prev->next = item;
-	item->prev = list->prev;
-	item->next = DLIST_FAKE(list);
-	list->prev = item;
-	assert(item->next != NULL && item->prev != NULL);
-	DLIST_FUNC(check)(list);
+	DLIST_NAME(check)(list);
+	assert(item->DLIST_NAME(item).next == NULL && item->DLIST_NAME(item).prev == NULL);
+	list->ring.next->prev = &item->DLIST_NAME(item);
+	item->DLIST_NAME(item).next = list->ring.next;
+	item->DLIST_NAME(item).prev = &list->ring;
+	list->ring.next = &item->DLIST_NAME(item);
+	assert(item->DLIST_NAME(item).next != NULL && item->DLIST_NAME(item).prev != NULL);
+	DLIST_NAME(check)(list);
 }
 
-static inline void DLIST_FUNC(remove)(DLIST_LIST_TYPE *list, DLIST_TYPE *item)
+static inline void DLIST_NAME(append)(DLIST_LIST_TYPE *list, DLIST_TYPE *item)
 {
-	DLIST_TYPE *prev = item->prev, *next = item->next;
-	DLIST_FUNC(check)(list);
+	DLIST_NAME(check)(list);
+	assert(item->DLIST_NAME(item).next == NULL && item->DLIST_NAME(item).prev == NULL);
+	list->ring.prev->next = &item->DLIST_NAME(item);
+	item->DLIST_NAME(item).prev = list->ring.prev;
+	item->DLIST_NAME(item).next = &list->ring;
+	list->ring.prev = &item->DLIST_NAME(item);
+	assert(item->DLIST_NAME(item).next != NULL && item->DLIST_NAME(item).prev != NULL);
+	DLIST_NAME(check)(list);
+}
+
+static inline void DLIST_NAME(remove)(DLIST_LIST_TYPE *list, DLIST_TYPE *item)
+{
+	dlist_ring *prev = item->DLIST_NAME(item).prev, *next = item->DLIST_NAME(item).next;
+	DLIST_NAME(check)(list);
 	if (prev)
 		prev->next = next;
 	if (next)
 		next->prev = prev;
-	item->prev = NULL;
-	item->next = NULL;
-	DLIST_FUNC(check)(list);
+	item->DLIST_NAME(item).prev = NULL;
+	item->DLIST_NAME(item).next = NULL;
+	DLIST_NAME(check)(list);
 }
 
-static inline bool DLIST_FUNC(in_list)(DLIST_LIST_TYPE *list, DLIST_TYPE *item)
+static inline bool DLIST_NAME(in_list)(DLIST_LIST_TYPE *list, DLIST_TYPE *item)
 {
-	DLIST_FUNC(check)(list);
-	return item->prev != NULL || item->next != NULL;
+	DLIST_NAME(check)(list);
+	return item->DLIST_NAME(item).prev != NULL || item->DLIST_NAME(item).next != NULL;
 }
 
-#undef DLIST_FAKE
-#undef DLIST_FUNC
+#undef DLIST_ITEM
+#undef DLIST_NAME
 #undef DLIST_TYPE
 #undef DLIST_LIST_TYPE
 

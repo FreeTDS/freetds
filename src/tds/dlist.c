@@ -17,30 +17,18 @@
  *
  */
 
-#if !defined(DLIST_FUNC) || !defined(DLIST_TYPE) || !defined(DLIST_LIST_TYPE)
-#error Required defines missing!
-#endif
-
+#include <config.h>
 #include <assert.h>
-
-#define DLIST_FAKE(list) ((DLIST_TYPE *) (((char *) (list)) - TDS_OFFSET(DLIST_TYPE, next)))
+#include <freetds/dlist.h>
 
 #if ENABLE_EXTRA_CHECKS
-void DLIST_FUNC(check)(DLIST_LIST_TYPE *list)
+void dlist_ring_check(dlist_ring *ring)
 {
-	const DLIST_TYPE *end  = DLIST_FAKE(list);
-	const DLIST_TYPE *item = end;
-	assert(list != NULL);
+	const dlist_ring *item = ring;
 	do {
 		assert(item->prev->next == item);
 		assert(item->next->prev == item);
 		item = item->next;
-	} while (item != end);
+	} while (item != ring);
 }
 #endif
-
-#undef DLIST_FAKE
-#undef DLIST_FUNC
-#undef DLIST_TYPE
-#undef DLIST_LIST_TYPE
-

@@ -82,13 +82,13 @@ struct tds_pool_user
 struct tds_pool_member
 {
 	TDS_POOL_SOCKET sock;
-	DLIST_FIELDS(TDS_POOL_MEMBER);
+	DLIST_FIELDS(dlist_member_item);
 	bool doing_async;
 	time_t last_used_tm;
 	TDS_POOL_USER *current_user;
 };
 
-#define DLIST_FUNC(suffix) dlist_member_ ## suffix
+#define DLIST_NAME(suffix) dlist_member_ ## suffix
 #define DLIST_LIST_TYPE dlist_members
 #define DLIST_TYPE TDS_POOL_MEMBER
 #include <freetds/dlist.tmpl.h>

@@ -59,11 +59,6 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-#define DLIST_FUNC(suffix) dlist_member_ ## suffix
-#define DLIST_LIST_TYPE dlist_members
-#define DLIST_TYPE TDS_POOL_MEMBER
-#include <freetds/dlist.tmpl.c>
-
 static void
 pool_mbr_free_socket(TDSSOCKET *tds)
 {

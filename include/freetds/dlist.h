@@ -17,8 +17,22 @@
  *
  */
 
-#define DLIST_FIELDS(type) \
-	type *next, *prev
+#ifndef TDS_DLIST_H
+#define TDS_DLIST_H
+
+typedef struct dlist_ring {
+	struct dlist_ring *next;
+	struct dlist_ring *prev;
+} dlist_ring;
+
+#if ENABLE_EXTRA_CHECKS
+void dlist_ring_check(dlist_ring *ring);
+#endif
+
+#define DLIST_FIELDS(name) \
+	dlist_ring name
 
 #define DLIST_FOREACH(prefix, list, p) \
 	for (p = prefix ## _ ## first(list); p != NULL; p = prefix ## _ ## next(list, p))
+
+#endif /* TDS_DLIST_H */
