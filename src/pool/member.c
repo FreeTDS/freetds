@@ -185,7 +185,7 @@ pool_reset_member(TDS_POOL * pool, TDS_POOL_MEMBER * pmbr)
 		if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 			goto failure;
 		tds_start_query(tds, TDS_QUERY);
-		tds_put_string(tds, "SET TRANSACTION ISOLATION LEVEL READ COMMITTED", -1);
+		tds_put_string(tds, "WHILE @@TRANCOUNT > 0 ROLLBACK SET TRANSACTION ISOLATION LEVEL READ COMMITTED", -1);
 		tds_write_packet(tds, 0x9);
 		tds_set_state(tds, TDS_PENDING);
 
