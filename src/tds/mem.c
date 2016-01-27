@@ -394,17 +394,13 @@ tds_alloc_compute_result(TDS_USMALLINT num_cols, TDS_USMALLINT by_cols)
 
 	TEST_CALLOC(info->columns, TDSCOLUMN *, num_cols);
 
-	tdsdump_log(TDS_DBG_INFO1, "alloc_compute_result. point 1\n");
 	info->num_cols = num_cols;
 	for (col = 0; col < num_cols; col++)
 		if (!(info->columns[col] = tds_alloc_column()))
 			goto Cleanup;
 
-	tdsdump_log(TDS_DBG_INFO1, "alloc_compute_result. point 2\n");
-
 	if (by_cols) {
 		TEST_CALLOC(info->bycolumns, TDS_SMALLINT, by_cols);
-		tdsdump_log(TDS_DBG_INFO1, "alloc_compute_result. point 3\n");
 		info->by_cols = by_cols;
 	}
 

@@ -90,18 +90,14 @@ tds_pull_func_login(SSL_PULL_ARGS)
 
 	for(;;) {
 		have = tds->in_len - tds->in_pos;
-		tdsdump_log(TDS_DBG_INFO1, "have %d\n", have);
 		assert(have >= 0);
 		if (have > 0)
 			break;
-		tdsdump_log(TDS_DBG_INFO1, "before read\n");
 		if (tds_read_packet(tds) < 0)
 			return -1;
-		tdsdump_log(TDS_DBG_INFO1, "after read\n");
 	}
 	if (len > have)
 		len = have;
-	tdsdump_log(TDS_DBG_INFO1, "read %lu bytes\n", (unsigned long int) len);
 	memcpy(data, tds->in_buf + tds->in_pos, len);
 	tds->in_pos += len;
 	return len;
