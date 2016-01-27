@@ -315,8 +315,16 @@ test_mssql2008() {
 }
 
 test_mssql2000() {
+	local pid_pool
+	cd test5
+	./misc/grabcov -o pool.cov_info -- ./src/pool/tdspool msde &> /dev/null &
+	pid_pool=$!
+	sleep 0.5
+	pid_pool=$(pgrep -P $pid_pool tdspool)
+	cd ..
 	# do tests with mssql 2000
-	generic_test test5 PWD.msde
+	generic_test test5 PWD.msde_pool
+	kill $pid_pool
 }
 
 left=(test1 test_mssql2008 test_mssql2000 test_sybase test_sybase15)
