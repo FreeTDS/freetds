@@ -188,6 +188,8 @@ generic_test() {
 	grab_logs
 	cd logs
 	../misc/online.pl < log.txt
+	rm log.txt
+	find -name test\*.txt -delete
 	upload "$OUTDIR/$dir" '*.html' '*.txt'
 	cd ..
 }
@@ -224,6 +226,8 @@ fi
 # upload our test results
 cd logs
 perl -pe "\$_ = '' if \$_ =~ /^2:.*content model is mixed but does not allow #PCDATA everywhere/" < log.txt | ../misc/online.pl
+rm log.txt
+find -name test\*.txt -delete
 upload "$OUTDIR/test" '*.html' '*.txt'
 cd ..
 
