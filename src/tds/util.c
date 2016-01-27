@@ -355,7 +355,7 @@ tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
 	} else {
 		const static char msg[] = "tdserror: client library not called because either "
 					  "tds_ctx (%p) or tds_ctx->err_handler is NULL\n";
-	 	tdsdump_log(TDS_DBG_FUNC, msg, tds_ctx);
+		tdsdump_log(TDS_DBG_ERROR, msg, tds_ctx);
 	}
 
   

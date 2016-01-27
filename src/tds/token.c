@@ -144,7 +144,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 			break;
 		tds->has_status = 1;
 		tds->ret_status = ret_status;
-		tdsdump_log(TDS_DBG_FUNC, "tds_process_default_tokens: return status is %d\n", tds->ret_status);
+		tdsdump_log(TDS_DBG_INFO1, "tds_process_default_tokens: return status is %d\n", tds->ret_status);
 		break;
 	case TDS_ERROR_TOKEN:
 	case TDS_INFO_TOKEN:

@@ -417,8 +417,8 @@ tds_alloc_compute_results(TDSSOCKET * tds, TDS_USMALLINT num_cols, TDS_USMALLINT
 	TDSCOMPUTEINFO **comp_info;
 	TDSCOMPUTEINFO *cur_comp_info;
 
-	tdsdump_log(TDS_DBG_INFO1, "alloc_compute_result. num_cols = %d bycols = %d\n", num_cols, by_cols);
-	tdsdump_log(TDS_DBG_INFO1, "alloc_compute_result. num_comp_info = %d\n", tds->num_comp_info);
+	tdsdump_log(TDS_DBG_FUNC, "alloc_compute_result. num_cols = %d bycols = %d\n", num_cols, by_cols);
+	tdsdump_log(TDS_DBG_FUNC, "alloc_compute_result. num_comp_info = %d\n", tds->num_comp_info);
 
 	cur_comp_info = tds_alloc_compute_result(num_cols, by_cols);
 	if (!cur_comp_info)
@@ -435,7 +435,7 @@ tds_alloc_compute_results(TDSSOCKET * tds, TDS_USMALLINT num_cols, TDS_USMALLINT
 	comp_info[n] = cur_comp_info;
 	tds->num_comp_info = n + 1u;
 
-	tdsdump_log(TDS_DBG_INFO1, "alloc_compute_result. num_comp_info = %d\n", tds->num_comp_info);
+	tdsdump_log(TDS_DBG_FUNC, "alloc_compute_result. num_comp_info = %d\n", tds->num_comp_info);
 
 	return comp_info;
 }

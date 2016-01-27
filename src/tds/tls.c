@@ -78,7 +78,7 @@ tds_pull_func_login(SSL_PULL_ARGS)
 	TDSSOCKET *tds = (TDSSOCKET *) SSL_PTR;
 	int have;
 
-	tdsdump_log(TDS_DBG_INFO1, "in tds_pull_func_login\n");
+	tdsdump_log(TDS_DBG_FUNC, "in tds_pull_func_login\n");
 	
 	/* here we are initializing (crypted inside TDS packets) */
 
@@ -108,7 +108,7 @@ tds_push_func_login(SSL_PUSH_ARGS)
 {
 	TDSSOCKET *tds = (TDSSOCKET *) SSL_PTR;
 
-	tdsdump_log(TDS_DBG_INFO1, "in tds_push_func_login\n");
+	tdsdump_log(TDS_DBG_FUNC, "in tds_push_func_login\n");
 
 	/* initializing SSL, write crypted data inside normal TDS packets */
 	tds_put_n(tds, data, len);
@@ -121,7 +121,7 @@ tds_pull_func(SSL_PULL_ARGS)
 	TDSCONNECTION *conn = (TDSCONNECTION *) SSL_PTR;
 	TDSSOCKET *tds;
 
-	tdsdump_log(TDS_DBG_INFO1, "in tds_pull_func\n");
+	tdsdump_log(TDS_DBG_FUNC, "in tds_pull_func\n");
 
 #if ENABLE_ODBC_MARS
 	tds = conn->in_net_tds;
@@ -144,7 +144,7 @@ tds_push_func(SSL_PUSH_ARGS)
 	TDSCONNECTION *conn = (TDSCONNECTION *) SSL_PTR;
 	TDSSOCKET *tds;
 
-	tdsdump_log(TDS_DBG_INFO1, "in tds_push_func\n");
+	tdsdump_log(TDS_DBG_FUNC, "in tds_push_func\n");
 
 	/* write to socket directly */
 #if ENABLE_ODBC_MARS
