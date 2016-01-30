@@ -88,6 +88,15 @@ static inline int tds_thread_create(tds_thread *ret, tds_thread_proc proc, void 
 	return pthread_create(ret, NULL, proc, arg);
 }
 
+static inline int tds_thread_create_detached(tds_thread_proc proc, void *arg)
+{
+	tds_thread th;
+	int ret = pthread_create(&th, NULL, proc, arg);
+	if (!ret)
+		pthread_detach(th);
+	return ret;
+}
+
 static inline int tds_thread_join(tds_thread th, void **ret)
 {
 	return pthread_join(th, ret);
@@ -180,6 +189,15 @@ static inline int tds_thread_create(tds_thread *ret, tds_thread_proc proc, void 
 	return *ret != NULL ? 0 : 11 /* EAGAIN */;
 }
 
+static inline int tds_thread_create_detached(tds_thread_proc proc, void *arg)
+{
+	HANDLE h = CreateThread(NULL, 0, (DWORD (WINAPI *)(void*)) proc, arg, 0, NULL);
+	if (h)
+		return 0;
+	CloseHandle(h);
+	return 11 /* EAGAIN */;
+}
+
 static inline int tds_thread_join(tds_thread th, void **ret)
 {
 	if (WaitForSingleObject(th, INFINITE) == WAIT_OBJECT_0) {
@@ -263,6 +281,9 @@ typedef void *(*tds_thread_proc)(void *arg);
 	void *name(void *arg)
 
 #define tds_thread_create(ret, proc, arg) \
+	FreeTDS_Thread_not_compiled
+
+#define tds_thread_create_detached(proc, arg) \
 	FreeTDS_Thread_not_compiled
 
 #define tds_thread_join(th, ret) \
