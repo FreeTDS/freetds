@@ -61,6 +61,7 @@ static int term = 0;
 static void term_handler(int sig);
 static void pool_schedule_waiters(TDS_POOL * pool);
 static TDS_POOL *pool_init(const char *name);
+static void pool_socket_init(TDS_POOL * pool);
 static void pool_main_loop(TDS_POOL * pool);
 
 static void
@@ -123,6 +124,8 @@ pool_init(const char *name)
 	pool_mbr_init(pool);
 	pool_user_init(pool);
 
+	pool_socket_init(pool);
+
 	return pool;
 }
 
@@ -132,6 +135,8 @@ pool_destroy(TDS_POOL *pool)
 	pool_mbr_destroy(pool);
 	pool_user_destroy(pool);
 
+	CLOSESOCKET(pool->wakeup_fd);
+	CLOSESOCKET(pool->listen_fd);
 	CLOSESOCKET(pool->event_fd);
 	tds_mutex_free(&pool->events_mtx);
 
@@ -217,19 +222,11 @@ pool_process_events(TDS_POOL *pool)
 	}
 }
 
-/* 
- * pool_main_loop
- * Accept new connections from clients, and handle all input from clients and
- * pool members.
- */
 static void
-pool_main_loop(TDS_POOL * pool)
+pool_socket_init(TDS_POOL * pool)
 {
-	TDS_POOL_MEMBER *pmbr;
-	TDS_POOL_USER *puser;
 	struct sockaddr_in sin;
 	TDS_SYS_SOCKET s, event_pair[2];
-	SELECT_INFO sel;
 	int socktrue = 1;
 
 	/* FIXME -- read the interfaces file and bind accordingly */
@@ -251,6 +248,7 @@ pool_main_loop(TDS_POOL * pool)
 		exit(1);
 	}
 	listen(s, 5);
+	pool->listen_fd = s;
 
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, event_pair) < 0) {
 		perror("socketpair");
@@ -259,7 +257,24 @@ pool_main_loop(TDS_POOL * pool)
 	tds_socket_set_nonblocking(event_pair[0]);
 	tds_socket_set_nonblocking(event_pair[1]);
 	pool->event_fd = event_pair[1];
-	event_pair[1] = INVALID_SOCKET;
+	pool->wakeup_fd = event_pair[0];
+}
+
+/*
+ * pool_main_loop
+ * Accept new connections from clients, and handle all input from clients and
+ * pool members.
+ */
+static void
+pool_main_loop(TDS_POOL * pool)
+{
+	TDS_POOL_MEMBER *pmbr;
+	TDS_POOL_USER *puser;
+	TDS_SYS_SOCKET s, wakeup;
+	SELECT_INFO sel;
+
+	s = pool->listen_fd;
+	wakeup = pool->wakeup_fd;
 
 	while (!term) {
 
@@ -267,8 +282,8 @@ pool_main_loop(TDS_POOL * pool)
 		FD_ZERO(&sel.wfds);
 		/* add the listening socket to the read list */
 		FD_SET(s, &sel.rfds);
-		FD_SET(event_pair[0], &sel.rfds);
-		sel.maxfd = s > event_pair[0] ? s : event_pair[0];
+		FD_SET(wakeup, &sel.rfds);
+		sel.maxfd = s > wakeup ? s : wakeup;
 
 		/* add the user sockets to the read list */
 		DLIST_FOREACH(dlist_user, &pool->users, puser)
@@ -284,9 +299,9 @@ pool_main_loop(TDS_POOL * pool)
 			break;
 
 		/* process events */
-		if (FD_ISSET(event_pair[0], &sel.rfds)) {
+		if (FD_ISSET(wakeup, &sel.rfds)) {
 			char buf[32];
-			READSOCKET(event_pair[0], buf, sizeof(buf));
+			READSOCKET(wakeup, buf, sizeof(buf));
 
 			pool_process_events(pool);
 		}
@@ -302,8 +317,6 @@ pool_main_loop(TDS_POOL * pool)
 		if (dlist_user_first(&pool->waiters))
 			pool_schedule_waiters(pool);
 	}			/* while !term */
-	CLOSESOCKET(event_pair[0]);
-	CLOSESOCKET(s);
 }
 
 int

@@ -111,6 +111,8 @@ struct tds_pool
 	int min_open_conn;
 	int max_open_conn;
 	tds_mutex events_mtx;
+	TDS_SYS_SOCKET listen_fd;
+	TDS_SYS_SOCKET wakeup_fd;
 	TDS_SYS_SOCKET event_fd;
 	TDS_POOL_EVENT *events;
 
