@@ -21,6 +21,7 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <errno.h>
 #include <assert.h>
 
 #if HAVE_STDLIB_H
@@ -155,7 +156,9 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s)
 
 	tdsdump_log(TDS_DBG_NETWORK, "accepting connection\n");
 	if (TDS_IS_SOCKET_INVALID(fd = tds_accept(s, NULL, NULL))) {
-		perror("accept");
+		char *errstr = sock_strerror(errno);
+		tdsdump_log(TDS_DBG_ERROR, "error calling assert :%s\n", errstr);
+		sock_strerror_free(errstr);
 		return NULL;
 	}
 
