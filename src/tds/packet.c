@@ -462,7 +462,6 @@ static int
 tds_connection_put_packet(TDSSOCKET *tds, TDSPACKET *packet)
 {
 	TDSCONNECTION *conn = tds->conn;
-	static const char zero = 0;
 
 	if (TDS_UNLIKELY(!packet)) {
 		tds_close_socket(tds);
@@ -496,7 +495,7 @@ tds_connection_put_packet(TDSSOCKET *tds, TDSPACKET *packet)
 
 		/* signal thread processing network to handle our packet */
 		/* TODO check result */
-		send(conn->s_signal, &zero, sizeof(zero), 0);
+		tds_wakeup_send(&conn->wakeup, 0);
 
 		/* wait local condition */
 		wait_res = tds_cond_timedwait(&tds->packet_cond, &conn->list_mtx, tds->query_timeout);

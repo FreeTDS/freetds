@@ -73,6 +73,10 @@
 #include <poll.h>
 #endif /* HAVE_POLL_H */
 
+#ifdef HAVE_SYS_EVENTFD_H
+#include <sys/eventfd.h>
+#endif /* HAVE_SYS_EVENTFD_H */
+
 #include <freetds/tds.h>
 #include <freetds/string.h>
 #include <freetds/tls.h>
@@ -432,7 +436,7 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 		fds[0].fd = tds_get_s(tds);
 		fds[0].events = tds_sel;
 		fds[0].revents = 0;
-		fds[1].fd = tds->conn->s_signaled;
+		fds[1].fd = tds_wakeup_get_fd(&tds->conn->wakeup);
 		fds[1].events = POLLIN;
 		fds[1].revents = 0;
 		rc = poll(fds, 2, timeout);
@@ -582,19 +586,80 @@ tds_socket_write(TDSCONNECTION *conn, TDSSOCKET *tds, const unsigned char *buf, 
 	return -1;
 }
 
+int
+tds_wakeup_init(TDSPOLLWAKEUP *wakeup)
+{
+	TDS_SYS_SOCKET sv[2];
+	int ret;
+
+	wakeup->s_signal = wakeup->s_signaled = INVALID_SOCKET;
+#if defined(__linux__) && HAVE_EVENTFD
+	ret = eventfd(0, EFD_CLOEXEC|EFD_NONBLOCK);
+	if (ret >= 0) {
+		wakeup->s_signaled = ret;
+		return 0;
+	}
+#endif
+	ret = socketpair(AF_UNIX, SOCK_STREAM, 0, sv);
+	if (ret)
+		return ret;
+	wakeup->s_signal   = sv[0];
+	wakeup->s_signaled = sv[1];
+	return 0;
+}
+
+void
+tds_wakeup_close(TDSPOLLWAKEUP *wakeup)
+{
+	if (!TDS_IS_SOCKET_INVALID(wakeup->s_signal))
+		CLOSESOCKET(wakeup->s_signal);
+	if (!TDS_IS_SOCKET_INVALID(wakeup->s_signaled))
+		CLOSESOCKET(wakeup->s_signaled);
+}
+
+
+void
+tds_wakeup_send(TDSPOLLWAKEUP *wakeup, char cancel)
+{
+#if defined(__linux__) && HAVE_EVENTFD
+	if (wakeup->s_signal == -1) {
+		TDS_UINT8 one = 1;
+		(void) write(wakeup->s_signaled, &one, sizeof(one));
+		return;
+	}
+#endif
+	send(wakeup->s_signal, &cancel, sizeof(cancel), 0);
+}
+
+static int
+tds_connection_signaled(TDSCONNECTION *conn)
+{
+	int len;
+	char to_cancel[16];
+
+#if defined(__linux__) && HAVE_EVENTFD
+	if (conn->wakeup.s_signal == -1)
+		return read(conn->wakeup.s_signaled, to_cancel, 8) > 0;
+#endif
+
+	len = READSOCKET(conn->wakeup.s_signaled, to_cancel, sizeof(to_cancel));
+	do {
+		/* no cancel found */
+		if (len <= 0)
+			return 0;
+	} while(!to_cancel[--len]);
+	return 1;
+}
+
 #if ENABLE_ODBC_MARS
 static void
 tds_check_cancel(TDSCONNECTION *conn)
 {
 	TDSSOCKET *tds;
-	int rc, len;
-	char to_cancel[16];
+	int rc;
 
-	len = READSOCKET(conn->s_signaled, to_cancel, sizeof(to_cancel));
-	do {
-		/* no cancel found */
-		if (len <= 0) return;
-	} while(!to_cancel[--len]);
+	if (!tds_connection_signaled(conn))
+		return;
 
 	do {
 		unsigned n = 0;
@@ -639,8 +704,7 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 		len = tds_select(tds, TDSSELREAD, tds->query_timeout);
 #if !ENABLE_ODBC_MARS
 		if (len > 0 && (len & TDSPOLLURG)) {
-			char buf[32];
-			READSOCKET(tds->conn->s_signaled, buf, sizeof(buf));
+			tds_connection_signaled(tds->conn);
 			/* send cancel */
 			if (tds->in_cancel == 1)
 				tds_put_cancel(tds);

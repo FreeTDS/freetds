@@ -2124,7 +2124,6 @@ TDSRET
 tds_send_cancel(TDSSOCKET * tds)
 {
 #if ENABLE_ODBC_MARS
-	static const char one = 1;
 	CHECK_TDS_EXTRA(tds);
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_send_cancel: %sin_cancel and %sidle\n", 
@@ -2140,14 +2139,14 @@ tds_send_cancel(TDSSOCKET * tds)
 	if (tds_mutex_trylock(&tds->conn->list_mtx)) {
 		/* TODO check */
 		/* signal other socket */
-		send(tds->conn->s_signal, (const void*) &one, sizeof(one), 0);
+		tds_wakeup_send(&tds->conn->wakeup, 1);
 		return TDS_SUCCESS;
 	}
 	if (tds->conn->in_net_tds) {
 		tds_mutex_unlock(&tds->conn->list_mtx);
 		/* TODO check */
 		/* signal other socket */
-		send(tds->conn->s_signal, (const void*) &one, sizeof(one), 0);
+		tds_wakeup_send(&tds->conn->wakeup, 1);
 		return TDS_SUCCESS;
 	}
 	tds_mutex_unlock(&tds->conn->list_mtx);
@@ -2186,12 +2185,11 @@ tds_send_cancel(TDSSOCKET * tds)
 	 * - we got called from message handler
 	 */
 	if (tds_mutex_trylock(&tds->wire_mtx)) {
-		static const char one = '1';
 		/* TODO check */
 		if (!tds->in_cancel)
 			tds->in_cancel = 1;
 		/* signal other socket */
-		send(tds->conn->s_signal, (const void*) &one, sizeof(one), 0);
+		tds_wakeup_send(&tds->conn->wakeup, 1);
 		return TDS_SUCCESS;
 	}
 

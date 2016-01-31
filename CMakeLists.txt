@@ -106,6 +106,7 @@ foreach(fn
 	stdint.h
 	string.h
 	strings.h
+	sys/eventfd.h
 	sys/ioctl.h
 	sys/param.h
 	sys/resource.h
@@ -235,7 +236,7 @@ set(FUNCS asprintf vasprintf strtok_r readpassphrase
 	getaddrinfo inet_ntop gethostname poll socketpair
 	clock_gettime fseeko pthread_cond_timedwait pthread_cond_timedwait_relative_np
 	pthread_condattr_setclock _lock_file _unlock_file usleep nanosleep
-	readdir_r)
+	readdir_r eventfd)
 
 macro(CHECK_FUNCTION_EXISTS_DEFINE func)
 	string(TOUPPER "HAVE_${func}" var)

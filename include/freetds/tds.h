@@ -1081,6 +1081,11 @@ typedef struct tds_packet
 	unsigned char buf[1];
 } TDSPACKET;
 
+typedef struct tds_poll_wakeup
+{
+	TDS_SYS_SOCKET s_signal, s_signaled;
+} TDSPOLLWAKEUP;
+
 /* field related to connection */
 struct tds_connection
 {
@@ -1089,7 +1094,7 @@ struct tds_connection
 	char *product_name;
 
 	TDS_SYS_SOCKET s;		/**< tcp socket, INVALID_SOCKET if not connected */
-	TDS_SYS_SOCKET s_signal, s_signaled;
+	TDSPOLLWAKEUP wakeup;
 	const TDSCONTEXT *tds_ctx;
 
 	/** environment is shared between all sessions */
@@ -1520,6 +1525,13 @@ int tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen);
 int tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen);
 void tds_socket_flush(TDS_SYS_SOCKET sock);
 int tds_socket_set_nonblocking(TDS_SYS_SOCKET sock);
+int tds_wakeup_init(TDSPOLLWAKEUP *wakeup);
+void tds_wakeup_close(TDSPOLLWAKEUP *wakeup);
+void tds_wakeup_send(TDSPOLLWAKEUP *wakeup, char cancel);
+static inline TDS_SYS_SOCKET tds_wakeup_get_fd(const TDSPOLLWAKEUP *wakeup)
+{
+	return wakeup->s_signaled;
+}
 
 
 /* packet.c */

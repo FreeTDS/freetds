@@ -302,6 +302,7 @@ AC_CHECK_HEADERS([errno.h libgen.h \
 	signal.h stddef.h \
 	sys/param.h sys/select.h sys/stat.h \
 	sys/time.h sys/types.h sys/resource.h \
+	sys/eventfd.h \
 	sys/wait.h unistd.h netdb.h \
 	wchar.h inttypes.h winsock2.h \
 	localcharset.h valgrind/memcheck.h malloc.h dirent.h \
@@ -488,7 +489,7 @@ TDS_NULL_IS_ZERO
 AC_CHECK_FUNCS([vsnprintf _vsnprintf _vscprintf gettimeofday \
 nl_langinfo locale_charset setenv putenv \
 getuid getpwuid getpwuid_r fstat alarm fork \
-gethrtime localtime_r setitimer \
+gethrtime localtime_r setitimer eventfd \
 _fseeki64 _ftelli64 setrlimit pthread_cond_timedwait \
 _lock_file _unlock_file usleep nanosleep readdir_r])
 

@@ -1086,8 +1086,7 @@ tds_deinit_connection(TDSCONNECTION *conn)
 	tds_ssl_deinit(conn);
 	/* close connection and free inactive sockets */
 	tds_connection_close(conn);
-	CLOSESOCKET(conn->s_signal);
-	CLOSESOCKET(conn->s_signaled);
+	tds_wakeup_close(&conn->wakeup);
 	tds_iconv_free(conn);
 	free(conn->product_name);
 	free(conn->server);
@@ -1105,20 +1104,16 @@ tds_deinit_connection(TDSCONNECTION *conn)
 static TDSCONNECTION *
 tds_init_connection(TDSCONNECTION *conn, TDSCONTEXT *context, unsigned int bufsize)
 {
-	TDS_SYS_SOCKET sv[2];
-
 	conn->env.block_size = bufsize;
-	conn->s_signal = conn->s_signaled = conn->s = INVALID_SOCKET;
+	conn->s = INVALID_SOCKET;
 	conn->use_iconv = 1;
 	conn->tds_ctx = context;
 
-	if (tds_iconv_alloc(conn))
+	if (tds_wakeup_init(&conn->wakeup))
 		goto Cleanup;
 
-	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sv))
+	if (tds_iconv_alloc(conn))
 		goto Cleanup;
-	conn->s_signal   = sv[0];
-	conn->s_signaled = sv[1];
 
 #if ENABLE_ODBC_MARS
 	if (tds_mutex_init(&conn->list_mtx))
@@ -1129,10 +1124,7 @@ tds_init_connection(TDSCONNECTION *conn, TDSCONTEXT *context, unsigned int bufsi
 	return conn;
 
 Cleanup:
-	if (!TDS_IS_SOCKET_INVALID(conn->s_signal)) {
-		CLOSESOCKET(conn->s_signal);
-		CLOSESOCKET(conn->s_signaled);
-	}
+	tds_wakeup_close(&conn->wakeup);
 	tds_iconv_free(conn);
 	return NULL;
 }
