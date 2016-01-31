@@ -376,7 +376,6 @@ typedef struct {
 	TDS_POOL *pool;
 	TDS_POOL_MEMBER *pmbr;
 	int tds_version;
-	tds_thread th;
 } CONNECT_EVENT;
 
 static void connect_execute_ok(TDS_POOL_EVENT *base_event);
@@ -418,8 +417,6 @@ connect_execute_ko(TDS_POOL_EVENT *base_event)
 {
 	CONNECT_EVENT *ev = (CONNECT_EVENT *) base_event;
 
-	tds_thread_join(ev->th, NULL);
-
 	pool_free_member(ev->pool, ev->pmbr);
 }
 
@@ -429,8 +426,6 @@ connect_execute_ok(TDS_POOL_EVENT *base_event)
 	CONNECT_EVENT *ev = (CONNECT_EVENT *) base_event;
 	TDS_POOL_MEMBER *pmbr = ev->pmbr;
 	TDS_POOL_USER *puser = pmbr->current_user;
-
-	tds_thread_join(ev->th, NULL);
 
 	ev->pool->member_logins++;
 	pmbr->doing_async = false;
@@ -506,7 +501,7 @@ pool_assign_idle_member(TDS_POOL * pool, TDS_POOL_USER *puser)
 	ev->pool = pool;
 	ev->tds_version = puser->login->tds_version;
 
-	if (tds_thread_create(&ev->th, connect_proc, ev) != 0) {
+	if (tds_thread_create_detached(connect_proc, ev) != 0) {
 		free(pmbr);
 		free(ev);
 		fprintf(stderr, "error creating thread\n");

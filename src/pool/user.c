@@ -102,7 +102,6 @@ typedef struct {
 	TDS_POOL *pool;
 	TDS_POOL_USER *puser;
 	bool success;
-	tds_thread th;
 } LOGIN_EVENT;
 
 static TDS_THREAD_PROC_DECLARE(login_proc, arg)
@@ -121,8 +120,6 @@ login_execute(TDS_POOL_EVENT *base_event)
 	LOGIN_EVENT *ev = (LOGIN_EVENT *) base_event;
 	TDS_POOL_USER *puser = ev->puser;
 	TDS_POOL *pool = ev->pool;
-
-	tds_thread_join(ev->th, NULL);
 
 	if (!ev->success) {
 		/* login failed...free socket */
@@ -200,7 +197,7 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s)
 	ev->puser = puser;
 	ev->pool = pool;
 
-	if (tds_thread_create(&ev->th, login_proc, ev) != 0) {
+	if (tds_thread_create_detached(login_proc, ev) != 0) {
 		pool_free_user(pool, puser);
 		fprintf(stderr, "error creating thread\n");
 		return NULL;
@@ -523,7 +520,6 @@ typedef struct {
 	TDS_POOL *pool;
 	TDS_POOL_USER *puser;
 	bool success;
-	tds_thread th;
 } END_LOGIN_EVENT;
 
 static TDS_THREAD_PROC_DECLARE(end_login_proc, arg)
@@ -544,8 +540,6 @@ end_login_execute(TDS_POOL_EVENT *base_event)
 	TDS_POOL *pool = ev->pool;
 	TDS_POOL_USER *puser = ev->puser;
 	TDS_POOL_MEMBER *pmbr = puser->assigned_member;
-
-	tds_thread_join(ev->th, NULL);
 
 	if (!ev->success) {
 		pool_free_member(pool, pmbr);
@@ -573,7 +567,7 @@ pool_user_finish_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 	ev->pool  = pool;
 	ev->puser = puser;
 
-	if (tds_thread_create(&ev->th, end_login_proc, ev) != 0) {
+	if (tds_thread_create_detached(end_login_proc, ev) != 0) {
 		pool_free_member(pool, puser->assigned_member);
 		free(ev);
 		fprintf(stderr, "error creating thread\n");
