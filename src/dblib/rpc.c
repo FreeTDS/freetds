@@ -178,7 +178,7 @@ dbrpcparam(DBPROCESS * dbproc, const char paramname[], BYTE status, int type, DB
 	/* "value parameter for dbprcparam() can be NULL, only if the datalen parameter is 0." */
 	DBPERROR_RETURN(value == NULL && datalen != 0, SYBERPNULL);
 	
-	/* nullable types most provide a data length */
+	/* nullable types must provide a data length */
 	DBPERROR_RETURN(is_nullable_type(type) && datalen < 0, SYBERPUL);
 
 	/* validate maxlen parameter */
