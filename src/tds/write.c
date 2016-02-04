@@ -287,8 +287,16 @@ tds_flush_packet(TDSSOCKET * tds)
 	TDSRET result = TDS_FAIL;
 
 	/* GW added check for tds->s */
-	if (!IS_TDSDEAD(tds))
+	if (!IS_TDSDEAD(tds)) {
+#if TDS_ADDITIONAL_SPACE != 0
+		if (tds->out_pos > tds->out_buf_max) {
+			result = tds_write_packet(tds, 0x00);
+			if (TDS_FAILED(result))
+				return result;
+		}
+#endif
 		result = tds_write_packet(tds, 0x01);
+	}
 	return result;
 }
 
