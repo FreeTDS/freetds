@@ -41,6 +41,9 @@ unfinished_query_test(TDSSOCKET *tds)
 		char buf[8];
 	} conv;
 
+	if (IS_TDS72_PLUS(tds->conn))
+		return;
+
 	tds_init_write_buf(tds);
 
 	/* try to build an invalid (unfinished) query split in two packets */
