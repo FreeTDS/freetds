@@ -20,6 +20,8 @@
 #ifndef _pool_h_
 #define _pool_h_
 
+#include <assert.h>
+
 #if HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
