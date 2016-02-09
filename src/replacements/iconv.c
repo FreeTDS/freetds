@@ -107,7 +107,6 @@ put_utf8(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 {
 #define MASK(n) ((0xffffffffu << (n)) & 0xffffffffu)
 	size_t o_len;
-	unsigned mask;
 
 	if ((c & MASK(7)) == 0) {
 		if (buf_len < 1)
@@ -137,16 +136,12 @@ put_utf8(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 	if (buf_len < o_len)
 		return -E2BIG;
 	buf += o_len;
-	mask = 0xff80;
-	for (;;) {
+	buf_len = o_len - 1;
+	do {
 		*--buf = 0x80 | (c & 0x3f);
 		c >>= 6;
-		mask >>= 1;
-		if (c < 0x40) {
-			*--buf = mask | c;
-			break;
-		}
-	}
+	} while (--buf_len);
+	*--buf = (0xff00u >> o_len) | c;
 	return o_len;
 }
 
