@@ -663,22 +663,29 @@ static int
 winsock_initialized(void)
 {
 #if defined(_WIN32) || defined(_WIN64)
+	static int initialized = 0;
+	static tds_mutex mtx = TDS_MUTEX_INITIALIZER;
+
 	WSADATA wsa_data;
 	int erc;
-	WSAPROTOCOL_INFO protocols[64];
-	DWORD how_much = sizeof(protocols);
-	WORD requested_version = MAKEWORD(2, 2);
-	 
-	if (SOCKET_ERROR != WSAEnumProtocols(NULL, protocols, &how_much)) 
+
+	if (initialized)
 		return 1;
 
-	if (WSANOTINITIALISED != (erc = WSAGetLastError())) {
-		fprintf(stderr, "tds_init_winsock: WSAEnumProtocols failed with %d (%s)\n", erc, sock_strerror(erc) );
-		return 0;
+	tds_mutex_lock(&mtx);
+	/* same check inside the mutex */
+	if (initialized) {
+		tds_mutex_unlock(&mtx);
+		return 1;
 	}
-	
-	if (SOCKET_ERROR == (erc = WSAStartup(requested_version, &wsa_data))) {
-		fprintf(stderr, "tds_init_winsock: WSAStartup failed with %d (%s)\n", erc, sock_strerror(erc) );
+
+	/* initialize the socket layer */
+	erc = WSAStartup(MAKEWORD(2, 2), &wsa_data);
+	initialized = (erc == 0);
+	tds_mutex_unlock(&mtx);
+
+	if (erc != 0) {
+		tdsdump_log(TDS_DBG_ERROR, "tds_init_winsock: WSAStartup failed with %d (%s)\n", erc, sock_strerror(erc));
 		return 0;
 	}
 #endif
