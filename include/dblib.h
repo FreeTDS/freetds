@@ -30,6 +30,9 @@ extern "C"
 #endif
 #endif
 
+/* https://msdn.microsoft.com/en-us/library/ms176061.aspx */
+#define DBMAXNAME   128
+
 typedef enum tag_DB_RESULT_STATE {
 	  _DB_RES_INIT
 	, _DB_RES_RESULTSET_EMPTY

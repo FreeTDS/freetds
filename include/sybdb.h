@@ -61,7 +61,6 @@ extern "C"
 #define INT_TIMEOUT	3
 
 #define DBMAXNUMLEN 33
-#define DBMAXNAME   30
 
 /**
  * DBVERSION_xxx are used with dbsetversion()
