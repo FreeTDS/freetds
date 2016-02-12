@@ -921,7 +921,7 @@ AC_CONFIG_FILES(include/freetds/version.h \
 	freetds.spec \
 	win32/Makefile win32/config.h \
 	win32/version.rc win32/freetds.nsh \
-	vms/Makefile \
+	vms/Makefile misc/Makefile \
 	doc/freebcp.1 doc/tsql.1 doc/osql.1 \
 	doc/bsqldb.1 doc/bsqlodbc.1 doc/defncopy.1 \
 	doc/datacopy.1 doc/fisql.1 doc/freetds.conf.5
