@@ -3,7 +3,7 @@
 ## SUBDIRS determines in which directories automake will generate a Makefile
 ## See also AC_OUTPUT in configure.ac
 
-SUBDIRS	=	include src doc samples win32 vms
+SUBDIRS	=	include src doc samples win32 vms misc
 
 ACLOCAL_AMFLAGS = -I m4
 
