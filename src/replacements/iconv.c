@@ -343,11 +343,11 @@ tds_sys_iconv_open (const char* tocode, const char* fromcode)
 
 	static char first_time = 1;
 
-	if (first_time) {
+	if (TDS_UNLIKELY(first_time)) {
 		first_time = 0;
 		tdsdump_log(TDS_DBG_INFO1, "Using trivial iconv\n");
 	}
-	
+
 	/* match both inputs to our canonical names */
 	enc_name = fromcode;
 	for (i=0; i < 2; ++i) {
