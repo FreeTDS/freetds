@@ -196,24 +196,100 @@ tds_addrinfo2str(struct addrinfo *addr, char *name, int namemax)
 	return name;
 }
 
-TDSERRNO
-tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int timeout, int *p_oserr)
+static TDSERRNO
+tds_connect_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int timeout, int *p_oserr)
 {
 	SOCKLEN_T optlen;
 	TDSCONNECTION *conn = tds->conn;
 	char ipaddr[128];
-	
-	int retval, len;
-	TDSERRNO tds_error = TDSECONN;
 
-	*p_oserr = 0;
+	int retval, len;
 
 	tds_addrinfo_set_port(addr, port);
 	tds_addrinfo2str(addr, ipaddr, sizeof(ipaddr));
 
+	if (TDS_IS_SOCKET_INVALID(conn->s))
+		return TDSECONN;
+
+	*p_oserr = 0;
+
 	tdsdump_log(TDS_DBG_INFO1, "Connecting to %s port %d (TDS version %d.%d)\n", 
 			ipaddr, port,
 			TDS_MAJOR(conn), TDS_MINOR(conn));
+
+#ifdef  DOS32X			/* the other connection doesn't work  on WATTCP32 */
+	if (connect(conn->s, addr->ai_addr, addr->ai_addrlen) < 0) {
+		*p_oserr = sock_errno;
+		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket(): %s:%d", ipaddr, port);
+		return TDSECONN;
+	}
+#else
+	if (!timeout) {
+		/* A timeout of zero means wait forever; 90,000 seconds will feel like forever. */
+		timeout = 90000;
+	}
+
+	if ((*p_oserr = tds_socket_set_nonblocking(conn->s)) != 0) {
+		tds_connection_close(conn);
+		return TDSEUSCT; 	/* close enough: "Unable to set communications timer" */
+	}
+	retval = connect(conn->s, addr->ai_addr, addr->ai_addrlen);
+	if (retval == 0) {
+		tdsdump_log(TDS_DBG_INFO2, "connection established\n");
+	} else {
+		int err = *p_oserr = sock_errno;
+		char *errstr = sock_strerror(err);
+		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: connect(2) returned \"%s\"\n", errstr);
+		sock_strerror_free(errstr);
+#if DEBUGGING_CONNECTING_PROBLEM
+		if (err != ECONNREFUSED && err != ENETUNREACH && err != TDSSOCK_EINPROGRESS) {
+			tdsdump_dump_buf(TDS_DBG_ERROR, "Contents of sockaddr_in", addr->ai_addr, addr->ai_addrlen);
+			tdsdump_log(TDS_DBG_ERROR, 	" sockaddr_in:\t"
+							      "%s = %x\n" 
+							"\t\t\t%s = %x\n" 
+							"\t\t\t%s = %s\n"
+							, "sin_family", addr->ai_family
+							, "port", port
+							, "address", ipaddr
+							);
+		}
+#endif
+		if (err != TDSSOCK_EINPROGRESS)
+			return TDSECONN;
+		
+		*p_oserr = TDSSOCK_ETIMEDOUT;
+		if (tds_select(tds, TDSSELWRITE|TDSSELERR, timeout) == 0)
+			return TDSECONN;
+	}
+#endif	/* not DOS32X */
+
+	/* check socket error */
+	optlen = sizeof(len);
+	len = 0;
+	if (tds_getsockopt(conn->s, SOL_SOCKET, SO_ERROR, (char *) &len, &optlen) != 0) {
+		char *errstr = sock_strerror(*p_oserr = sock_errno);
+		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) failed: %s\n", errstr);
+		sock_strerror_free(errstr);
+		return TDSECONN;
+	}
+	if (len != 0) {
+		char *errstr = sock_strerror(*p_oserr = len);
+		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) reported: %s\n", errstr);
+		sock_strerror_free(errstr);
+		return TDSECONN;
+	}
+
+	return TDSEOK;
+}
+
+TDSERRNO
+tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int timeout, int *p_oserr)
+{
+	TDSCONNECTION *conn = tds->conn;
+	int len;
+	TDSERRNO tds_error;
+
+	*p_oserr = 0;
 
 	conn->s = socket(addr->ai_family, SOCK_STREAM, 0);
 	if (TDS_IS_SOCKET_INVALID(conn->s)) {
@@ -255,76 +331,12 @@ tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int ti
 #error One should be defined
 #endif
 
-#ifdef  DOS32X			/* the other connection doesn't work  on WATTCP32 */
-	if (connect(conn->s, addr->ai_addr, addr->ai_addrlen) < 0) {
-		*p_oserr = sock_errno;
-		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket(): %s:%d", ipaddr, port);
-		tds_connection_close(conn);
-		return TDSECONN;
-	}
-#else
-	if (!timeout) {
-		/* A timeout of zero means wait forever; 90,000 seconds will feel like forever. */
-		timeout = 90000;
+	tds_error = tds_connect_socket(tds, addr, port, timeout, p_oserr);
+	if (tds_error == TDSEOK) {
+		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket() succeeded\n");
+		return TDSEOK;
 	}
 
-	if ((*p_oserr = tds_socket_set_nonblocking(conn->s)) != 0) {
-		tds_connection_close(conn);
-		return TDSEUSCT; 	/* close enough: "Unable to set communications timer" */
-	}
-	retval = connect(conn->s, addr->ai_addr, addr->ai_addrlen);
-	if (retval == 0) {
-		tdsdump_log(TDS_DBG_INFO2, "connection established\n");
-	} else {
-		int err = *p_oserr = sock_errno;
-		char *errstr = sock_strerror(err);
-		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: connect(2) returned \"%s\"\n", errstr);
-		sock_strerror_free(errstr);
-#if DEBUGGING_CONNECTING_PROBLEM
-		if (err != ECONNREFUSED && err != ENETUNREACH && err != TDSSOCK_EINPROGRESS) {
-			tdsdump_dump_buf(TDS_DBG_ERROR, "Contents of sockaddr_in", addr->ai_addr, addr->ai_addrlen);
-			tdsdump_log(TDS_DBG_ERROR, 	" sockaddr_in:\t"
-							      "%s = %x\n" 
-							"\t\t\t%s = %x\n" 
-							"\t\t\t%s = %s\n"
-							, "sin_family", addr->ai_family
-							, "port", port
-							, "address", ipaddr
-							);
-		}
-#endif
-		if (err != TDSSOCK_EINPROGRESS)
-			goto not_available;
-		
-		*p_oserr = TDSSOCK_ETIMEDOUT;
-		if (tds_select(tds, TDSSELWRITE|TDSSELERR, timeout) == 0) {
-			tds_error = TDSECONN;
-			goto not_available;
-		}
-	}
-#endif	/* not DOS32X */
-
-	/* check socket error */
-	optlen = sizeof(len);
-	len = 0;
-	if (tds_getsockopt(conn->s, SOL_SOCKET, SO_ERROR, (char *) &len, &optlen) != 0) {
-		char *errstr = sock_strerror(*p_oserr = sock_errno);
-		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) failed: %s\n", errstr);
-		sock_strerror_free(errstr);
-		goto not_available;
-	}
-	if (len != 0) {
-		char *errstr = sock_strerror(*p_oserr = len);
-		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) reported: %s\n", errstr);
-		sock_strerror_free(errstr);
-		goto not_available;
-	}
-
-	tdsdump_log(TDS_DBG_ERROR, "tds_open_socket() succeeded\n");
-	return TDSEOK;
-	
-    not_available:
-	
 	tds_connection_close(conn);
 	tdsdump_log(TDS_DBG_ERROR, "tds_open_socket() failed\n");
 	return tds_error;
