@@ -257,13 +257,8 @@ tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int ti
 
 #ifdef  DOS32X			/* the other connection doesn't work  on WATTCP32 */
 	if (connect(conn->s, addr->ai_addr, addr->ai_addrlen) < 0) {
-		char *message;
-
 		*p_oserr = sock_errno;
-		if (asprintf(&message, "tds_open_socket(): %s:%d", ipaddr, port) >= 0) {
-			perror(message);
-			free(message);
-		}
+		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket(): %s:%d", ipaddr, port);
 		tds_connection_close(conn);
 		return TDSECONN;
 	}
