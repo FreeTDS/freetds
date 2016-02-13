@@ -3,6 +3,7 @@ skip_tags: false
 branches:
   only:
     - appveyor-0.95
+    - Branch-0.95
 
 services:
 - mssql2008r2sp2
