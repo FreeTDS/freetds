@@ -80,6 +80,17 @@ static const unsigned char utf8_masks[7] = {
 	0, 0x7f, 0x1f, 0x0f, 0x07, 0x03, 0x01
 };
 
+/*
+ * Return values for get_*:
+ * - >0 bytes readed
+ * - -EINVAL not enough data to read
+ * - -EILSEQ invalid encoding detected
+ * Return values for put_*:
+ * - >0 bytes written
+ * - -E2BIG no space left on output
+ * - -EILSEQ character can't be encoded in output charset
+ */
+
 static int
 get_utf8(const unsigned char *p, size_t len, ICONV_CHAR *out)
 {
@@ -428,12 +439,14 @@ tds_sys_iconv (iconv_t cd, const char* * inbuf, size_t *inbytesleft, char* * out
 			ICONV_CHAR out_c;
 			int readed = get_func(ib, il, &out_c), written;
 
+			TDS_EXTRA_CHECK(assert(readed > 0 || readed == -EINVAL || readed == -EILSEQ));
 			if (TDS_UNLIKELY(readed < 0)) {
 				local_errno = -readed;
 				break;
 			}
 
 			written = put_func(ob, ol, out_c);
+			TDS_EXTRA_CHECK(assert(written > 0 || written == -E2BIG || written == -EILSEQ));
 			if (TDS_UNLIKELY(written < 0)) {
 				local_errno = -written;
 				break;
