@@ -331,15 +331,17 @@ tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int ti
 #error One should be defined
 #endif
 
-	tds_error = tds_connect_socket(tds, addr, port, timeout, p_oserr);
-	if (tds_error == TDSEOK) {
-		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket() succeeded\n");
-		return TDSEOK;
+	while ((tds_error = tds_connect_socket(tds, addr, port, timeout, p_oserr)) != TDSEOK) {
+		addr = addr->ai_next;
+		if (!addr) {
+			tds_connection_close(conn);
+			tdsdump_log(TDS_DBG_ERROR, "tds_open_socket() failed\n");
+			return tds_error;
+		}
 	}
 
-	tds_connection_close(conn);
-	tdsdump_log(TDS_DBG_ERROR, "tds_open_socket() failed\n");
-	return tds_error;
+	tdsdump_log(TDS_DBG_INFO2, "tds_open_socket() succeeded\n");
+	return TDSEOK;
 }
 
 /**
