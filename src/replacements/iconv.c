@@ -128,7 +128,7 @@ put_utf8(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 			break;
 		++o_len;
 		if ((c & MASK(31)) != 0)
-			return -EINVAL;
+			return -EILSEQ;
 	}
 
 	if (buf_len < o_len)
