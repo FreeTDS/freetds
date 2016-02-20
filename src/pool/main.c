@@ -401,7 +401,7 @@ main(int argc, char **argv)
 	pool = pool_init(argv[optind]);
 	if (daemonize) {
 		if (daemon(0, 0) < 0) {
-			fprintf("Failed to daemonize %s\n", argv[0]);
+			fprintf(stderr, "Failed to daemonize %s\n", argv[0]);
 			return EXIT_FAILURE;
 		}
 	}
