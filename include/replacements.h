@@ -155,6 +155,11 @@ int tds_socketpair(int domain, int type, int protocol, TDS_SYS_SOCKET sv[2]);
 #define socketpair(d,t,p,s) tds_socketpair(d,t,p,s)
 #endif
 
+#if !HAVE_DAEMON
+int tds_daemon(int no_chdir, int no_close);
+#define daemon(d,c) tds_daemon(d,c)
+#endif
+
 char *tds_getpassarg(char *arg);
 void tds_sleep_s(unsigned sec);
 void tds_sleep_ms(unsigned ms);

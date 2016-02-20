@@ -25,20 +25,43 @@
                                  Includes
 \*---------------------------------------------------------------------------*/
 
+#include <config.h>
+
 #include <stdio.h>
+
+#if HAVE_STDLIB_H
 #include <stdlib.h>
-#include <syslog.h>
+#endif /* HAVE_STDLIB_H */
+
+#if HAVE_ERRNO_H
 #include <errno.h>
+#endif /* HAVE_ERRNO_H */
+
+#if HAVE_STRING_H
 #include <string.h>
+#endif /* HAVE_STRING_H */
+
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif /* HAVE_UNISTD_H */
+
 #include <assert.h>
 #include <fcntl.h>
 #include <signal.h>
+
+#if HAVE_SYS_TYPES_H
 #include <sys/types.h>
-#include "config.h"
+#endif /* HAVE_SYS_TYPES_H */
 
 #ifdef HAVE_SYS_FILE_H
 #include <sys/file.h>
 #endif /* HAVE_SYS_FILE_H */
+
+#if HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif /* HAVE_SYS_STAT_H */
+
+#include "replacements.h"
 
 /*---------------------------------------------------------------------------*\
                               Static Routines
@@ -46,84 +69,78 @@
 
 /* redirect_fds(): redirect stdin, stdout, and stderr to /dev/NULL */
 
-static void redirect_fds()
+static void
+redirect_fds(int dev_null)
 {
-   (void) close(0);
-   (void) close(1);
-   (void) close(2);
-
-   if (open("/dev/null", O_RDWR) != 0)
-   {
-       syslog(LOG_ERR, "Unable to open /dev/null: %s", strerror(errno));
-       exit(1);
-   }
-
-   (void) dup(0);
-   (void) dup(0);
+	dup2(dev_null, 0);
+	dup2(dev_null, 1);
+	dup2(dev_null, 2);
+	close(dev_null);
 }
 
-static int do_fork(void)
+static int
+do_fork(void)
 {
-    int status = 0;
+	int status = 0;
 
-    switch(fork())
-    {
-        case 0:
-            /* This is the child that will become the daemon. */
-            break;
+	switch (fork()) {
+	case 0:
+		/* This is the child that will become the daemon. */
+		break;
 
-        case -1:
-            /* Fork failure. */
-            status = -1;
-            break;
+	case -1:
+		/* Fork failure. */
+		status = -1;
+		break;
 
-        default:
-            /* Parent: Exit. */
-            _exit(0);
-    }
+	default:
+		/* Parent: Exit. */
+		_exit(0);
+	}
 
-    return status;
+	return status;
 }
 
 /*---------------------------------------------------------------------------*\
                               Public Routines
 \*---------------------------------------------------------------------------*/
 
-int daemon(int nochdir, int noclose)
+int
+tds_daemon(int nochdir, int noclose)
 {
-    int status = 0;
+	int status = 0;
+	int dev_null = -1;
 
-    openlog("daemonize", LOG_PID, LOG_DAEMON);
+	if (!noclose) {
+		dev_null = open("/dev/null", O_RDWR);
+		if (dev_null < 0)
+			return -1;
+	}
 
-    /* Fork once to go into the background. */
-    if((status = do_fork()) < 0 )
-        ;
+	/* Fork once to go into the background. */
+	if ((status = do_fork()) < 0)
+		return -1;
 
-    /* Create new session */
-    else if(setsid() < 0)               /* shouldn't fail */
-        status = -1;
+	/* Create new session */
+	if (setsid() < 0)	/* shouldn't fail */
+		return -1;
 
-    /* Fork again to ensure that daemon never reacquires a control terminal. */
-    else if((status = do_fork()) < 0 )
-        ;
+	/* Fork again to ensure that daemon never reacquires a control terminal. */
+	if ((status = do_fork()) < 0)
+		return -1;
 
-    else
-    {
-        /* clear any inherited umask(2) value */
+	/* clear any inherited umask(2) value */
+	umask(0);
 
-        umask(0);
+	/* We're there. */
 
-        /* We're there. */
+	if (!nochdir) {
+		/* Go to a neutral corner. */
+		chdir("/");
+	}
 
-        if(! nochdir)
-        {
-            /* Go to a neutral corner. */
-            chdir("/");
-        }
+	if (!noclose)
+		redirect_fds(dev_null);
 
-        if(! noclose)
-            redirect_fds();
-    }
-
-    return status;
+	return status;
 }
