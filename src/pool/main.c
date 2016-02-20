@@ -366,13 +366,14 @@ pool_main_loop(TDS_POOL * pool)
 static void
 print_usage(const char *progname)
 {
-	fprintf(stderr, "Usage:\t%s [-l <log file>] <pool name>\n", progname);
+	fprintf(stderr, "Usage:\t%s [-l <log file>] [-d] <pool name>\n", progname);
 }
 
 int
 main(int argc, char **argv)
 {
 	int opt;
+	bool daemonize = false;
 	TDS_POOL *pool;
 
 	signal(SIGTERM, term_handler);
@@ -380,10 +381,13 @@ main(int argc, char **argv)
 	signal(SIGHUP, sighup_handler);
 	signal(SIGPIPE, SIG_IGN);
 
-	while ((opt = getopt(argc, argv, "l:")) != -1) {
+	while ((opt = getopt(argc, argv, "l:d")) != -1) {
 		switch (opt) {
 		case 'l':
 			logfile_name = optarg;
+			break;
+		case 'd':
+			daemonize = true;
 			break;
 		default:
 			print_usage(argv[0]);
@@ -395,6 +399,12 @@ main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 	pool = pool_init(argv[optind]);
+	if (daemonize) {
+		if (daemon(0, 0) < 0) {
+			fprintf("Failed to daemonize %s\n", argv[0]);
+			return EXIT_FAILURE;
+		}
+	}
 	pool_main_loop(pool);
 	printf("User logins %lu members logins %lu members at end %d\n", pool->user_logins, pool->member_logins, pool->num_active_members);
 	pool_destroy(pool);
