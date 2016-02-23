@@ -59,11 +59,11 @@
 #include "pool.h"
 
 /* to be set by sig term */
-static int term = 0;
+static int got_sigterm = 0;
 static int got_sighup = 0;
 static const char *logfile_name = NULL;
 
-static void term_handler(int sig);
+static void sigterm_handler(int sig);
 static void pool_schedule_waiters(TDS_POOL * pool);
 static TDS_POOL *pool_init(const char *name);
 static void pool_socket_init(TDS_POOL * pool);
@@ -71,9 +71,9 @@ static void pool_main_loop(TDS_POOL * pool);
 static bool pool_open_logfile(TDS_POOL * pool);
 
 static void
-term_handler(int sig)
+sigterm_handler(int sig)
 {
-	term = 1;
+	got_sigterm = 1;
 }
 
 static void
@@ -315,7 +315,7 @@ pool_main_loop(TDS_POOL * pool)
 	s = pool->listen_fd;
 	wakeup = pool->wakeup_fd;
 
-	while (!term) {
+	while (!got_sigterm) {
 
 		FD_ZERO(&sel.rfds);
 		FD_ZERO(&sel.wfds);
@@ -334,7 +334,7 @@ pool_main_loop(TDS_POOL * pool)
 
 		/* FIXME check return value */
 		select(sel.maxfd + 1, &sel.rfds, &sel.wfds, NULL, NULL);
-		if (TDS_UNLIKELY(term))
+		if (TDS_UNLIKELY(got_sigterm))
 			break;
 
 		if (TDS_UNLIKELY(got_sighup)) {
@@ -360,7 +360,7 @@ pool_main_loop(TDS_POOL * pool)
 		/* back from members */
 		if (dlist_user_first(&pool->waiters))
 			pool_schedule_waiters(pool);
-	}			/* while !term */
+	}			/* while !got_sigterm */
 	tdsdump_log(TDS_DBG_INFO2, "Shutdown Requested\n");
 }
 
@@ -377,8 +377,8 @@ main(int argc, char **argv)
 	bool daemonize = false;
 	TDS_POOL *pool;
 
-	signal(SIGTERM, term_handler);
-	signal(SIGINT, term_handler);
+	signal(SIGTERM, sigterm_handler);
+	signal(SIGINT, sigterm_handler);
 	signal(SIGHUP, sighup_handler);
 	signal(SIGPIPE, SIG_IGN);
 
