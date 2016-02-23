@@ -73,8 +73,6 @@ static bool pool_open_logfile(TDS_POOL * pool);
 static void
 term_handler(int sig)
 {
-	static const char msg[] = "Shutdown Requested\n";
-	pool_write(1, msg, sizeof(msg)-1);
 	term = 1;
 }
 
@@ -363,6 +361,7 @@ pool_main_loop(TDS_POOL * pool)
 		if (dlist_user_first(&pool->waiters))
 			pool_schedule_waiters(pool);
 	}			/* while !term */
+	tdsdump_log(TDS_DBG_INFO2, "Shutdown Requested\n");
 }
 
 static void
