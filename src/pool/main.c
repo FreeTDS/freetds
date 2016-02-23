@@ -339,8 +339,10 @@ pool_main_loop(TDS_POOL * pool)
 		if (TDS_UNLIKELY(term))
 			break;
 
-		if (TDS_UNLIKELY(got_sighup))
+		if (TDS_UNLIKELY(got_sighup)) {
+			got_sighup = 0;
 			pool_open_logfile(pool);
+		}
 
 		/* process events */
 		if (FD_ISSET(wakeup, &sel.rfds)) {
