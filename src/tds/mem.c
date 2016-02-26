@@ -425,7 +425,7 @@ tds_alloc_compute_results(TDSSOCKET * tds, TDS_USMALLINT num_cols, TDS_USMALLINT
 		return NULL;
 
 	n = tds->num_comp_info;
-	comp_info = TDS_RESIZE(tds->comp_info, n + 1u);
+	comp_info = (TDSCOMPUTEINFO **) TDS_RESIZE(tds->comp_info, n + 1u);
 	if (!comp_info) {
 		tds_free_compute_result(cur_comp_info);
 		return NULL;

@@ -210,7 +210,7 @@ enum { key_size_max = 1024 };	/* max key in bytes */
 static const char label[] = "";
 
 static void
-xor(uint8_t *dest, const uint8_t *src, size_t len)
+memxor(uint8_t *dest, const uint8_t *src, size_t len)
 {
 	size_t n;
 	for (n = 0; n < len; ++n)
@@ -231,11 +231,11 @@ mgf_mask(uint8_t *dest, size_t dest_len, const uint8_t *mask, size_t mask_len)
 
 		hash_func(hash, seed, sizeof(seed));
 		if (dest_len <= hash_len) {
-			xor(dest, hash, dest_len);
+			memxor(dest, hash, dest_len);
 			break;
 		}
 
-		xor(dest, hash, hash_len);
+		memxor(dest, hash, hash_len);
 		dest += hash_len;
 		dest_len -= hash_len;
 		++n;

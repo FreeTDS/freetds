@@ -151,7 +151,7 @@ static TDS_UINT utf16len(const utf16_t * s);
 static const char *tds_prtype(int token);
 #endif
 
-const char tds_hex_digits[16] = "0123456789abcdef";
+const char tds_hex_digits[] = "0123456789abcdef";
 
 /**
  * Copy a terminated string to result and return len or TDS_CONVERT_NOMEM

@@ -3772,7 +3772,7 @@ tds_submit_commit(TDSSOCKET *tds, int cont)
 	return tds_query_flush_packet(tds);
 }
 
-static const TDSCONTEXT empty_ctx;
+static const TDSCONTEXT empty_ctx = {0};
 
 TDSRET
 tds_disconnect(TDSSOCKET * tds)

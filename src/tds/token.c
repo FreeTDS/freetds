@@ -1444,7 +1444,7 @@ tds_process_compute_result(TDSSOCKET * tds)
 	tdsdump_log(TDS_DBG_INFO1, "processing tds compute result, by_cols = %d\n", by_cols);
 
 	if (by_cols) {
-		if ((info->bycolumns = calloc(by_cols, sizeof(TDS_SMALLINT))) == NULL)
+		if ((info->bycolumns = (TDS_SMALLINT *) calloc(by_cols, sizeof(TDS_SMALLINT))) == NULL)
 			return TDS_FAIL;
 	}
 	info->by_cols = by_cols;
@@ -1932,7 +1932,7 @@ tds_process_nbcrow(TDSSOCKET * tds)
 
 	assert(info->num_cols > 0);
 
-	nbcbuf = alloca((info->num_cols + 7) / 8);
+	nbcbuf = (char *) alloca((info->num_cols + 7) / 8);
 	tds_get_n(tds, nbcbuf, (info->num_cols + 7) / 8);
 	for (i = 0; i < info->num_cols; i++) {
 		curcol = info->columns[i];

@@ -262,10 +262,10 @@ static const TDS_ERROR_MESSAGE tds_error_messages[] =
 	, { TDSEWRIT,              EXCOMM,	"Write to the server failed" }
 	, { TDSECONF,              EXUSER,	"Local configuration error.  "
 						"Check TDSDUMPCONFIG log for details." }
-	/* last, with masgno == 0 */
-	, { 0,              EXCONSISTENCY,	"unrecognized msgno" }
+	/* last, with msgno == TDSEOK */
+	, { TDSEOK,              EXCONSISTENCY,	"unrecognized msgno" }
 	};
-	
+
 static
 const char * retname(int retcode)
 {
@@ -322,7 +322,7 @@ tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
 	tdsdump_log(TDS_DBG_FUNC, "tdserror(%p, %p, %d, %d)\n", tds_ctx, tds, msgno, errnum);
 
 	/* look up the error message */
-	for (err = tds_error_messages; err->msgno; ++err) {
+	for (err = tds_error_messages; err->msgno != TDSEOK; ++err) {
 		if (err->msgno == msgno)
 			break;
 	}

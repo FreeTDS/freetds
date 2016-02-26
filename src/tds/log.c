@@ -406,14 +406,14 @@ tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...)
 void
 tdsdump_col(const TDSCOLUMN *col)
 {
-	const char* typename;
+	const char* type_name;
 	char* data;
 	TDS_SMALLINT type;
 	
 	assert(col);
 	assert(col->column_data);
 	
-	typename = tds_prtype(col->column_type);
+	type_name = tds_prtype(col->column_type);
 	type = tds_get_conversion_type(col->column_type, col->column_size);
 	
 	switch(type) {
@@ -422,33 +422,33 @@ tdsdump_col(const TDSCOLUMN *col)
 		if (col->column_cur_size >= 0) {
 			data = (char*) calloc(1, 1 + col->column_cur_size);
 			if (!data) {
-				tdsdump_log(TDS_DBG_FUNC, "no memory to log data for type %s\n", typename);
+				tdsdump_log(TDS_DBG_FUNC, "no memory to log data for type %s\n", type_name);
 				return;
 			}
 			memcpy(data, col->column_data, col->column_cur_size);
-			tdsdump_log(TDS_DBG_FUNC, "type %s has value \"%s\"\n", typename, data);
+			tdsdump_log(TDS_DBG_FUNC, "type %s has value \"%s\"\n", type_name, data);
 			free(data);
 		} else {
-			tdsdump_log(TDS_DBG_FUNC, "type %s has value NULL\n", typename);
+			tdsdump_log(TDS_DBG_FUNC, "type %s has value NULL\n", type_name);
 		}
 		break;
-	case SYBINT1: 
-		tdsdump_log(TDS_DBG_FUNC, "type %s has value %d\n", typename, (int)*(TDS_TINYINT*)col->column_data); 
+	case SYBINT1:
+		tdsdump_log(TDS_DBG_FUNC, "type %s has value %d\n", type_name, (int)*(TDS_TINYINT*)col->column_data);
 		break;
-	case SYBINT2: 
-		tdsdump_log(TDS_DBG_FUNC, "type %s has value %d\n", typename, (int)*(TDS_SMALLINT*)col->column_data); 
+	case SYBINT2:
+		tdsdump_log(TDS_DBG_FUNC, "type %s has value %d\n", type_name, (int)*(TDS_SMALLINT*)col->column_data);
 		break;
-	case SYBINT4: 
-		tdsdump_log(TDS_DBG_FUNC, "type %s has value %d\n", typename, (int)*(TDS_INT*)col->column_data); 
+	case SYBINT4:
+		tdsdump_log(TDS_DBG_FUNC, "type %s has value %d\n", type_name, (int)*(TDS_INT*)col->column_data);
 		break;
-	case SYBREAL: 
-		tdsdump_log(TDS_DBG_FUNC, "type %s has value %f\n", typename, (double)*(TDS_REAL*)col->column_data); 
+	case SYBREAL:
+		tdsdump_log(TDS_DBG_FUNC, "type %s has value %f\n", type_name, (double)*(TDS_REAL*)col->column_data);
 		break;
-	case SYBFLT8: 
-		tdsdump_log(TDS_DBG_FUNC, "type %s has value %f\n", typename, (double)*(TDS_FLOAT*)col->column_data); 
+	case SYBFLT8:
+		tdsdump_log(TDS_DBG_FUNC, "type %s has value %f\n", type_name, (double)*(TDS_FLOAT*)col->column_data);
 		break;
 	default:
-		tdsdump_log(TDS_DBG_FUNC, "cannot log data for type %s\n", typename);
+		tdsdump_log(TDS_DBG_FUNC, "cannot log data for type %s\n", type_name);
 		break;
 	}
 }
