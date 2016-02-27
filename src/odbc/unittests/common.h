@@ -189,6 +189,10 @@ void odbc_setenv(const char *name, const char *value, int overwrite);
 void odbc_mark_sockets_opened(void);
 TDS_SYS_SOCKET odbc_find_last_socket(void);
 
+/**
+ * Converts an ODBC result into a string.
+ * There is no check on destination length, use a buffer big enough.
+ */
 void odbc_c2string(char *out, SQLSMALLINT out_c_type, const void *in, size_t in_len);
 
 int odbc_to_sqlwchar(SQLWCHAR *dst, const char *src, int n);

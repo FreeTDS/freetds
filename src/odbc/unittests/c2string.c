@@ -12,6 +12,8 @@ add_char(char *s, SQLWCHAR ch)
 		s += sprintf(s, "\\r");
 	else if (ch == '\n')
 		s += sprintf(s, "\\n");
+	else if ((unsigned int) ch < 32u)
+		s += sprintf(s, "\\x%02x", (unsigned int) ch);
 	else if ((unsigned int) ch < 256u)
 		s += sprintf(s, "%c", (char) ch);
 	else
