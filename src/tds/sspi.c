@@ -19,6 +19,9 @@
 
 #include <config.h>
 
+/* enabled some additional definitions for getaddrinfo */
+#define _WIN32_WINNT 0x601
+
 /* fix possible bug in sspi.h header */
 #define FreeCredentialHandle FreeCredentialsHandle
 
@@ -248,11 +251,20 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 	server_name = tds_dstr_cstr(&login->server_host_name);
 	if (strchr(server_name, '.') == NULL) {
 		struct addrinfo hints;
+		int res;
+
 		memset(&hints, 0, sizeof(hints));
 		hints.ai_family = AF_UNSPEC;
 		hints.ai_flags = AI_V4MAPPED|AI_ADDRCONFIG|AI_CANONNAME|AI_FQDN;
-		if (!getaddrinfo(server_name, NULL, &hints, &addrs) && addrs->ai_canonname
-		    && strchr(addrs->ai_canonname, '.') != NULL)
+		res = getaddrinfo(server_name, NULL, &hints, &addrs);
+		if (res) {
+			/* some version of Windows does not support V4MAPPED
+			 * and ADDRCONFIG, try without them
+			 */
+			hints.ai_flags = AI_CANONNAME|AI_FQDN;
+			res = getaddrinfo(server_name, NULL, &hints, &addrs);
+		}
+		if (!res && addrs->ai_canonname && strchr(addrs->ai_canonname, '.') != NULL)
 			server_name = addrs->ai_canonname;
 	}
 	if (strchr(server_name, '.') != NULL) {
