@@ -7505,9 +7505,21 @@ SQLSetScrollOptions(SQLHSTMT hstmt, SQLUSMALLINT fConcurrency, SQLLEN crowKeyset
 
 /* Under Windows driver exports functions */
 /* The win_ prefix is to avoid clash with inline function.
- * The prefix is removed from exported function use definition file.
+ * The prefix is removed from exported functions using definition file.
  */
 #ifdef _WIN32
+RETCODE SQL_API win_bcp_initA(HDBC hdbc, const char *tblname, const char *hfile,
+	const char *errfile, int direction);
+RETCODE SQL_API win_bcp_initW(HDBC hdbc, const SQLWCHAR *tblname, const SQLWCHAR *hfile,
+	const SQLWCHAR *errfile, int direction);
+RETCODE SQL_API win_bcp_control(HDBC hdbc, int field, void *value);
+RETCODE SQL_API win_bcp_colptr(HDBC hdbc, const BYTE * colptr, int table_column);
+RETCODE SQL_API win_bcp_sendrow(HDBC hdbc);
+int SQL_API win_bcp_batch(HDBC hdbc);
+int SQL_API win_bcp_done(HDBC hdbc);
+RETCODE SQL_API win_bcp_bind(HDBC hdbc, const BYTE * varaddr, int prefixlen, int varlen,
+	const BYTE * terminator, int termlen, int vartype, int table_column);
+
 RETCODE SQL_API
 win_bcp_initA(HDBC hdbc, const char *tblname, const char *hfile, const char *errfile, int direction)
 {

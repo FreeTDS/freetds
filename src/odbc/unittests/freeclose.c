@@ -186,7 +186,8 @@ static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 
 	fprintf(stderr, "connecting to server...\n");
 	if (remote_addr.sa.sa_family == AF_INET) {
-		fprintf(stderr, "connecting to %x:%d\n", remote_addr.sin.sin_addr.s_addr, ntohs(remote_addr.sin.sin_port));
+		fprintf(stderr, "connecting to %x:%d\n", (unsigned int) remote_addr.sin.sin_addr.s_addr,
+			ntohs(remote_addr.sin.sin_port));
 	}
 	if (connect(server_sock, &remote_addr.sa, remote_addr_len)) {
 		perror("connect");
