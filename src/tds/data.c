@@ -622,13 +622,13 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		if (v->data)
 			TDS_ZERO_FREE(v->data);
 		v->data_len = sizeof(TDS_DATETIMEALL);
-		v->data = calloc(1, sizeof(TDS_DATETIMEALL));
+		v->data = (TDS_CHAR *) calloc(1, sizeof(TDS_DATETIMEALL));
 		curcol->column_type = type;
-		curcol->column_data = (void *) v->data;
+		curcol->column_data = (unsigned char *) v->data;
 		/* trick, call get function */
 		rc = tds_msdatetime_get(tds, curcol);
 		curcol->column_type = SYBVARIANT;
-		curcol->column_data = (void *) v;
+		curcol->column_data = (unsigned char *) v;
 		return rc;
 	}
 	varint = (type == SYBUNIQUE) ? 0 : tds_get_varint_size(tds->conn, type);

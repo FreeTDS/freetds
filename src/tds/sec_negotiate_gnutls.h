@@ -294,11 +294,11 @@ rsa_encrypt_oaep(const struct rsa_public_key *key, void *random_ctx, nettle_rand
 }
 
 static void*
-tds5_rsa_encrypt(const char *key, size_t key_len, const void *nonce, size_t nonce_len, const char *pwd, size_t *em_size)
+tds5_rsa_encrypt(const void *key, size_t key_len, const void *nonce, size_t nonce_len, const char *pwd, size_t *em_size)
 {
 	int ret;
 	mpz_t p;
-	gnutls_datum_t pubkey_datum = { (void *) key, key_len };
+	gnutls_datum_t pubkey_datum = { (unsigned char *) key, key_len };
 	struct asn1_der_iterator der;
 	struct rsa_public_key pubkey;
 	uint8_t *message;
@@ -346,7 +346,7 @@ tds5_rsa_encrypt(const char *key, size_t key_len, const void *nonce, size_t nonc
 		goto error;
 	}
 
-	em = malloc(pubkey.size);
+	em = (uint8_t *) malloc(pubkey.size);
 	*em_size = pubkey.size;
 	if (!em)
 		goto error;

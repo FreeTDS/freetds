@@ -102,7 +102,7 @@ tds5_negotiate_handle_next(TDSSOCKET * tds, TDSAUTHENTICATION * tds_auth, size_t
 	TDSPARAMINFO *info;
 	void *rsa, *nonce = NULL;
 	size_t rsa_len, nonce_len = 0;
-	TDS_UCHAR *em;
+	void *em;
 	size_t em_size;
 	TDSRET rc = TDS_FAIL;
 

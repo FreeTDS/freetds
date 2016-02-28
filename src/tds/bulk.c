@@ -1031,7 +1031,7 @@ tds_bcp_fread(TDSSOCKET * tds, TDSICONV * char_conv, FILE * stream, const char *
 	r.stream.read = tds_file_stream_read;
 	r.f = stream;
 	r.term_len = term_len;
-	r.left = calloc(1, term_len*3);
+	r.left = (char *) calloc(1, term_len*3);
 	r.left_pos = 0;
 	if (!r.left) return TDS_FAIL;
 

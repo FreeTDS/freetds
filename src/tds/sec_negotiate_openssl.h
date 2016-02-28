@@ -38,7 +38,7 @@
 #endif
 
 static void*
-tds5_rsa_encrypt(const char *key, size_t key_len, const void *nonce, size_t nonce_len, const char *pwd, size_t *em_size)
+tds5_rsa_encrypt(const void *key, size_t key_len, const void *nonce, size_t nonce_len, const char *pwd, size_t *em_size)
 {
 	RSA *rsa = NULL;
 	BIO *keybio;

@@ -271,7 +271,7 @@ tds_alloc_new_sid(TDSSOCKET *tds)
 			break;
 	if (sid == conn->num_sessions) {
 		/* extend array */
-		s = TDS_RESIZE(conn->sessions, sid+64);
+		s = (TDSSOCKET **) TDS_RESIZE(conn->sessions, sid+64);
 		if (!s)
 			goto error;
 		memset(s + conn->num_sessions, 0, sizeof(*s) * 64);

@@ -754,7 +754,7 @@ ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen,
 				break;
 			case _CS_COMMAND_BUILDING:
 				current_query_len = strlen(cmd->query);
-				cmd->query = realloc(cmd->query, current_query_len + query_len + 1);
+				cmd->query = (CS_CHAR *) realloc(cmd->query, current_query_len + query_len + 1);
 				strncat(cmd->query, (const char *) buffer, query_len);
 				cmd->query[current_query_len + query_len] = '\0';
 				if (option == CS_MORE) {
@@ -1038,7 +1038,7 @@ ct_send(CS_COMMAND * cmd)
 		if (cursor->status.declare == _CS_CURS_TYPE_REQUESTED) {
 			ret =  tds_cursor_declare(tds, cursor, NULL, &something_to_send);
 			if (TDS_SUCCEED(ret)){
-				cursor->status.declare = _CS_CURS_TYPE_SENT; /* Cursor is declared */
+				cursor->status.declare = TDS_CURSOR_STATE_SENT; /* Cursor is declared */
 				if (something_to_send == 0) {
 					cmd->results_state = _CS_RES_END_RESULTS;
 				}
@@ -1054,7 +1054,7 @@ ct_send(CS_COMMAND * cmd)
 
  			ret = tds_cursor_setrows(tds, cursor, &something_to_send);
 			if (TDS_SUCCEED(ret)){
-				cursor->status.cursor_row = _CS_CURS_TYPE_SENT; /* Cursor rows set */
+				cursor->status.cursor_row = TDS_CURSOR_STATE_SENT; /* Cursor rows set */
 				if (something_to_send == 0) {
 					cmd->results_state = _CS_RES_END_RESULTS;
 				}
@@ -1070,7 +1070,7 @@ ct_send(CS_COMMAND * cmd)
 
 			ret = tds_cursor_open(tds, cursor, NULL, &something_to_send);
  			if (TDS_SUCCEED(ret)){
-				cursor->status.open = _CS_CURS_TYPE_SENT;
+				cursor->status.open = TDS_CURSOR_STATE_SENT;
 				cmd->results_state = _CS_RES_INIT;
 			}
 			else {
@@ -1098,7 +1098,7 @@ ct_send(CS_COMMAND * cmd)
 				cursor = NULL;
 			} else {
 				ret = tds_cursor_close(tds, cursor);
-				cursor->status.close = _CS_CURS_TYPE_SENT;
+				cursor->status.close = TDS_CURSOR_STATE_SENT;
 			}
 		}
 
@@ -1675,7 +1675,7 @@ _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS
 		tdsdump_log(TDS_DBG_WARN, "ct_fetch(): cursor fetch failed\n");
 		return CS_FAIL;
 	}
-	cursor->status.fetch = _CS_CURS_TYPE_SENT;
+	cursor->status.fetch = TDS_CURSOR_STATE_SENT;
 
 	while ((tds_process_tokens(tds, &restype, &done_flags, TDS_TOKEN_RESULTS)) == TDS_SUCCESS) {
 		switch (restype) {
@@ -3346,7 +3346,7 @@ ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * dat
 CS_RETCODE
 ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, CS_INT paramlen, CS_INT * outlen)
 {
-	TDS_OPTION_CMD tds_command = 0;
+	TDS_OPTION_CMD tds_command;
 	TDS_OPTION tds_option = 0;
 	TDS_OPTION_ARG tds_argument;
 	TDS_INT tds_argsize = 0;
@@ -3430,13 +3430,10 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 	 * First, take care of the easy cases, the booleans.
 	 */
 	for (i = 0; i < TDS_VECTOR_SIZE(tds_bool_option_map); i++) {
-		if (tds_bool_option_map[i].option == option) {
-			tds_option = tds_bool_option_map[i].tds_option;
-			break;
-		}
-	}
+		if (tds_bool_option_map[i].option != option)
+			continue;
 
-	if (tds_option != 0) {	/* found a boolean */
+		tds_option = tds_bool_option_map[i].tds_option;
 		if (action == CS_SET) {
 			switch (*(CS_BOOL *) param) {
 			case CS_TRUE:
@@ -3473,9 +3470,9 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		}
 		break;
 	case CS_OPT_ARITHABORT:
+		tds_option = TDS_OPT_ARITHABORTON;
 		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
-			tds_option = TDS_OPT_ARITHABORTON;
 			break;
 		case CS_FALSE:
 			tds_option = TDS_OPT_ARITHABORTOFF;
@@ -3483,15 +3480,14 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		default:
 			if (action == CS_SET)
 				return CS_FAIL;
-			tds_option = TDS_OPT_ARITHABORTON;
 		}
 		tds_argument.ti = TDS_OPT_ARITHOVERFLOW | TDS_OPT_NUMERICTRUNC;
 		tds_argsize = (action == CS_SET) ? 1 : 0;
 		break;
 	case CS_OPT_ARITHIGNORE:
+		tds_option = TDS_OPT_ARITHIGNOREON;
 		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
-			tds_option = TDS_OPT_ARITHIGNOREON;
 			break;
 		case CS_FALSE:
 			tds_option = TDS_OPT_ARITHIGNOREOFF;
@@ -3698,12 +3694,12 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 
 		cursor->cursor_rows = 1;
 		cursor->options = option;
-		cursor->status.declare    = _CS_CURS_TYPE_REQUESTED;
-		cursor->status.cursor_row = _CS_CURS_TYPE_UNACTIONED;
-		cursor->status.open       = _CS_CURS_TYPE_UNACTIONED;
-		cursor->status.fetch      = _CS_CURS_TYPE_UNACTIONED;
-		cursor->status.close      = _CS_CURS_TYPE_UNACTIONED;
-		cursor->status.dealloc    = _CS_CURS_TYPE_UNACTIONED;
+		cursor->status.declare    = TDS_CURSOR_STATE_REQUESTED;
+		cursor->status.cursor_row = TDS_CURSOR_STATE_UNACTIONED;
+		cursor->status.open       = TDS_CURSOR_STATE_UNACTIONED;
+		cursor->status.fetch      = TDS_CURSOR_STATE_UNACTIONED;
+		cursor->status.close      = TDS_CURSOR_STATE_UNACTIONED;
+		cursor->status.dealloc    = TDS_CURSOR_STATE_UNACTIONED;
 
 		tds_release_cursor(&cmd->cursor);
 		cmd->cursor = cursor;
@@ -3723,13 +3719,13 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 			cursor->status.declare == _CS_CURS_TYPE_SENT) {
 
 			cursor->cursor_rows = option;
-			cursor->status.cursor_row = _CS_CURS_TYPE_REQUESTED;
+			cursor->status.cursor_row = TDS_CURSOR_STATE_REQUESTED;
 
 			ct_set_command_state(cmd, _CS_COMMAND_READY);
 			return CS_SUCCEED;
 		}
 		else {
-			cursor->status.cursor_row  = _CS_CURS_TYPE_UNACTIONED;
+			cursor->status.cursor_row  = TDS_CURSOR_STATE_UNACTIONED;
 			tdsdump_log(TDS_DBG_FUNC, "ct_cursor() : cursor not declared\n");
 			return CS_FAIL;
 		}
@@ -3746,13 +3742,13 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 		if (cursor->status.declare == _CS_CURS_TYPE_REQUESTED ||
 			cursor->status.declare == _CS_CURS_TYPE_SENT ) {
 
-			cursor->status.open  = _CS_CURS_TYPE_REQUESTED;
+			cursor->status.open  = TDS_CURSOR_STATE_REQUESTED;
 
 			return CS_SUCCEED;
 			ct_set_command_state(cmd, _CS_COMMAND_READY);
 		}
 		else {
-			cursor->status.open = _CS_CURS_TYPE_UNACTIONED;
+			cursor->status.open = TDS_CURSOR_STATE_UNACTIONED;
 			tdsdump_log(TDS_DBG_FUNC, "ct_cursor() : cursor not declared\n");
 			return CS_FAIL;
 		}
@@ -3767,12 +3763,12 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 			return CS_FAIL;
 		}
 
-		cursor->status.cursor_row = _CS_CURS_TYPE_UNACTIONED;
-		cursor->status.open       = _CS_CURS_TYPE_UNACTIONED;
-		cursor->status.fetch      = _CS_CURS_TYPE_UNACTIONED;
-		cursor->status.close      = _CS_CURS_TYPE_REQUESTED;
+		cursor->status.cursor_row = TDS_CURSOR_STATE_UNACTIONED;
+		cursor->status.open       = TDS_CURSOR_STATE_UNACTIONED;
+		cursor->status.fetch      = TDS_CURSOR_STATE_UNACTIONED;
+		cursor->status.close      = TDS_CURSOR_STATE_REQUESTED;
 		if (option == CS_DEALLOC) {
-		 	cursor->status.dealloc   = _CS_CURS_TYPE_REQUESTED;
+			cursor->status.dealloc   = TDS_CURSOR_STATE_REQUESTED;
 		}
 		ct_set_command_state(cmd, _CS_COMMAND_READY);
 		return CS_SUCCEED;
@@ -3784,7 +3780,7 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 			tdsdump_log(TDS_DBG_FUNC, "ct_cursor() : cursor not present\n");
 			return CS_FAIL;
 		}
-		cursor->status.dealloc   = _CS_CURS_TYPE_REQUESTED;
+		cursor->status.dealloc   = TDS_CURSOR_STATE_REQUESTED;
 		ct_set_command_state(cmd, _CS_COMMAND_READY);
 		return CS_SUCCEED;
 

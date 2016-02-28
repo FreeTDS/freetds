@@ -906,7 +906,7 @@ tds_config_verstr(const char *tdsver, TDSLOGIN * login)
 		return NULL;
 	}
 
-	if ((pver = TDS_FIND(tdsver, tds_versions, tds_vernanme_cmp)) == NULL) {
+	if ((pver = (const struct tdsvername_t *) TDS_FIND(tdsver, tds_versions, tds_vernanme_cmp)) == NULL) {
 		tdsdump_log(TDS_DBG_INFO1, "error: no such version: %s\n", tdsver);
 		return NULL;
 	}
