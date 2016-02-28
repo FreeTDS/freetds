@@ -4,7 +4,7 @@ dnl $Id: check_openssl.m4,v 1.2 2006-03-27 07:22:54 jklowden Exp $
 AC_DEFUN([CHECK_OPENSSL],
 [AC_MSG_CHECKING(if openssl is wanted)
 AC_ARG_WITH(openssl, AS_HELP_STRING([--with-openssl], [--with-openssl=DIR build with OpenSSL (license NOT compatible cf. User Guide)]))
-if test "$with_openssl" != "no"; then
+if test "$with_openssl" != "no" -a "$cross_compiling" != "yes"; then
     AC_MSG_RESULT(yes)
     found_ssl=no
     for dir in $withval /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr; do
