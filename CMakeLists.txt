@@ -2,6 +2,8 @@ project(FreeTDS)
 
 cmake_minimum_required(VERSION 2.6)
 
+option(WITH_OPENSSL "Link in OpenSSL if found" ON)
+
 if(COMMAND cmake_policy)
 	cmake_policy(SET CMP0003 NEW)
 	cmake_policy(SET CMP0005 NEW)
@@ -127,7 +129,9 @@ foreach(fn
 	config_write("#cmakedefine ${var} 1\n\n")
 endforeach(fn)
 
-find_package(OpenSSL)
+if(WITH_OPENSSL)
+	find_package(OpenSSL)
+endif(WITH_OPENSSL)
 if(OPENSSL_FOUND)
 	config_write("#define HAVE_OPENSSL 1\n\n")
 	include_directories(${OPENSSL_INCLUDE_DIR})
