@@ -374,22 +374,31 @@ int
 main(int argc, char **argv)
 {
 	int opt;
+#ifndef _WIN32
 	bool daemonize = false;
+#  define DAEMON_OPT "d"
+#else
+#  define DAEMON_OPT ""
+#endif
 	TDS_POOL *pool;
 
 	signal(SIGTERM, sigterm_handler);
 	signal(SIGINT, sigterm_handler);
+#ifndef _WIN32
 	signal(SIGHUP, sighup_handler);
 	signal(SIGPIPE, SIG_IGN);
+#endif
 
-	while ((opt = getopt(argc, argv, "l:d")) != -1) {
+	while ((opt = getopt(argc, argv, "l:" DAEMON_OPT)) != -1) {
 		switch (opt) {
 		case 'l':
 			logfile_name = optarg;
 			break;
+#ifndef _WIN32
 		case 'd':
 			daemonize = true;
 			break;
+#endif
 		default:
 			print_usage(argv[0]);
 			return EXIT_FAILURE;
@@ -400,12 +409,14 @@ main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 	pool = pool_init(argv[optind]);
+#ifndef _WIN32
 	if (daemonize) {
 		if (daemon(0, 0) < 0) {
 			fprintf(stderr, "Failed to daemonize %s\n", argv[0]);
 			return EXIT_FAILURE;
 		}
 	}
+#endif
 	pool_main_loop(pool);
 	printf("User logins %lu members logins %lu members at end %d\n", pool->user_logins, pool->member_logins, pool->num_active_members);
 	pool_destroy(pool);

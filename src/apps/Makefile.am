@@ -20,7 +20,7 @@ freebcp_SOURCES = freebcp.c freebcp.h
 
 tsql_LDADD	= ../tds/libtds.la \
 		  ../replacements/libreplacements.la \
-		  $(LTLIBICONV) $(FREETDS_LIBGCC) $(READLINE_LIBS)
+		  $(LTLIBICONV) $(FREETDS_LIBGCC) $(READLINE_LIBS) $(NETWORK_LIBS)
 
 bsqldb_LDADD	= ../dblib/libsybdb.la \
 		  ../replacements/libreplacements.la \
@@ -29,7 +29,7 @@ bsqldb_LDADD	= ../dblib/libsybdb.la \
 if ODBC
 bsqlodbc_CPPFLAGS	= $(ODBC_INC) $(AM_CPPFLAGS)
 bsqlodbc_LDADD	= $(ODBCLIB) $(ODBCNODMLIBAPP) \
-		  ../replacements/libreplacements.la $(LTLIBICONV)
+		  ../replacements/libreplacements.la $(LTLIBICONV) $(NETWORK_LIBS)
 endif
 
 defncopy_LDADD	= ../dblib/libsybdb.la \
