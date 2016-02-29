@@ -43,7 +43,7 @@ query_test(const char* expected, const char *expected_status)
 
 	if (!record_bind) {
 		ids = (SQLUINTEGER *) ODBC_GET(sizeof(SQLUINTEGER) * ARRAY_SIZE);
-		descs = ODBC_GET(sizeof(SQLCHAR) * ARRAY_SIZE * desc_len);
+		descs = (SQLCHAR *) ODBC_GET(sizeof(SQLCHAR) * ARRAY_SIZE * desc_len);
 		desc_lens = (SQLLEN *) ODBC_GET(sizeof(SQLLEN) * ARRAY_SIZE);
 		id_lens = (SQLLEN *) ODBC_GET(sizeof(SQLLEN) * ARRAY_SIZE);
 		assert(descs && ids && desc_lens && id_lens);

@@ -635,8 +635,8 @@ void
 odbc_read_error(void)
 {
 	ODBC_BUF *odbc_buf = NULL;
-	SQLTCHAR *err = ODBC_GET(sizeof(odbc_err)*sizeof(SQLTCHAR));
-	SQLTCHAR *state = ODBC_GET(sizeof(odbc_sqlstate)*sizeof(SQLTCHAR));
+	SQLTCHAR *err = (SQLTCHAR *) ODBC_GET(sizeof(odbc_err)*sizeof(SQLTCHAR));
+	SQLTCHAR *state = (SQLTCHAR *) ODBC_GET(sizeof(odbc_sqlstate)*sizeof(SQLTCHAR));
 
 	memset(odbc_err, 0, sizeof(odbc_err));
 	memset(odbc_sqlstate, 0, sizeof(odbc_sqlstate));
@@ -721,7 +721,7 @@ odbc_get_sqlchar(ODBC_BUF** buf, SQLWCHAR *s)
 
 	for (n=1; *p++ != 0; ++n)
 		continue;
-	out = odbc_buf_get(buf, n);
+	out = (char *) odbc_buf_get(buf, n);
 	odbc_from_sqlwchar(out, s, n);
 	return out;
 }

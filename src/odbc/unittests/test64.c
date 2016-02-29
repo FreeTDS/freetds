@@ -79,11 +79,11 @@ test_params(void)
 	}
 
 	/* test setting just some test pointers */
-	set_ipd_params1(int2ptr(0x01020304));
+	set_ipd_params1((SQLULEN *) int2ptr(0x01020304));
 	check_ipd_params();
-	set_ipd_params2(int2ptr(0xabcdef12));
+	set_ipd_params2((SQLULEN *) int2ptr(0xabcdef12));
 	check_ipd_params();
-	set_ipd_params3(int2ptr(0x87654321));
+	set_ipd_params3((SQLULEN *) int2ptr(0x87654321));
 	check_ipd_params();
 
 	/* now see results */
@@ -186,9 +186,9 @@ test_rows(void)
 	}
 
 	/* test setting just some test pointers */
-	set_ird_params1(int2ptr(0x01020304));
+	set_ird_params1((SQLULEN *) int2ptr(0x01020304));
 	check_ird_params();
-	set_ird_params2(int2ptr(0xabcdef12));
+	set_ird_params2((SQLULEN *) int2ptr(0xabcdef12));
 	check_ird_params();
 
 	/* now see results */

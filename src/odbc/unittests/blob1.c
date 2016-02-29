@@ -296,7 +296,7 @@ main(int argc, char **argv)
 		while (RetCode == SQL_NEED_DATA) {
 			char *p;
 
-			RetCode = CHKParamData((SQLPOINTER) & p, "SINe");
+			RetCode = CHKParamData((SQLPOINTER *) & p, "SINe");
 			printf(">> SQLParamData: ptr = %p  RetCode = %d\n", (void *) p, RetCode);
 			if (RetCode == SQL_NEED_DATA) {
 				for (t = test_infos; t < test_infos+num_tests && t->buf != p; ++t)

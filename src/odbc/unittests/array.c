@@ -24,8 +24,8 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 	SQLULEN processed;
 	RETCODE ret;
 	char status[20];
-	SQLTCHAR *err = ODBC_GET(sizeof(odbc_err)*sizeof(SQLTCHAR));
-	SQLTCHAR *state = ODBC_GET(sizeof(odbc_sqlstate)*sizeof(SQLTCHAR));
+	SQLTCHAR *err = (SQLTCHAR *) ODBC_GET(sizeof(odbc_err)*sizeof(SQLTCHAR));
+	SQLTCHAR *state = (SQLTCHAR *) ODBC_GET(sizeof(odbc_sqlstate)*sizeof(SQLTCHAR));
 
 	assert(odbc_stmt != SQL_NULL_HSTMT);
 	odbc_reset_statement();

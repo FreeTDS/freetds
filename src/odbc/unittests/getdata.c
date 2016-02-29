@@ -69,14 +69,14 @@ test_split(const char *n_flag)
 	CHKFetch("S");
 
 	/* these 2 tests test an old severe BUG in FreeTDS */
-	buf = ODBC_GET(1);
+	buf = (char *) ODBC_GET(1);
 	CHKGetData(1, type, buf, 0, &len, "I");
 	if (len != SQL_NO_TOTAL)
 		CheckLen(505*lc);
 	CHKGetData(1, type, buf, 0, &len, "I");
 	if (len != SQL_NO_TOTAL)
 		CheckLen(505*lc);
-	buf = ODBC_GET(3*lc);
+	buf = (char *) ODBC_GET(3*lc);
 	CHKGetData(1, type, buf, 3 * lc, &len, "I");
 	if (len != SQL_NO_TOTAL)
 		CheckLen(505*lc);
@@ -85,7 +85,7 @@ test_split(const char *n_flag)
 		exit(1);
 	}
 
-	buf = ODBC_GET(16*lc);
+	buf = (char *) ODBC_GET(16*lc);
 	CHKGetData(1, type, buf, 16 * lc, &len, "I");
 	if (len != SQL_NO_TOTAL)
 		CheckLen(503*lc);
@@ -94,7 +94,7 @@ test_split(const char *n_flag)
 		exit(1);
 	}
 
-	buf = ODBC_GET(256*lc);
+	buf = (char *) ODBC_GET(256*lc);
 	CHKGetData(1, type, buf, 256 * lc, &len, "I");
 	if (len != SQL_NO_TOTAL)
 		CheckLen(488*lc);
@@ -110,14 +110,14 @@ test_split(const char *n_flag)
 
 	CHKFetch("S");
 
-	buf = ODBC_GET(7*lc);
+	buf = (char *) ODBC_GET(7*lc);
 	CHKGetData(1, type, buf, 7 * lc, NULL, "I");
 	if (mycmp(buf, "Other ") != 0) {
 		printf("Wrong data result 1\n");
 		exit(1);
 	}
 
-	buf = ODBC_GET(5*lc);
+	buf = (char *) ODBC_GET(5*lc);
 	CHKGetData(1, type, buf, 20, NULL, "S");
 	if (mycmp(buf, "test") != 0) {
 		printf("Wrong data result 2 res = '%s'\n", buf);

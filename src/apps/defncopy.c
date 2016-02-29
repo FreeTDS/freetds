@@ -356,19 +356,19 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 
 				/* name */
 				datlen = dbdatlen(dbproc, 1);
-				index_name = calloc(1, 1 + datlen);
+				index_name = (char *) calloc(1, 1 + datlen);
 				assert(index_name);
 				memcpy(index_name, dbdata(dbproc, 1), datlen);
 				
 				/* kind */
 				datlen = dbdatlen(dbproc, 2);
-				index_description = calloc(1, 1 + datlen);
+				index_description = (char *) calloc(1, 1 + datlen);
 				assert(index_description);
 				memcpy(index_description, dbdata(dbproc, 2), datlen);
 				
 				/* columns */
 				datlen = dbdatlen(dbproc, 3);
-				index_keys = calloc(1, 1 + datlen);
+				index_keys = (char *) calloc(1, 1 + datlen);
 				assert(index_keys);
 				memcpy(index_keys, dbdata(dbproc, 3), datlen);
 				
@@ -421,7 +421,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 			colmap = (0 == strcmp("Computed", dbcolname(dbproc, 3)))? microsoft_colmap : sybase_colmap;
 				
 			/* Make room for the next row */
-			p = realloc(ddl, ++nrows * sizeof(struct DDL));
+			p = (struct DDL *) realloc(ddl, ++nrows * sizeof(struct DDL));
 			if (p == NULL) {
 				perror("error: insufficient memory for row DDL");
 				assert(p !=  NULL);
@@ -447,7 +447,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 					continue;
 				}
 
-				*coldesc[i] = calloc(1, 1 + datlen); /* calloc will null terminate */
+				*coldesc[i] = (char *) calloc(1, 1 + datlen); /* calloc will null terminate */
 				if( *coldesc[i] == NULL ) {
 					perror("error: insufficient memory for row detail");
 					assert(*coldesc[i] != NULL);

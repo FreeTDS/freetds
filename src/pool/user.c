@@ -85,7 +85,7 @@ pool_user_find_new(TDS_POOL * pool)
 		return NULL;
 	}
 
-	puser = calloc(1, sizeof(*puser));
+	puser = (TDS_POOL_USER *) calloc(1, sizeof(*puser));
 	if (!puser) {
 		fprintf(stderr, "Out of memory\n");
 		return NULL;
@@ -175,7 +175,7 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s)
 		CLOSESOCKET(fd);
 		return NULL;
 	}
-	ev = calloc(1, sizeof(*ev));
+	ev = (LOGIN_EVENT *) calloc(1, sizeof(*ev));
 	if (!ev || TDS_FAILED(tds_iconv_open(tds->conn, "UTF-8", 0))) {
 		free(ev);
 		tds_free_socket(tds);
@@ -558,7 +558,7 @@ end_login_execute(TDS_POOL_EVENT *base_event)
 void
 pool_user_finish_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 {
-	END_LOGIN_EVENT *ev = calloc(1, sizeof(*ev));
+	END_LOGIN_EVENT *ev = (END_LOGIN_EVENT *) calloc(1, sizeof(*ev));
 	if (!ev) {
 		pool_free_member(pool, puser->assigned_member);
 		return;

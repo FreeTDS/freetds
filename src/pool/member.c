@@ -241,7 +241,7 @@ pool_mbr_init(TDS_POOL * pool)
 
 	/* open connections for each member */
 	while (pool->num_active_members < pool->min_open_conn) {
-		pmbr = calloc(1, sizeof(TDS_POOL_MEMBER));
+		pmbr = (TDS_POOL_MEMBER *) calloc(1, sizeof(TDS_POOL_MEMBER));
 		if (!pmbr) {
 			fprintf(stderr, "Out of memory\n");
 			exit(1);
@@ -483,7 +483,7 @@ pool_assign_idle_member(TDS_POOL * pool, TDS_POOL_USER *puser)
 		return NULL;
 	}
 
-	pmbr = calloc(1, sizeof(*pmbr));
+	pmbr = (TDS_POOL_MEMBER *) calloc(1, sizeof(*pmbr));
 	if (!pmbr) {
 		fprintf(stderr, "Out of memory\n");
 		return NULL;
@@ -491,7 +491,7 @@ pool_assign_idle_member(TDS_POOL * pool, TDS_POOL_USER *puser)
 
 	tdsdump_log(TDS_DBG_INFO1, "No open connections left, opening new member\n");
 
-	ev = calloc(1, sizeof(*ev));
+	ev = (CONNECT_EVENT *) calloc(1, sizeof(*ev));
 	if (!ev) {
 		free(pmbr);
 		fprintf(stderr, "Out of memory\n");

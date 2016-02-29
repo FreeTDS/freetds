@@ -380,7 +380,7 @@ next_query()
 		/* Add the query line to the command to be sent to the server */
 		if (!strlen(query_line))
 			continue;
-		p = realloc(sql, 1 + (sql? strlen(sql) : 0) + strlen(query_line));
+		p = (char *) realloc(sql, 1 + (sql? strlen(sql) : 0) + strlen(query_line));
 		if (!p) {
 			fprintf(stderr, "%s:%d: could not allocate memory\n", options.appname, __LINE__);
 			return NULL;
@@ -601,7 +601,7 @@ print_results(SQLHSTMT hStmt)
 			 * inaccesible to the application.  
 			 */
 
-			data[c].buffer = calloc(1, bufsize(&metadata[c]));
+			data[c].buffer = (char *) calloc(1, bufsize(&metadata[c]));
 			assert(data[c].buffer);
 
 			if ((erc = SQLBindCol(hStmt, c+1, SQL_C_CHAR, (SQLPOINTER)data[c].buffer, 
@@ -766,7 +766,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 	options->colsep = default_colsep; /* may be overridden by -t */
 	options->odbc_version = SQL_OV_ODBC3;	  /* may be overridden by -V */
 	
-	login = calloc(1, sizeof(LOGINREC));
+	login = (LOGINREC *) calloc(1, sizeof(LOGINREC));
 	
 	if (!login) {
 		fprintf(stderr, "%s: unable to allocate login structure\n", options->appname);
