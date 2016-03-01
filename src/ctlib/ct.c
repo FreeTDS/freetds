@@ -3571,12 +3571,14 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		tds_option = TDS_OPT_ISOLATION;
 		switch (*(char *) param) {
 		case CS_OPT_LEVEL0:	/* CS_OPT_LEVEL0 requires SQL Server version 11.0 or later or Adaptive Server. */
-			/* no documented value */
-			tds_option = 0;
-			tds_argument.ti = 0;
+			tds_argument.ti = TDS_OPT_LEVEL0;
 			break;
 		case CS_OPT_LEVEL1:
 			tds_argument.ti = TDS_OPT_LEVEL1;
+			break;
+		case CS_OPT_LEVEL2:
+			tds_argument.ti = TDS_OPT_LEVEL2;
+			break;
 		case CS_OPT_LEVEL3:
 			tds_argument.ti = TDS_OPT_LEVEL3;
 			break;
