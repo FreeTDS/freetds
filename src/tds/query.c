@@ -3414,13 +3414,6 @@ TDSRET
 tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option, TDS_OPTION_ARG *param, TDS_INT param_size)
 {
 	char cmd[128];
-	char datefmt[4];
-	TDS_INT resulttype;
-	TDSCOLUMN *col;
-	CONV_RESULT dres;
-	int ctype;
-	unsigned char*src;
-	int srclen;
  
 	CHECK_TDS_EXTRA(tds);
  
@@ -3447,237 +3440,248 @@ tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option,
 		rc = tds_process_simple_query(tds);
 		if (TDS_FAILED(rc))
 			return rc;
+		return TDS_SUCCESS;
 	}
  
-	if (IS_TDS7_PLUS(tds->conn)) {
-		if (command == TDS_OPT_SET) {
-			TDSRET rc;
+	if (!IS_TDS7_PLUS(tds->conn))
+		return TDS_SUCCESS;
 
-			switch (option) {
-			case TDS_OPT_ANSINULL :
-				sprintf(cmd, "SET ANSI_NULLS %s", param->ti ? "ON" : "OFF");
-				break;
-			case TDS_OPT_ARITHABORTON :
-				strcpy(cmd, "SET ARITHABORT ON");
-				break;
-			case TDS_OPT_ARITHABORTOFF :
-				strcpy(cmd, "SET ARITHABORT OFF");
-				break;
-			case TDS_OPT_ARITHIGNOREON :
-				strcpy(cmd, "SET ARITHIGNORE ON");
-				break;
-			case TDS_OPT_ARITHIGNOREOFF :
-				strcpy(cmd, "SET ARITHIGNORE OFF");
-				break;
-			case TDS_OPT_CHAINXACTS :
-				sprintf(cmd, "SET IMPLICIT_TRANSACTIONS %s", param->ti ? "ON" : "OFF");
-				break;
-			case TDS_OPT_CURCLOSEONXACT :
-				sprintf(cmd, "SET CURSOR_CLOSE_ON_COMMIT %s", param->ti ? "ON" : "OFF");
-				break;
-			case TDS_OPT_NOCOUNT :
-				sprintf(cmd, "SET NOCOUNT %s", param->ti ? "ON" : "OFF");
-				break;
-			case TDS_OPT_QUOTED_IDENT :
-				sprintf(cmd, "SET QUOTED_IDENTIFIER %s", param->ti ? "ON" : "OFF");
-				break;
-			case TDS_OPT_TRUNCABORT :
-				sprintf(cmd, "SET ANSI_WARNINGS %s", param->ti ? "OFF" : "ON");
-				break;
-			case TDS_OPT_DATEFIRST :
-				sprintf(cmd, "SET DATEFIRST %d", param->ti);
-				break;
-			case TDS_OPT_DATEFORMAT :
-				 switch (param->ti) {
-					case TDS_OPT_FMTDMY: strcpy(datefmt,"dmy"); break;
-					case TDS_OPT_FMTDYM: strcpy(datefmt,"dym"); break;
-					case TDS_OPT_FMTMDY: strcpy(datefmt,"mdy"); break;
-					case TDS_OPT_FMTMYD: strcpy(datefmt,"myd"); break;
-					case TDS_OPT_FMTYDM: strcpy(datefmt,"ydm"); break;
-					case TDS_OPT_FMTYMD: strcpy(datefmt,"ymd"); break;
-				}
-				sprintf(cmd, "SET DATEFORMAT %s", datefmt);
-				break;
-			case TDS_OPT_TEXTSIZE:
-				sprintf(cmd, "SET TEXTSIZE %d", (int) param->i);
-				break;
-			/* TODO */
-			case TDS_OPT_STAT_TIME:
-			case TDS_OPT_STAT_IO:
-			case TDS_OPT_ROWCOUNT:
-			case TDS_OPT_NATLANG:
-			case TDS_OPT_ISOLATION:
-			case TDS_OPT_AUTHON:
-			case TDS_OPT_CHARSET:
-			case TDS_OPT_SHOWPLAN:
-			case TDS_OPT_NOEXEC:
-			case TDS_OPT_PARSEONLY:
-			case TDS_OPT_GETDATA:
-			case TDS_OPT_FORCEPLAN:
-			case TDS_OPT_FORMATONLY:
-			case TDS_OPT_FIPSFLAG:
-			case TDS_OPT_RESTREES:
-			case TDS_OPT_IDENTITYON:
-			case TDS_OPT_CURREAD:
-			case TDS_OPT_CURWRITE:
-			case TDS_OPT_IDENTITYOFF:
-			case TDS_OPT_AUTHOFF:
-				break;
+	cmd[0] = 0;
+	if (command == TDS_OPT_SET) {
+		TDSRET rc;
+		char datefmt[4];
+
+		switch (option) {
+		case TDS_OPT_ANSINULL :
+			sprintf(cmd, "SET ANSI_NULLS %s", param->ti ? "ON" : "OFF");
+			break;
+		case TDS_OPT_ARITHABORTON :
+			strcpy(cmd, "SET ARITHABORT ON");
+			break;
+		case TDS_OPT_ARITHABORTOFF :
+			strcpy(cmd, "SET ARITHABORT OFF");
+			break;
+		case TDS_OPT_ARITHIGNOREON :
+			strcpy(cmd, "SET ARITHIGNORE ON");
+			break;
+		case TDS_OPT_ARITHIGNOREOFF :
+			strcpy(cmd, "SET ARITHIGNORE OFF");
+			break;
+		case TDS_OPT_CHAINXACTS :
+			sprintf(cmd, "SET IMPLICIT_TRANSACTIONS %s", param->ti ? "ON" : "OFF");
+			break;
+		case TDS_OPT_CURCLOSEONXACT :
+			sprintf(cmd, "SET CURSOR_CLOSE_ON_COMMIT %s", param->ti ? "ON" : "OFF");
+			break;
+		case TDS_OPT_NOCOUNT :
+			sprintf(cmd, "SET NOCOUNT %s", param->ti ? "ON" : "OFF");
+			break;
+		case TDS_OPT_QUOTED_IDENT :
+			sprintf(cmd, "SET QUOTED_IDENTIFIER %s", param->ti ? "ON" : "OFF");
+			break;
+		case TDS_OPT_TRUNCABORT :
+			sprintf(cmd, "SET ANSI_WARNINGS %s", param->ti ? "OFF" : "ON");
+			break;
+		case TDS_OPT_DATEFIRST :
+			sprintf(cmd, "SET DATEFIRST %d", param->ti);
+			break;
+		case TDS_OPT_DATEFORMAT :
+			 switch (param->ti) {
+				case TDS_OPT_FMTDMY: strcpy(datefmt,"dmy"); break;
+				case TDS_OPT_FMTDYM: strcpy(datefmt,"dym"); break;
+				case TDS_OPT_FMTMDY: strcpy(datefmt,"mdy"); break;
+				case TDS_OPT_FMTMYD: strcpy(datefmt,"myd"); break;
+				case TDS_OPT_FMTYDM: strcpy(datefmt,"ydm"); break;
+				case TDS_OPT_FMTYMD: strcpy(datefmt,"ymd"); break;
 			}
-			tds_submit_query(tds, cmd);
-			rc = tds_process_simple_query(tds);
-			if (TDS_FAILED(rc))
-				return rc;
+			sprintf(cmd, "SET DATEFORMAT %s", datefmt);
+			break;
+		case TDS_OPT_TEXTSIZE:
+			sprintf(cmd, "SET TEXTSIZE %d", (int) param->i);
+			break;
+		/* TODO */
+		case TDS_OPT_STAT_TIME:
+		case TDS_OPT_STAT_IO:
+		case TDS_OPT_ROWCOUNT:
+		case TDS_OPT_NATLANG:
+		case TDS_OPT_ISOLATION:
+		case TDS_OPT_AUTHON:
+		case TDS_OPT_CHARSET:
+		case TDS_OPT_SHOWPLAN:
+		case TDS_OPT_NOEXEC:
+		case TDS_OPT_PARSEONLY:
+		case TDS_OPT_GETDATA:
+		case TDS_OPT_FORCEPLAN:
+		case TDS_OPT_FORMATONLY:
+		case TDS_OPT_FIPSFLAG:
+		case TDS_OPT_RESTREES:
+		case TDS_OPT_IDENTITYON:
+		case TDS_OPT_CURREAD:
+		case TDS_OPT_CURWRITE:
+		case TDS_OPT_IDENTITYOFF:
+		case TDS_OPT_AUTHOFF:
+			break;
 		}
-		if (command == TDS_OPT_LIST) {
-			int optionval = 0;
+		tds_submit_query(tds, cmd);
+		rc = tds_process_simple_query(tds);
+		if (TDS_FAILED(rc))
+			return rc;
+	}
+	if (command == TDS_OPT_LIST) {
+		int optionval = 0;
+		TDS_INT resulttype;
 
-			switch (option) {
-			case TDS_OPT_ANSINULL :
-			case TDS_OPT_ARITHABORTON :
-			case TDS_OPT_ARITHABORTOFF :
-			case TDS_OPT_ARITHIGNOREON :
-			case TDS_OPT_ARITHIGNOREOFF :
-			case TDS_OPT_CHAINXACTS :
-			case TDS_OPT_CURCLOSEONXACT :
-			case TDS_OPT_NOCOUNT :
-			case TDS_OPT_QUOTED_IDENT :
-			case TDS_OPT_TRUNCABORT :
-				tdsdump_log(TDS_DBG_FUNC, "SELECT @@options\n");
-				strcpy(cmd, "SELECT @@options");
+		switch (option) {
+		case TDS_OPT_ANSINULL :
+		case TDS_OPT_ARITHABORTON :
+		case TDS_OPT_ARITHABORTOFF :
+		case TDS_OPT_ARITHIGNOREON :
+		case TDS_OPT_ARITHIGNOREOFF :
+		case TDS_OPT_CHAINXACTS :
+		case TDS_OPT_CURCLOSEONXACT :
+		case TDS_OPT_NOCOUNT :
+		case TDS_OPT_QUOTED_IDENT :
+		case TDS_OPT_TRUNCABORT :
+			tdsdump_log(TDS_DBG_FUNC, "SELECT @@options\n");
+			strcpy(cmd, "SELECT @@options");
+			break;
+		case TDS_OPT_DATEFIRST :
+			strcpy(cmd, "SELECT @@datefirst");
+			break;
+		case TDS_OPT_DATEFORMAT :
+			strcpy(cmd, "SELECT DATEPART(dy,'01/02/03')");
+			break;
+		case TDS_OPT_TEXTSIZE:
+			strcpy(cmd, "SELECT @@textsize");
+			break;
+		/* TODO */
+		case TDS_OPT_STAT_TIME:
+		case TDS_OPT_STAT_IO:
+		case TDS_OPT_ROWCOUNT:
+		case TDS_OPT_NATLANG:
+		case TDS_OPT_ISOLATION:
+		case TDS_OPT_AUTHON:
+		case TDS_OPT_CHARSET:
+		case TDS_OPT_SHOWPLAN:
+		case TDS_OPT_NOEXEC:
+		case TDS_OPT_PARSEONLY:
+		case TDS_OPT_GETDATA:
+		case TDS_OPT_FORCEPLAN:
+		case TDS_OPT_FORMATONLY:
+		case TDS_OPT_FIPSFLAG:
+		case TDS_OPT_RESTREES:
+		case TDS_OPT_IDENTITYON:
+		case TDS_OPT_CURREAD:
+		case TDS_OPT_CURWRITE:
+		case TDS_OPT_IDENTITYOFF:
+		case TDS_OPT_AUTHOFF:
+		default:
+			tdsdump_log(TDS_DBG_FUNC, "what!\n");
+		}
+		tds_submit_query(tds, cmd);
+		while (tds_process_tokens(tds, &resulttype, NULL, TDS_TOKEN_RESULTS) == TDS_SUCCESS) {
+			switch (resulttype) {
+			case TDS_ROWFMT_RESULT:
 				break;
-			case TDS_OPT_DATEFIRST :
-				strcpy(cmd, "SELECT @@datefirst");
+			case TDS_ROW_RESULT:
+				while (tds_process_tokens(tds, &resulttype, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW) == TDS_SUCCESS) {
+					TDSCOLUMN *col;
+					CONV_RESULT dres;
+					int ctype;
+					unsigned char* src;
+					int srclen;
+
+					if (resulttype != TDS_ROW_RESULT)
+						break;
+
+					if (!tds->current_results)
+						continue;
+
+					col = tds->current_results->columns[0];
+					ctype = tds_get_conversion_type(col->column_type, col->column_size);
+
+					src = col->column_data;
+					srclen = col->column_cur_size;
+
+
+					tds_convert(tds_get_ctx(tds), ctype, (TDS_CHAR *) src, srclen, SYBINT4, &dres);
+					optionval = dres.i;
+				}
 				break;
-			case TDS_OPT_DATEFORMAT :
-				strcpy(cmd, "SELECT DATEPART(dy,'01/02/03')");
-				break;
-			case TDS_OPT_TEXTSIZE:
-				strcpy(cmd, "SELECT @@textsize");
-				break;
-			/* TODO */
-			case TDS_OPT_STAT_TIME:
-			case TDS_OPT_STAT_IO:
-			case TDS_OPT_ROWCOUNT:
-			case TDS_OPT_NATLANG:
-			case TDS_OPT_ISOLATION:
-			case TDS_OPT_AUTHON:
-			case TDS_OPT_CHARSET:
-			case TDS_OPT_SHOWPLAN:
-			case TDS_OPT_NOEXEC:
-			case TDS_OPT_PARSEONLY:
-			case TDS_OPT_GETDATA:
-			case TDS_OPT_FORCEPLAN:
-			case TDS_OPT_FORMATONLY:
-			case TDS_OPT_FIPSFLAG:
-			case TDS_OPT_RESTREES:
-			case TDS_OPT_IDENTITYON:
-			case TDS_OPT_CURREAD:
-			case TDS_OPT_CURWRITE:
-			case TDS_OPT_IDENTITYOFF:
-			case TDS_OPT_AUTHOFF:
 			default:
-				tdsdump_log(TDS_DBG_FUNC, "what!\n");
-			}
-			tds_submit_query(tds, cmd);
-			while (tds_process_tokens(tds, &resulttype, NULL, TDS_TOKEN_RESULTS) == TDS_SUCCESS) {
-				switch (resulttype) {
-				case TDS_ROWFMT_RESULT:
-					break;
-				case TDS_ROW_RESULT:
-					while (tds_process_tokens(tds, &resulttype, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW) == TDS_SUCCESS) {
-						if (resulttype != TDS_ROW_RESULT)
-							break;
- 
-						if (!tds->current_results)
-							continue;
- 
-						col = tds->current_results->columns[0];
-						ctype = tds_get_conversion_type(col->column_type, col->column_size);
- 
-						src = col->column_data;
-						srclen = col->column_cur_size;
- 
- 
-						tds_convert(tds_get_ctx(tds), ctype, (TDS_CHAR *) src, srclen, SYBINT4, &dres);
-						optionval = dres.i;
-					}
-					break;
-				default:
-					break;
-				}
-			}
-			tdsdump_log(TDS_DBG_FUNC, "optionval = %d\n", optionval);
-			switch (option) {
-			case TDS_OPT_CHAINXACTS :
-				tds->option_value = (optionval & 0x02) > 0;
-				break;
-			case TDS_OPT_CURCLOSEONXACT :
-				tds->option_value = (optionval & 0x04) > 0;
-				break;
-			case TDS_OPT_TRUNCABORT :
-				tds->option_value = (optionval & 0x08) > 0;
-				break;
-			case TDS_OPT_ANSINULL :
-				tds->option_value = (optionval & 0x20) > 0;
-				break;
-			case TDS_OPT_ARITHABORTON :
-				tds->option_value = (optionval & 0x40) > 0;
-				break;
-			case TDS_OPT_ARITHABORTOFF :
-				tds->option_value = (optionval & 0x40) > 0;
-				break;
-			case TDS_OPT_ARITHIGNOREON :
-				tds->option_value = (optionval & 0x80) > 0;
-				break;
-			case TDS_OPT_ARITHIGNOREOFF :
-				tds->option_value = (optionval & 0x80) > 0;
-				break;
-			case TDS_OPT_QUOTED_IDENT :
-				tds->option_value = (optionval & 0x0100) > 0;
-				break;
-			case TDS_OPT_NOCOUNT :
-				tds->option_value = (optionval & 0x0200) > 0;
-				break;
-			case TDS_OPT_TEXTSIZE:
-			case TDS_OPT_DATEFIRST :
-				tds->option_value = optionval;
-				break;
-			case TDS_OPT_DATEFORMAT :
-				switch (optionval) {
-				case 61: tds->option_value = TDS_OPT_FMTYDM; break;
-				case 34: tds->option_value = TDS_OPT_FMTYMD; break;
-				case 32: tds->option_value = TDS_OPT_FMTDMY; break;
-				case 60: tds->option_value = TDS_OPT_FMTYDM; break;
-				case 2:  tds->option_value = TDS_OPT_FMTMDY; break;
-				case 3:  tds->option_value = TDS_OPT_FMTMYD; break;
-				}
-				break;
-			/* TODO */
-			case TDS_OPT_STAT_TIME:
-			case TDS_OPT_STAT_IO:
-			case TDS_OPT_ROWCOUNT:
-			case TDS_OPT_NATLANG:
-			case TDS_OPT_ISOLATION:
-			case TDS_OPT_AUTHON:
-			case TDS_OPT_CHARSET:
-			case TDS_OPT_SHOWPLAN:
-			case TDS_OPT_NOEXEC:
-			case TDS_OPT_PARSEONLY:
-			case TDS_OPT_GETDATA:
-			case TDS_OPT_FORCEPLAN:
-			case TDS_OPT_FORMATONLY:
-			case TDS_OPT_FIPSFLAG:
-			case TDS_OPT_RESTREES:
-			case TDS_OPT_IDENTITYON:
-			case TDS_OPT_CURREAD:
-			case TDS_OPT_CURWRITE:
-			case TDS_OPT_IDENTITYOFF:
-			case TDS_OPT_AUTHOFF:
 				break;
 			}
-			tdsdump_log(TDS_DBG_FUNC, "tds_submit_optioncmd: returned option_value = %d\n", tds->option_value);
 		}
+		tdsdump_log(TDS_DBG_FUNC, "optionval = %d\n", optionval);
+		switch (option) {
+		case TDS_OPT_CHAINXACTS :
+			tds->option_value = (optionval & 0x02) > 0;
+			break;
+		case TDS_OPT_CURCLOSEONXACT :
+			tds->option_value = (optionval & 0x04) > 0;
+			break;
+		case TDS_OPT_TRUNCABORT :
+			tds->option_value = (optionval & 0x08) > 0;
+			break;
+		case TDS_OPT_ANSINULL :
+			tds->option_value = (optionval & 0x20) > 0;
+			break;
+		case TDS_OPT_ARITHABORTON :
+			tds->option_value = (optionval & 0x40) > 0;
+			break;
+		case TDS_OPT_ARITHABORTOFF :
+			tds->option_value = (optionval & 0x40) > 0;
+			break;
+		case TDS_OPT_ARITHIGNOREON :
+			tds->option_value = (optionval & 0x80) > 0;
+			break;
+		case TDS_OPT_ARITHIGNOREOFF :
+			tds->option_value = (optionval & 0x80) > 0;
+			break;
+		case TDS_OPT_QUOTED_IDENT :
+			tds->option_value = (optionval & 0x0100) > 0;
+			break;
+		case TDS_OPT_NOCOUNT :
+			tds->option_value = (optionval & 0x0200) > 0;
+			break;
+		case TDS_OPT_TEXTSIZE:
+		case TDS_OPT_DATEFIRST :
+			tds->option_value = optionval;
+			break;
+		case TDS_OPT_DATEFORMAT :
+			switch (optionval) {
+			case 61: tds->option_value = TDS_OPT_FMTYDM; break;
+			case 34: tds->option_value = TDS_OPT_FMTYMD; break;
+			case 32: tds->option_value = TDS_OPT_FMTDMY; break;
+			case 60: tds->option_value = TDS_OPT_FMTYDM; break;
+			case 2:  tds->option_value = TDS_OPT_FMTMDY; break;
+			case 3:  tds->option_value = TDS_OPT_FMTMYD; break;
+			}
+			break;
+		/* TODO */
+		case TDS_OPT_STAT_TIME:
+		case TDS_OPT_STAT_IO:
+		case TDS_OPT_ROWCOUNT:
+		case TDS_OPT_NATLANG:
+		case TDS_OPT_ISOLATION:
+		case TDS_OPT_AUTHON:
+		case TDS_OPT_CHARSET:
+		case TDS_OPT_SHOWPLAN:
+		case TDS_OPT_NOEXEC:
+		case TDS_OPT_PARSEONLY:
+		case TDS_OPT_GETDATA:
+		case TDS_OPT_FORCEPLAN:
+		case TDS_OPT_FORMATONLY:
+		case TDS_OPT_FIPSFLAG:
+		case TDS_OPT_RESTREES:
+		case TDS_OPT_IDENTITYON:
+		case TDS_OPT_CURREAD:
+		case TDS_OPT_CURWRITE:
+		case TDS_OPT_IDENTITYOFF:
+		case TDS_OPT_AUTHOFF:
+			break;
+		}
+		tdsdump_log(TDS_DBG_FUNC, "tds_submit_optioncmd: returned option_value = %d\n", tds->option_value);
 	}
 	return TDS_SUCCESS;
 }
