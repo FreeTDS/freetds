@@ -58,7 +58,6 @@ AC_PROG_GREP
 AC_PROG_INSTALL
 AC_PROG_MKDIR_P
 AC_PROG_LN_S
-AC_PROG_RANLIB
 AC_PROG_SED
 
 # ------------------------------------------------------------
@@ -109,8 +108,7 @@ define([AC_LIBTOOL_LANG_CXX_CONFIG], [:])dnl
 define([AC_LIBTOOL_LANG_F77_CONFIG], [:])dnl
 define([AC_LIBTOOL_LANG_GCJ_CONFIG], [:])dnl
 
-AC_LIBTOOL_WIN32_DLL
-AC_PROG_LIBTOOL
+LT_INIT([win32-dll])
 AC_LTDL_DLLIB
 LT_AC_PROG_RC
 
