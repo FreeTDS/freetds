@@ -431,7 +431,7 @@ print_results(DBPROCESS *dbproc)
 			 */
 
 			if (metadata[c].width < INT_MAX) {
-				data[c].buffer = calloc(1, 1 + metadata[c].width); /* allow for null terminator */
+				data[c].buffer = (char *) calloc(1, 1 + metadata[c].width); /* allow for null terminator */
 				assert(data[c].buffer);
 
 				erc = dbbind(dbproc, c+1, bindtype, 0, (BYTE *) data[c].buffer);
@@ -519,7 +519,7 @@ print_results(DBPROCESS *dbproc)
 	
 				/* allocate buffer */
 				assert(metacompute[i]->data);
-				metacompute[i]->data[c].buffer = calloc(1, metacompute[i]->meta[c].width);
+				metacompute[i]->data[c].buffer = (char *) calloc(1, metacompute[i]->meta[c].width);
 				assert(metacompute[i]->data[c].buffer);
 				
 				/* bind */
@@ -860,7 +860,7 @@ parse_pivot_description(OPTIONS *options, const char *optarg)
 			while((ncols = sscanf(p, "%u%c%n", &col, &ch, &nchars)) > 0) {
 				int *pi;
 				assert(ncols <= 2);
-				if ((pi = realloc((*pk)->keys, sizeof((*pk)->keys[0]) * ++((*pk)->nkeys))) == NULL) {
+				if ((pi = (int *) realloc((*pk)->keys, sizeof((*pk)->keys[0]) * ++((*pk)->nkeys))) == NULL) {
 					assert(pi);
 					return;
 				}
