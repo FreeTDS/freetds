@@ -91,7 +91,7 @@ test(int argc, char **argv, int over4k)
 	isiz = ftell(fp);
 	fseek(fp, 0, SEEK_SET);
 
-	blob = malloc(isiz);
+	blob = (char *) malloc(isiz);
 	assert(blob);
 	result = fread((void *) blob, isiz, 1, fp);
 	assert(result == 1);

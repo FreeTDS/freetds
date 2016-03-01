@@ -253,7 +253,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 	if (!compute_row)
 		return SQL_SUCCESS;
 
-	src = drec_apd->sql_desc_data_ptr;
+	src = (char *) drec_apd->sql_desc_data_ptr;
 	if (src && n_row) {
 		SQLLEN len;
 		if (axd->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN) {

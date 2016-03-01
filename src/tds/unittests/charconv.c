@@ -84,7 +84,8 @@ enum Odd {
 	ODD_NONE = 0,
 	ODD_NORMAL,
 	ODD_INVALID,
-	ODD_INCOMPLETE
+	ODD_INCOMPLETE,
+	ODD_NUM_VALUES
 };
 
 static const char *odd_names[] = {
@@ -331,9 +332,10 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	for (i = 0; i < 4*3*2; ++i) {
+	for (i = 0; i < ODD_NUM_VALUES*3*2; ++i) {
 		int n = i;
-		int odd_type = n % 4; n /= 4;
+		enum Odd odd_type = (enum Odd) (n % ODD_NUM_VALUES);
+		n /= ODD_NUM_VALUES;
 		pos_type = n % 3; n /= 3;
 
 		test(n ? tds : NULL, odd_type);

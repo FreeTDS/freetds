@@ -520,14 +520,12 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 	}
 
 	if ((global_opt_flags & OPT_INSTANCES) && hostname) {
-		static const char template[] = "%s.instances";
 		struct addrinfo *addr;
 		char *filename = getenv("TDSDUMP");
 
 		if (filename) {
-			if ((filename = malloc(sizeof(template) + strlen(filename))) == NULL) 
+			if (asprintf(&filename, "%s.instances", filename) < 0)
 				exit(1);
-			sprintf(filename, template, getenv("TDSDUMP"));
 			tdsdump_open(filename);
 			free(filename);
 		}

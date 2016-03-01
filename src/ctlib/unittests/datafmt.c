@@ -94,7 +94,7 @@ main(int argc, char *argv[])
 			if (datafmt.datatype == CS_CHAR_TYPE) {
 				fprintf(stderr, "CS_CHAR_TYPE\n");
 				datafmt.format = CS_FMT_NULLTERM;
-				addr = malloc(datafmt.maxlength);
+				addr = (char *) malloc(datafmt.maxlength);
 			}
 
 			fprintf(stderr, "binding column 1 (%s)\n", datafmt.name);

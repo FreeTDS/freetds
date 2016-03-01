@@ -392,7 +392,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 			return SQL_SUCCESS;
 
 		assert(blob->textvalue || curcol->column_cur_size == 0);
-		p = TDS_RESIZE(blob->textvalue, len + curcol->column_cur_size);
+		p = (TDS_CHAR *) TDS_RESIZE(blob->textvalue, len + curcol->column_cur_size);
 		if (!p) {
 			odbc_errs_add(&stmt->errs, "HY001", NULL); /* Memory allocation error */
 			return SQL_ERROR;
