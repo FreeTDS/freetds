@@ -48,7 +48,7 @@
 
 /** \cond HIDDEN_SYMBOLS */
 #if ENABLE_EXTRA_CHECKS
-# define TEMP_INIT(s) const size_t temp_size = s; char* temp = (char*)malloc(temp_size)
+# define TEMP_INIT(s) const size_t temp_size = s; char* temp = tds_new(char, temp_size)
 # define TEMP_FREE free(temp);
 # define TEMP_SIZE temp_size
 #else

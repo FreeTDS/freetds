@@ -549,7 +549,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		int len;
 
 		len = 128 + tds_quote_id(tds, NULL, tds_dstr_cstr(&login->database),-1);
-		if ((str = (char *) malloc(len)) == NULL)
+		if ((str = tds_new(char, len)) == NULL)
 			return TDS_FAIL;
 
 		str[0] = 0;

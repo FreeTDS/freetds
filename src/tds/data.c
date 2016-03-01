@@ -583,7 +583,7 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		if (v->data)
 			TDS_ZERO_FREE(v->data);
 		v->data_len = sizeof(TDS_NUMERIC);
-		num = (TDS_NUMERIC*) calloc(1, sizeof(TDS_NUMERIC));
+		num = tds_new0(TDS_NUMERIC, 1);
 		v->data = (TDS_CHAR *) num;
 		num->precision = tds_get_byte(tds);
 		num->scale     = tds_get_byte(tds);
@@ -622,7 +622,7 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		if (v->data)
 			TDS_ZERO_FREE(v->data);
 		v->data_len = sizeof(TDS_DATETIMEALL);
-		v->data = (TDS_CHAR *) calloc(1, sizeof(TDS_DATETIMEALL));
+		v->data = tds_new0(TDS_CHAR, sizeof(TDS_DATETIMEALL));
 		curcol->column_type = type;
 		curcol->column_data = (unsigned char *) v->data;
 		/* trick, call get function */

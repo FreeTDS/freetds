@@ -126,7 +126,7 @@ tsql_readline(char *prompt)
 
 	sz = 1024;
 	pos = 0;
-	line = (char*) malloc(sz);
+	line = tds_new(char, sz);
 	if (!line)
 		return NULL;
 
@@ -349,7 +349,7 @@ get_opt_flags(char *s, int *opt_flags)
 
 	/* make sure we have enough elements */
 	assert(s && opt_flags);
-	argv = (char **) calloc(strlen(s) + 2, sizeof(char*));
+	argv = tds_new0(char*, strlen(s) + 2);
 	if (!argv)
 		return 0;
 
@@ -510,7 +510,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 	}
 
 	if (opt_flags_str != NULL) {
-		char *minus_flags = malloc(strlen(opt_flags_str) + 5);
+		char *minus_flags = tds_new(char, strlen(opt_flags_str) + 5);
 		if (minus_flags != NULL) {
 			strcpy(minus_flags, "go -");
 			strcat(minus_flags, opt_flags_str);
@@ -566,11 +566,11 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 	}
 	/* A NULL username indicates a domain (trusted) login */
 	if (!username) {
-		username = calloc(1, 1);
+		username = tds_new0(char, 1);
 		use_domain_login = 1;
 	}
 	if (!password) {
-		password = calloc(1, 128);
+		password = tds_new0(char, 128);
 		if (!use_domain_login)
 			readpassphrase("Password: ", password, 128, RPP_ECHO_OFF);
 	}
@@ -837,7 +837,7 @@ main(int argc, char **argv)
 	tds_free_login(connection);
 	/* give the buffer an initial size */
 	bufsz = 4096;
-	mybuf = malloc(bufsz);
+	mybuf = tds_new(char, bufsz);
 	mybuf[0] = '\0';
 	buflen = 0;
 
@@ -911,7 +911,7 @@ main(int argc, char **argv)
 			while (buflen + strlen(s) + 2 > bufsz) {
 				char *newbuf; 
 				bufsz *= 2;
-				if ((newbuf = realloc(mybuf, bufsz)) == NULL) {
+				if ((newbuf = (char *) realloc(mybuf, bufsz)) == NULL) {
 					perror("tsql: ");
 					exit(1);
 				}

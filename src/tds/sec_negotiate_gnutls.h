@@ -312,7 +312,7 @@ tds5_rsa_encrypt(const void *key, size_t key_len, const void *nonce, size_t nonc
 
 	pwd_len = strlen(pwd);
 	message_len = nonce_len + pwd_len;
-	message = (uint8_t *) malloc(message_len);
+	message = tds_new(uint8_t, message_len);
 	if (!message)
 		return NULL;
 	memcpy(message, nonce, nonce_len);
@@ -346,7 +346,7 @@ tds5_rsa_encrypt(const void *key, size_t key_len, const void *nonce, size_t nonc
 		goto error;
 	}
 
-	em = (uint8_t *) malloc(pubkey.size);
+	em = tds_new(uint8_t, pubkey.size);
 	*em_size = pubkey.size;
 	if (!em)
 		goto error;

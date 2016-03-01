@@ -181,7 +181,7 @@ tds5_negotiate_get_auth(TDSSOCKET * tds)
 	if (!tds->login)
 		return NULL;
 
-	auth = (TDS5NEGOTIATE *) calloc(1, sizeof(TDS5NEGOTIATE));
+	auth = tds_new0(TDS5NEGOTIATE, 1);
 	if (!auth)
 		return NULL;
 

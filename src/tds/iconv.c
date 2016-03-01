@@ -268,9 +268,9 @@ tds_iconv_alloc(TDSCONNECTION * conn)
 	TDSICONV *char_conv;
 
 	assert(!conn->char_convs);
-	if (!(conn->char_convs = (TDSICONV **) malloc(sizeof(TDSICONV *) * (initial_char_conv_count + 1))))
+	if (!(conn->char_convs = tds_new(TDSICONV *, initial_char_conv_count + 1)))
 		return 1;
-	char_conv = (TDSICONV *) calloc(initial_char_conv_count, sizeof(TDSICONV));
+	char_conv = tds_new0(TDSICONV, initial_char_conv_count);
 	if (!char_conv) {
 		TDS_ZERO_FREE(conn->char_convs);
 		return 1;
@@ -738,7 +738,7 @@ tds_iconv_get_info(TDSCONNECTION * conn, int canonic_client, int canonic_server)
 		TDSICONV **p;
 		TDSICONV *infos;
 
-		infos = (TDSICONV *) malloc(sizeof(TDSICONV) * CHUNK_ALLOC);
+		infos = tds_new(TDSICONV, CHUNK_ALLOC);
 		if (!infos)
 			return NULL;
 		p = (TDSICONV **) realloc(conn->char_convs, sizeof(TDSICONV *) * (conn->char_conv_count + CHUNK_ALLOC));

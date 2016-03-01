@@ -37,7 +37,7 @@ test0(const char *src, int len, int midtype, int dsttype, const char *result, in
 	int srctype = SYBVARCHAR;
 	char *copy;
 
-	copy = malloc(len);
+	copy = tds_new(char, len);
 	memcpy(copy, src, len);
 	src = copy;
 

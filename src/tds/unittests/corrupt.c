@@ -48,7 +48,7 @@ unfinished_query_test(TDSSOCKET *tds)
 
 	/* try to build an invalid (unfinished) query split in two packets */
 	char_len = IS_TDS7_PLUS(tds->conn) ? 2 : 1;
-	buf = calloc(1, tds->out_buf_max + 200);
+	buf = tds_new0(char, tds->out_buf_max + 200);
 	memset(buf, '-', tds->out_buf_max + 200);
 	strcpy(buf + (tds->out_buf_max - 8) / char_len - strlen(select_query) + 1, select_query);
 	memset(strchr(buf, 0), 0, 16);

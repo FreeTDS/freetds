@@ -173,7 +173,7 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	}
 
 	if (!IS_TDS7_PLUS(tds->conn)) {
-		bindinfo->current_row = (unsigned char*) malloc(bindinfo->row_size);
+		bindinfo->current_row = tds_new(unsigned char, bindinfo->row_size);
 		if (!bindinfo->current_row)
 			goto cleanup;
 		bindinfo->row_free = tds_bcp_row_free;
@@ -230,7 +230,7 @@ tds7_build_bulk_insert_stmt(TDSSOCKET * tds, TDSPBCB * clause, TDSCOLUMN * bcpco
 	    + tds_quote_id(tds, NULL, tds_dstr_cstr(&bcpcol->column_name), tds_dstr_len(&bcpcol->column_name))
 	    + strlen(column_type)
 	    + ((first) ? 2u : 4u)) {
-		char *temp = (char*) malloc(2 * clause->cb);
+		char *temp = tds_new(char, 2 * clause->cb);
 
 		if (!temp) {
 			tdserror(tds_get_ctx(tds), tds, TDSEMEM, errno);
@@ -1031,7 +1031,7 @@ tds_bcp_fread(TDSSOCKET * tds, TDSICONV * char_conv, FILE * stream, const char *
 	r.stream.read = tds_file_stream_read;
 	r.f = stream;
 	r.term_len = term_len;
-	r.left = (char *) calloc(1, term_len*3);
+	r.left = tds_new0(char, term_len*3);
 	r.left_pos = 0;
 	if (!r.left) return TDS_FAIL;
 

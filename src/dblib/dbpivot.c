@@ -110,7 +110,7 @@ col_init(struct col_t *pcol, int sybtype, int collen)
 	case SYBTEXT:
 	case SYBNTEXT:
 		pcol->len = collen;
-		if ((pcol->s = malloc(1+collen)) == NULL) {
+		if ((pcol->s = tds_new(char, 1+collen)) == NULL) {
 			return NULL;
 		}
 		break;
@@ -273,7 +273,7 @@ col_cpy(struct col_t *pdest, const struct col_t *psrc)
 	
 	if (psrc->s) {
 		assert(psrc->len >= 0);
-		if ((pdest->s = malloc(psrc->len)) == NULL)
+		if ((pdest->s = tds_new(char, psrc->len)) == NULL)
 			return NULL;
 		memcpy(pdest->s, psrc->s, psrc->len);
 	}
@@ -298,7 +298,7 @@ string_value(const struct col_t *pcol)
 	switch(pcol->type) {
 	case SYBCHAR:
 	case SYBVARCHAR:
-		if ((output = calloc(1, 1 + pcol->len)) == NULL)
+		if ((output = tds_new0(char, 1 + pcol->len)) == NULL)
 			return NULL;
 		strncpy(output, pcol->s, pcol->len);
 		return output;
@@ -358,7 +358,7 @@ join(int argc, char *argv[], const char sep[])
 	
 	len += 1 + argc * strlen(sep); /* allows one too many */ 
 	
-	output = calloc(1, len);
+	output = tds_new0(char, len);
 	
 	for (p=argv; p < argv + argc; p++) {
 		if (p != argv)
@@ -488,7 +488,7 @@ key_cpy(struct key_t *pdest, const struct key_t *psrc)
 	
 	assert( pdest && psrc );
 	
-	if ((pdest->keys = calloc(psrc->nkeys, sizeof(*pdest->keys))) == NULL)
+	if ((pdest->keys = tds_new0(struct col_t, psrc->nkeys)) == NULL)
 		return NULL;
 
 	pdest->nkeys = psrc->nkeys;
@@ -512,7 +512,7 @@ make_col_name(const struct key_t *k)
 	assert(k->nkeys);
 	assert(k->keys);
 	
-	s = names = calloc(k->nkeys, sizeof(char*));
+	s = names = tds_new0(char *, k->nkeys);
 	
 	for(pc=k->keys; pc < k->keys + k->nkeys; pc++) {
 		*s++ = strdup(string_value(pc));
@@ -940,7 +940,7 @@ dbpivot(DBPROCESS *dbproc, int nkeys, int *keys, int ncols, int *cols, DBPIVOT_F
 	}
 	memset(pp, 0, sizeof(*pp));
 
-	if ((input.row_key.keys = calloc(nkeys, sizeof(*input.row_key.keys))) == NULL)
+	if ((input.row_key.keys = tds_new0(struct col_t, nkeys)) == NULL)
 		return FAIL;
 	input.row_key.nkeys = nkeys;
 	for (i=0; i < nkeys; i++) {
@@ -955,7 +955,7 @@ dbpivot(DBPROCESS *dbproc, int nkeys, int *keys, int ncols, int *cols, DBPIVOT_F
 			return FAIL;
 	}
 	
-	if ((input.col_key.keys = calloc(ncols, sizeof(*input.col_key.keys))) == NULL)
+	if ((input.col_key.keys = tds_new0(struct col_t, ncols)) == NULL)
 		return FAIL;
 	input.col_key.nkeys = ncols;
 	for (i=0; i < ncols; i++) {
@@ -997,11 +997,11 @@ dbpivot(DBPROCESS *dbproc, int nkeys, int *keys, int ncols, int *cols, DBPIVOT_F
 			pout = pp->output + pp->nout++;
 
 			
-			if ((pout->row_key.keys = calloc(input.row_key.nkeys, sizeof(*pout->row_key.keys))) == NULL)
+			if ((pout->row_key.keys = tds_new0(struct col_t, input.row_key.nkeys)) == NULL)
 				return FAIL;
 			key_cpy(&pout->row_key, &input.row_key);
 
-			if ((pout->col_key.keys = calloc(input.col_key.nkeys, sizeof(*pout->col_key.keys))) == NULL)
+			if ((pout->col_key.keys = tds_new0(struct col_t, input.col_key.nkeys)) == NULL)
 				return FAIL;
 			key_cpy(&pout->col_key, &input.col_key);
 
@@ -1021,7 +1021,7 @@ dbpivot(DBPROCESS *dbproc, int nkeys, int *keys, int ncols, int *cols, DBPIVOT_F
 	 * Initialize new metadata
 	 */
 	nmeta = input.row_key.nkeys + pp->nacross;	
-	metadata = calloc(nmeta, sizeof(*metadata));
+	metadata = tds_new0(struct metadata_t, nmeta);
 	
 	assert(pp->across || pp->nacross == 0);
 	

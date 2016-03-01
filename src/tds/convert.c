@@ -162,7 +162,7 @@ string_to_result(int desttype, const char *s, CONV_RESULT * cr)
 	size_t len = strlen(s);
 
 	if (desttype != TDS_CONVERT_CHAR) {
-		cr->c = (TDS_CHAR *) malloc(len + 1);
+		cr->c = tds_new(TDS_CHAR, len + 1);
 		test_alloc(cr->c);
 		memcpy(cr->c, s, len + 1);
 	} else {
@@ -181,7 +181,7 @@ static TDS_INT
 binary_to_result(int desttype, const void *data, size_t len, CONV_RESULT * cr)
 {
 	if (desttype != TDS_CONVERT_BINARY) {
-		cr->ib = (TDS_CHAR *) malloc(len);
+		cr->ib = tds_new(TDS_CHAR, len);
 		test_alloc(cr->ib);
 		memcpy(cr->ib, data, len);
 	} else {
@@ -238,7 +238,7 @@ tds_convert_binary(const TDS_UCHAR * src, TDS_INT srclen, int desttype, CONV_RES
 
 		/* 2 * source length + 1 for terminator */
 
-		cr->c = (TDS_CHAR *) malloc((srclen * 2) + 1);
+		cr->c = tds_new(TDS_CHAR, (srclen * 2) + 1);
 		test_alloc(cr->c);
 
 		c = cr->c;
@@ -351,7 +351,7 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 		return srclen;
 
 	case CASE_ALL_CHAR:
-		cr->c = (TDS_CHAR *) malloc(srclen + 1);
+		cr->c = tds_new(TDS_CHAR, srclen + 1);
 		test_alloc(cr->c);
 		memcpy(cr->c, src, srclen);
 		cr->c[srclen] = 0;
@@ -1847,7 +1847,7 @@ tds_convert_to_binary(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int de
 
 		ib = cr->cb.ib;
 		if (desttype != TDS_CONVERT_BINARY) {
-			cr->ib = (TDS_CHAR *) malloc((srclen + 2u) / 2u);
+			cr->ib = tds_new(TDS_CHAR, (srclen + 2u) / 2u);
 			test_alloc(cr->ib);
 			ib = cr->ib;
 		}
@@ -3003,7 +3003,7 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 #endif
 
 	/* more characters are required because we replace %z with up to 7 digits */
-	our_format = (char*) malloc(strlen(format) + 1 + 5);
+	our_format = tds_new(char, strlen(format) + 1 + 5);
 	if (!our_format)
 		return 0;
 

@@ -54,7 +54,7 @@ norm_fmt(const char *fmt, int fmtlen)
 	if (fmtlen == TDS_NULLTERM) {
 		fmtlen = strlen(fmt);
 	}
-	if ((newfmt = (char *) malloc(fmtlen + 1)) == NULL)
+	if ((newfmt = tds_new(char, fmtlen + 1)) == NULL)
 		return NULL;
 
 	for (cp = newfmt; fmtlen > 0; fmtlen--, fmt++) {
@@ -109,7 +109,7 @@ tds_vstrbuild(char *buffer, int buflen, int *resultlen, const char *text, int te
 	}
 	free(newformat);
 	for (token = strtok_r(params, sep, &lasts); token != NULL; token = strtok_r(NULL, sep, &lasts)) {
-		if ((*tail = (struct string_linked_list *) malloc(sizeof(struct string_linked_list))) == NULL) {
+		if ((*tail = tds_new(struct string_linked_list, 1)) == NULL) {
 			goto out;
 		}
 		(*tail)->str = token;
@@ -117,7 +117,7 @@ tds_vstrbuild(char *buffer, int buflen, int *resultlen, const char *text, int te
 		tail = &((*tail)->next);
 		tokcount++;
 	}
-	if ((string_array = (char **) malloc((tokcount + 1) * sizeof(char *))) == NULL) {
+	if ((string_array = tds_new(char *, tokcount + 1)) == NULL) {
 		goto out;
 	}
 	for (item = head, i = 0; i < tokcount; item = item->next, i++) {

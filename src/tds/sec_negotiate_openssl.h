@@ -59,13 +59,13 @@ tds5_rsa_encrypt(const void *key, size_t key_len, const void *nonce, size_t nonc
 
 	pwd_len = strlen(pwd);
 	message_len = nonce_len + pwd_len;
-	message = (TDS_UCHAR *) malloc(message_len);
+	message = tds_new(TDS_UCHAR, message_len);
 	if (!message)
 		goto error;
 	memcpy(message, nonce, nonce_len);
 	memcpy(message + nonce_len, pwd, pwd_len);
 
-	em = malloc(BN_num_bytes(rsa->n));
+	em = tds_new(TDS_UCHAR, BN_num_bytes(rsa->n));
 	if (!em)
 		goto error;
 

@@ -141,7 +141,7 @@ tds_convert_string(TDSSOCKET * tds, TDSICONV * char_conv, const char *s, int len
 
 	/* allocate needed buffer (+1 is to exclude 0 case) */
 	ol = il * char_conv->to.charset.max_bytes_per_char / char_conv->from.charset.min_bytes_per_char + 1;
-	buf = (char *) malloc(ol);
+	buf = tds_new(char, ol);
 	if (!buf)
 		return NULL;
 
@@ -228,7 +228,7 @@ tds5_fix_dot_query(const char *query, size_t *query_len, TDSPARAMINFO * params)
 	char colname[32];
 	char *out;
 
-	out = (char *) malloc(size);
+	out = tds_new(char, size);
 	if (!out)
 		goto memory_error;
 	pos = 0;
@@ -927,7 +927,7 @@ tds7_build_param_def_from_query(TDSSOCKET * tds, const char* converted_query, si
 
 	count = tds_count_placeholders_ucs2le(converted_query, converted_query + converted_query_len);
 	
-	param_str = (char *) malloc(512);
+	param_str = tds_new(char, 512);
 	if (!param_str)
 		return NULL;
 
@@ -994,7 +994,7 @@ tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t quer
 	if (params)
 		CHECK_PARAMINFO_EXTRA(params);
  
-	param_str = (char *) malloc(512);
+	param_str = tds_new(char, 512);
 	if (!param_str)
 		goto Cleanup;
 
@@ -1002,7 +1002,7 @@ tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t quer
 		goto no_params;
 
 	/* try to detect missing names */
-	ids = (struct tds_ids *) calloc(params->num_cols, sizeof(struct tds_ids));
+	ids = tds_new0(struct tds_ids, params->num_cols);
 	if (!ids)
 		goto Cleanup;
 	if (tds_dstr_isempty(&params->columns[0]->column_name)) {
