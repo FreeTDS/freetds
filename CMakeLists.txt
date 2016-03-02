@@ -2,7 +2,11 @@ project(FreeTDS)
 
 cmake_minimum_required(VERSION 2.6)
 
-option(WITH_OPENSSL "Link in OpenSSL if found" ON)
+option(WITH_OPENSSL        "Link in OpenSSL if found" ON)
+option(ENABLE_ODBC_WIDE    "Enable ODBC wide character support" ON)
+option(ENABLE_KRB5         "Enable Kerberos support" OFF)
+option(ENABLE_ODBC_MARS    "Enable MARS" OFF)
+option(ENABLE_EXTRA_CHECKS "Enable internal extra checks, DO NOT USE in production" OFF)
 
 if(COMMAND cmake_policy)
 	cmake_policy(SET CMP0003 NEW)
@@ -326,10 +330,6 @@ else()
 endif()
 
 # flags
-set(ENABLE_ODBC_WIDE    ON  CACHE BOOL "Enable ODBC wide character support")
-set(ENABLE_EXTRA_CHECKS OFF CACHE BOOL "Enable internal extra checks, do not use in production")
-set(ENABLE_KRB5         OFF CACHE BOOL "Enable Kerberos support")
-set(ENABLE_ODBC_MARS    OFF CACHE BOOL "Enable MARS")
 foreach(flag ODBC_WIDE EXTRA_CHECKS KRB5 ODBC_MARS)
 	config_write("#cmakedefine ENABLE_${flag} 1\n\n")
 endforeach(flag)
