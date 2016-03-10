@@ -59,6 +59,7 @@ AC_PROG_INSTALL
 AC_PROG_MKDIR_P
 AC_PROG_LN_S
 AC_PROG_SED
+PKG_PROG_PKG_CONFIG
 
 # ------------------------------------------------------------
 # Host-specific configuration
@@ -128,7 +129,6 @@ fi
 AC_CHECK_PROG(DOXYGEN,doxygen,doxygen)
 AM_CONDITIONAL(HAVE_DOXYGEN, [test -n "$DOXYGEN"])
 AC_CHECK_PROG(ODBC_CONFIG,odbc_config,odbc_config)
-AC_CHECK_PROG(PKG_CONFIG,pkg-config,pkg-config)
 
 # ------------------------------------------------------------
 # Check for CVS-only sources.
