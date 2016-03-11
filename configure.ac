@@ -738,26 +738,24 @@ AS_HELP_STRING([--with-gnutls], [build with GnuTLS support]))
 if test "$with_gnutls" = "yes"; then
 	AC_DEFINE(HAVE_GNUTLS, 1, [Define to 1 if you have GnuTLS.])
 	gnutls_backend=unknown
-	if test "$PKG_CONFIG" != "" && "$PKG_CONFIG" --exists gnutls > /dev/null 2>&1; then
-		CPPFLAGS="$CPPFLAGS `$PKG_CONFIG --cflags gnutls`"
-		NETWORK_LIBS="$NETWORK_LIBS `$PKG_CONFIG --libs gnutls`"
+	PKG_CHECK_MODULES(GNUTLS, gnutls,
+		[CPPFLAGS="$CPPFLAGS $GNUTLS_CFLAGS"
+		NETWORK_LIBS="$NETWORK_LIBS $GNUTLS_LIBS"
 		if "$PKG_CONFIG" --libs --static gnutls | grep nettle > /dev/null 2>&1 ; then
 			gnutls_backend=nettle
 			AC_DEFINE(GNUTLS_USE_NETTLE, 1, [Define to 1 if GNU tls use nettle as backend.])
-			if "$PKG_CONFIG" --exists nettle > /dev/null 2>&1; then
-				AC_DEFINE(HAVE_NETTLE, 1, [Define to 1 if nettle is present.])
-				NETWORK_LIBS="$NETWORK_LIBS `$PKG_CONFIG --libs nettle`"
-			fi
+			PKG_CHECK_MODULES(NETTLE, nettle,
+				[AC_DEFINE(HAVE_NETTLE, 1, [Define to 1 if nettle is present.])
+				NETWORK_LIBS="$NETWORK_LIBS $NETTLE_LIBS"])
 			ACX_PUSH_LIBS("$NETWORK_LIBS")
 			TDS_HAVE_GMP
 			AC_SEARCH_LIBS(nettle_rsa_public_key_init, [nettle hogweed])
 			NETWORK_LIBS="$LIBS"
 			ACX_POP_LIBS
-		fi
-	else
-		CPPFLAGS="$CPPFLAGS `libgnutls-config --cflags`"
-		NETWORK_LIBS="$NETWORK_LIBS `libgnutls-config --libs`"
-	fi
+		fi],
+		[CPPFLAGS="$CPPFLAGS `libgnutls-config --cflags`"
+		NETWORK_LIBS="$NETWORK_LIBS `libgnutls-config --libs`"]
+	)
 	ACX_PUSH_LIBS("$NETWORK_LIBS")
 	AC_CHECK_FUNCS([gnutls_certificate_set_verify_function gnutls_record_disable_padding gnutls_rnd])
 	ACX_POP_LIBS
@@ -821,13 +819,11 @@ AM_CONDITIONAL(ENABLE_THREADSAFE, test "$enable_threadsafe" != "no")
 # explicitly listed on the linker commandline.
 # So to make build add explicitly gcrypt library.
 if test "$enable_threadsafe" != "no" -a "$with_gnutls" = "yes" -a "$gnutls_backend" = "gcrypt"; then
-	if test "$PKG_CONFIG" != "" && "$PKG_CONFIG" --exists gcrypt> /dev/null 2>&1; then
-		CPPFLAGS="$CPPFLAGS `$PKG_CONFIG --cflags gcrypt`"
-		NETWORK_LIBS="$NETWORK_LIBS `$PKG_CONFIG --libs gcrypt`"
-	else
-		CPPFLAGS="$CPPFLAGS `libgcrypt-config --cflags`"
-		NETWORK_LIBS="$NETWORK_LIBS `libgcrypt-config --libs`"
-	fi
+	PKG_CHECK_MODULES(GCRYPT, gcrypt,
+		[CPPFLAGS="$CPPFLAGS $GCRYPT_CFLAGS"
+		NETWORK_LIBS="$NETWORK_LIBS $GCRYPT_LIBS"],
+		[CPPFLAGS="$CPPFLAGS `libgcrypt-config --cflags`"
+		NETWORK_LIBS="$NETWORK_LIBS `libgcrypt-config --libs`"])
 fi
 
 # we don't need to check netdb functions if they are already threadsafe
