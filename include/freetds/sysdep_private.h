@@ -74,7 +74,9 @@ void tds_socket_done(void);
 #define TDSSOCK_EINPROGRESS WSAEWOULDBLOCK
 #define TDSSOCK_ETIMEDOUT WSAETIMEDOUT
 #define TDSSOCK_WOULDBLOCK(e) ((e)==WSAEWOULDBLOCK)
+#define TDSSOCK_ECONNRESET WSAECONNRESET
 #define sock_errno WSAGetLastError()
+#define set_sock_errno(err) WSASetLastError(err)
 #define sock_strerror(n) tds_prwsaerror(n)
 #define sock_strerror_free(s) tds_prwsaerror_free(s)
 #ifndef __MINGW32__
@@ -118,6 +120,10 @@ typedef DWORD pid_t;
 #define sock_errno errno
 #endif
 
+#ifndef set_sock_errno
+#define set_sock_errno(err) do { errno = (err); } while(0)
+#endif
+
 #ifndef sock_strerror
 #define sock_strerror(n) strerror(n)
 #define sock_strerror_free(s) do {} while(0)
@@ -141,6 +147,10 @@ typedef DWORD pid_t;
 # else
 #  define TDSSOCK_WOULDBLOCK(e) ((e)==EAGAIN)
 # endif
+#endif
+
+#ifndef TDSSOCK_ECONNRESET
+#define TDSSOCK_ECONNRESET ECONNRESET
 #endif
 
 #ifndef INITSOCKET
