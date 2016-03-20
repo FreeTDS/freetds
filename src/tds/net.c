@@ -428,8 +428,10 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 		rc = poll(fds, 2, timeout);
 
 		if (rc > 0 ) {
-			if (fds[0].revents & POLLERR)
+			if (fds[0].revents & POLLERR) {
+				set_sock_errno(TDSSOCK_ECONNRESET);
 				return -1;
+			}
 			rc = fds[0].revents;
 			if (fds[1].revents) {
 #if ENABLE_ODBC_MARS
