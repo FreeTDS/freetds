@@ -499,6 +499,7 @@ typedef union
 {
 	void *p;
 	int i;
+	TDS_INT8 ui;
 } tds_align_struct;
 
 #define TDS_ALIGN_SIZE sizeof(tds_align_struct)
