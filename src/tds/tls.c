@@ -49,6 +49,7 @@
 #include <freetds/tds.h>
 #include <freetds/string.h>
 #include <freetds/tls.h>
+#include <freetds/alloca.h>
 #include "replacements.h"
 
 #include <assert.h>

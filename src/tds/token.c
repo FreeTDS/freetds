@@ -44,6 +44,7 @@
 #include <freetds/iconv.h>
 #include <freetds/checks.h>
 #include <freetds/bytes.h>
+#include <freetds/alloca.h>
 #include "replacements.h"
 
 /** \cond HIDDEN_SYMBOLS */
