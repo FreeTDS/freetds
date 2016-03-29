@@ -512,6 +512,7 @@ AC_REPLACE_FUNCS([asprintf vasprintf strtok_r readpassphrase \
 strlcpy strlcat basename getopt strsep])
 AC_FUNC_FSEEKO
 TDS_GETTIMEMILLI
+AC_FUNC_ALLOCA
 
 # ------------------------------------------------------------
 # Checks for library variables.

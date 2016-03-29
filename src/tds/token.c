@@ -42,6 +42,7 @@
 #include <freetds/string.h>
 #include <freetds/convert.h>
 #include <freetds/iconv.h>
+#include <freetds/alloca.h>
 #include "tds_checks.h"
 #include "replacements.h"
 
