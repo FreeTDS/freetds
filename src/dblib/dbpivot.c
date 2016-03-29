@@ -88,7 +88,7 @@ struct col_t
 		DBINT		i;
 		DBREAL		r;
 		DBFLT8		f;
-	};
+	} data;
 };
 
 static int infer_col_type(int sybtype);
@@ -143,15 +143,15 @@ col_equal(const struct col_t *pc1, const struct col_t *pc2)
 			return false;
 		return strncmp(pc1->s, pc2->s, pc1->len) == 0? true : false;
 	case SYBINT1:
-		return pc1->ti == pc2->ti? true : false;
+		return pc1->data.ti == pc2->data.ti? true : false;
 	case SYBINT2:
-		return pc1->si == pc2->si? true : false;
+		return pc1->data.si == pc2->data.si? true : false;
 	case SYBINT4:
-		return pc1->i == pc2->i? true : false;
+		return pc1->data.i == pc2->data.i? true : false;
 	case SYBFLT8:
-		return pc1->f == pc2->f? true : false;
+		return pc1->data.f == pc2->data.f? true : false;
 	case SYBREAL:
-		return pc1->r == pc2->r? true : false;
+		return pc1->data.r == pc2->data.r? true : false;
 
 	case SYBINTN:
 	case SYBDATETIME:
@@ -186,15 +186,15 @@ col_buffer(struct col_t *pcol)
 	case SYBVARCHAR:
 		return pcol->s;
 	case SYBINT1:
-		return &pcol->ti;
+		return &pcol->data.ti;
 	case SYBINT2:
-		return &pcol->si;
+		return &pcol->data.si;
 	case SYBINT4:
-		return &pcol->i;
+		return &pcol->data.i;
 	case SYBFLT8:
-		return &pcol->f;
+		return &pcol->data.f;
 	case SYBREAL:
-		return &pcol->r;
+		return &pcol->data.r;
 
 	case SYBINTN:
 	case SYBDATETIME:
@@ -308,19 +308,19 @@ string_value(const struct col_t *pcol)
 		return output;
 		break;
 	case SYBINT1:
-		len = asprintf(&output, "%d", (int)pcol->ti);
+		len = asprintf(&output, "%d", (int)pcol->data.ti);
 		break;
 	case SYBINT2:
-		len = asprintf(&output, "%d", (int)pcol->si);
+		len = asprintf(&output, "%d", (int)pcol->data.si);
 		break;
 	case SYBINT4:
-		len = asprintf(&output, "%d", (int)pcol->i);
+		len = asprintf(&output, "%d", (int)pcol->data.i);
 		break;
 	case SYBFLT8:
-		len = asprintf(&output, "%f", pcol->f);
+		len = asprintf(&output, "%f", pcol->data.f);
 		break;
 	case SYBREAL:
-		len = asprintf(&output, "%f", (double)pcol->r);
+		len = asprintf(&output, "%f", (double)pcol->data.r);
 		break;
 
 	default:
@@ -1082,7 +1082,7 @@ dbpivot_count (struct col_t *tgt, const struct col_t *src)
 	tgt->type = SYBINT4;
 	
 	if (! col_null(src))
-		tgt->i++;
+		tgt->data.i++;
 }
 
 void
@@ -1098,19 +1098,19 @@ dbpivot_sum (struct col_t *tgt, const struct col_t *src)
 
 	switch (src->type) {
 	case SYBINT1:
-		tgt->ti += src->ti;
+		tgt->data.ti += src->data.ti;
 		break;
 	case SYBINT2:
-		tgt->si += src->si;
+		tgt->data.si += src->data.si;
 		break;
 	case SYBINT4:
-		tgt->i += src->i;
+		tgt->data.i += src->data.i;
 		break;
 	case SYBFLT8:
-		tgt->f += src->f;
+		tgt->data.f += src->data.f;
 		break;
 	case SYBREAL:
-		tgt->r += src->r;
+		tgt->data.r += src->data.r;
 		break;
 
 	case SYBCHAR:
@@ -1136,7 +1136,7 @@ dbpivot_sum (struct col_t *tgt, const struct col_t *src)
 	default:
 		tdsdump_log(TDS_DBG_INFO1, "dbpivot_sum(): invalid operand %d\n", src->type);
 		tgt->type = SYBINT4;
-		tgt->i = 0;
+		tgt->data.i = 0;
 		break;
 	}
 }
@@ -1154,19 +1154,19 @@ dbpivot_min (struct col_t *tgt, const struct col_t *src)
 
 	switch (src->type) {
 	case SYBINT1:
-		tgt->ti = tgt->ti < src->ti? tgt->ti : src->ti;
+		tgt->data.ti = tgt->data.ti < src->data.ti? tgt->data.ti : src->data.ti;
 		break;
 	case SYBINT2:
-		tgt->si = tgt->si < src->si? tgt->si : src->si;
+		tgt->data.si = tgt->data.si < src->data.si? tgt->data.si : src->data.si;
 		break;
 	case SYBINT4:
-		tgt->i = tgt->i < src->i? tgt->i : src->i;
+		tgt->data.i = tgt->data.i < src->data.i? tgt->data.i : src->data.i;
 		break;
 	case SYBFLT8:
-		tgt->f = tgt->f < src->f? tgt->f : src->f;
+		tgt->data.f = tgt->data.f < src->data.f? tgt->data.f : src->data.f;
 		break;
 	case SYBREAL:
-		tgt->r = tgt->r < src->r? tgt->r : src->r;
+		tgt->data.r = tgt->data.r < src->data.r? tgt->data.r : src->data.r;
 		break;
 
 	case SYBCHAR:
@@ -1192,7 +1192,7 @@ dbpivot_min (struct col_t *tgt, const struct col_t *src)
 	default:
 		tdsdump_log(TDS_DBG_INFO1, "dbpivot_sum(): invalid operand %d\n", src->type);
 		tgt->type = SYBINT4;
-		tgt->i = 0;
+		tgt->data.i = 0;
 		break;
 	}
 }
@@ -1210,19 +1210,19 @@ dbpivot_max (struct col_t *tgt, const struct col_t *src)
 
 	switch (src->type) {
 	case SYBINT1:
-		tgt->ti = tgt->ti > src->ti? tgt->ti : src->ti;
+		tgt->data.ti = tgt->data.ti > src->data.ti? tgt->data.ti : src->data.ti;
 		break;
 	case SYBINT2:
-		tgt->si = tgt->si > src->si? tgt->si : src->si;
+		tgt->data.si = tgt->data.si > src->data.si? tgt->data.si : src->data.si;
 		break;
 	case SYBINT4:
-		tgt->i = tgt->i > src->i? tgt->i : src->i;
+		tgt->data.i = tgt->data.i > src->data.i? tgt->data.i : src->data.i;
 		break;
 	case SYBFLT8:
-		tgt->f = tgt->f > src->f? tgt->f : src->f;
+		tgt->data.f = tgt->data.f > src->data.f? tgt->data.f : src->data.f;
 		break;
 	case SYBREAL:
-		tgt->r = tgt->r > src->r? tgt->r : src->r;
+		tgt->data.r = tgt->data.r > src->data.r? tgt->data.r : src->data.r;
 		break;
 
 	case SYBCHAR:
@@ -1248,7 +1248,7 @@ dbpivot_max (struct col_t *tgt, const struct col_t *src)
 	default:
 		tdsdump_log(TDS_DBG_INFO1, "dbpivot_sum(): invalid operand %d\n", src->type);
 		tgt->type = SYBINT4;
-		tgt->i = 0;
+		tgt->data.i = 0;
 		break;
 	}
 }
