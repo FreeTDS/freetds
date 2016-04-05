@@ -1300,6 +1300,37 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 }
 
 /**
+ * \brief \c Set the query timeout for the connection.
+ *
+ * Set the query timeout for the connection, in seconds.
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param timeout The query timeout, in seconds.
+ * \retval SUCCEED success.
+ * \retval FAIL dbsettimeout() failed.
+ */
+RETCODE dbsettimeout(DBPROCESS * dbproc, int timeout)
+{
+    CHECK_CONN(FAIL);
+	if (!dbproc->tds_socket)
+		return FAIL;
+    dbproc->tds_socket->query_timeout = timeout;
+    return SUCCEED;
+}
+
+/**
+ * \ingroup dblib_core
+ * \brief \c Get the query timeout for the connection.
+ *
+ * Get the query timeout for the connection, in seconds.
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \retval The query timeout in seconds, or -1 if dbproc is invalid.
+ */
+int dbgettimeout(DBPROCESS * dbproc)
+{
+    return (dbproc && dbproc->tds_socket) ? dbproc->tds_socket->query_timeout : -1;
+}
+
+/**
  * \ingroup dblib_core
  * \brief \c printf-like way to form SQL to send to the server.  
  *

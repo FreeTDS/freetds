@@ -10,10 +10,10 @@ TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			done_handling$(EXEEXT) timeout$(EXEEXT) \
 			hang$(EXEEXT) null$(EXEEXT) null2$(EXEEXT) \
 			setnull$(EXEEXT) numeric$(EXEEXT) pending$(EXEEXT) \
-			cancel$(EXEEXT) spid$(EXEEXT)
+			cancel$(EXEEXT) spid$(EXEEXT) query_timeout$(EXEEXT)
 check_PROGRAMS	=	$(TESTS)
 
-SQL_DIST = 	bcp.sql dbmorecmds.sql done_handling.sql rpc.sql spid.sql \
+SQL_DIST = 	bcp.sql dbmorecmds.sql done_handling.sql rpc.sql spid.sql query_timeout.sql \
 		t0001.sql t0002.sql t0003.sql t0004.sql t0005.sql t0006.sql t0007.sql t0009.sql \
 		t0011.sql t0012.sql t0013.sql t0014.sql t0015.sql t0016.sql t0017.sql t0018.sql \
 		t0020.sql t0022.sql t0023.sql text_buffer.sql timeout.sql numeric.sql numeric_2.sql \
@@ -59,6 +59,7 @@ numeric_SOURCES =	numeric.c common.c common.h
 pending_SOURCES =	pending.c common.c common.h
 cancel_SOURCES =	cancel.c common.c common.h
 spid_SOURCES	=	spid.c common.c common.h
+query_timeout_SOURCES = query_timeout.c common.c common.h
 
 AM_CPPFLAGS	= 	-DFREETDS_TOPDIR=\"$(top_srcdir)\" -I$(top_srcdir)/include
 if MINGW32
