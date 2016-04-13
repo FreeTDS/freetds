@@ -3273,8 +3273,11 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 		quote = 1;
 	default:
 		res = tds_convert(tds_get_ctx(tds), tds_get_conversion_type(curcol->column_type, curcol->column_size), src, src_len, SYBCHAR, &cr);
-		if (res < 0)
+		if (res < 0) {
+			if (converted)
+				tds_convert_string_free(save_src, src);
 			return TDS_FAIL;
+		}
 		if (quote)
 			tds_put_string(tds, "\'", 1);
 		tds_quote_and_put(tds, cr.c, cr.c + res);

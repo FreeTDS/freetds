@@ -84,8 +84,7 @@ odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT 
 		/* TODO check return value */
 		tds_iconv(tds, conv, to_client, &ib, &il, &ob, &ol);
 		ol = ob - dest; /* bytes written */
-		if (curcol)
-			curcol->column_text_sqlgetdatapos += ib - src;
+		curcol->column_text_sqlgetdatapos += ib - src;
 		/* terminate string */
 		memset(ob, 0, char_size);
 	}

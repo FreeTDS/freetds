@@ -176,9 +176,13 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	/* Storage for getaddrinfo calls */
 	struct addrinfo *addrs = NULL;
 
-	struct tds_gss_auth *auth = (struct tds_gss_auth *) calloc(1, sizeof(struct tds_gss_auth));
+	struct tds_gss_auth *auth;
 
-	if (!auth || !tds->login)
+	if (!tds->login)
+		return NULL;
+
+	auth = (struct tds_gss_auth *) calloc(1, sizeof(struct tds_gss_auth));
+	if (!auth)
 		return NULL;
 
 	auth->tds_auth.free = tds_gss_free;
