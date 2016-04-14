@@ -1626,30 +1626,32 @@ bcp_readfmt(DBPROCESS * dbproc, const char filename[])
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI, FAIL);
 	CHECK_NULP(filename, "bcp_readfmt", 2, FAIL);
 
+	memset(hostcol, 0, sizeof(hostcol));
+
 	if ((ffile = fopen(filename, "r")) == NULL) {
 		dbperror(dbproc, SYBEBUOF, 0);
-		return FAIL;
+		goto Cleanup;
 	}
 
 	if ((_bcp_fgets(buffer, sizeof(buffer), ffile)) != NULL) {
 		lf_version = (float)atof(buffer);
 	} else if (ferror(ffile)) {
 		dbperror(dbproc, SYBEBRFF, errno);
-		return FAIL;
+		goto Cleanup;
 	}
 
 	if ((_bcp_fgets(buffer, sizeof(buffer), ffile)) != NULL) {
 		li_numcols = atoi(buffer);
 	} else if (ferror(ffile)) {
 		dbperror(dbproc, SYBEBRFF, errno);
-		return FAIL;
+		goto Cleanup;
 	}
 
 	if (li_numcols <= 0)
-		return FAIL;
+		goto Cleanup;
 
 	if (bcp_columns(dbproc, li_numcols) == FAIL)
-		return FAIL;
+		goto Cleanup;
 
 	do {
 		memset(hostcol, 0, sizeof(hostcol));
@@ -1678,6 +1680,7 @@ bcp_readfmt(DBPROCESS * dbproc, const char filename[])
 		dbperror(dbproc, SYBEBUCF, 0);
 		goto Cleanup;
 	}
+	ffile = NULL;
 
 	if (colinfo_count != li_numcols)
 		goto Cleanup;
@@ -1687,6 +1690,8 @@ bcp_readfmt(DBPROCESS * dbproc, const char filename[])
 Cleanup:
 	TDS_ZERO_FREE(hostcol->terminator);
 	_bcp_free_columns(dbproc);
+	if (ffile)
+		fclose(ffile);
 	return FAIL;
 }
 

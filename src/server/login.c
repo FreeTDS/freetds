@@ -242,8 +242,10 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 
 	unicode_len = password_len * 2;
 	unicode_string = (char *) malloc(unicode_len);
-	if (!unicode_string || !tds_dstr_alloc(&login->password, password_len))
+	if (!unicode_string || !tds_dstr_alloc(&login->password, password_len)) {
+		free(unicode_string);
 		return 0;
+	}
 	tds_get_n(tds, unicode_string, unicode_len);
 	tds7_decrypt_pass((unsigned char *) unicode_string, unicode_len, (unsigned char *) unicode_string);
 	pbuf = tds_dstr_buf(&login->password);

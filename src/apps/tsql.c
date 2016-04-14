@@ -428,7 +428,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 	char *confile = NULL;
 	const char *appname = "TSQL";
 	int opt, port=0, use_domain_login=0;
-	const char *charset = NULL;
+	char *charset = NULL;
 	char *opt_flags_str = NULL;
 
 	while ((opt = getopt(argc, argv, "a:H:S:I:J:P:U:p:Co:t:r:D:Lv")) != -1) {
@@ -613,6 +613,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 	free(username);
 	free(password);
 	free(servername);
+	free(charset);
 	return;
 
 out_of_memory:
