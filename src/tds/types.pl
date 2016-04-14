@@ -97,7 +97,7 @@ tds_get_size_by_type(int servertype)
 my @list = grep { $_->{'size'} != -1 } values %types;
 &switchValues("\t", 'size', @list);
 print q|	default:
-		return -1;
+		return 0;
 	}
 }
 
