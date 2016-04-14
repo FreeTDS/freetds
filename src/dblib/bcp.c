@@ -166,11 +166,6 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 	tdsdump_log(TDS_DBG_FUNC, "bcp_init(%p, %s, %s, %s, %d)\n", 
 			dbproc, tblname? tblname:"NULL", hfile? hfile:"NULL", errfile? errfile:"NULL", direction);
 	CHECK_CONN(FAIL);
-	CHECK_NULP(tblname, "bcp_init", 2, FAIL);
-
-	/* Free previously allocated storage in dbproc & initialise flags, etc. */
-	
-	_bcp_free_storage(dbproc);
 
 	/* 
 	 * Validate other parameters 
@@ -195,8 +190,10 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 		return FAIL;
 	}
 
+	/* Free previously allocated storage in dbproc & initialise flags, etc. */
+	_bcp_free_storage(dbproc);
+
 	/* Allocate storage */
-	
 	dbproc->bcpinfo = tds_alloc_bcpinfo();
 	if (dbproc->bcpinfo == NULL)
 		goto memory_error;
@@ -1678,6 +1675,8 @@ bcp_readfmt(DBPROCESS * dbproc, const char filename[])
 	
 	if (fclose(ffile) != 0) {
 		dbperror(dbproc, SYBEBUCF, 0);
+		/* even if failure is returned ffile is no more valid */
+		ffile = NULL;
 		goto Cleanup;
 	}
 	ffile = NULL;
