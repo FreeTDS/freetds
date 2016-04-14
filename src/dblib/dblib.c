@@ -545,12 +545,6 @@ dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr)
 	CHECK_PARAMETER(varaddr, SYBENULL, FAIL);
 	CHECK_PARAMETER(0 <= bindtype && bindtype < MAXBINDTYPES, SYBEBTYP, FAIL);
 
-	
-	if (!varaddr) {
-		dbperror(dbproc, SYBENULP, 0, "dbgetnull", "varaddr");
-		return FAIL;
-	}
-	
 	/* dbproc can be NULL */
 	if (NULL != dbproc) {
 		assert(dbproc->nullreps);
