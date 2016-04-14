@@ -2661,7 +2661,6 @@ store_dd_mon_yyy_date(char *datestr, struct tds_time *t)
 	char dd[3];
 	int mday;
 	char mon[4];
-	char yyyy[5];
 	int year;
 
 	tdsdump_log(TDS_DBG_INFO1, "store_dd_mon_yyy_date: %s\n", datestr);
@@ -2681,8 +2680,7 @@ store_dd_mon_yyy_date(char *datestr, struct tds_time *t)
 			return 0;
 		}
 
-		strcpy(yyyy, &datestr[7]);
-		year = atoi(yyyy);
+		year = atoi(&datestr[7]);
 		tdsdump_log(TDS_DBG_INFO1, "store_dd_mon_yyy_date: year %d\n", year);
 
 		return store_year(year, t);
@@ -2694,8 +2692,7 @@ store_dd_mon_yyy_date(char *datestr, struct tds_time *t)
 			return 0;
 		}
 
-		strcpy(yyyy, &datestr[5]);
-		year = atoi(yyyy);
+		year = atoi(&datestr[5]);
 		tdsdump_log(TDS_DBG_INFO1, "store_dd_mon_yyy_date: year %d\n", year);
 
 		return store_year(year, t);
