@@ -7176,13 +7176,17 @@ odbc_add_char_param(TDSSOCKET *tds, TDSPARAMINFO *params, const char *name, cons
 		return NULL;
 
 	col = params->columns[params->num_cols-1];
-	if (!tds_dstr_copy(&col->column_name, name))
+	if (!tds_dstr_copy(&col->column_name, name)) {
+		tds_free_param_result(params);
 		return NULL;
+	}
 	tds_set_param_type(tds->conn, col, IS_TDS7_PLUS(tds->conn) ? XSYBNVARCHAR : SYBVARCHAR);
 
 	col->column_size = len;
-	if (!tds_alloc_param_data(col))
+	if (!tds_alloc_param_data(col)) {
+		tds_free_param_result(params);
 		return NULL;
+	}
 
 	memcpy(col->column_data, value, len);
 	col->column_cur_size = len;
@@ -7300,16 +7304,12 @@ odbc_stat_execute(TDS_STMT * stmt _WIDE, const char *begin, int nparams, ...)
 			}
 		}
 	}
-	va_end(marker);
 	tds_dstr_free(&value);
 
 	/* proc is neither mb or wide, is always utf encoded */
 	retcode = odbc_set_stmt_query(stmt, (ODBC_CHAR *) "-", 1 _wide0);
-	if (retcode != SQL_SUCCESS) {
-		tds_free_results(params);
-		tds_dstr_free(&qualifier);
-		ODBC_RETURN(stmt, retcode);
-	}
+	if (retcode != SQL_SUCCESS)
+		goto error;
 	stmt->prepared_query_is_rpc = 1;
 
 	/* set params */
@@ -7338,13 +7338,17 @@ odbc_stat_execute(TDS_STMT * stmt _WIDE, const char *begin, int nparams, ...)
 	if (SQL_SUCCEEDED(retcode))
 		odbc_upper_column_names(stmt);
 
+	va_end(marker);
 	ODBC_RETURN(stmt, retcode);
 
 mem_error:
 	odbc_errs_add(&stmt->errs, "HY001", NULL);
+
+error:
 	tds_dstr_free(&value);
 	tds_dstr_free(&qualifier);
 	tds_free_results(params);
+	va_end(marker);
 	return SQL_ERROR;
 }
 

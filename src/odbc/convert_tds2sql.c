@@ -230,18 +230,13 @@ odbc_convert_to_binary(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR
 		return odbc_convert_datetime_to_binary(stmt, curcol, srctype, (TDS_DATETIMEALL *) src, dest, destlen);
 	}
 
+	/* if destlen == 0 we return only length */
 	if (destlen > 0) {
 		size_t cplen = (destlen > srclen) ? srclen : destlen;
-		/* do not NULL terminate binary buffer */
+		/* do not NUL terminate binary buffer */
 		memcpy(dest, src, cplen);
 		if (curcol)
 			curcol->column_text_sqlgetdatapos += cplen;
-	} else {
-		/* if destlen == 0 we return only length */
-		if (destlen != 0) {
-			odbc_errs_add(&stmt->errs, "07006", NULL);
-			return SQL_NULL_DATA;
-		}
 	}
 	return ret;
 }
@@ -600,13 +595,8 @@ normal_conversion:
 		break;
 #endif
 
-	case SQL_C_BINARY:
-		/* type already handled */
-		assert(desttype != SQL_C_BINARY);
-
 	default:
 		break;
-
 	}
 
 	return ret;

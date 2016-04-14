@@ -1359,8 +1359,7 @@ tds_free_socket(TDSSOCKET * tds)
 	tds_cond_destroy(&tds->packet_cond);
 #endif
 
-	if (tds->conn)
-		tds_connection_remove_socket(tds->conn, tds);
+	tds_connection_remove_socket(tds->conn, tds);
 	tds_free_packets(tds->recv_packet);
 	tds_free_packets(tds->send_packet);
 	free(tds);
