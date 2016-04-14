@@ -448,7 +448,8 @@ tds_alloc_results(TDS_USMALLINT num_cols)
 
 	TEST_MALLOC(res_info, TDSRESULTINFO);
 	res_info->ref_count = 1;
-	TEST_CALLOC(res_info->columns, TDSCOLUMN *, num_cols);
+	if (num_cols)
+		TEST_CALLOC(res_info->columns, TDSCOLUMN *, num_cols);
 	for (col = 0; col < num_cols; col++)
 		if (!(res_info->columns[col] = tds_alloc_column()))
 			goto Cleanup;

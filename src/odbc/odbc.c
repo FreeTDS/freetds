@@ -7176,17 +7176,13 @@ odbc_add_char_param(TDSSOCKET *tds, TDSPARAMINFO *params, const char *name, cons
 		return NULL;
 
 	col = params->columns[params->num_cols-1];
-	if (!tds_dstr_copy(&col->column_name, name)) {
-		tds_free_param_result(params);
+	if (!tds_dstr_copy(&col->column_name, name))
 		return NULL;
-	}
 	tds_set_param_type(tds->conn, col, IS_TDS7_PLUS(tds->conn) ? XSYBNVARCHAR : SYBVARCHAR);
 
 	col->column_size = len;
-	if (!tds_alloc_param_data(col)) {
-		tds_free_param_result(params);
+	if (!tds_alloc_param_data(col))
 		return NULL;
-	}
 
 	memcpy(col->column_data, value, len);
 	col->column_cur_size = len;
@@ -7226,11 +7222,14 @@ odbc_stat_execute(TDS_STMT * stmt _WIDE, const char *begin, int nparams, ...)
 	SQLRETURN retcode;
 	va_list marker;
 	DSTR qualifier = DSTR_INITIALIZER, value = DSTR_INITIALIZER;
-	TDSPARAMINFO *params = NULL, *new_params;
+	TDSPARAMINFO *params;
 
 	/* read all params and calc len required */
 	va_start(marker, nparams);
 	len = strlen(begin) + 3;
+	params = tds_alloc_results(0);
+	if (!params)
+		goto mem_error;
 	for (i = 0; i < nparams; ++i) {
 		int param_len;
 		bool convert = true;
@@ -7267,10 +7266,8 @@ odbc_stat_execute(TDS_STMT * stmt _WIDE, const char *begin, int nparams, ...)
 
 		if (type == 'V') {
 			int ver = (stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) ? 3: 2;
-			new_params = odbc_add_int_param(stmt->dbc->tds_socket, params, name, ver);
-			if (!new_params)
+			if (!odbc_add_int_param(stmt->dbc->tds_socket, params, name, ver))
 				goto mem_error;
-			params = new_params;
 			continue;
 		}
 
@@ -7290,10 +7287,8 @@ odbc_stat_execute(TDS_STMT * stmt _WIDE, const char *begin, int nparams, ...)
 			int l;
 
 			l = odbc_quote_metadata(stmt->dbc, type, buf, &value);
-			new_params = odbc_add_char_param(stmt->dbc->tds_socket, params, name, buf, l);
-			if (!new_params)
+			if (!odbc_add_char_param(stmt->dbc->tds_socket, params, name, buf, l))
 				goto mem_error;
-			params = new_params;
 
 			if (begin[0] == '.' && strstr(name, "qualifier")) {
 				if (!tds_dstr_dup(&qualifier, &value))
@@ -7314,7 +7309,8 @@ odbc_stat_execute(TDS_STMT * stmt _WIDE, const char *begin, int nparams, ...)
 
 	/* set params */
 	tds_free_param_results(stmt->params);
-	stmt->param_num = 1 + (stmt->param_count = params ? params->num_cols : 0);
+	stmt->param_count = params->num_cols;
+	stmt->param_num = 1 + stmt->param_count;
 	stmt->params = params;
 	params = NULL;
 
