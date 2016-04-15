@@ -908,12 +908,14 @@ ct_send(CS_COMMAND * cmd)
 			return CS_SUCCEED;
 			break;
 		case CS_EXECUTE:
-			pparam_info = paraminfoalloc(tds, dyn->param_list);
 			tdsdyn = dyn->tdsdyn;
 			if (!tdsdyn) {
 				tdsdump_log(TDS_DBG_INFO1, "ct_send(CS_EXECUTE) no tdsdyn!\n");
 				return CS_FAIL;
 			}
+			pparam_info = paraminfoalloc(tds, dyn->param_list);
+			if (!pparam_info)
+				return CS_FAIL;
 			tds_free_input_params(tdsdyn);
 			tdsdyn->params = pparam_info;
 			if (TDS_FAILED(tds_submit_execute(tds, tdsdyn)))
