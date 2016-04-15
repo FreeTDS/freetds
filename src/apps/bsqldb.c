@@ -936,12 +936,14 @@ get_login(int argc, char *argv[], OPTIONS *options)
 	while ((ch = getopt(argc, argv, "U:P:R:S:d:D:i:o:e:t:H:hqv")) != -1) {
 		switch (ch) {
 		case 'U':
+			free(username);
 			username = strdup(optarg);
 			break;
 		case 'R': 
-			  parse_pivot_description(options, optarg);
-			  break;
+			parse_pivot_description(options, optarg);
+			break;
 		case 'P':
+			free(password);
 			password = tds_getpassarg(optarg);
 			break;
 		case 'S':
