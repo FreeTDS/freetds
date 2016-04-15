@@ -211,11 +211,11 @@ main(int argc, char *argv[])
 		static const char query[] = " select	cast(c.text as text)"
 #endif /* MicrosoftsDbLib */
 					 ", number "
-					 " from	syscomments  as c"
-					 " join 	sysobjects as o"
-					 " on 		o.id = c.id"
-					 " where	o.name = '%s'"
-					 " and 	o.uid = user_id('%s')"
+					 " from syscomments c,"
+					 "      sysobjects o"
+					 " where	o.id = c.id"
+					 " and		o.name = '%s'"
+					 " and		o.uid = user_id('%s')"
 					 " and		o.type not in ('U', 'S')" /* no user or system tables */
 					 " order by 	c.number, c.colid"
 					;
