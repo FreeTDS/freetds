@@ -91,8 +91,8 @@ _ct_handle_client_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAG
 
 	memset(&errmsg, '\0', sizeof(errmsg));
 	errmsg.msgnumber = msg->msgno;
-	strcpy(errmsg.msgstring, msg->message);
-	errmsg.msgstringlen = strlen(msg->message);
+	strlcpy(errmsg.msgstring, msg->message, sizeof(errmsg.msgstring));
+	errmsg.msgstringlen = strlen(errmsg.msgstring);
 	errmsg.osstring[0] = '\0';
 	errmsg.osstringlen = 0;
 	/* if there is no connection, attempt to call the context handler */

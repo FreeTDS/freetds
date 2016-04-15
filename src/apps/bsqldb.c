@@ -608,7 +608,7 @@ print_results(DBPROCESS *dbproc)
 					struct METADATA *meta = &metacompute[row_code-1]->meta[c];
 					
 					/* left justify the names */
-					strcat(fmt, &meta->format_string[1]);
+					strlcat(fmt, &meta->format_string[1], sizeof(fmt));
 					fprintf(options.headers, fmt, meta->name);
 				}
 
@@ -968,7 +968,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 			options->headers = stdout;
 			break;
 		case 'H':
-			strcpy(options->hostname, optarg);
+			strlcpy(options->hostname, optarg, sizeof(options->hostname));
 			break;
 		case 'q':
 			options->fquiet = 1;
