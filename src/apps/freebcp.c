@@ -689,9 +689,8 @@ file_formatted(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 
 
 int
-setoptions(DBPROCESS * dbproc, BCPPARAMDATA * params){
-	FILE *optFile;
-	char optBuf[256];
+setoptions(DBPROCESS * dbproc, BCPPARAMDATA * params)
+{
 	RETCODE fOK;
 
 	if (dbfcmd(dbproc, "set textsize %d ", params->textsize) == FAIL) {
@@ -704,6 +703,9 @@ setoptions(DBPROCESS * dbproc, BCPPARAMDATA * params){
 	 * Else pass the option verbatim to the server.
 	 */
 	if (params->options) {
+		FILE *optFile;
+		char optBuf[256];
+
 		if ((optFile = fopen(params->options, "r")) == NULL) {
 			if (dbfcmd(dbproc, params->options) == FAIL) {
 				fprintf(stderr, "setoptions() failed preparing options at %s:%d\n", __FILE__, __LINE__);
@@ -713,17 +715,18 @@ setoptions(DBPROCESS * dbproc, BCPPARAMDATA * params){
 			while (fgets (optBuf, sizeof(optBuf), optFile) != NULL) {
 				if (dbfcmd(dbproc, optBuf) == FAIL) {
 					fprintf(stderr, "setoptions() failed preparing options at %s:%d\n", __FILE__, __LINE__);
+					fclose(optFile);
 					return FALSE;
 				}
 			}
 			if (!feof (optFile)) {
 				perror("freebcp");
         			fprintf(stderr, "error reading options file \"%s\" at %s:%d\n", params->options, __FILE__, __LINE__);
+				fclose(optFile);
 				return FALSE;
 			}
 			fclose(optFile);
 		}
-	
 	}
 	
 	if (dbsqlexec(dbproc) == FAIL) {
