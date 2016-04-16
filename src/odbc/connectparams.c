@@ -172,7 +172,10 @@ odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSLOGIN * login)
 			address_specified = 1;
 			/* TODO parse like MS */
 
-			tds_lookup_host_set(tmp, &login->ip_addrs);
+			if (TDS_FAILED(tds_lookup_host_set(tmp, &login->ip_addrs))) {
+				odbc_errs_add(errs, "HY000", "Error parsing ADDRESS attribute");
+				return 0;
+			}
 		}
 		if (myGetPrivateProfileString(DSN, odbc_param_Server, tmp) > 0) {
 			if (!tds_dstr_copy(&login->server_name, tmp)) {
