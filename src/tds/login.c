@@ -639,7 +639,7 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	}
 	if (login->encryption_level != TDS_ENCRYPTION_OFF) {
 		if (IS_TDS42(tds->conn)) {
-			tdsdump_log(TDS_DBG_ERROR, "Encryption not support using TDS 4.x or 5.0\n");
+			tdsdump_log(TDS_DBG_ERROR, "Encryption not support using TDS 4.x\n");
 			return TDS_FAIL;
 		}
 		tds->conn->authentication = tds5_negotiate_get_auth(tds);
