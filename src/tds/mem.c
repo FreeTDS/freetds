@@ -320,7 +320,7 @@ tds_free_param_result(TDSPARAMINFO * param_info)
 	if (col->column_data && col->column_data_free)
 		col->column_data_free(col);
 
-	if (param_info->num_cols == 0 && param_info->columns)
+	if (param_info->num_cols == 0)
 		TDS_ZERO_FREE(param_info->columns);
 
 	/*
