@@ -633,7 +633,7 @@ tsql_handle_message(const TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * ms
 	case 5701: 	/* changed_database */
 	case 5703: 	/* changed_language */
 	case 20018:	/* The @optional_command_line is too long */
-		if (VERBOSE && msg)
+		if (VERBOSE)
 			fprintf(stderr, "%s\n", msg->message);
 		break;
 	default:
