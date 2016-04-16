@@ -748,6 +748,8 @@ main(int argc, char **argv)
 	assert(tds);
 	tds_set_parent(tds, NULL);
 	connection = tds_read_config_info(tds, login, context->locale);
+	if (!connection)
+		return 1;
 
 	locale = setlocale(LC_ALL, NULL);
 
