@@ -2653,13 +2653,7 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_get_data() item = %d buflen = %d\n", item, buflen);
 
-	if (cmd->cancel_state == _CS_CANCEL_PENDING) {
-		_ct_cancel_cleanup(cmd);
-		return CS_CANCELED;
-	}
-
 	/* basic validations... */
-
 	if (!cmd || !cmd->con || !cmd->con->tds_socket || !(resinfo = cmd->con->tds_socket->current_results))
 		return CS_FAIL;
 	if (item < 1 || item > resinfo->num_cols)
@@ -2668,6 +2662,11 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 		return CS_FAIL;
 	if (buflen == CS_UNUSED)
 		return CS_FAIL;
+
+	if (cmd->cancel_state == _CS_CANCEL_PENDING) {
+		_ct_cancel_cleanup(cmd);
+		return CS_CANCELED;
+	}
 
 	/* This is a new column we are being asked to return */
 
