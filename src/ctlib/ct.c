@@ -873,10 +873,10 @@ ct_send(CS_COMMAND * cmd)
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_send(%p)\n", cmd);
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_send() command_type = %d\n", cmd->command_type);
-
-	if (!cmd->con || !cmd->con->tds_socket)
+	if (!cmd || !cmd->con || !cmd->con->tds_socket)
 		return CS_FAIL;
+
+	tdsdump_log(TDS_DBG_FUNC, "ct_send() command_type = %d\n", cmd->command_type);
 
 	tds = cmd->con->tds_socket;
 
@@ -959,10 +959,10 @@ ct_send(CS_COMMAND * cmd)
 	}
 
 	if (cmd->command_type == CS_RPC_CMD) {
-		CSREMOTE_PROC *rpc;
+		CSREMOTE_PROC *rpc = cmd->rpc;
 
 		/* sanity */
-		if (cmd == NULL || (rpc=cmd->rpc) == NULL	/* ct_command should allocate pointer */
+		if (cmd->rpc == NULL	/* ct_command should allocate pointer */
 		    || rpc->name == NULL) {	/* can't be ready without a name      */
 			return CS_FAIL;
 		}
@@ -1024,10 +1024,6 @@ ct_send(CS_COMMAND * cmd)
 			return CS_FAIL;
 		}
 
-		if (cmd == NULL ) {
-			tdsdump_log(TDS_DBG_FUNC, "ct_send() : cmd is null\n");
-			return CS_FAIL;
-		}
 		if (cursor->query == NULL ) {
 			tdsdump_log(TDS_DBG_FUNC, "ct_send() : cursor->query is null\n");
 			return CS_FAIL;
