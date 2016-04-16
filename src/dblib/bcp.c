@@ -2082,7 +2082,7 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 
 	TDS_ZERO_FREE(colinfo->bcp_terminator);
 	colinfo->bcp_term_len = 0;
-	if (termlen) {
+	if (termlen > 0) {
 		if ((colinfo->bcp_terminator =  (TDS_CHAR*) malloc(termlen)) == NULL) {
 			dbperror(dbproc, SYBEMEM, errno);
 			return FAIL;
