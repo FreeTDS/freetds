@@ -2200,8 +2200,7 @@ dblib_bound_type(int bindtype)
 		return SYBMSDATETIMEOFFSET;
 		break;
 	default:
-		return -1;
-		break;
+		return 0;
 	}
 }
 
@@ -2623,7 +2622,7 @@ dbbind(DBPROCESS * dbproc, int column, int vartype, DBINT varlen, BYTE * varaddr
 
 	colinfo = dbproc->tds_socket->res_info->columns[column - 1];
 	srctype = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
-	if (-1 == (desttype = dblib_bound_type(vartype))) {
+	if (0 == (desttype = dblib_bound_type(vartype))) {
 		dbperror(dbproc, SYBEBTYP, 0);
 		return FAIL;
 	}
@@ -7200,6 +7199,8 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 		     srctype, tds_prdatatype(srctype), srclen, desttype, tds_prdatatype(desttype), destlen);
 	CHECK_NULP(src, "copy_data_to_host_var", 3, );
 	CHECK_NULP(dest, "copy_data_to_host_var", 6, );
+	if (desttype <= 0)
+		return;
 	/* indicator can be NULL */
 
 	assert(srclen >= 0);
