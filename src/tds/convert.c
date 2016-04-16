@@ -758,7 +758,8 @@ tds_convert_int8(const TDS_INT8 *src, int desttype, CONV_RESULT * cr)
 		break;
 	case SYBBIT:
 	case SYBBITN:
-		cr->ti = buf ? 1 : 0;
+		/* this cannot be 0 as already tested above */
+		cr->ti = 1;
 		return sizeof(TDS_TINYINT);
 		break;
 	case SYBFLT8:
@@ -835,7 +836,8 @@ tds_convert_uint8(const TDS_UINT8 *src, int desttype, CONV_RESULT * cr)
 		break;
 	case SYBBIT:
 	case SYBBITN:
-		cr->ti = buf ? 1 : 0;
+		/* this cannot be 0 as already tested above */
+		cr->ti = 1;
 		return sizeof(TDS_TINYINT);
 		break;
 	case SYBFLT8:
