@@ -317,8 +317,9 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 static int
 login_to_databases(BCPPARAMDATA * pdata, DBPROCESS ** dbsrc, DBPROCESS ** dbdest)
 {
-	LOGINREC *slogin;
-	LOGINREC *dlogin;
+	int result = FALSE;
+	LOGINREC *slogin = NULL;
+	LOGINREC *dlogin = NULL;
 
 	/* Initialize DB-Library. */
 
@@ -358,12 +359,12 @@ login_to_databases(BCPPARAMDATA * pdata, DBPROCESS ** dbsrc, DBPROCESS ** dbdest
 
 	if ((*dbsrc = dbopen(slogin, pdata->src.server)) == (DBPROCESS *) NULL) {
 		fprintf(stderr, "Can't connect to source server.\n");
-		return FALSE;
+		goto cleanup;
 	}
 
 	if (dbuse(*dbsrc, pdata->src.db) == FAIL) {
 		fprintf(stderr, "Can't change database to %s .\n", pdata->src.db);
-		return FALSE;
+		goto cleanup;
 	}
 
 	dlogin = dblogin();
@@ -390,16 +391,20 @@ login_to_databases(BCPPARAMDATA * pdata, DBPROCESS ** dbsrc, DBPROCESS ** dbdest
 
 	if ((*dbdest = dbopen(dlogin, pdata->dest.server)) == (DBPROCESS *) NULL) {
 		fprintf(stderr, "Can't connect to destination server.\n");
-		return FALSE;
+		goto cleanup;
 	}
 
 	if (dbuse(*dbdest, pdata->dest.db) == FAIL) {
 		fprintf(stderr, "Can't change database to %s .\n", pdata->dest.db);
-		return FALSE;
+		goto cleanup;
 	}
 
-	return TRUE;
+	result = TRUE;
 
+cleanup:
+	dbloginfree(slogin);
+	dbloginfree(dlogin);
+	return result;
 }
 
 static int
