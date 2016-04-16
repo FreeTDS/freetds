@@ -1384,8 +1384,8 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params,
 
 	if (!dyn)
 		return TDS_FAIL;
-	/* check is no parameters */
-	if (params &&  !params->num_cols)
+	/* check if no parameters */
+	if (params && !params->num_cols)
 		params = NULL;
 
 	/* TDS 4.2, emulate prepared statements */
@@ -1396,21 +1396,25 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params,
 	if (!IS_TDS50(tds->conn) || params) {
 		TDSRET ret = TDS_SUCCESS;
 
-		dyn->emulated = 1;
-		dyn->params = params;
-		dyn->query = strdup(query);
-		if (!dyn->query)
-			ret = TDS_FAIL;
-		if (TDS_SUCCEED(ret))
-			if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
+		if (!params) {
+			ret = tds_submit_query(tds, query);
+		} else {
+			dyn->emulated = 1;
+			dyn->params = params;
+			dyn->query = strdup(query);
+			if (!dyn->query)
 				ret = TDS_FAIL;
-		if (TDS_SUCCEED(ret)) {
-			ret = tds_send_emulated_execute(tds, dyn->query, dyn->params);
 			if (TDS_SUCCEED(ret))
-				ret = tds_query_flush_packet(tds);
+				if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
+					ret = TDS_FAIL;
+			if (TDS_SUCCEED(ret)) {
+				ret = tds_send_emulated_execute(tds, dyn->query, dyn->params);
+				if (TDS_SUCCEED(ret))
+					ret = tds_query_flush_packet(tds);
+			}
+			/* do not free our parameters */
+			dyn->params = NULL;
 		}
-		/* do not free our parameters */
-		dyn->params = NULL;
 		tds_dynamic_deallocated(tds->conn, dyn);
 		tds_release_dynamic(&dyn);
 		return ret;
