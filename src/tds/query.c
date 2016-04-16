@@ -247,7 +247,7 @@ tds5_fix_dot_query(const char *query, size_t *query_len, TDSPARAMINFO * params)
 		if (!e)
 			break;
 		pos += sprintf(out + pos, "@P%d", i + 1);
-		if (i >= params->num_cols)
+		if (!params || i >= params->num_cols)
 			goto memory_error;
 		sprintf(colname, "@P%d", i + 1);
 		if (!tds_dstr_copy(&params->columns[i]->column_name, colname))
