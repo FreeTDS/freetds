@@ -718,6 +718,9 @@ ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen,
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_command(%p, %d, %p, %d, %d)\n", cmd, type, buffer, buflen, option);
 
+	if (cmd == NULL)
+		return CS_FAIL;
+
 	/* 
 	 * Unless we are in the process of building a CS_LANG_CMD command, 
 	 * clear everything, ready to start anew 
@@ -773,9 +776,6 @@ ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen,
 	case CS_RPC_CMD:
 		/* Code changed for RPC functionality -SUHA */
 		/* RPC code changes starts here */
-		if (cmd == NULL)
-			return CS_FAIL;
-
 		cmd->rpc = (CSREMOTE_PROC *) calloc(1, sizeof(CSREMOTE_PROC));
 		if (cmd->rpc == NULL)
 			return CS_FAIL;
