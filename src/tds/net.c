@@ -923,7 +923,8 @@ tds7_get_instance_ports(FILE *output, struct addrinfo *addr)
 	for (num_try = 0; num_try < 16 && msg_len == 0; ++num_try) {
 		/* send the request */
 		msg[0] = 3;
-		sendto(s, msg, 1, 0, addr->ai_addr, addr->ai_addrlen);
+		if (sendto(s, msg, 1, 0, addr->ai_addr, addr->ai_addrlen) < 0)
+			break;
 
 		fd.fd = s;
 		fd.events = POLLIN;
@@ -1058,7 +1059,8 @@ tds7_get_instance_port(struct addrinfo *addr, const char *instance)
 		/* send the request */
 		msg[0] = 4;
 		strlcpy(msg + 1, instance, sizeof(msg) - 1);
-		sendto(s, msg, (int)strlen(msg) + 1, 0, addr->ai_addr, addr->ai_addrlen);
+		if (sendto(s, msg, (int)strlen(msg) + 1, 0, addr->ai_addr, addr->ai_addrlen) < 0)
+			break;
 
 		fd.fd = s;
 		fd.events = POLLIN;
