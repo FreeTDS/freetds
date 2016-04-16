@@ -611,9 +611,12 @@ main(int argc, char *argv[])
 			if ((!(strcasecmp(firstword, "vi")))
 			    || (!(strcasecmp(firstword, editor)))) {
 				int tmpfd;
+				mode_t old_mask;
 
 				strcpy(tmpfn, "/tmp/fisqlXXXXXX");
+				old_mask = umask(0600);
 				tmpfd = mkstemp(tmpfn);
+				umask(old_mask);
 				if ((fp = fdopen(tmpfd, "w")) == NULL) {
 					perror("fisql");
 					reset_term();
