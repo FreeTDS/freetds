@@ -102,9 +102,9 @@ static int global_opt_flags = 0;
 #define QUIET (global_opt_flags & OPT_QUIET)
 #define VERBOSE (global_opt_flags & OPT_VERBOSE)
 
-static char *opt_col_term = "\t";
-static char *opt_row_term = "\n";
-static char *opt_default_db = NULL;
+static const char *opt_col_term = "\t";
+static const char *opt_row_term = "\n";
+static const char *opt_default_db = NULL;
 
 static int do_query(TDSSOCKET * tds, char *buf, int opt_flags);
 static int get_opt_flags(char *s, int *opt_flags);
@@ -437,13 +437,13 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 			appname = optarg;
 			break;
 		case 't':
-			opt_col_term = strdup(optarg);
+			opt_col_term = optarg;
 			break;
 		case 'r':
-			opt_row_term = strdup(optarg);
+			opt_row_term = optarg;
 			break;
 		case 'D':
-			opt_default_db = strdup(optarg);
+			opt_default_db = optarg;
 			break;
 		case 'o':
 			opt_flags_str = optarg;
