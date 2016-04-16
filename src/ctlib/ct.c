@@ -2045,7 +2045,7 @@ _ct_get_server_type(TDSSOCKET *tds, int datatype)
 		return SYBDATETIME;
 
 	default:
-		return -1;
+		return 0;
 		break;
 	}
 }
