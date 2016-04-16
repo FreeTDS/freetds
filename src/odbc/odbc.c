@@ -1314,8 +1314,8 @@ SQLSetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER S
 		}
 		break;
 	case SQL_ATTR_OUTPUT_NTS:
-		env->attr.output_nts = i_val;
 		/* TODO - Make this really work */
+		/* env->attr.output_nts = i_val; */
 		env->attr.output_nts = SQL_TRUE;
 		break;
 	default:
