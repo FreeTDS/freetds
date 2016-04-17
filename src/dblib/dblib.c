@@ -769,40 +769,42 @@ RETCODE
 dbsetlname(LOGINREC * login, const char *value, int which)
 {
 	bool copy_ret;
+	const char *value_nonull = value ? value : "";
 
 	tdsdump_log(TDS_DBG_FUNC, "dbsetlname(%p, %s, %d)\n", login, value, which);
 
-	if( login == NULL ) {
+	if (login == NULL) {
 		dbperror(NULL, SYBEASNL, 0);
 		return FAIL;
 	}
 
-	if (TDS_MAX_LOGIN_STR_SZ < strlen(value)) {
+	if (TDS_MAX_LOGIN_STR_SZ < strlen(value_nonull)) {
 		dbperror(NULL, SYBENTLL, 0);
 		return FAIL;
 	}
 
 	switch (which) {
 	case DBSETHOST:
-		copy_ret = tds_set_host(login->tds_login, value);
+		copy_ret = tds_set_host(login->tds_login, value_nonull);
 		break;
 	case DBSETUSER:
-		copy_ret = tds_set_user(login->tds_login, value);
+		copy_ret = tds_set_user(login->tds_login, value_nonull);
 		break;
 	case DBSETPWD:
-		copy_ret = tds_set_passwd(login->tds_login, value);
+		copy_ret = tds_set_passwd(login->tds_login, value_nonull);
 		break;
 	case DBSETAPP:
-		copy_ret = tds_set_app(login->tds_login, value);
+		copy_ret = tds_set_app(login->tds_login, value_nonull);
 		break;
 	case DBSETCHARSET:
-		copy_ret = tds_set_client_charset(login->tds_login, value ? value : "");
+		/* TODO NULL == no conversion desired */
+		copy_ret = tds_set_client_charset(login->tds_login, value_nonull);
 		break;
 	case DBSETNATLANG:
-		copy_ret = tds_set_language(login->tds_login, value);
+		copy_ret = tds_set_language(login->tds_login, value_nonull);
 		break;
 	case DBSETDBNAME:
-		copy_ret = !!tds_dstr_copy(&login->tds_login->database, value ? value : "");
+		copy_ret = !!tds_dstr_copy(&login->tds_login->database, value_nonull);
 		break;
 	default:
 		dbperror(NULL, SYBEASUL, 0); /* Attempt to set unknown LOGINREC field */
