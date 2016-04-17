@@ -1,0 +1,41 @@
+- Bill D Thompson
+  - help fixing packet corruption
+- Christos Zoulas
+  - server maintainer
+- Craig A. Berry
+  - updated VMS support
+- Jan Baumgarten
+  - reported a problem with CMake
+- John Kendall
+  - fixed compatibility with old sql server
+- Johnny C. Lam
+  - reported a problem in userguide
+- Joshua Lang
+  - reported some issues
+  - fixed reading server SPID
+- Ken Collins
+  - reported different issues and helped fixing them
+- Lars Kanis
+  - minor header cleanup
+- Mark Brand
+  - fix a compile issue
+- Matthew Green
+  - support for Sybase date/time
+- Mike Jetzer
+  - reported some issue using HP-UX and tested the fix
+- Noel Diaz
+  - reported bug causing a corrupted packet
+- Ondrej Holecek
+  - fix a problem with affected row compatibility in CT-Library
+- Ramiro Morales
+  - improved AppVeyor support
+  - fixed some compiler issue
+  - CMake improvements
+- Randy Syring
+  - updated some userguid
+- Richard Hughes
+  - added support for BCP in ODBC
+- Sergio NNX
+  - fixed a problem with IPv6
+- Zoltan Kozma
+  - patch for protocol compatibility

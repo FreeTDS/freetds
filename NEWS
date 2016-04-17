@@ -1,5 +1,32 @@
 $Id$
 
+Summary of Changes in release 1.0
+--------------------------------------------
+User visible (not in a particular order):
+- Removed "8.0" from protocol version string accepted. Please
+  update configuration files;
+- Default protocol version is now auto. This could slow down
+  connection but make user experience less painful;
+- Sybase encrypted login. Set encryption to get it;
+- Support protocol version 7.4;
+- Add intent support to specify we don't want to change data;
+- Allow to attach database file during the login (MS SQL Server);
+- Support for Sybase time/date/bigdate/bigdatetime;
+- Pool is working again;
+- ODBC BCP (not complete);
+- Improved dbconvert and dbconvert_ps (more compatible);
+- Fixed dbspid;
+- Improved ODBC type information;
+- Better certificate verification;
+- AppVeyor is used for every build;
+- Try all IPs from DNS. This allows SQL Cluster connection
+  to secondary servers.
+
+Implementation:
+- Removed Nmake support;
+- Type conversions simplified;
+- Better type handle code.
+
 Summary of Changes in release 0.95
 --------------------------------------------
 User visible (not in a particular order):

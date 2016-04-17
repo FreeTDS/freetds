@@ -10,7 +10,7 @@
 	<!ENTITY dblib '<systemitem class="library">DB-Library</systemitem>'>
 	<!ENTITY ctlib '<systemitem class="library">CT-Library</systemitem>'>
 	<!ENTITY odbc  '<systemitem class="library">ODBC</systemitem>'> 
-	<!ENTITY version "0.95"> <!--  echo  $(( (100 - 91)/2 + 91))-->
+	<!ENTITY version "1.0">
 	<!ENTITY freetdsconf "<filename>freetds.conf</filename>">
 ]>
 <book>
