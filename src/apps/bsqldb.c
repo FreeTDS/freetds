@@ -70,6 +70,8 @@ static int get_printable_size(int type, int size);
 static void usage(const char invoked_as[]);
 
 struct METADATA { char *name, *format_string; const char *source; int type, size, width; };
+struct DATA { char *buffer; int status; };
+struct METACOMP { int numalts; struct METADATA *meta; struct DATA *data; };
 static int set_format_string(struct METADATA * meta, const char separator[]);
 
 
@@ -275,6 +277,54 @@ next_query(DBPROCESS *dbproc)
 }
 
 static void
+free_metadata(struct METADATA **pmetadata, int ncols)
+{
+	int c;
+	struct METADATA *metadata = *pmetadata;
+
+	if (!metadata) return;
+	for (c=0; c < ncols; c++) {
+		free(metadata[c].format_string);
+	}
+	free(metadata);
+	*pmetadata = NULL;
+}
+
+static void
+free_data(struct DATA **pdata, int ncols)
+{
+	int c;
+	struct DATA *data = *pdata;
+
+	if (!data) return;
+	for (c=0; c < ncols; c++) {
+		free(data[c].buffer);
+	}
+	free(data);
+	*pdata = NULL;
+}
+
+static void
+free_metacomp(struct METACOMP ***pmetacompute, int ncomputeids)
+{
+	int i, c;
+	struct METACOMP **metacompute = *pmetacompute;
+
+	if (!metacompute) return;
+	for (i=0; i < ncomputeids; i++) {
+		for (c=0; c < metacompute[i]->numalts; c++) {
+			free(metacompute[i]->meta[c].name);
+			free(metacompute[i]->meta[c].format_string);
+		}
+		free(metacompute[i]->meta);
+		free(metacompute[i]->data);
+		free(metacompute[i]);
+	}
+	free(metacompute);
+	*pmetacompute = NULL;
+}
+
+static void
 print_results(DBPROCESS *dbproc) 
 {
 	static const char empty_string[] = "";
@@ -285,9 +335,9 @@ print_results(DBPROCESS *dbproc)
 	
 	struct METADATA *metadata = NULL, return_status;
 	
-	struct DATA { char *buffer; int status; } *data = NULL;
+	struct DATA *data = NULL;
 	
-	struct METACOMP { int numalts; struct METADATA *meta; struct DATA *data; } **metacompute = NULL;
+	struct METACOMP **metacompute = NULL;
 	
 	RETCODE erc;
 	int row_code;
@@ -311,6 +361,9 @@ print_results(DBPROCESS *dbproc)
 	for (iresultset=1; (erc = dbresults(dbproc)) != NO_MORE_RESULTS; iresultset++) {
 		if (erc == FAIL) {
 			fprintf(stderr, "%s:%d: dbresults(), result set %d failed\n", options.appname, __LINE__, iresultset);
+			free_metadata(&metadata, ncols);
+			free_data(&data, ncols);
+			free_metacomp(&metacompute, ncomputeids);
 			return;
 		}
 		
@@ -322,27 +375,11 @@ print_results(DBPROCESS *dbproc)
 		
 		fprintf(options.verbose, "Result set %d\n", iresultset);
 		/* Free prior allocations, if any. */
-		for (c=0; c < ncols; c++) {
-			free(metadata[c].format_string);
-			free(data[c].buffer);
-		}
-		free(metadata);
-		metadata = NULL;
-		free(data);
-		data = NULL;
+		free_metadata(&metadata, ncols);
+		free_data(&data, ncols);
 		ncols = 0;
-		
-		for (i=0; i < ncomputeids; i++) {
-			for (c=0; c < metacompute[i]->numalts; c++) {
-				free(metacompute[i]->meta[c].name);
-				free(metacompute[i]->meta[c].format_string);
-			}
-			free(metacompute[i]->meta);
-			free(metacompute[i]->data);
-			free(metacompute[i]);
-		}
-		free(metacompute);
-		metacompute = NULL;
+
+		free_metacomp(&metacompute, ncomputeids);
 		ncomputeids = 0;
 		
 		/* 
@@ -416,7 +453,7 @@ print_results(DBPROCESS *dbproc)
 			ret = set_format_string(&metadata[c], (c+1 < ncols)? options.colsep : "\n");
 			if (ret <= 0) {
 				fprintf(stderr, "%s:%d: asprintf(), column %d failed\n", options.appname, __LINE__, c+1);
-				return;
+				exit(1);
 			}
 
 			/* 
@@ -437,13 +474,13 @@ print_results(DBPROCESS *dbproc)
 				erc = dbbind(dbproc, c+1, bindtype, 0, (BYTE *) data[c].buffer);
 				if (erc == FAIL) {
 					fprintf(stderr, "%s:%d: dbbind(), column %d failed\n", options.appname, __LINE__, c+1);
-					return;
+					exit(1);
 				}
 
 				erc = dbnullbind(dbproc, c+1, &data[c].status);
 				if (erc == FAIL) {
 					fprintf(stderr, "%s:%d: dbnullbind(), column %d failed\n", options.appname, __LINE__, c+1);
-					return;
+					exit(1);
 				}
 			} else {
 				/* We don't bind text buffers, but use dbreadtext instead. */
@@ -481,7 +518,7 @@ print_results(DBPROCESS *dbproc)
 										(iby+1 < nby)? ", " : ")");
 					if (ret < 0) {
 						fprintf(options.verbose, "Insufficient room to create name for column %d:\n", 1+c);
-						break;
+						exit(1);
 					}
 					free(bynames);
 					bynames = s;
@@ -497,7 +534,7 @@ print_results(DBPROCESS *dbproc)
 				ret = asprintf(&metacompute[i]->meta[c].name, "%s(%s)", dbprtype(dbaltop(dbproc, i+1, c+1)), colname);
 				if (ret < 0) {
 					fprintf(stderr, "%s:%d: asprintf(), column %d failed\n", options.appname, __LINE__, c+1);
-					return;
+					exit(1);
 				}
 
 				metacompute[i]->meta[c].width = get_printable_size(metacompute[i]->meta[c].type, 
@@ -509,7 +546,7 @@ print_results(DBPROCESS *dbproc)
 				if (ret <= 0) {
 					free(bynames);
 					fprintf(stderr, "%s:%d: asprintf(), column %d failed\n", options.appname, __LINE__, c+1);
-					return;
+					exit(1);
 				}
 				
 				fprintf(options.verbose, "\tcolumn %d is %s, type %s, size %d %s\n", 
@@ -526,7 +563,7 @@ print_results(DBPROCESS *dbproc)
 				erc = dbaltbind(dbproc, i+1, c+1, bindtype, -1, (BYTE*) metacompute[i]->data[c].buffer);
 				if (erc == FAIL) {
 					fprintf(stderr, "%s:%d: dbaltbind(), column %d failed\n", options.appname, __LINE__, c+1);
-					return;
+					exit(1);
 				}
 			}
 		}
@@ -684,6 +721,9 @@ print_results(DBPROCESS *dbproc)
 		}
 	} /* wend dbresults */
 	fprintf(options.verbose, "%s:%d: dbresults() returned NO_MORE_RESULTS (%d):\n", options.appname, __LINE__, erc);
+	free_metadata(&metadata, ncols);
+	free_data(&data, ncols);
+	free_metacomp(&metacompute, ncomputeids);
 }
 
 static int
