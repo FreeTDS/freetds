@@ -255,6 +255,7 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 
 		memset(&hints, 0, sizeof(hints));
 		hints.ai_family = AF_UNSPEC;
+		hints.ai_socktype = SOCK_STREAM;
 		hints.ai_flags = AI_V4MAPPED|AI_ADDRCONFIG|AI_CANONNAME|AI_FQDN;
 		res = getaddrinfo(server_name, NULL, &hints, &addrs);
 		if (res) {
