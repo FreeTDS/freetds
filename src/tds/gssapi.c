@@ -193,6 +193,7 @@ tds_gss_get_auth(TDSSOCKET * tds)
 		struct tds_addrinfo hints;
 		memset(&hints, 0, sizeof(hints));
 		hints.ai_family = AF_UNSPEC;
+		hints.ai_socktype = SOCK_STREAM;
 		hints.ai_flags = AI_V4MAPPED|AI_ADDRCONFIG|AI_CANONNAME|AI_FQDN;
 		if (!tds_getaddrinfo(server_name, NULL, &hints, &addrs) && addrs->ai_canonname
 		    && strchr(addrs->ai_canonname, '.') != NULL)
