@@ -61,6 +61,8 @@ extern "C"
 #define INT_TIMEOUT	3
 
 #define DBMAXNUMLEN 33
+/* https://msdn.microsoft.com/en-us/library/ms176061.aspx */
+#define DBMAXNAME   128
 
 /**
  * DBVERSION_xxx are used with dbsetversion()
