@@ -424,7 +424,7 @@ TYPE_SOCKLEN_T
 AC_MSG_CHECKING([whether getopt has optreset support])
 AC_TRY_LINK([#ifdef HAVE_GETOPT_H
 #include <getopt.h>
-#endif], [extern int optreset; optreset = 0;],
+#endif], [optreset = 0;],
 [AC_MSG_RESULT(yes)
 AC_DEFINE(HAVE_GETOPT_OPTRESET, 1, [Define if your getopt(3) defines and uses optreset])],
 [AC_MSG_RESULT(no)]
