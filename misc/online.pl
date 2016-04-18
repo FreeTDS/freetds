@@ -238,5 +238,5 @@ printf OUT $Footer;
 close(OUT);
 
 open(OUT, ">index.txt") or die qq(could not open "index.txt" ($!));
-print OUT ($file_err ? "error.png" : "success.png");
+print OUT ($file_err ? "&#x274c;" : "&#x2705;");
 close(OUT);
