@@ -580,6 +580,22 @@ Once project files are created you can open them with your environment.</para>
 <para>From the Department of Double Emulation: &freetds; builds as a <filename>.dll</> under <productname>WINE</> and as a <filename>.a</> under <productname>Interix</>.  See the mailing list archives (second half of 2003) for details.</para>
 				</sect3>
 
+			<sect3><title>Download Windows&reg; binaries</title>
+
+<para>You can  download FreeTDS binaries for Windows from AppVeyor (the hosted CI platform used).</para>
+
+<para>There is a .zip file available as artifact of every sucessful build.
+
+The list of builds is at
+<ulink url="https://ci.appveyor.com/project/FreeTDS/freetds/history">https://ci.appveyor.com/project/FreeTDS/freetds/history</ulink>.
+
+You can find there builds of code in the master banch and (from time to
+time) builds from the post-1.0 release fixes-only Branch-1_00 branch.
+Every build matrix element generates its artifact.</para>
+
+<para>Ramiro Morales also maintains similar builds of the Branch-0_95 branch at
+<ulink url="https://github.com/ramiro/freetds/releases">https://github.com/ramiro/freetds/releases</ulink>.</para>
+
 			<sect3 id="regsvr32"><title>ODBC driver registration</title>
 
 <para>If compiled correctly &freetds; ODBC driver supports component registration.
