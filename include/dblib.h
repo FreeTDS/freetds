@@ -30,11 +30,6 @@ extern "C"
 #endif
 #endif
 
-/* $Id: dblib.h,v 1.49 2011-12-05 02:26:31 jklowden Exp $ */
-
-/* https://msdn.microsoft.com/en-us/library/ms176061.aspx */
-#define DBMAXNAME   128
-
 typedef enum tag_DB_RESULT_STATE {
 	  _DB_RES_INIT
 	, _DB_RES_RESULTSET_EMPTY
