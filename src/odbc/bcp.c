@@ -390,6 +390,7 @@ odbc_bcp_bind(TDS_DBC *dbc, const BYTE * varaddr, int prefixlen, int varlen,
 	colinfo->column_varaddr  = (char *)varaddr;
 	colinfo->column_bindtype = vartype;
 	colinfo->column_bindlen  = varlen;
+	colinfo->bcp_prefix_len = prefixlen;
 
 	TDS_ZERO_FREE(colinfo->bcp_terminator);
 	colinfo->bcp_term_len = 0;
@@ -634,7 +635,6 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 
 		bindcol->bcp_column_data->datalen = converted_data_size;
 		bindcol->bcp_column_data->is_null = 0;
-		assert(converted_data_size > 0);
 	}
 
 	return TDS_SUCCESS;

@@ -2079,6 +2079,7 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 	colinfo->column_varaddr  = (char *)varaddr;
 	colinfo->column_bindtype = vartype;
 	colinfo->column_bindlen  = varlen;
+	colinfo->bcp_prefix_len = prefixlen;
 
 	TDS_ZERO_FREE(colinfo->bcp_terminator);
 	colinfo->bcp_term_len = 0;

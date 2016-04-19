@@ -9,24 +9,34 @@ typedef SQLWCHAR bcp_init_char_t;
 typedef char bcp_init_char_t;
 #endif
 
+struct prefixed_int {
+	ODBCINT64 prefix;
+	int value;
+};
+struct prefixed_str {
+	ODBCINT64 prefix;
+	char value[64];
+};
+
 /*
  * Static data for insertion
  */
-static int not_null_bit = 1;
-static char not_null_char[] = "a char";
-static char not_null_varchar[] = "a varchar";
-static char not_null_datetime[] 		= "2003-12-17 15:44:00.000";
-static char not_null_smalldatetime[] 	= "2003-12-17 15:44:00";
-static char not_null_money[] = "12.34";
-static char not_null_smallmoney[] = "12.34";
-static char not_null_float[] = "12.34";
-static char not_null_real[] = "12.34";
-static char not_null_decimal[] = "12.34";
-static char not_null_numeric[] = "12.34";
-static int not_null_int        = 1234;
-static int not_null_smallint   = 1234;
-static int not_null_tinyint    = 123;
-static char not_null_nvarchar[] = "a wide var";
+static struct prefixed_int not_null_bit           = {4, 1};
+static struct prefixed_str not_null_char          = {64, "a char"};
+static struct prefixed_str not_null_varchar       = {64, "a varchar"};
+static struct prefixed_str not_null_datetime      = {64, "2003-12-17 15:44:00.000"};
+static struct prefixed_str not_null_smalldatetime = {64, "2003-12-17 15:44:00"};
+static struct prefixed_str not_null_money         = {64, "12.34"};
+static struct prefixed_str not_null_smallmoney    = {64, "12.34"};
+static struct prefixed_str not_null_float         = {64, "12.34"};
+static struct prefixed_str not_null_real          = {64, "12.34"};
+static struct prefixed_str not_null_decimal       = {64, "12.34"};
+static struct prefixed_str not_null_numeric       = {64, "12.34"};
+static struct prefixed_int not_null_int           = {4, 1234};
+static struct prefixed_int not_null_smallint      = {4, 1234};
+static struct prefixed_int not_null_tinyint       = {4, 123};
+static struct prefixed_str not_null_nvarchar      = {64, "a wide var"};
+static ODBCINT64 null_prefix = -1;
 
 static const char *expected[] = {
 	"1",
@@ -42,6 +52,7 @@ static const char *expected_special[] = {
 	"2015-03-14 15:26:53.589793",
 	"3.141593000",
 	"3.141593",		/* MS driver has "3141593" here. Bug? Should we be bug-compatible? */
+	"",
 };
 
 static int tds_version;
@@ -115,25 +126,24 @@ init(void)
 		"dt2 datetime2(6) not null,"
 		"num decimal(19,9) not null,"
 		"numstr varchar(64) not null,"
+		"empty varchar(64) not null,"
 		"bitnull bit null"
 		")");
 }
 
 #define VARCHAR_BIND(x) \
-	bcp_bind( odbc_conn, (unsigned char *) &x, prefixlen, strlen(x), NULL, termlen, BCP_TYPE_SQLVARCHAR, col++ )
+	bcp_bind( odbc_conn, (unsigned char *) (prefixlen == 0 ? (void*)&x.value : &x), prefixlen, strlen(x.value), NULL, termlen, BCP_TYPE_SQLVARCHAR, col++ )
 
 #define INT_BIND(x) \
-	bcp_bind( odbc_conn, (unsigned char *) &x, prefixlen, SQL_VARLEN_DATA, NULL, termlen, BCP_TYPE_SQLINT4,    col++ )
+	bcp_bind( odbc_conn, (unsigned char *) (prefixlen == 0 ? (void*)&x.value : &x), prefixlen, SQL_VARLEN_DATA, NULL, termlen, BCP_TYPE_SQLINT4,    col++ )
 
 #define NULL_BIND(x, type) \
-	bcp_bind( odbc_conn, (unsigned char *) &x, prefixlen, SQL_NULL_DATA, NULL, termlen, type,    col++ )
+	bcp_bind( odbc_conn, (unsigned char *) (prefixlen == 0 ? (void*)&x.value : &null_prefix), prefixlen, prefixlen == 0 ? SQL_NULL_DATA : SQL_VARLEN_DATA, NULL, termlen, type,    col++ )
 
 static void
-test_bind(void)
+test_bind(int prefixlen)
 {
-	enum { prefixlen = 0 };
 	enum { termlen = 0 };
-	enum NullValue { IsNull, IsNotNull };
 
 	RETCODE fOK;
 	int col=1;
@@ -227,7 +237,7 @@ report_bcp_error(const char *errmsg, int line, const char *file)
 	odbc_report_error(errmsg, line, file);
 }
 
-static void normal_inserts(void);
+static void normal_inserts(int prefixlen);
 static void normal_select(void);
 static void special_inserts(void);
 static void special_select(void);
@@ -246,12 +256,16 @@ main(int argc, char *argv[])
 
 	init();
 
-	normal_inserts();
+	normal_inserts(0);
 	if (tds_version >= 0x703)
 		special_inserts();
 	normal_select();
 	if (tds_version >= 0x703)
 		special_select();
+
+	odbc_command("delete from all_types_bcp_unittest");
+	normal_inserts(8);
+	normal_select();
 
 	if ((s = getenv("BCP")) != NULL && 0 == strcmp(s, "nodrop")) {
 		fprintf(stdout, "BCP=nodrop: '%s' kept\n", table_name);
@@ -268,7 +282,7 @@ main(int argc, char *argv[])
 	return 0;
 }
 
-static void normal_inserts(void)
+static void normal_inserts(int prefixlen)
 {
 	int i;
 	int rows_sent;
@@ -279,7 +293,7 @@ static void normal_inserts(void)
 		report_bcp_error("bcp_init", __LINE__, __FILE__);
 	fprintf(stdout, "OK\n");
 
-	test_bind();
+	test_bind(prefixlen);
 
 	fprintf(stdout, "Sending same row 10 times... \n");
 	for (i=0; i<10; i++)
@@ -338,7 +352,8 @@ static void special_inserts(void)
 	bcp_bind(odbc_conn, (unsigned char *) &timestamp, 0, sizeof(timestamp), NULL, 0, BCP_TYPE_SQLDATETIME2, 2);
 	bcp_bind(odbc_conn, (unsigned char *) &numeric, 0, sizeof(numeric), NULL, 0, BCP_TYPE_SQLDECIMAL, 3);
 	bcp_bind(odbc_conn, (unsigned char *) &numeric, 0, sizeof(numeric), NULL, 0, BCP_TYPE_SQLDECIMAL, 4);
-	bcp_bind(odbc_conn, (unsigned char *) &not_null_bit, 0, SQL_NULL_DATA, NULL, 0, BCP_TYPE_SQLINT4, 5);
+	bcp_bind(odbc_conn, (unsigned char *) "", 0, 0, NULL, 0, BCP_TYPE_SQLVARCHAR, 5);
+	bcp_bind(odbc_conn, (unsigned char *) &not_null_bit, 0, SQL_NULL_DATA, NULL, 0, BCP_TYPE_SQLINT4, 6);
 
 	if (bcp_sendrow(odbc_conn) == FAIL)
 		report_bcp_error("bcp_sendrow", __LINE__, __FILE__);
@@ -402,7 +417,7 @@ static void special_select(void)
 		char output[128];
 		SQLLEN dataSize;
 		CHKGetData(i + 1, SQL_C_CHAR, output, sizeof(output), &dataSize, "S");
-		if (strcmp(output, expected_special[i]) || dataSize <= 0) {
+		if (strcmp(output, expected_special[i]) || (dataSize <= 0 && expected_special[i][0] != '\0')) {
 			fprintf(stderr, "Invalid returned col %d: '%s'!='%s'\n", i, expected_special[i], output);
 			ok = 0;
 		}
