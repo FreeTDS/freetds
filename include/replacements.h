@@ -139,6 +139,14 @@ char *tds_basename(char *path);
 int tds_gettimeofday (struct timeval *tv, void *tz);
 #define gettimeofday tds_gettimeofday
 
+/* Older Mingw-w64 versions don't define these flags. */
+#if defined(__MINGW32__) && !defined(AI_ADDRCONFIG)
+#  define AI_ADDRCONFIG 0x00000400
+#endif
+#if defined(__MINGW32__) && !defined(AI_V4MAPPED)
+#  define AI_V4MAPPED 0x00000800
+#endif
+
 #endif
 
 #if !HAVE_GETOPT
