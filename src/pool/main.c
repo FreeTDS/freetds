@@ -120,9 +120,9 @@ pool_init(const char *name)
 		fprintf(stderr, "%s\n", err);
 		exit(EXIT_FAILURE);
 	}
-	check_field(name, pool->user,   "user");
-	check_field(name, pool->server, "server");
-	check_field(name, pool->port,   "port");
+	check_field(name, pool->user != NULL,   "user");
+	check_field(name, pool->server != NULL, "server");
+	check_field(name, pool->port != 0,   "port");
 
 	if (pool->max_open_conn < pool->min_open_conn) {
 		fprintf(stderr, "Max connections less than minimum\n");
