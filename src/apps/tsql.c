@@ -469,6 +469,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 			confile = strdup(optarg);
 			break;
 		case 'J':
+			free(charset);
 			charset = strdup(optarg);
 			break;
 		case 'p':
