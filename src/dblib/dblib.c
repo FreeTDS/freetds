@@ -7274,7 +7274,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 					memcpy(dest, src, srclen);
 					dest[srclen] = '\0';
 					break;
-				case STRINGBIND:   /* pad with blanks, null term */
+				case STRINGBIND:   /* pad with blanks, NUL term */
 					if (limited_dest_space) {
 						if (srclen + 1 > destlen) {
 							dbperror(dbproc, SYBECOFL, 0);
@@ -7289,7 +7289,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 						dest[i] = ' ';
 					dest[i] = '\0';
 					break;
-				case CHARBIND:   /* pad with blanks, NO null term */
+				case CHARBIND:   /* pad with blanks, NO NUL term */
 					if (limited_dest_space) {
 						if (srclen > destlen) {
 							dbperror(dbproc, SYBECOFL, 0);
@@ -7303,7 +7303,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 					for (i = srclen; i < destlen; i++)
 						dest[i] = ' ';
 					break;
-				case VARYCHARBIND: /* strip trailing blanks, NO null term */
+				case VARYCHARBIND: /* strip trailing blanks, NO NUL term */
 					if (limited_dest_space) {
 						if (srclen > destlen) {
 							dbperror(dbproc, SYBECOFL, 0);
