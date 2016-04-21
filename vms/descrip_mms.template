@@ -1513,7 +1513,7 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 distclean :
 	@ if f$search("[...]*$(OBJ)") .nes. "" then delete/noconfirm [...]*$(OBJ);*
 	@ if f$search("[...]*.LIS") .nes. "" then delete/noconfirm [...]*.LIS;*
-	@ if f$search("[...]*.MAP") .nes. "" then delete/noconfirm [...]*.MAP;*
+	@ if f$search("[...]*.MAP") .nes. "" then delete/noconfirm [...]*.MAP;*/exclude=[.doc...]*.MAP
 	@ if f$search("[...unittests]*$(E)") .nes. "" then delete/noconfirm [...unittests]*$(E);*
 	@ if f$search("[.src.odbc._libs]*$(E)") .nes. "" then delete/noconfirm [.src.odbc._libs]*$(E);*
 	@ if f$search("[...unittests]*.ini") .nes. "" then delete/noconfirm [...unittests]*.ini;*
