@@ -574,10 +574,7 @@ Once project files are created you can open them with your environment.</para>
 					
 					<listitem><para>MingW</para></listitem>
 					
-					<listitem><para><application>gcc</> under <application>cygwin</>.</para></listitem>
-					
 					</itemizedlist>
-<para>From the Department of Double Emulation: &freetds; builds as a <filename>.dll</> under <productname>WINE</> and as a <filename>.a</> under <productname>Interix</>.  See the mailing list archives (second half of 2003) for details.</para>
 				</sect3>
 
 			<sect3><title>Download Windows&reg; binaries</title>
@@ -645,41 +642,36 @@ and register the driver as a standard component.</para>
 			</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
 
-<para>As of this writing (&ug.date;), the regular distribution compiles on OS X.  </para>
+<para>The regular distribution compiles on OS X.</para>
 			
-<![ %comment [
-	<!-- cf http://www.is-thought.co.uk/book/sgml-8.htm -->
-			<sect3 id="OSX.Build.Update">
-				<title>Alternative build procedure</title>
-<para>On  11 March 2004, <email><ulink url="mailto:dimo@angelhill.net">Dmitri Fedortchenko</ulink></email> offered the following approach, using a local <command>libtool</>.  It is included here as a source of clues, in case you encounter trouble.</para>
-				
-				<procedure id="OSX.new.libtool">
-					<title>Installing with libtool 1.5.2</title>
-					<step><para>Install the latest <command>libtool</> from GNU into <filename>/usr/local</>, so as not to interfere with the Apple-original.</para></step>
-					<step><para>Make sure <filename>/usr/local/bin</> is in your <envar>PATH</envar> and <filename>/usr/local/lib</> is in your <envar>LIBRARY_PATH</envar>.</para></step>
-					<step><para>Go to the &freetds; source directory and generate the <filename>Makefile</>s
+			<sect3 id="OSX.Build.LinkIssues">
+				<title>Possible linker problems</title>
+<para>On 18 April 2016, a problem was reported causing linker issues.
 <screen>
-	<prompt>$ </prompt><userinput>./configure --disable-libiconv --disable-odbc</userinput></screen>
-</para></step>
-	<step><para>Overwrite &freetds;'s <filename>libtool</> with a symbolic link to your (better) one
-<screen>
-	<footnote><para> If you run <command>configure</> again, you'll need to perform this step
-	again, because <command>libtool</> will have been regenerated in its fossilized state.</para></footnote>
-	<prompt>$ </prompt><userinput>ln -sf /usr/local/bin/libtool</userinput></screen></para></step>
-	
-					<step performance="optional"><para>To check that you've done everything correctly up to this
-							point,
-<screen>
-	<prompt>$ </prompt><userinput>./libtool --version</userinput></screen>
-	<command>libtool</> should report version 1.5.2 (or whatever version you downloaded, and <emphasis>not</> 1.4).</para></step>
-	<step><para>And finally, of course
-<screen>
-	<prompt>$ </prompt><userinput>make &amp;&amp; make install</userinput></screen>
-</para></step>
-	
-					</procedure>
+	Undefined symbols for architecture x86_64:
+
+	  "___strlcpy_chk", referenced from:
+	      _tdsdbopen in libsybdb_64.a(dblib.o)
+	      _db_env_chg in libsybdb_64.a(dblib.o)
+	      _dbcolinfo in libsybdb_64.a(dblib.o)
+	      _dbtablecolinfo in libsybdb_64.a(dblib.o)
+	      _tds_alloc_dynamic in libsybdb_64.a(mem.o)
+	      _tds7_get_instance_port in libsybdb_64.a(net.o)
+	      _tds_get_locale in libsybdb_64.a(locale.o)
+	      ...
+</screen>
+</para>
+<para>
+This is due to some mismatch on different project releases. To solve these issue set the target release like
+<screen>	<userinput>CFLAGS="-mmacosx-version-min=10.8" ./configure
+	make</userinput></screen>
+or
+<screen>	<userinput>export MACOSX_DEPLOYMENT_TARGET=10.8
+	./configure
+	make</userinput></screen>
+</para>
+
 				</sect3>
-]]>
 			</sect2>
 		
 		<sect2 id="AIX"><title>AIX&reg;</title>
