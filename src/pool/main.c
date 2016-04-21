@@ -366,7 +366,7 @@ int
 main(int argc, char **argv)
 {
 	int opt;
-#ifndef _WIN32
+#ifdef HAVE_FORK
 	bool daemonize = false;
 #  define DAEMON_OPT "d"
 #else
@@ -386,7 +386,7 @@ main(int argc, char **argv)
 		case 'l':
 			logfile_name = optarg;
 			break;
-#ifndef _WIN32
+#ifdef HAVE_FORK
 		case 'd':
 			daemonize = true;
 			break;
@@ -401,7 +401,7 @@ main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 	pool = pool_init(argv[optind]);
-#ifndef _WIN32
+#ifdef HAVE_FORK
 	if (daemonize) {
 		if (daemon(0, 0) < 0) {
 			fprintf(stderr, "Failed to daemonize %s\n", argv[0]);
