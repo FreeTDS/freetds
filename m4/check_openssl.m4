@@ -22,6 +22,11 @@ NETWORK_LIBS="$NETWORK_LIBS $OPENSSL_LIBS"], [found_ssl=no
             fi
         done
     fi])
+    if test x$found_ssl = xyes; then
+	ACX_PUSH_LIBS("$NETWORK_LIBS")
+        AC_TRY_LINK([#include <openssl/ssl.h>], [SSL_read(NULL, NULL, 100);], [], [found_ssl=no])
+	ACX_POP_LIBS
+    fi
     if test x$found_ssl != xyes; then
         AC_MSG_ERROR(Cannot find OpenSSL libraries)
     else
