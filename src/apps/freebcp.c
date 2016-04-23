@@ -713,7 +713,7 @@ setoptions(DBPROCESS * dbproc, BCPPARAMDATA * params)
 			}
 		} else {
 			while (fgets (optBuf, sizeof(optBuf), optFile) != NULL) {
-				if (dbfcmd(dbproc, optBuf) == FAIL) {
+				if (dbcmd(dbproc, optBuf) == FAIL) {
 					fprintf(stderr, "setoptions() failed preparing options at %s:%d\n", __FILE__, __LINE__);
 					fclose(optFile);
 					return FALSE;
