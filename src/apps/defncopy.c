@@ -337,6 +337,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 	for (iresultset=1; (erc = dbresults(dbproc)) != NO_MORE_RESULTS; iresultset++) {
 		if (erc == FAIL) {
 			fprintf(stderr, "%s:%d: dbresults(), result set %d failed\n", options.appname, __LINE__, iresultset);
+			fclose(create_index);
 			return 0;
 		}
 
