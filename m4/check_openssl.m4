@@ -30,11 +30,13 @@ NETWORK_LIBS="$NETWORK_LIBS $OPENSSL_LIBS"], [found_ssl=no
     fi
     if test x$found_ssl != xyes -a "$with_openssl" != ""; then
         AC_MSG_ERROR(Cannot find OpenSSL libraries)
+        NETWORK_LIBS="$old_NETWORK_LIBS"
     elif test x$found_ssl = xyes; then
         HAVE_OPENSSL=yes
         AC_DEFINE(HAVE_OPENSSL, 1, [Define if you have the OpenSSL.])
+    else
+        NETWORK_LIBS="$old_NETWORK_LIBS"
     fi
-    NETWORK_LIBS="$old_NETWORK_LIBS"
     AC_SUBST(HAVE_OPENSSL)
 else
     AC_MSG_RESULT(no)
