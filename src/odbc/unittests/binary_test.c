@@ -7,9 +7,6 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: binary_test.c,v 1.10 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 #define ERR_BUF_SIZE 256
 /* 
    Name of table used by the test. Should contain single column,

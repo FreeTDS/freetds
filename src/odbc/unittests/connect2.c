@@ -5,9 +5,6 @@
  * either SQLConnect and SQLDriverConnect
  */
 
-static char software_version[] = "$Id: connect2.c,v 1.10 2012-03-04 11:33:07 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static int failed = 0;
 
 static void init_connect(void);

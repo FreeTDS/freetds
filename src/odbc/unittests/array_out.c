@@ -3,9 +3,6 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array_out.c,v 1.19 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static const char *test_query = NULL;
 static int trunc = 0;
 static int record_bind = 0;

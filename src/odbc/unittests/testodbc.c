@@ -10,9 +10,6 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: testodbc.c,v 1.16 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 #ifdef DEBUG
 # define AB_FUNCT(x)  do { printf x; printf("\n"); } while(0)
 # define AB_PRINT(x)  do { printf x; printf("\n"); } while(0)
