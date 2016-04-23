@@ -30,11 +30,16 @@
 
 #include "replacements.h"
 
-#if !HAVE_STRLCPY
+/* If the system supplies these, we're going to simulate the situation
+ * where it doesn't so we're always testing our own versions.
+ */
+#if HAVE_STRLCPY
+size_t tds_strlcpy(char *dest, const char *src, size_t len);
 #include "../strlcpy.c"
 #endif
 
-#if !HAVE_STRLCAT
+#if HAVE_STRLCAT
+size_t tds_strlcat(char *dest, const char *src, size_t len);
 #include "../strlcat.c"
 #endif
 
