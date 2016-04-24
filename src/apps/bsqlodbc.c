@@ -587,6 +587,7 @@ print_results(SQLHSTMT hStmt)
 			ret = set_format_string(&metadata[c], (c+1 < ncols)? options.colsep : "\n");
 			if (ret <= 0) {
 				fprintf(stderr, "%s:%d: asprintf(), column %d failed\n", options.appname, __LINE__, c+1);
+				free_metadata(metadata, data, ncols);
 				return;
 			}
 
@@ -672,7 +673,8 @@ print_results(SQLHSTMT hStmt)
 		assert(erc != SQL_STILL_EXECUTING);
 		odbc_perror(hStmt, erc, "SQLMoreResults", "failed");
 		exit(EXIT_FAILURE);
-	} 
+	}
+	free_metadata(metadata, data, ncols);
 }
 
 /** 
