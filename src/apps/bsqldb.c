@@ -252,6 +252,10 @@ next_query(DBPROCESS *dbproc)
 	while (fgets(query_line, sizeof(query_line), stdin)) {
 		/* 'go' or 'GO' separates command batches */
 		const char *p = query_line;
+
+		/* Skip past leading white spaces */
+		while (isspace((unsigned char) *p))
+			p++;
 		if (strncasecmp(p, "go", 2) == 0) {
 			for (p+=2; isspace((unsigned char) *p); p++) {
 				if (*p == '\n')
