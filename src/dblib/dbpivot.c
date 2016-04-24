@@ -453,12 +453,16 @@ bind_type(int sybtype)
 	return 0;
 }
 
-struct key_t { int nkeys; struct col_t *keys; }; 
+typedef struct KEY_T
+{
+	int nkeys;
+	struct col_t *keys;
+} KEY_T;
 
 static bool
 key_equal(const void *a, const void *b)
 {
-	const struct key_t *p1 = a, *p2 = b;
+	const KEY_T *p1 = a, *p2 = b;
 	int i;
 	
 	assert(a && b);
@@ -474,15 +478,15 @@ key_equal(const void *a, const void *b)
 
 
 static void
-key_free(struct key_t *p)
+key_free(KEY_T *p)
 {
 	col_free(p->keys);
 	free(p->keys);
 	memset(p, 0, sizeof(*p));
 }
 
-static struct key_t *
-key_cpy(struct key_t *pdest, const struct key_t *psrc)
+static KEY_T *
+key_cpy(KEY_T *pdest, const KEY_T *psrc)
 {
 	int i;
 	
@@ -503,7 +507,7 @@ key_cpy(struct key_t *pdest, const struct key_t *psrc)
 
 
 static char *
-make_col_name(const struct key_t *k)
+make_col_name(const KEY_T *k)
 {
 	const struct col_t *pc;
 	char **names, **s, *output;
@@ -529,7 +533,7 @@ make_col_name(const struct key_t *k)
 }
 	
 
-struct agg_t { struct key_t row_key, col_key; struct col_t value; }; 
+struct agg_t { KEY_T row_key, col_key; struct col_t value; }; 
 
 #if 0
 static bool
@@ -696,7 +700,7 @@ set_result_column(TDSSOCKET * tds, TDSCOLUMN * curcol, const char name[], const 
 	return TDS_SUCCESS;
 }
 
-struct metadata_t { struct key_t *pacross; char *name; struct col_t col; };
+struct metadata_t { KEY_T *pacross; char *name; struct col_t col; };
 
 
 static bool
@@ -761,7 +765,7 @@ struct pivot_t
 	DB_RESULT_STATE dbresults_state;
 	
 	struct agg_t *output;
-	struct key_t *across;
+	KEY_T *across;
 	size_t nout, nacross;
 };
 
@@ -835,7 +839,7 @@ dbnextrow_pivoted(DBPROCESS *dbproc, struct pivot_t *pp)
 			pval = &candidate.row_key.keys[i];
 		} else {
 			struct agg_t *pcan;
-			key_cpy(&candidate.col_key, (struct key_t *) pcol->bcp_terminator);
+			key_cpy(&candidate.col_key, (KEY_T *) pcol->bcp_terminator);
 			if ((pcan = tds_find(&candidate, pout, pp->output + pp->nout - pout, 
 						sizeof(*pp->output), agg_next)) != NULL) {
 				/* flag this output as used */

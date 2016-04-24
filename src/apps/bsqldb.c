@@ -75,7 +75,12 @@ struct METACOMP { int numalts; struct METADATA *meta; struct DATA *data; };
 static int set_format_string(struct METADATA * meta, const char separator[]);
 
 
-struct key_t { size_t nkeys; int *keys; };
+typedef struct KEY_T
+{
+	size_t nkeys;
+	int *keys;
+} KEY_T;
+
 typedef struct _options 
 { 
 	int 	fverbose, 
@@ -91,7 +96,7 @@ typedef struct _options
 		*output_filename, 
 		*error_filename; 
 	struct pivot_t {
-		struct key_t row_key, col_key;
+		KEY_T row_key, col_key;
 		int val_col;
 		DBPIVOT_FUNC func;
 	} pivot;
@@ -368,7 +373,7 @@ print_results(DBPROCESS *dbproc)
 		}
 		
 		if (options.pivot.func) {
-			const struct key_t *rk = &options.pivot.row_key, *ck = &options.pivot.col_key;
+			const KEY_T *rk = &options.pivot.row_key, *ck = &options.pivot.col_key;
 			erc = dbpivot(dbproc, rk->nkeys, rk->keys, ck->nkeys, ck->keys, 
 					options.pivot.func, options.pivot.val_col);
 		}
@@ -874,14 +879,14 @@ static void
 parse_pivot_description(OPTIONS *options, const char *optarg)
 {
 /**
-	struct key_t { size_t nkeys; int *keys; };
+	KEY_T { size_t nkeys; int *keys; };
 	struct pivot_t {
-		struct key_t row_key, col_key;
+		KEY_T row_key, col_key;
 		int val_col;
 		DBPIVOT_FUNC func;
 **/
 	char *p, *pend;
-	struct key_t *keys[2] = { &options->pivot.row_key, &options->pivot.col_key},**pk;
+	KEY_T *keys[2] = { &options->pivot.row_key, &options->pivot.col_key},**pk;
 	int nchars;
 	char ch, *input = strdup(optarg);
 	assert(input);
