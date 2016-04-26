@@ -78,10 +78,10 @@ typedef struct pd
 
 static void pusage(void);
 static int process_parameters(int, char **, struct pd *);
-static int login_to_databases(BCPPARAMDATA * pdata, DBPROCESS ** dbsrc, DBPROCESS ** dbdest);
+static int login_to_databases(const BCPPARAMDATA * pdata, DBPROCESS ** dbsrc, DBPROCESS ** dbdest);
 static int create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbsrc, DBPROCESS * dbdest);
 static int check_table_structures(char *sobjname, char *dobjname, DBPROCESS * dbsrc, DBPROCESS * dbdest);
-static int transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest);
+static int transfer_data(const BCPPARAMDATA * params, DBPROCESS * dbsrc, DBPROCESS * dbdest);
 static RETCODE set_textsize(DBPROCESS *dbproc, int textsize);
 
 static int err_handler(DBPROCESS *, int, int, int, char *, char *);
@@ -129,7 +129,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	if (transfer_data(params, dbsrc, dbtarget) == FALSE) {
+	if (transfer_data(&params, dbsrc, dbtarget) == FALSE) {
 		printf("datacopy: table copy failed.\n");
 		printf("           the data may have been partially copied into the target database \n");
 		dbclose(dbsrc);
@@ -315,7 +315,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 }
 
 static int
-login_to_databases(BCPPARAMDATA * pdata, DBPROCESS ** dbsrc, DBPROCESS ** dbdest)
+login_to_databases(const BCPPARAMDATA * pdata, DBPROCESS ** dbsrc, DBPROCESS ** dbdest)
 {
 	int result = FALSE;
 	LOGINREC *slogin = NULL;
@@ -583,7 +583,7 @@ check_table_structures(char *sobjname, char *dobjname, DBPROCESS * dbsrc, DBPROC
 }
 
 static int
-transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
+transfer_data(const BCPPARAMDATA * params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 {
 	char ls_command[256];
 	int col;
@@ -609,13 +609,13 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 	DBCOL2 colinfo;
 	BOOL identity_column_exists = FALSE;
 
-	if (params.vflag) {
+	if (params->vflag) {
 		printf("\nStarting copy...\n");
 	}
 
-	if (params.tflag) {
+	if (params->tflag) {
 
-		sprintf(ls_command, "truncate table %s", params.dest.dbobject);
+		sprintf(ls_command, "truncate table %s", params->dest.dbobject);
 
 		if (dbcmd(dbdest, ls_command) == FAIL) {
 			printf("dbcmd failed\n");
@@ -634,7 +634,7 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 	}
 
 
-	sprintf(ls_command, "select * from %s", params.src.dbobject);
+	sprintf(ls_command, "select * from %s", params->src.dbobject);
 
 	if (dbcmd(dbsrc, ls_command) == FAIL) {
 		printf("dbcmd failed\n");
@@ -655,7 +655,7 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 
 
 
-	if (bcp_init(dbdest, params.dest.dbobject, (char *) NULL, (char *) NULL, DB_IN) == FAIL) {
+	if (bcp_init(dbdest, params->dest.dbobject, (char *) NULL, (char *) NULL, DB_IN) == FAIL) {
 		printf("Error in bcp_init\n");
 		return FALSE;
 	}
@@ -704,7 +704,7 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 	}
 
 	/* Take appropriate action if there's an identity column and we've been asked to preserve identity values. */
-	if (params.Eflag && identity_column_exists)
+	if (params->Eflag && identity_column_exists)
 		bcp_control(dbdest, BCPKEEPIDENTITY, 1);
 
 	gettimeofday(&start_time, 0);
@@ -753,7 +753,7 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 			return FALSE;
 		} else {
 			rows_sent++;
-			if (rows_sent == params.batchsize) {
+			if (rows_sent == params->batchsize) {
 				ret = bcp_batch(dbdest);
 				if (ret == -1) {
 					printf("bcp_batch error\n");
@@ -783,7 +783,7 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 	elapsed_time = (double) (end_time.tv_sec - start_time.tv_sec) +
 		((double) (end_time.tv_usec - start_time.tv_usec) / 1000000.00);
 
-	if (params.vflag) {
+	if (params->vflag) {
 		printf("\n");
 		printf("rows read            : %d\n", rows_read);
 		printf("rows written         : %d\n", rows_done);
