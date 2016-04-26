@@ -592,6 +592,7 @@ Every build matrix element generates its artifact.</para>
 
 <para>Ramiro Morales also maintains similar builds of the Branch-0_95 branch at
 <ulink url="https://github.com/ramiro/freetds/releases">https://github.com/ramiro/freetds/releases</ulink>.</para>
+				</sect3>
 
 			<sect3 id="regsvr32"><title>ODBC driver registration</title>
 
