@@ -1348,6 +1348,8 @@ dbfcmd(DBPROCESS * dbproc, const char *fmt, ...)
 RETCODE
 dbcmd(DBPROCESS * dbproc, const char cmdstring[])
 {
+	size_t cmd_len, buf_len, newsz;
+
 	tdsdump_log(TDS_DBG_FUNC, "dbcmd(%p, %s)\n", dbproc, cmdstring);
 	CHECK_CONN(FAIL);
 	CHECK_NULP(cmdstring, "dbcmd", 2, FAIL);
@@ -1362,24 +1364,16 @@ dbcmd(DBPROCESS * dbproc, const char cmdstring[])
 		}
 	}
 
-	if (dbproc->dbbufsz == 0) {
-		dbproc->dbbuf = (unsigned char*) malloc(strlen(cmdstring) + 1);
-		if (dbproc->dbbuf == NULL) {
-			dbperror(dbproc, SYBEMEM, errno);
-			return FAIL;
-		}
-		strcpy((char *) dbproc->dbbuf, cmdstring);
-		dbproc->dbbufsz = (int)strlen(cmdstring) + 1;
-	} else {
-		size_t newsz = strlen(cmdstring) + dbproc->dbbufsz;
-
-		if (!TDS_RESIZE(dbproc->dbbuf, newsz)) {
-			dbperror(dbproc, SYBEMEM, errno);
-			return FAIL;
-		}
-		strcat((char *) dbproc->dbbuf, cmdstring);
-		dbproc->dbbufsz = (int)newsz;
+	buf_len = (dbproc->dbbufsz == 0) ? 0 : dbproc->dbbufsz - 1;
+	cmd_len = strlen(cmdstring);
+	newsz = buf_len + cmd_len + 1;
+	if (newsz > 0x7fffffffu || !TDS_RESIZE(dbproc->dbbuf, newsz)) {
+		dbperror(dbproc, SYBEMEM, errno);
+		return FAIL;
 	}
+	memcpy(dbproc->dbbuf + buf_len, cmdstring, cmd_len);
+	dbproc->dbbuf[newsz - 1] = 0;
+	dbproc->dbbufsz = (int) newsz;
 
 	dbproc->command_state = DBCMDPEND;
 
