@@ -621,6 +621,11 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 	 */
 
 	src = (unsigned char *) bindcol->column_varaddr;
+	if (!src) {
+		tdsdump_log(TDS_DBG_ERROR, "error source field not addressable\n");
+		return TDS_FAIL;
+	}
+
 	src += offset * bindcol->column_bindlen;
 	
 	if (bindcol->column_nullbind) {
@@ -630,11 +635,6 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 	if (bindcol->column_lenbind) {
 		datalen = bindcol->column_lenbind;
 		datalen += offset;
-	}
-
-	if (!src) {
-		printf("error source field not addressable \n");
-		return TDS_FAIL;
 	}
 
 	srctype = bindcol->column_bindtype; 		/* passes to cs_convert */
