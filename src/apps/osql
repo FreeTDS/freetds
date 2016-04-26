@@ -120,7 +120,7 @@ do
 		continue
 	fi
 
-	grep "[${DSN}]" $F > /dev/null
+	grep -F "[${DSN}]" $F > /dev/null
 
 	if [ $? -eq 0 ]
 	then
@@ -286,7 +286,7 @@ then
 		fi
 
 		echo "looking for [${TDS_SERVER}] in $F"
-		grep "[${TDS_SERVER}]" $F > /dev/null
+		grep -F "[${TDS_SERVER}]" $F > /dev/null
 
 		if [ $? -eq 0 ]
 		then
