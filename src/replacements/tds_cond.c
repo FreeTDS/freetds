@@ -174,6 +174,7 @@ int (*tds_raw_cond_timedwait) (tds_condition * cond, tds_raw_mutex * mtx, int ti
 
 #include <freetds/tds.h>
 #include <freetds/thread.h>
+#include <freetds/time.h>
 
 /* check if we can use clock_gettime */
 #undef USE_CLOCK_IN_COND
