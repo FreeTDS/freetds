@@ -326,6 +326,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 	RETCODE erc;
 	int row_code, iresultset, i, ret;
 	int maxnamelen = 0, nrows = 0;
+	char **p_str;
 	
 	create_index = tmpfile();
 	
@@ -337,8 +338,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 	for (iresultset=1; (erc = dbresults(dbproc)) != NO_MORE_RESULTS; iresultset++) {
 		if (erc == FAIL) {
 			fprintf(stderr, "%s:%d: dbresults(), result set %d failed\n", options.appname, __LINE__, iresultset);
-			fclose(create_index);
-			return 0;
+			goto cleanup;
 		}
 
 		/* Get the data */
@@ -470,10 +470,9 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 	 * We've collected the description for the columns in the 'ddl' array.  
 	 * Now we'll print the CREATE TABLE statement in jkl's preferred format.  
 	 */
-	if (nrows == 0) {
-		fclose(create_index);
-		return nrows;
-	}
+	if (nrows == 0)
+		goto cleanup;
+
 	printf("%sCREATE TABLE %s.%s\n", use_statement, procedure->owner, procedure->name);
 	for (i=0; i < nrows; i++) {
 		static const char *varytypenames[] =    { "char"  		
@@ -529,7 +528,12 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 	while ((i = fgetc(create_index)) != EOF) {
 		fputc(i, stdout);
 	}
-	
+
+cleanup:
+	p_str = (char **) ddl;
+	for (i=0; i < nrows * (sizeof(struct DDL)/sizeof(char*)); ++i)
+		free(p_str[i]);
+	free(ddl);
 	fclose(create_index);
 	return nrows;
 }
