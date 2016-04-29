@@ -8,8 +8,8 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0009.c,v 1.13 2011-05-16 08:51:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+static CS_RETCODE ex_servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * errmsg);
+static int compute_supported = 1;
 
 /* Testing: Retrieve compute results */
 int
@@ -91,6 +91,7 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
+	ct_callback(ctx, NULL, CS_SET, CS_SERVERMSG_CB, (CS_VOID *) ex_servermsg_cb);
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
 		switch ((int) result_type) {
 		case CS_CMD_SUCCEED:
@@ -98,6 +99,10 @@ main(int argc, char *argv[])
 		case CS_CMD_DONE:
 			break;
 		case CS_CMD_FAIL:
+			if (!compute_supported) {
+				try_ctlogout(ctx, conn, cmd, verbose);
+				return 0;
+			}
 			fprintf(stderr, "ct_results() result_type CS_CMD_FAIL.\n");
 			return 1;
 		case CS_ROW_RESULT:
@@ -319,4 +324,15 @@ main(int argc, char *argv[])
 	}
 
 	return 0;
+}
+
+static CS_RETCODE
+ex_servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * srvmsg)
+{
+	if (strstr(srvmsg->text, "compute")) {
+		compute_supported = 0;
+		printf("Server does not support compute\n");
+		return CS_SUCCEED;
+	}
+	return servermsg_cb(context, connection, srvmsg);
 }

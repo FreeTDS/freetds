@@ -6,8 +6,19 @@
 #include "common.h"
 #include <assert.h>
 
-int failed = 0;
+static int failed = 0;
+static int got_error = 0;
+static int compute_supported = 1;
 
+static int
+compute_msg_handler(DBPROCESS * dbproc, DBINT msgno, int state, int severity, char *text, char *server, char *proc, int line)
+{
+	if (strstr(text, "compute"))
+		compute_supported = 0;
+	else
+		got_error = 1;
+	return 0;
+}
 
 int
 main(int argc, char *argv[])
@@ -47,6 +58,25 @@ main(int argc, char *argv[])
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
 	dbloginfree(login);
+
+	sql_cmd(dbproc);
+	dbmsghandle(compute_msg_handler);
+	i = dbsqlexec(dbproc);
+	dbmsghandle(syb_msg_handler);
+	if (!compute_supported) {
+		printf("compute clause not supported, skip test!\n");
+		dbexit();
+		return 0;
+	}
+	if (got_error) {
+		failed = 1;
+		fprintf(stderr, "Unexpected error from query.\n");
+		exit(1);
+	}
+	while ((i=dbresults(dbproc)) != NO_MORE_RESULTS) {
+		while (dbnextrow(dbproc) != NO_MORE_ROWS)
+			continue;
+	}
 
 	fprintf(stdout, "creating table\n");
 	sql_cmd(dbproc);

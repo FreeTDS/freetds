@@ -1,3 +1,5 @@
+select name from sysobjects where name = 'missing' compute max(name)
+go
 create table #dblib0023 (col1 int not null,  col2 char(1) not null, col3 datetime not null)
 go
 insert into #dblib0023 values (1, 'A', 'Jan  1 2002 10:00:00AM')
