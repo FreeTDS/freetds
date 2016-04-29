@@ -13,7 +13,7 @@ branches:
     - Branch-0_91
 
 services:
-- mssql2008r2sp2
+- mssql2012sp1
 
 version: "{build}"
 
@@ -91,7 +91,7 @@ build_script:
   - cd ..
 
 test_script:
-  - set INSTANCENAME=SQL2008R2SP2
+  - set INSTANCENAME=SQL2012SP1
   - "powershell misc\\sql-server-activate-tcp-fixed-port.ps1"
   # Create freetds.conf
   - cd build
