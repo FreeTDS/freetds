@@ -669,11 +669,11 @@ TDS_INT convert_datetime2server(int bindtype, const void *src, TDS_DATETIMEALL *
 void odbc_bcp_free_storage(TDS_DBC *dbc);
 void odbc_bcp_init(TDS_DBC *dbc, const ODBC_CHAR *tblname, const ODBC_CHAR *hfile, const ODBC_CHAR *errfile, int direction _WIDE);
 void odbc_bcp_control(TDS_DBC *dbc, int field, void *value);
-void odbc_bcp_colptr(TDS_DBC *dbc, const BYTE * colptr, int table_column);
+void odbc_bcp_colptr(TDS_DBC *dbc, const void * colptr, int table_column);
 void odbc_bcp_sendrow(TDS_DBC *dbc);
 int odbc_bcp_batch(TDS_DBC *dbc);
 int odbc_bcp_done(TDS_DBC *dbc);
-void odbc_bcp_bind(TDS_DBC *dbc, const BYTE * varaddr, int prefixlen, int varlen, const BYTE * terminator, int termlen, int vartype, int table_column);
+void odbc_bcp_bind(TDS_DBC *dbc, const void * varaddr, int prefixlen, int varlen, const void * terminator, int termlen, int vartype, int table_column);
 
 /*
  * sqlwchar.c

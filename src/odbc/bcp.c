@@ -201,7 +201,7 @@ odbc_bcp_control(TDS_DBC *dbc, int field, void *value)
  * \sa 	odbc_bcp_bind(), odbc_bcp_sendrow()
  */
 void
-odbc_bcp_colptr(TDS_DBC *dbc, const BYTE * colptr, int table_column)
+odbc_bcp_colptr(TDS_DBC *dbc, const void * colptr, int table_column)
 {
 	TDSCOLUMN *curcol;
 
@@ -342,8 +342,8 @@ odbc_bcp_done(TDS_DBC *dbc)
  * \sa 	odbc_bcp_batch(), odbc_bcp_done(), odbc_bcp_sendrow()
  */
 void
-odbc_bcp_bind(TDS_DBC *dbc, const BYTE * varaddr, int prefixlen, int varlen,
-	 const BYTE * terminator, int termlen, int vartype, int table_column)
+odbc_bcp_bind(TDS_DBC *dbc, const void * varaddr, int prefixlen, int varlen,
+	 const void * terminator, int termlen, int vartype, int table_column)
 {
 	TDSCOLUMN *colinfo;
 
