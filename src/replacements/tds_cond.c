@@ -209,7 +209,7 @@ int tds_raw_cond_init(tds_condition *cond)
 int tds_raw_cond_timedwait(tds_condition *cond, tds_raw_mutex *mtx, int timeout_sec)
 {
 	struct timespec ts;
-#ifndef USE_CLOCK_IN_COND
+#if !defined(HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE_NP) && !defined(USE_CLOCK_IN_COND)
 	struct timeval tv;
 #endif
 
