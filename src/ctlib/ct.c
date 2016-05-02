@@ -1764,7 +1764,7 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 		 */
 
 		temp_add = (unsigned char *) bindcol->column_varaddr;
-		dest = temp_add + (offset * bindcol->column_bindlen);
+		dest = temp_add ? temp_add + (offset * bindcol->column_bindlen) : NULL;
 
 		if (bindcol->column_nullbind) {
 			nullind = bindcol->column_nullbind;
