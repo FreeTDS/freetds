@@ -210,7 +210,6 @@ ex_display_results(CS_COMMAND * cmd, char *results)
 	CS_INT row_count = 0;
 	CS_INT rows_read;
 	CS_SMALLINT msg_id;
-	char *lasts = NULL;
 
 	/*
 	 * Process the results of the RPC.
