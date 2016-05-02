@@ -672,8 +672,6 @@ int dbtabcount(DBPROCESS * dbprocess);
 char *dbtabname(DBPROCESS * dbprocess, int tabnum);
 char *dbtabsource(DBPROCESS * dbprocess, int colnum, int *tabnum);
 
-RETCODE dbsetlshort(LOGINREC * login, int value, int which);
-
 RETCODE dbsendpassthru(DBPROCESS * dbprocess, DBVOIDPTR bufp);
 RETCODE dbrecvpassthru(DBPROCESS * dbprocess, DBVOIDPTR * bufp);
 
@@ -1238,6 +1236,7 @@ RETCODE dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTIN
 /* LOGINREC manipulation */
 RETCODE dbsetlname(LOGINREC * login, const char *value, int which);
 RETCODE dbsetlbool(LOGINREC * login, int value, int which);
+RETCODE dbsetlshort(LOGINREC * login, int value, int which);
 RETCODE dbsetllong(LOGINREC * login, long value, int which);
 RETCODE dbsetlversion (LOGINREC * login, BYTE version);
 
@@ -1282,6 +1281,9 @@ RETCODE dbsetlversion (LOGINREC * login, BYTE version);
 #define DBSETDBNAME		14
 #define DBSETLDBNAME(x,y)	dbsetlname((x), (y), DBSETDBNAME)
 #define DBSETLVERSION(login, version) dbsetlversion((login), (version))
+/* settings from here are purely FreeTDS extensions */
+#define DBSETUTF16		1001
+#define DBSETLUTF16(x,y)	dbsetlbool((x), (y), DBSETUTF16)
 
 RETCODE bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char *errfile, int direction);
 DBINT bcp_done(DBPROCESS * dbproc);

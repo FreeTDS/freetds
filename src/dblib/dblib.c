@@ -914,6 +914,9 @@ dbsetlbool(LOGINREC * login, int value, int which)
 		tds_set_bulk(login->tds_login, (TDS_TINYINT) value);
 		return SUCCEED;
 		break;
+	case DBSETUTF16:
+		login->tds_login->use_utf16 = (value != 0);
+		return SUCCEED;
 	case DBSETENCRYPT:
 	case DBSETLABELED:
 	default:
