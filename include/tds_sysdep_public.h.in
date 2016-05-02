@@ -53,6 +53,45 @@
   typedef unsigned @tds_sysdep_intptr_type@ uintptr_t;
 #endif
 
+#include <float.h>
+
+/* try to understand float sizes using float.h constants */
+#if FLT_RADIX == 2
+#  if FLT_MANT_DIG == 24 && FLT_MAX_EXP == 128
+#    define tds_sysdep_real32_type float	/* 32-bit real */
+#  elif DBL_MANT_DIG == 24 && DBL_MAX_EXP == 128
+#    define tds_sysdep_real32_type double	/* 32-bit real */
+#  elif LDBL_MANT_DIG == 24 && LDBL_MAX_EXP == 128
+#    define tds_sysdep_real32_type long double	/* 32-bit real */
+#  endif
+#  if FLT_MANT_DIG == 53 && FLT_MAX_EXP == 1024
+#    define tds_sysdep_real64_type float	/* 64-bit real */
+#  elif DBL_MANT_DIG == 53 && DBL_MAX_EXP == 1024
+#    define tds_sysdep_real64_type double	/* 64-bit real */
+#  elif LDBL_MANT_DIG == 53 && LDBL_MAX_EXP == 1024
+#    define tds_sysdep_real64_type long double	/* 64-bit real */
+#  endif
+#  if !defined(tds_sysdep_real32_type) || !defined(tds_sysdep_real64_type)
+#    error Some float type was not found!
+#  endif
+#else
+#  if FLT_DIG == 6 && FLT_MAX_10_EXP == 38
+#    define tds_sysdep_real32_type float	/* 32-bit real */
+#  elif DBL_DIG == 6 && DBL_MAX_10_EXP == 38
+#    define tds_sysdep_real32_type double	/* 32-bit real */
+#  elif LDBL_DIG == 6 && LDBL_MAX_10_EXP == 38
+#    define tds_sysdep_real32_type long double	/* 32-bit real */
+#  endif
+#  if FLT_DIG == 15 && FLT_MAX_10_EXP == 308
+#    define tds_sysdep_real64_type float	/* 64-bit real */
+#  elif DBL_DIG == 15 && DBL_MAX_10_EXP == 308
+#    define tds_sysdep_real64_type double	/* 64-bit real */
+#  elif LDBL_DIG == 15 && LDBL_MAX_10_EXP == 308
+#    define tds_sysdep_real64_type long double	/* 64-bit real */
+#  endif
+#endif
+
+/* fall back to configure.ac types */
 #ifndef tds_sysdep_real32_type
 #define tds_sysdep_real32_type @tds_sysdep_real32_type@	/* 32-bit real */
 #endif				/* !tds_sysdep_real32_type */
