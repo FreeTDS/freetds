@@ -33,27 +33,27 @@ extern "C"
 static const char rcsid_cstypes_h[] = "$Id: cstypes.h,v 1.7 2008-05-06 00:14:02 jklowden Exp $";
 static const void *const no_unused_cstypes_h_warn[] = { rcsid_cstypes_h, no_unused_cstypes_h_warn };
 
-typedef tds_sysdep_int32_type 		CS_INT;
-typedef unsigned tds_sysdep_int32_type 	CS_UINT;
-typedef tds_sysdep_int64_type 		CS_BIGINT;
-typedef unsigned tds_sysdep_int64_type 	CS_UBIGINT;
-typedef tds_sysdep_int16_type 		CS_SMALLINT;
-typedef unsigned tds_sysdep_int16_type 	CS_USMALLINT;
-typedef unsigned char 			CS_TINYINT;
-typedef char 				CS_CHAR;
-typedef unsigned char 			CS_BYTE;
-typedef tds_sysdep_real32_type 		CS_REAL;
-typedef tds_sysdep_real64_type 		CS_FLOAT;
-typedef tds_sysdep_int32_type 		CS_BOOL;
-typedef void 				CS_VOID;
-typedef unsigned char 			CS_IMAGE;
-typedef unsigned char 			CS_TEXT;
-typedef unsigned char 			CS_LONGBINARY;
-typedef unsigned char 			CS_LONGCHAR;
-typedef long 				CS_LONG;
-typedef unsigned char 			CS_BINARY;
-typedef unsigned tds_sysdep_int16_type 	CS_USHORT;
-typedef unsigned char 			CS_BIT;
+typedef int32_t 		CS_INT;
+typedef uint32_t 		CS_UINT;
+typedef int64_t 		CS_BIGINT;
+typedef uint64_t 		CS_UBIGINT;
+typedef int16_t 		CS_SMALLINT;
+typedef uint16_t 		CS_USMALLINT;
+typedef unsigned char 		CS_TINYINT;
+typedef char 			CS_CHAR;
+typedef unsigned char 		CS_BYTE;
+typedef tds_sysdep_real32_type 	CS_REAL;
+typedef tds_sysdep_real64_type 	CS_FLOAT;
+typedef int32_t 		CS_BOOL;
+typedef void 			CS_VOID;
+typedef unsigned char 		CS_IMAGE;
+typedef unsigned char 		CS_TEXT;
+typedef unsigned char 		CS_LONGBINARY;
+typedef unsigned char 		CS_LONGCHAR;
+typedef long 			CS_LONG;
+typedef unsigned char 		CS_BINARY;
+typedef uint16_t 		CS_USHORT;
+typedef unsigned char 		CS_BIT;
 
 typedef CS_INT CS_RETCODE;
 

@@ -117,9 +117,7 @@ int
 main(int argc, char **argv)
 {
 	CS_RETCODE ret;
-#ifdef tds_sysdep_int64_type
-	volatile tds_sysdep_int64_type one = 1;
-#endif
+	volatile CS_BIGINT one = 1;
 	int verbose = 1;
 
 	fprintf(stdout, "%s: Testing conversion\n", __FILE__);
@@ -243,7 +241,6 @@ main(int argc, char **argv)
 		-1230000}
 		, CS_CHAR_TYPE, test, 4, CS_MONEY4_TYPE, sizeof(test2), CS_SUCCEED, &test2, sizeof(test2));
 
-#ifdef tds_sysdep_int64_type
 	DO_TEST(CS_INT test = 1234678;
 		CS_MONEY test2;
 		test2.mnyhigh = ((one * 1234678) * 10000) >> 32;
@@ -254,7 +251,6 @@ main(int argc, char **argv)
 		test2.mnyhigh = ((one * -8765) * 10000) >> 32;
 		test2.mnylow = (CS_UINT) ((one * -8765) * 10000),
 		CS_INT_TYPE, &test, sizeof(test), CS_MONEY_TYPE, sizeof(test2), CS_SUCCEED, &test2, sizeof(test2));
-#endif
 
 	DO_TEST(CS_INT test = 12345;
 		CS_CHAR test2[] = "12345",

@@ -119,19 +119,19 @@ typedef struct tds_dstr {
  * these. (In the TDS layer only, the API layers have their
  * own typedefs which equate to these).
  */
-typedef char TDS_CHAR;					/*  8-bit char     */
-typedef unsigned char TDS_UCHAR;			/*  8-bit uchar    */
-typedef unsigned char TDS_TINYINT;			/*  8-bit unsigned */
-typedef tds_sysdep_int16_type TDS_SMALLINT;		/* 16-bit int      */
-typedef unsigned tds_sysdep_int16_type TDS_USMALLINT;	/* 16-bit unsigned */
-typedef tds_sysdep_int32_type TDS_INT;			/* 32-bit int      */
-typedef unsigned tds_sysdep_int32_type TDS_UINT;	/* 32-bit unsigned */
-typedef tds_sysdep_real32_type TDS_REAL;		/* 32-bit real     */
-typedef tds_sysdep_real64_type TDS_FLOAT;		/* 64-bit real     */
-typedef tds_sysdep_int64_type TDS_INT8;			/* 64-bit integer  */
-typedef unsigned tds_sysdep_int64_type TDS_UINT8;	/* 64-bit unsigned */
-typedef tds_sysdep_intptr_type TDS_INTPTR;
-typedef unsigned tds_sysdep_intptr_type TDS_UINTPTR;
+typedef char TDS_CHAR;				/*  8-bit char     */
+typedef uint8_t TDS_UCHAR;			/*  8-bit uchar    */
+typedef uint8_t  TDS_TINYINT;			/*  8-bit unsigned */
+typedef int16_t  TDS_SMALLINT;			/* 16-bit int      */
+typedef uint16_t TDS_USMALLINT;			/* 16-bit unsigned */
+typedef int32_t TDS_INT;			/* 32-bit int      */
+typedef uint32_t TDS_UINT;			/* 32-bit unsigned */
+typedef int64_t TDS_INT8;			/* 64-bit integer  */
+typedef uint64_t TDS_UINT8;			/* 64-bit unsigned */
+typedef intptr_t TDS_INTPTR;
+typedef uintptr_t TDS_UINTPTR;
+typedef tds_sysdep_real32_type TDS_REAL;	/* 32-bit real     */
+typedef tds_sysdep_real64_type TDS_FLOAT;	/* 64-bit real     */
 
 #include <freetds/proto.h>
 
