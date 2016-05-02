@@ -546,7 +546,7 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 	TDS_TINYINT ti;
 	TDS_SMALLINT si;
 	TDS_INT li;
-	tds_sysdep_int64_type lli;
+	TDS_INT8 lli;
 	TDS_SERVER_TYPE desttype, coltype;
 	SQLLEN col_len;
 	int data_is_null;
@@ -600,7 +600,7 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 		data_is_null = 1;
 	else if (!data_is_null && bindcol->column_bindlen != SQL_VARLEN_DATA) {
 		if (col_len != SQL_NULL_DATA)
-			col_len = ((tds_sysdep_int64_type)bindcol->column_bindlen < col_len) ? bindcol->column_bindlen : col_len;
+			col_len = ((TDS_INT8)bindcol->column_bindlen < col_len) ? bindcol->column_bindlen : col_len;
 		else
 			col_len = bindcol->column_bindlen;
 	}

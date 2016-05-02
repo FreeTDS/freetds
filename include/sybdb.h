@@ -249,15 +249,15 @@ typedef unsigned char DBBOOL;
 typedef char DBCHAR;
 typedef unsigned char DBBIT;
 typedef unsigned char DBTINYINT;
-typedef tds_sysdep_int16_type DBSMALLINT;
-typedef tds_sysdep_int32_type DBINT;
-typedef tds_sysdep_int64_type DBBIGINT;
+typedef int16_t DBSMALLINT;
+typedef int32_t DBINT;
+typedef int64_t DBBIGINT;
 typedef unsigned char DBBINARY;
 typedef tds_sysdep_real32_type DBREAL;
 typedef tds_sysdep_real64_type DBFLT8;
-typedef unsigned tds_sysdep_int16_type DBUSMALLINT;
-typedef unsigned tds_sysdep_int32_type DBUINT;
-typedef unsigned tds_sysdep_int64_type DBUBIGINT;
+typedef uint16_t DBUSMALLINT;
+typedef uint32_t DBUINT;
+typedef uint64_t DBUBIGINT;
 
 typedef struct 
 {
@@ -283,7 +283,7 @@ typedef DBNUMERIC DBDECIMAL;
 typedef struct
 {
 	DBINT mnyhigh;
-	unsigned tds_sysdep_int32_type mnylow;
+	uint32_t mnylow;
 } DBMONEY;
 
 typedef struct
