@@ -250,6 +250,9 @@ tds_answer_challenge_ntlmv2(TDSSOCKET * tds,
 	unsigned char ntlm_v2_hash[16];
 	const names_blob_prefix_t *names_blob_prefix;
 
+	if (!names_blob)
+		return TDS_FAIL;
+
 	res = make_ntlm_v2_hash(tds, passwd, ntlm_v2_hash);
 	if (TDS_FAILED(res))
 		return res;
