@@ -34,6 +34,9 @@ main(int argc, char **argv)
 	CS_CHAR text[128];
 	CS_INT num_cols, i;
 
+	memset(col1, 0, sizeof(col1));
+	memset(col2, 0, sizeof(col2));
+
 	fprintf(stdout, "%s: use multiple cursors on the same connection\n", __FILE__);
 
 	if (verbose) {
