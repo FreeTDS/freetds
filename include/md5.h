@@ -6,14 +6,14 @@
 #include <freetds/pushvis.h>
 
 struct MD5Context {
-	TDS_UINT buf[4];
-	TDS_UINT8 bytes;
-	unsigned char in[64];
+	uint32_t buf[4];
+	uint64_t bytes;
+	uint8_t  in[64];
 };
 
 void MD5Init(struct MD5Context *context);
-void MD5Update(struct MD5Context *context, unsigned char const *buf, size_t len);
-void MD5Final(struct MD5Context *context, unsigned char *digest);
+void MD5Update(struct MD5Context *context, const uint8_t *buf, size_t len);
+void MD5Final(struct MD5Context *context, uint8_t *digest);
 
 /*
  * This is needed to make RSAREF happy on some MS-DOS compilers.
@@ -33,12 +33,12 @@ static inline void MD5Init(MD5_CTX *ctx)
 	nettle_md5_init(ctx);
 }
 
-static inline void MD5Update(MD5_CTX *ctx, unsigned char const *buf, size_t len)
+static inline void MD5Update(MD5_CTX *ctx, const uint8_t *buf, size_t len)
 {
 	nettle_md5_update(ctx, len, buf);
 }
 
-static inline void MD5Final(MD5_CTX *ctx, unsigned char *digest)
+static inline void MD5Final(MD5_CTX *ctx, uint8_t *digest)
 {
 	nettle_md5_digest(ctx, 16, digest);
 }

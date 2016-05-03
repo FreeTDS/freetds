@@ -109,7 +109,7 @@ for my $types (values %cats) {
 die if $n >= 32;
 
 # output array to translate type to category
-print "static const TDS_TINYINT type2category[256] = {\n";
+print "static const uint8_t type2category[256] = {\n";
 for my $n (0..255) {
 	my $comment = $typeNames[$n] ? $typeNames[$n] : "$n";
 	print "\t$catsNum[$n], /* $comment */\n";
@@ -117,7 +117,7 @@ for my $n (0..255) {
 print "};\n\n";
 
 # compute category conversions
-print "static const TDS_UINT category_conversion[] = {\n\t0,\n";
+print "static const uint32_t category_conversion[] = {\n\t0,\n";
 for my $catFrom (@converts) {
 	my $conv = 0;
 	my $n = 1;

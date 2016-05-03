@@ -87,7 +87,7 @@ tds5_negotiate_set_msg_type(TDSSOCKET * tds, TDSAUTHENTICATION * tds_auth, unsig
 }
 
 static void
-tds5_send_msg(TDSSOCKET *tds, TDS_USMALLINT msg_type)
+tds5_send_msg(TDSSOCKET *tds, uint16_t msg_type)
 {
 	tds_put_tinyint(tds, TDS_MSG_TOKEN);
 	tds_put_tinyint(tds, 3);

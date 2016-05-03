@@ -193,8 +193,8 @@ tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s)
 	return 1;
 }
 
-#define TDS_WORD  TDS_UINT
-#define TDS_DWORD TDS_UINT8
+#define TDS_WORD  uint32_t
+#define TDS_DWORD uint64_t
 #define TDS_WORD_DDIGIT 9
 
 /* include to check limits */

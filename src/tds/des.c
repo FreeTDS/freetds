@@ -67,7 +67,7 @@ static void permute_fp(des_cblock inblock, DES_KEY * key, des_cblock outblock);
 static void perminit_ip(DES_KEY * key);
 static void spinit(DES_KEY * key);
 static void perminit_fp(DES_KEY * key);
-static TDS_UINT f(DES_KEY * key, register TDS_UINT r, register unsigned char *subkey);
+static uint32_t f(DES_KEY * key, register uint32_t r, register unsigned char *subkey);
 
 /* Tables defined in the Data Encryption Standard documents */
 
@@ -326,9 +326,9 @@ tds_des_set_key(DES_KEY * dkey, const des_cblock user_key, int len)
 void
 tds_des_encrypt(DES_KEY * key, des_cblock block)
 {
-	register TDS_UINT left, right;
+	register uint32_t left, right;
 	register unsigned char *knp;
-	TDS_UINT work[2];	/* Working data storage */
+	uint32_t work[2];	/* Working data storage */
 
 	permute_ip(block, key, (unsigned char *) work);	/* Initial Permutation */
 	left = TDS_GET_A4BE(&work[0]);
@@ -386,9 +386,9 @@ tds_des_encrypt(DES_KEY * key, des_cblock block)
 void
 _mcrypt_decrypt(DES_KEY * key, unsigned char *block)
 {
-	register TDS_UINT left, right;
+	register uint32_t left, right;
 	register unsigned char *knp;
-	TDS_UINT work[2];	/* Working data storage */
+	uint32_t work[2];	/* Working data storage */
 
 	permute_ip(block, key, (unsigned char *) work);	/* Initial permutation */
 
@@ -496,11 +496,11 @@ permute_fp(des_cblock inblock, DES_KEY * key, des_cblock outblock)
 }
 
 /* The nonlinear function f(r,k), the heart of DES */
-static TDS_UINT
-f(DES_KEY * key, register TDS_UINT r, register unsigned char *subkey)
+static uint32_t
+f(DES_KEY * key, register uint32_t r, register unsigned char *subkey)
 {
-	register const TDS_UINT *spp;
-	register TDS_UINT rval, rt;
+	register const uint32_t *spp;
+	register uint32_t rval, rt;
 	register int er;
 
 #ifdef	TRACE
@@ -519,7 +519,7 @@ f(DES_KEY * key, register TDS_UINT r, register unsigned char *subkey)
 	spp = &key->sp[7][0];
 	rval = spp[(er ^ *subkey--) & 0x3f];
 	spp -= 64;
-	rt = (TDS_UINT) r >> 3;
+	rt = (uint32_t) r >> 3;
 	rval |= spp[((int) rt ^ *subkey--) & 0x3f];
 	spp -= 64;
 	rt >>= 4;
@@ -596,7 +596,7 @@ static void
 spinit(DES_KEY * key)
 {
 	int i, s, j, rowcol;
-	TDS_UINT val;
+	uint32_t val;
 
 	for (s = 0; s < 8; s++) {	/* For each S-box */
 		for (i = 0; i < 64; i++) {	/* For each possible input */

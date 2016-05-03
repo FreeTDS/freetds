@@ -43,9 +43,6 @@
 #include <freetds/bytes.h>
 #include "md4.h"
 
-#undef word32
-#define word32 TDS_UINT
-
 #ifndef WORDS_BIGENDIAN
 #define byteReverse(buf, len)	/* Nothing */
 #else
@@ -56,15 +53,15 @@ static void
 byteReverse(unsigned char *buf, unsigned longs)
 {
 	do {
-		*(word32 *) buf = TDS_GET_A4LE(buf);
+		*(uint32_t *) buf = TDS_GET_A4LE(buf);
 		buf += 4;
 	} while (--longs);
 }
 #endif
 
-#define rotl32(x,n)   (((x) << ((word32)(n))) | ((x) >> (32 - (word32)(n))))
+#define rotl32(x,n)   (((x) << ((uint32_t)(n))) | ((x) >> (32 - (uint32_t)(n))))
 
-static void MD4Transform(TDS_UINT buf[4], TDS_UINT const in[16]);
+static void MD4Transform(uint32_t buf[4], const uint32_t in[16]);
 /*
  * Start MD4 accumulation.  Set bit count to 0 and buffer to mysterious
  * initialization constants.
@@ -87,7 +84,7 @@ MD4Init(struct MD4Context *ctx)
 void
 MD4Update(struct MD4Context *ctx, unsigned char const *buf, size_t len)
 {
-	register word32 t;
+	register uint32_t t;
 
 	t = ctx->bytes & 0x3f;
 
@@ -106,7 +103,7 @@ MD4Update(struct MD4Context *ctx, unsigned char const *buf, size_t len)
 		}
 		memcpy(p, buf, t);
 		byteReverse(ctx->in, 16);
-		MD4Transform(ctx->buf, (word32 *) ctx->in);
+		MD4Transform(ctx->buf, (uint32_t *) ctx->in);
 		buf += t;
 		len -= t;
 	}
@@ -115,7 +112,7 @@ MD4Update(struct MD4Context *ctx, unsigned char const *buf, size_t len)
 	while (len >= 64) {
 		memcpy(ctx->in, buf, 64);
 		byteReverse(ctx->in, 16);
-		MD4Transform(ctx->buf, (word32 *) ctx->in);
+		MD4Transform(ctx->buf, (uint32_t *) ctx->in);
 		buf += 64;
 		len -= 64;
 	}
@@ -151,7 +148,7 @@ MD4Final(struct MD4Context *ctx, unsigned char *digest)
 		/* Two lots of padding:  Pad the first block to 64 bytes */
 		memset(p, 0, count);
 		byteReverse(ctx->in, 16);
-		MD4Transform(ctx->buf, (word32 *) ctx->in);
+		MD4Transform(ctx->buf, (uint32_t *) ctx->in);
 
 		/* Now fill the next block with 56 bytes */
 		memset(ctx->in, 0, 56);
@@ -162,10 +159,10 @@ MD4Final(struct MD4Context *ctx, unsigned char *digest)
 	byteReverse(ctx->in, 14);
 
 	/* Append length in bits and transform */
-	((word32 *) ctx->in)[14] = (word32) (ctx->bytes << 3);
-	((word32 *) ctx->in)[15] = (word32) (ctx->bytes >> 29);
+	((uint32_t *) ctx->in)[14] = (uint32_t) (ctx->bytes << 3);
+	((uint32_t *) ctx->in)[15] = (uint32_t) (ctx->bytes >> 29);
 
-	MD4Transform(ctx->buf, (word32 *) ctx->in);
+	MD4Transform(ctx->buf, (uint32_t *) ctx->in);
 	byteReverse((unsigned char *) ctx->buf, 4);
 
 	if (digest != NULL)
@@ -184,11 +181,11 @@ MD4Final(struct MD4Context *ctx, unsigned char *digest)
     (a) = rotl32 ((a), (s)); \
   }
 #define GG(a, b, c, d, x, s) { \
-    (a) += G ((b), (c), (d)) + (x) + (word32)0x5a827999; \
+    (a) += G ((b), (c), (d)) + (x) + (uint32_t)0x5a827999; \
     (a) = rotl32 ((a), (s)); \
   }
 #define HH(a, b, c, d, x, s) { \
-    (a) += H ((b), (c), (d)) + (x) + (word32)0x6ed9eba1; \
+    (a) += H ((b), (c), (d)) + (x) + (uint32_t)0x6ed9eba1; \
     (a) = rotl32 ((a), (s)); \
   }
 
@@ -197,9 +194,9 @@ MD4Final(struct MD4Context *ctx, unsigned char *digest)
  * The core of the MD4 algorithm
  */
 static void
-MD4Transform(word32 buf[4], word32 const in[16])
+MD4Transform(uint32_t buf[4], const uint32_t in[16])
 {
-	register word32 a, b, c, d;
+	register uint32_t a, b, c, d;
 
 	a = buf[0];
 	b = buf[1];

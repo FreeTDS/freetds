@@ -42,45 +42,45 @@
 /* TODO optimize (use swap, unaligned platforms) */
 
 /* one byte, easy... */
-#define TDS_GET_A1LE(ptr)  (((TDS_UCHAR*)(ptr))[0])
+#define TDS_GET_A1LE(ptr)  (((uint8_t *)(ptr))[0])
 #define TDS_GET_A1BE(ptr)  TDS_GET_A1LE(ptr)
 #define TDS_GET_UA1LE(ptr) TDS_GET_A1LE(ptr)
 #define TDS_GET_UA1BE(ptr) TDS_GET_A1LE(ptr)
 
-#define TDS_PUT_A1LE(ptr,val)  do { ((TDS_UCHAR*)(ptr))[0] = (val); } while(0)
+#define TDS_PUT_A1LE(ptr,val)  do { ((uint8_t *)(ptr))[0] = (val); } while(0)
 #define TDS_PUT_A1BE(ptr,val)  TDS_PUT_A1LE(ptr,val)
 #define TDS_PUT_UA1LE(ptr,val) TDS_PUT_A1LE(ptr,val)
 #define TDS_PUT_UA1BE(ptr,val) TDS_PUT_A1LE(ptr,val)
 
 /* two bytes */
-#define TDS_GET_UA2LE(ptr) (((TDS_UCHAR*)(ptr))[1] * 0x100u + ((TDS_UCHAR*)(ptr))[0])
-#define TDS_GET_UA2BE(ptr) (((TDS_UCHAR*)(ptr))[0] * 0x100u + ((TDS_UCHAR*)(ptr))[1])
+#define TDS_GET_UA2LE(ptr) (((uint8_t *)(ptr))[1] * 0x100u + ((uint8_t *)(ptr))[0])
+#define TDS_GET_UA2BE(ptr) (((uint8_t *)(ptr))[0] * 0x100u + ((uint8_t *)(ptr))[1])
 #define TDS_GET_A2LE(ptr) TDS_GET_UA2LE(ptr)
 #define TDS_GET_A2BE(ptr) TDS_GET_UA2BE(ptr)
 
 #define TDS_PUT_UA2LE(ptr,val) do {\
- ((TDS_UCHAR*)(ptr))[1] = (TDS_UCHAR)((val)>>8); ((TDS_UCHAR*)(ptr))[0] = (TDS_UCHAR)(val); } while(0)
+ ((uint8_t *)(ptr))[1] = (uint8_t)((val)>>8); ((uint8_t *)(ptr))[0] = (uint8_t)(val); } while(0)
 #define TDS_PUT_UA2BE(ptr,val) do {\
- ((TDS_UCHAR*)(ptr))[0] = (TDS_UCHAR)((val)>>8); ((TDS_UCHAR*)(ptr))[1] = (TDS_UCHAR)(val); } while(0)
+ ((uint8_t *)(ptr))[0] = (uint8_t)((val)>>8); ((uint8_t *)(ptr))[1] = (uint8_t)(val); } while(0)
 #define TDS_PUT_A2LE(ptr,val) TDS_PUT_UA2LE(ptr,val)
 #define TDS_PUT_A2BE(ptr,val) TDS_PUT_UA2BE(ptr,val)
 
 /* four bytes */
 #define TDS_GET_UA4LE(ptr) \
-	(((TDS_UCHAR*)(ptr))[3] * 0x1000000u + ((TDS_UCHAR*)(ptr))[2] * 0x10000u +\
-	 ((TDS_UCHAR*)(ptr))[1] * 0x100u + ((TDS_UCHAR*)(ptr))[0])
+	(((uint8_t *)(ptr))[3] * 0x1000000u + ((uint8_t *)(ptr))[2] * 0x10000u +\
+	 ((uint8_t *)(ptr))[1] * 0x100u + ((uint8_t *)(ptr))[0])
 #define TDS_GET_UA4BE(ptr) \
-	(((TDS_UCHAR*)(ptr))[0] * 0x1000000u + ((TDS_UCHAR*)(ptr))[1] * 0x10000u +\
-	 ((TDS_UCHAR*)(ptr))[2] * 0x100u + ((TDS_UCHAR*)(ptr))[3])
+	(((uint8_t *)(ptr))[0] * 0x1000000u + ((uint8_t *)(ptr))[1] * 0x10000u +\
+	 ((uint8_t *)(ptr))[2] * 0x100u + ((uint8_t *)(ptr))[3])
 #define TDS_GET_A4LE(ptr) TDS_GET_UA4LE(ptr)
 #define TDS_GET_A4BE(ptr) TDS_GET_UA4BE(ptr)
 
 #define TDS_PUT_UA4LE(ptr,val) do {\
- ((TDS_UCHAR*)(ptr))[3] = (TDS_UCHAR)((val)>>24); ((TDS_UCHAR*)(ptr))[2] = (TDS_UCHAR)((val)>>16);\
- ((TDS_UCHAR*)(ptr))[1] = (TDS_UCHAR)((val)>>8); ((TDS_UCHAR*)(ptr))[0] = (TDS_UCHAR)(val); } while(0)
+ ((uint8_t *)(ptr))[3] = (uint8_t)((val)>>24); ((uint8_t *)(ptr))[2] = (uint8_t)((val)>>16);\
+ ((uint8_t *)(ptr))[1] = (uint8_t)((val)>>8); ((uint8_t *)(ptr))[0] = (uint8_t)(val); } while(0)
 #define TDS_PUT_UA4BE(ptr,val) do {\
- ((TDS_UCHAR*)(ptr))[0] = (TDS_UCHAR)((val)>>24); ((TDS_UCHAR*)(ptr))[1] = (TDS_UCHAR)((val)>>16);\
- ((TDS_UCHAR*)(ptr))[2] = (TDS_UCHAR)((val)>>8); ((TDS_UCHAR*)(ptr))[3] = (TDS_UCHAR)(val); } while(0)
+ ((uint8_t *)(ptr))[0] = (uint8_t)((val)>>24); ((uint8_t *)(ptr))[1] = (uint8_t)((val)>>16);\
+ ((uint8_t *)(ptr))[2] = (uint8_t)((val)>>8); ((uint8_t *)(ptr))[3] = (uint8_t)(val); } while(0)
 #define TDS_PUT_A4LE(ptr,val) TDS_PUT_UA4LE(ptr,val)
 #define TDS_PUT_A4BE(ptr,val) TDS_PUT_UA4BE(ptr,val)
 
@@ -91,13 +91,13 @@
 #endif
 
 typedef union {
-	TDS_USMALLINT usi;
-	TDS_UCHAR uc[2];
+	uint16_t usi;
+	uint8_t uc[2];
 } TDS_MAY_ALIAS TDS_BYTE_CONVERT2;
 
 typedef union {
-	TDS_UINT ui;
-	TDS_UCHAR uc[4];
+	uint32_t ui;
+	uint8_t uc[4];
 } TDS_MAY_ALIAS TDS_BYTE_CONVERT4;
 
 /* architecture dependent */
@@ -192,33 +192,33 @@ typedef union {
 # include <byteswap.h>
 # undef TDS_GET_UA2BE
 # undef TDS_GET_UA4BE
-# define TDS_GET_UA2BE(ptr) ({ TDS_USMALLINT _tds_si = TDS_GET_UA2LE(ptr); bswap_16(_tds_si); })
-# define TDS_GET_UA4BE(ptr) ({ TDS_UINT _tds_i = TDS_GET_UA4LE(ptr); bswap_32(_tds_i); })
+# define TDS_GET_UA2BE(ptr) ({ uint16_t _tds_si = TDS_GET_UA2LE(ptr); bswap_16(_tds_si); })
+# define TDS_GET_UA4BE(ptr) ({ uint32_t _tds_i = TDS_GET_UA4LE(ptr); bswap_32(_tds_i); })
 
 # undef TDS_PUT_UA2BE
 # undef TDS_PUT_UA4BE
 # define TDS_PUT_UA2BE(ptr,val) do {\
-   TDS_USMALLINT _tds_si = bswap_16(val); TDS_PUT_UA2LE(ptr,_tds_si); } while(0)
+   uint16_t _tds_si = bswap_16(val); TDS_PUT_UA2LE(ptr,_tds_si); } while(0)
 # define TDS_PUT_UA4BE(ptr,val) do {\
-   TDS_UINT _tds_i = bswap_32(val); TDS_PUT_UA4LE(ptr,_tds_i); } while(0)
+   uint32_t _tds_i = bswap_32(val); TDS_PUT_UA4LE(ptr,_tds_i); } while(0)
 #endif
 
 #if defined(__GNUC__) && defined(__powerpc__)
 # undef TDS_GET_UA2LE
 # undef TDS_GET_UA4LE
-static inline TDS_USMALLINT
+static inline uint16_t
 TDS_GET_UA2LE(void *ptr)
 {
 	unsigned long res;
-	__asm__ ("lhbrx %0,0,%1\n" : "=r" (res) : "r" (ptr), "m"(*(TDS_USMALLINT*)ptr));
-	return (TDS_USMALLINT) res;
+	__asm__ ("lhbrx %0,0,%1\n" : "=r" (res) : "r" (ptr), "m"(*(uint16_t *)ptr));
+	return (uint16_t) res;
 }
-static inline TDS_UINT
+static inline uint32_t
 TDS_GET_UA4LE(void *ptr)
 {
 	unsigned long res;
-	__asm__ ("lwbrx %0,0,%1\n" : "=r" (res) : "r" (ptr), "m"(*(TDS_UINT*)ptr));
-	return (TDS_UINT) res;
+	__asm__ ("lwbrx %0,0,%1\n" : "=r" (res) : "r" (ptr), "m"(*(uint32_t *)ptr));
+	return (uint32_t) res;
 }
 
 # undef TDS_PUT_UA2LE
@@ -226,12 +226,12 @@ TDS_GET_UA4LE(void *ptr)
 static inline void
 TDS_PUT_UA2LE(void *ptr, unsigned data)
 {
-    __asm__ ("sthbrx %1,0,%2\n" : "=m" (*(TDS_USMALLINT *)ptr) : "r" (data), "r" (ptr));
+    __asm__ ("sthbrx %1,0,%2\n" : "=m" (*(uint16_t *)ptr) : "r" (data), "r" (ptr));
 }
 static inline void
 TDS_PUT_UA4LE(void *ptr, unsigned data)
 {
-    __asm__ ("stwbrx %1,0,%2\n" : "=m" (*(TDS_UINT *)ptr) : "r" (data), "r" (ptr));
+    __asm__ ("stwbrx %1,0,%2\n" : "=m" (*(uint32_t *)ptr) : "r" (data), "r" (ptr));
 }
 #endif
 

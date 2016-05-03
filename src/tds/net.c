@@ -634,7 +634,7 @@ tds_wakeup_send(TDSPOLLWAKEUP *wakeup, char cancel)
 {
 #if defined(__linux__) && HAVE_EVENTFD
 	if (wakeup->s_signal == -1) {
-		TDS_UINT8 one = 1;
+		uint64_t one = 1;
 		(void) write(wakeup->s_signaled, &one, sizeof(one));
 		return;
 	}

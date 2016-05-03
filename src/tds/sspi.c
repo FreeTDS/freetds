@@ -124,14 +124,14 @@ tds_sspi_handle_next(TDSSOCKET * tds, struct tds_authentication * tds_auth, size
 	SECURITY_STATUS status;
 	ULONG attrs;
 	TimeStamp ts;
-	TDS_UCHAR *auth_buf;
+	uint8_t *auth_buf;
 
 	TDSSSPIAUTH *auth = (TDSSSPIAUTH *) tds_auth;
 
 	if (len < 32)
 		return TDS_FAIL;
 
-	auth_buf = tds_new(TDS_UCHAR, len);
+	auth_buf = tds_new(uint8_t, len);
 	if (!auth_buf)
 		return TDS_FAIL;
 	tds_get_n(tds, auth_buf, (int)len);

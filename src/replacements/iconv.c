@@ -55,7 +55,7 @@ enum ICONV_CD_VALUE
 	Like_to_Like = 0x100
 };
 
-typedef TDS_UINT ICONV_CHAR;
+typedef uint32_t ICONV_CHAR;
 
 static const unsigned char utf8_lengths[256] = {
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
