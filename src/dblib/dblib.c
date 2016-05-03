@@ -1132,7 +1132,7 @@ init_dboptions(void)
 		return NULL;
 	}
 	for (i = 0; i < DBNUMOPTIONS; i++) {
-		strlcpy(dbopts[i].text, opttext[i], sizeof(dbopts[i].text));
+		dbopts[i].text = opttext[i];
 		dbopts[i].param = NULL;
 		dbopts[i].factive = FALSE;
 	}

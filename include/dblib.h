@@ -104,15 +104,12 @@ typedef struct _DBREMOTE_PROC
 	DBREMOTE_PROC_PARAM *param_list;
 } DBREMOTE_PROC;
 
-#define MAXOPTTEXT    32
-
-struct dboption
+typedef struct dboption
 {
-	char text[MAXOPTTEXT];
+	const char *text;
 	DBSTRING *param;
 	DBBOOL factive;
-};
-typedef struct dboption DBOPTION;
+} DBOPTION;
 
 typedef struct _null_representation
 {
