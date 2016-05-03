@@ -69,23 +69,23 @@ typedef struct tds_answer
 
 typedef struct
 {
-	TDS_TINYINT     response_type;
-	TDS_TINYINT     max_response_type;
-	TDS_SMALLINT    reserved1;
-	TDS_UINT        reserved2;
-	TDS_UINT8       timestamp;
-	TDS_UCHAR       challenge[8];
-	TDS_UINT        unknown;
+	uint8_t  response_type;
+	uint8_t  max_response_type;
+	uint16_t reserved1;
+	uint32_t reserved2;
+	uint64_t timestamp;
+	uint8_t  challenge[8];
+	uint32_t unknown;
 	/* target info block - variable length */
-	TDS_UCHAR	target_info[4];
+	uint8_t  target_info[4];
 } names_blob_prefix_t;
 
 static TDSRET
 tds_answer_challenge(TDSSOCKET * tds,
 		     TDSLOGIN * login,
 		     const unsigned char *challenge,
-		     TDS_UINT * flags,
-		     const unsigned char *names_blob, TDS_INT names_blob_len, TDSANSWER * answer, unsigned char **ntlm_v2_response);
+		     uint32_t * flags,
+		     const unsigned char *names_blob, int names_blob_len, TDSANSWER * answer, unsigned char **ntlm_v2_response);
 static void tds_encrypt_answer(const unsigned char *hash, const unsigned char *challenge, unsigned char *answer);
 static void tds_convert_key(const unsigned char *key_56, DES_KEY * ks);
 
@@ -219,7 +219,7 @@ make_ntlm_v2_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_v2_has
  */
 static unsigned char *
 make_lm_v2_response(const unsigned char ntlm_v2_hash[16],
-		    const unsigned char *client_data, TDS_INT client_data_len, const unsigned char challenge[8])
+		    const unsigned char *client_data, int client_data_len, const unsigned char challenge[8])
 {
 	int mac_len = 16 + client_data_len;
 	unsigned char *mac;
@@ -239,8 +239,8 @@ static TDSRET
 tds_answer_challenge_ntlmv2(TDSSOCKET * tds,
 		     TDSLOGIN * login,
 		     const unsigned char *challenge,
-		     TDS_UINT * flags,
-		     const unsigned char *names_blob, TDS_INT names_blob_len, TDSANSWER * answer, unsigned char **ntlm_v2_response)
+		     uint32_t * flags,
+		     const unsigned char *names_blob, int names_blob_len, TDSANSWER * answer, unsigned char **ntlm_v2_response)
 {
 	TDSRET res;
 	const char *passwd = tds_dstr_cstr(&login->password);
@@ -290,8 +290,8 @@ static TDSRET
 tds_answer_challenge(TDSSOCKET * tds,
 		     TDSLOGIN * login,
 		     const unsigned char *challenge,
-		     TDS_UINT * flags,
-		     const unsigned char *names_blob, TDS_INT names_blob_len, TDSANSWER * answer, unsigned char **ntlm_v2_response)
+		     uint32_t * flags,
+		     const unsigned char *names_blob, int names_blob_len, TDSANSWER * answer, unsigned char **ntlm_v2_response)
 {
 #define MAX_PW_SZ 14
 	const char *passwd = tds_dstr_cstr(&login->password);
@@ -412,7 +412,7 @@ tds_convert_key(const unsigned char *key_56, DES_KEY * ks)
 
 static TDSRET
 tds7_send_auth(TDSSOCKET * tds,
-	       const unsigned char *challenge, TDS_UINT flags, const unsigned char *names_blob, TDS_INT names_blob_len)
+	       const unsigned char *challenge, uint32_t flags, const unsigned char *names_blob, int names_blob_len)
 {
 	size_t current_pos;
 	TDSANSWER answer;
@@ -552,12 +552,12 @@ static const unsigned char ntlm_id[] = "NTLMSSP";
  * This takes GMT as input
  */
 static void
-unix_to_nt_time(TDS_UINT8 * nt, struct timeval *tv)
+unix_to_nt_time(uint64_t * nt, struct timeval *tv)
 {
 	/* C time start on 1970, nt time on 1600 */
-#define TIME_FIXUP_CONSTANT (((TDS_UINT8) 134774U) * 86400U)
+#define TIME_FIXUP_CONSTANT (((uint64_t) 134774U) * 86400U)
 
-	TDS_UINT8 t2;
+	uint64_t t2;
 
 	t2 = tv->tv_sec;
 	t2 += TIME_FIXUP_CONSTANT;
@@ -571,7 +571,7 @@ static void
 fill_names_blob_prefix(names_blob_prefix_t * prefix)
 {
 	struct timeval tv;
-	TDS_UINT8 nttime = 0;
+	uint64_t nttime = 0;
 
 	gettimeofday(&tv, NULL);
 	unix_to_nt_time(&nttime, &tv);
@@ -594,7 +594,7 @@ tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 {
 	const int length = (int)len;
 	unsigned char nonce[8];
-	TDS_UINT flags;
+	uint32_t flags;
 	int where;
 
 	int data_block_offset;
@@ -692,7 +692,7 @@ tds_ntlm_get_auth(TDSSOCKET * tds)
 	const char *domain;
 	const char *user_name;
 	const char *p;
-	TDS_UCHAR *packet;
+	uint8_t *packet;
 	int host_name_len;
 	int domain_len;
 	int auth_len;
@@ -721,6 +721,7 @@ tds_ntlm_get_auth(TDSSOCKET * tds)
 
 	auth->tds_auth.packet_len = auth_len = 40 + host_name_len + domain_len;
 	auth->tds_auth.packet = packet = tds_new(TDS_UCHAR, auth_len);
+	auth->tds_auth.packet = packet = tds_new(uint8_t, auth_len);
 	if (!packet) {
 		free(auth);
 		return NULL;

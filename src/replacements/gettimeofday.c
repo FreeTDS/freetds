@@ -43,8 +43,8 @@
 int tds_gettimeofday (struct timeval *tv, void *tz)
 {
 	FILETIME  ft;
-	TDS_UINT8 tim;
-	TDS_UINT r;
+	uint64_t tim;
+	uint32_t r;
 
 	if (!tv) {
 		errno = EINVAL;
@@ -55,7 +55,7 @@ int tds_gettimeofday (struct timeval *tv, void *tz)
 	 * precision is less than milliseconds on Windows XP
 	 */
 	GetSystemTimeAsFileTime (&ft);
-	tim = ((((TDS_UINT8) ft.dwHighDateTime) << 32) | ft.dwLowDateTime) -
+	tim = ((((uint64_t) ft.dwHighDateTime) << 32) | ft.dwLowDateTime) -
 	      (DELTA_EPOCH_IN_USEC * 10U);
 	/*
 	 * here we use same division to compute quotient

@@ -526,7 +526,7 @@ typedef union
 {
 	void *p;
 	int i;
-	TDS_INT8 ui;
+	int64_t ui;
 } tds_align_struct;
 
 #define TDS_ALIGN_SIZE sizeof(tds_align_struct)
@@ -1074,7 +1074,7 @@ enum TDS_ICONV_ENTRY
 
 typedef struct tds_authentication
 {
-	TDS_UCHAR *packet;
+	uint8_t *packet;
 	int packet_len;
 	TDSRET (*free)(TDSCONNECTION* conn, struct tds_authentication * auth);
 	TDSRET (*handle_next)(TDSSOCKET * tds, struct tds_authentication * auth, size_t len);

@@ -378,7 +378,7 @@ tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *to
 		return TDS_FAIL;
 	}
 
-	auth->tds_auth.packet = (TDS_UCHAR *) send_tok.value;
+	auth->tds_auth.packet = (uint8_t *) send_tok.value;
 	auth->tds_auth.packet_len = send_tok.length;
 
 	return TDS_SUCCESS;
