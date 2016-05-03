@@ -4399,6 +4399,20 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
 		}
 		return rc;
 		break;
+	case DBSETTIME:
+		/* dblib option */
+		if (char_param) {
+			int to;
+			to = atoi(char_param);
+			if (0 < to) {
+				rc = dbstring_assign(&(dbproc->dbopts[option].param), char_param);
+				if (rc == SUCCEED) {
+					dbproc->tds_socket->query_timeout = to;
+				}
+				return rc;
+			}
+		}
+		break;
 	default:
 		break;
 	}
@@ -5880,6 +5894,7 @@ dbfreebuf(DBPROCESS * dbproc)
 	- DBSHOWPLAN
 	- DBSTORPROCID
 	- DBQUOTEDIDENT
+	- DBSETTIME
  * \sa dbisopt(), dbsetopt().
  */
 RETCODE
@@ -5916,6 +5931,21 @@ dbclropt(DBPROCESS * dbproc, int option, const char param[])
 		break;
 	case DBBUFFER:
 		buffer_set_capacity(dbproc, 1); /* frees row_buf->rows */
+		return SUCCEED;
+		break;
+	case DBSETTIME:
+		/* dblib option */
+		tds_mutex_lock(&dblib_mutex);
+		/*
+		 * Use global value of query timeout set by dbsettime() if any,
+		 * otherwise set it to zero just like tds_init_socket() does.
+		 */
+		if (g_dblib_ctx.query_timeout > 0) {
+			dbproc->tds_socket->query_timeout = g_dblib_ctx.query_timeout;
+		} else {
+			dbproc->tds_socket->query_timeout = 0;
+		}
+		tds_mutex_unlock(&dblib_mutex);
 		return SUCCEED;
 		break;
 	default:
