@@ -1284,6 +1284,8 @@ RETCODE dbsetlversion (LOGINREC * login, BYTE version);
 /* settings from here are purely FreeTDS extensions */
 #define DBSETUTF16		1001
 #define DBSETLUTF16(x,y)	dbsetlbool((x), (y), DBSETUTF16)
+#define DBSETNTLMV2		1002
+#define DBSETLNTLMV2(x,y)	dbsetlbool((x), (y), DBSETNTLMV2)
 
 RETCODE bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char *errfile, int direction);
 DBINT bcp_done(DBPROCESS * dbproc);
