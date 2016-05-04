@@ -826,6 +826,9 @@ int dbnumrets(DBPROCESS * dbproc);
 DBPROCESS *tdsdbopen(LOGINREC * login, const char *server, int msdblib);
 DBPROCESS *dbopen(LOGINREC * login, const char *server);
 
+RETCODE dbsettimeout(DBPROCESS * dbproc, int timeout);
+int dbgettimeout(DBPROCESS * dbproc);
+
 /* pivot functions */
 struct col_t;
 void dbpivot_count (struct col_t *output, const struct col_t *input);
