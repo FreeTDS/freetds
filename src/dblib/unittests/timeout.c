@@ -1,6 +1,6 @@
 /*
  * Purpose: Test handling of timeouts with an error handler
- * Functions:  dberrhandle, dbsetlogintime, dbsettime
+ * Functions:  dberrhandle, dbsetlogintime, dbsettime, dbsetopt
  * \todo We test returning INT_CANCEL for a login timeout.  We don't test it for a query_timeout.
  */
 
@@ -8,7 +8,7 @@
 #include <time.h>
 
 static int ntimeouts = 0, ncancels = 0;
-static const int max_timeouts = 3, timeout_seconds = 3;
+static const int max_timeouts = 2, timeout_seconds = 2;
 static time_t start_time;
 
 static int timeout_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -87,27 +87,27 @@ hndlintr(DBPROCESS * dbproc)
 	return INT_CONTINUE;
 }
 
-int
-main(int argc, char **argv)
+static int failed = 0;
+
+static void
+test(int per_process)
 {
 	LOGINREC *login;
 	DBPROCESS *dbproc;
-	int i,r, failed = 0;
+	int i, r;
 	RETCODE erc, row_code;
 	int num_resultset = 0;
 	char teststr[1024];
+	char timeout[32];
+
+	sprintf(timeout, "%d", timeout_seconds);
+
+	ntimeouts = 0;
+	ncancels = 0;
 
 	/*
 	 * Connect to server
 	 */
-	set_malloc_options();
-
-	read_login_info(argc, argv);
-
-	printf("Starting %s\n", argv[0]);
-
-	dbinit();
-
 	dberrhandle(timeout_err_handler);
 	dbmsghandle(syb_msg_handler);
 
@@ -116,7 +116,7 @@ main(int argc, char **argv)
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
-	DBSETLAPP(login, "#t0022");
+	DBSETLAPP(login, "#timeout");
 
 	printf("About to open %s.%s\n", SERVER, DATABASE);
 
@@ -141,11 +141,22 @@ main(int argc, char **argv)
 
 	dbloginfree(login);
 
+	/* Set a very long global timeout. */
+	if (per_process)
+		dbsettime(5 * 60);
+
 	/* send something that will take awhile to execute */
 	printf ("using %d %d-second query timeouts\n", max_timeouts, timeout_seconds);
-	if (FAIL == dbsettime(timeout_seconds)) {
-		fprintf(stderr, "Failed: dbsettime\n");
-		exit(1);
+	if (per_process) {
+		if (FAIL == dbsetopt(dbproc, DBSETTIME, timeout, 0)) {
+			fprintf(stderr, "Failed: dbsetopt\n");
+			exit(1);
+		}
+	} else {
+		if (FAIL == dbsettime(timeout_seconds)) {
+			fprintf(stderr, "Failed: dbsettime\n");
+			exit(1);
+		}
 	}
 	printf ("issuing a query that will take 30 seconds\n");
 
@@ -219,6 +230,21 @@ main(int argc, char **argv)
 			break;
 		}
 	} /* while dbresults */
+}
+
+int
+main(int argc, char **argv)
+{
+	set_malloc_options();
+
+	read_login_info(argc, argv);
+
+	fprintf(stdout, "Starting %s\n", argv[0]);
+
+	dbinit();
+
+	test(0);
+	test(1);
 
 	dbexit();
 
