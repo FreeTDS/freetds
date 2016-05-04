@@ -1,6 +1,6 @@
 /*
  * Purpose: Test handling of timeouts with an error handler
- * Functions:  dberrhandle, dbsetlogintime, dbsettime, dbsetopt
+ * Functions:  dberrhandle, dbsetlogintime, dbsettime, dbsetopt, dbclropt, dbisopt
  * \todo We test returning INT_CANCEL for a login timeout.  We don't test it for a query_timeout.
  */
 
@@ -145,11 +145,38 @@ test(int per_process)
 	if (per_process)
 		dbsettime(5 * 60);
 
-	/* send something that will take awhile to execute */
+	/* Verify no query timeout is set for this DBPROCESS */
+	if (dbisopt(dbproc, DBSETTIME, 0)) {
+		printf("unexpected return code from dbisopt() before calling dbsetopt(..., DBSETTIME, ...)\n");
+		exit(1);
+	}
+
+	if (FAIL == dbsetopt(dbproc, DBSETTIME, timeout, 0)) {
+		fprintf(stderr, "Failed: dbsetopt(..., DBSETTIME, \"%d\")\n", timeout_seconds);
+		exit(1);
+	}
+
+	/* Verify a query timeout is actually set for this DBPROCESS now */
+	if (!dbisopt(dbproc, DBSETTIME, 0)) {
+		printf("unexpected return code from dbisopt() after calling dbsetopt(..., DBSETTIME, ...)\n");
+		exit(1);
+	}
+
+	if (FAIL == dbclropt(dbproc, DBSETTIME, 0)) {
+		fprintf(stderr, "Failed: dbclropt(..., DBSETTIME, ...)\n");
+		exit(1);
+	}
+
+	/* Verify no query timeout remains set for this DBPROCESS */
+	if (dbisopt(dbproc, DBSETTIME, 0)) {
+		printf("unexpected return code from dbisopt() after calling dbclropt(..., DBSETTIME, ...)\n");
+		exit(1);
+	}
+
 	printf ("using %d %d-second query timeouts\n", max_timeouts, timeout_seconds);
 	if (per_process) {
 		if (FAIL == dbsetopt(dbproc, DBSETTIME, timeout, 0)) {
-			fprintf(stderr, "Failed: dbsetopt\n");
+			fprintf(stderr, "Failed: dbsetopt(..., DBSETTIME, \"%d\")\n", timeout_seconds);
 			exit(1);
 		}
 	} else {
@@ -158,6 +185,8 @@ test(int per_process)
 			exit(1);
 		}
 	}
+
+	/* send something that will take awhile to execute */
 	printf ("issuing a query that will take 30 seconds\n");
 
 	if (FAIL == sql_cmd(dbproc)) {
@@ -165,7 +194,7 @@ test(int per_process)
 		exit(1);
 	}
 
-	start_time = time(NULL);
+	start_time = time(NULL);	/* keep track of when we started for reporting purposes */
 	ntimeouts = 0;
 	dbsetinterrupt(dbproc, (void*)chkintr, (void*)hndlintr);
 
@@ -216,6 +245,11 @@ test(int per_process)
 			if (nrows < 0){
 				failed++;
 				printf("error: dbrows() returned SUCCEED, but dbcount() returned -1\n");
+			}
+
+			if (FAIL == dbclropt(dbproc, DBSETTIME, 0)) {
+				failed++;
+				printf("error: dbclropt(dbproc, DBSETTIME, ...) failed\n");
 			}
 			break;
 		case FAIL:
