@@ -4400,14 +4400,12 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
 		return rc;
 		break;
 	case DBSETTIME:
-		/* dblib option */
 		if (char_param) {
-			int to;
-			to = atoi(char_param);
-			if (0 < to) {
+			i = atoi(char_param);
+			if (0 < i) {
 				rc = dbstring_assign(&(dbproc->dbopts[option].param), char_param);
 				if (rc == SUCCEED) {
-					dbproc->tds_socket->query_timeout = to;
+					dbproc->tds_socket->query_timeout = i;
 				}
 				return rc;
 			}
@@ -5934,7 +5932,6 @@ dbclropt(DBPROCESS * dbproc, int option, const char param[])
 		return SUCCEED;
 		break;
 	case DBSETTIME:
-		/* dblib option */
 		tds_mutex_lock(&dblib_mutex);
 		/*
 		 * Use global value of query timeout set by dbsettime() if any,
