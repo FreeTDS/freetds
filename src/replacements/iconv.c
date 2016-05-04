@@ -214,18 +214,17 @@ get_utf16le(const unsigned char *p, size_t len, ICONV_CHAR *out)
 static int
 put_utf16le(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 {
-	if (c >= 0x110000u)
-		return -EILSEQ;
 	if (c < 0x10000u) {
 		if (buf_len < 2)
 			return -E2BIG;
 		TDS_PUT_A2LE(buf, c);
 		return 2;
 	}
+	if (TDS_UNLIKELY(c >= 0x110000u))
+		return -EILSEQ;
 	if (buf_len < 4)
 		return -E2BIG;
-	c -= 0x10000u;
-	TDS_PUT_A2LE(buf,   0xd800 + (c >> 10));
+	TDS_PUT_A2LE(buf,   0xd7c0 + (c >> 10));
 	TDS_PUT_A2LE(buf+2, 0xdc00 + (c & 0x3ffu));
 	return 4;
 }
@@ -254,18 +253,17 @@ get_utf16be(const unsigned char *p, size_t len, ICONV_CHAR *out)
 static int
 put_utf16be(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 {
-	if (c >= 0x110000u)
-		return -EILSEQ;
 	if (c < 0x10000u) {
 		if (buf_len < 2)
 			return -E2BIG;
 		TDS_PUT_A2BE(buf, c);
 		return 2;
 	}
+	if (TDS_UNLIKELY(c >= 0x110000u))
+		return -EILSEQ;
 	if (buf_len < 4)
 		return -E2BIG;
-	c -= 0x10000u;
-	TDS_PUT_A2BE(buf,   0xd800 + (c >> 10));
+	TDS_PUT_A2BE(buf,   0xd7c0 + (c >> 10));
 	TDS_PUT_A2BE(buf+2, 0xdc00 + (c & 0x3ffu));
 	return 4;
 }
