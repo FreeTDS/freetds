@@ -8,7 +8,7 @@
 
 int ntimeouts = 0, ncancels = 0;
 const int max_timeouts = 3;
-char timeout_seconds[] = "1";
+const char timeout_seconds[] = "1";
 time_t start_time;
 
 int timeout_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -135,12 +135,42 @@ main(int argc, char **argv)
 	/* Set a very long global timeout. */
 	dbsettime(5 * 60);
 
-	/* send something that will take awhile to execute */
-	printf ("using %d %s-second query timeouts\n", max_timeouts, timeout_seconds);
-	if (FAIL == dbsetopt(dbproc, DBSETTIME, timeout_seconds, 0)) {
-		fprintf(stderr, "Failed: dbsetopt(dbproc, DBSETTIME, \"%s\")\n", timeout_seconds);
+	/* Verify no query timeout is set for this DBPROCESS */
+	if (dbisopt(dbproc, DBSETTIME, 0)) {
+		printf("unexpected return code from dbisopt() before calling dbsetopt(..., DBSETTIME, ...)\n");
 		exit(1);
 	}
+
+	if (FAIL == dbsetopt(dbproc, DBSETTIME, timeout_seconds, 0)) {
+		fprintf(stderr, "Failed: dbsetopt(..., DBSETTIME, \"%s\")\n", timeout_seconds);
+		exit(1);
+	}
+
+	/* Verify a query timeout is actually set for this DBPROCESS now */
+	if (!dbisopt(dbproc, DBSETTIME, 0)) {
+		printf("unexpected return code from dbisopt() after calling dbsetopt(..., DBSETTIME, ...)\n");
+		exit(1);
+	}
+
+	if (FAIL == dbclropt(dbproc, DBSETTIME, 0)) {
+		fprintf(stderr, "Failed: dbclropt(..., DBSETTIME, ...)\n");
+		exit(1);
+	}
+
+	/* Verify no query timeout remains set for this DBPROCESS */
+	if (dbisopt(dbproc, DBSETTIME, 0)) {
+		printf("unexpected return code from dbisopt() after calling dbclropt(..., DBSETTIME, ...)\n");
+		exit(1);
+	}
+
+	printf ("using %d %s-second query timeouts\n", max_timeouts, timeout_seconds);
+
+	if (FAIL == dbsetopt(dbproc, DBSETTIME, timeout_seconds, 0)) {
+		fprintf(stderr, "Failed: dbsetopt(..., DBSETTIME, \"%s\")\n", timeout_seconds);
+		exit(1);
+	}
+
+	/* send something that will take awhile to execute */
 	printf ("issuing a query that will take 30 seconds\n");
 
 	if (FAIL == sql_cmd(dbproc)) {

@@ -5902,7 +5902,9 @@ dbclropt(DBPROCESS * dbproc, int option, const char param[])
 
 	tdsdump_log(TDS_DBG_FUNC, "dbclropt(%p, %d, %s)\n", dbproc, option, param);
 	CHECK_CONN(FAIL);
-	CHECK_NULP(param, "dbclropt", 3, FAIL);
+	if (option != DBSETTIME) {
+		CHECK_NULP(param, "dbclropt", 3, FAIL);
+	}
 
 	if ((option < 0) || (option >= DBNUMOPTIONS)) {
 		return FAIL;
