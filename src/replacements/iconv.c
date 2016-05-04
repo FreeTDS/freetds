@@ -202,10 +202,10 @@ get_utf16le(const unsigned char *p, size_t len, ICONV_CHAR *out)
 		if (len < 4)
 			return -EINVAL;
 		c2 = TDS_GET_A2LE(p+2);
-		if ((c2 & 0xfc00) != 0xdc00)
-			return -EILSEQ;
-		*out = (c << 10) + c2 - ((0xd800 << 10) + 0xdc00 - 0x10000);
-		return 4;
+		if ((c2 & 0xfc00) == 0xdc00) {
+			*out = (c << 10) + c2 - ((0xd800 << 10) + 0xdc00 - 0x10000);
+			return 4;
+		}
 	}
 	*out = c;
 	return 2;
@@ -242,10 +242,10 @@ get_utf16be(const unsigned char *p, size_t len, ICONV_CHAR *out)
 		if (len < 4)
 			return -EINVAL;
 		c2 = TDS_GET_A2BE(p+2);
-		if ((c2 & 0xfc00) != 0xdc00)
-			return -EILSEQ;
-		*out = (c << 10) + c2 - ((0xd800 << 10) + 0xdc00 - 0x10000);
-		return 4;
+		if ((c2 & 0xfc00) == 0xdc00) {
+			*out = (c << 10) + c2 - ((0xd800 << 10) + 0xdc00 - 0x10000);
+			return 4;
+		}
 	}
 	*out = c;
 	return 2;
