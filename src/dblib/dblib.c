@@ -64,11 +64,11 @@ static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _get_printable_size(TDSCOLUMN * colinfo);
 static char *_dbprdate(char *timestr);
 static int _dbnullable(DBPROCESS * dbproc, int column);
-static const char *tds_prdatatype(TDS_SERVER_TYPE datatype_token);
+static const char *tds_prdatatype(int datatype_token);
 
 static int default_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 
-void copy_data_to_host_var(DBPROCESS *, int, const BYTE *, int, BYTE *, DBINT, int, DBINT *);
+void copy_data_to_host_var(DBPROCESS *, TDS_SERVER_TYPE, const BYTE *, int, BYTE *, DBINT, int, DBINT *);
 RETCODE dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr);
 
 /**
@@ -2129,7 +2129,7 @@ dbnextrow(DBPROCESS * dbproc)
 	return result;
 } /* dbnextrow()  */
 
-static int
+static TDS_SERVER_TYPE
 dblib_bound_type(int bindtype)
 {
 	switch (bindtype) {
@@ -2202,7 +2202,7 @@ dblib_bound_type(int bindtype)
 		return SYBMSDATETIMEOFFSET;
 		break;
 	default:
-		return 0;
+		return TDS_INVALID_TYPE;
 	}
 }
 
@@ -2247,19 +2247,25 @@ dblib_bound_type(int bindtype)
  * \todo Microsoft and Sybase define this function differently.  
  */
 DBINT
-dbconvert_ps(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen,
-	     int desttype, BYTE * dest, DBINT destlen, DBTYPEINFO * typeinfo)
+dbconvert_ps(DBPROCESS * dbproc, int db_srctype, const BYTE * src, DBINT srclen,
+	     int db_desttype, BYTE * dest, DBINT destlen, DBTYPEINFO * typeinfo)
 {
 	CONV_RESULT dres;
 	DBINT ret;
 	int i;
 	int len;
+	TDS_SERVER_TYPE srctype, desttype;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbconvert_ps(%p, %s, %p, %d, %s, %p, %d, %p)\n",
-		    dbproc, tds_prdatatype(srctype), src, srclen,
-		    tds_prdatatype(desttype), dest, destlen, typeinfo);
+		    dbproc, tds_prdatatype(db_srctype), src, srclen,
+		    tds_prdatatype(db_desttype), dest, destlen, typeinfo);
 	/* dbproc and src can be NULLs */
 	CHECK_PARAMETER(dest, SYBEACNV, -1);
+
+	DBPERROR_RETURN(!is_tds_type_valid(db_srctype), SYBEUDTY);
+	srctype = (TDS_SERVER_TYPE) db_srctype;
+	DBPERROR_RETURN(!is_tds_type_valid(db_desttype), SYBEUDTY);
+	desttype = (TDS_SERVER_TYPE) db_desttype;
 
 	if (is_numeric_type(desttype)) {
 		TDS_NUMERIC *d = &dres.n;
@@ -2542,6 +2548,8 @@ dbconvert(DBPROCESS * dbproc,
 	tdsdump_log(TDS_DBG_FUNC, "dbconvert(%p)\n", dbproc);
 	/* dbproc can be NULL*/
 
+	DBPERROR_RETURN(!is_tds_type_valid(desttype), SYBEUDTY);
+
 	if (is_numeric_type(desttype)) {
 		DBNUMERIC *num;
 
@@ -2577,8 +2585,7 @@ dbbind(DBPROCESS * dbproc, int column, int vartype, DBINT varlen, BYTE * varaddr
 {
 	TDSCOLUMN *colinfo = NULL;
 	TDSRESULTINFO* results;
-	int srctype = -1;
-	int desttype = -1;
+	TDS_SERVER_TYPE srctype, desttype;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbbind(%p, %d, %d, %d, %p)\n", dbproc, column, vartype, varlen, varaddr);
 	CHECK_CONN(FAIL);
@@ -2624,12 +2631,13 @@ dbbind(DBPROCESS * dbproc, int column, int vartype, DBINT varlen, BYTE * varaddr
 
 	colinfo = dbproc->tds_socket->res_info->columns[column - 1];
 	srctype = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
-	if (0 == (desttype = dblib_bound_type(vartype))) {
+	desttype = dblib_bound_type(vartype);
+	if (desttype == TDS_INVALID_TYPE) {
 		dbperror(dbproc, SYBEBTYP, 0);
 		return FAIL;
 	}
 
-	if (! dbwillconvert(srctype, desttype)) {
+	if (!dbwillconvert(srctype, desttype)) {
 		dbperror(dbproc, SYBEABMT, 0);
 		return FAIL;
 	}
@@ -3260,7 +3268,6 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 	TDSSOCKET *tds;
 	TDSDATEREC when;
 	int i, c, col;
-	int desttype, srctype;
 	DBINT len;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbspr1row(%p, %s, %d)\n", dbproc, buffer, buf_len);
@@ -3282,6 +3289,8 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 			}
 			strcpy(buffer, "NULL");
 		} else {
+			TDS_SERVER_TYPE desttype, srctype;
+
 			desttype = dblib_bound_type(STRINGBIND);
 			srctype = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
 			if (is_datetime_type(srctype)) {
@@ -4173,8 +4182,7 @@ dbalttype(DBPROCESS * dbproc, int computeid, int column)
 RETCODE
 dbaltbind(DBPROCESS * dbproc, int computeid, int column, int vartype, DBINT varlen, BYTE * varaddr)
 {
-	int srctype = -1;
-	int desttype = -1;
+	TDS_SERVER_TYPE srctype, desttype;
 	TDSCOLUMN *colinfo = NULL;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbaltbind(%p, %d, %d, %d, %d, %p)\n", dbproc, computeid, column, vartype, varlen, varaddr);
@@ -4189,8 +4197,10 @@ dbaltbind(DBPROCESS * dbproc, int computeid, int column, int vartype, DBINT varl
 
 	srctype = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
 	desttype = dblib_bound_type(vartype);
-
-	tdsdump_log(TDS_DBG_INFO1, "dbaltbind() srctype = %d desttype = %d \n", srctype, desttype);
+	if (desttype == TDS_INVALID_TYPE) {
+		dbperror(dbproc, SYBEBTYP, 0);
+		return FAIL;
+	}
 
 	if (!dbwillconvert(srctype, desttype)) {
 		dbperror(dbproc, SYBEAAMT, 0);
@@ -7155,10 +7165,11 @@ _dbnullable(DBPROCESS * dbproc, int column)
 	return FALSE;
 }
 
+/** Returns type in string. Used for debugging purpose */
 static const char *
-tds_prdatatype(TDS_SERVER_TYPE datatype_token)
+tds_prdatatype(int datatype_token)
 {
-	switch (datatype_token) {
+	switch ((TDS_SERVER_TYPE) datatype_token) {
 	case SYBCHAR:		return "SYBCHAR";
 	case SYBVARCHAR:	return "SYBVARCHAR";
 	case SYBINTN:		return "SYBINTN";
@@ -7208,15 +7219,23 @@ tds_prdatatype(TDS_SERVER_TYPE datatype_token)
 	case SYBTIME:		return "SYBTIME";
 	case SYB5BIGDATETIME:	return "SYBBIGDATETIME";
 	case SYB5BIGTIME:	return "SYBBIGTIME";
-	default: break;
+	case SYBMSUDT:		return "SYBMSUDT";
+	case SYBUINT1:		return "SYBUINT1";
+	case SYBDATEN:		return "SYBDATEN";
+	case SYB5INT8:		return "SYB5INT8";
+	case SYBINTERVAL:	return "SYBINTERVAL";
+	case SYBTIMEN:		return "SYBTIMEN";
+	case SYBUINTN:		return "SYBUINTN";
+	case SYBUNITEXT:	return "SYBUNITEXT";
+	case SYBXML:		return "SYBXML";
 	}
 	return "(unknown)";
 }
 #if 1
 void
-copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, 
-				BYTE * dest, DBINT destlen,
-				int bindtype, DBINT *indicator)
+copy_data_to_host_var(DBPROCESS * dbproc, TDS_SERVER_TYPE srctype, const BYTE * src, DBINT srclen, 
+		      BYTE * dest, DBINT destlen,
+		      int bindtype, DBINT *indicator)
 {
 	CONV_RESULT dres;
 	DBINT ret;
@@ -7224,13 +7243,13 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 	DBINT indicator_value = 0;
 
 	int limited_dest_space = 0;
-	int desttype = dblib_bound_type(bindtype);
+	TDS_SERVER_TYPE desttype = dblib_bound_type(bindtype);
 
 	tdsdump_log(TDS_DBG_FUNC, "copy_data_to_host_var(%d [%s] len %d => %d [%s] len %d)\n", 
 		     srctype, tds_prdatatype(srctype), srclen, desttype, tds_prdatatype(desttype), destlen);
 	CHECK_NULP(src, "copy_data_to_host_var", 3, );
 	CHECK_NULP(dest, "copy_data_to_host_var", 6, );
-	if (desttype <= 0)
+	if (desttype == TDS_INVALID_TYPE)
 		return;
 	/* indicator can be NULL */
 

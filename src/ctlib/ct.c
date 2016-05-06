@@ -2005,7 +2005,7 @@ _ct_get_client_type(TDSCOLUMN *col)
 	return CS_FAIL;
 }
 
-int
+TDS_SERVER_TYPE
 _ct_get_server_type(TDSSOCKET *tds, int datatype)
 {
 	tdsdump_log(TDS_DBG_FUNC, "_ct_get_server_type(%d)\n", datatype);
@@ -2064,7 +2064,7 @@ _ct_get_server_type(TDSSOCKET *tds, int datatype)
 		return SYBDATETIME;
 
 	default:
-		return 0;
+		return TDS_INVALID_TYPE;
 		break;
 	}
 }
@@ -3932,7 +3932,8 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 	TDSCOLUMN *pcol;
 	TDSPARAMINFO *params = NULL, *new_params;
 
-	int temp_type, tds_type;
+	int temp_type;
+	TDS_SERVER_TYPE tds_type;
 
 	tdsdump_log(TDS_DBG_FUNC, "paraminfoalloc(%p, %p)\n", tds, first_param);
 
@@ -3955,6 +3956,8 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 		 */
 		temp_type = p->datatype;
 		tds_type = _ct_get_server_type(tds, p->datatype);
+		if (tds_type == TDS_INVALID_TYPE)
+			goto type_error;
 		if (p->param_by_value == 0) {
 
 			/*
@@ -4037,8 +4040,9 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 	return params;
 
 memory_error:
-	tds_free_param_results(params);
 	tdsdump_log(TDS_DBG_SEVERE, "out of memory for rpc!");
+type_error:
+	tds_free_param_results(params);
 	return NULL;
 }
 
@@ -4093,7 +4097,7 @@ static int
 _ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *data, CS_INT *datalen,
 	       CS_SMALLINT *indicator, CS_BYTE byvalue)
 {
-	int desttype;
+	TDS_SERVER_TYPE desttype;
 
 	tdsdump_log(TDS_DBG_FUNC, "_ct_fill_param(%d, %p, %p, %p, %p, %p, %x)\n",
 				cmd_type, param, datafmt, data, datalen, indicator, byvalue);
@@ -4122,6 +4126,8 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *d
 	 * to Server type, e.g. SYBINT2
 	 */
 	desttype = _ct_get_server_type(NULL, datafmt->datatype);
+	if (desttype == TDS_INVALID_TYPE)
+		return CS_FAIL;
 	param->datatype = datafmt->datatype;
 
 	if (is_numeric_type(desttype)) {

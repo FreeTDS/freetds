@@ -314,7 +314,7 @@ buffer_transfer_bound_data(DBPROC_ROWBUF *buf, TDS_INT res_type, TDS_INT compute
 	assert(row->resinfo);
 
 	for (i = 0; i < row->resinfo->num_cols; i++) {
-		int srctype;
+		TDS_SERVER_TYPE srctype;
 		DBINT srclen;
 		TDSCOLUMN *curcol = row->resinfo->columns[i];
 

@@ -135,6 +135,8 @@ typedef unsigned tds_sysdep_intptr_type TDS_UINTPTR;
 
 #include <freetds/proto.h>
 
+#define TDS_INVALID_TYPE ((TDS_SERVER_TYPE) 0)
+
 /**
  * this structure is not directed connected to a TDS protocol but
  * keeps any DATE/TIME information.
@@ -423,6 +425,11 @@ extern const char *const tds_type_names[256];
 #define is_ascii_type(x)      ((tds_type_flags_ms[x] & TDS_TYPEFLAG_ASCII) != 0)
 #define is_char_type(x)       ((tds_type_flags_ms[x] & (TDS_TYPEFLAG_ASCII|TDS_TYPEFLAG_UNICODE)) != 0)
 #define is_similar_type(x, y) (is_char_type(x) && is_char_type(y))
+static inline
+bool is_tds_type_valid(int type)
+{
+	return (unsigned) type < 256u && tds_type_flags_ms[type] != 0;
+}
 
 
 #define TDS_MAX_CAPABILITY	32
@@ -625,7 +632,7 @@ typedef struct tds_variant
 	TDS_CHAR *data;
 	TDS_INT size;
 	TDS_INT data_len;
-	TDS_UCHAR type;
+	TDS_SERVER_TYPE type;
 	TDS_UCHAR collation[5];
 } TDSVARIANT;
 
@@ -719,7 +726,7 @@ struct tds_column
 
 	TDS_INT column_size;		/**< maximun size of data. For fixed is the size. */
 
-	TDS_TINYINT column_type;	/**< This type can be different from wire type because
+	TDS_SERVER_TYPE column_type;	/**< This type can be different from wire type because
 	 				 * conversion (e.g. UCS-2->Ascii) can be applied.
 					 * I'm beginning to wonder about the wisdom of this, however.
 					 * April 2003 jkl
@@ -731,7 +738,7 @@ struct tds_column
 
 	struct
 	{
-		TDS_TINYINT column_type;	/**< type of data, saved from wire */
+		TDS_SERVER_TYPE column_type;	/**< type of data, saved from wire */
 		TDS_INT column_size;
 	} on_server;
 
@@ -1273,7 +1280,7 @@ BCPCOLDATA * tds_alloc_bcp_column_data(unsigned int column_size);
 TDSDYNAMIC *tds_lookup_dynamic(TDSCONNECTION * conn, const char *id);
 /*@observer@*/ const char *tds_prtype(int token);
 int tds_get_varint_size(TDSCONNECTION * conn, int datatype);
-int tds_get_cardinal_type(int datatype, int usertype);
+TDS_SERVER_TYPE tds_get_cardinal_type(TDS_SERVER_TYPE datatype, int usertype);
 
 
 /* iconv.c */
@@ -1429,12 +1436,12 @@ int determine_adjusted_size(const TDSICONV * char_conv, int size);
 
 /* data.c */
 void tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE type);
-void tds_set_column_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, int type);
+void tds_set_column_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE type);
 
 
 /* tds_convert.c */
 TDSRET tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr);
-int tds_get_conversion_type(int srctype, int colsize);
+TDS_SERVER_TYPE tds_get_conversion_type(TDS_SERVER_TYPE srctype, int colsize);
 extern const char tds_hex_digits[];
 
 
@@ -1465,7 +1472,7 @@ TDS_UINT8 tds_get_uint8(TDSSOCKET * tds);
 size_t tds_get_string(TDSSOCKET * tds, size_t string_len, char *dest, size_t dest_size);
 TDSRET tds_get_char_data(TDSSOCKET * tds, char *dest, size_t wire_size, TDSCOLUMN * curcol);
 void *tds_get_n(TDSSOCKET * tds, /*@out@*/ /*@null@*/ void *dest, size_t n);
-int tds_get_size_by_type(int servertype);
+int tds_get_size_by_type(TDS_SERVER_TYPE servertype);
 DSTR* tds_dstr_get(TDSSOCKET * tds, DSTR * s, size_t len);
 
 

@@ -78,6 +78,8 @@ data_msdatetime_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER
 		/* we always format using yyyy-mm-dd hh:mm:ss[.fff], see convert_tds2sql.c */
 		drec->sql_desc_display_size = 19 + decimals;
 		SET_INFO2("datetime2", "'", "'", 19 + decimals);
+	default:
+		break;
 	}
 }
 
@@ -139,7 +141,7 @@ data_sybbigtime_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER
 static void
 data_generic_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
 {
-	int col_type = col->on_server.column_type;
+	TDS_SERVER_TYPE col_type = col->on_server.column_type;
 	int col_size = col->on_server.column_size;
 
 	switch (tds_get_conversion_type(col_type, col_size)) {

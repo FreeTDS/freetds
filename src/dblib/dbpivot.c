@@ -74,8 +74,8 @@ tds_find(const void *key, const void *base, size_t nelem, size_t width,
 
 struct col_t
 {
-	int type;
 	size_t len;
+	TDS_SERVER_TYPE type;
 	int null_indicator;
 	char *s;
 	union {
@@ -87,7 +87,7 @@ struct col_t
 	} data;
 };
 
-static int infer_col_type(int sybtype);
+static TDS_SERVER_TYPE infer_col_type(int sybtype);
 
 static struct col_t *
 col_init(struct col_t *pcol, int sybtype, int collen) 
@@ -95,6 +95,8 @@ col_init(struct col_t *pcol, int sybtype, int collen)
 	assert(pcol);
 	
 	pcol->type = infer_col_type(sybtype);
+	if (pcol->type == TDS_INVALID_TYPE)
+		return NULL;
 	pcol->len = collen;
 
 	switch(sybtype) {
@@ -368,7 +370,7 @@ join(int argc, char *argv[], const char sep[])
 	return output;
 }
 
-static int
+static TDS_SERVER_TYPE
 infer_col_type(int sybtype) 
 {
 	switch(sybtype) {
@@ -408,7 +410,7 @@ infer_col_type(int sybtype)
 		assert( false && sybtype );
 		break;
 	}
-	return 0;
+	return TDS_INVALID_TYPE;
 }
 
 static int
@@ -952,7 +954,8 @@ dbpivot(DBPROCESS *dbproc, int nkeys, int *keys, int ncols, int *cols, DBPIVOT_F
 		int len = dbcollen(dbproc, keys[i]);
 		assert(type && len);
 		
-		col_init(input.row_key.keys+i, type, len);
+		if (!col_init(input.row_key.keys+i, type, len))
+			return FAIL;
 		if (FAIL == dbbind(dbproc, keys[i], bind_type(type), input.row_key.keys[i].len, col_buffer(input.row_key.keys+i)))
 			return FAIL;
 		if (FAIL == dbnullbind(dbproc, keys[i], &input.row_key.keys[i].null_indicator))
@@ -967,7 +970,8 @@ dbpivot(DBPROCESS *dbproc, int nkeys, int *keys, int ncols, int *cols, DBPIVOT_F
 		int len = dbcollen(dbproc, cols[i]);
 		assert(type && len);
 		
-		col_init(input.col_key.keys+i, type, len);
+		if (!col_init(input.col_key.keys+i, type, len))
+			return FAIL;
 		if (FAIL == dbbind(dbproc, cols[i], bind_type(type), input.col_key.keys[i].len, col_buffer(input.col_key.keys+i)))
 			return FAIL;
 		if (FAIL == dbnullbind(dbproc, cols[i], &input.col_key.keys[i].null_indicator))
@@ -979,7 +983,8 @@ dbpivot(DBPROCESS *dbproc, int nkeys, int *keys, int ncols, int *cols, DBPIVOT_F
 		int len = dbcollen(dbproc, val);
 		assert(type && len);
 		
-		col_init(&input.value, type, len);
+		if (!col_init(&input.value, type, len))
+			return FAIL;
 		if (FAIL == dbbind(dbproc, val, bind_type(type), input.value.len, col_buffer(&input.value)))
 			return FAIL;
 		if (FAIL == dbnullbind(dbproc, val, &input.value.null_indicator))
@@ -1009,7 +1014,8 @@ dbpivot(DBPROCESS *dbproc, int nkeys, int *keys, int ncols, int *cols, DBPIVOT_F
 				return FAIL;
 			key_cpy(&pout->col_key, &input.col_key);
 
-			col_init(&pout->value, input.value.type, input.value.len);
+			if (!col_init(&pout->value, input.value.type, input.value.len))
+				return FAIL;
 		}
 		
 		func(&pout->value, &input.value);
@@ -1040,7 +1046,8 @@ dbpivot(DBPROCESS *dbproc, int nkeys, int *keys, int ncols, int *cols, DBPIVOT_F
 	/* pivoted columms are found in the "across" data */
 	for (i=0, pmeta = metadata + input.row_key.nkeys; i < pp->nacross; i++) {
 		struct col_t col;
-		col_init(&col, SYBFLT8, sizeof(double));
+		if (!col_init(&col, SYBFLT8, sizeof(double)))
+			return FAIL;
 		assert(pmeta + i < metadata + nmeta);
 		pmeta[i].name = make_col_name(pp->across+i);
 		assert(pp->across);

@@ -59,7 +59,7 @@ typedef struct tag_DBPROC_ROWBUF
 typedef struct
 {
 	int host_column;
-	int datatype;
+	TDS_SERVER_TYPE datatype;
 	int prefix_len;
 	DBINT column_len;
 	BYTE *terminator;
@@ -68,7 +68,7 @@ typedef struct
 	int column_error;
 } BCP_HOSTCOLINFO;
 
-typedef struct 
+typedef struct
 {
 	TDS_CHAR *hostfile;
 	TDS_CHAR *errorfile;
@@ -89,7 +89,7 @@ typedef struct _DBREMOTE_PROC_PARAM
 
 	char *name;
 	BYTE status;
-	int type;
+	TDS_SERVER_TYPE type;
 	DBINT maxlen;
 	DBINT datalen;
 	BYTE *value;
@@ -147,7 +147,7 @@ struct tds_dblib_dbprocess
 	FILE *ftos;
 	DB_DBCHKINTR_FUNC chkintr;
 	DB_DBHNDLINTR_FUNC hndlintr;
-	
+
 	/** boolean use ms behaviour */
 	int msdblib;
 
@@ -169,10 +169,10 @@ enum {
  * internal prototypes
  */
 RETCODE dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr);
-void copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, 
-				BYTE * dest, DBINT destlen,
-				int bindtype, DBINT *indicator);
-				
+void copy_data_to_host_var(DBPROCESS * dbproc, TDS_SERVER_TYPE srctype, const BYTE * src, DBINT srclen,
+			   BYTE * dest, DBINT destlen,
+			   int bindtype, DBINT *indicator);
+
 int dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...);
 int _dblib_handle_info_message(const TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE* msgptr);
 int _dblib_handle_err_message(const TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE* msgptr);

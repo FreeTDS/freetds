@@ -222,7 +222,7 @@ static void tds_swap_numeric(TDS_NUMERIC *num);
  * @param type   type to set
  */
 void
-tds_set_column_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, int type)
+tds_set_column_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE type)
 {
 	/* set type */
 	curcol->on_server.column_type = type;
@@ -339,8 +339,8 @@ tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE typ
 	}
 }
 
-int
-tds_get_cardinal_type(int datatype, int usertype)
+TDS_SERVER_TYPE
+tds_get_cardinal_type(TDS_SERVER_TYPE datatype, int usertype)
 {
 	switch (datatype) {
 	case XSYBVARBINARY:
@@ -363,6 +363,8 @@ tds_get_cardinal_type(int datatype, int usertype)
 		case USER_UNIVARCHAR_TYPE:
 			return SYBTEXT;
 		}
+		break;
+	default:
 		break;
 	}
 	return datatype;
@@ -547,8 +549,10 @@ TDS_COMPILE_CHECK(tds_variant_offset,TDS_OFFSET(TDSVARIANT, data) == TDS_OFFSET(
 TDSRET
 tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
-	int colsize = tds_get_int(tds), varint;
-	TDS_UCHAR type, info_len;
+	unsigned int colsize = tds_get_uint(tds);
+	int varint;
+	TDS_SERVER_TYPE type;
+	TDS_UCHAR info_len;
 	TDSVARIANT *v;
 	TDSRET rc;
 
@@ -559,9 +563,12 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		return TDS_SUCCESS;
 	}
 
-	v = (TDSVARIANT*) curcol->column_data;
-	v->type = type = tds_get_byte(tds);
+	type = (TDS_SERVER_TYPE) tds_get_byte(tds);
 	info_len = tds_get_byte(tds);
+	if (!is_tds_type_valid(type))
+		goto error_type;
+	v = (TDSVARIANT*) curcol->column_data;
+	v->type = type;
 	colsize -= 2;
 	if (info_len > colsize)
 		goto error_type;
@@ -630,6 +637,8 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		curcol->column_type = SYBVARIANT;
 		curcol->column_data = (unsigned char *) v;
 		return rc;
+	default:
+		break;
 	}
 	varint = (type == SYBUNIQUE) ? 0 : tds_get_varint_size(tds->conn, type);
 	if (varint != info_len || varint > 2)
@@ -820,6 +829,8 @@ tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		if (colsize < curcol->column_size)
 			memset(dest + colsize, fillchar, curcol->column_size - colsize);
 		colsize = curcol->column_size;
+		break;
+	default:
 		break;
 	}
 

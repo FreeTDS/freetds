@@ -597,7 +597,7 @@ odbc_set_return_params(struct _hstmt *stmt, unsigned int n_row)
  * to the SQL_C_* type.
  * This function can return XSYBNVARCHAR or SYBUINTx even if server do not support it
  */
-int
+TDS_SERVER_TYPE
 odbc_c_to_server_type(int c_type)
 {
 	switch (c_type) {
@@ -668,7 +668,7 @@ odbc_c_to_server_type(int c_type)
 	case SQL_C_INTERVAL_MINUTE_TO_SECOND:
 		break;
 	}
-	return 0;
+	return TDS_INVALID_TYPE;
 }
 
 int
@@ -730,7 +730,7 @@ odbc_sql_to_c_type_default(int sql_type)
 	}
 }
 
-int
+TDS_SERVER_TYPE
 odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned)
 {
 
@@ -768,7 +768,7 @@ odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned)
 	case SQL_GUID:
 		if (IS_TDS7_PLUS(conn))
 			return SYBUNIQUE;
-		return 0;
+		return TDS_INVALID_TYPE;
 #endif
 	case SQL_BIT:
 		if (IS_TDS7_PLUS(conn))
@@ -840,7 +840,7 @@ odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned)
 		return SYBIMAGE;
 		/* TODO interval types */
 	default:
-		return 0;
+		return TDS_INVALID_TYPE;
 	}
 }
 
@@ -883,13 +883,14 @@ odbc_get_param_len(const struct _drecord *drec_axd, const struct _drecord *drec_
 			len = SQL_NTS;
 		} else {
 			int type = drec_axd->sql_desc_concise_type;
+			TDS_SERVER_TYPE server_type;
 
 			if (type == SQL_C_DEFAULT)
 				type = odbc_sql_to_c_type_default(drec_ixd->sql_desc_concise_type);
-			type = odbc_c_to_server_type(type);
+			server_type = odbc_c_to_server_type(type);
 
 			/* FIXME check what happen to DATE/TIME types */
-			size = tds_get_size_by_type(type);
+			size = tds_get_size_by_type(server_type);
 			if (size > 0)
 				len = size;
 		}

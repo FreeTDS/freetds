@@ -607,8 +607,8 @@ void odbc_set_return_params(struct _hstmt *stmt, unsigned int n_row);
 void odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver);
 
 int odbc_sql_to_c_type_default(int sql_type);
-int odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned);
-int odbc_c_to_server_type(int c_type);
+TDS_SERVER_TYPE odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned);
+TDS_SERVER_TYPE odbc_c_to_server_type(int c_type);
 
 unsigned int odbc_get_string_size(int size, const ODBC_CHAR * str _WIDE);
 void odbc_rdbms_version(TDSSOCKET * tds_socket, char *pversion_string);

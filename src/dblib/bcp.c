@@ -408,12 +408,18 @@ bcp_colfmt(DBPROCESS * dbproc, int host_colnum, int host_type, int host_prefixle
 		return FAIL;
 	}
 
+	/* if column is not copied you cannot specify destination type */
 	if (table_colnum <= 0 && host_type == 0) {
 		dbperror(dbproc, SYBEBCPCTYP, 0);
 		return FAIL;
 	}
 
-	if (host_prefixlen == 0 && host_collen == -1 && host_termlen == -1 && !is_fixed_type(host_type)) {
+	if (table_colnum > 0 && !is_tds_type_valid(host_type)) {
+		dbperror(dbproc, SYBEUDTY, 0);
+		return FAIL;
+	}
+
+	if (host_type && host_prefixlen == 0 && host_collen == -1 && host_termlen == -1 && !is_fixed_type(host_type)) {
 		dbperror(dbproc, SYBEVDPT, 0);
 		return FAIL;
 	}
@@ -451,7 +457,7 @@ bcp_colfmt(DBPROCESS * dbproc, int host_colnum, int host_type, int host_prefixle
 		memcpy(terminator, host_term, host_termlen);
 	}
 	hostcol->host_column = host_colnum;
-	hostcol->datatype = host_type;
+	hostcol->datatype = host_type ? (TDS_SERVER_TYPE) host_type : TDS_INVALID_TYPE;
 	hostcol->prefix_len = host_prefixlen;
 	hostcol->column_len = host_collen;
 	free(hostcol->terminator);
@@ -1024,8 +1030,8 @@ _bcp_check_eof(DBPROCESS * dbproc, FILE *file, int icol)
  * Convert column for input to a table
  */
 static TDSRET
-_bcp_convert_in(DBPROCESS *dbproc, int srctype, const TDS_CHAR *src, TDS_UINT srclen,
-	     int desttype, BCPCOLDATA *coldata)
+_bcp_convert_in(DBPROCESS *dbproc, TDS_SERVER_TYPE srctype, const TDS_CHAR *src, TDS_UINT srclen,
+		TDS_SERVER_TYPE desttype, BCPCOLDATA *coldata)
 {
 	int variable = 1;
 	CONV_RESULT cr, *p_cr;
@@ -1074,7 +1080,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 	TDS_TINYINT ti;
 	TDS_SMALLINT si;
 	TDS_INT li;
-	TDS_INT desttype;
+	TDS_SERVER_TYPE desttype;
 	TDS_CHAR *coldata;
 
 	int i, collen, data_is_null;
@@ -2011,15 +2017,18 @@ bcp_done(DBPROCESS * dbproc)
  */
 RETCODE
 bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
-	 BYTE * terminator, int termlen, int vartype, int table_column)
+	 BYTE * terminator, int termlen, int db_vartype, int table_column)
 {
+	TDS_SERVER_TYPE vartype;
 	TDSCOLUMN *colinfo;
 
 	tdsdump_log(TDS_DBG_FUNC, "bcp_bind(%p, %p, %d, %d -- %p, %d, %s, %d)\n", 
 						dbproc, varaddr, prefixlen, varlen, 
-						terminator, termlen, dbprtype(vartype), table_column);
+						terminator, termlen, dbprtype(db_vartype), table_column);
 	CHECK_CONN(FAIL);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI, FAIL);
+	DBPERROR_RETURN(!is_tds_type_valid(db_vartype), SYBEUDTY);
+	vartype = (TDS_SERVER_TYPE) db_vartype;
 
 	if (dbproc->hostfileinfo != NULL) {
 		dbperror(dbproc, SYBEBCPB, 0);
@@ -2108,8 +2117,8 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 static TDSRET
 _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 {
-	TDS_INT desttype;
-	int collen, coltype;
+	TDS_SERVER_TYPE coltype, desttype;
+	int collen;
 	int bytes_read;
 	BYTE *dataptr;
 	DBPROCESS *dbproc = (DBPROCESS *) bcpinfo->parent;
@@ -2159,7 +2168,7 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 	desttype = tds_get_conversion_type(bindcol->column_type, bindcol->column_size);
 
 	/* Fixed Length data - this overrides anything else specified */
-	coltype = bindcol->column_bindtype == 0 ? desttype : bindcol->column_bindtype;
+	coltype = bindcol->column_bindtype == 0 ? desttype : (TDS_SERVER_TYPE) bindcol->column_bindtype;
 	if (is_fixed_type(coltype)) {
 		collen = tds_get_size_by_type(coltype);
 	}

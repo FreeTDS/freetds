@@ -49,6 +49,13 @@
 
 /** \cond HIDDEN_SYMBOLS */
 #define USE_ICONV (tds->conn->use_iconv)
+
+#define TDS_GET_COLUMN_TYPE(col) do { \
+	TDS_TINYINT _tds_type = tds_get_byte(tds); \
+	if (!is_tds_type_valid(_tds_type)) \
+		return TDS_FAIL; \
+	tds_set_column_type(tds->conn, col, (TDS_SERVER_TYPE) _tds_type); \
+} while(0)
 /** \endcond */
 
 static TDSRET tds_process_info(TDSSOCKET * tds, int marker);
@@ -1033,7 +1040,7 @@ tds_process_col_fmt(TDSSOCKET * tds)
 			curcol->column_usertype = tds_get_int(tds);
 		}
 		/* on with our regularly scheduled code (mlilback, 11/7/01) */
-		tds_set_column_type(tds->conn, curcol, tds_get_byte(tds));
+		TDS_GET_COLUMN_TYPE(curcol);
 
 		tdsdump_log(TDS_DBG_INFO1, "processing result. type = %d(%s), varint_size %d\n",
 			    curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
@@ -1424,7 +1431,7 @@ tds_process_compute_result(TDSSOCKET * tds)
 		/*  User defined data type of the column */
 		curcol->column_usertype = tds_get_int(tds);
 
-		tds_set_column_type(tds->conn, curcol, tds_get_byte(tds));
+		TDS_GET_COLUMN_TYPE(curcol);
 
 		curcol->funcs->get_info(tds, curcol);
 
@@ -1479,7 +1486,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	curcol->column_writeable = (curcol->column_flags & 0x08) > 0;
 	curcol->column_identity = (curcol->column_flags & 0x10) > 0;
 
-	tds_set_column_type(tds->conn, curcol, tds_get_byte(tds));	/* sets "cardinal" type */
+	TDS_GET_COLUMN_TYPE(curcol);	/* sets "cardinal" type */
 
 	curcol->column_timestamp = (curcol->column_type == SYBBINARY && curcol->column_usertype == TDS_UT_TIMESTAMP);
 
@@ -1661,7 +1668,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 	}
 	
 	curcol->column_usertype = tds_get_int(tds);
-	tds_set_column_type(tds->conn, curcol, tds_get_byte(tds));
+	TDS_GET_COLUMN_TYPE(curcol);
 
 	tdsdump_log(TDS_DBG_INFO1, "processing result. type = %d(%s), varint_size %d\n",
 		    curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
@@ -1816,7 +1823,7 @@ tds5_process_result2(TDSSOCKET * tds)
 
 		curcol->column_usertype = tds_get_int(tds);
 
-		tds_set_column_type(tds->conn, curcol, tds_get_byte(tds));
+		TDS_GET_COLUMN_TYPE(curcol);
 
 		curcol->funcs->get_info(tds, curcol);
 
@@ -2619,7 +2626,7 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 		curcol->column_usertype = tds_get_int(tds);
 
 		/* column type */
-		tds_set_column_type(tds->conn, curcol, tds_get_byte(tds));
+		TDS_GET_COLUMN_TYPE(curcol);
 
 		curcol->funcs->get_info(tds, curcol);
 

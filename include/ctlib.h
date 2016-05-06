@@ -259,7 +259,7 @@ struct _cs_locale
  */
 TDSRET _ct_handle_server_message(const TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE * msgptr);
 int _ct_handle_client_message(const TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE * msgptr);
-int _ct_get_server_type(TDSSOCKET *tds, int datatype);
+TDS_SERVER_TYPE _ct_get_server_type(TDSSOCKET *tds, int datatype);
 int _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo, CS_INT offset);
 int _ct_get_client_type(TDSCOLUMN *col);
 void _ctclient_msg(CS_CONNECTION * con, const char *funcname, int layer, int origin, int severity, int number,

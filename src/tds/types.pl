@@ -38,7 +38,7 @@ my $hdr = lc(readLine());
 $hdr =~ s/ /_/g;
 my @fields = splitRow($hdr);
 
-# read all files
+# read all file
 my %types;
 my $line;
 while ($line = readLine()) {
@@ -54,11 +54,11 @@ open(IN, '<', $ARGV[1]) or die $ARGV[1];
 while (<IN>) {
 	if (/\s+(X?SYB[A-Z0-9]+)\s+=\s+([1-9]\d+)/) {
 		my ($name, $val) = ($1, $2);
+		die if $val <= 0 || $val > 255;
 		next if !exists($types{$name});
 		die "out of range" if $val <= 0 || $val >= 256;
 		$types{$name}->{value} = $val;
 	}
-
 }
 close(IN);
 foreach (keys %types) {
@@ -90,7 +90,7 @@ print q|/**
  * Return the number of bytes needed by specified type.
  */
 int
-tds_get_size_by_type(int servertype)
+tds_get_size_by_type(TDS_SERVER_TYPE servertype)
 {
 	switch (servertype) {
 |;
@@ -143,8 +143,8 @@ print q|/**
  * @param colsize size of type
  * @result type for conversion
  */
-int
-tds_get_conversion_type(int srctype, int colsize)
+TDS_SERVER_TYPE
+tds_get_conversion_type(TDS_SERVER_TYPE srctype, int colsize)
 {
 	switch (srctype) {
 |;
@@ -173,6 +173,8 @@ foreach my $type (sort &unique(map { $_->{nullable_type} } @list)) {
 }
 print q|	case SYB5INT8:
 		return SYBINT8;
+	default:
+		break;
 	}
 	return srctype;
 }

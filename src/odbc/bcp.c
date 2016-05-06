@@ -362,6 +362,9 @@ odbc_bcp_bind(TDS_DBC *dbc, const void * varaddr, int prefixlen, int varlen,
 	if (prefixlen != 0 && prefixlen != 1 && prefixlen != 2 && prefixlen != 4 && prefixlen != 8)
 		ODBCBCP_ERROR_RETURN("HY009");
 
+	if (vartype != 0 && !is_tds_type_valid(vartype))
+		ODBCBCP_ERROR_RETURN("HY004");
+
 	if (prefixlen == 0 && varlen == SQL_VARLEN_DATA && termlen == -1 && !is_fixed_type(vartype)) {
 		tdsdump_log(TDS_DBG_FUNC, "bcp_bind(): non-fixed type %d requires prefix or terminator\n", vartype);
 		ODBCBCP_ERROR_RETURN("HY009");
@@ -544,8 +547,7 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 	TDS_SMALLINT si;
 	TDS_INT li;
 	tds_sysdep_int64_type lli;
-	TDS_INT desttype;
-	int coltype;
+	TDS_SERVER_TYPE desttype, coltype;
 	SQLLEN col_len;
 	int data_is_null;
 	SQLLEN bytes_read;
@@ -606,7 +608,7 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 	desttype = tds_get_conversion_type(bindcol->column_type, bindcol->column_size);
 
 	/* Fixed Length data - this overrides anything else specified */
-	coltype = bindcol->column_bindtype == 0 ? desttype : bindcol->column_bindtype;
+	coltype = bindcol->column_bindtype == 0 ? desttype : (TDS_SERVER_TYPE) bindcol->column_bindtype;
 	if (is_fixed_type(coltype)) {
 		col_len = tds_get_size_by_type(coltype);
 	}

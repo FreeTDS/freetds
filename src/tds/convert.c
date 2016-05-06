@@ -2915,8 +2915,8 @@ store_hour(const char *hour, const char *ampm, struct tds_time *t)
  * @param srctype type requires
  * @return nullable type
  */
-TDS_INT
-tds_get_null_type(int srctype)
+TDS_SERVER_TYPE
+tds_get_null_type(TDS_SERVER_TYPE srctype)
 {
 
 	switch (srctype) {

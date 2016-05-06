@@ -152,17 +152,21 @@ dbrpcinit(DBPROCESS * dbproc, const char rpcname[], DBSMALLINT options)
  * \sa dbrpcinit(), dbrpcsend()
  */
 RETCODE
-dbrpcparam(DBPROCESS * dbproc, const char paramname[], BYTE status, int type, DBINT maxlen, DBINT datalen, BYTE * value)
+dbrpcparam(DBPROCESS * dbproc, const char paramname[], BYTE status, int db_type, DBINT maxlen, DBINT datalen, BYTE * value)
 {
 	char *name = NULL;
 	DBREMOTE_PROC *rpc;
 	DBREMOTE_PROC_PARAM **pparam;
 	DBREMOTE_PROC_PARAM *param;
+	TDS_SERVER_TYPE type;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbrpcparam(%p, %s, 0x%x, %d, %d, %d, %p)\n", 
-				   dbproc, paramname, status, type, maxlen, datalen, value);
+				   dbproc, paramname, status, db_type, maxlen, datalen, value);
 	CHECK_CONN(FAIL);
 	CHECK_PARAMETER(dbproc->rpc, SYBERPCS, FAIL);
+
+	DBPERROR_RETURN(!is_tds_type_valid(db_type), SYBEUDTY);
+	type = (TDS_SERVER_TYPE) db_type;
 
 	/* validate datalen parameter */
 
@@ -366,7 +370,7 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 	TDSPARAMINFO *params = NULL, *new_params;
 	BYTE *temp_value;
 	int  temp_datalen;
-	int  temp_type;
+	TDS_SERVER_TYPE temp_type;
 	int  param_is_null;
 
 	/* sanity */

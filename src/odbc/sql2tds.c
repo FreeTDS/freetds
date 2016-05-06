@@ -158,7 +158,8 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 {
 	TDS_DBC * dbc = stmt->dbc;
 	TDSCONNECTION * conn = dbc->tds_socket->conn;
-	int dest_type, src_type, sql_src_type, res;
+	TDS_SERVER_TYPE dest_type;
+	int src_type, sql_src_type, res;
 	CONV_RESULT ores;
 	TDSBLOB *blob;
 	char *src, *converted_src;
@@ -175,7 +176,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 
 	/* what type to convert ? */
 	dest_type = odbc_sql_to_server_type(conn, drec_ipd->sql_desc_concise_type, drec_ipd->sql_desc_unsigned);
-	if (!dest_type) {
+	if (dest_type == TDS_INVALID_TYPE) {
 		odbc_errs_add(&stmt->errs, "07006", NULL);	/* Restricted data type attribute violation */
 		return SQL_ERROR;
 	}
