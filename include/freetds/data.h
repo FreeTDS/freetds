@@ -91,7 +91,7 @@ tds_func_check    tds_sybbigtime_check;
  */
 #ifndef TDS_DONT_DEFINE_DEFAULT_FUNCTIONS
 #  define TDS_DEFINE_DEFAULT_FUNCS(name) \
-	const TDSCOLUMNFUNCS tds_ ## name ## _funcs = TDS_COMMON_FUNCS(name);
+	const TDSCOLUMNFUNCS tds_ ## name ## _funcs = TDS_COMMON_FUNCS(name)
 
 TDS_DEFINE_DEFAULT_FUNCS(generic);
 TDS_DEFINE_DEFAULT_FUNCS(numeric);
