@@ -462,17 +462,16 @@ typedef struct KEY_T
 } KEY_T;
 
 static bool
-key_equal(const void *a, const void *b)
+key_equal(const KEY_T *a, const KEY_T *b)
 {
-	const KEY_T *p1 = a, *p2 = b;
 	int i;
 	
 	assert(a && b);
-	assert(p1->keys && p2->keys);
-	assert(p1->nkeys == p2->nkeys);
+	assert(a->keys && b->keys);
+	assert(a->nkeys == b->nkeys);
 	
-	for( i=0; i < p1->nkeys; i++ ) {
-		if (! col_equal(p1->keys+i, p2->keys+i))
+	for (i=0; i < a->nkeys; i++) {
+		if (! col_equal(a->keys+i, b->keys+i))
 			return false;
 	}
 	return true;
@@ -535,14 +534,18 @@ make_col_name(const KEY_T *k)
 }
 	
 
-struct agg_t { KEY_T row_key, col_key; struct col_t value; }; 
+typedef struct agg_t
+{
+	KEY_T row_key, col_key;
+	struct col_t value;
+} AGG_T;
 
 #if 0
 static bool
 agg_key_equal(const void *a, const void *b)
 {
 	int i;
-	const struct agg_t *p1 = a, *p2 = b;
+	const AGG_T *p1 = a, *p2 = b;
 	
 	assert(p1 && p2);
 	assert(p1->row_key.keys  && p2->row_key.keys);
@@ -558,11 +561,10 @@ agg_key_equal(const void *a, const void *b)
 #endif
 
 static bool
-agg_next(const void *a, const void *b)
+agg_next(const AGG_T *p1, const AGG_T *p2)
 {
 	int i;
-	const struct agg_t *p1 = a, *p2 = b;
-	
+
 	assert(p1 && p2);
 	
 	if (p1->row_key.keys == NULL || p2->row_key.keys == NULL)
@@ -600,7 +602,7 @@ agg_next(const void *a, const void *b)
 }
 
 static void
-agg_free(struct agg_t *p)
+agg_free(AGG_T *p)
 {
 	key_free(&p->row_key);
 	key_free(&p->col_key);
@@ -608,12 +610,11 @@ agg_free(struct agg_t *p)
 }
 
 static bool
-agg_equal(const void *agg_t1, const void *agg_t2)
+agg_equal(const AGG_T *p1, const AGG_T *p2)
 {
-	const struct agg_t *p1 = agg_t1, *p2 = agg_t2;
 	int i;
 	
-	assert(agg_t1 && agg_t2);
+	assert(p1 && p2);
 	assert(p1->row_key.keys && p1->col_key.keys);
 	assert(p2->row_key.keys && p2->col_key.keys);
 
@@ -760,45 +761,44 @@ reinit_results(TDSSOCKET * tds, size_t num_cols, const struct metadata_t meta[])
 	return true;
 }
 
-struct pivot_t
+typedef struct pivot_t
 {
 	DBPROCESS *dbproc;
 	STATUS status;
 	DB_RESULT_STATE dbresults_state;
 	
-	struct agg_t *output;
+	AGG_T *output;
 	KEY_T *across;
 	size_t nout, nacross;
-};
+} PIVOT_T;
 
 static bool
-pivot_key_equal(const void *a, const void *b)
+pivot_key_equal(const PIVOT_T *a, const PIVOT_T *b)
 {
-	const struct pivot_t *pa = a, *pb = b;
 	assert(a && b);
 	
-	return pa->dbproc == pb->dbproc? true : false;
+	return a->dbproc == b->dbproc? true : false;
 }
 
-static struct pivot_t *pivots = NULL;
+static PIVOT_T *pivots = NULL;
 static size_t npivots = 0;
 
-struct pivot_t *
+PIVOT_T *
 dbrows_pivoted(DBPROCESS *dbproc)
 {
-	struct pivot_t P;
+	PIVOT_T P;
 
 	assert(dbproc);
 	P.dbproc = dbproc;
 	
-	return tds_find(&P, pivots, npivots, sizeof(*pivots), pivot_key_equal); 
+	return (PIVOT_T *) tds_find(&P, pivots, npivots, sizeof(*pivots), (compare_func) pivot_key_equal);
 }
 
 STATUS
-dbnextrow_pivoted(DBPROCESS *dbproc, struct pivot_t *pp)
+dbnextrow_pivoted(DBPROCESS *dbproc, PIVOT_T *pp)
 {
 	int i;
-	struct agg_t candidate, *pout;
+	AGG_T candidate, *pout;
 
 	assert(pp);
 	assert(dbproc && dbproc->tds_socket);
@@ -840,10 +840,10 @@ dbnextrow_pivoted(DBPROCESS *dbproc, struct pivot_t *pp)
 		if (pcol->bcp_terminator == NULL) { /* not a cross-tab column */
 			pval = &candidate.row_key.keys[i];
 		} else {
-			struct agg_t *pcan;
+			AGG_T *pcan;
 			key_cpy(&candidate.col_key, (KEY_T *) pcol->bcp_terminator);
 			if ((pcan = tds_find(&candidate, pout, pp->output + pp->nout - pout, 
-						sizeof(*pp->output), agg_next)) != NULL) {
+						sizeof(*pp->output), (compare_func) agg_next)) != NULL) {
 				/* flag this output as used */
 				pout->row_key.keys = NULL;
 				pval = &pcan->value;
@@ -907,8 +907,8 @@ RETCODE
 dbpivot(DBPROCESS *dbproc, int nkeys, int *keys, int ncols, int *cols, DBPIVOT_FUNC func, int val)
 {
 	enum { logalot = 1 };
-	struct pivot_t P, *pp;
-	struct agg_t input, *pout = NULL;
+	PIVOT_T P, *pp;
+	AGG_T input, *pout = NULL;
 	struct metadata_t *metadata, *pmeta;
 	size_t i, nmeta = 0;
 
@@ -935,7 +935,7 @@ dbpivot(DBPROCESS *dbproc, int nkeys, int *keys, int ncols, int *cols, DBPIVOT_F
 	memset(&input,  0, sizeof(input));
 	
 	P.dbproc = dbproc;
-	if ((pp = tds_find(&P, pivots, npivots, sizeof(*pivots), pivot_key_equal)) == NULL ) {
+	if ((pp = tds_find(&P, pivots, npivots, sizeof(*pivots), (compare_func) pivot_key_equal)) == NULL ) {
 		pp = TDS_RESIZE(pivots, 1 + npivots);
 		if (!pp)
 			return FAIL;
@@ -993,14 +993,14 @@ dbpivot(DBPROCESS *dbproc, int nkeys, int *keys, int ncols, int *cols, DBPIVOT_F
 	
 	while ((pp->status = dbnextrow(dbproc)) == REG_ROW) {
 		/* add to unique list of crosstab columns */
-		if (tds_find(&input.col_key, pp->across, pp->nacross, sizeof(*pp->across), key_equal) == NULL) {
+		if (tds_find(&input.col_key, pp->across, pp->nacross, sizeof(*pp->across), (compare_func) key_equal) == NULL) {
 			if (!TDS_RESIZE(pp->across, 1 + pp->nacross))
 				return FAIL;
 			key_cpy(pp->across + pp->nacross, &input.col_key);
 		}
 		assert(pp->across);
 		
-		if ((pout = tds_find(&input, pp->output, pp->nout, sizeof(*pp->output), agg_equal)) == NULL ) {
+		if ((pout = tds_find(&input, pp->output, pp->nout, sizeof(*pp->output), (compare_func) agg_equal)) == NULL ) {
 			if (!TDS_RESIZE(pp->output, 1 + pp->nout))
 				return FAIL;
 			pout = pp->output + pp->nout++;
