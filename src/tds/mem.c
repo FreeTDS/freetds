@@ -286,9 +286,7 @@ tds_alloc_param_result(TDSPARAMINFO * old_param)
 
 	param_info = old_param;
 	if (!param_info) {
-		param_info = (TDSPARAMINFO *) calloc(1, sizeof(TDSPARAMINFO));
-		if (!param_info)
-			goto Cleanup;
+		TEST_MALLOC(param_info, TDSPARAMINFO);
 		param_info->ref_count = 1;
 	}
 
@@ -531,7 +529,7 @@ tds_alloc_row(TDSRESULTINFO * res_info)
 	}
 	res_info->row_size = row_size;
 
-	ptr = (unsigned char *) calloc(1, res_info->row_size);
+	ptr = tds_new0(unsigned char, res_info->row_size);
 	res_info->current_row = ptr;
 	if (!ptr)
 		return TDS_FAIL;
@@ -707,7 +705,7 @@ tds_alloc_context(void * parent)
 	if ((locale = tds_get_locale()) == NULL)
 		return NULL;
 
-	if ((context = (TDSCONTEXT*) calloc(1, sizeof(TDSCONTEXT))) == NULL) {
+	if ((context = tds_new0(TDSCONTEXT, 1)) == NULL) {
 		tds_free_locale(locale);
 		return NULL;
 	}

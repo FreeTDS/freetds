@@ -59,7 +59,7 @@ const wchar_t *sqlwstr(const SQLWCHAR *str, SQLWSTRBUF **bufs)
 		return NULL;
 
 	/* allocate buffer for string, we do not care for memory errors */
-	buf = (SQLWSTRBUF *) calloc(1, sizeof(*buf));
+	buf = tds_new0(SQLWSTRBUF, 1);
 	if (!buf)
 		return NULL;
 	buf->next = *bufs;

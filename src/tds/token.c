@@ -924,7 +924,7 @@ tds_read_namelist(TDSSOCKET * tds, int remainder, struct namelist **p_head, int 
 		TDS_USMALLINT namelen;
 
 		prev = cur;
-		if (!(cur = (struct namelist *) malloc(sizeof(struct namelist)))) {
+		if (!(cur = tds_new(struct namelist, 1))) {
 			tds_free_namelist(head);
 			return -1;
 		}
@@ -1083,7 +1083,7 @@ tds71_read_table_names(TDSSOCKET *tds, int remainder, struct namelist **p_head)
 		char *partials[4], *p;
 
 		prev = cur;
-		if (!(cur = (struct namelist *) malloc(sizeof(struct namelist)))) {
+		if (!(cur = tds_new(struct namelist, 1))) {
 			tds_free_namelist(head);
 			return -1;
 		}
@@ -1117,7 +1117,7 @@ tds71_read_table_names(TDSSOCKET *tds, int remainder, struct namelist **p_head)
 		}
 
 		/* allocate full name */
-		p = (char *) malloc(len);
+		p = tds_new(char, len);
 		if (!p) {
 			i = elements;
 			while (i > 0)
@@ -1169,7 +1169,7 @@ tds_process_tabname(TDSSOCKET *tds)
 		return TDS_FAIL;
 
 	/* put in an array */
-	names = (char **) malloc(num_names * sizeof(char*));
+	names = tds_new(char*, num_names);
 	if (!names) {
 		tds_free_namelist(head);
 		return TDS_FAIL;
@@ -1452,7 +1452,7 @@ tds_process_compute_result(TDSSOCKET * tds)
 	tdsdump_log(TDS_DBG_INFO1, "processing tds compute result, by_cols = %d\n", by_cols);
 
 	if (by_cols) {
-		if ((info->bycolumns = (TDS_SMALLINT *) calloc(by_cols, sizeof(TDS_SMALLINT))) == NULL)
+		if ((info->bycolumns = tds_new0(TDS_SMALLINT, by_cols)) == NULL)
 			return TDS_FAIL;
 	}
 	info->by_cols = by_cols;
@@ -2294,7 +2294,7 @@ tds_process_info(TDSSOCKET * tds, int marker)
 
 		/* read SQL state */
 		len_sqlstate = tds_get_byte(tds);
-		msg.sql_state = (char *) malloc(len_sqlstate + 1);
+		msg.sql_state = tds_new(char, len_sqlstate + 1);
 		if (!msg.sql_state) {
 			tds_free_msg(&msg);
 			return TDS_FAIL;
@@ -2435,7 +2435,7 @@ tds_alloc_get_string(TDSSOCKET * tds, char **string, size_t len)
 	CHECK_TDS_EXTRA(tds);
 
 	/* assure sufficient space for every conversion */
-	s = (char *) malloc(len * 4 + 1);
+	s = tds_new(char, len * 4 + 1);
 	out_len = tds_get_string(tds, len, s, len * 4);
 	if (!s) {
 		*string = NULL;
