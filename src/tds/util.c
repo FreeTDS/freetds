@@ -401,7 +401,7 @@ tds_strndup(const void *s, TDS_INTPTR len)
 	if (len < 0)
 		return NULL;
 
-	out = (char*) malloc(len + 1);
+	out = tds_new(char, len + 1);
 	if (out) {
 		memcpy(out, s, len);
 		out[len] = 0;

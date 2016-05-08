@@ -484,7 +484,7 @@ odbc_build_connect_string(TDS_ERRS *errs, TDS_PARSED_PARAM *params, char **out)
 	}
 
 	/* allocate */
-	p = (char*) malloc(len);
+	p = tds_new(char, len);
 	if (!p) {
 		odbc_errs_add(errs, "HY001", NULL);
 		return 0;

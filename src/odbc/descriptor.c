@@ -41,7 +41,7 @@ desc_alloc(SQLHANDLE parent, int desc_type, int alloc_type)
 {
 	TDS_DESC *desc;
 
-	desc = (TDS_DESC *) calloc(1, sizeof(TDS_DESC));
+	desc = tds_new0(TDS_DESC, 1);
 	if (!desc || tds_mutex_init(&desc->mtx)) {
 		free(desc);
 		return NULL;

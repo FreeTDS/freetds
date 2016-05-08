@@ -102,7 +102,7 @@ pool_init(const char *name)
 
 	/* initialize the pool */
 
-	pool = (TDS_POOL *) calloc(1, sizeof(TDS_POOL));
+	pool = tds_new0(TDS_POOL, 1);
 
 	pool->event_fd = INVALID_SOCKET;
 	if (tds_mutex_init(&pool->events_mtx)) {

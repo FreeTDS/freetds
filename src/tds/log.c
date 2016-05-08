@@ -420,7 +420,7 @@ tdsdump_col(const TDSCOLUMN *col)
 	case SYBCHAR: 
 	case SYBVARCHAR:
 		if (col->column_cur_size >= 0) {
-			data = (char*) calloc(1, 1 + col->column_cur_size);
+			data = tds_new0(char, 1 + col->column_cur_size);
 			if (!data) {
 				tdsdump_log(TDS_DBG_FUNC, "no memory to log data for type %s\n", type_name);
 				return;

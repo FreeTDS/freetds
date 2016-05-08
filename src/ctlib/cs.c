@@ -200,7 +200,7 @@ _cs_locale_alloc(void)
 {
 	tdsdump_log(TDS_DBG_FUNC, "_cs_locale_alloc()\n");
 
-	return (CS_LOCALE *) calloc(1, sizeof(CS_LOCALE));
+	return tds_new0(CS_LOCALE, 1);
 }
 
 static void
@@ -319,7 +319,7 @@ cs_ctx_alloc(CS_INT version, CS_CONTEXT ** ctx)
 
 	tdsdump_log(TDS_DBG_FUNC, "cs_ctx_alloc(%d, %p)\n", version, ctx);
 
-	*ctx = (CS_CONTEXT *) calloc(1, sizeof(CS_CONTEXT));
+	*ctx = tds_new0(CS_CONTEXT, 1);
 	tds_ctx = tds_alloc_context(*ctx);
 	if (!tds_ctx) {
 		free(*ctx);
@@ -1284,12 +1284,12 @@ cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message)
 		return CS_FAIL;
 	}
 
-	*curptr = (struct cs_diag_msg *) malloc(sizeof(struct cs_diag_msg));
+	*curptr = tds_new(struct cs_diag_msg, 1);
 	if (*curptr == NULL) { 
 		return CS_FAIL;
 	} else {
 		(*curptr)->next = NULL;
-		(*curptr)->msg  = (CS_CLIENTMSG*) malloc(sizeof(CS_CLIENTMSG));
+		(*curptr)->msg  = tds_new(CS_CLIENTMSG, 1);
 		if ((*curptr)->msg == NULL) {
 			return CS_FAIL;
 		} else {

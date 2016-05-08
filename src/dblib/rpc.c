@@ -107,7 +107,7 @@ dbrpcinit(DBPROCESS * dbproc, const char rpcname[], DBSMALLINT options)
 	/* rpc now contains the address of the dbproc's first empty (null) DBREMOTE_PROC* */
 
 	/* allocate */
-	if ((*rpc = (DBREMOTE_PROC *) calloc(1, sizeof(DBREMOTE_PROC))) == NULL) {
+	if ((*rpc = tds_new0(DBREMOTE_PROC, 1)) == NULL) {
 		dbperror(dbproc, SYBEMEM, errno);
 		return FAIL;
 	}
@@ -215,7 +215,7 @@ dbrpcparam(DBPROCESS * dbproc, const char paramname[], BYTE status, int db_type,
 		type = XSYBNVARCHAR;
 
 	/* allocate */
-	param = (DBREMOTE_PROC_PARAM *) malloc(sizeof(DBREMOTE_PROC_PARAM));
+	param = tds_new(DBREMOTE_PROC_PARAM, 1);
 	if (param == NULL) {
 		dbperror(dbproc, SYBEMEM, 0);
 		return FAIL;
@@ -342,7 +342,7 @@ param_row_alloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *
 			memcpy(curcol->column_data, value, size);
 		} else {
 			TDSBLOB *blob = (TDSBLOB *) curcol->column_data;
-			blob->textvalue = (TDS_CHAR*) malloc(size);
+			blob->textvalue = tds_new(TDS_CHAR, size);
 			tdsdump_log(TDS_DBG_FUNC, "blob parameter supported, size %d textvalue pointer is %p\n", 
 						  size, blob->textvalue);
 			if (!blob->textvalue)

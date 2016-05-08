@@ -227,7 +227,7 @@ change_database(TDS_DBC * dbc, const char *database, int database_len)
 	 */
 	if (tds) {
 		/* build query */
-		char *query = (char *) malloc(6 + tds_quote_id(tds, NULL, database, database_len));
+		char *query = tds_new(char, 6 + tds_quote_id(tds, NULL, database, database_len));
 
 		if (!query) {
 			odbc_errs_add(&dbc->errs, "HY001", NULL);
@@ -1549,7 +1549,7 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 
 	tdsdump_log(TDS_DBG_FUNC, "_SQLAllocConnect(%p, %p)\n", henv, phdbc);
 
-	dbc = (TDS_DBC *) calloc(1, sizeof(TDS_DBC));
+	dbc = tds_new0(TDS_DBC, 1);
 	if (!dbc) {
 		odbc_errs_add(&env->errs, "HY001", NULL);
 		ODBC_EXIT_(env);
@@ -1614,7 +1614,7 @@ _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version)
 	tdsdump_log(TDS_DBG_FUNC, "_SQLAllocEnv(%p, %d)\n",
 			phenv, (int) odbc_version);
 
-	env = (TDS_ENV *) calloc(1, sizeof(TDS_ENV));
+	env = tds_new0(TDS_ENV, 1);
 	if (!env)
 		return SQL_ERROR;
 
@@ -1688,7 +1688,7 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 
 	tdsdump_log(TDS_DBG_FUNC, "_SQLAllocStmt(%p, %p)\n", hdbc, phstmt);
 
-	stmt = (TDS_STMT *) calloc(1, sizeof(TDS_STMT));
+	stmt = tds_new0(TDS_STMT, 1);
 	if (!stmt) {
 		odbc_errs_add(&dbc->errs, "HY001", NULL);
 		ODBC_EXIT_(dbc);
@@ -6935,7 +6935,7 @@ ODBC_FUNC(SQLTables, (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),
 			char *dst, *type;
 
 			tdsdump_log(TDS_DBG_INFO1, "fixing type elements\n");
-			type = (char *) malloc(tds_dstr_len(&table_type) + elements * 2 + 3);
+			type = tds_new(char, tds_dstr_len(&table_type) + elements * 2 + 3);
 			if (!type)
 				goto memory_error;
 

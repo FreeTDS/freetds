@@ -131,7 +131,7 @@ tds_sspi_handle_next(TDSSOCKET * tds, struct tds_authentication * tds_auth, size
 	if (len < 32)
 		return TDS_FAIL;
 
-	auth_buf = (TDS_UCHAR *) malloc(len);
+	auth_buf = tds_new(TDS_UCHAR, len);
 	if (!auth_buf)
 		return TDS_FAIL;
 	tds_get_n(tds, auth_buf, (int)len);
@@ -224,7 +224,7 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 		identity.UserLength = strlen(user_name);
 	}
 
-	auth = (TDSSSPIAUTH *) calloc(1, sizeof(TDSSSPIAUTH));
+	auth = tds_new0(TDSSSPIAUTH, 1);
 	if (!auth || !tds->login)
 		return NULL;
 

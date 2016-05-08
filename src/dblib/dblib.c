@@ -683,7 +683,7 @@ dbinit(void)
 	 * DBLIBCONTEXT stores a list of current connections so they may be closed with dbexit() 
 	 */
 
-	g_dblib_ctx.connection_list = (TDSSOCKET**) calloc(TDS_MAX_CONN, sizeof(TDSSOCKET *));
+	g_dblib_ctx.connection_list = tds_new0(TDSSOCKET *, TDS_MAX_CONN);
 	if (g_dblib_ctx.connection_list == NULL) {
 		tdsdump_log(TDS_DBG_FUNC, "dbinit: out of memory\n");
 		tds_mutex_unlock(&dblib_mutex);
@@ -718,7 +718,7 @@ dblogin(void)
 
 	tdsdump_log(TDS_DBG_FUNC, "dblogin(void)\n");
 
-	if ((loginrec = (LOGINREC*) malloc(sizeof(LOGINREC))) == NULL) {
+	if ((loginrec = tds_new(LOGINREC, 1)) == NULL) {
 		dbperror(NULL, SYBEMEM, errno);
 		return NULL;
 	}
@@ -1002,12 +1002,12 @@ dbstring_concat(DBSTRING ** dbstrp, const char *p)
 	while (*strp != NULL) {
 		strp = &((*strp)->strnext);
 	}
-	if ((*strp = (DBSTRING*) malloc(sizeof(DBSTRING))) == NULL) {
+	if ((*strp = tds_new(DBSTRING, 1)) == NULL) {
 		dbperror(NULL, SYBEMEM, errno);
 		return FAIL;
 	}
 	(*strp)->strtotlen = (DBINT)strlen(p);
-	if (((*strp)->strtext = (BYTE*) malloc((*strp)->strtotlen)) == NULL) {
+	if (((*strp)->strtext = tds_new(BYTE, (*strp)->strtotlen)) == NULL) {
 		TDS_ZERO_FREE(*strp);
 		dbperror(NULL, SYBEMEM, errno);
 		return FAIL;
@@ -1072,7 +1072,7 @@ dbstring_get(DBSTRING * dbstr)
 		return NULL;
 	}
 	len = dbstring_length(dbstr);
-	if ((ret = (char*) malloc(len + 1)) == NULL) {
+	if ((ret = tds_new(char, len + 1)) == NULL) {
 		dbperror(NULL, SYBEMEM, errno);
 		return NULL;
 	}
@@ -1130,7 +1130,7 @@ init_dboptions(void)
 	DBOPTION *dbopts;
 	int i;
 
-	if ((dbopts = (DBOPTION*) calloc(DBNUMOPTIONS, sizeof(DBOPTION))) == NULL) {
+	if ((dbopts = tds_new0(DBOPTION, DBNUMOPTIONS)) == NULL) {
 		dbperror(NULL, SYBEMEM, errno);
 		return NULL;
 	}
@@ -1187,7 +1187,7 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 		tdsdump_log(TDS_DBG_FUNC, "tdsdbopen: servername set to %s\n", server);
 	}
 
-	if ((dbproc = (DBPROCESS*) calloc(1, sizeof(DBPROCESS))) == NULL) {
+	if ((dbproc = tds_new0(DBPROCESS, 1)) == NULL) {
 		dbperror(NULL, SYBEMEM, errno);
 		return NULL;
 	}
@@ -1437,7 +1437,7 @@ dbuse(DBPROCESS * dbproc, const char *name)
 		return FAIL;
 
 	/* quote name */
-	query = (char*) malloc(tds_quote_id(dbproc->tds_socket, NULL, name, -1) + 6);
+	query = tds_new(char, tds_quote_id(dbproc->tds_socket, NULL, name, -1) + 6);
 	if (!query) {
 		dbperror(dbproc, SYBEMEM, errno);
 		return FAIL;
@@ -1975,7 +1975,7 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 		return FAIL;
 	}
 
-	if ((pval = (BYTE*) malloc(bindlen)) == NULL) {
+	if ((pval = tds_new(BYTE, bindlen)) == NULL) {
 		dbperror(dbproc, SYBEMEM, errno);
 		return FAIL;
 	}
@@ -3384,7 +3384,7 @@ dbprrow(DBPROCESS * dbproc)
 			resinfo = tds->res_info;
 
 			if (col_printlens == NULL) {
-				if ((col_printlens = (TDS_SMALLINT*) calloc(resinfo->num_cols, sizeof(TDS_SMALLINT))) == NULL) {
+				if ((col_printlens = tds_new0(TDS_SMALLINT, resinfo->num_cols)) == NULL) {
 					dbperror(dbproc, SYBEMEM, errno);
 					return FAIL;
 				}
@@ -3948,7 +3948,7 @@ dbsetmaxprocs(int maxprocs)
 		return SUCCEED;
 	}
 
-	g_dblib_ctx.connection_list = (TDSSOCKET**) calloc(maxprocs, sizeof(TDSSOCKET *));
+	g_dblib_ctx.connection_list = tds_new0(TDSSOCKET *, maxprocs);
 
 	if (g_dblib_ctx.connection_list == NULL) {
 		g_dblib_ctx.connection_list = old_list;
@@ -7978,7 +7978,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 			if(*pformats != '\0') {
 				va_list ap;
 				int result_len, len = 2 * (int)strlen(ptext);
-				char * buffer = (char*) calloc(1, len);
+				char * buffer = tds_new0(char, len);
 
 				if (buffer == NULL)
 					break;

@@ -40,7 +40,7 @@ tds_get_query(TDSSOCKET * tds)
 
 	if (query_buflen == 0) {
 		query_buflen = 1024;
-		query = (char *) malloc(query_buflen);
+		query = tds_new(char, query_buflen);
 	}
 	tds_get_byte(tds);	/* 33 */
 	len = tds_get_int(tds);	/* query size +1 */

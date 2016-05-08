@@ -1044,7 +1044,7 @@ search_interface_file(TDSLOGIN * login, const char *dir, const char *file, const
 	tmp_ver[0] = '\0';
 
 	tdsdump_log(TDS_DBG_INFO1, "Searching interfaces file %s/%s.\n", dir, file);
-	pathname = (char *) malloc(strlen(dir) + strlen(file) + 10);
+	pathname = tds_new(char, strlen(dir) + strlen(file) + 10);
 	if (!pathname)
 		return 0;
 

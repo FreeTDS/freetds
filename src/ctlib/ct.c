@@ -285,7 +285,7 @@ ct_con_alloc(CS_CONTEXT * ctx, CS_CONNECTION ** con)
 		return CS_FAIL;
 	}
 
-	*con = (CS_CONNECTION *) calloc(1, sizeof(CS_CONNECTION));
+	*con = tds_new0(CS_CONNECTION, 1);
 	if (!*con) {
 		tds_free_login(login);
 		return CS_FAIL;
@@ -689,7 +689,7 @@ ct_cmd_alloc(CS_CONNECTION * con, CS_COMMAND ** pcmd)
 	if (!con)
 		return CS_FAIL;
 
-	*pcmd = cmd = (CS_COMMAND *) calloc(1, sizeof(CS_COMMAND));
+	*pcmd = cmd = tds_new0(CS_COMMAND, 1);
 	if (!cmd)
 		return CS_FAIL;
 
@@ -776,7 +776,7 @@ ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen,
 	case CS_RPC_CMD:
 		/* Code changed for RPC functionality -SUHA */
 		/* RPC code changes starts here */
-		cmd->rpc = (CSREMOTE_PROC *) calloc(1, sizeof(CSREMOTE_PROC));
+		cmd->rpc = tds_new0(CSREMOTE_PROC, 1);
 		if (cmd->rpc == NULL)
 			return CS_FAIL;
 
@@ -2693,7 +2693,7 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 
 		/* allocare needed descriptor if needed */
 		free(cmd->iodesc);
-		cmd->iodesc = (CS_IODESC*) calloc(1, sizeof(CS_IODESC));
+		cmd->iodesc = tds_new0(CS_IODESC, 1);
 		if (!cmd->iodesc)
 			return CS_FAIL;
 
@@ -2865,7 +2865,7 @@ ct_data_info(CS_COMMAND * cmd, CS_INT action, CS_INT colnum, CS_IODESC * iodesc)
 		if (iodesc->textptrlen < 0 || iodesc->textptrlen > CS_TP_SIZE)
 			return CS_FAIL;
 		free(cmd->iodesc);
-		cmd->iodesc = (CS_IODESC*) calloc(1, sizeof(CS_IODESC));
+		cmd->iodesc = tds_new0(CS_IODESC, 1);
 
 		cmd->iodesc->iotype = CS_IODATA;
 		cmd->iodesc->datatype = iodesc->datatype;
@@ -3171,7 +3171,7 @@ ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT datalen,
 			return CS_FAIL;
 		}
 
-		param = (CSREMOTE_PROC_PARAM *) calloc(1, sizeof(CSREMOTE_PROC_PARAM));
+		param = tds_new0(CSREMOTE_PROC_PARAM, 1);
 		if (!param)
 			return CS_FAIL;
 
@@ -3200,7 +3200,7 @@ ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT datalen,
 			return CS_FAIL;
 		}
 
-		param = (CSREMOTE_PROC_PARAM *) calloc(1, sizeof(CSREMOTE_PROC_PARAM));
+		param = tds_new0(CSREMOTE_PROC_PARAM, 1);
 
 		if (CS_SUCCEED != _ct_fill_param(cmd->command_type, param, datafmt, data, &datalen, &indicator, 1)) {
 			free(param);
@@ -3225,7 +3225,7 @@ ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT datalen,
 			return CS_FAIL;
 		}
 
-		param = (CS_DYNAMIC_PARAM *) calloc(1, sizeof(CS_DYNAMIC_PARAM));
+		param = tds_new0(CS_DYNAMIC_PARAM, 1);
 		if (!param)
 			return CS_FAIL;
 
@@ -3275,7 +3275,7 @@ ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * dat
 			return CS_FAIL;
 		}
 
-		param = (CSREMOTE_PROC_PARAM *) calloc(1, sizeof(CSREMOTE_PROC_PARAM));
+		param = tds_new0(CSREMOTE_PROC_PARAM, 1);
 
 		if (CS_SUCCEED != _ct_fill_param(cmd->command_type, param, datafmt, data, datalen, indicator, 0)) {
 			tdsdump_log(TDS_DBG_INFO1, "ct_setparam() failed to add rpc param\n");
@@ -3307,7 +3307,7 @@ ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * dat
 			return CS_FAIL;
 		}
 
-		param = (CS_DYNAMIC_PARAM *) calloc(1, sizeof(CS_DYNAMIC_PARAM));
+		param = tds_new0(CS_DYNAMIC_PARAM, 1);
 
 		if (CS_SUCCEED != _ct_fill_param(cmd->command_type, param, datafmt, data, datalen, indicator, 0)) {
 			tdsdump_log(TDS_DBG_INFO1, "ct_setparam() failed to add dynamic param\n");
@@ -3338,7 +3338,7 @@ ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * dat
 			return CS_FAIL;
 		}
 
-		param = (CSREMOTE_PROC_PARAM *) calloc(1, sizeof(CSREMOTE_PROC_PARAM));
+		param = tds_new0(CSREMOTE_PROC_PARAM, 1);
 
 		if (CS_SUCCEED != _ct_fill_param(cmd->command_type, param, datafmt, data, datalen, indicator, 0)) {
 			tdsdump_log(TDS_DBG_INFO1, "ct_setparam() failed to add language param\n");
@@ -3905,7 +3905,7 @@ paramrowalloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *va
 			memcpy(curcol->column_data, value, size);
 		else {
 			TDSBLOB *blob = (TDSBLOB *) curcol->column_data;
-			blob->textvalue = (TDS_CHAR*) malloc(size);
+			blob->textvalue = tds_new(TDS_CHAR, size);
 			tdsdump_log(TDS_DBG_FUNC, "blob parameter supported, size %d textvalue pointer is %p\n",
 					size, blob->textvalue);
 			if (!blob->textvalue)
@@ -4179,7 +4179,7 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *d
 				} else if (*(param->datalen) < 0) {
 					return CS_FAIL;
 				}
-				param->value = (CS_BYTE*) malloc(*(param->datalen) ? *(param->datalen) : 1);
+				param->value = tds_new(CS_BYTE, *(param->datalen) ? *(param->datalen) : 1);
 				if (param->value == NULL)
 					return CS_FAIL;
 				memcpy(param->value, data, *(param->datalen));
@@ -4328,12 +4328,12 @@ ct_diag_storeclientmsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_CLIENTMSG 
 		}
 	}
 
-	*curptr = (struct cs_diag_msg_client *) malloc(sizeof(struct cs_diag_msg_client));
+	*curptr = tds_new(struct cs_diag_msg_client, 1);
 	if (*curptr == NULL) {
 		return CS_FAIL;
 	} else {
 		(*curptr)->next = NULL;
-		(*curptr)->clientmsg = (CS_CLIENTMSG*) malloc(sizeof(CS_CLIENTMSG));
+		(*curptr)->clientmsg = tds_new(CS_CLIENTMSG, 1);
 		if ((*curptr)->clientmsg == NULL) {
 			return CS_FAIL;
 		} else {
@@ -4384,12 +4384,12 @@ ct_diag_storeservermsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_SERVERMSG 
 		}
 	}
 
-	*curptr = (struct cs_diag_msg_svr *) malloc(sizeof(struct cs_diag_msg_svr));
+	*curptr = tds_new(struct cs_diag_msg_svr, 1);
 	if (*curptr == NULL) {
 		return CS_FAIL;
 	} else {
 		(*curptr)->next = NULL;
-		(*curptr)->servermsg = (CS_SERVERMSG*) malloc(sizeof(CS_SERVERMSG));
+		(*curptr)->servermsg = tds_new(CS_SERVERMSG, 1);
 		if ((*curptr)->servermsg == NULL) {
 			return CS_FAIL;
 		} else {
@@ -4534,7 +4534,7 @@ _ct_allocate_dynamic(CS_CONNECTION * con, char *id, int idlen)
 
 	tdsdump_log(TDS_DBG_FUNC, "_ct_allocate_dynamic(%p, %p, %d)\n", con, id, idlen);
 
-	dyn = (CS_DYNAMIC *) calloc(1, sizeof(CS_DYNAMIC));
+	dyn = tds_new0(CS_DYNAMIC, 1);
 
 	if (idlen == CS_NULLTERM)
 		id_len = strlen(id);

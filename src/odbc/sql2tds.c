@@ -114,7 +114,7 @@ static char*
 odbc_wstr2str(TDS_STMT * stmt, const char *src, int* len)
 {
 	int srclen = (*len) / sizeof(SQLWCHAR);
-	char *out = (char *) malloc(srclen + 1), *p;
+	char *out = tds_new(char, srclen + 1), *p;
 	const SQLWCHAR *wp = (const SQLWCHAR *) src;
 
 	if (!out) {
@@ -350,7 +350,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 		curcol->column_data_free = NULL;
 		if (is_blob_col(curcol)) {
 			/* trick to set blob without freeing it, _odbc_blob_free does not free TDSBLOB->textvalue */
-			TDSBLOB *blob = (TDSBLOB *) calloc(1, sizeof(TDSBLOB));
+			TDSBLOB *blob = tds_new0(TDSBLOB, 1);
 			if (!blob) {
 				odbc_errs_add(&stmt->errs, "HY001", NULL);
 				return SQL_ERROR;

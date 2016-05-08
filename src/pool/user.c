@@ -85,7 +85,7 @@ pool_user_find_new(TDS_POOL * pool)
 		return NULL;
 	}
 
-	puser = (TDS_POOL_USER *) calloc(1, sizeof(*puser));
+	puser = tds_new0(TDS_POOL_USER, 1);
 	if (!puser) {
 		fprintf(stderr, "Out of memory\n");
 		return NULL;
@@ -175,7 +175,7 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s)
 		CLOSESOCKET(fd);
 		return NULL;
 	}
-	ev = (LOGIN_EVENT *) calloc(1, sizeof(*ev));
+	ev = tds_new0(LOGIN_EVENT, 1);
 	if (!ev || TDS_FAILED(tds_iconv_open(tds->conn, "UTF-8", 0))) {
 		free(ev);
 		tds_free_socket(tds);
@@ -367,7 +367,7 @@ pool_user_send_login_ack(TDS_POOL * pool, TDS_POOL_USER * puser)
 		int len = 128 + tds_quote_id(mtds, NULL, tds_dstr_cstr(&login->database),-1);
 		TDSRET ret;
 
-		if ((str = (char *) malloc(len)) == NULL)
+		if ((str = tds_new(char, len)) == NULL)
 			return false;
 
 		str[0] = 0;
@@ -559,7 +559,7 @@ end_login_execute(TDS_POOL_EVENT *base_event)
 void
 pool_user_finish_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 {
-	END_LOGIN_EVENT *ev = (END_LOGIN_EVENT *) calloc(1, sizeof(*ev));
+	END_LOGIN_EVENT *ev = tds_new0(END_LOGIN_EVENT, 1);
 	if (!ev) {
 		pool_free_member(pool, puser->assigned_member);
 		return;

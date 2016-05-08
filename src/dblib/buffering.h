@@ -466,7 +466,7 @@ buffer_alloc(DBPROCESS *dbproc)
 	assert(buf->capacity > 0);
 	assert(buf->rows == NULL);
 	
-	buf->rows = (DBLIB_BUFFER_ROW *) calloc(buf->capacity, sizeof(DBLIB_BUFFER_ROW));
+	buf->rows = tds_new0(DBLIB_BUFFER_ROW, buf->capacity);
 	
 	assert(buf->rows);
 	
@@ -504,7 +504,7 @@ buffer_add_row(DBPROCESS *dbproc, TDSRESULTINFO *resinfo)
 	row->row_data = NULL;
 	if (row->sizes)
 		free(row->sizes);
-	row->sizes = (TDS_INT *) calloc(resinfo->num_cols, sizeof(TDS_INT));
+	row->sizes = tds_new0(TDS_INT, resinfo->num_cols);
 	for (i = 0; i < resinfo->num_cols; ++i)
 		row->sizes[i] = resinfo->columns[i]->column_cur_size;
 

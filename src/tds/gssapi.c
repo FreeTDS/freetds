@@ -130,7 +130,7 @@ tds_gss_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t le
 	}
 
 	recv_tok.length = len;
-	recv_tok.value = (char* ) malloc(len);
+	recv_tok.value = tds_new(char, len);
 	if (!recv_tok.value)
 		return TDS_FAIL;
 	tds_get_n(tds, recv_tok.value, len);
@@ -181,7 +181,7 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	if (!tds->login)
 		return NULL;
 
-	auth = (struct tds_gss_auth *) calloc(1, sizeof(struct tds_gss_auth));
+	auth = tds_new0(struct tds_gss_auth, 1);
 	if (!auth)
 		return NULL;
 

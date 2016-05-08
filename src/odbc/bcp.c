@@ -398,7 +398,7 @@ odbc_bcp_bind(TDS_DBC *dbc, const void * varaddr, int prefixlen, int varlen,
 	TDS_ZERO_FREE(colinfo->bcp_terminator);
 	colinfo->bcp_term_len = 0;
 	if (termlen > 0) {
-		if ((colinfo->bcp_terminator =  (TDS_CHAR*) malloc(termlen)) == NULL)
+		if ((colinfo->bcp_terminator =  tds_new(TDS_CHAR, termlen)) == NULL)
 			ODBCBCP_ERROR_RETURN("HY001");
 		memcpy(colinfo->bcp_terminator, terminator, termlen);
 		colinfo->bcp_term_len = termlen;
