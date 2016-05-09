@@ -1093,6 +1093,8 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 					tds_put_byte(tds, ' ');
 				else
 					tds_put_byte(tds, 0);
+				if (converted > 0)
+					tds_convert_string_free((char*)src, s);
 				return TDS_SUCCESS;
 			}
 			colsize = MIN(colsize, 255);
@@ -1126,7 +1128,7 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 			tds_put_n(tds, s, colsize);
 		}
 	}
-	if (converted)
+	if (converted > 0)
 		tds_convert_string_free((char*)src, s);
 	return TDS_SUCCESS;
 }
