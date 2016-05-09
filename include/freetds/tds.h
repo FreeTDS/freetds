@@ -1069,7 +1069,6 @@ enum TDS_ICONV_ENTRY
 { 
 	  client2ucs2
 	, client2server_chardata
-	, iso2server_metadata
 	, initial_char_conv_count	/* keep last */
 };
 
