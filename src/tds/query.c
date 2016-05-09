@@ -1052,8 +1052,8 @@ tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t quer
 			il = tds_dstr_len(&params->columns[i]->column_name);
 			ob = param_str + l;
 			ol = size - l;
-			memset(&tds->conn->char_convs[iso2server_metadata]->suppress, 0, sizeof(tds->conn->char_convs[iso2server_metadata]->suppress));
-			if (tds_iconv(tds, tds->conn->char_convs[iso2server_metadata], to_server, &ib, &il, &ob, &ol) == (size_t) - 1)
+			memset(&tds->conn->char_convs[client2ucs2]->suppress, 0, sizeof(tds->conn->char_convs[client2ucs2]->suppress));
+			if (tds_iconv(tds, tds->conn->char_convs[client2ucs2], to_server, &ib, &il, &ob, &ol) == (size_t) - 1)
 				goto Cleanup;
 			l = size - ol;
 		}
