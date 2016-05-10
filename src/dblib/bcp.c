@@ -792,6 +792,23 @@ _bcp_convert_out(DBPROCESS * dbproc, TDSCOLUMN *curcol, BCP_HOSTCOLINFO *hostcol
 	return buflen;
 }
 
+static int
+bcp_cache_prefix_len(BCP_HOSTCOLINFO *hostcol, const TDSCOLUMN *curcol)
+{
+	int plen;
+
+	if (is_blob_type(hostcol->datatype))
+		plen = 4;
+	else if (!is_fixed_type(hostcol->datatype) && !is_numeric_type(hostcol->datatype))
+		plen = 2;
+	else if (curcol->column_nullable)
+		plen = 1;
+	else
+		plen = 0;
+	/* cache */
+	return hostcol->prefix_len = plen;
+}
+
 static RETCODE
 bcp_write_prefix(FILE *hostfile, BCP_HOSTCOLINFO *hostcol, TDSCOLUMN *curcol, int buflen)
 {
@@ -803,18 +820,8 @@ bcp_write_prefix(FILE *hostfile, BCP_HOSTCOLINFO *hostcol, TDSCOLUMN *curcol, in
 	int plen;
 
 	/* compute prefix len if needed */
-	if ((plen = hostcol->prefix_len) == -1) {
-		if (is_blob_type(hostcol->datatype))
-			plen = 4;
-		else if (!is_fixed_type(hostcol->datatype) && !is_numeric_type(hostcol->datatype))
-			plen = 2;
-		else if (curcol->column_nullable)
-			plen = 1;
-		else
-			plen = 0;
-		/* cache */
-		hostcol->prefix_len = plen;
-	}
+	if ((plen = hostcol->prefix_len) == -1)
+		plen = bcp_cache_prefix_len(hostcol, curcol);
 
 	/* output prefix to file */
 	switch (plen) {
@@ -1121,10 +1128,8 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 		}
 
 		/* detect prefix len */
-		if (bcpcol && hostcol->prefix_len == -1) {
-			int len = bcpcol->column_varint_size;
-			hostcol->prefix_len = len == 5 ? 4 : len;
-		}
+		if (bcpcol && hostcol->prefix_len == -1)
+			bcp_cache_prefix_len(hostcol, bcpcol);
 
 		/* a prefix length, if extant, specifies how many bytes to read */
 		if (hostcol->prefix_len > 0) {
