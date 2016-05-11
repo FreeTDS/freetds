@@ -39,6 +39,8 @@ main(int argc, char *argv[])
 	CS_INT compute_col1;
 	CS_CHAR compute_col3[32];
 
+	unsigned rows[3] = { 0, 0, 0 };
+
 	fprintf(stdout, "%s: Retrieve compute results processing\n", __FILE__);
 	if (verbose) {
 		fprintf(stdout, "Trying login\n");
@@ -171,6 +173,7 @@ main(int argc, char *argv[])
 					return 1;
 				} else {	/* ret == CS_SUCCEED */
 					fprintf(stdout, "col1 = %d col2= '%s', col3 = '%s'\n", col1, col2, col3);
+					++rows[0];
 				}
 			}
 
@@ -282,6 +285,7 @@ main(int argc, char *argv[])
 							return 1;
 						}
 					}
+					++rows[compute_id];
 				}
 			}
 
@@ -312,6 +316,12 @@ main(int argc, char *argv[])
 		break;
 	default:
 		fprintf(stderr, "ct_results() unexpected return.\n");
+		return 1;
+	}
+
+	if (rows[0] != 5 || rows[1] != 2 || rows[2] != 1) {
+		fprintf(stderr, "wrong number of rows: normal %u compute_1 %u compute_2 %u, expected 5 2 1\n",
+			rows[0], rows[1], rows[2]);
 		return 1;
 	}
 
