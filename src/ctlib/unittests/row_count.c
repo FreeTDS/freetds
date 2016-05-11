@@ -155,6 +155,8 @@ test(int final_rows, int no_rows)
 			        "CS_CMD_DONE -1\n");
 	}
 
+	printf("testing query:\n----\n%s\n----\n", cmdbuf);
+
 	ret = run_command(cmd, cmdbuf);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "create proc failed\n");

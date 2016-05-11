@@ -1132,6 +1132,7 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 	CS_INT res_type;
 	CS_INT done_flags;
 	TDS_INT8 rows_affected;
+	unsigned process_flags;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_results(%p, %p)\n", cmd, result_type);
 
@@ -1192,9 +1193,10 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 	 * config flag is set.
 	 */
 
+	process_flags = TDS_TOKEN_RESULTS;
 	for (;;) {
 
-		tdsret = tds_process_tokens(tds, &res_type, &done_flags, TDS_TOKEN_RESULTS);
+		tdsret = tds_process_tokens(tds, &res_type, &done_flags, process_flags);
 
 		tdsdump_log(TDS_DBG_FUNC, "ct_results() process_result_tokens returned %d (type %d) \n",
 			    tdsret, res_type);
@@ -1227,9 +1229,18 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 				break;
 
 			case CS_ROWFMT_RESULT:
+				cmd->curr_result_type = CS_ROW_RESULT;
+				cmd->results_state = _CS_RES_RESULTSET_EMPTY;
+				rows_affected = tds->rows_affected = TDS_NO_COUNT;
+
 				if (cmd->command_type == CS_CUR_CMD ||
 				    cmd->command_type == CS_DYNAMIC_CMD)
 					break;
+
+				/* don't process DONE tokens */
+				process_flags = TDS_RETURN_ROWFMT|TDS_RETURN_COMPUTEFMT|TDS_STOPAT_DONE|TDS_STOPAT_ROW|
+						TDS_STOPAT_COMPUTE|TDS_RETURN_PROC;
+				break;
 
 			case CS_ROW_RESULT:
 
@@ -1335,11 +1346,10 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 				case _CS_RES_RESULTSET_EMPTY:
 					if (cmd->command_type == CS_CUR_CMD) {
 						*result_type = CS_CURSOR_RESULT;
-						cmd->results_state = _CS_RES_RESULTSET_ROWS;
 					} else {
 						*result_type = CS_ROW_RESULT;
-						cmd->results_state = _CS_RES_CMD_DONE;
 					}
+					cmd->results_state = _CS_RES_RESULTSET_ROWS;
 					break;
 
 				case _CS_RES_RESULTSET_ROWS:
@@ -1369,10 +1379,11 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 				case _CS_RES_RESULTSET_EMPTY:
 					if (cmd->command_type == CS_CUR_CMD) {
 						*result_type = CS_CURSOR_RESULT;
+						cmd->results_state = _CS_RES_CMD_DONE;
 					} else {
 						*result_type = CS_ROW_RESULT;
+						cmd->results_state = _CS_RES_RESULTSET_ROWS;
 					}
-					cmd->results_state = _CS_RES_CMD_DONE;
 					return CS_SUCCEED;
 					break;
 				case _CS_RES_RESULTSET_ROWS:
