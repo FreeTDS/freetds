@@ -39,4 +39,5 @@ CS_RETCODE cslibmsg_cb(CS_CONTEXT * connection, CS_CLIENTMSG * errmsg);
 CS_RETCODE clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);
 CS_RETCODE servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * srvmsg);
 
+const char *res_type_str(CS_RETCODE ret);
 #endif

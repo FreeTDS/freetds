@@ -93,6 +93,7 @@ main(int argc, char *argv[])
 
 	ct_callback(ctx, NULL, CS_SET, CS_SERVERMSG_CB, (CS_VOID *) ex_servermsg_cb);
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
+		printf("ct_results returned %s type\n", res_type_str(result_type));
 		switch ((int) result_type) {
 		case CS_CMD_SUCCEED:
 			break;

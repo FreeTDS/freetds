@@ -425,3 +425,25 @@ servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * sr
 
 	return CS_SUCCEED;
 }
+
+const char *
+res_type_str(CS_RETCODE ret)
+{
+	static char str[64];
+
+#define S(s) case s: return #s;
+	switch ((int) ret) {
+	S(CS_ROW_RESULT)
+	S(CS_PARAM_RESULT)
+	S(CS_STATUS_RESULT)
+	S(CS_MSG_RESULT)
+	S(CS_CMD_SUCCEED)
+	S(CS_CMD_DONE)
+	S(CS_CMD_FAIL)
+	S(CS_COMPUTE_RESULT)
+#undef S
+	}
+
+	sprintf(str, "?? (%d)", (int) ret);
+	return str;
+}

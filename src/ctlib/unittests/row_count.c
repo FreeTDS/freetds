@@ -180,27 +180,6 @@ test(int final_rows, int no_rows)
 	return 0;
 }
 
-static const char *
-res_type_str(CS_RETCODE ret)
-{
-	static char str[64];
-
-#define S(s) case s: return #s;
-	switch ((int) ret) {
-	S(CS_ROW_RESULT)
-	S(CS_PARAM_RESULT)
-	S(CS_STATUS_RESULT)
-	S(CS_MSG_RESULT)
-	S(CS_CMD_SUCCEED)
-	S(CS_CMD_DONE)
-	S(CS_CMD_FAIL)
-#undef S
-	}
-
-	sprintf(str, "?? (%d)", (int) ret);
-	return str;
-}
-
 static CS_INT
 ex_display_results(CS_COMMAND * cmd, char *results)
 {
