@@ -238,22 +238,22 @@ typedef enum
 } TDS_USER_TYPE;
 
 /* compute operator */
-#define SYBAOPCNT  0x4b
-#define SYBAOPCNTU 0x4c
-#define SYBAOPSUM  0x4d
-#define SYBAOPSUMU 0x4e
-#define SYBAOPAVG  0x4f
-#define SYBAOPAVGU 0x50
-#define SYBAOPMIN  0x51
-#define SYBAOPMAX  0x52
+#define SYBAOPCNT  75		/* 0x4B */
+#define SYBAOPCNTU 76		/* 0x4C, obsolete */
+#define SYBAOPSUM  77		/* 0x4D */
+#define SYBAOPSUMU 78		/* 0x4E, obsolete */
+#define SYBAOPAVG  79		/* 0x4F */
+#define SYBAOPAVGU 80		/* 0x50, obsolete */
+#define SYBAOPMIN  81		/* 0x51 */
+#define SYBAOPMAX  82		/* 0x52 */
 
 /* mssql2k compute operator */
-#define SYBAOPCNT_BIG		0x09
-#define SYBAOPSTDEV		0x30
-#define SYBAOPSTDEVP		0x31
-#define SYBAOPVAR		0x32
-#define SYBAOPVARP		0x33
-#define SYBAOPCHECKSUM_AGG	0x72
+#define SYBAOPCNT_BIG		9	/* 0x09 */
+#define SYBAOPSTDEV		48	/* 0x30 */
+#define SYBAOPSTDEVP		49	/* 0x31 */
+#define SYBAOPVAR		50	/* 0x32 */
+#define SYBAOPVARP		51	/* 0x33 */
+#define SYBAOPCHECKSUM_AGG	114	/* 0x72 */
 
 /** 
  * options that can be sent with a TDS_OPTIONCMD token
