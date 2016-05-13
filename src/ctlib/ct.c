@@ -57,6 +57,7 @@ void _ctclient_msg(CS_CONNECTION * con, const char *funcname, int layer, int ori
 int _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo, CS_INT offset);
 static void _ct_initialise_cmd(CS_COMMAND *cmd);
 static CS_RETCODE _ct_cancel_cleanup(CS_COMMAND * cmd);
+static CS_INT _ct_map_compute_op(CS_INT comp_op);
 
 /* Added for CT_DIAG */
 /* Code changes starts here - CT_DIAG - 01 */
@@ -2655,7 +2656,7 @@ ct_compute_info(CS_COMMAND * cmd, CS_INT type, CS_INT colnum, CS_VOID * buffer, 
 			int_val = 0;
 		} else {
 			curcol = resinfo->columns[colnum - 1];
-			int_val = curcol->column_operator;
+			int_val = _ct_map_compute_op(curcol->column_operator);
 		}
 		memcpy(buffer, &int_val, sizeof(CS_INT));
 		if (outlen)
@@ -4630,3 +4631,24 @@ _ct_deallocate_dynamic(CS_CONNECTION * con, CS_DYNAMIC *dyn)
 	return CS_SUCCEED;
 }
 
+static CS_INT
+_ct_map_compute_op(CS_INT comp_op)
+{
+	switch (comp_op) {
+	case SYBAOPCNT:
+	case SYBAOPCNTU:
+	case SYBAOPCNT_BIG:
+		return CS_OP_COUNT;
+	case SYBAOPSUM:
+	case SYBAOPSUMU:
+		return CS_OP_SUM;
+	case SYBAOPAVG:
+	case SYBAOPAVGU:
+		return CS_OP_AVG;
+	case SYBAOPMIN:
+		return CS_OP_MIN;
+	case SYBAOPMAX:
+		return CS_OP_MAX;
+	}
+	return comp_op;
+}
