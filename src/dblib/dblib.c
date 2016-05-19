@@ -1872,6 +1872,35 @@ dbcolname(DBPROCESS * dbproc, int column)
 
 /**
  * \ingroup dblib_core
+ * \brief Return name of a computed result column.
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param computeid identifies which one of potientially many compute rows is meant. The first compute
+ * clause has \a computeid == 1.
+ * \param column Nth in the result set, starting with 1.  
+ * \return pointer to ASCII null-terminated string, the name of the column. 
+ * \retval NULL \a column is not in range.
+ * \sa dbcollen(), dbcoltype(), dbdata(), dbdatlen(), dbnumcols().
+ * \bug Relies on ASCII column names, post iconv conversion.  
+ *      Will not work as described for UTF-8 or UCS-2 clients.  
+ *      But maybe it shouldn't.  
+ */
+char *
+dbacolname(DBPROCESS * dbproc, int computeid, int column)
+{
+	TDSCOLUMN *colinfo;
+	
+	tdsdump_log(TDS_DBG_FUNC, "dbacolname(%p, %d, %d)\n", dbproc, computeid, column);
+
+        colinfo = dbacolptr(dbproc, computeid, column, 1);
+	if (!colinfo)
+		return NULL;
+		
+	return tds_dstr_buf(&colinfo->column_name);
+}
+
+/**
+ * \ingroup dblib_core
  * \brief Read a row from the row buffer.
  * 
  * When row buffering is enabled (DBBUFFER option is on), the client can use dbgetrow() to re-read a row previously fetched 
