@@ -38,7 +38,7 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include <freetds/tds.h>
+#include <tds_sysdep_public.h>
 #include <freetds/bytes.h>
 #include "des.h"
 
