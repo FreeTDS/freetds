@@ -20,10 +20,6 @@
 #ifndef _tdsbytes_h_
 #define _tdsbytes_h_
 
-#ifndef _tds_h_
-#error tds.h must be included before bytes.h
-#endif
-
 /*
  * read a word of n bytes aligned, architecture dependent endian
  *  TDS_GET_An
