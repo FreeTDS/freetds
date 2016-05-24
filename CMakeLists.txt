@@ -439,6 +439,7 @@ endif(OPENSSL_FOUND)
 
 include_directories(${CMAKE_BINARY_DIR}/include include win32 iconv/include)
 
+add_subdirectory(src/utils)
 add_subdirectory(src/replacements)
 add_subdirectory(src/tds)
 add_subdirectory(src/ctlib)

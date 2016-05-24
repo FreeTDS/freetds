@@ -28,7 +28,7 @@ add_library(tdsodbc SHARED
 	odbc_export.h error_export.h odbc_data.c ${win_SRCS}
 )
 # TODO libiconv, odbcinstlib and other dynamics
-target_link_libraries(tdsodbc tds replacements ${libs} ${lib_NETWORK} ${lib_BASE})
+target_link_libraries(tdsodbc tds replacements tdsutils ${libs} ${lib_NETWORK} ${lib_BASE})
 
 if(MINGW OR CYGWIN)
 	set_target_properties(tdsodbc PROPERTIES LINK_FLAGS "--static -Wl,--kill-at -Wl,--enable-stdcall-fixup")

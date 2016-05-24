@@ -131,6 +131,7 @@ after_test:
   - copy src\ctlib\libct.lib %DESTDIR%\static\
   - copy src\tds\tds.lib %DESTDIR%\static\
   - copy src\replacements\replacements.lib %DESTDIR%\static\
+  - copy src\utils\tdsutils.lib %DESTDIR%\static\
   - mkdir %DESTDIR%\include
   - cp include/tds_sysdep_public.h ./%DESTDIR%/include/
   - cd ..\include

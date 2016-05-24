@@ -1,4 +1,4 @@
-SUBDIRS	     = replacements tds ctlib dblib
+SUBDIRS	     = utils replacements tds ctlib dblib
 DIST_SUBDIRS = $(SUBDIRS)
 
 if ODBC

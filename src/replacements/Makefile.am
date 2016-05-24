@@ -7,7 +7,7 @@ libreplacements_la_SOURCES =	\
 	tds_cond.c getaddrinfo.c sleep.c
 
 libreplacements_la_LDFLAGS=
-libreplacements_la_LIBADD=	@LTLIBOBJS@
+libreplacements_la_LIBADD=	@LTLIBOBJS@ ../utils/libtdsutils.la
 EXTRA_DIST=	asprintf.c \
 		basename.c \
 		getopt.c \
