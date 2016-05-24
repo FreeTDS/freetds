@@ -932,11 +932,11 @@ AC_CONFIG_FILES(include/freetds/version.h \
 	doc/Makefile \
 	samples/Makefile \
 	src/Makefile \
-		src/tds/Makefile src/tds/unittests/Makefile \
-		src/dblib/Makefile src/dblib/unittests/Makefile \
-		src/ctlib/Makefile src/ctlib/unittests/Makefile \
-		src/replacements/Makefile \
-		src/replacements/unittests/Makefile \
+	src/tds/Makefile src/tds/unittests/Makefile \
+	src/dblib/Makefile src/dblib/unittests/Makefile \
+	src/ctlib/Makefile src/ctlib/unittests/Makefile \
+	src/replacements/Makefile \
+	src/replacements/unittests/Makefile \
 	src/server/Makefile \
 	src/pool/Makefile \
 	src/odbc/Makefile \
