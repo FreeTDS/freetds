@@ -11,7 +11,7 @@ foreach(target t0001 t0002 t0003 t0004
 	ct_dynamic blk_in2 datafmt)
 	add_executable(c_${target} EXCLUDE_FROM_ALL ${target}.c)
 	set_target_properties(c_${target} PROPERTIES OUTPUT_NAME ${target})
-	target_link_libraries(c_${target} c_common ct replacements ${lib_NETWORK} ${lib_BASE})
+	target_link_libraries(c_${target} c_common ct replacements tdsutils ${lib_NETWORK} ${lib_BASE})
 	add_test(NAME c_${target} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND ${target})
 	add_dependencies(check c_${target})
 endforeach(target)
