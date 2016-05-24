@@ -4,10 +4,10 @@ AM_CPPFLAGS		=	-I$(top_srcdir)/include
 
 noinst_LTLIBRARIES	=	libtds.la
 if HAVE_SSPI
-AUTH_FILES_DIST	= challenge.c gssapi.c hmac_md5.c
+AUTH_FILES_DIST	= challenge.c gssapi.c
 AUTH_FILES	= sspi.c
 else
-AUTH_FILES	= challenge.c gssapi.c hmac_md5.c
+AUTH_FILES	= challenge.c gssapi.c
 AUTH_FILES_DIST	= sspi.c
 endif
 libtds_la_SOURCES=	mem.c token.c util.c login.c read.c \

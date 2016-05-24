@@ -30,7 +30,7 @@ endif(PERL_FOUND AND NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
 if(WIN32)
 	set(add_SRCS sspi.c)
 else(WIN32)
-	set(add_SRCS challenge.c gssapi.c hmac_md5.c)
+	set(add_SRCS challenge.c gssapi.c)
 endif(WIN32)
 
 add_library(tds STATIC

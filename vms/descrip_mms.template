@@ -143,7 +143,7 @@ SOCKETPAIROBJ = @SOCKETPAIROBJ@
 
 TDSOBJS = [.src.tds]bulk$(OBJ), [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ), \
 	[.src.tds]convert$(OBJ), [.src.tds]data$(OBJ), [.src.tds]getmac$(OBJ), \
-	[.src.tds]gssapi$(OBJ), [.src.tds]hmac_md5$(OBJ), [.src.tds]iconv$(OBJ), [.src.tds]locale$(OBJ), \
+	[.src.tds]gssapi$(OBJ), [.src.tds]iconv$(OBJ), [.src.tds]locale$(OBJ), \
 	[.src.tds]login$(OBJ), [.src.tds]mem$(OBJ), [.src.tds]numeric$(OBJ), \
 	[.src.tds]query$(OBJ), [.src.tds]read$(OBJ), [.src.tds]tdsstring$(OBJ), \
 	[.src.tds]threadsafe$(OBJ), [.src.tds]token$(OBJ), [.src.tds]util$(OBJ), \
@@ -153,6 +153,7 @@ TDSOBJS = [.src.tds]bulk$(OBJ), [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ
 	[.src.replacements]strlcpy$(OBJ), [.src.replacements]getpassarg$(OBJ), \
 	[.src.replacements]sleep$(OBJ), [.src.replacements]strlcat$(OBJ), \
 	[.src.utils]des$(OBJ), [.src.utils]md4$(OBJ), [.src.utils]md5$(OBJ), \
+	[.src.utils]hmac_md5$(OBJ), \
 	$(ASPRINTFOBJ) $(VASPRINTFOBJ) $(SNPRINTFOBJ) $(STRTOK_ROBJ) $(LIBICONVOBJ) $(SOCKETPAIROBJ) \
 	[.vms]getpass$(OBJ)
 

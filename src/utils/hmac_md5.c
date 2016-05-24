@@ -19,7 +19,11 @@
 
 #include <config.h>
 
-#include <freetds/tds.h>
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
+#include <tds_sysdep_public.h>
 #include "md5.h"
 #include "hmac_md5.h"
 #include <memory.h>
