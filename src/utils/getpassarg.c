@@ -26,8 +26,7 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include <freetds/tds.h>
-#include "replacements.h"
+#include <freetds/utils.h>
 
 /*
  * return a copy of the password, reading from stdin if arg is '-'

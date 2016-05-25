@@ -29,6 +29,8 @@ extern "C" {
 void tds_sleep_s(unsigned sec);
 void tds_sleep_ms(unsigned ms);
 
+char *tds_getpassarg(char *arg);
+
 #ifdef __cplusplus
 }
 #endif

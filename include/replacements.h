@@ -168,8 +168,6 @@ int tds_daemon(int no_chdir, int no_close);
 #define daemon(d,c) tds_daemon(d,c)
 #endif
 
-char *tds_getpassarg(char *arg);
-
 #ifdef __cplusplus
 }
 #endif

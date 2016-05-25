@@ -81,6 +81,7 @@
 #include <freetds/string.h>
 #include <freetds/convert.h>
 #include <freetds/data.h>
+#include <freetds/utils.h>
 #include "replacements.h"
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))

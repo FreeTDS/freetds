@@ -56,6 +56,7 @@
 #endif
 
 #include <freetds/tds.h>
+#include <freetds/utils.h>
 #include "replacements.h"
 #include <sybfront.h>
 #include <sybdb.h>

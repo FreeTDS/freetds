@@ -53,6 +53,7 @@
 #include "replacements.h"
 
 #include <freetds/sysdep_private.h>
+#include <freetds/utils.h>
 
 #ifdef _WIN32
 #define NULL_DEVICE "NUL:"
