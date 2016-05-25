@@ -1,4 +1,4 @@
-foreach(target mutex1 condition strings passarg strtok_r)
+foreach(target mutex1 condition strings strtok_r)
 	add_executable(r_${target} ${target}.c)
 	set_target_properties(r_${target} PROPERTIES OUTPUT_NAME ${target})
 	target_link_libraries(r_${target} replacements tdsutils ${lib_BASE})

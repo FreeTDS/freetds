@@ -92,6 +92,7 @@ int getopt(int argc, const char *argv[], char *optstring);
 #endif /* MicrosoftsDbLib */
 
 #include <freetds/sysdep_private.h>
+#include <freetds/utils.h>
 
 #ifndef MicrosoftsDbLib
 static int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);

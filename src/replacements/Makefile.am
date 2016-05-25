@@ -6,7 +6,6 @@ libreplacements_la_SOURCES = \
 	iconv.c \
 	gettimeofday.c \
 	poll.c \
-	getpassarg.c \
 	socketpair.c \
 	win_mutex.c \
 	tds_cond.c \

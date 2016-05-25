@@ -8,6 +8,7 @@ libtdsutils_la_SOURCES = \
 	des.c \
 	hmac_md5.c \
 	dlist.c \
+	getpassarg.c \
 	sleep.c \
 	$(NULL)
 EXTRA_DIST = CMakeLists.txt
