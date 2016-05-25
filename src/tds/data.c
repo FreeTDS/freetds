@@ -464,7 +464,7 @@ tds_get_char_dynamic(TDSSOCKET *tds, TDSCOLUMN *curcol, void **pp, size_t alloca
 	if (USE_ICONV && curcol->char_conv)
 		res = tds_convert_stream(tds, curcol->char_conv, to_client, r_stream, &w.stream);
 	else
-		res = tds_copy_stream(tds, r_stream, &w.stream);
+		res = tds_copy_stream(r_stream, &w.stream);
 	if (TDS_FAILED(res))
 		return res;
 
