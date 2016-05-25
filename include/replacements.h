@@ -169,8 +169,6 @@ int tds_daemon(int no_chdir, int no_close);
 #endif
 
 char *tds_getpassarg(char *arg);
-void tds_sleep_s(unsigned sec);
-void tds_sleep_ms(unsigned ms);
 
 #ifdef __cplusplus
 }

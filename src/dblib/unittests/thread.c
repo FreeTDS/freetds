@@ -4,6 +4,7 @@
 
 #include "common.h"
 #include <freetds/thread.h>
+#include <freetds/utils.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
