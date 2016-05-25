@@ -31,6 +31,7 @@
 
 #include "tds_sysdep_public.h"
 #include <freetds/thread.h>
+#include <freetds/utils.h>
 #include "replacements.h"
 
 #define int2ptr(i) ((void*)(((char*)0)+(i)))

@@ -37,6 +37,7 @@
 #include <freetds/tds.h>
 #include <freetds/string.h>
 #include <freetds/server.h>
+#include <freetds/utils.h>
 
 static void dump_login(TDSLOGIN * login);
 

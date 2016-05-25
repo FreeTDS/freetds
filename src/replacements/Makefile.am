@@ -11,7 +11,6 @@ libreplacements_la_SOURCES = \
 	win_mutex.c \
 	tds_cond.c \
 	getaddrinfo.c \
-	sleep.c \
 	$(NULL)
 
 libreplacements_la_LDFLAGS =

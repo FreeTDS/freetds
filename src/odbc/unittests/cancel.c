@@ -9,6 +9,7 @@
 #endif /* HAVE_UNISTD_H */
 
 #include <freetds/thread.h>
+#include <freetds/utils.h>
 #include "replacements.h"
 
 #if TDS_HAVE_MUTEX

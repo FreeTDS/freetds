@@ -6,6 +6,7 @@
 
 #include <assert.h>
 
+#include <freetds/utils.h>
 #include "replacements.h"
 
 /*
