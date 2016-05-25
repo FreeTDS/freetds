@@ -3,3 +3,4 @@ noinst_LTLIBRARIES=		libtdsutils.la
 libtdsutils_la_SOURCES = \
 	md4.c md5.c des.c hmac_md5.c \
 	dlist.c
+EXTRA_DIST             = CMakeLists.txt
