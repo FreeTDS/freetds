@@ -1,4 +1,5 @@
 NULL =
+SUBDIRS = . unittests
 AM_CPPFLAGS = -I$(top_srcdir)/include
 noinst_LTLIBRARIES = libtdsutils.la
 libtdsutils_la_SOURCES = \

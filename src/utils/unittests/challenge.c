@@ -20,8 +20,21 @@
 /* 
  * Purpose: test challenge code.
  */
-#include "common.h"
+#undef NDEBUG
+#include <config.h>
+
+#include <stdio.h>
 #include <assert.h>
+
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
+#include "tds_sysdep_public.h"
 #include "md4.h"
 #include "md5.h"
 #include "hmac_md5.h"

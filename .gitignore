@@ -1,5 +1,4 @@
 .build_options
-.gitignore
 *.orig
 push
 update

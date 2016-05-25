@@ -1,3 +1,5 @@
+add_subdirectory(unittests)
+
 if(WIN32)
 	set(add_SRCS md5.c)
 else(WIN32)

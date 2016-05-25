@@ -938,6 +938,7 @@ AC_CONFIG_FILES(include/freetds/version.h \
 	src/replacements/Makefile \
 	src/replacements/unittests/Makefile \
 	src/utils/Makefile \
+	src/utils/unittests/Makefile \
 	src/server/Makefile \
 	src/pool/Makefile \
 	src/odbc/Makefile \
