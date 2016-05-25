@@ -107,6 +107,7 @@ col_init(struct col_t *pcol, int sybtype, int collen)
 	case SYBDATETIME4:
 	case SYBDATETIMN:
 		collen = 30;
+		/* fall through */
 	case SYBCHAR:
 	case SYBVARCHAR:
 	case SYBTEXT:
