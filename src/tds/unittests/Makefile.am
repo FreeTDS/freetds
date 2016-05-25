@@ -37,10 +37,6 @@ iconv_fread_SOURCES	= iconv_fread.c
 charconv_SOURCES	= charconv.c
 toodynamic_SOURCES	= toodynamic.c common.c common.h
 nulls_SOURCES	= nulls.c common.c common.h
-if !HAVE_SSPI
-TESTS += challenge$(EXEEXT)
-challenge_SOURCES	= challenge.c
-endif
 readconf_SOURCES	= readconf.c
 corrupt_SOURCES	=	corrupt.c common.c common.h
 
@@ -52,5 +48,5 @@ AM_LDFLAGS	=	-no-install -L../.libs -R $(abs_builddir)/../.libs
 endif
 LIBS		=	../libtds.la ../../replacements/libreplacements.la $(LTLIBICONV) $(NETWORK_LIBS)
 CLEANFILES	=	tdsdump.out
-EXTRA_DIST	=	challenge.c CMakeLists.txt readconf.in
+EXTRA_DIST	=	CMakeLists.txt readconf.in
 
