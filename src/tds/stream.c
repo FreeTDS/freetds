@@ -160,7 +160,7 @@ convert_more:
  * \return TDS_SUCCESS or TDS_FAIL
  */
 TDSRET
-tds_copy_stream(TDSSOCKET * tds, TDSINSTREAM * istream, TDSOUTSTREAM * ostream)
+tds_copy_stream(TDSINSTREAM * istream, TDSOUTSTREAM * ostream)
 {
 	while (ostream->buf_len) {
 		/* read a chunk of data */

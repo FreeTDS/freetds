@@ -55,7 +55,7 @@ typedef struct tds_output_stream {
 TDSRET tds_convert_stream(TDSSOCKET * tds, TDSICONV * char_conv, TDS_ICONV_DIRECTION direction,
 	TDSINSTREAM * istream, TDSOUTSTREAM *ostream);
 /** Copy data from a stream to another */
-TDSRET tds_copy_stream(TDSSOCKET * tds, TDSINSTREAM * istream, TDSOUTSTREAM * ostream);
+TDSRET tds_copy_stream(TDSINSTREAM * istream, TDSOUTSTREAM * ostream);
 
 /* Additional streams */
 

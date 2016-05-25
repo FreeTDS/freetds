@@ -1058,7 +1058,7 @@ tds_bcp_fread(TDSSOCKET * tds, TDSICONV * char_conv, FILE * stream, const char *
 	/* convert/copy from input stream to output one */
 	flockfile(stream);
 	if (char_conv == NULL)
-		res = tds_copy_stream(tds, &r.stream, &w.stream);
+		res = tds_copy_stream(&r.stream, &w.stream);
 	else
 		res = tds_convert_stream(tds, char_conv, to_server, &r.stream, &w.stream);
 	funlockfile(stream);
