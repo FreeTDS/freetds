@@ -29,7 +29,7 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include <freetds/tds.h>
+#include <windows.h>
 #include <freetds/thread.h>
 #include <freetds/time.h>
 
@@ -172,7 +172,6 @@ int (*tds_raw_cond_timedwait) (tds_condition * cond, tds_raw_mutex * mtx, int ti
 
 #elif defined(TDS_HAVE_PTHREAD_MUTEX) && !defined(TDS_NO_THREADSAFE)
 
-#include <freetds/tds.h>
 #include <freetds/thread.h>
 #include <freetds/time.h>
 

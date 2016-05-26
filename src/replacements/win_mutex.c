@@ -29,7 +29,7 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include <freetds/tds.h>
+#include <windows.h>
 #include <freetds/thread.h>
 
 #include "ptw32_MCS_lock.c"

@@ -1,14 +1,12 @@
 NULL =
 TESTS =	\
 	mutex1$(EXEEXT) \
-	condition$(EXEEXT) \
 	strings$(EXEEXT) \
 	strtok_r$(EXEEXT) \
 	$(NULL)
 check_PROGRAMS = $(TESTS)
 
 mutex1_SOURCES = mutex1.c
-condition_SOURCES = condition.c
 strings_SOURCES = strings.c
 strtok_r_SOURCES = strtok_r.c
 
