@@ -20,7 +20,6 @@ add_library(replacements STATIC
 	gettimeofday.c
 	poll.c
 	socketpair.c
-	win_mutex.c
 	getaddrinfo.c
 	${add_SRCS}
 )

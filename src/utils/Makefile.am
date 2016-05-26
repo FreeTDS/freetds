@@ -11,5 +11,9 @@ libtdsutils_la_SOURCES = \
 	getpassarg.c \
 	sleep.c \
 	tds_cond.c \
+	win_mutex.c \
 	$(NULL)
-EXTRA_DIST = CMakeLists.txt
+EXTRA_DIST = \
+	CMakeLists.txt \
+	ptw32_MCS_lock.c \
+	$(NULL)

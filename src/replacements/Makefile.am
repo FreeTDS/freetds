@@ -7,7 +7,6 @@ libreplacements_la_SOURCES = \
 	gettimeofday.c \
 	poll.c \
 	socketpair.c \
-	win_mutex.c \
 	getaddrinfo.c \
 	$(NULL)
 
@@ -25,7 +24,6 @@ EXTRA_DIST = \
 	strsep.c \
 	vasprintf.c \
 	socketpair.c \
-	ptw32_MCS_lock.c \
 	daemon.c \
 	CMakeLists.txt \
 	$(NULL)

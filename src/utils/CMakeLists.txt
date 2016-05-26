@@ -10,6 +10,7 @@ add_library(tdsutils STATIC
 	getpassarg.c
 	sleep.c
 	tds_cond.c
+	win_mutex.c
 	${add_SRCS}
 )
 if (NOT WIN32)
