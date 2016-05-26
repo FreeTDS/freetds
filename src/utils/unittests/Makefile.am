@@ -1,7 +1,12 @@
-TESTS = passarg$(EXEEXT)
+NULL =
+TESTS = \
+	passarg$(EXEEXT) \
+	condition$(EXEEXT) \
+	$(NULL)
 check_PROGRAMS = $(TESTS)
 
 passarg_SOURCES = passarg.c
+condition_SOURCES = condition.c
 if !HAVE_SSPI
 TESTS += challenge$(EXEEXT)
 challenge_SOURCES= challenge.c

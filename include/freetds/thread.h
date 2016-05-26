@@ -116,6 +116,8 @@ static inline int tds_thread_is_current(tds_thread_id th)
 
 #elif defined(_WIN32)
 
+#include <windows.h>
+
 struct ptw32_mcs_node_t_;
 
 typedef struct {

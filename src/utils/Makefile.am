@@ -10,5 +10,6 @@ libtdsutils_la_SOURCES = \
 	dlist.c \
 	getpassarg.c \
 	sleep.c \
+	tds_cond.c \
 	$(NULL)
 EXTRA_DIST = CMakeLists.txt

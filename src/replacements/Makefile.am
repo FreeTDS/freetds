@@ -8,7 +8,6 @@ libreplacements_la_SOURCES = \
 	poll.c \
 	socketpair.c \
 	win_mutex.c \
-	tds_cond.c \
 	getaddrinfo.c \
 	$(NULL)
 

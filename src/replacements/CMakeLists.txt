@@ -16,9 +16,12 @@ foreach(func ${FUNCS})
 endforeach(func)
 
 add_library(replacements STATIC
-	iconv.c gettimeofday.c poll.c
-	socketpair.c win_mutex.c
-	tds_cond.c getaddrinfo.c
+	iconv.c
+	gettimeofday.c
+	poll.c
+	socketpair.c
+	win_mutex.c
+	getaddrinfo.c
 	${add_SRCS}
 )
 if (NOT WIN32)
