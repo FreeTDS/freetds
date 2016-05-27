@@ -26,6 +26,7 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#include <freetds/sysdep_private.h>
 #include <freetds/utils.h>
 
 /*
