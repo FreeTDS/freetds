@@ -29,6 +29,10 @@
 #include <unistd.h>
 #endif
 
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
 #include <assert.h>
 
 #include <freetds/sysdep_private.h>
