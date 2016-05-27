@@ -25,6 +25,7 @@ noinst_HEADERS = \
 	dlist.tmpl.h \
 	alloca.h \
 	utils.h \
+	bjoern-utf8.h \
 	$(NULL)
 
 DISTCLEANFILES = sysconfdir.h
