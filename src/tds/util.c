@@ -266,8 +266,8 @@ static const TDS_ERROR_MESSAGE tds_error_messages[] =
 	, { TDSEOK,              EXCONSISTENCY,	"unrecognized msgno" }
 	};
 
-static
-const char * retname(int retcode)
+static const char *
+retname(int retcode)
 {
 	switch(retcode) {
 	case TDS_INT_CONTINUE:
