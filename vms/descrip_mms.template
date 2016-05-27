@@ -150,11 +150,12 @@ TDSOBJS = [.src.tds]bulk$(OBJ), [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ
 	[.src.tds]vstrbuild$(OBJ), [.src.tds]write$(OBJ), \
 	[.src.tds]net$(OBJ), [.src.tds]tls$(OBJ), [.src.tds]log$(OBJ), [.src.tds]packet$(OBJ), \
 	[.src.tds]stream$(OBJ), [.src.tds]random$(OBJ), [.src.tds]sec_negotiate$(OBJ), \
-	[.src.replacements]strlcpy$(OBJ), [.src.replacements]getpassarg$(OBJ), \
+	[.src.replacements]strlcpy$(OBJ), \
 	[.src.replacements]strlcat$(OBJ), \
 	[.src.utils]des$(OBJ), [.src.utils]md4$(OBJ), [.src.utils]md5$(OBJ), \
 	[.src.utils]sleep$(OBJ), \
 	[.src.utils]hmac_md5$(OBJ), \
+	[.src.utils]getpassarg$(OBJ), \
 	$(ASPRINTFOBJ) $(VASPRINTFOBJ) $(SNPRINTFOBJ) $(STRTOK_ROBJ) $(LIBICONVOBJ) $(SOCKETPAIROBJ) \
 	[.vms]getpass$(OBJ)
 
