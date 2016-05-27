@@ -44,6 +44,7 @@
 #include <freetds/tds.h>
 #include <freetds/bytes.h>
 #include <freetds/iconv.h>
+#include <freetds/bjoern-utf8.h>
 
 /**
  * \addtogroup conv
@@ -56,29 +57,6 @@ enum ICONV_CD_VALUE
 };
 
 typedef uint32_t ICONV_CHAR;
-
-static const unsigned char utf8_lengths[256] = {
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-	3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 0, 0,
-};
-
-static const unsigned char utf8_masks[7] = {
-	0, 0x7f, 0x1f, 0x0f, 0x07, 0x03, 0x01
-};
 
 /*
  * Return values for get_*:
@@ -94,21 +72,19 @@ static const unsigned char utf8_masks[7] = {
 static int
 get_utf8(const unsigned char *p, size_t len, ICONV_CHAR *out)
 {
-	ICONV_CHAR uc;
-	size_t l;
+	uint32_t uc, state = 0;
+	size_t l = 1;
 
-	l = utf8_lengths[p[0]];
-	if (TDS_UNLIKELY(l == 0))
-		return -EILSEQ;
-	if (TDS_UNLIKELY(len < l))
-		return -EINVAL;
-
-	len = l;
-	uc = *p++ & utf8_masks[l];
-	while(--l)
-		uc = (uc << 6) | (*p++ & 0x3f);
-	*out = uc;
-	return len;
+	do {
+		switch (decode_utf8(&state, &uc, *p++)) {
+		case 0:
+			*out = uc;
+			return l;
+		case UTF8_REJECT:
+			return -EILSEQ;
+		}
+	} while (l++ < len);
+	return -EINVAL;
 }
 
 static int
