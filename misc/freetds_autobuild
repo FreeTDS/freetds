@@ -174,7 +174,9 @@ cp -rl test1 test5
 
 grab_logs() {
 	find -path '*/unittests/*.log' -type f | sort | sed 's/\.log$//' | while read fn; do
-		test -x $fn && cat $fn.log
+		if test -x $fn; then
+			 cat $fn.log
+		fi
 	done >> logs/log.txt
 }
 
