@@ -81,6 +81,7 @@ init_log()
 	touch logs/log.txt
 	cd ..
 	ln -f $WORKDIR/logs/log.txt ${WORKDIR}_log.txt
+	exec &> ${WORKDIR}_out.txt
 	cd $WORKDIR
 }
 
@@ -181,6 +182,7 @@ grab_logs() {
 }
 
 generic_test() {
+	trap 'echo Error $? at line $LINENO' ERR
 	local dir="$1" pwd_file="$2"
 	cd "$dir"
 	WORKDIR=$PWD
@@ -197,6 +199,7 @@ generic_test() {
 }
 
 test1() {
+	trap 'echo Error $? at line $LINENO' ERR
 cd test1
 WORKDIR=$PWD
 ./misc/test-auto.sh --no-build --no-header >> logs/log.txt
@@ -317,6 +320,7 @@ test_mssql2008() {
 }
 
 test_mssql2000() {
+	trap 'echo Error $? at line $LINENO' ERR
 	local pid_pool
 	cd test5
 	./misc/grabcov -o pool.cov_info -- ./src/pool/tdspool msde &> /dev/null &
