@@ -29,6 +29,7 @@
 
 #include <freetds/odbc.h>
 #include <freetds/string.h>
+#include <freetds/utils.h>
 #include "replacements.h"
 
 #define ODBC_PARAM(p) static const char odbc_param_##p[] = #p;

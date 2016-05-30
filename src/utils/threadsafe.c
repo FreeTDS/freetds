@@ -70,7 +70,8 @@
 #include <shlobj.h>
 #endif
 
-#include <freetds/tds.h>
+#include <freetds/sysdep_private.h>
+#include <freetds/utils.h>
 #include <freetds/thread.h>
 #include "replacements.h"
 

@@ -73,6 +73,7 @@
 #include <freetds/tds.h>
 #include <freetds/configs.h>
 #include <freetds/string.h>
+#include <freetds/utils.h>
 #include "replacements.h"
 
 static int tds_config_login(TDSLOGIN * connection, TDSLOGIN * login);

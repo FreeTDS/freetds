@@ -11,6 +11,7 @@ add_library(tdsutils STATIC
 	sleep.c
 	tds_cond.c
 	win_mutex.c
+	threadsafe.c
 	bjoern-utf8.c
 	${add_SRCS}
 )
