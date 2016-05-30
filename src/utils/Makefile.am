@@ -12,6 +12,7 @@ libtdsutils_la_SOURCES = \
 	sleep.c \
 	tds_cond.c \
 	win_mutex.c \
+	threadsafe.c \
 	bjoern-utf8.c \
 	$(NULL)
 EXTRA_DIST = \

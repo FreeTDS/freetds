@@ -36,7 +36,7 @@ endif(WIN32)
 add_library(tds STATIC
 	mem.c token.c util.c login.c read.c
         write.c convert.c numeric.c config.c query.c iconv.c
-        locale.c threadsafe.c vstrbuild.c
+        locale.c vstrbuild.c
         tdsstring.c getmac.c data.c net.c tls.c
         tds_checks.c log.c
         bulk.c packet.c stream.c random.c

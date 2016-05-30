@@ -1292,13 +1292,6 @@ void tds_iconv_free(TDSCONNECTION * conn);
 TDSICONV *tds_iconv_from_collate(TDSCONNECTION * conn, TDS_UCHAR collate[5]);
 
 
-/* threadsafe.c */
-char *tds_timestamp_str(char *str, int maxlen);
-struct tm *tds_localtime_r(const time_t *timep, struct tm *result);
-int tds_getservice(const char *name);
-char *tds_get_homedir(void);
-
-
 /* mem.c */
 void tds_free_socket(TDSSOCKET * tds);
 void tds_free_all_results(TDSSOCKET * tds);

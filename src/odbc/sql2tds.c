@@ -35,6 +35,7 @@
 #include <freetds/convert.h>
 #include <freetds/iconv.h>
 #include <freetds/string.h>
+#include <freetds/utils.h>
 
 TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIMEALL * dta)
