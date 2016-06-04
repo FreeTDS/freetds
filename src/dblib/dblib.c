@@ -2829,6 +2829,18 @@ dbwillconvert(int srctype, int desttype)
 	return tds_willconvert(srctype, desttype) ? TRUE : FALSE;
 }
 
+static int
+dblib_coltype(TDSCOLUMN *colinfo)
+{
+	switch (colinfo->column_type) {
+	case SYBVARCHAR:
+		return SYBCHAR;
+	case SYBVARBINARY:
+		return SYBBINARY;
+	}
+	return tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
+}
+
 /**
  * \ingroup dblib_core
  * \brief Get the datatype of a regular result set column. 
@@ -2850,13 +2862,7 @@ dbcoltype(DBPROCESS * dbproc, int column)
 	if (!colinfo)
 		return -1;
 
-	switch (colinfo->column_type) {
-	case SYBVARCHAR:
-		return SYBCHAR;
-	case SYBVARBINARY:
-		return SYBBINARY;
-	}
-	return tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
+	return dblib_coltype(colinfo);
 }
 
 /**
@@ -4157,13 +4163,7 @@ dbalttype(DBPROCESS * dbproc, int computeid, int column)
 	if (!colinfo)
 		return -1;
 
-	switch (colinfo->column_type) {
-	case SYBVARCHAR:
-		return SYBCHAR;
-	case SYBVARBINARY:
-		return SYBBINARY;
-	}
-	return tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
+	return dblib_coltype(colinfo);
 }
 
 /**
