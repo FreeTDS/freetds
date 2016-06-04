@@ -3114,6 +3114,9 @@ dbvarylen(DBPROCESS * dbproc, int column)
 	case SYBNVARCHAR:
 	case SYBVARBINARY:
 	case SYBVARCHAR:
+	case XSYBVARCHAR:
+	case XSYBNVARCHAR:
+	case XSYBVARBINARY:
 		return TRUE;
 
 		/* types that can be null */
@@ -3124,13 +3127,67 @@ dbvarylen(DBPROCESS * dbproc, int column)
 	case SYBINTN:
 	case SYBMONEYN:
 	case SYBNUMERIC:
+	case SYBDATEN:
+	case SYBTIMEN:
+	case SYBUINTN:
+	case SYB5BIGDATETIME:
+	case SYB5BIGTIME:
+	case SYBMSDATE:
+	case SYBMSTIME:
+	case SYBMSDATETIME2:
+	case SYBMSDATETIMEOFFSET:
+	case SYBVARIANT:
+	case SYBUNIQUE:
 		return TRUE;
 
 		/* blob types */
 	case SYBIMAGE:
 	case SYBNTEXT:
 	case SYBTEXT:
+	case SYBLONGBINARY:
+	/* case SYBBLOB: */ /* same as SYBUNIQUE */
+	case SYB5INT8:
+	case SYBUNITEXT:
+	case SYBXML:
+	case SYBMSUDT:
+	case SYBMSXML:
 		return TRUE;
+
+	case SYBLONGCHAR:
+	/* case XSYBCHAR: */ /* same as SYBLONGCHAR */
+		if (colinfo->column_varint_size >= 4)
+			return TRUE;
+		break;
+
+		/* with defined size*/
+	case SYBCHAR:
+	case SYBBINARY:
+	case XSYBNCHAR:
+	case XSYBBINARY:
+		break;
+
+		/* fixed */
+	case SYBINT1:
+	case SYBINT2:
+	case SYBINT4:
+	case SYBFLT8:
+	case SYBDATETIME:
+	case SYBBIT:
+	case SYBMONEY4:
+	case SYBMONEY:
+	case SYBDATETIME4:
+	case SYBREAL:
+	case SYBINT8:
+	case SYBUINT1:
+	case SYBUINT2:
+	case SYBUINT4:
+	case SYBUINT8:
+	case SYBSINT1:
+	case SYBTIME:
+	case SYBDATE:
+	case SYBVOID:
+	case SYBINTERVAL:
+		break;
 	}
 	return FALSE;
 }
