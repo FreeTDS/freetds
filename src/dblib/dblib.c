@@ -4097,7 +4097,6 @@ dbaltcolid(DBPROCESS * dbproc, int computeid, int column)
 	TDSCOLUMN *curcol;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbaltcolid(%p, %d, %d)\n", dbproc, computeid, column);
-	CHECK_PARAMETER(dbproc, SYBENULL, -1);
 
 	curcol = dbacolptr(dbproc, computeid, column, 0);
 	if (!curcol)
@@ -4125,7 +4124,6 @@ dbadlen(DBPROCESS * dbproc, int computeid, int column)
 	DBINT len;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbadlen(%p, %d, %d)\n", dbproc, computeid, column);
-	CHECK_PARAMETER(dbproc, SYBENULL, -1);
 
 	colinfo = dbacolptr(dbproc, computeid, column, 0);
 	if (!colinfo)
@@ -4155,7 +4153,6 @@ dbalttype(DBPROCESS * dbproc, int computeid, int column)
 	TDSCOLUMN *colinfo;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbalttype(%p, %d, %d)\n", dbproc, computeid, column);
-	CHECK_PARAMETER(dbproc, SYBENULL, -1);
 
 	colinfo = dbacolptr(dbproc, computeid, column, 0);
 	if (!colinfo)
@@ -4186,7 +4183,6 @@ dbaltbind(DBPROCESS * dbproc, int computeid, int column, int vartype, DBINT varl
 	TDSCOLUMN *colinfo = NULL;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbaltbind(%p, %d, %d, %d, %d, %p)\n", dbproc, computeid, column, vartype, varlen, varaddr);
-	CHECK_PARAMETER(dbproc, SYBENULL, FAIL);
 
 	colinfo = dbacolptr(dbproc, computeid, column, 1);
 	if (!colinfo)
@@ -4232,7 +4228,6 @@ dbadata(DBPROCESS * dbproc, int computeid, int column)
 	TDSCOLUMN *colinfo;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbadata(%p, %d, %d)\n", dbproc, computeid, column);
-	CHECK_PARAMETER(dbproc, SYBENULL, 0);
 
 	colinfo = dbacolptr(dbproc, computeid, column, 0);
 	if (!colinfo)
@@ -4262,7 +4257,6 @@ dbaltop(DBPROCESS * dbproc, int computeid, int column)
 	TDSCOLUMN *curcol;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbaltop(%p, %d, %d)\n", dbproc, computeid, column);
-	CHECK_PARAMETER(dbproc, SYBENULL, -1);
 
 	if ((curcol=dbacolptr(dbproc, computeid, column, 0)) == NULL)
 		return -1;
@@ -6935,7 +6929,6 @@ dbaltutype(DBPROCESS * dbproc, int computeid, int column)
 	TDSCOLUMN *colinfo;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbaltutype(%p, %d, %d)\n", dbproc, computeid, column);
-	CHECK_PARAMETER(dbproc, SYBENULL, -1);
 
 	colinfo = dbacolptr(dbproc, computeid, column, 0);
 	if (!colinfo)
