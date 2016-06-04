@@ -374,6 +374,17 @@ data_generic_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER od
 		drec->sql_desc_octet_length = drec->sql_desc_length =
 			SQL_SS_LENGTH_UNLIMITED;
 		SET_INFO("xml", "'", "'");
+	/* types already handled in other types, just to silent warnings */
+	case SYBNUMERIC:
+	case SYBDECIMAL:
+	case SYBVARIANT:
+	case SYBMSDATE:
+	case SYBMSTIME:
+	case SYBMSDATETIME2:
+	case SYBMSDATETIMEOFFSET:
+	case SYB5BIGDATETIME:
+	case SYB5BIGTIME:
+		break;
 	}
 	SET_INFO("", "", "");
 }

@@ -3706,6 +3706,8 @@ odbc_fix_data_type_col(TDS_STMT *stmt, int idx)
 		*data = odbc_swap_datetime_sql_type(*data, 0);
 		}
 		break;
+	default:
+		break;
 	}
 }
 
