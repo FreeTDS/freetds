@@ -1243,7 +1243,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 			 */
 		} else {	/* unterminated field */
 
-			coldata = tds_new(TDS_UCHAR, 1 + collen);
+			coldata = tds_new(TDS_CHAR, 1 + collen);
 			if (coldata == NULL) {
 				*row_error = TRUE;
 				dbperror(dbproc, SYBEMEM, errno);
