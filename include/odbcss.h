@@ -297,12 +297,12 @@ bcp_control(HDBC hdbc, int field, void *value)
 
 struct tdsodbc_impl_bcp_colptr_params
 {
-	const BYTE * colptr;
+	const unsigned char * colptr;
 	int table_column;
 };
 
 static TDSODBC_INLINE RETCODE SQL_API
-bcp_colptr(HDBC hdbc, const BYTE * colptr, int table_column)
+bcp_colptr(HDBC hdbc, const unsigned char * colptr, int table_column)
 {
 	struct tdsodbc_impl_bcp_colptr_params params = {colptr, table_column};
 	return SQL_SUCCEEDED(SQLSetConnectAttr(hdbc, SQL_COPT_TDSODBC_IMPL_BCP_COLPTR, &params, SQL_IS_POINTER)) ? SUCCEED : FAIL;
@@ -340,18 +340,18 @@ bcp_done(HDBC hdbc)
 
 struct tdsodbc_impl_bcp_bind_params
 {
-	const BYTE * varaddr;
+	const unsigned char * varaddr;
 	int prefixlen;
 	int varlen;
-	const BYTE * terminator;
+	const unsigned char * terminator;
 	int termlen;
 	int vartype;
 	int table_column;
 };
 
 static TDSODBC_INLINE RETCODE SQL_API
-bcp_bind(HDBC hdbc, const BYTE * varaddr, int prefixlen, int varlen,
-	const BYTE * terminator, int termlen, int vartype, int table_column)
+bcp_bind(HDBC hdbc, const unsigned char * varaddr, int prefixlen, int varlen,
+	const unsigned char * terminator, int termlen, int vartype, int table_column)
 {
 	struct tdsodbc_impl_bcp_bind_params params = {varaddr, prefixlen, varlen, terminator, termlen, vartype, table_column};
 	return SQL_SUCCEEDED(SQLSetConnectAttr(hdbc, SQL_COPT_TDSODBC_IMPL_BCP_BIND, &params, SQL_IS_POINTER)) ? SUCCEED : FAIL;
