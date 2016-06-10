@@ -7518,12 +7518,12 @@ RETCODE SQL_API win_bcp_initA(HDBC hdbc, const char *tblname, const char *hfile,
 RETCODE SQL_API win_bcp_initW(HDBC hdbc, const SQLWCHAR *tblname, const SQLWCHAR *hfile,
 	const SQLWCHAR *errfile, int direction);
 RETCODE SQL_API win_bcp_control(HDBC hdbc, int field, void *value);
-RETCODE SQL_API win_bcp_colptr(HDBC hdbc, const BYTE * colptr, int table_column);
+RETCODE SQL_API win_bcp_colptr(HDBC hdbc, const unsigned char * colptr, int table_column);
 RETCODE SQL_API win_bcp_sendrow(HDBC hdbc);
 int SQL_API win_bcp_batch(HDBC hdbc);
 int SQL_API win_bcp_done(HDBC hdbc);
-RETCODE SQL_API win_bcp_bind(HDBC hdbc, const BYTE * varaddr, int prefixlen, int varlen,
-	const BYTE * terminator, int termlen, int vartype, int table_column);
+RETCODE SQL_API win_bcp_bind(HDBC hdbc, const unsigned char * varaddr, int prefixlen, int varlen,
+	const unsigned char * terminator, int termlen, int vartype, int table_column);
 
 RETCODE SQL_API
 win_bcp_initA(HDBC hdbc, const char *tblname, const char *hfile, const char *errfile, int direction)
@@ -7546,7 +7546,7 @@ win_bcp_control(HDBC hdbc, int field, void *value)
 }
 
 RETCODE SQL_API
-win_bcp_colptr(HDBC hdbc, const BYTE * colptr, int table_column)
+win_bcp_colptr(HDBC hdbc, const unsigned char * colptr, int table_column)
 {
 	return bcp_colptr(hdbc, colptr, table_column);
 }
@@ -7570,8 +7570,8 @@ win_bcp_done(HDBC hdbc)
 }
 
 RETCODE SQL_API
-win_bcp_bind(HDBC hdbc, const BYTE * varaddr, int prefixlen, int varlen,
-	const BYTE * terminator, int termlen, int vartype, int table_column)
+win_bcp_bind(HDBC hdbc, const unsigned char * varaddr, int prefixlen, int varlen,
+	const unsigned char * terminator, int termlen, int vartype, int table_column)
 {
 	return bcp_bind(hdbc, varaddr, prefixlen, varlen, terminator, termlen, vartype, table_column);
 }

@@ -423,7 +423,8 @@ _bcp_iconv_helper(const TDS_DBC *dbc, const TDSCOLUMN *bindcol, const TDS_CHAR *
 }
 
 static SQLLEN
-_tdsodbc_dbconvert(TDS_DBC *dbc, int srctype, const TDS_CHAR * src, SQLLEN src_len, int desttype, BYTE * dest, TDSCOLUMN *bindcol)
+_tdsodbc_dbconvert(TDS_DBC *dbc, int srctype, const TDS_CHAR * src, SQLLEN src_len,
+		   int desttype, unsigned char * dest, TDSCOLUMN *bindcol)
 {
 	CONV_RESULT dres;
 	SQLLEN ret;
