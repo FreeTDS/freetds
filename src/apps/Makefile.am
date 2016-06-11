@@ -28,7 +28,7 @@ bsqldb_LDADD	= ../dblib/libsybdb.la \
 
 if ODBC
 bsqlodbc_CPPFLAGS	= $(ODBC_INC) $(AM_CPPFLAGS)
-bsqlodbc_LDADD	= $(ODBCLIB) $(ODBCNODMLIBAPP) \
+bsqlodbc_LDADD	= $(ODBCLIB) $(ODBCNODMLIB) \
 		  ../replacements/libreplacements.la $(LTLIBICONV) $(NETWORK_LIBS)
 endif
 

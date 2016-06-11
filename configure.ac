@@ -599,8 +599,7 @@ if test "$with_odbc_nodm"; then
 	#  itself is treated as the driver manager to be linked.
 	# Can't use ODBCLIB/LDFLAGS variables since they are used in building
 	#  other directories.
-	ODBCNODMLIB="-L.. -ltdsodbc"
-	ODBCNODMLIBAPP="-L../odbc -ltdsodbc"
+	ODBCNODMLIB="-L\$(top_builddir)/src/odbc -ltdsodbc"
 	odbc=true
 fi
 
@@ -723,7 +722,6 @@ AC_SUBST(ODBC_INC)
 AC_SUBST(ODBCLIB)
 AC_SUBST(ODBCINSTLIB)
 AC_SUBST(ODBCNODMLIB)
-AC_SUBST(ODBCNODMLIBAPP)
 
 AC_DEFUN([TDS_CHECK_GMP], [
 AC_TRY_LINK([#include <stdio.h>
