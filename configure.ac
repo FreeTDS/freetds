@@ -615,7 +615,9 @@ if test "$build_odbc" = "yes"
 then
 	case $host_os in
 	darwin* | rhapsody*)
-		FREETDS_ODBC_MODULE="-module"
+		if test "$with_odbc_nodm" = ""; then
+			FREETDS_ODBC_MODULE="-module"
+		fi
 		;;
 	esac
 	AC_SUBST(FREETDS_ODBC_MODULE)
