@@ -532,6 +532,7 @@ AS_HELP_STRING([--with-tdsver=VERSION], [TDS protocol version (4.2/4.6/5.0/7.0/7
 case "$with_tdsver" in
 4.2) AC_DEFINE(TDS42, 1, [Define to use TDS 4.2 by default]) ;;
 4.6) AC_DEFINE(TDS46, 1, [Define to use TDS 4.6 by default]) ;;
+5.0) AC_DEFINE(TDS50, 1, [Define to use TDS 5.0 by default]) ;;
 7.0) AC_DEFINE(TDS70, 1, [Define to use TDS 7.0 by default]) ;;
 7.1) AC_DEFINE(TDS71, 1, [Define to use TDS 7.1 by default]) ;;
 7.2) AC_DEFINE(TDS72, 1, [Define to use TDS 7.2 by default]) ;;
