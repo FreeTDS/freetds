@@ -196,8 +196,11 @@ main(int argc, char *argv[])
 	 * Connect to the server 
 	 */
 	dbproc = dbopen(login, options.servername);
-	assert(dbproc != NULL);
-	
+	if (!dbproc) {
+		fprintf(stderr, "There was a problem connecting to the server.\n");
+		exit(1);
+	}
+
 	/* Switch to the specified database, if any */
 	if (options.database)
 		dbuse(dbproc, options.database);
