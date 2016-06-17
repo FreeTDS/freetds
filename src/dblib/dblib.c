@@ -5903,9 +5903,6 @@ dbcanquery(DBPROCESS * dbproc)
 	tdsdump_log(TDS_DBG_FUNC, "dbcanquery(%p)\n", dbproc);
 	CHECK_CONN(FAIL);
 
-	if (IS_TDSDEAD(dbproc->tds_socket))
-		return FAIL;
-
 	/* Just throw away all pending rows from the last query */
 
 	rc = tds_process_tokens(dbproc->tds_socket, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE);
