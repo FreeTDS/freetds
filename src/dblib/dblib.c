@@ -5862,6 +5862,8 @@ dbcanquery(DBPROCESS * dbproc)
 	if (TDS_FAILED(rc))
 		return FAIL;
 
+	dbproc->dbresults_state = _DB_RES_NEXT_RESULT;
+
 	return SUCCEED;
 }
 
