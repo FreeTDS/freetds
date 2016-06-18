@@ -574,11 +574,11 @@ print_results(DBPROCESS *dbproc)
 		/* 
 		 * Bind the columns to our variables.  
 		 */
-		if (sizeof(sql_text) < dbcollen(dbproc, ctext) ) {
-			assert(sizeof(sql_text) >= dbcollen(dbproc, ctext));
+		if (sizeof(sql_text) <= dbcollen(dbproc, ctext) ) {
+			assert(sizeof(sql_text) > dbcollen(dbproc, ctext));
 			return 0;
 		}
-		erc = dbbind(dbproc, ctext, NTBSTRINGBIND, sizeof(sql_text), (BYTE *) sql_text);
+		erc = dbbind(dbproc, ctext, STRINGBIND, 0, (BYTE *) sql_text);
 		if (erc == FAIL) {
 			fprintf(stderr, "%s:%d: dbbind(), column %d failed\n", options.appname, __LINE__, ctext);
 			return -1;
