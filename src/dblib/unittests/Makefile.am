@@ -1,16 +1,42 @@
-TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
-			t0004$(EXEEXT) t0005$(EXEEXT) t0006$(EXEEXT)\
-			t0007$(EXEEXT) t0008$(EXEEXT) t0009$(EXEEXT)\
-			t0011$(EXEEXT) t0012$(EXEEXT) t0013$(EXEEXT)\
-			t0014$(EXEEXT) t0015$(EXEEXT) t0016$(EXEEXT)\
-			t0017$(EXEEXT) t0018$(EXEEXT) t0019$(EXEEXT)\
-			t0020$(EXEEXT) t0021$(EXEEXT) t0022$(EXEEXT)\
-			t0023$(EXEEXT) rpc$(EXEEXT) dbmorecmds$(EXEEXT)\
-			bcp$(EXEEXT) thread$(EXEEXT) text_buffer$(EXEEXT)\
-			done_handling$(EXEEXT) timeout$(EXEEXT) \
-			hang$(EXEEXT) null$(EXEEXT) null2$(EXEEXT) \
-			setnull$(EXEEXT) numeric$(EXEEXT) pending$(EXEEXT) \
-			cancel$(EXEEXT) spid$(EXEEXT)
+TESTS =	\
+	t0001$(EXEEXT) \
+	t0002$(EXEEXT) \
+	t0003$(EXEEXT) \
+	t0004$(EXEEXT) \
+	t0005$(EXEEXT) \
+	t0006$(EXEEXT) \
+	t0007$(EXEEXT) \
+	t0008$(EXEEXT) \
+	t0009$(EXEEXT) \
+	t0011$(EXEEXT) \
+	t0012$(EXEEXT) \
+	t0013$(EXEEXT) \
+	t0014$(EXEEXT) \
+	t0015$(EXEEXT) \
+	t0016$(EXEEXT) \
+	t0017$(EXEEXT) \
+	t0018$(EXEEXT) \
+	t0019$(EXEEXT) \
+	t0020$(EXEEXT) \
+	t0021$(EXEEXT) \
+	t0022$(EXEEXT) \
+	t0023$(EXEEXT) \
+	rpc$(EXEEXT) \
+	dbmorecmds$(EXEEXT) \
+	bcp$(EXEEXT) \
+	thread$(EXEEXT) \
+	text_buffer$(EXEEXT) \
+	done_handling$(EXEEXT) \
+	timeout$(EXEEXT) \
+	hang$(EXEEXT) \
+	null$(EXEEXT) \
+	null2$(EXEEXT) \
+	setnull$(EXEEXT) \
+	numeric$(EXEEXT) \
+	pending$(EXEEXT) \
+	cancel$(EXEEXT) \
+	spid$(EXEEXT) \
+	canquery$(EXEEXT)
 check_PROGRAMS	=	$(TESTS)
 
 SQL_DIST = 	bcp.sql dbmorecmds.sql done_handling.sql rpc.sql spid.sql \
@@ -18,7 +44,8 @@ SQL_DIST = 	bcp.sql dbmorecmds.sql done_handling.sql rpc.sql spid.sql \
 		t0011.sql t0012.sql t0013.sql t0014.sql t0015.sql t0016.sql t0017.sql t0018.sql \
 		t0020.sql t0022.sql t0023.sql text_buffer.sql timeout.sql numeric.sql numeric_2.sql \
 		pending.sql cancel.sql t0016_10.sql t0016_11.sql t0016_1.sql t0016_2.sql \
-		t0016_3.sql t0016_4.sql t0016_5.sql t0016_6.sql t0016_7.sql t0016_8.sql t0016_9.sql
+		t0016_3.sql t0016_4.sql t0016_5.sql t0016_6.sql t0016_7.sql t0016_8.sql t0016_9.sql \
+		canquery.sql
 
 noinst_SCRIPTS	= $(SQL_DIST)
 
@@ -59,6 +86,7 @@ numeric_SOURCES =	numeric.c common.c common.h
 pending_SOURCES =	pending.c common.c common.h
 cancel_SOURCES =	cancel.c common.c common.h
 spid_SOURCES	=	spid.c common.c common.h
+canquery_SOURCES=	canquery.c common.c common.h
 
 AM_CPPFLAGS	= 	-DFREETDS_TOPDIR=\"$(top_srcdir)\" -I$(top_srcdir)/include
 if MINGW32
