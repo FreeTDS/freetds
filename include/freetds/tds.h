@@ -272,6 +272,7 @@ enum tds_end
  */
 typedef enum {	TDSEOK    = TDS_SUCCESS, 
 		TDSEVERDOWN    =  100,
+		TDSEINPROGRESS,
 		TDSEICONVIU    = 2400, 
 		TDSEICONVAVAIL = 2401, 
 		TDSEICONVO     = 2402, 
