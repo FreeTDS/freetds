@@ -184,8 +184,6 @@ tds_swap_bytes(void *buf, int bytes)
 	}
 }
 
-/* not used by FreeTDS, uncomment if needed */
-#ifdef ENABLE_DEVELOPING
 unsigned int
 tds_gettime_ms(void)
 {
@@ -205,7 +203,6 @@ tds_gettime_ms(void)
 #error How to implement tds_gettime_ms ??
 #endif
 }
-#endif
 
 /*
  * Call the client library's error handler
