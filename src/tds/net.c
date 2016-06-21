@@ -328,6 +328,12 @@ tds_setup_socket(TDS_SYS_SOCKET *p_sock, struct addrinfo *addr, unsigned int por
 #endif	/* not DOS32X */
 }
 
+typedef struct {
+	struct addrinfo *addr;
+	unsigned next_retry_time;
+	unsigned retry_count;
+} retry_addr;
+
 TDSERRNO
 tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int timeout, int *p_oserr)
 {
@@ -336,6 +342,13 @@ tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int ti
 	TDSERRNO tds_error;
 	struct addrinfo *curr_addr;
 	struct pollfd *fds;
+	retry_addr *addresses;
+	unsigned curr_time, start_time;
+	typedef struct {
+		retry_addr retry;
+		struct pollfd fd;
+	} alloc_addr;
+	enum { MAX_RETRY = 10 };
 
 	*p_oserr = 0;
 
@@ -348,34 +361,27 @@ tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int ti
 	for (len = 0, curr_addr = addr; curr_addr != NULL; curr_addr = curr_addr->ai_next)
 		++len;
 
-	fds = tds_new0(struct pollfd, len);
-	if (!fds)
+	addresses = (retry_addr *) tds_new0(alloc_addr, len);
+	if (!addresses)
 		return TDSEMEM;
+	fds = (struct pollfd *) &addresses[len];
 
 	tds_error = TDSECONN;
 
+	/* fill all structures */
+	curr_time = start_time = tds_gettime_ms();
 	for (len = 0, curr_addr = addr; curr_addr != NULL; curr_addr = curr_addr->ai_next) {
-		TDS_SYS_SOCKET sock;
-		tds_error = tds_setup_socket(&sock, curr_addr, port, p_oserr);
-		switch (tds_error) {
-		case TDSEOK:
-			/* connected! */
-			/* free other sockets and continue with this one */
-			conn->s = sock;
-			tds_error = TDSEOK;
-			goto exit;
-		case TDSEINPROGRESS:
-			/* queue to poll for any success */
-			fds[len].fd = sock;
-			++len;
-			break;
-		default:
-			/* error, continue with other addresses */
-			if (!TDS_IS_SOCKET_INVALID(sock))
-				CLOSESOCKET(sock);
-			break;
-		}
+		fds[len].fd = INVALID_SOCKET;
+		addresses[len].addr = curr_addr;
+		addresses[len].next_retry_time = curr_time;
+		addresses[len].retry_count = 0;
+		++len;
 	}
+
+	/* if we have only one address means that availability groups feature is not
+	 * present, avoid to check the addresses multiple times */
+	if (len == 1)
+		addresses[0].retry_count = MAX_RETRY;
 
 	timeout *= 1000;
 	if (!timeout) {
@@ -385,7 +391,54 @@ tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int ti
 
 	/* now the list is full with sockets trying to connect */
 	while (len) {
-		int rc;
+		int rc, poll_timeout = timeout;
+
+		/* timeout */
+		if (poll_timeout >= 0) {
+			if (curr_time - start_time > (unsigned) poll_timeout) {
+				*p_oserr = TDSSOCK_ETIMEDOUT;
+				goto exit;
+			}
+			poll_timeout -= curr_time - start_time;
+		}
+
+		/* try again if needed */
+		for (i = 0; i < len; ++i) {
+			int time_left;
+
+			if (!TDS_IS_SOCKET_INVALID(fds[i].fd))
+				continue;
+			time_left = addresses[i].next_retry_time - curr_time;
+			if (time_left <= 0) {
+				TDS_SYS_SOCKET sock;
+				tds_error = tds_setup_socket(&sock, addresses[i].addr, port, p_oserr);
+				switch (tds_error) {
+				case TDSEOK:
+					/* connected! */
+					/* free other sockets and continue with this one */
+					conn->s = sock;
+					tds_error = TDSEOK;
+					goto exit;
+				case TDSEINPROGRESS:
+					/* save socket in the list */
+					fds[i].fd = sock;
+					break;
+				default:
+					/* error, continue with other addresses */
+					if (!TDS_IS_SOCKET_INVALID(sock))
+						CLOSESOCKET(sock);
+					--len;
+					fds[i] = fds[len];
+					addresses[i] = addresses[len];
+					--i;
+					continue;
+				}
+			} else {
+				/* update timeout */
+				if (time_left < poll_timeout || poll_timeout < 0)
+					poll_timeout = time_left;
+			}
+		}
 
 		/* wait activities on file descriptors */
 		for (i = 0; i < len; ++i) {
@@ -393,7 +446,7 @@ tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int ti
 			fds[i].events = TDSSELWRITE|TDSSELERR;
 		}
 		tds_error = TDSECONN;
-		rc = poll(fds, len, timeout);
+		rc = poll(fds, len, poll_timeout);
 
 		/* error */
 		if (rc < 0) {
@@ -403,14 +456,12 @@ tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int ti
 			goto exit;
 		}
 
-		/* timeout */
-		if (rc == 0) {
-			*p_oserr = TDSSOCK_ETIMEDOUT;
-			goto exit;
-		}
+		curr_time = tds_gettime_ms();
 
 		/* got some event on file descriptors */
 		for (i = 0; i < len; ++i) {
+			if (TDS_IS_SOCKET_INVALID(fds[i].fd))
+				continue;
 			if (!fds[i].revents)
 				continue;
 			*p_oserr = tds_get_socket_error(fds[i].fd);
@@ -418,8 +469,14 @@ tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int ti
 				/* error, remove from list and possibly make
 				 * the loop exit */
 				CLOSESOCKET(fds[i].fd);
-				fds[i].fd = fds[--len].fd;
-				--i;
+				fds[i].fd = INVALID_SOCKET;
+				addresses[i].next_retry_time = curr_time + 1000;
+				if (++addresses[i].retry_count >= MAX_RETRY || len == 1) {
+					--len;
+					fds[i] = fds[len];
+					addresses[i] = addresses[len];
+					--i;
+				}
 				continue;
 			}
 			if (fds[i].revents & POLLOUT) {
@@ -443,7 +500,7 @@ exit:
 		if (!TDS_IS_SOCKET_INVALID(fds[len].fd))
 			CLOSESOCKET(fds[len].fd);
 	}
-	free(fds);
+	free(addresses);
 	return tds_error;
 }
 
