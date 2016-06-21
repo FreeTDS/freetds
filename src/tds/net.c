@@ -371,7 +371,7 @@ tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int ti
 			break;
 		default:
 			/* error, continue with other addresses */
-			if (TDS_IS_SOCKET_INVALID(sock))
+			if (!TDS_IS_SOCKET_INVALID(sock))
 				CLOSESOCKET(sock);
 			break;
 		}
