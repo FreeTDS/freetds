@@ -457,34 +457,6 @@ file_character(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	int li_numcols = 0;
 	RETCODE ret_code = 0;
 
-	if (dir == DB_QUERYOUT) {
-		if (dbfcmd(dbproc, "SET FMTONLY ON %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
-			printf("dbfcmd failed\n");
-			return FALSE;
-		}
-	} else {
-		if (dbfcmd(dbproc, "SET FMTONLY ON select * from %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
-			printf("dbfcmd failed\n");
-			return FALSE;
-		}
-	}
-
-	if (dbsqlexec(dbproc) == FAIL) {
-		printf("dbsqlexec failed\n");
-		return FALSE;
-	}
-
-	while (NO_MORE_RESULTS != (ret_code = dbresults(dbproc))) {
-		if (ret_code == SUCCEED && li_numcols == 0) {
-			li_numcols = dbnumcols(dbproc);
-		}
-	}
-
-	if (0 == li_numcols) {
-		printf("Error in dbnumcols\n");
-		return FALSE;
-	}
-
 	if (FAIL == bcp_init(dbproc, pdata->dbobject, pdata->hostfilename, pdata->errorfile, dir))
 		return FALSE;
 
@@ -512,6 +484,34 @@ file_character(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	bcp_control(dbproc, BCPFIRST, pdata->firstrow);
 	bcp_control(dbproc, BCPLAST, pdata->lastrow);
 	bcp_control(dbproc, BCPMAXERRS, pdata->maxerrors);
+
+	if (dir == DB_QUERYOUT) {
+		if (dbfcmd(dbproc, "SET FMTONLY ON %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
+			printf("dbfcmd failed\n");
+			return FALSE;
+		}
+	} else {
+		if (dbfcmd(dbproc, "SET FMTONLY ON select * from %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
+			printf("dbfcmd failed\n");
+			return FALSE;
+		}
+	}
+
+	if (dbsqlexec(dbproc) == FAIL) {
+		printf("dbsqlexec failed\n");
+		return FALSE;
+	}
+
+	while (NO_MORE_RESULTS != (ret_code = dbresults(dbproc))) {
+		if (ret_code == SUCCEED && li_numcols == 0) {
+			li_numcols = dbnumcols(dbproc);
+		}
+	}
+
+	if (0 == li_numcols) {
+		printf("Error in dbnumcols\n");
+		return FALSE;
+	}
 
 	if (bcp_columns(dbproc, li_numcols) == FAIL) {
 		printf("Error in bcp_columns.\n");
@@ -555,34 +555,6 @@ file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	int li_coltype;
 	RETCODE ret_code = 0;
 
-	if (dir == DB_QUERYOUT) {
-		if (dbfcmd(dbproc, "SET FMTONLY ON %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
-			printf("dbfcmd failed\n");
-			return FALSE;
-		}
-	} else {
-		if (dbfcmd(dbproc, "SET FMTONLY ON select * from %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
-			printf("dbfcmd failed\n");
-			return FALSE;
-		}
-	}
-
-	if (dbsqlexec(dbproc) == FAIL) {
-		printf("dbsqlexec failed\n");
-		return FALSE;
-	}
-
-	while (NO_MORE_RESULTS != (ret_code = dbresults(dbproc))) {
-		if (ret_code == SUCCEED && li_numcols == 0) {
-			li_numcols = dbnumcols(dbproc);
-		}
-	}
-
-	if (0 == li_numcols) {
-		printf("Error in dbnumcols\n");
-		return FALSE;
-	}
-
 	if (FAIL == bcp_init(dbproc, pdata->dbobject, pdata->hostfilename, pdata->errorfile, dir))
 		return FALSE;
 
@@ -610,6 +582,34 @@ file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	bcp_control(dbproc, BCPFIRST, pdata->firstrow);
 	bcp_control(dbproc, BCPLAST, pdata->lastrow);
 	bcp_control(dbproc, BCPMAXERRS, pdata->maxerrors);
+
+	if (dir == DB_QUERYOUT) {
+		if (dbfcmd(dbproc, "SET FMTONLY ON %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
+			printf("dbfcmd failed\n");
+			return FALSE;
+		}
+	} else {
+		if (dbfcmd(dbproc, "SET FMTONLY ON select * from %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
+			printf("dbfcmd failed\n");
+			return FALSE;
+		}
+	}
+
+	if (dbsqlexec(dbproc) == FAIL) {
+		printf("dbsqlexec failed\n");
+		return FALSE;
+	}
+
+	while (NO_MORE_RESULTS != (ret_code = dbresults(dbproc))) {
+		if (ret_code == SUCCEED && li_numcols == 0) {
+			li_numcols = dbnumcols(dbproc);
+		}
+	}
+
+	if (0 == li_numcols) {
+		printf("Error in dbnumcols\n");
+		return FALSE;
+	}
 
 	if (bcp_columns(dbproc, li_numcols) == FAIL) {
 		printf("Error in bcp_columns.\n");
