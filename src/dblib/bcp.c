@@ -756,6 +756,8 @@ _bcp_convert_out(DBPROCESS * dbproc, TDSCOLUMN *curcol, BCP_HOSTCOLINFO *hostcol
 			num->scale = 0;
 		}
 		buflen = tds_convert(dbproc->tds_socket->conn->tds_ctx, srctype, (const TDS_CHAR *) src, srclen, hostcol->datatype, (CONV_RESULT *) num);
+		if (buflen > 0)
+			buflen = tds_numeric_bytes_per_prec[num->precision] + 2;
 	} else if (!is_variable_type(hostcol->datatype)) {
 		buflen = tds_convert(dbproc->tds_socket->conn->tds_ctx, srctype, (const TDS_CHAR *) src, srclen, hostcol->datatype, (CONV_RESULT *) (*p_data));
 	} else {
@@ -799,7 +801,9 @@ bcp_cache_prefix_len(BCP_HOSTCOLINFO *hostcol, const TDSCOLUMN *curcol)
 
 	if (is_blob_type(hostcol->datatype))
 		plen = 4;
-	else if (!is_fixed_type(hostcol->datatype) && !is_numeric_type(hostcol->datatype))
+	else if (is_numeric_type(hostcol->datatype))
+		plen = 1;
+	else if (!is_fixed_type(hostcol->datatype))
 		plen = 2;
 	else if (curcol->column_nullable)
 		plen = 1;
