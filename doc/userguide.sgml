@@ -787,6 +787,88 @@ or
 					</tgroup>
 				</table></para>
 
+<para>
+	Choosing the correct <acronym>TDS</> protocol version for use with SQL Server can be confusing. Hopefully, these steps will lead you to the correct version.
+</para>
+
+<para>
+	<ItemizedList>
+		<listitem>Step 1: Find out which FreeTDS version you are running. You can use the command: `tsql -C`</listitem>
+		<listitem>Step 2: Find out what version of SQL Server you are running.</listitem>
+		<listitem>Step 3: Pick the lower TDS Version number out of what matches steps 1 and 2 from the table below.</listitem>
+	</ItemizedList>
+
+	<table id="tab.Protocol.by.SQLServerProduct">
+		<title>What Version of the <acronym>TDS</> Protocol Should I use with SQL Server?</title>
+		<tgroup cols="4">
+			<thead>
+				<row>
+					<entry>FreeTDS Version</entry>
+					<entry>SQL Server Version Supported</entry>
+					<entry>Highest TDS Version Supported</entry>
+					<entry>Microsoft Extended Support End Date</entry>
+				</row>
+			</thead>
+			<tbody>
+				<row>
+					<entry>1.00</entry>
+					<entry>2016</entry>
+					<entry>7.4</entry>
+					<entry>July 9th, 2024</entry>
+				</row>
+				<row>
+					<entry>1.00</entry>
+					<entry>2014</entry>
+					<entry>7.4</entry>
+					<entry>July 9th, 2024</entry>
+				</row>
+				<row>
+					<entry>1.00</entry>
+					<entry>2012</entry>
+					<entry>7.4</entry>
+					<entry>July 12th, 2022</entry>
+				</row>
+				<row>
+					<entry>0.95</entry>
+					<entry>2008</entry>
+					<entry>7.3</entry>
+					<entry>July 9th, 2019</entry>
+				</row>
+				<row>
+					<entry>0.91</entry>
+					<entry>2005</entry>
+					<entry>7.2</entry>
+					<entry>April 12th, 2016</entry>
+				</row>
+				<row>
+					<entry>0.82</entry>
+					<entry>2000</entry>
+					<entry>7.1 (as 8.0) *</entry>
+					<entry>April 9th, 2013</entry>
+				</row>
+				<row>
+					<entry>0.64</entry>
+					<entry>2000</entry>
+					<entry>7.1 (as 8.0) *</entry>
+					<entry>April 9th, 2013</entry>
+				</row>
+			</tbody>
+		</tgroup>
+	</table>
+</para>
+
+<para>
+NOTE FOR USERS WHO NEED SQL SERVER 2000 SUPPORT (VERY RARE; SQL SERVER HAS BEEN OUT OF EXTENDED SUPPORT SINCE 2013 AND SHOULD *NEVER* BE USED IN PRODUCTION):
+
+Years ago, Microsoft didn't officially create a TDS version number until after FreeTDS was released, and it was assumed 8.0 would be the next version; it turned out to be 7.1. Because of this:
+
+	<ItemizedList>
+		<listitem>If you are running FreeTDS Version 0.64 or 0.82 with SQL Server 2000, use TDS Version 8.0 instead of 7.1.</listitem>
+		<listitem>If you are running FreeTDS Version 0.91 or greater with SQL Server 2000, use TDS Version 7.1.</listitem>
+		<listitem>Please note, this is ONLY if you need SQL Server 2000 support.</listitem>
+	</ItemizedList>
+</para>
+
 <para>For best results, use the highest version of the protocol supported by your server.  If you encounter problems, try a lower version.  If that works, though, please report it to the mailing list!
 	<footnote><para>Want to help?  Try out the auto-protocol feature.   &freetds; has experimental support for iteratively trying protocol connections until it finds one the server accepts.  This is suitable when query responses are non-trivial (because the tiny delay in connecting is thus insignificant).  Try setting your TDS version to <literal>0</> and report your results.  </para></footnote></para>
 
