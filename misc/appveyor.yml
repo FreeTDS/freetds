@@ -84,6 +84,7 @@ build_script:
   # build FreeTDS
   - mkdir build
   - cd build
+  - set OPENSSL_ROOT_DIR=c:\openssl-win%WIDTH%
   - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Release .."
   - "%WITH_COMPILER% nmake"
   - set PATH=%PATH%;c:\openssl-win%WIDTH%
