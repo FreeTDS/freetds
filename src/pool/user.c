@@ -484,6 +484,9 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 				return false;
 			}
 		}
+		if (tds->in_pos < tds->in_len)
+			/* partial write, schedule a future write */
+			break;
 	}
 	if (pmbr && !pmbr->sock.poll_send)
 		tds_socket_flush(tds_get_s(pmbr->sock.tds));

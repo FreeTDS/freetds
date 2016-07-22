@@ -81,6 +81,9 @@ pool_packet_read(TDSSOCKET *tds)
 
 	/* get another packet */
 	if (tds->in_len >= packet_len) {
+		/* packet was not fully forwarded */
+		if (tds->in_pos < tds->in_len)
+			return false;
 		tds->in_pos = 0;
 		tds->in_len = 0;
 	}
