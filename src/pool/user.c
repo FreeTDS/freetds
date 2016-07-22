@@ -453,36 +453,37 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 	TDS_POOL_MEMBER *pmbr = NULL;
 
 	for (;;) {
+		TDS_UCHAR in_flag;
+
 		if (pool_packet_read(tds))
 			break;
 		if (tds->in_len == 0) {
 			tdsdump_log(TDS_DBG_INFO1, "user disconnected\n");
 			pool_free_user(pool, puser);
 			return false;
-		} else {
-			TDS_UCHAR in_flag = tds->in_buf[0];
+		}
 
-			tdsdump_dump_buf(TDS_DBG_NETWORK, "Got packet from client:", tds->in_buf, tds->in_len);
+		tdsdump_dump_buf(TDS_DBG_NETWORK, "Got packet from client:", tds->in_buf, tds->in_len);
 
-			switch (in_flag) {
-			case TDS_QUERY:
-			case TDS_NORMAL:
-			case TDS_RPC:
-			case TDS_BULK:
-			case TDS_CANCEL:
-			case TDS7_TRANS:
-				if (!pool_write_data(&puser->sock, &puser->assigned_member->sock)) {
-					pool_reset_member(pool, puser->assigned_member);
-					return false;
-				}
-				pmbr = puser->assigned_member;
-				break;
-
-			default:
-				tdsdump_log(TDS_DBG_ERROR, "Unrecognized packet type, closing user\n");
-				pool_free_user(pool, puser);
+		in_flag = tds->in_buf[0];
+		switch (in_flag) {
+		case TDS_QUERY:
+		case TDS_NORMAL:
+		case TDS_RPC:
+		case TDS_BULK:
+		case TDS_CANCEL:
+		case TDS7_TRANS:
+			if (!pool_write_data(&puser->sock, &puser->assigned_member->sock)) {
+				pool_reset_member(pool, puser->assigned_member);
 				return false;
 			}
+			pmbr = puser->assigned_member;
+			break;
+
+		default:
+			tdsdump_log(TDS_DBG_ERROR, "Unrecognized packet type, closing user\n");
+			pool_free_user(pool, puser);
+			return false;
 		}
 		if (tds->in_pos < tds->in_len)
 			/* partial write, schedule a future write */
