@@ -465,8 +465,8 @@ static int varg_convert_date(char *date_string, char *pattern)
         char date_text[30];
         int bin_time[2], flags, length, status, i, from, to;
         char year_4[5], year_2[4], month_name[4];
-        char month_2[2], month_1[2], date_2[3], date_1[2];
-        char hour_2[3], hour_1[2], minute[3], second[3];
+        char month_2[3], month_1[3], date_2[3], date_1[3];
+        char hour_2[3], hour_1[3], minute[3], second[3];
         char *months[] = {"", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
                           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
                          };
@@ -671,7 +671,7 @@ static int varg_protect_string(char *instring, char *outstring,
         int protection_needed, quote_present;
         int length, i, j, special_length;
         char ch, quote = '\"';
-        char quote_string[1];
+        char quote_string[2];
 
         quote_string[0] = quote;
         quote_string[1] = 0;
