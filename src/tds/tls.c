@@ -594,6 +594,50 @@ static BIO_METHOD tds_method =
 	NULL,
 };
 
+#if OPENSSL_VERSION_NUMBER < 0x1010000FL
+static tds_mutex *openssl_locks;
+
+static void
+openssl_locking_callback(int mode, int type, const char *file, int line)
+{
+	if (mode & CRYPTO_LOCK)
+		tds_mutex_lock(&openssl_locks[type]);
+	else
+		tds_mutex_unlock(&openssl_locks[type]);
+}
+
+static void
+tds_init_openssl_thread(void)
+{
+	int i, n = CRYPTO_num_locks();
+
+	/* if already set do not overwrite,
+	 * application or another library took care of */
+	if (CRYPTO_get_locking_callback())
+		return;
+
+	openssl_locks = tds_new(tds_mutex, n);
+	for (i=0; i < n; ++i)
+		tds_mutex_init(&openssl_locks[i]);
+
+	/* read back in the attempt to avoid race conditions
+	 * this is not safe but there are no race free ways */
+	if (CRYPTO_get_locking_callback() == NULL)
+		CRYPTO_set_locking_callback(openssl_locking_callback);
+	if (CRYPTO_get_locking_callback() == openssl_locking_callback)
+		return;
+
+	for (i=0; i < n; ++i)
+		tds_mutex_free(&openssl_locks[i]);
+	free(openssl_locks);
+	openssl_locks = NULL;
+}
+#else
+static inline void
+tds_init_openssl_thread(void)
+{
+}
+#endif
 
 static SSL_CTX *
 tds_init_openssl(void)
@@ -604,6 +648,7 @@ tds_init_openssl(void)
 		tds_mutex_lock(&tls_mutex);
 		if (!tls_initialized) {
 			SSL_library_init();
+			tds_init_openssl_thread();
 			tls_initialized = 1;
 		}
 		tds_mutex_unlock(&tls_mutex);
