@@ -720,7 +720,6 @@ tds_ntlm_get_auth(TDSSOCKET * tds)
 	auth->tds_auth.handle_next = tds_ntlm_handle_next;
 
 	auth->tds_auth.packet_len = auth_len = 40 + host_name_len + domain_len;
-	auth->tds_auth.packet = packet = tds_new(TDS_UCHAR, auth_len);
 	auth->tds_auth.packet = packet = tds_new(uint8_t, auth_len);
 	if (!packet) {
 		free(auth);
