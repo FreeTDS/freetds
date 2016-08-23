@@ -788,23 +788,23 @@ or
 				</table></para>
 
 <para>
-	Choosing the correct <acronym>TDS</> protocol version for use with SQL Server can be confusing. Hopefully, these steps will lead you to the correct version.
+	Choosing the correct <acronym>TDS</> protocol version for use with Microsoft SQL Server can be confusing. Hopefully, these steps will lead you to the correct version. If you have a Sybase server, you should be able to use version 5.0, otherwise, if you have Microsoft SQL Server refer to the following section.
 </para>
 
 <para>
 	<ItemizedList>
 		<listitem>Step 1: Find out which FreeTDS version you are running. You can use the command: `tsql -C`</listitem>
-		<listitem>Step 2: Find out what version of SQL Server you are running.</listitem>
+		<listitem>Step 2: Find out what version of Microsoft SQL Server you are running.</listitem>
 		<listitem>Step 3: Pick the lower TDS Version number out of what matches steps 1 and 2 from the table below.</listitem>
 	</ItemizedList>
 
 	<table id="tab.Protocol.by.SQLServerProduct">
-		<title>What Version of the <acronym>TDS</> Protocol Should I use with SQL Server?</title>
+		<title>What Version of the <acronym>TDS</> Protocol Should I use with Microsoft SQL Server?</title>
 		<tgroup cols="4">
 			<thead>
 				<row>
 					<entry>FreeTDS Version</entry>
-					<entry>SQL Server Version Supported</entry>
+					<entry>Microsoft SQL Server Version Supported</entry>
 					<entry>Highest TDS Version Supported</entry>
 					<entry>Microsoft Extended Support End Date</entry>
 				</row>
@@ -863,9 +863,9 @@ NOTE FOR USERS WHO NEED SQL SERVER 2000 SUPPORT (VERY RARE; SQL SERVER HAS BEEN 
 Years ago, Microsoft didn't officially create a TDS version number until after FreeTDS was released, and it was assumed 8.0 would be the next version; it turned out to be 7.1. Because of this:
 
 	<ItemizedList>
-		<listitem>If you are running FreeTDS Version 0.64 or 0.82 with SQL Server 2000, use TDS Version 8.0 instead of 7.1.</listitem>
-		<listitem>If you are running FreeTDS Version 0.91 or greater with SQL Server 2000, use TDS Version 7.1.</listitem>
-		<listitem>Please note, this is ONLY if you need SQL Server 2000 support.</listitem>
+		<listitem>If you are running FreeTDS Version 0.64 or 0.82 with Microsoft SQL Server 2000, use TDS Version 8.0 instead of 7.1.</listitem>
+		<listitem>If you are running FreeTDS Version 0.91 or greater with Microsoft SQL Server 2000, use TDS Version 7.1.</listitem>
+		<listitem>Please note, this is ONLY if you need Microsoft SQL Server 2000 support.</listitem>
 	</ItemizedList>
 </para>
 
@@ -883,7 +883,7 @@ Years ago, Microsoft didn't officially create a TDS version number until after F
 
 <para> The protocol version may also affect how database servers interpret
 			commands.  For example, Microsoft SQL Server 2000 is known to behave differently with versions 4.2
-			and 7.0.  Version 7.0 is recommended for compatibility with SQL Server tools.</para>
+			and 7.0.  Version 7.0 is recommended for compatibility with Microsoft SQL Server tools.</para>
 
 <sect2>
 	<title>Regarding obsolete versions</title>
@@ -1044,12 +1044,12 @@ versions that &freetds; had labeled 8.0 and 9.0 were actually versions 7.1 and 7
 								
 								<tbody>
 									<row>
-										<entry>Sybase <productname>SQL Server</productname></entry>
+										<entry>Sybase <productname>Microsoft SQL Server</productname></entry>
 										<entry>prior to System 10</entry>
 										<entry>1433</entry>
 										</row>
 									<row>
-										<entry>Sybase <productname>SQL Server</productname></entry>
+										<entry>Sybase <productname>Microsoft SQL Server</productname></entry>
 										<entry>10 and up</entry>
 										<entry>5000</entry>
 										</row>
@@ -1059,7 +1059,7 @@ versions that &freetds; had labeled 8.0 and 9.0 were actually versions 7.1 and 7
 										<entry>2638</entry>
 										</row>
 									<row>
-										<entry>Microsoft <productname>SQL Server</productname></entry>
+										<entry>Microsoft <productname>Microsoft SQL Server</productname></entry>
 										<entry>all</entry>
 										<entry>1433</entry>
 										</row>
@@ -1361,7 +1361,7 @@ This is supported from MSSQL 2012.
 						<term><literal>language</></term>
 						<listitem>
 
-<para>The language that will be used for error/status messages from the server.  A <productname>SQL Server</productname> client can specify a language for such messages at login time. <note><para>&freetds; issues a few messages of its own.  Messages from the server are called <quote>messages</>; those from the client library (i.e., from &freetds;) are called <quote>error messages</>.  &freetds;-issued messages are not affected by <filename>locales.conf</filename>.</para></note></para>
+<para>The language that will be used for error/status messages from the server.  A <productname>Microsoft SQL Server</productname> client can specify a language for such messages at login time. <note><para>&freetds; issues a few messages of its own.  Messages from the server are called <quote>messages</>; those from the client library (i.e., from &freetds;) are called <quote>error messages</>.  &freetds;-issued messages are not affected by <filename>locales.conf</filename>.</para></note></para>
 							</listitem>
 						</varlistentry>
 					<varlistentry>
@@ -1508,12 +1508,12 @@ This is supported from MSSQL 2012.
 
 <para>If you specify <literal><replaceable>servername</replaceable>\<replaceable>instance</replaceable></literal>
 			as servername during login, &freetds; will attempt to connect to specified instance.
-			Only Microsoft SQL Server instances are supported.  (This server feature was introduced with SQL Server 2000.)</para>
+			Only Microsoft SQL Server instances are supported.  (This server feature was introduced with Microsoft SQL Server 2000.)</para>
 		
 
 <para>Note that other &freetdsconf; properties still apply.</para>
 
-<para> For the technically curious: each SQL Server <firstterm>instance</> appears on the network as a server listening at a port.  The old way &mdash; and it still works &mdash; is to designate each instance in &freetdsconf; as a separate server.  The new <quote>named instance</> notation, if we can call it that, instead uses the server to discover the port.  The library sends a UDP packet containing the instance name to the server at a <emphasis>well known port</>, port 1434.  The server responds with a port number.  &freetds; then uses that number to connect in the usual way.</para>
+<para> For the technically curious: each Microsoft SQL Server <firstterm>instance</> appears on the network as a server listening at a port.  The old way &mdash; and it still works &mdash; is to designate each instance in &freetdsconf; as a separate server.  The new <quote>named instance</> notation, if we can call it that, instead uses the server to discover the port.  The library sends a UDP packet containing the instance name to the server at a <emphasis>well known port</>, port 1434.  The server responds with a port number.  &freetds; then uses that number to connect in the usual way.</para>
 		</sect1>
 	
 	<sect1 id="ConfirmInstall" XRefLabel="Confirm the installation">
@@ -2226,9 +2226,9 @@ You can even establish a connection without reference to either <filename>odbc.i
 
 <para>This chapter details some advanced configurations that need expanded explanation.</para>
 	<sect1 id="emulle">
-		<title>Big Endian Clients with Buggy <productname>SQL Server</productname>s</title>
+		<title>Big Endian Clients with Buggy <productname>Microsoft SQL Server</productname>s</title>
 
-<para>Several version of Microsoft SQL server have a bug that affects big endian clients.  This includes 7.0 GA and 7.0 SP1.  Furthermore, <acronym>TDS</> Protocol version 7.0 is natively little endian. <productname>SQL Server 2000</productname> is also reported not to work from big endian clients without little endian emulation turned on.</para>
+<para>Several version of Microsoft SQL server have a bug that affects big endian clients.  This includes 7.0 GA and 7.0 SP1.  Furthermore, <acronym>TDS</> Protocol version 7.0 is natively little endian. <productname>Microsoft SQL Server 2000</productname> is also reported not to work from big endian clients without little endian emulation turned on.</para>
 		<Note><para>The terms <emphasis>big endian</emphasis> and <emphasis>little endian</emphasis> come originally from Gulliver's Travels.  In computer science they refer to the the integer byte-order for a processor.  Big endian processors, such as Sparc and PowerPC store the most significant byte in the first memory location of a multi-byte integer.  Little endian processors, such as Intel and Alpha do it the other way around.  So the 16-bit number 258 would be 0x0102 on big endian and 0x0201 on little endian machines.</para></Note>
 		
 
@@ -2327,7 +2327,7 @@ If no <function>iconv</> library is found, or if it is explicitly disabled, &fre
 
 <para>As mentioned in the installation chapter, <productname>Microsoft SQL Server</productname> includes the ability to use domain
 	<footnote><para>The term <firstterm>domain</> in this context is a Microsoft term.  It refers to what's sometimes called an <firstterm>NT domain</firstterm>.  It's unrelated to the DNS domain.  DNS domains are used for name resolution.  NT domains are used for authentication.  Authentication is done by the domain controller, often the <firstterm>Primary Domain Controller</firstterm> (PDC).</para>
-	<para>The SQL Server machine may belong to an NT domain.  &freetds; provides an encrypted password &mdash; a domain password, known to the domain controller &mdash; that the server will ask the domain controller to verify.</para></footnote> 
+	<para>The Microsoft SQL Server machine may belong to an NT domain.  &freetds; provides an encrypted password &mdash; a domain password, known to the domain controller &mdash; that the server will ask the domain controller to verify.</para></footnote> 
 logins instead of standard server logins.  Passwords are encrypted on the wire using a challenge-response protocol.  &freetds; plays nice with such logins.  </para>
 
 <para>&freetds; supports single sign-on (connecting without prompting for a username &amp; password) or not, depending on how it was configured.  For Windows hosts (both 32- and 64-bit), if SSPI is enabled, &freetds; will log in using so-called <quote>trusted authentication</quote>.  For non-Windows hosts, enabling Kerberos provides similar functionality.  </para>
@@ -2411,7 +2411,7 @@ from your Active Directory.  You could use <ulink url="http://www.samba.org/">Sa
 				</programlisting>
 			</example>
 
-<para>In this example, the <filename>/tmp/freetds.log</filename> file will contain log entries for all processes using the Microsoft <productname>SQL Server</productname> server, identified by pid.</para>
+<para>In this example, the <filename>/tmp/freetds.log</filename> file will contain log entries for all processes using the Microsoft <productname>Microsoft SQL Server</productname> server, identified by pid.</para>
 		<Important><para>Because there will be one log file being opened and closed more or less continuously, there is going to be a negative impact on performance. Also, be advised that the log file will grow quite large.
 </para></Important>
 
@@ -2423,9 +2423,9 @@ from your Active Directory.  You could use <ulink url="http://www.samba.org/">Sa
 
 <para>The Connection Pooling server swims in the <filename>src/pool</filename> directory.</para>
 
-<para>The &freetds; connection pool is a server process; it emulates a <productname>SQL Server</productname>.  Any program that can attach to a real <productname>SQL Server</productname> may instead elect to attach to the pool server.  The pool in turn connects to the <productname>SQL Server</productname> and database you specify, and attempts to share these connections.  See the <filename>src/pool/README</filename> for a more detailed description of its inner workings.</para>
+<para>The &freetds; connection pool is a server process; it emulates a <productname>Microsoft SQL Server</productname>.  Any program that can attach to a real <productname>Microsoft SQL Server</productname> may instead elect to attach to the pool server.  The pool in turn connects to the <productname>Microsoft SQL Server</productname> and database you specify, and attempts to share these connections.  See the <filename>src/pool/README</filename> for a more detailed description of its inner workings.</para>
 
-<para>To configure the pool server, first make sure &freetds; has a working entry for the real <productname>SQL Server</productname> by connecting to it with <application>SQSH</application> or another program.</para>
+<para>To configure the pool server, first make sure &freetds; has a working entry for the real <productname>Microsoft SQL Server</productname> by connecting to it with <application>SQSH</application> or another program.</para>
 		
 <Note><para>The &freetds; connection pool currently only supports <acronym>TDS</> version 4.2.  <emphasis>This restriction applies to both the client-to-pool and pool-to-server connections!</emphasis>
 </para></Note>
@@ -2521,7 +2521,7 @@ from your Active Directory.  You could use <ulink url="http://www.samba.org/">Sa
 				</example>
 			The <literal>[global]</literal> section defines that we will open 5 connections against the server initially, and will increase up to 10 as demand requires.  These connections will be closed after being idle for 2 minutes (120 seconds), but only until there are 5 remaining open.</para>
 
-<para>The <literal>[mypool]</literal> section defines a pool named <literal>mypool</literal> that will listen on port 5000.  It will login to a <productname>SQL Server</productname> named <literal>fooserv</literal> using the user <literal>webuser</literal> and the ever so clever password of <literal>secret</literal>.  Once logged in, the connections will use the database <literal>ebiz</literal> instead of webuser's default database.  Also, since this <productname>SQL Server</productname> has a limited number of <acronym>CAL</>s (Client Access Licenses), we are restricting the maximum number of connections to 7, which overrides the <literal>global</literal> setting of 10.</para>
+<para>The <literal>[mypool]</literal> section defines a pool named <literal>mypool</literal> that will listen on port 5000.  It will login to a <productname>Microsoft SQL Server</productname> named <literal>fooserv</literal> using the user <literal>webuser</literal> and the ever so clever password of <literal>secret</literal>.  Once logged in, the connections will use the database <literal>ebiz</literal> instead of webuser's default database.  Also, since this <productname>Microsoft SQL Server</productname> has a limited number of <acronym>CAL</>s (Client Access Licenses), we are restricting the maximum number of connections to 7, which overrides the <literal>global</literal> setting of 10.</para>
 
 <para>Run <Command>tdspool</Command> with the name of the pool you are serving.
 <screen>
@@ -2630,7 +2630,7 @@ from your Active Directory.  You could use <ulink url="http://www.samba.org/">Sa
 				<term>datacopy</term>
 				<listitem>
 
-<para>A tool for migrating data between Sybase ASE and SQL Server or vice versa.</para>
+<para>A tool for migrating data between Sybase ASE and Microsoft SQL Server or vice versa.</para>
 					
 
 <para><command>datacopy</> will move table data from one server to another without the need for intermediate files. <command>datacopy</> is much faster and more efficient than is <command>freebcp</> out/in.</para>
@@ -2666,7 +2666,7 @@ from your Active Directory.  You could use <ulink url="http://www.samba.org/">Sa
 
 <para><command>freebcp</> makes use of the &dblib; bcp <acronym>API</>.</para>
 
-<para>The manual pages or online help for Sybase or SQL Server can be referenced for more detailed information on bcp functionality.</para>
+<para>The manual pages or online help for Sybase or Microsoft SQL Server can be referenced for more detailed information on bcp functionality.</para>
 					</listitem>
 				</varlistentry>
 			
@@ -2738,11 +2738,11 @@ from your Active Directory.  You could use <ulink url="http://www.samba.org/">Sa
 	<sect1 id="perl">
 		<title>Perl</title>
 
-<para>There are a few ways to use <productname>Perl</productname> to connect to a <productname>SQL Server</productname> using &freetds;.</para>
+<para>There are a few ways to use <productname>Perl</productname> to connect to a <productname>Microsoft SQL Server</productname> using &freetds;.</para>
 		
 		<sect2 id="DBD.Sybase"><title>DBD::Sybase</title>
 
-<para>The recommended choice is <systemitem class="library">DBD::Sybase</systemitem> from Michael Peppler.  Despite the name it works for any Sybase or Microsoft <productname>SQL Server</productname>.  <systemitem class="library">DBD::Sybase</systemitem> uses the &ctlib; <acronym>API</> and works well.</para>
+<para>The recommended choice is <systemitem class="library">DBD::Sybase</systemitem> from Michael Peppler.  Despite the name it works for any Sybase or Microsoft <productname>Microsoft SQL Server</productname>.  <systemitem class="library">DBD::Sybase</systemitem> uses the &ctlib; <acronym>API</> and works well.</para>
 			</sect2>
 		
 		<sect2 id="DBD.ODBC"><title>DBD::ODBC</title>
@@ -2904,7 +2904,7 @@ You'll note this is the same program as for <systemitem class="library">DBD::Syb
 		<title>Python</title>
 	<sect2 id="pymssql">
 	<title>pymssql</title>
-<para>The <productname>pymssql</productname> module is a simple database interface to Microsoft SQL Server for <productname>Python</productname> that builds on top of &freetds; to provide a Python DB-API v2 (<ulink url="http://www.python.org/dev/peps/pep-0249/">PEP-249</ulink>) interface to SQL Server.</para>
+<para>The <productname>pymssql</productname> module is a simple database interface to Microsoft SQL Server for <productname>Python</productname> that builds on top of &freetds; to provide a Python DB-API v2 (<ulink url="http://www.python.org/dev/peps/pep-0249/">PEP-249</ulink>) interface to Microsoft SQL Server.</para>
 
 <para>The 2.x branch of <productname>pymssql</productname> take advantage of recent releases (0.91 and newer) of &freetds; and by doing that removes many of the limitations previously found with older &freetds; versions and the 1.x branch.</para>
 
@@ -2943,7 +2943,7 @@ This example uses version 0.37, the most current at the time of this writing, pl
 	<sect1 id="qt">
 		<title>Qt</title>
 
-<para><productname>To access SQL Server databases using Qt</> use QODBC.</para>
+<para><productname>To access Microsoft SQL Server databases using Qt</> use QODBC.</para>
 
 <para>There are some problems with wide character support on Qt because Qt assumes sizeof(SQLWCHAR) == 2.  On some DMs, though &mdash; including <productname>iODBC</>,  the default on <productname>Ubuntu</> &mdash; sizeof(SQLWCHAR) == 4, which could lead to invalid character conversion.</para>
 		</sect1>
@@ -3009,9 +3009,9 @@ This example uses version 0.37, the most current at the time of this writing, pl
 		<sect2 id="Textfields">
 			<title><type>Text</type> Fields</title>
 
-<para>Questions sometimes arise over large <type>varchar</type> types (anything larger than <type>varchar(255)</type>) that became available with Microsoft <productname>SQL Server 7.0</productname>.  When accessing long <type>varchar</type>s with <acronym>TDS</> protocol version 4.2 or 5.0, these fields will be truncated to 255 characters, due to limitations inherent in the protocol definition.  Your best bet in that case is to convert them to <type>text</type> types.</para>
+<para>Questions sometimes arise over large <type>varchar</type> types (anything larger than <type>varchar(255)</type>) that became available with Microsoft <productname>Microsoft SQL Server 7.0</productname>.  When accessing long <type>varchar</type>s with <acronym>TDS</> protocol version 4.2 or 5.0, these fields will be truncated to 255 characters, due to limitations inherent in the protocol definition.  Your best bet in that case is to convert them to <type>text</type> types.</para>
 
-<para>In Microsoft <productname>SQL Server</productname> 7.0 and later, <structname>varchar</structname> types can hold up to 8000 bytes (8000 <acronym>ASCII</> characters or 4000 Unicode characters).  To move these large <structname>varchar</structname>s through <acronym>TDS</> 4.2, convert them with either a <command>CONVERT</command> as in,
+<para>In Microsoft <productname>Microsoft SQL Server</productname> 7.0 and later, <structname>varchar</structname> types can hold up to 8000 bytes (8000 <acronym>ASCII</> characters or 4000 Unicode characters).  To move these large <structname>varchar</structname>s through <acronym>TDS</> 4.2, convert them with either a <command>CONVERT</command> as in,
 	<screen>
 	<userinput>SELECT mycol = convert(mycol, text) FROM mytable</userinput> </screen>
 	or with the newer SQL92 <command>CAST</command> syntax e.g.,
@@ -3040,26 +3040,26 @@ data returned by queries.</para>
 		<sect2 id="Datetime">
 			<title><type>Datetime</type> and <type>Money</type></title>
 
-<para>Big endian clients may experience difficulty with Microsoft servers.  Some versions of <productname>SQL Server</productname> 7 did not handle these types on these machines correctly, according to the protocol.  According to
+<para>Big endian clients may experience difficulty with Microsoft servers.  Some versions of <productname>Microsoft SQL Server</productname> 7 did not handle these types on these machines correctly, according to the protocol.  According to
 				<ulink url="http://support.microsoft.com/support/kb/articles/Q254/1/23.ASP"> http://support.microsoft.com/support/kb/articles/Q254/1/23.ASP</ulink> on the Microsoft support site, it's fixed as of service pack 3.  Unfortunately, there's no direct way for &freetds; to know whether or not a service pack has been installed, and how/whether to support the buggy version is an outstanding issue.  Your best bet is to apply their patch.
-				<note><para>The Knowledge Base article states <quote>The Sybase CT-Lib client is the only known big-endian client that can connect to <productname>SQL Server</productname>.</quote>  Depends on who's doing the knowing, of course.</para></note></para>
+				<note><para>The Knowledge Base article states <quote>The Sybase CT-Lib client is the only known big-endian client that can connect to <productname>Microsoft SQL Server</productname>.</quote>  Depends on who's doing the knowing, of course.</para></note></para>
 			</sect2>
 		<sect2 id="IntegratedSecurity">
 			<title>Microsoft's <quote>Integrated Security</quote></title>
 
-<para>&freetds; may be unable to connect to the server.  The error message will be <computeroutput>"Login failed for user 'example'.  Reason: Not associated with a trusted SQL Server connection"</computeroutput>.  To solve this, turn on <productname>SQL Server</productname> authentication:</para>
+<para>&freetds; may be unable to connect to the server.  The error message will be <computeroutput>"Login failed for user 'example'.  Reason: Not associated with a trusted Microsoft SQL Server connection"</computeroutput>.  To solve this, turn on <productname>Microsoft SQL Server</productname> authentication:</para>
 			<ItemizedList>
-				<listitem><para>Open the <emphasis><productname>SQL Server</productname> Enterprise Manager</emphasis>,</para></listitem>
+				<listitem><para>Open the <emphasis><productname>Microsoft SQL Server</productname> Enterprise Manager</emphasis>,</para></listitem>
 				<listitem><para>Select the server,</para></listitem>
 				<listitem><para>Right mouse click and choose <emphasis>Properties</emphasis>.  A properties window will appear.</para></listitem>
 				<listitem><para>Choose the <emphasis>Security</emphasis> tab.  The security properties will be displayed.</para></listitem>
-				<listitem><para>Change the <emphasis>Authentication</emphasis> field to <emphasis><productname>SQL Server</productname> and Windows</emphasis>,</para></listitem>
+				<listitem><para>Change the <emphasis>Authentication</emphasis> field to <emphasis><productname>Microsoft SQL Server</productname> and Windows</emphasis>,</para></listitem>
 				<listitem><para>Apply the changes and try again.</para></listitem>
 				</ItemizedList>
 
-<para>These instructions apply to Microsoft <productname>SQL Server 7</productname> and <productname>SQL Server 2000</productname>.</para>
+<para>These instructions apply to Microsoft <productname>Microsoft SQL Server 7</productname> and <productname>Microsoft SQL Server 2000</productname>.</para>
 
-<Note><para>&freetds; supports integrated security mode, too.  If you have <productname>SQL Server</productname> running in integrated (domain) mode along with a Windows PDC, and wish to try it, see <link linkend="domains">Domain Logins</link> in the <link linkend="configs">Advanced Configurations</link> chapter. If you have Active Directory you can also use Kerberos, see <link linkend="kerberos">Kerberos support</link>.
+<Note><para>&freetds; supports integrated security mode, too.  If you have <productname>Microsoft SQL Server</productname> running in integrated (domain) mode along with a Windows PDC, and wish to try it, see <link linkend="domains">Domain Logins</link> in the <link linkend="configs">Advanced Configurations</link> chapter. If you have Active Directory you can also use Kerberos, see <link linkend="kerberos">Kerberos support</link>.
 </para></Note>
 
 			</sect2>
@@ -3115,9 +3115,9 @@ If you get output as above, the servername is listening.  If you get a 'Connecti
 <para>If you receive a message like
 <screen>
 	<computeroutput>Msg. No.: 18450 Severity: 14 State: 1 Login failed- User: loginid 
-	Reason: Not defined as a valid user of a trusted SQL Server connection </computeroutput></screen>
+	Reason: Not defined as a valid user of a trusted Microsoft SQL Server connection </computeroutput></screen>
 	
-	<productname>SQL Server</productname> is accepting only <quote>domain</quote> logins.  This applies only to Microsoft <productname>SQL Server</productname> and you'll need to have your DBA verify that <quote>server logins</quote> are allowed, or use a <link linkend="domains">domain login</link>.				</para>
+	<productname>Microsoft SQL Server</productname> is accepting only <quote>domain</quote> logins.  This applies only to Microsoft <productname>Microsoft SQL Server</productname> and you'll need to have your DBA verify that <quote>server logins</quote> are allowed, or use a <link linkend="domains">domain login</link>.				</para>
 
 <para>Finally, if you received a prompt, then try <command>tsql</> using the servername.
 				<example id="e.g.troubleshooting.tsql">
@@ -3391,7 +3391,7 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 
 <para>It's important to convey your setup and configuration.
 				<simplelist type='vert' columns='1'>
-					<member><productname>SQL Server</productname> version</member>
+					<member><productname>Microsoft SQL Server</productname> version</member>
 					<member>&freetds; version (or snapshot date, if not a release)</member>
 					<member>any options used with <command>configure</command></member>
 					<member>which client library you are using</member>
@@ -3513,14 +3513,14 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 	<sect1 id="Advocacy">
 		<title>Advocacy</title>
 
-<para>Out of ten people you know, it's a fair bet 10 never heard of &freetds; and nine don't understand the problem it solves.  Lots of places have begun to use Microsoft <productname>SQL Server</productname>s in all sorts of ways, and if you adhere to the Microsoft line, there's only one way to connect to them: from a Microsoft OS.</para>
+<para>Out of ten people you know, it's a fair bet 10 never heard of &freetds; and nine don't understand the problem it solves.  Lots of places have begun to use Microsoft <productname>Microsoft SQL Server</productname>s in all sorts of ways, and if you adhere to the Microsoft line, there's only one way to connect to them: from a Microsoft OS.</para>
 
 <para>What can &freetds; do that can't be done any other way?  Glad you asked.  &freetds; can</para>
 		<ItemizedList>
 			<listitem><para>Connect to every version of either vendor's server, using the same binaries.</para></listitem>
-			<listitem><para>Provide a &ctlib; for Microsoft <productname>SQL Server</>.  This feature alone allows <productname>DBD::Sybase</> and <command>sqsh</>, among others, to connect to Microsoft's product.</para></listitem>
-			<listitem><para>Provide a modern &dblib; for Microsoft <productname>SQL Server</>: Win32/64, and TDS 7+.  </para></listitem>
-			<listitem><para>Provide a bcp-capable interface and command-line utility on unix-like operating systems for  Microsoft <productname>SQL Server</productname>.</para></listitem>
+			<listitem><para>Provide a &ctlib; for Microsoft <productname>Microsoft SQL Server</>.  This feature alone allows <productname>DBD::Sybase</> and <command>sqsh</>, among others, to connect to Microsoft's product.</para></listitem>
+			<listitem><para>Provide a modern &dblib; for Microsoft <productname>Microsoft SQL Server</>: Win32/64, and TDS 7+.  </para></listitem>
+			<listitem><para>Provide a bcp-capable interface and command-line utility on unix-like operating systems for  Microsoft <productname>Microsoft SQL Server</productname>.</para></listitem>
 			<listitem><para>Run on many more operating systems than either vendor's libraries do.</para></listitem>
 			<listitem><para>Get fixed, instead of telling you to get stuffed.</para></listitem>
 			<listitem><para>Amuse and inform.  Also frustrate and infuriate, but we don't put that under <quote>Advocacy</>.</para></listitem>
@@ -4845,12 +4845,12 @@ By the way before looking for <filename>$SYBASE/interfaces</filename> file FreeT
 						<row>
 							<entry>hostname/IP</entry>
 							<entry>127.0.0.1</entry>
-							<entry>The hostname or IP address where the <productname>SQL Server</productname> resides.</entry>
+							<entry>The hostname or IP address where the <productname>Microsoft SQL Server</productname> resides.</entry>
 							</row>
 						<row>
 							<entry>port</entry>
 							<entry>4000</entry>
-							<entry>The TCP port where the <productname>SQL Server</productname> is listening.</entry>
+							<entry>The TCP port where the <productname>Microsoft SQL Server</productname> is listening.</entry>
 							</row>
 						</tbody>
 					</tgroup>
@@ -4934,7 +4934,7 @@ Microsoft also designed version 7.0 (and up) of the <acronym>TDS</> protocol aro
 		</section>
 	<section id="UnicodeFreeTDS"><title>Unicode and &freetds;</title>
 
-<para>Microsoft servers using TDS 7.0 and above (anything since SQL Server 6.5) transmit their data in UCS-2 format (16-bit integers).  Because most applications linked to &freetds; are not prepared to deal with UCS-2 data, &freetds; can convert the data to something more acceptable, including <acronym>ASCII</>.  To do so, it employs an  <productname>iconv</productname>  library.  &freetds; determines the server's encoding from the TDS protocol and information reported by the server (generally per connection, but in the case of TDS 7.1, per result set column).  It discovers the client's encoding in &freetdsconf;.  &freetds; will happily convert and convey your data in any <emphasis>single-byte</emphasis> format that <productname>iconv</productname> can provide.  In practice, this normally means some form of ISO 8859-x or UTF-8.</para>
+<para>Microsoft servers using TDS 7.0 and above (anything since Microsoft SQL Server 6.5) transmit their data in UCS-2 format (16-bit integers).  Because most applications linked to &freetds; are not prepared to deal with UCS-2 data, &freetds; can convert the data to something more acceptable, including <acronym>ASCII</>.  To do so, it employs an  <productname>iconv</productname>  library.  &freetds; determines the server's encoding from the TDS protocol and information reported by the server (generally per connection, but in the case of TDS 7.1, per result set column).  It discovers the client's encoding in &freetdsconf;.  &freetds; will happily convert and convey your data in any <emphasis>single-byte</emphasis> format that <productname>iconv</productname> can provide.  In practice, this normally means some form of ISO 8859-x or UTF-8.</para>
 
 <para>At some future time, &freetds; aims to support Unicode and other multi-byte character sets.
 It does not do so at the current time, beside using wide functions in ODBC.</para>
