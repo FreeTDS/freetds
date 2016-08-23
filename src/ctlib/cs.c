@@ -40,6 +40,8 @@
 #include <freetds/convert.h>
 #include "replacements.h"
 
+#undef cs_dt_crack
+
 static CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);
 static CS_INT cs_diag_clearmsg(CS_CONTEXT *context, CS_INT type);
 static CS_INT cs_diag_getmsg(CS_CONTEXT *context, CS_INT idx, CS_CLIENTMSG *message);
@@ -832,35 +834,69 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 }
 
 CS_RETCODE
-cs_dt_crack(CS_CONTEXT * ctx, CS_INT datetype, CS_VOID * dateval, CS_DATEREC * daterec)
+cs_dt_crack_v2(CS_CONTEXT * ctx, CS_INT datetype, CS_VOID * dateval, CS_DATEREC * daterec)
 {
-	TDS_DATETIME *dt;
-	TDS_DATETIME4 *dt4;
 	TDSDATEREC dr;
+	TDS_INT tds_type;
+	bool extended = false;
 
-	tdsdump_log(TDS_DBG_FUNC, "cs_dt_crack(%p, %d, %p, %p)\n", ctx, datetype, dateval, daterec);
+	tdsdump_log(TDS_DBG_FUNC, "cs_dt_crack_v2(%p, %d, %p, %p)\n", ctx, datetype, dateval, daterec);
 
-	if (datetype == CS_DATETIME_TYPE) {
-		dt = (TDS_DATETIME *) dateval;
-		tds_datecrack(SYBDATETIME, dt, &dr);
-	} else if (datetype == CS_DATETIME4_TYPE) {
-		dt4 = (TDS_DATETIME4 *) dateval;
-		tds_datecrack(SYBDATETIME4, dt4, &dr);
-	} else {
+	switch (datetype) {
+	case CS_DATETIME_TYPE:
+		tds_type = SYBDATETIME;
+		break;
+	case CS_DATETIME4_TYPE:
+		tds_type = SYBDATETIME4;
+		break;
+	case CS_DATE_TYPE:
+		tds_type = SYBDATE;
+		break;
+	case CS_TIME_TYPE:
+		tds_type = SYBTIME;
+		break;
+	case CS_BIGDATETIME_TYPE:
+		tds_type = SYB5BIGDATETIME;
+		extended = true;
+		break;
+	case CS_BIGTIME_TYPE:
+		tds_type = SYB5BIGTIME;
+		extended = true;
+		break;
+	default:
 		return CS_FAIL;
 	}
-	daterec->dateyear = dr.year;
-	daterec->datemonth = dr.month;
-	daterec->datedmonth = dr.day;
-	daterec->datedyear = dr.dayofyear;
-	daterec->datedweek = dr.weekday;
+	tds_datecrack(tds_type, dateval, &dr);
+
+	/* Sybase CT-Library does not set these fields for CS_BIGTIME_TYPE */
+	if (tds_type != SYB5BIGTIME) {
+		daterec->dateyear = dr.year;
+		daterec->datemonth = dr.month;
+		daterec->datedmonth = dr.day;
+		daterec->datedyear = dr.dayofyear;
+		daterec->datedweek = dr.weekday;
+	}
 	daterec->datehour = dr.hour;
 	daterec->dateminute = dr.minute;
 	daterec->datesecond = dr.second;
 	daterec->datemsecond = dr.decimicrosecond / 10000u;
 	daterec->datetzone = 0;
+	if (extended) {
+		daterec->datesecfrac = dr.decimicrosecond / 10u;
+		daterec->datesecprec = 1000000;
+	}
 
 	return CS_SUCCEED;
+}
+
+CS_RETCODE
+cs_dt_crack(CS_CONTEXT * ctx, CS_INT datetype, CS_VOID * dateval, CS_DATEREC * daterec)
+{
+	tdsdump_log(TDS_DBG_FUNC, "cs_dt_crack(%p, %d, %p, %p)\n", ctx, datetype, dateval, daterec);
+
+	if (datetype != CS_BIGDATETIME_TYPE && datetype != CS_BIGTIME_TYPE)
+		return cs_dt_crack_v2(ctx, datetype, dateval, daterec);
+	return CS_FAIL;
 }
 
 CS_RETCODE

@@ -93,7 +93,7 @@ static const char *parse_numeric(const char *buf, const char *pend,
 #define IS_UINT(x) (0 <= (x) && (x) <= TDS_UINT_MAX)
 
 #define TDS_INT8_MAX ((((TDS_INT8) 0x7fffffffl) << 32) + (TDS_INT8) 0xfffffffflu)
-#define TDS_INT8_MIN  (((TDS_INT8) (-0x7fffffffl-1)) << 32)
+#define TDS_INT8_MIN (-(((TDS_INT8)1)<<62) -(((TDS_INT8)1)<<62))
 #define IS_INT8(x) (TDS_INT8_MIN <= (x) && (x) <= TDS_INT8_MAX)
 
 #define TDS_UINT8_MAX ((((TDS_UINT8) 0xfffffffflu) << 32) + 0xfffffffflu)

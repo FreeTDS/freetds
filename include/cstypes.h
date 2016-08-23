@@ -167,6 +167,8 @@ typedef struct _cs_daterec
 	CS_INT datesecond;
 	CS_INT datemsecond;
 	CS_INT datetzone;
+	CS_INT datesecfrac;
+	CS_INT datesecprec;
 } CS_DATEREC;
 
 typedef CS_INT CS_MSGNUM;
