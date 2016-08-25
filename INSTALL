@@ -1,6 +1,8 @@
 
 FreeTDS Installation
 
+   If you are installing from git repository please read INSTALL.GIT.
+
    For complete instructions, see the FreeTDS Users Guide.  It is
    included in the distribution inside "doc/userguide/"; simply open
    "doc/userguide/index.html" and enjoy.  It is also online:
