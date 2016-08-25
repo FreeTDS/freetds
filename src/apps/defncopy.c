@@ -221,14 +221,15 @@ main(int argc, char *argv[])
 					 " and		o.name = '%s'"
 					 " and		o.uid = user_id('%s')"
 					 " and		o.type not in ('U', 'S')" /* no user or system tables */
-					 " order by 	c.number, c.colid"
+					 " order by 	c.number, %sc.colid"
 					;
 		static const char query_table[] = " execute sp_help '%s.%s' ";
 
 		parse_argument(argv[i], &procedure);
 
-		erc = dbfcmd(dbproc, query, procedure.name, procedure.owner); 
-	
+		erc = dbfcmd(dbproc, query, procedure.name, procedure.owner,
+			     (DBTDS(dbproc) == DBTDS_5_0) ? "c.colid2, ":"");
+
 		/* Send the query to the server (we could use dbsqlexec(), instead) */
 		erc = dbsqlsend(dbproc);
 		if (erc == FAIL) {
