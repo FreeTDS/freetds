@@ -919,6 +919,7 @@ dbsetlbool(LOGINREC * login, int value, int which)
 		return SUCCEED;
 	case DBSETNTLMV2:
 		login->tds_login->use_ntlmv2 = (value != 0);
+		login->tds_login->use_ntlmv2_specified = 1;
 		return SUCCEED;
 	case DBSETENCRYPT:
 	case DBSETLABELED:
