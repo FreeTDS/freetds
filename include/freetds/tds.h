@@ -588,6 +588,7 @@ typedef struct tds_login
 	unsigned int emul_little_endian:1;
 	unsigned int gssapi_use_delegation:1;
 	unsigned int use_ntlmv2:1;
+	unsigned int use_ntlmv2_specified:1;
 	unsigned int use_lanman:1;
 	unsigned int mars:1;
 	unsigned int use_utf16:1;
