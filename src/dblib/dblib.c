@@ -1885,7 +1885,7 @@ dbcolname(DBPROCESS * dbproc, int column)
  *      Will not work as described for UTF-8 or UCS-2 clients.  
  *      But maybe it shouldn't.  
  */
-char *
+const char *
 dbacolname(DBPROCESS * dbproc, int computeid, int column)
 {
 	TDSCOLUMN *colinfo;
