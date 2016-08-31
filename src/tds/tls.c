@@ -934,7 +934,7 @@ tds_ssl_init(TDSSOCKET *tds)
 	SSL_CTX *ctx;
 	BIO *b, *b2;
 
-	int ret;
+	int ret, connect_ret;
 	const char *tls_msg;
 
 	con = NULL;
@@ -1010,10 +1010,15 @@ tds_ssl_init(TDSSOCKET *tds)
 
 	/* Perform the TLS handshake */
 	tls_msg = "handshake";
+	ERR_clear_error();
 	SSL_set_connect_state(con);
-	ret = SSL_connect(con) != 1 || SSL_get_state(con) != TLS_ST_OK;
-	if (ret != 0)
+	connect_ret = SSL_connect(con);
+	ret = connect_ret != 1 || SSL_get_state(con) != TLS_ST_OK;
+	if (ret != 0) {
+		tdsdump_log(TDS_DBG_ERROR, "handshake failed with %d %d %d\n",
+			    connect_ret, SSL_get_state(con), SSL_get_error(con, connect_ret));
 		goto cleanup;
+	}
 
 	/* flush pending data */
 	if (tds->out_pos > 8)

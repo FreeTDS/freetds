@@ -36,6 +36,7 @@
 #elif defined(HAVE_OPENSSL)
 #  include <openssl/ssl.h>
 #  include <openssl/x509v3.h>
+#  include <openssl/err.h>
 #endif
 
 #include <freetds/pushvis.h>
