@@ -764,6 +764,12 @@ tds_config_login(TDSLOGIN * connection, TDSLOGIN * login)
 	if (login->readonly_intent)
 		connection->readonly_intent = login->readonly_intent;
 	connection->use_new_password = login->use_new_password;
+
+	if(login->use_ntlmv2_specified) {
+		connection->use_ntlmv2_specified = login->use_ntlmv2_specified;
+		connection->use_ntlmv2 = login->use_ntlmv2;
+	}
+
 	if (res)
 		res = tds_dstr_dup(&connection->new_password, &login->new_password);
 

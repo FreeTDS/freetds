@@ -1000,6 +1000,7 @@ tds_alloc_login(int use_environment)
 	}
 
 	login->capabilities = defaultcaps;
+	login->use_ntlmv2_specified = 0;
 
 	Cleanup:
 	return login;
