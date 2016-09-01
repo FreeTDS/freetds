@@ -2345,7 +2345,8 @@ from your Active Directory.  You could use <ulink url="http://www.samba.org/">Sa
 
 <para>To configure the pool server, first make sure &freetds; has a working entry for the real <productname>SQL Server</productname> by connecting to it with <application>SQSH</application> or another program.</para>
 		
-<Note><para>The &freetds; connection pool currently only supports <acronym>TDS</> version 4.2.  <emphasis>This restriction applies to both the client-to-pool and pool-to-server connections!</emphasis>
+<Note><para>The &freetds; connection pool currently does not supports <acronym>TDS</> version 5.0 (Sybase) and encrypted connections.
+<emphasis>This restriction applies to both the client-to-pool and pool-to-server connections!</emphasis>
 </para></Note>
 
 <para>After &freetds; has been installed, you will find an executable named <command>tdspool</command> in the <filename>/usr/local/bin</filename> directory (or whatever directory was specified with the <command>configure</> <option>--with-prefix flag</> option).</para>
@@ -2380,7 +2381,7 @@ from your Active Directory.  You could use <ulink url="http://www.samba.org/">Sa
 							</row>
 						<row>
 							<entry>server</entry>
-							<entry>Any <emphasis>TDS 4.2</emphasis> entry in the freetds.conf file</entry>
+							<entry>Any entry in the freetds.conf file</entry>
 							<entry>none</entry>
 							<entry>The alias from the freetds.conf file representing the servername that will be connected to.</entry>
 							</row>
@@ -2398,9 +2399,10 @@ from your Active Directory.  You could use <ulink url="http://www.samba.org/">Sa
 							</row>
 						<row>
 							<entry>min pool conn</entry>
-							<entry>1 or more</entry>
+							<entry>0 or more</entry>
 							<entry>none</entry>
-							<entry>Minimum number of open connections to maintain to the servername.</entry>
+							<entry>Minimum number of open connections to maintain to the servername.
+							0 will cause pool server to not open any initial connection.</entry>
 							</row>
 						<row>
 							<entry>max pool conn</entry>
