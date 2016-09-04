@@ -1520,6 +1520,12 @@ int tds_connection_write(TDSSOCKET *tds, const unsigned char *buf, int buflen, i
 int tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds);
 #if ENABLE_ODBC_MARS
 void tds_connection_close(TDSCONNECTION *conn);
+#else
+static inline void
+tds_connection_close(TDSCONNECTION *connection)
+{
+	tds_close_socket((TDSSOCKET* ) connection);
+}
 #endif
 int tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen);
 int tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen);
@@ -1542,11 +1548,6 @@ int tds_append_cancel(TDSSOCKET *tds);
 TDSRET tds_append_fin(TDSSOCKET *tds);
 #else
 int tds_put_cancel(TDSSOCKET * tds);
-static inline
-void tds_connection_close(TDSCONNECTION *connection)
-{
-	tds_close_socket((TDSSOCKET* ) connection);
-}
 #endif
 
 
