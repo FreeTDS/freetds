@@ -482,7 +482,7 @@ tds_ssl_init(TDSSOCKET *tds)
 	gnutls_set_default_priority(session);
 
 	/* ... but overwrite some */
-	ret = gnutls_priority_set_direct (session, "NORMAL:%COMPAT:-VERS-SSL3.0", NULL);
+	ret = gnutls_priority_set_direct(session, "NORMAL:%COMPAT:-VERS-SSL3.0", NULL);
 	if (ret != 0)
 		goto cleanup;
 
