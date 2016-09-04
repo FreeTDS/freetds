@@ -34,19 +34,24 @@ environment:
     VS_VERSION: "2008"
     TDSVER: "7.0"
 
-  - PLAT: Win64
-    WIDTH: 64
-    VS_VERSION: "2008"
-    TDSVER: "7.1"
-
   - PLAT: Win32
     WIDTH: 32
     VS_VERSION: "2010"
+    TDSVER: "7.1"
+
+  - PLAT: Win64
+    WIDTH: 64
+    VS_VERSION: "2010"
+    TDSVER: "7.2"
+
+  - PLAT: Win32
+    WIDTH: 32
+    VS_VERSION: "2013"
     TDSVER: "7.2"
 
   - PLAT: Win64
     WIDTH: 64
-    VS_VERSION: "2010"
+    VS_VERSION: "2013"
     TDSVER: "7.3"
 
   - PLAT: Win32
