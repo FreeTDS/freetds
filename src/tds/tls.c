@@ -632,6 +632,26 @@ tds_init_openssl_thread(void)
 	free(openssl_locks);
 	openssl_locks = NULL;
 }
+
+#ifdef TDS_ATTRIBUTE_DESTRUCTOR
+static void __attribute__((destructor))
+tds_deinit_openssl(void)
+{
+	int i, n;
+
+	if (!tls_initialized
+	    || CRYPTO_get_locking_callback() != openssl_locking_callback)
+		return;
+
+	CRYPTO_set_locking_callback(NULL);
+	n = CRYPTO_num_locks();
+	for (i=0; i < n; ++i)
+		tds_mutex_free(&openssl_locks[i]);
+	free(openssl_locks);
+	openssl_locks = NULL;
+}
+#endif
+
 #else
 static inline void
 tds_init_openssl_thread(void)
