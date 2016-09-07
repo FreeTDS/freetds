@@ -552,8 +552,6 @@ tds_ssl_ctrl_login(BIO *b, int cmd, long num, void *ptr)
 
 	switch (cmd) {
 	case BIO_CTRL_FLUSH:
-		if (tds->out_pos > 8)
-			tds_flush_packet(tds);
 		return 1;
 	}
 	return 0;
@@ -952,6 +950,10 @@ tds_ssl_init(TDSSOCKET *tds)
 	ret = SSL_connect(con) != 1 || con->state != SSL_ST_OK;
 	if (ret != 0)
 		goto cleanup;
+
+	/* flush pending data */
+	if (tds->out_pos > 8)
+		tds_flush_packet(tds);
 
 	/* check certificate hostname */
 	if (!tds_dstr_isempty(&tds->login->cafile) && tds->login->check_ssl_hostname) {
