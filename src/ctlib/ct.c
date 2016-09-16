@@ -480,6 +480,12 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 				return CS_FAIL;
 			}
 			break;
+		case CS_TIMEOUT:
+		        tds_set_query_timeout(tds_login, *(int *) buffer);
+			break;
+		case CS_LOGIN_TIMEOUT:
+		        tds_set_connect_timeout(tds_login, *(int *) buffer);
+			break;
 		default:
 			tdsdump_log(TDS_DBG_ERROR, "Unknown property %d\n", property);
 			break;
@@ -589,7 +595,12 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 		case CS_PARENT_HANDLE:
 			*(CS_CONTEXT **) buffer = con->ctx;
 			break;
-
+		case CS_TIMEOUT:
+		        (*(int *) buffer = tds_login->query_timeout);
+			break;
+		case CS_LOGIN_TIMEOUT:
+		        (*(int *) buffer = tds_login->connect_timeout);
+			break;
 		default:
 			tdsdump_log(TDS_DBG_ERROR, "Unknown property %d\n", property);
 			break;
