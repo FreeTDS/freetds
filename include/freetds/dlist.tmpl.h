@@ -17,6 +17,7 @@
  *
  */
 
+#include <freetds/bool.h>
 #include <freetds/utils.h>
 
 #if !defined(DLIST_PREFIX) || !defined(DLIST_ITEM_TYPE) || !defined(DLIST_LIST_TYPE)
