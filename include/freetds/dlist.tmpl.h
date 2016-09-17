@@ -17,7 +17,7 @@
  *
  */
 
-#if !defined(DLIST_NAME) || !defined(DLIST_TYPE) || !defined(DLIST_LIST_TYPE)
+#if !defined(DLIST_NAME) || !defined(DLIST_ITEM_TYPE) || !defined(DLIST_LIST_TYPE)
 #error Required defines missing!
 #endif
 
@@ -27,7 +27,8 @@ typedef struct
 } DLIST_LIST_TYPE;
 
 #undef DLIST_ITEM
-#define DLIST_ITEM(ring) ((DLIST_TYPE *) (((char *) (ring)) - TDS_OFFSET(DLIST_TYPE, DLIST_NAME(item))))
+#define DLIST_ITEM(ring) \
+	((DLIST_ITEM_TYPE *) (((char *) (ring)) - TDS_OFFSET(DLIST_ITEM_TYPE, DLIST_NAME(item))))
 
 static inline void DLIST_NAME(check)(DLIST_LIST_TYPE *list)
 {
@@ -43,27 +44,27 @@ static inline void DLIST_NAME(init)(DLIST_LIST_TYPE *list)
 	DLIST_NAME(check)(list);
 }
 
-static inline DLIST_TYPE *DLIST_NAME(first)(DLIST_LIST_TYPE *list)
+static inline DLIST_ITEM_TYPE *DLIST_NAME(first)(DLIST_LIST_TYPE *list)
 {
 	return list->ring.next == &list->ring ? NULL : DLIST_ITEM(list->ring.next);
 }
 
-static inline DLIST_TYPE *DLIST_NAME(last)(DLIST_LIST_TYPE *list)
+static inline DLIST_ITEM_TYPE *DLIST_NAME(last)(DLIST_LIST_TYPE *list)
 {
 	return list->ring.prev == &list->ring ? NULL : DLIST_ITEM(list->ring.prev);
 }
 
-static inline DLIST_TYPE *DLIST_NAME(next)(DLIST_LIST_TYPE *list, DLIST_TYPE *item)
+static inline DLIST_ITEM_TYPE *DLIST_NAME(next)(DLIST_LIST_TYPE *list, DLIST_ITEM_TYPE *item)
 {
 	return item->DLIST_NAME(item).next == &list->ring ? NULL : DLIST_ITEM(item->DLIST_NAME(item).next);
 }
 
-static inline DLIST_TYPE *DLIST_NAME(prev)(DLIST_LIST_TYPE *list, DLIST_TYPE *item)
+static inline DLIST_ITEM_TYPE *DLIST_NAME(prev)(DLIST_LIST_TYPE *list, DLIST_ITEM_TYPE *item)
 {
 	return item->DLIST_NAME(item).prev == &list->ring ? NULL : DLIST_ITEM(item->DLIST_NAME(item).prev);
 }
 
-static inline void DLIST_NAME(prepend)(DLIST_LIST_TYPE *list, DLIST_TYPE *item)
+static inline void DLIST_NAME(prepend)(DLIST_LIST_TYPE *list, DLIST_ITEM_TYPE *item)
 {
 	DLIST_NAME(check)(list);
 	assert(item->DLIST_NAME(item).next == NULL && item->DLIST_NAME(item).prev == NULL);
@@ -75,7 +76,7 @@ static inline void DLIST_NAME(prepend)(DLIST_LIST_TYPE *list, DLIST_TYPE *item)
 	DLIST_NAME(check)(list);
 }
 
-static inline void DLIST_NAME(append)(DLIST_LIST_TYPE *list, DLIST_TYPE *item)
+static inline void DLIST_NAME(append)(DLIST_LIST_TYPE *list, DLIST_ITEM_TYPE *item)
 {
 	DLIST_NAME(check)(list);
 	assert(item->DLIST_NAME(item).next == NULL && item->DLIST_NAME(item).prev == NULL);
@@ -87,7 +88,7 @@ static inline void DLIST_NAME(append)(DLIST_LIST_TYPE *list, DLIST_TYPE *item)
 	DLIST_NAME(check)(list);
 }
 
-static inline void DLIST_NAME(remove)(DLIST_LIST_TYPE *list, DLIST_TYPE *item)
+static inline void DLIST_NAME(remove)(DLIST_LIST_TYPE *list, DLIST_ITEM_TYPE *item)
 {
 	dlist_ring *prev = item->DLIST_NAME(item).prev, *next = item->DLIST_NAME(item).next;
 	DLIST_NAME(check)(list);
@@ -100,7 +101,7 @@ static inline void DLIST_NAME(remove)(DLIST_LIST_TYPE *list, DLIST_TYPE *item)
 	DLIST_NAME(check)(list);
 }
 
-static inline bool DLIST_NAME(in_list)(DLIST_LIST_TYPE *list, DLIST_TYPE *item)
+static inline bool DLIST_NAME(in_list)(DLIST_LIST_TYPE *list, DLIST_ITEM_TYPE *item)
 {
 	DLIST_NAME(check)(list);
 	return item->DLIST_NAME(item).prev != NULL || item->DLIST_NAME(item).next != NULL;
@@ -108,6 +109,6 @@ static inline bool DLIST_NAME(in_list)(DLIST_LIST_TYPE *list, DLIST_TYPE *item)
 
 #undef DLIST_ITEM
 #undef DLIST_NAME
-#undef DLIST_TYPE
+#undef DLIST_ITEM_TYPE
 #undef DLIST_LIST_TYPE
 
