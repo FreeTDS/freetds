@@ -35,4 +35,14 @@ void dlist_ring_check(dlist_ring *ring);
 #define DLIST_FOREACH(prefix, list, p) \
 	for (p = prefix ## _ ## first(list); p != NULL; p = prefix ## _ ## next(list, p))
 
+static inline void dlist_insert_after(dlist_ring *ring_pos, dlist_ring *ring_item)
+{
+	assert(!ring_item->next && !ring_item->prev);
+	ring_pos->next->prev = ring_item;
+	ring_item->prev = ring_pos;
+	ring_item->next = ring_pos->next;
+	ring_pos->next = ring_item;
+	assert(ring_item->next && ring_item->prev);
+}
+
 #endif /* TDS_DLIST_H */
