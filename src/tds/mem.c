@@ -35,6 +35,7 @@
 #include <freetds/string.h>
 #include "replacements.h"
 #include <freetds/enum_cap.h>
+#include <freetds/utils.h>
 
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
