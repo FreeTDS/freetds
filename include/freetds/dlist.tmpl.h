@@ -17,8 +17,13 @@
  *
  */
 
-#if !defined(DLIST_NAME) || !defined(DLIST_ITEM_TYPE) || !defined(DLIST_LIST_TYPE)
-#error Required defines missing!
+#if !defined(DLIST_PREFIX) || !defined(DLIST_ITEM_TYPE) || !defined(DLIST_LIST_TYPE)
+#error Required defines for dlist missing!
+#endif
+
+#if defined(DLIST_NAME) || defined(DLIST_PASTER) || \
+	defined(DLIST_EVALUATOR) || defined(DLIST_ITEM)
+#error Some internal dlist macros already defined
 #endif
 
 typedef struct
@@ -26,7 +31,9 @@ typedef struct
 	dlist_ring ring;
 } DLIST_LIST_TYPE;
 
-#undef DLIST_ITEM
+#define DLIST_PASTER(x,y) x ## _ ## y
+#define DLIST_EVALUATOR(x,y)  DLIST_PASTER(x,y)
+#define DLIST_NAME(suffix) DLIST_EVALUATOR(DLIST_PREFIX, suffix)
 #define DLIST_ITEM(ring) \
 	((DLIST_ITEM_TYPE *) (((char *) (ring)) - TDS_OFFSET(DLIST_ITEM_TYPE, DLIST_NAME(item))))
 
@@ -101,4 +108,7 @@ static inline bool DLIST_NAME(in_list)(DLIST_LIST_TYPE *list, DLIST_ITEM_TYPE *i
 #undef DLIST_NAME
 #undef DLIST_ITEM_TYPE
 #undef DLIST_LIST_TYPE
+#undef DLIST_PREFIX
+#undef DLIST_PASTER
+#undef DLIST_EVALUATOR
 
