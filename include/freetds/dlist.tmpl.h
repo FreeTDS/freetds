@@ -82,10 +82,10 @@ static inline void DLIST_NAME(remove)(DLIST_LIST_TYPE *list, DLIST_ITEM_TYPE *it
 {
 	dlist_ring *prev = item->DLIST_NAME(item).prev, *next = item->DLIST_NAME(item).next;
 	DLIST_NAME(check)(list);
-	if (prev)
+	if (prev) {
 		prev->next = next;
-	if (next)
 		next->prev = prev;
+	}
 	item->DLIST_NAME(item).prev = NULL;
 	item->DLIST_NAME(item).next = NULL;
 	DLIST_NAME(check)(list);
