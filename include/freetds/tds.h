@@ -337,11 +337,6 @@ typedef enum tds_encryption_level {
 
 #define TDS_ZERO_FREE(x) do {free((x)); (x) = NULL;} while(0)
 #define TDS_VECTOR_SIZE(x) (sizeof(x)/sizeof(x[0]))
-#ifdef offsetof
-#define TDS_OFFSET(str, field) offsetof(str, field)
-#else
-#define TDS_OFFSET(str, field) (((char*)&((str*)0)->field)-((char*)0))
-#endif
 
 #if defined(__GNUC__) && __GNUC__ >= 3
 # define TDS_LIKELY(x)	__builtin_expect(!!(x), 1)

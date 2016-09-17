@@ -33,6 +33,7 @@
 
 #include <freetds/tds.h>
 #include <freetds/string.h>
+#include <freetds/utils.h>
 
 
 /**

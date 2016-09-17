@@ -20,9 +20,19 @@
 #ifndef _freetds_utils_h_
 #define _freetds_utils_h_
 
+#if HAVE_STDDEF_H
+#include <stddef.h>
+#endif /* HAVE_STDDEF_H */
+
 #include <freetds/time.h>
 
 #include <freetds/pushvis.h>
+
+#ifdef offsetof
+#define TDS_OFFSET(type, field) offsetof(type, field)
+#else
+#define TDS_OFFSET(type, field) (((char*)&((type*)0)->field)-((char*)0))
+#endif
 
 #ifdef __cplusplus
 extern "C" {
