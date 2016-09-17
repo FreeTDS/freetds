@@ -93,12 +93,12 @@ struct tds_pool_member
 
 #define DLIST_NAME(suffix) dlist_member_ ## suffix
 #define DLIST_LIST_TYPE dlist_members
-#define DLIST_TYPE TDS_POOL_MEMBER
+#define DLIST_ITEM_TYPE TDS_POOL_MEMBER
 #include <freetds/dlist.tmpl.h>
 
 #define DLIST_NAME(suffix) dlist_user_ ## suffix
 #define DLIST_LIST_TYPE dlist_users
-#define DLIST_TYPE TDS_POOL_USER
+#define DLIST_ITEM_TYPE TDS_POOL_USER
 #include <freetds/dlist.tmpl.h>
 
 struct tds_pool
