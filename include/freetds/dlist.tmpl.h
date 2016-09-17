@@ -67,24 +67,14 @@ static inline DLIST_ITEM_TYPE *DLIST_NAME(prev)(DLIST_LIST_TYPE *list, DLIST_ITE
 static inline void DLIST_NAME(prepend)(DLIST_LIST_TYPE *list, DLIST_ITEM_TYPE *item)
 {
 	DLIST_NAME(check)(list);
-	assert(item->DLIST_NAME(item).next == NULL && item->DLIST_NAME(item).prev == NULL);
-	list->ring.next->prev = &item->DLIST_NAME(item);
-	item->DLIST_NAME(item).next = list->ring.next;
-	item->DLIST_NAME(item).prev = &list->ring;
-	list->ring.next = &item->DLIST_NAME(item);
-	assert(item->DLIST_NAME(item).next != NULL && item->DLIST_NAME(item).prev != NULL);
+	dlist_insert_after(&list->ring, &item->DLIST_NAME(item));
 	DLIST_NAME(check)(list);
 }
 
 static inline void DLIST_NAME(append)(DLIST_LIST_TYPE *list, DLIST_ITEM_TYPE *item)
 {
 	DLIST_NAME(check)(list);
-	assert(item->DLIST_NAME(item).next == NULL && item->DLIST_NAME(item).prev == NULL);
-	list->ring.prev->next = &item->DLIST_NAME(item);
-	item->DLIST_NAME(item).prev = list->ring.prev;
-	item->DLIST_NAME(item).next = &list->ring;
-	list->ring.prev = &item->DLIST_NAME(item);
-	assert(item->DLIST_NAME(item).next != NULL && item->DLIST_NAME(item).prev != NULL);
+	dlist_insert_after(list->ring.prev, &item->DLIST_NAME(item));
 	DLIST_NAME(check)(list);
 }
 
