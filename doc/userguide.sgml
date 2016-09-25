@@ -787,6 +787,88 @@ or
 					</tgroup>
 				</table></para>
 
+<para>
+	Choosing the correct <acronym>TDS</> protocol version for use with SQL Server can be confusing. Hopefully, these steps will lead you to the correct version. If you have a Sybase server, you should be able to use version 5.0, otherwise, if you have Microsoft SQL Server refer to the following section.
+</para>
+
+<para>
+	<ItemizedList>
+		<listitem>Step 1: Find out which FreeTDS version you are running. You can use the command: `tsql -C`</listitem>
+		<listitem>Step 2: Find out what version of Microsoft SQL Server you are running.</listitem>
+		<listitem>Step 3: Pick the lower TDS Version number out of what matches steps 1 and 2 from the table below.</listitem>
+	</ItemizedList>
+
+	<table id="tab.Protocol.by.SQLServerProduct">
+		<title>What Version of the <acronym>TDS</> Protocol Should I use with Microsoft SQL Server?</title>
+		<tgroup cols="4">
+			<thead>
+				<row>
+					<entry>FreeTDS Version</entry>
+					<entry>Microsoft SQL Server Version Supported</entry>
+					<entry>Highest TDS Version Supported</entry>
+					<entry>Microsoft Extended Support End Date</entry>
+				</row>
+			</thead>
+			<tbody>
+				<row>
+					<entry>1.00</entry>
+					<entry>2016</entry>
+					<entry>7.4</entry>
+					<entry>July 9th, 2024</entry>
+				</row>
+				<row>
+					<entry>1.00</entry>
+					<entry>2014</entry>
+					<entry>7.4</entry>
+					<entry>July 9th, 2024</entry>
+				</row>
+				<row>
+					<entry>1.00</entry>
+					<entry>2012</entry>
+					<entry>7.4</entry>
+					<entry>July 12th, 2022</entry>
+				</row>
+				<row>
+					<entry>0.95</entry>
+					<entry>2008</entry>
+					<entry>7.3</entry>
+					<entry>July 9th, 2019</entry>
+				</row>
+				<row>
+					<entry>0.91</entry>
+					<entry>2005</entry>
+					<entry>7.2</entry>
+					<entry>April 12th, 2016</entry>
+				</row>
+				<row>
+					<entry>0.82</entry>
+					<entry>2000</entry>
+					<entry>7.1 (as 8.0) *</entry>
+					<entry>April 9th, 2013</entry>
+				</row>
+				<row>
+					<entry>0.64</entry>
+					<entry>2000</entry>
+					<entry>7.1 (as 8.0) *</entry>
+					<entry>April 9th, 2013</entry>
+				</row>
+			</tbody>
+		</tgroup>
+	</table>
+</para>
+
+<para>
+NOTE FOR USERS WHO NEED SQL SERVER 2000 SUPPORT (VERY RARE; SQL SERVER HAS BEEN OUT OF EXTENDED SUPPORT SINCE 2013 AND SHOULD *NEVER* BE USED IN PRODUCTION):
+
+Years ago, Microsoft didn't officially create a TDS version number until after FreeTDS was released, and it was assumed 8.0 would be the next version; it turned out to be 7.1. Because of this:
+
+	<ItemizedList>
+		<listitem>If you are running FreeTDS Version 0.64 or 0.82 with Microsoft SQL Server 2000, use TDS Version 8.0 instead of 7.1.</listitem>
+		<listitem>If you are running FreeTDS Version 0.91 or greater with Microsoft SQL Server 2000, use TDS Version 7.1.</listitem>
+		<listitem>Please note, this is ONLY if you need Microsoft SQL Server 2000 support.</listitem>
+	</ItemizedList>
+</para>
+
 <para>For best results, use the highest version of the protocol supported by your server.  If you encounter problems, try a lower version.  If that works, though, please report it to the mailing list!
 	<footnote><para>Want to help?  Try out the auto-protocol feature.   &freetds; has experimental support for iteratively trying protocol connections until it finds one the server accepts.  This is suitable when query responses are non-trivial (because the tiny delay in connecting is thus insignificant).  Try setting your TDS version to <literal>0</> and report your results.  </para></footnote></para>
 
@@ -801,7 +883,7 @@ or
 
 <para> The protocol version may also affect how database servers interpret
 			commands.  For example, Microsoft SQL Server 2000 is known to behave differently with versions 4.2
-			and 7.0.  Version 7.0 is recommended for compatibility with SQL Server tools.</para>
+			and 7.0.  Version 7.0 is recommended for compatibility with Microsoft SQL Server tools.</para>
 
 <sect2>
 	<title>Regarding obsolete versions</title>
@@ -1426,12 +1508,17 @@ This is supported from MSSQL 2012.
 
 <para>If you specify <literal><replaceable>servername</replaceable>\<replaceable>instance</replaceable></literal>
 			as servername during login, &freetds; will attempt to connect to specified instance.
-			Only Microsoft SQL Server instances are supported.  (This server feature was introduced with SQL Server 2000.)</para>
+			Only Microsoft SQL Server instances are supported.  (This server feature was introduced with Microsoft SQL Server 2000.)</para>
 		
 
 <para>Note that other &freetdsconf; properties still apply.</para>
 
-<para> For the technically curious: each SQL Server <firstterm>instance</> appears on the network as a server listening at a port.  The old way &mdash; and it still works &mdash; is to designate each instance in &freetdsconf; as a separate server.  The new <quote>named instance</> notation, if we can call it that, instead uses the server to discover the port.  The library sends a UDP packet containing the instance name to the server at a <emphasis>well known port</>, port 1434.  The server responds with a port number.  &freetds; then uses that number to connect in the usual way.</para>
+<para>For the technically curious: each Microsoft SQL Server <firstterm>instance</> appears on the network as a server listening at a port.
+The old way &mdash; and it still works &mdash; is to designate each instance in &freetdsconf; as a separate server.
+The new <quote>named instance</> notation, if we can call it that, instead uses the server to discover the port.
+The library sends a UDP packet containing the instance name to the server at a <emphasis>well known port</>, port 1434.
+The server responds with a port number.
+&freetds; then uses that number to connect in the usual way.</para>
 		</sect1>
 	
 	<sect1 id="ConfirmInstall" XRefLabel="Confirm the installation">
@@ -2144,9 +2231,12 @@ You can even establish a connection without reference to either <filename>odbc.i
 
 <para>This chapter details some advanced configurations that need expanded explanation.</para>
 	<sect1 id="emulle">
-		<title>Big Endian Clients with Buggy <productname>SQL Server</productname>s</title>
+		<title>Big Endian Clients with Buggy <productname>Microsoft SQL Server</productname>s</title>
 
-<para>Several version of Microsoft SQL server have a bug that affects big endian clients.  This includes 7.0 GA and 7.0 SP1.  Furthermore, <acronym>TDS</> Protocol version 7.0 is natively little endian. <productname>SQL Server 2000</productname> is also reported not to work from big endian clients without little endian emulation turned on.</para>
+<para>Several version of Microsoft SQL server have a bug that affects big endian clients.
+This includes 7.0 GA and 7.0 SP1.
+Furthermore, <acronym>TDS</> Protocol version 7.0 is natively little endian.
+<productname>Microsoft SQL Server 2000</productname> is also reported not to work from big endian clients without little endian emulation turned on.</para>
 		<Note><para>The terms <emphasis>big endian</emphasis> and <emphasis>little endian</emphasis> come originally from Gulliver's Travels.  In computer science they refer to the the integer byte-order for a processor.  Big endian processors, such as Sparc and PowerPC store the most significant byte in the first memory location of a multi-byte integer.  Little endian processors, such as Intel and Alpha do it the other way around.  So the 16-bit number 258 would be 0x0102 on big endian and 0x0201 on little endian machines.</para></Note>
 		
 
@@ -2245,7 +2335,8 @@ If no <function>iconv</> library is found, or if it is explicitly disabled, &fre
 
 <para>As mentioned in the installation chapter, <productname>Microsoft SQL Server</productname> includes the ability to use domain
 	<footnote><para>The term <firstterm>domain</> in this context is a Microsoft term.  It refers to what's sometimes called an <firstterm>NT domain</firstterm>.  It's unrelated to the DNS domain.  DNS domains are used for name resolution.  NT domains are used for authentication.  Authentication is done by the domain controller, often the <firstterm>Primary Domain Controller</firstterm> (PDC).</para>
-	<para>The SQL Server machine may belong to an NT domain.  &freetds; provides an encrypted password &mdash; a domain password, known to the domain controller &mdash; that the server will ask the domain controller to verify.</para></footnote> 
+	<para>The Microsoft SQL Server machine may belong to an NT domain. 
+&freetds; provides an encrypted password &mdash; a domain password, known to the domain controller &mdash; that the server will ask the domain controller to verify.</para></footnote> 
 logins instead of standard server logins.  Passwords are encrypted on the wire using a challenge-response protocol.  &freetds; plays nice with such logins.  </para>
 
 <para>&freetds; supports single sign-on (connecting without prompting for a username &amp; password) or not, depending on how it was configured.  For Windows hosts (both 32- and 64-bit), if SSPI is enabled, &freetds; will log in using so-called <quote>trusted authentication</quote>.  For non-Windows hosts, enabling Kerberos provides similar functionality.  </para>
@@ -2550,7 +2641,7 @@ from your Active Directory.  You could use <ulink url="http://www.samba.org/">Sa
 				<term>datacopy</term>
 				<listitem>
 
-<para>A tool for migrating data between Sybase ASE and SQL Server or vice versa.</para>
+<para>A tool for migrating data between Sybase ASE and Microsoft SQL Server or vice versa.</para>
 					
 
 <para><command>datacopy</> will move table data from one server to another without the need for intermediate files. <command>datacopy</> is much faster and more efficient than is <command>freebcp</> out/in.</para>
@@ -2586,7 +2677,7 @@ from your Active Directory.  You could use <ulink url="http://www.samba.org/">Sa
 
 <para><command>freebcp</> makes use of the &dblib; bcp <acronym>API</>.</para>
 
-<para>The manual pages or online help for Sybase or SQL Server can be referenced for more detailed information on bcp functionality.</para>
+<para>The manual pages or online help for Sybase or Microsoft SQL Server can be referenced for more detailed information on bcp functionality.</para>
 					</listitem>
 				</varlistentry>
 			
@@ -2824,7 +2915,7 @@ You'll note this is the same program as for <systemitem class="library">DBD::Syb
 		<title>Python</title>
 	<sect2 id="pymssql">
 	<title>pymssql</title>
-<para>The <productname>pymssql</productname> module is a simple database interface to Microsoft SQL Server for <productname>Python</productname> that builds on top of &freetds; to provide a Python DB-API v2 (<ulink url="http://www.python.org/dev/peps/pep-0249/">PEP-249</ulink>) interface to SQL Server.</para>
+<para>The <productname>pymssql</productname> module is a simple database interface to Microsoft SQL Server for <productname>Python</productname> that builds on top of &freetds; to provide a Python DB-API v2 (<ulink url="http://www.python.org/dev/peps/pep-0249/">PEP-249</ulink>) interface to Microsoft SQL Server.</para>
 
 <para>The 2.x branch of <productname>pymssql</productname> take advantage of recent releases (0.91 and newer) of &freetds; and by doing that removes many of the limitations previously found with older &freetds; versions and the 1.x branch.</para>
 
@@ -2960,7 +3051,9 @@ data returned by queries.</para>
 		<sect2 id="Datetime">
 			<title><type>Datetime</type> and <type>Money</type></title>
 
-<para>Big endian clients may experience difficulty with Microsoft servers.  Some versions of <productname>SQL Server</productname> 7 did not handle these types on these machines correctly, according to the protocol.  According to
+<para>Big endian clients may experience difficulty with Microsoft servers.
+Some versions of <productname>Microsoft SQL Server</productname> 7 did not handle these types on these machines correctly, according to the protocol.
+According to
 				<ulink url="http://support.microsoft.com/support/kb/articles/Q254/1/23.ASP"> http://support.microsoft.com/support/kb/articles/Q254/1/23.ASP</ulink> on the Microsoft support site, it's fixed as of service pack 3.  Unfortunately, there's no direct way for &freetds; to know whether or not a service pack has been installed, and how/whether to support the buggy version is an outstanding issue.  Your best bet is to apply their patch.
 				<note><para>The Knowledge Base article states <quote>The Sybase CT-Lib client is the only known big-endian client that can connect to <productname>SQL Server</productname>.</quote>  Depends on who's doing the knowing, of course.</para></note></para>
 			</sect2>
@@ -2969,7 +3062,7 @@ data returned by queries.</para>
 
 <para>&freetds; may be unable to connect to the server.  The error message will be <computeroutput>"Login failed for user 'example'.  Reason: Not associated with a trusted SQL Server connection"</computeroutput>.  To solve this, turn on <productname>SQL Server</productname> authentication:</para>
 			<ItemizedList>
-				<listitem><para>Open the <emphasis><productname>SQL Server</productname> Enterprise Manager</emphasis>,</para></listitem>
+				<listitem><para>Open the <emphasis><productname>Microsoft SQL Server</productname> Enterprise Manager</emphasis>,</para></listitem>
 				<listitem><para>Select the server,</para></listitem>
 				<listitem><para>Right mouse click and choose <emphasis>Properties</emphasis>.  A properties window will appear.</para></listitem>
 				<listitem><para>Choose the <emphasis>Security</emphasis> tab.  The security properties will be displayed.</para></listitem>
@@ -2979,7 +3072,9 @@ data returned by queries.</para>
 
 <para>These instructions apply to Microsoft <productname>SQL Server 7</productname> and <productname>SQL Server 2000</productname>.</para>
 
-<Note><para>&freetds; supports integrated security mode, too.  If you have <productname>SQL Server</productname> running in integrated (domain) mode along with a Windows PDC, and wish to try it, see <link linkend="domains">Domain Logins</link> in the <link linkend="configs">Advanced Configurations</link> chapter. If you have Active Directory you can also use Kerberos, see <link linkend="kerberos">Kerberos support</link>.
+<Note><para>&freetds; supports integrated security mode, too.
+If you have <productname>Microsoft SQL Server</productname> running in integrated (domain) mode along with a Windows PDC, and wish to try it, see <link linkend="domains">Domain Logins</link> in the <link linkend="configs">Advanced Configurations</link> chapter.
+If you have Active Directory you can also use Kerberos, see <link linkend="kerberos">Kerberos support</link>.
 </para></Note>
 
 			</sect2>
@@ -3035,9 +3130,10 @@ If you get output as above, the servername is listening.  If you get a 'Connecti
 <para>If you receive a message like
 <screen>
 	<computeroutput>Msg. No.: 18450 Severity: 14 State: 1 Login failed- User: loginid 
-	Reason: Not defined as a valid user of a trusted SQL Server connection </computeroutput></screen>
+	Reason: Not defined as a valid user of a trusted Microsoft SQL Server connection </computeroutput></screen>
 	
-	<productname>SQL Server</productname> is accepting only <quote>domain</quote> logins.  This applies only to Microsoft <productname>SQL Server</productname> and you'll need to have your DBA verify that <quote>server logins</quote> are allowed, or use a <link linkend="domains">domain login</link>.				</para>
+	<productname>Microsoft SQL Server</productname> is accepting only <quote>domain</quote> logins.
+This applies only to Microsoft <productname>SQL Server</productname> and you'll need to have your DBA verify that <quote>server logins</quote> are allowed, or use a <link linkend="domains">domain login</link>.</para>
 
 <para>Finally, if you received a prompt, then try <command>tsql</> using the servername.
 				<example id="e.g.troubleshooting.tsql">
@@ -4854,7 +4950,13 @@ Microsoft also designed version 7.0 (and up) of the <acronym>TDS</> protocol aro
 		</section>
 	<section id="UnicodeFreeTDS"><title>Unicode and &freetds;</title>
 
-<para>Microsoft servers using TDS 7.0 and above (anything since SQL Server 6.5) transmit their data in UCS-2 format (16-bit integers).  Because most applications linked to &freetds; are not prepared to deal with UCS-2 data, &freetds; can convert the data to something more acceptable, including <acronym>ASCII</>.  To do so, it employs an  <productname>iconv</productname>  library.  &freetds; determines the server's encoding from the TDS protocol and information reported by the server (generally per connection, but in the case of TDS 7.1, per result set column).  It discovers the client's encoding in &freetdsconf;.  &freetds; will happily convert and convey your data in any <emphasis>single-byte</emphasis> format that <productname>iconv</productname> can provide.  In practice, this normally means some form of ISO 8859-x or UTF-8.</para>
+<para>Microsoft servers using TDS 7.0 and above (anything since Microsoft SQL Server 6.5) transmit their data in UCS-2 format (16-bit integers).
+Because most applications linked to &freetds; are not prepared to deal with UCS-2 data, &freetds; can convert the data to something more acceptable, including <acronym>ASCII</>.
+To do so, it employs an  <productname>iconv</productname>  library.
+&freetds; determines the server's encoding from the TDS protocol and information reported by the server (generally per connection, but in the case of TDS 7.1, per result set column).
+It discovers the client's encoding in &freetdsconf;.
+&freetds; will happily convert and convey your data in any <emphasis>single-byte</emphasis> format that <productname>iconv</productname> can provide.
+In practice, this normally means some form of ISO 8859-x or UTF-8.</para>
 
 <para>At some future time, &freetds; aims to support Unicode and other multi-byte character sets.
 It does not do so at the current time, beside using wide functions in ODBC.</para>
