@@ -34,6 +34,7 @@
 #include <assert.h>
 #include <ctype.h>
 
+#include <freetds/utils.h>
 #include <freetds/odbc.h>
 #include <freetds/iconv.h>
 #include <freetds/string.h>

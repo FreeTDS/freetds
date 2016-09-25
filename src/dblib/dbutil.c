@@ -31,6 +31,7 @@
 # include <errno.h>
 #endif /* HAVE_ERRNO_H */
 
+#include <freetds/utils.h>
 #include <freetds/tds.h>
 #include <freetds/convert.h>
 #include <sybdb.h>
