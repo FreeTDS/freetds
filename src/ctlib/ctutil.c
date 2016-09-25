@@ -24,6 +24,7 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#include <freetds/utils.h>
 #include "cspublic.h"
 #include "ctlib.h"
 #include <freetds/tds.h>
