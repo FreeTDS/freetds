@@ -30,6 +30,8 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#include <freetds/utils.h>
+
 #include "bkpublic.h"
 
 #include "ctpublic.h"

@@ -32,6 +32,7 @@
 
 #include <ctype.h>
 
+#include <freetds/utils.h>
 #include <freetds/odbc.h>
 #include <freetds/convert.h>
 #include <freetds/iconv.h>
