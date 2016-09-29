@@ -793,9 +793,9 @@ or
 
 <para>
 	<ItemizedList>
-		<listitem>Step 1: Find out which FreeTDS version you are running. You can use the command: `tsql -C`</listitem>
-		<listitem>Step 2: Find out what version of Microsoft SQL Server you are running.</listitem>
-		<listitem>Step 3: Pick the lower TDS Version number out of what matches steps 1 and 2 from the table below.</listitem>
+		<listitem><para>Step 1: Find out which FreeTDS version you are running. You can use the command: `tsql -C`</para></listitem>
+		<listitem><para>Step 2: Find out what version of Microsoft SQL Server you are running.</para></listitem>
+		<listitem><para>Step 3: Pick the lower TDS Version number out of what matches steps 1 and 2 from the table below.</para></listitem>
 	</ItemizedList>
 
 	<table id="tab.Protocol.by.SQLServerProduct">
@@ -863,9 +863,9 @@ NOTE FOR USERS WHO NEED SQL SERVER 2000 SUPPORT (VERY RARE; SQL SERVER HAS BEEN 
 Years ago, Microsoft didn't officially create a TDS version number until after FreeTDS was released, and it was assumed 8.0 would be the next version; it turned out to be 7.1. Because of this:
 
 	<ItemizedList>
-		<listitem>If you are running FreeTDS Version 0.64 or 0.82 with Microsoft SQL Server 2000, use TDS Version 8.0 instead of 7.1.</listitem>
-		<listitem>If you are running FreeTDS Version 0.91 or greater with Microsoft SQL Server 2000, use TDS Version 7.1.</listitem>
-		<listitem>Please note, this is ONLY if you need Microsoft SQL Server 2000 support.</listitem>
+		<listitem><para>If you are running FreeTDS Version 0.64 or 0.82 with Microsoft SQL Server 2000, use TDS Version 8.0 instead of 7.1.</para></listitem>
+		<listitem><para>If you are running FreeTDS Version 0.91 or greater with Microsoft SQL Server 2000, use TDS Version 7.1.</para></listitem>
+		<listitem><para>Please note, this is ONLY if you need Microsoft SQL Server 2000 support.</para></listitem>
 	</ItemizedList>
 </para>
 
