@@ -163,18 +163,6 @@ tds_set_language(TDSLOGIN * tds_login, const char *language)
 	return !!tds_dstr_copy(&tds_login->language, language);
 }
 
-void
-tds_set_query_timeout(TDSLOGIN * tds_login, int timeout_secs)
-{
-	tds_login->query_timeout = timeout_secs;
-}
-
-void
-tds_set_connect_timeout(TDSLOGIN * tds_login, int timeout_secs)
-{
-	tds_login->connect_timeout = timeout_secs;
-}
-
 struct tds_save_msg
 {
 	TDSMESSAGE msg;
