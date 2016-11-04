@@ -97,10 +97,8 @@ foreach my $name (keys %sybase)
 # give an index to all canonic
 %index = ();
 $i = 0;
-$index{"ISO-8859-1"} = $i++;
-$index{"UTF-8"} = $i++;
-$index{"UCS-2LE"} = $i++;
-$index{"UCS-2BE"} = $i++;
+# first indexes for mandatory encodings
+$index{$_} = $i++ for qw(ISO-8859-1 UTF-8 UCS-2LE UCS-2BE);
 delete @charsets{qw(UCS-2 UCS-2-INTERNAL UCS-2-SWAPPED UTF-16 UCS-4 UCS-4-INTERNAL UCS-4-SWAPPED UTF-32)};
 foreach $n (sort keys %charsets)
 {
