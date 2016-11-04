@@ -102,7 +102,7 @@ $index{"ISO-8859-1"} = $i++;
 $index{"UTF-8"} = $i++;
 $index{"UCS-2LE"} = $i++;
 $index{"UCS-2BE"} = $i++;
-foreach $n (sort grep(!/^(ISO-8859-1|UTF-8|UCS-2LE|UCS-2BE)$/,keys %charsets))
+foreach $n (sort keys %charsets)
 {
 	next if exists($index{$n}) || !$n;
 	$index{$n} = $i++;
