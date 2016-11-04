@@ -87,8 +87,8 @@ main(int argc, char **argv)
 	setlocale(LC_ALL, "");
 
 #ifdef __VMS
-        /* Convert VMS-style arguments to Unix-style */
-        parse_vms_args(&argc, &argv);
+	/* Convert VMS-style arguments to Unix-style */
+	parse_vms_args(&argc, &argv);
 #endif
 
 	memset(&params, '\0', sizeof(params));
@@ -107,7 +107,7 @@ main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	if (!setoptions(dbproc, &params)) 
+	if (!setoptions(dbproc, &params))
 		return FALSE;
 
 	if (params.cflag) {	/* character format file */
@@ -168,7 +168,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 	extern char *optarg;
 	extern int optind;
 	extern int optopt;
-	
+
 	int ch;
 
 	if (argc < 6) {
@@ -176,8 +176,8 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 		return (FALSE);
 	}
 
-	/* 
-	 * Set some defaults and read the table, file, and direction arguments.  
+	/*
+	 * Set some defaults and read the table, file, and direction arguments.
 	 */
 	pdata->firstrow = 0;
 	pdata->lastrow = 0;
@@ -209,8 +209,8 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 	free(pdata->hostfilename);
 	pdata->hostfilename = strdup(argv[3]);
 
-	/* 
-	 * Get the rest of the arguments 
+	/*
+	 * Get the rest of the arguments
 	 */
 	optind = 4; /* start processing options after table, direction, & filename */
 	while ((ch = getopt(argc, argv, "m:f:e:F:L:b:t:r:U:P:i:I:S:h:T:A:o:O:0:C:ncEdvVD:")) != -1) {
@@ -320,11 +320,11 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 		}
 	}
 
-	/* 
-	 * Check for required/disallowed option combinations 
-	 * If no username is provided, rely on domain login. 
+	/*
+	 * Check for required/disallowed option combinations
+	 * If no username is provided, rely on domain login.
 	 */
-	 
+
 	/* Server */
 	if (!pdata->Sflag) {
 		if ((pdata->server = getenv("DSQUERY")) != NULL) {
@@ -402,8 +402,8 @@ login_to_database(BCPPARAMDATA * pdata, DBPROCESS ** pdbproc)
 	if (pdata->interfacesfile != NULL)
 		dbsetifile(pdata->interfacesfile);
 
-	/* 
-	 * Allocate and initialize the LOGINREC structure to be used 
+	/*
+	 * Allocate and initialize the LOGINREC structure to be used
 	 * to open a connection to SQL Server.
 	 */
 
@@ -417,7 +417,7 @@ login_to_database(BCPPARAMDATA * pdata, DBPROCESS ** pdbproc)
 		DBSETLPWD(login, pdata->pass);
 		memset(pdata->pass, 0, strlen(pdata->pass));
 	}
-	
+
 	DBSETLAPP(login, "FreeBCP");
 	if (pdata->charset)
 		DBSETLCHARSET(login, pdata->charset);
@@ -466,12 +466,12 @@ file_character(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	if (pdata->Eflag) {
 
 		bcp_control(dbproc, BCPKEEPIDENTITY, 1);
-	
+
 		if (dbfcmd(dbproc, "set identity_insert %s on", pdata->dbobject) == FAIL) {
 			printf("dbfcmd failed\n");
 			return FALSE;
 		}
-	
+
 		if (dbsqlexec(dbproc) == FAIL) {
 			printf("dbsqlexec failed\n");
 			return FALSE;
@@ -564,12 +564,12 @@ file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	if (pdata->Eflag) {
 
 		bcp_control(dbproc, BCPKEEPIDENTITY, 1);
-	
+
 		if (dbfcmd(dbproc, "set identity_insert %s on", pdata->dbobject) == FAIL) {
 			printf("dbfcmd failed\n");
 			return FALSE;
 		}
-	
+
 		if (dbsqlexec(dbproc) == FAIL) {
 			printf("dbsqlexec failed\n");
 			return FALSE;
@@ -653,12 +653,12 @@ file_formatted(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	if (pdata->Eflag) {
 
 		bcp_control(dbproc, BCPKEEPIDENTITY, 1);
-	
+
 		if (dbfcmd(dbproc, "set identity_insert %s on", pdata->dbobject) == FAIL) {
 			printf("dbfcmd failed\n");
 			return FALSE;
 		}
-	
+
 		if (dbsqlexec(dbproc) == FAIL) {
 			printf("dbsqlexec failed\n");
 			return FALSE;
@@ -699,8 +699,8 @@ setoptions(DBPROCESS * dbproc, BCPPARAMDATA * params)
 		return FALSE;
 	}
 
-	/* 
-	 * If the option is a filename, read the SQL text from the file.  
+	/*
+	 * If the option is a filename, read the SQL text from the file.
 	 * Else pass the option verbatim to the server.
 	 */
 	if (params->options) {
@@ -722,19 +722,19 @@ setoptions(DBPROCESS * dbproc, BCPPARAMDATA * params)
 			}
 			if (!feof (optFile)) {
 				perror("freebcp");
-        			fprintf(stderr, "error reading options file \"%s\" at %s:%d\n", params->options, __FILE__, __LINE__);
+				fprintf(stderr, "error reading options file \"%s\" at %s:%d\n", params->options, __FILE__, __LINE__);
 				fclose(optFile);
 				return FALSE;
 			}
 			fclose(optFile);
 		}
 	}
-	
+
 	if (dbsqlexec(dbproc) == FAIL) {
 		fprintf(stderr, "setoptions() failed sending options at %s:%d\n", __FILE__, __LINE__);
 		return FALSE;
 	}
-	
+
 	while ((fOK = dbresults(dbproc)) == SUCCEED) {
 		while ((fOK = dbnextrow(dbproc)) == REG_ROW)
 			continue;
@@ -789,7 +789,7 @@ err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrs
 		printf("%d rows sent to SQL Server.\n", sent += batch);
 		return INT_CANCEL;
 	}
-	
+
 	if (dberr) {
 		fprintf(stderr, "Msg %d, Level %d\n", dberr, severity);
 		fprintf(stderr, "%s\n\n", dberrstr);
