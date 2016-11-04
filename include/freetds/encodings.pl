@@ -100,6 +100,8 @@ foreach my $name (keys %sybase)
 $i = 0;
 # first indexes for mandatory encodings
 $index{$_} = $i++ for qw(ISO-8859-1 UTF-8 UCS-2LE UCS-2BE);
+# put the other multibyte Unicode encodings, not strictly required, code can work even without
+$index{$_} = $i++ for qw(UTF-16LE UTF-16BE UCS-4LE UCS-4BE UTF-32LE UTF-32BE);
 delete @charsets{qw(UCS-2 UCS-2-INTERNAL UCS-2-SWAPPED UTF-16 UCS-4 UCS-4-INTERNAL UCS-4-SWAPPED UTF-32)};
 foreach $n (sort keys %charsets)
 {
