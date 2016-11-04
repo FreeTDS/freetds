@@ -1293,7 +1293,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 				}
 
 				/* trim trailing blanks from character data */
-				if (desttype == SYBCHAR || desttype == SYBVARCHAR) {
+				if (is_ascii_type(bcpcol->on_server.column_type)) {
 					/* A single NUL byte indicates an empty string. */
 					if (bcpcol->bcp_column_data->datalen == 1
 					    && bcpcol->bcp_column_data->data[0] == '\0') {
