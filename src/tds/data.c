@@ -465,9 +465,6 @@ tds_get_char_dynamic(TDSSOCKET *tds, TDSCOLUMN *curcol, void **pp, size_t alloca
 		res = tds_convert_stream(tds, curcol->char_conv, to_client, r_stream, &w.stream);
 	else
 		res = tds_copy_stream(tds, r_stream, &w.stream);
-	if (TDS_FAILED(res))
-		return res;
-
 	curcol->column_cur_size = w.size;
 	return res;
 }
