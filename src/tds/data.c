@@ -763,6 +763,7 @@ tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	if (is_blob_col(curcol)) {
 		TDSDATAINSTREAM r;
 		size_t allocated;
+		TDSRET ret;
 
 		blob = (TDSBLOB *) dest; 	/* cf. column_varint_size case 4, above */
 
@@ -783,7 +784,12 @@ tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		}
 
 		tds_datain_stream_init(&r, tds, colsize);
-		return tds_get_char_dynamic(tds, curcol, (void **) &blob->textvalue, allocated, &r.stream);
+		ret = tds_get_char_dynamic(tds, curcol, (void **) &blob->textvalue, allocated, &r.stream);
+		if (TDS_FAILED(ret) && TDS_UNLIKELY(r.wire_size > 0)) {
+			tds_get_n(tds, NULL, r.wire_size);
+			return ret;
+		}
+		return TDS_SUCCESS;
 	}
 
 	/* non-numeric and non-blob */
