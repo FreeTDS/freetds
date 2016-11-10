@@ -24,7 +24,7 @@
  * Its purpose is to allow ASCII clients to communicate with Microsoft servers
  * that encode their metadata in Unicode (UTF-16).
  *
- * It supports ISO-8859-1, ASCII, UTF-16, UCS-4 and UTF-8
+ * It supports ISO-8859-1, ASCII, CP1252, UTF-16, UCS-4 and UTF-8
  */
 
 #include <config.h>
@@ -282,6 +282,70 @@ put_ascii(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 	return 1;
 }
 
+/* ftp://ftp.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1252.TXT */
+#define CP1252_ALL \
+	CP1252(0x80,8364) \
+	CP1252(0x82,8218) \
+	CP1252(0x83,402) \
+	CP1252(0x84,8222) \
+	CP1252(0x85,8230) \
+	CP1252(0x86,8224) \
+	CP1252(0x87,8225) \
+	CP1252(0x88,710) \
+	CP1252(0x89,8240) \
+	CP1252(0x8A,352) \
+	CP1252(0x8B,8249) \
+	CP1252(0x8C,338) \
+	CP1252(0x8E,381) \
+	CP1252(0x91,8216) \
+	CP1252(0x92,8217) \
+	CP1252(0x93,8220) \
+	CP1252(0x94,8221) \
+	CP1252(0x95,8226) \
+	CP1252(0x96,8211) \
+	CP1252(0x97,8212) \
+	CP1252(0x98,732) \
+	CP1252(0x99,8482) \
+	CP1252(0x9A,353) \
+	CP1252(0x9B,8250) \
+	CP1252(0x9C,339) \
+	CP1252(0x9E,382) \
+	CP1252(0x9F,376)
+
+static int
+get_cp1252(const unsigned char *p, size_t len, ICONV_CHAR *out)
+{
+	switch (*p) {
+#define CP1252(i,o) case i: *out = o; break;
+	CP1252_ALL
+#undef CP1252
+	default:
+		*out = *p;
+		break;
+	}
+	return 1;
+}
+
+static int
+put_cp1252(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
+{
+	if (buf_len < 1)
+		return -E2BIG;
+
+	switch (c) {
+#define CP1252(i,o) case o: *buf = i; break; case i: return -EILSEQ;
+	CP1252_ALL
+#undef CP1252
+	default:
+		if (c <= 0xff)
+			*buf = c;
+		else
+			return -EILSEQ;
+		break;
+	}
+	return 1;
+}
+
 static int
 get_err(const unsigned char *p, size_t len, ICONV_CHAR *out)
 {
@@ -297,11 +361,13 @@ put_err(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 typedef int (*iconv_get_t)(const unsigned char *p, size_t len,     ICONV_CHAR *out);
 typedef int (*iconv_put_t)(unsigned char *buf,     size_t buf_len, ICONV_CHAR c);
 
-static const iconv_get_t iconv_gets[8] = {
-	get_iso1, get_ascii, get_utf16le, get_utf16be, get_ucs4le, get_ucs4be, get_utf8, get_err
+static const iconv_get_t iconv_gets[16] = {
+	get_iso1, get_ascii, get_utf16le, get_utf16be, get_ucs4le, get_ucs4be, get_utf8, get_cp1252,
+	get_err, get_err, get_err, get_err, get_err, get_err, get_err, get_err,
 };
-static const iconv_put_t iconv_puts[8] = {
-	put_iso1, put_ascii, put_utf16le, put_utf16be, put_ucs4le, put_ucs4be, put_utf8, put_err
+static const iconv_put_t iconv_puts[16] = {
+	put_iso1, put_ascii, put_utf16le, put_utf16be, put_ucs4le, put_ucs4be, put_utf8, put_cp1252,
+	put_err, put_err, put_err, put_err, put_err, put_err, put_err, put_err,
 };
 
 /** 
@@ -341,6 +407,8 @@ tds_sys_iconv_open (const char* tocode, const char* fromcode)
 			encoding = 5;
 		else if (strcmp(enc_name, "UTF-8") == 0)
 			encoding = 6;
+		else if (strcmp(enc_name, "CP1252") == 0)
+			encoding = 7;
 		else {
 			errno = EINVAL;
 			return (iconv_t)(-1);
@@ -403,11 +471,11 @@ tds_sys_iconv (iconv_t cd, const char* * inbuf, size_t *inbytesleft, char* * out
 		ol -= copybytes;
 		ib += copybytes;
 		il -= copybytes;
-	} else if (CD & ~0x77) {
+	} else if (CD & ~0xff) {
 		local_errno = EINVAL;
 	} else {
-		iconv_get_t get_func = iconv_gets[(CD>>4) & 7];
-		iconv_put_t put_func = iconv_puts[ CD     & 7];
+		iconv_get_t get_func = iconv_gets[(CD>>4) & 15];
+		iconv_put_t put_func = iconv_puts[ CD     & 15];
 
 		while (il) {
 			ICONV_CHAR out_c;
