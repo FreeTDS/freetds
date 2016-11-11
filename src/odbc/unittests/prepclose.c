@@ -54,10 +54,11 @@ close_last_socket(void)
 }
 
 static int
-Test(int direct)
+Test(int direct, int long_query)
 {
 	SQLTCHAR buf[256];
 	SQLTCHAR sqlstate[6];
+	char sql[5100];
 
 	odbc_mark_sockets_opened();
 	odbc_connect();
@@ -67,13 +68,20 @@ Test(int direct)
 		return 1;
 	}
 
+	if (long_query) {
+		memset(sql, '-', sizeof(sql));
+		strcpy(sql + 5000, "\nSELECT 1");
+	} else {
+		strcpy(sql, "SELECT 1");
+	}
+
 	/* force disconnection closing socket */
 	if (direct) {
-		CHKExecDirect(T("SELECT 1"), SQL_NTS, "E");
+		CHKExecDirect(T(sql), SQL_NTS, "E");
 	} else {
 		SQLSMALLINT cols;
 		/* use prepare, force dialog with server */
-		if (CHKPrepare(T("SELECT 1"), SQL_NTS, "SE") == SQL_SUCCESS)
+		if (CHKPrepare(T(sql), SQL_NTS, "SE") == SQL_SUCCESS)
 			CHKNumResultCols(&cols, "E");
 	}
 
@@ -90,7 +98,12 @@ Test(int direct)
 int
 main(void)
 {
-	if (Test(0) || Test(1))
+	/* check with short queries */
+	if (Test(0, 0) || Test(1, 0))
+		return 1;
+
+	/* check with large queries, this will trigger different paths */
+	if (Test(0, 1) || Test(1, 1))
 		return 1;
 	return 0;
 }
