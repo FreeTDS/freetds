@@ -505,9 +505,11 @@ exit:
 }
 
 /**
- * Close current socket
- * for last socket close entire connection
- * for MARS send FIN request
+ * Close current socket.
+ * For last socket close entire connection.
+ * For MARS send FIN request.
+ * This attempts a graceful disconnection, for ungraceful call
+ * tds_connection_close.
  */
 void
 tds_close_socket(TDSSOCKET * tds)
@@ -539,11 +541,12 @@ tds_close_socket(TDSSOCKET * tds)
 	}
 }
 
-#if ENABLE_ODBC_MARS
 void
 tds_connection_close(TDSCONNECTION *conn)
 {
+#if ENABLE_ODBC_MARS
 	unsigned n = 0;
+#endif
 
 	if (!TDS_IS_SOCKET_INVALID(conn->s)) {
 		/* TODO check error ?? how to return it ?? */
@@ -551,13 +554,16 @@ tds_connection_close(TDSCONNECTION *conn)
 		conn->s = INVALID_SOCKET;
 	}
 
+#if ENABLE_ODBC_MARS
 	tds_mutex_lock(&conn->list_mtx);
 	for (; n < conn->num_sessions; ++n)
 		if (TDSSOCKET_VALID(conn->sessions[n]))
 			tds_set_state(conn->sessions[n], TDS_DEAD);
 	tds_mutex_unlock(&conn->list_mtx);
-}
+#else
+	tds_set_state((TDSSOCKET* ) conn, TDS_DEAD);
 #endif
+}
 
 /**
  * Select on a socket until it's available or the timeout expires. 
