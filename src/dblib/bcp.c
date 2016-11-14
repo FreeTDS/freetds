@@ -1173,12 +1173,10 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 		if (!data_is_null && hostcol->column_len >= 0) {
 			if (hostcol->column_len == 0)
 				data_is_null = 1;
-			else {
-				if (collen)
-					collen = (hostcol->column_len < collen) ? hostcol->column_len : collen;
-				else
-					collen = hostcol->column_len;
-			}
+			else if (collen)
+				collen = (hostcol->column_len < collen) ? hostcol->column_len : collen;
+			else
+				collen = hostcol->column_len;
 		}
 
 		tdsdump_log(TDS_DBG_FUNC, "prefix_len = %d collen = %d \n", hostcol->prefix_len, collen);
