@@ -2390,8 +2390,8 @@ dbconvert_ps(DBPROCESS * dbproc, int db_srctype, const BYTE * src, DBINT srclen,
 					ret = -1;
 				} else {
 					memcpy(dest, src, srclen);
-					for (i = srclen; i < destlen; i++)
-						dest[i] = ' ';
+					if (srclen < destlen)
+					    memset(dest + srclen, ' ', destlen - srclen);
 					ret = srclen;
 				}
 				break;
@@ -2532,8 +2532,8 @@ dbconvert_ps(DBPROCESS * dbproc, int db_srctype, const BYTE * src, DBINT srclen,
 			}
 			/* else pad with blanks */
 			memcpy(dest, dres.c, len);
-			for (i = len; i < destlen; i++)
-				dest[i] = ' ';
+			if(len < destlen)
+			    memset(dest+len, ' ', destlen - len);
 			ret = len;
 
 			break;
