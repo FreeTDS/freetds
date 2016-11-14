@@ -31,7 +31,7 @@
 
 #include <assert.h>
 
-/* test tds_iconv_fread */
+/* test tds_bcp_fread */
 
 static char buf[4096+80];
 

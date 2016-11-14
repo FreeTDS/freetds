@@ -1254,9 +1254,9 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 			if (collen) {
 				/* 
 				 * Read and convert the data
-				 * TODO: Call tds_iconv_fread() instead of fread(3).  
+				 * TODO: Call tds_bcp_fread() instead of fread(3).
 				 *       The columns should each have their iconv cd set, and noncharacter data
-				 *       should have -1 as the iconv cd, causing tds_iconv_fread() to not attempt
+				 *       should have -1 as the iconv cd, causing tds_bcp_fread() to not attempt
 				 * 	 any conversion.  We do not need a datatype switch here to decide what to do.  
 				 *	 As of 0.62, this *should* actually work.  All that remains is to change the
 				 *	 call and test it. 
