@@ -237,10 +237,9 @@ odbc_mb2utf(TDS_DBC *dbc, DSTR *res, const char *s, unsigned int len)
 
 	/* char_conv is only mostly const */
 	memset((TDS_ERRNO_MESSAGE_FLAGS*) &char_conv->suppress, 0, sizeof(char_conv->suppress));
-	if (tds_iconv(dbc->tds_socket, char_conv, to_server, &ib, &il, &ob, &ol) == (size_t)-1) {
-		free(buf);
+	if (tds_iconv(dbc->tds_socket, char_conv, to_server, &ib, &il, &ob, &ol) == (size_t)-1)
 		return NULL;
-	}
+
 	return tds_dstr_setlen(res, ob - buf);
 }
 #endif
