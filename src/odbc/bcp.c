@@ -97,12 +97,12 @@ odbc_bcp_init(TDS_DBC *dbc, const ODBC_CHAR *tblname, const ODBC_CHAR *hfile,
 				    dbc, SQLWSTR(tblname->wide), SQLWSTR(hfile->wide), SQLWSTR(errfile->wide), direction);
 			SQLWSTR_FREE();
 		} else {
+#else
+		{
 #endif
-		tdsdump_log(TDS_DBG_FUNC, "bcp_init(%p, %s, %s, %s, %d)\n",
-			    dbc, tblname->mb, hfile->mb, errfile->mb, direction);
-#ifdef ENABLE_ODBC_WIDE
+			tdsdump_log(TDS_DBG_FUNC, "bcp_init(%p, %s, %s, %s, %d)\n",
+				    dbc, (const char*) tblname, (const char*) hfile, (const char*) errfile, direction);
 		}
-#endif
 	}
 	if (!tblname)
 		ODBCBCP_ERROR_RETURN("HY009");
