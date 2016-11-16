@@ -46,6 +46,8 @@
 #include <freetds/iconv.h>
 #include <freetds/bjoern-utf8.h>
 
+#include "iconv_charsets.h"
+
 /**
  * \addtogroup conv
  * @{ 
@@ -282,47 +284,13 @@ put_ascii(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 	return 1;
 }
 
-/* ftp://ftp.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1252.TXT */
-#define CP1252_ALL \
-	CP1252(0x80,8364) \
-	CP1252(0x82,8218) \
-	CP1252(0x83,402) \
-	CP1252(0x84,8222) \
-	CP1252(0x85,8230) \
-	CP1252(0x86,8224) \
-	CP1252(0x87,8225) \
-	CP1252(0x88,710) \
-	CP1252(0x89,8240) \
-	CP1252(0x8A,352) \
-	CP1252(0x8B,8249) \
-	CP1252(0x8C,338) \
-	CP1252(0x8E,381) \
-	CP1252(0x91,8216) \
-	CP1252(0x92,8217) \
-	CP1252(0x93,8220) \
-	CP1252(0x94,8221) \
-	CP1252(0x95,8226) \
-	CP1252(0x96,8211) \
-	CP1252(0x97,8212) \
-	CP1252(0x98,732) \
-	CP1252(0x99,8482) \
-	CP1252(0x9A,353) \
-	CP1252(0x9B,8250) \
-	CP1252(0x9C,339) \
-	CP1252(0x9E,382) \
-	CP1252(0x9F,376)
-
 static int
 get_cp1252(const unsigned char *p, size_t len, ICONV_CHAR *out)
 {
-	switch (*p) {
-#define CP1252(i,o) case i: *out = o; break;
-	CP1252_ALL
-#undef CP1252
-	default:
+	if (*p >= 0x80 && *p < 0xa0)
+		*out = cp1252_0080_00a0[*p - 0x80];
+	else
 		*out = *p;
-		break;
-	}
 	return 1;
 }
 
@@ -332,17 +300,16 @@ put_cp1252(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 	if (buf_len < 1)
 		return -E2BIG;
 
-	switch (c) {
-#define CP1252(i,o) case o: *buf = i; break; case i: return -EILSEQ;
-	CP1252_ALL
+	if (c >= 0x100 || ((c&~0x1fu) == 0x80 && cp1252_0080_00a0[c - 0x80] != c - 0x80)) {
+		switch (c) {
+#define CP1252(i,o) case o: c = i; break;
+		CP1252_ALL
 #undef CP1252
-	default:
-		if (c <= 0xff)
-			*buf = c;
-		else
+		default:
 			return -EILSEQ;
-		break;
+		}
 	}
+	*buf = c;
 	return 1;
 }
 

@@ -26,5 +26,18 @@ EXTRA_DIST = \
 	socketpair.c \
 	daemon.c \
 	CMakeLists.txt \
+	$(PERL_OUTPUT) \
 	$(NULL)
 
+PERL_OUTPUT = iconv_charsets.h
+
+if HAVE_PERL_SOURCES
+BUILT_SOURCES = $(PERL_OUTPUT)
+
+clean-local:
+	cd $(srcdir) && rm -f $(BUILT_SOURCES)
+
+iconv_charsets.h: iconv_charsets.pl Makefile
+	perl $(srcdir)/iconv_charsets.pl > $@.tmp
+	mv $@.tmp $@
+endif
