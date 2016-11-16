@@ -1,5 +1,12 @@
 include_directories(.)
 
+if(PERL_FOUND AND NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
+	add_custom_command(OUTPUT iconv_charsets.h
+		COMMAND ${PERL_EXECUTABLE} iconv_charsets.pl > iconv_charsets.h
+		MAIN_DEPENDENCY iconv_charsets.pl
+		WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
+endif(PERL_FOUND AND NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
+
 include(CheckFunctionExists)
 
 set(FUNCS asprintf vasprintf strtok_r readpassphrase
@@ -21,6 +28,7 @@ add_library(replacements STATIC
 	poll.c
 	socketpair.c
 	getaddrinfo.c
+	iconv_charsets.h
 	${add_SRCS}
 )
 if (NOT WIN32)
