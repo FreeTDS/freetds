@@ -6,7 +6,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: wf_dbresults.c,v 1.29 2016-11-03 15:52:48 freddy77 Exp $";
+static char software_version[] = "$Id: batch_stmt_ins_upd.c,v 1.29 2016-11-17 16:00:00 jfarr Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
