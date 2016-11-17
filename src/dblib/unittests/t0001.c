@@ -26,7 +26,7 @@ main(int argc, char **argv)
 		argv += optind;
 	}
 
-	fprintf(stdout, "Starting %s\n", argv[0]);
+	printf("Starting %s\n", argv[0]);
 
 	/* Fortify_EnterScope(); */
 	dbinit();
@@ -34,7 +34,7 @@ main(int argc, char **argv)
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
-	fprintf(stdout, "About to logon as \"%s\"\n", USER);
+	printf("About to logon as \"%s\"\n", USER);
 
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
@@ -51,7 +51,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	fprintf(stdout, "About to open \"%s\"\n", SERVER);
+	printf("About to open \"%s\"\n", SERVER);
 
 	dbproc = dbopen(login, SERVER);
 	if (!dbproc) {
@@ -60,14 +60,14 @@ main(int argc, char **argv)
 	}
 	dbloginfree(login);  
 
-	fprintf(stdout, "Using database \"%s\"\n", DATABASE);
+	printf("Using database \"%s\"\n", DATABASE);
 	if (strlen(DATABASE)) {
 		erc = dbuse(dbproc, DATABASE);
 		assert(erc == SUCCEED);
 	}
 
 #ifdef DBQUOTEDIDENT
-	fprintf(stdout, "QUOTED_IDENTIFIER is %s\n", (dbisopt(dbproc, DBQUOTEDIDENT, NULL))? "ON":"OFF");
+	printf("QUOTED_IDENTIFIER is %s\n", (dbisopt(dbproc, DBQUOTEDIDENT, NULL))? "ON":"OFF");
 #endif
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
@@ -125,7 +125,7 @@ main(int argc, char **argv)
 		}
 		if (0 != strncmp(teststr, expected, strlen(expected))) {
 			failed = 1;
-			fprintf(stdout, "Failed.  Expected s to be |%s|, was |%s|\n", expected, teststr);
+			printf("Failed.  Expected s to be |%s|, was |%s|\n", expected, teststr);
 			abort();
 		}
 		printf("Read a row of data -> %d |%s|\n", (int) testint, teststr);
@@ -139,6 +139,6 @@ main(int argc, char **argv)
 
 	dbexit();
 
-	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
+	printf("%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	return failed ? 1 : 0;
 }

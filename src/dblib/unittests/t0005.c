@@ -20,14 +20,14 @@ main(int argc, char **argv)
 	set_malloc_options();
 
 	read_login_info(argc, argv);
-	fprintf(stdout, "Starting %s\n", argv[0]);
+	printf("Starting %s\n", argv[0]);
 
 	dbinit();
 
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
-	fprintf(stdout, "About to logon\n");
+	printf("About to logon\n");
 
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
@@ -35,14 +35,14 @@ main(int argc, char **argv)
 	DBSETLAPP(login, "t0005");
 	DBSETLHOST(login, "ntbox.dntis.ro");
 
-	fprintf(stdout, "About to open\n");
+	printf("About to open\n");
 
 	dbproc = dbopen(login, SERVER);
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
 	dbloginfree(login);
 
-	fprintf(stdout, "creating table\n");
+	printf("creating table\n");
 	if (SUCCEED != sql_cmd(dbproc)) {
 		fprintf(stderr, "%s:%d: dbcmd failed\n", __FILE__, __LINE__);
 		failed = 1;
@@ -57,7 +57,7 @@ main(int argc, char **argv)
 		/* nop */
 	}
 
-	fprintf(stdout, "insert\n");
+	printf("insert\n");
 	for (i = 1; i < rows_to_add; i++) {
 		sql_cmd(dbproc);
 		dbsqlexec(dbproc);
@@ -71,7 +71,7 @@ main(int argc, char **argv)
 	dbsqlexec(dbproc);
 
 	if (dbresults(dbproc) != SUCCEED) {
-		fprintf(stdout, "Was expecting a result set.");
+		printf("Was expecting a result set.");
 		exit(1);
 	}
 
@@ -98,13 +98,13 @@ main(int argc, char **argv)
 			abort();
 		}
 		if (0 != strncmp(teststr, expected, strlen(expected))) {
-			fprintf(stdout, "Failed.  Expected s to be |%s|, was |%s|\n", expected, teststr);
+			printf("Failed.  Expected s to be |%s|, was |%s|\n", expected, teststr);
 			abort();
 		}
 		printf("Read a row of data -> %d %s\n", (int) testint, teststr);
 	}
 
-	fprintf(stdout, "This query should succeeded as we have fetched the exact\n"
+	printf("This query should succeeded as we have fetched the exact\n"
 			"number of rows in the result set\n");
 
 	expected_error = 20019;
@@ -120,7 +120,7 @@ main(int argc, char **argv)
 	}
 
 	if (dbresults(dbproc) != SUCCEED) {
-		fprintf(stdout, "Was expecting a result set.");
+		printf("Was expecting a result set.");
 		exit(1);
 	}
 
@@ -147,13 +147,13 @@ main(int argc, char **argv)
 			abort();
 		}
 		if (0 != strncmp(teststr, expected, strlen(expected))) {
-			fprintf(stdout, "Failed.  Expected s to be |%s|, was |%s|\n", expected, teststr);
+			printf("Failed.  Expected s to be |%s|, was |%s|\n", expected, teststr);
 			abort();
 		}
 		printf("Read a row of data -> %d %s\n", (int) testint, teststr);
 	}
 
-	fprintf(stdout, "Testing anticipated failure\n");
+	printf("Testing anticipated failure\n");
 
 	if (SUCCEED != sql_cmd(dbproc)) {
 		fprintf(stderr, "%s:%d: dbcmd failed\n", __FILE__, __LINE__);
@@ -165,17 +165,17 @@ main(int argc, char **argv)
 	}
 
 
-	fprintf(stdout, "calling dbcancel to flush results\n");
+	printf("calling dbcancel to flush results\n");
 	dbcancel(dbproc);
 
-	fprintf(stdout, "Dropping proc\n");
+	printf("Dropping proc\n");
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
 
-	fprintf(stdout, "creating proc\n");
+	printf("creating proc\n");
 	sql_cmd(dbproc);
 	if (dbsqlexec(dbproc) == FAIL) {
 		fprintf(stderr, "%s:%d: failed to create procedure\n", __FILE__, __LINE__);
@@ -185,14 +185,14 @@ main(int argc, char **argv)
 		/* nop */
 	}
 
-	fprintf(stdout, "calling proc\n");
+	printf("calling proc\n");
 	sql_cmd(dbproc);
 	if (dbsqlexec(dbproc) == FAIL) {
 		fprintf(stderr, "%s:%d: failed to call procedure\n", __FILE__, __LINE__);
 		failed = 1;
 	}
 	if (dbresults(dbproc) != SUCCEED) {
-		fprintf(stdout, "Was expecting a result set.");
+		printf("Was expecting a result set.");
 		exit(1);
 	}
 
@@ -219,14 +219,14 @@ main(int argc, char **argv)
 			abort();
 		}
 		if (0 != strncmp(teststr, expected, strlen(expected))) {
-			fprintf(stdout, "Failed.  Expected s to be |%s|, was |%s|\n", expected, teststr);
+			printf("Failed.  Expected s to be |%s|, was |%s|\n", expected, teststr);
 			abort();
 		}
 		printf("Read a row of data -> %d %s\n", (int) testint, teststr);
 	}
 
-	fprintf(stdout, "Calling dbsqlexec before dbnextrow returns NO_MORE_ROWS\n");
-	fprintf(stdout, "The following command should succeed because\n"
+	printf("Calling dbsqlexec before dbnextrow returns NO_MORE_ROWS\n");
+	printf("The following command should succeed because\n"
 			"we have fetched the exact number of rows in the result set\n");
 
 	if (SUCCEED != sql_cmd(dbproc)) {
@@ -248,6 +248,6 @@ main(int argc, char **argv)
 
 	dbexit();
 
-	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
+	printf("%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	return failed ? 1 : 0;
 }

@@ -21,7 +21,7 @@ main(int argc, char **argv)
 	set_malloc_options();
 
 	read_login_info(argc, argv);
-	fprintf(stdout, "Starting %s\n", argv[0]);
+	printf("Starting %s\n", argv[0]);
 
 	/* Fortify_EnterScope(); */
 	dbinit();
@@ -29,28 +29,28 @@ main(int argc, char **argv)
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
-	fprintf(stdout, "About to logon\n");
+	printf("About to logon\n");
 
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
 	DBSETLAPP(login, "t0018");
 
-	fprintf(stdout, "About to open\n");
+	printf("About to open\n");
 
 	dbproc = dbopen(login, SERVER);
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
 	dbloginfree(login);
 
-	fprintf(stdout, "creating table\n");
+	printf("creating table\n");
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
 
-	fprintf(stdout, "insert\n");
+	printf("insert\n");
 	for (i = 0; i < rows_to_add; i++) {
 		sql_cmd(dbproc);
 		dbsqlexec(dbproc);
@@ -59,32 +59,32 @@ main(int argc, char **argv)
 		}
 		if (DBCOUNT(dbproc) != 1) {
 			failed = 1;
-			fprintf(stdout, "Was expecting a rows affect to be 1.");
+			printf("Was expecting a rows affect to be 1.");
 			exit(1);
 		}
 	}
 
-	fprintf(stdout, "select\n");
+	printf("select\n");
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 
-	fprintf(stdout, "Checking for an empty result set.\n");
+	printf("Checking for an empty result set.\n");
 	if (dbresults(dbproc) != SUCCEED) {
 		failed = 1;
-		fprintf(stdout, "Was expecting a result set.\n");
+		printf("Was expecting a result set.\n");
 		exit(1);
 	}
 
 	if(DBROWS(dbproc) != FAIL) {
 		failed = 1;
-		fprintf(stdout, "Was expecting no rows to be available.\n");
+		printf("Was expecting no rows to be available.\n");
 		exit(1);
 	}
 
-	fprintf(stdout, "Checking for a result set with content.\n");
+	printf("Checking for a result set with content.\n");
 	if (dbresults(dbproc) != SUCCEED) {
 		failed = 1;
-		fprintf(stdout, "Was expecting a result set.");
+		printf("Was expecting a result set.");
 		exit(1);
 	}
 
@@ -119,7 +119,7 @@ main(int argc, char **argv)
 		}
 		if (0 != strncmp(teststr, expected, strlen(expected))) {
 			failed = 1;
-			fprintf(stdout, "Failed.  Expected s to be |%s|, was |%s|\n", expected, teststr);
+			printf("Failed.  Expected s to be |%s|, was |%s|\n", expected, teststr);
 			abort();
 		}
 		printf("Read a row of data -> %d %s\n", (int) testint, teststr);
@@ -132,7 +132,7 @@ main(int argc, char **argv)
 	}
 	if (DBCOUNT(dbproc) != rows_to_add) {
 		failed = 1;
-		fprintf(stdout, "Was expecting a rows affect to be %d was %d.\n", rows_to_add, DBCOUNT(dbproc));
+		printf("Was expecting a rows affect to be %d was %d.\n", rows_to_add, DBCOUNT(dbproc));
 		exit(1);
 	}
 
@@ -143,14 +143,14 @@ main(int argc, char **argv)
 	}
 	if (DBCOUNT(dbproc) != rows_to_add) {
 		failed = 1;
-		fprintf(stdout, "Was expecting a rows affect to be %d was %d.\n", rows_to_add, DBCOUNT(dbproc));
+		printf("Was expecting a rows affect to be %d was %d.\n", rows_to_add, DBCOUNT(dbproc));
 		exit(1);
 	} else {
-		fprintf(stdout, "Number of rows affected by update = %d.\n", DBCOUNT(dbproc));
+		printf("Number of rows affected by update = %d.\n", DBCOUNT(dbproc));
 	}
 
 	dbexit();
 
-	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
+	printf("%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	return failed ? 1 : 0;
 }

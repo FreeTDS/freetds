@@ -50,7 +50,7 @@ main(int argc, char **argv)
 
 	read_login_info(argc, argv);
 
-	fprintf(stdout, "Starting %s\n", argv[0]);
+	printf("Starting %s\n", argv[0]);
 
 	/* Fortify_EnterScope(); */
 	dbinit();
@@ -58,21 +58,21 @@ main(int argc, char **argv)
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
-	fprintf(stdout, "About to logon\n");
+	printf("About to logon\n");
 
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
 	DBSETLAPP(login, "t0002");
 
-	fprintf(stdout, "About to open %s..%s\n", SERVER, DATABASE);
+	printf("About to open %s..%s\n", SERVER, DATABASE);
 
 	dbproc = dbopen(login, SERVER);
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
 	dbloginfree(login);
 
-	fprintf(stdout, "Setting row buffer to 10 rows\n");
+	printf("Setting row buffer to 10 rows\n");
 #ifdef MICROSOFT_DBLIB
 	dbsetopt(dbproc, DBBUFFER, "10");
 #else
@@ -85,7 +85,7 @@ main(int argc, char **argv)
 		/* nop */
 	}
 	if (dbresults(dbproc) != NO_MORE_RESULTS) {
-		fprintf(stdout, "Failed: dbresults call after NO_MORE_RESULTS should return NO_MORE_RESULTS.\n");
+		printf("Failed: dbresults call after NO_MORE_RESULTS should return NO_MORE_RESULTS.\n");
 		failed = 1;
 	}
 
@@ -107,7 +107,7 @@ main(int argc, char **argv)
 	dbsqlexec(dbproc);
 
 	for (iresults=1; iresults <= 2; iresults++ ) {
-		fprintf(stdout, "fetching resultset %i\n", iresults);
+		printf("fetching resultset %i\n", iresults);
 		if (dbresults(dbproc) != SUCCEED) {
 			fprintf(stderr, "Was expecting a result set %d.\n", iresults);
 			if( iresults == 2 )
@@ -127,7 +127,7 @@ main(int argc, char **argv)
 		limit_rows = rows_to_add - (iresults == 2 ? 4 : 0);
 		for (i=0; i < limit_rows;) {
 
-			fprintf(stdout, "clearing %d rows from buffer\n", rows_in_buffer ? buffer_count - 1 : buffer_count);
+			printf("clearing %d rows from buffer\n", rows_in_buffer ? buffer_count - 1 : buffer_count);
 #ifdef MICROSOFT_DBLIB
 			if (i == 0) {
 				rc = dbnextrow(dbproc);
@@ -160,7 +160,7 @@ main(int argc, char **argv)
 			}
 		}
 		if (iresults == 1) {
-			fprintf(stdout, "clearing %d rows from buffer\n", buffer_count);
+			printf("clearing %d rows from buffer\n", buffer_count);
 			dbclrbuf(dbproc, buffer_count);
 			while (dbnextrow(dbproc) != NO_MORE_ROWS) {
 				abort(); /* All rows were read: should not enter loop */
@@ -222,6 +222,6 @@ main(int argc, char **argv)
 
 	dbexit();
 
-	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
+	printf("%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	return failed ? 1 : 0;
 }

@@ -31,20 +31,20 @@ test(int argc, char **argv, int over4k)
 	set_malloc_options();
 
 	read_login_info(argc, argv);
-	fprintf(stdout, "Starting %s\n", argv[0]);
+	printf("Starting %s\n", argv[0]);
 	dbinit();
 
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
-	fprintf(stdout, "About to logon\n");
+	printf("About to logon\n");
 
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
 	DBSETLAPP(login, "t0014");
 
-	fprintf(stdout, "About to open %s..%s for user '%s'\n", SERVER, DATABASE, USER);
+	printf("About to open %s..%s for user '%s'\n", SERVER, DATABASE, USER);
 
 	dbproc = dbopen(login, SERVER);
 	blobproc = dbopen(login, SERVER);
@@ -53,9 +53,9 @@ test(int argc, char **argv, int over4k)
 		dbuse(blobproc, DATABASE);
 	}
 	dbloginfree(login);
-	fprintf(stdout, "After logon\n");
+	printf("After logon\n");
 
-	fprintf(stdout, "About to read binary input file\n");
+	printf("About to read binary input file\n");
 
 	if (argc == 1) {
 		argv = testargs;
@@ -80,14 +80,14 @@ test(int argc, char **argv, int over4k)
 	fclose(fp);
 
 	/* FIXME this test seem to not work using temporary tables (sybase?)... */
-	fprintf(stdout, "Dropping table\n");
+	printf("Dropping table\n");
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
 
-	fprintf(stdout, "creating table\n");
+	printf("creating table\n");
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
@@ -95,7 +95,7 @@ test(int argc, char **argv, int over4k)
 	}
 
 
-	fprintf(stdout, "insert\n");
+	printf("insert\n");
 	for (i = 0; i < rows_to_add; i++) {
 		sql_cmd(dbproc);
 		dbsqlexec(dbproc);
@@ -154,13 +154,13 @@ test(int argc, char **argv, int over4k)
 		}
 	}
 
-	fprintf(stdout, "select\n");
+	printf("select\n");
 
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 
 	if (dbresults(dbproc) != SUCCEED) {
-		fprintf(stdout, "Was expecting a result set.");
+		printf("Was expecting a result set.");
 		exit(1);
 	}
 
@@ -238,7 +238,7 @@ test(int argc, char **argv, int over4k)
 
 	free(blob);
 
-	fprintf(stdout, "Dropping table\n");
+	printf("Dropping table\n");
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
@@ -261,7 +261,7 @@ main(int argc, char **argv)
 	if (res)
 		return res;
 
-	fprintf(stdout, "dblib okay on %s\n", __FILE__);
+	printf("dblib okay on %s\n", __FILE__);
 	return 0;
 }
 

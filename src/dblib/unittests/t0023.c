@@ -37,7 +37,7 @@ main(int argc, char *argv[])
 	set_malloc_options();
 	read_login_info(argc, argv);
 
-	fprintf(stdout, "Starting %s\n", argv[0]);
+	printf("Starting %s\n", argv[0]);
 
 	/* Fortify_EnterScope(); */
 	dbinit();
@@ -45,14 +45,14 @@ main(int argc, char *argv[])
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
-	fprintf(stdout, "About to logon\n");
+	printf("About to logon\n");
 
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
 	DBSETLAPP(login, "t0023");
 
-	fprintf(stdout, "About to open\n");
+	printf("About to open\n");
 
 	dbproc = dbopen(login, SERVER);
 	if (strlen(DATABASE))
@@ -78,14 +78,14 @@ main(int argc, char *argv[])
 			continue;
 	}
 
-	fprintf(stdout, "creating table\n");
+	printf("creating table\n");
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) == SUCCEED) {
 		/* nop */
 	}
 
-	fprintf(stdout, "insert\n");
+	printf("insert\n");
 
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
@@ -113,20 +113,20 @@ main(int argc, char *argv[])
 		/* nop */
 	}
 
-	fprintf(stdout, "select\n");
+	printf("select\n");
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 
 	if (dbresults(dbproc) != SUCCEED) {
 		failed = 1;
-		fprintf(stdout, "Was expecting a result set.\n");
+		printf("Was expecting a result set.\n");
 		exit(1);
 	}
 
 	for (i = 1; i <= dbnumcols(dbproc); i++)
 		printf("col %d is %s\n", i, dbcolname(dbproc, i));
 
-	fprintf(stdout, "binding row columns\n");
+	printf("binding row columns\n");
 	if (SUCCEED != dbbind(dbproc, 1, INTBIND, 0, (BYTE *) & rowint)) {
 		failed = 1;
 		fprintf(stderr, "Had problem with bind col1\n");
@@ -143,7 +143,7 @@ main(int argc, char *argv[])
 		abort();
 	}
 
-	fprintf(stdout, "testing compute clause 1\n");
+	printf("testing compute clause 1\n");
 
 	if (dbnumalts(dbproc, 1) != 1) {
 		failed = 1;
@@ -176,7 +176,7 @@ main(int argc, char *argv[])
 	}
 
 
-	fprintf(stdout, "testing compute clause 2\n");
+	printf("testing compute clause 2\n");
 
 	if (dbnumalts(dbproc, 2) != 1) {
 		failed = 1;
@@ -228,6 +228,6 @@ main(int argc, char *argv[])
 
 	dbexit();
 
-	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
+	printf("%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	return failed ? 1 : 0;
 }

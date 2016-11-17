@@ -10,14 +10,14 @@ create_tables(DBPROCESS * dbproc, int rows_to_add)
 {
 	int i;
 
-	fprintf(stdout, "creating table\n");
+	printf("creating table\n");
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
 
-	fprintf(stdout, "insert\n");
+	printf("insert\n");
 	for (i = 1; i < rows_to_add; i++) {
 		sql_cmd(dbproc);
 		dbsqlexec(dbproc);
@@ -66,21 +66,21 @@ main(int argc, char **argv)
 
 	read_login_info(argc, argv);
 
-	fprintf(stdout, "Starting %s\n", argv[0]);
+	printf("Starting %s\n", argv[0]);
 
 	dbinit();
 
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
-	fprintf(stdout, "About to logon\n");
+	printf("About to logon\n");
 
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
 	DBSETLAPP(login, "t0007");
 
-	fprintf(stdout, "About to open\n");
+	printf("About to open\n");
 
 	dbproc = dbopen(login, SERVER);
 	if (strlen(DATABASE))
@@ -118,14 +118,14 @@ main(int argc, char **argv)
 			abort();
 		}
 		if (0 != strncmp(teststr, expected, strlen(expected))) {
-			fprintf(stdout, "Failed.  Expected s to be |%s|, was |%s|\n", expected, teststr);
+			printf("Failed.  Expected s to be |%s|, was |%s|\n", expected, teststr);
 			abort();
 		}
 		printf("Read a row of data -> %d %s\n", (int) testint, teststr);
 	}
 
 
-	fprintf(stdout, "second select.  Should fail.\n");
+	printf("second select.  Should fail.\n");
 
 	expected_error = 20019;
 	dbsetuserdata(dbproc, (BYTE*) &expected_error);
@@ -176,7 +176,7 @@ main(int argc, char **argv)
 			abort();
 		}
 		if (testvstr.len != strlen(expected) || 0 != strncmp(testvstr.str, expected, strlen(expected))) {
-			fprintf(stdout, "Failed, line %d.  Expected s to be |%s|, was |%s|\n", __LINE__, expected, testvstr.str);
+			printf("Failed, line %d.  Expected s to be |%s|, was |%s|\n", __LINE__, expected, testvstr.str);
 			abort();
 		}
 		testvstr.str[testvstr.len] = 0;
@@ -186,6 +186,6 @@ main(int argc, char **argv)
 
 	dbexit();
 
-	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
+	printf("%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	return failed ? 1 : 0;
 }

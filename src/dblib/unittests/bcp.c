@@ -42,7 +42,7 @@ init(DBPROCESS * dbproc, const char *name)
 	int res = 0;
 	RETCODE rc;
 
-	fprintf(stdout, "Dropping %s.%s..%s\n", SERVER, DATABASE, name);
+	printf("Dropping %s.%s..%s\n", SERVER, DATABASE, name);
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while ((rc=dbresults(dbproc)) == SUCCEED) {
@@ -51,7 +51,7 @@ init(DBPROCESS * dbproc, const char *name)
 	if (rc != NO_MORE_RESULTS)
 		return 1;
 
-	fprintf(stdout, "Creating %s.%s..%s\n", SERVER, DATABASE, name);
+	printf("Creating %s.%s..%s\n", SERVER, DATABASE, name);
 	sql_cmd(dbproc);
 	sql_cmd(dbproc);
 
@@ -67,7 +67,7 @@ init(DBPROCESS * dbproc, const char *name)
 	}
 	if (rc != NO_MORE_RESULTS)
 		return 1;
-	fprintf(stdout, "%s\n", res? "error" : "ok");
+	printf("%s\n", res? "error" : "ok");
 	return res;
 }
 
@@ -175,14 +175,14 @@ main(int argc, char **argv)
 
 	read_login_info(argc, argv);
 
-	fprintf(stdout, "Starting %s\n", argv[0]);
+	printf("Starting %s\n", argv[0]);
 
 	dbinit();
 
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
-	fprintf(stdout, "About to logon\n");
+	printf("About to logon\n");
 
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
@@ -190,7 +190,7 @@ main(int argc, char **argv)
 	DBSETLAPP(login, "bcp.c unit test");
 	BCP_SETL(login, 1);
 
-	fprintf(stdout, "About to open %s.%s\n", SERVER, DATABASE);
+	printf("About to open %s.%s\n", SERVER, DATABASE);
 
 	dbproc = dbopen(login, SERVER);
 	if (strlen(DATABASE))
@@ -202,47 +202,47 @@ main(int argc, char **argv)
 
 	/* set up and send the bcp */
 	sprintf(cmd, "%s..%s", DATABASE, table_name);
-	fprintf(stdout, "preparing to insert into %s ... ", cmd);
+	printf("preparing to insert into %s ... ", cmd);
 	if (bcp_init(dbproc, cmd, NULL, NULL, DB_IN) == FAIL) {
-		fprintf(stdout, "failed\n");
+		printf("failed\n");
     		exit(1);
 	}
-	fprintf(stdout, "OK\n");
+	printf("OK\n");
 
 	test_bind(dbproc);
 
-	fprintf(stdout, "Sending same row 10 times... \n");
+	printf("Sending same row 10 times... \n");
 	for (i=0; i<10; i++) {
 		if (bcp_sendrow(dbproc) == FAIL) {
-			fprintf(stdout, "send failed\n");
+			printf("send failed\n");
 		        exit(1);
 		}
 	}
 	
-	fprintf(stdout, "Sending 5 more rows ... \n");
+	printf("Sending 5 more rows ... \n");
 	for (i=15; i <= 27; i++) {
 		int type = dbcoltype(dbproc, i);
 		int len = (type == SYBCHAR || type == SYBVARCHAR)? dbcollen(dbproc, i) : -1;
 		if (bcp_collen(dbproc, len, i) == FAIL) {
-			fprintf(stdout, "bcp_collen failed for column %d\n", i);
+			printf("bcp_collen failed for column %d\n", i);
 		        exit(1);
 		}
 	}
 	for (i=0; i<5; i++) {
 		if (bcp_sendrow(dbproc) == FAIL) {
-			fprintf(stdout, "send failed\n");
+			printf("send failed\n");
 		        exit(1);
 		}
 	}
 #if 1
 	rows_sent = bcp_batch(dbproc);
 	if (rows_sent == -1) {
-		fprintf(stdout, "batch failed\n");
+		printf("batch failed\n");
 	        exit(1);
 	}
 #endif
 
-	fprintf(stdout, "OK\n");
+	printf("OK\n");
 
 	/* end bcp.  */
 	if ((rows_sent += bcp_done(dbproc)) == -1)
@@ -267,9 +267,9 @@ main(int argc, char **argv)
 	}
 #endif
 	if ((s = getenv("BCP")) != NULL && 0 == strcmp(s, "nodrop")) {
-		fprintf(stdout, "BCP=nodrop: '%s..%s' kept\n", DATABASE, table_name);
+		printf("BCP=nodrop: '%s..%s' kept\n", DATABASE, table_name);
 	} else {
-		fprintf(stdout, "Dropping table %s\n", table_name);
+		printf("Dropping table %s\n", table_name);
 		sql_cmd(dbproc);
 		dbsqlexec(dbproc);
 		while (dbresults(dbproc) != NO_MORE_RESULTS) {
@@ -280,6 +280,6 @@ main(int argc, char **argv)
 
 	failed = 0;
 
-	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
+	printf("%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	return failed ? 1 : 0;
 }

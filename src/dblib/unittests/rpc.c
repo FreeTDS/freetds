@@ -22,7 +22,7 @@ init_proc(DBPROCESS * dbproc, const char *name)
 	RETCODE ret = FAIL;
 
 	if (name[0] != '#') {
-		fprintf(stdout, "Dropping procedure %s\n", name);
+		printf("Dropping procedure %s\n", name);
 		sql_cmd(dbproc);
 		dbsqlexec(dbproc);
 		while (dbresults(dbproc) != NO_MORE_RESULTS) {
@@ -30,13 +30,13 @@ init_proc(DBPROCESS * dbproc, const char *name)
 		}
 	}
 
-	fprintf(stdout, "Creating procedure %s\n", name);
+	printf("Creating procedure %s\n", name);
 	sql_cmd(dbproc);
 	if ((ret = dbsqlexec(dbproc)) == FAIL) {
 		if (name[0] == '#')
-			fprintf(stdout, "Failed to create procedure %s. Wrong permission or not MSSQL.\n", name);
+			printf("Failed to create procedure %s. Wrong permission or not MSSQL.\n", name);
 		else
-			fprintf(stdout, "Failed to create procedure %s. Wrong permission.\n", name);
+			printf("Failed to create procedure %s. Wrong permission.\n", name);
 	}
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
@@ -166,14 +166,14 @@ main(int argc, char **argv)
 
 	read_login_info(argc, argv);
 
-	fprintf(stdout, "Starting %s\n", argv[0]);
+	printf("Starting %s\n", argv[0]);
 
 	dbinit();
 
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
-	fprintf(stdout, "About to logon\n");
+	printf("About to logon\n");
 
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
@@ -184,7 +184,7 @@ main(int argc, char **argv)
 	dberrhandle(syb_err_handler);
 
 
-	fprintf(stdout, "About to open %s.%s\n", SERVER, DATABASE);
+	printf("About to open %s.%s\n", SERVER, DATABASE);
 
 	dbproc = dbopen(login, SERVER);
 	if (strlen(DATABASE))
@@ -220,7 +220,7 @@ main(int argc, char **argv)
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
-	fprintf(stdout, "Created procedure %s\n", proc_name);
+	printf("Created procedure %s\n", proc_name);
 
 	/* set up and send the rpc */
 	printf("executing dbrpcinit\n");
@@ -431,7 +431,7 @@ main(int argc, char **argv)
 
 
 
-	fprintf(stdout, "Dropping procedure\n");
+	printf("Dropping procedure\n");
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
@@ -439,7 +439,7 @@ main(int argc, char **argv)
 	}
 	dbexit();
 
-	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
+	printf("%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 
 	free_retparam(&save_param);
 	free_retparam(&save_varchar_tds7_param);

@@ -48,20 +48,20 @@ test(int argc, char **argv, int over4k)
 	set_malloc_options();
 
 	read_login_info(argc, argv);
-	fprintf(stdout, "Starting %s\n", argv[0]);
+	printf("Starting %s\n", argv[0]);
 	dbinit();
 
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
-	fprintf(stdout, "About to logon\n");
+	printf("About to logon\n");
 
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
 	DBSETLAPP(login, "t0013");
 
-	fprintf(stdout, "About to open, PASSWORD: %s, USER: %s, SERVER: %s\n", "", "", "");	/* PASSWORD, USER, SERVER); */
+	printf("About to open, PASSWORD: %s, USER: %s, SERVER: %s\n", "", "", "");	/* PASSWORD, USER, SERVER); */
 
 	dbproc = dbopen(login, SERVER);
 	dbprocw = dbopen(login, SERVER);
@@ -70,7 +70,7 @@ test(int argc, char **argv, int over4k)
 		dbuse(dbprocw, DATABASE);
 	}
 	dbloginfree(login);
-	fprintf(stdout, "logged in\n");
+	printf("logged in\n");
 
 	if (argc == 1) {
 		argv = testargs;
@@ -85,7 +85,7 @@ test(int argc, char **argv, int over4k)
 		fprintf(stderr, "Cannot open input file: %s\n", argv[1]);
 		return 2;
 	}
-	fprintf(stdout, "Reading binary input file\n");
+	printf("Reading binary input file\n");
 
 	fseek(fp, 0, SEEK_END);
 	isiz = ftell(fp);
@@ -146,11 +146,11 @@ test(int argc, char **argv, int over4k)
 	 * Use #ifdef if you want to test dbmoretext mode (needed for 16-bit apps)
 	 * Use #ifndef for big buffer version (32-bit)
 	 */
-	fprintf(stdout, "writing text ... ");
+	printf("writing text ... ");
 	if (over4k) {
 		if (dbwritetext(dbprocw, objname, textPtr, DBTXPLEN, timeStamp, FALSE, isiz, (BYTE*) blob) != SUCCEED)
 			return 5;
-		fprintf(stdout, "done (in one shot)\n");
+		printf("done (in one shot)\n");
 		for (; (result = dbnextrow(dbproc)) != NO_MORE_ROWS; i++) {
 			assert(REG_ROW == result);
 			printf("fetching row %d?\n", i+1);
@@ -158,17 +158,17 @@ test(int argc, char **argv, int over4k)
 	} else {
 		if (dbwritetext(dbprocw, objname, textPtr, DBTXPLEN, timeStamp, FALSE, isiz, NULL) != SUCCEED)
 			return 15;
-		fprintf(stdout, "done\n");
+		printf("done\n");
 
-		fprintf(stdout, "dbsqlok\n");
+		printf("dbsqlok\n");
 		dbsqlok(dbprocw);
-		fprintf(stdout, "dbresults\n");
+		printf("dbresults\n");
 		dbresults(dbprocw);
 
 		numtowrite = 0;
 		/* Send the update value in chunks. */
 		for (numwritten = 0; numwritten < isiz; numwritten += numtowrite) {
-			fprintf(stdout, "dbmoretext %d\n", 1 + numwritten);
+			printf("dbmoretext %d\n", 1 + numwritten);
 			numtowrite = (isiz - numwritten);
 			if (numtowrite > BLOB_BLOCK_SIZE)
 				numtowrite = BLOB_BLOCK_SIZE;
@@ -181,7 +181,7 @@ test(int argc, char **argv, int over4k)
 	}
 #if 0
 	if (SUCCEED != dbclose(dbproc)){
-		fprintf(stdout, "dbclose failed");
+		printf("dbclose failed");
 		exit(1);
 	}
 	dbproc = dbopen(login, SERVER);
@@ -195,7 +195,7 @@ test(int argc, char **argv, int over4k)
 
 	if (dbresults(dbproc) != SUCCEED) {
 		failed = 1;
-		fprintf(stdout, "Was expecting a result set.");
+		printf("Was expecting a result set.");
 		exit(1);
 	}
 
@@ -229,7 +229,7 @@ test(int argc, char **argv, int over4k)
 	dbsqlexec(dbproc);
 	dbresults(dbproc);
 
-	fprintf(stdout, "select 2\n");
+	printf("select 2\n");
 
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
@@ -290,7 +290,7 @@ main(int argc, char **argv)
 	if (res)
 		return res;
 
-	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
+	printf("%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	return failed ? 1 : 0;
 }
 
