@@ -11,7 +11,7 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
 
-int failed = 0;
+static int failed = 0;
 
 
 int

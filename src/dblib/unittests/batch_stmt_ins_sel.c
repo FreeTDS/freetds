@@ -6,12 +6,12 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: batch_stmt_ins_sql.c,v 1.29 2016-11-17 15:52:48 jfarr Exp $";
+static char software_version[] = "$Id: batch_stmt_ins_sql.c,v 1.29 2016-11-17 16:00:00 jfarr Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
 
-int failed = 0;
+static int failed = 0;
 
 
 int
