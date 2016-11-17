@@ -1,11 +1,12 @@
 /*
- * Purpose:
+ * Purpose: this will test what is returned from a batch of queries that do not return any rows
+ * This is related to a bug first identified in PHPs PDO library https://bugs.php.net/bug.php?id=72969
  * Functions: dbbind dbcmd dbcolname dberrhandle dbisopt dbmsghandle dbnextrow dbnumcols dbopen dbresults dbsetlogintime dbsqlexec dbuse
  */
 
 #include "common.h"
 
-static char software_version[] = "$Id: wf_insert_select.c,v 1.29 2016-11-03 15:52:48 freddy77 Exp $";
+static char software_version[] = "$Id: wf_dbresults.c,v 1.29 2016-11-03 15:52:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -16,10 +17,12 @@ int failed = 0;
 int
 main(int argc, char **argv)
 {
+  const int rows_to_add = 50;
   LOGINREC *login;
   DBPROCESS *dbproc;
   int i;
-  DBINT erc;
+  char teststr[1024];
+  DBINT testint, erc;
 
   set_malloc_options();
 
@@ -69,10 +72,9 @@ main(int argc, char **argv)
     assert(erc == SUCCEED);
   }
 
-  RETCODE results_retcode;
+  RETCODE ret;
   int rowcount;
   int colcount;
-  int row_retcode;
 
   /*
   * This test is written to simulate how dblib is used in PDO
@@ -88,17 +90,16 @@ main(int argc, char **argv)
   sql_cmd(dbproc);
   dbsqlexec(dbproc);
 
-  results_retcode = dbresults(dbproc);
+  ret = dbresults(dbproc);
   rowcount = DBCOUNT(dbproc);
   colcount = dbnumcols(dbproc);
 
-  fprintf(stdout, "** CREATE TABLE **\n");
-  fprintf(stdout, "RETCODE: %d\n", results_retcode);
+  fprintf(stdout, "RETCODE: %d\n", ret);
   fprintf(stdout, "ROWCOUNT: %d\n", rowcount);
   fprintf(stdout, "COLCOUNT: %d\n\n", colcount);
 
-  // check that the results correspond to the create table statement
-  assert(results_retcode == SUCCEED);
+  // check the results of the create table statement
+  assert(ret == SUCCEED);
   assert(rowcount == -1);
   assert(colcount == 0);
 
@@ -107,149 +108,90 @@ main(int argc, char **argv)
   // --------------------------------------------------------------------------
   // INSERT
   // --------------------------------------------------------------------------
-  fprintf(stdout, "** INSERT **\n");
+  ret = dbnextrow(dbproc);
+  assert(ret == NO_MORE_ROWS);
 
-  // there shouldn't be any rows in this resultset yet, it's still from the CREATE TABLE
-  row_retcode = dbnextrow(dbproc);
-  fprintf(stdout, "dbnextrow retcode: %d\n", results_retcode);
-  assert(row_retcode == NO_MORE_ROWS);
-
-  results_retcode = dbresults(dbproc);
+  ret = dbresults(dbproc);
   rowcount = DBCOUNT(dbproc);
   colcount = dbnumcols(dbproc);
 
-  fprintf(stdout, "RETCODE: %d\n", results_retcode);
+  fprintf(stdout, "RETCODE: %d\n", ret);
   fprintf(stdout, "ROWCOUNT: %d\n", rowcount);
   fprintf(stdout, "COLCOUNT: %d\n\n", colcount);
 
-  assert(results_retcode == SUCCEED);
+  assert(ret == SUCCEED);
   assert(rowcount == 3);
   assert(colcount == 0);
 
   // --------------------------------------------------------------------------
-  // SELECT
-  // --------------------------------------------------------------------------
-  fprintf(stdout, "** SELECT **\n");
-
-  // the rowset is still from the INSERT and should have no rows
-  row_retcode = dbnextrow(dbproc);
-  fprintf(stdout, "dbnextrow retcode: %d\n", results_retcode);
-  assert(row_retcode == NO_MORE_ROWS);
-
-  results_retcode = dbresults(dbproc);
-  rowcount = DBCOUNT(dbproc);
-  colcount = dbnumcols(dbproc);
-
-  fprintf(stdout, "RETCODE: %d\n", results_retcode);
-  fprintf(stdout, "ROWCOUNT: %d\n", rowcount);
-  fprintf(stdout, "COLCOUNT: %d\n\n", colcount);
-
-  assert(results_retcode == SUCCEED);
-  assert(rowcount == -1);
-  assert(colcount == 1);
-
-  // now we expect to find three rows in the rowset
-  row_retcode = dbnextrow(dbproc);
-  fprintf(stdout, "dbnextrow retcode: %d\n", row_retcode);
-  assert(row_retcode == REG_ROW); // 4040 corresponds to TDS_ROW_RESULT in freetds/tds.h
-  row_retcode = dbnextrow(dbproc);
-  fprintf(stdout, "dbnextrow retcode: %d\n", row_retcode);
-  assert(row_retcode == REG_ROW);
-  row_retcode = dbnextrow(dbproc);
-  fprintf(stdout, "dbnextrow retcode: %d\n\n", row_retcode);
-  assert(row_retcode == REG_ROW);
-
-  // --------------------------------------------------------------------------
   // UPDATE
   // --------------------------------------------------------------------------
-  fprintf(stdout, "** UPDATE **\n");
+  ret = dbnextrow(dbproc);
+  assert(ret == NO_MORE_ROWS);
 
-  // check that there are no rows left, then we'll get the results from the UPDATE
-  row_retcode = dbnextrow(dbproc);
-  fprintf(stdout, "dbnextrow retcode: %d\n", row_retcode);
-  assert(row_retcode == NO_MORE_ROWS);
-
-  results_retcode = dbresults(dbproc);
+  ret = dbresults(dbproc);
   rowcount = DBCOUNT(dbproc);
   colcount = dbnumcols(dbproc);
 
-  fprintf(stdout, "RETCODE: %d\n", results_retcode);
+  fprintf(stdout, "RETCODE: %d\n", ret);
   fprintf(stdout, "ROWCOUNT: %d\n", rowcount);
   fprintf(stdout, "COLCOUNT: %d\n\n", colcount);
 
-  assert(results_retcode == SUCCEED);
+  assert(ret == SUCCEED);
   assert(rowcount == 3);
-  //assert(colcount == 0); // TODO: why does an update get a column?
+  assert(colcount == 0);
 
   // --------------------------------------------------------------------------
-  // SELECT
+  // INSERT
   // --------------------------------------------------------------------------
-  fprintf(stdout, "** SELECT **\n");
+  ret = dbnextrow(dbproc);
+  assert(ret == NO_MORE_ROWS);
 
-  row_retcode = dbnextrow(dbproc);
-  fprintf(stdout, "dbnextrow retcode: %d\n", row_retcode);
-  assert(row_retcode == NO_MORE_ROWS);
-
-  results_retcode = dbresults(dbproc);
+  ret = dbresults(dbproc);
   rowcount = DBCOUNT(dbproc);
   colcount = dbnumcols(dbproc);
 
-  fprintf(stdout, "RETCODE: %d\n", results_retcode);
+  fprintf(stdout, "RETCODE: %d\n", ret);
   fprintf(stdout, "ROWCOUNT: %d\n", rowcount);
   fprintf(stdout, "COLCOUNT: %d\n\n", colcount);
 
-  assert(results_retcode == SUCCEED);
-  assert(rowcount == -1);
-  assert(colcount == 1);
-
-  // now we expect to find three rows in the rowset again
-  row_retcode = dbnextrow(dbproc);
-  fprintf(stdout, "dbnextrow retcode: %d\n", row_retcode);
-  assert(row_retcode == REG_ROW);
-  row_retcode = dbnextrow(dbproc);
-  fprintf(stdout, "dbnextrow retcode: %d\n", row_retcode);
-  assert(row_retcode == REG_ROW);
-  row_retcode = dbnextrow(dbproc);
-  fprintf(stdout, "dbnextrow retcode: %d\n\n", row_retcode);
-  assert(row_retcode == REG_ROW);
+  assert(ret == SUCCEED);
+  assert(rowcount == 1);
+  assert(colcount == 0);
 
   // --------------------------------------------------------------------------
   // DROP
   // --------------------------------------------------------------------------
-  fprintf(stdout, "** DROP **\n");
+  ret = dbnextrow(dbproc);
+  assert(ret == NO_MORE_ROWS);
 
-  row_retcode = dbnextrow(dbproc);
-  fprintf(stdout, "dbnextrow retcode: %d\n", row_retcode);
-  assert(row_retcode == NO_MORE_ROWS);
-
-  results_retcode = dbresults(dbproc);
+  ret = dbresults(dbproc);
   rowcount = DBCOUNT(dbproc);
   colcount = dbnumcols(dbproc);
 
-  fprintf(stdout, "RETCODE: %d\n", results_retcode);
+  fprintf(stdout, "RETCODE: %d\n", ret);
   fprintf(stdout, "ROWCOUNT: %d\n", rowcount);
   fprintf(stdout, "COLCOUNT: %d\n\n", colcount);
 
-  assert(results_retcode == SUCCEED);
+  assert(ret == SUCCEED);
   assert(rowcount == -1);
-  //assert(colcount == 1);
+  assert(colcount == 0);
 
   // Call one more time to be sure we get NO_MORE_RESULTS
-  row_retcode = dbnextrow(dbproc);
-  fprintf(stdout, "dbnextrow retcode: %d\n", row_retcode);
-  assert(row_retcode == NO_MORE_ROWS);
+  ret = dbnextrow(dbproc);
+  assert(ret == NO_MORE_ROWS);
 
-  results_retcode = dbresults(dbproc);
+  ret = dbresults(dbproc);
   rowcount = DBCOUNT(dbproc);
   colcount = dbnumcols(dbproc);
 
-  fprintf(stdout, "RETCODE: %d\n", results_retcode);
+  fprintf(stdout, "RETCODE: %d\n", ret);
   fprintf(stdout, "ROWCOUNT: %d\n", rowcount);
   fprintf(stdout, "COLCOUNT: %d\n\n", colcount);
 
-  assert(results_retcode == NO_MORE_RESULTS);
+  assert(ret == NO_MORE_RESULTS);
   assert(rowcount == -1);
-  //assert(colcount == 0);
+  assert(colcount == 0);
 
   dbexit();
 
