@@ -429,7 +429,7 @@ odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void 
 			ol = sizeof(discard);
 			ob = discard;
 			char_conv->suppress.e2big = 1;
-			if (tds_iconv(dbc->tds_socket, char_conv, to_client, &ib, &il, &ob, &ol) == (size_t)-1)
+			if (tds_iconv(dbc->tds_socket, char_conv, to_client, &ib, &il, &ob, &ol) == (size_t)-1 && errno != E2BIG)
 				result = SQL_ERROR;
 			ol = sizeof(discard) - ol;
 			/* if there are still left space copy the partial conversion */
