@@ -23,39 +23,39 @@ main(int argc, char **argv)
 	DBPROCESS *dbproc;
 
 	read_login_info(argc, argv);
-	fprintf(stdout, "Starting %s\n", argv[0]);
+	printf("Starting %s\n", argv[0]);
 
 	dbinit();
 
-	fprintf(stdout, "About to logon\n");
+	printf("About to logon\n");
 
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
 	DBSETLAPP(login, "t0011");
 
-	fprintf(stdout, "About to open\n");
+	printf("About to open\n");
 
 	dbproc = dbopen(login, SERVER);
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
 	dbloginfree(login);
 
-	fprintf(stdout, "Dropping table\n");
+	printf("Dropping table\n");
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
 
-	fprintf(stdout, "creating table\n");
+	printf("creating table\n");
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
 
-	fprintf(stdout, "insert\n");
+	printf("insert\n");
 
 	insert_row(dbproc);
 	insert_row(dbproc);
@@ -65,7 +65,7 @@ main(int argc, char **argv)
 
 	dbexit();
 
-	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
+	printf("%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	return failed ? 1 : 0;
 }
 
@@ -79,14 +79,14 @@ select_rows(DBPROCESS * dbproc, int bind_type)
 	DBINT i;
 
 
-	fprintf(stdout, "select\n");
+	printf("select\n");
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 
 
 	if (dbresults(dbproc) != SUCCEED) {
 		failed = 1;
-		fprintf(stdout, "Was expecting a result set.");
+		printf("Was expecting a result set.");
 		exit(1);
 	}
 
@@ -115,7 +115,7 @@ select_rows(DBPROCESS * dbproc, int bind_type)
 	while (dbnextrow(dbproc) == REG_ROW) {
 		i++;
 		if (testint != i) {
-			fprintf(stdout, "Failed.  Expected i to be |%d|, was |%d|\n", testint, i);
+			printf("Failed.  Expected i to be |%d|, was |%d|\n", testint, i);
 			return 1;
 		}
 		printf("c:  %s$\n", teststr);

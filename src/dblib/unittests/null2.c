@@ -119,7 +119,7 @@ test(const char *type, int give_err)
 		dbcancel(dbproc);
 		if (!give_err)
 			return;
-		fprintf(stdout, "Was expecting a result set.\n");
+		printf("Was expecting a result set.\n");
 		failed = 1;
 		return;
 	}
@@ -151,21 +151,21 @@ main(int argc, char **argv)
 
 	read_login_info(argc, argv);
 
-	fprintf(stdout, "Starting %s\n", argv[0]);
+	printf("Starting %s\n", argv[0]);
 
 	dbinit();
 
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
-	fprintf(stdout, "About to logon\n");
+	printf("About to logon\n");
 
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
 	DBSETLAPP(login, "thread");
 
-	fprintf(stdout, "About to open \"%s\"\n", SERVER);
+	printf("About to open \"%s\"\n", SERVER);
 
 	dbproc = dbopen(login, SERVER);
 	if (!dbproc) {

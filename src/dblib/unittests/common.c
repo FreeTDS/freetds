@@ -349,7 +349,7 @@ syb_msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, cha
 	if (dbproc != NULL) {
 		pexpected_msgno = (int *) dbgetuserdata(dbproc);
 		if (pexpected_msgno && *pexpected_msgno == msgno) {
-			fprintf(stdout, "OK: anticipated message arrived: %d %s\n", (int) msgno, msgtext);
+			printf("OK: anticipated message arrived: %d %s\n", (int) msgno, msgtext);
 			*pexpected_msgno = 0;
 			return 0;
 		}
@@ -380,7 +380,7 @@ syb_msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, cha
 			 * Otherwise, it is just an informational (e.g. print) message
 			 * from the server, so send it to stdout.
 			 */
-			fprintf(stdout, "%s\n", msgtext);
+			printf("%s\n", msgtext);
 			fflush(stdout);
 			severity = 0;
 		}
@@ -412,7 +412,7 @@ syb_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *db
 	if (dbproc != NULL) {
 		pexpected_dberr = (int *) dbgetuserdata(dbproc);
 		if (pexpected_dberr && *pexpected_dberr == dberr) {
-			fprintf(stdout, "OK: anticipated error %d (%s) arrived\n", dberr, dberrstr);
+			printf("OK: anticipated error %d (%s) arrived\n", dberr, dberrstr);
 			*pexpected_dberr = 0;
 			return INT_CANCEL;
 		}

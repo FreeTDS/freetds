@@ -21,44 +21,44 @@ main(int argc, char **argv)
 
 	read_login_info(argc, argv);
 
-	fprintf(stdout, "Starting %s\n", argv[0]);
+	printf("Starting %s\n", argv[0]);
 
 	dbinit();
 
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
-	fprintf(stdout, "About to logon\n");
+	printf("About to logon\n");
 
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
 	DBSETLAPP(login, "t0022");
 
-	fprintf(stdout, "About to open\n");
+	printf("About to open\n");
 
 	dbproc = dbopen(login, SERVER);
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
 	dbloginfree(login);
 
-	fprintf(stdout, "Dropping proc\n");
+	printf("Dropping proc\n");
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while ((erc = dbresults(dbproc)) == SUCCEED) {
-		fprintf(stdout, "dbresult succeeded dropping procedure\n");
+		printf("dbresult succeeded dropping procedure\n");
 		while ((erc = dbnextrow(dbproc)) == SUCCEED) {
-			fprintf(stdout, "dbnextrow returned spurious rows dropping procedure\n");
+			printf("dbnextrow returned spurious rows dropping procedure\n");
 			assert(0); /* dropping a procedure returns no rows */
 		}
 		assert(erc == NO_MORE_ROWS);
 	}
 	assert(erc == NO_MORE_RESULTS);
 
-	fprintf(stdout, "creating proc\n");
+	printf("creating proc\n");
 	sql_cmd(dbproc);
 	if (dbsqlexec(dbproc) == FAIL) {
-		fprintf(stdout, "Failed to create proc t0022.\n");
+		printf("Failed to create proc t0022.\n");
 		exit(1);
 	}
 	while ((erc = dbresults(dbproc)) != NO_MORE_RESULTS) {
@@ -74,7 +74,7 @@ main(int argc, char **argv)
 
 	while ((erc = dbresults(dbproc)) != NO_MORE_RESULTS) {
 		if (erc == FAIL) {
-			fprintf(stdout, "Was expecting a result set.\n");
+			printf("Was expecting a result set.\n");
 			exit(1);
 		}
 		while ((erc = dbnextrow(dbproc)) == SUCCEED) {
@@ -90,10 +90,10 @@ main(int argc, char **argv)
 		|| (DBTDS(dbproc) == DBTDS_7_2)
 		|| (DBTDS(dbproc) == DBTDS_7_3)
 		|| (DBTDS(dbproc) == DBTDS_7_4))) {
-		fprintf(stdout, "WARNING:  Received no return parameters from server!\n");
-		fprintf(stdout, "WARNING:  This is likely due to a bug in Microsoft\n");
-		fprintf(stdout, "WARNING:  SQL Server 7.0 SP3 and later.\n");
-		fprintf(stdout, "WARNING:  Please try again using TDS protocol 4.2.\n");
+		printf("WARNING:  Received no return parameters from server!\n");
+		printf("WARNING:  This is likely due to a bug in Microsoft\n");
+		printf("WARNING:  SQL Server 7.0 SP3 and later.\n");
+		printf("WARNING:  Please try again using TDS protocol 4.2.\n");
 		dbcmd(dbproc, "drop proc t0022");
 		dbsqlexec(dbproc);
 		while (dbresults(dbproc) != NO_MORE_RESULTS) {
@@ -114,23 +114,23 @@ main(int argc, char **argv)
 		printf("ret data %d is %s\n", i, teststr);
 	}
 	if ((retname == NULL) || strcmp(retname, "@b")) {
-		fprintf(stdout, "Was expecting a retname to be @b.\n");
+		printf("Was expecting a retname to be @b.\n");
 		exit(1);
 	}
 	if (strcmp(teststr, "42")) {
-		fprintf(stdout, "Was expecting a retdata to be 42.\n");
+		printf("Was expecting a retdata to be 42.\n");
 		exit(1);
 	}
 	if (rettype != SYBINT4) {
-		fprintf(stdout, "Was expecting a rettype to be SYBINT4 was %d.\n", rettype);
+		printf("Was expecting a rettype to be SYBINT4 was %d.\n", rettype);
 		exit(1);
 	}
 	if (retlen != 4) {
-		fprintf(stdout, "Was expecting a retlen to be 4.\n");
+		printf("Was expecting a retlen to be 4.\n");
 		exit(1);
 	}
 
-	fprintf(stdout, "Dropping proc\n");
+	printf("Dropping proc\n");
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
@@ -141,25 +141,25 @@ main(int argc, char **argv)
 	 * Chapter 2: test for resultsets containing only a return status
 	 */
 	
-	fprintf(stdout, "Dropping proc t0022a\n");
+	printf("Dropping proc t0022a\n");
 	sql_cmd(dbproc);
 
 	dbsqlexec(dbproc);
 
 	while ((erc = dbresults(dbproc)) == SUCCEED) {
-		fprintf(stdout, "dbresult succeeded dropping procedure\n");
+		printf("dbresult succeeded dropping procedure\n");
 		while ((erc = dbnextrow(dbproc)) == SUCCEED) {
-			fprintf(stdout, "dbnextrow returned spurious rows dropping procedure\n");
+			printf("dbnextrow returned spurious rows dropping procedure\n");
 			assert(0); /* dropping a procedure returns no rows */
 		}
 		assert(erc == NO_MORE_ROWS);
 	}
 	assert(erc == NO_MORE_RESULTS);
 
-	fprintf(stdout, "creating proc t0022a\n");
+	printf("creating proc t0022a\n");
 	sql_cmd(dbproc);
 	if (dbsqlexec(dbproc) == FAIL) {
-		fprintf(stdout, "Failed to create proc t0022a.\n");
+		printf("Failed to create proc t0022a.\n");
 		exit(1);
 	}
 	while ((erc = dbresults(dbproc)) != NO_MORE_RESULTS) {
@@ -178,7 +178,7 @@ main(int argc, char **argv)
 		DBBOOL fret;
 		DBINT  status;
 		if (erc == FAIL) {
-			fprintf(stdout, "t0022a failed for some reason.\n");
+			printf("t0022a failed for some reason.\n");
 			exit(1);
 		}
 		printf("procedure returned %srows\n", DBROWS(dbproc)==SUCCEED? "" : "no ");
@@ -203,7 +203,7 @@ main(int argc, char **argv)
 
 	assert(erc == NO_MORE_RESULTS);
 	
-	fprintf(stdout, "Dropping proc t0022a\n");
+	printf("Dropping proc t0022a\n");
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
@@ -215,6 +215,6 @@ main(int argc, char **argv)
 
 	dbexit();
 
-	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
+	printf("%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	return failed ? 1 : 0;
 }

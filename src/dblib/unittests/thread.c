@@ -39,12 +39,12 @@ test(DBPROCESS *dbproc)
 	DBINT testint;
 
 
-	/* fprintf(stdout, "select\n"); */
+	/* printf("select\n"); */
 	dbcmd(dbproc, "select * from dblib_thread order by i");
 	dbsqlexec(dbproc);
 
 	if (dbresults(dbproc) != SUCCEED) {
-		fprintf(stdout, "Was expecting a result set.\n");
+		printf("Was expecting a result set.\n");
 		set_failed();
 		return 1;
 	}
@@ -76,7 +76,7 @@ test(DBPROCESS *dbproc)
 			abort();
 		}
 		if (0 != strncmp(teststr, expected, strlen(expected))) {
-			fprintf(stdout, "Failed.  Expected s to be |%s|, was |%s|\n", expected, teststr);
+			printf("Failed.  Expected s to be |%s|, was |%s|\n", expected, teststr);
 			abort();
 		}
 		/* printf("Read a row of data -> %d |%s|\n", (int) testint, teststr); */
@@ -151,21 +151,21 @@ main(int argc, char **argv)
 
 	read_login_info(argc, argv);
 
-	fprintf(stdout, "Starting %s\n", argv[0]);
+	printf("Starting %s\n", argv[0]);
 
 	dbinit();
 
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
-	fprintf(stdout, "About to logon\n");
+	printf("About to logon\n");
 
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
 	DBSETLAPP(login, "thread");
 
-	fprintf(stdout, "About to open \"%s\"\n", SERVER);
+	printf("About to open \"%s\"\n", SERVER);
 
 	dbproc = dbopen(login, SERVER);
 	if (!dbproc) {
@@ -178,21 +178,21 @@ main(int argc, char **argv)
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
 
-	fprintf(stdout, "Dropping table\n");
+	printf("Dropping table\n");
 	dbcmd(dbproc, "if object_id('dblib_thread') is not null drop table dblib_thread");
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) == SUCCEED) {
 		/* nop */
 	}
 
-	fprintf(stdout, "creating table\n");
+	printf("creating table\n");
 	dbcmd(dbproc, "create table dblib_thread (i int not null, s char(10) not null)");
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) == SUCCEED) {
 		/* nop */
 	}
 
-	fprintf(stdout, "insert\n");
+	printf("insert\n");
 	for (i = 0; i < ROWS; i++) {
 		char cmd[128];
 
@@ -217,10 +217,10 @@ main(int argc, char **argv)
 
 	for (i = 0; i < NUM_THREAD; ++i) {
 		tds_thread_join(th[i], NULL);
-		fprintf(stdout, "thread: %d exited\n", i + 1);
+		printf("thread: %d exited\n", i + 1);
 	}
 
-	fprintf(stdout, "Dropping table\n");
+	printf("Dropping table\n");
 	dbcmd(dbproc, "drop table dblib_thread");
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) == SUCCEED) {

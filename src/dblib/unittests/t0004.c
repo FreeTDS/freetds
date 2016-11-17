@@ -21,35 +21,35 @@ main(int argc, char **argv)
 
 	read_login_info(argc, argv);
 
-	fprintf(stdout, "Starting %s\n", argv[0]);
+	printf("Starting %s\n", argv[0]);
 
 	dbinit();
 
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
-	fprintf(stdout, "About to logon\n");
+	printf("About to logon\n");
 
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
 	DBSETLAPP(login, "t0004");
 
-	fprintf(stdout, "About to open\n");
+	printf("About to open\n");
 
 	dbproc = dbopen(login, SERVER);
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
 	dbloginfree(login);
 
-	fprintf(stdout, "creating table\n");
+	printf("creating table\n");
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
 
-	fprintf(stdout, "insert\n");
+	printf("insert\n");
 	for (i = 1; i < rows_to_add; i++) {
 		sql_cmd(dbproc);
 		dbsqlexec(dbproc);
@@ -62,7 +62,7 @@ main(int argc, char **argv)
 	dbsqlexec(dbproc);
 
 	if (dbresults(dbproc) != SUCCEED) {
-		fprintf(stdout, "Was expecting a result set.");
+		printf("Was expecting a result set.");
 		exit(1);
 	}
 
@@ -94,7 +94,7 @@ main(int argc, char **argv)
 			abort();
 		}
 		if (0 != strncmp(teststr, expected, strlen(expected))) {
-			fprintf(stdout, "Failed.  Expected s to be |%s|, was |%s|\n", expected, teststr);
+			printf("Failed.  Expected s to be |%s|, was |%s|\n", expected, teststr);
 			abort();
 		}
 		printf("Read a row of data -> %d %s\n", (int) testint, teststr);
@@ -102,8 +102,8 @@ main(int argc, char **argv)
 
 
 
-	fprintf(stdout, "second select\n");
-	fprintf(stdout, "testing dbgetchar...\n");
+	printf("second select\n");
+	printf("testing dbgetchar...\n");
 	for (i=0; (s = dbgetchar(dbproc, i)) != NULL; i++) {
 		putchar(*s);
 		if (!(isprint((unsigned char)*s) || iscntrl((unsigned char)*s))) {
@@ -112,13 +112,13 @@ main(int argc, char **argv)
 			break;
 		}
 	}
-	fprintf(stdout, "<== end of command buffer\n");
+	printf("<== end of command buffer\n");
 
 	if (SUCCEED != sql_cmd(dbproc)) {
 		fprintf(stderr, "%s:%d: dbcmd failed\n", __FILE__, __LINE__);
 		failed = 1;
 	}
-	fprintf(stdout, "About to exec for the second time.  Should fail\n");
+	printf("About to exec for the second time.  Should fail\n");
 	expected_error = 20019;
 	dbsetuserdata(dbproc, (BYTE*) &expected_error);
 	if (FAIL != dbsqlexec(dbproc)) {
@@ -127,6 +127,6 @@ main(int argc, char **argv)
 	}
 	dbexit();
 
-	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
+	printf("%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	return failed ? 1 : 0;
 }

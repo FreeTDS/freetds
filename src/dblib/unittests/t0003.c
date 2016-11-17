@@ -23,7 +23,7 @@ main(int argc, char **argv)
 
 	read_login_info(argc, argv);
 
-	fprintf(stdout, "Starting %s\n", argv[0]);
+	printf("Starting %s\n", argv[0]);
 
 	/* Fortify_EnterScope(); */
 	dbinit();
@@ -31,7 +31,7 @@ main(int argc, char **argv)
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
-	fprintf(stdout, "About to logon\n");
+	printf("About to logon\n");
 
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
@@ -39,7 +39,7 @@ main(int argc, char **argv)
 	DBSETLAPP(login, "t0003");
 	DBSETLHOST(login, "ntbox.dntis.ro");
 
-	fprintf(stdout, "About to open\n");
+	printf("About to open\n");
 
 	dbproc = dbopen(login, SERVER);
 	if (strlen(DATABASE))
@@ -52,14 +52,14 @@ main(int argc, char **argv)
 	dbsetopt(dbproc, DBBUFFER, "100", 0);
 #endif
 
-	fprintf(stdout, "creating table\n");
+	printf("creating table\n");
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
 
-	fprintf(stdout, "insert\n");
+	printf("insert\n");
 	for (i = 1; i < rows_to_add; i++) {
 		sql_cmd(dbproc);
 		dbsqlexec(dbproc);
@@ -68,13 +68,13 @@ main(int argc, char **argv)
 		}
 	}
 
-	fprintf(stdout, "select\n");
+	printf("select\n");
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 
 	if (dbresults(dbproc) != SUCCEED) {
 		failed = 1;
-		fprintf(stdout, "Was expecting a result set.");
+		printf("Was expecting a result set.");
 		exit(1);
 	}
 
@@ -105,7 +105,7 @@ main(int argc, char **argv)
 		}
 		if (0 != strncmp(teststr, expected, strlen(expected))) {
 			failed = 1;
-			fprintf(stdout, "Failed.  Expected s to be |%s|, was |%s|\n", expected, teststr);
+			printf("Failed.  Expected s to be |%s|, was |%s|\n", expected, teststr);
 			abort();
 		}
 		printf("Read a row of data -> %d %s\n", (int) testint, teststr);
@@ -121,6 +121,6 @@ main(int argc, char **argv)
 
 	dbexit();
 
-	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
+	printf("%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	return failed ? 1 : 0;
 }
