@@ -92,8 +92,8 @@ spid_SOURCES	=	spid.c common.c common.h
 batch_stmt_ins_sel_SOURCES	=	batch_stmt_ins_sel.c common.c common.h batch_stmt_ins_sel.sql
 batch_stmt_ins_upd_SOURCES	=	batch_stmt_ins_upd.c common.c common.h batch_stmt_ins_upd.sql
 canquery_SOURCES=	canquery.c common.c common.h
-batch_stmt_ins_sel =	batch_stmt_ins_sel.c common.c common.h batch_stmt_ins_sel.sql
-batch_stmt_ins_upd =	batch_stmt_ins_upd.c common.c common.h batch_stmt_ins_upd.sql
+batch_stmt_ins_sel_SOURCES	=	batch_stmt_ins_sel.c common.c common.h batch_stmt_ins_sel.sql
+batch_stmt_ins_upd_SOURCES	=	batch_stmt_ins_upd.c common.c common.h batch_stmt_ins_upd.sql
 
 AM_CPPFLAGS	= 	-DFREETDS_TOPDIR=\"$(top_srcdir)\" -I$(top_srcdir)/include
 if MINGW32
