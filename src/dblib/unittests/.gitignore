@@ -43,3 +43,5 @@ pending
 cancel
 spid
 canquery
+batch_stmt_ins_sel
+batch_stmt_ins_upd
