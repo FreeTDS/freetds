@@ -299,6 +299,11 @@ main(int argc, char **argv)
 				}
 			}
 			printf("row count %d\n", (int) dbcount(dbproc));
+			printf("hasretstatus %d\n", dbhasretstat(dbproc));
+			if (num_resultset == 4 && !dbhasretstat(dbproc)) {
+				fprintf(stderr, "dbnextrow should have set hasretstatus after last recordset\n");
+				exit(1);
+			}
 			if (empty_resultset)
 				++num_empty_resultset;
 		} else {
