@@ -2112,9 +2112,12 @@ dbnextrow(DBPROCESS * dbproc)
 
 	} else {
 		const int mask = TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE;
+		TDS_INT8 row_count = TDS_NO_COUNT;
+		bool rows_set = false;
 		buffer_save_row(dbproc);
 
 		/* Get the row from the TDS stream.  */
+again:
 		switch (tds_process_tokens(tds, &res_type, NULL, mask)) {
 		case TDS_SUCCESS:
 			if (res_type == TDS_ROW_RESULT || res_type == TDS_COMPUTE_RESULT) {
@@ -2130,6 +2133,14 @@ dbnextrow(DBPROCESS * dbproc)
 #endif
 				break;
 			}
+			/* allows to process trailing tokens */
+			if (res_type == TDS_DONEINPROC_RESULT) {
+				if (!rows_set)
+					row_count = tds->rows_affected;
+				rows_set = true;
+				goto again;
+			}
+			/* fall through */
 		case TDS_NO_MORE_RESULTS:
 			dbproc->dbresults_state = _DB_RES_NEXT_RESULT;
 			result = NO_MORE_ROWS;
@@ -2139,6 +2150,8 @@ dbnextrow(DBPROCESS * dbproc)
 			return FAIL;
 			break;
 		}
+		if (rows_set)
+			tds->rows_affected = row_count;
 	}
 
 	if (res_type == TDS_ROW_RESULT || res_type == TDS_COMPUTE_RESULT) {
