@@ -92,7 +92,7 @@ wchar_SOURCES = wchar.c
 transaction2_SOURCES = transaction2.c
 cursor6_SOURCES	= cursor6.c
 cursor7_SOURCES	= cursor7.c
-utf8_SOURCES	= utf8.c
+utf8_SOURCES	= utf8.c common.c
 utf8_2_SOURCES	= utf8_2.c
 stats_SOURCES	= stats.c
 descrec_SOURCES	= descrec.c
@@ -118,6 +118,7 @@ AM_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
 endif
 # this test cannot work using wide characters as use UTF-8 and single byte encoding
 utf8_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
+utf8_LDADD	=
 oldpwd_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
 
 LIBS		=	$(ODBCLIB) $(ODBCNODMLIB) ../../replacements/libreplacements.la $(NETWORK_LIBS)
