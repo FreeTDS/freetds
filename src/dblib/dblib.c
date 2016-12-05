@@ -1767,6 +1767,8 @@ _dbresults(DBPROCESS * dbproc)
 					dbproc->dbresults_state = _DB_RES_NEXT_RESULT;
 					if (done_flags & TDS_DONE_ERROR)
 						return FAIL;
+					if (result_type == TDS_DONE_RESULT)
+						return SUCCEED;
 					break;
 
 				case _DB_RES_RESULTSET_EMPTY:
