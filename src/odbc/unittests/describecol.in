@@ -740,7 +740,7 @@ if tds50
 
 	set DESC_PRECISION 2
 	set DESC_SCALE 2
-	select bigdatetime '2011-08-06 12:34:56.543'
+	select bigdatetime """'2011-08-06 12:34:56.543'"""
 	attr SQL_DESC_SCALE 6
 	attr SQL_DESC_LENGTH 26
 	attr SQL_DESC_PRECISION 6
