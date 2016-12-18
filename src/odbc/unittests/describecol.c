@@ -245,7 +245,7 @@ check_attr_ard(ATTR_PARAMS)
 		odbc_fatal(": failure not expected\n");
 	if (li != lookup(expected_value, attr->lookup)) {
 		g_result = 1;
-		fprintf(stderr, "Line %u: invalid %s got %s expected %s\n", odbc_line_num, attr->name, unlookup(i, attr->lookup), expected_value);
+		fprintf(stderr, "Line %u: invalid %s got %s expected %s\n", odbc_line_num, attr->name, unlookup(li, attr->lookup), expected_value);
 	}
 }
 
