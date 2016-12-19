@@ -324,6 +324,10 @@ tds_iconv_open(TDSCONNECTION * conn, const char *charset, int use_utf16)
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_iconv_open(%p, %s)\n", conn, charset);
 
+	/* TDS 5.0 support only UTF-16 encodings */
+	if (IS_TDS50(conn))
+		use_utf16 = true;
+
 	/* initialize */
 	if (!iconv_initialized) {
 		if ((ret = tds_iconv_init()) > 0) {
