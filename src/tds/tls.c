@@ -762,7 +762,7 @@ check_name_match(ASN1_STRING *name, const char *hostname)
 
 	tdsdump_log(TDS_DBG_INFO1, "Got name %s\n", name_utf8);
 	ret = 0;
-	if (strlen(name_utf8) == name_len && check_wildcard(name_utf8, hostname) == 0)
+	if (strlen(name_utf8) == name_len && check_wildcard(name_utf8, hostname))
 		ret = 1;
 	OPENSSL_free(name_utf8);
 	return ret;
