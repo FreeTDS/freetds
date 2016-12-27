@@ -411,6 +411,27 @@ odbc_connect(TDS_DBC * dbc, TDSLOGIN * login)
 
 	if (IS_TDS7_PLUS(dbc->tds_socket->conn))
 		dbc->cursor_support = 1;
+	/* force utf-16 on sybase connections due tds v 5 are sybase related, sybase only supports utf-16*/
+	if (IS_TDS50(dbc->tds_socket->conn))
+	{
+		if (!tds_dstr_dup(&dbc->original_charset, &login->client_charset) 
+		    || !tds_dstr_copy(&login->client_charset, "UTF-16")) {
+			tds_free_socket(dbc->tds_socket);
+			dbc->tds_socket = NULL;
+			odbc_errs_add(&dbc->errs, "HY001", NULL);
+			return SQL_ERROR;
+		}
+		if (TDS_FAILED(tds_connect_and_login(dbc->tds_socket, login))) {
+			tds_free_socket(dbc->tds_socket);
+			dbc->tds_socket = NULL;
+			odbc_errs_add(&dbc->errs, "08001", NULL);
+			return SQL_ERROR;
+		}
+		dbc->mb_conv = tds_iconv_get(dbc->tds_socket->conn, tds_dstr_cstr(&dbc->original_charset), "UTF-16");
+	}
+
+
+
 
 #if ENABLE_ODBC_MARS
 	/* check if mars is enabled */
