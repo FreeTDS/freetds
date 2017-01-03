@@ -91,6 +91,7 @@ odbc_read_login_info(void)
 	const char *const *search_p;
 	char path[1024];
 	int len;
+	int ini_override = 1;
 #ifdef _WIN32
 	UWORD old_config_mode;
 #endif
@@ -157,6 +158,10 @@ odbc_read_login_info(void)
 		return 0;
 	strcpy(odbc_driver, path);
 
+	s1 = getenv("TDSINIOVERRIDE");
+	if (s1 && atoi(s1) == 0)
+		ini_override = 0;
+
 #ifndef _WIN32
 	/* craft out odbc.ini, avoid to read wrong one */
 	sprintf(path, "odbc.ini.%d", (int) getpid());
@@ -164,13 +169,15 @@ odbc_read_login_info(void)
 	if (in) {
 		fprintf(in, "[%s]\nDriver = %s\nDatabase = %s\nServername = %s\n", odbc_server, odbc_driver, odbc_database, odbc_server);
 		fclose(in);
-		setenv("ODBCINI", "./odbc.ini", 1);
-		setenv("SYSODBCINI", "./odbc.ini", 1);
-		rename(path, "odbc.ini");
+		if (ini_override) {
+			setenv("ODBCINI", "./odbc.ini", 1);
+			setenv("SYSODBCINI", "./odbc.ini", 1);
+			rename(path, "odbc.ini");
+		}
 		unlink(path);
 	}
 #else
-	if (SQLGetConfigMode(&old_config_mode)) {
+	if (ini_override && SQLGetConfigMode(&old_config_mode)) {
 		SQLSetConfigMode(ODBC_USER_DSN);
 		SQLWritePrivateProfileString(odbc_server, "Driver", odbc_driver, "odbc.ini");
 		SQLWritePrivateProfileString(odbc_server, "Database", odbc_database, "odbc.ini");
