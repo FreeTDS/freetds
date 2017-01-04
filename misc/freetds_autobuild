@@ -304,11 +304,6 @@ if test "$MSSQL_INSTANCE" != ""; then
 fi
 }
 
-test_sybase() {
-	# do tests with sybase server
-	generic_test test2 PWD.sybase
-}
-
 test_sybase15() {
 	# do tests with sybase 15 server
 	generic_test test3 PWD.sybase15
@@ -333,7 +328,7 @@ test_mssql2000() {
 	kill $pid_pool
 }
 
-left=(test1 test_mssql2008 test_mssql2000 test_sybase test_sybase15)
+left=(test1 test_mssql2008 test_mssql2000 test_sybase15)
 
 limit=3
 while true; do
