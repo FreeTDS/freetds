@@ -1764,23 +1764,20 @@ static void
 tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags)
 {
 	int i, len;
-	bool wide;
 
 	CHECK_TDS_EXTRA(tds);
 	CHECK_PARAMINFO_EXTRA(info);
 
-	wide = !!tds_capability_has_req(tds->conn, TDS_REQ_WIDETABLE);
-
-	/* column descriptions */
-	tds_put_byte(tds, wide ? TDS5_PARAMFMT2_TOKEN : TDS5_PARAMFMT_TOKEN);
 	/* size */
 	len = 2;
 	for (i = 0; i < info->num_cols; i++)
 		len += tds_put_data_info_length(tds, info->columns[i], flags);
-	if (wide) {
+	if (len > 0xffffu && tds_capability_has_req(tds->conn, TDS_REQ_WIDETABLE)) {
+		tds_put_byte(tds, TDS5_PARAMFMT2_TOKEN);
 		tds_put_int(tds, len + 3 * info->num_cols);
 		flags |= TDS_PUT_DATA_LONG_STATUS;
 	} else {
+		tds_put_byte(tds, TDS5_PARAMFMT_TOKEN);
 		tds_put_smallint(tds, len);
 	}
 	/* number of parameters */
