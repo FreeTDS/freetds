@@ -776,6 +776,8 @@ struct tds_column
 	TDS_INT column_text_sqlgetdatapos;
 	TDS_CHAR column_text_sqlputdatainfo;
 
+	TDS_TINYINT blob_type;
+
 	BCPCOLDATA *bcp_column_data;
 	/**
 	 * The length, in bytes, of any length prefix this column may have.

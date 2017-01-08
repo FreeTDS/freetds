@@ -237,6 +237,14 @@ typedef enum
 	USER_UNIVARCHAR_TYPE = 35	/* 0x23 */
 } TDS_USER_TYPE;
 
+/* TDS 5.0 Type of blobs (SYSBLOB) */
+typedef enum
+{
+	BLOB_TYPE_CHAR = 3,
+	BLOB_TYPE_BINARY = 4,
+	BLOB_TYPE_UNICHAR = 5,
+} TDS_BLOB_TYPE;
+
 /* compute operator */
 #define SYBAOPCNT  75		/* 0x4B */
 #define SYBAOPCNTU 76		/* 0x4C, obsolete */

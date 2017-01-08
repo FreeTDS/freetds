@@ -389,6 +389,28 @@ data_generic_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER od
 	SET_INFO("", "", "");
 }
 
+static void
+data_sybblob_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
+{
+	switch (col->blob_type) {
+	case BLOB_TYPE_CHAR:
+		drec->sql_desc_concise_type = SQL_LONGVARCHAR;
+		drec->sql_desc_display_size = col->on_server.column_size;
+		SET_INFO("text", "'", "'");
+
+	default:
+	case BLOB_TYPE_BINARY:
+		drec->sql_desc_concise_type = SQL_LONGVARBINARY;
+		drec->sql_desc_display_size = col->column_size * 2;
+		SET_INFO("image", "0x", "");
+
+	case BLOB_TYPE_UNICHAR:
+		drec->sql_desc_concise_type = SQL_WLONGVARCHAR;
+		drec->sql_desc_display_size = col->on_server.column_size / 2;
+		SET_INFO2("unitext", "'", "'", col->on_server.column_size / 2);
+	}
+}
+
 void
 odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
 {
@@ -417,3 +439,4 @@ TDS_DEFINE_FUNCS(variant);
 TDS_DEFINE_FUNCS(msdatetime);
 TDS_DEFINE_FUNCS(clrudt);
 TDS_DEFINE_FUNCS(sybbigtime);
+TDS_DEFINE_FUNCS(sybblob);

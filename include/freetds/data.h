@@ -85,6 +85,14 @@ tds_func_put_info tds_sybbigtime_put_info;
 tds_func_put_data tds_sybbigtime_put;
 tds_func_check    tds_sybbigtime_check;
 
+tds_func_get_info tds_sybblob_get_info;
+tds_func_row_len  tds_sybblob_row_len;
+tds_func_get_data tds_sybblob_get;
+tds_func_put_info_len tds_sybblob_put_info_len;
+tds_func_put_info tds_sybblob_put_info;
+tds_func_put_data tds_sybblob_put;
+tds_func_check    tds_sybblob_check;
+
 /**
  * If TDS_DONT_DEFINE_DEFAULT_FUNCTIONS is no defined
  * define default implementations for these tables
@@ -99,6 +107,7 @@ TDS_DEFINE_DEFAULT_FUNCS(variant);
 TDS_DEFINE_DEFAULT_FUNCS(msdatetime);
 TDS_DEFINE_DEFAULT_FUNCS(clrudt);
 TDS_DEFINE_DEFAULT_FUNCS(sybbigtime);
+TDS_DEFINE_DEFAULT_FUNCS(sybblob);
 #endif
 
 #include <freetds/popvis.h>
