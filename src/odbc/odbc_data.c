@@ -324,6 +324,16 @@ data_generic_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER od
 		SET_INFO("binary", "0x", "");
 
 	case SYBLONGBINARY:
+		if (col->column_usertype == USER_UNICHAR_TYPE) {
+			drec->sql_desc_concise_type = SQL_WCHAR;
+			drec->sql_desc_display_size = col->on_server.column_size / 2;
+			SET_INFO2("unichar", "'", "'", col->on_server.column_size / 2);
+		}
+		if (col->column_usertype == USER_UNIVARCHAR_TYPE) {
+			drec->sql_desc_concise_type = SQL_WVARCHAR;
+			drec->sql_desc_display_size = col->on_server.column_size / 2;
+			SET_INFO2("univarchar", "'", "'", col->on_server.column_size / 2);
+		}
 	case SYBIMAGE:
 		drec->sql_desc_concise_type = SQL_LONGVARBINARY;
 		drec->sql_desc_display_size = col->column_size * 2;
