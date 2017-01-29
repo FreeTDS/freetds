@@ -1844,8 +1844,9 @@ tds5_process_result2(TDSSOCKET * tds)
 		tdsdump_log(TDS_DBG_INFO1, "\tcatalog=[%s] schema=[%s] table=[%s]\n",
 			    curcol->catalog_name, curcol->schema_name, curcol->table_name, curcol->column_colname);
 */
-		tdsdump_log(TDS_DBG_INFO1, "\tflags=%x utype=%d type=%d varint=%d\n",
-			    curcol->column_flags, curcol->column_usertype, curcol->column_type, curcol->column_varint_size);
+		tdsdump_log(TDS_DBG_INFO1, "\tflags=%x utype=%d type=%d server type %d varint=%d\n",
+			    curcol->column_flags, curcol->column_usertype, curcol->column_type, curcol->on_server.column_type,
+			    curcol->column_varint_size);
 
 		tdsdump_log(TDS_DBG_INFO1, "\tcolsize=%d prec=%d scale=%d\n",
 			    curcol->column_size, curcol->column_prec, curcol->column_scale);
@@ -2639,8 +2640,9 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 
 		tdsdump_log(TDS_DBG_INFO1, "elem %d:\n", col);
 		tdsdump_log(TDS_DBG_INFO1, "\tcolumn_name=[%s]\n", tds_dstr_cstr(&curcol->column_name));
-		tdsdump_log(TDS_DBG_INFO1, "\tflags=%x utype=%d type=%d varint=%d\n",
-			    curcol->column_flags, curcol->column_usertype, curcol->column_type, curcol->column_varint_size);
+		tdsdump_log(TDS_DBG_INFO1, "\tflags=%x utype=%d type=%d server type %d varint=%d\n",
+			    curcol->column_flags, curcol->column_usertype, curcol->column_type, curcol->on_server.column_type,
+			    curcol->column_varint_size);
 		tdsdump_log(TDS_DBG_INFO1, "\tcolsize=%d prec=%d scale=%d\n",
 			    curcol->column_size, curcol->column_prec, curcol->column_scale);
 	}
