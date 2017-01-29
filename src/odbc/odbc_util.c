@@ -735,11 +735,15 @@ odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned)
 
 	switch (sql_type) {
 	case SQL_WCHAR:
+		if (IS_TDS50(conn) && tds_capability_has_req(conn, TDS_REQ_DATA_NLBIN))
+			return XSYBNCHAR;
 		if (IS_TDS7_PLUS(conn))
 			return XSYBNCHAR;
 	case SQL_CHAR:
 		return SYBCHAR;
 	case SQL_WVARCHAR:
+		if (IS_TDS50(conn) && tds_capability_has_req(conn, TDS_REQ_DATA_NLBIN))
+			return XSYBNVARCHAR;
 		if (IS_TDS7_PLUS(conn))
 			return XSYBNVARCHAR;
 	case SQL_VARCHAR:

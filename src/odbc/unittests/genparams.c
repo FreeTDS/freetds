@@ -464,6 +464,12 @@ AllTests(void)
 		TestInput(SQL_C_CHAR, "VARCHAR(20)", SQL_LONGVARCHAR, "VARCHAR(MAX)", "1EasyTest");
 		TestInput(SQL_C_BINARY, "VARBINARY(20)", SQL_LONGVARBINARY, "VARBINARY(MAX)", "Anything will suite!");
 	}
+	if (!odbc_db_is_microsoft()) {
+		TestInput(SQL_C_CHAR, "UNIVARCHAR(100)", SQL_WCHAR, "UNIVARCHAR(100)", "test");
+		TestInput(SQL_C_WCHAR, "UNIVARCHAR(100)", SQL_WCHAR, "UNIVARCHAR(100)", "test");
+		TestInput(SQL_C_CHAR, "UNIVARCHAR(100)", SQL_WVARCHAR, "UNIVARCHAR(100)", "test");
+		TestInput(SQL_C_WCHAR, "UNIVARCHAR(100)", SQL_WVARCHAR, "UNIVARCHAR(100)", "test");
+	}
 }
 
 int
