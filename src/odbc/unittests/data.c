@@ -33,9 +33,12 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, con
 
 	/* execute a select to get data as wire */
 	sprintf(sbuf, "SELECT CONVERT(%s, '%s') AS data", type, value_to_convert);
-	if (strncmp(value_to_convert, "0x", 2) == 0)
-		sprintf(sbuf, "SELECT CONVERT(%s, %s) COLLATE Latin1_General_CI_AS AS data", type, value_to_convert);
-	else if (strcmp(type, "SQL_VARIANT") == 0)
+	if (strncmp(value_to_convert, "0x", 2) == 0) {
+		if (odbc_db_is_microsoft())
+			sprintf(sbuf, "SELECT CONVERT(%s, %s) COLLATE Latin1_General_CI_AS AS data", type, value_to_convert);
+		else
+			sprintf(sbuf, "SELECT CONVERT(%s, %s)", type, value_to_convert);
+	} else if (strcmp(type, "SQL_VARIANT") == 0)
 		sprintf(sbuf, "SELECT CONVERT(SQL_VARIANT, %s) AS data", value_to_convert);
 	else if (strncmp(value_to_convert, "u&'", 3) == 0)
 		sprintf(sbuf, "SELECT CONVERT(%s, %s) AS data", type, value_to_convert);

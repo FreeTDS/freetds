@@ -266,7 +266,7 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 			if (srctype == SYBLONGBINARY && (
 			    curcol->column_usertype == USER_UNICHAR_TYPE ||
 			    curcol->column_usertype == USER_UNIVARCHAR_TYPE))
-				srctype = SYBTEXT;
+				srctype = SYBNTEXT;
 			if (curcol->column_type == SYBVARIANT)
 				srctype = ((TDSVARIANT *) src)->type;
 			src = ((TDSBLOB *) src)->textvalue;
