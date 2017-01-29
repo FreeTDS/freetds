@@ -913,8 +913,7 @@ tds_generic_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 	}
 
 	/* TDS5 wants a table name for LOBs */
-	if (IS_TDS50(tds->conn)
-	    && (col->on_server.column_type == SYBIMAGE || col->on_server.column_type == SYBTEXT))
+	if (IS_TDS50(tds->conn) && is_blob_type(col->on_server.column_type))
 		tds_put_smallint(tds, 0);
 
 	/* TDS7.1 output collate information */
