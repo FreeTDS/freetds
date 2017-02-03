@@ -515,6 +515,8 @@ bool is_tds_type_valid(int type)
 #define TDS_STR_DBFILENAME	"database filename"
 /* Application Intent MSSQL 2012 support */
 #define TDS_STR_READONLY_INTENT "read-only intent"
+/* configurable cipher suite to send to openssl's SSL_set_cipher_list() function */
+#define TLS_STR_OPENSSL_CIPHERS "openssl ciphers"
 
 
 /* TODO do a better check for alignment than this */
@@ -556,6 +558,7 @@ typedef struct tds_login
 	DSTR db_filename;		/**< database filename to attach (MSSQL) */
 	DSTR cafile;			/**< certificate authorities file */
 	DSTR crlfile;			/**< certificate revocation file */
+	DSTR openssl_ciphers;
 	DSTR app_name;
 	DSTR user_name;	    	/**< account for login */
 	DSTR password;	    	/**< password of account login */

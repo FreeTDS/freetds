@@ -862,13 +862,7 @@ check_hostname(X509 *cert, const char *hostname)
 int
 tds_ssl_init(TDSSOCKET *tds)
 {
-#define OPENSSL_CIPHERS \
-	"ECDHE-ECDSA-AES256-SHA ECDHE-ECDSA-AES128-SHA " \
-	"ECDHE-RSA-AES256-SHA ECDHE-RSA-AES128-SHA " \
-	"DHE-RSA-AES256-SHA DHE-RSA-AES128-SHA " \
-	"AES256-SHA AES128-SHA " \
-	"DES-CBC3-SHA DHE-DSS-AES256-SHA " \
-	"DHE-DSS-AES128-SHA EDH-DSS-DES-CBC3-SHA"
+#define DEFAULT_OPENSSL_CIPHERS "HIGH:!SSLv2:!aNULL:-DH"
 
 	SSL *con;
 	SSL_CTX *ctx;
@@ -936,8 +930,14 @@ tds_ssl_init(TDSSOCKET *tds)
 	SSL_set_bio(con, b, b);
 	b = NULL;
 
-	/* use priorities... */
-	SSL_set_cipher_list(con, OPENSSL_CIPHERS);
+	/* use default priorities unless overridden by openssl ciphers setting in freetds.conf file... */
+	if (!tds_dstr_isempty(&tds->login->openssl_ciphers)) {
+		tdsdump_log(TDS_DBG_INFO1, "setting custom openssl cipher to:%s\n", tds_dstr_cstr(&tds->login->openssl_ciphers));
+		SSL_set_cipher_list(con, tds_dstr_cstr(&tds->login->openssl_ciphers) );
+	} else {
+		tdsdump_log(TDS_DBG_INFO1, "setting default openssl cipher to:%s\n", DEFAULT_OPENSSL_CIPHERS );
+		SSL_set_cipher_list(con, DEFAULT_OPENSSL_CIPHERS);
+	}
 
 #ifdef SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS
 	/* this disable a security improvement but allow connection... */
