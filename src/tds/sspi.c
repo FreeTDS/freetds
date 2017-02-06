@@ -128,7 +128,7 @@ tds_sspi_handle_next(TDSSOCKET * tds, struct tds_authentication * tds_auth, size
 
 	TDSSSPIAUTH *auth = (TDSSSPIAUTH *) tds_auth;
 
-	if (len < 32)
+	if (len < 1)
 		return TDS_FAIL;
 
 	auth_buf = tds_new(TDS_UCHAR, len);
