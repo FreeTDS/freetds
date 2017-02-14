@@ -548,8 +548,6 @@ tds_ssl_deinit(TDSCONNECTION *conn)
 static long
 tds_ssl_ctrl_login(BIO *b, int cmd, long num, void *ptr)
 {
-	TDSSOCKET *tds = (TDSSOCKET *) b->ptr;
-
 	switch (cmd) {
 	case BIO_CTRL_FLUSH:
 		return 1;
