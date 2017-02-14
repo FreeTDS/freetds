@@ -71,10 +71,34 @@
 #define SSL_PUSH_ARGS gnutls_transport_ptr_t ptr, const void *data, size_t len
 #define SSL_PTR ptr
 #else
+
+/* some compatibility layer */
+#if OPENSSL_VERSION_NUMBER < 0x1010000FL
+static inline void
+BIO_set_init(BIO *b, int init)
+{
+	b->init = init;
+}
+
+static inline void
+BIO_set_data(BIO *b, void *ptr)
+{
+	b->ptr = ptr;
+}
+
+static inline void *
+BIO_get_data(const BIO *b)
+{
+	return b->ptr;
+}
+#define TLS_client_method TLSv1_client_method
+#define TLS_ST_OK SSL_ST_OK
+#endif
+
 #define SSL_RET int
 #define SSL_PULL_ARGS BIO *bio, char *data, int len
 #define SSL_PUSH_ARGS BIO *bio, const char *data, int len
-#define SSL_PTR bio->ptr
+#define SSL_PTR BIO_get_data(bio)
 #endif
 
 static SSL_RET
@@ -562,7 +586,8 @@ tds_ssl_free(BIO *a)
 	return 1;
 }
 
-static BIO_METHOD tds_method_login =
+#if OPENSSL_VERSION_NUMBER < 0x1010000FL
+static BIO_METHOD tds_method_login[1] = {
 {
 	BIO_TYPE_MEM,
 	"tds",
@@ -574,9 +599,9 @@ static BIO_METHOD tds_method_login =
 	NULL,
 	tds_ssl_free,
 	NULL,
-};
+}};
 
-static BIO_METHOD tds_method =
+static BIO_METHOD tds_method[1] = {
 {
 	BIO_TYPE_MEM,
 	"tds",
@@ -588,7 +613,42 @@ static BIO_METHOD tds_method =
 	NULL,
 	tds_ssl_free,
 	NULL,
-};
+}};
+
+static inline void
+tds_init_ssl_methods(void)
+{
+}
+#else
+static BIO_METHOD *tds_method_login;
+static BIO_METHOD *tds_method;
+
+static void
+tds_init_ssl_methods(void)
+{
+	BIO_METHOD *meth;
+
+	tds_method_login = meth = BIO_meth_new(BIO_TYPE_MEM, "tds");
+	BIO_meth_set_write(meth, tds_push_func_login);
+	BIO_meth_set_read(meth, tds_pull_func_login);
+	BIO_meth_set_ctrl(meth, tds_ssl_ctrl_login);
+	BIO_meth_set_destroy(meth, tds_ssl_free);
+
+	tds_method = meth = BIO_meth_new(BIO_TYPE_MEM, "tds");
+	BIO_meth_set_write(meth, tds_push_func);
+	BIO_meth_set_read(meth, tds_pull_func);
+	BIO_meth_set_destroy(meth, tds_ssl_free);
+}
+
+#  ifdef TDS_ATTRIBUTE_DESTRUCTOR
+static void __attribute__((destructor))
+tds_deinit_openssl_methods(void)
+{
+	BIO_meth_free(tds_method_login);
+	BIO_meth_free(tds_method);
+}
+#  endif
+#endif
 
 #if OPENSSL_VERSION_NUMBER < 0x1010000FL
 static tds_mutex *openssl_locks;
@@ -665,11 +725,12 @@ tds_init_openssl(void)
 		if (!tls_initialized) {
 			SSL_library_init();
 			tds_init_openssl_thread();
+			tds_init_ssl_methods();
 			tls_initialized = 1;
 		}
 		tds_mutex_unlock(&tls_mutex);
 	}
-	meth = TLSv1_client_method ();
+	meth = TLS_client_method();
 	if (meth == NULL)
 		return NULL;
 	return SSL_CTX_new (meth);
@@ -912,18 +973,16 @@ tds_ssl_init(TDSSOCKET *tds)
 		goto cleanup;
 
 	tls_msg = "creating bio";
-	b = BIO_new(&tds_method_login);
+	b = BIO_new(tds_method_login);
 	if (!b)
 		goto cleanup;
 
-	b2 = BIO_new(&tds_method);
+	b2 = BIO_new(tds_method);
 	if (!b2)
 		goto cleanup;
 
-	b->shutdown=1;
-	b->init=1;
-	b->num= -1;
-	b->ptr = tds;
+	BIO_set_init(b, 1);
+	BIO_set_data(b, tds);
 	BIO_set_conn_hostname(b, tds_dstr_cstr(&tds->login->server_host_name));
 	SSL_set_bio(con, b, b);
 	b = NULL;
@@ -945,7 +1004,7 @@ tds_ssl_init(TDSSOCKET *tds)
 	/* Perform the TLS handshake */
 	tls_msg = "handshake";
 	SSL_set_connect_state(con);
-	ret = SSL_connect(con) != 1 || con->state != SSL_ST_OK;
+	ret = SSL_connect(con) != 1 || SSL_get_state(con) != TLS_ST_OK;
 	if (ret != 0)
 		goto cleanup;
 
@@ -965,10 +1024,8 @@ tds_ssl_init(TDSSOCKET *tds)
 
 	tdsdump_log(TDS_DBG_INFO1, "handshake succeeded!!\n");
 
-	b2->shutdown = 1;
-	b2->init = 1;
-	b2->num = -1;
-	b2->ptr = tds->conn;
+	BIO_set_init(b2, 1);
+	BIO_set_data(b2, tds->conn);
 	SSL_set_bio(con, b2, b2);
 
 	tds->conn->tls_session = con;
