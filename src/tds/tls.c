@@ -995,11 +995,11 @@ tds_ssl_deinit(TDSCONNECTION *conn)
 {
 	if (conn->tls_session) {
 		/* NOTE do not call SSL_shutdown here */
-		SSL_free(conn->tls_session);
+		SSL_free((SSL *) conn->tls_session);
 		conn->tls_session = NULL;
 	}
 	if (conn->tls_ctx) {
-		SSL_CTX_free(conn->tls_ctx);
+		SSL_CTX_free((SSL_CTX *) conn->tls_ctx);
 		conn->tls_ctx = NULL;
 	}
 }
