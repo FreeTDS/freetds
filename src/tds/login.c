@@ -559,7 +559,11 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		if (tds->conn->spid == -1) {
 			strcat(str, "select @@spid ");
 		}
-		if (!db_selected && !tds_dstr_isempty(&login->database)) {
+		/* Select proper database if specified.
+		 * SQL Anywhere does not support multiple databases and USE statement
+		 * so don't send the request to avoid connection failures */
+		if (!db_selected && !tds_dstr_isempty(&login->database) &&
+		    (tds->conn->product_name == NULL || strcasecmp(tds->conn->product_name, "SQL Anywhere") != 0)) {
 			strcat(str, "use ");
 			tds_quote_id(tds, strchr(str, 0), tds_dstr_cstr(&login->database), -1);
 		}
