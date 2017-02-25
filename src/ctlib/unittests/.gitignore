@@ -30,3 +30,4 @@ blk_in2
 datafmt
 rpc_fail
 row_count
+libcommon.a
