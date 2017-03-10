@@ -4017,6 +4017,7 @@ dbsettime(int seconds)
 {
 	TDSSOCKET **tds;
 	int i;
+	DBPROCESS *dbproc;
 	tdsdump_log(TDS_DBG_FUNC, "dbsettime(%d)\n", seconds);
 
 	tds_mutex_lock(&dblib_mutex);
@@ -4024,8 +4025,11 @@ dbsettime(int seconds)
 	
 	tds = g_dblib_ctx.connection_list;
 	for (i = 0; i <  TDS_MAX_CONN; i++) {
-		if (tds[i])
-			tds[i]->query_timeout = seconds;
+		if (tds[i]) {
+			dbproc = (DBPROCESS *) tds_get_parent(tds[i]);
+			if (!dbisopt(dbproc, DBSETTIME, 0))
+				tds[i]->query_timeout = seconds;
+		}
 	}
 	
 	tds_mutex_unlock(&dblib_mutex);

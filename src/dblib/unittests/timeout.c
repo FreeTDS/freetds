@@ -179,6 +179,9 @@ test(int per_process)
 			fprintf(stderr, "Failed: dbsetopt(..., DBSETTIME, \"%d\")\n", timeout_seconds);
 			exit(1);
 		}
+
+		/* Verify setting the global timeout won't override the per-process timeout value */
+		dbsettime(35);
 	} else {
 		if (FAIL == dbsettime(timeout_seconds)) {
 			fprintf(stderr, "Failed: dbsettime\n");
