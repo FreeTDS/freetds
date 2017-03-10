@@ -468,12 +468,12 @@ file_character(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 		bcp_control(dbproc, BCPKEEPIDENTITY, 1);
 
 		if (dbfcmd(dbproc, "set identity_insert %s on", pdata->dbobject) == FAIL) {
-			printf("dbfcmd failed\n");
+			fprintf(stderr, "dbfcmd failed\n");
 			return FALSE;
 		}
 
 		if (dbsqlexec(dbproc) == FAIL) {
-			printf("dbsqlexec failed\n");
+			fprintf(stderr, "dbsqlexec failed\n");
 			return FALSE;
 		}
 
@@ -487,18 +487,18 @@ file_character(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 
 	if (dir == DB_QUERYOUT) {
 		if (dbfcmd(dbproc, "SET FMTONLY ON %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
-			printf("dbfcmd failed\n");
+			fprintf(stderr, "dbfcmd failed\n");
 			return FALSE;
 		}
 	} else {
 		if (dbfcmd(dbproc, "SET FMTONLY ON select * from %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
-			printf("dbfcmd failed\n");
+			fprintf(stderr, "dbfcmd failed\n");
 			return FALSE;
 		}
 	}
 
 	if (dbsqlexec(dbproc) == FAIL) {
-		printf("dbsqlexec failed\n");
+		fprintf(stderr, "dbsqlexec failed\n");
 		return FALSE;
 	}
 
@@ -509,26 +509,26 @@ file_character(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	}
 
 	if (0 == li_numcols) {
-		printf("Error in dbnumcols\n");
+		fprintf(stderr, "Error in dbnumcols\n");
 		return FALSE;
 	}
 
 	if (bcp_columns(dbproc, li_numcols) == FAIL) {
-		printf("Error in bcp_columns.\n");
+		fprintf(stderr, "Error in bcp_columns.\n");
 		return FALSE;
 	}
 
 	for (i = 1; i < li_numcols; ++i) {
 		if (bcp_colfmt(dbproc, i, SYBCHAR, 0, -1, (const BYTE *) pdata->fieldterm,
 			       pdata->fieldtermlen, i) == FAIL) {
-			printf("Error in bcp_colfmt col %d\n", i);
+			fprintf(stderr, "Error in bcp_colfmt col %d\n", i);
 			return FALSE;
 		}
 	}
 
 	if (bcp_colfmt(dbproc, li_numcols, SYBCHAR, 0, -1, (const BYTE *) pdata->rowterm,
 		       pdata->rowtermlen, li_numcols) == FAIL) {
-		printf("Error in bcp_colfmt col %d\n", li_numcols);
+		fprintf(stderr, "Error in bcp_colfmt col %d\n", li_numcols);
 		return FALSE;
 	}
 
@@ -566,12 +566,12 @@ file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 		bcp_control(dbproc, BCPKEEPIDENTITY, 1);
 
 		if (dbfcmd(dbproc, "set identity_insert %s on", pdata->dbobject) == FAIL) {
-			printf("dbfcmd failed\n");
+			fprintf(stderr, "dbfcmd failed\n");
 			return FALSE;
 		}
 
 		if (dbsqlexec(dbproc) == FAIL) {
-			printf("dbsqlexec failed\n");
+			fprintf(stderr, "dbsqlexec failed\n");
 			return FALSE;
 		}
 
@@ -585,18 +585,18 @@ file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 
 	if (dir == DB_QUERYOUT) {
 		if (dbfcmd(dbproc, "SET FMTONLY ON %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
-			printf("dbfcmd failed\n");
+			fprintf(stderr, "dbfcmd failed\n");
 			return FALSE;
 		}
 	} else {
 		if (dbfcmd(dbproc, "SET FMTONLY ON select * from %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
-			printf("dbfcmd failed\n");
+			fprintf(stderr, "dbfcmd failed\n");
 			return FALSE;
 		}
 	}
 
 	if (dbsqlexec(dbproc) == FAIL) {
-		printf("dbsqlexec failed\n");
+		fprintf(stderr, "dbsqlexec failed\n");
 		return FALSE;
 	}
 
@@ -607,12 +607,12 @@ file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	}
 
 	if (0 == li_numcols) {
-		printf("Error in dbnumcols\n");
+		fprintf(stderr, "Error in dbnumcols\n");
 		return FALSE;
 	}
 
 	if (bcp_columns(dbproc, li_numcols) == FAIL) {
-		printf("Error in bcp_columns.\n");
+		fprintf(stderr, "Error in bcp_columns.\n");
 		return FALSE;
 	}
 
@@ -620,7 +620,7 @@ file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 		li_coltype = dbcoltype(dbproc, i);
 
 		if (bcp_colfmt(dbproc, i, li_coltype, -1, -1, NULL, -1, i) == FAIL) {
-			printf("Error in bcp_colfmt col %d\n", i);
+			fprintf(stderr, "Error in bcp_colfmt col %d\n", i);
 			return FALSE;
 		}
 	}
@@ -655,12 +655,12 @@ file_formatted(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 		bcp_control(dbproc, BCPKEEPIDENTITY, 1);
 
 		if (dbfcmd(dbproc, "set identity_insert %s on", pdata->dbobject) == FAIL) {
-			printf("dbfcmd failed\n");
+			fprintf(stderr, "dbfcmd failed\n");
 			return FALSE;
 		}
 
 		if (dbsqlexec(dbproc) == FAIL) {
-			printf("dbsqlexec failed\n");
+			fprintf(stderr, "dbsqlexec failed\n");
 			return FALSE;
 		}
 
@@ -813,16 +813,16 @@ msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *m
 	if (msgno == 5701 || msgno == 5703)
 		return (0);
 
-	printf("Msg %ld, Level %d, State %d\n", (long) msgno, severity, msgstate);
+	fprintf(stderr, "Msg %ld, Level %d, State %d\n", (long) msgno, severity, msgstate);
 
 	if (strlen(srvname) > 0)
-		printf("Server '%s', ", srvname);
+		fprintf(stderr, "Server '%s', ", srvname);
 	if (strlen(procname) > 0)
-		printf("Procedure '%s', ", procname);
+		fprintf(stderr, "Procedure '%s', ", procname);
 	if (line > 0)
-		printf("Line %d", line);
+		fprintf(stderr, "Line %d", line);
 
-	printf("\n\t%s\n", msgtext);
+	fprintf(stderr, "\n\t%s\n", msgtext);
 
 	return (0);
 }
