@@ -60,7 +60,7 @@ static unsigned char packet_type = 0x12;
 static int pos = 0;
 
 static ssize_t
-tds_pull_func(gnutls_transport_ptr ptr, void *data, size_t len)
+tds_pull_func(gnutls_transport_ptr_t ptr, void *data, size_t len)
 {
 	fprintf(stderr, "in tds_pull_func\n");
 
@@ -91,7 +91,7 @@ tds_pull_func(gnutls_transport_ptr ptr, void *data, size_t len)
 }
 
 static ssize_t
-tds_push_func(gnutls_transport_ptr ptr, const void *data, size_t len)
+tds_push_func(gnutls_transport_ptr_t ptr, const void *data, size_t len)
 {
 	int left;
 
@@ -124,14 +124,6 @@ static gnutls_session_t
 initialize_tls_session()
 {
 	gnutls_session_t session;
-	static const int cipher_priority[] = {
-		GNUTLS_CIPHER_ARCFOUR_40,
-		GNUTLS_CIPHER_DES_CBC,
-		GNUTLS_CIPHER_AES_256_CBC, GNUTLS_CIPHER_AES_128_CBC,
-		GNUTLS_CIPHER_3DES_CBC, GNUTLS_CIPHER_ARCFOUR_128,
-		0
-	};
-
 
 	gnutls_init(&session, GNUTLS_SERVER);
 	gnutls_transport_set_pull_function(session, tds_pull_func);
@@ -141,7 +133,10 @@ initialize_tls_session()
 	 * are adequate.
 	 */
 	gnutls_set_default_priority(session);
-	gnutls_cipher_set_priority(session, cipher_priority);
+	gnutls_priority_set_direct(session, "NORMAL:%COMPAT:-VERS-SSL3.0", NULL);
+
+	/* mssql does not like padding too much */
+	gnutls_record_disable_padding(session);
 
 	gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE, x509_cred);
 
@@ -207,7 +202,7 @@ get_packet(int sd)
 	for (;;) {
 		full_len = 4;
 		if (packet_len >= 4)
-			full_len = (((int) packet[2]) << 8) + packet[3];
+			full_len = packet[2] * 0x100 + packet[3];
 
 		l = recv(sd, packet + packet_len, full_len - packet_len, 0);
 		if (l <= 0) {
@@ -264,7 +259,7 @@ hexdump(char *buffer, int len)
 int
 main()
 {
-	int err, listen_sd, i;
+	int err, listen_sd;
 	int sd, ret;
 	struct sockaddr_in sa_serv;
 	struct sockaddr_in sa_cli;
@@ -395,7 +390,6 @@ main()
 		/* see the Getting peer's information example */
 		/* print_info(session); */
 
-		i = 0;
 		for (;;) {
 			bzero(buffer, MAX_BUF + 1);
 			ret = gnutls_record_recv(session, buffer, MAX_BUF);
