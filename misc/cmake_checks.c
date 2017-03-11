@@ -5,7 +5,7 @@
 int main(int argc, char **argv)
 {
 #if defined(CHECK_ASPRINTF)
-  char *p = NULL; int len = asprintf(&p, "%d", 123)");
+  char *p = NULL; int len = asprintf(&p, "%d", 123);
 #elif defined(CHECK_VASPRINTF)
   va_list va; char *p = NULL; int len = vasprintf(&p, "%d", va);
 #elif defined(CHECK_SNPRINTF)
