@@ -1,15 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <string.h>
+#ifndef _WIN32
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <string.h>
 #include <unistd.h>
+#else
+#include <winsock2.h>
+#include <windows.h>
+#define close(s) closesocket(s)
+typedef int socklen_t;
+#define sleep(s) Sleep((s)*1000)
+#endif
 #include <gnutls/gnutls.h>
-
-/* $Id: bounce.c,v 1.2 2010-12-30 12:39:11 freddy77 Exp $ */
 
 /* This small application make man-in-the-middle with a crypted SQL Server
  * to be able to see decrypted login
@@ -181,7 +187,7 @@ tcp_connect(void)
 	memset(&sa, '\0', sizeof(sa));
 	sa.sin_family = AF_INET;
 	sa.sin_port = htons(SERVER_PORT);
-	inet_pton(AF_INET, SERVER_IP, &sa.sin_addr);
+	sa.sin_addr.s_addr = inet_addr(SERVER_IP);
 
 	err = connect(sd, (SA *) & sa, sizeof(sa));
 	if (sd < 0 || err < 0) {
@@ -204,7 +210,7 @@ get_packet(int sd)
 		if (packet_len >= 4)
 			full_len = packet[2] * 0x100 + packet[3];
 
-		l = recv(sd, packet + packet_len, full_len - packet_len, 0);
+		l = recv(sd, (void *) (packet + packet_len), full_len - packet_len, 0);
 		if (l <= 0) {
 			fprintf(stderr, "error recv\n");
 			exit(1);
@@ -223,7 +229,7 @@ put_packet(int sd)
 
 	printf("put_packet\n");
 	for (; sent < packet_len;) {
-		int l = send(sd, packet + sent, packet_len - sent, 0);
+		int l = send(sd, (void *) (packet + sent), packet_len - sent, 0);
 
 		if (l <= 0) {
 			fprintf(stderr, "error send\n");
@@ -264,10 +270,14 @@ main()
 	struct sockaddr_in sa_serv;
 	struct sockaddr_in sa_cli;
 	socklen_t client_len;
-	char topbuf[512];
 	gnutls_session_t session;
 	char buffer[MAX_BUF + 1];
 	int optval = 1;
+
+#ifdef _WIN32
+	WSADATA wsa_data;
+	WSAStartup(MAKEWORD(2, 2), &wsa_data);
+#endif
 
 	/* this must be called once in the program
 	 */
@@ -299,7 +309,7 @@ main()
 	sa_serv.sin_addr.s_addr = INADDR_ANY;
 	sa_serv.sin_port = htons(LISTEN_PORT);	/* Server Port number */
 
-	setsockopt(listen_sd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int));
+	setsockopt(listen_sd, SOL_SOCKET, SO_REUSEADDR, (void*) &optval, sizeof(int));
 
 	err = bind(listen_sd, (SA *) & sa_serv, sizeof(sa_serv));
 	SOCKET_ERR(err, "bind");
@@ -315,7 +325,7 @@ main()
 		client_sd = sd = accept(listen_sd, (SA *) & sa_cli, &client_len);
 
 		printf("- connection from %s, port %d\n",
-		       inet_ntop(AF_INET, &sa_cli.sin_addr, topbuf, sizeof(topbuf)), ntohs(sa_cli.sin_port));
+		       inet_ntoa(sa_cli.sin_addr), ntohs(sa_cli.sin_port));
 
 		/* now do prelogin */
 		/* connect to real peer */
@@ -391,7 +401,7 @@ main()
 		/* print_info(session); */
 
 		for (;;) {
-			bzero(buffer, MAX_BUF + 1);
+			memset(buffer, 0, MAX_BUF + 1);
 			ret = gnutls_record_recv(session, buffer, MAX_BUF);
 
 			if (ret == 0) {
