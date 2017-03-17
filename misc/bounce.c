@@ -13,6 +13,7 @@
 #include <windows.h>
 #define close(s) closesocket(s)
 typedef int socklen_t;
+typedef unsigned int in_addr_t;
 #define sleep(s) Sleep((s)*1000)
 #endif
 #include <gnutls/gnutls.h>
@@ -32,10 +33,10 @@ typedef int socklen_t;
 #define CERTFILE "mycert.pem"
 
 /* port to listen to, you should connect to this port */
-#define LISTEN_PORT 1433
+static int listen_port = 1433;
 /* server and port to connect to, the real server you want to tunnel */
-#define SERVER_IP   "10.20.30.40"
-#define SERVER_PORT 1433
+static const char *server_ip = "127.0.0.1";
+static int server_port = 1433;
 
 #define SA struct sockaddr
 #define SOCKET_ERR(err,s) if(err==-1) {perror(s);return(1);}
@@ -183,11 +184,12 @@ tcp_connect(void)
 	/* connects to server 
 	 */
 	sd = socket(AF_INET, SOCK_STREAM, 0);
+	SOCKET_ERR(sd, "socket");
 
 	memset(&sa, '\0', sizeof(sa));
 	sa.sin_family = AF_INET;
-	sa.sin_port = htons(SERVER_PORT);
-	sa.sin_addr.s_addr = inet_addr(SERVER_IP);
+	sa.sin_port = htons(server_port);
+	sa.sin_addr.s_addr = inet_addr(server_ip);
 
 	err = connect(sd, (SA *) & sa, sizeof(sa));
 	if (sd < 0 || err < 0) {
@@ -262,8 +264,19 @@ hexdump(char *buffer, int len)
 		printf("%04x: %-48s %s\n", i & 0xfff0, hex, chars);
 }
 
+static int
+check_port(const char *port)
+{
+	int n_port = atoi(port);
+	if (n_port < 1 || n_port > 0xffff) {
+		fprintf(stderr, "Invalid port specified: %s\n", port);
+		exit(1);
+	}
+	return n_port;
+}
+
 int
-main()
+main(int argc, char **argv)
 {
 	int err, listen_sd;
 	int sd, ret;
@@ -278,6 +291,19 @@ main()
 	WSADATA wsa_data;
 	WSAStartup(MAKEWORD(2, 2), &wsa_data);
 #endif
+
+	if (argc < 4) {
+		fprintf(stderr, "bounce <listen_port> <server_ipv4> <server_port>\n");
+		exit(1);
+	}
+	listen_port = check_port(argv[1]);
+	server_ip = argv[2];
+	in_addr_t addr = inet_addr(server_ip);
+	if (addr == INADDR_NONE) {
+		fprintf(stderr, "Invalid server ip specified: %s\n", server_ip);
+		exit(1);
+	}
+	server_port = check_port(argv[3]);
 
 	/* this must be called once in the program
 	 */
@@ -307,7 +333,7 @@ main()
 	memset(&sa_serv, '\0', sizeof(sa_serv));
 	sa_serv.sin_family = AF_INET;
 	sa_serv.sin_addr.s_addr = INADDR_ANY;
-	sa_serv.sin_port = htons(LISTEN_PORT);	/* Server Port number */
+	sa_serv.sin_port = htons(listen_port);	/* Server Port number */
 
 	setsockopt(listen_sd, SOL_SOCKET, SO_REUSEADDR, (void*) &optval, sizeof(int));
 
@@ -316,7 +342,7 @@ main()
 	err = listen(listen_sd, 1024);
 	SOCKET_ERR(err, "listen");
 
-	printf("Server ready. Listening to port '%d'.\n\n", LISTEN_PORT);
+	printf("Server ready. Listening to port '%d'.\n\n", listen_port);
 
 	client_len = sizeof(sa_cli);
 	for (;;) {
