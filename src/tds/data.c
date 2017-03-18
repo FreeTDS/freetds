@@ -1649,7 +1649,6 @@ blob_put_char(TDSSOCKET *tds, const uint8_t *data, size_t data_len, TDSICONV *co
 TDSRET
 tds_sybblob_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
 {
-	const uint8_t *src;
 	uint32_t size = col->column_cur_size > 0 ? col->column_cur_size : 0;
 
 	/* we only support 0 as SerializationType*/
@@ -1657,12 +1656,14 @@ tds_sybblob_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
 	/* TODO ClassId */
 	tds_put_smallint(tds, 0);
 
-	if (size)
+	if (size) {
+		const uint8_t *src;
 		src = (const uint8_t *) ((TDSBLOB *) col->column_data)->textvalue;
-	if (col->char_conv) {
-		blob_put_char(tds, src, size, col->char_conv);
-	} else {
-		blob_put_data(tds, src, size);
+		if (col->char_conv) {
+			blob_put_char(tds, src, size, col->char_conv);
+		} else {
+			blob_put_data(tds, src, size);
+		}
 	}
 	tds_put_int(tds, 0);
 
