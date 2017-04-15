@@ -413,6 +413,8 @@ tds_generic_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 	case 5:
 	case 4:
 		col->column_size = tds_get_int(tds);
+		if (col->column_size < 0)
+			return TDS_FAIL;
 		break;
 	case 2:
 		/* assure > 0 */
@@ -422,6 +424,8 @@ tds_generic_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 			col->column_size = 0x3ffffffflu;
 			col->column_varint_size = 8;
 		}
+		if (col->column_size < 0)
+			return TDS_FAIL;
 		break;
 	case 1:
 		col->column_size = tds_get_byte(tds);
