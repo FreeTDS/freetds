@@ -1027,6 +1027,8 @@ tds_process_col_fmt(TDSSOCKET * tds)
 
 	/* TODO use current_results instead of res_info ?? */
 	info = tds->res_info;
+	if (!info || info->num_cols < 0)
+		return TDS_FAIL;
 	for (col = 0; col < info->num_cols; col++) {
 		curcol = info->columns[col];
 		/* In Sybase all 4 byte are used for usertype, while mssql place 2 byte as usertype and 2 byte as flags */
@@ -2749,6 +2751,10 @@ tds7_process_compute_result(TDSSOCKET * tds)
 	TDSCOMPUTEINFO *info;
 
 	CHECK_TDS_EXTRA(tds);
+
+	/* compute without result should never happens */
+	if (!tds->res_info)
+		return TDS_FAIL;
 
 	/*
 	 * number of compute columns returned - so
