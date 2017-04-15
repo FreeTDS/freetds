@@ -318,7 +318,7 @@ tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *to
 					&pmech,	
 					&send_tok, &ret_flags, NULL);	/* ignore time_rec */
 
-	tdsdump_log(TDS_DBG_NETWORK, "gss_init_sec_context: actual mechanism at 0x%p\n", pmech);
+	tdsdump_log(TDS_DBG_NETWORK, "gss_init_sec_context: actual mechanism at %p\n", pmech);
 	if (pmech && pmech->elements) {
 		tdsdump_dump_buf(TDS_DBG_NETWORK, "actual mechanism", pmech->elements, pmech->length);
 	}
