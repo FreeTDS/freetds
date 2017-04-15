@@ -1203,7 +1203,11 @@ tds_process_colinfo(TDSSOCKET * tds, char **names, int num_names)
 	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
 	unsigned int bytes_read = 0;
-	unsigned char col_info[3];
+	struct {
+		unsigned char num_col;
+		unsigned char num_table;
+		unsigned char flags;
+	} col_info;
 
 	CHECK_TDS_EXTRA(tds);
 
@@ -1213,24 +1217,24 @@ tds_process_colinfo(TDSSOCKET * tds, char **names, int num_names)
 
 	while (bytes_read < hdrsize) {
 
-		tds_get_n(tds, col_info, 3);
+		tds_get_n(tds, &col_info, 3);
 		bytes_read += 3;
 
 		curcol = NULL;
-		if (info && col_info[0] > 0 && col_info[0] <= info->num_cols)
-			curcol = info->columns[col_info[0] - 1];
+		if (info && col_info.num_col > 0 && col_info.num_col <= info->num_cols)
+			curcol = info->columns[col_info.num_col - 1];
 
 		if (curcol) {
-			curcol->column_writeable = (col_info[2] & 0x4) == 0;
-			curcol->column_key = (col_info[2] & 0x8) > 0;
-			curcol->column_hidden = (col_info[2] & 0x10) > 0;
+			curcol->column_writeable = (col_info.flags & 0x4) == 0;
+			curcol->column_key = (col_info.flags & 0x8) > 0;
+			curcol->column_hidden = (col_info.flags & 0x10) > 0;
 
-			if (names && col_info[1] > 0 && col_info[1] <= num_names)
-				if (!tds_dstr_copy(&curcol->table_name, names[col_info[1] - 1]))
+			if (names && col_info.num_table > 0 && col_info.num_table <= num_names)
+				if (!tds_dstr_copy(&curcol->table_name, names[col_info.num_table - 1]))
 					return TDS_FAIL;
 		}
 		/* read real column name */
-		if (col_info[2] & 0x20) {
+		if (col_info.flags & 0x20) {
 			l = tds_get_byte(tds);
 			if (curcol) {
 				tds_dstr_get(tds, &curcol->table_column_name, l);
