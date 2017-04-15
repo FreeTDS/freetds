@@ -1907,11 +1907,9 @@ tds_process_row(TDSSOCKET * tds)
 	CHECK_TDS_EXTRA(tds);
 
 	info = tds->current_results;
-	if (!info)
+	if (!info || info->num_cols <= 0)
 		return TDS_FAIL;
 
-	assert(info->num_cols > 0);
-	
 	for (i = 0; i < info->num_cols; i++) {
 		tdsdump_log(TDS_DBG_INFO1, "tds_process_row(): reading column %d \n", i);
 		curcol = info->columns[i];
@@ -1935,10 +1933,8 @@ tds_process_nbcrow(TDSSOCKET * tds)
 	CHECK_TDS_EXTRA(tds);
 
 	info = tds->current_results;
-	if (!info)
+	if (!info || info->num_cols <= 0)
 		return TDS_FAIL;
-
-	assert(info->num_cols > 0);
 
 	nbcbuf = (char *) alloca((info->num_cols + 7) / 8);
 	tds_get_n(tds, nbcbuf, (info->num_cols + 7) / 8);
@@ -2879,7 +2875,8 @@ tds5_process_optioncmd(TDSSOCKET * tds)
 
 	tdsdump_log(TDS_DBG_INFO1, "tds5_process_optioncmd()\n");
 
-	assert(IS_TDS50(tds->conn));
+	if (!IS_TDS50(tds->conn))
+		return TDS_FAIL;
 
 	tds_get_usmallint(tds);	/* length */
 	command = tds_get_byte(tds);
