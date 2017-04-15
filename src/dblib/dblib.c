@@ -4396,7 +4396,8 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
 		dbperror(dbproc, SYBEUNOP, 0);
 		return FAIL;
 	}
-	dbproc->dbopts[option].factive = 1;
+
+	rc = FAIL;
 	switch (option) {
 	case DBARITHABORT:
 	case DBARITHIGNORE:
@@ -4415,7 +4416,6 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
 		}
 		rc = dbstring_concat(&(dbproc->dboptcmd), cmd);
 		free(cmd);
-		return rc;
 		break;
 	case DBNATLANG:
 	case DBDATEFIRST:
@@ -4426,7 +4426,6 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
 		}
 		rc = dbstring_concat(&(dbproc->dboptcmd), cmd);
 		free(cmd);
-		return rc;
 		break;
 	case DBOFFSET:
 		/* server option */
@@ -4434,20 +4433,24 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
 		 * "select", "from", "table", "order", "compute",
 		 * "statement", "procedure", "execute", or "param"
 		 */
+		rc = SUCCEED;
 		break;
 	case DBROWCOUNT:
 		/* server option */
 		/* requires param "0" to "2147483647" */
+		rc = SUCCEED;
 		break;
 	case DBSTAT:
 		/* server option */
 		/* requires param "io" or "time" */
+		rc = SUCCEED;
 		break;
 	case DBTEXTLIMIT:
 		/* dblib option */
 		/* requires param "0" to "2147483647" */
 		/* dblib do not return more than this length from text/image */
 		/* TODO required for PHP */
+		rc = SUCCEED;
 		break;
 	case DBTEXTSIZE:
 		/* server option */
@@ -4462,13 +4465,14 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
 			return FAIL;
 		rc = dbstring_concat(&(dbproc->dboptcmd), cmd);
 		free(cmd);
-		return rc;
-
+		break;
 	case DBAUTH:
 		/* ??? */
+		rc = SUCCEED;
 		break;
 	case DBNOAUTOFREE:
 		/* dblib option */
+		rc = SUCCEED;
 		break;
 	case DBBUFFER:
 		/* 
@@ -4488,7 +4492,7 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
 
 			if( 1 < nrows && nrows <= 2147483647 ) {
 				buffer_set_capacity(dbproc, nrows);
-				return SUCCEED;
+				rc = SUCCEED;
 			}
 		}
 		break;
@@ -4496,7 +4500,7 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
 	case DBPRLINELEN:
 	case DBPRLINESEP:
 		rc = dbstring_assign(&(dbproc->dbopts[option].param), char_param);
-		return rc;
+		break;
 	case DBPRPAD:
 		/*
 		 * "If the character is not specified, the ASCII space character is used." 
@@ -4507,7 +4511,6 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
 		} else {
 			rc = dbstring_assign(&(dbproc->dbopts[option].param), NULL);
 		}
-		return rc;
 		break;
 	case DBSETTIME:
 		if (char_param) {
@@ -4517,15 +4520,16 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
 				if (rc == SUCCEED) {
 					dbproc->tds_socket->query_timeout = i;
 				}
-				return rc;
 			}
 		}
 		break;
 	default:
-		break;
+		tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbsetopt(option = %d)\n", option);
+		return FAIL;
 	}
-	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbsetopt(option = %d)\n", option);
-	return FAIL;
+	if (rc == SUCCEED)
+		dbproc->dbopts[option].factive = 1;
+	return rc;
 }
 
 /**
