@@ -469,10 +469,10 @@ tds_config_boolean(const char *option, const char *value, TDSLOGIN *login)
 static void
 tds_config_encryption(const char * value, TDSLOGIN * login)
 {
-	TDS_ENCRYPTION_LEVEL lvl = TDS_ENCRYPTION_OFF;
+	TDS_ENCRYPTION_LEVEL lvl = TDS_ENCRYPTION_REQUEST;
 
 	if (!strcasecmp(value, TDS_STR_ENCRYPTION_OFF))
-		;
+		lvl = TDS_ENCRYPTION_OFF;
 	else if (!strcasecmp(value, TDS_STR_ENCRYPTION_REQUEST))
 		lvl = TDS_ENCRYPTION_REQUEST;
 	else if (!strcasecmp(value, TDS_STR_ENCRYPTION_REQUIRE))
