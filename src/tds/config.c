@@ -474,15 +474,15 @@ tds_config_encryption(const char * value, TDSLOGIN * login)
 	if (!strcasecmp(value, TDS_STR_ENCRYPTION_OFF))
 		;
 	else if (!strcasecmp(value, TDS_STR_ENCRYPTION_REQUEST))
-		lvl = TDS_ENCRYPTION_REQUEST;
+		lvl = TDS_ENCRYPTION_ON;
 	else if (!strcasecmp(value, TDS_STR_ENCRYPTION_REQUIRE))
-		lvl = TDS_ENCRYPTION_REQUIRE;
+		lvl = TDS_ENCRYPTION_NOT_SUPPORTED;
 	else {
 		tdsdump_log(TDS_DBG_ERROR, "UNRECOGNIZED option value '%s' for '%s' setting!\n",
 			    value, TDS_STR_ENCRYPTION);
 		tdsdump_log(TDS_DBG_ERROR, "Valid settings are: ('%s', '%s', '%s')\n",
 		        TDS_STR_ENCRYPTION_OFF, TDS_STR_ENCRYPTION_REQUEST, TDS_STR_ENCRYPTION_REQUIRE);
-		lvl = TDS_ENCRYPTION_REQUIRE;  /* Assuming "require" is safer than "no" */
+		lvl = TDS_ENCRYPTION_NOT_SUPPORTED;  /* Assuming "require" is safer than "no" */
 		login->valid_configuration = 0;
 	}
 

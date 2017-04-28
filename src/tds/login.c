@@ -1128,9 +1128,9 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	/* encryption */
 #if !defined(HAVE_GNUTLS) && !defined(HAVE_OPENSSL)
 	/* not supported */
-	tds_put_byte(tds, 2);
+	tds_put_byte(tds, TDS_ENCRYPTION_NOT_SUPPORTED);
 #else
-	tds_put_byte(tds, login->encryption_level >= TDS_ENCRYPTION_REQUIRE ? 1 : 0);
+	tds_put_byte(tds, login->encryption_level >= TDS_ENCRYPTION_NOT_SUPPORTED ? TDS_ENCRYPTION_ON : TDS_ENCRYPTION_OFF);
 #endif
 	/* instance */
 	tds_put_n(tds, instance_name, instance_name_len);
@@ -1189,9 +1189,9 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	tdsdump_log(TDS_DBG_INFO1, "detected flag %d\n", crypt_flag);
 
 	/* if server do not has certificate do normal login */
-	if (crypt_flag == 2) {
+	if (crypt_flag == TDS_ENCRYPTION_NOT_SUPPORTED) {
 		/* unless we wanted encryption and got none, then fail */
-		if (login->encryption_level >= TDS_ENCRYPTION_REQUIRE)
+		if (login->encryption_level >= TDS_ENCRYPTION_NOT_SUPPORTED)
 			return TDS_FAIL;
 
 		return tds7_send_login(tds, login);
@@ -1211,7 +1211,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	ret = tds7_send_login(tds, login);
 
 	/* if flag is 0 it means that after login server continue not encrypted */
-	if (crypt_flag == 0 || TDS_FAILED(ret))
+	if (crypt_flag == TDS_ENCRYPTION_OFF || TDS_FAILED(ret))
 		tds_ssl_deinit(tds->conn);
 
 	return ret;
