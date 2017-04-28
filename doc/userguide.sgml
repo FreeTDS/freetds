@@ -1154,8 +1154,8 @@ This is the name of the database container in the server you are connecting to.<
 						<row>
 							<entry><literal>encryption</></entry>
 							<entry>off/request/require</entry>
-							<entry>off</entry>
-							<entry>Specify if encryption is desired. Supported for Microsoft servers. <symbol>off</> disables encryption (only if needed); <symbol>request</> means use if available; <symbol>require</> means create and allow encrypted connections only.</entry>
+							<entry>request</entry>
+							<entry>Specify if encryption is desired. Supported for Microsoft servers. <symbol>off</> disables encryption; <symbol>request</> means use if available; <symbol>require</> means create and allow encrypted connections only.</entry>
 							</row>
 						<row>
 							<entry><literal>enable gssapi delegation</></entry>

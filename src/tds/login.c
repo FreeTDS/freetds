@@ -1126,7 +1126,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	/* not supported */
 	tds_put_byte(tds, 2);
 #else
-	tds_put_byte(tds, login->encryption_level >= TDS_ENCRYPTION_REQUIRE ? 1 : 0);
+	tds_put_byte(tds, login->encryption_level == TDS_ENCRYPTION_OFF ? 2 : login->encryption_level >= TDS_ENCRYPTION_REQUIRE ? 1 : 0);
 #endif
 	/* instance */
 	tds_put_n(tds, instance_name, instance_name_len);
