@@ -330,9 +330,11 @@ typedef union tds_option_arg
 	TDS_CHAR *c;
 } TDS_OPTION_ARG;
 
-
 typedef enum tds_encryption_level {
-	TDS_ENCRYPTION_OFF, TDS_ENCRYPTION_REQUEST, TDS_ENCRYPTION_REQUIRE
+    TDS_ENCRYPTION_OFF           = 0x00,
+    TDS_ENCRYPTION_ON            = 0x01,
+    TDS_ENCRYPTION_NOT_SUPPORTED = 0x02,
+    TDS_ENCRYPTION_REQUIRE       = 0x03
 } TDS_ENCRYPTION_LEVEL;
 
 #define TDS_ZERO_FREE(x) do {free((x)); (x) = NULL;} while(0)
