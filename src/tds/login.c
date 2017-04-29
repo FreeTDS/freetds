@@ -314,6 +314,8 @@ tds_set_spid(TDSSOCKET * tds)
 
 		switch (result_type) {
 		case TDS_ROW_RESULT:
+			if (!tds->res_info)
+				return TDS_FAIL;
 			if (tds->res_info->num_cols != 1)
 				break;
 			curcol = tds->res_info->columns[0];
