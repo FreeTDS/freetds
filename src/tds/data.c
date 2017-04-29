@@ -1674,6 +1674,42 @@ tds_sybblob_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
 	return TDS_SUCCESS;
 }
 
+TDSRET
+tds_invalid_get_info(TDSSOCKET * tds, TDSCOLUMN * col)
+{
+	return TDS_FAIL;
+}
+
+TDS_INT
+tds_invalid_row_len(TDSCOLUMN *col)
+{
+	return 0;
+}
+
+TDSRET
+tds_invalid_get(TDSSOCKET * tds, TDSCOLUMN * col)
+{
+	return TDS_FAIL;
+}
+
+TDSRET
+tds_invalid_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
+{
+	return TDS_FAIL;
+}
+
+unsigned
+tds_invalid_put_info_len(TDSSOCKET * tds, TDSCOLUMN * col)
+{
+	return 0;
+}
+
+TDSRET
+tds_invalid_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
+{
+	return TDS_FAIL;
+}
+
 #if ENABLE_EXTRA_CHECKS
 int
 tds_generic_check(const TDSCOLUMN *col)
@@ -1752,6 +1788,12 @@ tds_sybblob_check(const TDSCOLUMN *col)
 {
 	return 1;
 }
+
+int
+tds_invalid_check(const TDSCOLUMN *col)
+{
+	return 1;
+}
 #endif
 
 
@@ -1766,6 +1808,7 @@ TDS_DECLARE_FUNCS(msdatetime);
 TDS_DECLARE_FUNCS(clrudt);
 TDS_DECLARE_FUNCS(sybbigtime);
 TDS_DECLARE_FUNCS(sybblob);
+TDS_DECLARE_FUNCS(invalid);
 #include <freetds/popvis.h>
 
 static const TDSCOLUMNFUNCS *

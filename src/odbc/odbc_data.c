@@ -421,6 +421,11 @@ data_sybblob_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER od
 	}
 }
 
+static void
+data_invalid_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
+{
+}
+
 void
 odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
 {
@@ -443,6 +448,7 @@ odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_v
 		TDS_COMMON_FUNCS(name), \
 		data_ ## name ## _set_type_info, \
 	}
+TDS_DEFINE_FUNCS(invalid);
 TDS_DEFINE_FUNCS(generic);
 TDS_DEFINE_FUNCS(numeric);
 TDS_DEFINE_FUNCS(variant);
