@@ -117,6 +117,8 @@ tds_get_dynid(TDSCONNECTION * conn, char *id)
 	return id;
 }
 
+extern const TDSCOLUMNFUNCS tds_invalid_funcs;
+
 static TDSCOLUMN *
 tds_alloc_column(void)
 {
@@ -126,6 +128,7 @@ tds_alloc_column(void)
 	tds_dstr_init(&col->table_name);
 	tds_dstr_init(&col->column_name);
 	tds_dstr_init(&col->table_column_name);
+	col->funcs = &tds_invalid_funcs;
 
       Cleanup:
 	return col;
