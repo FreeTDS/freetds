@@ -672,7 +672,12 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 
 	tds_put_login_string(tds, tds_dstr_cstr(&login->client_host_name), TDS_MAXNAME);	/* client host name */
 	tds_put_login_string(tds, tds_dstr_cstr(&login->user_name), TDS_MAXNAME);	/* account name */
-	tds_put_login_string(tds, tds_dstr_cstr(&login->password), TDS_MAXNAME);	/* account password */
+	/* account password */
+	if (login->encryption_level != TDS_ENCRYPTION_OFF) {
+		tds_put_login_string(tds, NULL, TDS_MAXNAME);
+	} else {
+		tds_put_login_string(tds, tds_dstr_cstr(&login->password), TDS_MAXNAME);
+	}
 	sprintf(blockstr, "%d", (int) getpid());
 	tds_put_login_string(tds, blockstr, TDS_MAXNAME);	/* host process */
 #ifdef WORDS_BIGENDIAN
