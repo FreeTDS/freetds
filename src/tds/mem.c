@@ -284,6 +284,10 @@ tds_alloc_param_result(TDSPARAMINFO * old_param)
 	TDSPARAMINFO *param_info;
 	TDSCOLUMN *colinfo;
 
+	/* parameters cannot have row associated */
+	if (old_param && (old_param->current_row || old_param->row_free))
+		return NULL;
+
 	colinfo = tds_alloc_column();
 	if (!colinfo)
 		return NULL;
