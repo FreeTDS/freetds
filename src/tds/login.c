@@ -641,6 +641,8 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 		tdsdump_log(TDS_DBG_ERROR, "Kerberos login not support using TDS 4.x or 5.0\n");
 		return TDS_FAIL;
 	}
+	if (login->encryption_level == TDS_ENCRYPTION_DEFAULT)
+		login->encryption_level = TDS_ENCRYPTION_OFF;
 	if (login->encryption_level != TDS_ENCRYPTION_OFF) {
 		if (IS_TDS42(tds->conn)) {
 			tdsdump_log(TDS_DBG_ERROR, "Encryption not support using TDS 4.x\n");
@@ -701,7 +703,7 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	tds_put_login_string(tds, lservname, TDS_MAXNAME);
 	if (IS_TDS42(tds->conn)) {
 		tds_put_login_string(tds, tds_dstr_cstr(&login->password), 255);
-	} else if (login->encryption_level) {
+	} else if (login->encryption_level != TDS_ENCRYPTION_OFF) {
 		tds_put_n(tds, NULL, 256);
 	} else {
 		len = (int)tds_dstr_len(&login->password);
@@ -1116,6 +1118,9 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 
 	assert(start_pos >= 21 && start_pos <= sizeof(buf));
 	assert(buf[start_pos-1] == 0xff);
+
+	if (login->encryption_level == TDS_ENCRYPTION_DEFAULT)
+		login->encryption_level = TDS_ENCRYPTION_REQUEST;
 
 	/*
 	 * fix a problem with mssql2k which doesn't like
