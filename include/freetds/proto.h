@@ -486,3 +486,11 @@ enum {
 	TDS5_SEC_LOG_ENCRYPT2 = 32,
 	TDS5_SEC_LOG_NONCE = 128
 };
+
+/* MS encryption byte (pre login) */
+enum {
+	TDS7_ENCRYPT_OFF,
+	TDS7_ENCRYPT_ON,
+	TDS7_ENCRYPT_NOT_SUP,
+	TDS7_ENCRYPT_REQ,
+};
