@@ -40,6 +40,8 @@
 #include "hmac_md5.h"
 #include "des.h"
 
+static char long_string[512];
+
 static char *
 bin2ascii(char *dest, const void *data, size_t len)
 {
@@ -83,6 +85,7 @@ md4tests(void)
 	md4("abcdefghijklmnopqrstuvwxyz", "d79e1c308aa5bbcdeea8ed63df412da9");
 	md4("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789", "043f8582f241db351ce627e153e7f0e4");
 	md4("12345678901234567890123456789012345678901234567890123456789012345678901234567890", "e33b4ddc9c38f2199c3e7b164fcc0536");
+	md4(long_string, "9a827c99bab54f09cd2dbd80246f5fb6");
 }
 
 static void
@@ -113,6 +116,7 @@ md5tests(void)
 	md5("", "d41d8cd98f00b204e9800998ecf8427e");
 	md5("The quick brown fox jumps over the lazy dog", "9e107d9d372bb6826bd81d3542a419d6");
 	md5("The quick brown fox jumps over the lazy dog.", "e4d909c290d0fb1ca068ffaddf22cbd0");
+	md5(long_string, "8b9fc2ac1113974b82ef43ff890efdc6");
 }
 
 static const char *hmac5_key = NULL;
@@ -174,6 +178,12 @@ destests(void)
 int
 main(void)
 {
+	int i;
+
+	long_string[0] = 0;
+	for (i = 0; i < 18; ++i)
+		strcat(long_string, "test md4 12345");
+
 	md4tests();
 	md5tests();
 	hmac5tests();
