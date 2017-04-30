@@ -104,6 +104,15 @@ int main(void)
 
 	check(ptr2int(res) != 0, "error signaling condition");
 
+	check(tds_thread_create(&th, signal_proc, &cond) != 0, "error creating thread");
+
+	check(tds_cond_timedwait(&cond, &mtx, -1), "error on timed waiting condition");
+
+	res = &th;
+	check(tds_thread_join(th, &res) != 0, "error waiting thread");
+
+	check(ptr2int(res) != 0, "error signaling condition");
+
 	tds_mutex_unlock(&mtx);
 
 	check(tds_cond_destroy(&cond), "failed destroying condition");
