@@ -745,6 +745,11 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 		TDS_FAIL : TDS_SUCCESS;
 #endif /* !ENABLE_ODBC_MARS */
 
+	if (TDS_UNLIKELY(tds->conn->encrypt_single_packet)) {
+		tds->conn->encrypt_single_packet = 0;
+		tds_ssl_deinit(tds->conn);
+	}
+
 #if TDS_ADDITIONAL_SPACE != 0
 	memcpy(tds->out_buf + 8, tds->out_buf + tds->out_buf_max, left);
 #endif
