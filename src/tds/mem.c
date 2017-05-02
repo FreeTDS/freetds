@@ -118,7 +118,9 @@ tds_get_dynid(TDSCONNECTION * conn, char *id)
 	return id;
 }
 
+#include <freetds/pushvis.h>
 extern const TDSCOLUMNFUNCS tds_invalid_funcs;
+#include <freetds/popvis.h>
 
 static TDSCOLUMN *
 tds_alloc_column(void)
