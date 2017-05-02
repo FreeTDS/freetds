@@ -102,9 +102,9 @@ no
 .It encryption
 .Bl -tag -compact
 .It Em off
-disables encryption (default)
+disables encryption
 .It Em request
-use if available
+use if available (default when tds version greater than 7.0)
 .It Em required
 allow encrypted connections only
 .El
