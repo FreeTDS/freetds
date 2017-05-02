@@ -1142,8 +1142,17 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	/* not supported */
 	tds_put_byte(tds, TDS7_ENCRYPT_NOT_SUP);
 #else
-	tds_put_byte(tds, login->encryption_level >= TDS_ENCRYPTION_REQUIRE ?
-		     TDS7_ENCRYPT_ON : TDS7_ENCRYPT_OFF);
+	/* The observation working with Microsoft SQL Server is that
+	   OFF did not mean off, and you would end up with encryption
+	   turned on. Therefore when the freetds.conf says encrypt = off
+	   we really want no encryption, and claiming lack of support
+	   works for that. Note that the configuration default in this
+	   subroutine always been request due to code above that
+	   tests for TDS_ENCRYPTION_DEFAULT.
+	*/
+	tds_put_byte(tds, login->encryption_level == TDS_ENCRYPTION_OFF ? TDS7_ENCRYPT_NOT_SUP :
+			  login->encryption_level >= TDS_ENCRYPTION_REQUIRE ? TDS7_ENCRYPT_ON :
+			  TDS7_ENCRYPT_OFF);
 #endif
 	/* instance */
 	tds_put_n(tds, instance_name, instance_name_len);
