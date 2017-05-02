@@ -962,6 +962,7 @@ tds_alloc_login(int use_environment)
 	TEST_MALLOC(login, TDSLOGIN);
 	login->check_ssl_hostname = 1;
 	login->use_utf16 = 1;
+	login->encryption_level = TDS_ENCRYPTION_REQUEST;
 	tds_dstr_init(&login->server_name);
 	tds_dstr_init(&login->language);
 	tds_dstr_init(&login->server_charset);
