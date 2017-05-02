@@ -1132,6 +1132,7 @@ struct tds_connection
 	unsigned int use_iconv:1;
 	unsigned int tds71rev1:1;
 	unsigned int pending_close:1;	/**< true is connection has pending closing (cursors or dynamic) */
+	unsigned int encrypt_single_packet:1;
 #if ENABLE_ODBC_MARS
 	unsigned int mars:1;
 

@@ -1215,6 +1215,10 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	if (TDS_FAILED(ret))
 		return ret;
 
+	/* server just encrypt the first packet */
+	if (crypt_flag == 0)
+		tds->conn->encrypt_single_packet = 1;
+
 	ret = tds7_send_login(tds, login);
 
 	/* if flag is 0 it means that after login server continue not encrypted */
