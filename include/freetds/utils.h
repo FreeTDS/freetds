@@ -28,12 +28,6 @@
 
 #include <freetds/pushvis.h>
 
-#ifdef offsetof
-#define TDS_OFFSET(type, field) offsetof(type, field)
-#else
-#define TDS_OFFSET(type, field) (((char*)&((type*)0)->field)-((char*)0))
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif

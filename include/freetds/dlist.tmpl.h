@@ -19,6 +19,7 @@
 
 #include <freetds/bool.h>
 #include <freetds/utils.h>
+#include <freetds/macros.h>
 
 #if !defined(DLIST_PREFIX) || !defined(DLIST_ITEM_TYPE) || !defined(DLIST_LIST_TYPE)
 #error Required defines for dlist missing!

@@ -52,6 +52,7 @@ typedef struct tds_bcpinfo TDSBCPINFO;
 #include <freetds/sysdep_private.h>
 #include <freetds/thread.h>
 #include <freetds/bool.h>
+#include <freetds/macros.h>
 #include "replacements.h"
 
 #include <freetds/pushvis.h>
@@ -337,38 +338,6 @@ typedef enum tds_encryption_level {
 	TDS_ENCRYPTION_REQUEST,
 	TDS_ENCRYPTION_REQUIRE
 } TDS_ENCRYPTION_LEVEL;
-
-#define TDS_ZERO_FREE(x) do {free((x)); (x) = NULL;} while(0)
-#define TDS_VECTOR_SIZE(x) (sizeof(x)/sizeof(x[0]))
-
-#if defined(__GNUC__) && __GNUC__ >= 3
-# define TDS_LIKELY(x)	__builtin_expect(!!(x), 1)
-# define TDS_UNLIKELY(x)	__builtin_expect(!!(x), 0)
-#else
-# define TDS_LIKELY(x)	(x)
-# define TDS_UNLIKELY(x)	(x)
-#endif
-
-#if ENABLE_EXTRA_CHECKS
-# if defined(__GNUC__) && __GNUC__ >= 2
-# define TDS_COMPILE_CHECK(name,check) \
-    extern int name[(check)?1:-1] __attribute__ ((unused))
-# else
-# define TDS_COMPILE_CHECK(name,check) \
-    extern int name[(check)?1:-1]
-# endif
-# define TDS_EXTRA_CHECK(stmt) stmt
-#else
-# define TDS_COMPILE_CHECK(name,check) \
-    extern int disabled_check_##name
-# define TDS_EXTRA_CHECK(stmt)
-#endif
-
-#if ENABLE_EXTRA_CHECKS && defined(__GNUC__) && __GNUC__ >= 4
-#define TDS_WUR __attribute__ ((__warn_unused_result__))
-#else
-#define TDS_WUR
-#endif
 
 /*
  * TODO use system macros for optimization

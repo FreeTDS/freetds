@@ -50,6 +50,8 @@ AC_SUBST(MINOR)
 AC_SUBST(SUBVERSION)
 AC_SUBST(BUILD_NUMBER)
 
+AH_TOP([#define _freetds_config_h_])
+
 # ------------------------------------------------------------
 # Commands and Utilities
 # ------------------------------------------------------------

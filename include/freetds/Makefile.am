@@ -25,6 +25,7 @@ noinst_HEADERS = \
 	dlist.tmpl.h \
 	alloca.h \
 	utils.h \
+	macros.h \
 	bjoern-utf8.h \
 	$(NULL)
 
