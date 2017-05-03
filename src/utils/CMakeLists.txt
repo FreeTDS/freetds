@@ -13,6 +13,7 @@ add_library(tdsutils STATIC
 	win_mutex.c
 	threadsafe.c
 	bjoern-utf8.c
+	tdsstring.c
 	${add_SRCS}
 )
 if (NOT WIN32)

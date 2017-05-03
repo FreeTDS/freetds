@@ -53,6 +53,7 @@ typedef struct tds_bcpinfo TDSBCPINFO;
 #include <freetds/thread.h>
 #include <freetds/bool.h>
 #include <freetds/macros.h>
+#include <freetds/string.h>
 #include "replacements.h"
 
 #include <freetds/pushvis.h>
@@ -86,16 +87,6 @@ typedef struct tds_compiletime_settings
 	int gnutls;		/* build against GnuTLS */
 	int mars;		/* MARS enabled */
 } TDS_COMPILETIME_SETTINGS;
-
-/**
- * Structure to hold a string.
- * Use tds_dstr_* functions/macros, do not access members directly.
- * There should be always a buffer.
- */
-typedef struct tds_dstr {
-	size_t dstr_size;
-	char dstr_s[1];
-} *DSTR;
 
 /**
  * @file tds.h

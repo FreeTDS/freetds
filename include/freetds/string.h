@@ -20,11 +20,23 @@
 #ifndef _tdsstring_h_
 #define _tdsstring_h_
 
+#include <freetds/macros.h>
+
 #include <freetds/pushvis.h>
 
 /** \addtogroup dstring
  * @{ 
  */
+
+/**
+ * Structure to hold a string.
+ * Use tds_dstr_* functions/macros, do not access members directly.
+ * There should be always a buffer.
+ */
+typedef struct tds_dstr {
+	size_t dstr_size;
+	char dstr_s[1];
+} *DSTR;
 
 /** Internal representation for an empty string */
 extern const struct tds_dstr tds_str_empty;
