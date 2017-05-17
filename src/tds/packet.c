@@ -48,6 +48,7 @@
 #include <freetds/iconv.h>
 #include "replacements.h"
 #include <freetds/checks.h>
+#include <freetds/tls.h>
 
 #undef MAX
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
