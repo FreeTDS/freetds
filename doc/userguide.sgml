@@ -386,7 +386,7 @@ Cf. <link linkend="withOdbcNoDM"><option>--with-odbc-nodm</></link>.</para>
 					<varlistentry>
 						<term><Option>--with-tdsver=<replaceable>VER</>
 							</Option></term>
-						<listitem><para>Specifies the default <acronym>TDS</> version.  (There are a couple of ways to set the <acronym>TDS</> version at run-time.  This parameter takes effect if no run-time settings are provided.) Acceptable values of <parameter>VER</> are <literal>4.2</literal>, <literal>4.6</literal>, <literal>5.0</literal>, <literal>7.0</literal>, <literal>7.1</literal>, <literal>7.2</literal>, <literal>7.3</literal> and <literal>7.4</literal>.</para>
+						<listitem><para>Specifies the default <acronym>TDS</> version.  (There are a couple of ways to set the <acronym>TDS</> version at run-time.  This parameter takes effect if no run-time settings are provided.) Acceptable values of <parameter>VER</> are <literal>5.0</literal>, <literal>7.1</literal>, <literal>7.2</literal>, <literal>7.3</literal> and <literal>7.4</literal>.</para>
 
 <para>The default is <literal>5.0</literal> if this argument is not passed to <Command>configure</Command>.</para>
 							</listitem>

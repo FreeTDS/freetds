@@ -369,12 +369,11 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 	 * We try them in an order that should work. 
 	 */
 	const static TDS_USMALLINT versions[] =
-		{ 0x703
+		{ 0x704
+		, 0x703
 		, 0x702
 		, 0x701
-		, 0x700
 		, 0x500
-		, 0x402
 		};
 
 	if (!login->valid_configuration) {

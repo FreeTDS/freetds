@@ -530,12 +530,12 @@ AC_HAVE_MALLOC_OPTIONS
 AC_MSG_RESULT(checking compile-time options)
 
 AC_ARG_WITH(tdsver,
-AS_HELP_STRING([--with-tdsver=VERSION], [TDS protocol version (4.2/4.6/5.0/7.0/7.1/7.2/7.3/7.4/auto) [auto]]))
+AS_HELP_STRING([--with-tdsver=VERSION], [TDS protocol version (5.0/7.1/7.2/7.3/7.4/auto) [auto]]))
 case "$with_tdsver" in
-4.2) AC_DEFINE(TDS42, 1, [Define to use TDS 4.2 by default]) ;;
-4.6) AC_DEFINE(TDS46, 1, [Define to use TDS 4.6 by default]) ;;
+4.2) AC_ERROR([Protocol 4.2 cannot be specified as obsolete]) ;;
+4.6) AC_ERROR([Protocol 4.6 cannot be specified as obsolete and never correctly supported]) ;;
 5.0) AC_DEFINE(TDS50, 1, [Define to use TDS 5.0 by default]) ;;
-7.0) AC_DEFINE(TDS70, 1, [Define to use TDS 7.0 by default]) ;;
+7.0) AC_ERROR([Protocol 7.0 cannot be specified during configure as too insecure]) ;;
 7.1) AC_DEFINE(TDS71, 1, [Define to use TDS 7.1 by default]) ;;
 7.2) AC_DEFINE(TDS72, 1, [Define to use TDS 7.2 by default]) ;;
 7.3) AC_DEFINE(TDS73, 1, [Define to use TDS 7.3 by default]) ;;
