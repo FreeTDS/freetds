@@ -10,7 +10,7 @@ TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			done_handling$(EXEEXT) timeout$(EXEEXT) \
 			hang$(EXEEXT) null$(EXEEXT) null2$(EXEEXT) \
 			setnull$(EXEEXT) numeric$(EXEEXT) pending$(EXEEXT) \
-			cancel$(EXEEXT) spid$(EXEEXT)
+			cancel$(EXEEXT) spid$(EXEEXT) bcp_getl$(EXEEXT)
 check_PROGRAMS	=	$(TESTS)
 
 SQL_DIST = 	bcp.sql dbmorecmds.sql done_handling.sql rpc.sql spid.sql \
@@ -59,6 +59,7 @@ numeric_SOURCES =	numeric.c common.c common.h
 pending_SOURCES =	pending.c common.c common.h
 cancel_SOURCES =	cancel.c common.c common.h
 spid_SOURCES	=	spid.c common.c common.h
+bcp_getl_SOURCES=	bcp_getl.c
 
 AM_CPPFLAGS	= 	-DFREETDS_TOPDIR=\"$(top_srcdir)\" -I$(top_srcdir)/include
 if MINGW32

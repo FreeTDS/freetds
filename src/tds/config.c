@@ -742,8 +742,8 @@ tds_config_login(TDSLOGIN * connection, TDSLOGIN * login)
 	if (login->suppress_language) {
 		connection->suppress_language = 1;
 	}
-	if (login->bulk_copy) {
-		connection->bulk_copy = 1;
+	if (!login->bulk_copy) {
+		connection->bulk_copy = 0;
 	}
 	if (login->block_size) {
 		connection->block_size = login->block_size;
