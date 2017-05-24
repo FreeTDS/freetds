@@ -544,7 +544,7 @@ typedef struct tds_login
 
 	unsigned char option_flag2;
 
-	unsigned int bulk_copy:1;
+	unsigned int bulk_copy:1;	/**< if bulk copy should be enabled */
 	unsigned int suppress_language:1;
 	unsigned int emul_little_endian:1;
 	unsigned int gssapi_use_delegation:1;

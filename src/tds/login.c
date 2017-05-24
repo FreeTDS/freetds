@@ -86,7 +86,7 @@ tds_set_passwd(TDSLOGIN * tds_login, const char *password)
 void
 tds_set_bulk(TDSLOGIN * tds_login, TDS_TINYINT enabled)
 {
-	tds_login->bulk_copy = enabled ? 0 : 1;
+	tds_login->bulk_copy = enabled ? 1 : 0;
 }
 
 bool
@@ -693,7 +693,7 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 #else
 	tds_put_n(tds, le1, 6);
 #endif
-	tds_put_byte(tds, login->bulk_copy);
+	tds_put_byte(tds, !login->bulk_copy);
 	tds_put_n(tds, NULL, 2);
 	if (IS_TDS42(tds->conn)) {
 		tds_put_int(tds, 512);
