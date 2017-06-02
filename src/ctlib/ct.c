@@ -3539,8 +3539,8 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 			if (action == CS_SET)
 				return CS_FAIL;
 		}
-		tds_argument.i = TDS_OPT_ARITHOVERFLOW | TDS_OPT_NUMERICTRUNC;
-		tds_argsize = (action == CS_SET) ? 4 : 0;
+		tds_argument.ti = TDS_OPT_ARITHOVERFLOW | TDS_OPT_NUMERICTRUNC;
+		tds_argsize = (action == CS_SET) ? 1 : 0;
 		break;
 	case CS_OPT_AUTHOFF:
 		tds_option = TDS_OPT_AUTHOFF;
