@@ -108,6 +108,8 @@ struct tds_pool
 	char *password;
 	char *server;
 	char *database;
+	char *server_user;
+	char *server_password;
 	int port;
 	int max_member_age;	/* in seconds */
 	int min_open_conn;

@@ -2462,12 +2462,24 @@ from your Active Directory.  You could use <ulink url="http://www.samba.org/">Sa
 							<entry>user</entry>
 							<entry>Any valid user</entry>
 							<entry>none</entry>
-							<entry>The username used to connect to the servername.</entry>
+							<entry>The username used to connect to the pool server.</entry>
 							</row>
 						<row>
 							<entry>password</entry>
 							<entry>Any</entry>
 							<entry>none</entry>
+							<entry>The password of the user at the pool server.</entry>
+							</row>
+						<row>
+							<entry>server user</entry>
+							<entry>Any valid user</entry>
+							<entry>user field</entry>
+							<entry>The username used to connect to the servername.</entry>
+							</row>
+						<row>
+							<entry>server password</entry>
+							<entry>Any</entry>
+							<entry>password field</entry>
 							<entry>The password of the user at the servername.</entry>
 							</row>
 						<row>

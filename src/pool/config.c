@@ -45,6 +45,8 @@
 #define POOL_STR_USER	"user"
 #define POOL_STR_PASSWORD	"password"
 #define POOL_STR_DATABASE	"database"
+#define POOL_STR_SERVER_USER	"server user"
+#define POOL_STR_SERVER_PASSWORD	"server password"
 #define POOL_STR_MAX_MBR_AGE	"max member age"
 #define POOL_STR_MAX_POOL_CONN	"max pool conn"
 #define POOL_STR_MIN_POOL_CONN	"min pool conn"
@@ -118,6 +120,12 @@ pool_parse(const char *option, const char *value, void *param)
 	} else if (!strcmp(option, POOL_STR_PASSWORD)) {
 		free(pool->password);
 		pool->password = strdup(value);
+	} else if (!strcmp(option, POOL_STR_SERVER_USER)) {
+		free(pool->server_user);
+		pool->server_user = strdup(value);
+	} else if (!strcmp(option, POOL_STR_SERVER_PASSWORD)) {
+		free(pool->server_password);
+		pool->server_password = strdup(value);
 	} else if (!strcmp(option, POOL_STR_MAX_MBR_AGE)) {
 		val = pool_get_uint(value);
 		pool->max_member_age = val;

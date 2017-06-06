@@ -86,8 +86,8 @@ pool_mbr_login(const TDS_POOL * pool, int tds_version)
 	login = tds_alloc_login(1);
 	if (gethostname(hostname, MAXHOSTNAMELEN) < 0)
 		strlcpy(hostname, "tdspool", MAXHOSTNAMELEN);
-	if (!tds_set_passwd(login, pool->password)
-	    || !tds_set_user(login, pool->user)
+	if (!tds_set_passwd(login, pool->server_password)
+	    || !tds_set_user(login, pool->server_user)
 	    || !tds_set_app(login, "tdspool")
 	    || !tds_set_host(login, hostname)
 	    || !tds_set_library(login, "TDS-Library")

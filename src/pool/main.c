@@ -125,6 +125,11 @@ pool_init(const char *name)
 	check_field(name, pool->server != NULL, "server");
 	check_field(name, pool->port != 0,   "port");
 
+	if (!pool->server_user)
+		pool->server_user = strdup(pool->user);
+	if (!pool->server_password)
+		pool->server_password = strdup(pool->password);
+
 	if (pool->max_open_conn < pool->min_open_conn) {
 		fprintf(stderr, "Max connections less than minimum\n");
 		exit(EXIT_FAILURE);
@@ -158,6 +163,8 @@ pool_destroy(TDS_POOL *pool)
 	free(pool->server);
 	free(pool->database);
 	free(pool->name);
+	free(pool->server_user);
+	free(pool->server_password);
 	free(pool);
 }
 
