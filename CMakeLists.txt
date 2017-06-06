@@ -446,6 +446,8 @@ add_subdirectory(src/ctlib)
 add_subdirectory(src/dblib)
 add_subdirectory(src/odbc)
 add_subdirectory(src/apps)
+add_subdirectory(src/server)
+add_subdirectory(src/pool)
 
 configure_file(${CMAKE_BINARY_DIR}/include/config.h.in ${CMAKE_BINARY_DIR}/include/config.h)
 configure_file(${CMAKE_SOURCE_DIR}/include/tds_sysdep_public.h.in ${CMAKE_BINARY_DIR}/include/tds_sysdep_public.h)

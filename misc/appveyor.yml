@@ -151,6 +151,7 @@ after_test:
   - copy src\odbc\tdsodbc.lib %DESTDIR%\dynamic\
   - mkdir %DESTDIR%\bin
   - copy src\apps\*.exe %DESTDIR%\bin\
+  - copy src\pool\*.exe %DESTDIR%\bin\
   - 7z a ..\%DESTDIR%.zip %DESTDIR%
   - cd ..
 
