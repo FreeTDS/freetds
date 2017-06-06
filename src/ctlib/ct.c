@@ -3406,6 +3406,8 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		, { CS_OPT_SHOWPLAN,       TDS_OPT_SHOWPLAN       }
 		, { CS_OPT_STATS_IO,       TDS_OPT_STAT_IO        }
 		, { CS_OPT_STATS_TIME,     TDS_OPT_STAT_TIME      }
+		, { CS_OPT_ARITHIGNORE,    TDS_OPT_ARITHIGNOREON  }
+		, { CS_OPT_ARITHABORT,     TDS_OPT_ARITHABORTON   }
 	};
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_options(%p, %d, %d, %p, %d, %p)\n", con, action, option, param, paramlen, outlen);
@@ -3498,36 +3500,6 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 			if (action == CS_SET)
 				return CS_FAIL;
 		}
-		break;
-	case CS_OPT_ARITHABORT:
-		tds_option = TDS_OPT_ARITHABORTON;
-		switch (*(CS_BOOL *) param) {
-		case CS_TRUE:
-			break;
-		case CS_FALSE:
-			tds_option = TDS_OPT_ARITHABORTOFF;
-			break;
-		default:
-			if (action == CS_SET)
-				return CS_FAIL;
-		}
-		tds_argument.ti = TDS_OPT_ARITHOVERFLOW | TDS_OPT_NUMERICTRUNC;
-		tds_argsize = (action == CS_SET) ? 1 : 0;
-		break;
-	case CS_OPT_ARITHIGNORE:
-		tds_option = TDS_OPT_ARITHIGNOREON;
-		switch (*(CS_BOOL *) param) {
-		case CS_TRUE:
-			break;
-		case CS_FALSE:
-			tds_option = TDS_OPT_ARITHIGNOREOFF;
-			break;
-		default:
-			if (action == CS_SET)
-				return CS_FAIL;
-		}
-		tds_argument.i = TDS_OPT_ARITHOVERFLOW | TDS_OPT_NUMERICTRUNC;
-		tds_argsize = (action == CS_SET) ? 4 : 0;
 		break;
 	case CS_OPT_AUTHOFF:
 		tds_option = TDS_OPT_AUTHOFF;
