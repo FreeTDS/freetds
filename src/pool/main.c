@@ -103,6 +103,7 @@ pool_init(const char *name)
 	/* initialize the pool */
 
 	pool = tds_new0(TDS_POOL, 1);
+	pool->password = strdup("");
 
 	pool->event_fd = INVALID_SOCKET;
 	if (tds_mutex_init(&pool->events_mtx)) {
