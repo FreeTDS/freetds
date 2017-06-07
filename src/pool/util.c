@@ -115,7 +115,7 @@ pool_packet_read(TDSSOCKET *tds)
 		assert(packet_len <= tds->recv_packet->capacity);
 		assert(tds->in_len < tds->recv_packet->capacity);
 
-		readed = read(tds_get_s(tds), &tds->in_buf[tds->in_len], packet_len - tds->in_len);
+		readed = READSOCKET(tds_get_s(tds), &tds->in_buf[tds->in_len], packet_len - tds->in_len);
 		tdsdump_log(TDS_DBG_INFO1, "readed %d\n", readed);
 
 		/* socket closed */
