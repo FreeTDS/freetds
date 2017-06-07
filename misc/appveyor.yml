@@ -140,7 +140,7 @@ after_test:
   - mkdir %DESTDIR%\include
   - cp include/tds_sysdep_public.h ./%DESTDIR%/include/
   - cd ..\include
-  - cp bkpublic.h cspublic.h cstypes.h ctpublic.h sqldb.h sqlfront.h sybdb.h syberror.h sybfront.h ../build/%DESTDIR%/include/
+  - cp odbcss.h bkpublic.h cspublic.h cstypes.h ctpublic.h sqldb.h sqlfront.h sybdb.h syberror.h sybfront.h ../build/%DESTDIR%/include/
   - cd ..\build
   - mkdir %DESTDIR%\dynamic
   - copy src\ctlib\ct.dll %DESTDIR%\dynamic\
@@ -149,6 +149,8 @@ after_test:
   - copy src\dblib\sybdb.lib %DESTDIR%\dynamic\
   - copy src\odbc\tdsodbc.dll %DESTDIR%\dynamic\
   - copy src\odbc\tdsodbc.lib %DESTDIR%\dynamic\
+  - mkdir %DESTDIR%\bin
+  - copy src\apps\*.exe %DESTDIR%\bin\
   - 7z a ..\%DESTDIR%.zip %DESTDIR%
   - cd ..
 
