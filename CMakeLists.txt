@@ -123,6 +123,7 @@ foreach(fn
 	sys/types.h
 	sys/wait.h
 	unistd.h
+	fcntl.h
 	wchar.h
 	windows.h)
 
