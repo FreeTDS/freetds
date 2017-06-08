@@ -73,6 +73,10 @@
 #include <poll.h>
 #endif /* HAVE_POLL_H */
 
+#if HAVE_FCNTL_H
+#include <fcntl.h>
+#endif /* HAVE_FCNTL_H */
+
 #ifdef HAVE_SYS_EVENTFD_H
 #include <sys/eventfd.h>
 #endif /* HAVE_SYS_EVENTFD_H */
@@ -611,7 +615,16 @@ tds_wakeup_init(TDSPOLLWAKEUP *wakeup)
 
 	wakeup->s_signal = wakeup->s_signaled = INVALID_SOCKET;
 #if defined(__linux__) && HAVE_EVENTFD
+#  ifdef EFD_CLOEXEC
 	ret = eventfd(0, EFD_CLOEXEC|EFD_NONBLOCK);
+#  else
+	ret = -1;
+#  endif
+	/* Linux version up to 2.6.26 do not support flags, try without */
+	if (ret < 0 && (ret = eventfd(0, 0)) >= 0) {
+		fcntl(ret, F_SETFD, fcntl(ret, F_GETFD, 0) | FD_CLOEXEC);
+		fcntl(ret, F_SETFL, fcntl(ret, F_GETFL, 0) | O_NONBLOCK);
+	}
 	if (ret >= 0) {
 		wakeup->s_signaled = ret;
 		return 0;
