@@ -361,7 +361,7 @@ dbcolptr(DBPROCESS* dbproc, int column)
 static TDSCOLUMN*
 dbacolptr(DBPROCESS* dbproc, int computeid, int column, int is_bind)
 {
-	int i;
+	unsigned int i;
 	TDSSOCKET *tds;
 	TDSCOMPUTEINFO *info;
 
@@ -2972,7 +2972,7 @@ dbcolinfo (DBPROCESS *dbproc, CI_TYPE type, DBINT column, DBINT computeid, DBCOL
 	DBTYPEINFO *ps;
 	TDSCOMPUTEINFO *info;
 	TDSCOLUMN *colinfo;
-	int i;
+	unsigned int i;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbcolinfo(%p, %d, %d, %d, %p)\n", dbproc, type, column, computeid, pdbcol);
 
