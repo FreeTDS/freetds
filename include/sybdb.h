@@ -283,7 +283,7 @@ typedef DBNUMERIC DBDECIMAL;
 typedef struct
 {
 	DBINT mnyhigh;
-	uint32_t mnylow;
+	DBUINT mnylow;
 } DBMONEY;
 
 typedef struct
