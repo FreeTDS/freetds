@@ -636,18 +636,18 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	const char *lservname = getenv("ASA_DATABASE")? getenv("ASA_DATABASE") : tds_dstr_cstr(&login->server_name);
 
 	if (strchr(tds_dstr_cstr(&login->user_name), '\\') != NULL) {
-		tdsdump_log(TDS_DBG_ERROR, "NT login not support using TDS 4.x or 5.0\n");
+		tdsdump_log(TDS_DBG_ERROR, "NT login not supported using TDS 4.x or 5.0\n");
 		return TDS_FAIL;
 	}
 	if (tds_dstr_isempty(&login->user_name)) {
-		tdsdump_log(TDS_DBG_ERROR, "Kerberos login not support using TDS 4.x or 5.0\n");
+		tdsdump_log(TDS_DBG_ERROR, "Kerberos login not supported using TDS 4.x or 5.0\n");
 		return TDS_FAIL;
 	}
 	if (login->encryption_level == TDS_ENCRYPTION_DEFAULT)
 		login->encryption_level = TDS_ENCRYPTION_OFF;
 	if (login->encryption_level != TDS_ENCRYPTION_OFF) {
 		if (IS_TDS42(tds->conn)) {
-			tdsdump_log(TDS_DBG_ERROR, "Encryption not support using TDS 4.x\n");
+			tdsdump_log(TDS_DBG_ERROR, "Encryption not supported using TDS 4.x\n");
 			return TDS_FAIL;
 		}
 		tds->conn->authentication = tds5_negotiate_get_auth(tds);
