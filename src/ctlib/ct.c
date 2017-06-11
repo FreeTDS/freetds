@@ -3613,7 +3613,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 			if (action == CS_SET)
 				return CS_FAIL;
 		}
-		tds_argument.ti = !*(char *) param;
+		tds_argument.ti = !*(CS_BOOL *) param;
 		tds_argsize = (action == CS_SET) ? 1 : 0;
 		break;
 	default:
