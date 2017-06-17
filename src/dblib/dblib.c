@@ -3741,6 +3741,7 @@ dbsprhead(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 		}
 		memcpy(buffer, tds_dstr_cstr(&colinfo->column_name), namlen);
 		buffer += namlen;
+		buf_len -= namlen;
 		if ((c = dbstring_getchar(dbproc->dbopts[DBPRPAD].param, 0)) == -1) {
 			c = ' ';
 		}
