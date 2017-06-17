@@ -9,7 +9,7 @@ $srcdir = "$ARGV[0]/";
 $filename = "${srcdir}alternative_character_sets.h";
 open ALT, $filename or die qq($basename: could not open "$filename"\n);
 while(<ALT>){
-	next unless /^\t[, ] {\s+"(.+?)", "(.+?)"/;
+	next unless /^\t[, ] \{\s+"(.+?)", "(.+?)"/;
 	$alternates{$2} = $1;
 }
 close ALT;
