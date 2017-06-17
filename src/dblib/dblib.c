@@ -3724,7 +3724,7 @@ dbsprhead(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 	int padlen;
 	int c;
 
-	tdsdump_log(TDS_DBG_FUNC, "dbsprhead(%p, %s, %d)\n", dbproc, buffer, buf_len);
+	tdsdump_log(TDS_DBG_FUNC, "dbsprhead(%p, %p, %d)\n", dbproc, buffer, buf_len);
 	CHECK_CONN(FAIL);
 	CHECK_NULP(buffer, "dbsprhead", 2, FAIL);
 
