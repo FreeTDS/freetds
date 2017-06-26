@@ -50,9 +50,9 @@
 #include <freetds/checks.h>
 #include "replacements.h"
 
-static TDSRET tds_send_login(TDSSOCKET * tds, TDSLOGIN * login);
-static TDSRET tds71_do_login(TDSSOCKET * tds, TDSLOGIN * login);
-static TDSRET tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login);
+static TDSRET tds_send_login(TDSSOCKET * tds, const TDSLOGIN * login);
+static TDSRET tds71_do_login(TDSSOCKET * tds, const TDSLOGIN * login);
+static TDSRET tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login);
 static void tds7_crypt_pass(const unsigned char *clear_pass,
 			    size_t len, unsigned char *crypt_pass);
 
@@ -602,7 +602,7 @@ tds_put_login_string(TDSSOCKET * tds, const char *buf, int n)
 }
 
 static TDSRET
-tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
+tds_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 {
 #ifdef WORDS_BIGENDIAN
 	static const unsigned char be1[] = { 0x02, 0x00, 0x06, 0x04, 0x08, 0x01 };
@@ -632,6 +632,8 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	int len;
 	char blockstr[16];
 
+	TDS_TINYINT encryption_level = login->encryption_level;
+
 	/* override lservname field for ASA servers */	
 	const char *lservname = getenv("ASA_DATABASE")? getenv("ASA_DATABASE") : tds_dstr_cstr(&login->server_name);
 
@@ -643,9 +645,9 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 		tdsdump_log(TDS_DBG_ERROR, "Kerberos login not supported using TDS 4.x or 5.0\n");
 		return TDS_FAIL;
 	}
-	if (login->encryption_level == TDS_ENCRYPTION_DEFAULT)
-		login->encryption_level = TDS_ENCRYPTION_OFF;
-	if (login->encryption_level != TDS_ENCRYPTION_OFF) {
+	if (encryption_level == TDS_ENCRYPTION_DEFAULT)
+		encryption_level = TDS_ENCRYPTION_OFF;
+	if (encryption_level != TDS_ENCRYPTION_OFF) {
 		if (IS_TDS42(tds->conn)) {
 			tdsdump_log(TDS_DBG_ERROR, "Encryption not supported using TDS 4.x\n");
 			return TDS_FAIL;
@@ -677,7 +679,7 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	tds_put_login_string(tds, tds_dstr_cstr(&login->client_host_name), TDS_MAXNAME);	/* client host name */
 	tds_put_login_string(tds, tds_dstr_cstr(&login->user_name), TDS_MAXNAME);	/* account name */
 	/* account password */
-	if (login->encryption_level != TDS_ENCRYPTION_OFF) {
+	if (encryption_level != TDS_ENCRYPTION_OFF) {
 		tds_put_login_string(tds, NULL, TDS_MAXNAME);
 	} else {
 		tds_put_login_string(tds, tds_dstr_cstr(&login->password), TDS_MAXNAME);
@@ -705,7 +707,7 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	tds_put_login_string(tds, lservname, TDS_MAXNAME);
 	if (IS_TDS42(tds->conn)) {
 		tds_put_login_string(tds, tds_dstr_cstr(&login->password), 255);
-	} else if (login->encryption_level != TDS_ENCRYPTION_OFF) {
+	} else if (encryption_level != TDS_ENCRYPTION_OFF) {
 		tds_put_n(tds, NULL, 256);
 	} else {
 		len = (int)tds_dstr_len(&login->password);
@@ -740,7 +742,7 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	/* oldsecure(2), should be zero, used by old software */
 	tds_put_n(tds, NULL, 2);
 	/* seclogin(1) bitmask */
-	tds_put_byte(tds, login->encryption_level ? TDS5_SEC_LOG_ENCRYPT2|TDS5_SEC_LOG_NONCE : 0);
+	tds_put_byte(tds, encryption_level ? TDS5_SEC_LOG_ENCRYPT2|TDS5_SEC_LOG_NONCE : 0);
 	/* secbulk(1)
 	 * halogin(1) type of ha login
 	 * hasessionid(6) id of session to reconnect
@@ -782,7 +784,7 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
  * \returns the return value is ignored by the caller. :-/
  */
 static TDSRET
-tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
+tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 {
 	static const unsigned char 
 		client_progver[] = {   6, 0x83, 0xf2, 0xf8 }, 
@@ -1072,7 +1074,7 @@ tds7_crypt_pass(const unsigned char *clear_pass, size_t len, unsigned char *cryp
 }
 
 static TDSRET
-tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
+tds71_do_login(TDSSOCKET * tds, const TDSLOGIN* login)
 {
 	int i, pkt_len;
 	const char *instance_name = tds_dstr_isempty(&login->instance_name) ? "MSSQLServer" : tds_dstr_cstr(&login->instance_name);
@@ -1103,6 +1105,8 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 
 	TDS_UCHAR *p;
 
+	TDS_TINYINT encryption_level = login->encryption_level;
+
 	SET_UI16BE(13, instance_name_len);
 	if (!IS_TDS72_PLUS(tds->conn)) {
 		SET_UI16BE(16, START_POS + 6 + 1 + instance_name_len);
@@ -1121,8 +1125,8 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	assert(start_pos >= 21 && start_pos <= sizeof(buf));
 	assert(buf[start_pos-1] == 0xff);
 
-	if (login->encryption_level == TDS_ENCRYPTION_DEFAULT)
-		login->encryption_level = TDS_ENCRYPTION_REQUEST;
+	if (encryption_level == TDS_ENCRYPTION_DEFAULT)
+		encryption_level = TDS_ENCRYPTION_REQUEST;
 
 	/*
 	 * fix a problem with mssql2k which doesn't like
@@ -1150,8 +1154,8 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	   subroutine always been request due to code above that
 	   tests for TDS_ENCRYPTION_DEFAULT.
 	*/
-	tds_put_byte(tds, login->encryption_level == TDS_ENCRYPTION_OFF ? TDS7_ENCRYPT_NOT_SUP :
-			  login->encryption_level >= TDS_ENCRYPTION_REQUIRE ? TDS7_ENCRYPT_ON :
+	tds_put_byte(tds, encryption_level == TDS_ENCRYPTION_OFF ? TDS7_ENCRYPT_NOT_SUP :
+			  encryption_level >= TDS_ENCRYPTION_REQUIRE ? TDS7_ENCRYPT_ON :
 			  TDS7_ENCRYPT_OFF);
 #endif
 	/* instance */
@@ -1213,7 +1217,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	/* if server do not has certificate do normal login */
 	if (crypt_flag == TDS7_ENCRYPT_NOT_SUP) {
 		/* unless we wanted encryption and got none, then fail */
-		if (login->encryption_level >= TDS_ENCRYPTION_REQUIRE)
+		if (encryption_level >= TDS_ENCRYPTION_REQUIRE)
 			return TDS_FAIL;
 
 		return tds7_send_login(tds, login);
