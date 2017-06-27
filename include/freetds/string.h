@@ -57,7 +57,7 @@ tds_dstr_init(DSTR * s)
 
 /** test if string is empty */
 static inline int
-tds_dstr_isempty(DSTR * s)
+tds_dstr_isempty(const DSTR * s)
 {
 	return (*s)->dstr_size == 0;
 }
@@ -75,14 +75,14 @@ tds_dstr_buf(DSTR * s)
 
 /** Returns a C version (NUL terminated string) of dstr */
 static inline const char *
-tds_dstr_cstr(DSTR * s)
+tds_dstr_cstr(const DSTR * s)
 {
 	return (*s)->dstr_s;
 }
 
 /** Returns the length of the string in bytes */
 static inline size_t
-tds_dstr_len(DSTR * s)
+tds_dstr_len(const DSTR * s)
 {
 	return (*s)->dstr_size;
 }
