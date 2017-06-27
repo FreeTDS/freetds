@@ -789,27 +789,27 @@ tds_config_login(TDSLOGIN * connection, TDSLOGIN * login)
 static int
 tds_config_env_tdsdump(TDSLOGIN * login)
 {
-	char *s;
-	char *path;
-	pid_t pid = 0;
+	char *s = getenv("TDSDUMP");
+	if (!s)
+		return 1;
 
-	if ((s = getenv("TDSDUMP"))) {
-		if (!strlen(s)) {
-			pid = getpid();
-			if (asprintf(&path, pid_logpath, pid) < 0)
-				return 0;
-			if (!tds_dstr_set(&login->dump_file, path)) {
-				free(path);
-				return 0;
-			}
-		} else {
-			if (!tds_dstr_copy(&login->dump_file, s))
-				return 0;
+	if (!strlen(s)) {
+		char *path;
+		pid_t pid = getpid();
+		if (asprintf(&path, pid_logpath, (int) pid) < 0)
+			return 0;
+		if (!tds_dstr_set(&login->dump_file, path)) {
+			free(path);
+			return 0;
 		}
-		tdsdump_log(TDS_DBG_INFO1, "Setting 'dump_file' to '%s' from $TDSDUMP.\n", tds_dstr_cstr(&login->dump_file));
+	} else {
+		if (!tds_dstr_copy(&login->dump_file, s))
+			return 0;
 	}
+	tdsdump_log(TDS_DBG_INFO1, "Setting 'dump_file' to '%s' from $TDSDUMP.\n", tds_dstr_cstr(&login->dump_file));
 	return 1;
 }
+
 static void
 tds_config_env_tdsport(TDSLOGIN * login)
 {
