@@ -51,7 +51,7 @@
 #include "replacements.h"
 
 static TDSRET tds_send_login(TDSSOCKET * tds, const TDSLOGIN * login);
-static TDSRET tds71_do_login(TDSSOCKET * tds, const TDSLOGIN * login);
+static TDSRET tds71_do_login(TDSSOCKET * tds, TDSLOGIN * login);
 static TDSRET tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login);
 static void tds7_crypt_pass(const unsigned char *clear_pass,
 			    size_t len, unsigned char *crypt_pass);
@@ -1074,7 +1074,7 @@ tds7_crypt_pass(const unsigned char *clear_pass, size_t len, unsigned char *cryp
 }
 
 static TDSRET
-tds71_do_login(TDSSOCKET * tds, const TDSLOGIN* login)
+tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 {
 	int i, pkt_len;
 	const char *instance_name = tds_dstr_isempty(&login->instance_name) ? "MSSQLServer" : tds_dstr_cstr(&login->instance_name);
