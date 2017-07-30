@@ -93,7 +93,7 @@ int main(void)
 
 	/* check timed version */
 
-	check(tds_cond_timedwait(&cond, &mtx, 1) == 0, "should not succeed to wait condition");
+	check(tds_cond_timedwait(&cond, &mtx, 1) != ETIMEDOUT, "should not succeed to wait condition");
 
 	check(tds_thread_create(&th, signal_proc, &cond) != 0, "error creating thread");
 

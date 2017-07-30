@@ -33,12 +33,6 @@
 #include <freetds/thread.h>
 #include <freetds/time.h>
 
-#include <errno.h>
-
-#ifndef ETIMEDOUT
-#define ETIMEDOUT WSAETIMEDOUT
-#endif
-
 /* implementation for systems that support Condition Variables */
 typedef VOID(WINAPI * init_cv_t) (TDS_CONDITION_VARIABLE * cv);
 typedef BOOL(WINAPI * sleep_cv_t) (TDS_CONDITION_VARIABLE * cv, CRITICAL_SECTION * crit, DWORD milli);
