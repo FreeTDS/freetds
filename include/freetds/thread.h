@@ -27,7 +27,6 @@
 #if defined(_THREAD_SAFE) && defined(TDS_HAVE_PTHREAD_MUTEX)
 
 #include <pthread.h>
-#include <errno.h>
 
 #include <freetds/pushvis.h>
 
@@ -118,6 +117,7 @@ static inline int tds_thread_is_current(tds_thread_id th)
 #elif defined(_WIN32)
 
 #include <windows.h>
+#include <errno.h>
 
 struct ptw32_mcs_node_t_;
 
