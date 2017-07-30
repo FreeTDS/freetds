@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 2.6)
 option(WITH_OPENSSL        "Link in OpenSSL if found" ON)
 option(ENABLE_ODBC_WIDE    "Enable ODBC wide character support" ON)
 option(ENABLE_KRB5         "Enable Kerberos support" OFF)
-option(ENABLE_ODBC_MARS    "Enable MARS" OFF)
+option(ENABLE_ODBC_MARS    "Enable MARS" ON)
 option(ENABLE_EXTRA_CHECKS "Enable internal extra checks, DO NOT USE in production" OFF)
 
 if(COMMAND cmake_policy)

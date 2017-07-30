@@ -880,8 +880,8 @@ fi
 AM_CONDITIONAL(ENABLE_DEVELOPING, test "$enable_developing" = "yes")
 
 AC_ARG_ENABLE(mars,
-  AS_HELP_STRING([--enable-mars], [enable MARS code (EXPERIMENTAL)]))
-if test "$enable_mars" = "yes" ; then
+  AS_HELP_STRING([--disable-mars], [enable MARS code]))
+if test "$enable_mars" != "no" ; then
 	AC_DEFINE_UNQUOTED(ENABLE_ODBC_MARS, 1, [Define to enable MARS support])
 fi
 
