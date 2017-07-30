@@ -119,6 +119,11 @@ static inline int tds_thread_is_current(tds_thread_id th)
 #include <windows.h>
 #include <errno.h>
 
+/* old version of Windows do not define this constant */
+#ifndef ETIMEDOUT
+#define ETIMEDOUT 138
+#endif
+
 struct ptw32_mcs_node_t_;
 
 typedef struct {
