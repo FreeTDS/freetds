@@ -21,7 +21,7 @@
 #include <config.h>
 
 /* enabled some additional definitions for inet_pton */
-#define _WIN32_WINNT 0x601
+#define _WIN32_WINNT 0x600
 
 #include <stdio.h>
 
