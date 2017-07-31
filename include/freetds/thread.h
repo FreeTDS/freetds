@@ -27,6 +27,7 @@
 #if defined(_THREAD_SAFE) && defined(TDS_HAVE_PTHREAD_MUTEX)
 
 #include <pthread.h>
+#include <errno.h>
 
 #include <freetds/pushvis.h>
 
