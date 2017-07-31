@@ -157,7 +157,7 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 			opened = tdsdump_open(s);
 		} else {
 			pid = getpid();
-			if (asprintf(&path, pid_config_logpath, pid) >= 0) {
+			if (asprintf(&path, pid_config_logpath, (int) pid) >= 0) {
 				if (*path) {
 					opened = tdsdump_open(path);
 				}
