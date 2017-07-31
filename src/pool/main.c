@@ -80,11 +80,13 @@ sigterm_handler(int sig)
 	got_sigterm = 1;
 }
 
+#ifndef _WIN32
 static void
 sighup_handler(int sig)
 {
 	got_sighup = 1;
 }
+#endif
 
 static void
 check_field(const char *pool_name, bool cond, const char *field_name)
