@@ -47,6 +47,11 @@
 #include <locale.h>
 #endif
 
+#ifdef HAVE_WINDOWS_H
+#include <winsock2.h>
+#include <windows.h>
+#endif
+
 #include "tds_sysdep_public.h"
 #include <sql.h>
 #include <sqlext.h>
