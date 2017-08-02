@@ -173,7 +173,7 @@ main(int argc, char *argv[])
 	}
 
 	/*
-	 * tests for Jdbc compatiblity
+	 * tests for Jdbc compatibility
 	 */
 
 	/* enum tables */
