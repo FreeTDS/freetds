@@ -6870,6 +6870,7 @@ ODBC_FUNC(SQLTables, (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),
 	TDSSOCKET *tds;
 	DSTR schema_name  = DSTR_INITIALIZER;
 	DSTR catalog_name = DSTR_INITIALIZER;
+	DSTR table_name   = DSTR_INITIALIZER;
 	DSTR table_type   = DSTR_INITIALIZER;
 
 	ODBC_ENTER_HSTMT;
@@ -6881,8 +6882,14 @@ ODBC_FUNC(SQLTables, (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),
 
 	if (!odbc_dstr_copy(stmt->dbc, &catalog_name, cbCatalogName, szCatalogName)
 	    || !odbc_dstr_copy(stmt->dbc, &schema_name, cbSchemaName, szSchemaName)
+	    || !odbc_dstr_copy(stmt->dbc, &table_name, cbTableName, szTableName)
 	    || !odbc_dstr_copy(stmt->dbc, &table_type, cbTableType, szTableType))
 		goto memory_error;
+
+	if (cbTableName == SQL_NTS)
+		cbTableName = tds_dstr_len(&table_name);
+	if (cbSchemaName == SQL_NTS)
+		cbSchemaName = tds_dstr_len(&schema_name);
 
 	/* support wildcards on catalog (only odbc 3) */
 	wildcards = 0;
@@ -6978,13 +6985,15 @@ ODBC_FUNC(SQLTables, (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),
 					  "$!P@table_owner", "", 0, "!P@table_qualifier", "%", 1);
 	} else {
 		retcode =
-			odbc_stat_execute(stmt _wide, proc, 4, "P@table_name", szTableName, cbTableName,
+			odbc_stat_execute(stmt _wide, proc, 4,
+				"!P@table_name", tds_dstr_cstr(&table_name), tds_dstr_len(&table_name),
 				"!P@table_owner", tds_dstr_cstr(&schema_name), tds_dstr_len(&schema_name),
 				"!P@table_qualifier", tds_dstr_cstr(&catalog_name), tds_dstr_len(&catalog_name),
 				"!@table_type", tds_dstr_cstr(&table_type), tds_dstr_len(&table_type));
 	}
 	tds_dstr_free(&schema_name);
 	tds_dstr_free(&catalog_name);
+	tds_dstr_free(&table_name);
 	tds_dstr_free(&table_type);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
@@ -6995,6 +7004,7 @@ ODBC_FUNC(SQLTables, (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),
 memory_error:
 	tds_dstr_free(&schema_name);
 	tds_dstr_free(&catalog_name);
+	tds_dstr_free(&table_name);
 	tds_dstr_free(&table_type);
 	odbc_errs_add(&stmt->errs, "HY001", NULL);
 	ODBC_EXIT_(stmt);
