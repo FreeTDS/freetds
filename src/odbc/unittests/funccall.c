@@ -3,6 +3,7 @@
 /* Test for {?=call store(?)} syntax and run */
 
 static void test_with_conversions(void);
+static void test_with_dbname(void);
 
 int
 main(int argc, char *argv[])
@@ -159,8 +160,14 @@ main(int argc, char *argv[])
 	}
 	odbc_disconnect();
 
-	if (odbc_db_is_microsoft())
+	if (odbc_db_is_microsoft()) {
+		odbc_use_version3 = 1;
+		odbc_connect();
+
 		test_with_conversions();
+		test_with_dbname();
+		odbc_disconnect();
+	}
 
 	printf("Done.\n");
 	return 0;
@@ -176,9 +183,6 @@ test_with_conversions(void)
 	 * test from Bower, Wayne
 	 * Cfr ML 2012-03-02 "[freetds] [unixODBC][Driver Manager]Function sequence error (SQL-HY010)"
 	 */
-	odbc_use_version3 = 1;
-	odbc_connect();
-
 	odbc_command("IF OBJECT_ID('TMP_SP_Test_ODBC') IS NOT NULL DROP PROC TMP_SP_Test_ODBC");
 	odbc_command("create proc TMP_SP_Test_ODBC @i int,\n@o int output\nas\nset nocount on\nselect @o = 55\nreturn 9\n");
 	odbc_reset_statement();
@@ -200,7 +204,39 @@ test_with_conversions(void)
 
 	odbc_reset_statement();
 	odbc_command("drop proc TMP_SP_Test_ODBC");
+}
 
+static void
+test_with_dbname(void)
+{
+	SQLINTEGER len;
+	SQLTCHAR out[512];
+	char sql[1024];
+	SQLINTEGER output;
+	SQLLEN ind;
+	ODBC_BUF *odbc_buf = NULL;
 
-	odbc_disconnect();
+	len = sizeof(out);
+	CHKGetConnectAttr(SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) out, sizeof(out), &len, "SI");
+
+	odbc_command("IF OBJECT_ID('TMP_SP_Test_ODBC') IS NOT NULL DROP PROC TMP_SP_Test_ODBC");
+	odbc_command("create proc TMP_SP_Test_ODBC @o int output\nas\nset @o=55\nreturn 3\n");
+	odbc_reset_statement();
+
+	sprintf(sql, "{call [%s]..TMP_SP_Test_ODBC(?)}", C(out));
+	CHKBindParameter(1, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &output, 0, &ind, "S");
+	CHKPrepare(T(sql), SQL_NTS, "S");
+
+	output = 123;
+	ind = sizeof(output);
+	CHKExecute("S");
+
+	if (output != 55) {
+		printf("Invalid result\n");
+		exit(1);
+	}
+
+	odbc_reset_statement();
+	odbc_command("drop proc TMP_SP_Test_ODBC");
+	ODBC_FREE();
 }
