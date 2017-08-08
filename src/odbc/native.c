@@ -221,6 +221,23 @@ parse_const_param(const char *s, TDS_SERVER_TYPE *type)
 	return NULL;
 }
 
+const char *
+odbc_skip_rpc_name(const char *s)
+{
+	for (;*s; ++s) {
+		if (*s == '[') {
+			/* handle [dbo].[name] and [master]..[name] syntax */
+			s = tds_skip_quoted(s);
+			if (*s != '.')
+				break;
+		} else if (TDS_ISSPACE(*s)) {
+			/* FIXME: stop at other characters ??? */
+			break;
+		}
+	}
+	return s;
+}
+
 SQLRETURN
 prepare_call(struct _hstmt * stmt)
 {
@@ -261,14 +278,7 @@ prepare_call(struct _hstmt * stmt)
 	while (TDS_ISSPACE(*s))
 		++s;
 	p = s;
-	if (*s == '[') {
-		/* FIXME handle [dbo].[name] and [master]..[name] syntax */
-		s = (char *) tds_skip_quoted(s);
-	} else {
-		/* FIXME: stop at other characters ??? */
-		while (*s && !TDS_ISSPACE(*s))
-			++s;
-	}
+	s = (char *) odbc_skip_rpc_name(s);
 	param_start = s;
 	--s;			/* trick, now s point to no blank */
 	for (;;) {

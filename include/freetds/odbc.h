@@ -656,6 +656,7 @@ int parse_prepared_query(struct _hstmt *stmt, int compute_row);
 int start_parse_prepared_query(struct _hstmt *stmt, int compute_row);
 int continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN StrLen_or_Ind);
 const char *parse_const_param(const char * s, TDS_SERVER_TYPE *type);
+const char *odbc_skip_rpc_name(const char *s);
 
 /*
  * sql2tds.c

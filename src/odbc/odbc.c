@@ -3296,11 +3296,7 @@ _SQLExecute(TDS_STMT * stmt)
 		char *end, tmp;
 
 		end = name;
-		if (*end == '[')
-			end = (char *) tds_skip_quoted(end);
-		else
-			while (!isspace((unsigned char) *++end) && *end)
-				continue;
+		end = (char *) odbc_skip_rpc_name(end);
 		stmt->prepared_pos = end;
 		tmp = *end;
 		*end = 0;
