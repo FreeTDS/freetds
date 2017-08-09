@@ -76,6 +76,7 @@ char *tds_strsep(char **stringp, const char *delim);
 
 #if !HAVE_STRLCPY
 size_t tds_strlcpy(char *dest, const char *src, size_t len);
+#undef strlcpy
 #define strlcpy(d,s,l) tds_strlcpy(d,s,l)
 #endif
 
@@ -106,6 +107,7 @@ void tds_freeaddrinfo(struct tds_addrinfo *addr);
 
 #if !HAVE_STRLCAT
 size_t tds_strlcat(char *dest, const char *src, size_t len);
+#undef strlcat
 #define strlcat(d,s,l) tds_strlcat(d,s,l)
 #endif
 
