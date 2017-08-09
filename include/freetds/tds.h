@@ -139,7 +139,7 @@ typedef struct
 	TDS_INT      date;	/**< date, 0 = 1900-01-01 */
 	TDS_SMALLINT offset;	/**< time offset */
 	TDS_USMALLINT time_prec:3;
-	TDS_USMALLINT _res:10;
+	TDS_USMALLINT _tds_reserved:10;
 	TDS_USMALLINT has_time:1;
 	TDS_USMALLINT has_date:1;
 	TDS_USMALLINT has_offset:1;
