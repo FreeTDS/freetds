@@ -546,7 +546,7 @@ esac
 
 AC_ARG_WITH(iodbc,
 AS_HELP_STRING([--with-iodbc=DIR], [build odbc driver against iODBC in DIR]))
-if test "$with_iodbc"; then
+if test "x$with_iodbc" != "x" -a "x$with_iodbc" != "xno"; then
 	if echo "$with_iodbc" | grep -v '^/'; then
 		with_iodbc="$PWD/$with_iodbc"
 	fi
@@ -563,7 +563,7 @@ fi
 
 AC_ARG_WITH(unixodbc,
 AS_HELP_STRING([--with-unixodbc=DIR], [build odbc driver against unixODBC in DIR]))
-if test "$with_unixodbc"; then
+if test "x$with_unixodbc" != "x" -a "x$with_unixodbc" != "xno"; then
 	if echo "$with_unixodbc" | grep -v '^/'; then
 		with_unixodbc="$PWD/$with_unixodbc"
 	fi
@@ -588,7 +588,7 @@ fi
 
 AC_ARG_WITH(odbc_nodm,
 AS_HELP_STRING([--with-odbc-nodm=DIR], [build odbc using headers in DIR/include]))
-if test "$with_odbc_nodm"; then
+if test "x$with_odbc_nodm" != "x" -a "x$with_odbc_nodm" != "xno"; then
 	if echo "$with_odbc_nodm" | grep -v '^/'; then
 		with_odbc_nodm="$PWD/$with_odbc_nodm"
 	fi
