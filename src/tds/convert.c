@@ -171,9 +171,6 @@ string_to_result(int desttype, const char *s, CONV_RESULT * cr)
 	return (TDS_INT)len;
 }
 
-#define string_to_result(s, cr) \
-	string_to_result(desttype, s, cr)
-
 /**
  * Copy binary data to to result and return len or TDS_CONVERT_NOMEM
  */
@@ -632,7 +629,7 @@ tds_convert_int(TDS_INT num, int desttype, CONV_RESULT * cr)
 	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
 		sprintf(tmp_str, "%d", num);
-		return string_to_result(tmp_str, cr);
+		return string_to_result(desttype, tmp_str, cr);
 		break;
 	case SYBINT1:
 	case SYBUINT1:
@@ -730,7 +727,7 @@ tds_convert_int8(const TDS_INT8 *src, int desttype, CONV_RESULT * cr)
 	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
 		sprintf(tmp_str, "%" PRId64, buf);
-		return string_to_result(tmp_str, cr);
+		return string_to_result(desttype, tmp_str, cr);
 		break;
 	case SYBINT1:
 	case SYBUINT1:
@@ -808,7 +805,7 @@ tds_convert_uint8(const TDS_UINT8 *src, int desttype, CONV_RESULT * cr)
 	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
 		sprintf(tmp_str, "%" PRIu64, buf);
-		return string_to_result(tmp_str, cr);
+		return string_to_result(desttype, tmp_str, cr);
 		break;
 	case SYBINT1:
 	case SYBUINT1:
@@ -881,7 +878,7 @@ tds_convert_numeric(const TDS_NUMERIC * src, int desttype, CONV_RESULT * cr)
 	case CASE_ALL_CHAR:
 		if (tds_numeric_to_string(src, tmpstr) < 0)
 			return TDS_CONVERT_FAIL;
-		return string_to_result(tmpstr, cr);
+		return string_to_result(desttype, tmpstr, cr);
 		break;
 	case SYBINT1:
 	case SYBUINT1:
@@ -1076,7 +1073,7 @@ tds_convert_money4(const TDS_MONEY4 * src, int desttype, CONV_RESULT * cr)
 		}
 		/* print only 2 decimal digits as server does */
 		sprintf(p, "%ld.%02lu", dollars / 100, dollars % 100);
-		return string_to_result(tmp_str, cr);
+		return string_to_result(desttype, tmp_str, cr);
 		break;
 	case SYBINT1:
 	case SYBUINT1:
@@ -1175,7 +1172,7 @@ tds_convert_money(const TDS_MONEY * src, int desttype, CONV_RESULT * cr)
 	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
 		s = tds_money_to_string((const TDS_MONEY *) src, tmpstr);
-		return string_to_result(s, cr);
+		return string_to_result(desttype, s, cr);
 		break;
 	case SYBINT1:
 	case SYBUINT1:
@@ -1275,7 +1272,7 @@ tds_convert_datetimeall(const TDSCONTEXT * tds_ctx, int srctype, const TDS_DATET
 		tds_strftime(whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when, 
 		             dta->time_prec);
 
-		return string_to_result(whole_date_string, cr);
+		return string_to_result(desttype, whole_date_string, cr);
 	case SYBDATETIME:
 		if (!IS_INT(dta->date))
 			return TDS_CONVERT_OVERFLOW;
@@ -1343,7 +1340,7 @@ tds_convert_datetime(const TDSCONTEXT * tds_ctx, const TDS_DATETIME * dt, int de
 		tds_datecrack(SYBDATETIME, dt, &when);
 		tds_strftime(whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when, 3);
 
-		return string_to_result(whole_date_string, cr);
+		return string_to_result(desttype, whole_date_string, cr);
 	case SYBDATETIME:
 		cr->dt = *dt;
 		return sizeof(TDS_DATETIME);
@@ -1512,7 +1509,7 @@ tds_convert_real(const TDS_REAL* src, int desttype, CONV_RESULT * cr)
 	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
 		sprintf(tmp_str, "%.9g", the_value);
-		return string_to_result(tmp_str, cr);
+		return string_to_result(desttype, tmp_str, cr);
 		break;
 	case SYBINT1:
 	case SYBUINT1:
@@ -1621,7 +1618,7 @@ tds_convert_flt8(const TDS_FLOAT* src, int desttype, CONV_RESULT * cr)
 	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
 		sprintf(tmp_str, "%.17g", the_value);
-		return string_to_result(tmp_str, cr);
+		return string_to_result(desttype, tmp_str, cr);
 		break;
 	case SYBINT1:
 	case SYBUINT1:
@@ -1726,7 +1723,7 @@ tds_convert_unique(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 		sprintf(buf, "%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X",
 			(int) u->Data1, (int) u->Data2, (int) u->Data3,
 			u->Data4[0], u->Data4[1], u->Data4[2], u->Data4[3], u->Data4[4], u->Data4[5], u->Data4[6], u->Data4[7]);
-		return string_to_result(buf, cr);
+		return string_to_result(desttype, buf, cr);
 		break;
 	case SYBUNIQUE:
 		/*
