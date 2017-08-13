@@ -546,7 +546,21 @@ esac
 
 AC_ARG_WITH(iodbc,
 AS_HELP_STRING([--with-iodbc=DIR], [build odbc driver against iODBC in DIR]))
-if test "x$with_iodbc" != "x" -a "x$with_iodbc" != "xno"; then
+
+if test "x$with_iodbc" = "xyes"; then
+	# The user asked for iodbc support, but didn't tell us
+	# where to look. So, we'll try to get the info from
+	# pkg-config. If we can't, we'll display an error.
+	PKG_CHECK_MODULES(IODBC, libiodbc)
+	CPPFLAGS="$CPPFLAGS -DIODBC"
+	ODBC_LDFLAGS="$IODBC_LIBS"
+
+	# The ODBC_INC variable is only substituted into *_CPPFLAGS,
+	# which is there $IODBC_CFLAGS is supposed to go anyway.
+	ODBC_INC="$IODBC_CFLAGS"
+	odbc=true
+	iodbc=true
+elif test "x$with_iodbc" != "x" -a "x$with_iodbc" != "xno"; then
 	if echo "$with_iodbc" | grep -v '^/'; then
 		with_iodbc="$PWD/$with_iodbc"
 	fi
