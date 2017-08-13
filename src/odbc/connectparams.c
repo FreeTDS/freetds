@@ -429,6 +429,7 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 				readonly_intent = "no";
 			} else {
 				tdsdump_log(TDS_DBG_ERROR, "Invalid ApplicationIntent %s\n", tds_dstr_cstr(&value));
+				tds_dstr_free(&value);
 				return 0;
 			}
 
