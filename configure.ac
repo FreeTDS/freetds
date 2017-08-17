@@ -631,15 +631,20 @@ then
 		unixodbc=true
 		CPPFLAGS="$CPPFLAGS -DUNIXODBC"
 		ODBCLIB="-lodbc32"
-	elif test "$odbc" != "true"; then
+	fi
+	# try to detect searching for iODBC
+	if test "$odbc" != "true" -a "x$with_iodbc" != "xno"; then
 		AC_CHECK_LIB(iodbc, SQLConnect, [AC_CHECK_HEADER([isql.h], [odbc=true
 	iodbc=true
 	CPPFLAGS="$CPPFLAGS -DIODBC"
-	ODBCLIB="-liodbc"])], 
-		[AC_CHECK_LIB(odbc, SQLConnect, [AC_CHECK_HEADER([sql.h], [odbc=true
+	ODBCLIB="-liodbc"])])
+	fi
+	# try to detect searching for unixODBC
+	if test "$odbc" != "true" -a "x$with_unixodbc" != "xno"; then
+		AC_CHECK_LIB(odbc, SQLConnect, [AC_CHECK_HEADER([sql.h], [odbc=true
 	unixodbc=true
 	CPPFLAGS="$CPPFLAGS -DUNIXODBC"
-	ODBCLIB="-lodbc"])] )] )
+	ODBCLIB="-lodbc"])])
 	fi
 
 	if test "$odbc" = "true"; then
