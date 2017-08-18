@@ -555,8 +555,7 @@ if test "x$with_iodbc" != "x" -a "x$with_iodbc" != "xno"; then
 	test -r "$ODBC_INC/isql.h" || AC_ERROR([isql.h not found])
 	test -r "$ODBC_INC/isqlext.h" || AC_ERROR([isqlext.h not found])
 	ODBC_INC="-I$ODBC_INC"
-	LDFLAGS="$LDFLAGS -L$with_iodbc/lib"
-	ODBC_LDFLAGS="-liodbc"
+	ODBC_LDFLAGS="-L$with_iodbc/lib -liodbc"
 	odbc=true
 	iodbc=true
 fi
@@ -571,17 +570,17 @@ if test "x$with_unixodbc" != "x" -a "x$with_unixodbc" != "xno"; then
 	if test -f "$with_unixodbc/bin/odbc_config"; then
 		ODBC_CONFIG="$with_unixodbc/bin/odbc_config"
 		ODBC_INC=`$ODBC_CONFIG --include-prefix`
-		LDFLAGS="$LDFLAGS -L`$ODBC_CONFIG --lib-prefix`"
+		ODBC_LDFLAGS="-L`$ODBC_CONFIG --lib-prefix`"
 	else
 		# if not available do not use system default
 		ODBC_CONFIG=""
 		ODBC_INC="$with_unixodbc/include"
-		LDFLAGS="$LDFLAGS -L$with_unixodbc/lib"
+		ODBC_LDFLAGS="-L$with_unixodbc/lib"
 	fi
 	test -r "$ODBC_INC/sql.h" || AC_ERROR([sql.h not found])
 	test -r "$ODBC_INC/sqlext.h" || AC_ERROR([sqlext.h not found])
 	ODBC_INC="-I$ODBC_INC"
-	ODBC_LDFLAGS="-lodbc"
+	ODBC_LDFLAGS="$ODBC_LDFLAGS -lodbc"
 	odbc=true
 	unixodbc=true
 fi
