@@ -1,4 +1,3 @@
-# $Id: Makefile.am,v 1.52 2012-02-26 22:09:20 freddy77 Exp $
 SUBDIRS		=	. unittests
 AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC)
 
@@ -8,16 +7,17 @@ libtdsodbc_la_SOURCES =	odbc.c connectparams.c convert_tds2sql.c \
 	descriptor.c prepare_query.c odbc_util.c bcp.c \
 	native.c sql2tds.c error.c odbc_checks.c sqlwchar.c sqlwparams.h \
 	odbc_export.h error_export.h odbc_data.c
-libtdsodbc_la_LIBADD =	../tds/libtds.la ../replacements/libreplacements.la $(ODBCINSTLIB) $(LTLIBICONV) $(FREETDS_LIBGCC)
 # -module is needed by Darwin (Mac OS X)
-libtdsodbc_la_LDFLAGS = $(FREETDS_SYMBOLIC) $(FREETDS_ODBC_MODULE)
+libtdsodbc_la_LDFLAGS =	../tds/libtds.la ../replacements/libreplacements.la \
+	$(ODBCINSTLIB) $(LTLIBICONV) $(FREETDS_LIBGCC) \
+	$(FREETDS_SYMBOLIC) $(FREETDS_ODBC_MODULE)
 
 if MINGW32
 libtdsodbc_la_SOURCES += winlogin.c winsetup.c winmain.c
 endif
 
 if MINGW32
-libtdsodbc_la_LIBADD +=	setup.res
+libtdsodbc_la_LIBADD =	setup.res
 libtdsodbc_la_LDFLAGS += -Wl,--kill-at -Wl,--enable-stdcall-fixup -Wl,-s -Wl,@srcdir@/odbc_w.def -Wl,setup.res
 
 .rc.res:
