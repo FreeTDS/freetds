@@ -556,7 +556,7 @@ if test "x$with_iodbc" != "x" -a "x$with_iodbc" != "xno"; then
 	test -r "$ODBC_INC/isqlext.h" || AC_ERROR([isqlext.h not found])
 	ODBC_INC="-I$ODBC_INC"
 	LDFLAGS="$LDFLAGS -L$with_iodbc/lib"
-	ODBCLIB="-liodbc"
+	ODBC_LDFLAGS="-liodbc"
 	odbc=true
 	iodbc=true
 fi
@@ -581,7 +581,7 @@ if test "x$with_unixodbc" != "x" -a "x$with_unixodbc" != "xno"; then
 	test -r "$ODBC_INC/sql.h" || AC_ERROR([sql.h not found])
 	test -r "$ODBC_INC/sqlext.h" || AC_ERROR([sqlext.h not found])
 	ODBC_INC="-I$ODBC_INC"
-	ODBCLIB="-lodbc"
+	ODBC_LDFLAGS="-lodbc"
 	odbc=true
 	unixodbc=true
 fi
@@ -599,9 +599,9 @@ if test "x$with_odbc_nodm" != "x" -a "x$with_odbc_nodm" != "xno"; then
 	ODBC_INC="-I$ODBC_INC"
 	# The next line is for linking the unittests. Here the ODBC driver
 	#  itself is treated as the driver manager to be linked.
-	# Can't use ODBCLIB/LDFLAGS variables since they are used in building
+	# Can't use ODBC_LDFLAGS/LDFLAGS variables since they are used in building
 	#  other directories.
-	ODBCLIB="-L\$(top_builddir)/src/odbc -ltdsodbc"
+	ODBC_LDFLAGS="-L\$(top_builddir)/src/odbc -ltdsodbc"
 	odbc=true
 fi
 
@@ -630,36 +630,36 @@ then
 		odbc=true
 		unixodbc=true
 		CPPFLAGS="$CPPFLAGS -DUNIXODBC"
-		ODBCLIB="-lodbc32"
+		ODBC_LDFLAGS="-lodbc32"
 	fi
 	# try to detect searching for iODBC
 	if test "$odbc" != "true" -a "x$with_iodbc" != "xno"; then
 		AC_CHECK_LIB(iodbc, SQLConnect, [AC_CHECK_HEADER([isql.h], [odbc=true
 	iodbc=true
 	CPPFLAGS="$CPPFLAGS -DIODBC"
-	ODBCLIB="-liodbc"])])
+	ODBC_LDFLAGS="-liodbc"])])
 	fi
 	# try to detect searching for unixODBC
 	if test "$odbc" != "true" -a "x$with_unixodbc" != "xno"; then
 		AC_CHECK_LIB(odbc, SQLConnect, [AC_CHECK_HEADER([sql.h], [odbc=true
 	unixodbc=true
 	CPPFLAGS="$CPPFLAGS -DUNIXODBC"
-	ODBCLIB="-lodbc"])])
+	ODBC_LDFLAGS="-lodbc"])])
 	fi
 
 	if test "$odbc" = "true"; then
-		ODBCINSTLIB=
+		ODBCINST_LDFLAGS=
 		if test $tds_mingw = yes; then
-			ODBCINSTLIB="-lodbccp32"
+			ODBCINST_LDFLAGS="-lodbccp32"
 		elif test "$unixodbc" = "true"; then
 			if test -n "$ODBC_CONFIG"; then
 				CPPFLAGS="$CPPFLAGS `$ODBC_CONFIG --cflags`"
 			fi
-			AC_CHECK_LIB(odbcinst, SQLGetPrivateProfileString, [ODBCINSTLIB="-lodbcinst"])
+			AC_CHECK_LIB(odbcinst, SQLGetPrivateProfileString, [ODBCINST_LDFLAGS="-lodbcinst"])
 		elif test "$iodbc" = "true"; then
-			AC_CHECK_LIB(iodbcinst, SQLGetPrivateProfileString, [ODBCINSTLIB="-liodbcinst"])
+			AC_CHECK_LIB(iodbcinst, SQLGetPrivateProfileString, [ODBCINST_LDFLAGS="-liodbcinst"])
 		fi
-		if test "$ODBCINSTLIB" != ""; then
+		if test "$ODBCINST_LDFLAGS" != ""; then
 			AC_DEFINE_UNQUOTED(HAVE_SQLGETPRIVATEPROFILESTRING, 1, [Define to 1 if you have the SQLGetPrivateProfileString function.])
 		fi
 	fi
@@ -726,8 +726,8 @@ AM_CONDITIONAL(ODBC, test "$odbc" = "true")
 AM_CONDITIONAL(UNIXODBC, test "$unixodbc" = "true")
 AC_SUBST(ODBC)
 AC_SUBST(ODBC_INC)
-AC_SUBST(ODBCLIB)
-AC_SUBST(ODBCINSTLIB)
+AC_SUBST(ODBC_LDFLAGS)
+AC_SUBST(ODBCINST_LDFLAGS)
 
 AC_DEFUN([TDS_CHECK_GMP], [
 AC_TRY_LINK([#include <stdio.h>

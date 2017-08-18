@@ -9,7 +9,7 @@ libtdsodbc_la_SOURCES =	odbc.c connectparams.c convert_tds2sql.c \
 	odbc_export.h error_export.h odbc_data.c
 # -module is needed by Darwin (Mac OS X)
 libtdsodbc_la_LDFLAGS =	../tds/libtds.la ../replacements/libreplacements.la \
-	$(ODBCINSTLIB) $(LTLIBICONV) $(FREETDS_LIBGCC) \
+	$(ODBCINST_LDFLAGS) $(LTLIBICONV) $(FREETDS_LIBGCC) \
 	$(FREETDS_SYMBOLIC) $(FREETDS_ODBC_MODULE)
 
 if MINGW32

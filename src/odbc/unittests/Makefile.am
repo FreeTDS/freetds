@@ -33,7 +33,7 @@ t0002_SOURCES	=	t0002.c
 t0003_SOURCES	=	t0003.c
 t0004_SOURCES	=	t0004.c
 connect_SOURCES	=	connect.c
-connect_LDFLAGS =	$(GLOBAL_LDFLAGS) $(ODBCINSTLIB) -no-install
+connect_LDFLAGS =	$(GLOBAL_LDFLAGS) $(ODBCINST_LDFLAGS) -no-install
 print_SOURCES	=	print.c
 date_SOURCES	=	date.c
 norowset_SOURCES	= norowset.c
@@ -110,7 +110,7 @@ libcommon_a_SOURCES = common.c common.h
 LDADD = libcommon.a
 
 GLOBAL_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC) -DFREETDS_TOPDIR=\"$(top_srcdir)\"
-GLOBAL_LDFLAGS	=	$(ODBCLIB) ../../replacements/libreplacements.la $(NETWORK_LIBS)
+GLOBAL_LDFLAGS	=	$(ODBC_LDFLAGS) ../../replacements/libreplacements.la $(NETWORK_LIBS)
 if ODBC_WIDE_TESTS
 AM_CPPFLAGS	=	$(GLOBAL_CPPFLAGS) -DUNICODE -D_UNICODE
 else
@@ -122,7 +122,7 @@ utf8_LDADD	=
 oldpwd_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
 
 if MINGW32
-AM_LDFLAGS	=	-no-fast-install $(GLOBAL_LDFLAGS) $(ODBCINSTLIB)
+AM_LDFLAGS	=	-no-fast-install $(GLOBAL_LDFLAGS) $(ODBCINST_LDFLAGS)
 else
 AM_LDFLAGS	=	-no-install -L../.libs -R $(abs_builddir)/../.libs $(GLOBAL_LDFLAGS)
 endif
