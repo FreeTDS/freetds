@@ -1,5 +1,3 @@
-# $Id: Makefile.am,v 1.31 2011-06-08 09:25:51 freddy77 Exp $
-
 AM_CPPFLAGS	= -I$(top_srcdir)/include 
 
 SUBDIRS		= fisql
@@ -28,7 +26,7 @@ bsqldb_LDADD	= ../dblib/libsybdb.la \
 
 if ODBC
 bsqlodbc_CPPFLAGS	= $(ODBC_INC) $(AM_CPPFLAGS)
-bsqlodbc_LDADD	= $(ODBCLIB) $(ODBCNODMLIB) \
+bsqlodbc_LDADD	= $(ODBCLIB) \
 		  ../replacements/libreplacements.la $(LTLIBICONV) $(NETWORK_LIBS)
 endif
 

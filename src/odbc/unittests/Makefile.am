@@ -1,4 +1,3 @@
-# $Id: Makefile.am,v 1.87 2012-03-06 20:40:12 freddy77 Exp $
 TESTS		=	\
 			t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) connect$(EXEEXT) print$(EXEEXT)\
@@ -121,7 +120,7 @@ utf8_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
 utf8_LDADD	=
 oldpwd_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
 
-LIBS		=	$(ODBCLIB) $(ODBCNODMLIB) ../../replacements/libreplacements.la $(NETWORK_LIBS)
+LIBS		=	$(ODBCLIB) ../../replacements/libreplacements.la $(NETWORK_LIBS)
 if MINGW32
 AM_LDFLAGS	=	-no-fast-install
 LIBS		+=      $(ODBCINSTLIB)
