@@ -576,6 +576,20 @@ fi
 
 AC_ARG_WITH(unixodbc,
 AS_HELP_STRING([--with-unixodbc=DIR], [build odbc driver against unixODBC in DIR]))
+
+if test "x$with_unixodbc" = "xyes"; then
+	# The user asked for unixodbc support, but didn't tell us
+	# where to look. We'll try to get the installation prefix from
+	# the odbc_config executable, and if we can't, we'll display
+	# an error. We require odbc_config to be in $PATH.
+	with_unixodbc=`odbc_config --prefix`
+	if ! test -x "${with_unixodbc}/bin/odbc_config"; then
+		AC_ERROR([could not find your unixODBC installation])
+	fi
+fi
+
+# Note: the --with-unixodbc=yes case will make use of this one,
+# after populating $with_unixodbc with the correct prefix.
 if test "x$with_unixodbc" != "x" -a "x$with_unixodbc" != "xno"; then
 	if test "x$with_iodbc" != "x" -a "x$with_iodbc" != "xno"; then
 		AC_ERROR([choose at most one of --with-iodbc or --with-unixodbc])
