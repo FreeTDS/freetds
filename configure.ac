@@ -133,14 +133,14 @@ AM_CONDITIONAL(HAVE_DOXYGEN, [test -n "$DOXYGEN"])
 AC_CHECK_PROG(ODBC_CONFIG,odbc_config,odbc_config)
 
 # ------------------------------------------------------------
-# Check for CVS-only sources.
+# Check for git-only sources.
 # ------------------------------------------------------------
 #
 # Distribution tarballs include some generated files.  These
-# files are not maintained in CVS, but their bases are, and 
+# files are not maintained in git, but their bases are, and
 # the bases are not in the tarball.  For example, num_limits.h
 # is distributed, but it is generated from numeric.pl, which
-# is kept in CVS.  
+# is kept in git.
 # If the base is found, we use it as a source in the Makefile, 
 # otherwise the Makefile will (correctly) assume that the
 # generated file is already present.  
