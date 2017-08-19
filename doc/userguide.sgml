@@ -10,6 +10,8 @@
 	<!ENTITY dblib '<systemitem class="library">DB-Library</systemitem>'>
 	<!ENTITY ctlib '<systemitem class="library">CT-Library</systemitem>'>
 	<!ENTITY odbc  '<systemitem class="library">ODBC</systemitem>'> 
+	<!ENTITY iODBC '<systemitem class="library">iODBC</systemitem>'>
+	<!ENTITY unixODBC '<systemitem class="library">unixODBC</systemitem>'>
 	<!ENTITY version "1.0">
 	<!ENTITY freetdsconf "<filename>freetds.conf</filename>">
 ]>
@@ -338,7 +340,12 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 <para>If you intend to build the &freetds; ODBC driver &mdash; and want to use a Driver Manager (DM), as most people do &mdash; install the Driver Manager before configuring &freetds;.  <Command>configure</> will detect the the DM and use its header (<filename>.h</>) files for ODBC constants and such.  If your DM is installed in an unusual directory, you may have to provide the directory name as a parameter to <Command>configure</>.</para>
 				
 
-<para>&freetds; doesn't <emphasis>require</> a DM.  You can build the ODBC driver without one, as long as you have the requisite header files: <filename>sql.h</>, <filename>sqlext.h</> and <filename>sqltypes.h</>.  These can be taken from either the iODBC or UnixODBC distributions. Put them wherever you like (e.g.,  <filename>/usr/local/include</filename>).  Because &freetds; won't detect your (missing) DM, it won't automatically build the ODBC driver, so you'll have to tell <Command>configure</> what to do and where to look.  Cf. <link linkend="withOdbcNoDM"><option>--with-odbc-nodm</></link>.</para>
+<para>&freetds; doesn't <emphasis>require</> a DM.
+You can build the ODBC driver without one, as long as you have the requisite header files: <filename>sql.h</>, <filename>sqlext.h</> and <filename>sqltypes.h</>.
+These can be taken from either the &iODBC; or &unixODBC; distributions.
+Put them wherever you like (e.g.,  <filename>/usr/local/include</filename>).
+Because &freetds; won't detect your (missing) DM, it won't automatically build the ODBC driver, so you'll have to tell <Command>configure</> what to do and where to look.
+Cf. <link linkend="withOdbcNoDM"><option>--with-odbc-nodm</></link>.</para>
 				</sidebar>
 
 <para>The simplest form of running <Command>configure</> is:
@@ -392,9 +399,9 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 							</Option></term>
 						<term><Option>--with-unixodbc=<replaceable>DIR</>
 							</Option></term>
-						<listitem><para>Specify directory of <systemitem class="library">iODBC</systemitem> or <systemitem class="library">unixODBC</systemitem> support, and use it as the Driver Manager.
+						<listitem><para>Specify directory of &iODBC; or &unixODBC; support, and use it as the Driver Manager.
 								As of version 0.62, the ODBC Driver Manager is detected by <command>configure</>, so use this parameter only if yours is installed in a nonstandard path.
-								(Requires <productname>iODBC</productname> or <systemitem class="library">unixODBC</systemitem> to have already been installed.)</para>
+								(Requires &iODBC; or &unixODBC; to have already been installed.)</para>
 							</listitem>
 						</varlistentry>
 						<varlistentry id="withOdbcNoDM">
@@ -1717,7 +1724,9 @@ The server responds with a port number.
 <para>To invoke the tests, edit the <filename>PWD</> file and issue the command <command>make check</command>.  In order to execute all tests successfully, you must indicate a working, available servername in <filename>PWD</>.
 				Some tests require permission to create stored procedures on server.</para>
 
-<para>To complete successfully, the ODBC tests require some additional setup.  In your <filename>PWD</> file, add a <literal>SRV</> entry specifying the DSN entry for your <filename>odbc.ini</>.  The ODBC tests all build their own <filename>odbc.ini</> and try to redirect the Driver Manager to it, however this functionality is very DM dependent and may well fail unless you have either iODBC or unixODBC.</para>
+<para>To complete successfully, the ODBC tests require some additional setup.
+In your <filename>PWD</> file, add a <literal>SRV</> entry specifying the DSN entry for your <filename>odbc.ini</>.
+The ODBC tests all build their own <filename>odbc.ini</> and try to redirect the Driver Manager to it, however this functionality is very DM dependent and may well fail unless you have either &iODBC; or &unixODBC;.</para>
 
 <para><tip><para>
 						The <filename>PWD</> provided by &freetds; includes usernames and passwords that probably don't exist on your server.
@@ -2143,8 +2152,12 @@ You can even establish a connection without reference to either <filename>odbc.i
 		<sect2 id="with.iodbc">
 			<title>With iODBC</title>	
 
-<para>	<productname>iODBC</productname> comes with a sample command line query program called <command>odbctest</>, located in the <filename>iodbc/samples</filename> directory.  Using this program you can get a listing of DSNs, connect, and issue queries.  
-	<tip><para>For debugging purposes, you may wish to link a program such as <command>odbctest</> directly to &freetds; instead of to the driver manager.  <footnote><para>Why?  Once the program is started in the debugger, the driver entry points become viable breakpoints.  Because the DM loads the driver dynamically with <function>dlopen(3)</function>, no driver addresses even <emphasis>exist</emphasis> until the runtime linker loads it. </para></footnote>  To do so, compile and install the &odbc; driver with <productname>iODBC</productname> as normal <footnote><para>When linking directly to &freetds; you still need the Driver Manager's header files.</para></footnote>, then compile and link the program:
+<para>&iODBC; comes with a sample command line query program called <command>odbctest</>, located in the <filename>iodbc/samples</filename> directory.
+Using this program you can get a listing of DSNs, connect, and issue queries.
+	<tip><para>For debugging purposes, you may wish to link a program such as <command>odbctest</> directly to &freetds; instead of to the driver manager.
+<footnote><para>Why?  Once the program is started in the debugger, the driver entry points become viable breakpoints.
+Because the DM loads the driver dynamically with <function>dlopen(3)</function>, no driver addresses even <emphasis>exist</emphasis> until the runtime linker loads it. </para></footnote>
+To do so, compile and install the &odbc; driver with &iODBC; as normal <footnote><para>When linking directly to &freetds; you still need the Driver Manager's header files.</para></footnote>, then compile and link the program:
 				
 				<example id="e.g.odbctest.nodm">
 					<title>Compile <filename>odbctest</> without a driver manager.</title>
@@ -2163,7 +2176,9 @@ You can even establish a connection without reference to either <filename>odbc.i
 			<sect3 id="with.unixODBC.osql"><title>Use <command>osql</></title>
 				
 
-<para>The <command>osql</> utility is a Bourne shell script that checks your ODBC configuration.  If it approves, it invokes the unixODBC isql utility.  Cf. <command>man osql</> for details on its use.
+<para>The <command>osql</> utility is a Bourne shell script that checks your ODBC configuration.
+If it approves, it invokes the &unixODBC; isql utility.
+Cf. <command>man osql</> for details on its use.
 					
 					<example id="e.g.odbcdiagnose.osql">
 						<title>Use <command>osql</> to test the ODBC setup.</title>
@@ -2218,7 +2233,8 @@ You can even establish a connection without reference to either <filename>odbc.i
 	SQL></screen>
 						</example></para>
 
-<para>The reader is here advised that the <command>isql</command> that comes with many versions of unixODBC will truncate text and surprise in other ways without warning.  If it behaves strangely, try &freetds;'s <command>bsqlodbc</command> before you decide you've found a &freetds; bug.  </para>
+<para>The reader is here advised that the <command>isql</command> that comes with many versions of &unixODBC; will truncate text and surprise in other ways without warning.
+If it behaves strangely, try &freetds;'s <command>bsqlodbc</command> before you decide you've found a &freetds; bug.</para>
 
 				</sect3>
 			
@@ -2382,7 +2398,9 @@ from your Active Directory.  You could use <ulink url="http://www.samba.org/">Sa
 	<sect1 id="uothread">
 		<title>Threading in unixODBC</title>
 
-<para><productname>unixODBC</> uses a strong thread-locking policy that causes big locks with the default configuration for &freetds;.  Performance of multi-threaded applications can be affected because every operation is serialized.  To avoid this problem, choose a threading model in <filename>odbcinst.ini</>.
+<para>&unixODBC; uses a strong thread-locking policy that causes big locks with the default configuration for &freetds;.
+Performance of multi-threaded applications can be affected because every operation is serialized.
+To avoid this problem, choose a threading model in <filename>odbcinst.ini</>.
 			<example id="odbcinstthread">
 				<title>Sample <filename>odbcinst.ini</> for threading model</title>
 <programlisting>
@@ -2912,7 +2930,9 @@ You'll note this is the same program as for <systemitem class="library">DBD::Syb
 	<sect2 id="ODBC">
 	<title>&odbc;</title>
 
-<para>The third and newest option is to use the &freetds; &odbc; driver with PHP.  First build the <productname>iODBC</productname> or <productname>unixODBC</productname> driver manager and &freetds; as detailed in <xref linkend="prepodbc">.  Then build PHP with support for ODBC.
+<para>The third and newest option is to use the &freetds; &odbc; driver with PHP.
+First build the &iODBC; or &unixODBC; driver manager and &freetds; as detailed in <xref linkend="prepodbc">.
+Then build PHP with support for ODBC.
 <screen>
 	<prompt>$ </prompt><userinput>cd php</userinput>
 	<prompt>$ </prompt><userinput>./configure --with-iodbc=/usr/local</userinput>
@@ -2968,7 +2988,8 @@ This example uses version 0.37, the most current at the time of this writing, pl
 
 <para><productname>To access SQL Server databases using Qt</> use QODBC.</para>
 
-<para>There are some problems with wide character support on Qt because Qt assumes sizeof(SQLWCHAR) == 2.  On some DMs, though &mdash; including <productname>iODBC</>,  the default on <productname>Ubuntu</> &mdash; sizeof(SQLWCHAR) == 4, which could lead to invalid character conversion.</para>
+<para>There are some problems with wide character support on Qt because Qt assumes sizeof(SQLWCHAR) == 2.
+On some DMs, though &mdash; including &iODBC;, the default on <productname>Ubuntu</> &mdash; sizeof(SQLWCHAR) == 4, which could lead to invalid character conversion.</para>
 		</sect1>
 	
 	<sect1 id="uodbc">
@@ -2978,18 +2999,25 @@ This example uses version 0.37, the most current at the time of this writing, pl
 		<sect2 id="uodbc.64">
 			<title>ODBC and 64-bit</title>
 
-<para>ODBC was originally specified as 32-bit<footnote><para>In fact, the earliest versions were 16-bit.</para></footnote>.  Its evolution to 64-bit took place in the absence of a good specification which led to conflicting declarations and associated problems.  For instance, some parameters are defined as SQLINTEGER but are used for pointer offsets.   But SQLINTEGER was (and remains) 32-bit, while pointer offsets must be 64-bit.  Also row numbers and some other formerly 32-bit quantities are now 64-bit.</para>
+<para>ODBC was originally specified as 32-bit<footnote><para>In fact, the earliest versions were 16-bit.</para></footnote>.
+Its evolution to 64-bit took place in the absence of a good specification which led to conflicting declarations and associated problems.
+For instance, some parameters are defined as SQLINTEGER but are used for pointer offsets.
+But SQLINTEGER was (and remains) 32-bit, while pointer offsets must be 64-bit.
+Also row numbers and some other formerly 32-bit quantities are now 64-bit.</para>
 
-<para>If you use <productname>unixODBC</> Frediano would recommend at least version 2.2.14. Earlier versions have issues if used on 64-bit environments.</para>
+<para>If you use &unixODBC; Frediano would recommend at least version 2.2.14. Earlier versions have issues if used on 64-bit environments.</para>
 			</sect2>
 		<sect2 id="uodbc.wchar">
 			<title>sizeof(SQLWCHAR)</title>
 
-<para>Under Windows <literal>sizeof(wchar_t) == sizeof(SQLWCHAR) == 2</literal> but on many Unix systems you have <literal>sizeof(wchar_t) == 4</literal>.  And some DMs decided to keep <literal>sizeof(SQLWCHAR) == 2</literal> (including <productname>unixODBC</>) while in other DM <literal>sizeof(SQLWCHAR) == sizeof(wchar_t) == 4</literal> (namely <productname>iODBC</>). This leads to incompatible ABIs between applications and drivers. If you compile the &freetds; ODBC driver using <productname>iODBC</> take care to ensure all drivers are compiled with the same header files.</para>
+<para>Under Windows <literal>sizeof(wchar_t) == sizeof(SQLWCHAR) == 2</literal> but on many Unix systems you have <literal>sizeof(wchar_t) == 4</literal>.
+And some DMs decided to keep <literal>sizeof(SQLWCHAR) == 2</literal> (including &unixODBC;) while in other DM <literal>sizeof(SQLWCHAR) == sizeof(wchar_t) == 4</literal> (namely &iODBC;).
+This leads to incompatible ABIs between applications and drivers.
+If you compile the &freetds; ODBC driver using &iODBC; take care to ensure all drivers are compiled with the same header files.</para>
 
 <para>Alternatively, compile &freetds; with both includes and rename the library to use two ABIs (for instance having a <filename>libtdsiodbc.so</> and a <filename>libtdsuodbc.so</>).</para>
 
-<para>At the time of writing <productname>Ubuntu</> compiled Qt using <productname>iODBC</> but most packages use <productname>unixODBC</>. If you plan to use Qt with the &freetds; &odbc; driver, you should have an <productname>iODBC</>-compatible driver. Also be aware that the QODBC Qt driver has problems with <productname>iODBC</> and <literal>SQLWCHAR</literal> (see <link linkend="qt">Qt</link>). Due to these problems Frediano suggests not using this configuration (Qt database) on <productname>Ubuntu</> at this time.</para>
+<para>At the time of writing <productname>Ubuntu</> compiled Qt using &iODBC; but most packages use &unixODBC;. If you plan to use Qt with the &freetds; &odbc; driver, you should have an &iODBC;-compatible driver. Also be aware that the QODBC Qt driver has problems with &iODBC; and <literal>SQLWCHAR</literal> (see <link linkend="qt">Qt</link>). Due to these problems Frediano suggests not using this configuration (Qt database) on <productname>Ubuntu</> at this time.</para>
 			</sect2>
 		<sect2 id="uodbc.char">
 			<title>Default charset</title>
@@ -3220,7 +3248,7 @@ This applies only to Microsoft <productname>SQL Server</productname> and you'll 
 			<variablelist>
 				<varlistentry>
 					<term>unixODBC</term>
-					<listitem><para>unixODBC supports logging via some entries in <filename>odbcinst.ini</filename>. For example:
+					<listitem><para>&unixODBC; supports logging via some entries in <filename>odbcinst.ini</filename>. For example:
 <screen>
 	[ODBC]
 	Trace        = Yes
