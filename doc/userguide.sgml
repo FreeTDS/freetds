@@ -395,13 +395,26 @@ Cf. <link linkend="withOdbcNoDM"><option>--with-odbc-nodm</></link>.</para>
 				
 				<variablelist id="tab.ODBC.Driver.Managers"><title>ODBC Driver Managers</title>
 					<varlistentry>
-						<term><Option>--with-iodbc=<replaceable>DIR</>
+					        <term><Option>--with-iodbc
+							</Option></term>
+					        <term><Option>--with-iodbc=<replaceable>DIR</>
 							</Option></term>
 						<term><Option>--with-unixodbc=<replaceable>DIR</>
 							</Option></term>
-						<listitem><para>Specify directory of &iODBC; or &unixODBC; support, and use it as the Driver Manager.
-								As of version 0.62, the ODBC Driver Manager is detected by <command>configure</>, so use this parameter only if yours is installed in a nonstandard path.
-								(Requires &iODBC; or &unixODBC; to have already been installed.)</para>
+                                                <listitem>
+						  <para>
+						    Specify a particular ODBC driver manager and the directory in which it is installed.
+						    The <Option>--with-iodbc</Option> form chooses &iODBC; as the driver manager, and <Option>--with-unixodbc</Option> specifies &unixODBC; as the driver manager.
+						    The directory argument is required for <Option>--with-unixodbc</Option>, but may be omitted for <Option>--with-iodbc</Option>; pkg-config will be used to find your &iODBC; installation if the directory is omitted.
+						    Typical directory arguments are <filename>/usr</filename> and <filename>/usr/local</filename>.
+						  </para>
+						  <para>
+						    So long as either &iODBC; or &unixODBC; are installed, the build system will detect your driver manager by default.
+						    As a result, these options are only needed if you wish to override the default behavior.
+						  </para>
+						  <para>
+						    It is an error to specify both <Option>--with-iodbc</Option> and <Option>--with-unixodbc</Option>.
+						  </para>
 							</listitem>
 						</varlistentry>
 						<varlistentry id="withOdbcNoDM">
