@@ -1,5 +1,3 @@
-# $Id: Makefile.am,v 1.33 2011-06-08 09:25:53 freddy77 Exp $
-
 TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT) t0004$(EXEEXT) \
 			t0005$(EXEEXT) t0006$(EXEEXT) t0007$(EXEEXT) t0008$(EXEEXT) \
 			t0009$(EXEEXT) connect_fail$(EXEEXT) ct_options$(EXEEXT) \

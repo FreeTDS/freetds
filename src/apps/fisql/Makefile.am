@@ -1,5 +1,3 @@
-# $Id: Makefile.am,v 1.5 2011-06-08 09:25:52 freddy77 Exp $
-
 AM_CPPFLAGS	= -I$(top_srcdir)/include 
 
 if !MINGW32

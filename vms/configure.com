@@ -16,8 +16,6 @@ $! License along with this library; if not, write to the
 $! Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 $! Boston, MA 02111-1307, USA.
 $!
-$! $Id: configure.com,v 1.6 2008-02-28 23:27:14 jklowden Exp $
-$!
 $! CONFIGURE.COM -- run from top level source directory as @[.vms]configure
 $!
 $! Checks for C library functions and applies its findings to 

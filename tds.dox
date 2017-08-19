@@ -1,4 +1,3 @@
-#$Id: tds.dox,v 1.9 2005-06-26 14:25:19 jklowden Exp $
 PROJECT_NAME =		"FreeTDS API"
 OUTPUT_DIRECTORY =	doc/reference
 GENERATE_LATEX   =	NO

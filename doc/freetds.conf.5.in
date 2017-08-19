@@ -1,5 +1,4 @@
-.\" $Id: freetds.conf.5,v 1.4 2009-12-14 01:02:27 jklowden Exp $
-.Dd December 23, 2007
+.Dd May 2, 2017
 .Os FreeTDS @VERSION@
 .Dt FREETDS.CONF "FreeTDS 5" "FreeTDS Reference Manual"
 .

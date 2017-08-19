@@ -60,7 +60,6 @@ while(<DATA>){
 print "/*\n";
 $date = localtime;
 print " * This file produced from $0 on $date\n";
-print ' * $Id: encodings.pl,v 1.12 2010-11-26 19:46:55 freddy77 Exp $', "\n";
 print " */\n";
 
 %charsets = ();

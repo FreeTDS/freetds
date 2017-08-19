@@ -9,9 +9,6 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-static char software_version[] = "$Id: null.c,v 1.9 2010-10-26 08:12:48 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 #ifndef DBNTWIN32
 
 static DBPROCESS *dbproc = NULL;

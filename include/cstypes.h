@@ -30,9 +30,6 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_cstypes_h[] = "$Id: cstypes.h,v 1.7 2008-05-06 00:14:02 jklowden Exp $";
-static const void *const no_unused_cstypes_h_warn[] = { rcsid_cstypes_h, no_unused_cstypes_h_warn };
-
 typedef int32_t 		CS_INT;
 typedef uint32_t 		CS_UINT;
 typedef int64_t 		CS_BIGINT;

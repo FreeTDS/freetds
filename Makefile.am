@@ -1,5 +1,3 @@
-# version $Id: Makefile.am,v 1.50 2012-01-16 00:27:04 jklowden Exp $
-
 ## SUBDIRS determines in which directories automake will generate a Makefile
 ## See also AC_OUTPUT in configure.ac
 

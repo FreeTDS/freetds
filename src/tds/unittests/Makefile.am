@@ -1,4 +1,3 @@
-# $Id: Makefile.am,v 1.31 2011-10-31 13:58:41 freddy77 Exp $
 TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) t0005$(EXEEXT) t0006$(EXEEXT)\
 			t0007$(EXEEXT) t0008$(EXEEXT) dynamic1$(EXEEXT)\

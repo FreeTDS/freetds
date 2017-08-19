@@ -1,5 +1,3 @@
-/* $Id: config_h.vms,v 1.12 2010-09-02 18:01:42 berryc Exp $ */
-
 /* include/config.h.in.  Generated from configure.ac by autoheader.  */
 /* and edited by hand for VMS */
 

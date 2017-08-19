@@ -1,4 +1,3 @@
-# $Id: Makefile.am,v 1.17 2012-01-16 00:27:04 jklowden Exp $
 AM_CPPFLAGS	=	-I$(top_srcdir)/include -I. -I$(SERVERDIR)
 bin_PROGRAMS	=	tdspool
 

@@ -5,9 +5,6 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0021.c,v 1.15 2009-03-19 13:11:41 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 #ifndef DBNTWIN32
 
 int failed = 0;

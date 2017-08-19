@@ -1,4 +1,3 @@
-# $Id: Makefile.am,v 1.39 2011-12-05 02:26:31 jklowden Exp $
 SUBDIRS		=	. unittests
 AM_CPPFLAGS	=	-I$(top_srcdir)/include
 
