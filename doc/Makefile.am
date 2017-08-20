@@ -150,7 +150,7 @@ REF_STUB = <html> \
 $(DOCDIR)/reference/index.html: $(top_srcdir)/configure
 	if test -h reference; then rm reference; fi
 	$(MKDIR_P) $(DOCDIR)/reference 2>&1
-	(cd .. && $(MAKE) doxy 2> doc/doxy.log)
+	cd .. && $(MAKE) doxy 2> doc/doxy.log
 # If "make doxy" doesn't create anything, 
 # try to copy the distributed manual's HTML
 	if test -r $(DISTRIBUTED_REF_DIR)/index.html -a ! $@ ; then \
@@ -158,10 +158,9 @@ $(DOCDIR)/reference/index.html: $(top_srcdir)/configure
 	fi
 # If we don't find the source, generate a stub.
 	if test ! -r $@ ; then \
-		(cd $(DOCDIR)/reference && \
-		echo '$(REF_STUB)' 	\
-			> .index.html &&  \
-		mv .index.html index.html); \
+		cd $(DOCDIR)/reference && \
+		echo '$(REF_STUB)' > .index.html &&  \
+		mv .index.html index.html; \
 	fi
 
 #
