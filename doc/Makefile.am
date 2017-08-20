@@ -119,16 +119,10 @@ $(DOCDIR)/userguide/index.htm: 	$(DOCDIR) userguide.sgml userguide_desc.sgml \
 # try jade ...
 	(cd $(DOCDIR)/userguide && \
 	if test -n "${DOCBOOK_DSL}" ; then \
-##		The crazy path is due to the above 'cd' command
-		SRCDOC=../$(srcdir); \
-		if test ! -r userguide.sgml; then \
-			ln -s $${SRCDOC}/userguide.sgml userguide.sgml; \
-		fi; \
 		openjade -b utf-8 -w all -w no-empty -w no-unused-param \
-			 -d ../userguide.dsl -t sgml userguide.sgml; \
-		if test -h userguide.sgml; then rm userguide.sgml; fi; \
+			 -d ../userguide.dsl -t sgml $(abs_srcdir)/userguide.sgml; \
 ## 		and copy the stylesheet
-		cp $${SRCDOC}/userguide.css .; \
+		cp $(abs_srcdir)/userguide.css .; \
 	fi)
 # if still no joy, create a stub
 	if test ! -r $@ ; then \
