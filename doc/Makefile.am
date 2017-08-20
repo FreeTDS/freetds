@@ -131,8 +131,6 @@ $(DOCDIR)/userguide/index.htm: 	$(DOCDIR) userguide.sgml userguide_desc.sgml \
 		cp $${SRCDOC}/userguide.css .; \
 	fi)
 # if still no joy, create a stub
-	@echo pwd is `pwd`
-	-ls -ld `dirname $@` $@
 	if test ! -r $@ ; then \
 		echo '$(UG_STUB)' > .index.htm && mv .index.htm $@; \
 	fi
