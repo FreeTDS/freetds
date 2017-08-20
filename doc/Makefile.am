@@ -117,10 +117,14 @@ $(DOCDIR)/userguide/index.htm: 	$(DOCDIR) userguide.sgml userguide_desc.sgml \
 		fi; \
 	fi
 # try jade ...
+	test -r $(abs_srcdir)/userguide.sgml
+	test -r userguide.sgml || ln -s $(srcdir)/userguide.sgml userguide.sgml
+	test -r $(abs_srcdir)/userguide_desc.sgml
+	test -r userguide_desc.sgml || ln -s $(srcdir)/userguide_desc.sgml userguide_desc.sgml
 	(cd $(DOCDIR)/userguide && \
 	if test -n "${DOCBOOK_DSL}" ; then \
 		openjade -b utf-8 -w all -w no-empty -w no-unused-param \
-			 -d ../userguide.dsl -t sgml $(abs_srcdir)/userguide.sgml; \
+			 -d ../userguide.dsl -t sgml ../userguide.sgml; \
 ## 		and copy the stylesheet
 		cp $(abs_srcdir)/userguide.css .; \
 	fi)

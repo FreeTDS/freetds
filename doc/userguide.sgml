@@ -1,8 +1,8 @@
 <!doctype book PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
-	<!ENTITY dblibapisgml SYSTEM "../dblib.api.sgml">
-	<!ENTITY ctlibapisgml SYSTEM "../ctlib.api.sgml">
-	<!ENTITY  odbcapisgml SYSTEM "../odbc.api.sgml">
-	<!ENTITY % ug.desc SYSTEM "../userguide_desc.sgml">
+	<!ENTITY dblibapisgml SYSTEM "dblib.api.sgml">
+	<!ENTITY ctlibapisgml SYSTEM "ctlib.api.sgml">
+	<!ENTITY  odbcapisgml SYSTEM "odbc.api.sgml">
+	<!ENTITY % ug.desc SYSTEM "userguide_desc.sgml">
 	%ug.desc;
 	<!ENTITY % comment "IGNORE" >
 	<!ENTITY ora "O'Reilly &amp; Associates">
