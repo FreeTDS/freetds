@@ -577,6 +577,9 @@ fi
 AC_ARG_WITH(unixodbc,
 AS_HELP_STRING([--with-unixodbc=DIR], [build odbc driver against unixODBC in DIR]))
 if test "x$with_unixodbc" != "x" -a "x$with_unixodbc" != "xno"; then
+	if test "x$with_iodbc" != "x" -a "x$with_iodbc" != "xno"; then
+		AC_ERROR([choose at most one of --with-iodbc or --with-unixodbc])
+	fi
 	if echo "$with_unixodbc" | grep -v '^/'; then
 		with_unixodbc="$PWD/$with_unixodbc"
 	fi
