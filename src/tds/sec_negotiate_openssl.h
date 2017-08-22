@@ -40,7 +40,7 @@
 static inline const BIGNUM*
 rsa_get_n(const RSA *rsa)
 {
-#if OPENSSL_VERSION_NUMBER >= 0x1010000FL
+#if HAVE_RSA_GET0_KEY
 	const BIGNUM *n, *e, *d;
 	RSA_get0_key(rsa, &n, &e, &d);
 	return n;

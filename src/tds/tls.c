@@ -73,7 +73,7 @@
 #else
 
 /* some compatibility layer */
-#if OPENSSL_VERSION_NUMBER < 0x1010000FL
+#if !HAVE_BIO_GET_DATA
 static inline void
 BIO_set_init(BIO *b, int init)
 {
@@ -99,6 +99,10 @@ BIO_get_data(const BIO *b)
 #define SSL_PULL_ARGS BIO *bio, char *data, int len
 #define SSL_PUSH_ARGS BIO *bio, const char *data, int len
 #define SSL_PTR BIO_get_data(bio)
+#endif
+
+#if !HAVE_ASN1_STRING_GET0_DATA
+#define ASN1_STRING_get0_data(x) ASN1_STRING_data(x)
 #endif
 
 static SSL_RET
@@ -590,7 +594,7 @@ tds_ssl_free(BIO *a)
 	return 1;
 }
 
-#if OPENSSL_VERSION_NUMBER < 0x1010000FL
+#if OPENSSL_VERSION_NUMBER < 0x1010000FL || defined(LIBRESSL_VERSION_NUMBER)
 static BIO_METHOD tds_method_login[1] = {
 {
 	BIO_TYPE_MEM,
@@ -653,7 +657,6 @@ tds_deinit_openssl_methods(void)
 }
 #  endif
 #endif
-
 
 static SSL_CTX *
 tds_init_openssl(void)
@@ -805,7 +808,7 @@ check_alt_names(X509 *cert, const char *hostname)
 		if (!name)
 			continue;
 
-		altptr = (const char *) ASN1_STRING_data(name->d.ia5);
+		altptr = (const char *) ASN1_STRING_get0_data(name->d.ia5);
 		altlen = (size_t) ASN1_STRING_length(name->d.ia5);
 
 		if (name->type == GEN_DNS && ip_size == 0) {
