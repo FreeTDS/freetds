@@ -134,12 +134,24 @@ foreach(fn
 	config_write("#cmakedefine ${var} 1\n\n")
 endforeach(fn)
 
+macro(CHECK_FUNCTION_EXISTS_DEFINE func)
+	string(TOUPPER "HAVE_${func}" var)
+	check_function_exists(${func} ${var})
+	config_write("/* Define to 1 if you have function <${func}>. */\n")
+	config_write("#cmakedefine ${var} 1\n\n")
+endmacro()
+
 if(WITH_OPENSSL)
 	find_package(OpenSSL)
 endif(WITH_OPENSSL)
 if(OPENSSL_FOUND)
 	config_write("#define HAVE_OPENSSL 1\n\n")
 	include_directories(${OPENSSL_INCLUDE_DIR})
+	set(CMAKE_REQUIRED_LIBRARIES ${OPENSSL_LIBRARIES})
+	check_function_exists_define(BIO_get_data)
+	check_function_exists_define(RSA_get0_key)
+	check_function_exists_define(ASN1_STRING_get0_data)
+	set(CMAKE_REQUIRED_LIBRARIES)
 endif(OPENSSL_FOUND)
 
 set(CMAKE_THREAD_PREFER_PTHREAD ON)
@@ -246,13 +258,6 @@ set(FUNCS asprintf vasprintf strtok_r readpassphrase
 	clock_gettime fseeko pthread_cond_timedwait pthread_cond_timedwait_relative_np
 	pthread_condattr_setclock _lock_file _unlock_file usleep nanosleep
 	readdir_r eventfd daemon)
-
-macro(CHECK_FUNCTION_EXISTS_DEFINE func)
-	string(TOUPPER "HAVE_${func}" var)
-	check_function_exists(${func} ${var})
-	config_write("/* Define to 1 if you have function <${func}>. */\n")
-	config_write("#cmakedefine ${var} 1\n\n")
-endmacro()
 
 # TODO
 set(HAVE_GETADDRINFO 1 CACHE INTERNAL "")
