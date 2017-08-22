@@ -593,7 +593,7 @@ tds_ssl_free(BIO *a)
 	return 1;
 }
 
-#if OPENSSL_VERSION_NUMBER < 0x1010000FL && !defined(LIBRESSL_VERSION_NUMBER)
+#if OPENSSL_VERSION_NUMBER < 0x1010000FL || defined(LIBRESSL_VERSION_NUMBER)
 static BIO_METHOD tds_method_login[1] = {
 {
 	BIO_TYPE_MEM,
@@ -657,7 +657,7 @@ tds_deinit_openssl_methods(void)
 #  endif
 #endif
 
-#if OPENSSL_VERSION_NUMBER < 0x1010000FL && !defined(LIBRESSL_VERSION_NUMBER)
+#if OPENSSL_VERSION_NUMBER < 0x1010000FL || defined(LIBRESSL_VERSION_NUMBER)
 static tds_mutex *openssl_locks;
 
 static void
