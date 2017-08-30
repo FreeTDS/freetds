@@ -3468,7 +3468,6 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 	 *      TDS_OPT_CURWRITE
 	 *      TDS_OPT_NATLANG
 	 *      TDS_OPT_ROWCOUNT
-	 *      TDS_OPT_TEXTSIZE
 	 */
 
 	/*
@@ -3603,6 +3602,11 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		}
 		tds_argsize = (action == CS_SET) ? 1 : 0;
 		break;
+        case CS_OPT_TEXTSIZE:
+                tds_option = TDS_OPT_TEXTSIZE;
+                tds_argument.i = *(CS_INT *) param;
+		tds_argsize = (action == CS_SET) ? 1 : 0;
+                break;
 	case CS_OPT_TRUNCIGNORE:
 		tds_option = TDS_OPT_TRUNCABORT;	/* note inverted sense */
 		switch (*(CS_BOOL *) param) {
