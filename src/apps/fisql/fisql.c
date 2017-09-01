@@ -212,6 +212,68 @@ get_printable_column_size(DBPROCESS * dbproc, int col)
 	return collen;
 }
 
+static DBPROCESS *dbproc;
+static const char *editor;
+static char **ibuf = NULL;
+static int ibuflines = 0;
+
+static void
+vi_cmd(const char *command)
+{
+	char tmpfn[256];
+	FILE *fp;
+	int i;
+	char *sqlch;
+	FILE *tmpfp;
+	char *line;
+	char foobuf[40];
+	int tmpfd;
+	mode_t old_mask;
+
+	strcpy(tmpfn, "/tmp/fisqlXXXXXX");
+	old_mask = umask(0600);
+	tmpfd = mkstemp(tmpfn);
+	umask(old_mask);
+	if ((fp = fdopen(tmpfd, "w")) == NULL) {
+		perror("fisql");
+		reset_term();
+		dbexit();
+		exit(2);
+	}
+	if (ibuflines) {
+		for (i = 0; i < ibuflines; i++) {
+			fputs(ibuf[i], fp);
+			fputc('\n', fp);
+			free(ibuf[i]);
+		}
+	} else {
+		for (i = 0; ((sqlch = dbgetchar(dbproc, i)) != NULL); i++) {
+			fputc(*sqlch, fp);
+		}
+	}
+	fclose(fp);
+	if (!(strcmp(command, "vi"))) {
+		edit("vi", tmpfn);
+	} else {
+		edit(editor, tmpfn);
+	}
+	ibuflines = 0;
+	fp = fopen(tmpfn, "r");
+	tmpfp = rl_instream;
+	rl_instream = fp;
+	strcpy(foobuf, "1>> ");
+	while ((line = readline(foobuf)) != NULL) {
+		ibuf[ibuflines++] = line;
+		sprintf(foobuf, "%d>> ", ibuflines + 1);
+		ibuf = (char **) xrealloc(ibuf, (ibuflines + 1) * sizeof(char *));
+	}
+	rl_instream = tmpfp;
+	fclose(fp);
+	fputc('\r', stdout);
+	fflush(stdout);
+	unlink(tmpfn);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -235,9 +297,7 @@ main(int argc, char *argv[])
 	char *password = NULL;
 	char *server = NULL;
 	DBCHAR *char_set = NULL;
-	const char *editor;
 	char *hostname = NULL;
-	char *sqlch;
 	char *interfaces_filename = NULL;
 	char *input_filename = NULL;
 	char *output_filename = NULL;
@@ -245,15 +305,12 @@ main(int argc, char *argv[])
 	char *language = NULL;
 	int size = 0;
 	char *sybenv;
-	DBPROCESS *dbproc;
 	LOGINREC *login;
-	char **ibuf = NULL;
-	int ibuflines = 0;
 	int printedlines;
 	int i;
 	char *line;
 	int dbrc;
-	char foobuf[512];
+	char foobuf[40];
 	char *firstword;
 	char *cp;
 	int c;
@@ -264,7 +321,6 @@ main(int argc, char *argv[])
 	FILE *tmpfp;
 	FILE *tmpfp2;
 	char *tfn;
-	char tmpfn[256];
 	int num_cols;
 	int selcol;
 	int col;
@@ -618,51 +674,7 @@ main(int argc, char *argv[])
 			}
 			if ((!(strcasecmp(firstword, "vi")))
 			    || (!(strcasecmp(firstword, editor)))) {
-				int tmpfd;
-				mode_t old_mask;
-
-				strcpy(tmpfn, "/tmp/fisqlXXXXXX");
-				old_mask = umask(0600);
-				tmpfd = mkstemp(tmpfn);
-				umask(old_mask);
-				if ((fp = fdopen(tmpfd, "w")) == NULL) {
-					perror("fisql");
-					reset_term();
-					dbexit();
-					return 2;
-				}
-				if (ibuflines) {
-					for (i = 0; i < ibuflines; i++) {
-						fputs(ibuf[i], fp);
-						fputc('\n', fp);
-						free(ibuf[i]);
-					}
-				} else {
-					for (i = 0; ((sqlch = dbgetchar(dbproc, i)) != NULL); i++) {
-						fputc(*sqlch, fp);
-					}
-				}
-				fclose(fp);
-				if (!(strcmp(firstword, "vi"))) {
-					edit("vi", tmpfn);
-				} else {
-					edit(editor, tmpfn);
-				}
-				ibuflines = 0;
-				fp = fopen(tmpfn, "r");
-				tmpfp = rl_instream;
-				rl_instream = fp;
-				strcpy(foobuf, "1>> ");
-				while ((line = readline(foobuf)) != NULL) {
-					ibuf[ibuflines++] = line;
-					sprintf(foobuf, "%d>> ", ibuflines + 1);
-					ibuf = (char **) xrealloc(ibuf, (ibuflines + 1) * sizeof(char *));
-				}
-				rl_instream = tmpfp;
-				fclose(fp);
-				fputc('\r', stdout);
-				fflush(stdout);
-				unlink(tmpfn);
+				vi_cmd(firstword);
 				continue;
 			}
 			free(firstword);
