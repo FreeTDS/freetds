@@ -216,6 +216,20 @@ static DBPROCESS *dbproc;
 static const char *editor;
 static char **ibuf = NULL;
 static int ibuflines = 0;
+static int no_prompt = 0;
+static int default_exit = EXIT_SUCCESS;
+static const char *cmdend = "go";
+
+static void
+reset_ibuf(void)
+{
+	for (int i = 0; ibuf && i < ibuflines; i++) {
+		free(ibuf[i]);
+	}
+	ibuflines = 0;
+	free(ibuf);
+	ibuf = NULL;
+}
 
 static void
 vi_cmd(const char *command)
@@ -327,6 +341,83 @@ readfile_cmd(char *line)
 	fflush(stdout);
 }
 
+static void
+read_sql_lines(void)
+{
+	char *cp;
+	char *firstword;
+	char firstword_separator;
+	char *line = NULL;
+	char foobuf[40];
+
+	reset_ibuf();
+	ibuf = (char **) xmalloc(sizeof(char *));
+	ibuflines = 0;
+	while (1) {
+		if (no_prompt) {
+			foobuf[0] = '\0';
+		} else {
+			sprintf(foobuf, "%d>> ", ibuflines + 1);
+		}
+		free(line);
+		line = readline(foobuf);
+		if (line == NULL) {
+			reset_term();
+			dbexit();
+			exit(default_exit);
+		}
+		for (cp = line; *cp && isspace((unsigned char) *cp); cp++)
+			continue;
+		if (*cp) {
+			add_history(line);
+		}
+		if (!(strncasecmp(line, "!!", 2))) {
+			system_cmd(line + 2);
+			continue;
+		}
+		/* XXX: isql off-by-one line count error for :r not duplicated */
+		if (!(strncasecmp(line, ":r", 2))) {
+			readfile_cmd(line);
+			continue;
+		}
+		firstword = line;
+		firstword_separator = '\0';
+		for (cp = firstword; *cp; cp++) {
+			if (isspace((unsigned char) *cp)) {
+				firstword_separator = *cp;
+				*cp = '\0';
+				break;
+			}
+		}
+		if ((!(strcasecmp(firstword, "exit")))
+		    || (!(strcasecmp(firstword, "quit")))) {
+			reset_term();
+			dbexit();
+			exit(default_exit);
+		}
+		if (!(strcasecmp(firstword, "reset"))) {
+			reset_ibuf();
+			continue;
+		}
+		if (!(strcasecmp(firstword, cmdend))) {
+			if (ibuflines == 0) {
+				continue;
+			}
+			break;
+		}
+		if ((!(strcasecmp(firstword, "vi")))
+		    || (!(strcasecmp(firstword, editor)))) {
+			vi_cmd(firstword);
+			continue;
+		}
+		firstword[strlen(firstword)] = firstword_separator;
+
+		ibuf[ibuflines++] = line;
+		line = NULL;
+		ibuf = (char **) xrealloc(ibuf, (ibuflines + 1) * sizeof(char *));
+	}
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -337,10 +428,8 @@ main(int argc, char *argv[])
 #endif
 	int fipsflagger = 0;
 	int perfstats = 0;
-	int no_prompt = 0;
 	int use_encryption = 0;
 	int chained_transactions = 0;
-	const char *cmdend = "go";
 	int headers = 0;
 	char *columnwidth = NULL;
 	const char *colseparator = " ";
@@ -361,12 +450,7 @@ main(int argc, char *argv[])
 	LOGINREC *login;
 	int printedlines;
 	int i;
-	char *line = NULL;
 	int dbrc;
-	char foobuf[40];
-	char *firstword;
-	char firstword_separator;
-	char *cp;
 	int c;
 	int errflg = 0;
 	char *prbuf;
@@ -382,7 +466,6 @@ main(int argc, char *argv[])
 	int printedcompute = 0;
 	char adash;
 	const char *database_name = NULL;
-	int default_exit = EXIT_SUCCESS;
 
 	setlocale(LC_ALL, "");
 
@@ -619,87 +702,16 @@ main(int argc, char *argv[])
 
 	while (1) {
 		if (sigsetjmp(restart, 1)) {
-			if (ibuf) {
-				for (i = 0; i < ibuflines; i++) {
-					free(ibuf[i]);
-				}
-				ibuflines = 0;
-				free(ibuf);
-				ibuf = NULL;
-			}
+			reset_ibuf();
 			fputc('\n', stdout);
 			rl_on_new_line();
 			rl_reset_line_state();
 		}
 		dbcancel(dbproc);
 		signal(SIGINT, inactive_interrupt_handler);
-		ibuf = (char **) xmalloc(sizeof(char *));
-		ibuflines = 0;
-		while (1) {
-			if (no_prompt) {
-				foobuf[0] = '\0';
-			} else {
-				sprintf(foobuf, "%d>> ", ibuflines + 1);
-			}
-			free(line);
-			line = readline(foobuf);
-			if (line == NULL) {
-				reset_term();
-				dbexit();
-				return default_exit;
-			}
-			for (cp = line; *cp && isspace((unsigned char) *cp); cp++)
-				continue;
-			if (*cp) {
-				add_history(line);
-			}
-			if (!(strncasecmp(line, "!!", 2))) {
-				system_cmd(line + 2);
-				continue;
-			}
-			/* XXX: isql off-by-one line count error for :r not duplicated */
-			if (!(strncasecmp(line, ":r", 2))) {
-				readfile_cmd(line);
-				continue;
-			}
-			firstword = line;
-			firstword_separator = '\0';
-			for (cp = firstword; *cp; cp++) {
-				if (isspace((unsigned char) *cp)) {
-					firstword_separator = *cp;
-					*cp = '\0';
-					break;
-				}
-			}
-			if ((!(strcasecmp(firstword, "exit")))
-			    || (!(strcasecmp(firstword, "quit")))) {
-				reset_term();
-				dbexit();
-				return default_exit;
-			}
-			if (!(strcasecmp(firstword, "reset"))) {
-				for (i = 0; i < ibuflines; i++) {
-					free(ibuf[i]);
-				}
-				ibuflines = 0;
-				continue;
-			}
-			if (!(strcasecmp(firstword, cmdend))) {
-				if (ibuflines == 0) {
-					continue;
-				}
-				break;
-			}
-			if ((!(strcasecmp(firstword, "vi")))
-			    || (!(strcasecmp(firstword, editor)))) {
-				vi_cmd(firstword);
-				continue;
-			}
-			firstword[strlen(firstword)] = firstword_separator;
-			ibuf[ibuflines++] = line;
-			line = NULL;
-			ibuf = (char **) xrealloc(ibuf, (ibuflines + 1) * sizeof(char *));
-		}
+
+		read_sql_lines();
+
 		dbfreebuf(dbproc);
 		for (i = 0; i < ibuflines; i++) {
 			if (echo) {
