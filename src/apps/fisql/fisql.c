@@ -296,11 +296,9 @@ vi_cmd(const char *command)
 		}
 	}
 	fclose(fp);
-	if (!(strcmp(command, "vi"))) {
-		edit("vi", tmpfn);
-	} else {
-		edit(editor, tmpfn);
-	}
+
+	edit(command, tmpfn);
+
 	ibuflines = 0;
 	fp = fopen(tmpfn, "r");
 	if (!fp) {
