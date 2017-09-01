@@ -292,6 +292,41 @@ system_cmd(const char *cmd)
 	}
 }
 
+static void
+readfile_cmd(char *line)
+{
+	FILE *fp;
+	FILE *tmpfp;
+	FILE *tmpfp2;
+	char *tfn;
+	char *cp;
+
+	for (cp = line + 2; *cp && (isspace((unsigned char) *cp)); cp++)
+		continue;
+	tfn = cp;
+	for (; *cp && !(isspace((unsigned char) *cp)); cp++)
+		continue;
+	*cp = '\0';
+	if ((fp = fopen(tfn, "r")) == NULL) {
+		fprintf(stderr, "Operating system error: Failed to open %s.\n", tfn);
+		return;
+	}
+	tmpfp = rl_instream;
+	tmpfp2 = rl_outstream;
+	rl_instream = fp;
+	rl_outstream = fopen("/dev/null", "w");
+	while ((line = readline("")) != NULL) {
+		ibuf[ibuflines++] = line;
+		ibuf = (char **) xrealloc(ibuf, (ibuflines + 1) * sizeof(char *));
+	}
+	rl_instream = tmpfp;
+	fclose(rl_outstream);
+	rl_outstream = tmpfp2;
+	fclose(fp);
+	fputc('\r', stdout);
+	fflush(stdout);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -336,10 +371,6 @@ main(int argc, char *argv[])
 	int errflg = 0;
 	char *prbuf;
 	int prbuflen;
-	FILE *fp;
-	FILE *tmpfp;
-	FILE *tmpfp2;
-	char *tfn;
 	int num_cols;
 	int selcol;
 	int col;
@@ -628,32 +659,7 @@ main(int argc, char *argv[])
 			}
 			/* XXX: isql off-by-one line count error for :r not duplicated */
 			if (!(strncasecmp(line, ":r", 2))) {
-				for (cp = line + 2; *cp && (isspace((unsigned char) *cp)); cp++)
-					continue;
-				tfn = cp;
-				for (; *cp && !(isspace((unsigned char) *cp)); cp++)
-					continue;
-				*cp = '\0';
-				if ((fp = fopen(tfn, "r")) == NULL) {
-					fprintf(stderr, "Operating system error: Failed to open %s.\n", tfn);
-					continue;
-				}
-				tmpfp = rl_instream;
-				tmpfp2 = rl_outstream;
-				rl_instream = fp;
-				rl_outstream = fopen("/dev/null", "w");
-				free(line);
-				while ((line = readline("")) != NULL) {
-					ibuf[ibuflines++] = line;
-					ibuf = (char **) xrealloc(ibuf, (ibuflines + 1) * sizeof(char *));
-				}
-				line = NULL;
-				rl_instream = tmpfp;
-				fclose(rl_outstream);
-				rl_outstream = tmpfp2;
-				fclose(fp);
-				fputc('\r', stdout);
-				fflush(stdout);
+				readfile_cmd(line);
 				continue;
 			}
 			firstword = line;
