@@ -42,6 +42,8 @@
 #include <sys/stat.h>
 #endif /* HAVE_SYS_STAT_H */
 
+#include <freetds/bool.h>
+
 #include <sybfront.h>
 #include <sybdb.h>
 #include "terminal.h"
@@ -212,6 +214,33 @@ get_printable_column_size(DBPROCESS * dbproc, int col)
 	return collen;
 }
 
+static bool
+update_comment(bool in_comment, const char *line)
+{
+	const char *p = line;
+	while (*p) {
+		if (in_comment) {
+			p = strstr(p, "*/");
+			if (!p)
+				break;
+			p += 2;
+			in_comment = false;
+		}
+		/* not comment */
+		if (p[0] == '/' && p[1] == '*') {
+			in_comment = true;
+			p += 2;
+		} else if (p[0] == '-' && p[1] == '-') {
+			/* comment till the end of line then no comment
+			 * on next line */
+			break;
+		} else if (p[0]) {
+			++p;
+		}
+	}
+	return in_comment;
+}
+
 static DBPROCESS *dbproc;
 static const char *editor;
 static char **ibuf = NULL;
@@ -349,6 +378,7 @@ read_sql_lines(void)
 	char firstword_separator;
 	char *line = NULL;
 	char foobuf[40];
+	bool in_comment = false;
 
 	reset_ibuf();
 	ibuf = (char **) xmalloc(sizeof(char *));
@@ -370,6 +400,9 @@ read_sql_lines(void)
 			continue;
 		if (*cp) {
 			add_history(line);
+		}
+		if (in_comment) {
+			goto append_line;
 		}
 		if (!(strncasecmp(line, "!!", 2))) {
 			system_cmd(line + 2);
@@ -412,6 +445,8 @@ read_sql_lines(void)
 		}
 		firstword[strlen(firstword)] = firstword_separator;
 
+append_line:
+		in_comment = update_comment(in_comment, line);
 		ibuf[ibuflines++] = line;
 		line = NULL;
 		ibuf = (char **) xrealloc(ibuf, (ibuflines + 1) * sizeof(char *));
