@@ -277,12 +277,13 @@ vi_cmd(const char *command)
 	old_mask = umask(0600);
 	tmpfd = mkstemp(tmpfn);
 	umask(old_mask);
-	if ((fp = fdopen(tmpfd, "w")) == NULL) {
+	if (tmpfd < 0 || (fp = fdopen(tmpfd, "w")) == NULL) {
 		perror("fisql");
 		reset_term();
 		dbexit();
 		exit(2);
 	}
+	fchmod(tmpfd, 0600);
 	if (ibuflines) {
 		for (i = 0; i < ibuflines; i++) {
 			fputs(ibuf[i], fp);
@@ -302,6 +303,12 @@ vi_cmd(const char *command)
 	}
 	ibuflines = 0;
 	fp = fopen(tmpfn, "r");
+	if (!fp) {
+		perror("fisql");
+		reset_term();
+		dbexit();
+		exit(2);
+	}
 	tmpfp = rl_instream;
 	rl_instream = fp;
 	strcpy(foobuf, "1>> ");
