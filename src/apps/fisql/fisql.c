@@ -316,7 +316,7 @@ main(int argc, char *argv[])
 			break;
 		case 'v':
 			puts("fisql, a free isql replacement by Nicholas S. Castellano");
-			exit(EXIT_SUCCESS);
+			return EXIT_SUCCESS;
 			break;
 		case 'X':
 			/* XXX: We get a different error message than isql gives; neither seems
@@ -409,7 +409,7 @@ main(int argc, char *argv[])
 		fprintf(stderr, "\t[-P password] [-s colseparator] [-S server]\n");
 		fprintf(stderr, "\t[-t timeout] [-U username] [-w columnwidth]\n");
 		fprintf(stderr, "\t[-y sybase_dir] [-z language]\n");
-		exit(EXIT_FAILURE);
+		return EXIT_FAILURE;
 	}
 	if (!(isatty(fileno(stdin)))) {
 		no_prompt = 1;
@@ -428,7 +428,7 @@ main(int argc, char *argv[])
 			 */
 			/* lack of newline for bug-compatibility with isql */
 			fprintf(stderr, "Unable to open input file '%s'.", optarg);
-			exit(EXIT_FAILURE);
+			return EXIT_FAILURE;
 		}
 	}
 	if (output_filename) {
@@ -438,7 +438,7 @@ main(int argc, char *argv[])
 			 */
 			/* lack of newline for bug-compatibility with isql */
 			fprintf(stderr, "Unable to open output file '%s'.", output_filename);
-			exit(EXIT_FAILURE);
+			return EXIT_FAILURE;
 		}
 	}
 	if (isatty(fileno(stdin))) {
@@ -452,7 +452,7 @@ main(int argc, char *argv[])
 #endif
 	if ((login = dblogin()) == NULL) {
 		reset_term();
-		exit(EXIT_FAILURE);
+		return EXIT_FAILURE;
 	}
 	dbmsghandle(msg_handler);
 	dberrhandle(err_handler);
@@ -488,7 +488,7 @@ main(int argc, char *argv[])
 	if ((dbproc = dbopen(login, server)) == NULL) {
 		fprintf(stderr, "fisql: dbopen() failed.\n");
 		reset_term();
-		exit(EXIT_FAILURE);
+		return EXIT_FAILURE;
 	}
 
 	dbsetopt(dbproc, DBPRLINESEP, lineseparator, strlen(lineseparator));
@@ -600,7 +600,7 @@ main(int argc, char *argv[])
 			    || (!(strcasecmp(firstword, "quit")))) {
 				reset_term();
 				dbexit();
-				exit(default_exit);
+				return default_exit;
 			}
 			if (!(strcasecmp(firstword, "reset"))) {
 				for (i = 0; i < ibuflines; i++) {
@@ -629,7 +629,7 @@ main(int argc, char *argv[])
 					perror("fisql");
 					reset_term();
 					dbexit();
-					exit(2);
+					return 2;
 				}
 				if (ibuflines) {
 					for (i = 0; i < ibuflines; i++) {
@@ -832,6 +832,5 @@ main(int argc, char *argv[])
 	}
 	reset_term();
 	dbexit();
-	exit(EXIT_FAILURE);
-	return (0);
+	return EXIT_FAILURE;
 }
