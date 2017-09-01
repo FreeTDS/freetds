@@ -308,7 +308,7 @@ main(int argc, char *argv[])
 	LOGINREC *login;
 	int printedlines;
 	int i;
-	char *line;
+	char *line = NULL;
 	int dbrc;
 	char foobuf[40];
 	char *firstword;
@@ -592,6 +592,7 @@ main(int argc, char *argv[])
 			} else {
 				sprintf(foobuf, "%d>> ", ibuflines + 1);
 			}
+			free(line);
 			line = readline(foobuf);
 			if (line == NULL) {
 				reset_term();
@@ -635,10 +636,12 @@ main(int argc, char *argv[])
 				tmpfp2 = rl_outstream;
 				rl_instream = fp;
 				rl_outstream = fopen("/dev/null", "w");
+				free(line);
 				while ((line = readline("")) != NULL) {
 					ibuf[ibuflines++] = line;
 					ibuf = (char **) xrealloc(ibuf, (ibuflines + 1) * sizeof(char *));
 				}
+				line = NULL;
 				rl_instream = tmpfp;
 				fclose(rl_outstream);
 				rl_outstream = tmpfp2;
@@ -682,6 +685,7 @@ main(int argc, char *argv[])
 			}
 			firstword[strlen(firstword)] = firstword_separator;
 			ibuf[ibuflines++] = line;
+			line = NULL;
 			ibuf = (char **) xrealloc(ibuf, (ibuflines + 1) * sizeof(char *));
 		}
 		dbfreebuf(dbproc);
