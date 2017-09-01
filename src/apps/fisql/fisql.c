@@ -312,6 +312,7 @@ main(int argc, char *argv[])
 	int dbrc;
 	char foobuf[40];
 	char *firstword;
+	char firstword_separator;
 	char *cp;
 	int c;
 	int errflg = 0;
@@ -644,10 +645,11 @@ main(int argc, char *argv[])
 				fflush(stdout);
 				continue;
 			}
-			firstword = (char *) xmalloc((strlen(line) + 1) * sizeof(char));
-			strcpy(firstword, line);
+			firstword = line;
+			firstword_separator = '\0';
 			for (cp = firstword; *cp; cp++) {
 				if (isspace((unsigned char) *cp)) {
+					firstword_separator = *cp;
 					*cp = '\0';
 					break;
 				}
@@ -669,7 +671,6 @@ main(int argc, char *argv[])
 				if (ibuflines == 0) {
 					continue;
 				}
-				free(firstword);
 				break;
 			}
 			if ((!(strcasecmp(firstword, "vi")))
@@ -677,7 +678,7 @@ main(int argc, char *argv[])
 				vi_cmd(firstword);
 				continue;
 			}
-			free(firstword);
+			firstword[strlen(firstword)] = firstword_separator;
 			ibuf[ibuflines++] = line;
 			ibuf = (char **) xrealloc(ibuf, (ibuflines + 1) * sizeof(char *));
 		}
