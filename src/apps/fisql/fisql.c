@@ -261,6 +261,13 @@ reset_ibuf(void)
 }
 
 static void
+append_line(char *line)
+{
+	ibuf = (char **) xrealloc(ibuf, (ibuflines + 1) * sizeof(char *));
+	ibuf[ibuflines++] = line;
+}
+
+static void
 vi_cmd(const char *command)
 {
 	char tmpfn[256];
@@ -311,9 +318,8 @@ vi_cmd(const char *command)
 	rl_instream = fp;
 	strcpy(foobuf, "1>> ");
 	while ((line = readline(foobuf)) != NULL) {
-		ibuf[ibuflines++] = line;
+		append_line(line);
 		sprintf(foobuf, "%d>> ", ibuflines + 1);
-		ibuf = (char **) xrealloc(ibuf, (ibuflines + 1) * sizeof(char *));
 	}
 	rl_instream = tmpfp;
 	fclose(fp);
@@ -364,8 +370,7 @@ readfile_cmd(char *line)
 	rl_instream = fp;
 	rl_outstream = fopen("/dev/null", "w");
 	while ((line = readline("")) != NULL) {
-		ibuf[ibuflines++] = line;
-		ibuf = (char **) xrealloc(ibuf, (ibuflines + 1) * sizeof(char *));
+		append_line(line);
 	}
 	rl_instream = tmpfp;
 	fclose(rl_outstream);
@@ -386,8 +391,6 @@ read_sql_lines(void)
 	bool in_comment = false;
 
 	reset_ibuf();
-	ibuf = (char **) xmalloc(sizeof(char *));
-	ibuflines = 0;
 	while (1) {
 		if (no_prompt) {
 			foobuf[0] = '\0';
@@ -452,9 +455,8 @@ read_sql_lines(void)
 
 append_line:
 		in_comment = update_comment(in_comment, line);
-		ibuf[ibuflines++] = line;
+		append_line(line);
 		line = NULL;
-		ibuf = (char **) xrealloc(ibuf, (ibuflines + 1) * sizeof(char *));
 	}
 }
 
