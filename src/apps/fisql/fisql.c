@@ -274,6 +274,24 @@ vi_cmd(const char *command)
 	unlink(tmpfn);
 }
 
+static void
+system_cmd(const char *cmd)
+{
+	int rv;
+	switch (rv = system(cmd)) {
+	case 0:
+		break;
+	case -1:
+		fprintf(stderr,
+		    "Failed to execute `%s'\n", cmd);
+		break;
+	default:
+		fprintf(stderr, "Command `%s' exited "
+		    "with code %d\n", cmd, rv);
+		break;
+	}
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -605,20 +623,8 @@ main(int argc, char *argv[])
 				add_history(line);
 			}
 			if (!(strncasecmp(line, "!!", 2))) {
-				int rv;
-				cp = line + 2;
-				switch (rv = system(cp)) {
-				case 0:
-					continue;
-				case -1:
-					fprintf(stderr,
-					    "Failed to execute `%s'\n", cp);
-					continue;
-				default:
-					fprintf(stderr, "Command `%s' exited "
-					    "with code %d\n", cp, rv);
-					continue;
-				}
+				system_cmd(line + 2);
+				continue;
 			}
 			/* XXX: isql off-by-one line count error for :r not duplicated */
 			if (!(strncasecmp(line, ":r", 2))) {
