@@ -594,7 +594,9 @@ main(int argc, char *argv[])
 			}
 			line = readline(foobuf);
 			if (line == NULL) {
-				line = "exit";
+				reset_term();
+				dbexit();
+				return default_exit;
 			}
 			for (cp = line; *cp && isspace((unsigned char) *cp); cp++)
 				continue;
