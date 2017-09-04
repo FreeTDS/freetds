@@ -244,7 +244,7 @@ collapse('TDS_TYPEFLAG_DATETIME');
 collapse('TDS_TYPEFLAG_BINARY');
 
 # output MS flags
-print q|const unsigned char tds_type_flags_ms[256] = {
+print q|const uint16_t tds_type_flags_ms[256] = {
 |;
 foreach my $n (0..255) {
 	my %t = %{$bynum[$n]};
@@ -258,7 +258,7 @@ print q|};
 # output SYB flags
 print q|
 #if 0
-const unsigned char tds_type_flags_syb[256] = {
+const uint16_t tds_type_flags_syb[256] = {
 |;
 foreach my $n (0..255) {
 	my %t = %{$bynum[$n+256]};

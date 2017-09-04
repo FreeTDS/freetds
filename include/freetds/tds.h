@@ -359,12 +359,12 @@ enum {
 	TDS_TYPEFLAG_UNICODE  = 32,
 	TDS_TYPEFLAG_BINARY   = 64,
 	TDS_TYPEFLAG_DATETIME = 128,
-	TDS_TYPEFLAG_NUMERIC  = 0,
+	TDS_TYPEFLAG_NUMERIC  = 256,
 };
 
-extern const unsigned char tds_type_flags_ms[256];
+extern const uint16_t tds_type_flags_ms[256];
 #if 0
-extern const unsigned char tds_type_flags_syb[256];
+extern const uint16_t tds_type_flags_syb[256];
 extern const char *const tds_type_names[256];
 #endif
 
