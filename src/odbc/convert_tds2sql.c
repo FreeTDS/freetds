@@ -329,13 +329,7 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 	if (desttype == SQL_C_WCHAR)
 		destlen /= sizeof(SQLWCHAR);
 	if (desttype == SQL_C_CHAR || desttype == SQL_C_WCHAR) {
-		switch (srctype) {
-		case SYBLONGBINARY:
-		case SYBBINARY:
-		case SYBVARBINARY:
-		case SYBIMAGE:
-		case XSYBBINARY:
-		case XSYBVARBINARY:
+		if (is_binary_type(srctype)) {
 			binary_conversion = 1;
 			if (destlen && !(destlen % 2))
 				--destlen;
