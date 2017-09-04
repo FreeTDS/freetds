@@ -2871,6 +2871,70 @@ dblib_coltype(TDSCOLUMN *colinfo)
 	case SYBUNITEXT:
 	case SYBMSXML:
 		return SYBTEXT;
+	/* these types are handled by tds_get_conversion_type */
+	case SYBBITN:
+	case SYBDATEN:
+	case SYBDATETIMN:
+	case SYBFLTN:
+	case SYBINTN:
+	case SYBMONEYN:
+	case SYBTIMEN:
+	case SYBUINTN:
+		break;
+	/* these types are supported */
+	case SYBCHAR:
+	case SYBINT1:
+	case SYBINT2:
+	case SYBINT4:
+	case SYBINT8:
+	case SYBFLT8:
+	case SYBDATETIME:
+	case SYBBIT:
+	case SYBTEXT:
+	case SYBNTEXT:
+	case SYBIMAGE:
+	case SYBMONEY4:
+	case SYBMONEY:
+	case SYBDATETIME4:
+	case SYBREAL:
+	case SYBBINARY:
+	case SYBVOID:
+	case SYBNUMERIC:
+	case SYBDECIMAL:
+	case SYBNVARCHAR:
+	case SYBDATE:
+	case SYBTIME:
+	case SYB5BIGDATETIME:
+	case SYB5BIGTIME:
+	case SYBMSDATE:
+	case SYBMSTIME:
+	case SYBMSDATETIME2:
+	case SYBMSDATETIMEOFFSET:
+		break;
+	/* exclude cardinal types */
+	case XSYBVARBINARY:
+	case XSYBBINARY:
+	case XSYBNVARCHAR:
+	case XSYBVARCHAR:
+	case XSYBNCHAR:
+	case XSYBCHAR:
+	case SYB5INT8:
+		break;
+#if !ENABLE_EXTRA_CHECKS
+	/* TODO these should be handled in some ways */
+	case SYBUNIQUE: /* or SYBBLOB */
+	case SYBVARIANT:
+	case SYBMSUDT:
+	case SYBLONGBINARY:
+	case SYBUINT1:
+	case SYBUINT2:
+	case SYBUINT4:
+	case SYBUINT8:
+	case SYBINTERVAL:
+	case SYBSINT1:
+	case SYBXML:
+		break;
+#endif
 	}
 	return tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
 }
