@@ -2877,6 +2877,9 @@ dblib_coltype(TDSCOLUMN *colinfo)
 		return SYBCHAR;
 	case SYBVARBINARY:
 		return SYBBINARY;
+	case SYBUNITEXT:
+	case SYBMSXML:
+		return SYBTEXT;
 	}
 	return tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
 }
