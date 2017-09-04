@@ -197,7 +197,7 @@ foreach my $type (sort { $$a{value} <=> $$b{value} } values %types) {
 #	die "wrong fields" if $t{nullable} && $t{fixed};
 	die "wrong fields" if $t{variable} && $t{fixed};
 	my @f;
-	foreach my $n (qw(nullable fixed variable numeric collate unicode ascii datetime)) {
+	foreach my $n (qw(nullable fixed variable numeric collate unicode ascii datetime binary)) {
 		push @f, uc("TDS_TYPEFLAG_$n") if $t{$n} eq '1';
 	}
 	my $f = join("|", @f);
@@ -217,14 +217,15 @@ foreach my $n (0..511) {
 
 sub collapse($) {
 	my $flag = shift;
-	# try to collapse flag
+	# try to collapse flag (put a flag in both MS and Sybase
+	# tables)
 	foreach my $n1 (0..511) {
 		my $n2 = ($n1 + 256) % 512;
 		if ($bynum[$n1]->{name} && !$bynum[$n2]->{name} && $bynum[$n1]->{flags} =~ /$flag/) {
 			$bynum[$n2]->{flags} .= "|$flag";
 		}
 	}
-	# check flag are the same on both sized
+	# check flag are the same on both sides
 	foreach my $n1 (0..255) {
 		my $n2 = ($n1 + 256) % 512;
 		my $fix1 = !!($bynum[$n1]->{flags} =~ /$flag/);
@@ -240,6 +241,7 @@ collapse('TDS_TYPEFLAG_NUMERIC');
 collapse('TDS_TYPEFLAG_VARIABLE');
 collapse('TDS_TYPEFLAG_UNICODE');
 collapse('TDS_TYPEFLAG_DATETIME');
+collapse('TDS_TYPEFLAG_BINARY');
 
 # output MS flags
 print q|const unsigned char tds_type_flags_ms[256] = {

@@ -357,8 +357,9 @@ enum {
 	TDS_TYPEFLAG_COLLATE  = 8,
 	TDS_TYPEFLAG_ASCII    = 16,
 	TDS_TYPEFLAG_UNICODE  = 32,
-	TDS_TYPEFLAG_NUMERIC  = 64,
+	TDS_TYPEFLAG_BINARY   = 64,
 	TDS_TYPEFLAG_DATETIME = 128,
+	TDS_TYPEFLAG_NUMERIC  = 0,
 };
 
 extern const unsigned char tds_type_flags_ms[256];
@@ -382,6 +383,7 @@ extern const char *const tds_type_names[256];
 #define is_unicode_type(x)    ((tds_type_flags_ms[x] & TDS_TYPEFLAG_UNICODE) != 0)
 #define is_collate_type(x)    ((tds_type_flags_ms[x] & TDS_TYPEFLAG_COLLATE) != 0)
 #define is_ascii_type(x)      ((tds_type_flags_ms[x] & TDS_TYPEFLAG_ASCII) != 0)
+#define is_binary_type(x)     ((tds_type_flags_ms[x] & TDS_TYPEFLAG_BINARY) != 0)
 #define is_char_type(x)       ((tds_type_flags_ms[x] & (TDS_TYPEFLAG_ASCII|TDS_TYPEFLAG_UNICODE)) != 0)
 #define is_similar_type(x, y) (is_char_type(x) && is_char_type(y))
 static inline

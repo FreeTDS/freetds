@@ -365,13 +365,8 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 		SQLLEN orig_len = len;
 
 		if (sql_src_type == SQL_C_CHAR || sql_src_type == SQL_C_WCHAR) {
-			switch (tds_get_conversion_type(curcol->column_type, curcol->column_size)) {
-			case SYBBINARY:
-			case SYBVARBINARY:
-			case XSYBBINARY:
-			case XSYBVARBINARY:
-			case SYBLONGBINARY:
-			case SYBIMAGE:
+			TDS_SERVER_TYPE type = tds_get_conversion_type(curcol->column_type, curcol->column_size);
+			if (is_binary_type(type)) {
 				if (len && sql_src_type == SQL_C_CHAR && !*((char*)DataPtr+len-1))
 					--len;
 
@@ -384,7 +379,6 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 				binary_convert = 1;
 				orig_len = len;
 				len = len / 2u + 1u;
-				break;
 			}
 		}
 
