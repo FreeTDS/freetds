@@ -49,7 +49,7 @@ while ($line = readLine()) {
 }
 close(IN);
 
-# read types values from tdsproto.h
+# read types values from freetds/proto.h
 open(IN, '<', $ARGV[1]) or die $ARGV[1];
 while (<IN>) {
 	if (/\s+(X?SYB[A-Z0-9]+)\s+=\s+([1-9]\d+)/) {
