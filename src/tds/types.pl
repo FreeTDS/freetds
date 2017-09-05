@@ -54,9 +54,8 @@ open(IN, '<', $ARGV[1]) or die $ARGV[1];
 while (<IN>) {
 	if (/\s+(X?SYB[A-Z0-9]+)\s+=\s+([1-9]\d+)/) {
 		my ($name, $val) = ($1, $2);
-		die if $val <= 0 || $val > 255;
-		next if !exists($types{$name});
 		die "out of range" if $val <= 0 || $val >= 256;
+		next if !exists($types{$name});
 		$types{$name}->{value} = $val;
 	}
 }
