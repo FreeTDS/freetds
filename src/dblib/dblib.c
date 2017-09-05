@@ -1577,10 +1577,8 @@ dbexit()
 	dblib_release_tds_ctx(count);
 }
 
-typedef char prbuf_t[24];
-
 static const char *
-prdbresults_state(int retcode, prbuf_t buf)
+prdbresults_state(int retcode)
 {
 	switch(retcode) {
 	case _DB_RES_INIT:		return "_DB_RES_INIT";
@@ -1589,14 +1587,13 @@ prdbresults_state(int retcode, prbuf_t buf)
 	case _DB_RES_NEXT_RESULT:	return "_DB_RES_NEXT_RESULT";
 	case _DB_RES_NO_MORE_RESULTS:	return "_DB_RES_NO_MORE_RESULTS";
 	case _DB_RES_SUCCEED:		return "_DB_RES_SUCCEED";
-	default:
-		sprintf(buf, "oops: %u ??", retcode);
+	default: break;
 	}
-	return buf;
+	return "??";
 }
 
 static const char *
-prdbretcode(RETCODE retcode, prbuf_t buf)
+prdbretcode(RETCODE retcode)
 {
 	switch(retcode) {
 	case REG_ROW:		return "REG_ROW/MORE_ROWS";
@@ -1605,28 +1602,26 @@ prdbretcode(RETCODE retcode, prbuf_t buf)
 	case NO_MORE_RESULTS:	return "NO_MORE_RESULTS";
 	case SUCCEED:		return "SUCCEED";
 	case FAIL:		return "FAIL";
-	default:
-		sprintf(buf, "oops: %u ??", retcode);
+	default: break;
 	}
-	return buf;
+	return "??";
 }
 
 static const char *
-prretcode(int retcode, prbuf_t buf)
+prretcode(int retcode)
 {
 	switch(retcode) {
 	case TDS_SUCCESS:		return "TDS_SUCCESS";
 	case TDS_FAIL:			return "TDS_FAIL";
 	case TDS_NO_MORE_RESULTS:	return "TDS_NO_MORE_RESULTS";
 	case TDS_CANCELLED:		return "TDS_CANCELLED";
-	default:
-		sprintf(buf, "oops: %u ??", retcode);
+	default: break;
 	}
-	return buf;
+	return "??";
 }
 
 static const char *
-prresult_type(int result_type, prbuf_t buf)
+prresult_type(int result_type)
 {
 	switch(result_type) {
 	case TDS_ROW_RESULT:		return "TDS_ROW_RESULT";
@@ -1644,10 +1639,9 @@ prresult_type(int result_type, prbuf_t buf)
 	case TDS_DONEPROC_RESULT:	return "TDS_DONEPROC_RESULT";
 	case TDS_DONEINPROC_RESULT:	return "TDS_DONEINPROC_RESULT";
 	case TDS_OTHERS_RESULT:		return "TDS_OTHERS_RESULT";
-	default:
-		sprintf(buf, "oops: %u ??", result_type);
+	default: break;
 	}
-	return buf;
+	return "??";
 }
 
 /**
@@ -1685,9 +1679,8 @@ RETCODE
 dbresults(DBPROCESS * dbproc)
 {
 	RETCODE erc = _dbresults(dbproc);
-	prbuf_t buf;
 
-	tdsdump_log(TDS_DBG_FUNC, "dbresults returning %d (%s)\n", erc, prdbretcode(erc, buf));
+	tdsdump_log(TDS_DBG_FUNC, "dbresults returning %d (%s)\n", erc, prdbretcode(erc));
 	return erc;
 }
 
@@ -1696,7 +1689,6 @@ _dbresults(DBPROCESS * dbproc)
 {
 	TDSSOCKET *tds;
 	int result_type = 0, done_flags;
-	prbuf_t prbuf1, prbuf2;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbresults(%p)\n", dbproc);
 	CHECK_CONN(FAIL);
@@ -1704,7 +1696,7 @@ _dbresults(DBPROCESS * dbproc)
 	tds = dbproc->tds_socket;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbresults: dbresults_state is %d (%s)\n", 
-					dbproc->dbresults_state, prdbresults_state(dbproc->dbresults_state, prbuf1));
+					dbproc->dbresults_state, prdbresults_state(dbproc->dbresults_state));
 	switch ( dbproc->dbresults_state ) {
 	case _DB_RES_SUCCEED:
 		dbproc->dbresults_state = _DB_RES_NEXT_RESULT;
@@ -1724,8 +1716,8 @@ _dbresults(DBPROCESS * dbproc)
 	for (;;) {
 		TDSRET retcode = tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS);
 
-		tdsdump_log(TDS_DBG_FUNC, "dbresults() tds_process_tokens returned %d (%s),\n\t\t\tresult_type %s\n", 
-						retcode, prretcode(retcode, prbuf1), prresult_type(result_type, prbuf2));
+		tdsdump_log(TDS_DBG_FUNC, "dbresults() tds_process_tokens returned %d (%s),\n\t\t\tresult_type %d (%s)\n",
+						retcode, prretcode(retcode), result_type, prresult_type(result_type));
 
 		switch (retcode) {
 
@@ -1752,7 +1744,7 @@ _dbresults(DBPROCESS * dbproc)
 			case TDS_DONE_RESULT:
 			case TDS_DONEPROC_RESULT:
 				tdsdump_log(TDS_DBG_FUNC, "dbresults(): dbresults_state is %d (%s)\n", 
-						dbproc->dbresults_state, prdbresults_state(dbproc->dbresults_state, prbuf1));
+						dbproc->dbresults_state, prdbresults_state(dbproc->dbresults_state));
 
 				/* A done token signifies the end of a logical command.
 				 * There are three possibilities:
@@ -2071,7 +2063,6 @@ dbnextrow(DBPROCESS * dbproc)
 	TDS_INT computeid;
 	int idx; /* row buffer index.  Unless DBUFFER is on, idx will always be 0. */
 	struct pivot_t *pivot;
-	prbuf_t prbuf;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbnextrow(%p)\n", dbproc);
 	CHECK_CONN(FAIL);
@@ -2080,7 +2071,7 @@ dbnextrow(DBPROCESS * dbproc)
 	resinfo = tds->res_info;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbnextrow() dbresults_state = %d (%s)\n", 
-					dbproc->dbresults_state, prdbresults_state(dbproc->dbresults_state, prbuf));
+					dbproc->dbresults_state, prdbresults_state(dbproc->dbresults_state));
 
 	if (!resinfo || dbproc->dbresults_state != _DB_RES_RESULTSET_ROWS) {
 		/* no result set or result set empty (no rows) */
@@ -2166,7 +2157,7 @@ again:
 	if (res_type == TDS_COMPUTE_RESULT) {
 		tdsdump_log(TDS_DBG_FUNC, "leaving dbnextrow() returning compute_id %d\n", result);
 	} else {
-		tdsdump_log(TDS_DBG_FUNC, "leaving dbnextrow() returning %s\n", prdbretcode(result, prbuf));
+		tdsdump_log(TDS_DBG_FUNC, "leaving dbnextrow() returning %d (%s)\n", result, prdbretcode(result));
 	}
 	return result;
 } /* dbnextrow()  */
@@ -4737,7 +4728,6 @@ dbsqlok(DBPROCESS * dbproc)
 	TDSSOCKET *tds;
 	TDS_INT result_type;
 	RETCODE return_code = SUCCEED;
-	prbuf_t prretbuf;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbsqlok(%p)\n", dbproc);
 	CHECK_CONN(FAIL);
@@ -4801,7 +4791,7 @@ dbsqlok(DBPROCESS * dbproc)
 				break;
 			case TDS_DONE_RESULT:
 			case TDS_DONEPROC_RESULT:
-				tdsdump_log(TDS_DBG_FUNC, "dbsqlok() end status is %s\n", prdbretcode(return_code, prretbuf));
+				tdsdump_log(TDS_DBG_FUNC, "dbsqlok() end status is %d (%s)\n", return_code, prdbretcode(return_code));
 #if 1
 				if (done_flags & TDS_DONE_ERROR) {
 
