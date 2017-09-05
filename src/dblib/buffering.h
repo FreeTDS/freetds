@@ -300,6 +300,9 @@ buffer_delete_rows(DBPROC_ROWBUF * buf,	int count)
 	BUFFER_CHECK(buf);
 }
 
+/**
+ * Transfer data from buffer/tds back to client
+ */
 static void
 buffer_transfer_bound_data(DBPROC_ROWBUF *buf, TDS_INT res_type, TDS_INT compute_id, DBPROCESS * dbproc, int idx)
 {
@@ -523,6 +526,9 @@ buffer_add_row(DBPROCESS *dbproc, TDSRESULTINFO *resinfo)
 	return buf->current;
 }
 
+/**
+ * Save current row into row buffer
+ */
 static RETCODE
 buffer_save_row(DBPROCESS *dbproc)
 {
