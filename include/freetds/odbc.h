@@ -655,8 +655,8 @@ void odbc_convert_err_set(struct _sql_errors *errs, TDS_INT err);
  */
 SQLRETURN prepare_call(struct _hstmt *stmt);
 SQLRETURN native_sql(struct _hdbc *dbc, DSTR *s);
-int parse_prepared_query(struct _hstmt *stmt, int compute_row);
-int start_parse_prepared_query(struct _hstmt *stmt, int compute_row);
+int parse_prepared_query(struct _hstmt *stmt, bool compute_row);
+int start_parse_prepared_query(struct _hstmt *stmt, bool compute_row);
 int continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN StrLen_or_Ind);
 const char *parse_const_param(const char * s, TDS_SERVER_TYPE *type);
 const char *odbc_skip_rpc_name(const char *s);
@@ -664,7 +664,7 @@ const char *odbc_skip_rpc_name(const char *s);
 /*
  * sql2tds.c
  */
-SQLRETURN odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _drecord *drec_axd, TDSCOLUMN *curcol, int compute_row, const TDS_DESC* axd, unsigned int n_row);
+SQLRETURN odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _drecord *drec_axd, TDSCOLUMN *curcol, bool compute_row, const TDS_DESC* axd, unsigned int n_row);
 TDS_INT convert_datetime2server(int bindtype, const void *src, TDS_DATETIMEALL * dta);
 
 /*

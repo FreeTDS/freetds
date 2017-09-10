@@ -457,7 +457,7 @@ odbc_update_ird(TDS_STMT *stmt, TDS_ERRS *errs)
 		ODBC_RETURN_(stmt);
 
 	/* FIXME error */
-	res = start_parse_prepared_query(stmt, 0);
+	res = start_parse_prepared_query(stmt, false);
 	if (res != SQL_SUCCESS) {
 		/* prepare with dummy parameters just to fill IRD */
 		tds_free_param_results(stmt->params);
@@ -1181,7 +1181,7 @@ odbc_build_update_params(TDS_STMT * stmt, unsigned int n_row)
 		if (!tds_dstr_dup(&curcol->table_name, &drec_ird->sql_desc_base_table_name))
 			goto memory_error;
 
-		switch (odbc_sql2tds(stmt, drec_ird, &stmt->ard->records[n], curcol, 1, stmt->ard, n_row)) {
+		switch (odbc_sql2tds(stmt, drec_ird, &stmt->ard->records[n], curcol, true, stmt->ard, n_row)) {
 		case SQL_NEED_DATA:
 			goto memory_error;
 		case SQL_ERROR:
@@ -3326,7 +3326,7 @@ _SQLExecute(TDS_STMT * stmt)
 					break;
 				/* than process others parameters */
 				/* TODO handle all results*/
-				if (start_parse_prepared_query(stmt, 1) != SQL_SUCCESS)
+				if (start_parse_prepared_query(stmt, true) != SQL_SUCCESS)
 					break;
 			}
 			if (TDS_SUCCEED(ret))
@@ -3393,7 +3393,7 @@ _SQLExecute(TDS_STMT * stmt)
 					break;
 				/* than process others parameters */
 				/* TODO handle all results*/
-				if (start_parse_prepared_query(stmt, 1) != SQL_SUCCESS)
+				if (start_parse_prepared_query(stmt, true) != SQL_SUCCESS)
 					break;
 			}
 			if (TDS_SUCCEED(ret))
@@ -3542,7 +3542,7 @@ ODBC_FUNC(SQLExecDirect, (P(SQLHSTMT,hstmt), PCHARIN(SqlStr,SQLINTEGER) WIDE))
 		ODBC_EXIT_(stmt);
 	}
 
-	res = start_parse_prepared_query(stmt, 1);
+	res = start_parse_prepared_query(stmt, true);
 	if (SQL_SUCCESS != res)
 		ODBC_EXIT(stmt, res);
 
@@ -3570,7 +3570,7 @@ SQLExecute(SQLHSTMT hstmt)
 	/* build parameters list */
 	stmt->param_data_called = 0;
 	stmt->curr_param_row = 0;
-	if ((res = start_parse_prepared_query(stmt, 1)) != SQL_SUCCESS) {
+	if ((res = start_parse_prepared_query(stmt, true)) != SQL_SUCCESS) {
 		tdsdump_log(TDS_DBG_FUNC, "SQLExecute returns %s (start_parse_prepared_query failed)\n", odbc_prret(res));
 		ODBC_EXIT(stmt, res);
 	}
@@ -6151,7 +6151,7 @@ _SQLParamData(SQLHSTMT hstmt, SQLPOINTER FAR * prgbValue)
 			ODBC_EXIT(stmt, SQL_NEED_DATA);
 		}
 		++stmt->param_num;
-		switch (res = parse_prepared_query(stmt, 1)) {
+		switch (res = parse_prepared_query(stmt, true)) {
 		case SQL_NEED_DATA:
 			*prgbValue = stmt->apd->records[stmt->param_num - 1].sql_desc_data_ptr;
 			ODBC_EXIT(stmt, SQL_NEED_DATA);

@@ -155,7 +155,7 @@ _odbc_blob_free(TDSCOLUMN *col)
  */
 SQLRETURN
 odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord *drec_apd, TDSCOLUMN *curcol,
-	int compute_row, const TDS_DESC* axd, unsigned int n_row)
+	bool compute_row, const TDS_DESC* axd, unsigned int n_row)
 {
 	TDS_DBC * dbc = stmt->dbc;
 	TDSCONNECTION * conn = dbc->tds_socket->conn;

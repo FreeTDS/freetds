@@ -40,7 +40,7 @@
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
 static int
-prepared_rpc(struct _hstmt *stmt, int compute_row)
+prepared_rpc(struct _hstmt *stmt, bool compute_row)
 {
 	int nparam = stmt->params ? stmt->params->num_cols : 0;
 	const char *p = stmt->prepared_pos - 1;
@@ -186,7 +186,7 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 }
 
 int
-parse_prepared_query(struct _hstmt *stmt, int compute_row)
+parse_prepared_query(struct _hstmt *stmt, bool compute_row)
 {
 	/* try setting this parameter */
 	TDSPARAMINFO *temp_params;
@@ -227,7 +227,7 @@ parse_prepared_query(struct _hstmt *stmt, int compute_row)
 }
 
 int
-start_parse_prepared_query(struct _hstmt *stmt, int compute_row)
+start_parse_prepared_query(struct _hstmt *stmt, bool compute_row)
 {
 	/* TODO should be NULL already ?? */
 	tds_free_param_results(stmt->params);
