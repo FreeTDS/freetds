@@ -441,6 +441,12 @@ memory_error:
 	ODBC_RETURN_(dbc);
 }
 
+/**
+ * Update IRD information.
+ * This is needed if the IRD is not updated as requires query to be prepared.
+ * For instance calling SQLNumResultCols after SQLPrepare we need to
+ * know how many rows the query could return.
+ */
 static SQLRETURN
 odbc_update_ird(TDS_STMT *stmt, TDS_ERRS *errs)
 {

@@ -1159,7 +1159,10 @@ tds7_put_params_definition(TDSSOCKET * tds, const char *param_definition, size_t
 
 /**
  * tds_submit_prepare() creates a temporary stored procedure in the server.
- * Under TDS 4.2 dynamic statements are emulated building sql command
+ * Under TDS 4.2 dynamic statements are emulated building sql command.
+ * TDS 5 does not uses parameters type.
+ * TDS 7+ uses parameter types to prepare the query. You should
+ * prepare again the query if parameters changes.
  * \param tds     state information for the socket and the TDS protocol
  * \param query   language query with given placeholders (?)
  * \param id      string to identify the dynamic query. Pass NULL for automatic generation.

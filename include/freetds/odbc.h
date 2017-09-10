@@ -392,6 +392,10 @@ struct _hstmt
 	unsigned is_prepared_query:1;
 	unsigned prepared_query_is_func:1;
 	unsigned prepared_query_is_rpc:1;
+	/**
+	 * Prepared statement needs to be prepared again.
+	 * This can happen if the parameters was changed or not specified.
+	 */
 	unsigned need_reprepare:1;
 	unsigned param_data_called:1;
 	/* end prepared query stuff */
