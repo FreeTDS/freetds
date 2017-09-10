@@ -31,4 +31,5 @@ datafmt
 rpc_fail
 row_count
 all_types
+long_binary
 libcommon.a
