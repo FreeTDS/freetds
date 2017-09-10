@@ -4569,7 +4569,7 @@ ODBC_FUNC(SQLPrepare, (P(SQLHSTMT,hstmt), PCHARIN(SqlStr,SQLINTEGER) WIDE))
 		 * using TDS7+ we need parameters to prepare a query so try
 		 * to get them 
 		 * TDS5 do not need parameters type and we have always to
-		 * prepare sepatarely so this is not an issue
+		 * prepare sepatately so this is not an issue
 		 */
 		if (IS_TDS7_PLUS(stmt->dbc->tds_socket->conn)) {
 			stmt->need_reprepare = 1;
