@@ -79,7 +79,7 @@ static int tds_count_placeholders_ucs2le(const char *query, const char *query_en
 
 /**
  * Accept an ASCII string, convert it to UCS2-LE
- * The input is null-terminated, but the output excludes the null.
+ * The input is NUL-terminated, but the output does not contains the NUL.
  * \param buffer buffer where to store output
  * \param buf string to write
  * \return bytes written
@@ -115,7 +115,7 @@ tds_ascii_to_ucs2(char *buffer, const char *buf)
  * \param tds        state information for the socket and the TDS protocol
  * \param char_conv  information about the encodings involved
  * \param s          input string
- * \param len        input string length (in bytes), -1 for null terminated
+ * \param len        input string length (in bytes), -1 for NUL-terminated
  * \param out_len    returned output length (in bytes)
  * \return string allocated (or input pointer if no conversion required) or NULL if error
  */
@@ -168,6 +168,7 @@ tds_convert_string_free(const char *original, const char *converted)
 /**
  * Flush query packet.
  * Used at the end of packet write to really send packet to server.
+ * This also changes the state to TDS_PENDING.
  * \tds
  */
 static TDSRET
@@ -193,7 +194,7 @@ tds_set_cur_dyn(TDSSOCKET *tds, TDSDYNAMIC *dyn)
 }
 
 /**
- * tds_submit_query() sends a language string to the database server for
+ * Sends a language string to the database server for
  * processing.  TDS 4.2 is a plain text message with a packet type of 0x01,
  * TDS 7.0 is a unicode string with packet type 0x01, and TDS 5.0 uses a 
  * TDS_LANGUAGE_TOKEN to encapsulate the query and a packet type of 0x0f.
@@ -210,7 +211,7 @@ tds_submit_query(TDSSOCKET * tds, const char *query)
 /**
  * Substitute ?-style placeholders with named (\@param) ones.
  * Sybase does not support ?-style placeholders so convert them.
- * Also the function replace parameters names.
+ * Also the function replace parameter names.
  * \param query  query string
  * \param[in,out] query_len  pointer to query length.
  *                On input length of input query, on output length
@@ -348,7 +349,7 @@ tds_start_query(TDSSOCKET *tds, unsigned char packet_type)
 }
 
 /**
- * tds_submit_query_params() sends a language string to the database server for
+ * Sends a language string to the database server for
  * processing.  TDS 4.2 is a plain text message with a packet type of 0x01,
  * TDS 7.0 is a unicode string with packet type 0x01, and TDS 5.0 uses a
  * TDS_LANGUAGE_TOKEN to encapsulate the query and a packet type of 0x0f.
@@ -583,7 +584,7 @@ tds_next_placeholder(const char *start)
 }
 
 /**
- * Count the number of placeholders in query
+ * Count the number of placeholders ('?') in a query
  * \param query  query string
  */
 int
@@ -600,7 +601,7 @@ tds_count_placeholders(const char *query)
 
 /**
  * Skip a comment in a query
- * \param s    start of the string (or part of it). Encoded in ucs2
+ * \param s    start of the string (or part of it). Encoded in ucs2le
  * \param end  end of string
  * \returns pointer to end of comment
  */
@@ -629,7 +630,7 @@ tds_skip_comment_ucs2le(const char *s, const char *end)
 /**
  * Return pointer to end of a quoted string.
  * At the beginning pointer should point to delimiter.
- * \param s    start of string to skip encoded in ucs2
+ * \param s    start of string to skip encoded in ucs2le
  * \param end  pointer to end of string
  */
 static const char *
@@ -652,7 +653,7 @@ tds_skip_quoted_ucs2le(const char *s, const char *end)
 
 /**
  * Found the next placeholder (? or \@param) in a string.
- * String must be encoded in ucs2.
+ * String must be encoded in ucs2le.
  * \param start  start of the string (or part of it)
  * \param end    end of string
  * \param named  true if named parameters should be returned
@@ -701,8 +702,8 @@ tds_next_placeholder_ucs2le(const char *start, const char *end, int named)
 }
 
 /**
- * Count number of placeholders (?) in a query
- * \param query      query encoded in ucs2
+ * Count the number of placeholders ('?') in a query
+ * \param query      query encoded in ucs2le
  * \param query_end  end of query
  * \return number of placeholders found
  */
@@ -719,7 +720,14 @@ tds_count_placeholders_ucs2le(const char *query, const char *query_end)
 }
 
 /**
- * Return declaration for column (like "varchar(20)")
+ * Return declaration for column (like "varchar(20)").
+ *
+ * This depends on:
+ * - on_server.column_type
+ * - varint_size (for varchar(max) distinction)
+ * - column_size
+ * - precision/scale (numeric)
+ *
  * \tds
  * \param curcol column
  * \param out    buffer to hold declaration
@@ -900,14 +908,14 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 }
 
 /**
- * Return string with parameters definition, useful for TDS7+
+ * Return string with parameters definition, useful for TDS7+.
  * Looks like "@P1 INT, @P2 VARCHAR(100)"
  * \param tds     state information for the socket and the TDS protocol
- * \param converted_query     query to send to server in ucs2 encoding
+ * \param converted_query     query to send to server in ucs2le encoding
  * \param converted_query_len query length in bytes
  * \param params  parameters to build declaration
  * \param out_len length output buffer in bytes
- * \return allocated and filled string or NULL on failure (coded in ucs2le charset )
+ * \return allocated and filled string or NULL on failure (encoded in ucs2le)
  */
 /* TODO find a better name for this function */
 static char *
@@ -965,13 +973,14 @@ tds7_build_param_def_from_query(TDSSOCKET * tds, const char* converted_query, si
 }
 
 /**
- * Return string with parameters definition, useful for TDS7+
+ * Return string with parameters definition, useful for TDS7+.
+ * Looks like "@P1 INT, @P2 VARCHAR(100)"
  * \param tds       state information for the socket and the TDS protocol
- * \param query     query to send to server encoded as ucs2
+ * \param query     query to send to server encoded in ucs2le
  * \param query_len query length in bytes
  * \param params    parameters to build declaration
  * \param out_len   length output buffer in bytes
- * \return allocated and filled string or NULL on failure (coded in ucs2le charset )
+ * \return allocated and filled string or NULL on failure (encoded in ucs2le)
  */
 /* TODO find a better name for this function */
 static char *
@@ -1085,7 +1094,7 @@ tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t quer
 /**
  * Output params types and query (required by sp_prepare/sp_executesql/sp_prepexec)
  * \param tds       state information for the socket and the TDS protocol
- * \param query     query (in ucs2le codings)
+ * \param query     query (encoded in ucs2le)
  * \param query_len query length in bytes
  */
 static void
@@ -1134,9 +1143,10 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len)
 }
 
 /**
- * Send parameter definition to server
+ * Send parameters definition to server
+ * \sa tds7_build_param_def_from_query, tds7_build_param_def_from_params
  * \tds
- * \param param_definition  parameter definition string. Encoded in ucs2
+ * \param param_definition  parameter definition string. Encoded in ucs2le
  * \param param_length      parameter definition string length in bytes
  */
 static void
@@ -1158,7 +1168,8 @@ tds7_put_params_definition(TDSSOCKET * tds, const char *param_definition, size_t
 }
 
 /**
- * tds_submit_prepare() creates a temporary stored procedure in the server.
+ * Creates a temporary stored procedure in the server.
+ *
  * Under TDS 4.2 dynamic statements are emulated building sql command.
  * TDS 5 does not uses parameters type.
  * TDS 7+ uses parameter types to prepare the query. You should
@@ -1418,12 +1429,12 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params,
 }
 
 /**
- * tds71_submit_prepexec() creates a temporary stored procedure in the server.
+ * Creates a temporary stored procedure in the server and execute it.
  * \param tds     state information for the socket and the TDS protocol
- * \param query   language query with given placeholders (?)
+ * \param query   language query with given placeholders ('?')
  * \param id      string to identify the dynamic query. Pass NULL for automatic generation.
- * \param dyn_out will receive allocated TDSDYNAMIC*. Any older allocated dynamic won't be freed, Can be NULL.
- * \param params  parameters to use. It can be NULL even if parameters are present. Used only for TDS7+
+ * \param dyn_out will receive allocated TDSDYNAMIC*. Any older allocated dynamic won't be freed. Can be NULL.
+ * \param params  parameters to use. It can be NULL even if parameters are present.
  * \return TDS_FAIL or TDS_SUCCESS
  */
 TDSRET
@@ -1691,8 +1702,7 @@ tds7_send_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 }
 
 /**
- * tds_submit_execute() sends a previously prepared dynamic statement to the 
- * server.
+ * Sends a previously prepared dynamic statement to the server.
  * \param tds state information for the socket and the TDS protocol
  * \param dyn dynamic proc to execute. Must build from same tds.
  */
@@ -1980,7 +1990,7 @@ tds_send_emulated_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * para
 }
 
 /**
- * tds_submit_rpc() call a RPC from server. Output parameters will be stored in tds->param_info
+ * Calls a RPC from server. Output parameters will be stored in tds->param_info.
  * \param tds      state information for the socket and the TDS protocol
  * \param rpc_name name of RPC
  * \param params   parameters informations. NULL for no parameters
@@ -2185,7 +2195,7 @@ tds_send_cancel(TDSSOCKET * tds)
  * \tds
  * \param buffer   output buffer. If NULL function will just return
  *        required bytes
- * \param quoting  quote character
+ * \param quoting  quote character (should be one of '\'', '"', ']')
  * \param id       string to quote
  * \param len      length of string to quote
  * \returns size of output string
@@ -2272,8 +2282,8 @@ tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen)
  * \param tds    state information for the socket and the TDS protocol
  * \param buffer buffer to store quoted id. If NULL do not write anything 
  *        (useful to compute quote length)
- * \param str    string to quote (not necessary null-terminated)
- * \param len    length of string (-1 for null terminated)
+ * \param str    string to quote (not necessary NUL-terminated)
+ * \param len    length of string (-1 for NUL-terminated)
  * \result written chars (not including needed terminator)
  */
 size_t
@@ -3026,7 +3036,7 @@ tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, 
 
 /**
  * Check if a cursor is allocated into the server.
- * If not is allocated it assure is removed from the connection list
+ * If is not allocated it assures is removed from the connection list
  * \tds
  * \return 0 if not allocated <>0 otherwise
  */
