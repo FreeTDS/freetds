@@ -467,7 +467,9 @@ if test "$GCC" = yes; then
 		AC_MSG_CHECKING([whether we can use $freetds_ldflag])
 		saved_LDFLAGS=$LDFLAGS
 		LDFLAGS="$LDFLAGS $freetds_ldflag"
-		AC_LINK_IFELSE(AC_LANG_SOURCE(,[return 1]), ac_cv_use_freetds_flag="yes", ac_cv_use_freetds_flag="no")
+		AC_LINK_IFELSE([AC_LANG_PROGRAM([],[])],
+			[ac_cv_use_freetds_flag="yes"],
+			[ac_cv_use_freetds_flag="no"])
 		LDFLAGS=$saved_LDFLAGS
 		AC_MSG_RESULT($ac_cv_use_freetds_flag)
 		if test "$ac_cv_use_freetds_flag" = "yes"; then
@@ -475,7 +477,7 @@ if test "$GCC" = yes; then
 			break;
 		fi
 	done
-	AC_COMPILE_IFELSE([AC_LANG_SOURCE([static void __attribute__((destructor)) my_uninit(void) {}], [])],
+	AC_COMPILE_IFELSE([AC_LANG_SOURCE([static void __attribute__((destructor)) my_uninit(void) {}])],
 			  AC_DEFINE(TDS_ATTRIBUTE_DESTRUCTOR, 1, 
 				    [Define to 1 if your compiler supports __attribute__((destructor)).]))
 fi
