@@ -581,8 +581,11 @@ if test "x$with_unixodbc" = "xyes"; then
 	# The user asked for unixodbc support, but didn't tell us
 	# where to look. We'll try to get the installation prefix from
 	# the odbc_config executable, and if we can't, we'll display
-	# an error. We require odbc_config to be in $PATH.
-	with_unixodbc=`odbc_config --prefix`
+	# an error.
+	if test -z "$ODBC_CONFIG"; then
+		AC_ERROR([odbc_config not found])
+	fi
+	with_unixodbc=`$ODBC_CONFIG --prefix`
 	if ! test -x "${with_unixodbc}/bin/odbc_config"; then
 		AC_ERROR([could not find your unixODBC installation])
 	fi
