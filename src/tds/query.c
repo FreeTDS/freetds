@@ -174,9 +174,10 @@ tds_convert_string_free(const char *original, const char *converted)
 static TDSRET
 tds_query_flush_packet(TDSSOCKET *tds)
 {
+	TDSRET ret = tds_flush_packet(tds);
 	/* TODO depend on result ?? */
 	tds_set_state(tds, TDS_PENDING);
-	return tds_flush_packet(tds);
+	return ret;
 }
 
 /**
