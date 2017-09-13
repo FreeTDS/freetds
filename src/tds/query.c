@@ -3038,18 +3038,18 @@ tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, 
  * Check if a cursor is allocated into the server.
  * If is not allocated it assures is removed from the connection list
  * \tds
- * \return 0 if not allocated <>0 otherwise
+ * \return true if allocated false otherwise
  */
-static int
+static bool
 tds_cursor_check_allocated(TDSCONNECTION * conn, TDSCURSOR * cursor)
 {
 	if (cursor->srv_status == TDS_CUR_ISTAT_UNUSED || (cursor->srv_status & TDS_CUR_ISTAT_DEALLOC) != 0
 	    || (IS_TDS7_PLUS(conn) && (cursor->srv_status & TDS_CUR_ISTAT_CLOSED) != 0)) {
 		tds_cursor_deallocated(conn, cursor);
-		return 0;
+		return false;
 	}
 
-	return 1;
+	return true;
 }
 
 /**
