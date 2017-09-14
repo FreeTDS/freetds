@@ -8,7 +8,7 @@ libtdsodbc_la_SOURCES =	odbc.c connectparams.c convert_tds2sql.c \
 	descriptor.c prepare_query.c odbc_util.c bcp.c \
 	native.c sql2tds.c error.c odbc_checks.c sqlwchar.c sqlwparams.h \
 	odbc_export.h error_export.h odbc_data.c
-libtdsodbc_la_LIBADD =	../tds/libtds.la ../replacements/libreplacements.la $(ODBCINSTLIB) $(LTLIBICONV) $(FREETDS_LIBGCC)
+libtdsodbc_la_LIBADD =	../tds/libtds.la ../replacements/libreplacements.la $(ODBCINSTLIB) $(FREETDS_LIBGCC) $(LTLIBICONV)
 # -module is needed by Darwin (Mac OS X)
 libtdsodbc_la_LDFLAGS = $(FREETDS_SYMBOLIC) $(FREETDS_ODBC_MODULE)
 

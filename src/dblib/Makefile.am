@@ -16,5 +16,5 @@ libsybdb_la_LDFLAGS=	-version-info 6:0:1 $(FREETDS_SYMBOLIC)
 if !MACOSX
 libsybdb_la_LDFLAGS +=	-export-symbols-regex '^(db|bcp_|tdsdump_open|tdsdbopen|.*_xact|close_commit|open_commit|.?asprintf).*'
 endif
-libsybdb_la_LIBADD=	../tds/libtds.la ../replacements/libreplacements.la $(LTLIBICONV) $(FREETDS_LIBGCC)
+libsybdb_la_LIBADD=	../tds/libtds.la ../replacements/libreplacements.la $(FREETDS_LIBGCC) $(LTLIBICONV)
 

@@ -20,7 +20,7 @@ freebcp_SOURCES = freebcp.c freebcp.h
 
 tsql_LDADD	= ../tds/libtds.la \
 		  ../replacements/libreplacements.la \
-		  $(LTLIBICONV) $(FREETDS_LIBGCC) $(READLINE_LIBS) $(NETWORK_LIBS)
+		  $(FREETDS_LIBGCC) $(LTLIBICONV) $(READLINE_LIBS) $(NETWORK_LIBS)
 
 bsqldb_LDADD	= ../dblib/libsybdb.la \
 		  ../replacements/libreplacements.la \
