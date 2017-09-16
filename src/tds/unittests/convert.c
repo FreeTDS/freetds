@@ -424,7 +424,7 @@ main(int argc, char **argv)
 		result = gettimeofday(&end, NULL);
 		endtime = (double) end.tv_sec + (double) end.tv_usec * 0.000001;
 
-		if (endtime != starttime) {
+		if (endtime != starttime && iterations) {
 			printf("%9.0f iterations/second converting %13s => %s.\n",
 				j / (endtime - starttime), tds_prtype(srctype), tds_prtype(desttype));
 		}
