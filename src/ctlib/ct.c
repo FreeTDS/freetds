@@ -1768,8 +1768,8 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 	unsigned char *src, *dest, *temp_add;
 	int i, result = 0;
 	CS_DATAFMT srcfmt, destfmt;
-	TDS_INT datalen_dummy, *pdatalen = &datalen_dummy;
-	TDS_SMALLINT nullind_dummy, *nullind = &nullind_dummy;
+	TDS_INT datalen_dummy, *pdatalen;
+	TDS_SMALLINT nullind_dummy, *nullind;
 
 	tdsdump_log(TDS_DBG_FUNC, "_ct_bind_data(%p, %p, %p, %d)\n", ctx, resinfo, bindinfo, offset);
 
@@ -1791,11 +1791,13 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 		temp_add = (unsigned char *) bindcol->column_varaddr;
 		dest = temp_add ? temp_add + (offset * bindcol->column_bindlen) : NULL;
 
+		nullind = &nullind_dummy;
 		if (bindcol->column_nullbind) {
 			nullind = bindcol->column_nullbind;
 			assert(nullind);
 			nullind += offset;
 		}
+		pdatalen = &datalen_dummy;
 		if (bindcol->column_lenbind) {
 			pdatalen = bindcol->column_lenbind;
 			assert(pdatalen);
