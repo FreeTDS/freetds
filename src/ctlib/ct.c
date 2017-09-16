@@ -1765,7 +1765,7 @@ int
 _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo, CS_INT offset)
 {
 	TDSCOLUMN *curcol, *bindcol;
-	unsigned char *src, *dest, *temp_add;
+	unsigned char *src, *dest;
 	int i, result = 0;
 	CS_DATAFMT srcfmt, destfmt;
 	TDS_INT datalen_dummy, *pdatalen;
@@ -1790,8 +1790,9 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 		 * Retrieve the initial bound column_varaddress and increment it if offset specified
 		 */
 
-		temp_add = (unsigned char *) bindcol->column_varaddr;
-		dest = temp_add ? temp_add + (offset * bindcol->column_bindlen) : NULL;
+		dest = (unsigned char *) bindcol->column_varaddr;
+		if (dest)
+			dest += offset * bindcol->column_bindlen;
 
 		nullind = &nullind_dummy;
 		if (bindcol->column_nullbind) {
