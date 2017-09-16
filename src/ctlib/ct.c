@@ -1807,36 +1807,39 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 			pdatalen += offset;
 		}
 
-		if (dest) {
-			if (curcol->column_cur_size < 0) {
-				*nullind = -1;
-				*pdatalen = 0;
-			} else {
-
-				src = curcol->column_data;
-				if (is_blob_col(curcol))
-					src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
-
-				srcfmt.datatype = _ct_get_client_type(curcol);
-				srcfmt.maxlength = curcol->column_cur_size;
-
-				destfmt.datatype = bindcol->column_bindtype;
-				destfmt.maxlength = bindcol->column_bindlen;
-				destfmt.format = bindcol->column_bindfmt;
-
-				/* if convert return FAIL mark error but process other columns */
-				if ((ret = cs_convert(ctx, &srcfmt, src, &destfmt, dest, pdatalen) != CS_SUCCEED)) {
-					tdsdump_log(TDS_DBG_FUNC, "cs_convert-result = %d\n", ret);
-					result = 1;
-					tdsdump_log(TDS_DBG_INFO1, "error: converted only %d bytes for type %d \n",
-									*pdatalen, srcfmt.datatype);
-				}
-
-				*nullind = 0;
-			}
-		} else {
+		/* no destination specified */
+		if (!dest) {
 			*pdatalen = 0;
+			continue;
 		}
+
+		/* NULL column */
+		if (curcol->column_cur_size < 0) {
+			*nullind = -1;
+			*pdatalen = 0;
+			continue;
+		}
+
+		src = curcol->column_data;
+		if (is_blob_col(curcol))
+			src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
+
+		srcfmt.datatype = _ct_get_client_type(curcol);
+		srcfmt.maxlength = curcol->column_cur_size;
+
+		destfmt.datatype = bindcol->column_bindtype;
+		destfmt.maxlength = bindcol->column_bindlen;
+		destfmt.format = bindcol->column_bindfmt;
+
+		/* if convert return FAIL mark error but process other columns */
+		if ((ret = cs_convert(ctx, &srcfmt, src, &destfmt, dest, pdatalen) != CS_SUCCEED)) {
+			tdsdump_log(TDS_DBG_FUNC, "cs_convert-result = %d\n", ret);
+			result = 1;
+			tdsdump_log(TDS_DBG_INFO1, "error: converted only %d bytes for type %d \n",
+							*pdatalen, srcfmt.datatype);
+		}
+
+		*nullind = 0;
 	}
 	return result;
 }
