@@ -1762,6 +1762,8 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 
 	for (i = 0; i < resinfo->num_cols; i++) {
 
+		CS_RETCODE ret;
+
 		curcol = resinfo->columns[i];
 		bindcol = bindinfo->columns[i];
 
@@ -1809,8 +1811,8 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 				destfmt.format = bindcol->column_bindfmt;
 
 				/* if convert return FAIL mark error but process other columns */
-				if ((result= cs_convert(ctx, &srcfmt, src, &destfmt, dest, pdatalen) != CS_SUCCEED)) {
-					tdsdump_log(TDS_DBG_FUNC, "cs_convert-result = %d\n", result);
+				if ((ret = cs_convert(ctx, &srcfmt, src, &destfmt, dest, pdatalen) != CS_SUCCEED)) {
+					tdsdump_log(TDS_DBG_FUNC, "cs_convert-result = %d\n", ret);
 					result = 1;
 					tdsdump_log(TDS_DBG_INFO1, "error: converted only %d bytes for type %d \n",
 									*pdatalen, srcfmt.datatype);
