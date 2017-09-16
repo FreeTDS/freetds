@@ -118,7 +118,8 @@ main(int argc, char **argv)
 			CONV_RESULT src;
 
 			memset(&src, 0, sizeof(src));
-			result = tds_convert(ctx, srctype, (const TDS_CHAR *) &src, 4, desttype, &cr);
+			srclen = 4;
+			result = tds_convert(ctx, srctype, (const TDS_CHAR *) &src, srclen, desttype, &cr);
 			if (result >= 0)
 				free_convert(desttype, &cr);
 			if (result != TDS_CONVERT_NOAVAIL) {
