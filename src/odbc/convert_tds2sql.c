@@ -261,22 +261,6 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 
 	assert(desttype != SQL_C_DEFAULT);
 
-	if (curcol) {
-		if (is_blob_col(curcol)) {
-			if (srctype == SYBLONGBINARY && (
-			    curcol->column_usertype == USER_UNICHAR_TYPE ||
-			    curcol->column_usertype == USER_UNIVARCHAR_TYPE))
-				srctype = SYBNTEXT;
-			if (curcol->column_type == SYBVARIANT)
-				srctype = ((TDSVARIANT *) src)->type;
-			src = ((TDSBLOB *) src)->textvalue;
-		}
-		if (is_variable_type(curcol->column_type)) {
-			src += curcol->column_text_sqlgetdatapos;
-			srclen -= curcol->column_text_sqlgetdatapos;
-		}
-	}
-
 	nDestSybType = odbc_c_to_server_type(desttype);
 	if (!nDestSybType) {
 		odbc_errs_add(&stmt->errs, "HY003", NULL);
@@ -603,6 +587,20 @@ SQLLEN odbc_tds2sql_col(TDS_STMT * stmt, TDSCOLUMN *curcol, int desttype, TDS_CH
 	int srctype = tds_get_conversion_type(curcol->on_server.column_type, curcol->on_server.column_size);
 	TDS_CHAR *src = (TDS_CHAR *) curcol->column_data;
 	TDS_UINT srclen = curcol->column_cur_size;
+
+	if (is_blob_col(curcol)) {
+		if (srctype == SYBLONGBINARY && (
+		    curcol->column_usertype == USER_UNICHAR_TYPE ||
+		    curcol->column_usertype == USER_UNIVARCHAR_TYPE))
+			srctype = SYBNTEXT;
+		if (curcol->column_type == SYBVARIANT)
+			srctype = ((TDSVARIANT *) src)->type;
+		src = ((TDSBLOB *) src)->textvalue;
+	}
+	if (is_variable_type(curcol->column_type)) {
+		src += curcol->column_text_sqlgetdatapos;
+		srclen -= curcol->column_text_sqlgetdatapos;
+	}
 	return odbc_tds2sql(stmt, curcol, srctype, src, srclen, desttype, dest, destlen, drec_ixd);
 }
 
