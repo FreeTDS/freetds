@@ -544,7 +544,10 @@ int odbc_build_connect_string(TDS_ERRS *errs, TDS_PARSED_PARAM *params, char **o
 /*
  * convert_tds2sql.c
  */
-SQLLEN odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen, const struct _drecord *drec_ixd);
+SQLLEN odbc_tds2sql_col(TDS_STMT * stmt, TDSCOLUMN *curcol, int desttype, TDS_CHAR * dest, SQLULEN destlen, const struct _drecord *drec_ixd);
+SQLLEN odbc_tds2sql_int4(TDS_STMT * stmt, TDS_INT *src, int desttype, TDS_CHAR * dest, SQLULEN destlen);
+
+
 
 /*
  * descriptor.c

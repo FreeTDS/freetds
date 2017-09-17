@@ -242,7 +242,7 @@ odbc_convert_to_binary(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR
 	return ret;
 }
 
-SQLLEN
+static SQLLEN
 odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen,
 	     const struct _drecord *drec_ixd)
 {
@@ -595,4 +595,19 @@ normal_conversion:
 	}
 
 	return ret;
+}
+
+SQLLEN odbc_tds2sql_col(TDS_STMT * stmt, TDSCOLUMN *curcol, int desttype, TDS_CHAR * dest, SQLULEN destlen,
+			const struct _drecord *drec_ixd)
+{
+	int srctype = tds_get_conversion_type(curcol->on_server.column_type, curcol->on_server.column_size);
+	TDS_CHAR *src = (TDS_CHAR *) curcol->column_data;
+	TDS_UINT srclen = curcol->column_cur_size;
+	return odbc_tds2sql(stmt, curcol, srctype, src, srclen, desttype, dest, destlen, drec_ixd);
+}
+
+SQLLEN odbc_tds2sql_int4(TDS_STMT * stmt, TDS_INT *src, int desttype, TDS_CHAR * dest, SQLULEN destlen)
+{
+	return odbc_tds2sql(stmt, NULL, SYBINT4, (TDS_CHAR *) src, sizeof(*src),
+			    desttype, dest, destlen, NULL);
 }

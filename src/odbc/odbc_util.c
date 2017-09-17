@@ -499,8 +499,8 @@ odbc_set_return_status(struct _hstmt *stmt, unsigned int n_row)
 		}
 #define LEN(ptr) *((SQLLEN*)(((char*)(ptr)) + len_offset))
 
-		len = odbc_tds2sql(stmt, NULL, SYBINT4, (TDS_CHAR *) & tds->ret_status, sizeof(TDS_INT),
-				   drec->sql_desc_concise_type, (TDS_CHAR *) data_ptr, drec->sql_desc_octet_length, NULL);
+		len = odbc_tds2sql_int4(stmt, &tds->ret_status, drec->sql_desc_concise_type,
+					(TDS_CHAR *) data_ptr, drec->sql_desc_octet_length);
 		if (len == SQL_NULL_DATA)
 			return /* SQL_ERROR */ ;
 		if (drec->sql_desc_indicator_ptr)
@@ -530,8 +530,6 @@ odbc_set_return_params(struct _hstmt *stmt, unsigned int n_row)
 		const TDS_DESC* axd = stmt->apd;
 		const struct _drecord *drec_apd, *drec_ipd;
 		TDSCOLUMN *colinfo = info->columns[i];
-		TDS_CHAR *src;
-		int srclen;
 		SQLINTEGER len;
 		int c_type;
 		char *data_ptr;
@@ -569,9 +567,7 @@ odbc_set_return_params(struct _hstmt *stmt, unsigned int n_row)
 			continue;
 		}
 
-		src = (TDS_CHAR *) colinfo->column_data;
 		colinfo->column_text_sqlgetdatapos = 0;
-		srclen = colinfo->column_cur_size;
 		c_type = drec_apd->sql_desc_concise_type;
 		if (c_type == SQL_C_DEFAULT)
 			c_type = odbc_sql_to_c_type_default(drec_ipd->sql_desc_concise_type);
@@ -579,8 +575,7 @@ odbc_set_return_params(struct _hstmt *stmt, unsigned int n_row)
 		 * TODO why IPD ?? perhaps SQLBindParameter it's not correct ??
 		 * Or tests are wrong ??
 		 */
-		len = odbc_tds2sql(stmt, colinfo, tds_get_conversion_type(colinfo->on_server.column_type, colinfo->on_server.column_size), src, srclen,
-				   c_type, (TDS_CHAR*) data_ptr, drec_apd->sql_desc_octet_length, drec_ipd);
+		len = odbc_tds2sql_col(stmt, colinfo, c_type, (TDS_CHAR*) data_ptr, drec_apd->sql_desc_octet_length, drec_ipd);
 		if (len == SQL_NULL_DATA)
 			return /* SQL_ERROR */ ;
 		if (drec_apd->sql_desc_indicator_ptr)

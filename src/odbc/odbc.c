@@ -3729,8 +3729,6 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 	int i;
 	SQLULEN curr_row, num_rows;
 	SQLINTEGER len = 0;
-	TDS_CHAR *src;
-	int srclen;
 	struct _drecord *drec_ard;
 	TDS_DESC *ard;
 	SQLULEN dummy, *fetched_ptr;
@@ -3939,8 +3937,6 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 				int c_type;
 				TDS_CHAR *data_ptr = (TDS_CHAR *) drec_ard->sql_desc_data_ptr;
 
-				src = (TDS_CHAR *) colinfo->column_data;
-				srclen = colinfo->column_cur_size;
 				colinfo->column_text_sqlgetdatapos = 0;
 				c_type = drec_ard->sql_desc_concise_type;
 				if (c_type == SQL_C_DEFAULT)
@@ -3950,8 +3946,7 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 				} else {
 					data_ptr += odbc_get_octet_len(c_type, drec_ard) * curr_row;
 				}
-				len = odbc_tds2sql(stmt, colinfo, tds_get_conversion_type(colinfo->on_server.column_type, colinfo->on_server.column_size),
-						      src, srclen, c_type, data_ptr, drec_ard->sql_desc_octet_length, drec_ard);
+				len = odbc_tds2sql_col(stmt, colinfo, c_type, data_ptr, drec_ard->sql_desc_octet_length, drec_ard);
 				if (len == SQL_NULL_DATA) {
 					row_status = SQL_ROW_ERROR;
 					break;
@@ -4928,20 +4923,13 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 		/* TODO check what should happen if pcbValue was NULL */
 		*pcbValue = SQL_NULL_DATA;
 	} else {
-		TDS_CHAR *src;
-		int srclen;
-		int nSybType;
-
 		if (colinfo->column_text_sqlgetdatapos > 0
 		    && colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
 			ODBC_EXIT(stmt, SQL_NO_DATA);
 
-		src = (TDS_CHAR *) colinfo->column_data;
-		srclen = colinfo->column_cur_size;
 		if (!is_variable_type(colinfo->column_type))
 			colinfo->column_text_sqlgetdatapos = 0;
 
-		nSybType = tds_get_conversion_type(colinfo->on_server.column_type, colinfo->on_server.column_size);
 		if (fCType == SQL_C_DEFAULT)
 			fCType = odbc_sql_to_c_type_default(stmt->ird->records[icol - 1].sql_desc_concise_type);
 		if (fCType == SQL_ARD_TYPE) {
@@ -4953,7 +4941,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 		}
 		assert(fCType);
 
-		*pcbValue = odbc_tds2sql(stmt, colinfo, nSybType, src, srclen, fCType, (TDS_CHAR *) rgbValue, cbValueMax, NULL);
+		*pcbValue = odbc_tds2sql_col(stmt, colinfo, fCType, (TDS_CHAR *) rgbValue, cbValueMax, NULL);
 		if (*pcbValue == SQL_NULL_DATA)
 			ODBC_EXIT(stmt, SQL_ERROR);
 		
@@ -4967,6 +4955,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 				ODBC_EXIT_(stmt);
 			}
 		} else {
+			int nSybType = tds_get_conversion_type(colinfo->on_server.column_type, colinfo->on_server.column_size);
 			colinfo->column_text_sqlgetdatapos = colinfo->column_cur_size;
 			if (is_fixed_type(nSybType) && (fCType == SQL_C_CHAR || fCType == SQL_C_WCHAR || fCType == SQL_C_BINARY)
 			    && cbValueMax < *pcbValue) {
