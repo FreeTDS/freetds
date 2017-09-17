@@ -218,7 +218,8 @@ static void tds_swap_numeric(TDS_NUMERIC *num);
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
 
 /**
- * Set type of column initializing all dependency 
+ * Set type of column initializing all dependency.
+ * column_usertype should already be set.
  * @param curcol column to set
  * @param type   type to set
  */
