@@ -1458,6 +1458,12 @@ tds_clrudt_row_len(TDSCOLUMN *col)
 	return sizeof(TDSBLOB);
 }
 
+unsigned
+tds_clrudt_put_info_len(TDSSOCKET * tds, TDSCOLUMN * col)
+{
+	return 3;
+}
+
 TDSRET
 tds_clrudt_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 {

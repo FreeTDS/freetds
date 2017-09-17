@@ -80,7 +80,7 @@ tds_func_check    tds_msdatetime_check;
 tds_func_get_info tds_clrudt_get_info;
 tds_func_row_len  tds_clrudt_row_len;
 #define tds_clrudt_get tds_generic_get
-#define tds_clrudt_put_info_len tds_generic_put_info_len
+tds_func_put_info_len tds_clrudt_put_info_len;
 tds_func_put_info tds_clrudt_put_info;
 #define tds_clrudt_put tds_generic_put
 tds_func_check    tds_clrudt_check;
