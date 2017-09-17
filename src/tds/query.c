@@ -750,6 +750,7 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 		else
 			fmt = "VARCHAR(%u)";
 		break;
+	case SYBUINT1:
 	case SYBINT1:
 		fmt = "TINYINT";
 		break;
