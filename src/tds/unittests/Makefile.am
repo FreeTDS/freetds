@@ -21,6 +21,7 @@ TESTS =	\
 	charconv$(EXEEXT) \
 	nulls$(EXEEXT) \
 	corrupt$(EXEEXT) \
+	declarations$(EXEEXT) \
 	$(NULL)
 
 # flags test commented, not necessary for 0.62
@@ -54,9 +55,10 @@ toodynamic_SOURCES	= toodynamic.c
 nulls_SOURCES	= nulls.c
 readconf_SOURCES	= readconf.c
 corrupt_SOURCES	=	corrupt.c
+declarations_SOURCES	=	declarations.c
 
 noinst_LIBRARIES = libcommon.a
-libcommon_a_SOURCES = common.c common.h utf8.c
+libcommon_a_SOURCES = common.c common.h utf8.c allcolumns.c
 LDADD = libcommon.a
 
 AM_CPPFLAGS	=	-I$(top_srcdir)/include -I$(srcdir)/.. -I../ -DFREETDS_TOPDIR=\"$(top_srcdir)\"
