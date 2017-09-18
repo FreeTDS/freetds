@@ -622,7 +622,7 @@ main(int argc, char *argv[])
 				mode_t old_mask;
 
 				strcpy(tmpfn, "/tmp/fisqlXXXXXX");
-				old_mask = umask(0600);
+				old_mask = umask(077);
 				tmpfd = mkstemp(tmpfn);
 				umask(old_mask);
 				if ((fp = fdopen(tmpfd, "w")) == NULL) {
