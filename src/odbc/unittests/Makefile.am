@@ -1,30 +1,80 @@
-TESTS		=	\
-			t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
-			t0004$(EXEEXT) connect$(EXEEXT) print$(EXEEXT)\
-			date$(EXEEXT) norowset$(EXEEXT) funccall$(EXEEXT)\
-			lang_error$(EXEEXT) tables$(EXEEXT)\
-			binary_test$(EXEEXT) moreandcount$(EXEEXT)\
-			earlybind$(EXEEXT) putdata$(EXEEXT) params$(EXEEXT)\
-			raiserror$(EXEEXT) getdata$(EXEEXT)\
-			transaction$(EXEEXT) type$(EXEEXT) genparams$(EXEEXT)\
-			preperror$(EXEEXT) prepare_results$(EXEEXT)\
-			testodbc$(EXEEXT) data$(EXEEXT) error$(EXEEXT)\
-			rebindpar$(EXEEXT) rpc$(EXEEXT) convert_error$(EXEEXT)\
-			typeinfo$(EXEEXT) const_params$(EXEEXT)\
-			insert_speed$(EXEEXT) compute$(EXEEXT)\
-			timeout$(EXEEXT) array$(EXEEXT) array_out$(EXEEXT)\
-			cursor1$(EXEEXT) scroll$(EXEEXT) cursor2$(EXEEXT)\
-			describecol$(EXEEXT) copydesc$(EXEEXT)\
-			prepclose$(EXEEXT) warning$(EXEEXT) \
-			paramcore$(EXEEXT) timeout2$(EXEEXT) timeout3$(EXEEXT) \
-			connect2$(EXEEXT) timeout4$(EXEEXT) freeclose$(EXEEXT) \
-			cursor3$(EXEEXT) cursor4$(EXEEXT) cursor5$(EXEEXT) \
-			attributes$(EXEEXT) hidden$(EXEEXT) blob1$(EXEEXT) \
-			cancel$(EXEEXT) wchar$(EXEEXT) rowset$(EXEEXT) transaction2$(EXEEXT) \
-			cursor6$(EXEEXT) cursor7$(EXEEXT) utf8$(EXEEXT) utf8_2$(EXEEXT) \
-			stats$(EXEEXT) descrec$(EXEEXT) peter$(EXEEXT) test64$(EXEEXT) \
-			prepare_warn$(EXEEXT) long_error$(EXEEXT) mars1$(EXEEXT) \
-			array_error$(EXEEXT) describecol2$(EXEEXT) closestmt$(EXEEXT) bcp$(EXEEXT)
+NULL=
+TESTS =	\
+	t0001$(EXEEXT) \
+	t0002$(EXEEXT) \
+	t0003$(EXEEXT) \
+	t0004$(EXEEXT) \
+	connect$(EXEEXT) \
+	print$(EXEEXT) \
+	date$(EXEEXT) \
+	norowset$(EXEEXT) \
+	funccall$(EXEEXT) \
+	lang_error$(EXEEXT) \
+	tables$(EXEEXT) \
+	binary_test$(EXEEXT) \
+	moreandcount$(EXEEXT) \
+	earlybind$(EXEEXT) \
+	putdata$(EXEEXT) \
+	params$(EXEEXT) \
+	raiserror$(EXEEXT) \
+	getdata$(EXEEXT) \
+	transaction$(EXEEXT) \
+	type$(EXEEXT) \
+	genparams$(EXEEXT) \
+	preperror$(EXEEXT) \
+	prepare_results$(EXEEXT) \
+	testodbc$(EXEEXT) \
+	data$(EXEEXT) \
+	error$(EXEEXT) \
+	rebindpar$(EXEEXT) \
+	rpc$(EXEEXT) \
+	convert_error$(EXEEXT) \
+	typeinfo$(EXEEXT) \
+	const_params$(EXEEXT) \
+	insert_speed$(EXEEXT) \
+	compute$(EXEEXT) \
+	timeout$(EXEEXT) \
+	array$(EXEEXT) \
+	array_out$(EXEEXT) \
+	cursor1$(EXEEXT) \
+	scroll$(EXEEXT) \
+	cursor2$(EXEEXT) \
+	describecol$(EXEEXT) \
+	copydesc$(EXEEXT) \
+	prepclose$(EXEEXT) \
+	warning$(EXEEXT) \
+	paramcore$(EXEEXT) \
+	timeout2$(EXEEXT) \
+	timeout3$(EXEEXT) \
+	connect2$(EXEEXT) \
+	timeout4$(EXEEXT) \
+	freeclose$(EXEEXT) \
+	cursor3$(EXEEXT) \
+	cursor4$(EXEEXT) \
+	cursor5$(EXEEXT) \
+	attributes$(EXEEXT) \
+	hidden$(EXEEXT) \
+	blob1$(EXEEXT) \
+	cancel$(EXEEXT) \
+	wchar$(EXEEXT) \
+	rowset$(EXEEXT) \
+	transaction2$(EXEEXT) \
+	cursor6$(EXEEXT) \
+	cursor7$(EXEEXT) \
+	utf8$(EXEEXT) \
+	utf8_2$(EXEEXT) \
+	stats$(EXEEXT) \
+	descrec$(EXEEXT) \
+	peter$(EXEEXT) \
+	test64$(EXEEXT) \
+	prepare_warn$(EXEEXT) \
+	long_error$(EXEEXT) \
+	mars1$(EXEEXT) \
+	array_error$(EXEEXT) \
+	describecol2$(EXEEXT) \
+	closestmt$(EXEEXT) \
+	bcp$(EXEEXT) \
+	$(NULL)
 
 check_PROGRAMS	=	$(TESTS) oldpwd$(EXEEXT)
 
