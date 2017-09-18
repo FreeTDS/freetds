@@ -243,7 +243,7 @@ static void create_type(TDSSOCKET *tds, int desttype, int server_type, tds_any_t
 	tds_set_column_type(tds->conn, curcol, server_type);
 	if (server_type != desttype)
 		curcol->column_type = desttype;
-	curcol->on_server.column_size = curcol->column_size = result;
+	curcol->on_server.column_size = curcol->column_size = curcol->column_cur_size = result;
 	if (is_numeric_type(desttype)) {
 		curcol->column_prec = cr.n.precision;
 		curcol->column_scale = cr.n.scale;

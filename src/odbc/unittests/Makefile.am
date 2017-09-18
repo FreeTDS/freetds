@@ -74,6 +74,7 @@ TESTS =	\
 	describecol2$(EXEEXT) \
 	closestmt$(EXEEXT) \
 	bcp$(EXEEXT) \
+	all_types$(EXEEXT) \
 	$(NULL)
 
 check_PROGRAMS	=	$(TESTS) oldpwd$(EXEEXT)
@@ -154,6 +155,8 @@ array_error_SOURCES = array_error.c
 closestmt_SOURCES = closestmt.c
 oldpwd_SOURCES = oldpwd.c
 bcp_SOURCES = bcp.c
+all_types_SOURCES = all_types.c
+all_types_LDFLAGS = -static ../libtdsodbc.la ../../tds/unittests/libcommon.a -shared $(GLOBAL_LD_FLAGS)
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h

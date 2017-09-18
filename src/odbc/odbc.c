@@ -5401,7 +5401,6 @@ _SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLS
 		p = "N";
 		break;
 #endif /* ODBCVER >= 0x0300 */
-#ifdef TDS_NO_DM
 	case SQL_DRIVER_HDBC:
 		ULVAL = (SQLULEN) dbc;
 		break;
@@ -5411,7 +5410,6 @@ _SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLS
 	case SQL_DRIVER_HSTMT:
 		ULVAL = (SQLULEN) dbc->current_statement;
 		break;
-#endif
 	case SQL_DRIVER_NAME:	/* ODBC 2.0 */
 		p = "libtdsodbc.so";
 		break;

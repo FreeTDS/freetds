@@ -27,6 +27,7 @@ set(tests
 	stats descrec peter test64
 	prepare_warn long_error mars1
 	array_error closestmt
+	all_types
 )
 
 if(WIN32)
@@ -40,7 +41,11 @@ add_library(o_common STATIC common.c common.h c2string.c parser.c parser.h)
 foreach(target ${tests})
 	add_executable(o_${target} EXCLUDE_FROM_ALL ${target}.c)
 	set_target_properties(o_${target} PROPERTIES OUTPUT_NAME ${target})
-	target_link_libraries(o_${target} o_common replacements tdsutils ${libs} ${lib_NETWORK} ${lib_BASE})
+	if (target STREQUAL "all_types")
+		target_link_libraries(o_${target} o_common tdsodbc_static t_common tds replacements tdsutils ${lib_ODBCINST} ${lib_NETWORK} ${lib_BASE})
+	else()
+		target_link_libraries(o_${target} o_common replacements tdsutils ${libs} ${lib_NETWORK} ${lib_BASE})
+	endif()
 	add_test(NAME o_${target} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND ${target})
 	add_dependencies(check o_${target})
 endforeach(target)

@@ -33,3 +33,13 @@ target_link_libraries(tdsodbc tds replacements tdsutils ${libs} ${lib_NETWORK} $
 if(MINGW OR CYGWIN)
 	set_target_properties(tdsodbc PROPERTIES LINK_FLAGS "--static -Wl,--kill-at -Wl,--enable-stdcall-fixup")
 endif(MINGW OR CYGWIN)
+
+add_library(tdsodbc_static STATIC
+	odbc.c connectparams.c convert_tds2sql.c
+	descriptor.c prepare_query.c odbc_util.c bcp.c
+	native.c sql2tds.c error.c odbc_checks.c sqlwchar.c sqlwparams.h
+	odbc_export.h error_export.h odbc_data.c ${win_SRCS}
+)
+if (NOT WIN32)
+	set_target_properties(tdsodbc_static PROPERTIES COMPILE_FLAGS -fPIC)
+endif()
