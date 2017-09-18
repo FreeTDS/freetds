@@ -281,7 +281,7 @@ vi_cmd(const char *command)
 	mode_t old_mask;
 
 	strcpy(tmpfn, "/tmp/fisqlXXXXXX");
-	old_mask = umask(0600);
+	old_mask = umask(077);
 	tmpfd = mkstemp(tmpfn);
 	umask(old_mask);
 	if (tmpfd < 0 || (fp = fdopen(tmpfd, "w")) == NULL) {
@@ -290,7 +290,6 @@ vi_cmd(const char *command)
 		dbexit();
 		exit(2);
 	}
-	fchmod(tmpfd, 0600);
 	if (ibuflines) {
 		for (i = 0; i < ibuflines; i++) {
 			fputs(ibuf[i], fp);
