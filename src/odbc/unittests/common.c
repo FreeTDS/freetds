@@ -899,3 +899,68 @@ odbc_check_no_row(const char *query)
 		}
 	} while (CHKMoreResults("SNo") == SQL_SUCCESS);
 }
+
+int
+odbc_lookup(const char *name, const struct odbc_lookup_int *table, int def)
+{
+	for (; table->name; ++table)
+		if (strcmp(table->name, name) == 0)
+			return table->value;
+
+	return def;
+}
+
+const char*
+odbc_lookup_value(int value, const struct odbc_lookup_int *table, const char *def)
+{
+	for (; table->name; ++table)
+		if (table->value == value)
+			return table->name;
+
+	return def;
+}
+
+struct odbc_lookup_int odbc_sql_c_types[] = {
+#define TYPE(s) { #s, s }
+	TYPE(SQL_C_NUMERIC),
+	TYPE(SQL_C_BINARY),
+	TYPE(SQL_C_CHAR),
+	TYPE(SQL_C_WCHAR),
+	TYPE(SQL_C_LONG),
+	TYPE(SQL_C_SBIGINT),
+	TYPE(SQL_C_SHORT),
+	TYPE(SQL_C_TIMESTAMP),
+	TYPE(SQL_C_FLOAT),
+	TYPE(SQL_C_DOUBLE),
+	TYPE(SQL_C_DEFAULT),
+	TYPE(SQL_C_DATE),
+	TYPE(SQL_C_TIME),
+	TYPE(SQL_C_TYPE_DATE),
+	TYPE(SQL_C_TYPE_TIME),
+	TYPE(SQL_C_TYPE_TIMESTAMP),
+	TYPE(SQL_C_INTERVAL_YEAR),
+	TYPE(SQL_C_INTERVAL_MONTH),
+	TYPE(SQL_C_INTERVAL_DAY),
+	TYPE(SQL_C_INTERVAL_HOUR),
+	TYPE(SQL_C_INTERVAL_MINUTE),
+	TYPE(SQL_C_INTERVAL_SECOND),
+	TYPE(SQL_C_INTERVAL_YEAR_TO_MONTH),
+	TYPE(SQL_C_INTERVAL_DAY_TO_HOUR),
+	TYPE(SQL_C_INTERVAL_DAY_TO_MINUTE),
+	TYPE(SQL_C_INTERVAL_DAY_TO_SECOND),
+	TYPE(SQL_C_INTERVAL_HOUR_TO_MINUTE),
+	TYPE(SQL_C_INTERVAL_HOUR_TO_SECOND),
+	TYPE(SQL_C_INTERVAL_MINUTE_TO_SECOND),
+	TYPE(SQL_C_BIT),
+	TYPE(SQL_C_UBIGINT),
+	TYPE(SQL_C_TINYINT),
+	TYPE(SQL_C_SLONG),
+	TYPE(SQL_C_SSHORT),
+	TYPE(SQL_C_STINYINT),
+	TYPE(SQL_C_ULONG),
+	TYPE(SQL_C_USHORT),
+	TYPE(SQL_C_UTINYINT),
+	TYPE(SQL_C_GUID),
+#undef TYPE
+	{ NULL, 0 }
+};

@@ -222,3 +222,12 @@ char *odbc_get_sqlchar(ODBC_BUF** buf, SQLWCHAR *s);
 #define C(s) ((char*)(s))
 #endif
 
+struct odbc_lookup_int
+{
+	const char *name;
+	int value;
+};
+
+int odbc_lookup(const char *name, const struct odbc_lookup_int *table, int def);
+const char *odbc_lookup_value(int value, const struct odbc_lookup_int *table, const char *def);
+extern struct odbc_lookup_int odbc_sql_c_types[];

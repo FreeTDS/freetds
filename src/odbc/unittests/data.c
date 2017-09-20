@@ -82,38 +82,18 @@ get_int(const char *s)
 	return (int) l;
 }
 
-struct lookup_int
-{
-	const char *name;
-	int value;
-};
-
 static int
-lookup(const char *name, const struct lookup_int *table)
+lookup(const char *name, const struct odbc_lookup_int *table)
 {
+	int res;
+
 	if (!table)
 		return get_int(name);
 
-	for (; table->name; ++table)
-		if (strcmp(table->name, name) == 0)
-			return table->value;
+	res = odbc_lookup(name, table, SQL_UNKNOWN_TYPE);
 
-	return get_int(name);
+	return res == SQL_UNKNOWN_TYPE ? get_int(name) : res;
 }
-
-static struct lookup_int sql_c_types[] = {
-#define TYPE(s) { #s, s }
-	TYPE(SQL_C_NUMERIC),
-	TYPE(SQL_C_BINARY),
-	TYPE(SQL_C_CHAR),
-	TYPE(SQL_C_WCHAR),
-	TYPE(SQL_C_LONG),
-	TYPE(SQL_C_SBIGINT),
-	TYPE(SQL_C_SHORT),
-	TYPE(SQL_C_TIMESTAMP),
-#undef TYPE
-	{ NULL, 0 }
-};
 
 int
 main(int argc, char *argv[])
@@ -148,7 +128,7 @@ main(int argc, char *argv[])
 		if (!strcmp(cmd, "select")) {
 			const char *type = odbc_get_tok(&p);
 			const char *value = odbc_get_str(&p);
-			int c_type = lookup(odbc_get_tok(&p), sql_c_types);
+			int c_type = lookup(odbc_get_tok(&p), odbc_sql_c_types);
 			const char *expected = odbc_get_str(&p);
 
 			if (!cond) continue;
@@ -162,7 +142,7 @@ main(int argc, char *argv[])
 			const char *bool_name = odbc_get_tok(&p);
 			const char *type = odbc_get_tok(&p);
 			const char *value = odbc_get_str(&p);
-			int c_type = lookup(odbc_get_tok(&p), sql_c_types);
+			int c_type = lookup(odbc_get_tok(&p), odbc_sql_c_types);
 			const char *expected = odbc_get_str(&p);
 			int save_result = result;
 
