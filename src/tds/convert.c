@@ -129,6 +129,7 @@ static int stringz_to_numeric(const char *instr, CONV_RESULT * cr);
 static TDS_INT string_to_int(const char *buf, const char *pend, TDS_INT * res);
 static TDS_INT string_to_int8(const char *buf, const char *pend, TDS_INT8 * res);
 static TDS_INT string_to_uint8(const char *buf, const char *pend, TDS_UINT8 * res);
+static TDS_INT string_to_float(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESULT * cr);
 
 static int store_hour(const char *, const char *, struct tds_time *);
 static int store_time(const char *, struct tds_time *);
@@ -410,16 +411,8 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 		return sizeof(TDS_UINT8);
 		break;
 	case SYBFLT8:
-		/* FIXME not null terminated */
-		/* TODO check syntax and overflow */
-		cr->f = atof(src);
-		return sizeof(TDS_FLOAT);
-		break;
 	case SYBREAL:
-		/* FIXME not null terminated */
-		/* TODO check syntax and overflow */
-		cr->r = (TDS_REAL)atof(src);
-		return sizeof(TDS_REAL);
+		return string_to_float(src, srclen, desttype, cr);
 		break;
 	case SYBBIT:
 	case SYBBITN:
@@ -3447,6 +3440,43 @@ parse_numeric(const char *buf, const char *pend, bool *p_negative, size_t *p_dig
 		return NULL;
 
 	return start;
+}
+
+static TDS_INT
+string_to_float(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESULT * cr)
+{
+	char tmpstr[128];
+	char *end;
+	double res;
+
+	/* ignore leading spaces */
+	while (srclen > 0 && src[0] == ' ')
+		++src, --srclen;
+
+	/* ignore trailing blanks and nulls */
+	while (srclen > 0 && (src[srclen - 1] == ' ' || src[srclen - 1] == '\0'))
+		--srclen;
+
+	if (srclen >= sizeof(tmpstr))
+		return TDS_CONVERT_OVERFLOW;
+
+	memcpy(tmpstr, src, srclen);
+	tmpstr[srclen] = 0;
+
+	errno = 0;
+	res = strtod(tmpstr, &end);
+	if (errno == ERANGE)
+		return TDS_CONVERT_OVERFLOW;
+	if (end != tmpstr + srclen)
+		return TDS_CONVERT_SYNTAX;
+
+	if (desttype == SYBREAL) {
+		/* FIXME check overflows */
+		cr->r = (TDS_REAL)res;
+		return sizeof(TDS_REAL);
+	}
+	cr->f = res;
+	return sizeof(TDS_FLOAT);
 }
 
 /** @} */
