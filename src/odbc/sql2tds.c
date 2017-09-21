@@ -151,10 +151,17 @@ _odbc_blob_free(TDSCOLUMN *col)
 
 /**
  * Convert parameters to libtds format
+ * @param stmt        ODBC statement
+ * @param drec_ixd    IRD or IPD record of destination
+ * @param drec_ard    ARD or APD record of source
+ * @param curcol      destination column
+ * @param compute_row true if data needs to be written to column
+ * @param axd         ARD or APD of source
+ * @param n_row       number of the row to write
  * @return SQL_SUCCESS, SQL_ERROR or SQL_NEED_DATA
  */
 SQLRETURN
-odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord *drec_apd, TDSCOLUMN *curcol,
+odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _drecord *drec_axd, TDSCOLUMN *curcol,
 	bool compute_row, const TDS_DESC* axd, unsigned int n_row)
 {
 	TDS_DBC * dbc = stmt->dbc;
@@ -173,10 +180,10 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 	int need_data = 0, i;
 
 	/* TODO handle bindings of char like "{d '2002-11-12'}" */
-	tdsdump_log(TDS_DBG_INFO2, "type=%d\n", drec_ipd->sql_desc_concise_type);
+	tdsdump_log(TDS_DBG_INFO2, "type=%d\n", drec_ixd->sql_desc_concise_type);
 
 	/* what type to convert ? */
-	dest_type = odbc_sql_to_server_type(conn, drec_ipd->sql_desc_concise_type, drec_ipd->sql_desc_unsigned);
+	dest_type = odbc_sql_to_server_type(conn, drec_ixd->sql_desc_concise_type, drec_ixd->sql_desc_unsigned);
 	if (dest_type == TDS_INVALID_TYPE) {
 		odbc_errs_add(&stmt->errs, "07006", NULL);	/* Restricted data type attribute violation */
 		return SQL_ERROR;
@@ -184,9 +191,9 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 	tdsdump_log(TDS_DBG_INFO2, "trace\n");
 
 	/* get C type */
-	sql_src_type = drec_apd->sql_desc_concise_type;
+	sql_src_type = drec_axd->sql_desc_concise_type;
 	if (sql_src_type == SQL_C_DEFAULT)
-		sql_src_type = odbc_sql_to_c_type_default(drec_ipd->sql_desc_concise_type);
+		sql_src_type = odbc_sql_to_c_type_default(drec_ixd->sql_desc_concise_type);
 
 	tds_set_param_type(conn, curcol, dest_type);
 
@@ -209,16 +216,16 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 		}
 	}
 	if (is_numeric_type(curcol->column_type)) {
-		curcol->column_prec = drec_ipd->sql_desc_precision;
-		curcol->column_scale = drec_ipd->sql_desc_scale;
+		curcol->column_prec = drec_ixd->sql_desc_precision;
+		curcol->column_scale = drec_ixd->sql_desc_scale;
 	}
 
-	if (drec_ipd->sql_desc_parameter_type != SQL_PARAM_INPUT)
+	if (drec_ixd->sql_desc_parameter_type != SQL_PARAM_INPUT)
 		curcol->column_output = 1;
 
 	/* compute destination length */
 	if (curcol->column_varint_size != 0) {
-		/* curcol->column_size = drec_apd->sql_desc_octet_length; */
+		/* curcol->column_size = drec_axd->sql_desc_octet_length; */
 		/*
 		 * TODO destination length should come from sql_desc_length, 
 		 * however there is the encoding problem to take into account
@@ -228,7 +235,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 		/* TODO location of this test is correct here ?? */
 		if (dest_type != SYBUNIQUE && dest_type != SYBBITN && !is_fixed_type(dest_type)) {
 			curcol->column_cur_size = 0;
-			curcol->column_size = drec_ipd->sql_desc_length;
+			curcol->column_size = drec_ixd->sql_desc_length;
 			if (curcol->column_size < 0) {
 				curcol->on_server.column_size = curcol->column_size = 0x7FFFFFFFl;
 			} else {
@@ -255,7 +262,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 	if (!compute_row)
 		return SQL_SUCCESS;
 
-	src = (char *) drec_apd->sql_desc_data_ptr;
+	src = (char *) drec_axd->sql_desc_data_ptr;
 	if (src && n_row) {
 		SQLLEN len;
 		if (axd->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN) {
@@ -263,7 +270,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 			if (axd->header.sql_desc_bind_offset_ptr)
 				src += *axd->header.sql_desc_bind_offset_ptr;
 		} else {
-			len = odbc_get_octet_len(sql_src_type, drec_apd);
+			len = odbc_get_octet_len(sql_src_type, drec_axd);
 			if (len < 0)
 				/* TODO sure ? what happen to upper layer ?? */
 				/* TODO fill error */
@@ -273,13 +280,13 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 	}
 
 	/* if only output assume input is NULL */
-	if (drec_ipd->sql_desc_parameter_type == SQL_PARAM_OUTPUT) {
+	if (drec_ixd->sql_desc_parameter_type == SQL_PARAM_OUTPUT) {
 		sql_len = SQL_NULL_DATA;
 	} else {
-		sql_len = odbc_get_param_len(drec_apd, drec_ipd, axd, n_row);
+		sql_len = odbc_get_param_len(drec_axd, drec_ixd, axd, n_row);
 
 		/* special case, MS ODBC handle conversion from "\0" to any to NULL, DBD::ODBC require it */
-		if (src_type == SYBVARCHAR && sql_len == 1 && drec_ipd->sql_desc_parameter_type == SQL_PARAM_INPUT_OUTPUT
+		if (src_type == SYBVARCHAR && sql_len == 1 && drec_ixd->sql_desc_parameter_type == SQL_PARAM_INPUT_OUTPUT
 		    && src && *src == 0) {
 			sql_len = SQL_NULL_DATA;
 		}
@@ -323,7 +330,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 			need_data = 1;
 
 			/* dynamic length allowed only for BLOB fields */
-			switch (drec_ipd->sql_desc_concise_type) {
+			switch (drec_ixd->sql_desc_concise_type) {
 			case SQL_LONGVARCHAR:
 			case SQL_WLONGVARCHAR:
 			case SQL_LONGVARBINARY:
@@ -337,7 +344,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 
 	/* set NULL. For NULLs we don't need to allocate row buffer so avoid it */
 	if (!need_data) {
-		assert(drec_ipd->sql_desc_parameter_type != SQL_PARAM_OUTPUT || sql_len == SQL_NULL_DATA);
+		assert(drec_ixd->sql_desc_parameter_type != SQL_PARAM_OUTPUT || sql_len == SQL_NULL_DATA);
 		if (sql_len == SQL_NULL_DATA) {
 			curcol->column_cur_size = -1;
 			return SQL_SUCCESS;
@@ -387,7 +394,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 	/* convert special parameters (not libTDS compatible) */
 	switch (src_type) {
 	case SYBMSDATETIME2:
-		convert_datetime2server(drec_apd->sql_desc_concise_type, src, &dta);
+		convert_datetime2server(drec_axd->sql_desc_concise_type, src, &dta);
 		src = (char *) &dta;
 		break;
 	case SYBDECIMAL:
@@ -457,8 +464,8 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
-		((TDS_NUMERIC *) dest)->precision = drec_ipd->sql_desc_precision;
-		((TDS_NUMERIC *) dest)->scale = drec_ipd->sql_desc_scale;
+		((TDS_NUMERIC *) dest)->precision = drec_ixd->sql_desc_precision;
+		((TDS_NUMERIC *) dest)->scale = drec_ixd->sql_desc_scale;
 	case SYBINTN:
 	case SYBINT1:
 	case SYBINT2:
