@@ -2016,6 +2016,30 @@ _ct_get_client_type(TDSCOLUMN *col)
 			return CS_UNICHAR_TYPE;
 		return CS_LONGBINARY_TYPE;
 		break;
+	case SYBUINT1:
+		return CS_TINYINT_TYPE;
+		break;
+	case SYBUINT2:
+		return CS_USMALLINT_TYPE;
+		break;
+	case SYBUINT4:
+		return CS_UINT_TYPE;
+		break;
+	case SYBUINT8:
+		return CS_UBIGINT_TYPE;
+		break;
+	case SYBDATE:
+		return CS_DATE_TYPE;
+		break;
+	case SYBTIME:
+		return CS_TIME_TYPE;
+		break;
+	case SYB5BIGTIME:
+		return CS_BIGTIME_TYPE;
+		break;
+	case SYB5BIGDATETIME:
+		return CS_BIGDATETIME_TYPE;
+		break;
 	}
 
 	return CS_FAIL;
