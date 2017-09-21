@@ -1,6 +1,6 @@
 
-#ifndef COMMON_h
-#define COMMON_h
+#ifndef _freetds_ctlib_common_h
+#define _freetds_ctlib_common_h
 
 extern char SERVER[512];
 extern char DATABASE[512];

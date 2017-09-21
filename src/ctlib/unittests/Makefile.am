@@ -31,6 +31,7 @@ TESTS = \
 	datafmt$(EXEEXT) \
 	rpc_fail$(EXEEXT) \
 	row_count$(EXEEXT) \
+	all_types$(EXEEXT) \
 	$(NULL)
 
 check_PROGRAMS	=	$(TESTS)
@@ -66,6 +67,8 @@ blk_in2_SOURCES		= blk_in2.c
 datafmt_SOURCES		= datafmt.c
 rpc_fail_SOURCES	= rpc_fail.c
 row_count_SOURCES	= row_count.c
+all_types_SOURCES	= all_types.c
+all_types_LDFLAGS	= -static ../libct.la ../../tds/unittests/libcommon.a -shared
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h
