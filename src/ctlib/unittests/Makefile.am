@@ -1,13 +1,37 @@
-TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT) t0004$(EXEEXT) \
-			t0005$(EXEEXT) t0006$(EXEEXT) t0007$(EXEEXT) t0008$(EXEEXT) \
-			t0009$(EXEEXT) connect_fail$(EXEEXT) ct_options$(EXEEXT) \
-			lang_ct_param$(EXEEXT) array_bind$(EXEEXT) cs_diag$(EXEEXT) \
-			get_send_data$(EXEEXT) rpc_ct_param$(EXEEXT) rpc_ct_setparam$(EXEEXT) \
-			ct_diagclient$(EXEEXT) ct_diagserver$(EXEEXT) ct_diagall$(EXEEXT) \
-			cs_config$(EXEEXT) cancel$(EXEEXT) blk_in$(EXEEXT) \
-			blk_out$(EXEEXT) ct_cursor$(EXEEXT) ct_cursors$(EXEEXT) \
-			ct_dynamic$(EXEEXT) blk_in2$(EXEEXT) datafmt$(EXEEXT) \
-			rpc_fail$(EXEEXT) row_count$(EXEEXT)
+NULL=
+TESTS = \
+	t0001$(EXEEXT) \
+	t0002$(EXEEXT) \
+	t0003$(EXEEXT) \
+	t0004$(EXEEXT) \
+	t0005$(EXEEXT) \
+	t0006$(EXEEXT) \
+	t0007$(EXEEXT) \
+	t0008$(EXEEXT) \
+	t0009$(EXEEXT) \
+	connect_fail$(EXEEXT) \
+	ct_options$(EXEEXT) \
+	lang_ct_param$(EXEEXT) \
+	array_bind$(EXEEXT) \
+	cs_diag$(EXEEXT) \
+	get_send_data$(EXEEXT) \
+	rpc_ct_param$(EXEEXT) \
+	rpc_ct_setparam$(EXEEXT) \
+	ct_diagclient$(EXEEXT) \
+	ct_diagserver$(EXEEXT) \
+	ct_diagall$(EXEEXT) \
+	cs_config$(EXEEXT) \
+	cancel$(EXEEXT) \
+	blk_in$(EXEEXT) \
+	blk_out$(EXEEXT) \
+	ct_cursor$(EXEEXT) \
+	ct_cursors$(EXEEXT) \
+	ct_dynamic$(EXEEXT) \
+	blk_in2$(EXEEXT) \
+	datafmt$(EXEEXT) \
+	rpc_fail$(EXEEXT) \
+	row_count$(EXEEXT) \
+	$(NULL)
 
 check_PROGRAMS	=	$(TESTS)
 
