@@ -165,9 +165,13 @@ static void create_type(TDSSOCKET *tds, int desttype, int server_type, tds_any_t
 	case SYBCHAR:
 	case SYBVARCHAR:
 	case SYBTEXT:
+	case XSYBVARCHAR:
+	case XSYBCHAR:
+		src = "test of a character field";
+		break;
 	case SYBDATETIME:
 	case SYBDATETIME4:
-		src = "Jan  1, 1999";
+		src = "Apr 12, 1985 17:49:41";
 		break;
 	case SYBMSDATE:
 	case SYBDATE:
@@ -192,20 +196,26 @@ static void create_type(TDSSOCKET *tds, int desttype, int server_type, tds_any_t
 	case SYBINT1:
 	case SYBINT2:
 	case SYBINT4:
-	case SYBINT8:
 	case SYBUINT1:
 	case SYBUINT2:
 	case SYBUINT4:
-	case SYBUINT8:
 		src = "255";
+		break;
+	case SYBINT8:
+	case SYBUINT8:
+		src = "374632567765";
 		break;
 	case SYBFLT8:
 	case SYBREAL:
-	case SYBNUMERIC:
-	case SYBDECIMAL:
 	case SYBMONEY:
 	case SYBMONEY4:
-		src = "1999.25";
+		src = "1237.45";
+		cr.n.precision = 8;
+		cr.n.scale = 2;
+		break;
+	case SYBNUMERIC:
+	case SYBDECIMAL:
+		src = "947919.25";
 		cr.n.precision = 8;
 		cr.n.scale = 2;
 		break;
