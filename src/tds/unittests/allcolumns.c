@@ -24,16 +24,24 @@
 #include <freetds/convert.h>
 #include <freetds/checks.h>
 
-static void
-free_convert(int type, CONV_RESULT *cr)
+static bool
+is_convert_pointer_type(int type)
 {
 	switch (type) {
 	case SYBCHAR: case SYBVARCHAR: case SYBTEXT: case XSYBCHAR: case XSYBVARCHAR:
 	case SYBBINARY: case SYBVARBINARY: case SYBIMAGE: case XSYBBINARY: case XSYBVARBINARY:
 	case SYBLONGBINARY:
-		free(cr->c);
-		break;
+		return true;
 	}
+	return false;
+}
+
+
+static void
+free_convert(int type, CONV_RESULT *cr)
+{
+	if (is_convert_pointer_type(type))
+		free(cr->c);
 }
 
 static void create_type(TDSSOCKET *tds, int desttype, int server_type, tds_any_type_t *func);
@@ -260,6 +268,8 @@ static void create_type(TDSSOCKET *tds, int desttype, int server_type, tds_any_t
 	if (is_blob_col(curcol)) {
 		((TDSBLOB *) curcol->column_data)->textvalue = cr.c;
 		cr.c = NULL;
+	} else if (is_convert_pointer_type(desttype)) {
+		memcpy(curcol->column_data, cr.c, result);
 	} else {
 		memcpy(curcol->column_data, &cr.i, result);
 	}
