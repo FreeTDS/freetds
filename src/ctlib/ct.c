@@ -1798,12 +1798,19 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 				*nullind = -1;
 				*pdatalen = 0;
 			} else {
+				CONV_RESULT convert_buffer;
 
 				src = curcol->column_data;
 				if (is_blob_col(curcol))
 					src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
 
-				srcfmt.datatype = _ct_get_client_type(curcol);
+				srcfmt.datatype = _cs_convert_not_client(ctx, curcol, &convert_buffer, &src);
+				if (srcfmt.datatype == CS_ILLEGAL_TYPE)
+					srcfmt.datatype = _ct_get_client_type(curcol);
+				if (srcfmt.datatype == CS_ILLEGAL_TYPE) {
+					result = 1;
+					continue;
+				}
 				srcfmt.maxlength = curcol->column_cur_size;
 
 				destfmt.datatype = bindcol->column_bindtype;
@@ -2042,7 +2049,7 @@ _ct_get_client_type(TDSCOLUMN *col)
 		break;
 	}
 
-	return CS_FAIL;
+	return _cs_convert_not_client(NULL, col, NULL, NULL);
 }
 
 TDS_SERVER_TYPE
@@ -2356,6 +2363,8 @@ ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 	datafmt->namelen = strlen(datafmt->name);
 	/* need to turn the SYBxxx into a CS_xxx_TYPE */
 	datafmt->datatype = _ct_get_client_type(curcol);
+	if (datafmt->datatype == CS_ILLEGAL_TYPE)
+		return CS_FAIL;
 	tdsdump_log(TDS_DBG_INFO1, "ct_describe() datafmt->datatype = %d server type %d\n", datafmt->datatype,
 		    curcol->column_type);
 	if (is_numeric_type(curcol->column_type))

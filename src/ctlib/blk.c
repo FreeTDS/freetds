@@ -195,6 +195,8 @@ blk_describe(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt)
 	datafmt->namelen = strlen(datafmt->name);
 	/* need to turn the SYBxxx into a CS_xxx_TYPE */
 	datafmt->datatype = _ct_get_client_type(curcol);
+	if (datafmt->datatype == CS_ILLEGAL_TYPE)
+		return CS_FAIL;
 	tdsdump_log(TDS_DBG_INFO1, "blk_describe() datafmt->datatype = %d server type %d\n", datafmt->datatype,
 			curcol->column_type);
 	/* FIXME is ok this value for numeric/decimal? */
@@ -677,11 +679,16 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 	}
 
 	if (!null_column) {
+		CONV_RESULT convert_buffer;
 
 		srcfmt.datatype = srctype;
 		srcfmt.maxlength = srclen;
 
-		destfmt.datatype  = _ct_get_client_type(bindcol);
+		destfmt.datatype = _cs_convert_not_client(ctx, bindcol, &convert_buffer, &src);
+		if (destfmt.datatype == CS_ILLEGAL_TYPE)
+			destfmt.datatype  = _ct_get_client_type(bindcol);
+		if (destfmt.datatype == CS_ILLEGAL_TYPE)
+			return CS_FAIL;
 		destfmt.maxlength = bindcol->column_size;
 		destfmt.precision = bindcol->column_prec;
 		destfmt.scale     = bindcol->column_scale;

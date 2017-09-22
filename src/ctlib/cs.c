@@ -37,7 +37,6 @@
 
 #include "cspublic.h"
 #include "ctlib.h"
-#include <freetds/convert.h>
 #include "replacements.h"
 
 #undef cs_dt_crack
@@ -1400,4 +1399,41 @@ cs_diag_countmsg(CS_CONTEXT *context, CS_INT *count)
 	}
 	*count = msg_count;
 	return CS_SUCCEED;
+}
+
+/**
+ * Try to convert to a type we can handle
+ */
+int
+_cs_convert_not_client(CS_CONTEXT *ctx, TDSCOLUMN *curcol, CONV_RESULT *convert_buffer, unsigned char **p_src)
+{
+	int ct_type;
+	TDS_SERVER_TYPE desttype;
+
+	switch (curcol->column_type) {
+	case SYBMSDATE:
+		desttype = SYBDATE;
+		ct_type = CS_DATE_TYPE;
+		break;
+	case SYBMSTIME:
+		desttype = SYB5BIGTIME;
+		ct_type = CS_BIGTIME_TYPE;
+		break;
+	case SYBMSDATETIME2:
+	case SYBMSDATETIMEOFFSET:
+		desttype = SYB5BIGDATETIME;
+		ct_type = CS_BIGDATETIME_TYPE;
+		break;
+	default:
+		return CS_ILLEGAL_TYPE;
+	}
+
+	if (convert_buffer) {
+		int len = tds_convert(ctx->tds_ctx, curcol->column_type, (TDS_CHAR *) *p_src,
+				      curcol->column_cur_size, desttype, convert_buffer);
+		if (len < 0)
+			return CS_ILLEGAL_TYPE; // TODO _csclient_msg ??
+		*p_src = (unsigned char *) convert_buffer;
+	}
+	return ct_type;
 }

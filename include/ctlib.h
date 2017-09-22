@@ -21,6 +21,7 @@
 #define _ctlib_h_
 
 #include <freetds/tds.h>
+#include <freetds/convert.h>
 #include <freetds/string.h>
 
 /*
@@ -268,6 +269,8 @@ CS_INT _ct_diag_clearmsg(CS_CONTEXT * context, CS_INT type);
 void _cs_locale_free(CS_LOCALE *locale);
 CS_LOCALE *_cs_locale_copy(CS_LOCALE *orig);
 int _cs_locale_copy_inplace(CS_LOCALE *new_locale, CS_LOCALE *orig);
+
+int _cs_convert_not_client(CS_CONTEXT *ctx, TDSCOLUMN *curcol, CONV_RESULT *convert_buffer, unsigned char **p_src);
 
 #ifdef __cplusplus
 #if 0
