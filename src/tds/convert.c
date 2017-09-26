@@ -1726,7 +1726,7 @@ tds_convert_unique(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 		memcpy(&(cr->u), src, sizeof(TDS_UNIQUE));
 		return sizeof(TDS_UNIQUE);
 		break;
-		/* no not warning for not convertible types */
+		/* do not warn for not convertible types */
 	case SYBBIT:
 	case SYBBITN:
 	case SYBINT1:
