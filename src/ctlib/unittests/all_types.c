@@ -90,5 +90,7 @@ main(int argc, char **argv)
 	tds_free_socket(tds);
 	tds_free_context(tds_ctx);
 
+	cs_ctx_drop(ctx);
+
 	return 0;
 }
