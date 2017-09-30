@@ -25,7 +25,7 @@
 #include <freetds/sysconfdir.h>
 
 #ifndef _tds_h_
-#error tds.h must be included before tds_configs.h
+#error freetds/tds.h must be included before freetds/configs.h
 #endif
 
 #ifdef __cplusplus
