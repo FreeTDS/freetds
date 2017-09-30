@@ -461,3 +461,30 @@ configure_file(${CMAKE_SOURCE_DIR}/include/freetds/version.h.in ${CMAKE_BINARY_D
 if(NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
 	configure_file(${CMAKE_SOURCE_DIR}/src/odbc/version.rc.in ${CMAKE_SOURCE_DIR}/src/odbc/version.rc)
 endif(NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
+
+
+if(WIN32)
+set(FREETDS_PUBLIC_INCLUDE
+	${CMAKE_SOURCE_DIR}/include/bkpublic.h
+	${CMAKE_SOURCE_DIR}/include/cspublic.h
+	${CMAKE_SOURCE_DIR}/include/cstypes.h
+	${CMAKE_SOURCE_DIR}/include/ctpublic.h
+	${CMAKE_SOURCE_DIR}/include/sqldb.h
+	${CMAKE_SOURCE_DIR}/include/sqlfront.h
+	${CMAKE_SOURCE_DIR}/include/sybdb.h
+	${CMAKE_SOURCE_DIR}/include/sybfront.h
+	${CMAKE_SOURCE_DIR}/include/syberror.h
+	${CMAKE_SOURCE_DIR}/include/odbcss.h
+	${CMAKE_BINARY_DIR}/include/tds_sysdep_public.h)
+
+set(FREETDS_PUBLIC_INCLUDE_2
+	${CMAKE_BINARY_DIR}/include/freetds/version.h)
+
+set(FREETDS_CONF_FILES
+	${CMAKE_SOURCE_DIR}/freetds.conf
+	${CMAKE_SOURCE_DIR}/locales.conf)
+
+install(FILES ${FREETDS_PUBLIC_INCLUDE} DESTINATION include)
+install(FILES ${FREETDS_PUBLIC_INCLUDE_2} DESTINATION include/freetds)
+install(FILES ${FREETDS_CONF_FILES} DESTINATION etc)
+endif(WIN32)

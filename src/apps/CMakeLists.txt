@@ -15,3 +15,12 @@ endif(WIN32)
 
 add_executable(bsqlodbc bsqlodbc.c)
 target_link_libraries(bsqlodbc tdsodbc replacements tdsutils ${libs})
+
+if(WIN32)
+INSTALL(TARGETS tsql bsqlodbc
+	PUBLIC_HEADER DESTINATION include
+		RUNTIME DESTINATION bin
+		LIBRARY DESTINATION lib
+		ARCHIVE DESTINATION lib
+	)
+endif(WIN32)

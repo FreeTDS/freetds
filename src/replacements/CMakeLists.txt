@@ -36,3 +36,13 @@ if (NOT WIN32)
 endif()
 
 add_subdirectory(unittests)
+
+
+if(WIN32)
+INSTALL(TARGETS replacements
+	PUBLIC_HEADER DESTINATION include
+		RUNTIME DESTINATION bin
+		LIBRARY DESTINATION lib
+		ARCHIVE DESTINATION lib
+	)
+endif(WIN32)
