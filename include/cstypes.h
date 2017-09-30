@@ -140,6 +140,9 @@ typedef CS_INT CS_DATE;
 
 typedef CS_INT CS_TIME;
 
+typedef CS_UBIGINT CS_BIGDATETIME;
+typedef CS_UBIGINT CS_BIGTIME;
+
 typedef struct _cs_datetime
 {
 	CS_INT dtdays;
