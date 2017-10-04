@@ -53,7 +53,7 @@ iconv_fread_SOURCES	= iconv_fread.c
 charconv_SOURCES	= charconv.c
 toodynamic_SOURCES	= toodynamic.c
 nulls_SOURCES	= nulls.c
-readconf_SOURCES	= readconf.c
+readconf_SOURCES	= readconf.c readconf.in
 corrupt_SOURCES	=	corrupt.c
 declarations_SOURCES	=	declarations.c
 
@@ -69,5 +69,5 @@ AM_LDFLAGS	=	-no-install -L../.libs -R $(abs_builddir)/../.libs
 endif
 LIBS		=	../libtds.la ../../replacements/libreplacements.la $(LTLIBICONV) $(NETWORK_LIBS)
 CLEANFILES	=	tdsdump.out
-EXTRA_DIST	=	CMakeLists.txt readconf.in
+EXTRA_DIST	=	CMakeLists.txt
 
