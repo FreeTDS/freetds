@@ -474,15 +474,15 @@ set(FREETDS_PUBLIC_INCLUDE
         ${CMAKE_SOURCE_DIR}/include/sybdb.h
 		${CMAKE_SOURCE_DIR}/include/sybfront.h 
         ${CMAKE_SOURCE_DIR}/include/syberror.h
-		${CMAKE_SOURCE_DIR}/include/odbcss.h
-		${CMAKE_BINARY_DIR}/include/tds_sysdep_public.h)
+		${CMAKE_SOURCE_DIR}/include/odbcss.h)
 
 set(FREETDS_PUBLIC_INCLUDE_2 
 		${CMAKE_BINARY_DIR}/include/freetds/version.h)
 
 set(FREETDS_CONF_FILES 
 		${CMAKE_SOURCE_DIR}/freetds.conf
-		${CMAKE_SOURCE_DIR}/locales.conf)
+		${CMAKE_SOURCE_DIR}/locales.conf
+		${CMAKE_SOURCE_DIR}/src/pool/pool.conf)
 		
 install(FILES ${FREETDS_PUBLIC_INCLUDE} DESTINATION include)
 install(FILES ${FREETDS_PUBLIC_INCLUDE_2} DESTINATION include/freetds)
