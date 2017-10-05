@@ -345,9 +345,7 @@ typedef enum tds_encryption_level {
           ((((unsigned long)value)>> 8) & 0x0000FF00)  | \
           ((((unsigned long)value)>>24) & 0x000000FF))
 
-#define is_end_token(x) (x==TDS_DONE_TOKEN    || \
-			x==TDS_DONEPROC_TOKEN    || \
-			x==TDS_DONEINPROC_TOKEN)
+#define is_end_token(x) ((x) >= TDS_DONE_TOKEN && (x) <= TDS_DONEINPROC_TOKEN)
 
 enum {
 	TDS_TYPEFLAG_INVALID  = 0,
