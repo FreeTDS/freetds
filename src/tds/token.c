@@ -157,7 +157,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		marker = tds_peek(tds);
 		if (marker != TDS_PARAM_TOKEN && marker != TDS_DONEPROC_TOKEN && marker != TDS_DONE_TOKEN)
 			break;
-		tds->has_status = 1;
+		tds->has_status = true;
 		tds->ret_status = ret_status;
 		tdsdump_log(TDS_DBG_INFO1, "tds_process_default_tokens: return status is %d\n", tds->ret_status);
 		break;
@@ -679,7 +679,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 				/* TODO optimize */
 				flag &= ~TDS_STOPAT_PROC;
 				SET_RETURN(TDS_STATUS_RESULT, PROC);
-				tds->has_status = 1;
+				tds->has_status = true;
 				tds->ret_status = ret_status;
 				tdsdump_log(TDS_DBG_FUNC, "tds_process_tokens: return status is %d\n", tds->ret_status);
 				rc = TDS_SUCCESS;
@@ -2110,7 +2110,7 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 		if (tds->bulk_query) {
 			tds->out_flag = TDS_BULK;
 			tds_set_state(tds, TDS_SENDING);
-			tds->bulk_query = 0;
+			tds->bulk_query = false;
 		} else {
 			tds_set_state(tds, TDS_IDLE);
 			if (tds->conn->pending_close)

@@ -823,7 +823,7 @@ tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		return rc;
 
 	/* set we want to switch to bulk state */
-	tds->bulk_query = 1;
+	tds->bulk_query = true;
 
 	/*
 	 * In TDS 5 we get the column information as a result set from the "insert bulk" command.
@@ -1102,7 +1102,7 @@ tds_writetext_start(TDSSOCKET *tds, const char *objname, const char *textptr, co
 		return rc;
 
 	/* set we want to switch to bulk state */
-	tds->bulk_query = 1;
+	tds->bulk_query = true;
 
 	/* read the end token */
 	rc = tds_process_simple_query(tds);
