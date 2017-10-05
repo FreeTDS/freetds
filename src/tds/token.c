@@ -2371,7 +2371,7 @@ tds_process_info(TDSSOCKET * tds, int marker)
 	msg.line_number = IS_TDS72_PLUS(tds->conn) ? tds_get_int(tds) : tds_get_smallint(tds);
 
 	/*
-	 * If the server doesen't provide an sqlstate, map one via server native errors
+	 * If the server doesn't provide an sqlstate, map one via server native errors
 	 * I'm assuming there is not a protocol I'm missing to fetch these from the server?
 	 * I know sybase has an sqlstate column in it's sysmessages table, mssql doesn't and
 	 * TDS_EED_TOKEN is not being called for me.
