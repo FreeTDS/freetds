@@ -336,14 +336,14 @@ typedef enum tds_encryption_level {
  * check if unaligned access and use fast write/read when implemented
  */
 #define TDS_BYTE_SWAP16(value)                 \
-         (((((unsigned short)value)<<8) & 0xFF00)   | \
-          ((((unsigned short)value)>>8) & 0x00FF))
+         (((((uint16_t)value)<<8) & 0xFF00u) | \
+          ((((uint16_t)value)>>8) & 0x00FFu))
 
 #define TDS_BYTE_SWAP32(value)                     \
-         (((((unsigned long)value)<<24) & 0xFF000000)  | \
-          ((((unsigned long)value)<< 8) & 0x00FF0000)  | \
-          ((((unsigned long)value)>> 8) & 0x0000FF00)  | \
-          ((((unsigned long)value)>>24) & 0x000000FF))
+         (((((uint32_t)value)<<24) & 0xFF000000u)| \
+          ((((uint32_t)value)<< 8) & 0x00FF0000u)| \
+          ((((uint32_t)value)>> 8) & 0x0000FF00u)| \
+          ((((uint32_t)value)>>24) & 0x000000FFu))
 
 #define is_end_token(x) ((x) >= TDS_DONE_TOKEN && (x) <= TDS_DONEINPROC_TOKEN)
 
