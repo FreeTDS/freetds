@@ -380,7 +380,7 @@ odbc_connect(TDS_DBC * dbc, TDSLOGIN * login)
 	if (dbc->attr.mars_enabled != SQL_MARS_ENABLED_NO)
 		login->mars = 1;
 	if (dbc->attr.bulk_enabled != SQL_BCP_OFF)
-		tds_set_bulk(login, 1);
+		tds_set_bulk(login, true);
 
 #ifdef ENABLE_ODBC_WIDE
 	/* force utf-8 in order to support wide characters */

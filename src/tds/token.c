@@ -649,7 +649,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 			}
 			/* I don't know when this it's false but it happened, also server can send garbage... */
 			if (tds->current_results)
-				tds->current_results->rows_exist = 1;
+				tds->current_results->rows_exist = true;
 			SET_RETURN(TDS_ROW_RESULT, ROW);
 
 			switch (marker) {
@@ -664,7 +664,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 		case TDS_CMP_ROW_TOKEN:
 			/* I don't know when this it's false but it happened, also server can send garbage... */
 			if (tds->res_info)
-				tds->res_info->rows_exist = 1;
+				tds->res_info->rows_exist = true;
 			SET_RETURN(TDS_COMPUTE_RESULT, COMPUTE);
 			rc = tds_process_compute(tds);
 			break;
@@ -2026,7 +2026,7 @@ tds_process_pending_closes(TDSSOCKET *tds)
 			    || TDS_FAILED(tds_process_simple_query(tds))) {
 				all_closed = 0;
 			} else {
-				cursor->defer_close = 0;
+				cursor->defer_close = false;
 				tds_cursor_dealloc(tds, cursor);
 			}
 		}
@@ -2047,7 +2047,7 @@ tds_process_pending_closes(TDSSOCKET *tds)
 			    || TDS_FAILED(tds_process_simple_query(tds))) {
 				all_closed = 0;
 			} else {
-				dyn->defer_close = 0;
+				dyn->defer_close = false;
 			}
 		}
 		tds_release_dynamic(&dyn);
@@ -2068,7 +2068,7 @@ tds_process_pending_closes(TDSSOCKET *tds)
 static TDSRET
 tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 {
-	int more_results, was_cancelled, error, done_count_valid;
+	bool more_results, was_cancelled, error, done_count_valid;
 	int tmp;
 	TDS_INT8 rows_affected;
 

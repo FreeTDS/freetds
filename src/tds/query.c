@@ -1851,7 +1851,7 @@ tds_deferred_unprepare(TDSCONNECTION * conn, TDSDYNAMIC * dyn)
 		return TDS_SUCCESS;
 	}
 
-	dyn->defer_close = 1;
+	dyn->defer_close = true;
 	conn->pending_close = 1;
 
 	return TDS_SUCCESS;
@@ -3118,7 +3118,7 @@ tds_deferred_cursor_dealloc(TDSCONNECTION *conn, TDSCURSOR * cursor)
 	if (!tds_cursor_check_allocated(conn, cursor))
 		return TDS_SUCCESS;
 
-	cursor->defer_close = 1;
+	cursor->defer_close = true;
 	conn->pending_close = 1;
 
 	return TDS_SUCCESS;

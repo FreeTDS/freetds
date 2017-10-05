@@ -436,10 +436,7 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			break;
 		case CS_BULK_LOGIN:
 			memcpy(&intval, buffer, sizeof(intval));
-			if (intval)
-				tds_set_bulk(tds_login, 1);
-			else
-				tds_set_bulk(tds_login, 0);
+			tds_set_bulk(tds_login, !!intval);
 			break;
 		case CS_PACKETSIZE:
 			memcpy(&intval, buffer, sizeof(intval));

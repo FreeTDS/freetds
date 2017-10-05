@@ -776,9 +776,9 @@ typedef struct tds_result_info
 
 	TDS_SMALLINT *bycolumns;
 	TDS_USMALLINT by_cols;
-	TDS_TINYINT rows_exist;
+	bool rows_exist;
 	/* TODO remove ?? used only in dblib */
-	TDS_TINYINT more_results;
+	bool more_results;
 } TDSRESULTINFO;
 
 /** values for tds->state */
@@ -940,7 +940,7 @@ typedef struct tds_cursor
 	/**
 	 * true if cursor was marker to be closed when connection is idle
 	 */
-	TDS_TINYINT defer_close;
+	bool defer_close;
 	char *query;                 	/**< SQL query */
 	/* TODO for updatable columns */
 	/* TDS_TINYINT number_upd_cols; */	/**< number of updatable columns */
@@ -991,7 +991,7 @@ typedef struct tds_dynamic
 	/**
 	 * true if dynamic was marker to be closed when connection is idle
 	 */
-	TDS_TINYINT defer_close;
+	bool defer_close;
 	/* int dyn_state; */ /* TODO use it */
 	TDSPARAMINFO *res_info;	/**< query results */
 	/**
@@ -1318,7 +1318,7 @@ void tds_deinit_bcpinfo(TDSBCPINFO *bcpinfo);
 void tds_set_packet(TDSLOGIN * tds_login, int packet_size);
 void tds_set_port(TDSLOGIN * tds_login, int port);
 bool tds_set_passwd(TDSLOGIN * tds_login, const char *password) TDS_WUR;
-void tds_set_bulk(TDSLOGIN * tds_login, TDS_TINYINT enabled);
+void tds_set_bulk(TDSLOGIN * tds_login, bool enabled);
 bool tds_set_user(TDSLOGIN * tds_login, const char *username) TDS_WUR;
 bool tds_set_app(TDSLOGIN * tds_login, const char *application) TDS_WUR;
 bool tds_set_host(TDSLOGIN * tds_login, const char *hostname) TDS_WUR;

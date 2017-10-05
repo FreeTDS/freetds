@@ -911,7 +911,7 @@ dbsetlbool(LOGINREC * login, int value, int which)
 
 	switch (which) {
 	case DBSETBCP:
-		tds_set_bulk(login->tds_login, (TDS_TINYINT) value);
+		tds_set_bulk(login->tds_login, !!value);
 		return SUCCEED;
 		break;
 	case DBSETUTF16:
@@ -6218,14 +6218,12 @@ dbmorecmds(DBPROCESS * dbproc)
 		return FAIL;
 	}
 
-	if (dbproc->tds_socket->res_info->more_results == 0) {
-		tdsdump_log(TDS_DBG_FUNC, "more_results == 0; returns FAIL\n");
+	if (!dbproc->tds_socket->res_info->more_results) {
+		tdsdump_log(TDS_DBG_FUNC, "more_results is false; returns FAIL\n");
 		return FAIL;
 	}
 	
-	assert(dbproc->tds_socket->res_info->more_results == 1);
-	
-	tdsdump_log(TDS_DBG_FUNC, "more_results == 1; returns SUCCEED\n");
+	tdsdump_log(TDS_DBG_FUNC, "more_results is true; returns SUCCEED\n");
 	
 	return SUCCEED;
 }
