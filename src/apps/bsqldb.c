@@ -190,15 +190,15 @@ main(int argc, char *argv[])
 
 	fprintf(options.verbose, "%s:%d: Verbose operation enabled\n", options.appname, __LINE__);
 	
+	/* Select the specified database, if any */
+	if (options.database)
+		DBSETLDBNAME(login, options.database);
+
 	/* 
 	 * Connect to the server 
 	 */
 	if ((dbproc = dbopen(login, options.servername)) == NULL)
 		return 1;
-	
-	/* Switch to the specified database, if any */
-	if (options.database)
-		dbuse(dbproc, options.database);
 
 	/* 
 	 * Read the queries and write the results
