@@ -1434,9 +1434,6 @@ dbuse(DBPROCESS * dbproc, const char *name)
 	CHECK_CONN(FAIL);
 	CHECK_NULP(name, "dbuse", 2, FAIL);
 
-	if (!dbproc->tds_socket)
-		return FAIL;
-
 	/* quote name */
 	query = tds_new(char, tds_quote_id(dbproc->tds_socket, NULL, name, -1) + 6);
 	if (!query) {
