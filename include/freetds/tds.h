@@ -1192,6 +1192,7 @@ struct tds_socket
 	TDSCURSOR *cur_cursor;		/**< cursor in use */
 	bool bulk_query;		/**< true is query sent was a bulk query so we need to switch state to QUERYING */
 	bool has_status; 		/**< true is ret_status is valid */
+	bool in_row;			/**< true if we are getting rows */
 	TDS_INT ret_status;     	/**< return status from store procedure */
 	TDS_STATE state;
 	volatile 

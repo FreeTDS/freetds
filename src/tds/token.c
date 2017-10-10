@@ -2089,6 +2089,8 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 		    "\t\terror = %d\n"
 		    "\t\tdone_count_valid = %d\n", more_results, was_cancelled, error, done_count_valid);
 
+	tds->in_row = false;
+
 	if (tds->res_info) {
 		tds->res_info->more_results = more_results;
 		/* FIXME this should not happen !!! */
@@ -2290,6 +2292,9 @@ tds_process_info(TDSSOCKET * tds, int marker)
 	TDSMESSAGE msg;
 
 	CHECK_TDS_EXTRA(tds);
+
+	if (!tds->in_row)
+		tds_free_all_results(tds);
 
 	/* make sure message has been freed */
 	memset(&msg, 0, sizeof(TDSMESSAGE));
