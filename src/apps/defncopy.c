@@ -191,6 +191,10 @@ main(int argc, char *argv[])
 		}
 	}
 	
+	/* Select the specified database, if any */
+	if (options.database)
+		DBSETLDBNAME(login, options.database);
+
 	/* 
 	 * Connect to the server 
 	 */
@@ -199,10 +203,6 @@ main(int argc, char *argv[])
 		fprintf(stderr, "There was a problem connecting to the server.\n");
 		exit(1);
 	}
-
-	/* Switch to the specified database, if any */
-	if (options.database)
-		dbuse(dbproc, options.database);
 
 	/* 
 	 * Read the procedure names and move their texts.  
