@@ -474,6 +474,7 @@ tds_set_current_results(TDSSOCKET *tds, TDSRESULTINFO *info)
 		tds->current_results->attached_to = NULL;
 	if (info)
 		info->attached_to = tds;
+	tds->in_row = (info != NULL);
 	tds->current_results = info;
 }
 
@@ -485,6 +486,7 @@ tds_detach_results(TDSRESULTINFO *info)
 {
 	if (info && info->attached_to) {
 		info->attached_to->current_results = NULL;
+		info->attached_to->in_row = false;
 		info->attached_to = NULL;
 	}
 }
@@ -657,6 +659,7 @@ tds_free_all_results(TDSSOCKET * tds)
 	tds->param_info = NULL;
 	tds_free_compute_results(tds);
 	tds->has_status = 0;
+	tds->in_row = false;
 	tds->ret_status = 0;
 	if (tds->cur_dyn)
 		tds_detach_results(tds->cur_dyn->res_info);
