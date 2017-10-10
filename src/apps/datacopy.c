@@ -345,6 +345,8 @@ login_to_databases(const BCPPARAMDATA * pdata, DBPROCESS ** dbsrc, DBPROCESS ** 
 		DBSETLUSER(slogin, pdata->src.user);
 	if (pdata->src.pass)
 		DBSETLPWD(slogin, pdata->src.pass);
+	if (pdata->src.db)
+		DBSETLDBNAME(slogin, pdata->src.db);
 	DBSETLAPP(slogin, "Migrate Data");
 
 	/* if packet size specified, set in login record */
@@ -362,17 +364,14 @@ login_to_databases(const BCPPARAMDATA * pdata, DBPROCESS ** dbsrc, DBPROCESS ** 
 		goto cleanup;
 	}
 
-	if (dbuse(*dbsrc, pdata->src.db) == FAIL) {
-		fprintf(stderr, "Can't change database to %s .\n", pdata->src.db);
-		goto cleanup;
-	}
-
 	dlogin = dblogin();
 
 	if (pdata->dest.user)
 		DBSETLUSER(dlogin, pdata->dest.user);
 	if (pdata->dest.pass)
 		DBSETLPWD(dlogin, pdata->dest.pass);
+	if (pdata->dest.db)
+		DBSETLDBNAME(dlogin, pdata->dest.db);
 	DBSETLAPP(dlogin, "Migrate Data");
 
 	/* Enable bulk copy for this connection. */
@@ -391,11 +390,6 @@ login_to_databases(const BCPPARAMDATA * pdata, DBPROCESS ** dbsrc, DBPROCESS ** 
 
 	if ((*dbdest = dbopen(dlogin, pdata->dest.server)) == (DBPROCESS *) NULL) {
 		fprintf(stderr, "Can't connect to destination server.\n");
-		goto cleanup;
-	}
-
-	if (dbuse(*dbdest, pdata->dest.db) == FAIL) {
-		fprintf(stderr, "Can't change database to %s .\n", pdata->dest.db);
 		goto cleanup;
 	}
 

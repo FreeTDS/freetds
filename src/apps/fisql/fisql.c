@@ -715,6 +715,9 @@ main(int argc, char *argv[])
 	if (logintime >= 0) {
 		dbsetlogintime(logintime);
 	}
+	if (database_name) {
+		DBSETLDBNAME(login, database_name);
+	}
 	if ((dbproc = dbopen(login, server)) == NULL) {
 		fprintf(stderr, "fisql: dbopen() failed.\n");
 		reset_term();
@@ -736,9 +739,6 @@ main(int argc, char *argv[])
 	}
 	if (perfstats) {
 		dbsetopt(dbproc, DBSTAT, "time", 0);
-	}
-	if (database_name) {
-		dbuse(dbproc, database_name);
 	}
 
 	while (1) {
