@@ -3856,7 +3856,7 @@ dbsprline(DBPROCESS * dbproc, char *buffer, DBINT buf_len, DBCHAR line_char)
  * \param buffer output buffer
  * \param buf_len size of \a buffer
  * \retval SUCCEED \a buffer filled.
- * \retval FAIL insufficient spaace in \a buffer, usually.
+ * \retval FAIL insufficient space in \a buffer, usually.
  * \sa dbprhead(), dbprrow(), dbsetopt(), dbspr1row(), dbspr1rowlen(), dbsprline().
  */
 RETCODE
