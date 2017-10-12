@@ -4,7 +4,7 @@
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
-#endif /* HAVE_STRING_H */
+#endif /* HAVE_STDLIB_H */
 
 #if HAVE_STRING_H
 #include <string.h>
