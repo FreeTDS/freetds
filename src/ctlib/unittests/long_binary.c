@@ -82,6 +82,7 @@ main(int argc, char **argv)
 	CS_SMALLINT ind = 0;
 	CS_DATAFMT datafmt;
 	CS_INT ret;
+	int i;
 
 	printf("-- begin --\n");
 
@@ -106,7 +107,7 @@ main(int argc, char **argv)
 
 	printf("sending %d bytes\n", buffer_len);
 
-	for (int i = 0; i < buffer_len; i++)
+	for (i = 0; i < buffer_len; i++)
 		buffer[i] = (rand() % 16);
 
 	memset(&datafmt, 0, sizeof(datafmt));
