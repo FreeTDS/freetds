@@ -915,7 +915,7 @@ ct_send(CS_COMMAND * cmd)
 				return CS_FAIL;
 			}
 			pparam_info = paraminfoalloc(tds, dyn->param_list);
-			if (!pparam_info)
+			if (!pparam_info && dyn->param_list)
 				return CS_FAIL;
 			tds_free_input_params(tdsdyn);
 			tdsdyn->params = pparam_info;
