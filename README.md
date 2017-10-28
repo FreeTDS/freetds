@@ -1,10 +1,10 @@
 README for FreeTDS 1.1
+====
 
-Release date 13 March 2019
+*Release date 13 March 2019*
 
-* to build FreeTDS read the file INSTALL or
-  the FreeTDS Users Guide (doc/userguide/index.html) and
-  http://www.freetds.org/userguide/
+**To build FreeTDS read the file [INSTALL](./INSTALL.md) or
+the [FreeTDS Users Guide](http://www.freetds.org/userguide/)**
 
 FreeTDS is a free implementation of Sybase's DB-Library, CT-Library,
 and ODBC libraries. FreeTDS builds and runs on every flavor of
@@ -13,18 +13,17 @@ Win32 (with or without Cygwin), VMS, and Mac OS X.  Failure to build
 on your system is probably considered a bug.  It has C language
 bindings, and works also with Perl and PHP, among others.
 
-FreeTDS is licensed under the GNU LGPL license. See COPYING.LIB for
+FreeTDS is licensed under the GNU LGPL license. See [COPYING_LIB.txt](./COPYING_LIB.txt) for
 details.
 
 Other files you might want to peruse:
 
-AUTHORS		Who's involved
-BUGS		Some things we fixed, or think we did
-NEWS		Summary of feature changes and fixes
-README		This file
-TODO		The roadmap, such as it is
+* [AUTHORS](./AUTHORS.md)  Who's involved
+* [BUGS](./BUGS.md)        Some things we fixed, or think we did
+* [NEWS](./NEWS.md)        Summary of feature changes and fixes
+* [TODO](./TODO.md)        The roadmap, such as it is
 
-Also, doc/api_status.txt shows which functions are implemented.
+Also, [api_status](./doc/api_status.txt) shows which functions are implemented.
 
 For details on what's new in this version, see NEWS.  For unbearable
 detail, see git log.
@@ -52,29 +51,29 @@ Notes to Developers
 
 The code is split into several pieces.
 
-1) tds directory is the wire level stuff, it should be independent of
+1. `tds` directory is the wire level stuff, it should be independent of
    the library using it, this will allow db-lib, ct-lib, and ODBC to
    sit on top.
 
-2) db-lib directory. This is the actual db-lib code which runs on top of
+2. `db-lib` directory. This is the actual db-lib code which runs on top of
    tds.
 
-3) ct-lib directory. This is the ct-lib code which runs on top of tds.
+3. `ct-lib` directory. This is the ct-lib code which runs on top of tds.
 
-4) server directory. This will be a set of server routines basically
+4. `server` directory. This will be a set of server routines basically
    to impersonate a dataserver, functions like send_login_ack() etc...
 
-5) odbc directory. ODBC implementation over tds.  Uses iODBC or
+5. `odbc` directory. ODBC implementation over tds.  Uses iODBC or
    unixODBC as a driver manager.  You need to have one of those if you
    are using the ODBC CLI.
 
-6) unittests directories. Test harness code for ct-lib, db-lib, ODBC and
+6. `unittests` directories. Test harness code for ct-lib, db-lib, ODBC and
    libtds.
 
-6) samples directories. Sample code for getting started with Perl,
+7. `samples` directories. Sample code for getting started with Perl,
    PHP, etc...
 
-7) pool directory. A connection pooling server for TDS.  Useful if you
+8. `pool` directory. A connection pooling server for TDS.  Useful if you
    have a connection limited license.  Needs some hacking to get
    configured but is quite stable once configured correctly. Contact
    the list if interested in how to use it.
@@ -86,6 +85,3 @@ Side note: Brian, as many free software authors, appreciates postcards
 from all over. So if you live someplace neat (read: not Michigan) and
 want to send one, email him (brian@bruns.org) for his current snail mail
 address.
-
-$Id$
-

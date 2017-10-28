@@ -1,4 +1,5 @@
 README for FreeTDS
+==================
 
 This readme provide specific informations for Windows environment.
 Please read README file for generic intro.
@@ -6,24 +7,26 @@ Please read README file for generic intro.
 FROM SCRATCH
 ------------
 
-FreeTDS compile with ANSI strings.
-
-Every library have a proper directory where you can include every C file you find
-inside (not recursively)
-- replacements here there is an exception, do not include ptw32_MCS_lock.c file
-- tds
-- dblib
-- ctlib
-- odbc
-All libraries depends on replacements one (except replacements obviously),
-dblib, ctlib and odbc depends on tds.
-You should add ws2_32.lib to dependencies.
-
-replacements and TDS library are designed to be static libraries.
-
-You have to define UNIXODBC macro (for ODBC stuff).
-
-Also you need to include win32 and include directory (in this order!)
-
 These instructions should suffice in order to set up any project file you need.
 
+1. FreeTDS compile with ANSI strings.
+
+2. Every library have a proper directory where you can include every C file you find
+inside (not recursively)
+
+  * replacements here there is an exception, do not include ptw32_MCS_lock.c file
+  * tds
+  * dblib
+  * ctlib
+  * odbc
+
+3. All libraries depends on replacements one (except replacements obviously),
+dblib, ctlib and odbc depends on tds.
+
+4. You should add ws2_32.lib to dependencies.
+
+5. Replacements and TDS library are designed to be static libraries.
+
+6. You have to define UNIXODBC macro (for ODBC stuff).
+
+7. you need to include win32 and include directory (in this order!)
