@@ -81,6 +81,12 @@
 #include <sys/eventfd.h>
 #endif /* HAVE_SYS_EVENTFD_H */
 
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <mstcpip.h>
+#endif
+
 #include <freetds/tds.h>
 #include <freetds/string.h>
 #include <freetds/tls.h>
@@ -246,6 +252,14 @@ tds_setup_socket(TDS_SYS_SOCKET *p_sock, struct addrinfo *addr, unsigned int por
 	char ipaddr[128];
 	int retval, len, err;
 	char *errstr;
+#if defined(_WIN32)
+	struct tcp_keepalive keepalive = {
+		TRUE,
+		TDS_SOCKET_KEEPALIVE_IDLE * 1000,
+		TDS_SOCKET_KEEPALIVE_INTERVAL * 1000
+	};
+	DWORD written;
+#endif
 
 	*p_oserr = 0;
 
@@ -265,7 +279,14 @@ tds_setup_socket(TDS_SYS_SOCKET *p_sock, struct addrinfo *addr, unsigned int por
 	setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, (const void *) &len, sizeof(len));
 #endif
 
-#if defined(TCP_KEEPIDLE) && defined(TCP_KEEPINTVL)
+#if defined(_WIN32)
+	if (WSAIoctl(sock, SIO_KEEPALIVE_VALS, &keepalive, sizeof(keepalive),
+		     NULL, 0, &written, NULL, NULL) != 0) {
+		errstr = sock_strerror(*p_oserr = sock_errno);
+		tdsdump_log(TDS_DBG_ERROR, "error setting keepalive: %s\n", errstr);
+		sock_strerror_free(errstr);
+	}
+#elif defined(TCP_KEEPIDLE) && defined(TCP_KEEPINTVL)
 	len = TDS_SOCKET_KEEPALIVE_IDLE;
 	setsockopt(sock, SOL_TCP, TCP_KEEPIDLE, (const void *) &len, sizeof(len));
 	len = TDS_SOCKET_KEEPALIVE_INTERVAL;
