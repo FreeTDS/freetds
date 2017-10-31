@@ -238,6 +238,10 @@ tds_get_socket_error(TDS_SYS_SOCKET sock)
 static TDSERRNO
 tds_setup_socket(TDS_SYS_SOCKET *p_sock, struct addrinfo *addr, unsigned int port, int *p_oserr)
 {
+	enum {
+		TDS_SOCKET_KEEPALIVE_IDLE = 40,
+		TDS_SOCKET_KEEPALIVE_INTERVAL = 2
+	};
 	TDS_SYS_SOCKET sock;
 	char ipaddr[128];
 	int retval, len, err;
@@ -262,9 +266,9 @@ tds_setup_socket(TDS_SYS_SOCKET *p_sock, struct addrinfo *addr, unsigned int por
 #endif
 
 #if defined(TCP_KEEPIDLE) && defined(TCP_KEEPINTVL)
-	len = 40;
+	len = TDS_SOCKET_KEEPALIVE_IDLE;
 	setsockopt(sock, SOL_TCP, TCP_KEEPIDLE, (const void *) &len, sizeof(len));
-	len = 2;
+	len = TDS_SOCKET_KEEPALIVE_INTERVAL;
 	setsockopt(sock, SOL_TCP, TCP_KEEPINTVL, (const void *) &len, sizeof(len));
 #endif
 
