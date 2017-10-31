@@ -289,6 +289,10 @@ tds_connect_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int
 TDSERRNO
 tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int timeout, int *p_oserr)
 {
+	enum {
+		TDS_SOCKET_KEEPALIVE_IDLE = 40,
+		TDS_SOCKET_KEEPALIVE_INTERVAL = 2
+	};
 	TDSCONNECTION *conn = tds->conn;
 	int len;
 	TDSERRNO tds_error;
@@ -310,9 +314,9 @@ tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int ti
 #endif
 
 #if defined(TCP_KEEPIDLE) && defined(TCP_KEEPINTVL)
-	len = 40;
+	len = TDS_SOCKET_KEEPALIVE_IDLE;
 	setsockopt(conn->s, SOL_TCP, TCP_KEEPIDLE, (const void *) &len, sizeof(len));
-	len = 2;
+	len = TDS_SOCKET_KEEPALIVE_INTERVAL;
 	setsockopt(conn->s, SOL_TCP, TCP_KEEPINTVL, (const void *) &len, sizeof(len));
 #endif
 
