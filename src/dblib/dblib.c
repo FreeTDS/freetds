@@ -4738,7 +4738,8 @@ dbretdata(DBPROCESS * dbproc, int retnum)
 		return NULL;
 
 	column = param_info->columns[retnum - 1];
-	/* FIXME blob are stored is different way */
+	if (is_blob_col(column))
+		return (BYTE *) ((TDSBLOB *) column->column_data)->textvalue;
 	return (BYTE *) column->column_data;
 }
 
