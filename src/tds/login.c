@@ -485,10 +485,8 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 			login->port = tds7_get_instance_port(addrs, tds_dstr_cstr(&login->instance_name));
 
 		if (login->port >= 1) {
-			if ((erc = tds_open_socket(tds, addrs, login->port, connect_timeout, p_oserr)) == TDSEOK) {
-				login->connected_addr = addrs;
+			if ((erc = tds_open_socket(tds, addrs, login->port, connect_timeout, p_oserr)) == TDSEOK)
 				break;
-			}
 		} else {
 			erc = TDSECONN;
 		}

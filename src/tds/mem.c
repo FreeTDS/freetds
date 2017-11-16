@@ -988,7 +988,6 @@ tds_alloc_login(int use_environment)
 	tds_dstr_init(&login->new_password);
 
 	login->ip_addrs = NULL;
-	login->connected_addr = NULL;
 
 	tds_dstr_init(&login->database);
 	tds_dstr_init(&login->dump_file);

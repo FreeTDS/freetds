@@ -536,7 +536,6 @@ typedef struct tds_login
 	DSTR database;
 
 	struct addrinfo *ip_addrs;	  		/**< ip(s) of server */
-	struct addrinfo *connected_addr;	/* ip of connected server */
 	DSTR instance_name;
 	DSTR dump_file;
 	int debug_flags;
