@@ -61,6 +61,7 @@
 #include <dblib.h>
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
+static BYTE *_dbcoldata(TDSCOLUMN *colinfo);
 static int _get_printable_size(TDSCOLUMN * colinfo);
 static char *_dbprdate(char *timestr);
 static int _dbnullable(DBPROCESS * dbproc, int column);
@@ -3329,17 +3330,26 @@ dbdatlen(DBPROCESS * dbproc, int column)
 BYTE *
 dbdata(DBPROCESS * dbproc, int column)
 {
-	TDSCOLUMN *colinfo;
+	tdsdump_log(TDS_DBG_FUNC, "dbdata(%p, %d)\n", dbproc, column);
+
+	return _dbcoldata(dbcolptr(dbproc, column));
+}
+
+/** \internal
+ * \ingroup dblib_internal
+ * \brief Return data from a column
+ * 
+ * \param colinfo contains information on a result column.
+ * \return pointer to the data, or NULL if data are NULL
+ * \sa dbdata(), dbretdata()
+ */
+static BYTE *
+_dbcoldata(TDSCOLUMN *colinfo)
+{
 	BYTE *res;
 	const static BYTE empty[1] = { 0 };
 
-	tdsdump_log(TDS_DBG_FUNC, "dbdata(%p, %d)\n", dbproc, column);
-
-	colinfo = dbcolptr(dbproc, column);
-	if (!colinfo)
-		return NULL;
-
-	if (colinfo->column_cur_size < 0)
+	if (!colinfo || colinfo->column_cur_size < 0)
 		return NULL;
 
 	res = colinfo->column_data;
@@ -4722,9 +4732,6 @@ dbretname(DBPROCESS * dbproc, int retnum)
 BYTE *
 dbretdata(DBPROCESS * dbproc, int retnum)
 {
-	TDSCOLUMN *colinfo;
-	BYTE *res;
-	const static BYTE empty[1] = { 0 };
 	TDSPARAMINFO *param_info;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbretdata(%p, %d)\n", dbproc, retnum);
@@ -4736,17 +4743,7 @@ dbretdata(DBPROCESS * dbproc, int retnum)
 	if (!param_info || !param_info->columns || retnum < 1 || retnum > param_info->num_cols)
 		return NULL;
 
-	colinfo = param_info->columns[retnum - 1];
-
-	if (colinfo->column_cur_size < 0)
-		return NULL;
-
-	res = colinfo->column_data;
-	if (is_blob_col(colinfo))
-		res = (BYTE *) ((TDSBLOB *) res)->textvalue;
-	if (!res)
-		return (BYTE *) empty;
-	return res;
+	return _dbcoldata(param_info->columns[retnum - 1]);
 }
 
 /**
