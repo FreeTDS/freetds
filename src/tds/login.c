@@ -363,6 +363,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 	int db_selected = 0;
 	struct addrinfo *addrs;
 	int orig_port;
+	bool rerouted = false;
 
 	/*
 	 * A major version of 0 means try to guess the TDS version. 
@@ -477,6 +478,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 
 	tds->conn->capabilities = login->capabilities;
 
+reroute:
 	erc = TDSEINTF;
 	orig_port = login->port;
 	for (addrs = login->ip_addrs; addrs != NULL; addrs = addrs->ai_next) {
@@ -533,6 +535,24 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		tds_close_socket(tds);
 		tdserror(tds_get_ctx(tds), tds, TDSEFCON, 0); 	/* "Adaptive Server connection failed" */
 		return -TDSEFCON;
+	}
+
+	/* need to do rerouting */
+	if (IS_TDS71_PLUS(tds->conn) && !rerouted
+	    && !tds_dstr_isempty(&login->routing_address) && login->routing_port) {
+		TDSRET ret;
+
+		tds_close_socket(tds);
+		login->port = login->routing_port;
+		ret = tds_lookup_host_set(tds_dstr_cstr(&login->routing_address), &login->ip_addrs);
+		login->routing_port = 0;
+		tds_dstr_free(&login->routing_address);
+		if (TDS_FAILED(ret)) {
+			tdserror(tds_get_ctx(tds), tds, TDSEFCON, 0);
+			return -TDSEFCON;
+		}
+		rerouted = true;
+		goto reroute;
 	}
 
 #if ENABLE_ODBC_MARS

@@ -996,6 +996,7 @@ tds_alloc_login(int use_environment)
 	tds_dstr_init(&login->crlfile);
 	tds_dstr_init(&login->db_filename);
 	tds_dstr_init(&login->openssl_ciphers);
+	tds_dstr_init(&login->routing_address);
 
 	if (use_environment) {
 		const char *s;
@@ -1050,6 +1051,7 @@ tds_free_login(TDSLOGIN * login)
 	tds_dstr_free(&login->crlfile);
 	tds_dstr_free(&login->db_filename);
 	tds_dstr_free(&login->openssl_ciphers);
+	tds_dstr_free(&login->routing_address);
 	free(login);
 }
 
