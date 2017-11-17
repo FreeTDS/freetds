@@ -4588,7 +4588,9 @@ dbretname(DBPROCESS * dbproc, int retnum)
 BYTE *
 dbretdata(DBPROCESS * dbproc, int retnum)
 {
-	TDSCOLUMN *column;
+	TDSCOLUMN *colinfo;
+	BYTE *res;
+	const static BYTE empty[1] = { 0 };
 	TDSPARAMINFO *param_info;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbretdata(%p, %d)\n", dbproc, retnum);
@@ -4600,10 +4602,17 @@ dbretdata(DBPROCESS * dbproc, int retnum)
 	if (!param_info || !param_info->columns || retnum < 1 || retnum > param_info->num_cols)
 		return NULL;
 
-	column = param_info->columns[retnum - 1];
-	if (is_blob_col(column))
-		return (BYTE *) ((TDSBLOB *) column->column_data)->textvalue;
-	return (BYTE *) column->column_data;
+	colinfo = param_info->columns[retnum - 1];
+
+	if (colinfo->column_cur_size < 0)
+		return NULL;
+
+	res = colinfo->column_data;
+	if (is_blob_col(colinfo))
+		res = (BYTE *) ((TDSBLOB *) res)->textvalue;
+	if (!res)
+		return (BYTE *) empty;
+	return res;
 }
 
 /**
