@@ -1288,6 +1288,8 @@ RETCODE dbsetlversion (LOGINREC * login, BYTE version);
 #define DBSETLUTF16(x,y)	dbsetlbool((x), (y), DBSETUTF16)
 #define DBSETNTLMV2		1002
 #define DBSETLNTLMV2(x,y)	dbsetlbool((x), (y), DBSETNTLMV2)
+#define DBSETREADONLY	1003
+#define DBSETLREADONLY(x,y)	dbsetlbool((x), (y), DBSETREADONLY)
 
 RETCODE bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char *errfile, int direction);
 DBINT bcp_done(DBPROCESS * dbproc);

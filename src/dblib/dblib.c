@@ -920,6 +920,9 @@ dbsetlbool(LOGINREC * login, int value, int which)
 	case DBSETNTLMV2:
 		login->tds_login->use_ntlmv2 = (value != 0);
 		return SUCCEED;
+	case DBSETREADONLY:
+		login->tds_login->readonly_intent = (value != 0);
+		return SUCCEED;
 	case DBSETENCRYPT:
 	case DBSETLABELED:
 	default:
