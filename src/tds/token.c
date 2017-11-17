@@ -2139,6 +2139,37 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 	return was_cancelled ? TDS_CANCELLED : TDS_SUCCESS;
 }
 
+static TDSRET
+tds_process_env_routing(TDSSOCKET * tds)
+{
+	unsigned len = tds_get_usmallint(tds);
+	if (len) {
+		/* protocol (byte, 0 for ip)
+		 * port (short, not 0)
+		 * us_varchar
+		 */
+		uint8_t protocol;
+		uint16_t port, address_len;
+		if (len < 5)
+			return TDS_FAIL;
+		protocol = tds_get_byte(tds);
+		port = tds_get_usmallint(tds);
+		address_len = tds_get_usmallint(tds);
+		len -= 5;
+		if (address_len * 2 < len)
+			return TDS_FAIL;
+		if (protocol == 0 && port != 0 && tds->login) {
+			tds->login->routing_port = port;
+			tds_dstr_get(tds, &tds->login->routing_address, address_len);
+			tds_get_n(tds, NULL, len - 2 * address_len);
+		} else {
+			tds_get_n(tds, NULL, len);
+		}
+	}
+	tds_get_n(tds, NULL, tds_get_usmallint(tds));
+	return TDS_SUCCESS;
+}
+
 /**
  * tds_process_env_chg() 
  * when ever certain things change on the server, such as database, character
@@ -2215,6 +2246,9 @@ tds_process_env_chg(TDSSOCKET * tds)
 		tds_get_n(tds, NULL, tds_get_byte(tds));
 		return TDS_SUCCESS;
 	}
+
+	if (IS_TDS71_PLUS(tds->conn) && type == TDS_ENV_ROUTING)
+		return tds_process_env_routing(tds);
 
 	/* discard byte values, not still supported */
 	/* TODO support them */

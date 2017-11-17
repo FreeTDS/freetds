@@ -133,6 +133,7 @@ typedef TDS_UINT8 TDS_BIGDATETIME;
 #define TDS_ENV_BEGINTRANS	8
 #define TDS_ENV_COMMITTRANS	9
 #define TDS_ENV_ROLLBACKTRANS	10
+#define TDS_ENV_ROUTING 	20
 
 /* Microsoft internal stored procedure id's */
 #define TDS_SP_CURSOR           1
