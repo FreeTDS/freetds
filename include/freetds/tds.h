@@ -583,7 +583,7 @@ typedef struct tds_login
 	int debug_flags;
 	int text_size;
 	DSTR routing_address;
-	uint16_t routing_port;
+	TDS_USMALLINT routing_port;
 
 	unsigned char option_flag2;
 

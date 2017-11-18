@@ -2143,8 +2143,8 @@ tds_process_env_routing(TDSSOCKET * tds)
 		 * port (short, not 0)
 		 * us_varchar
 		 */
-		uint8_t protocol;
-		uint16_t port, address_len;
+		TDS_TINYINT protocol;
+		TDS_USMALLINT port, address_len;
 		if (len < 5)
 			return TDS_FAIL;
 		protocol = tds_get_byte(tds);
