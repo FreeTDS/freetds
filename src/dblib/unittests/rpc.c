@@ -67,6 +67,8 @@ free_retparam(RETPARAM *param)
 	param->name = param->value = NULL;
 }
 
+static int failed = 0;
+
 int
 ignore_msg_handler(DBPROCESS * dbproc, DBINT msgno, int state, int severity, char *text, char *server, char *proc, int line)
 {
@@ -117,14 +119,16 @@ char param_data1[64], param_data3[8000+1], param_data4[2 * 4000 + 1];
 int param_data2, param_data5;
 
 struct parameters_t {
-	char         *name;
+	const char   *name;
 	BYTE         status;
 	int          type;
 	DBINT        maxlen;
 	DBINT        datalen;
 	BYTE         *value;
-} bindings[] = 
-	{ { "@null_input", DBRPCRETURN, SYBCHAR,  -1,   0, NULL }
+};
+
+static struct parameters_t bindings[] = {
+	  { "@null_input", DBRPCRETURN, SYBCHAR,  -1,   0, NULL }
 	, { "@first_type", DBRPCRETURN, SYBCHAR,  sizeof(param_data1), 0, (BYTE *) &param_data1 }
 	, { "@nullout",    DBRPCRETURN, SYBINT4,  -1,   0, (BYTE *) &param_data2 }
 	, { "@varchar_tds7_out", DBRPCRETURN, SYBVARCHAR,  sizeof(param_data3),   0, (BYTE *) &param_data3 }
@@ -133,7 +137,20 @@ struct parameters_t {
 	, { "@c_this_name_is_way_more_than_thirty_characters_charlie",
 		           0,        SYBVARCHAR,   0,   0, NULL }
 	, { "@nv",         0,        SYBVARCHAR,  -1,   2, (BYTE *) "OK:" }
-	}, *pb = bindings;
+	, { NULL, 0, 0, 0, 0, NULL }
+};
+
+static void
+bind_param(DBPROCESS *dbproc, struct parameters_t *pb)
+{
+	RETCODE erc;
+	const char *name = pb->name[0] ? pb->name : NULL;
+
+	if ((erc = dbrpcparam(dbproc, name, pb->status, pb->type, pb->maxlen, pb->datalen, pb->value)) == FAIL) {
+		fprintf(stderr, "Failed line %d: dbrpcparam\n", __LINE__);
+		failed++;
+	}
+}
 
 int
 main(int argc, char **argv)
@@ -144,13 +161,15 @@ main(int argc, char **argv)
 	
 	char teststr[8000+1], abbrev_data[10+3+1], *output;
 	char *retname = NULL;
-	int i, failed = 0;
+	int i;
 	int rettype = 0, retlen = 0, return_status = 0;
 	char proc[] = "#t0022";
 	char *proc_name = proc;
 
 	int num_resultset = 0, num_empty_resultset = 0;
 	int num_params = 6;
+
+	struct parameters_t *pb;
 
 	static const char dashes30[] = "------------------------------";
 	static const char  *dashes5 = dashes30 + (sizeof(dashes30) - 5), 
@@ -230,15 +249,11 @@ main(int argc, char **argv)
 		failed = 1;
 	}
 
-	for (pb = bindings, i = 0; pb < bindings + sizeof(bindings)/sizeof(bindings[0]); pb++, i++) {
+	for (pb = bindings, i = 0; pb->name != NULL; pb++, i++) {
 		printf("executing dbrpcparam for %s\n", pb->name);
 		if (num_params == 4 && (i == 3 || i == 4))
 			continue;
-		if ((erc = dbrpcparam(dbproc, pb->name, pb->status, pb->type, pb->maxlen, pb->datalen, pb->value)) == FAIL) {
-			fprintf(stderr, "Failed line %d: dbrpcparam\n", __LINE__);
-			failed++;
-		}
-
+		bind_param(dbproc, pb);
 	}
 	printf("executing dbrpcsend\n");
 	param_data5 = 0x11223344;
