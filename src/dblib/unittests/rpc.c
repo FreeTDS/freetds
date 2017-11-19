@@ -141,10 +141,10 @@ static struct parameters_t bindings[] = {
 };
 
 #define PARAM_STR(s) sizeof(s)-1, (BYTE*) s
+#define BLOB_PADLEN 60000
+#define BLOB_TESTLEN 7
 static struct parameters_t bindings_mssql1[] = {
-	  { "", 0, SYBVARCHAR,  -1,  PARAM_STR("set @a='test123'") }
-	, { "", 0, SYBVARCHAR,  -1,  PARAM_STR("@a text out") }
-	, { "", DBRPCRETURN, SYBTEXT,  sizeof(param_data3), 0, (BYTE *) &param_data3 }
+	  { "", DBRPCRETURN, SYBTEXT, -1, 0, NULL }	/* maxlen has no effect ? but "text size" has */
 	, { NULL, 0, 0, 0, 0, NULL }
 };
 
@@ -469,7 +469,15 @@ main(int argc, char **argv)
 	/* additional tests for mssql */
 #if defined(DBTDS_7_2)
 	if (num_params == 6 && dbtds(dbproc) >= DBTDS_7_2) {
-		erc = dbrpcinit(dbproc, "sp_executesql", 0);	/* no options */
+		char testblob[BLOB_PADLEN+BLOB_TESTLEN+1];
+		sql_reopen("rpc_blob_out");
+		sql_cmd(dbproc);
+		dbsqlexec(dbproc);
+		while (dbresults(dbproc) != NO_MORE_RESULTS) {}
+		if (FAIL == init_proc(dbproc, "#rpc_blob_out")) {
+			exit(EXIT_FAILURE);
+		}
+		erc = dbrpcinit(dbproc, "#rpc_blob_out", 0);	/* no options */
 		if (erc == FAIL) {
 			fprintf(stderr, "Failed line %d: dbrpcinit\n", __LINE__);
 			failed = 1;
@@ -491,9 +499,17 @@ main(int argc, char **argv)
 		retname = dbretname(dbproc, i);
 		rettype = dbrettype(dbproc, i);
 		retlen = dbretlen(dbproc, i);
-		dbconvert(dbproc, rettype, dbretdata(dbproc, i), retlen, SYBVARCHAR, (BYTE*) teststr, -1);
-		if (strcmp(teststr, "test123") != 0) {
-			fprintf(stderr, "Unexpected '%s' results.\n", teststr);
+		dbconvert(dbproc, rettype, dbretdata(dbproc, i), retlen, SYBVARCHAR, (BYTE*) testblob, -1);
+		if (retlen != BLOB_PADLEN+BLOB_TESTLEN) {
+			fprintf(stderr, "Unexpected output length %d.\n", retlen);
+			exit(1);
+		}
+		if (testblob[0] != 'p') {	/* "pad' */
+			fprintf(stderr, "Unexpected first char 0x%x.\n", testblob[0]);
+			exit(1);
+		}
+		if (strcmp(testblob+BLOB_PADLEN, "test123") != 0) {
+			fprintf(stderr, "Unexpected '%s' results.\n", testblob+BLOB_PADLEN);
 			exit(1);
 		}
 	}
