@@ -1,0 +1,20 @@
+CREATE PROCEDURE #rpc70
+  @a char(10)
+, @b char(10) OUTPUT
+AS
+SET @b=@a
+RETURN 0
+
+go
+IF OBJECT_ID('rpc70') IS NOT NULL DROP PROC rpc70
+go
+CREATE PROCEDURE rpc70
+  @a char(10)
+, @b char(10) OUTPUT
+AS
+SET @b=@a
+RETURN 0
+
+go
+IF OBJECT_ID('rpc70') IS NOT NULL DROP PROC rpc70
+go

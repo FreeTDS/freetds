@@ -22,6 +22,7 @@ TESTS =	\
 	t0022$(EXEEXT) \
 	t0023$(EXEEXT) \
 	rpc$(EXEEXT) \
+	rpc70$(EXEEXT) \
 	dbmorecmds$(EXEEXT) \
 	bcp$(EXEEXT) \
 	thread$(EXEEXT) \
@@ -72,6 +73,7 @@ t0021_SOURCES	=	t0021.c
 t0022_SOURCES	=	t0022.c t0022.sql
 t0023_SOURCES	=	t0023.c t0023.sql
 rpc_SOURCES	=	rpc.c rpc.sql
+rpc70_SOURCES	=	rpc70.c rpc70.sql
 dbmorecmds_SOURCES =	dbmorecmds.c dbmorecmds.sql
 bcp_SOURCES	=	bcp.c bcp.h bcp.sql
 thread_SOURCES	=	thread.c bcp.h
