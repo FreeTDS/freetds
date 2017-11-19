@@ -467,7 +467,8 @@ main(int argc, char **argv)
 	}
 
 	/* additional tests for mssql */
-	if (num_params == 6) {
+#if defined(DBTDS_7_2)
+	if (num_params == 6 && dbtds(dbproc) >= DBTDS_7_2) {
 		erc = dbrpcinit(dbproc, "sp_executesql", 0);	/* no options */
 		if (erc == FAIL) {
 			fprintf(stderr, "Failed line %d: dbrpcinit\n", __LINE__);
@@ -496,6 +497,7 @@ main(int argc, char **argv)
 			exit(1);
 		}
 	}
+#endif
 
 	dbexit();
 
