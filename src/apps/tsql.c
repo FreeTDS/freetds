@@ -310,9 +310,22 @@ static void
 tsql_print_usage(const char *progname)
 {
 	fprintf(stderr,
-		"Usage:\t%s [-a <appname>] [-S <server> | -H <hostname> -p <port>] -U <username> [-P <password>] [-I <config file>] [-o <options>] [-t delim] [-r delim] [-D database]\n"
-		"\t%s -C\n"
-		"Options:\n"
+		"Usage: %s [-a <appname>] [-S <server> | -H <hostname> -p <port>] -U <username> [-P <password>] [-I <config file>] [-o <options>] [-t delim] [-r delim] [-D database]\n"
+		"  or:  %s -C\n"
+		"  or:  %s -L -H <hostname>\n"
+		"If -C is specified just print configuration and exit.\n"
+		"If -L is specified with a host name (-H) instances found are printed.\n"
+		"  -a  specify application name\n"
+		"  -S  specify server entry in freetds.conf to connect\n"
+		"  -H  specify hostname to connect\n"
+		"  -p  specify port to connect to\n"
+		"  -U  specify username to use\n"
+		"  -P  specify password to use\n"
+		"  -D  specify database name to use\n"
+		"  -I  specify old configuration file (called interface) to use\n"
+		"  -J  specify character set to use\n"
+		"  -v  verbose mode\n"
+		"-o options:\n"
 		"\tf\tDo not print footer\n"
 		"\th\tDo not print header\n"
 		"\tt\tPrint time informations\n"
@@ -320,7 +333,7 @@ tsql_print_usage(const char *progname)
 		"\tq\tQuiet\n\n"
 		"\tDelimiters can be multi-char strings appropriately escaped for your shell.\n"
 		"\tDefault column delimitor is <tab>; default row delimiter is <newline>\n",
-		progname, progname);
+		progname, progname, progname);
 }
 
 static void
@@ -503,7 +516,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 			exit(0);
 			break;
 		default:
-			tsql_print_usage(argv[0]);
+			tsql_print_usage(basename(argv[0]));
 			exit(1);
 			break;
 		}
