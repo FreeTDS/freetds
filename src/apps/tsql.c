@@ -152,10 +152,8 @@ tsql_readline(char *prompt)
 		pos += strlen(line + pos);
 		if (pos + 1024 >= sz) {
 			sz += 1024;
-			p = (char*) realloc(line, sz);
-			if (!p)
+			if (!TDS_RESIZE(line, sz))
 				break;
-			line = p;
 		}
 	}
 	free(line);
@@ -677,7 +675,10 @@ slurp_input_file(char *fname, char **mybuf, size_t *bufsz, size_t *buflen, int *
 	while ((s = fgets(linebuf, sizeof(linebuf), fp)) != NULL) {
 		while (*buflen + strlen(s) + 2 > *bufsz) {
 			*bufsz *= 2;
-			*mybuf = (char *) realloc(*mybuf, *bufsz);
+			if (!TDS_RESIZE(*mybuf, *bufsz)) {
+				perror("tsql: ");
+				exit(1);
+			}
 		}
 		strcpy(*mybuf + *buflen, s);
 		*buflen += strlen(*mybuf + *buflen);
@@ -912,13 +913,11 @@ main(int argc, char **argv)
 			slurp_input_file(strtok(NULL, " \t"), &mybuf, &bufsz, &buflen, &line);
 		} else {
 			while (buflen + strlen(s) + 2 > bufsz) {
-				char *newbuf; 
 				bufsz *= 2;
-				if ((newbuf = (char *) realloc(mybuf, bufsz)) == NULL) {
+				if (!TDS_RESIZE(mybuf, bufsz)) {
 					perror("tsql: ");
 					exit(1);
 				}
-				mybuf = newbuf;
 			}
 			tsql_add_history(s);
 			strcpy(mybuf + buflen, s);
