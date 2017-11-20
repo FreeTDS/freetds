@@ -1559,9 +1559,9 @@ tds_fix_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		break;
 	case 4:
 		if (curcol->on_server.column_type == SYBNTEXT)
-			size = MAX(MIN(size, 0x7ffffffeu), 2u);
+			size = 0x7ffffffeu;
 		else
-			size = MAX(MIN(size, 0x7fffffffu), 1u);
+			size = 0x7fffffffu;
 		break;
 	default:
 		break;
