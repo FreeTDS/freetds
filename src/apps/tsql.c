@@ -876,8 +876,11 @@ main(int argc, char **argv)
 	for (s=NULL, s2=NULL; ; free(s), free(s2), s2=NULL) {
 		sprintf(prompt, "%d> ", ++line);
 		s = tsql_readline(QUIET ? NULL : prompt);
-		if (s == NULL) 
+		if (s == NULL) {
+			if (buflen)
+				do_query(tds, mybuf, global_opt_flags);
 			break;
+		}
 
 		/* 
 		 * 'GO' is special only at the start of a line
