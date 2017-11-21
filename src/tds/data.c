@@ -1056,7 +1056,8 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 			tds_put_int(tds, colsize);
 			break;
 		case 4:	/* It's a BLOB... */
-			colsize = MIN(colsize, size);
+			if (!converted)
+				colsize = MIN(colsize, size);
 			/* mssql require only size */
 			if (bcp7 && is_blob_type(curcol->on_server.column_type)) {
 				static const unsigned char textptr[] = {

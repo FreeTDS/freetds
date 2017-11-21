@@ -28,6 +28,7 @@ t0016.err
 t0017.err
 t0017.out
 rpc
+rpc70
 dbmorecmds
 bcp
 thread
