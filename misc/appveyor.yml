@@ -156,6 +156,7 @@ after_test:
   - cd ..
   - mkdir build-nossl
   - cd build-nossl
+  - set DESTDIR=..\build\vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
   - mkdir %DESTDIR%\lib-nossl
   - mkdir %DESTDIR%\lib-nossl\static
   - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Release -DWITH_OPENSSL=off .."
