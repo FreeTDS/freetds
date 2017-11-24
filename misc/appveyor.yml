@@ -125,8 +125,8 @@ test_script:
 #  - cd ..
 
 after_test:
-  - type %CD%\build\confdump
-  - type %CD%\build\conndump
+#  - type %CD%\build\confdump
+#  - type %CD%\build\conndump
   # Create zipball artifact
   - cd build
   - set DESTDIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
