@@ -152,7 +152,32 @@ after_test:
   - mkdir %DESTDIR%\bin
   - copy src\apps\*.exe %DESTDIR%\bin\
   - copy src\pool\*.exe %DESTDIR%\bin\
-  - 7z a ..\%DESTDIR%.zip %DESTDIR%
+  # Build FreeTDS again, this time without linking in OpenSSL at all
+  - cd ..
+  - mkdir build-nossl
+  - cd build-nossl
+  - mkdir %DESTDIR%\lib-nossl
+  - mkdir %DESTDIR%\lib-nossl\static
+  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Release -DWITH_OPENSSL=off .."
+  - "%WITH_COMPILER% nmake"
+  - src\apps\tsql.exe -C
+  - copy src\ctlib\ct.dll ..\build\%DESTDIR%\lib-nossl\
+  - copy src\ctlib\ct.lib ..\build\%DESTDIR%\lib-nossl\
+  - copy src\ctlib\ct.dll.manifest ..\build\%DESTDIR%\lib-nossl\
+  - copy src\dblib\sybdb.dll ..\build\%DESTDIR%\lib-nossl\
+  - copy src\dblib\sybdb.lib ..\build\%DESTDIR%\lib-nossl\
+  - copy src\dblib\sybdb.dll.manifest ..\build\%DESTDIR%\lib-nossl\
+  - copy src\odbc\tdsodbc.dll ..\build\%DESTDIR%\lib-nossl\
+  - copy src\odbc\tdsodbc.lib ..\build\%DESTDIR%\lib-nossl\
+  - copy src\odbc\tdsodbc.dll.manifest ..\build\%DESTDIR%\lib-nossl\
+  - copy src\dblib\db-lib.lib ..\build\%DESTDIR%\lib-nossl\static\
+  - copy src\ctlib\libct.lib ..\build\%DESTDIR%\lib-nossl\static\
+  - copy src\tds\tds.lib ..\build\%DESTDIR%\lib-nossl\static\
+  - copy src\replacements\replacements.lib ..\build\%DESTDIR%\lib-nossl\static\
+  # for now, ship the static iconv.lib bundled with the FreeTDS ones
+  - copy ..\iconv\lib\iconv.lib ..\build\%DESTDIR%\lib-nossl\static\
+  - cd ..\build
+  # END of non-test code specifically related to creation of artifacts published via GitHub  - 7z a ..\%DESTDIR%.zip %DESTDIR%
   - cd ..
 
 artifacts:
