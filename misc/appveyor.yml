@@ -143,6 +143,6 @@ after_test:
   - 7z a ..\%DESTDIR%.zip %DESTDIR%
   # END of non-test code specifically related to creation of artifacts published via GitHub  - 7z a ..\%DESTDIR%.zip %DESTDIR%
   - cd ..
-x
+
 artifacts:
   - path: vs*.zip
