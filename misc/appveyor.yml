@@ -134,8 +134,8 @@ test_script:
 #  - cd ..
 
 after_test:
-  - type %CD%\build\confdump
-  - type %CD%\build\conndump
+#  - type %CD%\build\confdump
+#  - type %CD%\build\conndump
   # Create zipball artifact
   - cd build
   - "%WITH_COMPILER% nmake install"
