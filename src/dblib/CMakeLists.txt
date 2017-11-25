@@ -18,7 +18,7 @@ add_library(db-lib STATIC
 target_link_libraries(db-lib tds replacements ${lib_NETWORK} ${lib_BASE})
 
 if(NOT WIN32)
-	set_target_properties(sybdb PROPERTIES SOVERSION "5.0.0")
+	set_target_properties(sybdb PROPERTIES SOVERSION "5.1.0")
 endif()
 
 if(MINGW OR CYGWIN)
