@@ -24,3 +24,12 @@ endif()
 if(MINGW OR CYGWIN)
 	set_target_properties(sybdb PROPERTIES LINK_FLAGS "--static")
 endif(MINGW OR CYGWIN)
+
+if(WIN32)
+INSTALL(TARGETS sybdb db-lib
+        PUBLIC_HEADER DESTINATION include
+		RUNTIME DESTINATION bin	
+		LIBRARY DESTINATION lib
+		ARCHIVE DESTINATION lib
+        )
+endif(WIN32)

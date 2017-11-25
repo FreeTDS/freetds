@@ -19,3 +19,4 @@ add_library(tdsutils STATIC
 if (NOT WIN32)
 	set_target_properties(tdsutils PROPERTIES COMPILE_FLAGS -fPIC)
 endif()
+
