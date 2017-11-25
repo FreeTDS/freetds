@@ -463,7 +463,6 @@ if(NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
 endif(NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
 
 
-if(WIN32)
 set(FREETDS_PUBLIC_INCLUDE
 	${CMAKE_SOURCE_DIR}/include/bkpublic.h
 	${CMAKE_SOURCE_DIR}/include/cspublic.h
@@ -488,4 +487,3 @@ set(FREETDS_CONF_FILES
 install(FILES ${FREETDS_PUBLIC_INCLUDE} DESTINATION include)
 install(FILES ${FREETDS_PUBLIC_INCLUDE_2} DESTINATION include/freetds)
 install(FILES ${FREETDS_CONF_FILES} DESTINATION etc)
-endif(WIN32)
