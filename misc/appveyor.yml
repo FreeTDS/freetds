@@ -90,7 +90,8 @@ build_script:
   - mkdir build
   - cd build
   - set OPENSSL_ROOT_DIR=c:\openssl-win%WIDTH%
-  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Release .."
+  - set DEST_DIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
+  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Release \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" .."
   - "%WITH_COMPILER% nmake"
   - set PATH=%PATH%;c:\openssl-win%WIDTH%
   - src\apps\tsql.exe -C
@@ -129,29 +130,8 @@ after_test:
   - type %CD%\build\conndump
   # Create zipball artifact
   - cd build
+  - "%WITH_COMPILER% nmake install"
   - set DESTDIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
-  - mkdir %DESTDIR%
-  - mkdir %DESTDIR%\static
-  - copy src\dblib\db-lib.lib %DESTDIR%\static\
-  - copy src\ctlib\libct.lib %DESTDIR%\static\
-  - copy src\tds\tds.lib %DESTDIR%\static\
-  - copy src\replacements\replacements.lib %DESTDIR%\static\
-  - copy src\utils\tdsutils.lib %DESTDIR%\static\
-  - mkdir %DESTDIR%\include
-  - cp include/tds_sysdep_public.h ./%DESTDIR%/include/
-  - cd ..\include
-  - cp odbcss.h bkpublic.h cspublic.h cstypes.h ctpublic.h sqldb.h sqlfront.h sybdb.h syberror.h sybfront.h ../build/%DESTDIR%/include/
-  - cd ..\build
-  - mkdir %DESTDIR%\dynamic
-  - copy src\ctlib\ct.dll %DESTDIR%\dynamic\
-  - copy src\ctlib\ct.lib %DESTDIR%\dynamic\
-  - copy src\dblib\sybdb.dll %DESTDIR%\dynamic\
-  - copy src\dblib\sybdb.lib %DESTDIR%\dynamic\
-  - copy src\odbc\tdsodbc.dll %DESTDIR%\dynamic\
-  - copy src\odbc\tdsodbc.lib %DESTDIR%\dynamic\
-  - mkdir %DESTDIR%\bin
-  - copy src\apps\*.exe %DESTDIR%\bin\
-  - copy src\pool\*.exe %DESTDIR%\bin\
   - 7z a ..\%DESTDIR%.zip %DESTDIR%
   - cd ..
 
