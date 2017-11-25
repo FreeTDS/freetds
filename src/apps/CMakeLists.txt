@@ -16,7 +16,7 @@ endif(WIN32)
 add_executable(bsqlodbc bsqlodbc.c)
 target_link_libraries(bsqlodbc tdsodbc replacements tdsutils ${libs})
 
-INSTALL(TARGETS tsql bsqlodbc
+INSTALL(TARGETS tsql bsqlodbc defncopy freebcp datacopy bsqldb
 	PUBLIC_HEADER DESTINATION include
 		RUNTIME DESTINATION bin
 		LIBRARY DESTINATION lib
