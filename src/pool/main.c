@@ -64,7 +64,6 @@
 
 /* to be set by sig term */
 static int got_sigterm = 0;
-static int got_sighup = 0;
 static const char *logfile_name = NULL;
 
 static void sigterm_handler(int sig);
@@ -81,6 +80,8 @@ sigterm_handler(int sig)
 }
 
 #ifndef _WIN32
+static int got_sighup = 0;
+
 static void
 sighup_handler(int sig)
 {
@@ -343,10 +344,12 @@ pool_main_loop(TDS_POOL * pool)
 		if (TDS_UNLIKELY(got_sigterm))
 			break;
 
+#ifndef _WIN32
 		if (TDS_UNLIKELY(got_sighup)) {
 			got_sighup = 0;
 			pool_open_logfile(pool);
 		}
+#endif
 
 		/* process events */
 		if (FD_ISSET(wakeup, &sel.rfds)) {
