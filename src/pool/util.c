@@ -65,7 +65,7 @@ dump_login(TDSLOGIN * login)
 bool
 pool_packet_read(TDSSOCKET *tds)
 {
-	int packet_len;
+	unsigned int packet_len;
 	int readed, err;
 
 	tdsdump_log(TDS_DBG_INFO1, "tds in_len %d in_pos %d\n", tds->in_len, tds->in_pos);
@@ -95,7 +95,7 @@ pool_packet_read(TDSSOCKET *tds)
 			packet_len = TDS_GET_A2BE(&tds->in_buf[2]);
 			if (packet_len < 8)
 				break;
-			tdsdump_log(TDS_DBG_INFO1, "packet_len %d in_len %d\n", packet_len, tds->in_len);
+			tdsdump_log(TDS_DBG_INFO1, "packet_len %u in_len %d\n", packet_len, tds->in_len);
 			/* resize packet if not enough */
 			if (packet_len > tds->recv_packet->capacity) {
 				TDSPACKET *packet;
