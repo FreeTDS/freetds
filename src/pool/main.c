@@ -59,6 +59,10 @@
 #include <arpa/inet.h>
 #endif /* HAVE_ARPA_INET_H */
 
+#ifdef _WIN32
+#include <io.h>
+#endif
+
 #include "pool.h"
 #include "replacements.h"
 
