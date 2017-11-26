@@ -110,6 +110,12 @@ typedef DWORD pid_t;
 #define putenv(s)          _putenv(s)
 #undef fileno
 #define fileno(f)          _fileno(f)
+#undef close
+#define close(f)           _close(f)
+#undef open
+#define open(fn,...)       _open(fn,__VA_ARGS__)
+#undef dup2
+#define dup2(o,n)          _dup2(o,n)
 #define stricmp(s1,s2)     _stricmp(s1,s2)
 #define strnicmp(s1,s2,n)  _strnicmp(s1,s2,n)
 #endif
