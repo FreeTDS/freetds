@@ -356,6 +356,9 @@ if(WIN32)
 	config_write("/* Define to 1 if you want to use SSPI for Win32 */\n#define HAVE_SSPI 1\n\n")
 	config_write("/* define to format string used for 64bit integers */\n#define TDS_I64_PREFIX \"I64\"\n\n")
 	config_write("/* Define to 1 if you have the SQLGetPrivateProfileString function. */\n#define HAVE_SQLGETPRIVATEPROFILESTRING 1\n\n")
+	if(MINGW)
+		config_write("#define _GNU_SOURCE 1\n\n")
+	endif(MINGW)
 
 else(WIN32)
 	# this section make just work on Linux, many definition are not checked
