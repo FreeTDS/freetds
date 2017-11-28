@@ -94,7 +94,7 @@ BIO_get_data(const BIO *b)
 {
 	return b->ptr;
 }
-#define TLS_client_method TLSv1_client_method
+#define TLS_client_method SSLv23_client_method
 #define TLS_ST_OK SSL_ST_OK
 #endif
 
@@ -928,6 +928,7 @@ check_hostname(X509 *cert, const char *hostname)
 int
 tds_ssl_init(TDSSOCKET *tds)
 {
+#define DEFAULT_OPENSSL_CTX_OPTIONS SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3
 #define DEFAULT_OPENSSL_CIPHERS "HIGH:!SSLv2:!aNULL:-DH"
 
 	SSL *con;
@@ -950,6 +951,8 @@ tds_ssl_init(TDSSOCKET *tds)
 	ctx = tds_init_openssl();
 	if (!ctx)
 		goto cleanup;
+
+	SSL_CTX_set_options(ctx, DEFAULT_OPENSSL_CTX_OPTIONS);
 
 	if (!tds_dstr_isempty(&tds->login->cafile)) {
 		tls_msg = "loading CA file";
