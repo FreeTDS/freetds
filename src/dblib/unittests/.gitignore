@@ -47,3 +47,4 @@ batch_stmt_ins_sel
 batch_stmt_ins_upd
 libcommon.a
 bcp_getl
+empty_rowsets
