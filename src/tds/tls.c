@@ -928,7 +928,7 @@ check_hostname(X509 *cert, const char *hostname)
 int
 tds_ssl_init(TDSSOCKET *tds)
 {
-#define DEFAULT_OPENSSL_CTX_OPTIONS SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3
+#define DEFAULT_OPENSSL_CTX_OPTIONS (SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3)
 #define DEFAULT_OPENSSL_CIPHERS "HIGH:!SSLv2:!aNULL:-DH"
 
 	SSL *con;
