@@ -96,6 +96,14 @@ build_script:
   - set PATH=%PATH%;c:\openssl-win%WIDTH%
   - src\apps\tsql.exe -C
   - cd ..
+  - mkdir build-nossl
+  - cd build-nossl
+  - set OPENSSL_ROOT_DIR=
+  - set DEST_DIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
+  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Release -DWITH_OPENSSL=off \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" .."
+  - "%WITH_COMPILER% nmake"
+  - src\apps\tsql.exe -C
+  - cd ..
 
 test_script:
   - set INSTANCENAME=SQL2014
@@ -133,6 +141,7 @@ after_test:
   - "%WITH_COMPILER% nmake install"
   - set DESTDIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
   - 7z a ..\%DESTDIR%.zip %DESTDIR%
+  # END of non-test code specifically related to creation of artifacts published via GitHub  - 7z a ..\%DESTDIR%.zip %DESTDIR%
   - cd ..
 
 artifacts:
