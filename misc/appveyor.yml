@@ -138,19 +138,16 @@ after_test:
   # Create zipball artifact
   - cd build
   - "%WITH_COMPILER% nmake install"
-  - set DESTDIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
-  - 7z a ..\%DESTDIR%.zip %DESTDIR%
-  # END of non-test code specifically related to creation of artifacts published via GitHub  - 7z a ..\%DESTDIR%.zip %DESTDIR%
+  - set DEST_DIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
+  - 7z a ..\%DEST_DIR%.zip %DEST_DIR%
+  # END of non-test code specifically related to creation of artifacts published via GitHub  - 7z a ..\%DEST_DIR%.zip %DEST_DIR%
   - cd ..
   # Create zipball artifact for nossl
   - cd build_withoutssl
-  - set DESTDIR=C:/
-  - echo %DESTDIR%
   - "%WITH_COMPILER% nmake install"
-  - set DESTDIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
-  - echo %DESTDIR%
-  - 7z a ..\%DESTDIR%_withoutssl.zip %DESTDIR%
-  # END of non-test code specifically related to creation of artifacts published via GitHub  - 7z a ..\%DESTDIR%.zip %DESTDIR%
+  - set DEST_DIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
+  - 7z a ..\%DEST_DIR%_withoutssl.zip %DEST_DIR%
+  # END of non-test code specifically related to creation of artifacts published via GitHub  - 7z a ..\%DEST_DIR%.zip %DEST_DIR%
   - cd ..
 
 artifacts:
