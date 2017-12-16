@@ -252,7 +252,8 @@ static const char *cmdend = "go";
 static void
 reset_ibuf(void)
 {
-	for (int i = 0; ibuf && i < ibuflines; i++) {
+	int i;
+	for (i = 0; ibuf && i < ibuflines; i++) {
 		free(ibuf[i]);
 	}
 	ibuflines = 0;
