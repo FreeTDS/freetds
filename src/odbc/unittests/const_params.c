@@ -2,15 +2,13 @@
 
 /* Test for {?=call store(?,123,'foo')} syntax and run */
 
-static char software_version[] = "$Id: const_params.c,v 1.19 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 int
 main(int argc, char *argv[])
 {
 	SQLINTEGER input, output;
 	SQLINTEGER out1;
 	SQLLEN ind, ind2, ind3;
+	const char *sql;
 
 	odbc_connect();
 
@@ -114,6 +112,26 @@ main(int argc, char *argv[])
 	odbc_reset_statement();
 
 	odbc_command("drop proc const_param");
+
+	sql = "create proc const_param @in1 bigint as\n"
+	"begin\n"
+	" if @in1 <> 1000000000000 select 0 else select 1\n"
+	"end";
+	if (odbc_command_with_result(odbc_stmt, sql) == SQL_SUCCESS) {
+		output = 0xdeadbeef;
+		odbc_command("{CALL const_param(1000000000000)}");
+		CHKBindCol(1, SQL_C_SLONG, &output, 0, &ind, "S");
+		SQLFetch(odbc_stmt);
+
+		if (output != 1) {
+			fprintf(stderr, "Invalid result %d (0x%x)\n", (int) output, (int) output);
+			return 1;
+		}
+
+		odbc_reset_statement();
+
+		odbc_command("drop proc const_param");
+	}
 
 	odbc_disconnect();
 
