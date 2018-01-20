@@ -151,6 +151,12 @@ int tds_gettimeofday (struct timeval *tv, void *tz);
 
 #endif
 
+#if defined(_WIN32) && defined(_MSC_VER)
+#define tds_strtoll _strtoi64
+#else
+#define tds_strtoll strtoll
+#endif
+
 #if !HAVE_GETOPT
 #undef getopt
 int tds_getopt(int argc, char * const argv[], const char *optstring);

@@ -201,6 +201,8 @@ parse_const_param(const char *s, TDS_SERVER_TYPE *type)
 
 	/* integer/float */
 	if (isdigit(*s) || *s == '+' || *s == '-') {
+		long val;
+
 		errno = 0;
 		strtod(s, &end);
 		if (end != s && strcspn(s, ".eE") < (size_t) (end-s) && errno == 0) {
@@ -208,10 +210,20 @@ parse_const_param(const char *s, TDS_SERVER_TYPE *type)
 			return end;
 		}
 		errno = 0;
-		/* FIXME success if long is 64bit */
-		strtol(s, &end, 10);
+
+		val = strtol(s, &end, 10);
 		if (end != s && errno == 0) {
-			*type = SYBINT4;
+			if (val+1 >= -0x7FFFFFFF && val <= 0x7FFFFFFF)
+				*type = SYBINT4;
+			else
+				*type = SYBINT8;
+			return end;
+		}
+
+		errno = 0;
+		tds_strtoll(s, &end, 10);
+		if (end != s && errno == 0) {
+			*type = SYBINT8;
 			return end;
 		}
 	}

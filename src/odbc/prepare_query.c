@@ -102,6 +102,7 @@ prepared_rpc(struct _hstmt *stmt, bool compute_row)
 			default:
 				assert(0);
 			case SYBINT4:
+			case SYBINT8:
 			case SYBFLT8:
 				curcol->column_cur_size = curcol->column_size;
 				break;
@@ -145,6 +146,9 @@ prepared_rpc(struct _hstmt *stmt, bool compute_row)
 					break;
 				case SYBINT4:
 					*((TDS_INT *) dest) = strtol(start, NULL, 10);
+					break;
+				case SYBINT8:
+					*((TDS_INT8 *) dest) = tds_strtoll(start, NULL, 10);
 					break;
 				case SYBFLT8:
 					*((TDS_FLOAT *) dest) = strtod(start, NULL);
