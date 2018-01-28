@@ -177,7 +177,8 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 	TDS_NUMERIC num;
 	SQL_NUMERIC_STRUCT *sql_num;
 	SQLINTEGER sql_len;
-	int need_data = 0, i;
+	bool need_data = false;
+	int i;
 
 	/* TODO handle bindings of char like "{d '2002-11-12'}" */
 	tdsdump_log(TDS_DBG_INFO2, "type=%d\n", drec_ixd->sql_desc_concise_type);
@@ -327,7 +328,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 				return SQL_ERROR;
 			}
 			len = SQL_LEN_DATA_AT_EXEC(sql_len);
-			need_data = 1;
+			need_data = true;
 
 			/* dynamic length allowed only for BLOB fields */
 			switch (drec_ixd->sql_desc_concise_type) {
