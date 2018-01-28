@@ -395,7 +395,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 	/* convert special parameters (not libTDS compatible) */
 	switch (src_type) {
 	case SYBMSDATETIME2:
-		convert_datetime2server(drec_axd->sql_desc_concise_type, src, &dta);
+		convert_datetime2server(sql_src_type, src, &dta);
 		src = (char *) &dta;
 		break;
 	case SYBDECIMAL:
