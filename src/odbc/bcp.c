@@ -433,7 +433,7 @@ _tdsodbc_dbconvert(TDS_DBC *dbc, int srctype, const TDS_CHAR * src, SQLLEN src_l
 	TDS_DATETIMEALL dta;
 	TDS_NUMERIC num;
 	SQL_NUMERIC_STRUCT * sql_num;
-	int always_convert = 0;
+	bool always_convert = false;
 
 	assert(src_len >= 0);
 	assert(src != NULL);
