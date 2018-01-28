@@ -635,7 +635,7 @@ odbc_c_to_server_type(int c_type)
 	case SQL_C_TINYINT:
 	case SQL_C_UTINYINT:
 		return SYBINT1;
-		/* ODBC date formats are completely differect from SQL one */
+		/* ODBC date formats are completely different from SQL one */
 	case SQL_C_DATE:
 	case SQL_C_TIME:
 	case SQL_C_TIMESTAMP:
