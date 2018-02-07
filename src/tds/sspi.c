@@ -45,6 +45,7 @@
 #include <freetds/tds.h>
 #include <freetds/thread.h>
 #include <freetds/string.h>
+#include <freetds/bool.h>
 #include "replacements.h"
 
 /**
@@ -70,13 +71,13 @@ static HMODULE secdll = NULL;
 static PSecurityFunctionTableA sec_fn = NULL;
 static tds_mutex sec_mutex = TDS_MUTEX_INITIALIZER;
 
-static int
+static bool
 tds_init_secdll(void)
 {
-	int res = 0;
+	bool res = false;
 
 	if (sec_fn)
-		return 1;
+		return true;
 
 	tds_mutex_lock(&sec_mutex);
 	for (;;) {
@@ -96,7 +97,7 @@ tds_init_secdll(void)
 			if (!sec_fn)
 				break;
 		}
-		res = 1;
+		res = true;
 		break;
 	}
 	tds_mutex_unlock(&sec_mutex);
