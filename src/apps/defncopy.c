@@ -554,7 +554,7 @@ print_results(DBPROCESS *dbproc)
 	
 	/* bound variables */
 	enum column_id { ctext=1, number=2 };
-	char sql_text[16000];
+	char sql_text[16002];
 	int	 sql_text_status;
 	int	 procedure_number; /* for create proc abc;2 */
 	int	 procedure_number_status;
