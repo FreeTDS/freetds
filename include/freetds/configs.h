@@ -20,8 +20,6 @@
 #ifndef _tds_configs_h_
 #define _tds_configs_h_
 
-/* $Id: tds_configs.h,v 1.21 2005-07-08 08:22:53 freddy77 Exp $ */
-
 #include <freetds/sysconfdir.h>
 
 #ifndef _tds_h_
