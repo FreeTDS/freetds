@@ -1035,6 +1035,7 @@ tds_ssl_init(TDSSOCKET *tds)
 		tls_msg = "checking hostname";
 		if (!cert || !check_hostname(cert, tds_dstr_cstr(&tds->login->server_host_name)))
 			goto cleanup;
+		X509_free(cert);
 	}
 
 	tdsdump_log(TDS_DBG_INFO1, "handshake succeeded!!\n");
