@@ -576,6 +576,111 @@ tds_ssl_deinit(TDSCONNECTION *conn)
 }
 
 #else
+
+int tds_update_cert_store_with_root_cas(SSL_CTX *ctx)
+{
+	int ret = 0;
+	X509_STORE *store = NULL;
+	X509 *x509 = NULL;
+#ifdef WIN32
+	HCERTSTORE hStore = NULL;
+    PCCERT_CONTEXT pContext = NULL;
+#else
+	FILE *f = NULL;
+    DIR *dirp = NULL;
+    char path[] = "/etc/ssl/certs/";
+	char *fullPath = NULL;
+	struct dirent entry;
+	struct dirent *endp;
+	struct stat st;
+#endif
+	
+	store = SSL_CTX_get_cert_store(ctx);
+
+#ifdef WIN32
+	hStore = CertOpenSystemStore(NULL, "ROOT");
+    if (!hStore)
+        goto err;
+
+	while (pContext = CertEnumCertificatesInStore(hStore, pContext))
+	{
+		if ((x509 = d2i_X509(NULL, (const unsigned char **)&pContext->pbCertEncoded, pContext->cbCertEncoded)) != NULL)
+		{
+#else
+
+    if (stat(path, &st) == -1)
+        goto err;
+
+    if((dirp = opendir(path)) == NULL)
+        goto err;
+
+    for (;;) {
+        endp = NULL;
+
+        // Attempt to read the next entry in the directory
+        if (readdir_r(dirp, &entry, &endp) == -1)
+            goto err;
+
+        // If the read fail, break out of the loop because we're done
+        if (endp == NULL)
+            break;
+
+        // Verify that the file ends in ".pem" already, because we're only interested in
+        // existing PEM files. Furthermore, this also filters out the "." and ".." files
+        if (strlen(entry.d_name) <= strlen(".pem") ||
+                strcmp(entry.d_name + strlen(entry.d_name) - strlen(".pem"), ".pem") != 0)
+            continue;
+
+        // If the path is now invalid, we're done
+        if (stat(path, &st) == -1)
+            goto err;
+
+        // We don't want to process directories
+        if (S_ISDIR(st.st_mode) == 0)
+            continue;
+
+        // Build the full path to the file for us to open
+        fullPath = (char*)malloc(strlen(path) + strlen(entry.d_name) + 1);
+        strcpy(fullPath, path);
+        strcat(fullPath, entry.d_name);
+
+		x509 = PEM_read_X509(f, NULL, NULL, NULL);
+		if (x509 == NULL)
+		    goto err;
+		
+		if(f)
+		{
+		    fclose(f);
+		    f = NULL;
+		}
+		if (fullPath)
+		{
+			free(fullPath);
+			fullPath = NULL;
+		}
+#endif
+		
+			X509_STORE_add_cert(store, x509);
+			X509_free(x509);
+#ifdef WIN32
+		}
+#endif
+	}
+
+	ret = 1;
+err:
+
+#ifdef WIN32
+	if (hStore) CertCloseStore(hStore, 0);
+#else
+    if (dirp) closedir(dirp);
+    if (fullPath) free(fullPath);
+	if (f) fclose(f);
+#endif
+
+	return ret;
+}
+
 static long
 tds_ssl_ctrl_login(BIO *b, int cmd, long num, void *ptr)
 {
@@ -957,7 +1062,7 @@ tds_ssl_init(TDSSOCKET *tds)
 	if (!tds_dstr_isempty(&tds->login->cafile)) {
 		tls_msg = "loading CA file";
 		if (strcasecmp(tds_dstr_cstr(&tds->login->cafile), "system") == 0)
-			ret = SSL_CTX_set_default_verify_paths(ctx);
+			ret = tds_update_cert_store_with_root_cas(ctx);
 		else
 			ret = SSL_CTX_load_verify_locations(ctx, tds_dstr_cstr(&tds->login->cafile), NULL);
 		if (ret != 1)
