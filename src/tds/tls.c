@@ -586,10 +586,10 @@ int tds_update_cert_store_with_root_cas(SSL_CTX *ctx)
 	HCERTSTORE hStore = NULL;
     PCCERT_CONTEXT pContext = NULL;
 #else
-	FILE *f = NULL;
-    DIR *dirp = NULL;
-    char path[] = "/etc/ssl/certs/";
+    FILE *f = NULL;
+    const char *path = NULL;
 	char *fullPath = NULL;
+    DIR *dirp = NULL;
 	struct dirent entry;
 	struct dirent *endp;
 	struct stat st;
@@ -607,6 +607,13 @@ int tds_update_cert_store_with_root_cas(SSL_CTX *ctx)
 		if ((x509 = d2i_X509(NULL, (const unsigned char **)&pContext->pbCertEncoded, pContext->cbCertEncoded)) != NULL)
 		{
 #else
+
+    path = getenv(X509_get_default_cert_dir_env());
+    if (!path)
+        path = X509_get_default_cert_dir();
+
+    if (!path)
+        goto err;
 
     if (stat(path, &st) == -1)
         goto err;
@@ -640,18 +647,24 @@ int tds_update_cert_store_with_root_cas(SSL_CTX *ctx)
             continue;
 
         // Build the full path to the file for us to open
-        fullPath = (char*)malloc(strlen(path) + strlen(entry.d_name) + 1);
+        fullPath = (char*)malloc(strlen(path) + 1 + strlen(entry.d_name) + 1);
         strcpy(fullPath, path);
+        strcat(fullPath, "/");
         strcat(fullPath, entry.d_name);
+
+        f = fopen(fullPath, "rb");
+
+        if (!f)
+            goto err;
 
 		x509 = PEM_read_X509(f, NULL, NULL, NULL);
 		if (x509 == NULL)
-		    goto err;
-		
+			goto err;
+
 		if(f)
 		{
-		    fclose(f);
-		    f = NULL;
+            fclose(f);
+            f = NULL;
 		}
 		if (fullPath)
 		{
@@ -659,9 +672,10 @@ int tds_update_cert_store_with_root_cas(SSL_CTX *ctx)
 			fullPath = NULL;
 		}
 #endif
-		
+
 			X509_STORE_add_cert(store, x509);
 			X509_free(x509);
+
 #ifdef WIN32
 		}
 #endif
