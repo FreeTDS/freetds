@@ -7500,7 +7500,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, TDS_SERVER_TYPE srctype, const BYTE * 
 					if (srclen < destlen) {
 						memset(dest + srclen, ' ', destlen - srclen - 1);
 					}
-					dest[i] = '\0';
+					dest[destlen - 1] = '\0';
 					break;
 				case CHARBIND:   /* pad with blanks, NO NUL term */
 					if (limited_dest_space) {
@@ -7659,7 +7659,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, TDS_SERVER_TYPE srctype, const BYTE * 
 				if (len < destlen) {
 					memset(dest + len, ' ', destlen - len - 1);
 				}
-				dest[i] = '\0';
+				dest[destlen - 1] = '\0';
 				break;
 			case CHARBIND:   /* pad with blanks, NO null term */
 				if (limited_dest_space) {
