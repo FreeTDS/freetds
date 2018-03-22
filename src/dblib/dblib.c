@@ -7362,12 +7362,12 @@ copy_data_to_host_var(DBPROCESS * dbproc, TDS_SERVER_TYPE srctype, const BYTE * 
 							srclen = destlen - 1;
 						}
 					} else {
-						destlen = srclen; 
+						destlen = srclen + 1;
 					}
 					memcpy(dest, src, srclen);
-					for (i = srclen; i < destlen - 1; i++)
-						dest[i] = ' ';
-					dest[i] = '\0';
+					if (srclen < destlen)
+						memset(dest + srclen, ' ', destlen - srclen - 1);
+					dest[destlen - 1] = '\0';
 					break;
 				case CHARBIND:   /* pad with blanks, NO NUL term */
 					if (limited_dest_space) {
@@ -7380,8 +7380,8 @@ copy_data_to_host_var(DBPROCESS * dbproc, TDS_SERVER_TYPE srctype, const BYTE * 
 						destlen = srclen; 
 					}
 					memcpy(dest, src, srclen);
-					for (i = srclen; i < destlen; i++)
-						dest[i] = ' ';
+					if (srclen < destlen)
+						memset(dest + srclen, ' ', destlen - srclen);
 					break;
 				case VARYCHARBIND: /* strip trailing blanks, NO NUL term */
 					if (limited_dest_space) {
@@ -7519,12 +7519,12 @@ copy_data_to_host_var(DBPROCESS * dbproc, TDS_SERVER_TYPE srctype, const BYTE * 
 						len = destlen - 1;
 					}
 				} else {
-					destlen = len; 
+					destlen = len + 1;
 				}
 				memcpy(dest, dres.c, len);
-				for (i = len; i < destlen - 1; i++)
-					dest[i] = ' ';
-				dest[i] = '\0';
+				if (len < destlen)
+					memset(dest + len, ' ', destlen - len - 1);
+				dest[destlen - 1] = '\0';
 				break;
 			case CHARBIND:   /* pad with blanks, NO null term */
 				if (limited_dest_space) {
@@ -7537,8 +7537,8 @@ copy_data_to_host_var(DBPROCESS * dbproc, TDS_SERVER_TYPE srctype, const BYTE * 
 					destlen = len; 
 				}
 				memcpy(dest, dres.c, len);
-				for (i = len; i < destlen; i++)
-					dest[i] = ' ';
+				if (len < destlen)
+					memset(dest + len, ' ', destlen - len);
 				break;
 			case VARYCHARBIND: /* strip trailing blanks, NO null term */
 				if (limited_dest_space) {
