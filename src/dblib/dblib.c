@@ -7406,7 +7406,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, TDS_SERVER_TYPE srctype, const BYTE * 
 	int i, len;
 	DBINT indicator_value = 0;
 
-	int limited_dest_space = 0;
+	bool limited_dest_space = false;
 	TDS_SERVER_TYPE desttype = dblib_bound_type(bindtype);
 
 	tdsdump_log(TDS_DBG_FUNC, "copy_data_to_host_var(%d [%s] len %d => %d [%s] len %d)\n", 
@@ -7420,7 +7420,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, TDS_SERVER_TYPE srctype, const BYTE * 
 	assert(srclen >= 0);
 
 	if (destlen > 0) {
-		limited_dest_space = 1;
+		limited_dest_space = true;
 	}
 
 	/* oft times we are asked to convert a data type to itself */
