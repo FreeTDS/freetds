@@ -6,10 +6,10 @@
 
 #include "common.h"
 
-int failed = 0;
+static int failed = 0;
 
-void insert_row(DBPROCESS * dbproc);
-int select_rows(DBPROCESS * dbproc, int bind_type);
+static void insert_row(DBPROCESS * dbproc);
+static int select_rows(DBPROCESS * dbproc, int bind_type);
 
 int
 main(int argc, char **argv)
@@ -64,7 +64,7 @@ main(int argc, char **argv)
 	return failed ? 1 : 0;
 }
 
-int
+static int
 select_rows(DBPROCESS * dbproc, int bind_type)
 {
 	char teststr[1024];
@@ -123,7 +123,7 @@ select_rows(DBPROCESS * dbproc, int bind_type)
 	return 0;
 }
 
-void
+static void
 insert_row(DBPROCESS * dbproc)
 {
 	sql_cmd(dbproc);
