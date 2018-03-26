@@ -7,8 +7,6 @@
 #include "common.h"
 
 int failed = 0;
-const char long_column[] = "This is a really long column to ensure that the next row ends properly.";
-const char short_column[] = "Short column";
 
 void insert_row(DBPROCESS * dbproc);
 int select_rows(DBPROCESS * dbproc, int bind_type);
