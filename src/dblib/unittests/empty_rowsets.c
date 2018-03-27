@@ -25,13 +25,13 @@ main(int argc, char *argv[])
 	set_malloc_options();
 
 	read_login_info(argc, argv);
-	fprintf(stdout, "Starting %s\n", argv[0]);
+	printf("Starting %s\n", argv[0]);
 	dbinit();
 
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
-	fprintf(stdout, "About to logon\n");
+	printf("About to logon\n");
 
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
@@ -43,7 +43,7 @@ main(int argc, char *argv[])
 		dbuse(dbproc, DATABASE);
 	}
 	dbloginfree(login);
-	fprintf(stdout, "After logon\n");
+	printf("After logon\n");
 
 	/* select */
 	sql_cmd(dbproc);
@@ -52,7 +52,7 @@ main(int argc, char *argv[])
 	num_res = 0;
 	while ((ret_code = dbresults(dbproc)) == SUCCEED) {
 		num_cols = dbnumcols(dbproc);
-		fprintf(stdout, "Result %d has %d columns\n", num_res, num_cols);
+		printf("Result %d has %d columns\n", num_res, num_cols);
 		if (!(num_res % 2) && num_cols)
 			set_failed();
 		while(dbnextrow(dbproc) != NO_MORE_ROWS) {};
@@ -64,6 +64,6 @@ main(int argc, char *argv[])
 	dbclose(dbproc);
 	dbexit();
 
-	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
+	printf("%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	return failed ? 1 : 0;
 }
