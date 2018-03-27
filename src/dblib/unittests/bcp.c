@@ -167,7 +167,6 @@ main(int argc, char **argv)
 	LOGINREC *login;
 	DBPROCESS *dbproc;
 	int i, rows_sent=0;
-	int failed = 0;
 	const char *s;
 	const char *table_name = "all_types_bcp_unittest";
 
@@ -278,8 +277,6 @@ main(int argc, char **argv)
 	}
 	dbexit();
 
-	failed = 0;
-
-	printf("%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
-	return failed ? 1 : 0;
+	printf("%s OK\n", __FILE__);
+	return 0;
 }

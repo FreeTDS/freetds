@@ -6,8 +6,6 @@
 
 #include "common.h"
 
-static int failed = 0;
-
 int
 main(int argc, char **argv)
 {
@@ -195,6 +193,6 @@ main(int argc, char **argv)
 
 	dbexit();
 
-	printf("%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
-	return failed ? 1 : 0;
+	printf("%s OK\n", __FILE__);
+	return 0;
 }

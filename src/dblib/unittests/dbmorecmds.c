@@ -5,8 +5,6 @@
 
 #include "common.h"
 
-int failed = 0;
-
 int
 main(int argc, char **argv)
 {
@@ -79,8 +77,7 @@ main(int argc, char **argv)
 
 	/* dbmorecmds should return success 0 times for select 1 */
 	if (nresults != 1) {
-		failed = 1;
-		printf("Was expecting nresults == 1.\n");
+		fprintf(stderr, "Was expecting nresults == 1.\n");
 		exit(1);
 	}
 
@@ -103,14 +100,13 @@ main(int argc, char **argv)
 
 	/* dbmorecmds should return success 2 times for select 2 */
 	if (nresults != 2) {	/* two results sets plus a return code */
-		failed = 1;
-		printf("nresults was %d; was expecting nresults = 2.\n", nresults);
+		fprintf(stderr, "nresults was %d; was expecting nresults = 2.\n", nresults);
 		exit(1);
 	}
 
 	/* end of test processing */
 	dbexit();
 
-	printf("%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
-	return failed ? 1 : 0;
+	printf("%s OK\n", __FILE__);
+	return 0;
 }

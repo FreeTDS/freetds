@@ -122,6 +122,6 @@ main(int argc, char **argv)
 
 	dbexit();
 
-	printf("%s %s\n", __FILE__, (0 ? "failed!" : "OK"));
+	printf("%s OK\n", __FILE__);
 	return 0;
 }
