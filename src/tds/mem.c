@@ -808,10 +808,10 @@ tds_init_login(TDSLOGIN *login, TDSLOCALE * locale)
 
 	/*
 	 * TDS 7.0:
-	 * 0x02 indicates ODBC driver
-	 * 0x01 means change to initial language must succeed
+	 * ODBC driver settings.
+	 * Change to initial language must succeed.
 	 */
-	login->option_flag2 = 0x03;
+	login->option_flag2 = TDS_INIT_LANG_REQUIRED|TDS_ODBC_ON;
 	login->tds_version = TDS_DEFAULT_VERSION;
 	login->block_size = 0;
 
