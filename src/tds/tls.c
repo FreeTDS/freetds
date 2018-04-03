@@ -584,12 +584,12 @@ int tds_update_cert_store_with_root_cas(SSL_CTX *ctx)
 	X509 *x509 = NULL;
 #ifdef WIN32
 	HCERTSTORE hStore = NULL;
-    PCCERT_CONTEXT pContext = NULL;
+	PCCERT_CONTEXT pContext = NULL;
 #else
-    FILE *f = NULL;
-    const char *path = NULL;
-	char *fullPath = NULL;
-    DIR *dirp = NULL;
+	FILE *f = NULL;
+	const char *path = NULL;
+		char *fullPath = NULL;
+	DIR *dirp = NULL;
 	struct dirent entry;
 	struct dirent *endp;
 	struct stat st;
@@ -599,8 +599,8 @@ int tds_update_cert_store_with_root_cas(SSL_CTX *ctx)
 
 #ifdef WIN32
 	hStore = CertOpenSystemStore(NULL, "ROOT");
-    if (!hStore)
-        goto err;
+	if (!hStore)
+		goto err;
 
 	while (pContext = CertEnumCertificatesInStore(hStore, pContext))
 	{
@@ -608,69 +608,69 @@ int tds_update_cert_store_with_root_cas(SSL_CTX *ctx)
 		{
 #else
 
-    path = getenv(X509_get_default_cert_dir_env());
-    if (!path)
-        path = X509_get_default_cert_dir();
+			path = getenv(X509_get_default_cert_dir_env());
+			if (!path)
+				path = X509_get_default_cert_dir();
 
-    if (!path)
-        goto err;
+			if (!path)
+				goto err;
 
-    if (stat(path, &st) == -1)
-        goto err;
+			if (stat(path, &st) == -1)
+				goto err;
 
-    if((dirp = opendir(path)) == NULL)
-        goto err;
+			if((dirp = opendir(path)) == NULL)
+				goto err;
 
-    for (;;) {
-        endp = NULL;
+			for (;;) {
+				endp = NULL;
 
-        // Attempt to read the next entry in the directory
-        if (readdir_r(dirp, &entry, &endp) == -1)
-            goto err;
+			// Attempt to read the next entry in the directory
+			if (readdir_r(dirp, &entry, &endp) == -1)
+				goto err;
 
-        // If the read fail, break out of the loop because we're done
-        if (endp == NULL)
-            break;
+			// If the read fail, break out of the loop because we're done
+			if (endp == NULL)
+				break;
 
-        // Verify that the file ends in ".pem" already, because we're only interested in
-        // existing PEM files. Furthermore, this also filters out the "." and ".." files
-        if (strlen(entry.d_name) <= strlen(".pem") ||
-                strcmp(entry.d_name + strlen(entry.d_name) - strlen(".pem"), ".pem") != 0)
-            continue;
+			// Verify that the file ends in ".pem" already, because we're only interested in
+			// existing PEM files. Furthermore, this also filters out the "." and ".." files
+			if (strlen(entry.d_name) <= strlen(".pem") ||
+				strcmp(entry.d_name + strlen(entry.d_name) - strlen(".pem"), ".pem") != 0)
+				continue;
 
-        // If the path is now invalid, we're done
-        if (stat(path, &st) == -1)
-            goto err;
+			// If the path is now invalid, we're done
+			if (stat(path, &st) == -1)
+				goto err;
 
-        // We don't want to process directories
-        if (S_ISDIR(st.st_mode) == 0)
-            continue;
+			// We don't want to process directories
+			if (S_ISDIR(st.st_mode) == 0)
+				continue;
 
-        // Build the full path to the file for us to open
-        fullPath = (char*)malloc(strlen(path) + 1 + strlen(entry.d_name) + 1);
-        strcpy(fullPath, path);
-        strcat(fullPath, "/");
-        strcat(fullPath, entry.d_name);
+			// Build the full path to the file for us to open
+			fullPath = (char*)malloc(strlen(path) + 1 + strlen(entry.d_name) + 1);
+			strcpy(fullPath, path);
+			strcat(fullPath, "/");
+			strcat(fullPath, entry.d_name);
 
-        f = fopen(fullPath, "rb");
+			f = fopen(fullPath, "rb");
 
-        if (!f)
-            goto err;
+			if (!f)
+				goto err;
 
-		x509 = PEM_read_X509(f, NULL, NULL, NULL);
-		if (x509 == NULL)
-			goto err;
+			x509 = PEM_read_X509(f, NULL, NULL, NULL);
+			if (x509 == NULL)
+				goto err;
 
-		if(f)
-		{
-            fclose(f);
-            f = NULL;
-		}
-		if (fullPath)
-		{
-			free(fullPath);
-			fullPath = NULL;
-		}
+			if(f)
+			{
+				fclose(f);
+				f = NULL;
+			}
+			if (fullPath)
+			{
+				free(fullPath);
+				fullPath = NULL;
+			}
 #endif
 
 			X509_STORE_add_cert(store, x509);
@@ -687,8 +687,8 @@ err:
 #ifdef WIN32
 	if (hStore) CertCloseStore(hStore, 0);
 #else
-    if (dirp) closedir(dirp);
-    if (fullPath) free(fullPath);
+	if (dirp) closedir(dirp);
+	if (fullPath) free(fullPath);
 	if (f) fclose(f);
 #endif
 
