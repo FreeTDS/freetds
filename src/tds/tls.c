@@ -588,7 +588,7 @@ int tds_update_cert_store_with_root_cas(SSL_CTX *ctx)
 #else
 	FILE *f = NULL;
 	const char *path = NULL;
-		char *fullPath = NULL;
+	char *fullPath = NULL;
 	DIR *dirp = NULL;
 	struct dirent entry;
 	struct dirent *endp;
