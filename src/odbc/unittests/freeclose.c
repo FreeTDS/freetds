@@ -287,7 +287,7 @@ main(int argc, char **argv)
 
 #ifdef _WIN32
 	WSADATA wsaData;
-	WSAStartup(MAKEWORD(1, 1), &wsaData);
+	WSAStartup(MAKEWORD(2, 2), &wsaData);
 #endif
 
 	if (tds_mutex_init(&mtx))

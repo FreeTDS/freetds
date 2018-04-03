@@ -115,7 +115,7 @@ tds_socket_init(void)
 {
 	WSADATA wsadata;
 
-	return WSAStartup(MAKEWORD(1, 1), &wsadata);
+	return WSAStartup(MAKEWORD(2, 2), &wsadata);
 }
 
 void

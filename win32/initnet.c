@@ -30,7 +30,7 @@ DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 		_CrtSetDbgFlag(_CRTDBG_CHECK_ALWAYS_DF | _CRTDBG_LEAK_CHECK_DF | _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG));
 #endif
 
-		if (WSAStartup(MAKEWORD(1, 1), &wsaData) != 0)
+		if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
 			return FALSE;
 
 		DisableThreadLibraryCalls(hinstDLL);
