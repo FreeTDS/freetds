@@ -181,6 +181,7 @@ case $host in
 	else
 		LIBS="-lws2_32"
 	fi
+	LIBS="$LIBS -lcrypt32"
 	krb5_libs=
 	AM_CONDITIONAL(MINGW32, true)
 	;;
