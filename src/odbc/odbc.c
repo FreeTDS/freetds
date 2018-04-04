@@ -376,6 +376,10 @@ odbc_connect(TDS_DBC * dbc, TDSLOGIN * login)
 	if (dbc->attr.connection_timeout)
 		login->connect_timeout = dbc->attr.connection_timeout;
 
+	/* but override with login timeout, if set */
+	if (dbc->attr.login_timeout)
+		login->connect_timeout = dbc->attr.login_timeout;
+
 	if (dbc->attr.mars_enabled != SQL_MARS_ENABLED_NO)
 		login->mars = 1;
 	if (dbc->attr.bulk_enabled != SQL_BCP_OFF)
