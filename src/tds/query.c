@@ -901,7 +901,7 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 
 	if (fmt) {
 		/* fill out */
-		sprintf(out, fmt, size > 0 ? (size > max_len ? max_len : size) : 1u);
+		sprintf(out, fmt, size > 0 ? MIN(size, max_len) : 1u);
 		return TDS_SUCCESS;
 	}
 
