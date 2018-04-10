@@ -7694,8 +7694,6 @@ copy_data_to_host_var(DBPROCESS * dbproc, TDS_SERVER_TYPE srctype, const BYTE * 
 	}
 	if (indicator)
 		*indicator = indicator_value;
-
-	return;
 }
 #endif
 
