@@ -721,6 +721,7 @@ tds_alloc_context(void * parent)
 	}
 	context->locale = locale;
 	context->parent = parent;
+	context->money_use_2_digits = true;
 
 	return context;
 }

@@ -61,9 +61,8 @@ TDS_COMPILE_CHECK(maxprecision,
  * money is a special case of numeric really...that why its here
  */
 char *
-tds_money_to_string(const TDS_MONEY * money, char *s)
+tds_money_to_string(const TDS_MONEY * money, char *s, bool use_2_digits)
 {
-	int frac;
 	TDS_INT8 mymoney;
 	TDS_UINT8 n;
 	char *p;
@@ -79,11 +78,13 @@ tds_money_to_string(const TDS_MONEY * money, char *s)
 	} else {
 		n = mymoney;
 	}
-	n = (n + 50) / 100;
-	frac = (int) (n % 100);
-	n /= 100;
 	/* if machine is 64 bit you do not need to split n */
-	sprintf(p, "%" PRId64 ".%02d", n, frac);
+	if (use_2_digits) {
+		n = (n+ 50) / 100;
+		sprintf(p, "%" PRIu64 ".%02u", n / 100u, (unsigned) (n % 100u));
+	} else {
+		sprintf(p, "%" PRIu64 ".%04u", n / 10000u, (unsigned) (n % 10000u));
+	}
 	return s;
 }
 

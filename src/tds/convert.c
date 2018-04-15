@@ -1041,7 +1041,7 @@ tds_convert_numeric(const TDS_NUMERIC * src, int desttype, CONV_RESULT * cr)
 }
 
 static TDS_INT
-tds_convert_money4(const TDS_MONEY4 * src, int desttype, CONV_RESULT * cr)
+tds_convert_money4(const TDSCONTEXT * tds_ctx, const TDS_MONEY4 * src, int desttype, CONV_RESULT * cr)
 {
 	TDS_MONEY4 mny;
 	long dollars;
@@ -1051,7 +1051,8 @@ tds_convert_money4(const TDS_MONEY4 * src, int desttype, CONV_RESULT * cr)
 	mny = *src;
 	switch (desttype) {
 	case TDS_CONVERT_CHAR:
-	case CASE_ALL_CHAR:
+	case CASE_ALL_CHAR: {
+		unsigned dollars;
 		/*
 		 * round to 2 decimal digits
 		 * rounding with dollars = (mny.mny4 + 5000) /10000
@@ -1062,15 +1063,20 @@ tds_convert_money4(const TDS_MONEY4 * src, int desttype, CONV_RESULT * cr)
 		p = tmp_str;
 		if (mny.mny4 < 0) {
 			*p++ = '-';
-			/* here (-mny.mny4 / 50 + 1 ) / 2 can cause overflow in -mny.mny4 */
-			dollars = -(mny.mny4 / 50 - 1 ) / 2;
+			/* we use unsigned cause this cause arithmetic problem for -2^31*/
+			dollars = -mny.mny4;
 		} else {
-			dollars = (mny.mny4 / 50 + 1 ) / 2;
+			dollars = mny.mny4;
 		}
-		/* print only 2 decimal digits as server does */
-		sprintf(p, "%ld.%02lu", dollars / 100, dollars % 100);
+		if (tds_ctx->money_use_2_digits) {
+			/* print only 2 decimal digits as server does */
+			dollars = (dollars + 50) / 100;
+			sprintf(p, "%u.%02u", dollars / 100u, dollars % 100u);
+		} else {
+			sprintf(p, "%u.%04u", dollars / 10000u, dollars % 10000u);
+		}
 		return string_to_result(tmp_str, cr);
-		break;
+		} break;
 	case SYBINT1:
 	case SYBUINT1:
 		dollars = mny.mny4 / 10000;
@@ -1154,7 +1160,7 @@ tds_convert_money4(const TDS_MONEY4 * src, int desttype, CONV_RESULT * cr)
 }
 
 static TDS_INT
-tds_convert_money(const TDS_MONEY * src, int desttype, CONV_RESULT * cr)
+tds_convert_money(const TDSCONTEXT * tds_ctx, const TDS_MONEY * src, int desttype, CONV_RESULT * cr)
 {
 	char *s;
 
@@ -1167,7 +1173,7 @@ tds_convert_money(const TDS_MONEY * src, int desttype, CONV_RESULT * cr)
 	switch (desttype) {
 	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
-		s = tds_money_to_string((const TDS_MONEY *) src, tmpstr);
+		s = tds_money_to_string((const TDS_MONEY *) src, tmpstr, tds_ctx->money_use_2_digits);
 		return string_to_result(s, cr);
 		break;
 	case SYBINT1:
@@ -1895,10 +1901,10 @@ tds_convert(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, TDS_U
 		length = tds_convert_char(src, srclen, desttype, cr);
 		break;
 	case SYBMONEY4:
-		length = tds_convert_money4((const TDS_MONEY4 *) src, desttype, cr);
+		length = tds_convert_money4(tds_ctx, (const TDS_MONEY4 *) src, desttype, cr);
 		break;
 	case SYBMONEY:
-		length = tds_convert_money((const TDS_MONEY *) src, desttype, cr);
+		length = tds_convert_money(tds_ctx, (const TDS_MONEY *) src, desttype, cr);
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:

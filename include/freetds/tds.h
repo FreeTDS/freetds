@@ -1068,6 +1068,7 @@ struct tds_context
 	int (*msg_handler) (const TDSCONTEXT *, TDSSOCKET *, TDSMESSAGE *);
 	int (*err_handler) (const TDSCONTEXT *, TDSSOCKET *, TDSMESSAGE *);
 	int (*int_handler) (void *);
+	bool money_use_2_digits;
 };
 
 enum TDS_ICONV_ENTRY
@@ -1565,7 +1566,7 @@ TDSRET tds_vstrbuild(char *buffer, int buflen, int *resultlen, const char *text,
 
 
 /* numeric.c */
-char *tds_money_to_string(const TDS_MONEY * money, char *s);
+char *tds_money_to_string(const TDS_MONEY * money, char *s, bool use_2_digits);
 TDS_INT tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s);
 TDS_INT tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, unsigned char new_scale);
 
