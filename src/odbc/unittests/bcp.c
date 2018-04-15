@@ -26,7 +26,7 @@ static struct prefixed_str not_null_char          = {64, "a char"};
 static struct prefixed_str not_null_varchar       = {64, "a varchar"};
 static struct prefixed_str not_null_datetime      = {64, "2003-12-17 15:44:00.000"};
 static struct prefixed_str not_null_smalldatetime = {64, "2003-12-17 15:44:00"};
-static struct prefixed_str not_null_money         = {64, "12.34"};
+static struct prefixed_str not_null_money         = {64, "12.341"};
 static struct prefixed_str not_null_smallmoney    = {64, "12.34"};
 static struct prefixed_str not_null_float         = {64, "12.34"};
 static struct prefixed_str not_null_real          = {64, "12.34"};
@@ -41,7 +41,7 @@ static ODBCINT64 null_prefix = -1;
 static const char *expected[] = {
 	"1",
 	"a char    ","a varchar","2003-12-17 15:44:00.000","2003-12-17 15:44:00",
-	"12.34","12.34","12.34","12.3400002","12.34","12.34",
+	"12.3410","12.3400","12.34","12.3400002","12.34","12.34",
 	"1234","1234","123",
 	"a wide var",
 };
