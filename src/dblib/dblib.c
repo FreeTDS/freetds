@@ -3635,9 +3635,10 @@ _get_printable_size(TDSCOLUMN * colinfo)
 	case SYBFLT8:
 	case SYBREAL:
 		return 11;	/* FIX ME -- we do not track precision */
-	case SYBMONEY:
 	case SYBMONEY4:
 		return 12;
+	case SYBMONEY:
+		return 22;
 	case SYB5BIGDATETIME:
 	case SYBDATETIME:
 	case SYBDATETIME4:
