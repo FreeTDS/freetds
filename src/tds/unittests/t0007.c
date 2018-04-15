@@ -170,6 +170,7 @@ main(int argc, char **argv)
 		big_endian = 0;
 
 	memset(&ctx, 0, sizeof(ctx));
+	ctx.money_use_2_digits = true;
 
 	if ((ctx.locale = tds_get_locale()) == NULL)
 		return 1;
