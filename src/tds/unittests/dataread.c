@@ -188,19 +188,19 @@ main(int argc, char **argv)
 	test("FLOAT", "-49586.345", "-49586.345000000001");
 
 	/* money */
-	test("MONEY", "-123.3400", "-123.34");
-	test("MONEY", "-123.3450", "-123.35");
-	test("MONEY", "123.3450", "123.35");
+	test("MONEY", "-123.3400", "-123.3400");
+	test("MONEY", "-123.3450", "-123.3450");
+	test("MONEY", "123.3450", "123.3450");
 	/* very long money, this test int64 operations too */
-	test("MONEY", "123456789012345.67", NULL);
+	test("MONEY", "123456789012345.67", "123456789012345.6700");
 	/* test smaller money */
-	test("MONEY", "-922337203685477.5808", "-922337203685477.58");
-	test("SMALLMONEY", "89123.12", NULL);
-	test("SMALLMONEY", "-123.3400", "-123.34");
-	test("SMALLMONEY", "-123.3450", "-123.35");
-	test("SMALLMONEY", "123.3450", "123.35");
+	test("MONEY", "-922337203685477.5808", "-922337203685477.5808");
+	test("SMALLMONEY", "89123.12", "89123.1200");
+	test("SMALLMONEY", "-123.3400", "-123.3400");
+	test("SMALLMONEY", "-123.3450", "-123.3450");
+	test("SMALLMONEY", "123.3450", "123.3450");
 	/* test smallest smallmoney */
-	test("SMALLMONEY", "-214748.3648", "-214748.36");
+	test("SMALLMONEY", "-214748.3648", "-214748.3648");
 
 	/* char */
 	test("CHAR(10)", "pippo", "pippo     ");

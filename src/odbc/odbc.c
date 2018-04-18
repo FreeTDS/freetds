@@ -1643,7 +1643,6 @@ _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version)
 		free(env);
 		return SQL_ERROR;
 	}
-	ctx->money_use_2_digits = false;
 	env->tds_ctx = ctx;
 	ctx->msg_handler = odbc_errmsg_handler;
 	ctx->err_handler = odbc_errmsg_handler;
