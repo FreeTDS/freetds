@@ -1,5 +1,47 @@
 $Id$
 
+Summary of Changes in release 1.1
+--------------------------------------------
+User visible (not in a particular order):
+- Removed 4.2 and 7.0 as default TDS protocol versions during
+  configure, the default if not specified is now "auto", to connect
+  to such obsolete servers you need to specify explicitly the version
+  ("auto" won't attempt these versions). CMake build default to
+  version 7.1;
+- allows to disable TLS 1.0 support;
+- pool server allows to specify different username/password for server
+  and clients allowing to hide internal server logins;
+- tsql utility now send final partial query to server to avoid to have
+  to specify a final "GO" line to terminate commands;
+- better support for Microsoft cluster, client will attempt multiple
+  connection to server at the same time if DNS reply multiple IPs;
+- MONEY/SMALLMONEY types are now formated with 4 decimal digits to
+  avoid truncation;
+- MARS support is now compiled by default;
+- pool server is now compiled by default;
+- Fixed SQL_ATTR_LOGIN_TIMEOUT for ODBC;
+- Fixed large integer numbers for ODBC RPC constants;
+- Fixed encrypted logins if "auto" protocol version is used;
+- Support CS_TIMEOUT and CS_LOGIN_TIMEOUT properties under CTLibrary;
+- Added a dbacolname function in DBLibrary, similar to dbcolname but
+  for compute columns (mainly for Sybase now, Microsoft removed
+  support for compute columns);
+- NTLMv2 is now on by default.
+
+Implementation:
+- Improved UTF-8 performances;
+- Use more stdint.h style definitions (like uint32_t);
+- Use bool type instead of int;
+- pool server compile under Windows too (not as capable as Unix
+  version);
+- CMake build is now able to do an installation;
+- Added a src/utils directory to collect all common code not strictly
+  related to replacements or TDS;
+- Simplified makefiles;
+- Support CP1252 encoding in internal trivial iconv;
+- Better ODBC detection. Allows to specify a directory with
+  --with-iodbc to specify custom iOBDC.
+
 Summary of Changes in release 1.0
 --------------------------------------------
 User visible (not in a particular order):
