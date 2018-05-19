@@ -700,6 +700,9 @@ tds_config_login(TDSLOGIN * connection, TDSLOGIN * login)
 		if (1 || tds_dstr_isempty(&connection->server_name)) 
 			res = tds_dstr_dup(&connection->server_name, &login->server_name);
 	}
+	if (res &&  !tds_dstr_isempty(&login->instance_name) && tds_dstr_isempty(&connection->instance_name)) {
+			res = tds_dstr_dup(&connection->instance_name, &login->instance_name);
+	}
 	if (login->tds_version)
 		connection->tds_version = login->tds_version;
 	if (res && !tds_dstr_isempty(&login->language)) {
