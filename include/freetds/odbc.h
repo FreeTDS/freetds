@@ -40,6 +40,10 @@
 #endif /* HAVE_IODBCINST_H */
 #endif
 
+#ifdef HAVE_WCHAR_H
+#include <wchar.h>
+#endif
+
 #ifndef HAVE_SQLLEN
 #ifndef SQLULEN
 #define SQLULEN SQLUINTEGER
