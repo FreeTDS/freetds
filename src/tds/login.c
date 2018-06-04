@@ -37,6 +37,10 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif /* HAVE_SYS_SOCKET_H */
+
 #ifdef _WIN32
 #include <process.h>
 #endif
@@ -521,6 +525,35 @@ reroute:
 	erc = TDSEINTF;
 	orig_port = login->port;
 	for (addrs = login->ip_addrs; addrs != NULL; addrs = addrs->ai_next) {
+
+		/*
+		 * By some reasons ftds forms 3 linked tds_addrinfo (addrs
+		 * variable here) for one server address. The structures
+		 * differs in their ai_socktype and ai_protocol field
+		 * values. Typically the combinations are:
+		 * ai_socktype     | ai_protocol
+		 * -----------------------------
+		 * 1 (SOCK_STREAM) | 6  (tcp)
+		 * 2 (SOCK_DGRAM)  | 17 (udp)
+		 * 3 (SOCK_RAW)    | 0  (ip)
+		 *
+		 * Later on these fields are not used and dtds always
+		 * creates a tcp socket. In case if there is a connection
+		 * problem this behavior leads to 3 tries with the provided
+		 * timeout which basically multiplies the spent time
+		 * without any good result. So it was decided to skip the
+		 * non tcp addresses.
+		 *
+		 * NOTE: on Windows exactly one tds_addrinfo structure is
+		 *	 formed and it has 0 in both ai_socktype and
+		 *	 ai_protocol fields. So skipping is conditional for
+		 *	 non-Windows platforms
+		 */
+#ifndef _WIN32
+		if (addrs->ai_socktype != SOCK_STREAM)
+			continue;
+#endif
+
 		login->port = orig_port;
 
 		if (!IS_TDS50(tds->conn) && !tds_dstr_isempty(&login->instance_name) && !login->port)
