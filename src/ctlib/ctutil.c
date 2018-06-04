@@ -92,6 +92,7 @@ _ct_handle_client_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAG
 
 	memset(&errmsg, '\0', sizeof(errmsg));
 	errmsg.msgnumber = msg->msgno;
+	errmsg.severity = msg->severity;
 	strlcpy(errmsg.msgstring, msg->message, sizeof(errmsg.msgstring));
 	errmsg.msgstringlen = strlen(errmsg.msgstring);
 	errmsg.osstring[0] = '\0';
