@@ -187,7 +187,8 @@ tds_datain_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
 	TDSDATAINSTREAM *s = (TDSDATAINSTREAM *) stream;
 	if (len > s->wire_size)
 		len = s->wire_size;
-	tds_get_n(s->tds, ptr, len);
+	if (tds_get_n(s->tds, ptr, len) == NULL)
+		return -1;
 	s->wire_size -= len;
 	return len;
 }
