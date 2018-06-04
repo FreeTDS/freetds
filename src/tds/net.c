@@ -782,7 +782,7 @@ tds_socket_write(TDSCONNECTION *conn, TDSSOCKET *tds, const unsigned char *buf, 
 		return len;
 
 	err = sock_errno;
-	if (0 == len || TDSSOCK_WOULDBLOCK(err))
+	if (0 == len || TDSSOCK_WOULDBLOCK(err) || err == TDSSOCK_EINTR)
 		return 0;
 
 	assert(len < 0);
