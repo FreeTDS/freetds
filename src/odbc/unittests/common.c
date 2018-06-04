@@ -25,6 +25,10 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
+#ifdef TDS_NO_DM
+#include <freetds/odbc.h>
+#endif
+
 HENV odbc_env;
 HDBC odbc_conn;
 HSTMT odbc_stmt;
@@ -813,6 +817,13 @@ odbc_find_last_socket(void)
 	sock_info found[8];
 	unsigned num_found = 0, n;
 	int i;
+
+#ifdef TDS_NO_DM
+	SQLULEN ptr = 0;
+	CHKR(SQLGetInfo, (odbc_conn, SQL_DRIVER_HDBC, &ptr, sizeof(ptr), NULL), "S");
+	if ((void*)(uintptr_t)ptr == odbc_conn)
+		return tds_get_s(((TDS_DBC*)odbc_conn)->tds_socket);
+#endif
 
 	FOR_ALL_SOCKETS(i) {
 		long_sockaddr remote_addr, local_addr;
