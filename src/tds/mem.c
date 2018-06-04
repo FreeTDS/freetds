@@ -109,7 +109,7 @@ tds_get_dynid(TDSCONNECTION * conn, char *id)
 	for (i = 0; i < 9; ++i) {
 		c = (char) ('0' + (n % 36u));
 		*p++ = (c < ('0' + 10)) ? c : c + ('a' - '0' - 10);
-		/* printf("%d -> %d(%c)\n",n%36u,p[-1],p[-1]); */
+		/* tdsdump_log(TDS_DBG_FUNC,"%d -> %d(%c)\n",n%36u,p[-1],p[-1]); */
 		n /= 36u;
 		if (i == 4)
 			n += 3u * inc_num;

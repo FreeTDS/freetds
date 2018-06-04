@@ -320,7 +320,8 @@ ct_callback(CS_CONTEXT * ctx, CS_CONNECTION * con, CS_INT action, CS_INT type, C
 			*(void **) func = (CS_VOID *) (con ? con->_servermsg_cb : ctx->_servermsg_cb);
 			return CS_SUCCEED;
 		default:
-			fprintf(stderr, "Unknown callback %d\n", type);
+			_csclient_msg(ctx, "ct_callback", 2, 1, 16, 27,
+				      "%d", type);
 			*(void **) func = NULL;
 			return CS_SUCCEED;
 		}
@@ -2517,7 +2518,8 @@ ct_res_info(CS_COMMAND * cmd, CS_INT type, CS_VOID * buffer, CS_INT buflen, CS_I
 		memcpy(buffer, &int_val, sizeof(CS_INT));
 		break;
 	default:
-		fprintf(stderr, "Unknown type in ct_res_info: %d\n", type);
+		_csclient_msg(cmd->con->ctx, "ct_res_info", 2, 1, 16, 32,
+			      "%d", type);
 		return CS_FAIL;
 		break;
 	}
@@ -2812,7 +2814,8 @@ ct_compute_info(CS_COMMAND * cmd, CS_INT type, CS_INT colnum, CS_VOID * buffer, 
 			*outlen = sizeof(CS_INT);
 		break;
 	default:
-		fprintf(stderr, "Unknown type in ct_compute_info: %d\n", type);
+		_csclient_msg(cmd->con->ctx, "ct_compute_info", 2, 1, 16, 32,
+			      "%d", type);
 		return CS_FAIL;
 		break;
 	}
@@ -3331,7 +3334,8 @@ ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt_arg, CS_VOID * data, CS_INT data
 	switch (cmd->command_type) {
 	case CS_RPC_CMD:
 		if (!cmd->rpc) {
-			printf("RPC is NULL ct_param\n");
+			tdsdump_log(TDS_DBG_ERROR,
+				    "RPC is NULL in ct_param\n");
 			return CS_FAIL;
 		}
 
@@ -3438,7 +3442,8 @@ ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt_arg, CS_VOID * data, CS_INT *
 	case CS_RPC_CMD:
 
 		if (!cmd->rpc) {
-			printf("RPC is NULL ct_param\n");
+			tdsdump_log(TDS_DBG_ERROR,
+				    "RPC is NULL in ct_setparam\n");
 			return CS_FAIL;
 		}
 
@@ -3472,7 +3477,8 @@ ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt_arg, CS_VOID * data, CS_INT *
 	case CS_DYNAMIC_CMD :
 
 		if (!cmd->dyn) {
-			printf("cmd->dyn is NULL ct_param\n");
+			tdsdump_log(TDS_DBG_ERROR,
+				    "cmd->dyn is NULL in ct_setparam\n");
 			return CS_FAIL;
 		}
 
@@ -4190,6 +4196,8 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 
 memory_error:
 	tdsdump_log(TDS_DBG_SEVERE, "out of memory for rpc!");
+	_csclient_msg(((CS_CONNECTION*)tds_get_parent(tds))->ctx,
+		      "paraminfoalloc", 2, 1, 17, 33, "");
 type_error:
 	tds_free_param_results(params);
 	return NULL;

@@ -1532,7 +1532,8 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 					}
 
 					if (fread(row_in_error, chunk, 1, hostfile) != 1) {
-						printf("BILL fread failed after fseek\n");
+						tdsdump_log(TDS_DBG_ERROR,
+							    "BILL fread failed after fseek\n");
 					}
 					count = (int)fwrite(row_in_error, chunk, 1, errfile);
 					if( (size_t)count < chunk ) {

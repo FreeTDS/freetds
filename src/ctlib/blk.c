@@ -688,8 +688,10 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 			case CS_UBIGINT_TYPE:	    srclen = 8; break;
 			case CS_UNIQUE_TYPE:	    srclen = 16; break;
 			default:
-				printf("error not fixed length type (%d) and datalen not specified\n",
-					bindcol->column_bindtype);
+				tdsdump_log(TDS_DBG_ERROR,
+					    "Not fixed length type (%d)"
+					    " and datalen not specified\n",
+					    bindcol->column_bindtype);
 				return CS_FAIL;
 			}
 

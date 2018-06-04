@@ -219,7 +219,7 @@ dblib_add_connection(DBLIBCONTEXT * ctx, TDSSOCKET * tds)
 	while (i < list_size && ctx->connection_list[i])
 		i++;
 	if (i == list_size) {
-		fprintf(stderr, "Max connections reached, increase value of TDS_MAX_CONN\n");
+		dbperror((DBPROCESS *) tds_get_parent(tds), 50001, 0);
 		return 1;
 	} else {
 		ctx->connection_list[i] = tds;
@@ -8102,6 +8102,8 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
 						"with the xlt_todisp parameter has been freed\0" }
 	, { SYBEZTXT,              EXINFO,	"Attempt to send zero length TEXT or IMAGE to dataserver via dbwritetext\0" }
 	, { SYBECOLSIZE,           EXINFO,      "Invalid column information structure size\0" }
+	, { 50000,           EXCONVERSION,	"Data is truncated during conversion\0" }
+	, { 50001,              EXPROGRAM,	"Max connections reached, increase value of TDS_MAX_CONN\0" }
 	};
 
 /**  \internal
@@ -8306,7 +8308,7 @@ dbperror(DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 			/* Microsoft behavior */
 			return INT_CANCEL;
 		}
-		fprintf(stderr, int_exit_text, rc_name, msgno);
+		/* fprintf(stderr, int_exit_text, rc_name, msgno); */
 		tdsdump_log(TDS_DBG_SEVERE, int_exit_text, rc_name, msgno);
 		break;
 	}
