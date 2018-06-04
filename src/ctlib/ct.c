@@ -621,7 +621,7 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 
 	if (con->server_addr) {
 		server = "";
-	} else if (snamelen == 0 || snamelen == CS_UNUSED) {
+	} else if (!servername || snamelen == 0 || snamelen == CS_UNUSED) {
 		server = NULL;
 	} else if (snamelen == CS_NULLTERM) {
 		server = (char *) servername;
@@ -3985,7 +3985,7 @@ paramrowalloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *va
 			memcpy(curcol->column_data, value, size);
 		else {
 			TDSBLOB *blob = (TDSBLOB *) curcol->column_data;
-			blob->textvalue = tds_new(TDS_CHAR, size);
+			blob->textvalue = tds_new(TDS_CHAR, size ? size : 1);
 			tdsdump_log(TDS_DBG_FUNC, "blob parameter supported, size %d textvalue pointer is %p\n",
 					size, blob->textvalue);
 			if (!blob->textvalue)

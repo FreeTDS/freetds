@@ -121,6 +121,9 @@ blk_bind(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt, CS_VOID * buff
 		return CS_SUCCEED;
 	}
 
+	if (datafmt == NULL)
+		return CS_FAIL;
+
 	/*
 	 * check whether the request is for array binding and ensure that user
 	 * supplies the same datafmt->count to the subsequent ct_bind calls
@@ -643,10 +646,10 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 
 	srctype = bindcol->column_bindtype; 		/* passes to cs_convert */
 
-	tdsdump_log(TDS_DBG_INFO1, "blk_get_col_data srctype = %d \n", srctype);
-	tdsdump_log(TDS_DBG_INFO1, "blk_get_col_data datalen = %d \n", *datalen);
+	tdsdump_log(TDS_DBG_INFO1, "blk_get_col_data srctype = %d\n", srctype);
+	tdsdump_log(TDS_DBG_INFO1, "blk_get_col_data datalen = %d\n", datalen ? *datalen : -1);
 
-	if (*datalen) {
+	if (datalen) {
 		if (*datalen == CS_UNUSED) {
 			switch (srctype) {
 			case CS_LONG_TYPE:	    srclen = 8; break;
