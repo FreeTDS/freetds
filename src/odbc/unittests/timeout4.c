@@ -45,6 +45,8 @@ shutdown_last_socket(void)
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) < 0)
 		return 0;
 
+	tds_socket_set_nosigpipe(sockets[0], 1);
+
 	/* substitute socket */
 	close(max_socket);
 	dup2(sockets[0], max_socket);
