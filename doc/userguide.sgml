@@ -1907,8 +1907,9 @@ The ODBC tests all build their own <filename>odbc.ini</> and try to redirect the
 							<entry>TDS protocol version to use (e.g., 5.0, 7.0).</entry>
 							</row>
 						<row>
-							<entry><literal>ClientCharset</></entry>
-							<entry>A name recognized by the iconv library linked to &freetds;.  Corresponds to <literal>client charset</> in &freetdsconf;.</entry>
+							<entry><literal>ClientCharset</> or <literal>Client_Charset</></entry>
+							<entry>A name recognized by the iconv library linked to &freetds;.  Corresponds to <literal>client charset</> in &freetdsconf;.
+								<literal>Client_Charset</> is for compatibility with <productname>NCBI C++ ToolKit</productname>.</entry>
 							<entry>ISO 8859-1</entry>
 							<entry>Character set (encoding) used by the client.</entry>
 							</row>

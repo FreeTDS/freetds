@@ -395,7 +395,9 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 			tds_parse_conf_section(TDS_STR_TEXTSZ, tds_dstr_cstr(&value), login);
 		} else if (CHK_PARAM(PacketSize)) {
 			tds_parse_conf_section(TDS_STR_BLKSZ, tds_dstr_cstr(&value), login);
-		} else if (CHK_PARAM(ClientCharset)) {
+		} else if (CHK_PARAM(ClientCharset)
+			   ||  strcasecmp(option, "client_charset") == 0) {
+			num_param = ODBC_PARAM_ClientCharset;
 			tds_parse_conf_section(TDS_STR_CLCHARSET, tds_dstr_cstr(&value), login);
 		} else if (CHK_PARAM(DumpFile)) {
 			tds_parse_conf_section(TDS_STR_DUMPFILE, tds_dstr_cstr(&value), login);
