@@ -770,12 +770,12 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 		case TDS_DONEPROC_TOKEN:
 			SET_RETURN(TDS_DONEPROC_RESULT, DONE);
 			rc = tds_process_end(tds, marker, done_flags);
+			tds->rows_affected = saved_rows_affected;
 			switch (tds->current_op) {
 			default:
 				break;
 			case TDS_OP_CURSOROPEN: 
 				*result_type       = TDS_DONE_RESULT;
-				tds->rows_affected = saved_rows_affected;
 				break;
 			case TDS_OP_CURSORCLOSE:
 				tdsdump_log(TDS_DBG_FUNC, "TDS_OP_CURSORCLOSE\n");
