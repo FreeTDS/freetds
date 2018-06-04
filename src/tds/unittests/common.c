@@ -1,5 +1,6 @@
 #define TDS_DONT_DEFINE_DEFAULT_FUNCTIONS
 #include "common.h"
+#include "replacements.h"
 
 char USER[512];
 char SERVER[512];
@@ -53,6 +54,7 @@ int
 try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verbose)
 {
 	TDSLOGIN *connection;
+	char *appname_copy;
 
 	if (verbose) {
 		fprintf(stdout, "Entered tds_try_login()\n");
@@ -79,17 +81,21 @@ try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verb
 		fprintf(stderr, "tds_alloc_login() failed.\n");
 		return TDS_FAIL;
 	}
+	appname_copy = strdup(appname);
 	if (!tds_set_passwd(*login, PASSWORD)
 	    || !tds_set_user(*login, USER)
-	    || !tds_set_app(*login, appname)
+	    || !appname_copy
+	    || !tds_set_app(*login, basename(appname_copy))
 	    || !tds_set_host(*login, "myhost")
 	    || !tds_set_library(*login, "TDS-Library")
 	    || !tds_set_server(*login, SERVER)
 	    || !tds_set_client_charset(*login, CHARSET)
 	    || !tds_set_language(*login, "us_english")) {
+		free(appname_copy);
 		fprintf(stderr, "tds_alloc_login() failed.\n");
 		return TDS_FAIL;
 	}
+	free(appname_copy);
 
 	if (verbose) {
 		fprintf(stdout, "Connecting to database\n");
