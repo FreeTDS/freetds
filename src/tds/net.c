@@ -760,7 +760,7 @@ tds_socket_write(TDSCONNECTION *conn, TDSSOCKET *tds, const unsigned char *buf, 
 
 #if ENABLE_EXTRA_CHECKS
 	/* this simulate the fact that send can return less bytes */
-	if (buflen >= 5) {
+	if (buflen >= 11) {
 		static int cnt = 0;
 		if (++cnt == 5) {
 			cnt = 0;
