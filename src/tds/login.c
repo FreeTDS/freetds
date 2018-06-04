@@ -56,6 +56,9 @@ static TDSRET tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login);
 static void tds7_crypt_pass(const unsigned char *clear_pass,
 			    size_t len, unsigned char *crypt_pass);
 
+#undef MIN
+#define MIN(a,b) (((a) < (b)) ? (a) : (b))
+
 void
 tds_set_version(TDSLOGIN * tds_login, TDS_TINYINT major_ver, TDS_TINYINT minor_ver)
 {
@@ -857,7 +860,7 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	};
 	struct {
 		const void *ptr;
-		unsigned pos, len;
+		unsigned pos, len, limit;
 	} data_fields[NUM_DATA_FIELDS], *field;
 
 	tds->out_flag = TDS7_LOGIN;
@@ -903,30 +906,31 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	if (TDS_FAILED(rc))
 		return rc;
 
-#define SET_FIELD_DSTR(field, dstr) do { \
+#define SET_FIELD_DSTR(field, dstr, len_limit) do { \
 	data_fields[field].ptr = tds_dstr_cstr(&(dstr)); \
 	data_fields[field].len = tds_dstr_len(&(dstr)); \
+	data_fields[field].limit = (len_limit) * 2; \
 	} while(0)
 
 	/* setup data fields */
-	SET_FIELD_DSTR(HOST_NAME, login->client_host_name);
+	SET_FIELD_DSTR(HOST_NAME, login->client_host_name, 128);
 	if (tds->conn->authentication) {
 		data_fields[USER_NAME].len = 0;
 		data_fields[PASSWORD].len = 0;
 	} else {
-		SET_FIELD_DSTR(USER_NAME, login->user_name);
-		SET_FIELD_DSTR(PASSWORD, login->password);
+		SET_FIELD_DSTR(USER_NAME, login->user_name, 128);
+		SET_FIELD_DSTR(PASSWORD, login->password, 128);
 	}
-	SET_FIELD_DSTR(APP_NAME, login->app_name);
-	SET_FIELD_DSTR(SERVER_NAME, login->server_name);
-	SET_FIELD_DSTR(LIBRARY_NAME, login->library);
-	SET_FIELD_DSTR(LANGUAGE, login->language);
-	SET_FIELD_DSTR(DATABASE_NAME, login->database);
-	SET_FIELD_DSTR(DB_FILENAME, login->db_filename);
+	SET_FIELD_DSTR(APP_NAME, login->app_name, 128);
+	SET_FIELD_DSTR(SERVER_NAME, login->server_name, 128);
+	SET_FIELD_DSTR(LIBRARY_NAME, login->library, 128);
+	SET_FIELD_DSTR(LANGUAGE, login->language, 128);
+	SET_FIELD_DSTR(DATABASE_NAME, login->database, 128);
+	SET_FIELD_DSTR(DB_FILENAME, login->db_filename, 260);
 	data_fields[NEW_PASSWORD].len = 0;
 	if (IS_TDS72_PLUS(tds->conn) && login->use_new_password) {
 		option_flag3 |= TDS_CHANGE_PASSWORD;
-		SET_FIELD_DSTR(NEW_PASSWORD, login->new_password);
+		SET_FIELD_DSTR(NEW_PASSWORD, login->new_password, 128);
 	}
 
 	/* convert data fields */
@@ -943,6 +947,7 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 				return TDS_FAIL;
 			}
 		}
+		data_stream.size = MIN(data_stream.size, data_pos + field->limit);
 		field->len = data_stream.size - data_pos;
 	}
 	pwd = (unsigned char *) data + data_fields[PASSWORD].pos - current_pos;
