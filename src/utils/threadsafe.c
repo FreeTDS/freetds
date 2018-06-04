@@ -309,7 +309,12 @@ tds_get_homedir(void)
 		LPITEMIDLIST pidl;
 		hr = SHGetSpecialFolderLocation(NULL, CSIDL_APPDATA, &pidl);
 		if (!FAILED(hr)) {
-			char path[MAX_PATH];
+			/*
+			 * SHGetPathFromIDListA() tries to count the length of "path",
+			 * so we have to make sure that it has only zeros; otherwise,
+			 * invalid memory access is inevitable.
+			 */
+			char path[MAX_PATH] = "";
 			if (SHGetPathFromIDList(pidl, path))
 				res = strdup(path);
 			(*pMalloc->lpVtbl->Free)(pMalloc, pidl);
