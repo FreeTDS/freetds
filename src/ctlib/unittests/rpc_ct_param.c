@@ -55,6 +55,7 @@ main(int argc, char *argv[])
 	CS_FLOAT floatvar;
 	CS_MONEY moneyvar;
 	CS_BINARY binaryvar;
+	CS_BIT bitvar = 1;
 	char moneystring[10];
 	char rpc_name[15];
 	CS_INT destlen;
@@ -90,7 +91,7 @@ main(int argc, char *argv[])
         @sintparam smallint output, @floatparam float output, \
         @moneyparam money output,  \
         @dateparam datetime output, @charparam char(20) output, @empty varchar(20) output, \
-        @binaryparam    binary(20) output) \
+        @binaryparam    binary(20) output, @bitparam bit) \
         as ");
 
 	strcat(cmdbuf, "select @intparam, @sintparam, @floatparam, @moneyparam, \
@@ -276,6 +277,18 @@ main(int argc, char *argv[])
 	datafmt.locale = NULL;
 
 	if ((ret = ct_param(cmd, &datafmt, (CS_VOID *) & binaryvar, CS_SIZEOF(CS_BINARY), 0)) != CS_SUCCEED) {
+		fprintf(stderr, "ct_param(binary) failed");
+		return 1;
+	}
+
+	strcpy(datafmt.name, "@bitparam");
+	datafmt.namelen = CS_NULLTERM;
+	datafmt.datatype = CS_BIT_TYPE;
+	datafmt.maxlength = 1;
+	datafmt.status = 0;
+	datafmt.locale = NULL;
+
+	if ((ret = ct_param(cmd, &datafmt, (CS_VOID *) & bitvar, CS_SIZEOF(CS_BIT), 0)) != CS_SUCCEED) {
 		fprintf(stderr, "ct_param(binary) failed");
 		return 1;
 	}

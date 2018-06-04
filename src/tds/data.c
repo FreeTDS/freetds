@@ -264,6 +264,9 @@ tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE typ
 		case SYBBINARY:
 			type = XSYBBINARY;
 			break;
+		case SYBBIT:
+			type = SYBBITN;
+			break;
 			/* avoid warning on other types */
 		default:
 			break;

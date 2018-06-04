@@ -148,6 +148,13 @@ static struct parameters_t bindings_mssql1[] = {
 	, { NULL, 0, 0, 0, 0, NULL }
 };
 
+static struct parameters_t bindings_mssql2[] = {
+	  { "", 0, SYBVARCHAR,  -1,  PARAM_STR("set @a=null") }
+	, { "", 0, SYBVARCHAR,  -1,  PARAM_STR("@a bit out") }
+	, { "", DBRPCRETURN, SYBBIT,  sizeof(param_data3), 0, (BYTE *) &param_data3 }
+	, { NULL, 0, 0, 0, 0, NULL }
+};
+
 static void
 bind_param(DBPROCESS *dbproc, struct parameters_t *pb)
 {
@@ -493,6 +500,34 @@ main(int argc, char **argv)
 		retlen = dbretlen(dbproc, i);
 		dbconvert(dbproc, rettype, dbretdata(dbproc, i), retlen, SYBVARCHAR, (BYTE*) teststr, -1);
 		if (strcmp(teststr, "test123") != 0) {
+			fprintf(stderr, "Unexpected '%s' results.\n", teststr);
+			exit(1);
+		}
+
+		erc = dbrpcinit(dbproc, "sp_executesql", 0);	/* no options */
+		if (erc == FAIL) {
+			fprintf(stderr, "Failed line %d: dbrpcinit\n", __LINE__);
+			failed = 1;
+		}
+		for (pb = bindings_mssql2; pb->name != NULL; pb++)
+			bind_param(dbproc, pb);
+		erc = dbrpcsend(dbproc);
+		if (erc == FAIL) {
+			fprintf(stderr, "Failed line %d: dbrpcsend\n", __LINE__);
+			exit(1);
+		}
+		while (dbresults(dbproc) != NO_MORE_RESULTS)
+			continue;
+		if (dbnumrets(dbproc) != 1) {	/* dbnumrets missed something */
+			fprintf(stderr, "Expected 1 output parameters.\n");
+			exit(1);
+		}
+		i = 1;
+		retname = dbretname(dbproc, i);
+		rettype = dbrettype(dbproc, i);
+		retlen = dbretlen(dbproc, i);
+		dbconvert(dbproc, rettype, dbretdata(dbproc, i), retlen, SYBVARCHAR, (BYTE*) teststr, -1);
+		if (dbretdata(dbproc, i) != NULL || rettype != SYBBIT || retlen != 0) {
 			fprintf(stderr, "Unexpected '%s' results.\n", teststr);
 			exit(1);
 		}
