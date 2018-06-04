@@ -749,12 +749,14 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 		}
 		memcpy(dest, cres.ib, len);
 		free(cres.ib);
-		*resultlen = destlen;
+		*resultlen = len;
 		if (destvc) {
 			destvc->len = len;
 			*resultlen = sizeof(*destvc);
+		} else if (destfmt->format == CS_FMT_PADNULL) {
+			*resultlen = destlen;
+			memset(dest + len, '\0', destlen - len);
 		}
-		memset(dest + len, '\0', destlen - len);
 		break;
 	case SYBBIT:
 	case SYBBITN:

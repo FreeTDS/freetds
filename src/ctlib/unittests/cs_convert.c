@@ -14,6 +14,8 @@ static int allSuccess = 1;
 
 typedef const char *STR;
 
+static CS_INT dest_format = CS_FMT_UNUSED;
+
 static int
 DoTest(
 	      /* source information */
@@ -40,6 +42,7 @@ DoTest(
 	memset(&destfmt, 0, sizeof(destfmt));
 	destfmt.datatype = totype;
 	destfmt.maxlength = tomaxlen;
+	destfmt.format = dest_format;
 
 	memset(&srcfmt, 0, sizeof(srcfmt));
 	srcfmt.datatype = fromtype;
@@ -291,6 +294,26 @@ main(int argc, char **argv)
 		CS_CHAR test2[] = "616263", CS_BINARY_TYPE, test, 3, CS_CHAR_TYPE, 6, CS_SUCCEED, test2, 6);
 	DO_TEST(CS_CHAR test[] = "abcdef";
 		CS_CHAR test2[] = "616263", CS_BINARY_TYPE, test, 6, CS_CHAR_TYPE, 6, CS_FAIL, test2, 6);
+
+	/* conversion to various binaries */
+	DO_TEST(CS_CHAR test[] = "616263646566";
+		CS_CHAR test2[12] = "abcdef", CS_CHAR_TYPE, test, 12, CS_IMAGE_TYPE, 12, CS_SUCCEED, test2, 6);
+	DO_TEST(CS_CHAR test[] = "616263646566";
+		CS_CHAR test2[12] = "abcdef", CS_CHAR_TYPE, test, 12, CS_BINARY_TYPE, 12, CS_SUCCEED, test2, 6);
+	DO_TEST(CS_CHAR test[] = "616263646566";
+		CS_VARBINARY test2; test2.len = 6; memset(test2.array, 23, 256); memcpy(test2.array, "abcdef", 6),
+		CS_CHAR_TYPE, test, 12, CS_VARBINARY_TYPE, 12, CS_SUCCEED, &test2, 258);
+
+	/* conversion to various binaries, same as above but with zero padding */
+	dest_format = CS_FMT_PADNULL;
+	DO_TEST(CS_CHAR test[] = "616263646566";
+		CS_CHAR test2[12] = "abcdef", CS_CHAR_TYPE, test, 12, CS_IMAGE_TYPE, 12, CS_SUCCEED, test2, 12);
+	DO_TEST(CS_CHAR test[] = "616263646566";
+		CS_CHAR test2[12] = "abcdef", CS_CHAR_TYPE, test, 12, CS_BINARY_TYPE, 12, CS_SUCCEED, test2, 12);
+	DO_TEST(CS_CHAR test[] = "616263646566";
+		CS_VARBINARY test2; test2.len = 6; memset(test2.array, 23, 256); memcpy(test2.array, "abcdef", 6),
+		CS_CHAR_TYPE, test, 12, CS_VARBINARY_TYPE, 12, CS_SUCCEED, &test2, 258);
+	dest_format = CS_FMT_UNUSED;
 
 	check_call(cs_ctx_drop, (ctx));
 
