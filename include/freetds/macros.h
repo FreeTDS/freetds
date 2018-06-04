@@ -39,7 +39,10 @@
 #endif
 
 #if ENABLE_EXTRA_CHECKS
-# if defined(__GNUC__) && __GNUC__ >= 2
+# if defined(__llvm__) || (defined(__GNUC__) && (__GNUC__ >= 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)))
+# define TDS_COMPILE_CHECK(name,check) \
+    _Static_assert(check,#name)
+# elif defined(__GNUC__) && __GNUC__ >= 2
 # define TDS_COMPILE_CHECK(name,check) \
     extern int name[(check)?1:-1] __attribute__ ((unused))
 # else
