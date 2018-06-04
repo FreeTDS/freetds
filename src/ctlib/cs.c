@@ -331,6 +331,10 @@ cs_ctx_alloc(CS_INT version, CS_CONTEXT ** ctx)
 		/* set default in case there's no locale file */
 		tds_ctx->locale->date_fmt = strdup(STD_DATETIME_FMT);
 	}
+
+	(*ctx)->login_timeout = -1;
+	(*ctx)->query_timeout = -1;
+
 	return CS_SUCCEED;
 }
 

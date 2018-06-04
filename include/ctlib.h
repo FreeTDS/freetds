@@ -98,6 +98,8 @@ struct _cs_context
 	/* code changes end here - CS_CONFIG - 01*/
 	TDSCONTEXT *tds_ctx;
 	CS_CONFIG config;
+	int login_timeout;  /**< not used unless positive */
+	int query_timeout;  /**< not used unless positive */
 };
 
 /*

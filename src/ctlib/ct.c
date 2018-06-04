@@ -650,6 +650,15 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 			goto Cleanup;
 	}
 
+	/* Timeouts ... */
+	if (ctx->login_timeout > 0) {
+	    login->connect_timeout = ctx->login_timeout;
+	}
+
+	if (ctx->query_timeout > 0) {
+	    login->query_timeout = ctx->query_timeout;
+	}
+
 	/* override locale settings with CS_CONNECTION settings, if any */
 	if (con->locale) {
 		if (con->locale->charset) {
@@ -2538,6 +2547,38 @@ ct_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 				ret = CS_FAIL;
 				break;
 			}
+		}
+		break;
+	case CS_TIMEOUT:
+		switch (action) {
+		case CS_SET:
+			ctx->query_timeout = *((unsigned int*)buf);
+			break;
+		case CS_GET:
+			*((unsigned int*)buf) = ctx->query_timeout;
+			break;
+		case CS_CLEAR:
+			ctx->query_timeout = -1;
+			break;
+		default:
+			ret = CS_FAIL;
+			break;
+		}
+		break;
+	case CS_LOGIN_TIMEOUT:
+		switch (action) {
+		case CS_SET:
+			ctx->login_timeout = *((unsigned int*)buf);
+			break;
+		case CS_GET:
+			*((unsigned int*)buf) = ctx->login_timeout;
+			break;
+		case CS_CLEAR:
+			ctx->login_timeout = -1;
+			break;
+		default:
+			ret = CS_FAIL;
+			break;
 		}
 		break;
 	default:
