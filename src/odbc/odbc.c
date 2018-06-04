@@ -3600,7 +3600,7 @@ static int
 odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 {
 	TDS_INT result_type;
-	int done_flags;
+	int done_flags = 0;
 	TDSSOCKET * tds = stmt->tds;
 
 	flag |= TDS_RETURN_DONE | TDS_RETURN_PROC;
