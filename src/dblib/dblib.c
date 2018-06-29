@@ -4098,22 +4098,18 @@ dbsetmaxprocs(int maxprocs)
 	old_list = g_dblib_ctx.connection_list;
 
 	/* "compress" array */
-	for (i = 0; i < g_dblib_ctx.connection_list_size; ++i) {
-		/* if empty replace with first no-empty */
-		if (old_list[i])
+	for (i = 0, j = 0; i < g_dblib_ctx.connection_list_size; ++i) {
+		if (!old_list[i])
 			continue;
-		for (j = i + 1; j < g_dblib_ctx.connection_list_size; ++j)
-			if (old_list[j]) {
-				old_list[i] = old_list[j];
-				old_list[j] = NULL;
-				break;
-			}
-		if (j >= g_dblib_ctx.connection_list_size)
-			break;
+		if (i != j) {
+			old_list[j] = old_list[i];
+			old_list[i] = NULL;
+		}
+		++j;
 	}
-	/* do not restrict too much, i here contains minimun size */
-	if (maxprocs < i)
-		maxprocs = i;
+	/* do not restrict too much, j here contains minimun size */
+	if (maxprocs < j)
+		maxprocs = j;
 
 	/*
 	 * Don't reallocate less memory.  
