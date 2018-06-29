@@ -3996,6 +3996,8 @@ dbsetmaxprocs(int maxprocs)
 
 	tds_mutex_unlock(&dblib_mutex);
 
+	free(old_list);
+
 	return SUCCEED;
 }
 
