@@ -57,13 +57,11 @@ test(tds_mutex *mtx)
 		fprintf(stderr, "mutex should be unlocked\n");
 		exit(1);
 	}
-	/* this success on Windows cause mutex are recursive */
-#ifndef _WIN32
+	/* check mutex are not recursive, even on Windows */
 	if (!tds_mutex_trylock(mtx)) {
 		fprintf(stderr, "mutex should be locked\n");
 		exit(1);
 	}
-#endif
 
 	if (tds_thread_create(&th, trylock_proc, mtx) != 0) {
 		fprintf(stderr, "error creating thread\n");
@@ -77,6 +75,14 @@ test(tds_mutex *mtx)
 
 	if (ptr2int(res) != 0) {
 		fprintf(stderr, "mutex should be locked inside thread\n");
+		exit(1);
+	}
+
+	tds_mutex_unlock(mtx);
+
+	/* now trylock after the unlock should succeed */
+	if (tds_mutex_trylock(mtx)) {
+		fprintf(stderr, "mutex should be unlocked\n");
 		exit(1);
 	}
 

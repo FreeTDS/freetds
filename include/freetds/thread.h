@@ -130,16 +130,18 @@ struct ptw32_mcs_node_t_;
 typedef struct {
 	struct ptw32_mcs_node_t_ *lock;
 	LONG done;
+	DWORD thread_id;
 	CRITICAL_SECTION crit;
 } tds_raw_mutex;
 
-#define TDS_RAW_MUTEX_INITIALIZER { NULL, 0 }
+#define TDS_RAW_MUTEX_INITIALIZER { NULL, 0, 0 }
 
 static inline int
 tds_raw_mutex_init(tds_raw_mutex *mtx)
 {
 	mtx->lock = NULL;
 	mtx->done = 0;
+	mtx->thread_id = 0;
 	return 0;
 }
 
@@ -147,16 +149,19 @@ void tds_win_mutex_lock(tds_raw_mutex *mutex);
 
 static inline void tds_raw_mutex_lock(tds_raw_mutex *mtx)
 {
-	if (mtx->done)
+	if (mtx->done) {
 		EnterCriticalSection(&mtx->crit);
-	else
+		mtx->thread_id = GetCurrentThreadId();
+	} else {
 		tds_win_mutex_lock(mtx);
+	}
 }
 
 int tds_raw_mutex_trylock(tds_raw_mutex *mtx);
 
 static inline void tds_raw_mutex_unlock(tds_raw_mutex *mtx)
 {
+	mtx->thread_id = 0;
 	LeaveCriticalSection(&mtx->crit);
 }
 

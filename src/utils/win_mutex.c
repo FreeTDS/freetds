@@ -48,6 +48,7 @@ tds_win_mutex_lock(tds_raw_mutex * mutex)
 		ptw32_mcs_lock_release(&node);
 	}
 	EnterCriticalSection(&mutex->crit);
+	mutex->thread_id = GetCurrentThreadId();
 }
 
 int
@@ -63,8 +64,15 @@ tds_raw_mutex_trylock(tds_raw_mutex * mutex)
 		}
 		ptw32_mcs_lock_release(&node);
 	}
-	if (TryEnterCriticalSection(&mutex->crit))
+	if (TryEnterCriticalSection(&mutex->crit)) {
+		DWORD thread_id = GetCurrentThreadId();
+		if (mutex->thread_id == thread_id) {
+			LeaveCriticalSection(&mutex->crit);
+			return -1;
+		}
+		mutex->thread_id = thread_id;
 		return 0;
+	}
 	return -1;
 }
 
