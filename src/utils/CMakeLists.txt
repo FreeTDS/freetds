@@ -7,6 +7,7 @@ else(WIN32)
 endif(WIN32)
 
 add_library(tdsutils STATIC
+	dlist.c
 	getpassarg.c
 	sleep.c
 	tds_cond.c

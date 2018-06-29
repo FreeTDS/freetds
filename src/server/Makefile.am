@@ -5,3 +5,4 @@ libtdssrv_la_LIBADD =	../tds/libtds.la ../replacements/libreplacements.la $(LTLI
 noinst_PROGRAMS	= tdssrv
 tdssrv_LDADD	= libtdssrv.la $(LTLIBICONV)
 tdssrv_SOURCES	= unittest.c
+EXTRA_DIST = CMakeLists.txt
