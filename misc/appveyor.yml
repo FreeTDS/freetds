@@ -96,6 +96,13 @@ build_script:
   - set PATH=%PATH%;c:\openssl-win%WIDTH%
   - src\apps\tsql.exe -C
   - cd ..
+  - mkdir build_debug
+  - cd build_debug
+  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Debug -DENABLE_EXTRA_CHECKS=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" .."
+  - "%WITH_COMPILER% nmake"
+  - set PATH=%PATH%;c:\openssl-win%WIDTH%
+  - src\apps\tsql.exe -C
+  - cd ..
   - mkdir build_withoutssl
   - cd build_withoutssl
   - set OPENSSL_ROOT_DIR=
@@ -108,7 +115,7 @@ test_script:
   - set INSTANCENAME=SQL2016
   - "powershell misc\\sql-server-activate-tcp-fixed-port.ps1"
   # Create freetds.conf
-  - cd build
+  - cd build_debug
   - echo [global]> freetds.conf.local
   - echo port = 1433>> freetds.conf.local
   - echo tds version = %TDSVER%>> freetds.conf.local
