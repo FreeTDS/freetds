@@ -2654,7 +2654,6 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 	unsigned int col, num_cols;
 	TDSCOLUMN *curcol;
 	TDSPARAMINFO *info;
-	TDSDYNAMIC *dyn;
 
 	CHECK_TDS_EXTRA(tds);
 
@@ -2665,7 +2664,7 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 	if ((info = tds_alloc_results(num_cols)) == NULL)
 		return TDS_FAIL;
 	if (tds->cur_dyn) {
-		dyn = tds->cur_dyn;
+		TDSDYNAMIC *dyn = tds->cur_dyn;
 		tds_free_param_results(dyn->res_info);
 		dyn->res_info = info;
 	} else {

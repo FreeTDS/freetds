@@ -300,16 +300,16 @@ tds_get_homedir(void)
 	 * For win32 we return application data cause we use "HOME" 
 	 * only to store configuration files
 	 */
-	LPITEMIDLIST pidl;
-	char path[MAX_PATH];
 	HRESULT hr;
 	LPMALLOC pMalloc = NULL;
 	char * res = NULL;
 
 	hr = SHGetMalloc(&pMalloc);
 	if (!FAILED(hr)) {
+		LPITEMIDLIST pidl;
 		hr = SHGetSpecialFolderLocation(NULL, CSIDL_APPDATA, &pidl);
 		if (!FAILED(hr)) {
+			char path[MAX_PATH];
 			if (SHGetPathFromIDList(pidl, path))
 				res = strdup(path);
 			(*pMalloc->lpVtbl->Free)(pMalloc, pidl);
