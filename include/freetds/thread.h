@@ -147,8 +147,8 @@ void tds_win_mutex_lock(tds_raw_mutex *mutex);
 
 static inline void tds_raw_mutex_lock(tds_raw_mutex *mtx)
 {
-	if ((mtx)->done)
-		EnterCriticalSection(&(mtx)->crit);
+	if (mtx->done)
+		EnterCriticalSection(&mtx->crit);
 	else
 		tds_win_mutex_lock(mtx);
 }
@@ -157,14 +157,14 @@ int tds_raw_mutex_trylock(tds_raw_mutex *mtx);
 
 static inline void tds_raw_mutex_unlock(tds_raw_mutex *mtx)
 {
-	LeaveCriticalSection(&(mtx)->crit);
+	LeaveCriticalSection(&mtx->crit);
 }
 
 static inline void tds_raw_mutex_free(tds_raw_mutex *mtx)
 {
-	if ((mtx)->done) {
-		DeleteCriticalSection(&(mtx)->crit);
-		(mtx)->done = 0;
+	if (mtx->done) {
+		DeleteCriticalSection(&mtx->crit);
+		mtx->done = 0;
 	}
 }
 
