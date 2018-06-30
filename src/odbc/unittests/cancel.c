@@ -2,6 +2,7 @@
 
 #include "common.h"
 
+#include <assert.h>
 #include <signal.h>
 
 #if HAVE_UNISTD_H
@@ -65,6 +66,51 @@ sigalrm_handler(int s)
 #define signal(sig,h)
 #endif
 
+#ifdef _WIN32
+
+static HANDLE alarm_cond = NULL;
+
+static DWORD WINAPI alarm_thread_proc(LPVOID arg)
+{
+	unsigned int timeout = (uintptr_t) arg;
+	switch (WaitForSingleObject(alarm_cond, timeout * 1000)) {
+	case WAIT_OBJECT_0:
+		return 0;
+	}
+	abort();
+	return 0;
+}
+
+#undef alarm
+#define alarm tds_alarm
+static void alarm(unsigned int timeout)
+{
+	static HANDLE thread = NULL;
+
+	/* create an event to stop the alarm thread */
+	if (alarm_cond == NULL) {
+		alarm_cond = CreateEvent(NULL, TRUE, FALSE, NULL);
+		assert(alarm_cond != NULL);
+	}
+
+	/* stop old alarm */
+	if (thread) {
+		SetEvent(alarm_cond);
+		assert(WaitForSingleObject(thread, INFINITE) == WAIT_OBJECT_0);
+		CloseHandle(thread);
+		thread = NULL;
+	}
+
+	if (timeout) {
+		ResetEvent(alarm_cond);
+
+		/* start alarm thread */
+		thread = CreateThread(NULL, 0, alarm_thread_proc, (LPVOID) (uintptr_t) timeout, 0, NULL);
+		assert(thread);
+	}
+}
+#endif
+
 volatile bool exit_thread;
 
 static TDS_THREAD_PROC_DECLARE(wait_thread_proc, arg)
@@ -109,6 +155,7 @@ Test(bool use_threads, bool return_data)
 		int err;
 
 		exit_thread = false;
+		alarm(120);
 		err = tds_thread_create(&wait_thread, wait_thread_proc, NULL);
 		if (err != 0) {
 			perror("tds_thread_create");
@@ -123,11 +170,10 @@ Test(bool use_threads, bool return_data)
 	tds_mutex_lock(&mtx);
 	exit_thread = true;
 	tds_mutex_unlock(&mtx);
-	if (!use_threads) {
-		alarm(0);
-	} else {
+	alarm(0);
+	if (use_threads)
 		tds_thread_join(wait_thread, NULL);
-	}
+
 	getErrorInfo(SQL_HANDLE_STMT, odbc_stmt);
 	if (strcmp(C(sqlstate), "HY008") != 0) {
 		fprintf(stderr, "Unexpected sql state returned\n");
