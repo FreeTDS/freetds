@@ -424,13 +424,13 @@ HRESULT WINAPI
 DllRegisterServer(void)
 {
 	static const WCHAR desc_fmt[] = L"FreeTDS%c"
-                "APILevel=2%c"
-                "ConnectFunctions=YYN%c"
-                "DriverODBCVer=03.00%c"
-                "FileUsage=0%c"
-                "SQLLevel=2%c"
-                "Setup=%s%c"
-                "Driver=%s%c";
+                L"APILevel=2%c"
+                L"ConnectFunctions=YYN%c"
+                L"DriverODBCVer=03.00%c"
+                L"FileUsage=0%c"
+                L"SQLLevel=2%c"
+                L"Setup=%s%c"
+                L"Driver=%s%c";
 	WCHAR fn[MAX_PATH], full_fn[MAX_PATH];
 	WCHAR desc[TDS_VECTOR_SIZE(desc_fmt) + TDS_VECTOR_SIZE(full_fn) * 2 + 2];
 	LPWSTR name;
