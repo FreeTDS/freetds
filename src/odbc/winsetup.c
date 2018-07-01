@@ -423,7 +423,7 @@ ConfigTranslator(HWND hwndParent, DWORD * pvOption)
 HRESULT WINAPI
 DllRegisterServer(void)
 {
-	static const TCHAR desc_fmt[] = "FreeTDS%c"
+	static const WCHAR desc_fmt[] = L"FreeTDS%c"
                 "APILevel=2%c"
                 "ConnectFunctions=YYN%c"
                 "DriverODBCVer=03.00%c"
@@ -431,22 +431,22 @@ DllRegisterServer(void)
                 "SQLLevel=2%c"
                 "Setup=%s%c"
                 "Driver=%s%c";
-	TCHAR fn[MAX_PATH], full_fn[MAX_PATH];
-	TCHAR desc[TDS_VECTOR_SIZE(desc_fmt) + TDS_VECTOR_SIZE(full_fn) * 2 + 2];
-	LPTSTR name;
+	WCHAR fn[MAX_PATH], full_fn[MAX_PATH];
+	WCHAR desc[TDS_VECTOR_SIZE(desc_fmt) + TDS_VECTOR_SIZE(full_fn) * 2 + 2];
+	LPWSTR name;
 	WORD len_out;
 	DWORD cnt;
 	BOOL b_res;
 
-	if (!GetModuleFileName(hinstFreeTDS, fn, TDS_VECTOR_SIZE(fn)))
+	if (!GetModuleFileNameW(hinstFreeTDS, fn, TDS_VECTOR_SIZE(fn)))
 		return SELFREG_E_CLASS;
-	if (!GetFullPathName(fn, TDS_VECTOR_SIZE(full_fn), full_fn, &name) || !name || full_fn == name)
+	if (!GetFullPathNameW(fn, TDS_VECTOR_SIZE(full_fn), full_fn, &name) || !name || full_fn == name)
 		return SELFREG_E_CLASS;
 
-	wsprintf(desc, desc_fmt, 0, 0, 0, 0, 0, 0, name, 0, name, 0);
+	wsprintfW(desc, desc_fmt, 0, 0, 0, 0, 0, 0, name, 0, name, 0);
 	name[-1] = 0;
 
-	b_res = SQLInstallDriverEx(desc, full_fn, fn, TDS_VECTOR_SIZE(fn), &len_out, ODBC_INSTALL_COMPLETE, &cnt);
+	b_res = SQLInstallDriverExW(desc, full_fn, fn, TDS_VECTOR_SIZE(fn), &len_out, ODBC_INSTALL_COMPLETE, &cnt);
 	if (!b_res)
 		return SELFREG_E_CLASS;
 	return S_OK;
