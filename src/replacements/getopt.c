@@ -39,10 +39,6 @@
 # define _DIAGASSERT(x) assert((x))
 #endif
 
-#if !defined(_WIN32)
-# include "namespace.h"
-#endif
-
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
