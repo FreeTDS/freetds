@@ -35,6 +35,7 @@ main(int argc, char *argv[])
 	SQLSMALLINT len;
 	int succeeded = 0;
 	int is_freetds = 1;
+	int is_ms;
 	SQLRETURN rc;
 
 	if (odbc_read_login_info())
@@ -63,6 +64,7 @@ main(int argc, char *argv[])
 	odbc_connect();
 	if (!odbc_driver_is_freetds())
 		is_freetds = 0;
+	is_ms = odbc_db_is_microsoft;
 	odbc_disconnect();
 	++succeeded;
 
@@ -126,6 +128,22 @@ main(int argc, char *argv[])
 		odbc_disconnect();
 	}
 #endif
+
+	if (is_ms) {
+		char app_name[130];
+		memset(app_name, 'a', sizeof(app_name));
+		app_name[sizeof(app_name) - 1] = 0;
+
+		/* Try passing very long APP string.
+		 * The server is supposed to fail the connection if
+		 * this string is too long, make sure we trucate it.
+		 */
+		printf("connect string DSN connect with a long APP..\n");
+		init_connect();
+		sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;APP=%s", odbc_server, odbc_user, odbc_password, odbc_database, app_name);
+		CHKDriverConnect(NULL, T(tmp), SQL_NTS, (SQLTCHAR *) tmp, sizeof(tmp)/sizeof(SQLTCHAR), &len, SQL_DRIVER_NOPROMPT, "SI");
+		odbc_disconnect();
+	}
 
 	/* at least one should success.. */
 	if (succeeded < 3) {
