@@ -49,3 +49,4 @@ libcommon.a
 bcp_getl
 empty_rowsets
 string_bind
+colinfo

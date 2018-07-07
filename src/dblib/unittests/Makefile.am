@@ -41,7 +41,8 @@ TESTS =	\
 	batch_stmt_ins_upd$(EXEEXT) \
 	bcp_getl$(EXEEXT) \
 	empty_rowsets$(EXEEXT) \
-	string_bind$(EXEEXT)
+	string_bind$(EXEEXT) \
+	colinfo$(EXEEXT)
 
 check_PROGRAMS	=	$(TESTS)
 
@@ -94,6 +95,7 @@ batch_stmt_ins_upd_SOURCES	=	batch_stmt_ins_upd.c batch_stmt_ins_upd.sql
 bcp_getl_SOURCES=	bcp_getl.c
 empty_rowsets_SOURCES = empty_rowsets.c empty_rowsets.sql
 string_bind_SOURCES	=	string_bind.c
+colinfo_SOURCES	=	colinfo.c colinfo.sql
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h

@@ -3047,6 +3047,7 @@ dbcolinfo (DBPROCESS *dbproc, CI_TYPE type, DBINT column, DBINT computeid, DBCOL
 
 		strlcpy(pdbcol->Name, dbcolname(dbproc, column), sizeof(pdbcol->Name));
 		strlcpy(pdbcol->ActualName, dbcolname(dbproc, column), sizeof(pdbcol->ActualName));
+		strlcpy(pdbcol->TableName, tds_dstr_cstr(&colinfo->table_name), sizeof(pdbcol->TableName));
 
 		pdbcol->Type = dbcoltype(dbproc, column);
 		pdbcol->UserType = dbcolutype(dbproc, column);
@@ -3088,6 +3089,7 @@ dbcolinfo (DBPROCESS *dbproc, CI_TYPE type, DBINT column, DBINT computeid, DBCOL
 
 		strlcpy(pdbcol->Name, tds_dstr_cstr(&colinfo->column_name), sizeof(pdbcol->Name));
 		strlcpy(pdbcol->ActualName, tds_dstr_cstr(&colinfo->column_name), sizeof(pdbcol->ActualName));
+		strlcpy(pdbcol->TableName, tds_dstr_cstr(&colinfo->table_name), sizeof(pdbcol->TableName));
 
 		pdbcol->Type = dbalttype(dbproc, computeid, column);
 		pdbcol->UserType = dbaltutype(dbproc, computeid, column);
@@ -6465,6 +6467,7 @@ dbtablecolinfo (DBPROCESS *dbproc, DBINT column, DBCOL *pdbcol )
 
 	strlcpy(pdbcol->Name, tds_dstr_cstr(&colinfo->column_name), sizeof(pdbcol->Name));
 	strlcpy(pdbcol->ActualName, tds_dstr_cstr(&colinfo->column_name), sizeof(pdbcol->ActualName));
+	strlcpy(pdbcol->TableName, tds_dstr_cstr(&colinfo->table_name), sizeof(pdbcol->TableName));
 
 	pdbcol->Type = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
 	pdbcol->UserType = colinfo->column_usertype;
