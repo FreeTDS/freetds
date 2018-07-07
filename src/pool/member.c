@@ -332,7 +332,7 @@ pool_process_members(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
 {
 	TDS_POOL_MEMBER *pmbr, *next;
 	TDSSOCKET *tds;
-	int age;
+	time_t age;
 	time_t time_now;
 
 	for (next = dlist_member_first(&pool->active_members); (pmbr = next) != NULL; ) {
@@ -375,7 +375,7 @@ pool_process_members(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
 		age = time_now - pmbr->last_used_tm;
 		if (age > pool->max_member_age
 		    && pool->num_active_members > pool->min_open_conn) {
-			tdsdump_log(TDS_DBG_INFO1, "member is %d seconds old...closing\n", age);
+			tdsdump_log(TDS_DBG_INFO1, "member is %ld seconds old...closing\n", (long int) age);
 			pool_free_member(pool, pmbr);
 		}
 	}
