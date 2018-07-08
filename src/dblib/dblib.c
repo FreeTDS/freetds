@@ -6518,7 +6518,11 @@ dbtablecolinfo(DBPROCESS *dbproc, DBINT column, DBCOL *pdbcol)
 		return FAIL;
 
 	strlcpy(pdbcol->Name, tds_dstr_cstr(&colinfo->column_name), sizeof(pdbcol->Name));
-	strlcpy(pdbcol->ActualName, tds_dstr_cstr(&colinfo->column_name), sizeof(pdbcol->ActualName));
+	/* returns table_column_name if available */
+	if (tds_dstr_isempty(&colinfo->table_column_name))
+		strlcpy(pdbcol->ActualName, tds_dstr_cstr(&colinfo->column_name), sizeof(pdbcol->ActualName));
+	else
+		strlcpy(pdbcol->ActualName, tds_dstr_cstr(&colinfo->table_column_name), sizeof(pdbcol->ActualName));
 	strlcpy(pdbcol->TableName, tds_dstr_cstr(&colinfo->table_name), sizeof(pdbcol->TableName));
 
 	pdbcol->Type = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);

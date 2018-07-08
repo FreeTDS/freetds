@@ -84,12 +84,15 @@ TEST_MAIN()
 
 		if (n_col == 1) {
 			check_is(col2.Name, "number");
+			check_is(col2.ActualName, "is_an_int");
 			check_contains(col2.TableName, "#colinfo_table");
 		} else if (n_col == 2) {
 			check_is(col2.Name, "is_a_string");
+			check_is(col2.ActualName, "is_a_string");
 			check_contains(col2.TableName, "#colinfo_table");
 		} else if (n_col == 3) {
 			check_is(col2.Name, "dollars");
+			check_is(col2.ActualName, "is_a_money");
 			check_contains(col2.TableName, "#test_table");
 		}
 	}
