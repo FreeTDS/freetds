@@ -155,6 +155,10 @@ tds_socket_done(void)
 #define USE_NODELAY 1
 #endif
 
+#ifndef __APPLE__
+#undef SO_NOSIGPIPE
+#endif
+
 /**
  * Set socket to non-blocking
  * @param sock socket to set
@@ -293,7 +297,7 @@ tds_setup_socket(TDS_SYS_SOCKET *p_sock, struct addrinfo *addr, unsigned int por
 	setsockopt(sock, SOL_TCP, TCP_KEEPINTVL, (const void *) &len, sizeof(len));
 #endif
 
-#if defined(__APPLE__) && defined(SO_NOSIGPIPE)
+#if defined(SO_NOSIGPIPE)
 	len = 1;
 	if (setsockopt(sock, SOL_SOCKET, SO_NOSIGPIPE, (const void *) &len, sizeof(len))) {
 		*p_oserr = sock_errno;
@@ -769,7 +773,7 @@ tds_socket_write(TDSCONNECTION *conn, TDSSOCKET *tds, const unsigned char *buf, 
 	}
 #endif
 
-#if defined(__APPLE__) && defined(SO_NOSIGPIPE)
+#if defined(SO_NOSIGPIPE)
 	len = send(conn->s, buf, buflen, 0);
 #else
 	len = WRITESOCKET(conn->s, buf, buflen);
@@ -1048,7 +1052,7 @@ tds_connection_write(TDSSOCKET *tds, const unsigned char *buf, int buflen, int f
 	int sent;
 	TDSCONNECTION *conn = tds->conn;
 
-#if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X) && (!defined(__APPLE__) || !defined(SO_NOSIGPIPE))
+#if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X) && !defined(SO_NOSIGPIPE)
 	void (*oldsig) (int);
 
 	oldsig = signal(SIGPIPE, SIG_IGN);
@@ -1070,7 +1074,7 @@ tds_connection_write(TDSSOCKET *tds, const unsigned char *buf, int buflen, int f
 	if (final && sent >= buflen)
 		tds_socket_flush(tds_get_s(tds));
 
-#if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X) && (!defined(__APPLE__) || !defined(SO_NOSIGPIPE))
+#if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X) && !defined(SO_NOSIGPIPE)
 	if (signal(SIGPIPE, oldsig) == SIG_ERR) {
 		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't reset SIGPIPE signal to previous value\n");
 	}
