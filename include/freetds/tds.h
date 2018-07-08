@@ -1491,6 +1491,7 @@ int tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen);
 int tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen);
 void tds_socket_flush(TDS_SYS_SOCKET sock);
 int tds_socket_set_nonblocking(TDS_SYS_SOCKET sock);
+int tds_socket_set_nosigpipe(TDS_SYS_SOCKET sock, int on);
 int tds_wakeup_init(TDSPOLLWAKEUP *wakeup);
 void tds_wakeup_close(TDSPOLLWAKEUP *wakeup);
 void tds_wakeup_send(TDSPOLLWAKEUP *wakeup, char cancel);
