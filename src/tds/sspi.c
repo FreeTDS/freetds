@@ -226,7 +226,7 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 	}
 
 	auth = tds_new0(TDSSSPIAUTH, 1);
-	if (!auth || !tds->login)
+	if (!auth)
 		return NULL;
 
 	auth->tds_auth.free = tds_sspi_free;
