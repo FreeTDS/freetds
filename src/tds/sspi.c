@@ -108,9 +108,12 @@ tds_sspi_free(TDSCONNECTION * conn, struct tds_authentication * tds_auth)
 {
 	TDSSSPIAUTH *auth = (TDSSSPIAUTH *) tds_auth;
 
-	sec_fn->DeleteSecurityContext(&auth->cred_ctx);
-	sec_fn->FreeCredentialsHandle(&auth->cred);
-	sec_fn->FreeContextBuffer(auth->tds_auth.packet);
+	if (SecIsValidHandle(&auth->cred_ctx))
+		sec_fn->DeleteSecurityContext(&auth->cred_ctx);
+	if (SecIsValidHandle(&auth->cred))
+		sec_fn->FreeCredentialsHandle(&auth->cred);
+	if (auth->tds_auth.packet)
+		sec_fn->FreeContextBuffer(auth->tds_auth.packet);
 	free(auth->sname);
 	free(auth);
 	return TDS_SUCCESS;
@@ -230,6 +233,8 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 
 	auth->tds_auth.free = tds_sspi_free;
 	auth->tds_auth.handle_next = tds_sspi_handle_next;
+	SecInvalidateHandle(&auth->cred);
+	SecInvalidateHandle(&auth->cred_ctx);
 
 	/* using Negotiate system will use proper protocol (either NTLM or Kerberos) */
 	if (sec_fn->AcquireCredentialsHandle(NULL, (char *)"Negotiate", SECPKG_CRED_OUTBOUND,
@@ -272,8 +277,7 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 		if (asprintf(&auth->sname, "MSSQLSvc/%s:%d", server_name, login->port) < 0) {
 			if (addrs)
 				freeaddrinfo(addrs);
-			sec_fn->FreeCredentialsHandle(&auth->cred);
-			free(auth);
+			tds_sspi_free(tds->conn, &auth->tds_auth);
 			return NULL;
 		}
 		tdsdump_log(TDS_DBG_NETWORK, "kerberos name %s\n", auth->sname);
