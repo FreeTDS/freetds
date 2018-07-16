@@ -178,28 +178,6 @@ tds_socket_set_nonblocking(TDS_SYS_SOCKET sock)
 	return sock_errno;
 }
 
-/**
- * Set socket to not throw SIGPIPE.
- * Not many systems support this feature (in this case ENOTSUP can be
- * returned).
- * @param sock socket to set
- * @param on   flag if enable or disable
- * @return 0 on success or error code
- */
-int
-tds_socket_set_nosigpipe(TDS_SYS_SOCKET sock, int on)
-{
-#if defined(SO_NOSIGPIPE)
-	if (setsockopt(sock, SOL_SOCKET, SO_NOSIGPIPE, (const void *) &on, sizeof(on)))
-		return sock_errno;
-	return 0;
-#elif defined(_WIN32)
-	return 0;
-#else
-	return on ? ENOTSUP : 0;
-#endif
-}
-
 static void
 tds_addrinfo_set_port(struct addrinfo *addr, unsigned int port)
 {

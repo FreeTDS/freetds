@@ -15,6 +15,7 @@ libtdsutils_la_SOURCES = \
 	threadsafe.c \
 	bjoern-utf8.c \
 	tdsstring.c \
+	net.c \
 	$(NULL)
 EXTRA_DIST = \
 	CMakeLists.txt \
