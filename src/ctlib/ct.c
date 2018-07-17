@@ -2795,7 +2795,7 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 		TDSBLOB *blob = NULL;
 		size_t table_namelen, column_namelen;
 
-		/* allocare needed descriptor if needed */
+		/* allocate needed descriptor if needed */
 		free(cmd->iodesc);
 		cmd->iodesc = tds_new0(CS_IODESC, 1);
 		if (!cmd->iodesc)
