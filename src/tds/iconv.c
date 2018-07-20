@@ -1182,7 +1182,7 @@ collate2charset(int sql_collate, int lcid)
 		break;
 	case 0x1004:
 	case 0x804:		/* 0x20804 */
-		cp = TDS_CHARSET_CP936;
+		cp = TDS_CHARSET_GB18030;
 		break;
 	case 0x412:		/* 0x10412 */
 		cp = TDS_CHARSET_CP949;
