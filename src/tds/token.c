@@ -1175,7 +1175,7 @@ tds_process_tabname(TDSSOCKET *tds)
 	if (IS_TDS71_PLUS(tds->conn) && (!IS_TDS71(tds->conn) || !tds->conn->tds71rev1))
 		num_names = tds71_read_table_names(tds, hdrsize, &head);
 	else
-		num_names = tds_read_namelist(tds, hdrsize, &head, 1);
+		num_names = tds_read_namelist(tds, hdrsize, &head, IS_TDS7_PLUS(tds->conn));
 	if (num_names <= 0)
 		return TDS_FAIL;
 
