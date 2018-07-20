@@ -916,11 +916,9 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	} while(0)
 
 	/* setup data fields */
+	memset(data_fields, 0, sizeof(data_fields));
 	SET_FIELD_DSTR(HOST_NAME, login->client_host_name, 128);
-	if (tds->conn->authentication) {
-		data_fields[USER_NAME].len = 0;
-		data_fields[PASSWORD].len = 0;
-	} else {
+	if (!tds->conn->authentication) {
 		SET_FIELD_DSTR(USER_NAME, login->user_name, 128);
 		SET_FIELD_DSTR(PASSWORD, login->password, 128);
 	}
@@ -930,7 +928,6 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	SET_FIELD_DSTR(LANGUAGE, login->language, 128);
 	SET_FIELD_DSTR(DATABASE_NAME, login->database, 128);
 	SET_FIELD_DSTR(DB_FILENAME, login->db_filename, 260);
-	data_fields[NEW_PASSWORD].len = 0;
 	if (IS_TDS72_PLUS(tds->conn) && login->use_new_password) {
 		option_flag3 |= TDS_CHANGE_PASSWORD;
 		SET_FIELD_DSTR(NEW_PASSWORD, login->new_password, 128);
