@@ -1,4 +1,5 @@
 #include "common.h"
+#include <freetds/macros.h>
 
 /* test conversion of Hebrew characters (which have shift sequences) */
 
@@ -12,31 +13,38 @@ init_connect(void)
 	CHKAllocConnect(&odbc_conn, "S");
 }
 
-static const char * const strings[] = {
-	"\xd7\x9e\xd7\x99\xd7\x93\xd7\xa2",
-	"info",
-	"\xd7\x98\xd7\xa7\xd7\xa1\xd7\x98",
-	"\xd7\x90\xd7\x91\xd7\x9b",
-	NULL
+static const char * const column_names[] = {
+	"hebrew",
+	"cn"
 };
 
-/* same strings in hex */
-static const char * const strings_hex[] = {
-	"0xde05d905d305e205",
-	"0x69006e0066006f00",
-	"0xd805e705e105d805",
-	"0xd005d105db05",
-	NULL
+typedef struct {
+	/* number of column */
+	int num;
+	/* hex representation, used during insert */
+	const char *hex;
+	/* output */
+	const char *out;
+} column_t;
+
+static const column_t columns[] = {
+	{ 0, "0xde05d905d305e205", "\xd7\x9e\xd7\x99\xd7\x93\xd7\xa2" },
+	{ 0, "0x69006e0066006f00", "info", },
+	{ 0, "0xd805e705e105d805", "\xd7\x98\xd7\xa7\xd7\xa1\xd7\x98", },
+	{ 0, "0xd005d105db05", "\xd7\x90\xd7\x91\xd7\x9b", },
+	{ 1, "0xf78b7353d153278d3a00228c228c56e02000",
+	     "\xe8\xaf\xb7\xe5\x8d\xb3\xe5\x8f\x91\xe8\xb4\xa7\x3a\xe8\xb0\xa2\xe8\xb0\xa2\xee\x81\x96\x20", },
+	{ 0, NULL, NULL },
 };
 
 int
 main(int argc, char *argv[])
 {
-	char tmp[512];
-	char out[32];
-	SQLLEN n_len;
+	char tmp[512*4+64];
+	char out[TDS_VECTOR_SIZE(column_names)][32];
+	SQLLEN n_len[TDS_VECTOR_SIZE(column_names)];
 	SQLSMALLINT len;
-	const char * const*p;
+	const column_t *p;
 	int n;
 
 	if (odbc_read_login_info())
@@ -66,23 +74,29 @@ main(int argc, char *argv[])
 	CHKAllocStmt(&odbc_stmt, "S");
 
 	/* create test table */
-	odbc_command("CREATE TABLE #tmpHebrew (i INT, v VARCHAR(10) COLLATE Hebrew_CI_AI)");
+	odbc_command("CREATE TABLE #tmp (i INT"
+		     ", hebrew VARCHAR(20) COLLATE Hebrew_CI_AI NULL"
+		     ", cn VARCHAR(20) COLLATE Chinese_PRC_CI_AS NULL"
+		     ")");
 
 	/* insert with INSERT statements */
-	for (n = 0, p = strings_hex; p[n]; ++n) {
-		sprintf(tmp, "INSERT INTO #tmpHebrew VALUES(%d, CAST(%s AS NVARCHAR(10)))", n+1, p[n]);
+	for (n = 0, p = columns; p[n].hex; ++n) {
+		sprintf(tmp, "INSERT INTO #tmp(i, %s) VALUES(%d, CAST(%s AS NVARCHAR(20)))",
+			     column_names[p[n].num], n+1, p[n].hex);
 		odbc_command(tmp);
 	}
 
 	/* test conversions in libTDS */
-	odbc_command("SELECT v FROM #tmpHebrew");
+	odbc_command("SELECT hebrew, cn FROM #tmp ORDER BY i");
 
 	/* insert with SQLPrepare/SQLBindParameter/SQLExecute */
-	CHKBindCol(1, SQL_C_CHAR, out, sizeof(out), &n_len, "S");
-	for (n = 0, p = strings; p[n]; ++n) {
+	for (n = 0; n < TDS_VECTOR_SIZE(column_names); ++n)
+		CHKBindCol(n+1, SQL_C_CHAR, out[n], sizeof(out[0]), &n_len[n], "S");
+	for (n = 0, p = columns; p[n].hex; ++n) {
+		memset(out, 0, sizeof(out));
 		CHKFetch("S");
-		if (n_len != strlen(p[n]) || strcmp(p[n], out) != 0) {
-			fprintf(stderr, "Wrong row %d %s\n", n, out);
+		if (n_len[p[n].num] != strlen(p[n].out) || strcmp(p[n].out, out[p[n].num]) != 0) {
+			fprintf(stderr, "Wrong row %d %s\n", n+1, out[p[n].num]);
 			odbc_disconnect();
 			return 1;
 		}
