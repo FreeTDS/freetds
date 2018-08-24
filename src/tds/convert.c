@@ -1366,7 +1366,7 @@ tds_convert_datetime(const TDSCONTEXT * tds_ctx, const TDS_DATETIME * dt, int de
 		if (desttype != SYBMSDATE) {
 			cr->dta.has_time = 1;
 			cr->dta.time_prec = 3;
-			cr->dta.time = ((TDS_UINT8) dt->dttime) * 100000u / 3u;
+			cr->dta.time = (((TDS_UINT8) dt->dttime) * 20 + 3) / 6 * 10000u;
 		}
 		if (desttype != SYBMSTIME) {
 			cr->dta.has_date = 1;
@@ -1374,10 +1374,10 @@ tds_convert_datetime(const TDSCONTEXT * tds_ctx, const TDS_DATETIME * dt, int de
 		}
 		return sizeof(TDS_DATETIMEALL);
 	case SYB5BIGTIME:
-		cr->bigtime = ((TDS_UINT8) dt->dttime) * 10000u / 3u;
+		cr->bigtime = (((TDS_UINT8) dt->dttime) * 20u + 3u) / 6u * 1000u;
 		return sizeof(TDS_BIGTIME);
 	case SYB5BIGDATETIME:
-		cr->bigdatetime = ((TDS_UINT8) dt->dttime) * 10000u / 3u
+		cr->bigdatetime = (((TDS_UINT8) dt->dttime) * 20u + 3u) / 6u * 1000u
 				  + (dt->dtdays + BIGDATETIME_BIAS) * ((TDS_UINT8) 86400u * 1000000u);
 		return sizeof(TDS_BIGDATETIME);
 		/* conversions not allowed */
