@@ -135,6 +135,7 @@ main(int argc, char *argv[])
 	SQLINTEGER int_buf;
 	SQLLEN len;
 	SQLRETURN rc;
+	TIMESTAMP_STRUCT tss;
 
 	odbc_connect();
 
@@ -257,6 +258,20 @@ main(int argc, char *argv[])
 	test_err("prova 123",           SQL_C_TIMESTAMP, "22018");
 	/* overflow */
 	test_err("1234567890123456789", SQL_C_LONG,      "22003");
+
+	/* test datetime precision */
+	odbc_command("SELECT CONVERT(DATETIME, '2018-08-15 12:34:56.007')");
+
+	CHKFetch("S");
+
+	memset(&tss, 'x', sizeof(tss));
+	CHKGetData(1, SQL_C_TYPE_TIMESTAMP, &tss, sizeof(tss), NULL, "S");
+	if (tss.fraction != 7000000) {
+		printf("Wrong data result: %lu\n", (unsigned long) tss.fraction);
+		exit(1);
+	}
+
+	odbc_reset_statement();
 
 	/* test for empty string from mssql */
 	if (odbc_db_is_microsoft()) {
