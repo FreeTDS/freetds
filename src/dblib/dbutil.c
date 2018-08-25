@@ -132,7 +132,7 @@ _dblib_handle_err_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAG
 	assert(_dblib_err_handler);
 	assert(msg);
 
-	rc = dbperror(dbproc, msg->msgno, msg->oserr);
+	rc = dbperror(dbproc, msg->msgno, msg->oserr, 0, 0, 0, 0);
 
 	/*
 	 * Preprocess the return code to handle INT_TIMEOUT/INT_CONTINUE
