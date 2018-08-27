@@ -2211,6 +2211,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL
 		    || drec->sql_desc_concise_type == SQL_TYPE_TIMESTAMP
 		    || drec->sql_desc_concise_type == SQL_TYPE_DATE
+		    || drec->sql_desc_concise_type == SQL_TYPE_TIME
 		    || drec->sql_desc_concise_type == SQL_TIMESTAMP
 		    || drec->sql_desc_concise_type == SQL_SS_TIME2
 		    || drec->sql_desc_concise_type == SQL_SS_TIMESTAMPOFFSET)
@@ -2224,6 +2225,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL
 		    || drec->sql_desc_concise_type == SQL_TYPE_TIMESTAMP
 		    || drec->sql_desc_concise_type == SQL_TYPE_DATE
+		    || drec->sql_desc_concise_type == SQL_TYPE_TIME
 		    || drec->sql_desc_concise_type == SQL_TIMESTAMP
 		    || drec->sql_desc_concise_type == SQL_FLOAT
 		    || drec->sql_desc_concise_type == SQL_SS_TIME2

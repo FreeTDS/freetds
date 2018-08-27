@@ -470,6 +470,7 @@ AllTests(void)
 	/* MSSQL 2008 */
 	if (odbc_db_is_microsoft() && odbc_db_version_int() >= 0x0a000000u) {
 		TestInput(SQL_C_TYPE_DATE, "DATE", SQL_TYPE_DATE, "DATE", "2005-07-22");
+		TestInput(SQL_C_TYPE_TIME, "TIME", SQL_TYPE_TIME, "TIME", "13:02:03");
 	}
 
 	/* Sybase */
