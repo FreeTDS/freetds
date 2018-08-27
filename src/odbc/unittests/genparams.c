@@ -467,6 +467,11 @@ AllTests(void)
 		TestInput(SQL_C_CHAR, "VARCHAR(20)", SQL_LONGVARCHAR, "VARCHAR(MAX)", "1EasyTest");
 		TestInput(SQL_C_BINARY, "VARBINARY(20)", SQL_LONGVARBINARY, "VARBINARY(MAX)", "Anything will suite!");
 	}
+	/* MSSQL 2008 */
+	if (odbc_db_is_microsoft() && odbc_db_version_int() >= 0x0a000000u) {
+		TestInput(SQL_C_TYPE_DATE, "DATE", SQL_TYPE_DATE, "DATE", "2005-07-22");
+	}
+
 	/* Sybase */
 	if (!odbc_db_is_microsoft()) {
 		TestInput(SQL_C_CHAR, "UNIVARCHAR(100)", SQL_WCHAR, "UNIVARCHAR(100)", "test");
