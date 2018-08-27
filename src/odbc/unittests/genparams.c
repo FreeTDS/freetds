@@ -405,17 +405,19 @@ AllTests(void)
 	precision = 6;
 	/* output from char with conversions */
 	TestOutput("VARCHAR(20)", "foo test", SQL_C_CHAR, SQL_VARCHAR, "6 foo te");
-	/* TODO use collate in sintax if available */
+	/* TODO use collate in syntax if available */
 	/* while usually on Microsoft database this encoding is valid on Sybase the database
 	 * could use UTF-8 encoding where \xf8\xf9 is an invalid encoded string */
 	if (odbc_db_is_microsoft() && odbc_tds_version() > 0x700)
 		TestOutput("VARCHAR(20)", "0xf8f9", SQL_C_CHAR, SQL_VARCHAR, "2 \xf8\xf9");
 
+	/* MSSQL 2000 using ptotocol 7.1+ */
 	if ((odbc_db_is_microsoft() && odbc_db_version_int() >= 0x08000000u && odbc_tds_version() > 0x700)
 	    || (!odbc_db_is_microsoft() && strncmp(odbc_db_version(), "15.00.", 6) >= 0)) {
 		TestOutput("BIGINT", "-987654321065432", SQL_C_BINARY, SQL_BIGINT, big_endian ? "FFFC7DBBCF083228" : "283208CFBB7DFCFF");
 		TestInput(SQL_C_SBIGINT, "BIGINT", SQL_BIGINT, "BIGINT", "-12345678901234");
 	}
+	/* MSSQL 2000 */
 	if (odbc_db_is_microsoft() && odbc_db_version_int() >= 0x08000000u) {
 		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WCHAR, "NVARCHAR(100)", "test");
 		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WLONGVARCHAR, "NTEXT", "test");
@@ -460,10 +462,12 @@ AllTests(void)
 		TestInput(SQL_C_BINARY, "VARBINARY(100)", SQL_WVARCHAR, "NVARCHAR(20)", "0x4100450054004F00 -> AETO");
 		TestInput(SQL_C_BINARY, "IMAGE", SQL_WVARCHAR, "NVARCHAR(20)", "0x4100450054004F00 -> AETO");
 	}
+	/* MSSQL 2005 */
 	if (odbc_db_is_microsoft() && odbc_db_version_int() >= 0x09000000u) {
 		TestInput(SQL_C_CHAR, "VARCHAR(20)", SQL_LONGVARCHAR, "VARCHAR(MAX)", "1EasyTest");
 		TestInput(SQL_C_BINARY, "VARBINARY(20)", SQL_LONGVARBINARY, "VARBINARY(MAX)", "Anything will suite!");
 	}
+	/* Sybase */
 	if (!odbc_db_is_microsoft()) {
 		TestInput(SQL_C_CHAR, "UNIVARCHAR(100)", SQL_WCHAR, "UNIVARCHAR(100)", "test");
 		TestInput(SQL_C_WCHAR, "UNIVARCHAR(100)", SQL_WCHAR, "UNIVARCHAR(100)", "test");
