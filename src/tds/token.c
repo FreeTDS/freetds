@@ -314,21 +314,36 @@ tds_process_loginack(TDSSOCKET *tds, TDSRET *login_succeeded)
 	/* Log reported server product name, cf. MS-TDS LOGINACK documentation. */
 	switch (ver.reported) {
 	case 0x07000000:
-		ver.name = "7.0"; break;
+		ver.name = "7.0";
+		tds->conn->tds_version = 0x700;
+		break;
 	case 0x07010000:
-		ver.name = "2000"; break;
+		ver.name = "2000";
+		tds->conn->tds_version = 0x701;
+		break;
 	case 0x71000001:
-		ver.name = "2000 SP1"; break;
+		ver.name = "2000 SP1";
+		tds->conn->tds_version = 0x701;
+		break;
 	case 0x72090002:
-		ver.name = "2005"; break;
+		ver.name = "2005";
+		tds->conn->tds_version = 0x702;
+		break;
 	case 0x730A0003:
-		ver.name = "2008 (no NBCROW or fSparseColumnSet)"; break;
+		ver.name = "2008 (no NBCROW or fSparseColumnSet)";
+		tds->conn->tds_version = 0x703;
+		break;
 	case 0x730B0003:
-		ver.name = "2008"; break;
+		ver.name = "2008";
+		tds->conn->tds_version = 0x703;
+		break;
 	case 0x74000004:
-		ver.name = "2012-2017"; break;
+		ver.name = "2012-2017";
+		tds->conn->tds_version = 0x704;
+		break;
 	default:
-		ver.name = "unknown"; break;
+		ver.name = "unknown";
+		break;
 	}
 
 	tdsdump_log(TDS_DBG_FUNC, "server reports TDS version %x.%x.%x.%x\n",
@@ -2339,6 +2354,7 @@ tds_process_info(TDSSOCKET * tds, int marker)
 	unsigned int len_sqlstate;
 	int has_eed = 0;
 	TDSMESSAGE msg;
+	unsigned int packet_len, char_len, readed_len = 10;
 
 	CHECK_TDS_EXTRA(tds);
 
@@ -2349,7 +2365,7 @@ tds_process_info(TDSSOCKET * tds, int marker)
 	memset(&msg, 0, sizeof(TDSMESSAGE));
 
 	/* packet length */
-	tds_get_smallint(tds);
+	packet_len = tds_get_usmallint(tds);
 
 	/* message number */
 	msg.msgno = tds_get_int(tds);
@@ -2388,6 +2404,7 @@ tds_process_info(TDSSOCKET * tds, int marker)
 
 		/* junk status and transaction state */
 		tds_get_smallint(tds);
+		readed_len += 4 + len_sqlstate;
 		break;
 	case TDS_INFO_TOKEN:
 		msg.priv_msg_type = 0;
@@ -2402,13 +2419,21 @@ tds_process_info(TDSSOCKET * tds, int marker)
 	}
 
 	tdsdump_log(TDS_DBG_ERROR, "tds_process_info() reading message %d from server\n", msg.msgno);
-	
+
+#define GET_STRING(dest, len_type) do { \
+	unsigned int to_read_size = tds_get_ ## len_type(tds); \
+	char_len += to_read_size; \
+	rc += tds_alloc_get_string(tds, dest, to_read_size); \
+} while(0)
+
+	char_len = 0;
 	rc = 0;
+
 	/* the message */
-	rc += tds_alloc_get_string(tds, &msg.message, tds_get_usmallint(tds));
+	GET_STRING(&msg.message, usmallint);
 
 	/* server name */
-	rc += tds_alloc_get_string(tds, &msg.server, tds_get_byte(tds));
+	GET_STRING(&msg.server, byte);
 
 	if ((!msg.server || !msg.server[0]) && tds->login) {
 		TDS_ZERO_FREE(msg.server);
@@ -2419,10 +2444,25 @@ tds_process_info(TDSSOCKET * tds, int marker)
 	}
 
 	/* stored proc name if available */
-	rc += tds_alloc_get_string(tds, &msg.proc_name, tds_get_byte(tds));
+	GET_STRING(&msg.proc_name, byte);
+
+	readed_len += char_len * (IS_TDS7_PLUS(tds->conn) ? 2 : 1);
 
 	/* line number in the sql statement where the problem occured */
-	msg.line_number = IS_TDS72_PLUS(tds->conn) ? tds_get_int(tds) : tds_get_smallint(tds);
+	/* login still not done, we don't know exactly the version */
+	if (tds->conn->product_version == 0 ?
+	    IS_TDS7_PLUS(tds->conn) && readed_len + 4 <= packet_len :
+	    IS_TDS72_PLUS(tds->conn)) {
+		msg.line_number = tds_get_int(tds);
+		readed_len += 4;
+	} else {
+		msg.line_number = tds_get_smallint(tds);
+		readed_len += 2;
+	}
+	/* discard additional bytes */
+	if (packet_len > readed_len)
+		tds_get_n(tds, NULL, packet_len - readed_len);
+#undef GET_STRING
 
 	/*
 	 * If the server doesn't provide an sqlstate, map one via server native errors
