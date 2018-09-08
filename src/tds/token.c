@@ -325,6 +325,8 @@ tds_process_loginack(TDSSOCKET *tds, TDSRET *login_succeeded)
 		ver.name = "2008 (no NBCROW or fSparseColumnSet)"; break;
 	case 0x730B0003:
 		ver.name = "2008"; break;
+	case 0x74000004:
+		ver.name = "2012-2017"; break;
 	default:
 		ver.name = "unknown"; break;
 	}
