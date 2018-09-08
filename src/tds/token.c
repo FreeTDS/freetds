@@ -343,21 +343,21 @@ tds_process_loginack(TDSSOCKET *tds, TDSRET *login_succeeded)
 	len -= 10;
 	free(tds->conn->product_name);
 	if (ver.major >= 7u) {
-		product_version = 0x80000000u;
+		product_version = 0x80u;
 		memrc += tds_alloc_get_string(tds, &tds->conn->product_name, len / 2);
 	} else if (ver.major >= 5) {
 		memrc += tds_alloc_get_string(tds, &tds->conn->product_name, len);
 	} else {
 		memrc += tds_alloc_get_string(tds, &tds->conn->product_name, len);
 		if (tds->conn->product_name != NULL && strstr(tds->conn->product_name, "Microsoft") != NULL)
-			product_version = 0x80000000u;
+			product_version = 0x80u;
 	}
 	if (memrc != 0)
 		return TDS_FAIL;
 
-	product_version |= ((TDS_UINT) tds_get_byte(tds)) << 24;
-	product_version |= ((TDS_UINT) tds_get_byte(tds)) << 16;
-	product_version |= ((TDS_UINT) tds_get_byte(tds)) << 8;
+	product_version |= tds_get_byte(tds); product_version <<= 8;
+	product_version |= tds_get_byte(tds); product_version <<= 8;
+	product_version |= tds_get_byte(tds); product_version <<= 8;
 	product_version |= tds_get_byte(tds);
 
 	/*
