@@ -6187,7 +6187,7 @@ SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLLEN cbValue)
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLPutData(%p, %p, %i)\n", hstmt, rgbValue, (int)cbValue);
 
-	if (stmt->is_prepared_query || stmt->prepared_query_is_rpc) {
+	if (stmt->param_data_called) {
 		SQLRETURN ret;
 		const TDSCOLUMN *curcol = stmt->params->columns[stmt->param_num - (stmt->prepared_query_is_func ? 2 : 1)];
 		/* TODO do some more tests before setting this flag */
