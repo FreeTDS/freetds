@@ -18,8 +18,8 @@ to_sqlwchar(SQLWCHAR *dst, const char *src, int n)
 
 static char sql[1024];
 
-int
-main(int argc, char *argv[])
+static void
+Test(int direct)
 {
 	SQLLEN ind;
 	int len = strlen(test_text), n, i;
@@ -30,9 +30,8 @@ main(int argc, char *argv[])
 	SQLRETURN RetCode;
 	int type, lc, sql_type;
 
-	odbc_connect();
-
 	/* create table to hold data */
+	odbc_command_with_result(odbc_stmt, "DROP TABLE #putdata");
 	odbc_command("CREATE TABLE #putdata (c TEXT NULL, b IMAGE NULL)");
 
 	sql_type = SQL_LONGVARCHAR;
@@ -47,15 +46,22 @@ main(int argc, char *argv[])
 		 * test for char 
 		 */
 
-		CHKPrepare(T("INSERT INTO #putdata(c) VALUES(?)"), SQL_NTS, "S");
+		if (!direct) {
+			CHKPrepare(T("INSERT INTO #putdata(c) VALUES(?)"), SQL_NTS, "S");
 
-		CHKExecute("Ne");
+			CHKExecute("Ne");
+		} else {
+			CHKExecDirect(T("INSERT INTO #putdata(c) VALUES(?)"), SQL_NTS, "Ne");
+		}
 
 		p = test_text;
 		n = 5;
+		ptr = ((char*)0) + 0xdeadbeef;
 		CHKParamData(&ptr, "Ne");
-		if (ptr != (SQLPOINTER) 123)
+		if (ptr != (SQLPOINTER) 123) {
+			fprintf(stderr, "%p\n", ptr);
 			ODBC_REPORT_ERROR("Wrong pointer from SQLParamData");
+		}
 		while (*p) {
 			int l = strlen(p);
 
@@ -151,13 +157,18 @@ main(int argc, char *argv[])
 	/* test len == 0 case from ML */
 	type = SQL_C_CHAR;
 	for (;;) {
-		CHKPrepare(T("INSERT INTO #putdata(c) VALUES(?)"), SQL_NTS, "S");
+		if (!direct)
+			CHKPrepare(T("INSERT INTO #putdata(c) VALUES(?)"), SQL_NTS, "S");
 
 		CHKBindParameter(1, SQL_PARAM_INPUT, type, SQL_LONGVARCHAR, 0, 0, (PTR) 2, 0, &ind, "S");
 
 		ind = SQL_LEN_DATA_AT_EXEC(0);
 
-		RetCode = CHKExecute("Ne");
+		if (!direct)
+			CHKExecute("Ne");
+		else
+			CHKExecDirect(T("INSERT INTO #putdata(c) VALUES(?)"), SQL_NTS, "Ne");
+		RetCode = SQL_NEED_DATA;
 		while (RetCode == SQL_NEED_DATA) {
 			RetCode = SQLParamData(odbc_stmt, &ptr);
 			if (RetCode == SQL_NEED_DATA) {
@@ -184,13 +195,18 @@ main(int argc, char *argv[])
 	if (odbc_db_is_microsoft()) {
 		type = SQL_C_CHAR;
 		for (;;) {
-			CHKPrepare(T("INSERT INTO #putdata(c) VALUES(?)"), SQL_NTS, "S");
+			if (!direct)
+				CHKPrepare(T("INSERT INTO #putdata(c) VALUES(?)"), SQL_NTS, "S");
 
 			CHKBindParameter(1, SQL_PARAM_INPUT, type, SQL_LONGVARCHAR, 10, 0, (PTR) 2, 10, &ind, "S");
 
 			ind = SQL_DATA_AT_EXEC;
 
-			RetCode = CHKExecute("Ne");
+			if (!direct)
+				CHKExecute("Ne");
+			else
+				CHKExecDirect(T("INSERT INTO #putdata(c) VALUES(?)"), SQL_NTS, "Ne");
+			RetCode = SQL_NEED_DATA;
 			while (RetCode == SQL_NEED_DATA) {
 				RetCode = SQLParamData(odbc_stmt, &ptr);
 				if (RetCode == SQL_NEED_DATA)
@@ -207,6 +223,15 @@ main(int argc, char *argv[])
 	}
 
 	/* TODO test cancel inside SQLExecute */
+}
+
+int
+main(int argc, char *argv[])
+{
+	odbc_connect();
+
+	Test(0);
+	Test(1);
 
 	odbc_disconnect();
 
