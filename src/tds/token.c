@@ -2171,7 +2171,7 @@ tds_process_env_routing(TDSSOCKET * tds)
 		port = tds_get_usmallint(tds);
 		address_len = tds_get_usmallint(tds);
 		len -= 5;
-		if (address_len * 2 < len)
+		if (address_len * 2u < len)
 			return TDS_FAIL;
 		if (protocol == 0 && port != 0 && tds->login) {
 			tds->login->routing_port = port;
