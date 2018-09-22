@@ -684,6 +684,8 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		tdsdump_log(TDS_DBG_FUNC, "Setting ReadOnly Intent to '%s'.\n", value);
 	} else if (!strcmp(option, TLS_STR_OPENSSL_CIPHERS)) {
 		s = tds_dstr_copy(&login->openssl_ciphers, value);
+	} else if (!strcmp(option, TDS_STR_ENABLE_TLS_V1)) {
+		login->enable_tls_v1 = tds_config_boolean(option, value, login);
 	} else {
 		tdsdump_log(TDS_DBG_INFO1, "UNRECOGNIZED option '%s' ... ignoring.\n", option);
 	}

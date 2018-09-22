@@ -1245,6 +1245,11 @@ Note that is not possible to specify a directory as usually database servers doe
 							<entry>Tell server we only intent to do read-only queries.
 This is supported from MSSQL 2012.
 </entry>
+						<row>
+							<entry><literal>enable tls v1</></entry>
+							<entry>yes/no</entry>
+							<entry>no</entry>
+							<entry>Enable very old and insecure TLS version 1.0. Use only if your server is still not able to support newer version (for instance for Windows XP).</entry>
 							</row>
 						</tbody>
 					</tgroup>

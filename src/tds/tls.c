@@ -938,6 +938,8 @@ tds_ssl_init(TDSSOCKET *tds)
 	int ret, connect_ret;
 	const char *tls_msg;
 
+	unsigned long ctx_options = DEFAULT_OPENSSL_CTX_OPTIONS;
+
 	con = NULL;
 	b = NULL;
 	b2 = NULL;
@@ -952,7 +954,9 @@ tds_ssl_init(TDSSOCKET *tds)
 	if (!ctx)
 		goto cleanup;
 
-	SSL_CTX_set_options(ctx, DEFAULT_OPENSSL_CTX_OPTIONS);
+	if (tds->login && tds->login->enable_tls_v1)
+		ctx_options &= ~SSL_OP_NO_TLSv1;
+	SSL_CTX_set_options(ctx, ctx_options);
 
 	if (!tds_dstr_isempty(&tds->login->cafile)) {
 		tls_msg = "loading CA file";
