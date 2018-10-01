@@ -64,7 +64,7 @@ main(int argc, char *argv[])
 	odbc_connect();
 	if (!odbc_driver_is_freetds())
 		is_freetds = 0;
-	is_ms = odbc_db_is_microsoft;
+	is_ms = odbc_db_is_microsoft();
 	odbc_disconnect();
 	++succeeded;
 
