@@ -4684,6 +4684,14 @@ change_transaction(TDS_DBC * dbc, int state)
 	if (tds->state == TDS_IDLE)
 		tds->query_timeout = dbc->default_query_timeout;
 
+	/* reset statement so errors will be reported on connection.
+	 * Note that we own the connection lock */
+	if (dbc->current_statement) {
+		dbc->current_statement->tds = NULL;
+		dbc->current_statement = NULL;
+	}
+	tds_set_parent(tds, dbc);
+
 	if (state)
 		ret = tds_submit_commit(tds, cont);
 	else
