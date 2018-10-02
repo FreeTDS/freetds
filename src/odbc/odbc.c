@@ -184,6 +184,7 @@ change_autocommit(TDS_DBC * dbc, int state)
 	TDSSOCKET *tds = dbc->tds_socket;
 	TDSRET ret;
 
+	tds_mutex_check_owned(&dbc->mtx);
 	if (dbc->attr.autocommit == state)
 		return SQL_SUCCESS;
 
@@ -221,6 +222,7 @@ static SQLRETURN
 change_database(TDS_DBC * dbc, const char *database, int database_len)
 {
 	TDSSOCKET *tds = dbc->tds_socket;
+	tds_mutex_check_owned(&dbc->mtx);
 
 	/* 
 	 * We may not be connected yet and dbc->tds_socket
@@ -268,6 +270,7 @@ change_txn(TDS_DBC * dbc, SQLUINTEGER txn_isolation)
 	char query[64];
 	const char *level;
 	TDSSOCKET *tds = dbc->tds_socket;
+	tds_mutex_check_owned(&dbc->mtx);
 
 	switch (txn_isolation) {
 	case SQL_TXN_READ_COMMITTED:
@@ -357,6 +360,7 @@ static SQLRETURN
 odbc_connect(TDS_DBC * dbc, TDSLOGIN * login)
 {
 	TDS_ENV *env = dbc->env;
+	tds_mutex_check_owned(&dbc->mtx);
 
 #ifdef ENABLE_ODBC_WIDE
 	dbc->mb_conv = NULL;
@@ -4659,6 +4663,7 @@ change_transaction(TDS_DBC * dbc, int state)
 	TDSRET ret;
 
 	tdsdump_log(TDS_DBG_INFO1, "change_transaction(0x%p,%d)\n", dbc, state);
+	tds_mutex_check_owned(&dbc->mtx);
 
 	if (dbc->attr.autocommit == SQL_AUTOCOMMIT_ON)
 		cont = 0;
