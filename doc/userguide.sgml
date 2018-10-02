@@ -1198,7 +1198,7 @@ This is the name of the database container in the server you are connecting to.<
 						<row>
 							<entry><literal>use ntlmv2</></entry>
 							<entry>yes/no</entry>
-							<entry>no</entry>
+							<entry>yes</entry>
 							<entry>Use NTLMv2.  An alternative to the <literal>UseNTLMv2</> option in <filename>odbc.ini</>.  </entry>
 							</row>
 						<row>
