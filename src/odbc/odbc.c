@@ -859,7 +859,7 @@ odbc_unlock_statement(TDS_STMT* stmt)
 	tds = stmt->tds;
 	if (stmt->dbc->current_statement == stmt) {
 		assert(tds == stmt->dbc->tds_socket);
-		if (tds->state == TDS_IDLE) {
+		if (tds->state == TDS_IDLE || tds->state == TDS_DEAD) {
 			stmt->dbc->current_statement = NULL;
 			tds_set_parent(tds, stmt->dbc);
 			stmt->tds = NULL;
