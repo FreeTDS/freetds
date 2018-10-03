@@ -745,6 +745,8 @@ struct tds_column
 	TDS_INT column_textpos;
 	TDS_INT column_text_sqlgetdatapos;
 	TDS_CHAR column_text_sqlputdatainfo;
+	unsigned char column_iconv_left;
+	char column_iconv_buf[9];
 
 	TDS_TINYINT blob_type;
 

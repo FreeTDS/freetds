@@ -568,6 +568,7 @@ odbc_set_return_params(struct _hstmt *stmt, unsigned int n_row)
 		}
 
 		colinfo->column_text_sqlgetdatapos = 0;
+		colinfo->column_iconv_left = 0;
 		c_type = drec_apd->sql_desc_concise_type;
 		if (c_type == SQL_C_DEFAULT)
 			c_type = odbc_sql_to_c_type_default(drec_ipd->sql_desc_concise_type);

@@ -256,6 +256,7 @@ tds_check_column_extra(const TDSCOLUMN * column)
 		assert(column->column_type == column->on_server.column_type);
 		assert(column->column_size == column->on_server.column_size);
 	}
+	assert(column->column_iconv_left >= 0 && column->column_iconv_left <= sizeof(column->column_iconv_buf));
 }
 
 void
