@@ -63,6 +63,7 @@ TESTS =	\
 	cursor7$(EXEEXT) \
 	utf8$(EXEEXT) \
 	utf8_2$(EXEEXT) \
+	utf8_3$(EXEEXT) \
 	stats$(EXEEXT) \
 	descrec$(EXEEXT) \
 	peter$(EXEEXT) \
@@ -144,6 +145,7 @@ cursor6_SOURCES	= cursor6.c
 cursor7_SOURCES	= cursor7.c
 utf8_SOURCES	= utf8.c common.c
 utf8_2_SOURCES	= utf8_2.c
+utf8_3_SOURCES	= utf8_3.c
 stats_SOURCES	= stats.c
 descrec_SOURCES	= descrec.c
 peter_SOURCES	= peter.c
