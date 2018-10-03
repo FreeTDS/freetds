@@ -27,6 +27,7 @@ set(tests
 	stats descrec peter test64
 	prepare_warn long_error mars1
 	array_error closestmt
+	utf8_3
 )
 
 if(WIN32)

@@ -1,4 +1,3 @@
-# $Id: Makefile.am,v 1.87 2012-03-06 20:40:12 freddy77 Exp $
 TESTS		=	\
 			t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) connect$(EXEEXT) print$(EXEEXT)\
@@ -25,7 +24,8 @@ TESTS		=	\
 			cursor6$(EXEEXT) cursor7$(EXEEXT) utf8$(EXEEXT) utf8_2$(EXEEXT) \
 			stats$(EXEEXT) descrec$(EXEEXT) peter$(EXEEXT) test64$(EXEEXT) \
 			prepare_warn$(EXEEXT) long_error$(EXEEXT) mars1$(EXEEXT) \
-			array_error$(EXEEXT) describecol2$(EXEEXT) closestmt$(EXEEXT) bcp$(EXEEXT)
+			array_error$(EXEEXT) describecol2$(EXEEXT) closestmt$(EXEEXT) bcp$(EXEEXT) \
+			utf8_3$(EXEEXT)
 
 check_PROGRAMS	=	$(TESTS) oldpwd$(EXEEXT)
 
@@ -94,6 +94,7 @@ cursor6_SOURCES	= cursor6.c common.c common.h
 cursor7_SOURCES	= cursor7.c common.c common.h
 utf8_SOURCES	= utf8.c common.c common.h
 utf8_2_SOURCES	= utf8_2.c common.c common.h
+utf8_3_SOURCES	= utf8_3.c common.c common.h
 stats_SOURCES	= stats.c common.c common.h
 descrec_SOURCES	= descrec.c common.c common.h
 peter_SOURCES	= peter.c common.c common.h
