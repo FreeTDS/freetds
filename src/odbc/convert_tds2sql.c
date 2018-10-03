@@ -41,6 +41,21 @@
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
 /**
+ * Copy beginning of column_iconv_buf
+ */
+static void
+eat_iconv_left(TDSCOLUMN * curcol, char **pbuf, size_t *plen)
+{
+	unsigned cp = ODBC_MIN(*plen, curcol->column_iconv_left);
+	memcpy(*pbuf, curcol->column_iconv_buf, cp);
+	if (cp < curcol->column_iconv_left)
+		memmove(curcol->column_iconv_buf, curcol->column_iconv_buf + cp, curcol->column_iconv_left - cp);
+	curcol->column_iconv_left -= cp;
+	*pbuf += cp;
+	*plen -= cp;
+}
+
+/**
  * Handle conversions from TDS (N)CHAR to ODBC (W)CHAR
  */
 static SQLLEN
@@ -79,10 +94,23 @@ odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT 
 	char_size = desttype == SQL_C_CHAR ? 1 : SIZEOF_SQLWCHAR;
 	if (destlen >= char_size) {
 		ol = destlen - char_size;
-		memset(&conv->suppress, 0, sizeof(conv->suppress));
-		conv->suppress.e2big = 1;
-		/* TODO check return value */
-		tds_iconv(tds, conv, to_client, &ib, &il, &ob, &ol);
+		/* copy left and continue only if possible */
+		eat_iconv_left(curcol, &ob, &ol);
+		if (ol) {
+			memset(&conv->suppress, 0, sizeof(conv->suppress));
+			conv->suppress.e2big = 1;
+			/* TODO check return value */
+			tds_iconv(tds, conv, to_client, &ib, &il, &ob, &ol);
+		}
+		/* if input left try to decode on future left */
+		if (il && ol < sizeof(curcol->column_iconv_buf) && curcol->column_iconv_left == 0) {
+			char *left_ob = curcol->column_iconv_buf;
+			size_t left_ol = sizeof(curcol->column_iconv_buf);
+			tds_iconv(tds, conv, to_client, &ib, &il, &left_ob, &left_ol);
+			curcol->column_iconv_left = sizeof(curcol->column_iconv_buf) - left_ol;
+			/* copy part to fill buffer */
+			eat_iconv_left(curcol, &ob, &ol);
+		}
 		ol = ob - dest; /* bytes written */
 		curcol->column_text_sqlgetdatapos += ib - src;
 		/* terminate string */
@@ -92,9 +120,9 @@ odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT 
 	/* returned size have to take into account buffer left unconverted */
 	if (il == 0 || (conv->from.charset.min_bytes_per_char == conv->from.charset.max_bytes_per_char
 	    && conv->to.charset.min_bytes_per_char == conv->to.charset.max_bytes_per_char)) {
-		ol += il * conv->from.charset.min_bytes_per_char / conv->to.charset.min_bytes_per_char;
+		ol += il * conv->from.charset.min_bytes_per_char / conv->to.charset.min_bytes_per_char + curcol->column_iconv_left;
 	} else if ((conv->flags & TDS_ENCODING_MEMCPY) != 0) {
-		ol += il;
+		ol += il + curcol->column_iconv_left;
 	} else {
 		/* TODO convert and discard ?? or return proper SQL_NO_TOTAL values ?? */
 		return SQL_NO_TOTAL;

@@ -571,6 +571,7 @@ odbc_set_return_params(struct _hstmt *stmt, unsigned int n_row)
 
 		src = (TDS_CHAR *) colinfo->column_data;
 		colinfo->column_text_sqlgetdatapos = 0;
+		colinfo->column_iconv_left = 0;
 		srclen = colinfo->column_cur_size;
 		c_type = drec_apd->sql_desc_concise_type;
 		if (c_type == SQL_C_DEFAULT)

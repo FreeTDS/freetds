@@ -3914,6 +3914,7 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 		for (i = 0; i < resinfo->num_cols; i++) {
 			colinfo = resinfo->columns[i];
 			colinfo->column_text_sqlgetdatapos = 0;
+			colinfo->column_iconv_left = 0;
 			drec_ard = (i < ard->header.sql_desc_count) ? &ard->records[i] : NULL;
 			if (!drec_ard)
 				continue;
@@ -3940,6 +3941,7 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 				src = (TDS_CHAR *) colinfo->column_data;
 				srclen = colinfo->column_cur_size;
 				colinfo->column_text_sqlgetdatapos = 0;
+				colinfo->column_iconv_left = 0;
 				c_type = drec_ard->sql_desc_concise_type;
 				if (c_type == SQL_C_DEFAULT)
 					c_type = odbc_sql_to_c_type_default(stmt->ird->records[i].sql_desc_concise_type);
@@ -4931,13 +4933,17 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 		int nSybType;
 
 		if (colinfo->column_text_sqlgetdatapos > 0
-		    && colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
+		    && colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size
+		    && colinfo->column_iconv_left == 0)
+			// TODO check if SQL_SUCCESS instead !!
 			ODBC_EXIT(stmt, SQL_NO_DATA);
 
 		src = (TDS_CHAR *) colinfo->column_data;
 		srclen = colinfo->column_cur_size;
-		if (!is_variable_type(colinfo->column_type))
+		if (!is_variable_type(colinfo->column_type)) {
 			colinfo->column_text_sqlgetdatapos = 0;
+			colinfo->column_iconv_left = 0;
+		}
 
 		nSybType = tds_get_conversion_type(colinfo->on_server.column_type, colinfo->on_server.column_size);
 		if (fCType == SQL_C_DEFAULT)
@@ -4960,7 +4966,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 			if (colinfo->column_text_sqlgetdatapos == 0 && cbValueMax > 0)
 				++colinfo->column_text_sqlgetdatapos;
 
-			if (colinfo->column_text_sqlgetdatapos < colinfo->column_cur_size) {	/* not all read ?? */
+			if (colinfo->column_text_sqlgetdatapos < colinfo->column_cur_size || colinfo->column_iconv_left != 0) {	/* not all read ?? */
 				odbc_errs_add(&stmt->errs, "01004", "String data, right truncated");
 				ODBC_EXIT_(stmt);
 			}
