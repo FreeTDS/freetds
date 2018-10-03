@@ -309,8 +309,8 @@ tds_setup_socket(TDS_SYS_SOCKET *p_sock, struct addrinfo *addr, unsigned int por
 #if defined(USE_NODELAY)
 	setsockopt(sock, SOL_TCP, TCP_NODELAY, (const void *) &len, sizeof(len));
 #elif defined(USE_CORK)
-	if (setsockopt(sock, SOL_TCP, TCP_CORK, (const void *) &len, sizeof(len)) < 0)
-		setsockopt(sock, SOL_TCP, TCP_NODELAY, (const void *) &len, sizeof(len));
+	setsockopt(sock, SOL_TCP, TCP_NODELAY, (const void *) &len, sizeof(len));
+	setsockopt(sock, SOL_TCP, TCP_CORK, (const void *) &len, sizeof(len));
 #else
 #error One should be defined
 #endif
