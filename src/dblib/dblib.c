@@ -7405,7 +7405,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, TDS_SERVER_TYPE srctype, const BYTE * 
 {
 	CONV_RESULT dres;
 	DBINT ret;
-	int i, len;
+	int len;
 	DBINT indicator_value = 0;
 
 	bool limited_dest_space = false;
