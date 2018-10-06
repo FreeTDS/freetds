@@ -66,6 +66,11 @@ tds_ssl_write(TDSCONNECTION *conn, const unsigned char *buf, int buflen)
 }
 #  else
 
+/* compatibility for LibreSSL 2.7  */
+#ifdef LIBRESSL_VERSION_NUMBER
+#define TLS_ST_OK SSL_ST_OK
+#endif
+
 static inline int
 tds_ssl_pending(TDSCONNECTION *conn)
 {
