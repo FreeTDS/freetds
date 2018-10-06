@@ -3524,7 +3524,7 @@ _SQLExecute(TDS_STMT * stmt)
 	case TDS_CMD_DONE:
 		odbc_unlock_statement(stmt);
 		if (stmt->errs.lastrc == SQL_SUCCESS && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3
-		    && stmt->row_count == TDS_NO_COUNT && !stmt->cursor)
+		    && stmt->row_count == TDS_NO_COUNT && !stmt->cursor && stmt->ird->header.sql_desc_count <= 0)
 			ODBC_RETURN(stmt, SQL_NO_DATA);
 		break;
 
@@ -3820,6 +3820,8 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 		stmt->row_status = PRE_NORMAL_ROW;
 	}
 
+	if (!tds && stmt->row_status == PRE_NORMAL_ROW && stmt->ird->header.sql_desc_count > 0)
+		ODBC_RETURN(stmt, SQL_NO_DATA);
 	if (!tds || stmt->row_status == NOT_IN_ROW) {
 		odbc_errs_add(&stmt->errs, "24000", NULL);
 		return SQL_ERROR;

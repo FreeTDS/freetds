@@ -76,6 +76,7 @@ TESTS =	\
 	closestmt$(EXEEXT) \
 	bcp$(EXEEXT) \
 	all_types$(EXEEXT) \
+	empty_query$(EXEEXT) \
 	$(NULL)
 
 check_PROGRAMS	=	$(TESTS) oldpwd$(EXEEXT)
@@ -159,6 +160,7 @@ oldpwd_SOURCES = oldpwd.c
 bcp_SOURCES = bcp.c
 all_types_SOURCES = all_types.c
 all_types_LDFLAGS = -static ../libtdsodbc.la ../../tds/unittests/libcommon.a -shared $(GLOBAL_LD_FLAGS)
+empty_query_SOURCES = empty_query.c
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h
