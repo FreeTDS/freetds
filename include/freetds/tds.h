@@ -717,13 +717,13 @@ struct tds_column
 
 	unsigned char *column_data;
 	void (*column_data_free)(struct tds_column *column);
-	unsigned int column_nullable:1;
-	unsigned int column_writeable:1;
-	unsigned int column_identity:1;
-	unsigned int column_key:1;
-	unsigned int column_hidden:1;
-	unsigned int column_output:1;
-	unsigned int column_timestamp:1;
+	unsigned char column_nullable:1;
+	unsigned char column_writeable:1;
+	unsigned char column_identity:1;
+	unsigned char column_key:1;
+	unsigned char column_hidden:1;
+	unsigned char column_output:1;
+	unsigned char column_timestamp:1;
 	TDS_UCHAR column_collation[5];
 
 	/* additional fields flags for compute results */
