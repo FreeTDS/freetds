@@ -1146,6 +1146,8 @@ struct tds_socket
 	TDSCONNECTION conn[1];
 #endif
 
+	void *parent;
+
 	/** Input buffer.
 	 * Points to receiving packet buffer.
 	 * As input buffer contains just the raw packet actually this pointer
@@ -1170,8 +1172,6 @@ struct tds_socket
 	unsigned in_len;		/**< input buffer length */
 	unsigned char in_flag;		/**< input buffer type */
 	unsigned char out_flag;		/**< output buffer type */
-
-	void *parent;
 
 #if ENABLE_ODBC_MARS
 	short sid;
@@ -1200,14 +1200,14 @@ struct tds_socket
 	bool bulk_query;		/**< true is query sent was a bulk query so we need to switch state to QUERYING */
 	bool has_status; 		/**< true is ret_status is valid */
 	bool in_row;			/**< true if we are getting rows */
-	TDS_INT ret_status;     	/**< return status from store procedure */
-	TDS_STATE state;
 	volatile 
 	unsigned char in_cancel; 	/**< indicate we are waiting a cancel reply; discard tokens till acknowledge; 
 	1 mean we have to send cancel packet, 2 already sent. */
+	TDS_INT ret_status;     	/**< return status from store procedure */
+	TDS_STATE state;
 
-	TDS_INT8 rows_affected;		/**< rows updated/deleted/inserted/selected, TDS_NO_COUNT if not valid */
 	TDS_INT query_timeout;
+	TDS_INT8 rows_affected;		/**< rows updated/deleted/inserted/selected, TDS_NO_COUNT if not valid */
 
 	TDSDYNAMIC *cur_dyn;		/**< dynamic structure in use */
 
