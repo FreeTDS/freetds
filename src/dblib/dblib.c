@@ -5963,7 +5963,7 @@ dbsetversion(DBINT version)
 {
 	tdsdump_log(TDS_DBG_FUNC, "dbsetversion(%d)\n", version);
 
-	switch (version ) {
+	switch (version) {
 	case DBVERSION_42:
 	case DBVERSION_46:
 	case DBVERSION_100:
@@ -5971,6 +5971,7 @@ dbsetversion(DBINT version)
 	case DBVERSION_71:
 	case DBVERSION_72:
 	case DBVERSION_73:
+	case DBVERSION_74:
 		g_dblib_version = version;
 		return SUCCEED;
 	default:
