@@ -833,13 +833,8 @@ skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, const char **i
 
 
 	/* usually fixed size and UTF-8 do not have state, so do not reset it */
-	if (charsize) {
-		if (charsize > *input_size)
-			return 0;
-		*input += charsize;
-		*input_size -= charsize;
-		return charsize;
-	}
+	if (charsize)
+		goto skip_charsize;
 
 	if (0 == strcmp(charset->name, "UTF-8")) {
 		/*
@@ -856,11 +851,7 @@ skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, const char **i
 		do {
 			++charsize;
 		} while ((c <<= 1) & 0x80);
-		if (charsize > *input_size)
-			return 0;
-		*input += charsize;
-		*input_size -= charsize;
-		return charsize;
+		goto skip_charsize;
 	}
 
 	/* handle state encoding */
@@ -910,7 +901,20 @@ skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, const char **i
 
 	tds_sys_iconv_close(cd2);
 
-	return l;
+	if (l != 0)
+		return l;
+
+	/* last blindly attempt, skip minimum bytes */
+	charsize = charset->min_bytes_per_char;
+
+	/* fall through */
+
+skip_charsize:
+	if (charsize > *input_size)
+		return 0;
+	*input += charsize;
+	*input_size -= charsize;
+	return charsize;
 }
 
 static int
