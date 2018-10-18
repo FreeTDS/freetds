@@ -96,7 +96,7 @@ odbc_read_login_info(void)
 	char path[1024];
 	int len;
 	int ini_override = 1;
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(TDS_NO_DM)
 	UWORD old_config_mode;
 #endif
 
@@ -166,7 +166,7 @@ odbc_read_login_info(void)
 	if (s1 && atoi(s1) == 0)
 		ini_override = 0;
 
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(TDS_NO_DM)
 	/* craft out odbc.ini, avoid to read wrong one */
 	sprintf(path, "odbc.ini.%d", (int) getpid());
 	in = fopen(path, "w");
