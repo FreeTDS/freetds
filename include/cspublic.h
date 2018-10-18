@@ -265,6 +265,8 @@ enum
 
 enum
 {
+#define CS_TDS_AUTO CS_TDS_AUTO
+	CS_TDS_AUTO = 0,
 	CS_TDS_40 = 7360,
 	CS_TDS_42,
 	CS_TDS_46,

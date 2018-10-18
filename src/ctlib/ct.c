@@ -453,7 +453,9 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			 * (d) Minor - we don't check against context
 			 *     which should limit the acceptable values
 			 */
-			if (*(int *) buffer == CS_TDS_40) {
+			if (*(int *) buffer == CS_TDS_AUTO) {
+				tds_set_version(tds_login, 0, 0);
+			} else if (*(int *) buffer == CS_TDS_40) {
 				tds_set_version(tds_login, 4, 2);
 			} else if (*(int *) buffer == CS_TDS_42) {
 				tds_set_version(tds_login, 4, 2);
