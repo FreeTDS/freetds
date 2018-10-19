@@ -558,7 +558,7 @@ tds_iconv(TDSSOCKET * tds, TDSICONV * conv, TDS_ICONV_DIRECTION io,
 	iconv_t error_cd = invalid;
 
 	char quest_mark[] = "?";	/* best to leave non-const; implementations vary */
-	ICONV_CONST char *pquest_mark = quest_mark;
+	ICONV_CONST char *pquest_mark;
 	size_t lquest_mark;
 	size_t irreversible;
 	size_t one_character;
