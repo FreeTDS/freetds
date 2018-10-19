@@ -63,11 +63,10 @@ tds_strsep(char **stringp, const char *delim)
 	if (end) {
 		/* Terminate the token and set *STRINGP past NUL character.  */
 		*end++ = '\0';
-		*stringp = end;
 	} else {
 		/* No more delimiters; this is the last token.  */
-		*stringp = NULL;
 	}
+	*stringp = end;
 
 	return begin;
 }
