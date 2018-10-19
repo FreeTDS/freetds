@@ -38,6 +38,7 @@
 
 #include <freetds/tds.h>
 #include <freetds/iconv.h>
+#include <freetds/bool.h>
 #if HAVE_ICONV
 #include <iconv.h>
 #endif
@@ -561,7 +562,7 @@ tds_iconv(TDSSOCKET * tds, TDSICONV * conv, TDS_ICONV_DIRECTION io,
 	size_t lquest_mark;
 	size_t irreversible;
 	size_t one_character;
-	int eilseq_raised = 0;
+	bool eilseq_raised = false;
 	int conv_errno;
 	/* cast away const-ness */
 	TDS_ERRNO_MESSAGE_FLAGS *suppress = (TDS_ERRNO_MESSAGE_FLAGS*) &conv->suppress;
@@ -629,7 +630,7 @@ tds_iconv(TDSSOCKET * tds, TDSICONV * conv, TDS_ICONV_DIRECTION io,
 		conv_errno = errno;
 
 		if (conv_errno == EILSEQ)
-			eilseq_raised = 1;
+			eilseq_raised = true;
 
 		if (conv_errno != EILSEQ || io != to_client || !inbuf)
 			break;
