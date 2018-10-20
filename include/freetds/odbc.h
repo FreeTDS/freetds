@@ -484,7 +484,7 @@ typedef struct {
 #endif
 
 #ifdef _WIN32
-BOOL get_login_info(HWND hwndParent, TDSLOGIN * login);
+bool get_login_info(HWND hwndParent, TDSLOGIN * login);
 #endif
 
 #define ODBC_PARAM_LIST \

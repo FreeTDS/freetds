@@ -299,7 +299,6 @@ DSNDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 BOOL INSTAPI
 ConfigDSN(HWND hwndParent, WORD fRequest, LPCSTR lpszDriver, LPCSTR lpszAttributes)
 {
-	int result;
 	DSNINFO *di;
 	const char *errmsg;
 
@@ -321,6 +320,7 @@ ConfigDSN(HWND hwndParent, WORD fRequest, LPCSTR lpszDriver, LPCSTR lpszAttribut
 
 	/* Maybe allow the user to edit it */
 	if (hwndParent && fRequest != ODBC_REMOVE_DSN) {
+		INT_PTR result;
 		result = DialogBoxParam(hinstFreeTDS, MAKEINTRESOURCE(IDD_DSN), hwndParent, (DLGPROC) DSNDlgProc, (LPARAM) di);
 		if (result < 0) {
 			DWORD errorcode = GetLastError();
@@ -406,7 +406,7 @@ ConfigDriver(HWND hwndParent, WORD fRequest, LPCSTR lpszDriver, LPCSTR lpszArgs,
 
 	if (msg && lpszMsg && cbMsgMax > strlen(msg)) {
 		strcpy(lpszMsg, msg);
-		*pcbMsgOut = strlen(msg);
+		*pcbMsgOut = (WORD) strlen(msg);
 	}
 	return TRUE;
 }

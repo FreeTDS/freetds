@@ -168,8 +168,8 @@ LoginDlgProc(HWND hDlg, UINT message, WPARAM wParam,	/* */
  * \param hwndParent parent for dialog
  * \param login where to store login info
  */
-BOOL
+bool
 get_login_info(HWND hwndParent, TDSLOGIN * login)
 {
-	return DialogBoxParam(hinstFreeTDS, MAKEINTRESOURCE(IDD_LOGIN), hwndParent, (DLGPROC) LoginDlgProc, (LPARAM) login);
+	return !!DialogBoxParam(hinstFreeTDS, MAKEINTRESOURCE(IDD_LOGIN), hwndParent, (DLGPROC) LoginDlgProc, (LPARAM) login);
 }
