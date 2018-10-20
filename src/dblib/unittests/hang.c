@@ -30,7 +30,7 @@
 #include <netinet/in.h>
 #endif /* HAVE_NET_INET_IN_H */
 
-#include <freetds/sysdep_private.h>
+#include <freetds/utils.h>
 
 char *UNITTEST;
 

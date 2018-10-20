@@ -20,6 +20,8 @@
 #include <sys/wait.h>
 #endif /* HAVE_SYS_WAIT_H */
 
+#include <freetds/utils.h>
+
 /*
  * test error on connection close 
  * With a trick we simulate a connection close then we try to 

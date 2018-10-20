@@ -49,7 +49,7 @@
 #include <winsock2.h>
 #endif
 
-#include <freetds/tds.h>
+#include <freetds/utils.h>
 
 /**
  * \addtogroup network
