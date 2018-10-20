@@ -115,7 +115,9 @@ LoginDlgProc(HWND hDlg, UINT message, WPARAM wParam,	/* */
 		/* copy info from TDSLOGIN to the dialog */
 		SendDlgItemMessage(hDlg, IDC_LOGINSERVER, WM_SETTEXT, 0, (LPARAM) tds_dstr_cstr(&login->server_name));
 		SendDlgItemMessage(hDlg, IDC_LOGINUID, WM_SETTEXT, 0, (LPARAM) tds_dstr_cstr(&login->user_name));
+		SendDlgItemMessage(hDlg, IDC_LOGINUID, EM_LIMITTEXT, sizeof(tmp) - 1, 0);
 		SendDlgItemMessage(hDlg, IDC_LOGINPWD, WM_SETTEXT, 0, (LPARAM) tds_dstr_cstr(&login->password));
+		SendDlgItemMessage(hDlg, IDC_LOGINPWD, EM_LIMITTEXT, sizeof(tmp) - 1, 0);
 		SendDlgItemMessage(hDlg, IDC_LOGINDUMP, BM_SETCHECK, !tds_dstr_isempty(&login->dump_file), 0L);
 
 		/* adjust label of logging checkbox */
