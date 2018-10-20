@@ -259,10 +259,6 @@ DSNDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		SendDlgItemMessage(hDlg, IDC_PROTOCOL, WM_GETTEXT, sizeof tmp, (LPARAM) tmp);
 		minor = 0;
 		if (sscanf(tmp, "%*[^0-9]%d.%d", &major, &minor) > 1) {
-			if (major == 8 && minor == 0) {
-				major = 7;
-				minor = 1;
-			}
 			di->login->tds_version = (major << 8) | minor;
 		}
 		SendDlgItemMessage(hDlg, IDC_ADDRESS, WM_GETTEXT, sizeof tmp, (LPARAM) tmp);
