@@ -714,6 +714,19 @@ print_instance_data(TDSLOGIN *login)
 		printf("connecting to instance %s on port %d\n", tds_dstr_cstr(&login->instance_name), login->port);
 }
 
+static void
+count_alarm(int s)
+{
+	static int count = 0;
+	char buf[64];
+
+	/* print the counter, do not use stderr as may be locked! */
+	sprintf(buf, "\r%2d", ++count);
+	write(STDERR_FILENO, buf, strlen(buf));
+
+	alarm(1);
+}
+
 int
 main(int argc, char **argv)
 {
@@ -728,10 +741,6 @@ main(int argc, char **argv)
 	TDSCONTEXT *context;
 	TDSLOGIN *connection;
 	int opt_flags = 0;
-#if HAVE_FORK
-	pid_t timer_pid = 0;
-	int pipes[2];
-#endif
 	const char *locale = NULL;
 	const char *charset = NULL;
 
@@ -804,40 +813,11 @@ main(int argc, char **argv)
 	 * If we're able to establish an ip address for the server, we'll try to connect to it. 
 	 * If that machine is currently unreachable, show a timer connecting to the server. 
 	 */
-#if HAVE_FORK
+#if defined(HAVE_ALARM)
 	if (connection && !QUIET) {
-		/*
-		 * We use a pipe so that the child is killed even main program aborts. 
-		 * Note that we do not read or write from this pipe. 
-		 */
-		if (pipe(pipes) < 0) {
-			perror("tsql: pipe");
-			return 1;
-		}
-
-		timer_pid = fork();
-		if (-1 == timer_pid) {
-			perror("tsql: warning"); /* make a note */
-		}
-		if (0 == timer_pid) {
-			int i=0;
-			close(pipes[1]);
-			while(1) {
-				fd_set set;
-				struct timeval tv;
-
-				FD_ZERO(&set);
-				FD_SET(pipes[0], &set);
-
-				tv.tv_sec = 1;
-				tv.tv_usec = 0;
-				if (select(pipes[0] + 1, &set, NULL, &set, &tv) != 0)
-					return 0;
-
-				fprintf(stderr, "\r%2d", ++i);
-			}
-		}
-		close(pipes[0]);
+		signal(SIGALRM, count_alarm);
+		fflush(stderr);
+		alarm(1);
 	}
 #endif
 	if (!connection || TDS_FAILED(tds_connect_and_login(tds, connection))) {
@@ -849,6 +829,15 @@ main(int argc, char **argv)
 		fprintf(stderr, "There was a problem connecting to the server\n");
 		exit(1);
 	}
+
+#if defined(HAVE_ALARM)
+	if (!QUIET) {
+		alarm(0);
+		signal(SIGALRM, SIG_DFL);
+		fprintf(stderr, "\r");
+	}
+#endif
+
 	if (VERBOSE) 
 		print_instance_data(connection);
 	tds_free_login(connection);
@@ -860,17 +849,6 @@ main(int argc, char **argv)
 
 #if defined(HAVE_READLINE) && HAVE_RL_INHIBIT_COMPLETION
 	rl_inhibit_completion = 1;
-#endif
-
-#if HAVE_FORK
-	if (timer_pid > 0 ) {
-		close(pipes[1]);
-		if (wait(0) == -1 ) {
-			perror("tsql: warning");
-		} else {
-			fprintf(stderr, "\r");
-		}
-	}
 #endif
 
 	for (s=NULL, s2=NULL; ; free(s), free(s2), s2=NULL) {
