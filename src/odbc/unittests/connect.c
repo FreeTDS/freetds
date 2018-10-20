@@ -31,7 +31,7 @@ get_entry(const char *key)
 int
 main(int argc, char *argv[])
 {
-	char tmp[2048];
+	char tmp[1024*4];
 	SQLSMALLINT len;
 	int succeeded = 0;
 	int is_freetds = 1;

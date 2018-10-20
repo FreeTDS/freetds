@@ -206,7 +206,7 @@ CS_RETCODE
 continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, int verbose)
 {
 	CS_RETCODE ret;
-	char query[30];
+	char query[512+10];
 #ifdef TDS_STATIC_CAST
 	TDSCONTEXT *tds_ctx;
 #endif
@@ -291,8 +291,7 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 		return ret;
 	}
 
-	strcpy(query, "use ");
-	strncat(query, DATABASE, 20);
+	sprintf(query, "use %s", DATABASE);
 
 	ret = run_command(*cmd, query);
 	if (ret != CS_SUCCEED)

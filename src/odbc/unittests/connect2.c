@@ -62,7 +62,7 @@ set_dbname(const char *dbname)
 int
 main(int argc, char *argv[])
 {
-	char tmp[1024];
+	char tmp[1024*3];
 
 	if (odbc_read_login_info())
 		exit(1);

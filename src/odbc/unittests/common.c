@@ -252,7 +252,7 @@ int
 odbc_connect(void)
 {
 	ODBC_BUF *odbc_buf = NULL;
-	char command[512];
+	char command[512+10];
 	const char *p;
 
 	if (odbc_read_login_info())

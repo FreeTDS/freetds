@@ -37,7 +37,7 @@ static const char * const strings_hex[] = {
 	NULL, NULL
 };
 
-static char tmp[2048];
+static char tmp[1024*3];
 
 static void
 TestBinding(int minimun)

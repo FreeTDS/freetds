@@ -39,7 +39,7 @@ test(int n, int type)
 {
 	int rc;
 	TDS_INT result_type;
-	char buf[1024], tmp[1024];
+	char buf[1024+128], tmp[1024];
 	TDSCOLUMN *curcol;
 	char *src;
 	int done_flags;
