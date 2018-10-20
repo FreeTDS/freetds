@@ -714,6 +714,7 @@ print_instance_data(TDSLOGIN *login)
 		printf("connecting to instance %s on port %d\n", tds_dstr_cstr(&login->instance_name), login->port);
 }
 
+#if defined(HAVE_ALARM)
 static void
 count_alarm(int s)
 {
@@ -726,6 +727,7 @@ count_alarm(int s)
 
 	alarm(1);
 }
+#endif
 
 int
 main(int argc, char **argv)
