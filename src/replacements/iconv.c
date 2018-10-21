@@ -392,7 +392,7 @@ tds_sys_iconv_open (const char* tocode, const char* fromcode)
 		fromto = Like_to_Like;
 	}
 
-	return (iconv_t) (TDS_INTPTR) fromto;
+	return (iconv_t) (intptr_t) fromto;
 } 
 
 int 
@@ -410,7 +410,7 @@ tds_sys_iconv (iconv_t cd, const char* * inbuf, size_t *inbytesleft, char* * out
 	int local_errno;
 
 #undef CD
-#define CD ((int) (TDS_INTPTR) cd)
+#define CD ((int) (intptr_t) cd)
 
 	/* iconv defines valid semantics for NULL inputs, but we don't support them. */
 	if (!inbuf || !*inbuf || !inbytesleft || !outbuf || !*outbuf || !outbytesleft)
