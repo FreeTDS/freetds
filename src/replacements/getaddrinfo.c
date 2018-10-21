@@ -25,7 +25,18 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include <freetds/tds.h>
+#if HAVE_NETDB_H
+#include <netdb.h>
+#endif /* HAVE_NETDB_H */
+
+#if HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif /* HAVE_NET_INET_IN_H */
+
+#if HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif /* HAVE_ARPA_INET_H */
+
 #include <freetds/sysdep_private.h>
 #include <freetds/utils.h>
 #include "replacements.h"

@@ -25,7 +25,6 @@
 #include <errno.h>
 #endif
 
-#include <freetds/tds.h>
 #include "replacements.h"
 
 /*
