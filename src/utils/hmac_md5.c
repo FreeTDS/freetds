@@ -24,8 +24,8 @@
 #endif /* HAVE_STRING_H */
 
 #include <tds_sysdep_public.h>
-#include "md5.h"
-#include "hmac_md5.h"
+#include <freetds/utils/md5.h>
+#include <freetds/utils/hmac_md5.h>
 #include <memory.h>
 
 /**

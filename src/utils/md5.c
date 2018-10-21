@@ -28,7 +28,7 @@
 
 #include <tds_sysdep_public.h>
 #include <freetds/bytes.h>
-#include "md5.h"
+#include <freetds/utils/md5.h>
 
 #ifndef WORDS_BIGENDIAN
 #define byteReverse(buf, len)	/* Nothing */

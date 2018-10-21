@@ -41,7 +41,7 @@
 
 #include <tds_sysdep_public.h>
 #include <freetds/bytes.h>
-#include "md4.h"
+#include <freetds/utils/md4.h>
 
 #ifndef WORDS_BIGENDIAN
 #define byteReverse(buf, len)	/* Nothing */

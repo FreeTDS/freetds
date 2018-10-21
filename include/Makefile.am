@@ -22,10 +22,6 @@ nodist_include_HEADERS = tds_sysdep_public.h
 noinst_HEADERS = \
 	ctlib.h \
 	dblib.h \
-	md4.h \
-	md5.h \
-	des.h \
-	hmac_md5.h \
 	replacements.h \
 	replacements/poll.h \
 	replacements/readpassphrase.h \

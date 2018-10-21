@@ -40,7 +40,7 @@
 
 #include <tds_sysdep_public.h>
 #include <freetds/bytes.h>
-#include "des.h"
+#include <freetds/utils/des.h>
 
 void
 tds_des_set_odd_parity(des_cblock key)

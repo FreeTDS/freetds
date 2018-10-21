@@ -35,10 +35,10 @@
 #endif
 
 #include "tds_sysdep_public.h"
-#include "md4.h"
-#include "md5.h"
-#include "hmac_md5.h"
-#include "des.h"
+#include <freetds/utils/md4.h>
+#include <freetds/utils/md5.h>
+#include <freetds/utils/hmac_md5.h>
+#include <freetds/utils/des.h>
 
 static char long_string[512];
 

@@ -40,10 +40,10 @@
 #include <freetds/string.h>
 #include <freetds/iconv.h>
 #include <freetds/utils.h>
-#include "md4.h"
-#include "md5.h"
-#include "hmac_md5.h"
-#include "des.h"
+#include <freetds/utils/md4.h>
+#include <freetds/utils/md5.h>
+#include <freetds/utils/hmac_md5.h>
+#include <freetds/utils/des.h>
 #include "replacements.h"
 
 /**

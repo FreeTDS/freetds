@@ -19,7 +19,7 @@
 #undef NDEBUG
 #include "common.h"
 #include <freetds/iconv.h>
-#include "md5.h"
+#include <freetds/utils/md5.h>
 
 #undef NDEBUG
 #include <ctype.h>

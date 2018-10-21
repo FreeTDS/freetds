@@ -27,6 +27,10 @@ noinst_HEADERS = \
 	utils.h \
 	macros.h \
 	bjoern-utf8.h \
+	utils/md4.h \
+	utils/des.h \
+	utils/md5.h \
+	utils/hmac_md5.h \
 	$(NULL)
 
 DISTCLEANFILES = sysconfdir.h
