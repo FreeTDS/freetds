@@ -822,7 +822,6 @@ AM_CONDITIONAL(INCSERVER, test "$enable_server" != "no")
 
 AC_ARG_ENABLE(pool,
 	AS_HELP_STRING([--disable-pool], [skip build of src/pool directory]))
- AM_CONDITIONAL(INCPOOL, test "$enable_pool" != "no")
 
 AC_ARG_ENABLE(msdblib,
   AS_HELP_STRING([--enable-msdblib], [for MS style dblib]))
@@ -855,8 +854,11 @@ if test "$enable_threadsafe" != "no" ; then
 else
 	AC_DEFINE(TDS_NO_THREADSAFE, 1, [Define if you don't care about thread safety])
 	AC_MSG_RESULT(disabled)
+	enable_pool=no
 fi
 AM_CONDITIONAL(ENABLE_THREADSAFE, test "$enable_threadsafe" != "no")
+
+AM_CONDITIONAL(INCPOOL, test "$enable_pool" != "no")
 
 # newer gcc are configured to fail to resolve references to libraries not
 # explicitly listed on the linker commandline.
