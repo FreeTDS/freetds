@@ -401,7 +401,11 @@ tds_generic_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 		col->column_size = tds_get_smallint(tds);
 		/* under TDS7.2 this means ?var???(MAX) */
 		if (col->column_size < 0 && IS_TDS72_PLUS(tds->conn)) {
-			col->column_size = 0x3ffffffflu;
+			if (is_char_type(col->column_type))
+				col->column_size = 0x3ffffffflu;
+			else
+				col->column_size = 0x7ffffffflu;
+
 			col->column_varint_size = 8;
 		}
 		if (col->column_size < 0)
