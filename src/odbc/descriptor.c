@@ -32,7 +32,7 @@
 #endif /* HAVE_STRING_H */
 
 #include <freetds/odbc.h>
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 
 static void desc_free_record(struct _drecord *drec);
 

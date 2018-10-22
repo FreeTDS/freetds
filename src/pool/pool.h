@@ -38,7 +38,7 @@
 #endif
 
 #include <freetds/tds.h>
-#include <freetds/dlist.h>
+#include <freetds/utils/dlist.h>
 
 /* defines */
 #define PGSIZ 2048
@@ -94,12 +94,12 @@ struct tds_pool_member
 #define DLIST_PREFIX dlist_member
 #define DLIST_LIST_TYPE dlist_members
 #define DLIST_ITEM_TYPE TDS_POOL_MEMBER
-#include <freetds/dlist.tmpl.h>
+#include <freetds/utils/dlist.tmpl.h>
 
 #define DLIST_PREFIX dlist_user
 #define DLIST_LIST_TYPE dlist_users
 #define DLIST_ITEM_TYPE TDS_POOL_USER
-#include <freetds/dlist.tmpl.h>
+#include <freetds/utils/dlist.tmpl.h>
 
 struct tds_pool
 {

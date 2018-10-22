@@ -19,7 +19,7 @@
  */
 #include "common.h"
 
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 #include <ctype.h>
 #include <assert.h>
 #include <replacements.h>

@@ -1,7 +1,6 @@
 NULL =
 noinst_HEADERS = \
 	iconv.h \
-	string.h \
 	convert.h \
 	bytes.h \
 	thread.h \
@@ -21,12 +20,13 @@ noinst_HEADERS = \
 	tls.h \
 	bool.h \
 	checks.h \
-	dlist.h \
-	dlist.tmpl.h \
 	alloca.h \
-	utils.h \
 	macros.h \
-	bjoern-utf8.h \
+	utils.h \
+	utils/string.h \
+	utils/dlist.h \
+	utils/dlist.tmpl.h \
+	utils/bjoern-utf8.h \
 	utils/md4.h \
 	utils/des.h \
 	utils/md5.h \

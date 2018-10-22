@@ -47,7 +47,7 @@
 #include <freetds/iconv.h>
 #include <freetds/bytes.h>
 #include <freetds/stream.h>
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 #include <freetds/checks.h>
 
 static size_t read_and_convert(TDSSOCKET * tds, TDSICONV * char_conv,

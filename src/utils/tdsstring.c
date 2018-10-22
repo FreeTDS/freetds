@@ -31,7 +31,7 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 
 
 /**

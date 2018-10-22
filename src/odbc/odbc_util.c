@@ -32,7 +32,7 @@
 
 #include <freetds/odbc.h>
 #include <freetds/iconv.h>
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 #include <freetds/convert.h>
 #include <freetds/enum_cap.h>
 #include <odbcss.h>

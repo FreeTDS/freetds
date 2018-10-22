@@ -62,7 +62,7 @@
 #include <gssapi/gssapi_krb5.h>
 
 #include <freetds/tds.h>
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 #include "replacements.h"
 
 /**

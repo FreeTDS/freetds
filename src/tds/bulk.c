@@ -43,7 +43,7 @@
 #include <freetds/bytes.h>
 #include <freetds/iconv.h>
 #include <freetds/stream.h>
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 #include "replacements.h"
 
 /** \cond HIDDEN_SYMBOLS */

@@ -53,7 +53,7 @@ typedef struct tds_bcpinfo TDSBCPINFO;
 #include <freetds/thread.h>
 #include <freetds/bool.h>
 #include <freetds/macros.h>
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 #include "replacements.h"
 
 #include <freetds/pushvis.h>

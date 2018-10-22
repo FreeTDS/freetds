@@ -54,7 +54,7 @@
 #include <freetds/tds.h>
 #include <freetds/iconv.h>
 #include <freetds/server.h>
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 
 unsigned char *
 tds7_decrypt_pass(const unsigned char *crypt_pass, int len, unsigned char *clear_pass)

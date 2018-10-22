@@ -19,7 +19,7 @@
 
 #include <config.h>
 #include <assert.h>
-#include <freetds/dlist.h>
+#include <freetds/utils/dlist.h>
 
 #if ENABLE_EXTRA_CHECKS
 void dlist_ring_check(dlist_ring *ring)

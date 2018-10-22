@@ -44,7 +44,7 @@
 #include <freetds/iconv.h>
 #include <freetds/convert.h>
 #include <freetds/odbc.h>
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 #define TDSODBC_BCP
 #include <odbcss.h>
 

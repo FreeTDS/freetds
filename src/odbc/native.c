@@ -36,7 +36,7 @@
 #include <assert.h>
 
 #include <freetds/odbc.h>
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 #define TDS_ISALPHA(c) isalpha((unsigned char) (c))

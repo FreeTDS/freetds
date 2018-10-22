@@ -44,7 +44,7 @@
 #include <freetds/iconv.h>
 #include <freetds/convert.h>
 #include <freetds/bytes.h>
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 #include <replacements.h>
 #include <sybfront.h>
 #include <sybdb.h>

@@ -53,7 +53,7 @@
 
 #include "pool.h"
 #include "replacements.h"
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 
 #ifndef MAXHOSTNAMELEN
 #define MAXHOSTNAMELEN 256

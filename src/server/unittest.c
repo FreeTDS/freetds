@@ -35,7 +35,7 @@
 #endif /* HAVE_UNISTD_H */
 
 #include <freetds/tds.h>
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 #include <freetds/server.h>
 #include <freetds/utils.h>
 

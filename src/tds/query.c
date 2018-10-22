@@ -37,7 +37,7 @@
 #include <freetds/enum_cap.h>
 #include <freetds/iconv.h>
 #include <freetds/convert.h>
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 #include <freetds/checks.h>
 #include "replacements.h"
 

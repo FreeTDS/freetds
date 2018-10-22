@@ -35,7 +35,7 @@
 
 #include <freetds/odbc.h>
 #include "odbcss.h"
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 #include "replacements.h"
 #include "sqlwparams.h"
 

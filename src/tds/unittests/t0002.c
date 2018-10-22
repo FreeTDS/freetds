@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 #include <replacements.h>
 
 static char *

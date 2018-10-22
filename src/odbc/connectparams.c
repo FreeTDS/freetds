@@ -28,7 +28,7 @@
 #include <sys/stat.h>
 
 #include <freetds/odbc.h>
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 #include <freetds/utils.h>
 #include "replacements.h"
 

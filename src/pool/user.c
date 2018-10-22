@@ -46,7 +46,7 @@
 
 #include "pool.h"
 #include <freetds/server.h>
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 
 static TDS_POOL_USER *pool_user_find_new(TDS_POOL * pool);
 static bool pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser);

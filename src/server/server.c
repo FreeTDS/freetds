@@ -28,7 +28,7 @@
 
 #include <freetds/tds.h>
 #include <freetds/server.h>
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 #include <freetds/data.h>
 #include <freetds/bytes.h>
 

@@ -22,7 +22,7 @@
 
 #include <freetds/tds.h>
 #include <freetds/convert.h>
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 
 /*
  * Internal (not part of the exposed API) prototypes and such.

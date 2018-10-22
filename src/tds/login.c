@@ -43,7 +43,7 @@
 
 #include <freetds/tds.h>
 #include <freetds/iconv.h>
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 #include <freetds/bytes.h>
 #include <freetds/tls.h>
 #include <freetds/stream.h>

@@ -44,7 +44,7 @@
 #include <freetds/tds.h>
 #include <freetds/bytes.h>
 #include <freetds/iconv.h>
-#include <freetds/bjoern-utf8.h>
+#include <freetds/utils/bjoern-utf8.h>
 
 #include "iconv_charsets.h"
 

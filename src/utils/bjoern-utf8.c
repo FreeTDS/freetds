@@ -12,7 +12,7 @@
 
 #include <config.h>
 
-#include <freetds/bjoern-utf8.h>
+#include <freetds/utils/bjoern-utf8.h>
 
 const uint8_t utf8_table[] = {
 	/* The first part of the table maps bytes to character classes that

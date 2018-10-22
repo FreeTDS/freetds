@@ -39,7 +39,7 @@
 #endif /* HAVE_MALLOC_H */
 
 #include <freetds/tds.h>
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 #include <freetds/convert.h>
 #include <freetds/iconv.h>
 #include <freetds/checks.h>

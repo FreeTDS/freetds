@@ -38,7 +38,7 @@
 #include <ctype.h>
 
 #include "pool.h"
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 #include <freetds/checks.h>
 #include <freetds/bytes.h>
 

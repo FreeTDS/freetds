@@ -36,7 +36,7 @@
 #include <freetds/odbc.h>
 #include <freetds/convert.h>
 #include <freetds/iconv.h>
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 #include <odbcss.h>
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))

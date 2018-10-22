@@ -30,7 +30,7 @@
 #include <string.h>
 #endif
 
-#include <freetds/dlist.h>
+#include <freetds/utils/dlist.h>
 
 typedef struct
 {
@@ -41,7 +41,7 @@ typedef struct
 #define DLIST_PREFIX list
 #define DLIST_LIST_TYPE test_items
 #define DLIST_ITEM_TYPE test_item
-#include <freetds/dlist.tmpl.h>
+#include <freetds/utils/dlist.tmpl.h>
 
 int
 main(void)

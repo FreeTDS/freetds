@@ -37,7 +37,7 @@
 #include <freetds/time.h>
 #include <freetds/tds.h>
 #include <freetds/bytes.h>
-#include <freetds/string.h>
+#include <freetds/utils/string.h>
 #include <freetds/iconv.h>
 #include <freetds/utils.h>
 #include <freetds/utils/md4.h>
