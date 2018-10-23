@@ -270,7 +270,7 @@ static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 	}
 	CLOSESOCKET(fake_sock);
 	CLOSESOCKET(server_sock);
-	return NULL;
+	return TDS_THREAD_RESULT(0);
 }
 
 int

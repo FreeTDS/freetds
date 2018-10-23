@@ -41,10 +41,10 @@ static TDS_THREAD_PROC_DECLARE(trylock_proc, arg)
 
 	if (!tds_mutex_trylock(mtx)) {
 		/* got mutex, failure as should be locked */
-		return int2ptr(1);
+		return TDS_THREAD_RESULT(1);
 	}
 	/* success */
-	return int2ptr(0);
+	return TDS_THREAD_RESULT(0);
 }
 
 static void

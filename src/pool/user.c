@@ -111,7 +111,7 @@ static TDS_THREAD_PROC_DECLARE(login_proc, arg)
 	ev->success = pool_user_login(ev->pool, ev->puser);
 
 	pool_event_add(ev->pool, &ev->common, login_execute);
-	return NULL;
+	return TDS_THREAD_RESULT(0);
 }
 
 static void
@@ -535,7 +535,7 @@ static TDS_THREAD_PROC_DECLARE(end_login_proc, arg)
 	ev->success = pool_user_send_login_ack(pool, ev->puser);
 
 	pool_event_add(pool, &ev->common, end_login_execute);
-	return NULL;
+	return TDS_THREAD_RESULT(0);
 }
 
 static void

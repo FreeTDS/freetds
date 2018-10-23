@@ -29,7 +29,6 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include <windows.h>
 #include <freetds/thread.h>
 #include <freetds/time.h>
 

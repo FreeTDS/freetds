@@ -422,12 +422,12 @@ static TDS_THREAD_PROC_DECLARE(connect_proc, arg)
 				break;
 
 		pool_event_add(pool, &ev->common, connect_execute_ok);
-		return NULL;
+		return TDS_THREAD_RESULT(0);
 	}
 
 	/* failure */
 	pool_event_add(pool, &ev->common, connect_execute_ko);
-	return NULL;
+	return TDS_THREAD_RESULT(0);
 }
 
 static void

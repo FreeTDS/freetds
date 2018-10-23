@@ -26,6 +26,7 @@
 
 #if defined(_THREAD_SAFE) && defined(TDS_HAVE_PTHREAD_MUTEX)
 
+#include <tds_sysdep_public.h>
 #include <pthread.h>
 #include <errno.h>
 
@@ -83,6 +84,7 @@ typedef pthread_t tds_thread_id;
 typedef void *(*tds_thread_proc)(void *arg);
 #define TDS_THREAD_PROC_DECLARE(name, arg) \
 	void *name(void *arg)
+#define TDS_THREAD_RESULT(n) ((void*)(intptr_t)(n))
 
 static inline int tds_thread_create(tds_thread *ret, tds_thread_proc proc, void *arg)
 {
@@ -193,19 +195,20 @@ static inline int tds_raw_cond_wait(tds_condition *cond, tds_raw_mutex *mtx)
 
 typedef HANDLE tds_thread;
 typedef DWORD  tds_thread_id;
-typedef void *(WINAPI *tds_thread_proc)(void *arg);
+typedef DWORD (WINAPI *tds_thread_proc)(void *arg);
 #define TDS_THREAD_PROC_DECLARE(name, arg) \
-	void *WINAPI name(void *arg)
+	DWORD WINAPI name(void *arg)
+#define TDS_THREAD_RESULT(n) ((DWORD)(int)(n))
 
 static inline int tds_thread_create(tds_thread *ret, tds_thread_proc proc, void *arg)
 {
-	*ret = CreateThread(NULL, 0, (DWORD (WINAPI *)(void*)) proc, arg, 0, NULL);
+	*ret = CreateThread(NULL, 0, proc, arg, 0, NULL);
 	return *ret != NULL ? 0 : 11 /* EAGAIN */;
 }
 
 static inline int tds_thread_create_detached(tds_thread_proc proc, void *arg)
 {
-	HANDLE h = CreateThread(NULL, 0, (DWORD (WINAPI *)(void*)) proc, arg, 0, NULL);
+	HANDLE h = CreateThread(NULL, 0, proc, arg, 0, NULL);
 	if (h)
 		return 0;
 	CloseHandle(h);
@@ -237,6 +240,8 @@ static inline int tds_thread_is_current(tds_thread_id th)
 }
 
 #else
+
+#include <tds_sysdep_public.h>
 
 /* define noops as "successful" */
 typedef struct {
@@ -293,6 +298,7 @@ typedef int tds_thread_id;
 typedef void *(*tds_thread_proc)(void *arg);
 #define TDS_THREAD_PROC_DECLARE(name, arg) \
 	void *name(void *arg)
+#define TDS_THREAD_RESULT(n) ((void*)(intptr_t)(n))
 
 #define tds_thread_create(ret, proc, arg) \
 	FreeTDS_Thread_not_compiled

@@ -54,7 +54,7 @@ static TDS_THREAD_PROC_DECLARE(signal_proc, arg)
 		res = 1;
 	}
 	tds_mutex_unlock(&mtx);
-	return int2ptr(res);
+	return TDS_THREAD_RESULT(res);
 }
 
 static void check(int cond, const char *msg)

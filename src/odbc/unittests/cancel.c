@@ -81,13 +81,13 @@ static TDS_THREAD_PROC_DECLARE(wait_thread_proc, arg)
 		tds_mutex_lock(&mtx);
 		if (exit_thread) {
 			tds_mutex_unlock(&mtx);
-			return NULL;
+			return TDS_THREAD_RESULT(0);
 		}
 		tds_mutex_unlock(&mtx);
 	}
 
 	exit_forced(0);
-	return NULL;
+	return TDS_THREAD_RESULT(0);
 }
 
 static void
