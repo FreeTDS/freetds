@@ -423,7 +423,6 @@ static const DBREAL		null_REAL = 0;
 
 static const DBCHAR		null_CHAR = '\0';
 static const DBVARYCHAR		null_VARYCHAR = { 0, {0} };
-static const DBBINARY		null_BINARY = 0;
 
 static const DBDATETIME		null_DATETIME = { 0, 0 };
 static const DBDATETIME4	null_SMALLDATETIME = { 0, 0 };
