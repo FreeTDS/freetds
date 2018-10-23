@@ -21,10 +21,10 @@
 #define UNICODE 1
 #define _UNICODE 1
 
-#include <config.h>
-
 /* enabled some additional definitions for getaddrinfo */
 #define _WIN32_WINNT 0x601
+
+#include <config.h>
 
 /* fix possible bug in sspi.h header */
 #define FreeCredentialHandle FreeCredentialsHandle
@@ -279,13 +279,13 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 #else
 		identity.Flags = SEC_WINNT_AUTH_IDENTITY_ANSI;
 #endif
-		identity.Password = (TCHAR *) passwd;
-		identity.PasswordLength = _tcslen(passwd);
-		identity.Domain = (TCHAR *) user_name;
-		identity.DomainLength = p - user_name;
+		identity.Password = (void *) passwd;
+		identity.PasswordLength = (unsigned long) _tcslen(passwd);
+		identity.Domain = (void *) user_name;
+		identity.DomainLength = (unsigned long) (p - user_name);
 		user_name = p + 1;
-		identity.User = (TCHAR *) user_name;
-		identity.UserLength = _tcslen(user_name);
+		identity.User = (void *) user_name;
+		identity.UserLength = (unsigned long) _tcslen(user_name);
 	}
 
 	auth = tds_new0(TDSSSPIAUTH, 1);
