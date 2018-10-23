@@ -32,6 +32,10 @@
 #ifndef FREETDS_READPASSPHRASE_H_
 #define FREETDS_READPASSPHRASE_H_
 
+#ifndef _freetds_config_h_
+#error should include config.h before
+#endif
+
 #ifdef HAVE_READPASSPHRASE
 
 # include <readpassphrase.h>

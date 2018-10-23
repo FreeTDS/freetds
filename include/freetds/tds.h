@@ -21,6 +21,10 @@
 #ifndef _tds_h_
 #define _tds_h_
 
+#ifndef _freetds_config_h_
+#error should include config.h before
+#endif
+
 #include <stdarg.h>
 #include <stdio.h>
 #include <time.h>
