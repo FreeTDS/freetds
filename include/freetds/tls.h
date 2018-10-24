@@ -47,20 +47,20 @@ void tds_ssl_deinit(TDSCONNECTION *conn);
 
 #  ifdef HAVE_GNUTLS
 
-static inline int
+static inline size_t
 tds_ssl_pending(TDSCONNECTION *conn)
 {
 	return gnutls_record_check_pending((gnutls_session_t) conn->tls_session);
 }
 
-static inline int
-tds_ssl_read(TDSCONNECTION *conn, unsigned char *buf, int buflen)
+static inline ssize_t
+tds_ssl_read(TDSCONNECTION *conn, unsigned char *buf, size_t buflen)
 {
 	return gnutls_record_recv((gnutls_session_t) conn->tls_session, buf, buflen);
 }
 
-static inline int
-tds_ssl_write(TDSCONNECTION *conn, const unsigned char *buf, int buflen)
+static inline ssize_t
+tds_ssl_write(TDSCONNECTION *conn, const unsigned char *buf, size_t buflen)
 {
 	return gnutls_record_send((gnutls_session_t) conn->tls_session, buf, buflen);
 }
@@ -71,20 +71,20 @@ tds_ssl_write(TDSCONNECTION *conn, const unsigned char *buf, int buflen)
 #define TLS_ST_OK SSL_ST_OK
 #endif
 
-static inline int
+static inline size_t
 tds_ssl_pending(TDSCONNECTION *conn)
 {
 	return SSL_pending((SSL *) conn->tls_session);
 }
 
-static inline int
-tds_ssl_read(TDSCONNECTION *conn, unsigned char *buf, int buflen)
+static inline ssize_t
+tds_ssl_read(TDSCONNECTION *conn, unsigned char *buf, size_t buflen)
 {
 	return SSL_read((SSL *) conn->tls_session, buf, buflen);
 }
 
-static inline int
-tds_ssl_write(TDSCONNECTION *conn, const unsigned char *buf, int buflen)
+static inline ssize_t
+tds_ssl_write(TDSCONNECTION *conn, const unsigned char *buf, size_t buflen)
 {
 	return SSL_write((SSL *) conn->tls_session, buf, buflen);
 }
@@ -101,20 +101,20 @@ tds_ssl_deinit(TDSCONNECTION *conn)
 {
 }
 
-static inline int
+static inline size_t
 tds_ssl_pending(TDSCONNECTION *conn)
 {
 	return 0;
 }
 
-static inline int
-tds_ssl_read(TDSCONNECTION *conn, unsigned char *buf, int buflen)
+static inline ssize_t
+tds_ssl_read(TDSCONNECTION *conn, unsigned char *buf, size_t buflen)
 {
 	return -1;
 }
 
-static inline int
-tds_ssl_write(TDSCONNECTION *conn, const unsigned char *buf, int buflen)
+static inline ssize_t
+tds_ssl_write(TDSCONNECTION *conn, const unsigned char *buf, size_t buflen)
 {
 	return -1;
 }

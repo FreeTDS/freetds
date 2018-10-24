@@ -202,7 +202,8 @@ test(int per_process)
 
 	start_time = time(NULL);	/* keep track of when we started for reporting purposes */
 	ntimeouts = 0;
-	dbsetinterrupt(dbproc, (void*)chkintr, (void*)hndlintr);
+	dbsetinterrupt(dbproc, (DB_DBCHKINTR_FUNC)chkintr,
+		       (DB_DBHNDLINTR_FUNC)hndlintr);
 
 	if (FAIL == dbsqlsend(dbproc)) {
 		fprintf(stderr, "Failed: dbsend\n");

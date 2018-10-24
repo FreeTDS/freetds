@@ -37,12 +37,13 @@ test(int argc, char **argv, int over4k)
 	int i;
 	DBINT testint;
 	FILE *fp;
-	long result, isiz;
+	ssize_t result;
+	long isiz;
 	char *blob, *rblob;
 	DBBINARY *textPtr = NULL, *timeStamp = NULL;
 	char objname[256];
 	char rbuf[BLOB_BLOCK_SIZE];
-	long numread;
+	size_t numread;
 	int data_ok;
 	int numtowrite, numwritten;
 	set_malloc_options();
@@ -249,6 +250,10 @@ test(int argc, char **argv, int over4k)
 	}
 
 	data_ok = 1;
+	if (rblob == NULL) {
+		fputs("No blob data received", stderr);
+		return 7;
+	}
 	if (memcmp(blob, rblob, numread) != 0) {
 		printf("Saving first blob data row to file: %s\n", argv[2]);
 		if ((fp = fopen(argv[2], "wb")) == NULL) {
@@ -261,7 +266,7 @@ test(int argc, char **argv, int over4k)
 		data_ok = 0;
 	}
 
-	printf("Read blob data row %d --> %s %ld byte comparison\n",
+	printf("Read blob data row %d --> %s %zu byte comparison\n",
 	       (int) testint, data_ok ? "PASSED" : "failed", numread);
 	free(rblob);
 

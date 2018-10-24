@@ -272,9 +272,13 @@ enum
 	CS_TDS_50,
 	CS_TDS_70,
 	CS_TDS_71,
+#define CS_TDS_71 CS_TDS_71
 	CS_TDS_72,
+#define CS_TDS_72 CS_TDS_72
 	CS_TDS_73,
+#define CS_TDS_73 CS_TDS_73
 	CS_TDS_74,
+#define CS_TDS_74 CS_TDS_74
 };
 
 /* bit mask values used by CS_DATAFMT.status */
@@ -581,6 +585,8 @@ enum
 #define CS_BIGDATETIME_TYPE TDS_STATIC_CAST(CS_INT, 35)
 #define CS_BIGTIME_TYPE     TDS_STATIC_CAST(CS_INT, 36)
 #define CS_UNIQUE_TYPE      TDS_STATIC_CAST(CS_INT, 40)
+#define CS_NVARCHAR_TYPE    TDS_STATIC_CAST(CS_INT, 41)
+#define CS_NLONGCHAR_TYPE   TDS_STATIC_CAST(CS_INT, 42)
 
 #define CS_USER_TYPE        TDS_STATIC_CAST(CS_INT, 100)
 /* cs_dt_info type values */

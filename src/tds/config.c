@@ -690,7 +690,7 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		tdsdump_log(TDS_DBG_INFO1, "UNRECOGNIZED option '%s' ... ignoring.\n", option);
 	}
 
-	if (!s)
+	if (login != NULL  &&  s == NULL)
 		login->valid_configuration = 0;
 }
 

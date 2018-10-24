@@ -109,7 +109,7 @@ tds_get_dynid(TDSCONNECTION * conn, char *id)
 	for (i = 0; i < 9; ++i) {
 		c = (char) ('0' + (n % 36u));
 		*p++ = (c < ('0' + 10)) ? c : c + ('a' - '0' - 10);
-		/* printf("%d -> %d(%c)\n",n%36u,p[-1],p[-1]); */
+		/* tdsdump_log(TDS_DBG_FUNC,"%d -> %d(%c)\n",n%36u,p[-1],p[-1]); */
 		n /= 36u;
 		if (i == 4)
 			n += 3u * inc_num;
@@ -143,6 +143,8 @@ tds_free_column(TDSCOLUMN *col)
 	tds_dstr_free(&col->table_name);
 	tds_dstr_free(&col->column_name);
 	tds_dstr_free(&col->table_column_name);
+	if (col->column_default)
+		free(col->column_default);
 	free(col);
 }
 
@@ -541,7 +543,7 @@ tds_alloc_row(TDSRESULTINFO * res_info)
 	}
 	res_info->row_size = row_size;
 
-	ptr = tds_new0(unsigned char, res_info->row_size);
+	ptr = tds_new0(unsigned char, row_size ? row_size : 1);
 	res_info->current_row = ptr;
 	if (!ptr)
 		return TDS_FAIL;
@@ -842,8 +844,10 @@ tds_init_login(TDSLOGIN *login, TDSLOCALE * locale)
 		}
 #endif
 		if (encoding) {
-			if (!tds_dstr_copy(&login->client_charset, encoding))
+			if (!tds_dstr_copy(&login->client_charset, encoding)) {
+				free(lc_all);
 				return NULL;
+			}
 		}
 	}
 	free(lc_all);
@@ -874,7 +878,8 @@ tds_init_login(TDSLOGIN *login, TDSLOCALE * locale)
 }
 
 TDSCURSOR *
-tds_alloc_cursor(TDSSOCKET *tds, const char *name, TDS_INT namelen, const char *query, TDS_INT querylen)
+tds_alloc_cursor(TDSSOCKET *tds, const char *name, size_t namelen,
+		 const char *query, size_t querylen)
 {
 	TDSCURSOR *cursor;
 	TDSCURSOR *pcursor;
@@ -1290,7 +1295,7 @@ tds_alloc_socket(TDSCONTEXT * context, unsigned int bufsize)
 #endif /* !ENABLE_ODBC_MARS */
 
 TDSSOCKET *
-tds_realloc_socket(TDSSOCKET * tds, size_t bufsize)
+tds_realloc_socket(TDSSOCKET * tds, unsigned int bufsize)
 {
 	TDSPACKET *packet;
 
@@ -1797,6 +1802,14 @@ Cleanup:
 void
 tds_deinit_bcpinfo(TDSBCPINFO *bcpinfo)
 {
+	/*
+	 * Historically done for all TDS 5.0 transfers, but the protocol
+	 * version isn't available here, or even in blk_done anymore.
+	 */
+	if (bcpinfo->direction == TDS_BCP_IN
+	    &&  bcpinfo->bindinfo->current_row != NULL) {
+		TDS_ZERO_FREE(bcpinfo->bindinfo->current_row);
+	}
 	tds_dstr_free(&bcpinfo->tablename);
 	TDS_ZERO_FREE(bcpinfo->insert_stmt);
 	tds_free_results(bcpinfo->bindinfo);

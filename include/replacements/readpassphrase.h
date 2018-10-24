@@ -32,6 +32,8 @@
 #ifndef FREETDS_READPASSPHRASE_H_
 #define FREETDS_READPASSPHRASE_H_
 
+#include <config.h>
+
 #ifdef HAVE_READPASSPHRASE
 
 # include <readpassphrase.h>

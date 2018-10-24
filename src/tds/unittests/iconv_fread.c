@@ -84,8 +84,8 @@ main(int argc, char **argv)
 			return 1;
 		}
 		memset(buf, 'a', i);
-		buf[i] = 0xC0 + (x >> 6);
-		buf[i+1] = 0x80 + (x & 0x3f);
+		buf[i] = (char) (0xC0 + (x >> 6));
+		buf[i+1] = (char) (0x80 + (x & 0x3f));
 		buf[i+2] = '!';
 		buf[i+3] = '!';
 

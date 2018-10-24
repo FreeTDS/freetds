@@ -36,7 +36,8 @@ sub category($) {
 	return qw(DATETIME DATETIME4 DATE TIME MSDATE MSTIME MSDATETIME2 MSDATETIMEOFFSET 5BIGDATETIME 5BIGTIME) if $_ eq 'DATETIMEx';
 	return qw(BIT BITN) if $_ eq 'BITx';
 	return qw(BINARY VARBINARY IMAGE LONGBINARY XBINARY XVARBINARY) if $_ eq 'BINARYx';
-	return qw(CHAR VARCHAR XCHAR XVARCHAR) if $_ eq 'CHARx';
+	return qw(CHAR VARCHAR XCHAR XNCHAR XNVARCHAR XVARCHAR) if $_ eq 'CHARx';
+	return qw(TEXT NTEXT) if $_ eq 'TEXT';
 	return ($_);
 }
 
@@ -129,20 +130,22 @@ for my $catFrom (@converts) {
 }
 print "};\n";
 
+# NB: SYBSENSITIVITY (Sybase) == 103 (0x67) == SYBNVARCHAR (MS)
+
 __DATA__
           To
 From
             CHARx TEXT BINARYx INTx FLTx NUMERIC DECIMAL BITx MONEYx DATETIMEx BOUNDARY UNIQUE SENSITIVITY
-CHARx       T     T    T       T    T    T       T       T    T      T         T        T      t
-TEXT        T     T    T       T    T    T       T       T    T      T         T        T      t
-BINARYx     T     T    T       T    T    F       F       F    T      F         F        F      F
-INTx        T     T    T       T    T    T       T       T    T      F         F        F      F
-FLTx        T     T    T       T    T    T       T       T    T      F         F        F      F
-NUMERIC     T     T    T       T    T    T       T       T    T      F         F        F      F
-DECIMAL     T     T    T       T    T    T       T       T    T      F         F        F      F
-BITx        T     T    T       T    T    T       T       T    T      F         F        F      F
-MONEYx      T     T    T       T    T    T       T       T    T      F         F        F      F
-DATETIMEx   T     T    T       F    F    F       F       F    F      T         F        F      F
-BOUNDARY    T     T    F       F    F    F       F       F    F      F         T        F      F
-UNIQUE      T     T    T       F    F    F       F       F    F      F         F        T      F
-SENSITIVITY t     t    F       F    F    F       F       F    F      F         F        F      t
+CHARx       T     T    T       T    T    T       T       T    T      T         T        T      T
+TEXT        T     T    T       T    T    T       T       T    T      T         T        T      T
+BINARYx     T     T    T       T    T    F       F       F    T      F         F        F      T
+INTx        T     T    T       T    T    T       T       T    T      F         F        F      T
+FLTx        T     T    T       T    T    T       T       T    T      F         F        F      T
+NUMERIC     T     T    T       T    T    T       T       T    T      F         F        F      T
+DECIMAL     T     T    T       T    T    T       T       T    T      F         F        F      T
+BITx        T     T    T       T    T    T       T       T    T      F         F        F      T
+MONEYx      T     T    T       T    T    T       T       T    T      F         F        F      T
+DATETIMEx   T     T    T       F    F    F       F       F    F      T         F        F      T
+BOUNDARY    T     T    F       F    F    F       F       F    F      F         T        F      T
+UNIQUE      T     T    T       F    F    F       F       F    F      F         F        T      T
+SENSITIVITY T     T    T       T    T    T       T       T    T      T         T        T      T

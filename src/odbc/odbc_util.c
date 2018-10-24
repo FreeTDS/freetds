@@ -24,6 +24,8 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
+#include <stddef.h>
+
 #if HAVE_STRING_H
 #include <string.h>
 #endif /* HAVE_STRING_H */
@@ -49,13 +51,14 @@
  */
 
 #ifdef ENABLE_ODBC_WIDE
-static DSTR *odbc_iso2utf(DSTR *res, const char *s, unsigned int len);
-static DSTR *odbc_mb2utf(TDS_DBC *dbc, DSTR *res, const char *s, unsigned int len);
-static DSTR *odbc_wide2utf(DSTR *res, const SQLWCHAR *s, unsigned int len);
+static DSTR *odbc_iso2utf(DSTR *res, const char *s, size_t len);
+static DSTR *odbc_mb2utf(TDS_DBC *dbc, DSTR *res, const char *s, size_t len);
+static DSTR *odbc_wide2utf(DSTR *res, const SQLWCHAR *s, size_t len);
 #endif
 
 int
-odbc_set_stmt_query(TDS_STMT * stmt, const ODBC_CHAR *sql, int sql_len _WIDE)
+odbc_set_stmt_query(TDS_STMT * stmt, const ODBC_CHAR *sql, ssize_t sql_len
+		    _WIDE)
 {
 	if (sql_len == SQL_NTS)
 #ifdef ENABLE_ODBC_WIDE
@@ -85,8 +88,8 @@ odbc_set_stmt_query(TDS_STMT * stmt, const ODBC_CHAR *sql, int sql_len _WIDE)
 	return SQL_SUCCESS;
 }
 
-unsigned int
-odbc_get_string_size(int size, const ODBC_CHAR * str _WIDE)
+size_t
+odbc_get_string_size(ssize_t size, const ODBC_CHAR * str _WIDE)
 {
 	if (str) {
 		if (size == SQL_NTS)
@@ -104,9 +107,9 @@ odbc_get_string_size(int size, const ODBC_CHAR * str _WIDE)
 
 #ifdef ENABLE_ODBC_WIDE
 static DSTR*
-odbc_iso2utf(DSTR *res, const char *s, unsigned int len)
+odbc_iso2utf(DSTR *res, const char *s, size_t len)
 {
-	unsigned int i, o_len = len + 1;
+	size_t i, o_len = len + 1;
 	char *out, *p;
 
 	assert(s);
@@ -127,14 +130,14 @@ odbc_iso2utf(DSTR *res, const char *s, unsigned int len)
 			*p++ = u;
 		}
 	}
-	assert(p+1-out <= o_len);
+	assert(p + 1 <= out + o_len);
 	return tds_dstr_setlen(res, p - out);
 }
 
 static DSTR*
-odbc_wide2utf(DSTR *res, const SQLWCHAR *s, unsigned int len)
+odbc_wide2utf(DSTR *res, const SQLWCHAR *s, size_t len)
 {
-	unsigned int i, o_len = len + 1;
+	size_t i, o_len = len + 1;
 	char *out, *p;
 
 #if SIZEOF_SQLWCHAR > 2
@@ -202,12 +205,12 @@ odbc_wide2utf(DSTR *res, const SQLWCHAR *s, unsigned int len)
 		}
 		*p++ = 0x80 | (0x3f & u);
 	}
-	assert(p+1-out <= o_len);
+	assert(p + 1 <= out + o_len);
 	return tds_dstr_setlen(res, p - out);
 }
 
 static DSTR*
-odbc_mb2utf(TDS_DBC *dbc, DSTR *res, const char *s, unsigned int len)
+odbc_mb2utf(TDS_DBC *dbc, DSTR *res, const char *s, size_t len)
 {
 	char *buf;
 
@@ -249,7 +252,7 @@ DSTR*
 odbc_dstr_copy_flag(TDS_DBC *dbc, DSTR *s, int size, const ODBC_CHAR * str, int flag)
 {
 	int wide = flag&1;
-	unsigned int len;
+	size_t len;
 
 	len = odbc_get_string_size((flag&0x21) == 0x21 && size >= 0 ? size/SIZEOF_SQLWCHAR : size, str, wide);
 	if (wide)
@@ -276,12 +279,14 @@ odbc_dstr_copy(TDS_DBC *dbc, DSTR *s, int size, const ODBC_CHAR * str)
  * @param flag      set of flag 0x10 SQLINTEGER
  */
 SQLRETURN
-odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void FAR * pcbBuffer, const char *s, int len, int flag)
+odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer,
+		     void FAR * pcbBuffer, const char *s, ssize_t len,
+		     int flag)
 {
 	SQLRETURN result = SQL_SUCCESS;
 	int out_len = 0;
 #if !defined(NDEBUG) && defined(ENABLE_ODBC_WIDE)
-	size_t initial_size;
+	ptrdiff_t initial_size;
 #endif
 
 	if (len < 0)
@@ -423,7 +428,7 @@ odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void 
 		char_conv->suppress.e2big = 1;
 		if (cbBuffer && tds_iconv(dbc->tds_socket, char_conv, to_client, &ib, &il, &ob, &ol) == (size_t)-1 && errno != E2BIG)
 			result = SQL_ERROR;
-		out_len = cbBuffer - ol;
+		out_len = cbBuffer - (int) ol;
 		while (result != SQL_ERROR && il) {
 			char discard[128];
 			ol = sizeof(discard);
@@ -478,7 +483,7 @@ odbc_set_return_status(struct _hstmt *stmt, unsigned int n_row)
 	/* TODO handle different type results (functions) on mssql2k */
 	if (stmt->prepared_query_is_func && tds->has_status) {
 		struct _drecord *drec;
-		int len;
+		SQLLEN len;
 		const TDS_DESC* axd = stmt->apd;
 		TDS_INTPTR len_offset;
 		char *data_ptr;
@@ -530,7 +535,7 @@ odbc_set_return_params(struct _hstmt *stmt, unsigned int n_row)
 		const TDS_DESC* axd = stmt->apd;
 		const struct _drecord *drec_apd, *drec_ipd;
 		TDSCOLUMN *colinfo = info->columns[i];
-		SQLINTEGER len;
+		SQLLEN len;
 		int c_type;
 		char *data_ptr;
 		TDS_INTPTR len_offset;
@@ -853,10 +858,12 @@ odbc_rdbms_version(TDSSOCKET * tds, char *pversion_string)
 }
 
 /** Return length of parameter from parameter information */
-SQLINTEGER
-odbc_get_param_len(const struct _drecord *drec_axd, const struct _drecord *drec_ixd, const TDS_DESC* axd, unsigned int n_row)
+SQLLEN
+odbc_get_param_len(const struct _drecord *drec_axd,
+		   const struct _drecord *drec_ixd, const TDS_DESC* axd,
+		   SQLSETPOSIROW n_row)
 {
-	SQLINTEGER len;
+	SQLLEN len;
 	int size;
 	TDS_INTPTR len_offset;
 

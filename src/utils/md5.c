@@ -39,7 +39,7 @@
 static void byteReverse(unsigned char *buf, unsigned longs)
 {
     do {
-        *(uint32_t *) buf = TDS_GET_A4LE(buf);
+	TDS_PUT_A4(buf = TDS_GET_A4LE(buf));
 	buf += 4;
     } while (--longs);
 }
@@ -141,8 +141,8 @@ void MD5Final(struct MD5Context *ctx, unsigned char* digest)
     byteReverse(ctx->in, 14);
 
     /* Append length in bits and transform */
-    ((uint32_t *) ctx->in)[14] = (uint32_t) (ctx->bytes << 3);
-    ((uint32_t *) ctx->in)[15] = (uint32_t) (ctx->bytes >> 29);
+    TDS_PUT_UA4(ctx->in + 14 * sizeof(uint32_t), (uint32_t)(ctx->bytes << 3));
+    TDS_PUT_UA4(ctx->in + 15 * sizeof(uint32_t), (uint32_t)(ctx->bytes >> 29));
 
     MD5Transform(ctx->buf, (uint32_t *) ctx->in);
     byteReverse((unsigned char *) ctx->buf, 4);

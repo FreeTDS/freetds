@@ -28,6 +28,14 @@
  * Internal (not part of the exposed API) prototypes and such.
  */
 
+/* Forward declarations to fix "declared with greater visibility" warnings */
+struct cs_diag_msg_client;
+struct cs_diag_msg_svr;
+struct cs_diag_msg;
+typedef struct _cs_dynamic      CS_DYNAMIC;
+typedef struct _cs_param        CS_PARAM;
+typedef struct _csremote_proc   CS_REMOTE_PROC;
+
 #include <freetds/pushvis.h>
 
 #ifdef __cplusplus
@@ -111,7 +119,6 @@ typedef struct _ct_colinfo
 }
 CT_COLINFO;
 
-typedef struct _cs_dynamic CS_DYNAMIC;
 
 struct _cs_connection
 {
@@ -133,7 +140,7 @@ struct _cs_connection
  * places, too.
  */
 
-typedef struct _cs_param
+struct _cs_param
 {
 	struct _cs_param *next;
 	char *name;
@@ -148,7 +155,7 @@ typedef struct _cs_param
 	int param_by_value;
 	CS_INT datalen_value;
 	CS_SMALLINT indicator_value;
-} CS_PARAM;
+} /* CS_PARAM */;
 
 /*
  * Code added for RPC functionality - SUHA
@@ -253,9 +260,9 @@ struct _cs_locale
 
 /* internal defines for cursor processing */
 
-#define _CS_CURS_TYPE_UNACTIONED 0
-#define _CS_CURS_TYPE_REQUESTED  1
-#define _CS_CURS_TYPE_SENT       2
+#define _CS_CURS_TYPE_UNACTIONED TDS_CURSOR_STATE_UNACTIONED
+#define _CS_CURS_TYPE_REQUESTED  TDS_CURSOR_STATE_REQUESTED
+#define _CS_CURS_TYPE_SENT       TDS_CURSOR_STATE_SENT
 
 /*
  * internal prototypes
@@ -264,7 +271,7 @@ TDSRET _ct_handle_server_message(const TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, 
 int _ct_handle_client_message(const TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE * msgptr);
 TDS_SERVER_TYPE _ct_get_server_type(TDSSOCKET *tds, int datatype);
 int _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo, CS_INT offset);
-int _ct_get_client_type(TDSCOLUMN *col);
+int _ct_get_client_type(CS_CONTEXT *ctx, TDSCOLUMN *col);
 void _ctclient_msg(CS_CONNECTION * con, const char *funcname, int layer, int origin, int severity, int number,
 		   const char *fmt, ...);
 CS_INT _ct_diag_clearmsg(CS_CONTEXT * context, CS_INT type);
@@ -273,6 +280,12 @@ CS_LOCALE *_cs_locale_copy(CS_LOCALE *orig);
 int _cs_locale_copy_inplace(CS_LOCALE *new_locale, CS_LOCALE *orig);
 
 int _cs_convert_not_client(CS_CONTEXT *ctx, TDSCOLUMN *curcol, CONV_RESULT *convert_buffer, unsigned char **p_src);
+void _csclient_msg(CS_CONTEXT * ctx, const char *funcname, int layer,
+		   int origin, int severity, int number, const char *fmt, ...);
+CS_RETCODE _cs_convert_ex(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt,
+			  CS_VOID * srcdata, CS_DATAFMT * destfmt,
+			  CS_VOID * destdata, CS_INT * resultlen,
+			  TDS_SERVER_TYPE desttype, CS_VOID ** handle);
 
 #ifdef __cplusplus
 #if 0

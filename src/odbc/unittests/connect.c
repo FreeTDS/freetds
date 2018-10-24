@@ -11,6 +11,9 @@ init_connect(void)
 }
 
 #ifdef _WIN32
+#ifndef SQL_NOUNICODEMAP
+#  define SQL_NOUNICODEMAP 1
+#endif
 #include <odbcinst.h>
 
 static char *entry = NULL;

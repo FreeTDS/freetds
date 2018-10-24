@@ -188,8 +188,11 @@ binary_to_result(int desttype, const void *data, size_t len, CONV_RESULT * cr)
 	return (TDS_INT)len;
 }
 
+/* "N" versions are safe to list due to iconv calls elsewhere. */
 #define CASE_ALL_CHAR \
-	SYBCHAR: case SYBVARCHAR: case SYBTEXT: case XSYBCHAR: case XSYBVARCHAR
+	SYBCHAR: case SYBVARCHAR: case SYBTEXT: case XSYBCHAR: \
+	case XSYBVARCHAR: case SYBNVARCHAR: case SYBNTEXT: case XSYBNCHAR: \
+	case XSYBNVARCHAR
 #define CASE_ALL_BINARY \
 	SYBBINARY: case SYBVARBINARY: case SYBIMAGE: case XSYBBINARY: case XSYBVARBINARY: \
 	case SYBLONGBINARY: case TDS_CONVERT_BINARY
@@ -286,10 +289,11 @@ tds_convert_binary(const TDS_UCHAR * src, TDS_INT srclen, int desttype, CONV_RES
 	return TDS_CONVERT_NOAVAIL;
 }
 
-TDS_INT
-tds_char2hex(TDS_CHAR *dest, TDS_UINT destlen, const TDS_CHAR * src, TDS_UINT srclen)
+ssize_t
+tds_char2hex(TDS_CHAR *dest, size_t destlen,
+	     const TDS_CHAR * src, size_t srclen)
 {
-	unsigned int i;
+	size_t i;
 	unsigned char hex1, c = 0;
 
 	/* if srclen if odd we must add a "0" before ... */
@@ -1487,7 +1491,7 @@ tds_convert_bigdatetime(const TDSCONTEXT * tds_ctx, const TDS_BIGDATETIME * bigd
 	dta.time = bdt % ((TDS_UINT8) 86400u * 1000000u) * 10u;
 	bdt /= (TDS_UINT8) 86400u * 1000000u;
 	dta.has_date = 1;
-	dta.date = bdt - BIGDATETIME_BIAS;
+	dta.date = (TDS_INT) (bdt - BIGDATETIME_BIAS);
 	return tds_convert_datetimeall(tds_ctx, SYBMSDATETIME2, &dta, desttype, cr);
 }
 
@@ -1849,7 +1853,10 @@ tds_convert_to_binary(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int de
 			test_alloc(cr->ib);
 			ib = cr->ib;
 		}
-		return tds_char2hex(ib, desttype == TDS_CONVERT_BINARY ? cr->cb.len : 0xffffffffu, src, srclen);
+		return (TDS_INT) tds_char2hex(ib,
+					      desttype == TDS_CONVERT_BINARY
+					      ? cr->cb.len : 0xffffffffu,
+					      src, srclen);
 
 	default:
 		return TDS_CONVERT_NOAVAIL;
@@ -1969,8 +1976,6 @@ tds_convert(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, TDS_U
 	case SYBUNIQUE:
 		length = tds_convert_unique(src, desttype, cr);
 		break;
-	case SYBNVARCHAR:
-	case SYBNTEXT:
 	default:
 		return TDS_CONVERT_NOAVAIL;
 		break;
@@ -3192,7 +3197,7 @@ tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
 		secs = bigdatetime % 60u;
 		bigdatetime /= 60u;
 		dt_time = bigdatetime % (24u*60u);
-		dt_days = bigdatetime / (24u*60u) - BIGDATETIME_BIAS;
+		dt_days = (int) (bigdatetime / (24u*60u) - BIGDATETIME_BIAS);
 	} else {
 		return TDS_FAIL;
 	}

@@ -20,12 +20,13 @@ typedef struct des_key
 	uint8_t  fperm[16][16][8];
 } DES_KEY;
 
-int tds_des_set_key(DES_KEY * dkey, const des_cblock user_key, int len);
+int tds_des_set_key(DES_KEY * dkey, const des_cblock user_key, size_t len);
 void tds_des_encrypt(DES_KEY * key, des_cblock block);
 #endif
 
 void tds_des_set_odd_parity(des_cblock key);
-int tds_des_ecb_encrypt(const void *plaintext, int len, DES_KEY * akey, uint8_t *output);
+int tds_des_ecb_encrypt(const void *plaintext, size_t len, DES_KEY * akey,
+			uint8_t *output);
 
 #include <freetds/popvis.h>
 

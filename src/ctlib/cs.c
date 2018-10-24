@@ -138,6 +138,33 @@ _cs_get_user_api_layer_error(int error)
 	case 24:
 		return "The conversion/operation was stopped due to a syntax error in the source field.";
 		break;
+	case 25:
+		return "Data is truncated during conversion.";
+		break;
+	case 26:
+		return "Data-conversion resulted in overflow.";
+		break;
+	case 27:
+		return "Unknown callback %1!.";
+		break;
+	case 28:
+		return "Unknown size %1! for SYBINTN.";
+		break;
+	case 29:
+		return "Unknown float size of %1!.";
+		break;
+	case 30:
+		return "Unknown money size of %1!.";
+		break;
+	case 31:
+		return "Unknown date size of %1!.";
+		break;
+	case 32:
+		return "Unknown type: %1!.";
+		break;
+	case 33:
+		return "Out of memory!";
+		break;
 	default:
 		break;
 	}
@@ -159,7 +186,7 @@ _cs_get_msgstr(const char *funcname, int layer, int origin, int severity, int nu
 	return m;
 }
 
-static void
+void
 _csclient_msg(CS_CONTEXT * ctx, const char *funcname, int layer, int origin, int severity, int number, const char *fmt, ...)
 {
 	va_list ap;
@@ -468,7 +495,16 @@ cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 CS_RETCODE
 cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT * destfmt, CS_VOID * destdata, CS_INT * resultlen)
 {
-	TDS_SERVER_TYPE src_type, desttype;
+	return _cs_convert_ex(ctx, srcfmt, srcdata, destfmt, destdata,
+			      resultlen, TDS_INVALID_TYPE, NULL);
+}
+
+CS_RETCODE
+_cs_convert_ex(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata,
+	       CS_DATAFMT * destfmt, CS_VOID * destdata, CS_INT * resultlen,
+	       TDS_SERVER_TYPE desttype, CS_VOID ** handle)
+{
+	TDS_SERVER_TYPE src_type;
 	int src_len, destlen, len, i = 0;
 	CONV_RESULT cres;
 	unsigned char *dest;
@@ -511,16 +547,23 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 	if (src_type == TDS_INVALID_TYPE)
 		return CS_FAIL;
 	src_len = srcfmt->maxlength;
-	if (srcfmt->datatype == CS_VARCHAR_TYPE || srcfmt->datatype == CS_VARBINARY_TYPE) {
+	if (srcfmt->datatype == CS_VARCHAR_TYPE ||
+	    srcfmt->datatype == CS_NVARCHAR_TYPE ||
+	    srcfmt->datatype == CS_VARBINARY_TYPE) {
 		CS_VARCHAR *vc = (CS_VARCHAR *) srcdata;
 		src_len = vc->len;
 		srcdata = vc->str;
 	}
-	desttype = _ct_get_server_type(NULL, destfmt->datatype);
-	if (desttype == TDS_INVALID_TYPE)
-		return CS_FAIL;
+	if (desttype == TDS_INVALID_TYPE) {
+		desttype = _ct_get_server_type(NULL, destfmt->datatype);
+		if (desttype == TDS_INVALID_TYPE) {
+			return CS_FAIL;
+		}
+	}
 	destlen = destfmt->maxlength;
-	if (destfmt->datatype == CS_VARCHAR_TYPE || destfmt->datatype == CS_VARBINARY_TYPE) {
+	if (destfmt->datatype == CS_VARCHAR_TYPE ||
+	    destfmt->datatype == CS_NVARCHAR_TYPE ||
+	    destfmt->datatype == CS_VARBINARY_TYPE) {
 		destvc = (CS_VARCHAR *) destdata;
 		destlen  = sizeof(destvc->str);
 		destdata = destvc->str;
@@ -531,7 +574,7 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 	tdsdump_log(TDS_DBG_FUNC, "converting type %d (%d bytes) to type = %d (%d bytes)\n",
 		    src_type, src_len, desttype, destlen);
 
-	if (!is_fixed_type(desttype) && (destlen <= 0)) {
+	if (!is_fixed_type(desttype) && (destlen < 0)) { /* was <= */
 		return CS_FAIL;
 	}
 
@@ -554,6 +597,8 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 
 			if (src_len > destlen) {
 				tdsdump_log(TDS_DBG_FUNC, "error: src_len > destlen\n");
+				_csclient_msg(ctx, "cs_convert", 2, 1, 16, 26,
+					      "");
 				ret = CS_FAIL;
 			} else {
 				switch (destfmt->format) {
@@ -578,6 +623,8 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 		case SYBCHAR:
 		case SYBVARCHAR:
 		case SYBTEXT:
+		case SYBNVARCHAR:
+		case SYBNTEXT:
 			tdsdump_log(TDS_DBG_FUNC, "cs_convert() desttype = character\n");
 
 			memcpy(dest, srcdata, minlen);
@@ -585,6 +632,8 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 
 			if (src_len > destlen) {
 				tdsdump_log(TDS_DBG_FUNC, "error: src_len > destlen\n");
+				_csclient_msg(ctx, "cs_convert", 2, 1, 16, 26,
+					      "");
 				ret = CS_FAIL;
 			} else {
 				switch (destfmt->format) {
@@ -659,6 +708,8 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 
 			if (src_len > destlen) {
 				tdsdump_log(TDS_DBG_FUNC, "error: src_len > destlen\n");
+				_csclient_msg(ctx, "cs_convert", 2, 1, 16, 26,
+					      "");
 				ret = CS_FAIL;
 			} else {
 				ret = CS_SUCCEED;
@@ -727,12 +778,19 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 		ret = CS_SUCCEED;
 		if (len > destlen) {
 			tdsdump_log(TDS_DBG_FUNC, "error_handler: Data-conversion resulted in overflow\n");
+			_csclient_msg(ctx, "cs_convert", 2, 1, 16, 26, "");
 			ret = CS_FAIL;
 			len = destlen;
 		}
-		memcpy(dest, cres.ib, len);
-		free(cres.ib);
-		*resultlen = destlen;
+		if (handle == NULL) {
+			memcpy(dest, cres.ib, len);
+			free(cres.ib);
+		} else {
+			free(*handle);
+			*handle = cres.ib;
+			destlen = len;
+		}
+		*resultlen = len;
 		if (destvc) {
 			destvc->len = len;
 			*resultlen = sizeof(*destvc);
@@ -773,12 +831,23 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 		*resultlen = src_len;
 		ret = CS_SUCCEED;
 		break;
+	case SYBMSTIME:
+	case SYBMSDATE:
+	case SYBMSDATETIME2:
+	case SYBMSDATETIMEOFFSET:
+		*resultlen = sizeof(TDS_DATETIMEALL);
+		memcpy(dest, &(cres.dta), *resultlen);
+		ret = CS_SUCCEED;
+		break;
 	case SYBCHAR:
 	case SYBVARCHAR:
 	case SYBTEXT:
+	case SYBNVARCHAR:
+	case SYBNTEXT:
 		ret = CS_SUCCEED;
 		if (len > destlen) {
 			tdsdump_log(TDS_DBG_FUNC, "Data-conversion resulted in overflow\n");
+			_csclient_msg(ctx, "cs_convert", 2, 1, 16, 26, "");
 			len = destlen;
 			ret = CS_FAIL;
 		}
@@ -790,7 +859,13 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 				tdsdump_log(TDS_DBG_FUNC, "not enough room for data + a null terminator - error\n");
 				ret = CS_FAIL;	/* not enough room for data + a null terminator - error */
 			} else {
-				memcpy(dest, cres.c, len);
+				if (handle == NULL) {
+					memcpy(dest, cres.c, len);
+				} else {
+					free(*handle);
+					*handle = cres.c;
+					dest = *handle;
+				}
 				dest[len] = 0;
 				*resultlen = len + 1;
 			}
@@ -799,7 +874,13 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 		case CS_FMT_PADBLANK:
 			tdsdump_log(TDS_DBG_FUNC, "cs_convert() FMT_PADBLANK\n");
 			/* strcpy here can lead to a small buffer overflow */
-			memcpy(dest, cres.c, len);
+			if (handle == NULL) {
+				memcpy(dest, cres.c, len);
+			} else {
+				free(*handle);
+				*handle = cres.c;
+				destlen = len;
+			}
 			for (i = len; i < destlen; i++)
 				dest[i] = ' ';
 			*resultlen = destlen;
@@ -808,14 +889,25 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 		case CS_FMT_PADNULL:
 			tdsdump_log(TDS_DBG_FUNC, "cs_convert() FMT_PADNULL\n");
 			/* strcpy here can lead to a small buffer overflow */
-			memcpy(dest, cres.c, len);
+			if (handle == NULL) {
+				memcpy(dest, cres.c, len);
+			} else {
+				free(*handle);
+				*handle = cres.c;
+				destlen = len;
+			}
 			for (i = len; i < destlen; i++)
 				dest[i] = '\0';
 			*resultlen = destlen;
 			break;
 		case CS_FMT_UNUSED:
 			tdsdump_log(TDS_DBG_FUNC, "cs_convert() FMT_UNUSED\n");
-			memcpy(dest, cres.c, len);
+			if (handle == NULL) {
+				memcpy(dest, cres.c, len);
+			} else {
+				free(*handle);
+				*handle = cres.c;
+			}
 			*resultlen = len;
 			break;
 		default:
@@ -826,7 +918,9 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 			destvc->len = len;
 			*resultlen = sizeof(*destvc);
 		}
-		free(cres.c);
+		if (handle == NULL  ||  *handle != cres.c) {
+			free(cres.c);
+		}
 		break;
 	default:
 		ret = CS_FAIL;
@@ -883,7 +977,7 @@ cs_dt_crack_v2(CS_CONTEXT * ctx, CS_INT datetype, CS_VOID * dateval, CS_DATEREC 
 	daterec->dateminute = dr.minute;
 	daterec->datesecond = dr.second;
 	daterec->datemsecond = dr.decimicrosecond / 10000u;
-	daterec->datetzone = 0;
+	daterec->datetzone = dr.timezone;
 	if (extended) {
 		daterec->datesecfrac = dr.decimicrosecond / 10u;
 		daterec->datesecprec = 1000000;

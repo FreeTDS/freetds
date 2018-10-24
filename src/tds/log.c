@@ -57,7 +57,9 @@ static char *g_dump_filename = NULL;
 /** Tell if TDS debug logging is turned on or off */
 int tds_write_dump = 0;
 static FILE *g_dumpfile = NULL;	/* file pointer for dump log          */
+#ifdef TDS_HAVE_MUTEX
 static tds_mutex g_dump_mutex = TDS_MUTEX_INITIALIZER;
+#endif
 
 static FILE* tdsdump_append(void);
 

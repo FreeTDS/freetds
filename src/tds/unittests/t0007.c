@@ -118,8 +118,8 @@ test0(const char *src, int len, int midtype, int dsttype, const char *result, in
 	free(copy);
 }
 
-#define test(s,d,r)    test0(s,strlen(s),0,d,r,__LINE__)
-#define test2(s,m,d,r) test0(s,strlen(s),m,d,r,__LINE__)
+#define test(s,d,r)    test0(s, sizeof(s) - 1, 0, d, r, __LINE__)
+#define test2(s,m,d,r) test0(s, sizeof(s) - 1, m, d, r, __LINE__)
 
 static int
 int_types[] = {
@@ -375,9 +375,13 @@ main(int argc, char **argv)
 
 		/* try conversion from char (already tested above) */
 		cr_src.n.precision = 20; cr_src.n.scale = 0;
-		len_src = tds_convert(&ctx, SYBVARCHAR, *value, strlen(*value), *type1, &cr_src);
+		len_src = tds_convert(&ctx, SYBVARCHAR, *value,
+				      (TDS_UINT) strlen(*value), *type1,
+				      &cr_src);
 		cr_dst.n.precision = 20; cr_dst.n.scale = 0;
-		len_dst = tds_convert(&ctx, SYBVARCHAR, *value, strlen(*value), *type2, &cr_dst);
+		len_dst = tds_convert(&ctx, SYBVARCHAR, *value,
+				      (TDS_UINT) strlen(*value), *type2,
+				      &cr_dst);
 		if (len_src <= 0 || len_dst <= 0)
 			continue;
 		cr_dst.n.precision = 20; cr_dst.n.scale = 0;

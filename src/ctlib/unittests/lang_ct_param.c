@@ -130,7 +130,7 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames)
 
 	memset(&srcfmt, 0, sizeof(CS_DATAFMT));
 	srcfmt.datatype = CS_CHAR_TYPE;
-	srcfmt.maxlength = strlen(moneystring);
+	srcfmt.maxlength = (CS_INT) strlen(moneystring);
 	srcfmt.precision = 5;
 	srcfmt.scale = 2;
 	srcfmt.locale = NULL;
@@ -164,7 +164,7 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames)
 	/*
 	 * create the command
 	 */
-	if ((ret = ct_command(cmd, CS_LANG_CMD, query, strlen(query), 
+	if ((ret = ct_command(cmd, CS_LANG_CMD, query, (CS_INT) strlen(query),
 		CS_UNUSED)) != CS_SUCCEED) 
 	{
 		fprintf(stderr, "ct_command(CS_LANG_CMD) failed\n");
@@ -189,7 +189,8 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames)
 	 * The character string variable is filled in by the RPC so pass NULL
 	 * for the data 0 for data length, and -1 for the indicator arguments.
 	 */
-	ret = ct_param(cmd, &datafmt, dummy_name, strlen(dummy_name), 0);
+	ret = ct_param(cmd, &datafmt, dummy_name, (CS_INT) strlen(dummy_name),
+		       0);
 	if (CS_SUCCEED != ret) {
 		fprintf(stderr, "ct_param(char) failed\n");
 		return 1;
@@ -204,7 +205,8 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames)
 	datafmt.datatype = CS_CHAR_TYPE;
 	datafmt.status = CS_INPUTVALUE;
 
-	ret = ct_param(cmd, &datafmt, dummy_name2, strlen(dummy_name2), 0);
+	ret = ct_param(cmd, &datafmt, dummy_name2, (CS_INT) strlen(dummy_name2),
+		       0);
 	if (CS_SUCCEED != ret) {
 		fprintf(stderr, "ct_param(char) failed\n");
 		return 1;

@@ -190,7 +190,9 @@ typedef struct dblib_context
 DBLIBCONTEXT;
 
 static DBLIBCONTEXT g_dblib_ctx;
+#ifdef TDS_HAVE_MUTEX
 static tds_mutex dblib_mutex = TDS_MUTEX_INITIALIZER;
+#endif
 
 static int g_dblib_version =
 #ifdef TDS42
@@ -212,6 +214,7 @@ static int g_dblib_version =
 #else
 	DBVERSION_UNKNOWN;
 #endif
+static int g_dbsetversion_called = 0;
 
 
 static int
@@ -225,7 +228,7 @@ dblib_add_connection(DBLIBCONTEXT * ctx, TDSSOCKET * tds)
 	while (i < list_size && ctx->connection_list[i])
 		i++;
 	if (i == list_size) {
-		fprintf(stderr, "Max connections reached, increase value of TDS_MAX_CONN\n");
+		dbperror((DBPROCESS *) tds_get_parent(tds), 50001, 0);
 		return 1;
 	} else {
 		ctx->connection_list[i] = tds;
@@ -429,7 +432,7 @@ static const DBREAL		null_REAL = 0;
 
 static const DBCHAR		null_CHAR = '\0';
 static const DBVARYCHAR		null_VARYCHAR = { 0, {0} };
-static const DBBINARY		null_BINARY = 0;
+/* static const DBBINARY		null_BINARY = 0; */
 
 static const DBDATETIME		null_DATETIME = { 0, 0 };
 static const DBDATETIME4	null_SMALLDATETIME = { 0, 0 };
@@ -1046,7 +1049,7 @@ dbstring_length(DBSTRING * dbstr)
 }
 
 static int
-dbstring_getchar(DBSTRING * dbstr, int i)
+dbstring_getchar(DBSTRING * dbstr, ssize_t i)
 {
 
 	/* tdsdump_log(TDS_DBG_FUNC, "dbstring_getchar(%p, %d)\n", dbstr, i); */
@@ -1254,6 +1257,21 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 	/* override query timeout if dbsettime() was called */
 	if (g_dblib_ctx.query_timeout > 0) {
 		connection->query_timeout = g_dblib_ctx.query_timeout;
+	}
+
+	/* override TDS version if dbsetversion() was called */
+	if (g_dbsetversion_called) {
+		switch (g_dblib_version) {
+		case DBVERSION_42:   connection->tds_version=0x402;  break;
+		case DBVERSION_46:   connection->tds_version=0x406;  break;
+		case DBVERSION_100:  connection->tds_version=0x500;  break;
+		case DBVERSION_70:   connection->tds_version=0x700;  break;
+		case DBVERSION_71:   connection->tds_version=0x701;  break;
+		case DBVERSION_72:   connection->tds_version=0x702;  break;
+		case DBVERSION_73:   connection->tds_version=0x703;  break;
+		case DBVERSION_74:   connection->tds_version=0x704;  break;
+		default:             connection->tds_version=0;      break;
+		};
 	}
 
 	tds_mutex_unlock(&dblib_mutex);
@@ -3457,7 +3475,7 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 	tds = dbproc->tds_socket;
 
 	for (col = 0; col < tds->res_info->num_cols; col++) {
-		int padlen, collen, namlen;
+		size_t padlen, collen, namlen;
 		TDSCOLUMN *colinfo = tds->res_info->columns[col];
 		if (colinfo->column_cur_size < 0) {
 			len = 4;
@@ -3528,17 +3546,18 @@ dbprrow(DBPROCESS * dbproc)
 	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
-	int i, col, collen, namlen, len;
+	int i, col;
+	size_t collen, namlen, len;
 	char dest[8192];
 	int desttype, srctype;
 	TDSDATEREC when;
 	STATUS status;
-	int padlen;
+	ssize_t padlen;
 	int c;
 	int selcol;
 	int linechar;
 	int op;
-	const char *opname;
+	const char *opname, *p;
 
 	/* these are for compute rows */
 	DBINT computeid, num_cols, colid;
@@ -3584,7 +3603,9 @@ dbprrow(DBPROCESS * dbproc)
 					}
 				}
 
-				printf("%.*s", len, dest);
+				p = memchr(dest, '\0', len);
+				fwrite(dest, 1, p == NULL ? len : (p - dest),
+				       stdout);
 				collen = _get_printable_size(colinfo);
 				namlen = tds_dstr_len(&colinfo->column_name);
 				padlen = (collen > namlen ? collen : namlen) - len;
@@ -3612,7 +3633,7 @@ dbprrow(DBPROCESS * dbproc)
 			computeid = status;
 
 			for (i = 0;; ++i) {
-				if (i >= tds->num_comp_info) {
+				if ((TDS_UINT) i >= tds->num_comp_info) {
 					free(col_printlens);
 					return FAIL;
 				}
@@ -3649,7 +3670,10 @@ dbprrow(DBPROCESS * dbproc)
 				op = dbaltop(dbproc, computeid, col);
 				opname = dbprtype(op);
 				printf("%s", opname);
-				for (i = 0; i < ((long) col_printlens[selcol - 1] - (long) strlen(opname)); i++) {
+				for (i = 0;
+				     i < (col_printlens[selcol - 1]
+					  - (int) strlen(opname));
+				     i++) {
 					if ((c = dbstring_getchar(dbproc->dbopts[DBPRPAD].param, 0)) >= 0)
 						putchar(c); 
 				}
@@ -3727,7 +3751,9 @@ dbprrow(DBPROCESS * dbproc)
 						putchar(c);
 					}
 				}
-				printf("%.*s", len, dest);
+				p = memchr(dest, '\0', len);
+				fwrite(dest, 1, p == NULL ? len : (p - dest),
+				       stdout);
 				collen = _get_printable_size(colinfo);
 				namlen = tds_dstr_len(&colinfo->column_name);
 				padlen = (collen > namlen ? collen : namlen) - len;
@@ -3825,7 +3851,7 @@ dbsprline(DBPROCESS * dbproc, char *buffer, DBINT buf_len, DBCHAR line_char)
 	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
-	int i, col, len, collen, namlen;
+	size_t i, col, len, collen, namlen;
 	int c;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbsprline(%p, %s, %d, '%c')\n", dbproc, buffer, buf_len, line_char);
@@ -3883,7 +3909,8 @@ dbsprhead(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
-	int i, col, collen, namlen;
+	int i, collen, namlen;
+	TDS_USMALLINT col;
 	int padlen;
 	int c;
 
@@ -3897,7 +3924,7 @@ dbsprhead(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 	for (col = 0; col < resinfo->num_cols; col++) {
 		colinfo = resinfo->columns[col];
 		collen = _get_printable_size(colinfo);
-		namlen = tds_dstr_len(&colinfo->column_name);
+		namlen = (int) tds_dstr_len(&colinfo->column_name);
 		padlen = (collen > namlen ? collen : namlen) - namlen;
 		if (buf_len < namlen) {
 			return FAIL;
@@ -3947,8 +3974,8 @@ dbprhead(DBPROCESS * dbproc)
 	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
-	int i, col, len, collen, namlen;
-	int padlen;
+	size_t i, col, len, collen, namlen;
+	size_t padlen;
 	int c;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbprhead(%p)\n", dbproc);
@@ -4928,7 +4955,7 @@ dbnumalts(DBPROCESS * dbproc, int computeid)
 	TDSSOCKET *tds;
 	TDSCOMPUTEINFO *info;
 	TDS_SMALLINT compute_id;
-	int i;
+	TDS_UINT i;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbnumalts(%p, %d)\n", dbproc, computeid);
 	CHECK_PARAMETER(dbproc, SYBENULL, -1);
@@ -4986,7 +5013,7 @@ dbbylist(DBPROCESS * dbproc, int computeid, int *size)
 {
 	TDSSOCKET *tds;
 	TDSCOMPUTEINFO *info;
-	int i;
+	TDS_UINT i;
 	const TDS_SMALLINT byte_flag = -0x8000;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbbylist(%p, %d, %p)\n", dbproc, computeid, size);
@@ -5953,9 +5980,9 @@ dbgetuserdata(DBPROCESS * dbproc)
  * \ingroup dblib_core
  * \brief Specify a db-lib version level.
  * 
- * \param version anything, really. 
- * \retval SUCCEED Always.  
- * \remarks No effect on behavior of \c db-lib in \c FreeTDS.  
+ * \param version Any DBVERSION_* constant.
+ * \retval SUCCEED if version was valid, FAIL otherwise.
+ * \remarks Use the corresponding protocol version for subsequent connections.
  * \sa 
  */
 RETCODE
@@ -5973,6 +6000,7 @@ dbsetversion(DBINT version)
 	case DBVERSION_73:
 	case DBVERSION_74:
 		g_dblib_version = version;
+		g_dbsetversion_called = 1;
 		return SUCCEED;
 	default:
 		break;
@@ -6581,6 +6609,7 @@ RETCODE
 dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT textptrlen, DBBINARY * timestamp, DBBOOL log,
 	    DBINT size, BYTE * text)
 {
+	DBINT rc = 0;
 	char textptr_string[35];	/* 16 * 2 + 2 (0x) + 1 */
 	char timestamp_string[19];	/* 8 * 2 + 2 (0x) + 1 */
 	TDS_INT result_type;
@@ -6599,8 +6628,14 @@ dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT tex
 	if (textptrlen > DBTXPLEN)
 		return FAIL;
 
-	dbconvert(dbproc, SYBBINARY, (BYTE *) textptr, textptrlen, SYBCHAR, (BYTE *) textptr_string, -1);
-	dbconvert(dbproc, SYBBINARY, (BYTE *) timestamp, 8, SYBCHAR, (BYTE *) timestamp_string, -1);
+	rc = dbconvert(dbproc, SYBBINARY, (BYTE *) textptr, textptrlen,
+		       SYBCHAR, (BYTE *) textptr_string, -1);
+	if (rc < 0)
+		return FAIL;
+	rc = dbconvert(dbproc, SYBBINARY, (BYTE *) timestamp, 8, SYBCHAR,
+		       (BYTE *) timestamp_string, -1);
+	if (rc < 0)
+		return FAIL;
 
 	dbproc->dbresults_state = _DB_RES_INIT;
 
@@ -8042,6 +8077,8 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
 						"with the xlt_todisp parameter has been freed\0" }
 	, { SYBEZTXT,              EXINFO,	"Attempt to send zero length TEXT or IMAGE to dataserver via dbwritetext\0" }
 	, { SYBECOLSIZE,           EXINFO,      "Invalid column information structure size\0" }
+	, { 50000,           EXCONVERSION,	"Data is truncated during conversion\0" }
+	, { 50001,              EXPROGRAM,	"Max connections reached, increase value of TDS_MAX_CONN\0" }
 	};
 
 /**  \internal
@@ -8246,7 +8283,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 			/* Microsoft behavior */
 			return INT_CANCEL;
 		}
-		fprintf(stderr, int_exit_text, rc_name, msgno);
+		/* fprintf(stderr, int_exit_text, rc_name, msgno); */
 		tdsdump_log(TDS_DBG_SEVERE, int_exit_text, rc_name, msgno);
 		break;
 	}

@@ -38,6 +38,7 @@ free_convert(int type, CONV_RESULT *cr)
 {
 	switch (type) {
 	case SYBCHAR: case SYBVARCHAR: case SYBTEXT: case XSYBCHAR: case XSYBVARCHAR:
+	case SYBNVARCHAR: case SYBNTEXT: case XSYBNCHAR: case XSYBNVARCHAR:
 	case SYBBINARY: case SYBVARBINARY: case SYBIMAGE: case XSYBBINARY: case XSYBVARBINARY:
 	case SYBLONGBINARY:
 		free(cr->c);
@@ -61,6 +62,7 @@ main(int argc, char **argv)
 	int i, j, iterations = 0, result;
 
 	TDS_CHAR *src = NULL;
+	TDS_SMALLINT widesrc[40];
 	TDS_UINT srclen;
 	CONV_RESULT cr;
 
@@ -153,10 +155,18 @@ main(int argc, char **argv)
 		case XSYBVARBINARY:
 		case XSYBCHAR:
 		case XSYBVARCHAR:
+		case SYBNTEXT:
+		case SYBNVARCHAR:
+		case XSYBNCHAR:
+		case XSYBNVARCHAR:
 			switch (desttype) {
 			case SYBCHAR:
 			case SYBVARCHAR:
 			case SYBTEXT:
+			case SYBNTEXT:
+			case SYBNVARCHAR:
+			case XSYBNCHAR:
+			case XSYBNVARCHAR:
 			case SYBDATETIME:
 			case SYBDATETIME4:
 				src = "Jan  1, 1999";
@@ -210,7 +220,18 @@ main(int argc, char **argv)
 				break;
 			}
 			assert(src);
-			srclen = strlen(src);
+			srclen = (TDS_UINT) strlen(src);
+			if (srctype == SYBNTEXT  ||  srctype == SYBNVARCHAR
+			    ||  srctype == XSYBNCHAR
+			    ||  srctype == XSYBNVARCHAR) {
+				assert(srclen * sizeof(*widesrc)
+				       < sizeof(widesrc));
+				for (j = 0;  j <= srclen;  ++j) {
+					widesrc[j] = src[j];
+				}
+				src = widesrc;
+				srclen *= sizeof(*widesrc);
+			}
 			break;
 		case SYBINT1:
 		case SYBUINT1:
@@ -321,7 +342,7 @@ main(int argc, char **argv)
 		 */
 
 		result = tds_convert(ctx, srctype, src, srclen, desttype, &cr);
-		if (result >= 0)
+		/* if (result >= 0) */
 			free_convert(desttype, &cr);
 
 		if (result < 0) {

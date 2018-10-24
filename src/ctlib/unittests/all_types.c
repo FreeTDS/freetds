@@ -22,7 +22,7 @@ static void test_type(TDSSOCKET *tds, TDSCOLUMN *col)
 	CS_INT len;
 
 	/* we should be able to support a type coming from server */
-	if (_ct_get_client_type(col) == CS_ILLEGAL_TYPE) {
+	if (_ct_get_client_type(ctx, col) == CS_ILLEGAL_TYPE) {
 		fprintf(stderr, "not supported\n");
 		assert(0);
 	}

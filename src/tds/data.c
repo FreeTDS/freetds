@@ -252,6 +252,9 @@ tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE typ
 
 	if (IS_TDS7_PLUS(conn)) {
 		switch (type) {
+		case SYBNVARCHAR:
+			type = XSYBNVARCHAR;
+			break;
 		case SYBVARCHAR:
 			type = XSYBVARCHAR;
 			break;
@@ -263,6 +266,11 @@ tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE typ
 			break;
 		case SYBBINARY:
 			type = XSYBBINARY;
+			break;
+		case SYBBIT:
+			if (IS_TDS71_PLUS(conn)) {
+				type = SYBINT1;
+			}
 			break;
 			/* avoid warning on other types */
 		default:
@@ -411,7 +419,6 @@ tds_generic_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 	case 8:
 		col->column_size = 0x7ffffffflu;
 		break;
-	case 5:
 	case 4:
 		col->column_size = tds_get_int(tds);
 		if (col->column_size < 0)
@@ -422,7 +429,11 @@ tds_generic_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 		col->column_size = tds_get_smallint(tds);
 		/* under TDS7.2 this means ?var???(MAX) */
 		if (col->column_size < 0 && IS_TDS72_PLUS(tds->conn)) {
-			col->column_size = 0x3ffffffflu;
+			if (is_char_type(col->column_type)) {
+				col->column_size = 0x3ffffffflu;
+			} else {
+				col->column_size = 0x7ffffffflu;
+			}
 			col->column_varint_size = 8;
 		}
 		if (col->column_size < 0)
@@ -482,7 +493,7 @@ tds_generic_row_len(TDSCOLUMN *col)
 
 	if (is_blob_col(col))
 		return sizeof(TDSBLOB);
-	return col->column_size;
+	return col->column_size + col->column_varint_size;
 }
 
 static TDSRET
@@ -532,7 +543,7 @@ tds_varmax_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
 	/* read part of data */
 	if (len > s->chunk_left)
 		len = s->chunk_left;
-	s->chunk_left -= len;
+	s->chunk_left -= (TDS_INT) len;
 	if (tds_get_n(s->tds, ptr, len))
 		return len;
 	return -1;
@@ -740,6 +751,21 @@ tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	tdsdump_log(TDS_DBG_INFO1, "tds_get_data: type %d, varint size %d\n", curcol->column_type, curcol->column_varint_size);
 	switch (curcol->column_varint_size) {
 	case 4:
+		if (!is_blob_type(curcol->column_type)) {
+			/* Any other non-BLOB type (e.g., XSYBCHAR) */
+			colsize = tds_get_int(tds);
+			if (colsize == 0) {
+				colsize = -1;
+			}
+			break;
+		} else if (curcol->on_server.column_type == SYBLONGBINARY) {
+			colsize = tds_get_int(tds);
+			if (colsize == 0) {
+				colsize = -1;
+			}
+			break;
+		}
+
 		/* It's a BLOB... */
 		len = tds_get_byte(tds);
 		blob = (TDSBLOB *) curcol->column_data;
@@ -754,11 +780,6 @@ tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		} else {
 			colsize = -1;
 		}
-		break;
-	case 5:
-		colsize = tds_get_int(tds);
-		if (colsize == 0)
-			colsize = -1;
 		break;
 	case 8:
 		return tds72_get_varmax(tds, curcol);
@@ -800,7 +821,7 @@ tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	dest = curcol->column_data;
 	if (is_blob_col(curcol)) {
 		TDSDATAINSTREAM r;
-		size_t allocated;
+		int allocated;
 		TDSRET ret;
 
 		blob = (TDSBLOB *) dest; 	/* cf. column_varint_size case 4, above */
@@ -903,14 +924,17 @@ tds_generic_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 	case 0:
 		break;
 	case 1:
-		tds_put_byte(tds, size);
+		if (col->column_output  &&  col->column_size <= 0
+		    &&  is_char_type(col->column_type)) {
+			size = 255;
+		}
+		tds_put_byte(tds, (unsigned char) size);
 		break;
 	case 2:
-		tds_put_smallint(tds, size);
+		tds_put_smallint(tds, (TDS_SMALLINT) size);
 		break;
-	case 5:
 	case 4:
-		tds_put_int(tds, size);
+		tds_put_int(tds, (TDS_INT) size);
 		break;
 	case 8:
 		tds_put_smallint(tds, 0xffff);
@@ -937,9 +961,6 @@ tds_generic_put_info_len(TDSSOCKET * tds, TDSCOLUMN * col)
 	CHECK_COLUMN_EXTRA(col);
 
 	switch (col->column_varint_size) {
-	case 5:
-		len = 4;
-		break;
 	case 8:
 		len = 2;
 		break;
@@ -981,9 +1002,6 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 	if (curcol->column_cur_size < 0) {
 		tdsdump_log(TDS_DBG_INFO1, "tds_generic_put: null param\n");
 		switch (curcol->column_varint_size) {
-		case 5:
-			tds_put_int(tds, 0);
-			break;
 		case 4:
 			if ((bcp7 || !IS_TDS7_PLUS(tds->conn)) && is_blob_type(curcol->on_server.column_type))
 				tds_put_byte(tds, 0);
@@ -1009,7 +1027,7 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 	size = tds_fix_column_size(tds, curcol);
 
 	src = curcol->column_data;
-	if (is_blob_col(curcol)) {
+	if (is_blob_col(curcol)  &&  src != NULL) {
 		blob = (TDSBLOB *) src;
 		src = (unsigned char *) blob->textvalue;
 	}
@@ -1056,7 +1074,7 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 			 * a bug in different server version that does
 			 * not accept a length here */
 			tds_put_int8(tds, bcp7 ? -2 : colsize);
-			tds_put_int(tds, colsize);
+			tds_put_int(tds, (TDS_INT) colsize);
 			break;
 		case 4:	/* It's a BLOB... */
 			colsize = MIN(colsize, size);
@@ -1070,15 +1088,15 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 				tds_put_n(tds, textptr, 16);
 				tds_put_n(tds, textptr, 8);
 			}
-			tds_put_int(tds, colsize);
+			tds_put_int(tds, (TDS_INT) colsize);
 			break;
 		case 2:
 			colsize = MIN(colsize, size);
-			tds_put_smallint(tds, colsize);
+			tds_put_smallint(tds, (TDS_SMALLINT) colsize);
 			break;
 		case 1:
 			colsize = MIN(colsize, size);
-			tds_put_byte(tds, colsize);
+			tds_put_byte(tds, (unsigned char) colsize);
 			break;
 		case 0:
 			/* TODO should be column_size */
@@ -1093,6 +1111,8 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 		/* put real data */
 		if (blob) {
 			tds_put_n(tds, s, colsize);
+		} else if (is_blob_col(curcol)) {
+			return TDS_SUCCESS; /* anticipate ctlib blk_textxfer */
 		} else {
 #ifdef WORDS_BIGENDIAN
 			unsigned char buf[64];
@@ -1114,20 +1134,23 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 		/* TODO ICONV handle charset conversions for data */
 		/* put size of data */
 		switch (curcol->column_varint_size) {
-		case 5:	/* It's a LONGBINARY */
-			colsize = MIN(colsize, 0x7fffffff);
-			tds_put_int(tds, colsize);
-			break;
-		case 4:	/* It's a BLOB... */
+		case 4:
+			if (curcol->on_server.column_type == SYBLONGBINARY
+			    ||  curcol->on_server.column_type == SYBLONGCHAR) {
+				colsize = MAX(MIN(colsize, 0x7fffffff), 1);
+				tds_put_int(tds, (TDS_INT)colsize);
+				break;
+			}
+			/* It's a BLOB... */
 			tds_put_byte(tds, 16);
 			tds_put_n(tds, blob->textptr, 16);
 			tds_put_n(tds, blob->timestamp, 8);
 			colsize = MIN(colsize, 0x7fffffff);
-			tds_put_int(tds, colsize);
+			tds_put_int(tds, (TDS_INT) colsize);
 			break;
 		case 2:
 			colsize = MIN(colsize, 8000);
-			tds_put_smallint(tds, colsize);
+			tds_put_smallint(tds, (TDS_SMALLINT) colsize);
 			break;
 		case 1:
 			if (!colsize) {
@@ -1141,7 +1164,7 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 				return TDS_SUCCESS;
 			}
 			colsize = MIN(colsize, 255);
-			tds_put_byte(tds, colsize);
+			tds_put_byte(tds, (unsigned char) colsize);
 			break;
 		case 0:
 			/* TODO should be column_size */
@@ -1156,6 +1179,9 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 		/* put real data */
 		if (blob) {
 			tds_put_n(tds, s, colsize);
+		} else if (is_blob_col(curcol)) {
+			/* accommodate ctlib blk_textxfer */
+			return TDS_SUCCESS;
 		} else {
 #ifdef WORDS_BIGENDIAN
 			unsigned char buf[64];
@@ -1423,7 +1449,7 @@ tds_msdatetime_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
 		TDS_PUT_UA2LE(p, dta->offset);
 		p += 2;
 	}
-	buf[0] = p - buf - 1;
+	buf[0] = (unsigned char) (p - buf - 1);
 	tds_put_n(tds, buf, p - buf);
 
 	return TDS_SUCCESS;

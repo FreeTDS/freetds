@@ -28,6 +28,8 @@
 
 #include <freetds/sysdep_private.h>
 
+#include <freetds/tds.h>
+
 #ifndef HAVE_SQLLEN
 #ifndef SQLULEN
 #define SQLULEN SQLUINTEGER
@@ -153,8 +155,13 @@ SQLSMALLINT odbc_alloc_handle_err_type(SQLSMALLINT type);
 	CHKR2(SQLSetPos, (odbc_stmt,a,b,c), SQL_HANDLE_STMT, odbc_stmt, res)
 #define CHKSetStmtAttr(a,b,c,res) \
 	CHKR2(SQLSetStmtAttr, (odbc_stmt,a,b,c), SQL_HANDLE_STMT, odbc_stmt, res)
+#if ODBCVER >= 0x0300
+#define CHKSetStmtOption(a,b,res) \
+	CHKSetStmtAttr(a, (SQLPOINTER) b, SQL_NTS, res)
+#else
 #define CHKSetStmtOption(a,b,res) \
 	CHKR2(SQLSetStmtOption, (odbc_stmt,a,b), SQL_HANDLE_STMT, odbc_stmt, res)
+#endif
 #define CHKTables(a,b,c,d,e,f,g,h,res) \
 	CHKR2(SQLTables, (odbc_stmt,a,b,c,d,e,f,g,h), SQL_HANDLE_STMT, odbc_stmt, res)
 #define CHKProcedureColumns(a,b,c,d,e,f,g,h,res) \
@@ -195,8 +202,8 @@ TDS_SYS_SOCKET odbc_find_last_socket(void);
  */
 void odbc_c2string(char *out, SQLSMALLINT out_c_type, const void *in, size_t in_len);
 
-int odbc_to_sqlwchar(SQLWCHAR *dst, const char *src, int n);
-int odbc_from_sqlwchar(char *dst, const SQLWCHAR *src, int n);
+SQLLEN odbc_to_sqlwchar(SQLWCHAR *dst, const char *src, SQLLEN n);
+SQLLEN odbc_from_sqlwchar(char *dst, const SQLWCHAR *src, SQLLEN n);
 
 typedef struct odbc_buf{
 	struct odbc_buf *next;

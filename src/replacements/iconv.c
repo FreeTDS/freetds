@@ -81,7 +81,7 @@ get_utf8(const unsigned char *p, size_t len, ICONV_CHAR *out)
 		switch (decode_utf8(&state, &uc, *p++)) {
 		case 0:
 			*out = uc;
-			return l;
+			return (int) l;
 		case UTF8_REJECT:
 			return -EILSEQ;
 		}
@@ -93,7 +93,7 @@ static int
 put_utf8(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 {
 #define MASK(n) ((0xffffffffu << (n)) & 0xffffffffu)
-	size_t o_len;
+	int o_len;
 
 	if ((c & MASK(7)) == 0) {
 		if (buf_len < 1)

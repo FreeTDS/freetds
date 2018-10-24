@@ -4,6 +4,7 @@
 #include <crtdbg.h>
 #endif
 
+#include <winsock2.h>
 #include <windows.h>
 
 #ifdef DLL_EXPORT

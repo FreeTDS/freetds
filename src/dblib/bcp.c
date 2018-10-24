@@ -1468,7 +1468,10 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 				fseeko(hostfile, row_start, SEEK_SET);
 
 				while (error_row_size > 0) {
-					size_t chunk = error_row_size > chunk_size ? chunk_size : (size_t) error_row_size;
+					size_t chunk = ((size_t) error_row_size
+							> chunk_size)
+						? chunk_size
+						: (size_t) error_row_size;
 
 					if (!row_in_error) {
 						if ((row_in_error = tds_new(char, chunk)) == NULL) {
@@ -1477,7 +1480,8 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 					}
 
 					if (fread(row_in_error, chunk, 1, hostfile) != 1) {
-						printf("BILL fread failed after fseek\n");
+						tdsdump_log(TDS_DBG_ERROR,
+							    "BILL fread failed after fseek\n");
 					}
 					count = (int)fwrite(row_in_error, chunk, 1, errfile);
 					if( (size_t)count < chunk ) {
@@ -1627,7 +1631,7 @@ bcp_readfmt(DBPROCESS * dbproc, const char filename[])
 	BCP_HOSTCOLINFO hostcol[1];
 	FILE *ffile;
 	char buffer[1024];
-	float lf_version = 0.0;
+	/* float lf_version = 0.0; */
 	int li_numcols = 0;
 	int colinfo_count = 0;
 
@@ -1644,7 +1648,7 @@ bcp_readfmt(DBPROCESS * dbproc, const char filename[])
 	}
 
 	if ((_bcp_fgets(buffer, sizeof(buffer), ffile)) != NULL) {
-		lf_version = (float)atof(buffer);
+		/* lf_version = (float)atof(buffer); */
 	} else if (ferror(ffile)) {
 		dbperror(dbproc, SYBEBRFF, errno);
 		goto Cleanup;
@@ -2163,7 +2167,7 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 
 	/* if (Max) column length specified take that into consideration. */
 
-	if (bindcol->column_bindlen >= 0) {
+	/* if (bindcol->column_bindlen >= 0) */ { /* bindlen is unsigned */
 		if (bindcol->column_bindlen == 0)
 			goto null_data;
 		if (collen)

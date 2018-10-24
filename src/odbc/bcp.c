@@ -422,14 +422,14 @@ _bcp_iconv_helper(const TDS_DBC *dbc, const TDSCOLUMN *bindcol, const TDS_CHAR *
 	return destlen;
 }
 
-static SQLLEN
+static TDS_INT
 _tdsodbc_dbconvert(TDS_DBC *dbc, int srctype, const TDS_CHAR * src, SQLLEN src_len,
 		   int desttype, unsigned char * dest, TDSCOLUMN *bindcol)
 {
 	CONV_RESULT dres;
-	SQLLEN ret;
-	SQLLEN len;
-	SQLLEN destlen = bindcol->column_size;
+	TDS_INT ret;
+	TDS_INT len;
+	TDS_INT destlen = bindcol->column_size;
 	TDS_DATETIMEALL dta;
 	TDS_NUMERIC num;
 	SQL_NUMERIC_STRUCT * sql_num;
@@ -473,10 +473,12 @@ _tdsodbc_dbconvert(TDS_DBC *dbc, int srctype, const TDS_CHAR * src, SQLLEN src_l
 	/* oft times we are asked to convert a data type to itself */
 	if ((srctype == desttype || is_similar_type(srctype, desttype)) && !always_convert) {
 		if (is_char_type(desttype)) {
-			ret = _bcp_iconv_helper(dbc, bindcol, src, src_len, (char *)dest, destlen);
+			ret = (TDS_INT) _bcp_iconv_helper
+				(dbc, bindcol, src, src_len,
+				 (char *)dest, destlen);
 		}
 		else {
-			ret = destlen < src_len ? destlen : src_len;
+			ret = destlen < src_len ? destlen : (TDS_INT) src_len;
 			memcpy(dest, src, ret);
 		}
 		return ret;
@@ -529,7 +531,8 @@ _tdsodbc_dbconvert(TDS_DBC *dbc, int srctype, const TDS_CHAR * src, SQLLEN src_l
 	case SYBCHAR:
 	case SYBVARCHAR:
 	case SYBTEXT:
-		ret = _bcp_iconv_helper(dbc, bindcol, dres.c, len, (char *)dest, destlen);
+		ret = (TDS_INT) _bcp_iconv_helper(dbc, bindcol, dres.c, len,
+						  (char *)dest, destlen);
 		free(dres.c);
 		break;
 	default:

@@ -132,7 +132,10 @@ init(void)
 }
 
 #define VARCHAR_BIND(x) \
-	bcp_bind( odbc_conn, (unsigned char *) (prefixlen == 0 ? (void*)&x.value : &x), prefixlen, strlen(x.value), NULL, termlen, BCP_TYPE_SQLVARCHAR, col++ )
+	bcp_bind( odbc_conn, \
+		  (unsigned char *) (prefixlen == 0 ? (void*)&x.value : &x), \
+		  prefixlen, (SQLINTEGER) strlen(x.value), NULL, termlen, \
+		  BCP_TYPE_SQLVARCHAR, col++ )
 
 #define INT_BIND(x) \
 	bcp_bind( odbc_conn, (unsigned char *) (prefixlen == 0 ? (void*)&x.value : &x), prefixlen, SQL_VARLEN_DATA, NULL, termlen, BCP_TYPE_SQLINT4,    col++ )

@@ -23,7 +23,7 @@ Test(const char *bind1, SQLSMALLINT type1, const char *bind2, SQLSMALLINT type2)
 	++test_num;
 	sprintf(sql, "insert into #test_output values (%s, %s)", bind1, bind2);
 
-	CHKPrepare(T(sql), strlen(sql), "S");
+	CHKPrepare(T(sql), (SQLINTEGER) strlen(sql), "S");
 	if (bind1[0] == '?')
 		CHKBindParameter(id++, SQL_PARAM_INPUT, SQL_C_LONG, type1, 3, 0, &test_num, 0, &ind, "S");
 	if (bind2[0] == '?')

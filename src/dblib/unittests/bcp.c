@@ -72,7 +72,8 @@ init(DBPROCESS * dbproc, const char *name)
 }
 
 #define VARCHAR_BIND(x) \
-	bcp_bind( dbproc, (unsigned char *) &x, prefixlen, strlen(x), NULL, termlen, SYBVARCHAR, col++ )
+	bcp_bind( dbproc, (unsigned char *) &x, prefixlen, (DBINT) strlen(x), \
+		  NULL, termlen, SYBVARCHAR, col++ )
 
 #define INT_BIND(x) \
 	bcp_bind( dbproc, (unsigned char *) &x, prefixlen, -1, NULL, termlen, SYBINT4,    col++ )

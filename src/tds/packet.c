@@ -602,7 +602,7 @@ tds_read_packet(TDSSOCKET * tds)
 	tds->in_len = 0;
 	tds->in_pos = 0;
 	for (p = pkt, end = p+8; p < end;) {
-		int len = tds_connection_read(tds, p, end - p);
+		ssize_t len = tds_connection_read(tds, p, end - p);
 		if (len <= 0) {
 			tds_close_socket(tds);
 			return -1;
@@ -719,9 +719,12 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 	unsigned int left = 0;
 
 #if TDS_ADDITIONAL_SPACE != 0
+	unsigned char was_final = final;
+
 	if (tds->out_pos > tds->out_buf_max) {
 		left = tds->out_pos - tds->out_buf_max;
 		tds->out_pos = tds->out_buf_max;
+		final = 0;
 	}
 #endif
 
@@ -751,10 +754,13 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 		tds_ssl_deinit(tds->conn);
 	}
 
+	tds->out_pos = left + 8;
 #if TDS_ADDITIONAL_SPACE != 0
 	memcpy(tds->out_buf + 8, tds->out_buf + tds->out_buf_max, left);
+	if (res == TDS_SUCCESS	&&  !final  &&	was_final) {
+		tds_write_packet(tds, was_final);
+	}
 #endif
-	tds->out_pos = left + 8;
 
 	return res;
 }
@@ -764,7 +770,7 @@ int
 tds_put_cancel(TDSSOCKET * tds)
 {
 	unsigned char out_buf[8];
-	int sent;
+	ssize_t sent;
 
 	out_buf[0] = TDS_CANCEL;	/* out_flag */
 	out_buf[1] = 1;	/* final */

@@ -37,6 +37,10 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif /* HAVE_SYS_SOCKET_H */
+
 #ifdef _WIN32
 #include <process.h>
 #endif
@@ -202,6 +206,7 @@ tds_save(TDSSAVECONTEXT *ctx, char type, TDSMESSAGE *msg)
 	dest_msg = &ctx->msgs[ctx->num_msg];
 	dest_msg->type = type;
 	dest_msg->msg = *msg;
+	dest_msg->msg.osstr = NULL;
 #define COPY(name) if (msg->name) dest_msg->msg.name = strdup(msg->name);
 	COPY(server);
 	COPY(message);
@@ -484,6 +489,35 @@ reroute:
 	erc = TDSEINTF;
 	orig_port = login->port;
 	for (addrs = login->ip_addrs; addrs != NULL; addrs = addrs->ai_next) {
+
+		/*
+		 * By some reasons ftds forms 3 linked tds_addrinfo (addrs
+		 * variable here) for one server address. The structures
+		 * differs in their ai_socktype and ai_protocol field
+		 * values. Typically the combinations are:
+		 * ai_socktype     | ai_protocol
+		 * -----------------------------
+		 * 1 (SOCK_STREAM) | 6  (tcp)
+		 * 2 (SOCK_DGRAM)  | 17 (udp)
+		 * 3 (SOCK_RAW)    | 0  (ip)
+		 *
+		 * Later on these fields are not used and dtds always
+		 * creates a tcp socket. In case if there is a connection
+		 * problem this behavior leads to 3 tries with the provided
+		 * timeout which basically multiplies the spent time
+		 * without any good result. So it was decided to skip the
+		 * non tcp addresses.
+		 *
+		 * NOTE: on Windows exactly one tds_addrinfo structure is
+		 *	 formed and it has 0 in both ai_socktype and
+		 *	 ai_protocol fields. So skipping is conditional for
+		 *	 non-Windows platforms
+		 */
+#ifndef _WIN32
+		if (addrs->ai_socktype != SOCK_STREAM)
+			continue;
+#endif
+
 		login->port = orig_port;
 
 		if (!IS_TDS50(tds->conn) && !tds_dstr_isempty(&login->instance_name) && !login->port)
@@ -568,7 +602,7 @@ reroute:
 	if (login->text_size || (!db_selected && !tds_dstr_isempty(&login->database))
 	    || tds->conn->spid == -1) {
 		char *str;
-		int len;
+		size_t len;
 
 		len = 128 + tds_quote_id(tds, NULL, tds_dstr_cstr(&login->database),-1);
 		if ((str = tds_new(char, len)) == NULL)
@@ -823,7 +857,7 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	TDS_INT time_zone = -120;
 	TDS_INT tds7version = tds70Version;
 
-	TDS_INT block_size = 4096;
+	unsigned int block_size = 4096;
 	
 	unsigned char option_flag1 = TDS_SET_LANG_ON | TDS_USE_DB_NOTIFY | TDS_INIT_DB_FATAL;
 	unsigned char option_flag2 = login->option_flag2;
@@ -860,7 +894,8 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	};
 	struct {
 		const void *ptr;
-		unsigned pos, len, limit;
+		size_t pos, len;
+		unsigned limit;
 	} data_fields[NUM_DATA_FIELDS], *field;
 
 	tds->out_flag = TDS7_LOGIN;
@@ -1097,7 +1132,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 {
 	int i, pkt_len;
 	const char *instance_name = tds_dstr_isempty(&login->instance_name) ? "MSSQLServer" : tds_dstr_cstr(&login->instance_name);
-	int instance_name_len = strlen(instance_name) + 1;
+	TDS_USMALLINT instance_name_len = strlen(instance_name) + 1;
 	TDS_CHAR crypt_flag;
 	unsigned int start_pos = 21;
 	TDSRET ret;

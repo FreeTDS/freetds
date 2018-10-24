@@ -40,7 +40,7 @@ static const char * const strings_hex[] = {
 static char tmp[1024*3];
 
 static void
-TestBinding(int minimun)
+TestBinding(int minimum)
 {
 	const char * const*p;
 	SQLINTEGER n;
@@ -60,10 +60,12 @@ TestBinding(int minimun)
 		SQLLEN s1_len, s2_len;
 		unsigned int len;
 
-		len = minimun ? (strlen(strings_hex[p-strings]) - 2) /4 : 40;
+		len = minimum ? ((int) strlen(strings_hex[p-strings]) - 2) / 4
+		    : 40;
 		CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_CHAR,
 			SQL_WCHAR, len, 0, (void *) p[0], 0, &s1_len, "S");
-		len = minimun ? (strlen(strings_hex[p+1-strings]) - 2) /4 : 40;
+		len = minimum ? ((int)strlen(strings_hex[p+1-strings]) - 2) / 4
+		    : 40;
 		/* FIXME this with SQL_VARCHAR produce wrong protocol data */
 		CHKBindParameter(3, SQL_PARAM_INPUT, SQL_C_CHAR,
 			SQL_WVARCHAR, len, 0, (void *) p[1], 0, &s2_len, "S");

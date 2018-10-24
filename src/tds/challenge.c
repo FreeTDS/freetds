@@ -46,6 +46,8 @@
 #include <freetds/utils/des.h>
 #include "replacements.h"
 
+#include <assert.h>
+
 /**
  * \ingroup libtds
  * \defgroup auth Authentication
@@ -163,7 +165,7 @@ static TDSRET
 make_ntlm_v2_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_v2_hash[16])
 {
 	const char *user_name, *domain;
-	size_t domain_len, user_name_len, len, buf_usc2le_len = 0;
+	size_t domain_len, user_name_len = 0, len, buf_usc2le_len = 0;
 	const char *p;
 
 	unsigned char ntlm_hash[16];
@@ -174,13 +176,15 @@ make_ntlm_v2_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_v2_has
 	user_name = tds_dstr_cstr(&tds->login->user_name);
 
 	/* parse domain\username */
-	p = strchr(user_name, '\\');
+	p = user_name ? strchr(user_name, '\\') : NULL;
 
 	domain = user_name;
-	domain_len = p - user_name;
+	domain_len = p ? p - user_name : 0;
 
-	user_name = p + 1;
-	user_name_len = strlen(user_name);
+	if (p != NULL) {
+		user_name = p + 1;
+		user_name_len = strlen(user_name);
+	}
 
 	if (user_name_len > 128)
 		user_name_len = 128;
@@ -230,7 +234,10 @@ make_lm_v2_response(const unsigned char ntlm_v2_hash[16],
 		return NULL;
 
 	memcpy(mac + 8, challenge, 8);
-	memcpy(mac + 16, client_data, client_data_len);
+	if (client_data_len > 0) {
+		assert(client_data);
+		memcpy(mac + 16, client_data, client_data_len);
+	}
 	hmac_md5(ntlm_v2_hash, mac + 8, client_data_len + 8, mac);
 
 	return mac;
@@ -440,7 +447,7 @@ tds7_send_auth(TDSSOCKET * tds,
 	host_name_len = tds_dstr_len(&login->client_host_name);
 
 	/* parse domain\username */
-	if ((p = strchr(user_name, '\\')) == NULL)
+	if (user_name == NULL  ||  (p = strchr(user_name, '\\')) == NULL)
 		return TDS_FAIL;
 
 	domain = user_name;

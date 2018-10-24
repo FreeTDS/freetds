@@ -423,6 +423,16 @@ static inline int tds_cond_timedwait(tds_condition *cond, tds_mutex *mtx, int ti
 }
 
 # endif
+#else
+static inline int tds_mutex_noop(void)
+{
+    return 0;
+}
+#  define tds_mutex_free(x) do {} while (0)
+#  define tds_mutex_init(x) tds_mutex_noop()
+#  define tds_mutex_lock(x) tds_mutex_noop()
+#  define tds_mutex_trylock(x) tds_mutex_noop()
+#  define tds_mutex_unlock(x) do {} while (0)
 #endif
 
 #endif

@@ -44,7 +44,7 @@ char odbc_driver[1024];
 static int
 check_lib(char *path, const char *file)
 {
-	int len = strlen(path);
+	size_t len = strlen(path);
 	FILE *f;
 
 	strcat(path, file);
@@ -94,9 +94,9 @@ odbc_read_login_info(void)
 	char *s1, *s2;
 	const char *const *search_p;
 	char path[1024];
-	int len;
+	size_t len;
 	int ini_override = 1;
-#ifdef _WIN32
+#if defined(_WIN32)  &&  !defined(TDS_NO_DM)
 	UWORD old_config_mode;
 #endif
 
@@ -166,7 +166,7 @@ odbc_read_login_info(void)
 	if (s1 && atoi(s1) == 0)
 		ini_override = 0;
 
-#ifndef _WIN32
+#if !defined(_WIN32)  ||  defined(TDS_NO_DM)
 	/* craft out odbc.ini, avoid to read wrong one */
 	sprintf(path, "odbc.ini.%d", (int) getpid());
 	in = fopen(path, "w");
@@ -658,19 +658,19 @@ odbc_read_error(void)
 	printf("Message: '%s' %s\n", odbc_sqlstate, odbc_err);
 }
 
-int
-odbc_to_sqlwchar(SQLWCHAR *dst, const char *src, int n)
+SQLLEN
+odbc_to_sqlwchar(SQLWCHAR *dst, const char *src, SQLLEN n)
 {
-	int i = n;
+	SQLLEN i = n;
 	while (--i >= 0)
 		dst[i] = (unsigned char) src[i];
 	return n * sizeof(SQLWCHAR);
 }
 
-int
-odbc_from_sqlwchar(char *dst, const SQLWCHAR *src, int n)
+SQLLEN
+odbc_from_sqlwchar(char *dst, const SQLWCHAR *src, SQLLEN n)
 {
-	int i;
+	SQLLEN i;
 	if (n < 0) {
 		const SQLWCHAR *p = src;
 		for (n=1; *p++ != 0; ++n)
@@ -809,6 +809,9 @@ odbc_mark_sockets_opened(void)
 TDS_SYS_SOCKET
 odbc_find_last_socket(void)
 {
+#ifdef TDS_NO_DM
+	return tds_get_s(((TDS_DBC*)odbc_conn)->tds_socket);
+#else
 	typedef struct {
 		TDS_SYS_SOCKET sock;
 		int local_port;
@@ -888,6 +891,7 @@ odbc_find_last_socket(void)
 	if (num_found == 0)
 		return INVALID_SOCKET;
 	return found[num_found-1].sock;
+#endif
 }
 
 void

@@ -17,7 +17,7 @@ static const char sp_define[] = "CREATE PROCEDURE spTestProc\n"
 	"     SELECT @OutString = 'This is cool!'\n"
 	"     IF @InParam < 10\n" "          RETURN (0)\n" "     ELSE\n" "          RETURN (1)\n";
 
-#define SP_TEXT "{?=call spTestProc(?,?,?)}"
+static char sp_text[] = "{?=call spTestProc(?,?,?)}";
 #define OUTSTRING_LEN 20
 
 static int
@@ -39,7 +39,7 @@ Test(int bind_before)
 	odbc_command(sp_define);
 
 	if (!bind_before)
-		CHKPrepare(T(SP_TEXT), strlen(SP_TEXT), "S");
+		CHKPrepare(T(sp_text), sizeof(sp_text) - 1, "S");
 
 	CHKBindParameter(1, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &ReturnCode, 0, &cbReturnCode, "S");
 	CHKBindParameter(2, SQL_PARAM_INPUT,  SQL_C_SSHORT, SQL_INTEGER, 0, 0, &InParam,    0, &cbInParam,    "S");
@@ -51,7 +51,7 @@ Test(int bind_before)
 	    OUTSTRING_LEN, &cbOutString, "S");
 
 	if (bind_before)
-		CHKPrepare(T(SP_TEXT), strlen(SP_TEXT), "S");
+		CHKPrepare(T(sp_text), sizeof(sp_text) - 1, "S");
 
 	CHKExecute("S");
 

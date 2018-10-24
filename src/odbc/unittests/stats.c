@@ -20,7 +20,7 @@ static const char *proc = "stat_proc";
 static const char *table = "stat_proc";
 static const char *column = "@t";
 
-#define LEN(x) (x) ? strlen(x) : 0
+#define LEN(x) (x) ? (SQLSMALLINT)strlen(x) : 0
 
 static void
 TestProc(const char *type, const char *expected)

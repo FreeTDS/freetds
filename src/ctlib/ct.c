@@ -323,7 +323,8 @@ ct_callback(CS_CONTEXT * ctx, CS_CONNECTION * con, CS_INT action, CS_INT type, C
 			*(void **) func = (CS_VOID *) (con ? con->_servermsg_cb : ctx->_servermsg_cb);
 			return CS_SUCCEED;
 		default:
-			fprintf(stderr, "Unknown callback %d\n", type);
+			_csclient_msg(ctx, "ct_callback", 2, 1, 16, 27,
+				      "%d", type);
 			*(void **) func = NULL;
 			return CS_SUCCEED;
 		}
@@ -453,7 +454,9 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			 * (d) Minor - we don't check against context
 			 *     which should limit the acceptable values
 			 */
-			if (*(int *) buffer == CS_TDS_40) {
+			if (*(int *) buffer == 0) {
+				tds_set_version(tds_login, 0, 0);
+			} else if (*(int *) buffer == CS_TDS_40) {
 				tds_set_version(tds_login, 4, 2);
 			} else if (*(int *) buffer == CS_TDS_42) {
 				tds_set_version(tds_login, 4, 2);
@@ -662,7 +665,10 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 	/* override locale settings with CS_CONNECTION settings, if any */
 	if (con->locale) {
 		if (con->locale->charset) {
-			if (!tds_dstr_copy(&login->server_charset, con->locale->charset))
+			if (!tds_dstr_copy(&login->server_charset,
+					   con->locale->charset)
+			    ||  !tds_dstr_copy(&login->client_charset,
+					       con->locale->charset))
 				goto Cleanup;
 		}
 		if (con->locale->language) {
@@ -734,7 +740,7 @@ ct_cmd_alloc(CS_CONNECTION * con, CS_COMMAND ** pcmd)
 CS_RETCODE
 ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen, CS_INT option)
 {
-	int query_len, current_query_len;
+	ssize_t query_len, current_query_len;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_command(%p, %d, %p, %d, %d)\n", cmd, type, buffer, buflen, option);
 
@@ -888,7 +894,7 @@ CS_RETCODE
 ct_send(CS_COMMAND * cmd)
 {
 	TDSSOCKET *tds;
-	TDSRET ret;
+	TDSRET ret = TDS_FAIL;
 	TDSPARAMINFO *pparam_info;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_send(%p)\n", cmd);
@@ -1833,7 +1839,7 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 
 		srcfmt.datatype = _cs_convert_not_client(ctx, curcol, &convert_buffer, &src);
 		if (srcfmt.datatype == CS_ILLEGAL_TYPE)
-			srcfmt.datatype = _ct_get_client_type(curcol);
+			srcfmt.datatype = _ct_get_client_type(ctx, curcol);
 		if (srcfmt.datatype == CS_ILLEGAL_TYPE) {
 			result = 1;
 			continue;
@@ -1941,7 +1947,7 @@ ct_con_drop(CS_CONNECTION * con)
 }
 
 int
-_ct_get_client_type(TDSCOLUMN *col)
+_ct_get_client_type(CS_CONTEXT *ctx, TDSCOLUMN *col)
 {
 	tdsdump_log(TDS_DBG_FUNC, "_ct_get_client_type(type %d, user %d, size %d)\n", col->column_type, col->column_usertype, col->column_size);
 
@@ -1977,7 +1983,8 @@ _ct_get_client_type(TDSCOLUMN *col)
 		case 1:
 			return CS_TINYINT_TYPE;
 		default:
-			fprintf(stderr, "Unknown size %d for SYBINTN\n", col->column_size);
+			_csclient_msg(ctx, "_ct_get_client_type", 2, 1, 16, 28,
+				      "%d", col->column_size);
 		}
 		break;
 	case SYBREAL:
@@ -1992,7 +1999,8 @@ _ct_get_client_type(TDSCOLUMN *col)
 		} else if (col->column_size == 8) {
 			return CS_FLOAT_TYPE;
 		}
-		fprintf(stderr, "Error! unknown float size of %d\n", col->column_size);
+		_csclient_msg(ctx, "_ct_get_client_type", 2, 1, 16, 29,
+			      "%d", col->column_size);
 		break;
 	case SYBMONEY:
 		return CS_MONEY_TYPE;
@@ -2006,7 +2014,8 @@ _ct_get_client_type(TDSCOLUMN *col)
 		} else if (col->column_size == 8) {
 			return CS_MONEY_TYPE;
 		}
-		fprintf(stderr, "Error! unknown money size of %d\n", col->column_size);
+		_csclient_msg(ctx, "_ct_get_client_type", 2, 1, 16, 30,
+			      "%d", col->column_size);
 		break;
 	case SYBDATETIME:
 		return CS_DATETIME_TYPE;
@@ -2020,7 +2029,8 @@ _ct_get_client_type(TDSCOLUMN *col)
 		} else if (col->column_size == 8) {
 			return CS_DATETIME_TYPE;
 		}
-		fprintf(stderr, "Error! unknown date size of %d\n", col->column_size);
+		_csclient_msg(ctx, "_ct_get_client_type", 2, 1, 16, 31,
+			      "%d", col->column_size);
 		break;
 	case SYBNUMERIC:
 		return CS_NUMERIC_TYPE;
@@ -2070,6 +2080,8 @@ _ct_get_client_type(TDSCOLUMN *col)
 	case SYB5BIGDATETIME:
 		return CS_BIGDATETIME_TYPE;
 		break;
+	default: /* SYBNTEXT, etc. */
+		break;
 	}
 
 	return _cs_convert_not_client(NULL, col, NULL, NULL);
@@ -2086,6 +2098,7 @@ _ct_get_server_type(TDSSOCKET *tds, int datatype)
 	case CS_BIT_TYPE:		return SYBBIT;
 	case CS_CHAR_TYPE:		return SYBCHAR;
 	case CS_VARCHAR_TYPE:		return SYBVARCHAR;
+	case CS_NVARCHAR_TYPE:		return SYBNVARCHAR;
 	case CS_LONG_TYPE:
 	case CS_UBIGINT_TYPE:
 		if (!tds || tds_capability_has_req(tds->conn, TDS_REQ_DATA_UINT8))
@@ -2115,7 +2128,11 @@ _ct_get_server_type(TDSSOCKET *tds, int datatype)
 	case CS_TEXT_TYPE:		return SYBTEXT;
 	case CS_UNIQUE_TYPE:		return SYBUNIQUE;
 	case CS_LONGBINARY_TYPE:	return SYBLONGBINARY;
-	case CS_UNICHAR_TYPE:		return SYBVARCHAR;
+	case CS_UNICHAR_TYPE:		return SYBNVARCHAR;
+	case CS_LONGCHAR_TYPE:
+		return (tds == NULL  ||  IS_TDS7_PLUS(tds->conn)) ? SYBVARCHAR
+			: SYBLONGCHAR;
+	case CS_NLONGCHAR_TYPE:		return SYBNVARCHAR;
 	case CS_DATE_TYPE:
 		if (!tds || tds_capability_has_req(tds->conn, TDS_REQ_DATA_DATE))
 			return SYBDATE;
@@ -2134,6 +2151,10 @@ _ct_get_server_type(TDSSOCKET *tds, int datatype)
 		return SYBDATETIME;
 
 	default:
+		/*
+		 * SENSITIVITY, BOUNDARY, VOID, USHORT, BLOB, UNITEXT, XML,
+		 * USER
+		 */
 		return TDS_INVALID_TYPE;
 		break;
 	}
@@ -2383,9 +2404,9 @@ ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 	curcol = resinfo->columns[item - 1];
 	/* name is always null terminated */
 	strlcpy(datafmt->name, tds_dstr_cstr(&curcol->column_name), sizeof(datafmt->name));
-	datafmt->namelen = strlen(datafmt->name);
+	datafmt->namelen = (TDS_INT) strlen(datafmt->name);
 	/* need to turn the SYBxxx into a CS_xxx_TYPE */
-	datafmt->datatype = _ct_get_client_type(curcol);
+	datafmt->datatype = _ct_get_client_type(cmd->con->ctx, curcol);
 	if (datafmt->datatype == CS_ILLEGAL_TYPE)
 		return CS_FAIL;
 	tdsdump_log(TDS_DBG_INFO1, "ct_describe() datafmt->datatype = %d server type %d\n", datafmt->datatype,
@@ -2397,6 +2418,7 @@ ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 	datafmt->usertype = curcol->column_usertype;
 	datafmt->precision = curcol->column_prec;
 	datafmt->scale = curcol->column_scale;
+	datafmt->format = curcol->column_bindfmt;
 
 	/*
 	 * There are other options that can be returned, but these are the
@@ -2462,7 +2484,8 @@ ct_res_info(CS_COMMAND * cmd, CS_INT type, CS_VOID * buffer, CS_INT buflen, CS_I
 		memcpy(buffer, &int_val, sizeof(CS_INT));
 		break;
 	default:
-		fprintf(stderr, "Unknown type in ct_res_info: %d\n", type);
+		_csclient_msg(cmd->con->ctx, "ct_res_info", 2, 1, 16, 32,
+			      "%d", type);
 		return CS_FAIL;
 		break;
 	}
@@ -2519,7 +2542,8 @@ ct_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 					);
 					((char*)buffer)[buflen - 1]= 0;
 					if (*outlen < 0)
-						*outlen = strlen((char*) buffer);
+						*outlen = (CS_INT)
+							strlen((char*) buffer);
 					ret = CS_SUCCEED;
 				}
 				break;
@@ -2539,7 +2563,8 @@ ct_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 					*outlen= snprintf((char*) buffer, buflen, "%s", settings->freetds_version);
 					((char*)buffer)[buflen - 1]= 0;
 					if (*outlen < 0)
-						*outlen = strlen((char*) buffer);
+						*outlen = (CS_INT)
+							strlen((char*) buffer);
 					ret = CS_SUCCEED;
 				}
 				break;
@@ -2652,7 +2677,7 @@ ct_cmd_props(CS_COMMAND * cmd, CS_INT action, CS_INT property, CS_VOID * buffer,
 				if ((CS_INT) len >= buflen)
 					return CS_FAIL;
 				strcpy((char*) buffer, cursor->cursor_name);
-				if (outlen) *outlen = len;
+				if (outlen) *outlen = (CS_INT) len;
 			}
 			if (property == CS_CUR_ROWCOUNT) {
 				*(CS_INT *)buffer = cursor->cursor_rows;
@@ -2755,7 +2780,8 @@ ct_compute_info(CS_COMMAND * cmd, CS_INT type, CS_INT colnum, CS_VOID * buffer, 
 			*outlen = sizeof(CS_INT);
 		break;
 	default:
-		fprintf(stderr, "Unknown type in ct_compute_info: %d\n", type);
+		_csclient_msg(cmd->con->ctx, "ct_compute_info", 2, 1, 16, 32,
+			      "%d", type);
 		return CS_FAIL;
 		break;
 	}
@@ -2833,11 +2859,34 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 		if (table_namelen + column_namelen + 2 > sizeof(cmd->iodesc->name))
 			column_namelen = sizeof(cmd->iodesc->name) - 2 - table_namelen;
 
+#if 0 /* can be slow */
 		sprintf(cmd->iodesc->name, "%*.*s.%*.*s",
 			(int) table_namelen, (int) table_namelen, tds_dstr_cstr(&curcol->table_name),
 			(int) column_namelen, (int) column_namelen, tds_dstr_cstr(&curcol->column_name));
 
-		cmd->iodesc->namelen = strlen(cmd->iodesc->name);
+		cmd->iodesc->namelen = (CS_INT) strlen(cmd->iodesc->name);
+#else /* faster */
+		if (table_namelen) {
+			memcpy(cmd->iodesc->name,
+			       tds_dstr_cstr(&curcol->table_name),
+			       table_namelen);
+			cmd->iodesc->namelen = table_namelen;
+		} else {
+			cmd->iodesc->namelen = 0;
+		}
+
+		cmd->iodesc->name[cmd->iodesc->namelen] = '.';
+		++cmd->iodesc->namelen;
+
+		if (column_namelen) {
+			memcpy(cmd->iodesc->name + cmd->iodesc->namelen,
+			       tds_dstr_cstr(&curcol->column_name),
+			       column_namelen);
+			cmd->iodesc->namelen += column_namelen;
+		}
+
+		cmd->iodesc->name[cmd->iodesc->namelen] = '\0';
+#endif
 
 		if (blob && blob->valid_ptr) {
 			memcpy(cmd->iodesc->timestamp, blob->timestamp, CS_TS_SIZE);
@@ -2860,8 +2909,15 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 	 */
 
 	srclen = curcol->column_cur_size;
-	if (srclen < 0)
-		srclen = 0;
+	if (srclen < 0) {
+		/* this is NULL */
+		if (outlen)
+			*outlen = srclen;
+		if (item < resinfo->num_cols)
+			return CS_END_ITEM;
+		return CS_END_DATA;
+	}
+
 	src += cmd->get_data_bytes_returned;
 	srclen -= cmd->get_data_bytes_returned;
 
@@ -2972,7 +3028,11 @@ ct_data_info(CS_COMMAND * cmd, CS_INT action, CS_INT colnum, CS_IODESC * iodesc)
 		cmd->iodesc = tds_new0(CS_IODESC, 1);
 
 		cmd->iodesc->iotype = CS_IODATA;
-		cmd->iodesc->datatype = iodesc->datatype;
+
+		/* cmd->iodesc->datatype = iodesc->datatype; */
+		cmd->iodesc->datatype
+			= _ct_get_server_type(tds, iodesc->datatype);
+
 		cmd->iodesc->locale = cmd->con->locale;
 		cmd->iodesc->usertype = iodesc->usertype;
 		cmd->iodesc->total_txtlen = iodesc->total_txtlen;
@@ -2994,7 +3054,12 @@ ct_data_info(CS_COMMAND * cmd, CS_INT action, CS_INT colnum, CS_IODESC * iodesc)
 			return CS_FAIL;
 
 		iodesc->iotype = cmd->iodesc->iotype;
-		iodesc->datatype = cmd->iodesc->datatype;
+
+		/* iodesc->datatype = cmd->iodesc->datatype; */
+		iodesc->datatype
+			= _ct_get_client_type(cmd->con->ctx,
+					      resinfo->columns[colnum - 1]);
+
 		iodesc->locale = cmd->iodesc->locale;
 		iodesc->usertype = cmd->iodesc->usertype;
 		iodesc->total_txtlen = cmd->iodesc->total_txtlen;
@@ -3191,7 +3256,7 @@ ct_capability(CS_CONNECTION * con, CS_INT action, CS_INT type, CS_INT capability
 CS_RETCODE
 ct_dynamic(CS_COMMAND * cmd, CS_INT type, CS_CHAR * id, CS_INT idlen, CS_CHAR * buffer, CS_INT buflen)
 {
-	int query_len;
+	size_t query_len;
 	CS_CONNECTION *con;
 	CS_DYNAMIC *dyn;
 
@@ -3260,18 +3325,43 @@ ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT datalen,
 	CS_DYNAMIC *dyn;
 	CS_PARAM **pparam;
 	CS_PARAM *param;
+	bool promote = (datafmt->datatype == CS_VARCHAR_TYPE  ||
+			datafmt->datatype == CS_LONGCHAR_TYPE);
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_param(%p, %p, %p, %d, %hd)\n", cmd, datafmt, data, datalen, indicator);
 
 	tdsdump_log(TDS_DBG_INFO1, "ct_param() data addr = %p data length = %d\n", data, datalen);
 
-	if (cmd == NULL)
+	if (cmd == NULL  ||  cmd->con == NULL)
 		return CS_FAIL;
+
+	if (promote  &&  IS_TDS7_PLUS(cmd->con->tds_socket->conn)) {
+		/* Actually promote only if non-ASCII characters are present */
+		CS_INT i;
+
+		promote = false;
+		for (i = 0;  i < datalen;  ++i) {
+			if (((const char*)data)[i] & 0x80) {
+				promote = true;
+				break;
+			}
+		}
+
+		if ( !promote ) {
+			/* pure ASCII, leave as is */
+		} else if (datafmt->datatype == CS_VARCHAR_TYPE) {
+			datafmt->datatype = CS_NVARCHAR_TYPE;
+		} else if (datafmt->datatype == CS_LONGCHAR_TYPE) {
+			datafmt->datatype = CS_NLONGCHAR_TYPE;
+		}
+	}
+
 
 	switch (cmd->command_type) {
 	case CS_RPC_CMD:
 		if (cmd->rpc == NULL) {
-			fprintf(stdout, "RPC is NULL ct_param\n");
+			tdsdump_log(TDS_DBG_ERROR,
+				    "RPC is NULL in ct_param\n");
 			return CS_FAIL;
 		}
 
@@ -3375,7 +3465,8 @@ ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * dat
 	case CS_RPC_CMD:
 
 		if (cmd->rpc == NULL) {
-			fprintf(stdout, "RPC is NULL ct_param\n");
+			tdsdump_log(TDS_DBG_ERROR,
+				    "RPC is NULL in ct_setparam\n");
 			return CS_FAIL;
 		}
 
@@ -3407,7 +3498,8 @@ ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * dat
 	case CS_DYNAMIC_CMD :
 
 		if (cmd->dyn == NULL) {
-			fprintf(stdout, "cmd->dyn is NULL ct_param\n");
+			tdsdump_log(TDS_DBG_ERROR,
+				    "cmd->dyn is NULL in ct_setparam\n");
 			return CS_FAIL;
 		}
 
@@ -3768,6 +3860,64 @@ ct_poll(CS_CONTEXT * ctx, CS_CONNECTION * connection, CS_INT milliseconds, CS_CO
 	return CS_FAIL;
 }
 
+
+static
+int str_icmp(char* s1, char* s2, int len)
+{
+	int i;
+
+	for (i = 0;  i < len;  ++i) {
+		char c1 = s1[i];
+		char c2 = s2[i];
+
+		if (c1 >= 'a'  &&  c1 <= 'z') {
+			c1 -= 'a' - 'A';
+		}
+
+		if (c2 >= 'a'  &&  c2 <= 'z') {
+			c2 -= 'a' - 'A';
+		}
+
+		if (c1 == c2) {
+			if (c1 == '\0') {
+				return 0;
+			}
+		} else if (c1 < c2) {
+			return -1;
+		} else {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+static
+char* get_next_tok(char* str, char* delimiter, char **ptrptr)
+{
+	char* result = NULL;
+	*ptrptr = NULL;
+
+	if (str && delimiter) {
+		size_t str_len = strlen(str);
+
+		size_t pos = strspn(str, delimiter);
+
+		if (pos == 0) {
+			*ptrptr = strpbrk(str, delimiter);
+			return str;
+		} else {
+			if (pos != str_len) {
+				result = str + pos;
+				*ptrptr = strpbrk(result, delimiter);
+			}
+		}
+	}
+
+	return result;
+}
+
+
 CS_RETCODE
 ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR * text, CS_INT tlen, CS_INT option)
 {
@@ -3800,6 +3950,49 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 		cursor->status.fetch      = TDS_CURSOR_STATE_UNACTIONED;
 		cursor->status.close      = TDS_CURSOR_STATE_UNACTIONED;
 		cursor->status.dealloc    = TDS_CURSOR_STATE_UNACTIONED;
+
+		if (option == CS_UNUSED  ||  (option & CS_END) != 0) {
+			/* Try to figure out type of the cursor. */
+			char delimiter[] = "\n\t,.[]() ";
+			int state = 0;
+			char* savept = NULL;
+			char* s = text;
+
+			char* tok = get_next_tok(s, delimiter, &savept);
+			while (tok != NULL) {
+				s = savept;
+
+				if (str_icmp(tok, "FOR", 3) == 0) {
+					state = 1;
+				} else if (str_icmp(tok, "UPDATE", 6) == 0) {
+					if (state == 1) {
+						state = 2;
+						break;
+					}
+				} else {
+					state = 0;
+				}
+
+				tok = get_next_tok(s, delimiter, &savept);
+			}
+
+			if (state == 2) {
+				/* FOR UPDATE */
+				cursor->type = 0x4; /* Forward-only cursor. */
+			} else {
+				/* readonly */
+				cursor->type = 0x1;
+				/* Keyset-driven cursor. Default value. */
+			}
+		} else if ((option & CS_FOR_UPDATE) != 0) {
+			cursor->type = 0x4; /* Forward-only cursor. */
+		} else {
+			cursor->type = 0x1;
+			/* Keyset-driven cursor. Default value. */
+		}
+
+		cursor->concurrency = 0x2004;
+		/* Optimistic.  Checks timestamps if available, else values. */
 
 		tds_release_cursor(&cmd->cursor);
 		cmd->cursor = cursor;
@@ -4062,7 +4255,9 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 			temp_datalen = *(p->datalen);
 		}
 
-		if (temp_type == CS_VARCHAR_TYPE || temp_type == CS_VARBINARY_TYPE) {
+		if (temp_type == CS_VARCHAR_TYPE
+		    ||  temp_type == CS_NVARCHAR_TYPE
+		    ||  temp_type == CS_VARBINARY_TYPE) {
 			CS_VARCHAR *vc = (CS_VARCHAR *) temp_value;
 
 			if (vc) {
@@ -4086,9 +4281,25 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 		pcol->column_prec = p->precision;
 		pcol->column_scale = p->scale;
 		if (pcol->column_varint_size) {
+			if ((pcol->column_varint_size == 2
+			     &&  *(p->datalen) > 8000)
+			    ||  (pcol->column_varint_size == 1
+				 &&  *(p->datalen) > 255)) {
+				_csclient_msg(((CS_CONNECTION*)
+					       tds_get_parent(tds))->ctx,
+					      "paraminfoalloc", 2, 1, 10, 25,
+					      "");
+			}
 			if (p->maxlen < 0) {
 				tds_free_param_results(params);
 				return NULL;
+			} else if (p->maxlen == 0
+				   &&  is_unicode_type(tds_type)) {
+				/*
+				 * Auto-detect; account for possible
+				 * conversion to UCS-2.
+				 */
+				p->maxlen = temp_datalen * 2;
 			}
 			pcol->on_server.column_size = pcol->column_size = p->maxlen;
 			pcol->column_cur_size = temp_value ? temp_datalen : -1;
@@ -4121,6 +4332,8 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 
 memory_error:
 	tdsdump_log(TDS_DBG_SEVERE, "out of memory for rpc!");
+	_csclient_msg(((CS_CONNECTION*)tds_get_parent(tds))->ctx,
+		      "paraminfoalloc", 2, 1, 17, 33, "");
 type_error:
 	tds_free_param_results(params);
 	return NULL;
@@ -4610,7 +4823,7 @@ _ct_allocate_dynamic(CS_CONNECTION * con, char *id, int idlen)
 {
 	CS_DYNAMIC *dyn;
 	CS_DYNAMIC **pdyn;
-	int id_len;
+	size_t id_len;
 
 	tdsdump_log(TDS_DBG_FUNC, "_ct_allocate_dynamic(%p, %p, %d)\n", con, id, idlen);
 
@@ -4643,7 +4856,7 @@ static CS_DYNAMIC *
 _ct_locate_dynamic(CS_CONNECTION * con, char *id, int idlen)
 {
 	CS_DYNAMIC *dyn;
-	int id_len;
+	size_t id_len;
 
 	tdsdump_log(TDS_DBG_FUNC, "_ct_locate_dynamic(%p, %p, %d)\n", con, id, idlen);
 

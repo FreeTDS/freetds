@@ -669,6 +669,8 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 
 			switch (sock_errno) {
 			case TDSSOCK_EINTR:
+			case EAGAIN:
+			case TDSSOCK_EINPROGRESS:
 				/* FIXME this should be global maximun, not loop one */
 				seconds += poll_seconds;
 				break;	/* let interrupt handler be called */
@@ -721,10 +723,12 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
  * @TODO remove tds, save error somewhere, report error in another way
  * @returns 0 if blocking, <0 error >0 bytes read
  */
-static int
-tds_socket_read(TDSCONNECTION * conn, TDSSOCKET *tds, unsigned char *buf, int buflen)
+static ssize_t
+tds_socket_read(TDSCONNECTION * conn, TDSSOCKET *tds, unsigned char *buf,
+		size_t buflen)
 {
-	int len, err;
+	ssize_t len;
+	int err;
 
 #if ENABLE_EXTRA_CHECKS
 	/* this simulate the fact that recv can return less bytes */
@@ -756,10 +760,12 @@ tds_socket_read(TDSCONNECTION * conn, TDSSOCKET *tds, unsigned char *buf, int bu
  * Write to an OS socket
  * @returns 0 if blocking, <0 error >0 bytes readed
  */
-static int
-tds_socket_write(TDSCONNECTION *conn, TDSSOCKET *tds, const unsigned char *buf, int buflen)
+static ssize_t
+tds_socket_write(TDSCONNECTION *conn, TDSSOCKET *tds, const unsigned char *buf,
+		 size_t buflen)
 {
-	int err, len;
+	int err;
+	ssize_t len;
 	char *errstr;
 
 #if ENABLE_EXTRA_CHECKS
@@ -853,7 +859,7 @@ tds_wakeup_send(TDSPOLLWAKEUP *wakeup, char cancel)
 static int
 tds_connection_signaled(TDSCONNECTION *conn)
 {
-	int len;
+	ssize_t len;
 	char to_cancel[16];
 
 #if defined(__linux__) && HAVE_EVENTFD
@@ -910,14 +916,15 @@ tds_check_cancel(TDSCONNECTION *conn)
  * Loops until we have received some characters
  * return -1 on failure
  */
-int
-tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
+ssize_t
+tds_goodread(TDSSOCKET * tds, unsigned char *buf, size_t buflen)
 {
 	if (tds == NULL || buf == NULL || buflen < 1)
 		return -1;
 
 	for (;;) {
-		int len, err;
+		ssize_t len;
+		int err;
 
 		/* FIXME this block writing from other sessions */
 		len = tds_select(tds, TDSSELREAD, tds->query_timeout);
@@ -959,8 +966,8 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 	}
 }
 
-int
-tds_connection_read(TDSSOCKET * tds, unsigned char *buf, int buflen)
+ssize_t
+tds_connection_read(TDSSOCKET * tds, unsigned char *buf, size_t buflen)
 {
 	TDSCONNECTION *conn = tds->conn;
 
@@ -981,10 +988,10 @@ tds_connection_read(TDSSOCKET * tds, unsigned char *buf, int buflen)
  * \param last 1 if this is the last packet, else 0
  * \return length written (>0), <0 on failure
  */
-int
+ssize_t
 tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen)
 {
-	int len;
+	ssize_t len;
 	size_t sent = 0;
 
 	assert(tds && buffer);
@@ -1046,10 +1053,11 @@ tds_socket_flush(TDS_SYS_SOCKET sock)
 #endif
 }
 
-int
-tds_connection_write(TDSSOCKET *tds, const unsigned char *buf, int buflen, int final)
+ssize_t
+tds_connection_write(TDSSOCKET *tds, const unsigned char *buf, size_t buflen,
+		     int final)
 {
-	int sent;
+	ssize_t sent;
 	TDSCONNECTION *conn = tds->conn;
 
 #if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X) && !defined(SO_NOSIGPIPE)

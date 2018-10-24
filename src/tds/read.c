@@ -258,15 +258,19 @@ tds_get_n(TDSSOCKET * tds, void *dest, size_t need)
 			dest = (char *) dest + have;
 		}
 		need -= have;
-		if (TDS_UNLIKELY(tds_read_packet(tds) < 0))
+		if (TDS_UNLIKELY(tds->recv_packet->capacity < 2
+				 ||  tds->in_buf[1] != 0
+				 ||  tds_read_packet(tds) < 0)) {
+			tds_close_socket(tds); /* evidently out of sync */
 			return NULL;
+		}
 	}
 	if (need > 0) {
 		/* get the remainder if there is any */
 		if (dest != NULL) {
 			memcpy((char *) dest, tds->in_buf + tds->in_pos, need);
 		}
-		tds->in_pos += need;
+		tds->in_pos += (unsigned int) need;
 	}
 	return dest;
 }
@@ -287,14 +291,15 @@ static size_t
 read_and_convert(TDSSOCKET * tds, TDSICONV * char_conv, size_t * wire_size, char *outbuf,
 		 size_t outbytesleft)
 {
-	int res;
+	/* int res; */
 	TDSDATAINSTREAM r;
 	TDSSTATICOUTSTREAM w;
 
 	tds_datain_stream_init(&r, tds, *wire_size);
 	tds_staticout_stream_init(&w, outbuf, outbytesleft);
 
-	res = tds_convert_stream(tds, char_conv, to_client, &r.stream, &w.stream);
+	/* res = */ tds_convert_stream(tds, char_conv, to_client,
+				       &r.stream, &w.stream);
 	*wire_size = r.wire_size;
 	return (char *) w.stream.buffer - outbuf;
 }

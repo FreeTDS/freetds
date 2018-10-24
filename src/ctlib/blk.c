@@ -42,6 +42,7 @@ static void _blk_null_error(TDSBCPINFO *bcpinfo, int index, int offset);
 static TDSRET _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bcpcol, int offset);
 static CS_RETCODE _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred);
 static CS_RETCODE _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred);
+static void _blk_clean_desc(CS_BLKDESC * blkdesc);
 
 #define CONN(bulk) ((CS_CONNECTION *) (bulk)->bcpinfo.parent)
 
@@ -119,6 +120,8 @@ blk_bind(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt, CS_VOID * buff
 		colinfo->column_lenbind  = NULL;
 
 		return CS_SUCCEED;
+	} else if (datafmt == NULL) {
+		return CS_FAIL;
 	}
 
 	if (datafmt == NULL)
@@ -197,9 +200,9 @@ blk_describe(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt)
 	curcol = blkdesc->bcpinfo.bindinfo->columns[item - 1];
 	/* name is always null terminated */
 	strlcpy(datafmt->name, tds_dstr_cstr(&curcol->column_name), sizeof(datafmt->name));
-	datafmt->namelen = strlen(datafmt->name);
+	datafmt->namelen = (CS_INT) strlen(datafmt->name);
 	/* need to turn the SYBxxx into a CS_xxx_TYPE */
-	datafmt->datatype = _ct_get_client_type(curcol);
+	datafmt->datatype = _ct_get_client_type(CONN(blkdesc)->ctx, curcol);
 	if (datafmt->datatype == CS_ILLEGAL_TYPE)
 		return CS_FAIL;
 	tdsdump_log(TDS_DBG_INFO1, "blk_describe() datafmt->datatype = %d server type %d\n", datafmt->datatype,
@@ -262,17 +265,50 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 			*outrow = rows_copied;
 		
 		/* free allocated storage in blkdesc & initialise flags, etc. */
-		tds_deinit_bcpinfo(&blkdesc->bcpinfo);
-	
-		blkdesc->bcpinfo.direction = 0;
-		blkdesc->bcpinfo.bind_count = CS_UNUSED;
-		blkdesc->bcpinfo.xfer_init = 0;
-
+		_blk_clean_desc(blkdesc);
 		break;
 
+	case CS_BLK_CANCEL:
+		tds->out_pos = 8; /* discard staged query data */
+		/* Can't transition directly from SENDING to PENDING. */
+		tds_set_state(tds, TDS_WRITING);
+		tds_set_state(tds, TDS_PENDING);
+
+		tds_send_cancel(tds);
+
+		if (TDS_FAILED(tds_process_cancel(tds))) {
+			_ctclient_msg(CONN(blkdesc), "blk_done", 2, 5, 1, 140,
+				      "");
+			return CS_FAIL;
+		}
+
+		if (outrow)
+			*outrow = 0;
+
+		/* free allocated storage in blkdesc & initialise flags, etc. */
+		_blk_clean_desc(blkdesc);
+		break;
 	}
 
 	return CS_SUCCEED;
+}
+
+static void _blk_clean_desc (CS_BLKDESC * blkdesc)
+{
+	if (blkdesc->bcpinfo.hint) {
+		/* hint is formally const, so TDS_ZERO_FREE yields a warning. */
+		free((char*)blkdesc->bcpinfo.hint);
+		blkdesc->bcpinfo.hint = NULL;
+	}
+
+	tds_deinit_bcpinfo(&blkdesc->bcpinfo);
+
+	blkdesc->bcpinfo.direction = 0;
+	blkdesc->bcpinfo.bind_count = CS_UNUSED;
+	blkdesc->bcpinfo.xfer_init = 0;
+	blkdesc->bcpinfo.text_sent = 0;
+	blkdesc->bcpinfo.next_col = 0;
+	blkdesc->bcpinfo.blob_cols = 0;
 }
 
 CS_RETCODE
@@ -460,6 +496,21 @@ blk_sendtext(CS_BLKDESC * blkdesc, CS_BLK_ROW * row, CS_BYTE * buffer, CS_INT bu
 }
 
 CS_RETCODE
+blk_sethints(CS_BLKDESC* blkdesc, CS_CHAR* hints, CS_INT hintslen)
+{
+    char * h;
+
+    if (blkdesc == NULL  ||  (h = tds_new(char, hintslen + 1)) == NULL) {
+		return CS_FAIL;
+	}
+
+	strlcpy(h, hints, hintslen + 1);
+	blkdesc->bcpinfo.hint = h;
+
+	return CS_SUCCEED;
+}
+
+CS_RETCODE
 blk_srvinit(SRV_PROC * srvproc, CS_BLKDESC * blkdescp)
 {
 	tdsdump_log(TDS_DBG_FUNC, "blk_srvinit(%p, %p)\n", srvproc, blkdescp);
@@ -471,10 +522,36 @@ blk_srvinit(SRV_PROC * srvproc, CS_BLKDESC * blkdescp)
 CS_RETCODE
 blk_textxfer(CS_BLKDESC * blkdesc, CS_BYTE * buffer, CS_INT buflen, CS_INT * outlen)
 {
-	tdsdump_log(TDS_DBG_FUNC, "blk_textxfer(%p, %p, %d, %p)\n", blkdesc, buffer, buflen, outlen);
+	TDSSOCKET *tds;
+	TDSCOLUMN *bindcol;
 
-	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED blk_textxfer()\n");
-	return CS_FAIL;
+	if (blkdesc == NULL  ||  buffer == NULL) {
+		return CS_FAIL;
+	}
+
+	tds = CONN(blkdesc)->tds_socket;
+
+	bindcol = blkdesc->bcpinfo.bindinfo->columns
+		[blkdesc->bcpinfo.next_col-1];
+
+	if (bindcol->column_varaddr != NULL) {
+		return CS_FAIL;
+	}
+
+	bindcol->column_cur_size = buflen;
+	bindcol->column_lenbind = &bindcol->column_cur_size;
+	bindcol->column_varaddr = (TDS_CHAR*) buffer;
+
+	if (TDS_FAILED(tds_bcp_send_record(tds, &blkdesc->bcpinfo,
+					   _blk_get_col_data, _blk_null_error,
+					   0))) {
+		return CS_FAIL;
+	} else if (blkdesc->bcpinfo.next_col == 0) {
+		return CS_END_DATA; /* all done */
+	} else {
+		bindcol->column_varaddr = NULL;
+		return CS_SUCCEED; /* still need more data */
+	}
 }
 
 static CS_RETCODE
@@ -571,6 +648,8 @@ _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred
 
 	if (blkdesc->bcpinfo.xfer_init == 0) {
 
+		blkdesc->bcpinfo.xfer_init = 1;
+
 		/*
 		 * first call the start_copy function, which will
 		 * retrieve details of the database table columns
@@ -578,16 +657,19 @@ _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred
 
 		if (TDS_FAILED(tds_bcp_start_copy_in(tds, &blkdesc->bcpinfo))) {
 			_ctclient_msg(CONN(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
+			blkdesc->bcpinfo.xfer_init = 0;
 			return CS_FAIL;
 		}
-
-		blkdesc->bcpinfo.xfer_init = 1;
 	} 
 
 	for (each_row = 0; each_row < rows_to_xfer; each_row++ ) {
 
 		if (tds_bcp_send_record(tds, &blkdesc->bcpinfo, _blk_get_col_data, _blk_null_error, each_row) == TDS_SUCCESS) {
-			/* FIXME */
+			if (blkdesc->bcpinfo.next_col > 0) {
+				return CS_BLK_HAS_TEXT;
+			}
+		} else {
+			return CS_FAIL;
 		}
 	}
 
@@ -615,26 +697,14 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 	CS_INT      srclen  = 0;
 	CS_INT      destlen  = 0;
 	CS_SMALLINT *nullind = NULL;
-	CS_INT      *datalen = NULL;
+	CS_INT      *datalen = &srclen;
 	CS_BLKDESC *blkdesc = (CS_BLKDESC *) bulk;
 	CS_CONTEXT *ctx = CONN(blkdesc)->ctx;
 	CS_DATAFMT srcfmt, destfmt;
+	BCPCOLDATA  *coldata = bindcol->bcp_column_data;
 
 	tdsdump_log(TDS_DBG_FUNC, "_blk_get_col_data(%p, %p, %d)\n", bulk, bindcol, offset);
 
-	/*
-	 * Retrieve the initial bound column_varaddress
-	 * and increment it if offset specified
-	 */
-
-	src = (unsigned char *) bindcol->column_varaddr;
-	if (!src) {
-		tdsdump_log(TDS_DBG_ERROR, "error source field not addressable\n");
-		return TDS_FAIL;
-	}
-
-	src += offset * bindcol->column_bindlen;
-	
 	if (bindcol->column_nullbind) {
 		nullind = bindcol->column_nullbind;
 		nullind += offset;
@@ -644,7 +714,38 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 		datalen += offset;
 	}
 
-	srctype = bindcol->column_bindtype; 		/* passes to cs_convert */
+	/*
+	 * Retrieve the initial bound column_varaddress
+	 * and increment it if offset specified
+	 */
+
+	src = (unsigned char *) bindcol->column_varaddr;
+	srctype = bindcol->column_bindtype; /* passes to cs_convert */
+	if (!src) {
+		if (nullind  &&  *nullind == -1) {
+			null_column = 1;
+			bindcol->bcp_column_data->datalen = 0;
+			bindcol->bcp_column_data->is_null = 1;
+		} else if (bindcol->column_hasdefault
+			   &&  ( !is_blob_type(bindcol->column_type)
+				 ||  datalen == 0)) {
+			src = bindcol->column_default;
+			srctype = _ct_get_client_type(CONN(blkdesc)->ctx,
+						      bindcol);
+			datalen = &bindcol->column_def_size;
+		} else if (is_blob_col(bindcol)
+			   &&  bindcol->column_lenbind != NULL) {
+			bindcol->bcp_column_data->datalen = *datalen;
+			bindcol->bcp_column_data->is_null = 0;
+			/* Data will come piecemeal, via blk_textxfer. */
+			return CS_BLK_HAS_TEXT;
+		} else {
+			bindcol->bcp_column_data->datalen = 0;
+			bindcol->bcp_column_data->is_null = 1;
+		}
+	}
+
+	src += offset * bindcol->column_bindlen;
 
 	tdsdump_log(TDS_DBG_INFO1, "blk_get_col_data srctype = %d\n", srctype);
 	tdsdump_log(TDS_DBG_INFO1, "blk_get_col_data datalen = %d\n", datalen ? *datalen : -1);
@@ -669,8 +770,10 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 			case CS_UBIGINT_TYPE:	    srclen = 8; break;
 			case CS_UNIQUE_TYPE:	    srclen = 16; break;
 			default:
-				printf("error not fixed length type (%d) and datalen not specified\n",
-					bindcol->column_bindtype);
+				tdsdump_log(TDS_DBG_ERROR,
+					    "Not fixed length type (%d)"
+					    " and datalen not specified\n",
+					    bindcol->column_bindtype);
 				return CS_FAIL;
 			}
 
@@ -683,15 +786,19 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 			null_column = 1;
 	}
 
-	if (!null_column) {
-		CONV_RESULT convert_buffer;
+	if (!null_column  &&  !is_blob_type(bindcol->column_type)) {
+		TDS_SERVER_TYPE desttype = TDS_INVALID_TYPE;
 
 		srcfmt.datatype = srctype;
 		srcfmt.maxlength = srclen;
 
-		destfmt.datatype = _cs_convert_not_client(ctx, bindcol, &convert_buffer, &src);
-		if (destfmt.datatype == CS_ILLEGAL_TYPE)
-			destfmt.datatype  = _ct_get_client_type(bindcol);
+		destfmt.datatype = _cs_convert_not_client(NULL, bindcol,
+							  NULL, NULL);
+		if (destfmt.datatype == CS_ILLEGAL_TYPE) {
+			destfmt.datatype = _ct_get_client_type(ctx, bindcol);
+		} else {
+			desttype = bindcol->column_type;
+		}
 		if (destfmt.datatype == CS_ILLEGAL_TYPE)
 			return CS_FAIL;
 		destfmt.maxlength = bindcol->on_server.column_size;
@@ -701,8 +808,12 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 		destfmt.format	= CS_FMT_UNUSED;
 
 		/* if convert return FAIL mark error but process other columns */
-		if ((result = cs_convert(ctx, &srcfmt, (CS_VOID *) src, 
-					 &destfmt, (CS_VOID *) bindcol->bcp_column_data->data, &destlen)) != CS_SUCCEED) {
+		if ((result = _cs_convert_ex(ctx, &srcfmt, (CS_VOID *) src,
+					     &destfmt,
+					     (CS_VOID *) coldata->data,
+					     &destlen, desttype,
+					     (CS_VOID **) &coldata->data))
+		    != CS_SUCCEED) {
 			tdsdump_log(TDS_DBG_INFO1, "convert failed for %d \n", srcfmt.datatype);
 			return CS_FAIL;
 		}

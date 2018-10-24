@@ -59,7 +59,7 @@ tds_poll(struct pollfd fds[], int nfds, int timeout)
 		HMODULE mod;
 
 		poll_p = NULL;
-		mod = GetModuleHandle("ws2_32");
+		mod = GetModuleHandleA("ws2_32");
 		if (mod)
 			poll_p = (WSAPoll_t) GetProcAddress(mod, "WSAPoll");
 	}

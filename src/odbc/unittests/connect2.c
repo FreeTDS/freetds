@@ -56,7 +56,8 @@ check_dbname(const char *dbname)
 static void
 set_dbname(const char *dbname)
 {
-	CHKSetConnectAttr(SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) T(dbname), strlen(dbname)*sizeof(SQLTCHAR), "SI");
+	CHKSetConnectAttr(SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) T(dbname),
+			  (SQLINTEGER) strlen(dbname)*sizeof(SQLTCHAR), "SI");
 }
 
 int
@@ -81,7 +82,8 @@ main(int argc, char *argv[])
 
 	printf("SQLConnect after not existing..\n");
 	strcpy(tmp, "IDontExist");
-	CHKSetConnectAttr(SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) tmp, strlen(tmp), "E");
+	CHKSetConnectAttr(SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) tmp,
+			  (SQLINTEGER) strlen(tmp), "E");
 	check_dbname("tempdb");
 
 	odbc_disconnect();

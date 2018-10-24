@@ -128,7 +128,7 @@ main(int argc, char *argv[])
 
 	memset(&srcfmt, 0, sizeof(CS_DATAFMT));
 	srcfmt.datatype = CS_CHAR_TYPE;
-	srcfmt.maxlength = strlen(moneystring);
+	srcfmt.maxlength = (CS_INT) strlen(moneystring);
 	srcfmt.precision = 5;
 	srcfmt.scale = 2;
 	srcfmt.locale = NULL;
@@ -628,7 +628,7 @@ CS_INT disp_len;
 		disp_len = ex_display_dlen(&columns[i]);
 		fprintf(stdout, "%s", columns[i].name);
 		fflush(stdout);
-		l = disp_len - strlen(columns[i].name);
+		l = disp_len - (CS_INT) strlen(columns[i].name);
 		for (j = 0; j < l; j++) {
 			fputc(' ', stdout);
 			fflush(stdout);
