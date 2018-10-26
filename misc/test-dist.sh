@@ -17,8 +17,8 @@ for param
 do
 	case $param in
 	--no-unittests)
-		TESTS_ENVIRONMENT="$PWD/misc/tds-makeenvs"
-		export TESTS_ENVIRONMENT
+		LOG_COMPILER=true
+		export LOG_COMPILER
 		;;
 	--help)
 		echo "Usage: $0 [OPTION]..."

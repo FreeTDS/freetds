@@ -81,9 +81,6 @@ if test "$PACKAGE_VERSION" = ""; then
 fi
 test "$PACKAGE_VERSION" != "" || errore "PACKAGE_VERSION not found"
 
-test -x "$PWD/misc/tds-makeenvs" || errore "Environment test wrapper not found"
-TESTS_ENVIRONMENT="$PWD/misc/tds-makeenvs"
-
 if test $ONLINE = no; then
 	test -r "freetds-$PACKAGE_VERSION.tar.gz" -o -r "freetds-$PACKAGE_VERSION.tar.bz2" || make dist
 	test -r "freetds-$PACKAGE_VERSION.tar.gz" -o -r "freetds-$PACKAGE_VERSION.tar.bz2" || errore "package not found"
@@ -109,8 +106,7 @@ CFLAGS='-O2 -g -pipe' ./configure --host=$HOST --build=i686-pc-linux-gnu
 cp libtool libtool.tmp
 cat libtool.tmp | sed -e 's,file format pe-i386,file format pe-(x86-64|i386),' > libtool
 make -j4 2> errors.txt
-export TESTS_ENVIRONMENT
-make -j4 check 2>> errors.txt
+make LOG_COMPILE=true -j4 check 2>> errors.txt
 
 # compile dblib test against MS dblib
 if test "$NTWDBLIB" = "yes"; then
