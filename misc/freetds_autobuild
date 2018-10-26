@@ -58,9 +58,6 @@ del_coverage()
 handle_exit()
 {
 	echo Exiting...
-	cd $HOME/cpp/freetds
-	rm -f freetds
-	ln -s "$FTDSDIR" freetds
 	rm -rf $WORKDIR
 }
 
@@ -131,11 +128,8 @@ cd ..
 ROOT=$PWD
 rm -rf $WORKDIR
 trap handle_exit EXIT
-test -h freetds
-rm -f freetds
 test -d $FTDSDIR
 mkdir $WORKDIR
-ln -s $WORKDIR freetds
 cd $FTDSDIR
 if test "$COMMIT" = ""; then
 	REV="$(git rev-parse HEAD)"
