@@ -147,7 +147,8 @@ else
 fi
 cp $ROOT/php5.2-latest.tar.bz2 .
 
-LDFLAGS='-lgcov' CFLAGS='-O2 -pipe -g -fprofile-arcs -ftest-coverage' sh autogen.sh --enable-extra-checks --prefix=$HOME/install --with-odbc-nodm=/usr --enable-krb5 $FLAGS_ADD
+# -U_FORTIFY_SOURCE is to avoid a bug in Valgrind detecting memmove as memcpy
+LDFLAGS='-lgcov' CFLAGS='-O2 -pipe -g -U_FORTIFY_SOURCE -fprofile-arcs -ftest-coverage' sh autogen.sh --enable-extra-checks --prefix=$HOME/install --with-odbc-nodm=/usr --enable-krb5 $FLAGS_ADD
 
 # compile, test with mssql server
 set_pwd_file $ROOT/PWD.mssql2005
@@ -324,7 +325,7 @@ test_mssql2000() {
 
 left=(test1 test_mssql2008 test_mssql2000 test_sybase15)
 
-limit=3
+limit=4
 while true; do
 	# get job pids
 	running=($(jobs -rp))
