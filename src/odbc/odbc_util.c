@@ -770,8 +770,7 @@ odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned)
 		return TDS_INVALID_TYPE;
 #endif
 	case SQL_BIT:
-		if (IS_TDS7_PLUS(conn))
-			return SYBBITN;
+		/* NOTE: always return not nullable type */
 		return SYBBIT;
 	case SQL_TINYINT:
 		return SYBINT1;
