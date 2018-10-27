@@ -735,6 +735,7 @@ odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned)
 			return XSYBNCHAR;
 		if (IS_TDS7_PLUS(conn))
 			return XSYBNCHAR;
+		/* fall thought */
 	case SQL_CHAR:
 		return SYBCHAR;
 	case SQL_WVARCHAR:
@@ -742,6 +743,7 @@ odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned)
 			return XSYBNVARCHAR;
 		if (IS_TDS7_PLUS(conn))
 			return XSYBNVARCHAR;
+		/* fall thought */
 	case SQL_VARCHAR:
 		return SYBVARCHAR;
 	case SQL_SS_VARIANT:
@@ -753,6 +755,7 @@ odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned)
 	case SQL_SS_XML:
 		if (IS_TDS72_PLUS(conn))
 			return SYBMSXML;
+		/* fall thought */
 	case SQL_WLONGVARCHAR:
 		if (IS_TDS7_PLUS(conn))
 			return SYBNTEXT;
@@ -811,6 +814,7 @@ odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned)
 			return SYBTIME;
 		if (IS_TDS73_PLUS(conn))
 			return SYBMSTIME;
+		/* fall thought */
 	type_timestamp:
 	case SQL_TYPE_TIMESTAMP:
 		if (IS_TDS73_PLUS(conn))
