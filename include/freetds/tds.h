@@ -179,6 +179,8 @@ typedef int TDSRET;
 #define TDS_CANCELLED        ((TDSRET)-2)
 #define TDS_FAILED(rc) ((rc)<0)
 #define TDS_SUCCEED(rc) ((rc)>=0)
+#define TDS_PROPAGATE(rc) \
+	do { TDSRET _tds_ret = (rc); if (TDS_FAILED(_tds_ret)) return _tds_ret; } while(0)
 
 #define TDS_INT_CONTINUE 1
 #define TDS_INT_CANCEL 2

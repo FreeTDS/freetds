@@ -57,11 +57,8 @@
 	tds_set_column_type(tds->conn, col, (TDS_SERVER_TYPE) _tds_type); \
 } while(0)
 
-#define TDS_GET_COLUMN_INFO(tds, col) do { \
-	TDSRET _tds_rc = col->funcs->get_info(tds, col); \
-	if (TDS_FAILED(_tds_rc)) \
-		return _tds_rc; \
-} while(0)
+#define TDS_GET_COLUMN_INFO(tds, col) \
+	TDS_PROPAGATE(col->funcs->get_info(tds, col))
 
 /** \endcond */
 
@@ -418,22 +415,16 @@ tds_process_login_tokens(TDSSOCKET * tds)
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_process_login_tokens()\n");
 	do {
-		TDSRET rc;
-
 		marker = tds_get_byte(tds);
 
 		tdsdump_log(TDS_DBG_FUNC, "looking for login token, got  %x(%s)\n", marker, tds_token_name(marker));
 
 		switch (marker) {
 		case TDS_LOGINACK_TOKEN:
-			rc = tds_process_loginack(tds, &succeed);
-			if (TDS_FAILED(rc))
-				return rc;
+			TDS_PROPAGATE(tds_process_loginack(tds, &succeed));
 			break;
 		default:
-			rc = tds_process_default_tokens(tds, marker);
-			if (TDS_FAILED(rc))
-				return rc;
+			TDS_PROPAGATE(tds_process_default_tokens(tds, marker));
 			break;
 		}
 		if (marker == TDS_DONE_TOKEN && IS_TDS50(tds->conn) && tds->conn->authentication) {
@@ -1307,7 +1298,7 @@ tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
 {
 	TDSCOLUMN *curparam;
 	TDSPARAMINFO *info;
-	TDSRET token, rc;
+	TDSRET token;
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_process_param_result(%p, %p)\n", tds, pinfo);
 
@@ -1329,9 +1320,7 @@ tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
 	 * FIXME check support for tds7+ (seem to use same format of tds5 for data...)
 	 * perhaps varint_size can be 2 or collation can be specified ??
 	 */
-	rc = tds_get_data_info(tds, curparam, 1);
-	if (TDS_FAILED(rc))
-		return rc;
+	TDS_PROPAGATE(tds_get_data_info(tds, curparam, 1));
 
 	curparam->column_cur_size = curparam->column_size;	/* needed ?? */
 
@@ -1365,7 +1354,6 @@ tds_process_param_result_tokens(TDSSOCKET * tds)
 {
 	int marker;
 	TDSPARAMINFO **pinfo;
-	TDSRET rc;
 
 	CHECK_TDS_EXTRA(tds);
 
@@ -1375,9 +1363,7 @@ tds_process_param_result_tokens(TDSSOCKET * tds)
 		pinfo = &(tds->param_info);
 
 	while ((marker = tds_get_byte(tds)) == TDS_PARAM_TOKEN) {
-		rc = tds_process_param_result(tds, pinfo);
-		if (TDS_FAILED(rc))
-			return rc;
+		TDS_PROPAGATE(tds_process_param_result(tds, pinfo));
 	}
 	if (!marker) {
 		tdsdump_log(TDS_DBG_FUNC, "error: tds_process_param_result() returned TDS_FAIL\n");
@@ -1408,9 +1394,7 @@ tds_process_params_result_token(TDSSOCKET * tds)
 
 	for (i = 0; i < info->num_cols; i++) {
 		TDSCOLUMN *curcol = info->columns[i];
-		TDSRET rc = curcol->funcs->get_data(tds, curcol);
-		if (TDS_FAILED(rc))
-			return rc;
+		TDS_PROPAGATE(curcol->funcs->get_data(tds, curcol));
 	}
 	return TDS_SUCCESS;
 }
@@ -1620,10 +1604,8 @@ tds7_process_result(TDSSOCKET * tds)
 	tdsdump_log(TDS_DBG_INFO1, "setting up %d columns\n", num_cols);
 	for (col = 0; col < num_cols; col++) {
 		TDSCOLUMN *curcol = info->columns[col];
-		
-		result = tds7_get_data_info(tds, curcol);
-		if (TDS_FAILED(result))
-			return result;
+
+		TDS_PROPAGATE(tds7_get_data_info(tds, curcol));
 	}
 		
 	if (num_cols > 0) {
@@ -1748,7 +1730,6 @@ tds5_process_result(TDSSOCKET * tds)
 	unsigned int col, num_cols;
 	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
-	TDSRET rc;
 
 	CHECK_TDS_EXTRA(tds);
 
@@ -1775,9 +1756,7 @@ tds5_process_result(TDSSOCKET * tds)
 	for (col = 0; col < info->num_cols; col++) {
 		curcol = info->columns[col];
 
-		rc = tds_get_data_info(tds, curcol, 0);
-		if (TDS_FAILED(rc))
-			return rc;
+		TDS_PROPAGATE(tds_get_data_info(tds, curcol, 0));
 
 		/* skip locale information */
 		/* NOTE do not put into tds_get_data_info, param do not have locale information */
@@ -1969,8 +1948,7 @@ tds_process_row(TDSSOCKET * tds)
 	for (i = 0; i < info->num_cols; i++) {
 		tdsdump_log(TDS_DBG_INFO1, "tds_process_row(): reading column %d \n", i);
 		curcol = info->columns[i];
-		if (TDS_FAILED(curcol->funcs->get_data(tds, curcol)))
-			return TDS_FAIL;
+		TDS_PROPAGATE(curcol->funcs->get_data(tds, curcol));
 	}
 	return TDS_SUCCESS;
 }
@@ -2000,8 +1978,7 @@ tds_process_nbcrow(TDSSOCKET * tds)
 		if (nbcbuf[i / 8] & (1 << (i % 8))) {
 			curcol->column_cur_size = -1;
 		} else {
-			if (TDS_FAILED(curcol->funcs->get_data(tds, curcol)))
-				return TDS_FAIL;
+			TDS_PROPAGATE(curcol->funcs->get_data(tds, curcol));
 		}
 	}
 	return TDS_SUCCESS;
@@ -2665,7 +2642,6 @@ tds_process_dyn_result(TDSSOCKET * tds)
 	TDSCOLUMN *curcol;
 	TDSPARAMINFO *info;
 	TDSDYNAMIC *dyn;
-	TDSRET rc;
 
 	CHECK_TDS_EXTRA(tds);
 
@@ -2688,9 +2664,7 @@ tds_process_dyn_result(TDSSOCKET * tds)
 	for (col = 0; col < info->num_cols; col++) {
 		curcol = info->columns[col];
 
-		rc = tds_get_data_info(tds, curcol, 1);
-		if (TDS_FAILED(rc))
-			return rc;
+		TDS_PROPAGATE(tds_get_data_info(tds, curcol, 1));
 
 		/* skip locale information */
 		tds_get_n(tds, NULL, tds_get_byte(tds));
@@ -2864,7 +2838,6 @@ tds7_process_compute_result(TDSSOCKET * tds)
 	TDS_USMALLINT compute_id;
 	TDSCOLUMN *curcol;
 	TDSCOMPUTEINFO *info;
-	TDSRET rc;
 
 	CHECK_TDS_EXTRA(tds);
 
@@ -2931,9 +2904,7 @@ tds7_process_compute_result(TDSSOCKET * tds)
 		curcol->column_operator = tds_get_byte(tds);
 		curcol->column_operand = tds_get_smallint(tds);
 
-		rc = tds7_get_data_info(tds, curcol);
-		if (TDS_FAILED(rc))
-			return rc;
+		TDS_PROPAGATE(tds7_get_data_info(tds, curcol));
 
 		if (tds_dstr_isempty(&curcol->column_name))
 			if (!tds_dstr_copy(&curcol->column_name, tds_pr_op(curcol->column_operator)))

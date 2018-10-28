@@ -397,8 +397,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 		if (params) {
 			/* add on parameters */
 			int flags = tds_dstr_isempty(&params->columns[0]->column_name) ? 0 : TDS_PUT_DATA_USE_NAME;
-			if (TDS_FAILED(tds_put_params(tds, params, flags)))
-				return TDS_FAIL;
+			TDS_PROPAGATE(tds_put_params(tds, params, flags));
 		}
 		free(new_query);
 	} else if (!IS_TDS7_PLUS(tds->conn) || !params || !params->num_cols) {
@@ -470,9 +469,8 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
  
 		for (i = 0; i < num_params; i++) {
 			param = params->columns[i];
-			if (TDS_FAILED(tds_put_data_info(tds, param, 0))
-			    || TDS_FAILED(tds_put_data(tds, param)))
-				return TDS_FAIL;
+			TDS_PROPAGATE(tds_put_data_info(tds, param, 0));
+			TDS_PROPAGATE(tds_put_data(tds, param));
 		}
 		tds->current_op = TDS_OP_EXECUTESQL;
 	}
@@ -1383,11 +1381,8 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params,
 
 		for (i = 0; i < params->num_cols; i++) {
 			param = params->columns[i];
-			ret = tds_put_data_info(tds, param, 0);
-			if (TDS_SUCCEED(ret))
-				ret = tds_put_data(tds, param);
-			if (TDS_FAILED(ret))
-				return ret;
+			TDS_PROPAGATE(tds_put_data_info(tds, param, 0));
+			TDS_PROPAGATE(tds_put_data(tds, param));
 		}
 
 		tds->current_op = TDS_OP_EXECUTESQL;
@@ -1509,11 +1504,8 @@ tds71_submit_prepexec(TDSSOCKET * tds, const char *query, const char *id, TDSDYN
 
 		for (i = 0; i < params->num_cols; i++) {
 			TDSCOLUMN *param = params->columns[i];
-			/* TODO check error */
-			tds_put_data_info(tds, param, 0);
-			rc = tds_put_data(tds, param);
-			if (TDS_FAILED(rc))
-				return rc;
+			TDS_PROPAGATE(tds_put_data_info(tds, param, 0));
+			TDS_PROPAGATE(tds_put_data(tds, param));
 		}
 	}
 
@@ -1695,10 +1687,8 @@ tds7_send_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	if (info)
 		for (i = 0; i < info->num_cols; i++) {
 			param = info->columns[i];
-			if (TDS_FAILED(tds_put_data_info(tds, param, 0))
-			    || TDS_FAILED(tds_put_data(tds, param))) {
-				return TDS_FAIL;
-			}
+			TDS_PROPAGATE(tds_put_data_info(tds, param, 0));
+			TDS_PROPAGATE(tds_put_data(tds, param));
 		}
 
 	tds->current_op = TDS_OP_EXECUTE;
@@ -1742,9 +1732,7 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	}
 
 	if (dyn->emulated) {
-		TDSRET rc = tds_send_emulated_execute(tds, dyn->query, dyn->params);
-		if (TDS_FAILED(rc))
-			return rc;
+		TDS_PROPAGATE(tds_send_emulated_execute(tds, dyn->query, dyn->params));
 		return tds_query_flush_packet(tds);
 	}
 
@@ -1764,8 +1752,8 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	tds_put_n(tds, dyn->id, id_len);
 	tds_put_smallint(tds, 0);
 
-	if (dyn->params && TDS_FAILED(tds_put_params(tds, dyn->params, 0)))
-		return TDS_FAIL;
+	if (dyn->params)
+		TDS_PROPAGATE(tds_put_params(tds, dyn->params, 0));
 
 	/* send it */
 	return tds_query_flush_packet(tds);
@@ -1800,18 +1788,13 @@ tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags)
 	/* number of parameters */
 	tds_put_smallint(tds, info->num_cols);
 	/* column detail for each parameter */
-	for (i = 0; i < info->num_cols; i++) {
-		TDSRET ret = tds_put_data_info(tds, info->columns[i], flags);
-		if (TDS_FAILED(ret))
-			return TDS_FAIL;
-	}
+	for (i = 0; i < info->num_cols; i++)
+		TDS_PROPAGATE(tds_put_data_info(tds, info->columns[i], flags));
 
 	/* row data */
 	tds_put_byte(tds, TDS5_PARAMS_TOKEN);
-	for (i = 0; i < info->num_cols; i++) {
-		if (TDS_FAILED(tds_put_data(tds, info->columns[i])))
-			return TDS_FAIL;
-	}
+	for (i = 0; i < info->num_cols; i++)
+		TDS_PROPAGATE(tds_put_data(tds, info->columns[i]));
 	return TDS_SUCCESS;
 }
 
@@ -2051,9 +2034,8 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params, TDS
 
 		for (i = 0; i < num_params; i++) {
 			param = params->columns[i];
-			if (TDS_FAILED(tds_put_data_info(tds, param, TDS_PUT_DATA_USE_NAME))
-			    || TDS_FAILED(tds_put_data(tds, param)))
-				return TDS_FAIL;
+			TDS_PROPAGATE(tds_put_data_info(tds, param, TDS_PUT_DATA_USE_NAME));
+			TDS_PROPAGATE(tds_put_data(tds, param));
 		}
 
 		return tds_query_flush_packet(tds);
@@ -2071,8 +2053,8 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params, TDS
 		/* TODO flags */
 		tds_put_smallint(tds, num_params ? 2 : 0);
 
-		if (num_params && TDS_FAILED(tds_put_params(tds, params, TDS_PUT_DATA_USE_NAME)))
-			return TDS_FAIL;
+		if (num_params)
+			TDS_PROPAGATE(tds_put_params(tds, params, TDS_PUT_DATA_USE_NAME));
 
 		/* send it */
 		return tds_query_flush_packet(tds);
@@ -2757,8 +2739,7 @@ tds_cursor_get_cursor_info(TDSSOCKET *tds, TDSCURSOR *cursor, TDS_UINT *prow_num
 
 		/* Adjust current state */
 		tds->current_op = TDS_OP_NONE;
-		if (TDS_FAILED(retcode=tds_query_flush_packet(tds)))
-			return retcode;
+		TDS_PROPAGATE(tds_query_flush_packet(tds));
 
 		/* Process answer from server */
 		for (;;) {
@@ -3407,8 +3388,6 @@ tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option,
 	tdsdump_log(TDS_DBG_FUNC, "tds_submit_optioncmd() \n");
  
 	if (IS_TDS50(tds->conn)) {
-		TDSRET rc;
- 
 		if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 			return TDS_FAIL;
  
@@ -3424,9 +3403,7 @@ tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option,
  
 		tds_query_flush_packet(tds);
  
-		rc = tds_process_simple_query(tds);
-		if (TDS_FAILED(rc))
-			return rc;
+		TDS_PROPAGATE(tds_process_simple_query(tds));
 		return TDS_SUCCESS;
 	}
  
@@ -3435,7 +3412,6 @@ tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option,
 
 	cmd[0] = 0;
 	if (command == TDS_OPT_SET) {
-		TDSRET rc;
 		char datefmt[4];
 
 		switch (option) {
@@ -3510,9 +3486,7 @@ tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option,
 			break;
 		}
 		tds_submit_query(tds, cmd);
-		rc = tds_process_simple_query(tds);
-		if (TDS_FAILED(rc))
-			return rc;
+		TDS_PROPAGATE(tds_process_simple_query(tds));
 	}
 	if (command == TDS_OPT_LIST) {
 		int optionval = 0;
