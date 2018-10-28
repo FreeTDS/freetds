@@ -244,7 +244,7 @@ tds_get_char_data(TDSSOCKET * tds, char *row_buffer, size_t wire_size, TDSCOLUMN
  * bounds checking for us since they know how many bytes they want here.
  * dest of NULL means we just want to eat the bytes.   (tetherow@nol.org)
  */
-void *
+bool
 tds_get_n(TDSSOCKET * tds, void *dest, size_t need)
 {
 	for (;;) {
@@ -259,7 +259,7 @@ tds_get_n(TDSSOCKET * tds, void *dest, size_t need)
 		}
 		need -= have;
 		if (TDS_UNLIKELY(tds_read_packet(tds) < 0))
-			return NULL;
+			return false;
 	}
 	if (need > 0) {
 		/* get the remainder if there is any */
@@ -268,7 +268,7 @@ tds_get_n(TDSSOCKET * tds, void *dest, size_t need)
 		}
 		tds->in_pos += need;
 	}
-	return dest;
+	return true;
 }
 
 /**

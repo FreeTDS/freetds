@@ -189,7 +189,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 				size = sizeof(cap->values);
 			}
 			p = (unsigned char *) &cap[type];
-			if (tds_get_n(tds, p-size, size) == NULL)
+			if (!tds_get_n(tds, p-size, size))
 				return TDS_FAIL;
 			/*
 			 * Sybase 11.0 servers return the wrong length in the capability packet,

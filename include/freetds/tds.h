@@ -1437,7 +1437,7 @@ TDS_UINT8 tds_get_uint8(TDSSOCKET * tds);
 #define tds_get_int8(tds) ((TDS_INT8) tds_get_uint8(tds))
 size_t tds_get_string(TDSSOCKET * tds, size_t string_len, char *dest, size_t dest_size);
 TDSRET tds_get_char_data(TDSSOCKET * tds, char *dest, size_t wire_size, TDSCOLUMN * curcol);
-void *tds_get_n(TDSSOCKET * tds, /*@out@*/ /*@null@*/ void *dest, size_t n);
+bool tds_get_n(TDSSOCKET * tds, /*@out@*/ /*@null@*/ void *dest, size_t n);
 int tds_get_size_by_type(TDS_SERVER_TYPE servertype);
 DSTR* tds_dstr_get(TDSSOCKET * tds, DSTR * s, size_t len);
 

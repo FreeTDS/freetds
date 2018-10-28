@@ -848,7 +848,7 @@ tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			discard_len = colsize - curcol->column_size;
 			colsize = curcol->column_size;
 		}
-		if (tds_get_n(tds, dest, colsize) == NULL)
+		if (!tds_get_n(tds, dest, colsize))
 			return TDS_FAIL;
 		if (discard_len > 0)
 			tds_get_n(tds, NULL, discard_len);
