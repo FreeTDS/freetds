@@ -36,8 +36,7 @@
 #if HAVE_SSPI
 #define SECURITY_WIN32
 
-#include <winsock2.h>
-#include <windows.h>
+#include <freetds/windows.h>
 #include <security.h>
 #include <sspi.h>
 #include <rpc.h>

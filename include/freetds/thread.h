@@ -119,7 +119,7 @@ static inline int tds_thread_is_current(tds_thread_id th)
 
 #elif defined(_WIN32)
 
-#include <windows.h>
+#include <freetds/windows.h>
 #include <errno.h>
 
 /* old version of Windows do not define this constant */

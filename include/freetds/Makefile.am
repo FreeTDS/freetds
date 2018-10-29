@@ -22,6 +22,7 @@ noinst_HEADERS = \
 	checks.h \
 	alloca.h \
 	macros.h \
+	windows.h \
 	utils.h \
 	utils/string.h \
 	utils/dlist.h \

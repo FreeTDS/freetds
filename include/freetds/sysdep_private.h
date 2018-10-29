@@ -56,9 +56,7 @@ typedef int pid_t;
 #endif	/* defined(DOS32X) */
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(_WIN64)
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <windows.h>
+#include <freetds/windows.h>
 #define READSOCKET(a,b,c)	recv((a), (char *) (b), (c), TDS_NOSIGNAL)
 #define WRITESOCKET(a,b,c)	send((a), (const char *) (b), (c), TDS_NOSIGNAL)
 #define CLOSESOCKET(a)		closesocket((a))

@@ -1,7 +1,6 @@
 #ifdef _WIN32
 #define _CRT_SECURE_NO_WARNINGS 1
-#include <winsock2.h>
-#include <windows.h>
+#include <freetds/windows.h>
 #include <direct.h>
 #endif
 

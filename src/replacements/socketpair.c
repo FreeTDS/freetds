@@ -21,10 +21,7 @@
 
 #if !defined(HAVE_SOCKETPAIR)
 
-#if defined(_WIN32)
-#include <winsock2.h>
-#include <windows.h>
-#endif
+#include <freetds/windows.h>
 
 #if HAVE_UNISTD_H
 #include <unistd.h>

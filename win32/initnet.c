@@ -4,7 +4,7 @@
 #include <crtdbg.h>
 #endif
 
-#include <windows.h>
+#include <freetds/windows.h>
 
 #ifdef DLL_EXPORT
 

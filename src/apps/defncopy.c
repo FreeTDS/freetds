@@ -36,8 +36,7 @@ int getopt(int argc, const char *argv[], char *optstring);
 #   define WIN32_LEAN_AND_MEAN
 #   define WIN32_LEAN_AND_MEAN_DEFINED_HERE
 #  endif
-#  include <windows.h>
-#  include <winsock2.h>
+#  include <freetds/windows.h>
 #  ifdef WIN32_LEAN_AND_MEAN_DEFINED_HERE
 #   undef WIN32_LEAN_AND_MEAN_DEFINED_HERE
 #   undef WIN32_LEAN_AND_MEAN
