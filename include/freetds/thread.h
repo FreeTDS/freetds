@@ -218,9 +218,12 @@ static inline int tds_thread_create_detached(tds_thread_proc proc, void *arg)
 static inline int tds_thread_join(tds_thread th, void **ret)
 {
 	if (WaitForSingleObject(th, INFINITE) == WAIT_OBJECT_0) {
-		DWORD r;
-		if (ret && GetExitCodeThread(th, &r))
+		if (ret) {
+			DWORD r;
+			if (!GetExitCodeThread(th, &r))
+				r = 0xffffffffu;
 			*ret = (void*) (((char*)0) + r);
+		}
 
 		CloseHandle(th);
 		return 0;
