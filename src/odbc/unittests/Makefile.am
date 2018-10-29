@@ -159,7 +159,7 @@ closestmt_SOURCES = closestmt.c
 oldpwd_SOURCES = oldpwd.c
 bcp_SOURCES = bcp.c
 all_types_SOURCES = all_types.c
-all_types_LDFLAGS = -static ../libtdsodbc.la ../../tds/unittests/libcommon.a -shared $(GLOBAL_LD_FLAGS)
+all_types_LDFLAGS = -static ../libtdsodbc.la ../../tds/unittests/libcommon.a -shared $(GLOBAL_LD_FLAGS) $(ODBCINST_LDFLAGS)
 empty_query_SOURCES = empty_query.c
 
 noinst_LIBRARIES = libcommon.a
