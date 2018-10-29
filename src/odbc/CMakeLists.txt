@@ -1,7 +1,7 @@
 add_subdirectory(unittests)
 
 # TODO checks
-add_definitions(-DUNIXODBC -DHAVE_SQLGETPRIVATEPROFILESTRING -DDLL_EXPORT)
+add_definitions(-DUNIXODBC -DHAVE_SQLGETPRIVATEPROFILESTRING)
 
 if(PERL_FOUND AND NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
 	add_custom_command(OUTPUT odbc_export.h
@@ -27,6 +27,7 @@ add_library(tdsodbc SHARED
 	native.c sql2tds.c error.c odbc_checks.c sqlwchar.c sqlwparams.h
 	odbc_export.h error_export.h odbc_data.c ${win_SRCS}
 )
+target_compile_definitions(tdsodbc PUBLIC DLL_EXPORT=1)
 # TODO libiconv, odbcinstlib and other dynamics
 target_link_libraries(tdsodbc tds replacements tdsutils ${libs} ${lib_NETWORK} ${lib_BASE})
 

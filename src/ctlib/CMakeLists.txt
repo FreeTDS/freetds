@@ -2,7 +2,6 @@ add_subdirectory(unittests)
 
 set(static_lib_name ct)
 if(WIN32)
-	add_definitions(-DDLL_EXPORT)
 	set(win_SRCS winmain.c ctlib.def)
 	set(static_lib_name libct)
 endif()
@@ -12,6 +11,7 @@ add_library(ct SHARED
 	${win_SRCS}
 )
 
+target_compile_definitions(ct PUBLIC DLL_EXPORT=1)
 target_link_libraries(ct tds replacements tdsutils ${lib_NETWORK} ${lib_BASE})
 
 add_library(ct-static STATIC

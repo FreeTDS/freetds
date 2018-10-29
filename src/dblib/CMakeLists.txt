@@ -1,7 +1,6 @@
 add_subdirectory(unittests)
 
 if(WIN32)
-	add_definitions(-DDLL_EXPORT)
 	set(win_SRCS winmain.c dblib.def dbopen.c)
 endif()
 
@@ -10,6 +9,7 @@ add_library(sybdb SHARED
 	dblib.c dbutil.c rpc.c bcp.c xact.c dbpivot.c buffering.h
 	${win_SRCS}
 )
+target_compile_definitions(sybdb PUBLIC DLL_EXPORT=1)
 target_link_libraries(sybdb tds replacements tdsutils ${lib_NETWORK} ${lib_BASE})
 
 add_library(db-lib STATIC
