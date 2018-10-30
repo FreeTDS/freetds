@@ -17,6 +17,6 @@ foreach(target t0001 t0002 t0003 t0004
 	else()
 		target_link_libraries(c_${target} c_common ct replacements tdsutils ${lib_NETWORK} ${lib_BASE})
 	endif()
-	add_test(NAME c_${target} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND ${target})
+	add_test(NAME c_${target} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND c_${target})
 	add_dependencies(check c_${target})
 endforeach(target)
