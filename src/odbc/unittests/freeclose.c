@@ -309,7 +309,7 @@ main(int argc, char **argv)
 
 	remote_addr_len = sizeof(remote_addr);
 	if (tds_getpeername(last_socket, &remote_addr.sa, &remote_addr_len)) {
-		fprintf(stderr, "Unable to get remote address\n");
+		fprintf(stderr, "Unable to get remote address %d\n", sock_errno);
 		return 1;
 	}
 

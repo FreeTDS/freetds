@@ -95,7 +95,7 @@ static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 	fd.events = POLLIN;
 	fd.revents = 0;
 	if (poll(&fd, 1, 30000) <= 0) {
-		perror("poll");
+		fprintf(stderr, "poll: %d\n", sock_errno);
 		exit(1);
 	}
 
@@ -115,7 +115,7 @@ static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 		fd.events = POLLIN;
 		fd.revents = 0;
 		if (poll(&fd, 1, 30000) <= 0) {
-			perror("poll");
+			fprintf(stderr, "poll: %d\n", sock_errno);
 			exit(1);
 		}
 
