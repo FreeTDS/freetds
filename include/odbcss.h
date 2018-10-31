@@ -52,6 +52,7 @@ extern "C" {
 #endif
 
 #define SQL_INFO_FREETDS_TDS_VERSION	1300
+#define SQL_INFO_FREETDS_SOCKET	1301
 
 #ifndef SQL_MARS_ENABLED_NO
 #define SQL_MARS_ENABLED_NO	0

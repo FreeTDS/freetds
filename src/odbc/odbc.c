@@ -5884,6 +5884,11 @@ _SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLS
 			return SQL_ERROR;
 		UIVAL = TDS_MAJOR(dbc->tds_socket->conn) << 16 | TDS_MINOR(dbc->tds_socket->conn);
 		break;
+	case SQL_INFO_FREETDS_SOCKET:
+		if (IS_TDSDEAD(dbc->tds_socket))
+			return SQL_ERROR;
+		ULVAL = dbc->tds_socket->conn->s;
+		break;
 	default:
 		odbc_log_unimplemented_type("SQLGetInfo", fInfoType);
 		odbc_errs_add(&dbc->errs, "HY092", "Option not supported");
