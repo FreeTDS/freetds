@@ -2072,6 +2072,12 @@ _ct_get_client_type(TDSCOLUMN *col)
 	case SYB5BIGDATETIME:
 		return CS_BIGDATETIME_TYPE;
 		break;
+	/* handled by _cs_convert_not_client */
+	case SYBMSDATE:
+	case SYBMSTIME:
+	case SYBMSDATETIME2:
+	case SYBMSDATETIMEOFFSET:
+		break;
 	}
 
 	return _cs_convert_not_client(NULL, col, NULL, NULL);
