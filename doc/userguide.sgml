@@ -459,7 +459,7 @@ Cf. <link linkend="withOdbcNoDM"><option>--with-odbc-nodm</></link>.</para>
 						<term><Option>--disable-threadsafe</Option></term>
 						<listitem><para>Force &freetds; not to use threadsafe versions of functions such as <function>gethostbyname_r()</> where available.  Rely instead on the older and non-threadsafe ones such as <function>gethostbyname()</>. <command>configure</> tests some of these functions.  If the tests are successful, &freetds; will use threadsafe functions throughout.</para>
 
-<para>Threadsafe operation has been tested on Linux, FreeBSD, and HP-UX.  It should work on Solaris, Tru64, and (reportedly) IRIX.  Not expected to work on non-unixy systems.  It is a good idea to enable threadsafe operation if you configure Apache with multi-threading support.</para>
+<para>Threadsafe operation has been tested on Linux, FreeBSD, HP-UX and Windows.  It should work on Solaris, Tru64, and (reportedly) IRIX.  Not expected to work on non-unixy systems.  Should not be used if your system supports threads. Pool server and MARS won't work if disabled.</para>
 							</listitem>
 						</varlistentry>
 					<varlistentry>
