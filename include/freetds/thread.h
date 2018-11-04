@@ -245,6 +245,7 @@ static inline int tds_thread_is_current(tds_thread_id th)
 
 /* define noops as "successful" */
 typedef struct {
+	char dummy[0]; /* compiler compatibility */
 } tds_raw_mutex;
 
 #define TDS_RAW_MUTEX_INITIALIZER {}
@@ -272,6 +273,7 @@ static inline void tds_raw_mutex_free(tds_raw_mutex *mtx)
 }
 
 typedef struct {
+	char dummy[0]; /* compiler compatibility */
 } tds_condition;
 
 static inline int tds_raw_cond_init(tds_condition *cond)
@@ -292,6 +294,7 @@ static inline int tds_raw_cond_destroy(tds_condition *cond)
 	FreeTDS_Condition_not_compiled
 
 typedef struct {
+	char dummy[0]; /* compiler compatibility */
 } tds_thread;
 typedef int tds_thread_id;
 
@@ -319,10 +322,8 @@ static inline int tds_thread_is_current(tds_thread_id th)
 	return 1;
 }
 
-
 #endif
 
-#ifdef TDS_HAVE_MUTEX
 #  define tds_cond_init tds_raw_cond_init
 #  define tds_cond_destroy tds_raw_cond_destroy
 #  define tds_cond_signal tds_raw_cond_signal
@@ -422,7 +423,6 @@ static inline int tds_cond_timedwait(tds_condition *cond, tds_mutex *mtx, int ti
 	return ret;
 }
 
-# endif
-#endif
+#  endif
 
 #endif
