@@ -178,11 +178,13 @@ odbc_read_login_info(void)
 	}
 #else
 	if (ini_override && SQLGetConfigMode(&old_config_mode)) {
+		ODBC_BUF *odbc_buf = NULL;
 		SQLSetConfigMode(ODBC_USER_DSN);
-		SQLWritePrivateProfileString(odbc_server, "Driver", odbc_driver, "odbc.ini");
-		SQLWritePrivateProfileString(odbc_server, "Database", odbc_database, "odbc.ini");
-		SQLWritePrivateProfileString(odbc_server, "Servername", odbc_server, "odbc.ini");
+		SQLWritePrivateProfileString(T(odbc_server), T("Driver"), T(odbc_driver), T("odbc.ini"));
+		SQLWritePrivateProfileString(T(odbc_server), T("Database"), T(odbc_database), T("odbc.ini"));
+		SQLWritePrivateProfileString(T(odbc_server), T("Servername"), T(odbc_server), T("odbc.ini"));
 		SQLSetConfigMode(old_config_mode);
+		ODBC_FREE();
 	}
 #endif
 	return 0;
