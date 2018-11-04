@@ -111,7 +111,7 @@ static void
 detect_cond(void)
 {
 	/* detect if this Windows support condition variables */
-	HMODULE mod = GetModuleHandle("kernel32");
+	HMODULE mod = GetModuleHandle(TEXT("kernel32"));
 
 	init_cv  = (init_cv_t)  GetProcAddress(mod, "InitializeConditionVariable");
 	sleep_cv = (sleep_cv_t) GetProcAddress(mod, "SleepConditionVariableCS");

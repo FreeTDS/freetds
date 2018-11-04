@@ -81,7 +81,7 @@ tds_init_secdll(void)
 	tds_mutex_lock(&sec_mutex);
 	for (;;) {
 		if (!secdll) {
-			secdll = LoadLibrary("secur32.dll");
+			secdll = LoadLibrary(TEXT("secur32.dll"));
 			if (!secdll)
 				break;
 		}
