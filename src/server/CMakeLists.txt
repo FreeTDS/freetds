@@ -4,7 +4,7 @@ add_library(tdssrv STATIC
 	login.c
 )
 if (NOT WIN32)
-	set_target_properties(tdssrv PROPERTIES COMPILE_FLAGS -fPIC)
+	set_target_properties(tdssrv PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 INSTALL(TARGETS tdssrv

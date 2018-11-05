@@ -42,7 +42,7 @@ add_library(tdsodbc_static STATIC
 	odbc_export.h error_export.h odbc_data.c ${win_SRCS}
 )
 if (NOT WIN32)
-	set_target_properties(tdsodbc_static PROPERTIES COMPILE_FLAGS -fPIC)
+	set_target_properties(tdsodbc_static PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 INSTALL(TARGETS tdsodbc

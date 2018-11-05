@@ -32,7 +32,7 @@ add_library(replacements STATIC
 	${add_SRCS}
 )
 if (NOT WIN32)
-	set_target_properties(replacements PROPERTIES COMPILE_FLAGS -fPIC)
+	set_target_properties(replacements PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 add_subdirectory(unittests)

@@ -45,7 +45,7 @@ add_library(tds STATIC
 	${add_SRCS}
 )
 if (NOT WIN32)
-	set_target_properties(tds PROPERTIES COMPILE_FLAGS -fPIC)
+	set_target_properties(tds PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 if(WIN32)

@@ -19,7 +19,7 @@ add_library(tdsutils STATIC
 	${add_SRCS}
 )
 if (NOT WIN32)
-	set_target_properties(tdsutils PROPERTIES COMPILE_FLAGS -fPIC)
+	set_target_properties(tdsutils PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 if(WIN32)
