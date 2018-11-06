@@ -98,6 +98,7 @@ odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT 
 		eat_iconv_left(curcol, &ob, &ol);
 		if (ol) {
 			memset(&conv->suppress, 0, sizeof(conv->suppress));
+			conv->suppress.eilseq = 1;
 			conv->suppress.e2big = 1;
 			/* TODO check return value */
 			tds_iconv(tds, conv, to_client, &ib, &il, &ob, &ol);
@@ -106,6 +107,9 @@ odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT 
 		if (il && ol < sizeof(curcol->column_iconv_buf) && curcol->column_iconv_left == 0) {
 			char *left_ob = curcol->column_iconv_buf;
 			size_t left_ol = sizeof(curcol->column_iconv_buf);
+			conv->suppress.eilseq = 1;
+			conv->suppress.einval = 1;
+			conv->suppress.e2big = 1;
 			tds_iconv(tds, conv, to_client, &ib, &il, &left_ob, &left_ol);
 			curcol->column_iconv_left = sizeof(curcol->column_iconv_buf) - left_ol;
 			/* copy part to fill buffer */
