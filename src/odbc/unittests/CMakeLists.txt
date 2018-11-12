@@ -28,6 +28,7 @@ set(tests
 	prepare_warn long_error mars1
 	array_error closestmt
 	utf8_3 empty_query
+	transaction3
 )
 
 if(WIN32)

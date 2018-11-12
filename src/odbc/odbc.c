@@ -4661,9 +4661,8 @@ change_transaction(TDS_DBC * dbc, int state)
 	tdsdump_log(TDS_DBG_INFO1, "change_transaction(0x%p,%d)\n", dbc, state);
 
 	if (dbc->attr.autocommit == SQL_AUTOCOMMIT_ON)
-		cont = 0;
-	else
-		cont = 1;
+		return SQL_SUCCESS;
+	cont = 1;
 
 	/* if pending drop all recordset, don't issue cancel */
 	if (tds->state == TDS_PENDING && dbc->current_statement != NULL) {

@@ -25,7 +25,7 @@ TESTS		=	\
 			stats$(EXEEXT) descrec$(EXEEXT) peter$(EXEEXT) test64$(EXEEXT) \
 			prepare_warn$(EXEEXT) long_error$(EXEEXT) mars1$(EXEEXT) \
 			array_error$(EXEEXT) describecol2$(EXEEXT) closestmt$(EXEEXT) bcp$(EXEEXT) \
-			utf8_3$(EXEEXT) empty_query$(EXEEXT)
+			utf8_3$(EXEEXT) empty_query$(EXEEXT) transaction3$(EXEEXT)
 
 check_PROGRAMS	=	$(TESTS) oldpwd$(EXEEXT)
 
@@ -107,6 +107,7 @@ closestmt_SOURCES = closestmt.c common.c common.h
 oldpwd_SOURCES = oldpwd.c common.c common.h
 bcp_SOURCES = bcp.c common.c common.h
 empty_query_SOURCES = empty_query.c common.c common.h
+transaction3_SOURCES = transaction3.c common.c common.h
 
 GLOBAL_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC) -DFREETDS_TOPDIR=\"$(top_srcdir)\"
 if ODBC_WIDE_TESTS
