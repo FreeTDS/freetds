@@ -1,10 +1,8 @@
 #include "common.h"
-
-static char software_version[] = "$Id: transaction.c,v 1.18 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+#include <freetds/bool.h>
 
 static int
-Test(int discard_test)
+Test(bool discard_test)
 {
 	ODBC_BUF *odbc_buf = NULL;
 	SQLINTEGER out_buf;
@@ -102,9 +100,9 @@ main(int argc, char *argv[])
 	odbc_command("CREATE TABLE TestTransaction ( value INT )");
 
 	if (!retcode)
-		retcode = Test(1);
+		retcode = Test(true);
 	if (!retcode)
-		retcode = Test(0);
+		retcode = Test(false);
 
 	/* drop table */
 	odbc_command_with_result(odbc_stmt, "DROP TABLE TestTransaction");
