@@ -81,3 +81,4 @@ bcp
 libcommon.a
 all_types
 empty_query
+transaction3

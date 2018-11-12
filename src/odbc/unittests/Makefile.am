@@ -77,6 +77,7 @@ TESTS =	\
 	bcp$(EXEEXT) \
 	all_types$(EXEEXT) \
 	empty_query$(EXEEXT) \
+	transaction3$(EXEEXT) \
 	$(NULL)
 
 check_PROGRAMS	=	$(TESTS) oldpwd$(EXEEXT)
@@ -161,6 +162,7 @@ bcp_SOURCES = bcp.c
 all_types_SOURCES = all_types.c
 all_types_LDFLAGS = -static ../libtdsodbc.la ../../tds/unittests/libcommon.a -shared $(GLOBAL_LD_FLAGS) $(ODBCINST_LDFLAGS)
 empty_query_SOURCES = empty_query.c
+transaction3_SOURCES = transaction3.c
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h
