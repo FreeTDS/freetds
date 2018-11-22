@@ -72,7 +72,7 @@ static const char *logfile_name = NULL;
 
 static void sigterm_handler(int sig);
 static void pool_schedule_waiters(TDS_POOL * pool);
-static TDS_POOL *pool_init(const char *name);
+static TDS_POOL *pool_init(const char *name, const char *config_path);
 static void pool_socket_init(TDS_POOL * pool);
 static void pool_main_loop(TDS_POOL * pool);
 static bool pool_open_logfile(TDS_POOL * pool);
@@ -106,7 +106,7 @@ check_field(const char *pool_name, bool cond, const char *field_name)
  * pool_init creates a named pool and opens connections to the database
  */
 static TDS_POOL *
-pool_init(const char *name)
+pool_init(const char *name, const char *config_path)
 {
 	TDS_POOL *pool;
 	char *err = NULL;
@@ -123,7 +123,7 @@ pool_init(const char *name)
 	}
 
 	/* FIXME -- read this from the conf file */
-	if (!pool_read_conf_files(name, pool, &err)) {
+	if (!pool_read_conf_files(config_path, name, pool, &err)) {
 		fprintf(stderr, "Configuration for pool ``%s'' not found.\n", name);
 		exit(EXIT_FAILURE);
 	}
@@ -380,7 +380,7 @@ pool_main_loop(TDS_POOL * pool)
 static void
 print_usage(const char *progname)
 {
-	fprintf(stderr, "Usage:\t%s [-l <log file>] [-d] <pool name>\n", progname);
+	fprintf(stderr, "Usage:\t%s [-l <log file>] [-c <conf file>] [-d] <pool name>\n", progname);
 }
 
 int
@@ -394,6 +394,7 @@ main(int argc, char **argv)
 #  define DAEMON_OPT ""
 #endif
 	TDS_POOL *pool;
+	const char *config_path = NULL;
 
 	signal(SIGTERM, sigterm_handler);
 	signal(SIGINT, sigterm_handler);
@@ -402,7 +403,7 @@ main(int argc, char **argv)
 	signal(SIGPIPE, SIG_IGN);
 #endif
 
-	while ((opt = getopt(argc, argv, "l:" DAEMON_OPT)) != -1) {
+	while ((opt = getopt(argc, argv, "l:c:" DAEMON_OPT)) != -1) {
 		switch (opt) {
 		case 'l':
 			logfile_name = optarg;
@@ -412,6 +413,9 @@ main(int argc, char **argv)
 			daemonize = true;
 			break;
 #endif
+		case 'c':
+			config_path = optarg;
+			break;
 		default:
 			print_usage(argv[0]);
 			return EXIT_FAILURE;
@@ -421,7 +425,7 @@ main(int argc, char **argv)
 		print_usage(argv[0]);
 		return EXIT_FAILURE;
 	}
-	pool = pool_init(argv[optind]);
+	pool = pool_init(argv[optind], config_path);
 #ifdef HAVE_FORK
 	if (daemonize) {
 		if (daemon(0, 0) < 0) {

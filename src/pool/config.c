@@ -61,10 +61,13 @@ static void pool_parse(const char *option, const char *value, void *param);
 static bool pool_read_conf_file(const char *path, const char *poolname, conf_params *params);
 
 bool
-pool_read_conf_files(const char *poolname, TDS_POOL * pool, char **err)
+pool_read_conf_files(const char *path, const char *poolname, TDS_POOL * pool, char **err)
 {
 	bool found = false;
 	conf_params params = { pool, err };
+
+	if (path && !found)
+		return pool_read_conf_file(path, poolname, &params);
 
 	if (!found) {
 		char *path = tds_get_home_file(".pool.conf");
