@@ -123,7 +123,7 @@ pool_init(const char *name)
 	}
 
 	/* FIXME -- read this from the conf file */
-	if (!pool_read_conf_file(name, pool, &err)) {
+	if (!pool_read_conf_files(name, pool, &err)) {
 		fprintf(stderr, "Configuration for pool ``%s'' not found.\n", name);
 		exit(EXIT_FAILURE);
 	}

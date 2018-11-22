@@ -1247,6 +1247,7 @@ TDS_USMALLINT * tds_config_verstr(const char *tdsver, TDSLOGIN* login);
 struct addrinfo *tds_lookup_host(const char *servername);
 TDSRET tds_lookup_host_set(const char *servername, struct addrinfo **addr);
 const char *tds_addrinfo2str(struct addrinfo *addr, char *name, int namemax);
+char *tds_get_home_file(const char *file);
 
 TDSRET tds_set_interfaces_file_loc(const char *interfloc);
 extern const char STD_DATETIME_FMT[];

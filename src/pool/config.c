@@ -52,26 +52,46 @@
 #define POOL_STR_MIN_POOL_CONN	"min pool conn"
 #define POOL_STR_MAX_POOL_USERS	"max pool users"
 
-static void pool_parse(const char *option, const char *value, void *param);
-
 typedef struct {
 	TDS_POOL *pool;
 	char **err;
 } conf_params;
 
+static void pool_parse(const char *option, const char *value, void *param);
+static bool pool_read_conf_file(const char *path, const char *poolname, conf_params *params);
+
 bool
-pool_read_conf_file(const char *poolname, TDS_POOL * pool, char **err)
+pool_read_conf_files(const char *poolname, TDS_POOL * pool, char **err)
 {
-	FILE *in;
 	bool found = false;
 	conf_params params = { pool, err };
 
-	in = fopen(FREETDS_POOLCONFFILE, "r");
+	if (!found) {
+		char *path = tds_get_home_file(".pool.conf");
+		if (path) {
+			found = pool_read_conf_file(path, poolname, &params);
+			free(path);
+		}
+	}
+
+	if (!found)
+		found = pool_read_conf_file(FREETDS_POOLCONFFILE, poolname, &params);
+
+	return found;
+}
+
+static bool
+pool_read_conf_file(const char *path, const char *poolname, conf_params *params)
+{
+	FILE *in;
+	bool found = false;
+
+	in = fopen(path, "r");
 	if (in) {
-		tdsdump_log(TDS_DBG_INFO1, "Found conf file in %s reading sections\n", FREETDS_POOLCONFFILE);
-		tds_read_conf_section(in, "global", pool_parse, &params);
+		tdsdump_log(TDS_DBG_INFO1, "Found conf file %s reading sections\n", path);
+		tds_read_conf_section(in, "global", pool_parse, params);
 		rewind(in);
-		found = tds_read_conf_section(in, poolname, pool_parse, &params);
+		found = tds_read_conf_section(in, poolname, pool_parse, params);
 		fclose(in);
 	}
 

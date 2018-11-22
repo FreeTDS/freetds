@@ -319,7 +319,7 @@ tds_try_conf_file(const char *path, const char *how, const char *server, TDSLOGI
  * Return filename from HOME directory
  * @return allocated string or NULL if error
  */
-static char *
+char *
 tds_get_home_file(const char *file)
 {
 	char *home, *path;
