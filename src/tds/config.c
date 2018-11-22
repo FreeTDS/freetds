@@ -81,7 +81,7 @@ static int tds_config_env_tdsdump(TDSLOGIN * login);
 static void tds_config_env_tdsver(TDSLOGIN * login);
 static void tds_config_env_tdsport(TDSLOGIN * login);
 static int tds_config_env_tdshost(TDSLOGIN * login);
-static int tds_read_conf_sections(FILE * in, const char *server, TDSLOGIN * login);
+static bool tds_read_conf_sections(FILE * in, const char *server, TDSLOGIN * login);
 static int tds_read_interfaces(const char *server, TDSLOGIN * login);
 static int parse_server_name_for_port(TDSLOGIN * connection, TDSLOGIN * login);
 static int tds_lookup_port(const char *portname);
@@ -141,7 +141,8 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 	char *s;
 	char *path;
 	pid_t pid;
-	int opened = 0, found;
+	int opened = 0;
+	bool found;
 	struct addrinfo *addrs;
 
 	/* allocate a new structure with hard coded and build-time defaults */
@@ -184,7 +185,7 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 					tds_free_login(connection);
 					return NULL;
 				}
-				found = 1;
+				found = true;
 			}
 		}
 	}
@@ -288,10 +289,10 @@ tds_fix_login(TDSLOGIN * login)
 	tds_config_env_tdshost(login);
 }
 
-static int
+static bool
 tds_try_conf_file(const char *path, const char *how, const char *server, TDSLOGIN * login)
 {
-	int found = 0;
+	bool found = false;
 	FILE *in;
 
 	if ((in = fopen(path, "r")) == NULL) {
@@ -339,12 +340,12 @@ tds_get_home_file(const char *file)
  * @param server       section of file configuration that hold 
  *                     configuration for a server
  */
-int
+bool
 tds_read_conf_file(TDSLOGIN * login, const char *server)
 {
 	char *path = NULL;
 	char *eptr = NULL;
-	int found = 0;
+	bool found = false;
 
 	if (interf_file) {
 		found = tds_try_conf_file(interf_file, "set programmatically", server, login);
@@ -390,28 +391,28 @@ tds_read_conf_file(TDSLOGIN * login, const char *server)
 	return found;
 }
 
-static int
+static bool
 tds_read_conf_sections(FILE * in, const char *server, TDSLOGIN * login)
 {
 	DSTR default_instance = DSTR_INITIALIZER;
 	int default_port;
 
-	int found;
+	bool found;
 
 	tds_read_conf_section(in, "global", tds_parse_conf_section, login);
 
 	if (!server[0])
-		return 0;
+		return false;
 	rewind(in);
 
 	if (!tds_dstr_dup(&default_instance, &login->instance_name))
-		return 0;
+		return false;
 	default_port = login->port;
 
 	found = tds_read_conf_section(in, server, tds_parse_conf_section, login);
 	if (!login->valid_configuration) {
 		tds_dstr_free(&default_instance);
-		return 0;
+		return false;
 	}
 
 	/* 
@@ -496,7 +497,7 @@ tds_config_encryption(const char * value, TDSLOGIN * login)
  * @param tds_conf_parse callback that receive every entry in section
  * @param param          parameter to pass to callback function
  */
-int
+bool
 tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_parse, void *param)
 {
 	char line[256], *value;
@@ -505,7 +506,7 @@ tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_pars
 	char p;
 	int i;
 	int insection = 0;
-	int found = 0;
+	bool found = false;
 
 	tdsdump_log(TDS_DBG_INFO1, "Looking for section %s.\n", section);
 	while (fgets(line, sizeof(line), in)) {
@@ -571,7 +572,7 @@ tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_pars
 			if (!strcasecmp(section, &option[1])) {
 				tdsdump_log(TDS_DBG_INFO1, "Got a match.\n");
 				insection = 1;
-				found = 1;
+				found = true;
 			} else {
 				insection = 0;
 			}

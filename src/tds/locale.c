@@ -70,7 +70,7 @@ tds_get_locale(void)
 		s = getenv("LANG");
 #endif
 		if (s && s[0]) {
-			int found;
+			bool found;
 			char buf[128];
 			const char *strip = "@._";
 

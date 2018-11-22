@@ -164,7 +164,7 @@ int pool_write(TDS_SYS_SOCKET sock, const void *buf, size_t len);
 bool pool_write_data(TDS_POOL_SOCKET *from, TDS_POOL_SOCKET *to);
 
 /* config.c */
-int pool_read_conf_file(const char *poolname, TDS_POOL * pool, char **err);
+bool pool_read_conf_file(const char *poolname, TDS_POOL * pool, char **err);
 
 
 #endif

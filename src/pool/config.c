@@ -59,11 +59,11 @@ typedef struct {
 	char **err;
 } conf_params;
 
-int
+bool
 pool_read_conf_file(const char *poolname, TDS_POOL * pool, char **err)
 {
 	FILE *in;
-	int found = 0;
+	bool found = false;
 	conf_params params = { pool, err };
 
 	in = fopen(FREETDS_POOLCONFFILE, "r");
