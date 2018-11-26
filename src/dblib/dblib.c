@@ -1280,6 +1280,8 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 	/* set the DBBUFFER capacity to nil */
 	buffer_set_capacity(dbproc, 0);
 
+	memcpy(dbproc->nullreps, default_null_representations, sizeof(default_null_representations));
+
 	tds_mutex_lock(&dblib_mutex);
 
 	if (g_dblib_ctx.recftos_filename != NULL) {
@@ -1297,8 +1299,6 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 		}
 	}
 	
-	memcpy(dbproc->nullreps, default_null_representations, sizeof(default_null_representations));
-
 	tds_mutex_unlock(&dblib_mutex);
 
 	tdsdump_log(TDS_DBG_FUNC, "tdsdbopen: Returning dbproc = %p\n", dbproc);
