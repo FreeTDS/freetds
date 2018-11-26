@@ -1290,12 +1290,13 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 					 g_dblib_ctx.recftos_filename, g_dblib_ctx.recftos_filenum);
 		if (len >= 0) {
 			dbproc->ftos = fopen(temp_filename, "w");
+			free(temp_filename);
 			if (dbproc->ftos != NULL) {
-				fprintf(dbproc->ftos, "/* dbopen() at %s */\n", _dbprdate(temp_filename));
+				char timestr[256];
+				fprintf(dbproc->ftos, "/* dbopen() at %s */\n", _dbprdate(timestr));
 				fflush(dbproc->ftos);
 				g_dblib_ctx.recftos_filenum++;
 			}
-			free(temp_filename);
 		}
 	}
 	
