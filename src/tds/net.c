@@ -480,16 +480,16 @@ tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int ti
 		}
 		tds_error = TDSECONN;
 		rc = poll(fds, len, poll_timeout);
+		i = sock_errno; /* save to avoid overrides */
+		curr_time = tds_gettime_ms();
 
 		/* error */
 		if (rc < 0) {
-			*p_oserr = sock_errno;
+			*p_oserr = i;
 			if (*p_oserr == TDSSOCK_EINTR)
 				continue;
 			goto exit;
 		}
-
-		curr_time = tds_gettime_ms();
 
 		/* got some event on file descriptors */
 		for (i = 0; i < len; ++i) {
