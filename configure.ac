@@ -497,7 +497,7 @@ _lock_file _unlock_file usleep nanosleep readdir_r])
 
 ACX_PUSH_LIBS("$LIBS $NETWORK_LIBS")
 AC_CHECK_FUNCS([inet_ntoa_r getipnodebyaddr getipnodebyname \
-getaddrinfo inet_ntop gethostname poll socketpair])
+getaddrinfo inet_ntop gethostname poll socketpair strtok_s])
 AC_TRY_LINK([#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif

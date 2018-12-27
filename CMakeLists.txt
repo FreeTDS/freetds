@@ -247,7 +247,7 @@ SELECT_TYPE(tds_sysdep_intptr_type ${SIZEOF_VOID_P} "short;int;long;__int64" "No
 
 # find functions
 set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
-set(FUNCS asprintf vasprintf strtok_r readpassphrase
+set(FUNCS asprintf vasprintf strtok_r strtok_s readpassphrase
 	strlcpy strlcat basename getopt strsep
 	vsnprintf _vsnprintf snprintf _snprintf _vscprintf gettimeofday
 	nl_langinfo locale_charset setenv putenv

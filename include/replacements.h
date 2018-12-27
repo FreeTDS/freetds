@@ -64,8 +64,12 @@ int tds_vasprintf(char **ret, const char *fmt, va_list ap);
 /* Some MingW define strtok_r macro thread-safe but not reentrant but we
    need both so avoid using the macro */
 #undef strtok_r
+#if defined(_WIN32) && HAVE_STRTOK_S
+#define strtok_r strtok_s
+#else
 char *tds_strtok_r(char *str, const char *sep, char **lasts);
 #define strtok_r tds_strtok_r
+#endif
 #endif /* !HAVE_STRTOK_R */
 
 #if !HAVE_STRSEP

@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 2010-2015  Frediano Ziglio
+ * Copyright (C) 2010-2018  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -21,21 +21,15 @@
 
 #include <config.h>
 
-#ifdef HAVE_STRTOK_R
-char *tds_strtok_r(char *str, const char *sep, char **lasts);
-#include "../strtok_r.c"
-#else
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #if HAVE_STRING_H
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
 #include "replacements.h"
-#endif
-
-#include <stdlib.h>
 
 static void
 test(const char *s, const char *sep)
@@ -54,7 +48,7 @@ test(const char *s, const char *sep)
 	s2 = c2;
 	for (;;) {
 		p1 = strtok(s1, sep);
-		p2 = tds_strtok_r(s2, sep, &last);
+		p2 = strtok_r(s2, sep, &last);
 		s1 = s2 = NULL;
 		if ((p1 && !p2) || (!p1 && p2)) {
 			fprintf(stderr, "ptr mistmach %p %p\n", p1, p2);
