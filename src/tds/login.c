@@ -363,7 +363,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 {
 	int erc = -TDSEFCON;
 	int connect_timeout = 0;
-	int db_selected = 0;
+	bool db_selected = false;
 	struct addrinfo *addrs;
 	int orig_port;
 	bool rerouted = false;
@@ -522,10 +522,10 @@ reroute:
 
 	if (IS_TDS71_PLUS(tds->conn)) {
 		erc = tds71_do_login(tds, login);
-		db_selected = 1;
+		db_selected = true;
 	} else if (IS_TDS7_PLUS(tds->conn)) {
 		erc = tds7_send_login(tds, login);
-		db_selected = 1;
+		db_selected = true;
 	} else {
 		tds->out_flag = TDS_LOGIN;
 		erc = tds_send_login(tds, login);
