@@ -346,6 +346,52 @@ tds_set_spid(TDSSOCKET * tds)
 	return rc;
 }
 
+static TDSRET
+tds_setup_connection(TDSSOCKET *tds, TDSLOGIN *login, bool set_db, bool set_spid)
+{
+	TDSRET erc;
+	char *str;
+	int len;
+
+	len = 128 + tds_quote_id(tds, NULL, tds_dstr_cstr(&login->database),-1);
+	if ((str = tds_new(char, len)) == NULL)
+		return TDS_FAIL;
+
+	str[0] = 0;
+	if (login->text_size) {
+		sprintf(str, "set textsize %d ", login->text_size);
+	}
+	if (set_spid && tds->conn->spid == -1) {
+		strcat(str, "select @@spid ");
+	}
+	/* Select proper database if specified.
+	 * SQL Anywhere does not support multiple databases and USE statement
+	 * so don't send the request to avoid connection failures */
+	if (set_db && !tds_dstr_isempty(&login->database) &&
+	    (tds->conn->product_name == NULL || strcasecmp(tds->conn->product_name, "SQL Anywhere") != 0)) {
+		strcat(str, "use ");
+		tds_quote_id(tds, strchr(str, 0), tds_dstr_cstr(&login->database), -1);
+	}
+
+	/* nothing to set, just return */
+	if (str[0] == 0) {
+		free(str);
+		return TDS_SUCCESS;
+	}
+
+	erc = tds_submit_query(tds, str);
+	free(str);
+	if (TDS_FAILED(erc))
+		return erc;
+
+	if (set_spid && tds->conn->spid == -1)
+		erc = tds_set_spid(tds);
+	else
+		erc = tds_process_simple_query(tds);
+
+	return erc;
+}
+
 /**
  * Do a connection to socket
  * @param tds connection structure. This should be a non-connected connection.
@@ -565,42 +611,12 @@ reroute:
 	}
 #endif
 
-	if (login->text_size || (!db_selected && !tds_dstr_isempty(&login->database))
-	    || tds->conn->spid == -1) {
-		char *str;
-		int len;
-
-		len = 128 + tds_quote_id(tds, NULL, tds_dstr_cstr(&login->database),-1);
-		if ((str = tds_new(char, len)) == NULL)
-			return TDS_FAIL;
-
-		str[0] = 0;
-		if (login->text_size) {
-			sprintf(str, "set textsize %d ", login->text_size);
-		}
-		if (tds->conn->spid == -1) {
-			strcat(str, "select @@spid ");
-		}
-		/* Select proper database if specified.
-		 * SQL Anywhere does not support multiple databases and USE statement
-		 * so don't send the request to avoid connection failures */
-		if (!db_selected && !tds_dstr_isempty(&login->database) &&
-		    (tds->conn->product_name == NULL || strcasecmp(tds->conn->product_name, "SQL Anywhere") != 0)) {
-			strcat(str, "use ");
-			tds_quote_id(tds, strchr(str, 0), tds_dstr_cstr(&login->database), -1);
-		}
-		erc = tds_submit_query(tds, str);
-		free(str);
-		if (TDS_FAILED(erc))
-			return erc;
-
-		if (tds->conn->spid == -1)
-			erc = tds_set_spid(tds);
-		else
-			erc = tds_process_simple_query(tds);
-		if (TDS_FAILED(erc))
-			return erc;
-	}
+	erc = tds_setup_connection(tds, login, !db_selected, true);
+	/* try without asking @@spid, some servers do not support it */
+	if (TDS_FAILED(erc) && tds->conn->spid == -1)
+		erc = tds_setup_connection(tds, login, !db_selected, false);
+	if (TDS_FAILED(erc))
+		return erc;
 
 	tds->query_timeout = login->query_timeout;
 	tds->login = NULL;
