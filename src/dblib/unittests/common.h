@@ -24,7 +24,7 @@
 
 #ifdef DBNTWIN32
 #include <freetds/windows.h>
-/* fix MingW missing declare */
+/* fix MinGW missing declare */
 #ifndef _WINDOWS_
 #define _WINDOWS_ 1
 #endif

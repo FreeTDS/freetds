@@ -8114,7 +8114,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 
 #ifdef _WIN32
 	/*
-	 * Unfortunately MingW uses the "old" msvcrt.dll (Visual C++ 2005 uses
+	 * Unfortunately MinGW uses the "old" msvcrt.dll (Visual C++ 2005 uses
 	 * a newer version) which does not set errno when allocation functions
 	 * cannot allocate memory, so we do it for them.
 	 */

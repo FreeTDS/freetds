@@ -61,7 +61,7 @@ int tds_vasprintf(char **ret, const char *fmt, va_list ap);
 #endif /* !HAVE_VASPRINTF */
 
 #if !HAVE_STRTOK_R
-/* Some MingW define strtok_r macro thread-safe but not reentrant but we
+/* Some MinGW define strtok_r macro thread-safe but not reentrant but we
    need both so avoid using the macro */
 #undef strtok_r
 #if defined(_WIN32) && HAVE_STRTOK_S
@@ -122,7 +122,7 @@ char *tds_basename(char *path);
 
 /* 
  * Microsoft's C Runtime library is missing strcasecmp and strncasecmp. 
- * Other Win32 C runtime libraries, notably minwg, may define it. 
+ * Other Win32 C runtime libraries, notably MinGW, may define it.
  * There is no symbol uniquely defined in Microsoft's header files that 
  * can be used by the preprocessor to know whether we're compiling for
  * Microsoft's library or not (or which version).  Thus there's no
@@ -145,7 +145,7 @@ char *tds_basename(char *path);
 int tds_gettimeofday (struct timeval *tv, void *tz);
 #define gettimeofday tds_gettimeofday
 
-/* Older Mingw-w64 versions don't define these flags. */
+/* Older MinGW-w64 versions don't define these flags. */
 #if defined(__MINGW32__) && !defined(AI_ADDRCONFIG)
 #  define AI_ADDRCONFIG 0x00000400
 #endif
