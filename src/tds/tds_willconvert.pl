@@ -98,7 +98,7 @@ my %typeCategory;
 my $n = 0; # category 0 is invalid
 my @catsNum = (0) x 256;
 my @converts;
-for my $types (values %cats) {
+for my $types (sort { @{$a}[0] cmp @{$b}[0] } values %cats) {
 	++$n;
 	push @converts, @{$types}[0];
 	for my $type (@{$types}) {
