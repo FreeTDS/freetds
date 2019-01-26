@@ -26,3 +26,15 @@ Brief Instructions
    with unixODBC 2.2.11.
 
    For any other information please see the Users Guide.
+
+Docker installation (for Debian-based images)
+
+    RUN apt install -y git automake autoconf libtool make gcc perl gettext unixodbc-dev
+    RUN git clone https://github.com/FreeTDS/freetds
+    RUN cd freetds
+    WORKDIR freetds
+    RUN git checkout Branch-1_00
+    RUN autoreconf -vfi
+    RUN ./autogen.sh --enable-libiconv --with-unixodbc=/usr --with-tdsver=7.1
+    RUN make
+    RUN make install
