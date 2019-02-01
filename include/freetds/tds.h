@@ -736,9 +736,6 @@ struct tds_column
 	TDS_SMALLINT column_operand;
 	TDS_TINYINT column_operator;
 
-	/** Sybase blob type (CHAR/UNICHAR/BINARY) */
-	TDS_TINYINT blob_type;
-
 	/* FIXME this is data related, not column */
 	/** size written in variable (ie: char, text, binary). -1 if NULL. */
 	TDS_INT column_cur_size;
