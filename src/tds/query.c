@@ -1328,7 +1328,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params,
 	size_t query_len;
 	TDSCOLUMN *param;
 	TDSDYNAMIC *dyn;
-	TDSRET ret;
+	size_t id_len;
 
 	CHECK_TDS_EXTRA(tds);
 	CHECK_PARAMINFO_EXTRA(params);
@@ -1380,6 +1380,8 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params,
 		free(param_definition);
 
 		for (i = 0; i < params->num_cols; i++) {
+			TDSRET ret;
+
 			param = params->columns[i];
 			TDS_PROPAGATE(tds_put_data_info(tds, param, 0));
 			TDS_PROPAGATE(tds_put_data(tds, param));
@@ -1389,41 +1391,74 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params,
 		return tds_query_flush_packet(tds);
 	}
 
+	/* allocate a structure for this thing */
+	dyn = tds_alloc_dynamic(tds->conn, NULL);
+
+	if (!dyn)
+		return TDS_FAIL;
 	/* check if no parameters */
 	if (params && !params->num_cols)
 		params = NULL;
 
-	if (IS_TDS50(tds->conn) || !params)
-		return tds_submit_query_params(tds, query, params, NULL);
-
 	/* TDS 4.2, emulate prepared statements */
+	/*
+	 * TODO Sybase seems to not support parameters in prepared execdirect
+	 * so use language or prepare and then exec
+	 */
+	if (!IS_TDS50(tds->conn) || params) {
+		TDSRET ret = TDS_SUCCESS;
 
-	/* allocate a structure for this thing */
-	dyn = tds_alloc_dynamic(tds->conn, NULL);
-	if (!dyn)
+		if (!params) {
+			ret = tds_submit_query(tds, query);
+		} else {
+			dyn->emulated = 1;
+			dyn->params = params;
+			dyn->query = strdup(query);
+			if (!dyn->query)
+				ret = TDS_FAIL;
+			if (TDS_SUCCEED(ret))
+				if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
+					ret = TDS_FAIL;
+			if (TDS_SUCCEED(ret)) {
+				ret = tds_send_emulated_execute(tds, dyn->query, dyn->params);
+				if (TDS_SUCCEED(ret))
+					ret = tds_query_flush_packet(tds);
+			}
+			/* do not free our parameters */
+			dyn->params = NULL;
+		}
+		tds_dynamic_deallocated(tds->conn, dyn);
+		tds_release_dynamic(&dyn);
+		return ret;
+	}
+
+	tds_release_cur_dyn(tds);
+	tds->cur_dyn = dyn;
+
+	if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 		return TDS_FAIL;
 
-	ret = TDS_SUCCESS;
+	tds->out_flag = TDS_NORMAL;
 
-	dyn->emulated = 1;
-	dyn->params = params;
-	dyn->query = strdup(query);
-	if (!dyn->query)
-		ret = TDS_FAIL;
-	if (TDS_SUCCEED(ret))
-		if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
-			ret = TDS_FAIL;
-	if (TDS_SUCCEED(ret)) {
-		ret = tds_send_emulated_execute(tds, dyn->query, dyn->params);
-		if (TDS_SUCCEED(ret))
-			ret = tds_query_flush_packet(tds);
-	}
-	/* do not free our parameters */
-	dyn->params = NULL;
+	id_len = strlen(dyn->id);
+	tds_put_byte(tds, TDS5_DYNAMIC_TOKEN);
+	TDS_PUT_SMALLINT(tds, query_len + id_len * 2 + 21);
+	tds_put_byte(tds, TDS_DYN_EXEC_IMMED);
+	tds_put_byte(tds, params ? 0x01 : 0);
+	TDS_PUT_BYTE(tds, id_len);
+	tds_put_n(tds, dyn->id, id_len);
+	/* TODO ICONV convert string, do not put with tds_put_n */
+	/* TODO how to pass parameters type? like store procedures ? */
+	TDS_PUT_SMALLINT(tds, query_len + id_len + 16);
+	tds_put_n(tds, "create proc ", 12);
+	tds_put_n(tds, dyn->id, (int)id_len);
+	tds_put_n(tds, " as ", 4);
+	tds_put_n(tds, query, (int)query_len);
 
-	tds_dynamic_deallocated(tds->conn, dyn);
-	tds_release_dynamic(&dyn);
-	return ret;
+	if (params)
+		tds_put_params(tds, params, 0);
+
+	return tds_flush_packet(tds);
 }
 
 /**
