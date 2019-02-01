@@ -1383,8 +1383,6 @@ void tds_detach_results(TDSRESULTINFO *info);
 void * tds_realloc(void **pp, size_t new_size);
 #define TDS_RESIZE(p, n_elem) \
 	tds_realloc((void **) &(p), sizeof(*(p)) * (size_t) (n_elem))
-#define tds_new(type, n) ((type *) malloc(sizeof(type) * (n)))
-#define tds_new0(type, n) ((type *) calloc(n, sizeof(type)))
 
 TDSPACKET *tds_alloc_packet(void *buf, unsigned len);
 TDSPACKET *tds_realloc_packet(TDSPACKET *packet, unsigned len);

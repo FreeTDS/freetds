@@ -79,4 +79,7 @@
 #define TDS_INT2PTR(i) ((void*)(((char*)0)+((TDS_INTPTR)(i))))
 #define TDS_PTR2INT(p) ((int)(((char*)(p))-((char*)0)))
 
+#define tds_new(type, n) ((type *) malloc(sizeof(type) * (n)))
+#define tds_new0(type, n) ((type *) calloc(n, sizeof(type)))
+
 #endif
