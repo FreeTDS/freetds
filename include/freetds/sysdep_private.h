@@ -30,11 +30,9 @@
 #endif
 
 #ifdef __cplusplus
-extern "C"
-{
-#if 0
-}
-#endif
+#define TDS_EXTERN_C extern "C"
+#else
+#define TDS_EXTERN_C
 #endif
 
 #ifdef __INCvxWorksh
@@ -62,9 +60,9 @@ typedef int pid_t;
 #define CLOSESOCKET(a)		closesocket((a))
 #define IOCTLSOCKET(a,b,c)	ioctlsocket((a), (b), (c))
 #define SOCKLEN_T int
-int  tds_socket_init(void);
+TDS_EXTERN_C int  tds_socket_init(void);
 #define INITSOCKET()	tds_socket_init()
-void tds_socket_done(void);
+TDS_EXTERN_C void tds_socket_done(void);
 #define DONESOCKET()	tds_socket_done()
 #define NETDB_REENTRANT 1	/* BSD-style netdb interface is reentrant */
 
@@ -262,13 +260,6 @@ typedef SOCKET TDS_SYS_SOCKET;
 #endif
 #ifndef PRIx64
 #define PRIx64 TDS_I64_PREFIX "x"
-#endif
-
-#ifdef __cplusplus
-#if 0
-{
-#endif
-}
 #endif
 
 #endif /* _tds_sysdep_private_h_ */
