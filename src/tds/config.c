@@ -315,25 +315,6 @@ tds_try_conf_file(const char *path, const char *how, const char *server, TDSLOGI
 	return found;
 }
 
-
-/**
- * Return filename from HOME directory
- * @return allocated string or NULL if error
- */
-char *
-tds_get_home_file(const char *file)
-{
-	char *home, *path;
-
-	home = tds_get_homedir();
-	if (!home)
-		return NULL;
-	if (asprintf(&path, "%s/%s", home, file) < 0)
-		path = NULL;
-	free(home);
-	return path;
-}
-
 /**
  * Read configuration info for given server
  * return 0 on error

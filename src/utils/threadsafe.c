@@ -72,6 +72,7 @@
 
 #include <freetds/sysdep_private.h>
 #include <freetds/utils.h>
+#include <freetds/utils/path.h>
 #include <freetds/thread.h>
 #include <freetds/replacements.h>
 

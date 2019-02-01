@@ -29,6 +29,7 @@
 
 #include <freetds/odbc.h>
 #include <freetds/utils/string.h>
+#include <freetds/utils/path.h>
 #include <freetds/utils.h>
 #include <freetds/replacements.h>
 

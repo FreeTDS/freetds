@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 1998-1999  Brian Bruns
+ * Copyright (C) 2023  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -17,38 +17,31 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef _tds_configs_h_
-#define _tds_configs_h_
+#include <config.h>
 
+#include <stdio.h>
+
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
+#include <freetds/replacements.h>
 #include <freetds/utils/path.h>
 
-#ifndef _WIN32
-#include <freetds/sysconfdir.h>
-#else
-#define FREETDS_SYSCONFDIR "c:"
-#endif
-
-#ifndef _tds_h_
-#error freetds/tds.h must be included before freetds/configs.h
-#endif
-
-#ifdef __cplusplus
-extern "C"
+/**
+ * Return filename from HOME directory
+ * @return allocated string or NULL if error
+ */
+char *
+tds_get_home_file(const char *file)
 {
-#if 0
+	char *home, *path;
+
+	home = tds_get_homedir();
+	if (!home)
+		return NULL;
+	if (asprintf(&path, "%s/%s", home, file) < 0)
+		path = NULL;
+	free(home);
+	return path;
 }
-#endif
-#endif
-
-#define FREETDS_SYSCONFFILE FREETDS_SYSCONFDIR TDS_SDIR_SEPARATOR "freetds.conf"
-#define FREETDS_POOLCONFFILE FREETDS_SYSCONFDIR TDS_SDIR_SEPARATOR "pool.conf"
-#define FREETDS_LOCALECONFFILE FREETDS_SYSCONFDIR TDS_SDIR_SEPARATOR "locales.conf"
-
-#ifdef __cplusplus
-#if 0
-{
-#endif
-}
-#endif
-
-#endif /* _tds_configs_h_ */

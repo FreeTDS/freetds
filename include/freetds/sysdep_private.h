@@ -94,8 +94,6 @@ typedef DWORD pid_t;
 #define WIN64 1
 #endif
 
-#define TDS_SDIR_SEPARATOR "\\"
-
 /* use macros to use new style names */
 #if defined(__MSVCRT__) || defined(_MSC_VER)
 /* Use API as always present and not causing problems */
@@ -243,10 +241,6 @@ typedef SOCKET TDS_SYS_SOCKET;
 #  define tds_recvfrom __recvfrom
 # endif
 #endif
-
-#ifndef TDS_SDIR_SEPARATOR
-#define TDS_SDIR_SEPARATOR "/"
-#endif /* !TDS_SDIR_SEPARATOR */
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h>

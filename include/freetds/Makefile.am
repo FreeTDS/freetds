@@ -34,6 +34,7 @@ noinst_HEADERS = \
 	utils/md5.h \
 	utils/hmac_md5.h \
 	utils/smp.h \
+	utils/path.h \
 	replacements.h \
 	replacements/poll.h \
 	replacements/readpassphrase.h \

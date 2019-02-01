@@ -41,7 +41,6 @@ char *tds_getpassarg(char *arg);
 char *tds_timestamp_str(char *str, int maxlen);
 struct tm *tds_localtime_r(const time_t *timep, struct tm *result);
 int tds_getservice(const char *name);
-char *tds_get_homedir(void);
 
 int tds_socket_set_nosigpipe(TDS_SYS_SOCKET sock, int on);
 
