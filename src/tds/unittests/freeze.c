@@ -467,7 +467,7 @@ main(void)
 	setbuf(stdout, NULL);
 	setbuf(stderr, NULL);
 
-	tdsdump_open(getenv("TDSDUMP"));
+	tdsdump_open(tds_dir_getenv(TDS_DIR("TDSDUMP")));
 
 	for (mars = 0; mars < 2; ++mars) {
 		test(mars, test1);

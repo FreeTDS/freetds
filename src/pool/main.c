@@ -71,7 +71,6 @@ static const char *logfile_name = NULL;
 
 static void sigterm_handler(int sig);
 static void pool_schedule_waiters(TDS_POOL * pool);
-static TDS_POOL *pool_init(const char *name, const char *config_path);
 static void pool_socket_init(TDS_POOL * pool);
 static void pool_main_loop(TDS_POOL * pool);
 static bool pool_open_logfile(void);
@@ -105,7 +104,7 @@ check_field(const char *pool_name, bool cond, const char *field_name)
  * pool_init creates a named pool and opens connections to the database
  */
 static TDS_POOL *
-pool_init(const char *name, const char *config_path)
+pool_init(const char *name, const tds_dir_char *config_path)
 {
 	TDS_POOL *pool;
 	char *err = NULL;
@@ -269,7 +268,7 @@ pool_open_logfile(void)
 	int fd;
 
 	tds_g_append_mode = 0;
-	tdsdump_open(getenv("TDSDUMP"));
+	tdsdump_open(tds_dir_getenv(TDS_DIR("TDSDUMP")));
 
 	if (!logfile_name)
 		return true;
@@ -433,7 +432,7 @@ main(int argc, char **argv)
 #  define DAEMON_OPT ""
 #endif
 	TDS_POOL *pool;
-	const char *config_path = NULL;
+	tds_dir_char *config_path = NULL;
 
 	signal(SIGTERM, sigterm_handler);
 	signal(SIGINT, sigterm_handler);
@@ -453,7 +452,11 @@ main(int argc, char **argv)
 			break;
 #endif
 		case 'c':
-			config_path = optarg;
+			config_path = tds_dir_from_cstr(optarg);
+			if (!config_path) {
+				fprintf(stderr, "Out of memory\n");
+				return EXIT_FAILURE;
+			}
 			break;
 		default:
 			print_usage(argv[0]);
@@ -465,6 +468,7 @@ main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 	pool = pool_init(argv[optind], config_path);
+	TDS_ZERO_FREE(config_path);
 #ifdef HAVE_FORK
 	if (daemonize) {
 		if (daemon(0, 0) < 0) {

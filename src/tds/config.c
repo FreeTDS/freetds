@@ -87,7 +87,7 @@ static bool parse_server_name_for_port(TDSLOGIN * connection, TDSLOGIN * login, 
 static int tds_lookup_port(const char *portname);
 static bool tds_config_encryption(const char * value, TDSLOGIN * login);
 
-static char *interf_file = NULL;
+static tds_dir_char *interf_file = NULL;
 
 #define TDS_ISSPACE(c) isspace((unsigned char ) (c))
 
@@ -95,16 +95,16 @@ const char STD_DATETIME_FMT[] = "%b %e %Y %I:%M%p";
 
 #if !defined(_WIN32) && !defined(DOS32X)
 static const char pid_config_logpath[] = "/tmp/tdsconfig.log.%d";
-static const char freetds_conf[] = "%s/etc/freetds.conf";
+static const char freetds_conf[] = "etc/freetds.conf";
 static const char location[] = "(from $FREETDS/etc)";
 static const char pid_logpath[] = "/tmp/freetds.log.%d";
 static const char interfaces_path[] = "/etc/freetds";
 #else
-static const char pid_config_logpath[] = "c:\\tdsconfig.log.%d";
-static const char freetds_conf[] = "%s\\freetds.conf";
+static const tds_dir_char pid_config_logpath[] = L"c:\\tdsconfig.log.%d";
+static const tds_dir_char freetds_conf[] = L"freetds.conf";
 static const char location[] = "(from $FREETDS)";
-static const char pid_logpath[] = "c:\\freetds.log.%d";
-static const char interfaces_path[] = "c:\\";
+static const tds_dir_char pid_logpath[] = L"c:\\freetds.log.%d";
+static const tds_dir_char interfaces_path[] = L"c:\\";
 #endif
 
 /**
@@ -138,7 +138,7 @@ TDSLOGIN *
 tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 {
 	TDSLOGIN *connection;
-	char *s;
+	tds_dir_char *s;
 	int opened = 0;
 	bool found;
 
@@ -149,19 +149,15 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 		return NULL;
 	}
 
-	s = getenv("TDSDUMPCONFIG");
+	s = tds_dir_getenv(TDS_DIR("TDSDUMPCONFIG"));
 	if (s) {
 		if (*s) {
 			opened = tdsdump_open(s);
 		} else {
-			char *path;
+			tds_dir_char path[TDS_VECTOR_SIZE(pid_config_logpath) + 22];
 			pid_t pid = getpid();
-			if (asprintf(&path, pid_config_logpath, (int) pid) >= 0) {
-				if (*path) {
-					opened = tdsdump_open(path);
-				}
-				free(path);
-			}
+			tds_dir_snprintf(path, TDS_VECTOR_SIZE(path), pid_config_logpath, (int) pid);
+			opened = tdsdump_open(path);
 		}
 	}
 
@@ -247,7 +243,7 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 		/* tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "capabilities", tds_dstr_cstr(&connection->capabilities)); 
 			(not null terminated) */
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "database", tds_dstr_cstr(&connection->database));
-		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "dump_file", tds_dstr_cstr(&connection->dump_file));
+		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %" tdsPRIdir "\n", "dump_file", connection->dump_file);
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %x\n", "debug_flags", connection->debug_flags);
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "text_size", connection->text_size);
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "server_realm_name", tds_dstr_cstr(&connection->server_realm_name));
@@ -267,10 +263,10 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 	/*
 	 * If a dump file has been specified, start logging
 	 */
-	if (!tds_dstr_isempty(&connection->dump_file) && !tdsdump_isopen()) {
+	if (connection->dump_file != NULL && !tdsdump_isopen()) {
 		if (connection->debug_flags)
 			tds_debug_flags = connection->debug_flags;
-		tdsdump_open(tds_dstr_cstr(&connection->dump_file));
+		tdsdump_open(connection->dump_file);
 	}
 
 	return connection;
@@ -291,21 +287,21 @@ tds_fix_login(TDSLOGIN * login)
 }
 
 static bool
-tds_try_conf_file(const char *path, const char *how, const char *server, TDSLOGIN * login)
+tds_try_conf_file(const tds_dir_char *path, const char *how, const char *server, TDSLOGIN * login)
 {
 	bool found = false;
 	FILE *in;
 
-	if ((in = fopen(path, "r")) == NULL) {
-		tdsdump_log(TDS_DBG_INFO1, "Could not open '%s' (%s).\n", path, how);
+	if ((in = tds_dir_open(path, TDS_DIR("r"))) == NULL) {
+		tdsdump_log(TDS_DBG_INFO1, "Could not open '%" tdsPRIdir "' (%s).\n", path, how);
 		return found;
 	}
 
-	tdsdump_log(TDS_DBG_INFO1, "Found conf file '%s' %s.\n", path, how);
+	tdsdump_log(TDS_DBG_INFO1, "Found conf file '%" tdsPRIdir "' %s.\n", path, how);
 	found = tds_read_conf_sections(in, server, login);
 
 	if (found) {
-		tdsdump_log(TDS_DBG_INFO1, "Success: [%s] defined in %s.\n", server, path);
+		tdsdump_log(TDS_DBG_INFO1, "Success: [%s] defined in %" tdsPRIdir ".\n", server, path);
 	} else {
 		tdsdump_log(TDS_DBG_INFO2, "[%s] not found.\n", server);
 	}
@@ -325,8 +321,8 @@ tds_try_conf_file(const char *path, const char *how, const char *server, TDSLOGI
 bool
 tds_read_conf_file(TDSLOGIN * login, const char *server)
 {
-	char *path = NULL;
-	char *eptr = NULL;
+	tds_dir_char *path = NULL;
+	tds_dir_char *eptr = NULL;
 	bool found = false;
 
 	if (interf_file) {
@@ -335,7 +331,7 @@ tds_read_conf_file(TDSLOGIN * login, const char *server)
 
 	/* FREETDSCONF env var, pkleef@openlinksw.com 01/21/02 */
 	if (!found) {
-		path = getenv("FREETDSCONF");
+		path = tds_dir_getenv(TDS_DIR("FREETDSCONF"));
 		if (path) {
 			found = tds_try_conf_file(path, "(from $FREETDSCONF)", server, login);
 		} else {
@@ -345,9 +341,10 @@ tds_read_conf_file(TDSLOGIN * login, const char *server)
 
 	/* FREETDS env var, Bill Thompson 16/07/03 */
 	if (!found) {
-		eptr = getenv("FREETDS");
+		eptr = tds_dir_getenv(TDS_DIR("FREETDS"));
 		if (eptr) {
-			if (asprintf(&path, freetds_conf, eptr) >= 0) {
+			path = tds_join_path(eptr, freetds_conf);
+			if (path) {
 				found = tds_try_conf_file(path, location, server, login);
 				free(path);
 			}
@@ -357,12 +354,13 @@ tds_read_conf_file(TDSLOGIN * login, const char *server)
 	}
 
 	if (!found) {
-		path = tds_get_home_file(".freetds.conf");
+		path = tds_get_home_file(TDS_DIR(".freetds.conf"));
 		if (path) {
 			found = tds_try_conf_file(path, "(.freetds.conf)", server, login);
 			free(path);
 		} else {
-			tdsdump_log(TDS_DBG_INFO2, "... Error getting ~/.freetds.conf.  Trying %s.\n", FREETDS_SYSCONFFILE);
+			tdsdump_log(TDS_DBG_INFO2, "... Error getting ~/.freetds.conf.  Trying %" tdsPRIdir ".\n",
+				    FREETDS_SYSCONFFILE);
 		}
 	}
 
@@ -610,7 +608,12 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 	} else if (!strcmp(option, TDS_STR_MUTUAL_AUTHENTICATION)) {
 		parse_boolean(option, value, login->mutual_authentication);
 	} else if (!strcmp(option, TDS_STR_DUMPFILE)) {
-		s = tds_dstr_copy(&login->dump_file, value);
+		TDS_ZERO_FREE(login->dump_file);
+		if (value[0]) {
+			login->dump_file = tds_dir_from_cstr(value);
+			if (!login->dump_file)
+				s = NULL;
+		}
 	} else if (!strcmp(option, TDS_STR_DEBUGFLAGS)) {
 		char *end;
 		long flags;
@@ -822,24 +825,24 @@ tds_config_login(TDSLOGIN * connection, TDSLOGIN * login)
 static bool
 tds_config_env_tdsdump(TDSLOGIN * login)
 {
-	char *s = getenv("TDSDUMP");
+	tds_dir_char path[TDS_VECTOR_SIZE(pid_logpath) + 22];
+
+	tds_dir_char *s = tds_dir_getenv(TDS_DIR("TDSDUMP"));
 	if (!s)
 		return true;
 
-	if (!strlen(s)) {
-		char *path;
+	if (!tds_dir_len(s)) {
 		pid_t pid = getpid();
-		if (asprintf(&path, pid_logpath, (int) pid) < 0)
-			return false;
-		if (!tds_dstr_set(&login->dump_file, path)) {
-			free(path);
-			return false;
-		}
-	} else {
-		if (!tds_dstr_copy(&login->dump_file, s))
-			return false;
+		tds_dir_snprintf(path, TDS_VECTOR_SIZE(path), pid_logpath, (int) pid);
+		s = path;
 	}
-	tdsdump_log(TDS_DBG_INFO1, "Setting 'dump_file' to '%s' from $TDSDUMP.\n", tds_dstr_cstr(&login->dump_file));
+
+	if (!(s = tds_dir_dup(s)))
+		return false;
+	free(login->dump_file);
+	login->dump_file = s;
+
+	tdsdump_log(TDS_DBG_INFO1, "Setting 'dump_file' to '%" tdsPRIdir "' from $TDSDUMP.\n", login->dump_file);
 	return true;
 }
 
@@ -977,7 +980,7 @@ tds_set_interfaces_file_loc(const char *interf)
 		return TDS_SUCCESS;
 	}
 	/* Set to new value */
-	if ((interf_file = strdup(interf)) == NULL) {
+	if ((interf_file = tds_dir_from_cstr(interf)) == NULL) {
 		return TDS_FAIL;
 	}
 	return TDS_SUCCESS;
@@ -1071,9 +1074,9 @@ hex2num(char *hex)
  * \return false if not fount true if found
  */
 static bool
-search_interface_file(TDSLOGIN * login, const char *dir, const char *file, const char *host)
+search_interface_file(TDSLOGIN * login, const tds_dir_char *dir, const tds_dir_char *file, const char *host)
 {
-	char *pathname;
+	tds_dir_char *pathname;
 	char line[255];
 	char tmp_ip[sizeof(line)];
 	char tmp_port[sizeof(line)];
@@ -1089,36 +1092,28 @@ search_interface_file(TDSLOGIN * login, const char *dir, const char *file, const
 	tmp_port[0] = '\0';
 	tmp_ver[0] = '\0';
 
-	tdsdump_log(TDS_DBG_INFO1, "Searching interfaces file %s/%s.\n", dir, file);
-	pathname = tds_new(char, strlen(dir) + strlen(file) + 10);
-	if (!pathname)
-		return false;
+	tdsdump_log(TDS_DBG_INFO1, "Searching interfaces file %" tdsPRIdir "/%" tdsPRIdir ".\n", dir, file);
 
 	/*
 	 * create the full pathname to the interface file
 	 */
 	if (file[0] == '\0') {
-		pathname[0] = '\0';
+		pathname = tds_dir_dup(TDS_DIR(""));
 	} else {
-		if (dir[0] == '\0') {
-			pathname[0] = '\0';
-		} else {
-			strcpy(pathname, dir);
-			strcat(pathname, TDS_SDIR_SEPARATOR);
-		}
-		strcat(pathname, file);
+		pathname = tds_join_path(dir, file);
 	}
-
+	if (!pathname)
+		return false;
 
 	/*
 	 * parse the interfaces file and find the server and port
 	 */
-	if ((in = fopen(pathname, "r")) == NULL) {
-		tdsdump_log(TDS_DBG_INFO1, "Couldn't open %s.\n", pathname);
+	if ((in = tds_dir_open(pathname, TDS_DIR("r"))) == NULL) {
+		tdsdump_log(TDS_DBG_INFO1, "Couldn't open %" tdsPRIdir ".\n", pathname);
 		free(pathname);
 		return false;
 	}
-	tdsdump_log(TDS_DBG_INFO1, "Interfaces file %s opened.\n", pathname);
+	tdsdump_log(TDS_DBG_INFO1, "Interfaces file %" tdsPRIdir " opened.\n", pathname);
 
 	while (fgets(line, sizeof(line) - 1, in)) {
 		if (line[0] == '#')
@@ -1213,19 +1208,19 @@ tds_read_interfaces(const char *server, TDSLOGIN * login)
 	 * Look for the server in the interf_file iff interf_file has been set.
 	 */
 	if (interf_file) {
-		tdsdump_log(TDS_DBG_INFO1, "Looking for server in file %s.\n", interf_file);
-		found = search_interface_file(login, "", interf_file, server);
+		tdsdump_log(TDS_DBG_INFO1, "Looking for server in file %" tdsPRIdir ".\n", interf_file);
+		found = search_interface_file(login, TDS_DIR(""), interf_file, server);
 	}
 
 	/*
 	 * if we haven't found the server yet then look for a $HOME/.interfaces file
 	 */
 	if (!found) {
-		char *path = tds_get_home_file(".interfaces");
+		tds_dir_char *path = tds_get_home_file(TDS_DIR(".interfaces"));
 
 		if (path) {
-			tdsdump_log(TDS_DBG_INFO1, "Looking for server in %s.\n", path);
-			found = search_interface_file(login, "", path, server);
+			tdsdump_log(TDS_DBG_INFO1, "Looking for server in %" tdsPRIdir ".\n", path);
+			found = search_interface_file(login, TDS_DIR(""), path, server);
 			free(path);
 		}
 	}
@@ -1234,7 +1229,7 @@ tds_read_interfaces(const char *server, TDSLOGIN * login)
 	 * if we haven't found the server yet then look in $SYBBASE/interfaces file
 	 */
 	if (!found) {
-		const char *sybase = getenv("SYBASE");
+		const tds_dir_char *sybase = tds_dir_getenv(TDS_DIR("SYBASE"));
 #ifdef __VMS
 		/* We've got to be in unix syntax for later slash-joined concatenation. */
 		#include <unixlib.h>
@@ -1244,8 +1239,8 @@ tds_read_interfaces(const char *server, TDSLOGIN * login)
 		if (!sybase || !sybase[0])
 			sybase = interfaces_path;
 
-		tdsdump_log(TDS_DBG_INFO1, "Looking for server in %s/interfaces.\n", sybase);
-		found = search_interface_file(login, sybase, "interfaces", server);
+		tdsdump_log(TDS_DBG_INFO1, "Looking for server in %" tdsPRIdir "/interfaces.\n", sybase);
+		found = search_interface_file(login, sybase, TDS_DIR("interfaces"), server);
 	}
 
 	/*

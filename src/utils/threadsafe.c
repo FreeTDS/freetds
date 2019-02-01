@@ -254,7 +254,7 @@ tds_getservice(const char *name)
  * Get user home directory
  * @return home directory or NULL if error. Should be freed with free
  */
-char *
+tds_dir_char *
 tds_get_homedir(void)
 {
 #ifndef _WIN32
@@ -303,7 +303,7 @@ tds_get_homedir(void)
 	 */
 	HRESULT hr;
 	LPMALLOC pMalloc = NULL;
-	char * res = NULL;
+	tds_dir_char* res = NULL;
 
 	hr = SHGetMalloc(&pMalloc);
 	if (!FAILED(hr)) {
@@ -315,9 +315,9 @@ tds_get_homedir(void)
 			 * so we have to make sure that it has only zeros; otherwise,
 			 * invalid memory access is inevitable.
 			 */
-			char path[MAX_PATH] = "";
-			if (SHGetPathFromIDList(pidl, path))
-				res = strdup(path);
+			tds_dir_char path[MAX_PATH] = TDS_DIR("");
+			if (SHGetPathFromIDListW(pidl, path))
+				res = tds_dir_dup(path);
 			(*pMalloc->lpVtbl->Free)(pMalloc, pidl);
 		}
 		(*pMalloc->lpVtbl->Release)(pMalloc);
@@ -325,4 +325,3 @@ tds_get_homedir(void)
 	return res;
 #endif
 }
-

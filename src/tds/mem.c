@@ -999,7 +999,7 @@ tds_alloc_login(int use_environment)
 	login->ip_addrs = NULL;
 
 	tds_dstr_init(&login->database);
-	tds_dstr_init(&login->dump_file);
+	login->dump_file = NULL;
 	tds_dstr_init(&login->client_charset);
 	tds_dstr_init(&login->instance_name);
 	tds_dstr_init(&login->server_realm_name);
@@ -1057,7 +1057,7 @@ tds_free_login(TDSLOGIN * login)
 		freeaddrinfo(login->ip_addrs);
 
 	tds_dstr_free(&login->database);
-	tds_dstr_free(&login->dump_file);
+	free(login->dump_file);
 	tds_dstr_free(&login->instance_name);
 	tds_dstr_free(&login->server_realm_name);
 	tds_dstr_free(&login->server_spn);

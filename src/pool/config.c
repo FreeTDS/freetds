@@ -58,10 +58,10 @@ typedef struct {
 } conf_params;
 
 static bool pool_parse(const char *option, const char *value, void *param);
-static bool pool_read_conf_file(const char *path, const char *poolname, conf_params *params);
+static bool pool_read_conf_file(const tds_dir_char *path, const char *poolname, conf_params *params);
 
 bool
-pool_read_conf_files(const char *path, const char *poolname, TDS_POOL * pool, char **err)
+pool_read_conf_files(const tds_dir_char *path, const char *poolname, TDS_POOL * pool, char **err)
 {
 	bool found = false;
 	conf_params params = { pool, err };
@@ -70,7 +70,7 @@ pool_read_conf_files(const char *path, const char *poolname, TDS_POOL * pool, ch
 		return pool_read_conf_file(path, poolname, &params);
 
 	if (!found) {
-		char *path = tds_get_home_file(".pool.conf");
+		tds_dir_char *path = tds_get_home_file(TDS_DIR(".pool.conf"));
 		if (path) {
 			found = pool_read_conf_file(path, poolname, &params);
 			free(path);
@@ -84,14 +84,14 @@ pool_read_conf_files(const char *path, const char *poolname, TDS_POOL * pool, ch
 }
 
 static bool
-pool_read_conf_file(const char *path, const char *poolname, conf_params *params)
+pool_read_conf_file(const tds_dir_char *path, const char *poolname, conf_params *params)
 {
 	FILE *in;
 	bool found = false;
 
-	in = fopen(path, "r");
+	in = tds_dir_open(path, TDS_DIR("r"));
 	if (in) {
-		tdsdump_log(TDS_DBG_INFO1, "Found conf file %s reading sections\n", path);
+		tdsdump_log(TDS_DBG_INFO1, "Found conf file %" tdsPRIdir " reading sections\n", path);
 		tds_read_conf_section(in, "global", pool_parse, params);
 		rewind(in);
 		found = tds_read_conf_section(in, poolname, pool_parse, params);

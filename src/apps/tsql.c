@@ -485,7 +485,21 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 			break;
 		case 'C':
 			settings = tds_get_compiletime_settings();
-			printf("%s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n",
+			printf("%s\n"
+			       "%35s: %s\n"
+			       "%35s: %" tdsPRIdir "\n"
+			       "%35s: %s\n"
+			       "%35s: %s\n"
+			       "%35s: %s\n"
+			       "%35s: %s\n"
+			       "%35s: %s\n"
+			       "%35s: %s\n"
+			       "%35s: %s\n"
+			       "%35s: %s\n"
+			       "%35s: %s\n"
+			       "%35s: %s\n"
+			       "%35s: %s\n"
+			       "%35s: %s\n",
 			       "Compile-time settings (established with the \"configure\" script)",
 			       "Version", settings->freetds_version,
 			       "freetds.conf directory", settings->sysconfdir,
@@ -524,13 +538,16 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 
 	if ((global_opt_flags & OPT_INSTANCES) && hostname) {
 		struct addrinfo *addr;
-		char *filename = getenv("TDSDUMP");
+		tds_dir_char *filename = tds_dir_getenv(TDS_DIR("TDSDUMP"));
 
 		if (filename) {
-			if (asprintf(&filename, "%s.instances", filename) < 0)
+			size_t len = tds_dir_len(filename) + 12;
+			tds_dir_char *path = tds_new(tds_dir_char, len);
+			if (!path)
 				exit(1);
-			tdsdump_open(filename);
-			free(filename);
+			tds_dir_snprintf(path, len, TDS_DIR("%s.instances"), filename);
+			tdsdump_open(path);
+			free(path);
 		}
 		if ((addr = tds_lookup_host(hostname)) != NULL) {
 			tds7_get_instance_ports(stderr, addr);

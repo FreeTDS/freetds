@@ -61,21 +61,21 @@
 /* This is defined in ... */
 extern HINSTANCE hinstFreeTDS;
 
-static char *
-get_desktop_file(const char *file)
+static tds_dir_char *
+get_desktop_file(const tds_dir_char *file)
 {
-	LPITEMIDLIST pidl;
-	char path[MAX_PATH];
 	HRESULT hr;
 	LPMALLOC pMalloc = NULL;
-	char * res = NULL;
+	tds_dir_char * res = NULL;
 
 	hr = SHGetMalloc(&pMalloc);
 	if (SUCCEEDED(hr)) {
+		LPITEMIDLIST pidl;
 		hr = SHGetSpecialFolderLocation(NULL, CSIDL_DESKTOPDIRECTORY, &pidl);
 		if (SUCCEEDED(hr)) {
-			if (SHGetPathFromIDList(pidl, path))
-				asprintf(&res, "%s\\%s", path, file);
+			tds_dir_char path[MAX_PATH] = TDS_DIR("");
+			if (SHGetPathFromIDListW(pidl, path))
+				res = tds_join_path(path, file);
 			(*pMalloc->lpVtbl->Free)(pMalloc, pidl);
 		}
 		(*pMalloc->lpVtbl->Release)(pMalloc);
@@ -118,7 +118,7 @@ LoginDlgProc(HWND hDlg, UINT message, WPARAM wParam,	/* */
 		SendDlgItemMessage(hDlg, IDC_LOGINUID, EM_LIMITTEXT, sizeof(tmp) - 1, 0);
 		SendDlgItemMessage(hDlg, IDC_LOGINPWD, WM_SETTEXT, 0, (LPARAM) tds_dstr_cstr(&login->password));
 		SendDlgItemMessage(hDlg, IDC_LOGINPWD, EM_LIMITTEXT, sizeof(tmp) - 1, 0);
-		SendDlgItemMessage(hDlg, IDC_LOGINDUMP, BM_SETCHECK, !tds_dstr_isempty(&login->dump_file), 0L);
+		SendDlgItemMessage(hDlg, IDC_LOGINDUMP, BM_SETCHECK, login->dump_file != NULL, 0L);
 
 		/* adjust label of logging checkbox */
 		SendDlgItemMessage(hDlg, IDC_LOGINDUMP, WM_SETTEXT, 0, (LPARAM) "\"FreeTDS.log\" on desktop");
@@ -145,14 +145,14 @@ LoginDlgProc(HWND hDlg, UINT message, WPARAM wParam,	/* */
 		SendDlgItemMessage(hDlg, IDC_LOGINPWD, WM_GETTEXT, sizeof tmp, (LPARAM) tmp);
 		tds_dstr_copy(&login->password, tmp);
 		if (SendDlgItemMessage(hDlg, IDC_LOGINDUMP, BM_GETCHECK, 0, 0)) {
-			char * filename = get_desktop_file("FreeTDS.log");
+			tds_dir_char * filename = get_desktop_file(TDS_DIR("FreeTDS.log"));
 
 			if (filename) {
-				tds_dstr_copy(&login->dump_file, filename);
-				free(filename);
+				free(login->dump_file);
+				login->dump_file = filename;
 			}
 		} else {
-			tds_dstr_copy(&login->dump_file, "");
+			TDS_ZERO_FREE(login->dump_file);
 		}
 
 		/* And we're done */

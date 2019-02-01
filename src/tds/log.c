@@ -53,7 +53,7 @@
 /* for now all messages go to the log */
 int tds_debug_flags = TDS_DBGFLAG_ALL | TDS_DBGFLAG_SOURCE;
 int tds_g_append_mode = 0;
-static char *g_dump_filename = NULL;
+static tds_dir_char *g_dump_filename = NULL;
 /** Tell if TDS debug logging is turned on or off */
 int tds_write_dump = 0;
 /** List of threads excluded from logging, used to exclude some sensitive data */
@@ -128,14 +128,14 @@ tdsdump_isopen()
  * \return  true if the file was opened, false if it couldn't be opened.
  */
 int
-tdsdump_open(const char *filename)
+tdsdump_open(const tds_dir_char *filename)
 {
 	int result;		/* really should be a boolean, not an int */
 
 	tds_mutex_lock(&g_dump_mutex);
 
 	/* same append file */
-	if (tds_g_append_mode && filename != NULL && g_dump_filename != NULL && strcmp(filename, g_dump_filename) == 0) {
+	if (tds_g_append_mode && filename != NULL && g_dump_filename != NULL && tds_dir_cmp(filename, g_dump_filename) == 0) {
 		tds_mutex_unlock(&g_dump_mutex);
 		return 1;
 	}
@@ -157,16 +157,16 @@ tdsdump_open(const char *filename)
 
 	result = 1;
 	if (tds_g_append_mode) {
-		g_dump_filename = strdup(filename);
+		g_dump_filename = tds_dir_dup(filename);
 		/* if mutex are available do not reopen file every time */
 #ifdef TDS_HAVE_MUTEX
 		g_dumpfile = tdsdump_append();
 #endif
-	} else if (!strcmp(filename, "stdout")) {
+	} else if (!tds_dir_cmp(filename, TDS_DIR("stdout"))) {
 		g_dumpfile = stdout;
-	} else if (!strcmp(filename, "stderr")) {
+	} else if (!tds_dir_cmp(filename, TDS_DIR("stderr"))) {
 		g_dumpfile = stderr;
-	} else if (NULL == (g_dumpfile = fopen(filename, "w"))) {
+	} else if (NULL == (g_dumpfile = tds_dir_open(filename, TDS_DIR("w")))) {
 		result = 0;
 	}
 
@@ -196,12 +196,12 @@ tdsdump_append(void)
 	if (!g_dump_filename)
 		return NULL;
 
-	if (!strcmp(g_dump_filename, "stdout")) {
+	if (!tds_dir_cmp(g_dump_filename, TDS_DIR("stdout"))) {
 		return stdout;
-	} else if (!strcmp(g_dump_filename, "stderr")) {
+	} else if (!tds_dir_cmp(g_dump_filename, TDS_DIR("stderr"))) {
 		return stderr;
 	}
-	return fopen(g_dump_filename, "a");
+	return tds_dir_open(g_dump_filename, TDS_DIR("a"));
 }
 
 

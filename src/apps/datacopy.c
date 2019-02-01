@@ -39,6 +39,7 @@
 
 #include <freetds/time.h>
 #include <freetds/sysdep_private.h>
+#include <freetds/utils/path.h>
 
 #if HAVE_LOCALE_H
 #include <locale.h>
@@ -88,7 +89,7 @@ static RETCODE set_textsize(DBPROCESS *dbproc, int textsize);
 static int err_handler(DBPROCESS *, int, int, int, char *, char *);
 static int msg_handler(DBPROCESS *, DBINT, int, int, char *, char *, char *, int);
 
-int tdsdump_open(const char *filename);
+int tdsdump_open(const tds_dir_char *filename);
 
 int
 main(int argc, char **argv)
@@ -238,7 +239,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 			pdata->owner = strdup(optarg);
 			break;
 		case 'd':
-			tdsdump_open("stderr");
+			tdsdump_open(TDS_DIR("stderr"));
 			break;
 		case 'S':
 			pdata->Sflag++;

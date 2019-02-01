@@ -83,7 +83,7 @@ main(void)
 	unlink("log_elision.out");
 
 	/* set output file */
-	tdsdump_open("log_elision.out");
+	tdsdump_open(TDS_DIR("log_elision.out"));
 
 	/* THREADS thread */
 	for (i = 0; i < THREADS; ++i) {

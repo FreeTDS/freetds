@@ -44,9 +44,9 @@ main(void)
 	TDSCONTEXT *ctx = tds_alloc_context(NULL);
 	TDSSOCKET *tds = tds_alloc_socket(ctx, 512);
 	TDSICONV * conv;
-	const char *tdsdump;
+	const tds_dir_char *tdsdump;
 
-	tdsdump = getenv("TDSDUMP");
+	tdsdump = tds_dir_getenv(TDS_DIR("TDSDUMP"));
 	if (tdsdump)
 		tdsdump_open(tdsdump);
 

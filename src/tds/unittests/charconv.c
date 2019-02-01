@@ -307,7 +307,7 @@ main(void)
 	int i;
 	TDSCONTEXT *ctx = tds_alloc_context(NULL);
 	TDSSOCKET *tds = tds_alloc_socket(ctx, 512);
-	const char *tdsdump;
+	const tds_dir_char *tdsdump;
 
 	setbuf(stdout, NULL);
 	setbuf(stderr, NULL);
@@ -315,7 +315,7 @@ main(void)
 	ctx->err_handler = err_handler;
 
 	/* allow dumps, we don't have a connection here */
-	tdsdump = getenv("TDSDUMP");
+	tdsdump = tds_dir_getenv(TDS_DIR("TDSDUMP"));
 	if (tdsdump)
 		tdsdump_open(tdsdump);
 

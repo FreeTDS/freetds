@@ -522,10 +522,10 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 	/*
 	 * If a dump file has been specified, start logging
 	 */
-	if (!tds_dstr_isempty(&login->dump_file) && !tdsdump_isopen()) {
+	if (login->dump_file != NULL && !tdsdump_isopen()) {
 		if (login->debug_flags)
 			tds_debug_flags = login->debug_flags;
-		tdsdump_open(tds_dstr_cstr(&login->dump_file));
+		tdsdump_open(login->dump_file);
 	}
 
 	tds->login = login;

@@ -60,7 +60,7 @@ tds_get_locale(void)
 
 	tdsdump_log(TDS_DBG_INFO1, "Attempting to read locales.conf file\n");
 
-	in = fopen(FREETDS_LOCALECONFFILE, "r");
+	in = tds_dir_open(FREETDS_LOCALECONFFILE, TDS_DIR("r"));
 	if (in) {
 		tds_read_conf_section(in, "default", tds_parse_locale, locale);
 

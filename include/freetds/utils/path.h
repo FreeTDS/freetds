@@ -20,16 +20,41 @@
 #ifndef _tds_utils_path_h_
 #define _tds_utils_path_h_
 
+#ifdef _WIN32
+#include <wchar.h>
+#endif
+
 #include <freetds/pushvis.h>
 
 #ifdef _WIN32
-#define TDS_SDIR_SEPARATOR "\\"
+#define TDS_SDIR_SEPARATOR L"\\"
+typedef wchar_t tds_dir_char;
+#define tds_dir_open _wfopen
+#define tds_dir_getenv _wgetenv
+#define tds_dir_dup _wcsdup
+#define tds_dir_len wcslen
+#define tds_dir_cmp wcscmp
+#define tds_dir_snprintf _snwprintf
+#define TDS_DIR(s) L ## s
+#define tdsPRIdir "ls"
+tds_dir_char *tds_dir_from_cstr(const char *path);
 #else
 #define TDS_SDIR_SEPARATOR "/"
+typedef char tds_dir_char;
+#define tds_dir_open fopen
+#define tds_dir_getenv getenv
+#define tds_dir_dup strdup
+#define tds_dir_len strlen
+#define tds_dir_cmp strcmp
+#define tds_dir_snprintf snprintf
+#define TDS_DIR(s) s
+#define tdsPRIdir "s"
+#define tds_dir_from_cstr(s) strdup(s)
 #endif
 
-char *tds_get_homedir(void);
-char *tds_get_home_file(const char *file);
+tds_dir_char *tds_get_homedir(void);
+tds_dir_char* tds_join_path(const tds_dir_char *dir, const tds_dir_char *file);
+tds_dir_char *tds_get_home_file(const tds_dir_char *file);
 
 #include <freetds/popvis.h>
 

@@ -61,6 +61,7 @@ typedef struct tds_bcpinfo TDSBCPINFO;
 #include <freetds/bool.h>
 #include <freetds/macros.h>
 #include <freetds/utils/string.h>
+#include <freetds/utils/path.h>
 #include <freetds/replacements.h>
 
 #include <freetds/pushvis.h>
@@ -81,7 +82,7 @@ extern "C"
 typedef struct tds_compiletime_settings
 {
 	const char *freetds_version;	/* release version of FreeTDS */
-	const char *sysconfdir;		/* location of freetds.conf */
+	const tds_dir_char *sysconfdir;		/* location of freetds.conf */
 	const char *last_update;	/* latest software_version date among the modules */
 	const char *tdsver;	/* TDS protocol version (4.2/4.6/5.0/7.0/7.1) 5.0 */
 	bool msdblib;		/* for MS style dblib */
@@ -545,7 +546,7 @@ typedef struct tds_login
 
 	struct addrinfo *ip_addrs;	  		/**< ip(s) of server */
 	DSTR instance_name;
-	DSTR dump_file;
+	tds_dir_char *dump_file;
 	int debug_flags;
 	int text_size;
 	DSTR routing_address;
@@ -1533,7 +1534,7 @@ void tdsdump_off(TDSDUMP_OFF_ITEM *off_item);
 void tdsdump_on(TDSDUMP_OFF_ITEM *off_item);
 int tdsdump_isopen(void);
 #include <freetds/popvis.h>
-int tdsdump_open(const char *filename);
+int tdsdump_open(const tds_dir_char *filename);
 #include <freetds/pushvis.h>
 void tdsdump_close(void);
 void tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, const void *buf, size_t length);

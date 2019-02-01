@@ -25,23 +25,75 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
-#include <freetds/replacements.h>
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
+#include <freetds/windows.h>
+#include <freetds/macros.h>
+#include <freetds/sysdep_private.h>
 #include <freetds/utils/path.h>
 
 /**
  * Return filename from HOME directory
  * @return allocated string or NULL if error
  */
-char *
-tds_get_home_file(const char *file)
+tds_dir_char *
+tds_get_home_file(const tds_dir_char *file)
 {
-	char *home, *path;
+	tds_dir_char *home, *path;
 
 	home = tds_get_homedir();
 	if (!home)
 		return NULL;
-	if (asprintf(&path, "%s/%s", home, file) < 0)
-		path = NULL;
+	path = tds_join_path(home, file);
 	free(home);
 	return path;
 }
+
+tds_dir_char*
+tds_join_path(const tds_dir_char *dir, const tds_dir_char *file)
+{
+	tds_dir_char *ret;
+
+	ret = tds_new(tds_dir_char, tds_dir_len(dir) + tds_dir_len(file) + 4);
+	if (!ret)
+		return ret;
+
+	if (dir[0] == '\0') {
+		ret[0] = '\0';
+	} else
+#ifndef _WIN32
+	{
+		strcpy(ret, dir);
+		strcat(ret, TDS_SDIR_SEPARATOR);
+	}
+	strcat(ret, file);
+#else
+	{
+		wcscpy(ret, dir);
+		wcscat(ret, TDS_SDIR_SEPARATOR);
+	}
+	wcscat(ret, file);
+#endif
+	return ret;
+}
+
+#ifdef _WIN32
+tds_dir_char *
+tds_dir_from_cstr(const char *path)
+{
+	/* include NUL terminator so output string will be terminated and MultiByteToWideChar won't
+	 * return 0 on succesful empty strings */
+	size_t len = strlen(path) + 1;
+	tds_dir_char *res = tds_new(tds_dir_char, len);
+	if (res) {
+		int out_len = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, path, len, res, len);
+		if (!out_len)
+			out_len = MultiByteToWideChar(CP_ACP, 0, path, len, res, len);
+		if (!out_len)
+			TDS_ZERO_FREE(res);
+	}
+	return res;
+}
+#endif
