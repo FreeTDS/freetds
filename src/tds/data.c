@@ -271,14 +271,6 @@ tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE typ
 		}
 	} else if (IS_TDS50(conn)) {
 		switch (type) {
-		case XSYBNVARCHAR:
-			curcol->column_usertype = USER_UNIVARCHAR_TYPE;
-			type = SYBLONGBINARY;
-			break;
-		case XSYBNCHAR:
-			curcol->column_usertype = USER_UNICHAR_TYPE;
-			type = SYBLONGBINARY;
-			break;
 		case SYBINT8:
 			type = SYB5INT8;
 			break;
