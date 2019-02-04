@@ -21,7 +21,7 @@ typedef struct des_key
 } DES_KEY;
 
 int tds_des_set_key(DES_KEY * dkey, const des_cblock user_key, int len);
-void tds_des_encrypt(DES_KEY * key, des_cblock block);
+void tds_des_encrypt(const DES_KEY * key, des_cblock block);
 #endif
 
 void tds_des_set_odd_parity(des_cblock key);
@@ -30,7 +30,7 @@ int tds_des_ecb_encrypt(const void *plaintext, int len, DES_KEY * akey, uint8_t 
 #include <freetds/popvis.h>
 
 #ifdef HAVE_NETTLE
-static inline void tds_des_encrypt(DES_KEY * key, des_cblock block)
+static inline void tds_des_encrypt(const DES_KEY * key, des_cblock block)
 {
 	nettle_des_encrypt(key, sizeof(des_cblock), block, block);
 }

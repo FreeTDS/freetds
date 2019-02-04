@@ -62,12 +62,12 @@ tds_des_set_odd_parity(des_cblock key)
 
 #ifndef HAVE_NETTLE
 
-static void permute_ip(des_cblock inblock, DES_KEY * key, des_cblock outblock);
-static void permute_fp(des_cblock inblock, DES_KEY * key, des_cblock outblock);
+static void permute_ip(const des_cblock inblock, const DES_KEY * key, des_cblock outblock);
+static void permute_fp(const des_cblock inblock, const DES_KEY * key, des_cblock outblock);
 static void perminit_ip(DES_KEY * key);
 static void spinit(DES_KEY * key);
 static void perminit_fp(DES_KEY * key);
-static uint32_t f(DES_KEY * key, register uint32_t r, register unsigned char *subkey);
+static uint32_t f(const DES_KEY * key, register uint32_t r, register const unsigned char *subkey);
 
 /* Tables defined in the Data Encryption Standard documents */
 
@@ -324,10 +324,10 @@ tds_des_set_key(DES_KEY * dkey, const des_cblock user_key, int len)
 
 /* In-place encryption of 64-bit block */
 void
-tds_des_encrypt(DES_KEY * key, des_cblock block)
+tds_des_encrypt(const DES_KEY * key, des_cblock block)
 {
 	register uint32_t left, right;
-	register unsigned char *knp;
+	register const unsigned char *knp;
 	uint32_t work[2];	/* Working data storage */
 
 	permute_ip(block, key, (unsigned char *) work);	/* Initial Permutation */
@@ -441,10 +441,11 @@ _mcrypt_decrypt(DES_KEY * key, unsigned char *block)
 
 /* Permute inblock with perm */
 static void
-permute_ip(des_cblock inblock, DES_KEY * key, des_cblock outblock)
+permute_ip(const des_cblock inblock, const DES_KEY * key, des_cblock outblock)
 {
-	register unsigned char *ib, *ob;	/* ptr to input or output block */
-	register unsigned char *p, *q;
+	register const unsigned char *ib;	/* ptr to input block */
+	register unsigned char *ob;	/* ptr to output block */
+	register const unsigned char *p, *q;
 	register int j;
 
 	/* Clear output block */
@@ -469,10 +470,11 @@ permute_ip(des_cblock inblock, DES_KEY * key, des_cblock outblock)
 
 /* Permute inblock with perm */
 static void
-permute_fp(des_cblock inblock, DES_KEY * key, des_cblock outblock)
+permute_fp(const des_cblock inblock, const DES_KEY * key, des_cblock outblock)
 {
-	register unsigned char *ib, *ob;	/* ptr to input or output block */
-	register unsigned char *p, *q;
+	register const unsigned char *ib;	/* ptr to input block */
+	register unsigned char *ob;	/* ptr to output block */
+	register const unsigned char *p, *q;
 	register int j;
 
 	/* Clear output block */
@@ -497,7 +499,7 @@ permute_fp(des_cblock inblock, DES_KEY * key, des_cblock outblock)
 
 /* The nonlinear function f(r,k), the heart of DES */
 static uint32_t
-f(DES_KEY * key, register uint32_t r, register unsigned char *subkey)
+f(const DES_KEY * key, register uint32_t r, register const unsigned char *subkey)
 {
 	register const uint32_t *spp;
 	register uint32_t rval, rt;
