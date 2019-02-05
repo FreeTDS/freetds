@@ -4,6 +4,8 @@
 #ifndef CONFIG_H_LOADED
 #define CONFIG_H_LOADED 1
 
+#define _freetds_config_h_
+
 /* Define to 1 if you need BSD_COMP defined to get FIONBIO defined. */
 #undef BSD_COMP
 
