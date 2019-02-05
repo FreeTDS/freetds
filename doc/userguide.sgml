@@ -388,7 +388,7 @@ Cf. <link linkend="withOdbcNoDM"><option>--with-odbc-nodm</></link>.</para>
 							</Option></term>
 						<listitem><para>Specifies the default <acronym>TDS</> version.  (There are a couple of ways to set the <acronym>TDS</> version at run-time.  This parameter takes effect if no run-time settings are provided.) Acceptable values of <parameter>VER</> are <literal>5.0</literal>, <literal>7.1</literal>, <literal>7.2</literal>, <literal>7.3</literal> and <literal>7.4</literal>.</para>
 
-<para>The default is <literal>5.0</literal> if this argument is not passed to <Command>configure</Command>.</para>
+<para>The default is <literal>auto</literal> if this argument is not passed to <Command>configure</Command>.</para>
 							</listitem>
 						</varlistentry>
 					</variablelist>
@@ -798,14 +798,21 @@ or
 							<entry>7.4</entry>
 							<entry>Includes support for session recovery.</entry>
 							</row>
-						<row>
-							<entry>N/A</entry>
-							<entry>8.0</entry>
-							<entry>&freetds; will alias this version to 7.1 for backwards compatibility reasons, but this should be avoided due to future compatibility concerns. See note below on obsolete versions.</entry>
-							</row>
 						</tbody>
 					</tgroup>
 				</table></para>
+
+<sect2>
+	<title>Choosing protocol version since &freetds; 1.1</title>
+
+	<para>Version 1.1 improved the discovery of the protocol version.
+	If you are using Microsoft SQL Server is recommended to leave the version to <userinput>auto</userinput> (the default).
+	If you are using any Sybase product you could set version to 5.0 to get faster connections (although <userinput>auto</userinput> will work too).
+	</para>
+</sect2>
+
+<sect2>
+	<title>Choosing protocol version before &freetds; 1.1</title>
 
 <para>
 	Choosing the correct <acronym>TDS</> protocol version for use with SQL Server can be confusing. Hopefully, these steps will lead you to the correct version. If you have a Sybase server, you should be able to use version 5.0, otherwise, if you have Microsoft SQL Server refer to the following section.
@@ -863,13 +870,13 @@ or
 				<row>
 					<entry>0.82</entry>
 					<entry>2000</entry>
-					<entry>7.1 (as 8.0) *</entry>
+					<entry>7.1</entry>
 					<entry>April 9th, 2013</entry>
 				</row>
 				<row>
 					<entry>0.64</entry>
 					<entry>2000</entry>
-					<entry>7.1 (as 8.0) *</entry>
+					<entry>7.1</entry>
 					<entry>April 9th, 2013</entry>
 				</row>
 			</tbody>
@@ -890,7 +897,21 @@ Years ago, Microsoft didn't officially create a TDS version number until after F
 </para>
 
 <para>For best results, use the highest version of the protocol supported by your server.  If you encounter problems, try a lower version.  If that works, though, please report it to the mailing list!
-	<footnote><para>Want to help?  Try out the auto-protocol feature.   &freetds; has experimental support for iteratively trying protocol connections until it finds one the server accepts.  This is suitable when query responses are non-trivial (because the tiny delay in connecting is thus insignificant).  Try setting your TDS version to <literal>0</> and report your results.  </para></footnote></para>
+	</para>
+
+</sect2>
+
+<sect2>
+	<title>Regarding obsolete versions</title>
+
+	<para>In the earlier days of &freetds;, Microsoft did not release official specs for the TDS protocol.
+When MSSQL 2000 (product 8.0) was released, there was semi-official indications from the Microsoft community
+that the TDS protocol would be version 8.0.
+So the &freetds; developers adopted that version for &freetds;.
+Years later, when Microsoft started releasing official specs of the protocol, it became obvious that the TDS
+versions that &freetds; had labeled 8.0 and 9.0 were actually versions 7.1 and 7.2 respectively.</para>
+
+	<para>For compatibility reasons version 8.0 is still handled by &freetds; but you should avoid using it as it could be removed in a future version of &freetds; or it could clash with a future SQL server version.</para>
 
 <para><ItemizedList>
 			<title>TDS 4.2 has limitations</title>
@@ -904,18 +925,6 @@ Years ago, Microsoft didn't officially create a TDS version number until after F
 <para> The protocol version may also affect how database servers interpret
 			commands.  For example, Microsoft SQL Server 2000 is known to behave differently with versions 4.2
 			and 7.0.  Version 7.0 is recommended for compatibility with Microsoft SQL Server tools.</para>
-
-<sect2>
-	<title>Regarding obsolete versions</title>
-
-	<para>In the earlier days of &freetds;, Microsoft did not release official specs for the TDS protocol.
-When MSSQL 2000 (product 8.0) was released, there was semi-official indications from the Microsoft community
-that the TDS protocol would be version 8.0.
-So the &freetds; developers adopted that version for &freetds;.
-Years later, when Microsoft started releasing official specs of the protocol, it became obvious that the TDS
-versions that &freetds; had labeled 8.0 and 9.0 were actually versions 7.1 and 7.2 respectively.</para>
-
-	<para>For compatibility reasons version 8.0 is still handled by &freetds; but you should avoid using it as it could be removed in a future version of &freetds; or it could clash with a future SQL server version.</para>
 
 </sect2>
 		</sect1>
@@ -998,7 +1007,7 @@ versions that &freetds; had labeled 8.0 and 9.0 were actually versions 7.1 and 7
 				<title>A &freetdsconf; file example</title>
 				<programlisting>
 					[global]
-					tds version = 4.2
+					tds version = auto
 					
 					[myserver]
 					host = ntbox.mydomain.com
@@ -1012,11 +1021,10 @@ versions that &freetds; had labeled 8.0 and 9.0 were actually versions 7.1 and 7
 					[myserver3]
 					host = instancebox.mydomain.com
 					instance = foo
-					tds version = 7.1
 					</programlisting>
 				</example>
 
-<para>In this example, the default  <acronym>TDS</> version for all servernames is set to <literal>4.2</>.  It is then overridden for <literal>myserver2</literal> (a Sybase server) which uses <literal>5.0</literal>, and <literal>myserver3</literal> (a MSSQL 2000 server) which uses <literal>7.1</literal>.</para>
+<para>In this example, the default  <acronym>TDS</> version for all servernames is set to <literal>auto</>.  It is then overridden for <literal>myserver2</literal> (a Sybase server) which uses <literal>5.0</literal>.</para>
 
 <para>Usually, it is sufficient to state just the server's hostname and TDS protocol version.  Everything else can be inferred, unless your setup (or your server's) strays from the defaults.
 				<tip><para>Some people seem to feel safer using the IP address for the server, rather than its name.  We don't recommend you do that.  Use the name, and benefit from the inherent advantages.  That's why DNS was invented in the first place, you know.</para></tip></para>
@@ -1037,7 +1045,7 @@ versions that &freetds; had labeled 8.0 and 9.0 were actually versions 7.1 and 7
 						<row>
 							<entry><literal>tds version</></entry>
 							<entry>4.2, 5.0, 7.0, 7.1, 7.2, 7.3, 7.4, <literal>auto</></entry>
-							<entry><parameter>--with-tdsver</> value (<literal>5.0</> if unspecified)
+							<entry><parameter>--with-tdsver</> value (<literal>auto</> if unspecified)
 								Overridden by <link  linkend="TDSVER">TDSVER</link>.</entry>
 							<entry>The <acronym>TDS</> protocol version to use when connecting.  <quote><literal>auto</></quote> tells &freetds; to use an autodetection (trial-and-error) algorithm to choose the protocol version. </entry>
 							</row>
@@ -1503,13 +1511,13 @@ This is supported from MSSQL 2012.
 				
 <screen>
 	<prompt>$ </prompt><userinput>export SYBASE=/usr/local/freetds</userinput>  # (or your favorite directory)
-	<prompt>$ </prompt><userinput>export TDSVER=4.2</userinput></screen></para>
+	<prompt>$ </prompt><userinput>export TDSVER=7.4</userinput></screen></para>
 
 <para>In <application>csh</application>:
 				
 <screen>
 	<prompt>$ </prompt><userinput>setenv SYBASE /usr/local/freetds</userinput>
-	<prompt>$ </prompt><userinput>setenv TDSVER 4.2</userinput></screen></para>
+	<prompt>$ </prompt><userinput>setenv TDSVER 7.4</userinput></screen></para>
 	</sect2>
 	<sect2 id="Checking">
 	<title>Checking your work</title>
@@ -1716,7 +1724,7 @@ The server responds with a port number.
 				<example id="e.g.tsqlhostname">
 					<title>Connect with <command>tsql</> using a hostname and port number</title>
 <screen>
-	<prompt>$ </prompt><userinput>TDSVER=7.0 tsql -H <replaceable>hillary</> -p <replaceable>4100</> -U <replaceable>sa</></userinput>
+	<prompt>$ </prompt><userinput>TDSVER=auto tsql -H <replaceable>hillary</> -p <replaceable>4100</> -U <replaceable>sa</></userinput>
 	<prompt>Password: </prompt>
 	<computeroutput>1></computeroutput></screen>
 	</example>
@@ -2164,7 +2172,7 @@ You can even establish a connection without reference to either <filename>odbc.i
 
 <para>First, try to connect with <command>tsql</>.  If you're intending to use &freetdsconf;, exercise it with
 			<command>tsql -S <replaceable>servername</></command>.  If not, use
-			<command>TDSVER=7.0 tsql -H <replaceable>hostname</> -p <replaceable>port</></command></para>
+			<command>TDSVER=auto tsql -H <replaceable>hostname</> -p <replaceable>port</></command></para>
 
 <para>If <command>tsql</> works and <command>isql</> doesn't, you've isolated the problem to the ODBC setup.  &freetds; might have some interoperability problems, but mere connection to the database isn't one of them!  If <command>tsql</>
 			doesn't work, turn on logging with <envar>TDSDUMP</>.  The log will tell you what TCP/IP name (and address) &freetds; is attempting to connect to, and what version of the TDS protocol it's using.</para>
@@ -2318,7 +2326,6 @@ If no <function>iconv</> library is found, or if it is explicitly disabled, &fre
 	[mssql]
 	host = ntbox.mydomain.com
 	port = 1433
-	tds version = 7.0
 	client charset = GREEK
 	</programlisting>
 			</example>
@@ -2337,7 +2344,6 @@ If no <function>iconv</> library is found, or if it is explicitly disabled, &fre
 	[mssql]
 	host = ntbox.mydomain.com
 	port = 1433
-	tds version = 7.0
 	client charset = UTF-8
 	</programlisting>
 			</example>
@@ -2436,10 +2442,9 @@ To avoid this problem, choose a threading model in <filename>odbcinst.ini</>.
 	Driver = FreeTDS
 	Server = myServer1
 	Port = 1433
-	TDS_Version = 7.2
 	</programlisting>
 				</example>
-			You can use also a connection string e.g. <literal>DRIVER=FreeTDS;SERVER=myServer1;PORT=1433;TDS_Version=7.2;</>.</para>
+			You can use also a connection string e.g. <literal>DRIVER=FreeTDS;SERVER=myServer1;PORT=1433;</>.</para>
 		</sect1>
 		
 	<sect1 id="appendmode">
@@ -2452,7 +2457,6 @@ To avoid this problem, choose a threading model in <filename>odbcinst.ini</>.
 				[mssql]
 				host = ntbox.mydomain.com
 				port = 1433
-				tds version = 7.0
 				dump file = /tmp/freetds.log
 				dump file append = yes
 				</programlisting>
@@ -3183,7 +3187,7 @@ If you get output as above, the servername is listening.  If you get a 'Connecti
 					<title>Connecting to the server, bypassing &freetdsconf;</title>
 <screen>
 	<prompt>$ </prompt><userinput>cd src/apps</userinput>
-	<prompt>$ </prompt><userinput>TDSVER=7.0 ./tsql -H <replaceable>myhost</> -p <replaceable>1433</> -U <replaceable>user</></userinput></screen>
+	<prompt>$ </prompt><userinput>TDSVER=auto ./tsql -H <replaceable>myhost</> -p <replaceable>1433</> -U <replaceable>user</></userinput></screen>
 	</example>
 	If you receive a message of 'Login Failed.' then your connectivity is OK, but you have a authentication issue.</para>
 
