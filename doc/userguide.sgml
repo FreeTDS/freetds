@@ -1245,6 +1245,7 @@ Note that is not possible to specify a directory as usually database servers doe
 							<entry>Tell server we only intent to do read-only queries.
 This is supported from MSSQL 2012.
 </entry>
+							</row>
 						<row>
 							<entry><literal>enable tls v1</></entry>
 							<entry>yes/no</entry>
