@@ -20,7 +20,7 @@
 # OpenVMS description file for FreeTDS
 
 # To override default TDS version of "auto" specify /MACRO="TDSVER=TDSxx=1"
-# where xx is one of 42, 46, 50, 70, 71, 72, 73, or 74.
+# where xx is one of 50, 71, 72, 73, or 74.
 
 # To build with ODBC support do MM(K|S)/MACRO="ODBC"=1
 # This presupposes the existence of an ODBC library in the location pointed to

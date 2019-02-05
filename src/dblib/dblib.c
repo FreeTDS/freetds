@@ -193,14 +193,8 @@ static DBLIBCONTEXT g_dblib_ctx;
 static tds_mutex dblib_mutex = TDS_MUTEX_INITIALIZER;
 
 static int g_dblib_version =
-#ifdef TDS42
-	DBVERSION_42;
-#elif TDS50
+#if TDS50
 	DBVERSION_100;
-#elif TDS46
-	DBVERSION_46;
-#elif TDS70
-	DBVERSION_70;
 #elif TDS71
 	DBVERSION_71;
 #elif TDS72

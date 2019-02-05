@@ -1344,14 +1344,8 @@ tds_get_compiletime_settings(void)
 #		else
 			, 0
 #		endif
-#		ifdef TDS42
-			, "4.2"
-#		elif TDS46
-			, "4.6"
-#		elif TDS50
+#		if TDS50
 			, "5.0"
-#		elif TDS70
-			, "7.0"
 #		elif TDS71
 			, "7.1"
 #		elif TDS72

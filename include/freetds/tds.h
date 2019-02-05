@@ -407,18 +407,9 @@ bool is_tds_type_valid(int type)
 #define TDS_DEF_BLKSZ		512
 #define TDS_DEF_CHARSET		"iso_1"
 #define TDS_DEF_LANG		"us_english"
-#if TDS42
-#define TDS_DEFAULT_VERSION	0x402
-#define TDS_DEF_PORT		1433
-#elif TDS46
-#define TDS_DEFAULT_VERSION	0x406
-#define TDS_DEF_PORT		4000
-#elif TDS50
+#if TDS50
 #define TDS_DEFAULT_VERSION	0x500
 #define TDS_DEF_PORT		4000
-#elif TDS70
-#define TDS_DEFAULT_VERSION	0x700
-#define TDS_DEF_PORT		1433
 #elif TDS71
 #define TDS_DEFAULT_VERSION	0x701
 #define TDS_DEF_PORT		1433
