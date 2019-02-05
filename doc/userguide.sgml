@@ -49,6 +49,10 @@
 		</copyright>
 	<copyright>
 		<year>2015</year>
+		<year>2016</year>
+		<year>2017</year>
+		<year>2018</year>
+		<year>2019</year>
 		<holder>Frediano Ziglio</holder>
 		</copyright>
 	<legalnotice><para>Permission is granted to copy, distribute and/or modify this document
@@ -283,7 +287,7 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 			<title>Versions used for this release</title>
 			<listitem><para>autoconf (GNU Autoconf) 2.69</para></listitem>
 			<listitem><para>automake (GNU automake) 1.15</para></listitem>
-			<listitem><para>ltmain.sh (GNU libtool) 2.4.2</para></listitem>
+			<listitem><para>ltmain.sh (GNU libtool) 2.4.6</para></listitem>
 			</itemizedlist>
 	</footnote> to increase portability.</para>
 
@@ -522,7 +526,7 @@ Cf. <link linkend="withOdbcNoDM"><option>--with-odbc-nodm</></link>.</para>
 				<variablelist id="tab.ssl"><title>SSL support</title>
 					<varlistentry>
 						<term><Option>--with-gnutls</Option></term>
-						<listitem><para>Enable SSL using GnuTLS. Use version 1.2.3 or newer.</para>
+						<listitem><para>Enable SSL using GnuTLS.</para>
 							</listitem>
 						</varlistentry>
 					
@@ -1582,17 +1586,20 @@ The server responds with a port number.
 	<prompt>$ </prompt><userinput>tsql -C </userinput>
 	<prompt>Password: </prompt>
 	<computeroutput>Compile-time settings (established with the "configure" script)
-                        	    Version: freetds v0.&version;
+                        	    Version: freetds v&version;
         	     freetds.conf directory: /usr/local/etc
 	     MS db-lib source compatibility: no
         	Sybase binary compatibility: no
                 	      Thread safety: yes
-                	      iconv library: no
-                        	TDS version: 7.0
+                	      iconv library: yes
+                        	TDS version: auto
                         	      iODBC: no
                         	   unixodbc: no
         	      SSPI "trusted" logins: no
-                        	    Keberos: no </computeroutput></screen>
+                        	    Keberos: no
+                                    OpenSSL: yes
+                                     GnuTLS: no
+                                       MARS: yes </computeroutput></screen>
 	</example>
 	
 
@@ -3399,17 +3406,20 @@ This applies only to Microsoft <productname>SQL Server</productname> and you'll 
 <prompt>$ </prompt><userinput>tsql -C</userinput>
 <computeroutput>
 Compile-time settings (established with the "configure" script)
-                            Version: freetds v0.&version;
+                            Version: freetds v&version;
              freetds.conf directory: /usr/local/etc
      MS db-lib source compatibility: no
         Sybase binary compatibility: no
                       Thread safety: yes
-                      iconv library: no
-                        TDS version: 7.0
+                      iconv library: yes
+                        TDS version: auto
                               iODBC: no
                            unixodbc: no
               SSPI "trusted" logins: no
-                            Keberos: no </computeroutput></screen>
+                            Keberos: no
+                            OpenSSL: yes
+                             GnuTLS: no
+                               MARS: yes </computeroutput></screen>
       
 For &odbc; setup issues, the <command>osql</command> script is intended to confirm the configuration files are all sane.  If it fails to report a problem, please post a message describing the problem to the mailing list.  Thanks.  </para>
 

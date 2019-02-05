@@ -3,9 +3,9 @@ $Id$
 Summary of Changes in release 1.1
 --------------------------------------------
 User visible (not in a particular order):
-- Removed 4.2 and 7.0 as default TDS protocol versions during
-  configure, the default if not specified is now "auto", to connect
-  to such obsolete servers you need to specify explicitly the version
+- Changed default TDS protocol version during configure to "auto".
+  Versions 4.2 and 7.0 are no longer accepted for default, you may
+  still specify an explicit version to connect to obsolete servers
   ("auto" won't attempt these versions);
 - allows to disable TLS 1.0 support;
 - pool server allows to specify different username/password for server
