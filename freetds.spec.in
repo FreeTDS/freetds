@@ -60,14 +60,7 @@ and can be installed even if FreeTDS main package is not installed
 %setup 
  
 %build
-ODBCDIR=`odbc_config --prefix || true`
-if test ! -r "$ODBCDIR/include/sql.h"; then
-	ODBCDIR=/usr/local
-fi
-if test ! -r "$ODBCDIR/include/sql.h"; then
-	ODBCDIR=/usr
-fi
-%configure --with-tdsver=auto --with-unixodbc="$ODBCDIR" --with-gnutls
+%configure --with-tdsver=auto --with-unixodbc --with-gnutls
 make RPM_OPT_FLAGS="$RPM_OPT_FLAGS"
  
 %install 
