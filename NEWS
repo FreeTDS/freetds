@@ -6,8 +6,7 @@ User visible (not in a particular order):
 - Removed 4.2 and 7.0 as default TDS protocol versions during
   configure, the default if not specified is now "auto", to connect
   to such obsolete servers you need to specify explicitly the version
-  ("auto" won't attempt these versions). CMake build default to
-  version 7.1;
+  ("auto" won't attempt these versions);
 - allows to disable TLS 1.0 support;
 - pool server allows to specify different username/password for server
   and clients allowing to hide internal server logins;

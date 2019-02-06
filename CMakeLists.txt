@@ -345,8 +345,7 @@ config_write("#define VERSION \"\\@VERSION\\@\"\n\n")
 
 config_write("#define FREETDS_TOPDIR \"${FREETDS_TOPDIR}\"\n\n")
 
-# TODO make it configure option
-config_write("#define TDS71 1\n\n")
+# TODO allow to configure default TDS protocol version
 
 config_write("#ifdef _MSC_VER
 #  define inline __inline
