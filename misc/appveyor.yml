@@ -52,7 +52,7 @@ environment:
   - PLAT: Win64
     WIDTH: 64
     VS_VERSION: "2010"
-    TDSVER: "7.2"
+    TDSVER: "auto"
 
   - PLAT: Win32
     WIDTH: 32
