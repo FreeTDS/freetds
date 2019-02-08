@@ -1264,7 +1264,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 		tds_convert_string_free(query, converted_query);
 		free(param_definition);
 
-		/* 1 param ?? why ? flags ?? */
+		/* options, 1 == RETURN_METADATA */
 		tds_put_byte(tds, 0);
 		tds_put_byte(tds, 0);
 		tds_put_byte(tds, SYBINTN);
