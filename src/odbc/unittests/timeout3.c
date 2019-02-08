@@ -152,8 +152,8 @@ main(int argc, char *argv[])
 
 	/*
 	 * prepare our odbcinst.ini 
-	 * is better to do it before connect cause uniODBC cache INIs
-	 * the name must be odbcinst.ini cause unixODBC accept only this name
+	 * it is better to do it before connecting because unixODBC caches INIs
+	 * the name must be odbcinst.ini because unixODBC accepts only this name
 	 */
 	if (odbc_driver[0]) {
 		FILE *f = fopen("odbcinst.ini", "w");
