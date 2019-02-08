@@ -61,6 +61,22 @@ $   d_socketpair = "0"
 $   SAY "Using replacement socketpair()"
 $ ENDIF
 $!
+$!
+$! Enable OpenSSL if we have it.
+$!
+$ IF F$SEARCH("SSL1$INCLUDE:SSL.H") .NES. ""
+$ THEN
+$   d_openssl = "1"
+$   SAY "Found OpenSSL and creating linker options file..."
+$   OPEN/WRITE sslopt openssl.opt
+$   WRITE sslopt "SYS$SHARE:SSL1$LIBSSL_SHR32.EXE/SHARE"
+$   WRITE sslopt "SYS$SHARE:SSL1$LIBCRYPTO_SHR32.EXE/SHARE"
+$   CLOSE sslopt
+$ ELSE
+$   d_openssl = "0"
+$   SAY "Did not find OpenSSL"
+$ ENDIF
+$!
 $! Generate config.h
 $!
 $ open/write vmsconfigtmp vmsconfigtmp.com
@@ -84,6 +100,8 @@ $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@D_SNPRINTF@"",""''d_snprintf'"");"
 $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@D_SOCKETPAIR@"",""''d_socketpair'"");"
+$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
+$ write vmsconfigtmp "eve_global_replace(""@D_OPENSSL@"",""''d_openssl'"");"
 $ write vmsconfigtmp "out_file := GET_INFO (COMMAND_LINE, ""output_file"");"
 $ write vmsconfigtmp "WRITE_FILE (main_buffer, out_file);"
 $ write vmsconfigtmp "quit;"
@@ -165,6 +183,8 @@ $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@SOCKETPAIROBJ@"",""''socketpairobj'"");"
 $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@ENABLE_THREAD_SAFE@"",""''enable_thread_safe'"");"
+$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
+$ write vmsconfigtmp "eve_global_replace(""@D_OPENSSL@"",""''d_openssl'"");"
 $ write vmsconfigtmp "out_file := GET_INFO (COMMAND_LINE, ""output_file"");"
 $ write vmsconfigtmp "WRITE_FILE (main_buffer, out_file);"
 $ write vmsconfigtmp "quit;"

@@ -147,6 +147,11 @@
 /* Define to 1 if you have the `nl_langinfo' function. */
 #define HAVE_NL_LANGINFO 1
 
+/* Define if you have the OpenSSL. */
+#if @D_OPENSSL@
+#define HAVE_OPENSSL
+#endif
+
 /* Define to 1 if you have the <paths.h> header file. */
 #undef HAVE_PATHS_H
 
