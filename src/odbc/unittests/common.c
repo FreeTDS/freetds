@@ -37,6 +37,10 @@ char odbc_password[512];
 char odbc_database[512];
 char odbc_driver[1024];
 
+static int freetds_driver = -1;
+static int tds_version = -1;
+static char db_str_version[32];
+
 static int
 check_lib(char *path, const char *file)
 {
@@ -311,6 +315,10 @@ odbc_disconnect(void)
 		odbc_env = SQL_NULL_HENV;
 	}
 	ODBC_FREE();
+
+	freetds_driver = -1;
+	tds_version = -1;
+	db_str_version[0] = 0;
 	return 0;
 }
 
@@ -346,7 +354,6 @@ odbc_db_is_microsoft(void)
 	return ms_db;
 }
 
-static int freetds_driver = -1;
 int
 odbc_driver_is_freetds(void)
 {
@@ -449,8 +456,6 @@ odbc_tds_version_long(void)
 int
 odbc_tds_version(void)
 {
-	static int tds_version = -1;
-
 	ODBC_BUF *odbc_buf = NULL;
 	SQLUINTEGER version;
 	SQLSMALLINT len;
@@ -468,8 +473,6 @@ odbc_tds_version(void)
 	ODBC_FREE();
 	return tds_version;
 }
-
-static char db_str_version[32];
 
 const char *odbc_db_version(void)
 {
