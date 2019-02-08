@@ -457,6 +457,8 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 			
 			if (erc != -TDSEFCON)	/* TDSEFCON indicates wrong TDS version */
 				break;
+			if (login->server_is_valid)
+				break;
 		}
 		
 		mod_ctx->err_handler = err_handler;
@@ -1213,6 +1215,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	ret = tds_read_packet(tds);
 	if (ret <= 0 || tds->in_flag != TDS_REPLY)
 		return TDS_FAIL;
+	login->server_is_valid = 1;
 	pkt_len = tds->in_len - tds->in_pos;
 
 	/* the only thing we care is flag */

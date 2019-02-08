@@ -558,6 +558,7 @@ typedef struct tds_login
 	unsigned int check_ssl_hostname:1;
 	unsigned int readonly_intent:1;
 	unsigned int enable_tls_v1:1;
+	unsigned int server_is_valid:1;
 } TDSLOGIN;
 
 typedef struct tds_headers
