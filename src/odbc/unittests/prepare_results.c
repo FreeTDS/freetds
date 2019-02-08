@@ -114,9 +114,19 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	Test(0);
-	odbc_reset_statement();
-	Test(1);
+	if (odbc_driver_is_freetds()) {
+		if (odbc_db_is_microsoft() && odbc_tds_version() >= 0x704) {
+			odbc_disconnect();
+			putenv("TDSVER=7.3");
+			odbc_connect();
+			odbc_command("create table #odbctestdata (i int, c char(20), n numeric(34,12) )");
+		}
+		if (!odbc_db_is_microsoft() || odbc_tds_version() < 0x704) {
+			Test(0);
+			odbc_reset_statement();
+			Test(1);
+		}
+	}
 
 	/* TODO test SQLDescribeParam (when implemented) */
 	odbc_command("drop table #odbctestdata");
