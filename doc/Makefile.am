@@ -177,15 +177,15 @@ $(DOCDIR)/reference/index.html: $(top_srcdir)/configure
 # This lets us use the api_status.txt document in our SGML.
 #
 API_TABLE_HEADING = \
-	<tgroup cols=4><thead><row> \
-		<entry>Category</> \
-		<entry>Function</> \
-		<entry>Status</> \
-		<entry>Comments</> \
+	<tgroup cols="4"><thead><row> \
+		<entry>Category</entry> \
+		<entry>Function</entry> \
+		<entry>Status</entry> \
+		<entry>Comments</entry> \
 		</row></thead> 
 
-API_FUNC_COL = <entry>Function</> 
-API_DBLIB_FUNC_COLS = <entry>Microsoft name</><entry>Sybase name</>
+API_FUNC_COL = <entry>Function</entry>
+API_DBLIB_FUNC_COLS = <entry>Microsoft name</entry><entry>Sybase name</entry>
 
 API_PAGE_FMT = \
 	<table id="%s.api"> \
@@ -200,8 +200,8 @@ dblib.api.body ctlib.api.body odbc.api.body: $(srcdir)/api_status.txt
 	NAME=`echo $@ | sed 's/\..*$$//'` && \
 	sed -ne "/^$${NAME}[	]/ s!!<row><entry>!p" \
 			$(srcdir)/api_status.txt \
-		| sed 	-e's![	][	]*!</> <entry>!g' \
-			-e's!$$!</></row>!'  > $@~
+		| sed 	-e's![	][	]*!</entry> <entry>!g' \
+			-e's!$$!</entry></row>!'  > $@~
 	mv $@~ $@
 
 dblib.api.sgml: dblib.api.body
