@@ -1,8 +1,10 @@
-<!doctype book PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
-	<!ENTITY dblibapisgml SYSTEM "dblib.api.sgml">
-	<!ENTITY ctlibapisgml SYSTEM "ctlib.api.sgml">
-	<!ENTITY  odbcapisgml SYSTEM "odbc.api.sgml">
-	<!ENTITY % ug.desc SYSTEM "userguide_desc.sgml">
+<?xml version="1.0" encoding='UTF-8'?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+  "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd" [
+	<!ENTITY dblibapixml SYSTEM "dblib.api.xml">
+	<!ENTITY ctlibapixml SYSTEM "ctlib.api.xml">
+	<!ENTITY  odbcapixml SYSTEM "odbc.api.xml">
+	<!ENTITY % ug.desc SYSTEM "userguide_desc.xml">
 	%ug.desc;
 	<!ENTITY % comment "IGNORE" >
 	<!ENTITY ora "O'Reilly &amp; Associates">
@@ -83,10 +85,10 @@
 				</simplelist>
 			</footnote>
 		can be found on the &freetds;
-		<ulink url="http://www.freetds.org/userguide/">web site</ulink>, where you will also find the most up to date <ulink url="http://www.freetds.org/faq.html">FAQ</ulink>, as well as links to the anonymous and browseable git repository.  If you find something wrong, unclear, badly put, misleading, or incorrigible, I hope you will let us know.  Post your musings or rants to the mailing list (see <link linkend="contrib">Helping</link>).  Patches to <filename>doc/userguide.sgml</filename> are especially welcome, of course.  By taking the time let us know what you think, perhaps the path to enlightenment will be made a little smoother for the fellow behind you.</para>
+		<ulink url="http://www.freetds.org/userguide/">web site</ulink>, where you will also find the most up to date <ulink url="http://www.freetds.org/faq.html">FAQ</ulink>, as well as links to the anonymous and browseable git repository.  If you find something wrong, unclear, badly put, misleading, or incorrigible, I hope you will let us know.  Post your musings or rants to the mailing list (see <link linkend="contrib">Helping</link>).  Patches to <filename>doc/userguide.xml</filename> are especially welcome, of course.  By taking the time let us know what you think, perhaps the path to enlightenment will be made a little smoother for the fellow behind you.</para>
 
-<para>A few technical notes.  This guide is written in SGML DocBook format, specifications for which are found in the <ulink url="http://www.docbook.org/tdg/en/html/docbook.html">DocBook book</ulink>.  It was converted to HTML with <ulink url="http://openjade.sourceforge.net">OpenJade</ulink>.
-		The SGML text is distributed with the rest of the source code, and may be edited with your favorite or least favorite text editor.</para>
+<para>A few technical notes.  This guide is written in XML DocBook format, specifications for which are found in the <ulink url="http://www.docbook.org/tdg/en/html/docbook.html">DocBook book</ulink>.  It was converted to HTML with <ulink url="https://pagure.io/xmlto">xmlto</ulink>.
+		The XML text is distributed with the rest of the source code, and may be edited with your favorite or least favorite text editor.</para>
 
 <para>Enough.  Let's begin.</para>
 
@@ -1064,9 +1066,9 @@ versions that &freetds; had labeled 8.0 and 9.0 were actually versions 7.1 and 7
 							<entry>any valid port</entry>
 							<entrytbl cols="3">
 								<thead>
-									<colspec colname= 'prd' colsep='0' rowsep='0'>
-									<colspec colname= 'ver' colsep='0' rowsep='0'>
-									<colspec colname= 'def' colsep='0' rowsep='0'>
+									<colspec colname= 'prd' colsep='0' rowsep='0'/>
+									<colspec colname= 'ver' colsep='0' rowsep='0'/>
+									<colspec colname= 'def' colsep='0' rowsep='0'/>
 									<row>
 										<entry>Product</entry>
 										<entry>Version</entry>
@@ -3548,7 +3550,7 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 
 <para>Any corrections or suggestions, be they typographical, grammatical, structural, factual, or mineral are most  welcome.  Please send it to the <ulink url="mailto:freetds@lists.ibiblio.org">&freetds; mailing list</ulink>.</para>
 
-<para>The User Guide is maintained in <acronym>SGML</acronym> DocBook format; the file in your distibution is  <filename>doc/userguide.sgml</filename>.  It is a flat ASCII file that you can edit with any text editor.  You don't have to know <acronym>SGML</acronym> to correct or add to the User Guide, however.  Just open it up, find the place you're interested in, and type away.  Do a <command>diff -u <replaceable>old_version</replaceable> <replaceable>your_version</replaceable></command> and post your patch to the SourceForge site.  Any errors or lackings in your markup will be graciously emended by yours truly.</para>
+<para>The User Guide is maintained in <acronym>XML</acronym> DocBook format; the file in your distibution is  <filename>doc/userguide.xml</filename>.  It is a flat ASCII file that you can edit with any text editor.  You don't have to know <acronym>XML</acronym> to correct or add to the User Guide, however.  Just open it up, find the place you're interested in, and type away.  Do a <command>diff -u <replaceable>old_version</replaceable> <replaceable>your_version</replaceable></command> and post your patch to the SourceForge site.  Any errors or lackings in your markup will be graciously emended by yours truly.</para>
 			</sect2>
 		<sect2 id="Documentapi">
 			<title>Document an <acronym>API</acronym></title>
@@ -3685,7 +3687,7 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 			as a PDF file.
 			
 			<footnote><para>Links such as these are quite perishable.  Should you find them broken, please check the <ulink url="http://www.freetds.org/userguide/dblib.api.summary.htm">&freetds; User Guide</ulink> posted on our website.  If it's out of date, please let us know, so we can correct it.  Thanks.</para></footnote></para>
-		&dblibapisgml;
+		&dblibapixml;
 		</sect1>
 	
 	<sect1 id="ctlib.api.summary">
@@ -3694,7 +3696,7 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 <para>Sybase ct-lib documentation can be found
 			<ulink url="http://manuals.sybase.com/onlinebooks/group-cnarc/cng1110e/ctref/@Generic__BookView">online</ulink>
 			and in <ulink url="http://download.sybase.com/pdfdocs/cng1000e/ref.pdf">PDF</ulink> form. <footnote><para>Links such as these are quite perishable.  Should you find them broken, please check the <ulink url="http://www.freetds.org/userguide/ctlib.api.summary.htm">&freetds; User Guide</ulink> posted on our website.  If it's out of date, please let us know, so we can correct it.  Thanks.</para></footnote></para>
-		&ctlibapisgml;
+		&ctlibapixml;
 		</sect1>
 	
 	<sect1 id="odbc.api.summary">
@@ -3705,7 +3707,7 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 		
 
 <para>The functions are linked to the reference page on Microsoft's website.  <footnote><para>Links such as these are quite perishable.  Should you find them broken, please check the <ulink url="http://www.freetds.org/userguide/odbc.api.summary.htm">&freetds; User Guide</ulink> posted on our website.  If it's out of date, please let us know, so we can correct it.  Thanks.</para></footnote></para>
-		&odbcapisgml;
+		&odbcapixml;
 		</sect1>
 	
 	<sect1 id="samplecode">
@@ -3733,7 +3735,7 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 		
 
 <para><orderedlist><title>How to Get and Build the sample code</title>
-				<listitem><para>Run <filename>doc/grep_sample_code</filename> to extract the <symbol>C</symbol> code from the User Guide <symbol>SGML</symbol> source.</para></listitem>
+				<listitem><para>Run <filename>doc/grep_sample_code</filename> to extract the <symbol>C</symbol> code from the User Guide <symbol>XML</symbol> source.</para></listitem>
 				<listitem><para>Compile</para></listitem>
 				<listitem><para>Link</para></listitem>
 				</orderedlist>
@@ -3749,7 +3751,7 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 <para>The source code may be built with commands similar to these.  The precise options and paths depend on your particular system.  The commands below work with the GNU compiler and linker on an ELF system with dynamic linking, common on Linux and BSD systems.
 			<example><title>Building the Sample Code</title>
 <screen>
-	<prompt>$ </prompt><userinput>../doc/grep_sample_code ../doc/userguide.sgml > sample.c</userinput>
+	<prompt>$ </prompt><userinput>../doc/grep_sample_code ../doc/userguide.xml > sample.c</userinput>
 	<prompt>$ </prompt><userinput>cc -I /usr/local/include -Wl,-L/usr/local/lib -Wl,-R/usr/local/lib sample.c -lsybdb -o sample</userinput></screen>
 	</example>
 	where <filename>/usr/local/include</filename> and <filename>/usr/local/lib</filename> are respectively the locations of your header files and libraries.</para>
@@ -3961,12 +3963,12 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 	<para><firstterm>Results</firstterm> is a special term: it means more than rows or no rows.  To <emphasis>process the results</emphasis> means to gather the data returned by the server into the application's variables.
 					<table id="tab.kinds.of.results"><title>Kinds of Results</title>
 						<tgroup cols='6' align='left' colsep='1' rowsep='1'>
-							<colspec colname="type">
-							<colspec colname="meta">
-							<colspec colname="reg">
-							<colspec colname="comp">
-							<colspec colname="ret">
-							<colspec colname="eg">
+							<colspec colname="type"/>
+							<colspec colname="meta"/>
+							<colspec colname="reg"/>
+							<colspec colname="comp"/>
+							<colspec colname="ret"/>
+							<colspec colname="eg"/>
 							<thead>
 								<row>
 									<entry>Type</entry>
@@ -4028,10 +4030,10 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 
 	<para> <table id="tab.result.fetching.functions"><title>Result-fetching functions</title>
 						<tgroup cols='4' align='left' colsep='1' rowsep='1'>
-							<colspec colname="func">
-							<colspec colname="type">
-							<colspec colname="ret">
-							<colspec colname="etc">
+							<colspec colname="func"/>
+							<colspec colname="type"/>
+							<colspec colname="ret"/>
+							<colspec colname="etc"/>
 							<thead>
 								<row>
 									<entry>Function</entry>
@@ -4105,11 +4107,11 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 
 	<para> <table id="tab.data.fetching.functions"><title>Data-fetching functions</title>
 						<tgroup cols='5' align='left' colsep='1' rowsep='1'>
-							<colspec colname="type">
-							<colspec colname="reg">
-							<colspec colname="comp">
-							<colspec colname="ret">
-							<colspec colname="out">
+							<colspec colname="type"/>
+							<colspec colname="reg"/>
+							<colspec colname="comp"/>
+							<colspec colname="ret"/>
+							<colspec colname="out"/>
 							<thead>
 								<row>
 									<entry>Type</entry>
@@ -4159,10 +4161,10 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 
 	<para> <table id="tab.putting.it.all.together"><title>Putting it all together </title>
 						<tgroup cols='4' align='left' colsep='1' rowsep='1'>
-							<colspec colname="step">
-							<colspec colname="func">
-							<colspec colname="once">
-							<colspec colname="freq">
+							<colspec colname="step"/>
+							<colspec colname="func"/>
+							<colspec colname="once"/>
+							<colspec colname="freq"/>
 							<thead>
 								<row>	<entry>Step </entry>
 									<entry>Function </entry>
