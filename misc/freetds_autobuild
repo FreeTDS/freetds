@@ -137,7 +137,7 @@ else
 	REV="$COMMIT"
 fi
 git archive $REV | tar -C $WORKDIR -xvf -
-cp doc/userguide_desc.sgml $WORKDIR/doc/
+cp doc/userguide_desc.xml $WORKDIR/doc/
 cd $WORKDIR
 echo "$REV" > git_revision
 if test "$(uname -m)" = "x86_64"; then

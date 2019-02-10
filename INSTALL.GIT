@@ -23,12 +23,8 @@ The git repository is maintained on GitHub. Follow these steps:
 	You may get away with older versions, as far back as 2.53 for autoconf.
 
 	In order to be able to compile documentation you need docbook dssl
-	files. For Debian distros for instance you need openjade and
-	docbook-dsssl packages installed (other distros varies). Also you
-	need to have a "DOCBOOK_DSL" environment pointing to docbook style
-	sheet (in my case
-	/usr/share/sgml/docbook/stylesheet/dsssl/modular/html/docbook.dsl
-	from docbook-dsssl package).
+	files. For Debian distros for instance you need xmlto and
+	docbook-style-xsl packages installed (other distros varies).
 
 2) execute autogen.sh to run automake, autoconf and configure,
 

@@ -68,15 +68,15 @@ export PATH
 cd fakebin
 echo "#!/bin/sh
 echo \"\$0 should not be called\" >&2
-exit 1" > openjade
-cp openjade doxygen
-cp openjade txt2man
-cp openjade autoheader
+exit 1" > xmlto
+cp xmlto doxygen
+cp xmlto txt2man
+cp xmlto autoheader
 # perl is used by some perl rules
-cp openjade perl
-chmod +x openjade doxygen txt2man autoheader perl
+cp xmlto perl
+chmod +x xmlto doxygen txt2man autoheader perl
 cd ..
-if ! openjade --help; then true; else echo 'succedeed ?'; false; fi
+if ! xmlto --help; then true; else echo 'succedeed ?'; false; fi
 if ! doxygen --help; then true; else echo 'succeeded ?'; false; fi
 if ! txt2man --help; then true; else echo 'succeeded ?'; false; fi
 if ! autoheader --help; then true; else echo 'succeeded ?'; false; fi

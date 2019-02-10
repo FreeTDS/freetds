@@ -3,17 +3,21 @@
  */
 
 /* Set the screen background to gray */
-.SCREEN {
+.screen {
 	background-color: #F0F0F0;
 }
 
 /* Render user input as boldface */
-.USERINPUT {
+.userinput {
   font-weight: bold;
 }
 
 /* Make filenames green (why not?) */
-.FILENAME {
+.filename {
 	color: #007a00;
 }
 
+.epigraph {
+	text-align: center;
+	font-style: italic;
+}
