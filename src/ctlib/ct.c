@@ -297,7 +297,6 @@ ct_con_alloc(CS_CONTEXT * ctx, CS_CONNECTION ** con)
 	/* so we know who we belong to */
 	(*con)->ctx = ctx;
 
-	/* tds_set_client_charset((*con)->tds_login, "iso_1"); */
 	/* tds_set_packet((*con)->tds_login, TDS_DEF_BLKSZ); */
 	return CS_SUCCEED;
 }
@@ -365,7 +364,7 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 		bool copy_ret = true;
 
 		if (property == CS_USERNAME || property == CS_PASSWORD || property == CS_APPNAME ||
-			property == CS_HOSTNAME || property == CS_SERVERADDR) {
+			property == CS_HOSTNAME || property == CS_SERVERADDR || property == CS_CLIENTCHARSET) {
 			if (buflen == CS_NULLTERM) {
 				set_buffer = strdup((char *) buffer);
 			} else if (buflen == CS_UNUSED) {
@@ -426,6 +425,9 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			con->locale = _cs_locale_copy((CS_LOCALE *) buffer);
 			if (!con->locale)
 				return CS_FAIL;
+			break;
+		case CS_CLIENTCHARSET:
+			tds_set_client_charset(tds_login, set_buffer);
 			break;
 		case CS_USERDATA:
 			free(con->userdata);
@@ -512,6 +514,9 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			goto str_copy;
 		case CS_SERVERNAME:
 			s = &tds_login->server_name;
+		case CS_CLIENTCHARSET:
+			s = &tds_login->client_charset;
+			goto str_copy;
 		str_copy:
 			if (out_len)
 				*out_len = tds_dstr_len(s);
