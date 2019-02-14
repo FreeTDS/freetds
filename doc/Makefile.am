@@ -119,7 +119,6 @@ $(DOCDIR)/userguide/index.htm: 	$(DOCDIR) userguide.sgml userguide_desc.sgml \
 # try jade ...
 	test -r $(abs_srcdir)/userguide.sgml
 	test -r userguide.sgml || ln -s $(srcdir)/userguide.sgml userguide.sgml
-	test -r $(abs_srcdir)/userguide_desc.sgml
 	test -r userguide_desc.sgml || ln -s $(srcdir)/userguide_desc.sgml userguide_desc.sgml
 	(cd $(DOCDIR)/userguide && \
 	if test -n "${DOCBOOK_DSL}" ; then \
