@@ -39,6 +39,7 @@ unset TDSDUMP || true
 # remove old distributions
 touch freetds-dummy
 find freetds-* -type d ! -perm -200 -exec chmod u+w {} ';'
+chmod -R 755 freetds-*
 rm -rf freetds-*
 
 # save directory
@@ -130,7 +131,7 @@ echo "make distcheck ok" >&3
 
 # cleanup
 cd "$ORIGDIR"
-chmod -R 777 "$DIR"
+chmod -R 755 "$DIR"
 rm -rf "$DIR"
 
 # check rpm
