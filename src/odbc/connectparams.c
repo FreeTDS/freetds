@@ -64,6 +64,9 @@ static const char *odbc_param_names[] = {
  */
 static FILE *tdoGetIniFileName(void);
 
+/* avoid name collision with system headers */
+#define SQLGetPrivateProfileString tds_SQLGetPrivateProfileString
+
 /**
  * SQLGetPrivateProfileString
  *
