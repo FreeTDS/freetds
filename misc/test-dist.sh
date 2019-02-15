@@ -45,21 +45,20 @@ rm -rf freetds-*
 ORIGDIR="$PWD"
 
 # init log
-LOG="$PWD/test-dist.log"
-rm -f "$LOG"
-echo "log started" >> "$LOG"
+exec 3> test-dist.log
+echo "log started" >&3
 
 # make distribution
 test -f Makefile || sh autogen.sh
 make dist
-echo "make distribution ok" >> "$LOG"
+echo "make distribution ok" >&3
 
 # untar to test it, should already contains documentation
 DIR=`echo freetds-*.tar.bz2 | sed s,.tar.bz2$,,g`
 bzip2 -dc freetds-*.tar.bz2 | tar xf -
 test -d "$DIR"
 cd "$DIR"
-echo "untar ok" >> "$LOG"
+echo "untar ok" >&3
 
 # assure you do not compile documentation again
 mkdir fakebin
@@ -81,7 +80,7 @@ if ! doxygen --help; then true; else echo 'succeeded ?'; false; fi
 if ! txt2man --help; then true; else echo 'succeeded ?'; false; fi
 if ! autoheader --help; then true; else echo 'succeeded ?'; false; fi
 if ! perl --help; then true; else echo 'succeeded ?'; false; fi
-echo "fakebin ok" >> "$LOG"
+echo "fakebin ok" >&3
 
 # direct make install (without make all)
 mkdir install
@@ -94,7 +93,7 @@ cd build
 make clean
 make install
 cd ..
-echo "direct make install ok" >> "$LOG"
+echo "direct make install ok" >&3
 
 # cleanup
 rm -rf install build
@@ -106,7 +105,7 @@ cd build
 make dist
 cd ..
 rm -rf build
-echo "make dist ok" >> "$LOG"
+echo "make dist ok" >&3
 
 # test if make clean clean too much
 mkdir install
@@ -127,7 +126,7 @@ if test ! -e PWD -a -e "$ORIGDIR/PWD"; then
 	cp "$ORIGDIR/PWD" .
 fi
 make distcheck
-echo "make distcheck ok" >> "$LOG"
+echo "make distcheck ok" >&3
 
 # cleanup
 cd "$ORIGDIR"
@@ -141,10 +140,10 @@ if rpmbuild --help > /dev/null 2>&1; then
 fi
 if $RPMCMD --help > /dev/null 2>&1; then
 	$RPMCMD -ta freetds-*.tar.bz2 || exit 1
-	echo "rpm test ok" >> "$LOG"
+	echo "rpm test ok" >&3
 else
-	echo "rpm test skipped, no rpm detected" >> "$LOG"
+	echo "rpm test skipped, no rpm detected" >&3
 fi
 
-echo "all tests ok!!!" >> "$LOG"
+echo "all tests ok!!!" >&3
 
