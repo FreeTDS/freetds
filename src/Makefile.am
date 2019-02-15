@@ -1,10 +1,9 @@
 SUBDIRS	     = utils replacements tds ctlib dblib
-DIST_SUBDIRS = $(SUBDIRS)
+DIST_SUBDIRS = utils replacements tds ctlib dblib \
+	odbc server pool apps
 
 if ODBC
 SUBDIRS	+= odbc
-else
-DIST_SUBDIRS += odbc
 endif
 
 if INCPOOL
