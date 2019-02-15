@@ -9,12 +9,17 @@ endif
 
 if INCPOOL
 SUBDIRS += server pool
-else !INCPOOL
+else
+DIST_SUBDIRS += server pool
 if INCSERVER
 SUBDIRS += server
+else
+DIST_SUBDIRS += server
 endif
 endif
 
 if INCAPPS
 SUBDIRS += apps
+else
+DIST_SUBDIRS += apps
 endif
