@@ -8,6 +8,15 @@ check always same value IPD->processed_ptr attr
 */
 
 static void
+prepare_something(void)
+{
+	/* Some DM requires something to be prepared, so do it */
+#ifndef TDS_NO_DM
+	CHKPrepare(T("select * from #tmp1"), SQL_NTS, "S");
+#endif
+}
+
+static void
 check_ipd_params(void)
 {
 	void *ptr, *ptr2;
@@ -19,7 +28,8 @@ check_ipd_params(void)
 	/* get IPD */
 	CHKGetStmtAttr(SQL_ATTR_IMP_PARAM_DESC, &desc, sizeof(desc), &ind, "S");
 
-	CHKR(SQLGetDescField, (desc, 0, SQL_DESC_ROWS_PROCESSED_PTR, &ptr2, sizeof(ptr2), &ind), "S");
+	CHKR2(SQLGetDescField, (desc, 0, SQL_DESC_ROWS_PROCESSED_PTR, &ptr2, sizeof(ptr2), &ind),
+	      SQL_HANDLE_DESC, desc, "S");
 
 	if (ptr != ptr2) {
 		fprintf(stderr, "IPD inconsistency ptr %p ptr2 %p\n", ptr, ptr2);
@@ -42,7 +52,8 @@ set_ipd_params2(SQLULEN *ptr)
 	/* get IPD */
 	CHKGetStmtAttr(SQL_ATTR_IMP_PARAM_DESC, &desc, sizeof(desc), &ind, "S");
 
-	CHKR(SQLSetDescField, (desc, 1, SQL_DESC_ROWS_PROCESSED_PTR, ptr, 0), "S");
+	CHKR2(SQLSetDescField, (desc, 1, SQL_DESC_ROWS_PROCESSED_PTR, ptr, 0),
+	      SQL_HANDLE_DESC, desc, "S");
 }
 
 static void
@@ -72,6 +83,8 @@ test_params(void)
 	SQLLEN *id_lens = MALLOC_N(SQLLEN,ARRAY_SIZE);
 	unsigned long int h, l;
 	unsigned int n;
+
+	prepare_something();
 
 	for (n = 0; n < ARRAY_SIZE; ++n) {
 		ids[n] = n;
@@ -136,7 +149,8 @@ check_ird_params(void)
 	/* get IRD */
 	CHKGetStmtAttr(SQL_ATTR_IMP_ROW_DESC, &desc, sizeof(desc), &ind, "S");
 
-	CHKR(SQLGetDescField, (desc, 0, SQL_DESC_ROWS_PROCESSED_PTR, &ptr2, sizeof(ptr2), &ind), "S");
+	CHKR2(SQLGetDescField, (desc, 0, SQL_DESC_ROWS_PROCESSED_PTR, &ptr2, sizeof(ptr2), &ind),
+	      SQL_HANDLE_DESC, desc, "S");
 
 	if (ptr != ptr2) {
 		fprintf(stderr, "IRD inconsistency ptr %p ptr2 %p\n", ptr, ptr2);
@@ -159,7 +173,8 @@ set_ird_params2(SQLULEN *ptr)
 	/* get IRD */
 	CHKGetStmtAttr(SQL_ATTR_IMP_ROW_DESC, &desc, sizeof(desc), &ind, "S");
 
-	CHKR(SQLSetDescField, (desc, 1, SQL_DESC_ROWS_PROCESSED_PTR, ptr, 0), "S");
+	CHKR2(SQLSetDescField, (desc, 1, SQL_DESC_ROWS_PROCESSED_PTR, ptr, 0),
+	      SQL_HANDLE_DESC, desc, "S");
 }
 
 static const rows_set_t row_set[] = {
@@ -180,6 +195,8 @@ test_rows(void)
 	unsigned long int h, l;
 	unsigned int n;
 
+	prepare_something();
+
 	for (n = 0; n < ARRAY_SIZE; ++n) {
 		ids[n] = n;
 		id_lens[n] = 0;
@@ -196,6 +213,7 @@ test_rows(void)
 		const char *test_name = NULL;
 
 		odbc_reset_statement();
+		prepare_something();
 		len = 0xdeadbeef;
 		len <<= 16;
 		len <<= 16;
