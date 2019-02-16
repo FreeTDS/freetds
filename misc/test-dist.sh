@@ -113,6 +113,19 @@ mkdir install
 ./configure --prefix="$PWD/install"
 make clean
 make dist
+rm -rf install
+echo "make dist after clean ok" >&3
+
+# test if dist with some configuration disabled can be repackaged
+./configure --prefix="$PWD/install" --disable-odbc --disable-apps --disable-server --disable-pool
+make dist
+bzip2 -dc freetds-*.tar.bz2 | tar xf -
+cd "$DIR"
+./configure
+make dist
+cd ..
+rm -rf "$DIR"
+echo "make dist after make dist with options disabled ok" >&3
 
 # finally big test. I hope you have a fast machine :)
 cd ..
