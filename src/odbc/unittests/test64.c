@@ -117,10 +117,9 @@ test_params(void)
 		SQLMoreResults(odbc_stmt);
 		for (n = 0; n < ARRAY_SIZE; ++n)
 			SQLMoreResults(odbc_stmt);
-		l = len;
+		l = (unsigned long int) (len & 0xfffffffflu);
 		len >>= 16;
-		h = len >> 16;
-		l &= 0xfffffffflu;
+		h = (unsigned long int) (len >> 16);
 		if (h != 0 || l != 2) {
 			fprintf(stderr, "Wrong number returned in param rows high %lu low %lu\n", h, l);
 			exit(1);
@@ -242,10 +241,9 @@ test_rows(void)
 		}
 		SQLMoreResults(odbc_stmt);
 
-		l = len;
+		l = (unsigned long int) (len & 0xfffffffflu);
 		len >>= 16;
-		h = len >> 16;
-		l &= 0xfffffffflu;
+		h = (unsigned long int) (len >> 16);
 		if (h != 0 || l != 2) {
 			fprintf(stderr, "Wrong number returned in rows high %lu(0x%lx) low %lu(0x%lx) test %s\n", h, h, l, l, test_name);
 			exit(1);
