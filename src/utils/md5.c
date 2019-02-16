@@ -36,11 +36,11 @@
 /*
  * Note: this code is harmless on little-endian machines.
  */
-static void byteReverse(unsigned char *buf, unsigned longs)
+static void byteReverse(uint32_t *buf, unsigned longs)
 {
     do {
-        *(uint32_t *) buf = TDS_GET_A4LE(buf);
-	buf += 4;
+        *buf = TDS_GET_A4LE(buf);
+	++buf;
     } while (--longs);
 }
 #endif
@@ -86,7 +86,7 @@ void MD5Update(struct MD5Context *ctx, unsigned char const *buf, size_t len)
 	}
 	memcpy(p, buf, t);
 	byteReverse(ctx->in, 16);
-	MD5Transform(ctx->buf, (uint32_t *) ctx->in);
+	MD5Transform(ctx->buf, ctx->in);
 	buf += t;
 	len -= t;
     }
@@ -95,7 +95,7 @@ void MD5Update(struct MD5Context *ctx, unsigned char const *buf, size_t len)
     while (len >= 64) {
 	memcpy(ctx->in, buf, 64);
 	byteReverse(ctx->in, 16);
-	MD5Transform(ctx->buf, (uint32_t *) ctx->in);
+	MD5Transform(ctx->buf, ctx->in);
 	buf += 64;
 	len -= 64;
     }
@@ -119,7 +119,7 @@ void MD5Final(struct MD5Context *ctx, unsigned char* digest)
 
     /* Set the first char of padding to 0x80.  This is safe since there is
        always at least one byte free */
-    p = ctx->in + count;
+    p = (unsigned char *) ctx->in + count;
     *p++ = 0x80;
 
     /* Bytes of padding needed to make 64 bytes */
@@ -130,7 +130,7 @@ void MD5Final(struct MD5Context *ctx, unsigned char* digest)
 	/* Two lots of padding:  Pad the first block to 64 bytes */
 	memset(p, 0, count);
 	byteReverse(ctx->in, 16);
-	MD5Transform(ctx->buf, (uint32_t *) ctx->in);
+	MD5Transform(ctx->buf, ctx->in);
 
 	/* Now fill the next block with 56 bytes */
 	memset(ctx->in, 0, 56);
@@ -141,11 +141,11 @@ void MD5Final(struct MD5Context *ctx, unsigned char* digest)
     byteReverse(ctx->in, 14);
 
     /* Append length in bits and transform */
-    ((uint32_t *) ctx->in)[14] = (uint32_t) (ctx->bytes << 3);
-    ((uint32_t *) ctx->in)[15] = (uint32_t) (ctx->bytes >> 29);
+    ctx->in[14] = (uint32_t) (ctx->bytes << 3);
+    ctx->in[15] = (uint32_t) (ctx->bytes >> 29);
 
-    MD5Transform(ctx->buf, (uint32_t *) ctx->in);
-    byteReverse((unsigned char *) ctx->buf, 4);
+    MD5Transform(ctx->buf, ctx->in);
+    byteReverse(ctx->buf, 4);
     
     if (digest!=NULL)
 	    memcpy(digest, ctx->buf, 16);

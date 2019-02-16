@@ -8,7 +8,7 @@
 struct MD5Context {
 	uint32_t buf[4];
 	uint64_t bytes;
-	uint8_t  in[64];
+	uint32_t in[16];
 };
 
 void MD5Init(struct MD5Context *context);

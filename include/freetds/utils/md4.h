@@ -9,7 +9,7 @@ struct MD4Context
 {
 	uint32_t buf[4];
 	uint64_t bytes;
-	unsigned char in[64];
+	uint32_t in[16];
 };
 
 void MD4Init(struct MD4Context *context);
