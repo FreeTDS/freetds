@@ -144,7 +144,7 @@ REF_STUB = <html> \
 	<P>at <a HREF="http://www.freetds.org/reference/">www.freetds.org</a> \
 	</html>
 
-$(DOCDIR)/reference/index.html: $(top_srcdir)/configure
+$(DOCDIR)/reference/index.html: $(top_srcdir)/configure.ac
 	if test -h reference; then rm reference; fi
 	$(MKDIR_P) $(DOCDIR)/reference 2>&1
 	cd .. && $(MAKE) doxy 2> doc/doxy.log
