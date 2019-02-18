@@ -44,6 +44,10 @@
 #include <arpa/inet.h>
 #endif /* HAVE_ARPA_INET_H */
 
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif /* HAVE_SYS_SOCKET_H */
+
 /* forward declaration */
 typedef struct tdsiconvinfo TDSICONV;
 typedef struct tds_connection TDSCONNECTION;
