@@ -1380,8 +1380,6 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params,
 		free(param_definition);
 
 		for (i = 0; i < params->num_cols; i++) {
-			TDSRET ret;
-
 			param = params->columns[i];
 			TDS_PROPAGATE(tds_put_data_info(tds, param, 0));
 			TDS_PROPAGATE(tds_put_data(tds, param));
