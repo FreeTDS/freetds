@@ -997,6 +997,12 @@ collate2charset(TDSCONNECTION * conn, TDS_UCHAR collate[5])
 	/* extract 16 bit of LCID (it's 20 bits but higher 4 are just variations) */
 	const int lcid = TDS_GET_UA2LE(collate);
 
+	/* starting with bit 20 (little endian, so 3rd byte bit 4) there are 8 bits:
+	 * fIgnoreCase fIgnoreAccent fIgnoreKana fIgnoreWidth fBinary fBinary2 fUTF8 FRESERVEDBIT
+	 * so fUTF8 is on the 4th byte bit 2 */
+	if ((collate[3] & 0x4) != 0 && IS_TDS74_PLUS(conn))
+		return TDS_CHARSET_UTF_8;
+
 	/*
 	 * The table from the MSQLServer reference "Windows Collation Designators" 
 	 * and from " NLS Information for Microsoft Windows XP".

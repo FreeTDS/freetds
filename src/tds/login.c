@@ -891,6 +891,11 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	size_t user_name_len = strlen(user_name);
 	size_t auth_len = 0;
 
+	static const char ext_data[] =
+		"\x0a\x01\x00\x00\x00\x01"	/* Enable UTF-8 */
+		"\xff";
+	size_t ext_len = IS_TDS74_PLUS(tds->conn) ? sizeof(ext_data) - 1 : 0;
+
 	/* fields */
 	enum {
 		HOST_NAME,
@@ -898,6 +903,7 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 		PASSWORD,
 		APP_NAME,
 		SERVER_NAME,
+		EXTENSION,
 		LIBRARY_NAME,
 		LANGUAGE,
 		DATABASE_NAME,
@@ -976,6 +982,8 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 		option_flag3 |= TDS_CHANGE_PASSWORD;
 		SET_FIELD_DSTR(NEW_PASSWORD, login->new_password, 128);
 	}
+	if (ext_len)
+		option_flag3 |= TDS_EXTENSION;
 
 	/* convert data fields */
 	for (field = data_fields; field < data_fields + TDS_VECTOR_SIZE(data_fields); ++field) {
@@ -990,6 +998,13 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 				free(data);
 				return TDS_FAIL;
 			}
+		} else if (ext_len && field == &data_fields[EXTENSION]) {
+			if (data_stream.stream.write(&data_stream.stream, 4) != 4) {
+				free(data);
+				return TDS_FAIL;
+			}
+			field->len = 4;
+			continue;
 		}
 		data_stream.size = MIN(data_stream.size, data_pos + field->limit);
 		data_stream.stream.write(&data_stream.stream, 0);
@@ -1000,6 +1015,11 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	pwd = (unsigned char *) data + data_fields[NEW_PASSWORD].pos - current_pos;
 	tds7_crypt_pass(pwd, data_fields[NEW_PASSWORD].len, pwd);
 	packet_size += data_stream.size;
+	if (ext_len) {
+		packet_size += ext_len;
+		pwd = (unsigned char *) data + data_fields[EXTENSION].pos - current_pos;
+		TDS_PUT_UA4LE(pwd, current_pos + data_stream.size + auth_len);
+	}
 
 #if !defined(TDS_DEBUG_LOGIN)
 	tdsdump_log(TDS_DBG_INFO2, "quietly sending TDS 7+ login packet\n");
@@ -1083,9 +1103,13 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	PUT_STRING_FIELD_PTR(APP_NAME);
 	/* server name */
 	PUT_STRING_FIELD_PTR(SERVER_NAME);
-	/* unknown */
-	tds_put_smallint(tds, 0);
-	tds_put_smallint(tds, 0);
+	/* extensions */
+	if (ext_len) {
+		TDS_PUT_SMALLINT(tds, data_fields[EXTENSION].pos);
+		tds_put_smallint(tds, 4);
+	} else {
+		tds_put_int(tds, 0);
+	}
 	/* library name */
 	PUT_STRING_FIELD_PTR(LIBRARY_NAME);
 	/* language  - kostya@warmcat.excom.spb.su */
@@ -1116,6 +1140,9 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 
 	if (tds->conn->authentication)
 		tds_put_n(tds, tds->conn->authentication->packet, auth_len);
+
+	if (ext_len)
+		tds_put_n(tds, ext_data, ext_len);
 
 	rc = tds_flush_packet(tds);
 	tdsdump_on();
