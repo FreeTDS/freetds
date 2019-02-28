@@ -963,6 +963,7 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 			}
 		}
 		data_stream.size = MIN(data_stream.size, data_pos + field->limit);
+		data_stream.stream.write(&data_stream.stream, 0);
 		field->len = data_stream.size - data_pos;
 	}
 	pwd = (unsigned char *) data + data_fields[PASSWORD].pos - current_pos;
