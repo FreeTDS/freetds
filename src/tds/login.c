@@ -1042,10 +1042,8 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	/* host name */
 	PUT_STRING_FIELD_PTR(HOST_NAME);
 	if (tds->conn->authentication) {
-		tds_put_smallint(tds, 0);
-		tds_put_smallint(tds, 0);
-		tds_put_smallint(tds, 0);
-		tds_put_smallint(tds, 0);
+		tds_put_int(tds, 0);
+		tds_put_int(tds, 0);
 	} else {
 		/* username */
 		PUT_STRING_FIELD_PTR(USER_NAME);
