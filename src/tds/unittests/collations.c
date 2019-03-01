@@ -155,11 +155,7 @@ get_encoding_coll(TDS71_COLLATION *coll, char *digest, char *cp, const char *nam
 		}
 	}
 
-	if (old_coll.locale_id && old_coll.locale_id == coll->locale_id && old_coll.charset_id == coll->charset_id) {
-		memcpy(digest, old_digest, 33);
-	} else {
-		get_coll_md5(name, digest);
-	}
+	get_coll_md5(name, digest);
 
 	memcpy(old_digest, digest, 33);
 	memcpy(&old_coll, coll, sizeof(*coll));
@@ -185,7 +181,7 @@ test_column_encoding(void)
 		digest[0] = 0;
 
 		get_encoding_coll(&coll, digest, cp, s);
-		printf("%s %d %d %d %s %s\n", s, coll.locale_id, coll.flags, coll.charset_id, cp, digest);
+		printf("%s %04x %04x %d %s %s\n", s, coll.locale_id, coll.flags, coll.charset_id, cp, digest);
 	}
 	fclose(f);
 }
