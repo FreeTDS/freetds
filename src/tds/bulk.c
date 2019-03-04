@@ -732,7 +732,8 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	tds_put_smallint(tds, num_cols);
 
 	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
-		size_t len;
+		size_t converted_len;
+		const char *converted_name;
 
 		bcpcol = bcpinfo->bindinfo->columns[i];
 
@@ -760,16 +761,34 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		 * different from BCP format
 		 */
 		if (is_blob_type(bcpcol->on_server.column_type)) {
-			/* FIXME support multibyte string */
-			len = tds_dstr_len(&bcpinfo->tablename);
-			TDS_PUT_SMALLINT(tds, len);
-			tds_put_string(tds, tds_dstr_cstr(&bcpinfo->tablename), len);
-		}
-		/* FIXME support multibyte string */
-		len = tds_dstr_len(&bcpcol->column_name);
-		tds_put_byte(tds, len);
-		tds_put_string(tds, tds_dstr_cstr(&bcpcol->column_name), len);
+			converted_name = tds_convert_string(tds, tds->conn->char_convs[client2ucs2],
+							    tds_dstr_cstr(&bcpinfo->tablename),
+							    (int) tds_dstr_len(&bcpinfo->tablename), &converted_len);
+			if (!converted_name) {
+				tds_connection_close(tds->conn);
+				return TDS_FAIL;
+			}
 
+			/* UTF-16 length is always size / 2 even for 4 byte letters (yes, 1 letter of length 2) */
+			TDS_PUT_SMALLINT(tds, converted_len / 2);
+			tds_put_n(tds, converted_name, converted_len);
+
+			tds_convert_string_free(tds_dstr_cstr(&bcpinfo->tablename), converted_name);
+		}
+
+		converted_name = tds_convert_string(tds, tds->conn->char_convs[client2ucs2],
+						    tds_dstr_cstr(&bcpcol->column_name),
+						    (int) tds_dstr_len(&bcpcol->column_name), &converted_len);
+		if (!converted_name) {
+			tds_connection_close(tds->conn);
+			return TDS_FAIL;
+		}
+
+		/* UTF-16 length is always size / 2 even for 4 byte letters (yes, 1 letter of length 2) */
+		TDS_PUT_BYTE(tds, converted_len / 2);
+		tds_put_n(tds, converted_name, converted_len);
+
+		tds_convert_string_free(tds_dstr_cstr(&bcpcol->column_name), converted_name);
 	}
 
 	tds_set_state(tds, TDS_SENDING);
