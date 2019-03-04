@@ -732,7 +732,12 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	tds_put_smallint(tds, num_cols);
 
 	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
-		size_t len;
+		size_t len, len_ucs2;
+		TDSSTATICINSTREAM r;
+		TDSSTATICOUTSTREAM w;
+		/* table and column names are sysname(nvarchar(128)) which is max 128*2 bytes */
+		char sysname_buf[128*2];
+		int res;
 
 		bcpcol = bcpinfo->bindinfo->columns[i];
 
@@ -760,15 +765,26 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		 * different from BCP format
 		 */
 		if (is_blob_type(bcpcol->on_server.column_type)) {
-			/* FIXME support multibyte string */
 			len = tds_dstr_len(&bcpinfo->tablename);
-			TDS_PUT_SMALLINT(tds, len);
-			tds_put_string(tds, tds_dstr_cstr(&bcpinfo->tablename), len);
+			tds_staticin_stream_init(&r, tds_dstr_cstr(&bcpinfo->tablename), len);
+			tds_staticout_stream_init(&w, &sysname_buf, sizeof(sysname_buf));
+			res = tds_convert_stream(tds, tds->conn->char_convs[client2ucs2], to_server, &r.stream, &w.stream);
+			len_ucs2 = w.stream.buffer - sysname_buf;
+
+			/* UTF-16 length is always size / 2 even for 4 byte letters (yes, 4 byte letters has length == 2) */
+			TDS_PUT_SMALLINT(tds, len_ucs2 / 2);
+			tds_put_n(tds, sysname_buf, len_ucs2);
 		}
-		/* FIXME support multibyte string */
+
 		len = tds_dstr_len(&bcpcol->column_name);
-		tds_put_byte(tds, len);
-		tds_put_string(tds, tds_dstr_cstr(&bcpcol->column_name), len);
+		tds_staticin_stream_init(&r, tds_dstr_cstr(&bcpcol->column_name), len);
+		tds_staticout_stream_init(&w, &sysname_buf, sizeof(sysname_buf));
+		res = tds_convert_stream(tds, tds->conn->char_convs[client2ucs2], to_server, &r.stream, &w.stream);
+		len_ucs2 = w.stream.buffer - sysname_buf;
+
+		/* UTF-16 length is always size / 2 even for 4 byte letters (yes, 4 byte letters has length == 2) */
+		tds_put_byte(tds, (unsigned char)(len_ucs2 / 2));
+		tds_put_n(tds, sysname_buf, len_ucs2);
 
 	}
 
