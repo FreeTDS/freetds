@@ -736,7 +736,10 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		TDSSTATICINSTREAM r;
 		TDSSTATICOUTSTREAM w;
 		/* table and column names are sysname(nvarchar(128)) which is max 128*2 bytes */
-		char sysname_buf[128*2];
+		/* table name can be in form of database_name.schema_name.table_name */
+		/* also database_name, schema_name, table_name can contain [] or "" as quotes and escaping of ]] or "" */
+		/* so we get (128 * 2 * 2 + 2) * 3 + 2 maximum */
+		char sysname_buf[(128 * 2 * 2 + 2) * 3 + 2];
 		int res;
 
 		bcpcol = bcpinfo->bindinfo->columns[i];
