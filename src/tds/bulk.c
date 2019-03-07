@@ -732,15 +732,8 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	tds_put_smallint(tds, num_cols);
 
 	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
-		size_t len, len_ucs2;
-		TDSSTATICINSTREAM r;
-		TDSSTATICOUTSTREAM w;
-		/* table and column names are sysname(nvarchar(128)) which is max 128*2 bytes */
-		/* table name can be in form of database_name.schema_name.table_name */
-		/* also database_name, schema_name, table_name can contain [] or "" as quotes and escaping of ]] or "" */
-		/* so we get (128 * 2 * 2 + 2) * 3 + 2 maximum */
-		char sysname_buf[(128 * 2 * 2 + 2) * 3 + 2];
-		int res;
+		size_t converted_len;
+		const char *converted_name;
 
 		bcpcol = bcpinfo->bindinfo->columns[i];
 
@@ -768,27 +761,28 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		 * different from BCP format
 		 */
 		if (is_blob_type(bcpcol->on_server.column_type)) {
-			len = tds_dstr_len(&bcpinfo->tablename);
-			tds_staticin_stream_init(&r, tds_dstr_cstr(&bcpinfo->tablename), len);
-			tds_staticout_stream_init(&w, &sysname_buf, sizeof(sysname_buf));
-			res = tds_convert_stream(tds, tds->conn->char_convs[client2ucs2], to_server, &r.stream, &w.stream);
-			len_ucs2 = w.stream.buffer - sysname_buf;
+			converted_name = tds_convert_string(tds, tds->conn->char_convs[client2ucs2], tds_dstr_cstr(&bcpinfo->tablename), (int)tds_dstr_len(&bcpinfo->tablename), &converted_len);
+			if (!converted_name) {
+				return TDS_FAIL;
+			}
 
-			/* UTF-16 length is always size / 2 even for 4 byte letters (yes, 4 byte letters has length == 2) */
-			TDS_PUT_SMALLINT(tds, len_ucs2 / 2);
-			tds_put_n(tds, sysname_buf, len_ucs2);
+			/* UTF-16 length is always size / 2 even for 4 byte letters (yes, 1 letter of length 2) */
+			TDS_PUT_SMALLINT(tds, converted_len / 2);
+			tds_put_n(tds, converted_name, converted_len);
+
+			tds_convert_string_free(tds_dstr_cstr(&bcpinfo->tablename), converted_name);
 		}
 
-		len = tds_dstr_len(&bcpcol->column_name);
-		tds_staticin_stream_init(&r, tds_dstr_cstr(&bcpcol->column_name), len);
-		tds_staticout_stream_init(&w, &sysname_buf, sizeof(sysname_buf));
-		res = tds_convert_stream(tds, tds->conn->char_convs[client2ucs2], to_server, &r.stream, &w.stream);
-		len_ucs2 = w.stream.buffer - sysname_buf;
+		converted_name = tds_convert_string(tds, tds->conn->char_convs[client2ucs2], tds_dstr_cstr(&bcpcol->column_name), (int)tds_dstr_len(&bcpcol->column_name), &converted_len);
+		if (!converted_name) {
+			return TDS_FAIL;
+		}
 
-		/* UTF-16 length is always size / 2 even for 4 byte letters (yes, 4 byte letters has length == 2) */
-		tds_put_byte(tds, (unsigned char)(len_ucs2 / 2));
-		tds_put_n(tds, sysname_buf, len_ucs2);
+		/* UTF-16 length is always size / 2 even for 4 byte letters (yes, 1 letter of length 2) */
+		tds_put_byte(tds, (unsigned char)(converted_len / 2));
+		tds_put_n(tds, converted_name, converted_len);
 
+		tds_convert_string_free(tds_dstr_cstr(&bcpcol->column_name), converted_name);
 	}
 
 	tds_set_state(tds, TDS_SENDING);
