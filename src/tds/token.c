@@ -2194,7 +2194,6 @@ tds_process_env_chg(TDSSOCKET * tds)
 	char *newval = NULL;
 	char **dest;
 	int new_block_size;
-	int lcid;
 	int memrc = 0;
 
 	CHECK_TDS_EXTRA(tds);
@@ -2230,8 +2229,7 @@ tds_process_env_chg(TDSSOCKET * tds)
 		} else {
 			tds_get_n(tds, tds->conn->collation, 5);
 			tds_get_n(tds, NULL, size - 5);
-			lcid = TDS_GET_UA4LE(tds->conn->collation) & 0xffffflu;
-			tds7_srv_charset_changed(tds->conn, tds->conn->collation[4], lcid);
+			tds7_srv_charset_changed(tds->conn, tds->conn->collation);
 		}
 		tdsdump_dump_buf(TDS_DBG_NETWORK, "tds->conn->collation now", tds->conn->collation, 5);
 		/* discard old one */

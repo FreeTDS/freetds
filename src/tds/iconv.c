@@ -39,6 +39,7 @@
 #include <freetds/tds.h>
 #include <freetds/iconv.h>
 #include <freetds/bool.h>
+#include <freetds/bytes.h>
 #if HAVE_ICONV
 #include <iconv.h>
 #endif
@@ -47,7 +48,7 @@
 				(charset)->min_bytes_per_char : 0 )
 
 
-static int collate2charset(int sql_collate, int lcid);
+static int collate2charset(TDSCONNECTION * conn, TDS_UCHAR collate[5]);
 static size_t skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, const char **input, size_t * input_size);
 static int tds_iconv_info_init(TDSICONV * char_conv, int client_canonic, int server_canonic);
 static int tds_iconv_init(void);
@@ -809,9 +810,9 @@ tds_srv_charset_changed(TDSCONNECTION * conn, const char *charset)
 
 /* change singlebyte conversions according to server */
 void
-tds7_srv_charset_changed(TDSCONNECTION * conn, int sql_collate, int lcid)
+tds7_srv_charset_changed(TDSCONNECTION * conn, TDS_UCHAR collation[5])
 {
-	tds_srv_charset_changed_num(conn, collate2charset(sql_collate, lcid));
+	tds_srv_charset_changed_num(conn, collate2charset(conn, collation));
 }
 
 /**
@@ -968,14 +969,16 @@ tds_canonical_charset_name(const char *charset_name)
 }
 
 static int
-collate2charset(int sql_collate, int lcid)
+collate2charset(TDSCONNECTION * conn, TDS_UCHAR collate[5])
 {
+	int cp = 0;
+	const int sql_collate = collate[4];
+	const int lcid = TDS_GET_UA2LE(collate);
+
 	/*
 	 * The table from the MSQLServer reference "Windows Collation Designators" 
 	 * and from " NLS Information for Microsoft Windows XP"
 	 */
-
-	int cp = 0;
 
 	switch (sql_collate) {
 	case 30:		/* SQL_Latin1_General_CP437_BIN */
@@ -1023,7 +1026,7 @@ collate2charset(int sql_collate, int lcid)
 		return TDS_CHARSET_CP1257;
 	}
 
-	switch (lcid & 0xffff) {
+	switch (lcid) {
 	case 0x405:
 	case 0x40e:		/* 0x1040e */
 	case 0x415:
@@ -1209,9 +1212,7 @@ collate2charset(int sql_collate, int lcid)
 TDSICONV *
 tds_iconv_from_collate(TDSCONNECTION * conn, TDS_UCHAR collate[5])
 {
-	const int sql_collate = collate[4];
-	const int lcid = collate[1] * 256 + collate[0];
-	int canonic_charset = collate2charset(sql_collate, lcid);
+	int canonic_charset = collate2charset(conn, collate);
 
 	/* same as client (usually this is true, so this improve performance) ? */
 	if (conn->char_convs[client2server_chardata]->to.charset.canonic == canonic_charset)

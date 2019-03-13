@@ -1261,7 +1261,7 @@ TDS_SERVER_TYPE tds_get_cardinal_type(TDS_SERVER_TYPE datatype, int usertype);
 TDSRET tds_iconv_open(TDSCONNECTION * conn, const char *charset, int use_utf16);
 void tds_iconv_close(TDSCONNECTION * conn);
 void tds_srv_charset_changed(TDSCONNECTION * conn, const char *charset);
-void tds7_srv_charset_changed(TDSCONNECTION * conn, int sql_collate, int lcid);
+void tds7_srv_charset_changed(TDSCONNECTION * conn, TDS_UCHAR collate[5]);
 int tds_iconv_alloc(TDSCONNECTION * conn);
 void tds_iconv_free(TDSCONNECTION * conn);
 TDSICONV *tds_iconv_from_collate(TDSCONNECTION * conn, TDS_UCHAR collate[5]);
