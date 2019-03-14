@@ -30,7 +30,8 @@ extern "C"
 #endif
 #endif
 
-typedef enum tag_DB_RESULT_STATE {
+typedef enum
+{
 	  _DB_RES_INIT
 	, _DB_RES_RESULTSET_EMPTY
 	, _DB_RES_RESULTSET_ROWS
@@ -46,7 +47,7 @@ struct tds_dblib_loginrec
 
 struct dblib_buffer_row;
 
-typedef struct tag_DBPROC_ROWBUF
+typedef struct
 {
 	int received;	  	/* how many rows have been received for this result set */
 	int head;	  	/* queue insertion point */
@@ -83,9 +84,9 @@ typedef struct
 
 /* linked list of rpc parameters */
 
-typedef struct _DBREMOTE_PROC_PARAM
+typedef struct DBREMOTE_PROC_PARAM
 {
-	struct _DBREMOTE_PROC_PARAM *next;
+	struct DBREMOTE_PROC_PARAM *next;
 
 	char *name;
 	BYTE status;
@@ -95,9 +96,9 @@ typedef struct _DBREMOTE_PROC_PARAM
 	BYTE *value;
 } DBREMOTE_PROC_PARAM;
 
-typedef struct _DBREMOTE_PROC
+typedef struct DBREMOTE_PROC
 {
-	struct _DBREMOTE_PROC *next;
+	struct DBREMOTE_PROC *next;
 
 	char *name;
 	DBSMALLINT options;
@@ -111,7 +112,7 @@ typedef struct dboption
 	DBBOOL factive;
 } DBOPTION;
 
-typedef struct _null_representation
+typedef struct
 {
 	const BYTE *bindval;
 	size_t len;
