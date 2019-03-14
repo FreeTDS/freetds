@@ -21,7 +21,8 @@ User visible (not in a particular order):
 - Fixed SQL_ATTR_LOGIN_TIMEOUT for ODBC;
 - Fixed large integer numbers for ODBC RPC constants;
 - Fixed encrypted logins if "auto" protocol version is used;
-- Support CS_TIMEOUT and CS_LOGIN_TIMEOUT properties under CTLibrary;
+- Support CS_TIMEOUT, CS_LOGIN_TIMEOUT and CS_CLIENTCHARSET properties
+  under CTLibrary;
 - Added a dbacolname function in DBLibrary, similar to dbcolname but
   for compute columns (mainly for Sybase now, Microsoft removed
   support for compute columns);
