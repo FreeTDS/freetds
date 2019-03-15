@@ -1454,7 +1454,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params,
 	tds_put_n(tds, query, (int)query_len);
 
 	if (params)
-		tds_put_params(tds, params, 0);
+		TDS_PROPAGATE(tds_put_params(tds, params, 0));
 
 	return tds_flush_packet(tds);
 }
