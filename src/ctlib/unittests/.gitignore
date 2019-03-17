@@ -32,4 +32,5 @@ rpc_fail
 row_count
 all_types
 long_binary
+will_convert
 libcommon.a
