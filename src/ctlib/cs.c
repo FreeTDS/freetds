@@ -1293,6 +1293,8 @@ cs_will_convert(CS_CONTEXT * ctx, CS_INT srctype, CS_INT desttype, CS_BOOL * res
 
 	tdsdump_log(TDS_DBG_FUNC, "cs_will_convert(%p, %d, %d, %p)\n", ctx, srctype, desttype, result);
 
+	srctype = _ct_get_server_type(NULL, srctype);
+	desttype = _ct_get_server_type(NULL, desttype);
 	*result = (tds_willconvert(srctype, desttype) ? CS_TRUE : CS_FALSE);
 	return CS_SUCCEED;
 }
