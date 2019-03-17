@@ -590,6 +590,9 @@ enum
 #define CS_BIGTIME_TYPE     TDS_STATIC_CAST(CS_INT, 36)
 #define CS_UNIQUE_TYPE      TDS_STATIC_CAST(CS_INT, 40)
 
+#define CS_MIN_SYBTYPE CS_CHAR_TYPE
+#define CS_MAX_SYBTYPE CS_UNIQUE_TYPE
+
 #define CS_USER_TYPE        TDS_STATIC_CAST(CS_INT, 100)
 /* cs_dt_info type values */
 enum
