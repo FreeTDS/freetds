@@ -18,11 +18,11 @@ static char *entry = NULL;
 static char *
 get_entry(const char *key)
 {
-	static char buf[256];
+	static TCHAR buf[256];
 
 	entry = NULL;
-	if (SQLGetPrivateProfileString(odbc_server, key, "", buf, sizeof(buf), "odbc.ini") > 0)
-		entry = buf;
+	if (SQLGetPrivateProfileString(T(odbc_server), T(key), TEXT(""), buf, ODBC_VECTOR_SIZE(buf), TEXT("odbc.ini")) > 0)
+		entry = C(buf);
 
 	return entry;
 }
