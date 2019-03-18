@@ -58,10 +58,16 @@ static const char *expected_special[] = {
 static int tds_version;
 
 static void
-init(void)
+cleanup(void)
 {
 	odbc_command("if exists (select 1 from sysobjects where type = 'U' and name = 'all_types_bcp_unittest') drop table all_types_bcp_unittest");
 	odbc_command("if exists (select 1 from sysobjects where type = 'U' and name = 'special_types_bcp_unittest') drop table special_types_bcp_unittest");
+}
+
+static void
+init(void)
+{
+	cleanup();
 
 	odbc_command("CREATE TABLE all_types_bcp_unittest ("
 		"  not_null_bit                  bit NOT NULL"
@@ -275,6 +281,8 @@ main(int argc, char *argv[])
 		if (tds_version >= 0x703)
 			odbc_command("drop table special_types_bcp_unittest");
 	}
+
+	cleanup();
 
 	odbc_disconnect();
 
