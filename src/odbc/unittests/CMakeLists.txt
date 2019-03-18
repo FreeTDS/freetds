@@ -26,7 +26,7 @@ set(tests
 	cursor6 cursor7 utf8 utf8_2
 	stats descrec peter test64
 	prepare_warn long_error mars1
-	array_error closestmt
+	array_error closestmt bcp
 	all_types utf8_3 empty_query
 	transaction3 transaction4
 )
