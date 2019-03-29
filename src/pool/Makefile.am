@@ -11,5 +11,5 @@ ETC	=	$(DESTDIR)$(sysconfdir)
 install-data-local:
 	$(mkinstalldirs) $(ETC)
 	if test ! -f $(ETC)/pool.conf; then \
-		$(INSTALL) $(srcdir)/pool.conf $(ETC)/pool.conf; \
+		$(INSTALL) -m 644 $(srcdir)/pool.conf $(ETC)/pool.conf; \
 	fi
