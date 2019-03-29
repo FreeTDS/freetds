@@ -17,10 +17,10 @@ DOCDIR	=	doc
 install-data-local:
 	$(mkinstalldirs) $(ETC)
 	if test ! -f $(ETC)/freetds.conf; then \
-		$(INSTALL) $(srcdir)/freetds.conf $(ETC)/freetds.conf; \
+		$(INSTALL) -m 644 $(srcdir)/freetds.conf $(ETC)/freetds.conf; \
 	fi
 	if test ! -f $(ETC)/locales.conf; then \
-		$(INSTALL) $(srcdir)/locales.conf $(ETC)/locales.conf; \
+		$(INSTALL) -m 644 $(srcdir)/locales.conf $(ETC)/locales.conf; \
 	fi
 
 clean-local:

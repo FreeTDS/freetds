@@ -51,12 +51,12 @@ install-data-local: $(INSTALLDIRS) $(noinst_DATA)
 	$(MKDIR_P) $(DOCDIR) 2>&1
 	if test -r $(DOCDIR)/userguide ; then d=.; else d="$(srcdir)"; fi; \
 	find $$d/$(DOCDIR)/userguide \( -type f -o -type l \) \
-		-exec $(INSTALL) {} $(TARGET_DOCDIR)/userguide ';'
+		-exec $(INSTALL) -m 644 {} $(TARGET_DOCDIR)/userguide ';'
 	if test -r $(DOCDIR)/reference ; then d=.; else d="$(srcdir)"; fi; \
 	find $$d/$(DOCDIR)/reference \( -type f -o -type l \) \
-		-exec $(INSTALL) {} $(TARGET_DOCDIR)/reference ';'
+		-exec $(INSTALL) -m 644 {} $(TARGET_DOCDIR)/reference ';'
 	cd $(srcdir) && find images -name \*.gif \
-		-exec  $(INSTALL) {} $(TARGET_DOCDIR)/{} ';'
+		-exec  $(INSTALL) -m 644 {} $(TARGET_DOCDIR)/{} ';'
 
 uninstall-local:
 	rm -rf $(TARGET_DOCDIR)
