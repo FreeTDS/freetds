@@ -701,7 +701,8 @@ tds_config_login(TDSLOGIN * connection, TDSLOGIN * login)
 	DSTR *res = &login->server_name;
 
 	if (!tds_dstr_isempty(&login->server_name)) {
-		if (1 || tds_dstr_isempty(&connection->server_name)) 
+        // overwrite server_name only if not yet set or set to default
+		if (tds_dstr_isempty(&connection->server_name) || strcmp(tds_dstr_cstr(&connection->server_name), TDS_DEF_SERVER) == 0)
 			res = tds_dstr_dup(&connection->server_name, &login->server_name);
 	}
 	if (login->tds_version)
