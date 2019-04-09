@@ -75,15 +75,15 @@ TDSSOCKET *
 tds_listen(TDSCONTEXT * ctx, int ip_port)
 {
 	TDSSOCKET *tds;
-	struct sockaddr_in sin;
+	struct sockaddr_in6 sin;
 	TDS_SYS_SOCKET fd, s;
 	socklen_t len;
 
-	sin.sin_addr.s_addr = INADDR_ANY;
-	sin.sin_port = htons((short) ip_port);
-	sin.sin_family = AF_INET;
+	sin.sin6_addr = in6addr_any;
+	sin.sin6_port = htons((short) ip_port);
+	sin.sin6_family = AF_INET6;
 
-	s = socket(AF_INET, SOCK_STREAM, 0);
+	s = socket(AF_INET6, SOCK_STREAM, 0);
 	if (TDS_IS_SOCKET_INVALID(s)) {
 		perror("socket");
 		return NULL;
