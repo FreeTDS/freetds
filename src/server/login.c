@@ -108,6 +108,7 @@ tds_listen(TDSCONTEXT * ctx, int ip_port)
 	/* TODO proper charset */
 	tds_iconv_open(tds->conn, "ISO8859-1", 0);
 	/* get_incoming(tds->s); */
+	tds->state = TDS_IDLE;
 	return tds;
 }
 
