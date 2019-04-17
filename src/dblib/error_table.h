@@ -151,7 +151,7 @@
 {        SYBECWLL,               1,	"Attempt to set column width less than 1."},
 {        SYBEDBPS,      EXRESOURCE,	"Maximum number of DBPROCESSes already allocated."},
 {         SYBEDCL,               1,	"-004- DCL Error."},
-{        SYBEDDNE,          EXINFO,	"DBPROCESS is dead or not enabled."},
+{        SYBEDDNE,          EXCOMM,	"DBPROCESS is dead or not enabled."},
 {        SYBEDIVZ,          EXUSER,	"Attempt to divide by $0.00 in function %1!."},
 {        SYBEDNTI,       EXPROGRAM,	"Attempt to use dbtxtsput() to put a new text-timestamp into a column whose datatype is neither SYBTEXT nor SYBIMAGE."},
 {        SYBEDPOR,       EXPROGRAM,	"Out-of-range datepart constant."},

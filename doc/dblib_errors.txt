@@ -196,7 +196,7 @@ SYBECRSUPDTAB	EXPROGRAM	Update or insert operations using bind variables require
 SYBECSYN	EXCONVERSION	Attempt to convert data stopped by syntax error in source field.
 SYBECUFL	EXCONVERSION	Data conversion resulted in underflow.
 SYBEDBPS	EXRESOURCE	Maximum number of DBPROCESSes already allocated.
-SYBEDDNE	EXINFO	DBPROCESS is dead or not enabled.
+SYBEDDNE	EXCOMM	DBPROCESS is dead or not enabled.
 SYBEDIVZ	EXUSER	Attempt to divide by $0.00 in function %1!.
 SYBEDNTI	EXPROGRAM	Attempt to use dbtxtsput to put a new text timestamp into a column whose datatype is neither SYBTEXT nor SYBIMAGE.
 SYBEDPOR	EXPROGRAM	Out-of-range datepart constant.
