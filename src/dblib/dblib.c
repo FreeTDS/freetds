@@ -7888,7 +7888,7 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
 	, { SYBECUFL,        EXCONVERSION,	"Data conversion resulted in underflow\0" }
 	, { SYBECWLL,           EXPROGRAM,	"Attempt to set column width less than 1\0" }
 	, { SYBEDBPS,          EXRESOURCE,	"Maximum number of DBPROCESSes already allocated\0" }
-	, { SYBEDDNE,              EXINFO,	"DBPROCESS is dead or not enabled\0" }
+	, { SYBEDDNE,              EXCOMM,	"DBPROCESS is dead or not enabled\0" }
 	, { SYBEDIVZ,              EXUSER,	"Attempt to divide by $0.00 in function %1!\0%s" }
 	, { SYBEDNTI,           EXPROGRAM,	"Attempt to use dbtxtsput to put a new text timestamp into a column whose datatype "
 						"is neither SYBTEXT nor SYBIMAGE\0" }
