@@ -199,7 +199,7 @@ typedef union {
    uint32_t _tds_i = bswap_32(val); TDS_PUT_UA4LE(ptr,_tds_i); } while(0)
 #endif
 
-#if defined(__GNUC__) && defined(__powerpc__)
+#if defined(__GNUC__) && defined(__powerpc__) && defined(WORDS_BIGENDIAN)
 # undef TDS_GET_UA2LE
 # undef TDS_GET_UA4LE
 static inline uint16_t
