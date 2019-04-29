@@ -182,8 +182,6 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s)
 		CLOSESOCKET(fd);
 		return NULL;
 	}
-	/* FIX ME - little endian emulation should be config file driven */
-	tds->conn->emul_little_endian = 1;
 	tds_set_s(tds, fd);
 	tds->state = TDS_IDLE;
 	tds->out_flag = TDS_LOGIN;

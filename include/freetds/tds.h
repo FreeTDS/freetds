@@ -445,7 +445,7 @@ bool is_tds_type_valid(int type)
 #define TDS_STR_HOST     "host"
 #define TDS_STR_PORT     "port"
 #define TDS_STR_TEXTSZ   "text size"
-/* for big endian hosts */
+/* for big endian hosts, obsolete, ignored */
 #define TDS_STR_EMUL_LE	"emulate little endian"
 #define TDS_STR_CHARSET	"charset"
 #define TDS_STR_CLCHARSET	"client charset"
@@ -550,7 +550,6 @@ typedef struct tds_login
 
 	unsigned int bulk_copy:1;	/**< if bulk copy should be enabled */
 	unsigned int suppress_language:1;
-	unsigned int emul_little_endian:1;
 	unsigned int gssapi_use_delegation:1;
 	unsigned int use_ntlmv2:1;
 	unsigned int use_ntlmv2_specified:1;
@@ -1097,7 +1096,6 @@ struct tds_connection
 	TDS_UCHAR tds72_transaction[8];
 
 	TDS_CAPABILITIES capabilities;
-	unsigned int emul_little_endian:1;
 	unsigned int use_iconv:1;
 	unsigned int tds71rev1:1;
 	unsigned int pending_close:1;	/**< true is connection has pending closing (cursors or dynamic) */

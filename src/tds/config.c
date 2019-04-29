@@ -248,7 +248,6 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "dump_file", tds_dstr_cstr(&connection->dump_file));
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %x\n", "debug_flags", connection->debug_flags);
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "text_size", connection->text_size);
-		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "emul_little_endian", connection->emul_little_endian);
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "server_realm_name", tds_dstr_cstr(&connection->server_realm_name));
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "server_spn", tds_dstr_cstr(&connection->server_spn));
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "cafile", tds_dstr_cstr(&connection->cafile));
@@ -639,7 +638,8 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		if (atoi(value))
 			login->port = atoi(value);
 	} else if (!strcmp(option, TDS_STR_EMUL_LE)) {
-		login->emul_little_endian = tds_config_boolean(option, value, login);
+		/* obsolete, ignore */
+		tds_config_boolean(option, value, login);
 	} else if (!strcmp(option, TDS_STR_TEXTSZ)) {
 		if (atoi(value))
 			login->text_size = atoi(value);

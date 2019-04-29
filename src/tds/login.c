@@ -486,19 +486,6 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 	tds->login = login;
 
 	tds->conn->tds_version = login->tds_version;
-	tds->conn->emul_little_endian = login->emul_little_endian;
-#ifdef WORDS_BIGENDIAN
-	/*
-	 * Enable automatically little endian emulation.
-	 * TDS 7/8 only supports little endian.
-	 * This is done even for 4.2 to ensure that when we connect to a
-	 * MSSQL we use it and avoid to make additional checks for
-	 * broken 7.0 servers.
-	 * Note that 4.2 should not be used anymore for real jobs.
-	 */
-	if (IS_TDS7_PLUS(tds->conn) || IS_TDS42(tds->conn))
-		tds->conn->emul_little_endian = 1;
-#endif
 
 	/* set up iconv if not already initialized*/
 	if (tds->conn->char_convs[client2ucs2]->to.cd == (iconv_t) -1) {
@@ -642,10 +629,6 @@ tds_put_login_string(TDSSOCKET * tds, const char *buf, int n)
 static TDSRET
 tds_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 {
-#ifdef WORDS_BIGENDIAN
-	static const unsigned char be1[] = { 0x02, 0x00, 0x06, 0x04, 0x08, 0x01 };
-	static const unsigned char be2[] = { 0x00, 12, 16 };
-#endif
 	static const unsigned char le1[] = { 0x03, 0x01, 0x06, 0x0a, 0x09, 0x01 };
 	static const unsigned char le2[] = { 0x00, 13, 17 };
 
@@ -724,15 +707,7 @@ tds_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	}
 	sprintf(blockstr, "%d", (int) getpid());
 	tds_put_login_string(tds, blockstr, TDS_MAXNAME);	/* host process */
-#ifdef WORDS_BIGENDIAN
-	if (tds->conn->emul_little_endian) {
-		tds_put_n(tds, le1, 6);
-	} else {
-		tds_put_n(tds, be1, 6);
-	}
-#else
 	tds_put_n(tds, le1, 6);
-#endif
 	tds_put_byte(tds, !login->bulk_copy);
 	tds_put_n(tds, NULL, 2);
 	if (IS_TDS42(tds->conn)) {
@@ -765,15 +740,7 @@ tds_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	} else {
 		tds_put_n(tds, program_version, 4);	/* program version ? */
 	}
-#ifdef WORDS_BIGENDIAN
-	if (tds->conn->emul_little_endian) {
-		tds_put_n(tds, le2, 3);
-	} else {
-		tds_put_n(tds, be2, 3);
-	}
-#else
 	tds_put_n(tds, le2, 3);
-#endif
 	tds_put_login_string(tds, tds_dstr_cstr(&login->language), TDS_MAXNAME);	/* language */
 	tds_put_byte(tds, login->suppress_language);
 

@@ -1163,8 +1163,9 @@ This is the name of the database container in the server you are connecting to.<
 						<row>
 							<entry><literal>emulate little endian</literal></entry>
 							<entry>yes/no</entry>
-							<entry>no</entry>
-							<entry>Forces big endian machines (Sparc, PPC, PARISC) to act as little endian to communicate with MS Servers. Set automatically for <acronym>TDS</acronym> 7.0 or above on big endian hosts</entry>
+							<entry>yes</entry>
+							<entry>Forces big endian machines (Sparc, PPC, PARISC, MIPS) to act as little endian to communicate with server.
+								Ignored, always use little endian at protocol level.</entry>
 							</row>
 						<row>
 							<entry id="clientcharset"><literal>client charset</literal></entry>

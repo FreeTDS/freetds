@@ -161,18 +161,8 @@ tds_put_int8(TDSSOCKET * tds, TDS_INT8 i)
 		tds_write_packet(tds, 0x0);
 
 	p = &tds->out_buf[tds->out_pos];
-#if WORDS_BIGENDIAN
-	if (tds->conn->emul_little_endian) {
-		TDS_PUT_UA4LE(p, (TDS_UINT) i);
-		TDS_PUT_UA4LE(p+4, (TDS_UINT) (i >> 32));
-	} else {
-		TDS_PUT_UA4(p, (TDS_UINT) (i >> 32));
-		TDS_PUT_UA4(p+4, (TDS_UINT) i);
-	}
-#else
-	TDS_PUT_UA4(p, (TDS_UINT) i);
-	TDS_PUT_UA4(p+4, (TDS_UINT) (i >> 32));
-#endif
+	TDS_PUT_UA4LE(p, (TDS_UINT) i);
+	TDS_PUT_UA4LE(p+4, (TDS_UINT) (i >> 32));
 	tds->out_pos += 8;
 	return 0;
 }
@@ -186,14 +176,7 @@ tds_put_int(TDSSOCKET * tds, TDS_INT i)
 		tds_write_packet(tds, 0x0);
 
 	p = &tds->out_buf[tds->out_pos];
-#if WORDS_BIGENDIAN
-	if (tds->conn->emul_little_endian)
-		TDS_PUT_UA4LE(p, i);
-	else
-		TDS_PUT_UA4(p, i);
-#else
-	TDS_PUT_UA4(p, i);
-#endif
+	TDS_PUT_UA4LE(p, i);
 	tds->out_pos += 4;
 	return 0;
 }
@@ -207,14 +190,7 @@ tds_put_smallint(TDSSOCKET * tds, TDS_SMALLINT si)
 		tds_write_packet(tds, 0x0);
 
 	p = &tds->out_buf[tds->out_pos];
-#if WORDS_BIGENDIAN
-	if (tds->conn->emul_little_endian)
-		TDS_PUT_UA2LE(p, si);
-	else
-		TDS_PUT_UA2(p, si);
-#else
-	TDS_PUT_UA2(p, si);
-#endif
+	TDS_PUT_UA2LE(p, si);
 	tds->out_pos += 2;
 	return 0;
 }

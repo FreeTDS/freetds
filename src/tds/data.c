@@ -685,8 +685,7 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			return res;
 		colsize = curcol->column_cur_size;
 #ifdef WORDS_BIGENDIAN
-		if (tds->conn->emul_little_endian)
-			tds_swap_datatype(tds_get_conversion_type(type, colsize), v->data);
+		tds_swap_datatype(tds_get_conversion_type(type, colsize), v->data);
 #endif
 	}
 	v->data_len = colsize;
@@ -853,10 +852,8 @@ tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	}
 
 #ifdef WORDS_BIGENDIAN
-	if (tds->conn->emul_little_endian) {
-		tdsdump_log(TDS_DBG_INFO1, "swapping coltype %d\n", tds_get_conversion_type(curcol->column_type, colsize));
-		tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), dest);
-	}
+	tdsdump_log(TDS_DBG_INFO1, "swapping coltype %d\n", tds_get_conversion_type(curcol->column_type, colsize));
+	tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), dest);
 #endif
 	return TDS_SUCCESS;
 }
@@ -1074,7 +1071,7 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 #ifdef WORDS_BIGENDIAN
 			unsigned char buf[64];
 
-			if (tds->conn->emul_little_endian && !converted && colsize < 64) {
+			if (!converted && colsize < 64) {
 				tdsdump_log(TDS_DBG_INFO1, "swapping coltype %d\n",
 					    tds_get_conversion_type(curcol->column_type, colsize));
 				memcpy(buf, s, colsize);
@@ -1137,7 +1134,7 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 #ifdef WORDS_BIGENDIAN
 			unsigned char buf[64];
 
-			if (tds->conn->emul_little_endian && !converted && colsize < 64) {
+			if (!converted && colsize < 64) {
 				tdsdump_log(TDS_DBG_INFO1, "swapping coltype %d\n",
 					    tds_get_conversion_type(curcol->column_type, colsize));
 				memcpy(buf, s, colsize);
