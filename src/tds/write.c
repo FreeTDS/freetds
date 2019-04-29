@@ -46,6 +46,10 @@
 #include <freetds/stream.h>
 #include <freetds/checks.h>
 
+#if TDS_ADDITIONAL_SPACE < 8
+#error Not supported
+#endif
+
 /**
  * \addtogroup network
  * @{ 
@@ -151,26 +155,6 @@ tds_put_buf(TDSSOCKET * tds, const unsigned char *buf, int dsize, int ssize)
 int
 tds_put_int8(TDSSOCKET * tds, TDS_INT8 i)
 {
-#if TDS_ADDITIONAL_SPACE < 8
-#if WORDS_BIGENDIAN
-	TDS_UINT h;
-
-	if (tds->conn->emul_little_endian) {
-		h = (TDS_UINT) i;
-		tds_put_byte(tds, h & 0x000000FF);
-		tds_put_byte(tds, (h & 0x0000FF00) >> 8);
-		tds_put_byte(tds, (h & 0x00FF0000) >> 16);
-		tds_put_byte(tds, (h & 0xFF000000) >> 24);
-		h = (TDS_UINT) (i >> 32);
-		tds_put_byte(tds, h & 0x000000FF);
-		tds_put_byte(tds, (h & 0x0000FF00) >> 8);
-		tds_put_byte(tds, (h & 0x00FF0000) >> 16);
-		tds_put_byte(tds, (h & 0xFF000000) >> 24);
-		return 0;
-	}
-#endif
-	return tds_put_n(tds, (const unsigned char *) &i, sizeof(TDS_INT8));
-#else
 	TDS_UCHAR *p;
 
 	if (tds->out_pos >= tds->out_buf_max)
@@ -191,24 +175,11 @@ tds_put_int8(TDSSOCKET * tds, TDS_INT8 i)
 #endif
 	tds->out_pos += 8;
 	return 0;
-#endif
 }
 
 int
 tds_put_int(TDSSOCKET * tds, TDS_INT i)
 {
-#if TDS_ADDITIONAL_SPACE < 4
-#if WORDS_BIGENDIAN
-	if (tds->conn->emul_little_endian) {
-		tds_put_byte(tds, i & 0x000000FF);
-		tds_put_byte(tds, (i & 0x0000FF00) >> 8);
-		tds_put_byte(tds, (i & 0x00FF0000) >> 16);
-		tds_put_byte(tds, (i & 0xFF000000) >> 24);
-		return 0;
-	}
-#endif
-	return tds_put_n(tds, (const unsigned char *) &i, sizeof(TDS_INT));
-#else
 	TDS_UCHAR *p;
 
 	if (tds->out_pos >= tds->out_buf_max)
@@ -225,22 +196,11 @@ tds_put_int(TDSSOCKET * tds, TDS_INT i)
 #endif
 	tds->out_pos += 4;
 	return 0;
-#endif
 }
 
 int
 tds_put_smallint(TDSSOCKET * tds, TDS_SMALLINT si)
 {
-#if TDS_ADDITIONAL_SPACE < 2
-#if WORDS_BIGENDIAN
-	if (tds->conn->emul_little_endian) {
-		tds_put_byte(tds, si & 0x000000FF);
-		tds_put_byte(tds, (si & 0x0000FF00) >> 8);
-		return 0;
-	}
-#endif
-	return tds_put_n(tds, (const unsigned char *) &si, sizeof(TDS_SMALLINT));
-#else
 	TDS_UCHAR *p;
 
 	if (tds->out_pos >= tds->out_buf_max)
@@ -257,7 +217,6 @@ tds_put_smallint(TDSSOCKET * tds, TDS_SMALLINT si)
 #endif
 	tds->out_pos += 2;
 	return 0;
-#endif
 }
 
 int
@@ -288,13 +247,11 @@ tds_flush_packet(TDSSOCKET * tds)
 
 	/* GW added check for tds->s */
 	if (!IS_TDSDEAD(tds)) {
-#if TDS_ADDITIONAL_SPACE != 0
 		if (tds->out_pos > tds->out_buf_max) {
 			result = tds_write_packet(tds, 0x00);
 			if (TDS_FAILED(result))
 				return result;
 		}
-#endif
 		result = tds_write_packet(tds, 0x01);
 	}
 	return result;

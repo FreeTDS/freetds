@@ -718,12 +718,10 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 	int res;
 	unsigned int left = 0;
 
-#if TDS_ADDITIONAL_SPACE != 0
 	if (tds->out_pos > tds->out_buf_max) {
 		left = tds->out_pos - tds->out_buf_max;
 		tds->out_pos = tds->out_buf_max;
 	}
-#endif
 
 	/* we must assure server can accept our packet looking at
 	 * send_wnd and waiting for proper send_wnd if send_seq > send_wnd
@@ -751,9 +749,7 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 		tds_ssl_deinit(tds->conn);
 	}
 
-#if TDS_ADDITIONAL_SPACE != 0
 	memcpy(tds->out_buf + 8, tds->out_buf + tds->out_buf_max, left);
-#endif
 	tds->out_pos = left + 8;
 
 	return res;
