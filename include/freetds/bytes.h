@@ -35,8 +35,6 @@
  *  TDS_GET_UAnBE
  */
 
-/* TODO optimize (use swap, unaligned platforms) */
-
 /* one byte, easy... */
 #define TDS_GET_A1LE(ptr)  (((uint8_t *)(ptr))[0])
 #define TDS_GET_A1BE(ptr)  TDS_GET_A1LE(ptr)
@@ -184,19 +182,40 @@ typedef union {
 # endif
 #endif
 
-#if defined(__linux__) && defined(__GNUC__) && (defined(__i386__) || defined(__amd64__))
-# include <byteswap.h>
+#undef TDS_BSWAP16
+#undef TDS_BSWAP32
+#if defined (__GNUC__) && (__GNUC__ >= 4) && defined (__OPTIMIZE__)
+# define TDS_BSWAP16(val) __builtin_bswap16(val)
+# define TDS_BSWAP32(val) __builtin_bswap32(val)
+#elif defined(_MSC_VER)
+# define TDS_BSWAP16(val) _byteswap_ushort(val)
+# define TDS_BSWAP32(val) _byteswap_ulong(val)
+#endif
+
+#if defined(TDS_BSWAP16) && defined(WORDS_BIGENDIAN)
 # undef TDS_GET_UA2BE
 # undef TDS_GET_UA4BE
-# define TDS_GET_UA2BE(ptr) ({ uint16_t _tds_si = TDS_GET_UA2LE(ptr); bswap_16(_tds_si); })
-# define TDS_GET_UA4BE(ptr) ({ uint32_t _tds_i = TDS_GET_UA4LE(ptr); bswap_32(_tds_i); })
+# define TDS_GET_UA2BE(ptr) TDS_BSWAP16(TDS_GET_UA2LE(ptr))
+# define TDS_GET_UA4BE(ptr) TDS_BSWAP32(TDS_GET_UA4LE(ptr))
 
 # undef TDS_PUT_UA2BE
 # undef TDS_PUT_UA4BE
 # define TDS_PUT_UA2BE(ptr,val) do {\
-   uint16_t _tds_si = bswap_16(val); TDS_PUT_UA2LE(ptr,_tds_si); } while(0)
+   uint16_t _tds_si = TDS_BSWAP16(val); TDS_PUT_UA2LE(ptr,_tds_si); } while(0)
 # define TDS_PUT_UA4BE(ptr,val) do {\
-   uint32_t _tds_i = bswap_32(val); TDS_PUT_UA4LE(ptr,_tds_i); } while(0)
+   uint32_t _tds_i = TDS_BSWAP32(val); TDS_PUT_UA4LE(ptr,_tds_i); } while(0)
+#elif defined(TDS_BSWAP16) && !defined(WORDS_BIGENDIAN)
+# undef TDS_GET_UA2LE
+# undef TDS_GET_UA4LE
+# define TDS_GET_UA2LE(ptr) TDS_BSWAP16(TDS_GET_UA2BE(ptr))
+# define TDS_GET_UA4LE(ptr) TDS_BSWAP32(TDS_GET_UA4BE(ptr))
+
+# undef TDS_PUT_UA2LE
+# undef TDS_PUT_UA4LE
+# define TDS_PUT_UA2LE(ptr,val) do {\
+   uint16_t _tds_si = TDS_BSWAP16(val); TDS_PUT_UA2BE(ptr,_tds_si); } while(0)
+# define TDS_PUT_UA4LE(ptr,val) do {\
+   uint32_t _tds_i = TDS_BSWAP32(val); TDS_PUT_UA4BE(ptr,_tds_i); } while(0)
 #endif
 
 #if defined(__GNUC__) && defined(__powerpc__) && defined(WORDS_BIGENDIAN)
