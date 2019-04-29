@@ -4,6 +4,7 @@ TESTS = \
 	condition$(EXEEXT) \
 	mutex1$(EXEEXT) \
 	dlist$(EXEEXT) \
+	bytes$(EXEEXT) \
 	$(NULL)
 check_PROGRAMS = $(TESTS)
 
