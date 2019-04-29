@@ -63,7 +63,7 @@ unfinished_query_test(TDSSOCKET *tds)
 	}
 	len *= char_len;
 
-	/* send the query using tds_put_int8, non allineati */
+	/* send the query using tds_put_int8, not aligned */
 	tds->out_flag = TDS_QUERY;
 	if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 		exit(1);
