@@ -93,7 +93,7 @@ rm -rf $RPM_BUILD_ROOT
  
 %files 
 %defattr(-,root,root) 
-%doc AUTHORS BUGS COPYING* ChangeLog INSTALL NEWS README TODO 
+%doc AUTHORS.md BUGS.md COPYING*.txt INSTALL.md NEWS.md README.md TODO.md
 %{_bindir}/*
 %{_mandir}/man?/*
 %{_libdir}/libct.so.*

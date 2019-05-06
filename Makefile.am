@@ -5,10 +5,12 @@ SUBDIRS	=	include src doc samples win32 vms misc
 
 ACLOCAL_AMFLAGS = -I m4
 
-EXTRA_DIST = 	interfaces PWD.in BUGS \
+EXTRA_DIST = 	interfaces PWD.in BUGS.md \
 		freetds.conf locales.conf \
 		autogen.sh freetds.spec.in freetds.spec tds.dox \
-		config.rpath CMakeLists.txt Thanks-1.0
+		config.rpath CMakeLists.txt Thanks-1.0 \
+		AUTHORS.md INSTALL.md NEWS.md README.md TODO.md \
+		COPYING_LIB.txt COPYING.txt
 
 
 ETC	=	$(DESTDIR)$(sysconfdir)

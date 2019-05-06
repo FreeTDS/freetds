@@ -15,7 +15,7 @@ AC_INIT(FreeTDS, 1.2.dev.esyscmd(printf $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
 
-AM_INIT_AUTOMAKE([dist-bzip2 parallel-tests subdir-objects])
+AM_INIT_AUTOMAKE([dist-bzip2 parallel-tests subdir-objects foreign])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES(yes)])
 AC_CONFIG_HEADERS(include/config.h)
 AC_CONFIG_MACRO_DIR([m4])
