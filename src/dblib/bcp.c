@@ -1071,6 +1071,22 @@ _bcp_convert_in(DBPROCESS *dbproc, TDS_SERVER_TYPE srctype, const TDS_CHAR *src,
 	return TDS_SUCCESS;
 }
 
+static void
+rtrim_bcpcol(TDSCOLUMN *bcpcol)
+{
+	/* trim trailing blanks from character data */
+	if (is_ascii_type(bcpcol->on_server.column_type)) {
+		/* A single NUL byte indicates an empty string. */
+		if (bcpcol->bcp_column_data->datalen == 1
+		    && bcpcol->bcp_column_data->data[0] == '\0') {
+			bcpcol->bcp_column_data->datalen = 0;
+		} else {
+			bcpcol->bcp_column_data->datalen = rtrim((char *) bcpcol->bcp_column_data->data,
+									  bcpcol->bcp_column_data->datalen);
+		}
+	}
+}
+
 /** 
  * \ingroup dblib_bcp_internal
  * \brief 
@@ -1290,17 +1306,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 						    collen, (TDS_INT8) col_start);
 				}
 
-				/* trim trailing blanks from character data */
-				if (is_ascii_type(bcpcol->on_server.column_type)) {
-					/* A single NUL byte indicates an empty string. */
-					if (bcpcol->bcp_column_data->datalen == 1
-					    && bcpcol->bcp_column_data->data[0] == '\0') {
-						bcpcol->bcp_column_data->datalen = 0;
-					} else {
-						bcpcol->bcp_column_data->datalen = rtrim((char *) bcpcol->bcp_column_data->data,
-												  bcpcol->bcp_column_data->datalen);
-					}
-				}
+				rtrim_bcpcol(bcpcol);
 			}
 #if USING_SYBEBCNN
 			if (!hostcol->column_error) {
