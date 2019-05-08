@@ -50,6 +50,7 @@
 #include <sybdb.h>
 #include <syberror.h>
 #include <dblib.h>
+#include "../tds/encodings.h"
 
 #define HOST_COL_CONV_ERROR 1
 #define HOST_COL_NULL_ERROR 2
@@ -83,6 +84,7 @@ static TDSRET _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int off
 static TDSRET _bcp_no_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset);
 
 static int rtrim(char *, int);
+static int rtrim_u16(uint16_t *str, int len, uint16_t space);
 static STATUS _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error);
 static int _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci);
 static int _bcp_get_term_var(BYTE * pdata, BYTE * term, int term_len);
@@ -1080,10 +1082,39 @@ rtrim_bcpcol(TDSCOLUMN *bcpcol)
 		if (bcpcol->bcp_column_data->datalen == 1
 		    && bcpcol->bcp_column_data->data[0] == '\0') {
 			bcpcol->bcp_column_data->datalen = 0;
-		} else {
-			bcpcol->bcp_column_data->datalen = rtrim((char *) bcpcol->bcp_column_data->data,
-									  bcpcol->bcp_column_data->datalen);
+			return;
 		}
+		bcpcol->bcp_column_data->datalen = rtrim((char *) bcpcol->bcp_column_data->data,
+								  bcpcol->bcp_column_data->datalen);
+		return;
+	}
+
+	/* unicode part */
+	if (is_unicode_type(bcpcol->on_server.column_type)) {
+		uint16_t *data, space;
+
+		if (!bcpcol->char_conv || bcpcol->char_conv->to.charset.min_bytes_per_char != 2)
+			return;
+
+		data = (uint16_t *) bcpcol->bcp_column_data->data;
+		/* A single NUL byte indicates an empty string. */
+		if (bcpcol->bcp_column_data->datalen == 2 && data[0] == 0) {
+			bcpcol->bcp_column_data->datalen = 0;
+			return;
+		}
+		switch (bcpcol->char_conv->to.charset.canonic) {
+		case TDS_CHARSET_UTF_16BE:
+		case TDS_CHARSET_UCS_2BE:
+			TDS_PUT_A2BE(&space, 0x20);
+			break;
+		case TDS_CHARSET_UTF_16LE:
+		case TDS_CHARSET_UCS_2LE:
+			TDS_PUT_A2LE(&space, 0x20);
+			break;
+		default:
+			return;
+		}
+		bcpcol->bcp_column_data->datalen = rtrim_u16(data, bcpcol->bcp_column_data->datalen, space);
 	}
 }
 
@@ -2276,6 +2307,17 @@ rtrim(char *str, int len)
 		*p-- = '\0';
 	}
 	return (int)(1 + p - str);
+}
+
+static int
+rtrim_u16(uint16_t *str, int len, uint16_t space)
+{
+	uint16_t *p = str + len / 2 - 1;
+
+	while (p > str && *p == space) {
+		*p-- = '\0';
+	}
+	return (int)(1 + p - str) * 2;
 }
 
 /** 
