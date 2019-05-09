@@ -187,6 +187,10 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 				}
 				found = true;
 			}
+			if (!tds_dstr_dup(&login->server_name, &connection->server_name)) {
+				tds_free_login(connection);
+				return NULL;
+			}
 		}
 	}
 	if (!found) {
