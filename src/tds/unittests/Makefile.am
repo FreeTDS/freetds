@@ -22,6 +22,7 @@ TESTS =	\
 	nulls$(EXEEXT) \
 	corrupt$(EXEEXT) \
 	declarations$(EXEEXT) \
+	portconf$(EXEEXT) \
 	$(NULL)
 
 # flags test commented, not necessary for 0.62
@@ -56,6 +57,7 @@ nulls_SOURCES	= nulls.c
 readconf_SOURCES	= readconf.c readconf.in
 corrupt_SOURCES	=	corrupt.c
 declarations_SOURCES	=	declarations.c
+portconf_SOURCES	= portconf.c portconf.in
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h utf8.c allcolumns.c
