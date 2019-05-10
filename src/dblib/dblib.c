@@ -945,14 +945,14 @@ dbsetlversion(LOGINREC * login, BYTE version)
 	assert(login->tds_login != NULL);
 
 	switch (version) {
-	case DBVER42:
+	case DBVERSION_42:
 		tds_set_version(login->tds_login, 4, 2);
-		return SUCCEED;
-	case DBVER60:
-		tds_set_version(login->tds_login, 7, 0);
 		return SUCCEED;
 	case DBVERSION_100:
 		tds_set_version(login->tds_login, 5, 0);
+		return SUCCEED;
+	case DBVERSION_70:
+		tds_set_version(login->tds_login, 7, 0);
 		return SUCCEED;
 	case DBVERSION_71:
 		tds_set_version(login->tds_login, 7, 1);
