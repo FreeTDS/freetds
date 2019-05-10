@@ -509,7 +509,7 @@ dblibcheck :
 	@ run/nodebug []t0018$(E)
 	@ run/nodebug []t0019$(E)
 	@ run/nodebug []t0020$(E)
-	@ run/nodebug []t0021$(E)
+	@ run/nodebug []dbsafestr$(E)
 	@ run/nodebug []t0022$(E)
 	@ run/nodebug []t0023$(E)
 	@ run/nodebug []rpc$(E)
@@ -643,7 +643,7 @@ dblibtests : [.src.dblib.unittests]rpc$(E)  [.src.dblib.unittests]t0001$(E) [.sr
 	[.src.dblib.unittests]t0012$(E) [.src.dblib.unittests]t0013$(E) [.src.dblib.unittests]t0014$(E) \
 	[.src.dblib.unittests]t0015$(E) [.src.dblib.unittests]t0016$(E) [.src.dblib.unittests]t0017$(E) \
 	[.src.dblib.unittests]t0018$(E) [.src.dblib.unittests]t0019$(E) [.src.dblib.unittests]t0020$(E) \
-	[.src.dblib.unittests]t0021$(E) [.src.dblib.unittests]t0022$(E) [.src.dblib.unittests]t0023$(E) \
+	[.src.dblib.unittests]dbsafestr$(E) [.src.dblib.unittests]t0022$(E) [.src.dblib.unittests]t0023$(E) \
 	[.src.dblib.unittests]dbmorecmds$(E) [.src.dblib.unittests]bcp$(E) \
 	[.src.dblib.unittests]thread$(E) [.src.dblib.unittests]text_buffer$(E) \
 	[.src.dblib.unittests]done_handling$(E) [.src.dblib.unittests]timeout$(E) \
@@ -1151,10 +1151,10 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 [.src.dblib.unittests]t0020$(OBJ) : [.src.dblib.unittests]t0020.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]t0021$(E) : [.src.dblib.unittests]t0021$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]dbsafestr$(E) : [.src.dblib.unittests]dbsafestr$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
-[.src.dblib.unittests]t0021$(OBJ) : [.src.dblib.unittests]t0021.c [.src.dblib.unittests]common.h
+[.src.dblib.unittests]dbsafestr$(OBJ) : [.src.dblib.unittests]dbsafestr.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
 [.src.dblib.unittests]t0022$(E) : [.src.dblib.unittests]t0022$(OBJ) [.src.dblib.unittests]common$(OBJ)

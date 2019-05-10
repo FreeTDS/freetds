@@ -18,7 +18,7 @@ TESTS =	\
 	t0018$(EXEEXT) \
 	t0019$(EXEEXT) \
 	t0020$(EXEEXT) \
-	t0021$(EXEEXT) \
+	dbsafestr$(EXEEXT) \
 	t0022$(EXEEXT) \
 	t0023$(EXEEXT) \
 	rpc$(EXEEXT) \
@@ -71,7 +71,7 @@ t0017_SOURCES	=	t0017.c t0017.sql t0017.in t0017.in.be
 t0018_SOURCES	=	t0018.c t0018.sql
 t0019_SOURCES	=	t0019.c
 t0020_SOURCES	=	t0020.c t0020.sql
-t0021_SOURCES	=	t0021.c
+dbsafestr_SOURCES =	dbsafestr.c
 t0022_SOURCES	=	t0022.c t0022.sql
 t0023_SOURCES	=	t0023.c t0023.sql
 rpc_SOURCES	=	rpc.c rpc.sql
