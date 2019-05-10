@@ -178,9 +178,8 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 
 			found = tds_read_conf_file(connection, tds_dstr_cstr(&connection->server_name));
 			/* do it again to really override what found in freetds.conf */
-			if (found) {
-				parse_server_name_for_port(connection, login);
-			} else if (TDS_SUCCEED(tds_lookup_host_set(tds_dstr_cstr(&connection->server_name), &connection->ip_addrs))) {
+			parse_server_name_for_port(connection, login);
+			if (!found && TDS_SUCCEED(tds_lookup_host_set(tds_dstr_cstr(&connection->server_name), &connection->ip_addrs))) {
 				if (!tds_dstr_dup(&connection->server_host_name, &connection->server_name)) {
 					tds_free_login(connection);
 					return NULL;
