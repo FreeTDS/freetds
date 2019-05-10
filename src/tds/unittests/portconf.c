@@ -93,9 +93,9 @@ main(void)
 		return 1;
 	}
 
-	test("NotExistingServer1:1234", "NotExistingServer1,8.7.6.5,,1234");
+	test("NotExistingServer1:1234", "my_server,8.7.6.5,,1234");
 	test("localhost:1234", "localhost,localhost,,1234");
-	test("NotExistingServer1\\named", "NotExistingServer1,8.7.6.5,named,0");
+	test("NotExistingServer1\\named", "my_server,8.7.6.5,named,0");
 	test("localhost\\named", "localhost,localhost,named,0");
 
 	tds_free_socket(tds);

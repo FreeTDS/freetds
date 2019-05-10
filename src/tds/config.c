@@ -83,7 +83,7 @@ static void tds_config_env_tdsport(TDSLOGIN * login);
 static int tds_config_env_tdshost(TDSLOGIN * login);
 static bool tds_read_conf_sections(FILE * in, const char *server, TDSLOGIN * login);
 static int tds_read_interfaces(const char *server, TDSLOGIN * login);
-static int parse_server_name_for_port(TDSLOGIN * connection, TDSLOGIN * login);
+static int parse_server_name_for_port(TDSLOGIN * connection, TDSLOGIN * login, bool update_server);
 static int tds_lookup_port(const char *portname);
 static void tds_config_encryption(const char * value, TDSLOGIN * login);
 
@@ -174,11 +174,11 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 	tdsdump_log(TDS_DBG_INFO1, "Attempting to read conf files.\n");
 	found = tds_read_conf_file(connection, tds_dstr_cstr(&login->server_name));
 	if (!found) {
-		if (parse_server_name_for_port(connection, login)) {
+		if (parse_server_name_for_port(connection, login, true)) {
 
 			found = tds_read_conf_file(connection, tds_dstr_cstr(&connection->server_name));
 			/* do it again to really override what found in freetds.conf */
-			parse_server_name_for_port(connection, login);
+			parse_server_name_for_port(connection, login, false);
 			if (!found && TDS_SUCCEED(tds_lookup_host_set(tds_dstr_cstr(&connection->server_name), &connection->ip_addrs))) {
 				if (!tds_dstr_dup(&connection->server_host_name, &connection->server_name)) {
 					tds_free_login(connection);
@@ -1277,7 +1277,7 @@ tds_read_interfaces(const char *server, TDSLOGIN * login)
  * \return 1 when found, else 0
  */
 static int
-parse_server_name_for_port(TDSLOGIN * connection, TDSLOGIN * login)
+parse_server_name_for_port(TDSLOGIN * connection, TDSLOGIN * login, bool update_server)
 {
 	const char *pSep;
 	const char *server;
@@ -1309,7 +1309,7 @@ parse_server_name_for_port(TDSLOGIN * connection, TDSLOGIN * login)
 		connection->port = 0;
 	}
 
-	if (!tds_dstr_copyn(&connection->server_name, server, pSep - server))
+	if (!update_server || !tds_dstr_copyn(&connection->server_name, server, pSep - server))
 		return 0;
 
 	return 1;
