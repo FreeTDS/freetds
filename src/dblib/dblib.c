@@ -933,7 +933,7 @@ dbsetlbool(LOGINREC * login, int value, int which)
  *
  */
 RETCODE 
-dbsetlversion (LOGINREC * login, BYTE version)
+dbsetlversion(LOGINREC * login, BYTE version)
 {
 	tdsdump_log(TDS_DBG_FUNC, "dbsetlversion(%p, %x)\n", login, version);
 
@@ -967,7 +967,7 @@ dbsetlversion (LOGINREC * login, BYTE version)
 		tds_set_version(login->tds_login, 7, 4);
 		return SUCCEED;
 	}
-	
+
 	return FAIL;
 }
 
@@ -3022,7 +3022,7 @@ dbcoltypeinfo(DBPROCESS * dbproc, int column)
  * \todo Support cursor rows. 
  */
 RETCODE
-dbcolinfo (DBPROCESS *dbproc, CI_TYPE type, DBINT column, DBINT computeid, DBCOL *pdbcol )
+dbcolinfo(DBPROCESS *dbproc, CI_TYPE type, DBINT column, DBINT computeid, DBCOL *pdbcol)
 {
 	DBTYPEINFO *ps;
 	TDSCOMPUTEINFO *info;
@@ -5044,8 +5044,8 @@ dbdead(DBPROCESS * dbproc)
 
 	if (IS_TDSDEAD(dbproc->tds_socket))
 		return TRUE;
-	else
-		return FALSE;
+
+	return FALSE;
 }
 
 /** \internal
@@ -6296,10 +6296,9 @@ dbgetchar(DBPROCESS * dbproc, int pos)
 	if (dbproc->dbbufsz > 0) {
 		if (pos >= 0 && pos < (dbproc->dbbufsz - 1))
 			return (char *) &dbproc->dbbuf[pos];
-		else
-			return NULL;
-	} else
 		return NULL;
+	}
+	return NULL;
 }
 
 /**
@@ -6442,7 +6441,7 @@ dbprtype(int token)
  * \sa dbcolinfo().
  */
 RETCODE
-dbtablecolinfo (DBPROCESS *dbproc, DBINT column, DBCOL *pdbcol )
+dbtablecolinfo(DBPROCESS *dbproc, DBINT column, DBCOL *pdbcol)
 {
 	TDSCOLUMN *colinfo;
 
@@ -8090,7 +8089,7 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
  * \sa dberrhandle(), _dblib_handle_err_message().
  */
 int
-dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
+dbperror(DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 {
 	static const char int_exit_text[] = "FreeTDS: db-lib: exiting because client error handler returned %s for msgno %d\n";
 	static const char int_invalid_text[] = "%s (%d) received from client-installed error handler for nontimeout for error %d."
