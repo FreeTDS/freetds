@@ -2806,7 +2806,7 @@ dbcount(DBPROCESS * dbproc)
 	tdsdump_log(TDS_DBG_FUNC, "dbcount(%p)\n", dbproc);
 	CHECK_PARAMETER(dbproc, SYBENULL, -1);
 
-	if (!dbproc || !dbproc->tds_socket || dbproc->tds_socket->rows_affected == TDS_NO_COUNT)
+	if (!dbproc->tds_socket || dbproc->tds_socket->rows_affected == TDS_NO_COUNT)
 		return -1;
 	return (DBINT)dbproc->tds_socket->rows_affected;
 }
