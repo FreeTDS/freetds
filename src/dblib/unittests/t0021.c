@@ -1,19 +1,19 @@
-/* 
+/*
  * Purpose: Test dbsafestr()
- * Functions: dbsafestr 
+ * Functions: dbsafestr
  */
 
 #include "common.h"
 
 #ifndef DBNTWIN32
 
-int failed = 0;
+static int failed = 0;
 
 /* unsafestr must contain one quote of each type */
-const char *unsafestr = "This is a string with ' and \" in it.";
+static const char *unsafestr = "This is a string with ' and \" in it.";
 
 /* safestr must be at least strlen(unsafestr) + 3 */
-char safestr[100];
+static char safestr[100];
 
 int
 main(int argc, char **argv)
@@ -25,7 +25,6 @@ main(int argc, char **argv)
 
 	printf("Starting %s\n", argv[0]);
 
-	/* Fortify_EnterScope(); */
 	dbinit();
 
 
@@ -47,6 +46,9 @@ main(int argc, char **argv)
 	if (strlen(safestr) != len + 1)
 		failed++;
 	printf("double quote\n%s\n", safestr);
+	ret = dbsafestr(NULL, unsafestr, -1, safestr, len + 2, DBBOTH);
+	if (ret != FAIL)
+		failed++;
 	ret = dbsafestr(NULL, unsafestr, -1, safestr, len + 3, DBBOTH);
 	if (ret != SUCCEED)
 		failed++;
