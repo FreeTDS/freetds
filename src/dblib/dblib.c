@@ -945,6 +945,9 @@ dbsetlversion(LOGINREC * login, BYTE version)
 	assert(login->tds_login != NULL);
 
 	switch (version) {
+	case DBVERSION_UNKNOWN:
+		tds_set_version(login->tds_login, 0, 0);
+		return SUCCEED;
 	case DBVERSION_42:
 		tds_set_version(login->tds_login, 4, 2);
 		return SUCCEED;
