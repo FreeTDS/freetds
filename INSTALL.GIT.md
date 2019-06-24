@@ -41,4 +41,4 @@ The git repository is maintained on GitHub. Follow these steps:
 4. switch to a user that can write to the target installation
    directory, usually root with `su root`
 
-5. Intall with `make install`
+5. Install with `make install`
