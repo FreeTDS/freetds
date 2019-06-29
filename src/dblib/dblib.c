@@ -7455,8 +7455,23 @@ copy_data_to_host_var(DBPROCESS * dbproc, TDS_SERVER_TYPE srctype, const BYTE * 
 		tdsdump_log(TDS_DBG_INFO1, "copy_data_to_host_var() srctype == desttype\n");
 		switch (desttype) {
 
+		case SYBVARBINARY:
 		case SYBBINARY:
 		case SYBIMAGE:
+			if (bindtype == VARYBINBIND) {
+				DBVARYBIN *bin = (DBVARYBIN*) dest;
+				if (limited_dest_space) {
+					if (srclen > sizeof(bin->array)) {
+						dbperror(dbproc, SYBECOFL, 0);
+						indicator_value = srclen;
+						srclen = sizeof(bin->array);
+					}
+				}
+				memcpy(bin->array, src, srclen);
+				bin->len = srclen;
+				break;
+			}
+
 			if (srclen > destlen && destlen >= 0) {
 				dbperror(dbproc, SYBECOFL, 0);
 			} else {

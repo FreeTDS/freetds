@@ -49,16 +49,28 @@ start_query(DBPROCESS * dbproc)
 	return 1;
 }
 
+static const char *
+hex_buffer(BYTE *binarybuffer, int size, char *textbuf)
+{
+	int i;
+	strcpy(textbuf, "0x");  /* must be large enough */
+	for (i = 0; i < size; i++) {
+		sprintf(textbuf + 2 + i * 2, "%02X", binarybuffer[i]);
+	}
+	return textbuf;  /* convenience */
+}
+
 int
 main(int argc, char **argv)
 {
 	LOGINREC *login;
 	DBPROCESS *dbproc;
 	int i;
-	char teststr[1024];
-	DBINT testint;
-	DBVARYBIN  testvbin;
+	char teststr[1024], teststr2[1024];
+	DBINT testint, binvaluelength;
+	DBVARYBIN  testvbin, testvbin2;
 	DBVARYCHAR testvstr;
+	BYTE testbin[10];
 	int failed = 0;
 	int expected_error;
 
@@ -167,7 +179,7 @@ main(int argc, char **argv)
 			abort();
 		}
 		if (testvbin.len != sizeof(testint)) {
-			fprintf(stderr, "Failed, line %d.  Expected bin lenght to be %d, was %d\n", __LINE__, (int) sizeof(testint), (int) testvbin.len);
+			fprintf(stderr, "Failed, line %d.  Expected bin length to be %d, was %d\n", __LINE__, (int) sizeof(testint), (int) testvbin.len);
 			abort();
 		}
 		memcpy(&testint, testvbin.array, sizeof(testint));
@@ -183,6 +195,62 @@ main(int argc, char **argv)
 		printf("Read a row of data -> %d %s\n", (int) testint, testvstr.str);
 	}
 
+	dbcancel(dbproc);
+
+	/*
+	 * Test var binary bindings of binary values
+	 */
+	if (!start_query(dbproc)) {
+		fprintf(stderr, "%s:%d: start_query failed\n", __FILE__, __LINE__);
+		failed = 1;
+	}
+
+	dbbind(dbproc, 1, INTBIND, 0, (BYTE *) &binvaluelength);  /* returned binary string length (all columns) */
+	dbbind(dbproc, 2, VARYBINBIND, sizeof(testvbin), (BYTE *) &testvbin);  /* returned as varbinary, bound varbinary */
+	dbbind(dbproc, 3, VARYBINBIND, sizeof(testvbin2), (BYTE *) &testvbin2); /* returned as binary, bound varbinary */
+	dbbind(dbproc, 4, BINARYBIND, sizeof(testbin), (BYTE *) &testbin);  /* returned as varbinary, bound binary */
+
+	memset(&testvbin, '*', sizeof(testvbin));
+	memset(&testvbin2, '*', sizeof(testvbin2));
+	memset(&testbin, '@', sizeof(testbin));  /* different. After fetch all buffers should have same value */
+
+	if (REG_ROW != dbnextrow(dbproc)) {
+		fprintf(stderr, "Failed.  Expected a row\n");
+		abort();
+	}
+
+	if (testvbin.len != binvaluelength) {
+		fprintf(stderr, "Failed, line %d.  Expected bin length to be %d, was %d\n", __LINE__,
+			(int) binvaluelength, (int) testvbin.len);
+		abort();
+	}
+
+	if (testvbin2.len != binvaluelength) {
+		fprintf(stderr, "Failed, line %d.  Expected bin length to be %d, was %d\n", __LINE__,
+			(int) binvaluelength, (int) testvbin.len);
+		abort();
+	}
+
+	if (memcmp(testvbin.array, testbin, binvaluelength) != 0) {
+		fprintf(stderr, "Failed, line %d.  Expected buffer to be %s, was %s\n", __LINE__, 
+			hex_buffer(testbin, binvaluelength, teststr),
+			hex_buffer(testvbin.array, binvaluelength, teststr2));
+		abort();
+	}
+
+	if (memcmp(testvbin2.array, testbin, binvaluelength) != 0) {
+		fprintf(stderr, "Failed, line %d.  Expected buffer to be %s, was %s\n", __LINE__,
+			hex_buffer(testbin, binvaluelength, teststr),
+			hex_buffer(testvbin2.array, binvaluelength, teststr2));
+		abort();
+	}
+
+	memset(teststr2, 0, sizeof(teststr2));  /* finally, test binary padding is all zeroes */
+	if (memcmp(testbin + binvaluelength, teststr2, sizeof(testbin) - binvaluelength) != 0) {
+		fprintf(stderr, "Failed, line %d.  Expected binary padding to be zeroes, was %s\n", __LINE__,
+			hex_buffer(testbin + binvaluelength, sizeof(testbin) - binvaluelength, teststr));
+		abort();
+	}
 
 	dbexit();
 
