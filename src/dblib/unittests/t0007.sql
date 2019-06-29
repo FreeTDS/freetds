@@ -30,3 +30,8 @@ go
  */
 select i, s, i from #dblib0007 x where x.i<=5 order by x.i
 go
+/*
+ * Fourth select for var binary bindings of binary values
+ */
+select 7 as 'size', convert(varbinary(10), 0x01020304050607) as 'vb', convert(binary(7), 0x01020304050607) as 'bin1', convert(varbinary(7), 0x01020304050607) as 'bin2'
+go
