@@ -155,7 +155,6 @@ tds_gss_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t le
 /**
  * Build a GSSAPI packet to send to server
  * @param tds     A pointer to the TDSSOCKET structure managing a client/server operation.
- * @param packet  GSSAPI packet build from function
  * @return size of packet
  */
 TDSAUTHENTICATION * 
@@ -388,7 +387,6 @@ tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *to
 	return TDS_SUCCESS;
 }
 
-#endif
-
 /** @} */
 
+#endif
