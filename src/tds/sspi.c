@@ -312,7 +312,7 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 	return &auth->tds_auth;
 }
 
-#endif /* HAVE_SSPI */
-
 /** @} */
+
+#endif /* HAVE_SSPI */
 
