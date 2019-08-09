@@ -74,7 +74,6 @@ install:
   - ren win-iconv-%WIN_ICONV_VER% iconv
   - mkdir iconv-build
   - cd iconv-build
-  - if exist "C:\\Program Files (x86)\\Windows Kits\\10\\include\\wdf" ren "C:\\Program Files (x86)\\Windows Kits\\10\\include\\wdf" "00wdf"
   - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DBUILD_STATIC=on -D BUILD_SHARED=off -DBUILD_EXECUTABLE=off -DBUILD_TEST=on -DCMAKE_BUILD_TYPE=Release ..\\iconv"
   - "%WITH_COMPILER% nmake"
   - win_iconv_test.exe
