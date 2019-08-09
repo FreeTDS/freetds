@@ -162,7 +162,7 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 
 	state = tds->state;
 
-	tdsdump_log(TDS_DBG_ERROR, "Changed query state from %s to %s\n", state_names[prior_state], state_names[state]);
+	tdsdump_log(TDS_DBG_INFO1, "Changed query state from %s to %s\n", state_names[prior_state], state_names[state]);
 	CHECK_TDS_EXTRA(tds);
 
 	return state;
