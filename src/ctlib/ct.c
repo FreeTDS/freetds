@@ -364,7 +364,8 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 		bool copy_ret = true;
 
 		if (property == CS_USERNAME || property == CS_PASSWORD || property == CS_APPNAME ||
-			property == CS_HOSTNAME || property == CS_CLIENTCHARSET || property == CS_SERVERADDR) {
+			property == CS_HOSTNAME || property == CS_CLIENTCHARSET || property == CS_DATABASE ||
+			property == CS_SERVERADDR) {
 			if (buflen == CS_NULLTERM) {
 				set_buffer = strdup((char *) buffer);
 			} else if (buflen == CS_UNUSED) {
@@ -397,6 +398,9 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			break;
 		case CS_PORT:
 			tds_set_port(tds_login, *((int *) buffer));
+			break;
+		case CS_DATABASE:
+			copy_ret = !!tds_dstr_copy(&tds_login->database, set_buffer);
 			break;
 		case CS_SERVERADDR: {
 			/* Format of this property: "[hostname] [port]" */
