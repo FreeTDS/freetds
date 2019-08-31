@@ -281,7 +281,7 @@ tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE typ
 	}
 	tds_set_column_type(conn, curcol, type);
 
-	if (is_collate_type(type)) {
+	if (is_collate_type(type) || is_char_type(type)) {
 		curcol->char_conv = conn->char_convs[is_unicode_type(type) ? client2ucs2 : client2server_chardata];
 		memcpy(curcol->column_collation, conn->collation, sizeof(conn->collation));
 	}

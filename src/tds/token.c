@@ -3243,8 +3243,7 @@ adjust_character_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			curcol->char_conv = tds->conn->char_convs[client2ucs2];
 	}
 
-	/* FIXME: and sybase ?? */
-	if (!curcol->char_conv && IS_TDS7_PLUS(tds->conn) && is_ascii_type(curcol->on_server.column_type))
+	if (!curcol->char_conv && is_ascii_type(curcol->on_server.column_type))
 		curcol->char_conv = tds->conn->char_convs[client2server_chardata];
 
 	if (!USE_ICONV || !curcol->char_conv)
