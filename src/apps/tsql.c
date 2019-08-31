@@ -420,16 +420,11 @@ get_default_instance_port(const char hostname[])
 # define LC_ALL 0
 #endif
 
-#ifdef HAVE_SSPI
-const char have_sspi[] = "yes";
-#else 
-const char have_sspi[] = "no";
-#endif
-#ifdef ENABLE_KRB5
-const char enable_krb5[] = "yes";
-#else 
-const char enable_krb5[] = "no";
-#endif
+static const char *
+yes_no(bool value)
+{
+	return value ? "yes" : "no";
+}
 
 static void
 populate_login(TDSLOGIN * login, int argc, char **argv)
@@ -498,21 +493,20 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 			printf("%s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n",
 			       "Compile-time settings (established with the \"configure\" script)",
 			       "Version", settings->freetds_version,
-			       "freetds.conf directory", settings->sysconfdir, 
+			       "freetds.conf directory", settings->sysconfdir,
 			       /* settings->last_update */
-			       "MS db-lib source compatibility", settings->msdblib ? "yes" : "no",
-			       "Sybase binary compatibility",
-			       (settings->sybase_compat == -1 ? "unknown" : (settings->sybase_compat ? "yes" : "no")),
-			       "Thread safety", settings->threadsafe ? "yes" : "no",
-			       "iconv library", settings->libiconv ? "yes" : "no",
+			       "MS db-lib source compatibility", yes_no(settings->msdblib),
+			       "Sybase binary compatibility", yes_no(settings->sybase_compat),
+			       "Thread safety", yes_no(settings->threadsafe),
+			       "iconv library", yes_no(settings->libiconv),
 			       "TDS version", settings->tdsver,
-			       "iODBC", settings->iodbc ? "yes" : "no", 
-			       "unixodbc", settings->unixodbc ? "yes" : "no", 
-			       "SSPI \"trusted\" logins", have_sspi, 
-			       "Kerberos", enable_krb5,
-			       "OpenSSL", settings->openssl ? "yes" : "no",
-			       "GnuTLS", settings->gnutls ? "yes" : "no",
-			       "MARS", settings->mars ? "yes" : "no");
+			       "iODBC", yes_no(settings->iodbc),
+			       "unixodbc", yes_no(settings->unixodbc),
+			       "SSPI \"trusted\" logins", yes_no(settings->sspi),
+			       "Kerberos", yes_no(settings->kerberos),
+			       "OpenSSL", yes_no(settings->openssl),
+			       "GnuTLS", yes_no(settings->gnutls),
+			       "MARS", yes_no(settings->mars));
 			exit(0);
 			break;
 		default:

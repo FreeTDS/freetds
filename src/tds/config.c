@@ -1327,26 +1327,6 @@ tds_get_compiletime_settings(void)
 		  TDS_VERSION_NO
 		, FREETDS_SYSCONFDIR
 		, "unknown"	/* need fancy script in makefile */
-#		ifdef MSDBLIB
-			, 1
-#		else
-			, 0
-#		endif
-#		ifdef TDS_SYBASE_COMPAT
-			, 1
-#		else
-			, 0
-#		endif
-#		ifdef _REENTRANT
-			, 1
-#		else
-			, 0
-#		endif
-#		ifdef HAVE_ICONV
-			, 1
-#		else
-			, 0
-#		endif
 #		if TDS50
 			, "5.0"
 #		elif TDS71
@@ -1360,30 +1340,60 @@ tds_get_compiletime_settings(void)
 #		else
 			, "auto"
 #		endif
-#		ifdef IODBC
-			, 1
+#		ifdef MSDBLIB
+			, true
 #		else
-			, 0
+			, false
+#		endif
+#		ifdef TDS_SYBASE_COMPAT
+			, true
+#		else
+			, false
+#		endif
+#		ifdef _REENTRANT
+			, true
+#		else
+			, false
+#		endif
+#		ifdef HAVE_ICONV
+			, true
+#		else
+			, false
+#		endif
+#		ifdef IODBC
+			, true
+#		else
+			, false
 #		endif
 #		ifdef UNIXODBC
-			, 1
+			, true
 #		else
-			, 0
+			, false
 #		endif
 #		ifdef HAVE_OPENSSL
-			, 1
+			, true
 #		else
-			, 0
+			, false
 #		endif
 #		ifdef HAVE_GNUTLS
-			, 1
+			, true
 #		else
-			, 0
+			, false
 #		endif
 #		if ENABLE_ODBC_MARS
-			, 1
+			, true
 #		else
-			, 0
+			, false
+#		endif
+#		ifdef HAVE_SSPI
+			, true
+#		else
+			, false
+#		endif
+#		ifdef ENABLE_KRB5
+			, true
+#		else
+			, false
 #		endif
 	};
 

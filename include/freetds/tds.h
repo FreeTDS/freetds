@@ -84,16 +84,18 @@ typedef struct tds_compiletime_settings
 	const char *freetds_version;	/* release version of FreeTDS */
 	const char *sysconfdir;		/* location of freetds.conf */
 	const char *last_update;	/* latest software_version date among the modules */
-	int msdblib;		/* for MS style dblib */
-	int sybase_compat;	/* enable increased Open Client binary compatibility */
-	int threadsafe;		/* compile for thread safety default=no */
-	int libiconv;		/* search for libiconv in DIR/include and DIR/lib */
 	const char *tdsver;	/* TDS protocol version (4.2/4.6/5.0/7.0/7.1) 5.0 */
-	int iodbc;		/* build odbc driver against iODBC in DIR */
-	int unixodbc;		/* build odbc driver against unixODBC in DIR */
-	int openssl;		/* build against OpenSSL */
-	int gnutls;		/* build against GnuTLS */
-	int mars;		/* MARS enabled */
+	bool msdblib;		/* for MS style dblib */
+	bool sybase_compat;	/* enable increased Open Client binary compatibility */
+	bool threadsafe;		/* compile for thread safety default=no */
+	bool libiconv;		/* search for libiconv in DIR/include and DIR/lib */
+	bool iodbc;		/* build odbc driver against iODBC in DIR */
+	bool unixodbc;		/* build odbc driver against unixODBC in DIR */
+	bool openssl;		/* build against OpenSSL */
+	bool gnutls;		/* build against GnuTLS */
+	bool mars;		/* MARS enabled */
+	bool sspi;		/* SSPI enabled */
+	bool kerberos;		/* Kerberos enabled */
 } TDS_COMPILETIME_SETTINGS;
 
 /**
