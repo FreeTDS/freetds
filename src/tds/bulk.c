@@ -482,7 +482,6 @@ tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data
 {
 	TDS_NUMERIC *num;
 	int row_pos = start;
-	TDSCOLUMN *bcpcol;
 	int cpbytes;
 	int i, j;
 	int bitleft = 0, bitpos;
@@ -494,7 +493,8 @@ tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data
 
 	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
 
-		bcpcol = bcpinfo->bindinfo->columns[i];
+		TDSCOLUMN *const bcpcol = bcpinfo->bindinfo->columns[i];
+		const TDS_INT column_size = bcpcol->on_server.column_size;
 
 		if (is_nullable_type(bcpcol->column_type) || bcpcol->column_nullable)
 			continue;
@@ -531,19 +531,19 @@ tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data
 			--bitleft;
 			continue;
 		} else {
-			cpbytes = bcpcol->bcp_column_data->datalen > bcpcol->column_size ?
-				  bcpcol->column_size : bcpcol->bcp_column_data->datalen;
+			cpbytes = bcpcol->bcp_column_data->datalen > column_size ?
+				  column_size : bcpcol->bcp_column_data->datalen;
 			memcpy(&rowbuffer[row_pos], bcpcol->bcp_column_data->data, cpbytes);
 
 			/* CHAR data may need padding out to the database length with blanks */
 			/* TODO check binary !!! */
-			if (bcpcol->column_type == SYBCHAR && cpbytes < bcpcol->column_size) {
-				for (j = cpbytes; j <  bcpcol->column_size; j++)
+			if (bcpcol->column_type == SYBCHAR && cpbytes < column_size) {
+				for (j = cpbytes; j <  column_size; j++)
 					rowbuffer[row_pos + j] = ' ';
 			}
 		}
 
-		row_pos += bcpcol->column_size;
+		row_pos += column_size;
 	}
 	return row_pos;
 }
