@@ -74,6 +74,16 @@ static const char *ucs2name;
 enum
 { POS_ISO1, POS_UTF8, POS_UCS2LE, POS_UCS2BE };
 
+static const struct {
+	uint8_t len;
+	char data[15];
+} test_strings[4] = {
+	{ 4, "Ao\xD3\xE5" },
+	{ 6, "Ao\xC3\x93\xC3\xA5" },
+	{ 8, "A\x00o\x000\xD3\x00\xE5\x00" },
+	{ 8, "\x00" "A\x00o\x000\xD3\x00\xE5" },
+};
+
 /**
  * Initialize charset searching for UTF-8, UCS-2 and ISO8859-1
  */
@@ -186,6 +196,35 @@ tds_iconv_init(void)
 	for (i = 0; i < 4; ++i)
 		tdsdump_log(TDS_DBG_INFO1, "local name for %s is %s\n", canonic_charsets[i].name,
 			    iconv_names[i] ? iconv_names[i] : "(null)");
+
+	/* base conversions checks */
+	for (i = 0; i < 4 * 4; ++i) {
+		const int from = i / 4;
+		const int to = i % 4;
+		char ob[16];
+		size_t il, ol;
+		ICONV_CONST char *pib;
+		char *pob;
+		size_t res;
+
+		if (!iconv_names[from] || !iconv_names[to])
+			continue;
+		cd = tds_sys_iconv_open(iconv_names[to], iconv_names[from]);
+		if (cd == (iconv_t) -1)
+			return 1;
+
+		pib = (ICONV_CONST char *) test_strings[from].data;
+		il = test_strings[from].len;
+		pob = ob;
+		ol = sizeof(ob);
+		res = tds_sys_iconv(cd, &pib, &il, &pob, &ol);
+		tds_sys_iconv_close(cd);
+
+		if (res != 0
+		    || sizeof(ob) - ol != test_strings[to].len
+		    || memcmp(ob, test_strings[to].data, test_strings[to].len) != 0)
+			return 1;
+	}
 
 	/* success (it should always occurs) */
 	return 0;
@@ -333,7 +372,7 @@ tds_iconv_open(TDSCONNECTION * conn, const char *charset, int use_utf16)
 	/* initialize */
 	if (!iconv_initialized) {
 		if ((ret = tds_iconv_init()) > 0) {
-			static const char names[][12] = { "ISO 8859-1", "UTF-8" };
+			static const char names[][12] = { "ISO 8859-1", "UCS-2" };
 			assert(ret < 3);
 			tdsdump_log(TDS_DBG_FUNC, "error: tds_iconv_init() returned %d; "
 						  "could not find a name for %s that your iconv accepts.\n"
