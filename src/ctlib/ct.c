@@ -2055,6 +2055,9 @@ _ct_get_client_type(TDSCOLUMN *col)
 	case SYBUNIQUE:
 		return CS_UNIQUE_TYPE;
 		break;
+	case SYBLONGCHAR:
+		return CS_LONGCHAR_TYPE;
+		break;
 	case SYBLONGBINARY:
 		if (col->column_usertype == USER_UNICHAR_TYPE || col->column_usertype == USER_UNIVARCHAR_TYPE)
 			return CS_UNICHAR_TYPE;

@@ -29,6 +29,7 @@ TESTS = \
 	ct_dynamic$(EXEEXT) \
 	blk_in2$(EXEEXT) \
 	datafmt$(EXEEXT) \
+	data$(EXEEXT) \
 	rpc_fail$(EXEEXT) \
 	row_count$(EXEEXT) \
 	all_types$(EXEEXT) \
@@ -66,6 +67,7 @@ ct_cursors_SOURCES	= ct_cursors.c
 ct_dynamic_SOURCES	= ct_dynamic.c
 blk_in2_SOURCES		= blk_in2.c
 datafmt_SOURCES		= datafmt.c
+data_SOURCES		= data.c
 rpc_fail_SOURCES	= rpc_fail.c
 row_count_SOURCES	= row_count.c
 all_types_SOURCES	= all_types.c
