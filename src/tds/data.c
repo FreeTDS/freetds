@@ -375,6 +375,8 @@ tds_get_cardinal_type(TDS_SERVER_TYPE datatype, int usertype)
 			return SYBTEXT;
 		}
 		break;
+	case SYBMSXML:
+		return SYBLONGCHAR;
 	default:
 		break;
 	}

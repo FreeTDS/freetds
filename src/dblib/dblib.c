@@ -477,6 +477,7 @@ dbbindtype(int datatype)
 	
 	case SYBBIT:		return BITBIND;
 
+	case SYBLONGCHAR:
 	case SYBTEXT:
 	case SYBVARCHAR:
 	case SYBCHAR:		return NTBSTRINGBIND;
@@ -2868,6 +2869,7 @@ dblib_coltype(TDSCOLUMN *colinfo)
 		return SYBCHAR;
 	case SYBVARBINARY:
 		return SYBBINARY;
+	case SYBLONGCHAR:
 	case SYBUNITEXT:
 	case SYBMSXML:
 		return SYBTEXT;
@@ -2917,7 +2919,6 @@ dblib_coltype(TDSCOLUMN *colinfo)
 	case XSYBNVARCHAR:
 	case XSYBVARCHAR:
 	case XSYBNCHAR:
-	case XSYBCHAR:
 	case SYB5INT8:
 		break;
 #if !ENABLE_EXTRA_CHECKS
