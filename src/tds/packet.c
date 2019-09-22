@@ -314,7 +314,8 @@ tds_build_packet(TDSSOCKET *tds, unsigned char *buf, unsigned len)
 			p->type = TDS_SMP_DATA;
 			TDS_PUT_A2LE(&p->sid, tds->sid);
 			TDS_PUT_A4LE(&p->size, len+16);
-			TDS_PUT_A4LE(&p->seq, ++tds->send_seq);
+			++tds->send_seq;
+			TDS_PUT_A4LE(&p->seq, tds->send_seq);
 			/* this is the acknowledge we give to server to stop sending !!! */
 			tds->recv_wnd = tds->recv_seq + 4;
 			TDS_PUT_A4LE(&p->wnd, tds->recv_wnd);
