@@ -1174,6 +1174,11 @@ struct tds_socket
 	unsigned char out_flag;		/**< output buffer type */
 
 #if ENABLE_ODBC_MARS
+	/** SID of MARS session.
+	 * <0   Will allocate a new SID.
+	 * ==0  Not in a MARS session.
+	 * >0   SID of MARS session valid.
+	 */
 	short sid;
 	tds_condition packet_cond;
 	TDS_UINT recv_seq;
