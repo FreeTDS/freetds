@@ -129,7 +129,7 @@ main(int argc, char *argv[])
 
 	ret = blk_describe(blkdesc, 3, &datafmt);
 	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_describe() failed");
+		fprintf(stderr, "blk_describe() failed");
 		return 1;
 	}
 
