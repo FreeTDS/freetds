@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# These commands prepare for win32 distribution
+# These commands prepare for Windows distribution
 
 # It uses MingW to cross compile
 # Useful for testing ODBC under Windows
@@ -13,8 +13,8 @@ errore() {
 }
 
 NTWDBLIB=no
-TYPE=win32
-HOSTS='i686-w64-mingw32 i586-mingw32msvc i386-mingw32'
+TYPE=win64
+HOSTS='x86_64-w64-mingw32 amd64-mingw32msvc x86_64-pc-mingw32'
 ARCHIVE='tar jcvf "freetds-$PACKAGE_VERSION.$TYPE.tar.bz2" "freetds-$PACKAGE_VERSION"'
 PACK=yes
 ONLINE=no
@@ -22,9 +22,9 @@ ONLINE=no
 for param
 do
 	case $param in
-	--win64)
-		HOSTS='x86_64-w64-mingw32 amd64-mingw32msvc x86_64-pc-mingw32'
-		TYPE=win64
+	--win32)
+		HOSTS='i686-w64-mingw32 i586-mingw32msvc i386-mingw32'
+		TYPE=win32
 		;;
 	--zip)
 		ARCHIVE='zip -r9 "freetds-$PACKAGE_VERSION.$TYPE.zip" "freetds-$PACKAGE_VERSION"'
@@ -45,7 +45,7 @@ do
 	--help)
 		echo "Usage: $0 [OPTION]..."
 		echo '  --help          this help'
-		echo '  --win64         compile for win64'
+		echo '  --win32         compile for win32'
 		echo '  --zip           compress with zip'
 		echo '  --gzip          compress with gzip'
 		echo '  --ntwdblib      use ntwdblib instead of our'
