@@ -2809,65 +2809,27 @@ To avoid this problem, choose a threading model in <filename>odbcinst.ini</filen
 
 <para>After that just type <command>make</command> and you are off and running.</para>
 		</sect1>
-	
+
 	<sect1 id="perl">
 		<title>Perl</title>
 
 <para>There are a few ways to use <productname>Perl</productname> to connect to a <productname>SQL Server</productname> using &freetds;.</para>
-		
-		<sect2 id="DBD.Sybase"><title>DBD::Sybase</title>
 
-<para>The recommended choice is <systemitem class="library">DBD::Sybase</systemitem> from Michael Peppler.  Despite the name it works for any Sybase or Microsoft <productname>SQL Server</productname>.  <systemitem class="library">DBD::Sybase</systemitem> uses the &ctlib; <acronym>API</acronym> and works well.</para>
-			</sect2>
-		
 		<sect2 id="DBD.ODBC"><title>DBD::ODBC</title>
 
-<para>You may also use <systemitem class="library">DBD::ODBC</systemitem> with the &freetds; &odbc; driver.  You may find this attractive if you're familiar with <systemitem class="library">DBD::ODBC</systemitem>.</para>
+<para>The recommended choice is <systemitem class="library">DBD::ODBC</systemitem> with the &freetds; &odbc; driver.</para>
 			</sect2>
+
+		<sect2 id="DBD.Sybase"><title>DBD::Sybase</title>
+
+<para>You may also use <systemitem class="library">DBD::Sybase</systemitem> from Michael Peppler.  Despite the name it works for any Sybase or Microsoft <productname>SQL Server</productname>.  <systemitem class="library">DBD::Sybase</systemitem> uses the &ctlib; <acronym>API</acronym> and works well. However the project has not been updated for a while.</para>
+			</sect2>
+
 		<sect2 id="Sybperl"><title>Sybperl</title>
 
 <para>Finally, you can use <systemitem class="library">Sybperl</systemitem>.  Scripts written against <systemitem class="library">Sybperl</systemitem> will not run against other databases the way DBI scripts will.  However, it will be familiar ground for those who know &dblib;.</para>
 			</sect2>
 		<sect2 id="Perlmodules"><title>Building and using the Perl modules</title>
-
-<para><example id="e.g.DBD.Sybase.build">
-					<title>Building <systemitem class="library">DBD::Sybase</systemitem></title>
-<screen>
-	<prompt>$ </prompt><userinput>cd DBD-Sybase-0.91</userinput>
-	<prompt>$ </prompt><userinput>export SYBASE=/usr/local/freetds</userinput>
-	<prompt>$ </prompt><userinput>perl Makefile.PL</userinput>
-	<prompt>$ </prompt><userinput>make</userinput>
-	<prompt>$ </prompt><userinput>su root</userinput>
-	<prompt>Password: </prompt>
-	<prompt>$ </prompt><userinput>make install</userinput></screen>
-	</example>
-	
-				There will be some output about missing libraries after <userinput>perl Makefile.PL</userinput>. These are normal.</para>
-
-<para>The following example will attach to Sybase's public <acronym>JDBC</acronym> server and run a simple query (it can be found in <filename>samples/test.pl</filename>):
-				
-				<example id="e.g.DBD.Sybase.Connect"><title>Connect to a server with <systemitem class="library">DBD::Sybase</systemitem></title>
-<programlisting>
-	#!/usr/local/bin/perl
-	#
-	use DBI;
-	
-	my $dbh = DBI->connect("dbi:Sybase:server=JDBC", 'guest', 'sybase', {PrintError => 0});
-	
-	die "Unable for connect to server $DBI::errstr"
-		unless $dbh;
-	
-	my $rc;
-	my $sth;
-	
-	$sth = $dbh->prepare("select \@\@servername");
-	if($sth->execute) {
-		while(@dat = $sth->fetchrow) {
-			print "@dat\n";
-		}
-	}
-	</programlisting>
-					</example></para>
 
 <para><example id="e.g.DBD.ODBC.build">
 					<title>Building <systemitem class="library">DBD::ODBC</systemitem></title>
@@ -2908,11 +2870,51 @@ To avoid this problem, choose a threading model in <filename>odbcinst.ini</filen
 		}
 	}
 	</programlisting>
+					</example></para>
+
+<para><example id="e.g.DBD.Sybase.build">
+					<title>Building <systemitem class="library">DBD::Sybase</systemitem></title>
+<screen>
+	<prompt>$ </prompt><userinput>cd DBD-Sybase-0.91</userinput>
+	<prompt>$ </prompt><userinput>export SYBASE=/usr/local/freetds</userinput>
+	<prompt>$ </prompt><userinput>perl Makefile.PL</userinput>
+	<prompt>$ </prompt><userinput>make</userinput>
+	<prompt>$ </prompt><userinput>su root</userinput>
+	<prompt>Password: </prompt>
+	<prompt>$ </prompt><userinput>make install</userinput></screen>
+	</example>
+
+				There will be some output about missing libraries after <userinput>perl Makefile.PL</userinput>. These are normal.</para>
+
+<para>The following example will attach to Sybase's public <acronym>JDBC</acronym> server and run a simple query (it can be found in <filename>samples/test.pl</filename>):
+
+				<example id="e.g.DBD.Sybase.Connect"><title>Connect to a server with <systemitem class="library">DBD::Sybase</systemitem></title>
+<programlisting>
+	#!/usr/local/bin/perl
+	#
+	use DBI;
+	
+	my $dbh = DBI->connect("dbi:Sybase:server=JDBC", 'guest', 'sybase', {PrintError => 0});
+	
+	die "Unable for connect to server $DBI::errstr"
+		unless $dbh;
+	
+	my $rc;
+	my $sth;
+	
+	$sth = $dbh->prepare("select \@\@servername");
+	if($sth->execute) {
+		while(@dat = $sth->fetchrow) {
+			print "@dat\n";
+		}
+	}
+	</programlisting>
 					</example>
-You'll note this is the same program as for <systemitem class="library">DBD::Sybase</systemitem> with the exception of the <function>connect</function> statement.  Welcome to the magic of DBI!</para>
+
+You'll note this is the same program as for <systemitem class="library">DBD::ODBC</systemitem> with the exception of the <function>connect</function> statement.  Welcome to the magic of DBI!</para>
 			</sect2>
 		</sect1>
-	
+
 	<sect1 id="php">
 		<title>PHP</title>
 
