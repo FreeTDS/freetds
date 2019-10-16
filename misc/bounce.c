@@ -283,7 +283,7 @@ main(int argc, char **argv)
 	struct sockaddr_in sa_serv;
 	struct sockaddr_in sa_cli;
 	socklen_t client_len;
-	gnutls_session_t session;
+	gnutls_session_t client_session;
 	char buffer[MAX_BUF + 1];
 	int optval = 1;
 
@@ -346,7 +346,7 @@ main(int argc, char **argv)
 
 	client_len = sizeof(sa_cli);
 	for (;;) {
-		session = initialize_tls_session();
+		client_session = initialize_tls_session();
 
 		client_sd = accept(listen_sd, (SA *) & sa_cli, &client_len);
 
@@ -379,11 +379,11 @@ main(int argc, char **argv)
 		packet_len = 0;
 
 		/* do with client */
-		gnutls_transport_set_ptr(session, (gnutls_transport_ptr_t) (((char*)0)+client_sd));
-		ret = gnutls_handshake(session);
+		gnutls_transport_set_ptr(client_session, (gnutls_transport_ptr_t) (((char*)0)+client_sd));
+		ret = gnutls_handshake(client_session);
 		if (ret < 0) {
 			close(client_sd);
-			gnutls_deinit(session);
+			gnutls_deinit(client_session);
 			fprintf(stderr, "*** Handshake has failed (%s)\n\n", gnutls_strerror(ret));
 			continue;
 		}
@@ -407,13 +407,13 @@ main(int argc, char **argv)
 			sleep(2);
 
 			/* get client */
-			ret = gnutls_record_recv(session, buffer, MAX_BUF);
+			ret = gnutls_record_recv(client_session, buffer, MAX_BUF);
 			if (ret > 0) {
 				hexdump(buffer, ret);
 
-				gnutls_record_send(session, buffer, ret);
+				gnutls_record_send(client_session, buffer, ret);
 
-				ret = gnutls_record_recv(session, buffer, MAX_BUF);
+				ret = gnutls_record_recv(client_session, buffer, MAX_BUF);
 				if (ret > 0)
 					hexdump(buffer, ret);
 			}
@@ -424,11 +424,11 @@ main(int argc, char **argv)
 		}
 
 		/* see the Getting peer's information example */
-		/* print_info(session); */
+		/* print_info(client_session); */
 
 		for (;;) {
 			memset(buffer, 0, MAX_BUF + 1);
-			ret = gnutls_record_recv(session, buffer, MAX_BUF);
+			ret = gnutls_record_recv(client_session, buffer, MAX_BUF);
 
 			if (ret == 0) {
 				printf("\n- Peer has closed the GNUTLS connection\n");
@@ -439,15 +439,15 @@ main(int argc, char **argv)
 			} else if (ret > 0) {
 				/* echo data back to the client */
 				hexdump(buffer, ret);
-				gnutls_record_send(session, buffer, ret);
+				gnutls_record_send(client_session, buffer, ret);
 			}
 		}
 		printf("\n");
 		/* do not wait for the peer to close the connection. */
-		gnutls_bye(session, GNUTLS_SHUT_WR);
+		gnutls_bye(client_session, GNUTLS_SHUT_WR);
 
 		close(client_sd);
-		gnutls_deinit(session);
+		gnutls_deinit(client_session);
 
 	}
 	close(listen_sd);
