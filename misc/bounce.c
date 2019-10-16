@@ -99,22 +99,24 @@ static int log_send(int sock, const void *data, int len, int flags)
 static ssize_t
 tds_pull_func(gnutls_transport_ptr_t ptr, void *data, size_t len)
 {
+	int sock = (int) (intptr_t) ptr;
+
 	fprintf(stderr, "in tds_pull_func\n");
 
 	/* if we have some data send it */
 	if (to_send && packet_len >= 8) {
 		packet[1] = 1;
-		put_packet(client_sd);
+		put_packet(sock);
 		packet_len = 0;
 		to_send = 0;
 	}
 
 	if (state == in_tls) {
-		return recv(client_sd, data, len, 0);
+		return recv(sock, data, len, 0);
 	}
 	/* read from packet */
 	if (!packet_len || pos >= packet_len) {
-		get_packet(client_sd);
+		get_packet(sock);
 		pos = 8;
 	}
 	if (!packet_len)
@@ -130,10 +132,11 @@ tds_pull_func(gnutls_transport_ptr_t ptr, void *data, size_t len)
 static ssize_t
 tds_push_func(gnutls_transport_ptr_t ptr, const void *data, size_t len)
 {
+	int sock = (int) (intptr_t) ptr;
 	int left;
 
 	if (state == in_tls)
-		return send(server_sd, data, len, 0);
+		return send(sock, data, len, 0);
 
 	/* write to packet */
 	if (!to_send)
@@ -143,7 +146,7 @@ tds_push_func(gnutls_transport_ptr_t ptr, const void *data, size_t len)
 	left = 4096 - packet_len;
 	if (left <= 0) {
 		packet[1] = 0;	/* not last */
-		put_packet(server_sd);
+		put_packet(sock);
 		packet_len = 8;
 		left = 4096 - packet_len;
 	}
@@ -158,11 +161,11 @@ tds_push_func(gnutls_transport_ptr_t ptr, const void *data, size_t len)
 }
 
 static gnutls_session_t
-initialize_tls_session()
+initialize_tls_session(unsigned flags)
 {
 	gnutls_session_t session;
 
-	gnutls_init(&session, GNUTLS_SERVER);
+	gnutls_init(&session, flags);
 	gnutls_transport_set_pull_function(session, tds_pull_func);
 	gnutls_transport_set_push_function(session, tds_push_func);
 
@@ -378,7 +381,7 @@ main(int argc, char **argv)
 
 	client_len = sizeof(sa_cli);
 	for (;;) {
-		client_session = initialize_tls_session();
+		client_session = initialize_tls_session(GNUTLS_SERVER);
 
 		client_sd = accept(listen_sd, (SA *) & sa_cli, &client_len);
 
