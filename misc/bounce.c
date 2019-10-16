@@ -279,7 +279,7 @@ int
 main(int argc, char **argv)
 {
 	int err, listen_sd;
-	int sd, ret;
+	int ret;
 	struct sockaddr_in sa_serv;
 	struct sockaddr_in sa_cli;
 	socklen_t client_len;
@@ -348,7 +348,7 @@ main(int argc, char **argv)
 	for (;;) {
 		session = initialize_tls_session();
 
-		client_sd = sd = accept(listen_sd, (SA *) & sa_cli, &client_len);
+		client_sd = accept(listen_sd, (SA *) & sa_cli, &client_len);
 
 		printf("- connection from %s, port %d\n",
 		       inet_ntoa(sa_cli.sin_addr), ntohs(sa_cli.sin_port));
@@ -379,10 +379,10 @@ main(int argc, char **argv)
 		packet_len = 0;
 
 		/* do with client */
-		gnutls_transport_set_ptr(session, (gnutls_transport_ptr_t) (((char*)0)+sd));
+		gnutls_transport_set_ptr(session, (gnutls_transport_ptr_t) (((char*)0)+client_sd));
 		ret = gnutls_handshake(session);
 		if (ret < 0) {
-			close(sd);
+			close(client_sd);
 			gnutls_deinit(session);
 			fprintf(stderr, "*** Handshake has failed (%s)\n\n", gnutls_strerror(ret));
 			continue;
@@ -446,7 +446,7 @@ main(int argc, char **argv)
 		/* do not wait for the peer to close the connection. */
 		gnutls_bye(session, GNUTLS_SHUT_WR);
 
-		close(sd);
+		close(client_sd);
 		gnutls_deinit(session);
 
 	}
