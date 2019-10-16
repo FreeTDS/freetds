@@ -413,6 +413,8 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 	struct addrinfo *addrs;
 	int orig_port;
 	bool rerouted = false;
+	/* save to restore during redirected connection */
+	unsigned int orig_mars = login->mars;
 
 	/*
 	 * A major version of 0 means try to guess the TDS version. 
@@ -573,11 +575,27 @@ reroute:
 	}
 
 	/* need to do rerouting */
-	if (IS_TDS71_PLUS(tds->conn) && !rerouted
+	if (IS_TDS71_PLUS(tds->conn)
 	    && !tds_dstr_isempty(&login->routing_address) && login->routing_port) {
 		TDSRET ret;
+		char *server_name = NULL;
 
 		tds_close_socket(tds);
+		/* only one redirection is allowed */
+		if (rerouted) {
+			tdserror(tds_get_ctx(tds), tds, TDSEFCON, 0);
+			return -TDSEFCON;
+		}
+		if (asprintf(&server_name, "%s,%d", tds_dstr_cstr(&login->routing_address), login->routing_port) < 0) {
+			tdserror(tds_get_ctx(tds), tds, TDSEFCON, 0);
+			return -TDSEMEM;
+		}
+		if (!tds_dstr_set(&login->server_name, server_name)) {
+			free(server_name);
+			tdserror(tds_get_ctx(tds), tds, TDSEFCON, 0);
+			return -TDSEMEM;
+		}
+		login->mars = orig_mars;
 		login->port = login->routing_port;
 		ret = tds_lookup_host_set(tds_dstr_cstr(&login->routing_address), &login->ip_addrs);
 		login->routing_port = 0;

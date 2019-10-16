@@ -576,6 +576,7 @@ tds_ssl_deinit(TDSCONNECTION *conn)
 		gnutls_certificate_free_credentials((gnutls_certificate_credentials_t) conn->tls_credentials);
 		conn->tls_credentials = NULL;
 	}
+	conn->encrypt_single_packet = 0;
 }
 
 #else
@@ -1082,6 +1083,7 @@ tds_ssl_deinit(TDSCONNECTION *conn)
 		SSL_CTX_free((SSL_CTX *) conn->tls_ctx);
 		conn->tls_ctx = NULL;
 	}
+	conn->encrypt_single_packet = 0;
 }
 #endif
 
