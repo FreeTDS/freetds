@@ -1216,7 +1216,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	tds->in_pos += pkt_len;
 	/* TODO some mssql version do not set last packet, update tds according */
 
-	tdsdump_log(TDS_DBG_INFO1, "detected flag %d\n", crypt_flag);
+	tdsdump_log(TDS_DBG_INFO1, "detected crypt flag %d\n", crypt_flag);
 
 	/* if server do not has certificate do normal login */
 	if (crypt_flag == TDS7_ENCRYPT_NOT_SUP) {
@@ -1228,7 +1228,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	}
 
 	/*
-	 * if server has a certificate it require at least a crypted login
+	 * if server has a certificate it requires at least a crypted login
 	 * (even if data is not encrypted)
 	 */
 
@@ -1244,7 +1244,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 
 	ret = tds7_send_login(tds, login);
 
-	/* if flag is 0 it means that after login server continue not encrypted */
+	/* if flag is TDS7_ENCRYPT_OFF(0) it means that after login server continue not encrypted */
 	if (crypt_flag == TDS7_ENCRYPT_OFF || TDS_FAILED(ret))
 		tds_ssl_deinit(tds->conn);
 
