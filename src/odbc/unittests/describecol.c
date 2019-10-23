@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include "parser.h"
 #include <odbcss.h>
+#include <freetds/bool.h>
 
 /*
  * SQLDescribeCol test for precision
@@ -153,8 +154,37 @@ lookup_attr(const char *name)
 	return NULL;
 }
 
-#define ATTR_PARAMS const struct attribute *attr, const char *expected_value
+#define ATTR_PARAMS const struct attribute *attr, const char *expected_values[]
 typedef void (*check_attr_t) (ATTR_PARAMS);
+
+static bool
+is_contained(const char *s, const char *list[])
+{
+	for (;*list; ++list) {
+		if (strcmp(s, *list) == 0)
+			return true;
+	}
+	return false;
+}
+
+static bool
+is_contained_lookup(SQLLEN i, const char *list[], const struct lookup_int *table)
+{
+	for (;*list; ++list) {
+		if (i == lookup(*list, table))
+			return true;
+	}
+	return false;
+}
+
+static void
+print_values(FILE* f, const char *list[])
+{
+	const char *sep = "[";
+	for (;*list; ++list, sep = ", ")
+		fprintf(f, "%s%s", sep, *list);
+	fprintf(f, "]\n");
+}
 
 static void
 check_attr_ird(ATTR_PARAMS)
@@ -170,9 +200,10 @@ check_attr_ird(ATTR_PARAMS)
 		if (!SQL_SUCCEEDED(ret))
 			odbc_fatal(": failure not expected\n");
 		buf[sizeof(buf)-1] = 0;
-		if (strcmp(C((SQLTCHAR*) buf), expected_value) != 0) {
+		if (!is_contained(C((SQLTCHAR*) buf), expected_values)) {
 			g_result = 1;
-			fprintf(stderr, "Line %u: invalid %s got %s expected %s\n", odbc_line_num, attr->name, buf, expected_value);
+			fprintf(stderr, "Line %u: invalid %s got %s expected ", odbc_line_num, attr->name, buf);
+			print_values(stderr, expected_values);
 		}
 		return;
 	}
@@ -196,9 +227,10 @@ check_attr_ird(ATTR_PARAMS)
 		if (i != scale)
 			odbc_fatal(": attr %s SQLDescribeCol scale %ld != SQLColAttribute len %ld\n", attr->name, (long) scale, (long) i);
 	}
-	if (i != lookup(expected_value, attr->lookup)) {
+	if (!is_contained_lookup(i, expected_values, attr->lookup)) {
 		g_result = 1;
-		fprintf(stderr, "Line %u: invalid %s got %s expected %s\n", odbc_line_num, attr->name, unlookup(i, attr->lookup), expected_value);
+		fprintf(stderr, "Line %u: invalid %s got %s expected ", odbc_line_num, attr->name, unlookup(i, attr->lookup));
+		print_values(stderr, expected_values);
 	}
 }
 
@@ -235,17 +267,19 @@ check_attr_ard(ATTR_PARAMS)
 		ret = SQLGetDescField(desc, 1, attr->value, buf, sizeof(buf), &ind);
 		if (!SQL_SUCCEEDED(ret))
 			odbc_fatal(": failure not expected\n");
-		if (strcmp(C((SQLTCHAR*) buf), expected_value) != 0) {
+		if (!is_contained(C((SQLTCHAR*) buf), expected_values)) {
 			g_result = 1;
-			fprintf(stderr, "Line %u: invalid %s got %s expected %s\n", odbc_line_num, attr->name, buf, expected_value);
+			fprintf(stderr, "Line %u: invalid %s got %s expected ", odbc_line_num, attr->name, buf);
+			print_values(stderr, expected_values);
 		}
 		return;
 	}
 	if (!SQL_SUCCEEDED(ret))
 		odbc_fatal(": failure not expected\n");
-	if (li != lookup(expected_value, attr->lookup)) {
+	if (!is_contained_lookup(li, expected_values, attr->lookup)) {
 		g_result = 1;
-		fprintf(stderr, "Line %u: invalid %s got %s expected %s\n", odbc_line_num, attr->name, unlookup(li, attr->lookup), expected_value);
+		fprintf(stderr, "Line %u: invalid %s got %s expected ", odbc_line_num, attr->name, unlookup(li, attr->lookup));
+		print_values(stderr, expected_values);
 	}
 }
 
@@ -373,13 +407,26 @@ main(int argc, char *argv[])
 		/* test attribute */
 		if (strcmp(cmd, "attr") == 0) {
 			const struct attribute *attr = lookup_attr(odbc_get_tok(&p));
-			const char *expected = odbc_get_str(&p);
+			const char *expected[10];
+			int i;
+
+			expected[0] = odbc_get_str(&p);
+
+			if (!expected[0])
+				odbc_fatal(": value not defined\n");
 
 			if (!cond) continue;
 
-			if (!expected)
-				odbc_fatal(": value not defined\n");
-
+			for (i = 1; ;++i) {
+				if (i >= 10)
+					odbc_fatal("Too many values in attribute\n");
+				p += strspn(p, " \t");
+				if (!*p) {
+					expected[i] = NULL;
+					break;
+				}
+				expected[i] = odbc_get_str(&p);
+			}
 			check_attr_p(attr, expected);
 		}
 	}
