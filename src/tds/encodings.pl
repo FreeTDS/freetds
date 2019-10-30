@@ -4,6 +4,7 @@ use File::Basename;
 
 $basename = basename($0);
 $srcdir = "$ARGV[0]/";
+$gperf = $ARGV[1];
 
 # get list of character sets we know about
 $filename = "${srcdir}alternative_character_sets.h";
@@ -121,6 +122,15 @@ foreach $n (sort { $index{$a} <=> $index{$b} } keys %charsets)
 die('too much encodings') if $i >= 256;
 print "};\n\n";
 
+open(OUT, '>charset_lookup.gperf') or die;
+print OUT "
+struct charset_alias { short int alias_pos; short int canonic; };
+%{
+static const struct charset_alias *charset_lookup(register const char *str, register size_t len);
+%}
+%%
+";
+
 # output all alias
 print "static const CHARACTER_SET_ALIAS iconv_aliases[] = {\n";
 foreach $n (sort keys %alternates)
@@ -128,22 +138,37 @@ foreach $n (sort keys %alternates)
 	$a = $index{$alternates{$n}};
 	next if ("$a" eq "");
 	printf "\t{%25s,  %3d },\n", qq/"$n"/, $a;
+	print OUT "$n, $a\n"
 }
 print "\t{NULL,\t0}\n";
 print "};\n\n";
 
 # output all sybase
-print "static const CHARACTER_SET_ALIAS sybase_aliases[] = {\n";
 foreach $n (sort keys %sybase)
 {
 	$a = $index{$sybase{$n}};
 	next if ("$a" eq "");
-	printf "\t{%20s, %3d },\n", qq/"$n"/, $a;
+	if (!defined($alternates{$n})) {
+		print OUT "$n, $a\n";
+	}
 }
-print "\t{NULL,\t0}\n";
-print "};\n";
 
 print "#endif\n\n";
+
+print OUT "%%
+";
+close(OUT);
+
+open(OUT, '>charset_lookup.h') or die;
+open(IN, '-|', $gperf, '-m', '100', '-C', '-K', 'alias_pos', '-t', 'charset_lookup.gperf',
+	'-F', ',-1', '-P','-H','hash_charset','-N','charset_lookup') or die;
+while(<IN>) {
+	s/\Q(int)(long)&((struct\E/(int)(size_t)&((struct/;
+	s/\Q(int)(size_t)&((struct stringpool_t *)0)->stringpool_str\E(\d+),/(int)offsetof(struct stringpool_t, stringpool_str\1),/;
+	print OUT $_;
+}
+close(IN);
+close(OUT);
 
 # output enumerated charset indexes
 print "enum {\n";

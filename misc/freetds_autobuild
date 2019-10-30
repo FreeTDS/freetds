@@ -356,7 +356,7 @@ fi
 rm -f out.txt
 
 # build coverage and upload it
-find -name \*.\[ch\] -o -name \*.cov_info.gz -o -name git_revision | tar cvf ${WORKDIR}.covs.tar -T -
+find -name \*.\[ch\] -o -name \*.gperf -o -name \*.cov_info.gz -o -name git_revision | tar cvf ${WORKDIR}.covs.tar -T -
 
 # cleanup
 rm -f ~/freetds.log /tmp/sql.log covsave.tgz
