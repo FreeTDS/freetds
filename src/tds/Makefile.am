@@ -66,7 +66,7 @@ tds_willconvert.h: tds_willconvert.pl Makefile
 	perl $(srcdir)/tds_willconvert.pl $(top_srcdir)/include/freetds/proto.h > $@.tmp
 	mv $@.tmp $@
 
-encodings.h: encodings.pl alternative_character_sets.h Makefile
+encodings.h: encodings.pl alternative_character_sets.h character_sets.h Makefile
 	perl $(srcdir)/encodings.pl $(srcdir) > $@.tmp 2> /dev/null
 	mv $@.tmp $@
 

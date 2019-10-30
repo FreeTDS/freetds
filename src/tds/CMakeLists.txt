@@ -14,7 +14,7 @@ if(PERL_FOUND AND NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
 	add_custom_command(OUTPUT encodings.h
 		COMMAND ${PERL_EXECUTABLE} encodings.pl . > encodings.h 2> ${NULLNAME}
 		MAIN_DEPENDENCY encodings.pl
-		DEPENDS alternative_character_sets.h
+		DEPENDS alternative_character_sets.h character_sets.h
 		WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
 	add_custom_command(OUTPUT num_limits.h
 		COMMAND ${PERL_EXECUTABLE} num_limits.pl > num_limits.h
