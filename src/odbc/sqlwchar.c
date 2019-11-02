@@ -87,11 +87,28 @@ void sqlwstr_free(SQLWSTRBUF *bufs)
 #endif
 
 #if SIZEOF_SQLWCHAR == 2
-const char *odbc_get_wide_name(TDSCONNECTION *conn)
-{
-	if (conn->char_convs[client2ucs2]->to.charset.canonic == TDS_CHARSET_UTF_16LE)
-		return ODBC_WIDE_NAME_UTF;
-	return ODBC_WIDE_NAME;
-}
+# if WORDS_BIGENDIAN
+#  define ODBC_WIDE_CANONIC TDS_CHARSET_UCS_2BE
+#  define ODBC_WIDE_CANONIC_UTF TDS_CHARSET_UTF_16BE
+# else
+#  define ODBC_WIDE_CANONIC TDS_CHARSET_UCS_2LE
+#  define ODBC_WIDE_CANONIC_UTF TDS_CHARSET_UTF_16LE
+# endif
+#elif SIZEOF_SQLWCHAR == 4
+# if WORDS_BIGENDIAN
+#  define ODBC_WIDE_CANONIC TDS_CHARSET_UCS_4BE
+# else
+#  define ODBC_WIDE_CANONIC TDS_CHARSET_UCS_4LE
+# endif
+#else
+#error SIZEOF_SQLWCHAR not supported !!
 #endif
 
+int odbc_get_wide_canonic(TDSCONNECTION *conn)
+{
+#if SIZEOF_SQLWCHAR == 2
+	if (conn->char_convs[client2ucs2]->to.charset.canonic == TDS_CHARSET_UTF_16LE)
+		return ODBC_WIDE_CANONIC_UTF;
+#endif
+	return ODBC_WIDE_CANONIC;
+}

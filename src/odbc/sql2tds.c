@@ -206,11 +206,11 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 		if (sql_src_type == SQL_C_BINARY) {
 			curcol->char_conv = NULL;
 		} else if (sql_src_type == SQL_C_WCHAR) {
-			curcol->char_conv = tds_iconv_get(conn, odbc_get_wide_name(conn), conv->to.charset.name);
+			curcol->char_conv = tds_iconv_get_info(conn, odbc_get_wide_canonic(conn), conv->to.charset.canonic);
 			memcpy(curcol->column_collation, conn->collation, sizeof(conn->collation));
 		} else {
 #ifdef ENABLE_ODBC_WIDE
-			curcol->char_conv = tds_iconv_get(conn, tds_dstr_cstr(&dbc->original_charset), conv->to.charset.name);
+			curcol->char_conv = tds_iconv_get_info(conn, dbc->original_charset_num, conv->to.charset.canonic);
 #else
 			curcol->char_conv = NULL;
 #endif

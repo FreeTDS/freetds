@@ -38,6 +38,7 @@
 #include <freetds/iconv.h>
 #include <freetds/utils/string.h>
 #include <odbcss.h>
+#include "../tds/encodings.h"
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -73,18 +74,18 @@ odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT 
 	if (!conv)
 		conv = tds->conn->char_convs[client2server_chardata];
 	if (desttype == SQL_C_WCHAR) {
-		const char *charset = odbc_get_wide_name(tds->conn);
+		int charset = odbc_get_wide_canonic(tds->conn);
 		/* SQL_C_WCHAR, convert to wide encode */
-		conv = tds_iconv_get(tds->conn, charset, conv->to.charset.name);
+		conv = tds_iconv_get_info(tds->conn, charset, conv->to.charset.canonic);
 		if (!conv)
-			conv = tds_iconv_get(tds->conn, charset, "ISO-8859-1");
+			conv = tds_iconv_get_info(tds->conn, charset, TDS_CHARSET_ISO_8859_1);
 #ifdef ENABLE_ODBC_WIDE
 	} else {
-		conv = tds_iconv_get(tds->conn, tds_dstr_cstr(&stmt->dbc->original_charset), conv->to.charset.name);
+		conv = tds_iconv_get_info(tds->conn, stmt->dbc->original_charset_num, conv->to.charset.canonic);
 		if (!conv)
-			conv = tds_iconv_get(tds->conn, tds_dstr_cstr(&stmt->dbc->original_charset), "ISO-8859-1");
+			conv = tds_iconv_get_info(tds->conn, stmt->dbc->original_charset_num, TDS_CHARSET_ISO_8859_1);
 		if (!conv)
-			conv = tds_iconv_get(tds->conn, "ISO-8859-1", "ISO-8859-1");
+			conv = tds_iconv_get_info(tds->conn, TDS_CHARSET_ISO_8859_1, TDS_CHARSET_ISO_8859_1);
 #endif
 	}
 

@@ -280,7 +280,7 @@ struct _hdbc
 	DSTR dsn;
 	DSTR oldpwd;
 #ifdef ENABLE_ODBC_WIDE
-	DSTR original_charset;
+	int original_charset_num;
 	TDSICONV *mb_conv;
 #endif
 
@@ -713,29 +713,7 @@ void sqlwstr_free(SQLWSTRBUF *bufs);
 #define SQLWSTR_FREE() do {} while(0)
 #endif
 
-#if SIZEOF_SQLWCHAR == 2
-# if WORDS_BIGENDIAN
-#  define ODBC_WIDE_NAME "UCS-2BE"
-#  define ODBC_WIDE_NAME_UTF "UTF-16BE"
-# else
-#  define ODBC_WIDE_NAME "UCS-2LE"
-#  define ODBC_WIDE_NAME_UTF "UTF-16LE"
-# endif
-const char *odbc_get_wide_name(TDSCONNECTION *conn);
-#elif SIZEOF_SQLWCHAR == 4
-# if WORDS_BIGENDIAN
-#  define ODBC_WIDE_NAME "UCS-4BE"
-# else
-#  define ODBC_WIDE_NAME "UCS-4LE"
-# endif
-static inline const char *
-odbc_get_wide_name(TDSCONNECTION *conn)
-{
-	return ODBC_WIDE_NAME;
-}
-#else
-#error SIZEOF_SQLWCHAR not supported !!
-#endif
+int odbc_get_wide_canonic(TDSCONNECTION *conn);
 
 #include <freetds/popvis.h>
 

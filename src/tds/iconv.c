@@ -52,7 +52,6 @@ static int collate2charset(TDSCONNECTION * conn, TDS_UCHAR collate[5]);
 static size_t skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, const char **input, size_t * input_size);
 static int tds_iconv_info_init(TDSICONV * char_conv, int client_canonic, int server_canonic);
 static int tds_iconv_init(void);
-static int tds_canonical_charset(const char *charset_name);
 static void _iconv_close(iconv_t * cd);
 static void tds_iconv_info_close(TDSICONV * char_conv);
 
@@ -752,7 +751,7 @@ tds_iconv(TDSSOCKET * tds, TDSICONV * conv, TDS_ICONV_DIRECTION io,
 /**
  * Get a iconv info structure, allocate and initialize if needed
  */
-static TDSICONV *
+TDSICONV *
 tds_iconv_get_info(TDSCONNECTION * conn, int canonic_client, int canonic_server)
 {
 	TDSICONV *info;
@@ -964,7 +963,7 @@ skip_charsize:
  * \returns canonical position, or -1 if lookup failed.
  * \remarks Returned name can be used in bytes_per_char(), above.
  */
-static int
+int
 tds_canonical_charset(const char *charset_name)
 {
 	const struct charset_alias *c = charset_lookup(charset_name, strlen(charset_name));
