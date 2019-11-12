@@ -19,13 +19,18 @@ IF "%VS_VERSION%" == "2008" (
     ECHO.
 ) ELSE IF "%VS_VERSION%" == "2015" (
     ECHO.
+) ELSE IF "%VS_VERSION%" == "2017" (
+    ECHO.
 ) ELSE (
     ECHO Unsupported Visual Studio version: "%VS_VERSION%"
     EXIT 1
 )
 
 IF "%WIDTH%"=="64" (
-    IF "%VS_VERSION%" == "2015" (
+    IF "%VS_VERSION%" == "2017" (
+        ECHO Using MSVC 2017 build environment for 64 bit architecture
+        "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+    ) ELSE IF "%VS_VERSION%" == "2015" (
         ECHO Using MSVC 2015 build environment for 64 bit architecture
         "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
     ) ELSE IF "%VS_VERSION%" == "2013" (
@@ -52,6 +57,9 @@ IF "%WIDTH%"=="64" (
     ) ELSE IF "%VS_VERSION%" == "2015" (
         ECHO Using MSVC 2015 build environment for 32 bit architecture
         "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
+    ) ELSE IF "%VS_VERSION%" == "2017" (
+        ECHO Using MSVC 2017 build environment for 32 bit architecture
+        "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat"
     )
     ECHO Executing: %COMMAND_TO_RUN%
     call %COMMAND_TO_RUN% || EXIT 1
