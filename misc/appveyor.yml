@@ -12,8 +12,6 @@ branches:
     - BRANCH0_82
     - Branch-0_91
 
-image: Visual Studio 2017
-
 services:
 - mssql2016
 
@@ -35,36 +33,43 @@ environment:
     WIDTH: 64
     VS_VERSION: "2017"
     TDSVER: "7.3"
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
 
   - PLAT: Win32
     WIDTH: 32
     VS_VERSION: "2017"
     TDSVER: "7.2"
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
 
   - PLAT: Win64
     WIDTH: 64
     VS_VERSION: "2015"
     TDSVER: "7.3"
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
 
   - PLAT: Win32
     WIDTH: 32
     VS_VERSION: "2015"
     TDSVER: "7.2"
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
 
   - PLAT: Win64
     WIDTH: 64
     VS_VERSION: "2013"
     TDSVER: "auto"
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
 
   - PLAT: Win32
     WIDTH: 32
     VS_VERSION: "2010"
     TDSVER: "7.1"
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
 
   - PLAT: Win32
     WIDTH: 32
     VS_VERSION: "2008"
     TDSVER: "7.0"
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
 
 configuration:
   - release
