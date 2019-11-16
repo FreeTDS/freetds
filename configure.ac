@@ -534,16 +534,16 @@ AC_MSG_RESULT(checking compile-time options)
 AC_ARG_WITH(tdsver,
 AS_HELP_STRING([--with-tdsver=VERSION], [TDS protocol version (5.0/7.1/7.2/7.3/7.4/auto) [auto]]))
 case "$with_tdsver" in
-4.2) AC_ERROR([Protocol 4.2 cannot be specified as obsolete]) ;;
-4.6) AC_ERROR([Protocol 4.6 cannot be specified as obsolete and never correctly supported]) ;;
+4.2) AC_MSG_ERROR([Protocol 4.2 cannot be specified as obsolete]) ;;
+4.6) AC_MSG_ERROR([Protocol 4.6 cannot be specified as obsolete and never correctly supported]) ;;
 5.0) AC_DEFINE(TDS50, 1, [Define to use TDS 5.0 by default]) ;;
-7.0) AC_ERROR([Protocol 7.0 cannot be specified during configure as too insecure]) ;;
+7.0) AC_MSG_ERROR([Protocol 7.0 cannot be specified during configure as too insecure]) ;;
 7.1) AC_DEFINE(TDS71, 1, [Define to use TDS 7.1 by default]) ;;
 7.2) AC_DEFINE(TDS72, 1, [Define to use TDS 7.2 by default]) ;;
 7.3) AC_DEFINE(TDS73, 1, [Define to use TDS 7.3 by default]) ;;
 7.4) AC_DEFINE(TDS74, 1, [Define to use TDS 7.4 by default]) ;;
 ""|auto) ;;
-*)   AC_ERROR([Invalid value specified for --with-tdsver: $with_tdsver]) ;;
+*)   AC_MSG_ERROR([Invalid value specified for --with-tdsver: $with_tdsver]) ;;
 esac
 
 AC_ARG_WITH(iodbc,
@@ -568,8 +568,8 @@ elif test "x$with_iodbc" != "x" -a "x$with_iodbc" != "xno"; then
 	fi
 	CPPFLAGS="$CPPFLAGS -DIODBC"
 	ODBC_INC="$with_iodbc/include"
-	test -r "$ODBC_INC/isql.h" || AC_ERROR([isql.h not found])
-	test -r "$ODBC_INC/isqlext.h" || AC_ERROR([isqlext.h not found])
+	test -r "$ODBC_INC/isql.h" || AC_MSG_ERROR([isql.h not found])
+	test -r "$ODBC_INC/isqlext.h" || AC_MSG_ERROR([isqlext.h not found])
 	ODBC_INC="-I$ODBC_INC"
 	ODBC_LDFLAGS="-L$with_iodbc/lib -liodbc"
 	odbc=true
@@ -585,11 +585,11 @@ if test "x$with_unixodbc" = "xyes"; then
 	# the odbc_config executable, and if we can't, we'll display
 	# an error.
 	if test -z "$ODBC_CONFIG"; then
-		AC_ERROR([odbc_config not found])
+		AC_MSG_ERROR([odbc_config not found])
 	fi
 	with_unixodbc=`$ODBC_CONFIG --prefix`
 	if ! test -x "${with_unixodbc}/bin/odbc_config"; then
-		AC_ERROR([could not find your unixODBC installation])
+		AC_MSG_ERROR([could not find your unixODBC installation])
 	fi
 fi
 
@@ -597,7 +597,7 @@ fi
 # after populating $with_unixodbc with the correct prefix.
 if test "x$with_unixodbc" != "x" -a "x$with_unixodbc" != "xno"; then
 	if test "x$with_iodbc" != "x" -a "x$with_iodbc" != "xno"; then
-		AC_ERROR([choose at most one of --with-iodbc or --with-unixodbc])
+		AC_MSG_ERROR([choose at most one of --with-iodbc or --with-unixodbc])
 	fi
 	if echo "$with_unixodbc" | grep -v '^/'; then
 		with_unixodbc="$PWD/$with_unixodbc"
@@ -613,8 +613,8 @@ if test "x$with_unixodbc" != "x" -a "x$with_unixodbc" != "xno"; then
 		ODBC_INC="$with_unixodbc/include"
 		ODBC_LDFLAGS="-L$with_unixodbc/lib"
 	fi
-	test -r "$ODBC_INC/sql.h" || AC_ERROR([sql.h not found])
-	test -r "$ODBC_INC/sqlext.h" || AC_ERROR([sqlext.h not found])
+	test -r "$ODBC_INC/sql.h" || AC_MSG_ERROR([sql.h not found])
+	test -r "$ODBC_INC/sqlext.h" || AC_MSG_ERROR([sqlext.h not found])
 	ODBC_INC="-I$ODBC_INC"
 	ODBC_LDFLAGS="$ODBC_LDFLAGS -lodbc"
 	odbc=true
@@ -629,8 +629,8 @@ if test "x$with_odbc_nodm" != "x" -a "x$with_odbc_nodm" != "xno"; then
 	fi
 	CPPFLAGS="$CPPFLAGS -DTDS_NO_DM"
 	ODBC_INC="$with_odbc_nodm/include"
-	test -r "$ODBC_INC/sql.h" || AC_ERROR([sql.h not found])
-	test -r "$ODBC_INC/sqlext.h" || AC_ERROR([sqlext.h not found])
+	test -r "$ODBC_INC/sql.h" || AC_MSG_ERROR([sql.h not found])
+	test -r "$ODBC_INC/sqlext.h" || AC_MSG_ERROR([sqlext.h not found])
 	ODBC_INC="-I$ODBC_INC"
 	# The next line is for linking the unittests. Here the ODBC driver
 	#  itself is treated as the driver manager to be linked.
