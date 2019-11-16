@@ -147,6 +147,8 @@ AC_CHECK_PROG(ODBC_CONFIG,odbc_config,odbc_config)
 #
 if test -f "${srcdir}/src/tds/num_limits.pl"; then
 	AM_CONDITIONAL(HAVE_PERL_SOURCES, true)
+	AC_PATH_PROG(GPERF, gperf)
+	AS_IF([test "x$GPERF" = x], [AC_MSG_ERROR([required program 'gperf' not found.])])
 else
 	AM_CONDITIONAL(HAVE_PERL_SOURCES, false)
 fi

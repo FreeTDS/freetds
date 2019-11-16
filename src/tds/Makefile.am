@@ -69,7 +69,7 @@ tds_willconvert.h: tds_willconvert.pl Makefile
 charset_lookup.h: encodings.h
 
 encodings.h: encodings.pl alternative_character_sets.h character_sets.h Makefile
-	perl $(srcdir)/encodings.pl $(srcdir) gperf > $@.tmp 2> /dev/null
+	perl $(srcdir)/encodings.pl $(srcdir) $(GPERF) > $@.tmp 2> /dev/null
 	mv $@.tmp $@
 
 num_limits.h: num_limits.pl Makefile
