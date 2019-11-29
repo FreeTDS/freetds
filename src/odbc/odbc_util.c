@@ -35,6 +35,7 @@
 #include <freetds/utils/string.h>
 #include <freetds/convert.h>
 #include <freetds/enum_cap.h>
+#include <freetds/utils/bjoern-utf8.h>
 #include <odbcss.h>
 
 /**
@@ -315,6 +316,7 @@ odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void 
 	if ((flag & 1) != 0) {
 		/* wide characters */
 		const unsigned char *p = (const unsigned char*) s;
+		const unsigned char *const p_end = p + len;
 		SQLWCHAR *dest = (SQLWCHAR*) buffer;
 
 		if (flag&0x20)
@@ -322,30 +324,14 @@ odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void 
 #ifndef NDEBUG
 		initial_size = cbBuffer;
 #endif
-		while (len) {
-			unsigned char mask;
-			unsigned u;
-			int l;
+		while (p < p_end) {
+			uint32_t u, state = UTF8_ACCEPT;
 
-			if (!(p[0] & 0x80)) {
-				mask = 0x7f; l = 1;
-			} else if ((p[0] & 0xe0) == 0xc0) {
-				mask = 0x1f; l = 2;
-			} else if ((p[0] & 0xf0) == 0xe0) {
-				mask = 0x0f; l = 3;
-			} else if ((p[0] & 0xf8) == 0xf0) {
-				mask = 0x07; l = 4;
-			} else if ((p[0] & 0xfc) == 0xf8) {
-				mask = 0x03; l = 5;
-			} else {
-				mask = 0x7f; l = 1;
-			}
-			if (len < l)
+			while (decode_utf8(&state, &u, *p++) > UTF8_REJECT && p < p_end)
+				continue;
+			if (state != UTF8_ACCEPT)
 				break;
-			len -= l;
-			u = *p++ & mask;
-			while(--l)
-				u = (u << 6) | (*p++ & 0x3f);
+
 			++out_len;
 			if (SIZEOF_SQLWCHAR == 2 && u >= 0x10000 && u < 0x110000u)
 				++out_len;
@@ -382,35 +368,20 @@ odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void 
 	} else if (!dbc || !dbc->mb_conv) {
 		/* to ISO-8859-1 */
 		const unsigned char *p = (const unsigned char*) s;
+		const unsigned char *const p_end = p + len;
 		unsigned char *dest = (unsigned char*) buffer;
 
 #ifndef NDEBUG
 		initial_size = cbBuffer;
 #endif
-		while (len) {
-			unsigned char mask;
-			unsigned u;
-			int l;
+		while (p < p_end) {
+			uint32_t u, state = UTF8_ACCEPT;
 
-			if (!(p[0] & 0x80)) {
-				mask = 0x7f; l = 1;
-			} else if ((p[0] & 0xe0) == 0xc0) {
-				mask = 0x1f; l = 2;
-			} else if ((p[0] & 0xf0) == 0xe0) {
-				mask = 0x0f; l = 3;
-			} else if ((p[0] & 0xf8) == 0xf0) {
-				mask = 0x07; l = 4;
-			} else if ((p[0] & 0xfc) == 0xf8) {
-				mask = 0x03; l = 5;
-			} else {
-				mask = 0x7f; l = 1;
-			}
-			if (len < l)
+			while (decode_utf8(&state, &u, *p++) > UTF8_REJECT && p < p_end)
+				continue;
+			if (state != UTF8_ACCEPT)
 				break;
-			len -= l;
-			u = *p++ & mask;
-			while(--l)
-				u = (u << 6) | (*p++ & 0x3f);
+
 			++out_len;
 			if (!dest)
 				continue;
