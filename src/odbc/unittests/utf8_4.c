@@ -12,15 +12,15 @@ HINSTANCE hinstFreeTDS;
 int
 main(int argc, char *argv[])
 {
-#ifdef _WIN32
-	hinstFreeTDS = GetModuleHandle(NULL);
-#endif
-
 #ifdef ENABLE_ODBC_WIDE
 	DSTR s;
 	SQLWCHAR outbuf[16];
 	SQLINTEGER outlen;
 	tds_dstr_init(&s);
+
+#ifdef _WIN32
+	hinstFreeTDS = GetModuleHandle(NULL);
+#endif
 
 	/* just allocate handles, we don't need to connect */
 	CHKAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &odbc_env, "S");
