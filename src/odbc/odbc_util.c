@@ -168,37 +168,45 @@ odbc_wide2utf(DSTR *res, const SQLWCHAR *s, unsigned int len)
 		return NULL;
 	out = tds_dstr_buf(res);
 
+#undef MASK
+#define MASK(n) ((0xffffffffu << (n)) & 0xffffffffu)
 	for (p = out; len > 0; --len) {
-		SQLWCHAR u = *s++;
+		uint32_t u = *s++;
+		/* easy case, ASCII */
 		if ((u & MASK(7)) == 0) {
 			*p++ = (char) u;
 			continue;
 		}
+#if SIZEOF_SQLWCHAR == 2
+		if ((u & 0xfc00) == 0xd800 && len > 1) {
+			uint32_t c2 = *s;
+			if ((c2 & 0xfc00) == 0xdc00) {
+				u = (u << 10) + c2 - ((0xd800 << 10) + 0xdc00 - 0x10000);
+				++s;
+				--len;
+			}
+		}
+#endif
 		if ((u & MASK(11)) == 0) {
-			*p++ = 0xc0 | (0x1f & (u >> 6));
+			*p++ = 0xc0 | (u >> 6);
 		} else {
-#if SIZEOF_SQLWCHAR > 2
 			if ((u & MASK(16)) == 0) {
-				*p++ = 0xe0 | (0x0f & (u >> 12));
+				*p++ = 0xe0 | (u >> 12);
 			} else {
-				if ((u & MASK(21)) == 0) {
+				if ((SIZEOF_SQLWCHAR == 2) || (u & MASK(21)) == 0) {
+					*p++ = 0xf0 | (u >> 18);
+				} else {
 					if ((u & MASK(26)) == 0) {
+						*p++ = 0xf8 | (u >> 24);
+					} else {
 						*p++ = 0xfc | (0x01 & (u >> 30));
 						*p++ = 0x80 | (0x3f & (u >> 24));
-					} else {
-						*p++ = 0xf8 | (0x03 & (u >> 24));
 					}
 					*p++ = 0x80 | (0x3f & (u >> 18));
-				} else {
-					*p++ = 0xf0 | (0x07 & (u >> 18));
 				}
 				*p++ = 0x80 | (0x3f & (u >> 12));
 			}
 			*p++ = 0x80 | (0x3f & (u >> 6));
-#else
-			*p++ = 0xe0 | (0x0f & (u >> 12));
-			*p++ = 0x80 | (0x3f & (u >> 6));
-#endif
 		}
 		*p++ = 0x80 | (0x3f & u);
 	}
@@ -326,9 +334,22 @@ odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void 
 			while(--l)
 				u = (u << 6) | (*p++ & 0x3f);
 			++out_len;
+			if (SIZEOF_SQLWCHAR == 2 && u >= 0x10000 && u < 0x110000u)
+				++out_len;
 			if (!dest)
 				continue;
-			if (cbBuffer > 1) {
+			if (SIZEOF_SQLWCHAR == 2 && u >= 0x10000) {
+				if (cbBuffer > 2 && u < 0x110000u) {
+					*dest++ = (SQLWCHAR) (0xd7c0 + (u >> 10));
+					*dest++ = (SQLWCHAR) (0xdc00 + (u & 0x3ffu));
+					cbBuffer -= 2;
+					continue;
+				}
+				if (cbBuffer > 1) {
+					*dest++ = (SQLWCHAR) '?';
+					--cbBuffer;
+				}
+			} else if (cbBuffer > 1) {
 				*dest++ = (SQLWCHAR) u;
 				--cbBuffer;
 				continue;
