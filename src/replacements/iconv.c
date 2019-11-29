@@ -79,7 +79,7 @@ get_utf8(const unsigned char *p, size_t len, ICONV_CHAR *out)
 
 	do {
 		switch (decode_utf8(&state, &uc, *p++)) {
-		case 0:
+		case UTF8_ACCEPT:
 			*out = uc;
 			return l;
 		case UTF8_REJECT:
