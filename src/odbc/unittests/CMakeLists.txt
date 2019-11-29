@@ -29,6 +29,7 @@ set(tests
 	array_error closestmt bcp
 	all_types utf8_3 empty_query
 	transaction3 transaction4
+	utf8_4
 )
 
 if(WIN32)
@@ -39,11 +40,12 @@ endif()
 
 add_library(o_common STATIC common.c common.h c2string.c parser.c parser.h)
 
+set(static_tests all_types utf8_4)
 set(unicode_tests utf8 oldpwd)
 foreach(target ${tests})
 	add_executable(o_${target} EXCLUDE_FROM_ALL ${target}.c)
 	set_target_properties(o_${target} PROPERTIES OUTPUT_NAME ${target})
-	if (target STREQUAL "all_types")
+	if (target IN_LIST static_tests)
 		target_link_libraries(o_${target} o_common tdsodbc_static t_common tds replacements tdsutils ${lib_ODBCINST} ${lib_NETWORK} ${lib_BASE})
 	else()
 		target_link_libraries(o_${target} o_common replacements tdsutils ${libs} ${lib_NETWORK} ${lib_BASE})

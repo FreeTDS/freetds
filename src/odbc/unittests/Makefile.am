@@ -79,6 +79,7 @@ TESTS =	\
 	empty_query$(EXEEXT) \
 	transaction3$(EXEEXT) \
 	transaction4$(EXEEXT) \
+	utf8_4$(EXEEXT) \
 	$(NULL)
 
 check_PROGRAMS	=	$(TESTS) oldpwd$(EXEEXT)
@@ -149,6 +150,8 @@ cursor7_SOURCES	= cursor7.c
 utf8_SOURCES	= utf8.c common.c
 utf8_2_SOURCES	= utf8_2.c
 utf8_3_SOURCES	= utf8_3.c
+utf8_4_SOURCES	= utf8_4.c
+utf8_4_LDFLAGS = -static ../libtdsodbc.la ../../tds/unittests/libcommon.a -shared $(GLOBAL_LD_FLAGS) $(ODBCINST_LDFLAGS)
 stats_SOURCES	= stats.c
 descrec_SOURCES	= descrec.c
 peter_SOURCES	= peter.c
