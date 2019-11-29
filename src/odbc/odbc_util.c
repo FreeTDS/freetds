@@ -253,6 +253,16 @@ odbc_mb2utf(TDS_DBC *dbc, DSTR *res, const char *s, unsigned int len)
 #endif
 
 #ifdef ENABLE_ODBC_WIDE
+/**
+ * Copy a string from client setting according to ODBC convenction
+ * @param dbc       database connection. Can't be NULL
+ * @param s         output string
+ * @param size      size of str, Can be SQL_NTS
+ * @param str       string to convert
+ * @param flag      set of flags.
+ *                  0x01 wide string in buffer
+ *                  0x20 size is in bytes, not characters
+ */
 DSTR*
 odbc_dstr_copy_flag(TDS_DBC *dbc, DSTR *s, int size, const ODBC_CHAR * str, int flag)
 {
@@ -281,7 +291,10 @@ odbc_dstr_copy(TDS_DBC *dbc, DSTR *s, int size, const ODBC_CHAR * str)
  * @param pcbBuffer pointer to SQLSMALLINT to hold string size
  * @param s         string to copy
  * @param len       len of string to copy. <0 null terminated
- * @param flag      set of flag 0x10 SQLINTEGER
+ * @param flag      set of flags.
+ *                  0x01 wide string in buffer
+ *                  0x10 pcbBuffer is SQLINTEGER otherwise SQLSMALLINT
+ *                  0x20 size is in bytes, not characters
  */
 SQLRETURN
 odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void FAR * pcbBuffer, const char *s, int len, int flag)
