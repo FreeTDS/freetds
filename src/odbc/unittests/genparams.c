@@ -393,6 +393,7 @@ AllTests(void)
 	TestInput(SQL_C_BIT, "BIT", SQL_BIT, "BIT", "1");
 
 	TestInput(SQL_C_DOUBLE, "MONEY", SQL_DOUBLE, "MONEY", "123.34");
+	TestInput(SQL_C_CHAR, "MONEY", SQL_VARCHAR, "MONEY", "123.3456");
 
 	TestInput(SQL_C_CHAR, "VARCHAR(20)", SQL_VARCHAR, "VARCHAR(20)", "1EasyTest");
 	TestInput(SQL_C_CHAR, "VARCHAR(20)", SQL_LONGVARCHAR, "TEXT", "1EasyTest");
