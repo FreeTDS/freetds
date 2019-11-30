@@ -323,7 +323,7 @@ tds_build_packet(TDSSOCKET *tds, unsigned char *buf, unsigned len)
 		}
 	}
 
-	start = (p - mars) * sizeof(mars[0]);
+	start = (char*) p - (char *) mars;
 	packet = tds_get_packet(tds->conn, len + start);
 	if (TDS_LIKELY(packet)) {
 		packet->sid = tds->sid;
