@@ -1,3 +1,4 @@
+#undef NDEBUG
 #include "common.h"
 #include <assert.h>
 #include <freetds/utils/string.h>
@@ -9,14 +10,37 @@
 HINSTANCE hinstFreeTDS;
 #endif
 
+#ifdef ENABLE_ODBC_WIDE
+static void
+wide_test(const WCHAR* input, size_t input_len, const char *exp, int line)
+{
+	DSTR s = DSTR_INITIALIZER;
+	SQLWCHAR outbuf[16];
+	SQLINTEGER outlen;
+
+	odbc_dstr_copy_flag((TDS_DBC *) odbc_conn, &s, (int) input_len, (ODBC_CHAR*) input, 1);
+	if (strlen(exp) != tds_dstr_len(&s) || strcmp(exp, tds_dstr_cstr(&s)) != 0) {
+		fprintf(stderr, "%d: Wrong, len %u: %s\n", line,
+			(unsigned) tds_dstr_len(&s), tds_dstr_cstr(&s));
+		exit(1);
+	}
+	outlen = -1;
+	odbc_set_string_flag((TDS_DBC *) odbc_conn, outbuf, TDS_VECTOR_SIZE(outbuf), &outlen,
+			     tds_dstr_cstr(&s), (int) tds_dstr_len(&s), 0x11);
+	if (outlen < 0 || outlen !=input_len
+	    || memcmp(outbuf, input, input_len * sizeof(input[0])) != 0) {
+		fprintf(stderr, "%d: out_len %u %x %x %x\n", line, outlen, outbuf[0], outbuf[1], outbuf[2]);
+		exit(1);
+	}
+	tds_dstr_free(&s);
+}
+#endif
+
 int
 main(int argc, char *argv[])
 {
 #ifdef ENABLE_ODBC_WIDE
-	DSTR s;
-	SQLWCHAR outbuf[16];
-	SQLINTEGER outlen;
-	tds_dstr_init(&s);
+	DSTR s = DSTR_INITIALIZER;
 
 #ifdef _WIN32
 	hinstFreeTDS = GetModuleHandle(NULL);
@@ -33,22 +57,16 @@ main(int argc, char *argv[])
 		return 0;
 	}
 
-	odbc_dstr_copy_flag(odbc_conn, &s, 3, (ODBC_CHAR*) "foo", 0);
+	odbc_dstr_copy_flag((TDS_DBC *) odbc_conn, &s, 3, (ODBC_CHAR*) "foo", 0);
+	assert(strcmp("foo", tds_dstr_cstr(&s)) == 0);
+
 #define WIDE_TEST(chars, exp) do { \
-	SQLWCHAR input[] = chars; \
-	odbc_dstr_copy_flag(odbc_conn, &s, TDS_VECTOR_SIZE(input), (ODBC_CHAR*) input, 1); \
-	if (strlen(exp) != tds_dstr_len(&s) || strcmp(exp, tds_dstr_cstr(&s)) != 0) { \
-		fprintf(stderr, "%d: Wrong, len %u: %s\n", __LINE__, (unsigned) tds_dstr_len(&s), tds_dstr_cstr(&s)); \
-		return 1; \
-	} \
-	outlen = -1; \
-	odbc_set_string_flag(odbc_conn, outbuf, TDS_VECTOR_SIZE(outbuf), &outlen, tds_dstr_cstr(&s), tds_dstr_len(&s), 0x11); \
-	if (outlen < 0 || outlen != TDS_VECTOR_SIZE(input) || memcmp(outbuf, input, sizeof(input)) != 0) { \
-		fprintf(stderr, "%d: out_len %u %x %x %x\n", __LINE__, outlen, outbuf[0], outbuf[1], outbuf[2]); \
-		return 1; \
-	} \
+	static const SQLWCHAR input[] = chars; \
+	wide_test(input, TDS_VECTOR_SIZE(input), exp, __LINE__); \
 } while(0)
-	odbc_dstr_copy_flag(odbc_conn, &s, 3, (ODBC_CHAR*) "f\0o\0o\0", 1);
+#define SEP ,
+
+	WIDE_TEST({ 'f' SEP 'o' SEP 'o' }, "foo");
 	WIDE_TEST({ 0x41 }, "A");
 	WIDE_TEST({ 0xA1 }, "\xc2\xA1");
 	WIDE_TEST({ 0x81 }, "\xc2\x81");
@@ -61,7 +79,6 @@ main(int argc, char *argv[])
 	WIDE_TEST({ 0x4001 }, "\xe4\x80\x81");
 	WIDE_TEST({ 0x8001 }, "\xe8\x80\x81");
 #if SIZEOF_SQLWCHAR == 2
-#define SEP ,
 	WIDE_TEST({ 0xd800 SEP 0xdc01 }, "\xf0\x90\x80\x81");
 	WIDE_TEST({ 0xd800 SEP 0xdd01 }, "\xf0\x90\x84\x81");
 	WIDE_TEST({ 0xd840 SEP 0xdd01 }, "\xf0\xa0\x84\x81");
@@ -70,6 +87,7 @@ main(int argc, char *argv[])
 #else
 	WIDE_TEST({ 0x10001 }, "\xf0\x90\x80\x81");
 #endif
+
 	tds_dstr_free(&s);
 	odbc_disconnect();
 #endif
