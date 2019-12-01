@@ -393,7 +393,6 @@ AllTests(void)
 	TestInput(SQL_C_BIT, "BIT", SQL_BIT, "BIT", "1");
 
 	TestInput(SQL_C_DOUBLE, "MONEY", SQL_DOUBLE, "MONEY", "123.34");
-	TestInput(SQL_C_CHAR, "MONEY", SQL_VARCHAR, "MONEY", "123.3456");
 
 	TestInput(SQL_C_CHAR, "VARCHAR(20)", SQL_VARCHAR, "VARCHAR(20)", "1EasyTest");
 	TestInput(SQL_C_CHAR, "VARCHAR(20)", SQL_LONGVARCHAR, "TEXT", "1EasyTest");
@@ -467,6 +466,7 @@ AllTests(void)
 	if (odbc_db_is_microsoft() && odbc_db_version_int() >= 0x09000000u) {
 		TestInput(SQL_C_CHAR, "VARCHAR(20)", SQL_LONGVARCHAR, "VARCHAR(MAX)", "1EasyTest");
 		TestInput(SQL_C_BINARY, "VARBINARY(20)", SQL_LONGVARBINARY, "VARBINARY(MAX)", "Anything will suite!");
+		TestInput(SQL_C_CHAR, "MONEY", SQL_VARCHAR, "MONEY", "123.3456");
 	}
 	/* MSSQL 2008 */
 	if (odbc_db_is_microsoft() && odbc_db_version_int() >= 0x0a000000u) {
