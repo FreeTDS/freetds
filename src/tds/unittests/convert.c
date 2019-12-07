@@ -242,7 +242,7 @@ main(int argc, char **argv)
 			srclen = sizeof(tds_uint8);
 			break;
 		case SYBFLT8:
-			tds_float = 3.14159;
+			tds_float = 0.000001;
 			src = (char *) &tds_float;
 			srclen = sizeof(tds_float);
 			break;
