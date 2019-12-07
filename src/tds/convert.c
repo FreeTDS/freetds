@@ -1692,7 +1692,7 @@ tds_convert_flt8(const TDS_FLOAT* src, int desttype, CONV_RESULT * cr)
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
-		sprintf(tmp_str, "%.16g", the_value);
+		sprintf(tmp_str, "%.*f", cr->n.scale, the_value);
 		return stringz_to_numeric(tmp_str, cr);
 		break;
 		/* not allowed */
