@@ -333,7 +333,7 @@ main(int argc, char **argv)
 				srctype, tds_prtype(srctype), srclen,
 				desttype, tds_prtype(desttype));
 
-			if (result == TDS_CONVERT_NOAVAIL)
+			if (result != TDS_CONVERT_NOAVAIL)
 				exit(1);
 		}
 
