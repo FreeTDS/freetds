@@ -33,7 +33,7 @@ test0(const char *src, int len, int midtype, int dsttype, const char *result, in
 {
 	int i, res;
 	char buf[256];
-	CONV_RESULT cr, cr_mid;
+	CONV_RESULT cr, cr_mid, cr_out;
 	int srctype = SYBVARCHAR;
 	char *copy;
 
@@ -42,6 +42,10 @@ test0(const char *src, int len, int midtype, int dsttype, const char *result, in
 	src = copy;
 
 	if (midtype) {
+		if (midtype == SYBNUMERIC || midtype == SYBDECIMAL) {
+			cr_mid.n.precision = 20;
+			cr_mid.n.scale = 8;
+		}
 		res = tds_convert(&ctx, SYBVARCHAR, src, len, midtype, &cr_mid);
 		if (res < 0) {
 			fprintf(stderr, "Unexpected failure converting %*.*s\n", len, len, src);
@@ -50,6 +54,10 @@ test0(const char *src, int len, int midtype, int dsttype, const char *result, in
 		src = (const char *) &cr_mid;
 		len = res;
 		srctype = midtype;
+	}
+	if (dsttype == SYBNUMERIC || dsttype == SYBDECIMAL) {
+		cr.n.precision = 20;
+		cr.n.scale = 8;
 	}
 	res = tds_convert(&ctx, srctype, src, len, dsttype, &cr);
 	if (res < 0)
@@ -108,6 +116,16 @@ test0(const char *src, int len, int midtype, int dsttype, const char *result, in
 		case SYBTIME:
 			sprintf(buf, "%ld", (long int) cr.time);
 			break;
+		case SYBNUMERIC:
+		case SYBDECIMAL:
+			cr_out.cc.c = buf;
+			cr_out.cc.len = sizeof(buf) - 1;
+			res = tds_convert(&ctx, dsttype, (const TDS_CHAR*) &cr.n, sizeof(cr.n), TDS_CONVERT_CHAR, &cr_out);
+			if (res < 0) {
+				fprintf(stderr, "Unexpected failure converting %*.*s\n", len, len, src);
+				exit(1);
+			}
+			buf[res] = 0;
 		}
 	}
 	printf("%s\n", buf);
@@ -272,7 +290,7 @@ main(int argc, char **argv)
 
 	/*
 	 * test overflow on very big numbers 
-	 * i use increment of 10^9 to be sure lower 32bit be correct
+	 * I use increment of 10^9 to be sure lower 32bit be correct
 	 * in a case
 	 */
 	printf("overflow on big number checks...\n");
@@ -350,6 +368,7 @@ main(int argc, char **argv)
 	test2("12:34:56.337", SYBTIME, SYBCHAR, "len=23 1900-01-01 12:34:56.337");
 
 	test2("123", SYBINT1, SYBBINARY, "len=1 7B");
+	test2("0.000001", SYBFLT8, SYBNUMERIC, "0.00000100");
 	if (big_endian) {
 		test2("12345", SYBINT2, SYBBINARY, "len=2 30 39");
 		test2("123456789", SYBINT4, SYBBINARY, "len=4 07 5B CD 15");
