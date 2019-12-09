@@ -2454,7 +2454,7 @@ dbconvert_ps(DBPROCESS * dbproc, int db_srctype, const BYTE * src, DBINT srclen,
 
 	tdsdump_log(TDS_DBG_INFO1, "dbconvert_ps() calling tds_convert\n");
 
-	len = tds_convert(g_dblib_ctx.tds_ctx, srctype, (const TDS_CHAR *) src, srclen, desttype, &dres);
+	len = tds_convert(g_dblib_ctx.tds_ctx, srctype, src, srclen, desttype, &dres);
 	tdsdump_log(TDS_DBG_INFO1, "dbconvert_ps() called tds_convert returned %d\n", len);
 
 	if (len < 0) {
@@ -7582,7 +7582,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, TDS_SERVER_TYPE srctype, const BYTE * 
 
 	} /* end srctype == desttype */
 
-	len = tds_convert(g_dblib_ctx.tds_ctx, srctype, (const TDS_CHAR *) src, srclen, desttype, &dres);
+	len = tds_convert(g_dblib_ctx.tds_ctx, srctype, src, srclen, desttype, &dres);
 
 	tdsdump_log(TDS_DBG_INFO1, "copy_data_to_host_var(): tds_convert returned %d\n", len);
 

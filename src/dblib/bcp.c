@@ -757,11 +757,11 @@ _bcp_convert_out(DBPROCESS * dbproc, TDSCOLUMN *curcol, BCP_HOSTCOLINFO *hostcol
 			num->precision = 18;
 			num->scale = 0;
 		}
-		buflen = tds_convert(dbproc->tds_socket->conn->tds_ctx, srctype, (const TDS_CHAR *) src, srclen, hostcol->datatype, (CONV_RESULT *) num);
+		buflen = tds_convert(dbproc->tds_socket->conn->tds_ctx, srctype, src, srclen, hostcol->datatype, (CONV_RESULT *) num);
 		if (buflen > 0)
 			buflen = tds_numeric_bytes_per_prec[num->precision] + 2;
 	} else if (!is_variable_type(hostcol->datatype)) {
-		buflen = tds_convert(dbproc->tds_socket->conn->tds_ctx, srctype, (const TDS_CHAR *) src, srclen, hostcol->datatype, (CONV_RESULT *) (*p_data));
+		buflen = tds_convert(dbproc->tds_socket->conn->tds_ctx, srctype, src, srclen, hostcol->datatype, (CONV_RESULT *) (*p_data));
 	} else {
 		CONV_RESULT cr;
 
@@ -770,7 +770,7 @@ _bcp_convert_out(DBPROCESS * dbproc, TDSCOLUMN *curcol, BCP_HOSTCOLINFO *hostcol
 		 * because bcpcol->data_size is zero, so dbconvert() won't write anything,
 		 * and returns zero.
 		 */
-		buflen = tds_convert(dbproc->tds_socket->conn->tds_ctx, srctype, (const TDS_CHAR *) src, srclen, hostcol->datatype, (CONV_RESULT *) &cr);
+		buflen = tds_convert(dbproc->tds_socket->conn->tds_ctx, srctype, src, srclen, hostcol->datatype, (CONV_RESULT *) &cr);
 		if (buflen < 0)
 			return buflen;
 

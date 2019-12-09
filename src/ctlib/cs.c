@@ -689,7 +689,7 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 	}
 
 	tdsdump_log(TDS_DBG_FUNC, "cs_convert() calling tds_convert\n");
-	len = tds_convert(ctx->tds_ctx, src_type, (TDS_CHAR*) srcdata, src_len, desttype, &cres);
+	len = tds_convert(ctx->tds_ctx, src_type, srcdata, src_len, desttype, &cres);
 
 	tdsdump_log(TDS_DBG_FUNC, "cs_convert() tds_convert returned %d\n", len);
 
@@ -1435,7 +1435,7 @@ _cs_convert_not_client(CS_CONTEXT *ctx, TDSCOLUMN *curcol, CONV_RESULT *convert_
 	}
 
 	if (convert_buffer) {
-		int len = tds_convert(ctx->tds_ctx, curcol->column_type, (TDS_CHAR *) *p_src,
+		int len = tds_convert(ctx->tds_ctx, curcol->column_type, *p_src,
 				      curcol->column_cur_size, desttype, convert_buffer);
 		if (len < 0)
 			return CS_ILLEGAL_TYPE; // TODO _csclient_msg ??

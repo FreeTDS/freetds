@@ -120,7 +120,7 @@ test0(const char *src, int len, int midtype, int dsttype, const char *result, in
 		case SYBDECIMAL:
 			cr_out.cc.c = buf;
 			cr_out.cc.len = sizeof(buf) - 1;
-			res = tds_convert(&ctx, dsttype, (const TDS_CHAR*) &cr.n, sizeof(cr.n), TDS_CONVERT_CHAR, &cr_out);
+			res = tds_convert(&ctx, dsttype, &cr.n, sizeof(cr.n), TDS_CONVERT_CHAR, &cr_out);
 			if (res < 0) {
 				fprintf(stderr, "Unexpected failure converting %*.*s\n", len, len, src);
 				exit(1);
@@ -399,7 +399,7 @@ main(int argc, char **argv)
 		if (len_src <= 0 || len_dst <= 0)
 			continue;
 		cr_dst.n.precision = 20; cr_dst.n.scale = 0;
-		if (tds_convert(&ctx, *type1, (const TDS_CHAR *) &cr_src.i, len_src, *type2, &cr_dst) <= 0) {
+		if (tds_convert(&ctx, *type1, &cr_src.i, len_src, *type2, &cr_dst) <= 0) {
 			fprintf(stderr, "conversion from %s to %s of %s should succeed\n",
 				tds_prtype(*type1), tds_prtype(*type2), *value);
 			return 1;
@@ -407,7 +407,7 @@ main(int argc, char **argv)
 		memcpy(&cr_src, &cr_dst, sizeof(cr_dst));
 		cr_dst.cc.c = buf;
 		cr_dst.cc.len = sizeof(buf)-4;
-		len_dst = tds_convert(&ctx, *type2, (const TDS_CHAR *) &cr_src.i, len_dst, TDS_CONVERT_CHAR, &cr_dst);
+		len_dst = tds_convert(&ctx, *type2, &cr_src.i, len_dst, TDS_CONVERT_CHAR, &cr_dst);
 		if (len_dst <= 0) {
 			fprintf(stderr, "conversion from %s to string should succeed\n",
 				tds_prtype(*type1));

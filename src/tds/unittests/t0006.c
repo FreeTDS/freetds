@@ -111,7 +111,7 @@ main(int argc, char **argv)
 				if (verbose) {
 					srctype = curcol->column_type;
 					srclen = curcol->column_size;
-					tds_convert(&ctx, srctype, (TDS_CHAR *) src, srclen, SYBCHAR, &cr);
+					tds_convert(&ctx, srctype, src, srclen, SYBCHAR, &cr);
 					printf("col %i is %s\n", i, cr.c);
 				}
 				if (i == 0) {
@@ -178,7 +178,7 @@ main(int argc, char **argv)
 				if (verbose) {
 					srctype = curcol->column_type;
 					srclen = curcol->column_size;
-					tds_convert(&ctx, srctype, (TDS_CHAR *) src, srclen, SYBCHAR, &cr);
+					tds_convert(&ctx, srctype, src, srclen, SYBCHAR, &cr);
 					printf("col %i is %s\n", i, cr.c);
 				}
 				if (i == 0) {

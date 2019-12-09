@@ -255,7 +255,7 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 					srclen = col->column_cur_size;
 
 
-					if (tds_convert(tds_get_ctx(tds), ctype, (TDS_CHAR *) src, srclen, SYBVARCHAR, &dres) < 0)
+					if (tds_convert(tds_get_ctx(tds), ctype, src, srclen, SYBVARCHAR, &dres) < 0)
 						continue;
 					if (print_rows)  {
 						if (i) fputs(opt_col_term, stdout);

@@ -3598,7 +3598,7 @@ tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option,
 					srclen = col->column_cur_size;
 
 
-					tds_convert(tds_get_ctx(tds), ctype, (TDS_CHAR *) src, srclen, SYBINT4, &dres);
+					tds_convert(tds_get_ctx(tds), ctype, src, srclen, SYBINT4, &dres);
 					optionval = dres.i;
 				}
 				break;
