@@ -87,7 +87,7 @@ unsigned char tds_willconvert(int srctype, int desttype);
 
 TDS_SERVER_TYPE tds_get_null_type(TDS_SERVER_TYPE srctype);
 TDS_INT tds_char2hex(TDS_CHAR *dest, TDS_UINT destlen, const TDS_CHAR * src, TDS_UINT srclen);
-TDS_INT tds_convert(const TDSCONTEXT * context, int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESULT * cr);
+TDS_INT tds_convert(const TDSCONTEXT *context, int srctype, const void *src, TDS_UINT srclen, int desttype, CONV_RESULT *cr);
 
 size_t tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * timeptr, int prec);
 
