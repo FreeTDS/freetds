@@ -469,7 +469,7 @@ CS_RETCODE
 cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT * destfmt, CS_VOID * destdata, CS_INT * resultlen)
 {
 	TDS_SERVER_TYPE src_type, desttype;
-	int src_len, destlen, len, i = 0;
+	int src_len, destlen, len;
 	CONV_RESULT cres;
 	unsigned char *dest;
 	CS_RETCODE ret;
@@ -737,8 +737,7 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 			destvc->len = len;
 			*resultlen = sizeof(*destvc);
 		}
-		for (i = len; i < destlen; i++)
-			dest[i] = '\0';
+		memset(dest + len, '\0', destlen - len);
 		break;
 	case SYBBIT:
 	case SYBBITN:
@@ -800,8 +799,7 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 			tdsdump_log(TDS_DBG_FUNC, "cs_convert() FMT_PADBLANK\n");
 			/* strcpy here can lead to a small buffer overflow */
 			memcpy(dest, cres.c, len);
-			for (i = len; i < destlen; i++)
-				dest[i] = ' ';
+			memset(dest + len, ' ', destlen - len);
 			*resultlen = destlen;
 			break;
 
@@ -809,8 +807,7 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 			tdsdump_log(TDS_DBG_FUNC, "cs_convert() FMT_PADNULL\n");
 			/* strcpy here can lead to a small buffer overflow */
 			memcpy(dest, cres.c, len);
-			for (i = len; i < destlen; i++)
-				dest[i] = '\0';
+			memset(dest + len, '\0', destlen - len);
 			*resultlen = destlen;
 			break;
 		case CS_FMT_UNUSED:
