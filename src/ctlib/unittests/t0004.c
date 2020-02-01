@@ -4,9 +4,6 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0004.c,v 1.10 2011-05-16 08:51:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 /* protos */
 int do_fetch(CS_COMMAND * cmd);
 CS_RETCODE do_results(CS_COMMAND * cmd, CS_INT * results);
@@ -31,9 +28,9 @@ main(int argc, char **argv)
 	CS_INT update_results[] = { CS_CMD_SUCCEED, CS_CMD_DONE };
 	CS_INT select_results[] = { CS_ROW_RESULT, CS_CMD_DONE };
 
-	fprintf(stdout, "%s: Check ordering of returns from cs_results()\n", __FILE__);
+	printf("%s: Check ordering of returns from cs_results()\n", __FILE__);
 	if (verbose) {
-		fprintf(stdout, "Trying login\n");
+		printf("Trying login\n");
 	}
 	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
@@ -121,7 +118,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 	if (verbose) {
-		fprintf(stdout, "Trying logout\n");
+		printf("Trying logout\n");
 	}
 	ret = try_ctlogout(ctx, conn, cmd, verbose);
 	if (ret != CS_SUCCEED) {

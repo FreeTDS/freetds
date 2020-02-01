@@ -212,9 +212,9 @@ main(int argc, char **argv)
 
 	const char *table_name = "all_types_bcp_unittest";
 
-	fprintf(stdout, "%s: Retrieve data using array binding \n", __FILE__);
+	printf("%s: Retrieve data using array binding \n", __FILE__);
 	if (verbose) {
-		fprintf(stdout, "Trying login\n");
+		printf("Trying login\n");
 	}
 	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
@@ -248,7 +248,7 @@ main(int argc, char **argv)
 
 	do_binds(blkdesc);
 
-	fprintf(stdout, "Sending same row 10 times... \n");
+	printf("Sending same row 10 times... \n");
 	for (i=0; i<10; i++) {
 		if((ret = blk_rowxfer(blkdesc)) != CS_SUCCEED) {
 			fprintf(stderr, "blk_rowxfer() failed\n");

@@ -28,7 +28,7 @@ catch_alrm(int sig_num)
 {
 	signal(SIGALRM, catch_alrm);
 
-	fprintf(stdout, "- SIGALRM\n");
+	printf("- SIGALRM\n");
 
 	/* Cancel current command */
 	if (g_cmd)
@@ -54,9 +54,9 @@ main(int argc, char **argv)
 
 	unsigned clock = 200000;
 
-	fprintf(stdout, "%s: Check asynchronous called ct_cancel()\n", __FILE__);
+	printf("%s: Check asynchronous called ct_cancel()\n", __FILE__);
 	if (verbose) {
-		fprintf(stdout, "Trying login\n");
+		printf("Trying login\n");
 	}
 	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
@@ -177,7 +177,7 @@ main(int argc, char **argv)
 	}
 
 	if (verbose) {
-		fprintf(stdout, "Trying logout\n");
+		printf("Trying logout\n");
 	}
 	ret = try_ctlogout(ctx, conn, cmd, verbose);
 	if (ret != CS_SUCCEED) {

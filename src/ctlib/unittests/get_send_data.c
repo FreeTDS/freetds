@@ -62,9 +62,9 @@ main(int argc, char **argv)
 	len800[800] = '\0';
 
 
-	fprintf(stdout, "%s: Retrieve CS_TEXT_TYPE using ct_bind()\n", __FILE__);
+	printf("%s: Retrieve CS_TEXT_TYPE using ct_bind()\n", __FILE__);
 	if (verbose) {
-		fprintf(stdout, "Trying login\n");
+		printf("Trying login\n");
 	}
 	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
@@ -143,7 +143,7 @@ main(int argc, char **argv)
 					return 1;
 				} else {	/* ret == CS_SUCCEED */
 					if (verbose) {
-						fprintf(stdout, "id = '%d'\n", id);
+						printf("id = '%d'\n", id);
 					}
 
 					nameptr = name;
@@ -159,16 +159,16 @@ main(int argc, char **argv)
 						fprintf(stderr, "Bad return data\n");
 						return 1;
 					}
-					fprintf(stdout, "%s: Trying ct_data_info on text column\n", __FILE__);
+					printf("%s: Trying ct_data_info on text column\n", __FILE__);
 
 					if (ct_data_info(cmd, CS_GET, 2, &iodesc) != CS_SUCCEED) {
 						fprintf(stderr, "ct_data_info() failed\n");
 						return 1;
 					} else {
-						fprintf(stdout, "datatype = %d\n", iodesc.datatype);
-						fprintf(stdout, "usertype = %d\n", iodesc.usertype);
-						fprintf(stdout, "text len = %d\n", iodesc.total_txtlen);
-						fprintf(stdout, "name     = %*.*s\n", iodesc.namelen, iodesc.namelen, iodesc.name);
+						printf("datatype = %d\n", iodesc.datatype);
+						printf("usertype = %d\n", iodesc.usertype);
+						printf("text len = %d\n", iodesc.total_txtlen);
+						printf("name     = %*.*s\n", iodesc.namelen, iodesc.namelen, iodesc.name);
 					}
 				}
 			}
@@ -266,7 +266,7 @@ main(int argc, char **argv)
 	}
 
 	if (verbose) {
-		fprintf(stdout, "Trying logout\n");
+		printf("Trying logout\n");
 	}
 	ret = try_ctlogout(ctx, conn, cmd, verbose);
 	if (ret != CS_SUCCEED) {

@@ -41,7 +41,7 @@ main(int argc, char *argv[])
 
 	printf("%s: submit language query with variables using ct_param\n", __FILE__);
 	if (verbose) {
-		fprintf(stdout, "Trying login\n");
+		printf("Trying login\n");
 	}
 	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
@@ -74,11 +74,11 @@ main(int argc, char *argv[])
 		errCode = insert_test(conn, cmd, 0);
 
 	if (verbose && (0 == errCode))
-		fprintf(stdout, "lang_ct_param tests successful\n");
+		printf("lang_ct_param tests successful\n");
 
 ERR:
 	if (verbose) {
-		fprintf(stdout, "Trying logout\n");
+		printf("Trying logout\n");
 	}
 	ret = try_ctlogout(ctx, conn, cmd, verbose);
 	if (ret != CS_SUCCEED) {
@@ -343,12 +343,12 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames)
 CS_RETCODE
 ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg)
 {
-	fprintf(stdout, "\nOpen Client Message:\n");
-	fprintf(stdout, "Message number: LAYER = (%d) ORIGIN = (%d) ", CS_LAYER(errmsg->msgnumber), CS_ORIGIN(errmsg->msgnumber));
-	fprintf(stdout, "SEVERITY = (%d) NUMBER = (%d)\n", CS_SEVERITY(errmsg->msgnumber), CS_NUMBER(errmsg->msgnumber));
-	fprintf(stdout, "Message String: %s\n", errmsg->msgstring);
+	printf("\nOpen Client Message:\n");
+	printf("Message number: LAYER = (%d) ORIGIN = (%d) ", CS_LAYER(errmsg->msgnumber), CS_ORIGIN(errmsg->msgnumber));
+	printf("SEVERITY = (%d) NUMBER = (%d)\n", CS_SEVERITY(errmsg->msgnumber), CS_NUMBER(errmsg->msgnumber));
+	printf("Message String: %s\n", errmsg->msgstring);
 	if (errmsg->osstringlen > 0) {
-		fprintf(stdout, "Operating System Error: %s\n", errmsg->osstring);
+		printf("Operating System Error: %s\n", errmsg->osstring);
 	}
 	fflush(stdout);
 
@@ -358,19 +358,19 @@ ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG *
 CS_RETCODE
 ex_servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * srvmsg)
 {
-	fprintf(stdout, "\nServer message:\n");
-	fprintf(stdout, "Message number: %d, Severity %d, ", srvmsg->msgnumber, srvmsg->severity);
-	fprintf(stdout, "State %d, Line %d\n", srvmsg->state, srvmsg->line);
+	printf("\nServer message:\n");
+	printf("Message number: %d, Severity %d, ", srvmsg->msgnumber, srvmsg->severity);
+	printf("State %d, Line %d\n", srvmsg->state, srvmsg->line);
 
 	if (srvmsg->svrnlen > 0) {
-		fprintf(stdout, "Server '%s'\n", srvmsg->svrname);
+		printf("Server '%s'\n", srvmsg->svrname);
 	}
 
 	if (srvmsg->proclen > 0) {
-		fprintf(stdout, " Procedure '%s'\n", srvmsg->proc);
+		printf(" Procedure '%s'\n", srvmsg->proc);
 	}
 
-	fprintf(stdout, "Message String: %s\n", srvmsg->text);
+	printf("Message String: %s\n", srvmsg->text);
 	fflush(stdout);
 
 	return CS_SUCCEED;

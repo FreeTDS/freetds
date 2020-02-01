@@ -8,9 +8,6 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: ct_options.c,v 1.5 2011-05-16 08:51:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 /* Testing: Set and get options with ct_options */
 int
 main(int argc, char *argv[])
@@ -27,7 +24,7 @@ main(int argc, char *argv[])
 	CS_BOOL truefalse = 999;
 
 	if (verbose) {
-		fprintf(stdout, "Trying login\n");
+		printf("Trying login\n");
 	}
 
 	if (argc >= 5) {
@@ -44,7 +41,7 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	fprintf(stdout, "%s: Set/Retrieve DATEFIRST\n", __FILE__);
+	printf("%s: Set/Retrieve DATEFIRST\n", __FILE__);
 
 	/* DATEFIRST */
 	datefirst = CS_OPT_WEDNESDAY;
@@ -64,7 +61,7 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	fprintf(stdout, "%s: Set/Retrieve DATEFORMAT\n", __FILE__);
+	printf("%s: Set/Retrieve DATEFORMAT\n", __FILE__);
 
 	/* DATEFORMAT */
 	dateformat = CS_OPT_FMTMYD;
@@ -84,7 +81,7 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	fprintf(stdout, "%s: Set/Retrieve ANSINULL\n", __FILE__);
+	printf("%s: Set/Retrieve ANSINULL\n", __FILE__);
 	/* ANSI NULLS */
 	truefalse = CS_TRUE;
 	if (ct_options(conn, CS_SET, CS_OPT_ANSINULL, &truefalse, CS_UNUSED, NULL) != CS_SUCCEED) {
@@ -102,7 +99,7 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	fprintf(stdout, "%s: Set/Retrieve CHAINXACTS\n", __FILE__);
+	printf("%s: Set/Retrieve CHAINXACTS\n", __FILE__);
 	/* CHAINED XACT */
 	truefalse = CS_TRUE;
 	if (ct_options(conn, CS_SET, CS_OPT_CHAINXACTS, &truefalse, CS_UNUSED, NULL) != CS_SUCCEED) {
@@ -121,7 +118,7 @@ main(int argc, char *argv[])
 	}
 
 	if (verbose) {
-		fprintf(stdout, "Trying logout\n");
+		printf("Trying logout\n");
 	}
 	ret = try_ctlogout(ctx, conn, cmd, verbose);
 	if (ret != CS_SUCCEED) {

@@ -5,9 +5,6 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0008.c,v 1.10 2011-05-16 08:51:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 /*
  * ct_send SQL |select name = @@servername|
  * ct_bind variable
@@ -26,7 +23,7 @@ main(int argc, char **argv)
 	CS_DATAFMT dstfmt;
 	CS_SMALLINT dst;
 
-	fprintf(stdout, "%s: Testing context callbacks\n", __FILE__);
+	printf("%s: Testing context callbacks\n", __FILE__);
 	srcfmt.datatype = CS_INT_TYPE;
 	srcfmt.maxlength = sizeof(CS_INT);
 	srcfmt.locale = NULL;
@@ -39,7 +36,7 @@ main(int argc, char **argv)
 	dstfmt.locale = NULL;
 
 	if (verbose) {
-		fprintf(stdout, "Trying clientmsg_cb with context\n");
+		printf("Trying clientmsg_cb with context\n");
 	}
 	if (cs_ctx_alloc(CS_VERSION_100, &ctx) != CS_SUCCEED) {
 		fprintf(stderr, "cs_ctx_alloc() failed\n");
@@ -64,7 +61,7 @@ main(int argc, char **argv)
 	}
 
 	if (verbose) {
-		fprintf(stdout, "Trying cslibmsg_cb\n");
+		printf("Trying cslibmsg_cb\n");
 	}
 	if (cs_config(ctx, CS_SET, CS_MESSAGE_CB, (CS_VOID*) cslibmsg_cb, CS_UNUSED, NULL)
 	    != CS_SUCCEED) {
@@ -89,7 +86,7 @@ main(int argc, char **argv)
 	}
 
 	if (verbose) {
-		fprintf(stdout, "Trying login\n");
+		printf("Trying login\n");
 	}
 	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
@@ -98,7 +95,7 @@ main(int argc, char **argv)
 	}
 
 	if (verbose) {
-		fprintf(stdout, "Trying clientmsg_cb with connection\n");
+		printf("Trying clientmsg_cb with connection\n");
 	}
 	ret = ct_callback(NULL, conn, CS_SET, CS_CLIENTMSG_CB, (CS_VOID *) clientmsg_cb);
 	if (ret != CS_SUCCEED) {
@@ -117,7 +114,7 @@ main(int argc, char **argv)
 	}
 
 	if (verbose) {
-		fprintf(stdout, "Trying servermsg_cb with connection\n");
+		printf("Trying servermsg_cb with connection\n");
 	}
 	ret = ct_callback(NULL, conn, CS_SET, CS_SERVERMSG_CB, (CS_VOID *) servermsg_cb);
 	if (ret != CS_SUCCEED) {
@@ -141,7 +138,7 @@ main(int argc, char **argv)
 	}
 
 	if (verbose) {
-		fprintf(stdout, "Trying logout\n");
+		printf("Trying logout\n");
 	}
 	ret = try_ctlogout(ctx, conn, cmd, verbose);
 	if (ret != CS_SUCCEED) {

@@ -8,9 +8,6 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: ct_diagserver.c,v 1.5 2011-05-16 08:51:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 /* Testing: Server messages limit */
 int
 main(int argc, char *argv[])
@@ -25,7 +22,7 @@ main(int argc, char *argv[])
 	CS_SERVERMSG server_message;
 
 	if (verbose) {
-		fprintf(stdout, "Trying login\n");
+		printf("Trying login\n");
 	}
 	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
@@ -45,14 +42,14 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	fprintf(stdout, "Maximum message limit is set to %d.\n", totMsgs);
+	printf("Maximum message limit is set to %d.\n", totMsgs);
 
 	if (ct_diag(conn, CS_STATUS, CS_SERVERMSG_TYPE, CS_UNUSED, &num_msgs) != CS_SUCCEED) {
 		fprintf(stderr, "ct_diag(CS_STATUS) failed\n");
 		return 1;
 	}
 
-	fprintf(stdout, "Number of messages returned: %d\n", num_msgs);
+	printf("Number of messages returned: %d\n", num_msgs);
 
 	for (i = 0; i < num_msgs; i++) {
 

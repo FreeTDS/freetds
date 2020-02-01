@@ -120,7 +120,7 @@ main(int argc, char **argv)
 	volatile CS_BIGINT one = 1;
 	int verbose = 1;
 
-	fprintf(stdout, "%s: Testing conversion\n", __FILE__);
+	printf("%s: Testing conversion\n", __FILE__);
 
 	ret = cs_ctx_alloc(CS_VERSION_100, &ctx);
 	if (ret != CS_SUCCEED) {
@@ -302,7 +302,7 @@ main(int argc, char **argv)
 	}
 
 	if (verbose && allSuccess) {
-		fprintf(stdout, "Test succeded\n");
+		printf("Test succeded\n");
 	}
 	return allSuccess ? 0 : 1;
 }

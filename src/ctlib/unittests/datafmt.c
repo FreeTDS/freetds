@@ -32,9 +32,9 @@ main(int argc, char *argv[])
 
 	char *addr = NULL;
 
-	fprintf(stdout, "%s: test data truncation behavior of ct_fetch \n", __FILE__);
+	printf("%s: test data truncation behavior of ct_fetch \n", __FILE__);
 	if (verbose) {
-		fprintf(stdout, "Trying login\n");
+		printf("Trying login\n");
 	}
 	ret = try_ctlogin_with_options(argc, argv, &ctx, &conn, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
@@ -118,7 +118,7 @@ main(int argc, char *argv[])
 
 				switch (ret) {
 				case CS_SUCCEED:
-					fprintf(stdout, "ct_fetch returned %d row%s\n", count, count==1? "":"s");
+					printf("ct_fetch returned %d row%s\n", count, count==1? "":"s");
 					break;
 				case CS_ROW_FAIL:
 					fprintf(stderr, "error: ct_fetch() returned CS_ROW_FAIL on row %d.\n", row_count);
@@ -158,7 +158,7 @@ main(int argc, char *argv[])
 	}
 
 	if (verbose) {
-		fprintf(stdout, "Trying logout\n");
+		printf("Trying logout\n");
 	}
 	ret = try_ctlogout(ctx, conn, cmd, verbose);
 	if (ret != CS_SUCCEED) {

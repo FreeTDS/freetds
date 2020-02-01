@@ -8,9 +8,6 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0007.c,v 1.11 2011-05-16 08:51:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 /* Testing: Retrieve CS_TEXT_TYPE using ct_bind() */
 int
 main(int argc, char **argv)
@@ -37,9 +34,9 @@ main(int argc, char **argv)
 	name[2][0] = 0;
 	name[3][0] = 0;
 
-	fprintf(stdout, "%s: Retrieve CS_CHAR_TYPE using ct_bind()\n", __FILE__);
+	printf("%s: Retrieve CS_CHAR_TYPE using ct_bind()\n", __FILE__);
 	if (verbose) {
-		fprintf(stdout, "Trying login\n");
+		printf("Trying login\n");
 	}
 	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
@@ -145,7 +142,7 @@ main(int argc, char **argv)
 					return 1;
 				} else {	/* ret == CS_SUCCEED */
 					if (verbose) {
-						fprintf(stdout, "name = '%s'\n", name[0]);
+						printf("name = '%s'\n", name[0]);
 					}
 					if (ind[0] != 0) {
 						fprintf(stderr, "Returned NULL\n");
@@ -218,7 +215,7 @@ main(int argc, char **argv)
 	}
 
 	if (verbose) {
-		fprintf(stdout, "Trying logout\n");
+		printf("Trying logout\n");
 	}
 	ret = try_ctlogout(ctx, conn, cmd, verbose);
 	if (ret != CS_SUCCEED) {

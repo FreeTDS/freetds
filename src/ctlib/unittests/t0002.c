@@ -29,9 +29,9 @@ main(int argc, char **argv)
 	CS_INT result_type;
 	CS_CHAR name[256];
 
-	fprintf(stdout, "%s: Testing bind & select\n", __FILE__);
+	printf("%s: Testing bind & select\n", __FILE__);
 	if (verbose) {
-		fprintf(stdout, "Trying login\n");
+		printf("Trying login\n");
 	}
 	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
@@ -78,7 +78,7 @@ main(int argc, char **argv)
 					return 1;
 				} else if (ret == CS_SUCCEED) {
 					if (verbose) {
-						fprintf(stdout, "server name = %s\n", name);
+						printf("server name = %s\n", name);
 					}
 				} else {
 					break;
@@ -121,7 +121,7 @@ main(int argc, char **argv)
 	sp_who(cmd);
 
 	if (verbose) {
-		fprintf(stdout, "Trying logout\n");
+		printf("Trying logout\n");
 	}
 	ret = try_ctlogout(ctx, conn, cmd, verbose);
 	if (ret != CS_SUCCEED) {
@@ -173,7 +173,7 @@ sp_who(CS_COMMAND *cmd)
 			fprintf(stderr, "ct_results() result_type CS_CMD_FAIL.\n");
 			return 1;
 		case CS_STATUS_RESULT:
-			fprintf(stdout, "ct_results: CS_STATUS_RESULT detected for sp_who\n");
+			printf("ct_results: CS_STATUS_RESULT detected for sp_who\n");
 			is_status_result = 1;
 			/* fall through */
 		case CS_ROW_RESULT:
@@ -204,7 +204,7 @@ sp_who(CS_COMMAND *cmd)
 				}
 
 				if (col[i].datafmt.status & CS_RETURN) {
-					fprintf(stdout, "ct_describe() indicates a return code in column %d for sp_who\n", i);
+					printf("ct_describe() indicates a return code in column %d for sp_who\n", i);
 					
 					/*
 					 * other possible values:
@@ -271,7 +271,7 @@ sp_who(CS_COMMAND *cmd)
 			
 			switch ((int) ret) {
 			case CS_END_DATA:
-				fprintf(stdout, "ct_results fetched %d rows.\n", row_count);
+				printf("ct_results fetched %d rows.\n", row_count);
 				break;
 			case CS_ROW_FAIL:
 				fprintf(stderr, "ct_fetch() CS_ROW_FAIL on row %d.\n", row_count);

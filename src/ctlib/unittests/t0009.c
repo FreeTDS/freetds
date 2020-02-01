@@ -41,9 +41,9 @@ main(int argc, char *argv[])
 
 	unsigned rows[3] = { 0, 0, 0 };
 
-	fprintf(stdout, "%s: Retrieve compute results processing\n", __FILE__);
+	printf("%s: Retrieve compute results processing\n", __FILE__);
 	if (verbose) {
-		fprintf(stdout, "Trying login\n");
+		printf("Trying login\n");
 	}
 	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
@@ -172,7 +172,7 @@ main(int argc, char *argv[])
 					fprintf(stderr, "ct_fetch() CS_ROW_FAIL on row %d.\n", row_count);
 					return 1;
 				} else {	/* ret == CS_SUCCEED */
-					fprintf(stdout, "col1 = %d col2= '%s', col3 = '%s'\n", col1, col2, col3);
+					printf("col1 = %d col2= '%s', col3 = '%s'\n", col1, col2, col3);
 					++rows[0];
 				}
 			}
@@ -270,14 +270,14 @@ main(int argc, char *argv[])
 					return 1;
 				} else {	/* ret == CS_SUCCEED */
 					if (compute_id == 1) {
-						fprintf(stdout, "compute_col1 = %d \n", compute_col1);
+						printf("compute_col1 = %d \n", compute_col1);
 						if (compute_col1 != 6 && compute_col1 != 17) {
 							fprintf(stderr, "(should be 6 or 17)\n");
 							return 1;
 						}
 					}
 					if (compute_id == 2) {
-						fprintf(stdout, "compute_col3 = '%s'\n", compute_col3);
+						printf("compute_col3 = '%s'\n", compute_col3);
 						if (strcmp("Jan  5 2002 10:00:00AM", compute_col3)
 						    && strcmp("Jan 05 2002 10:00AM", compute_col3)
 						    && strcmp("Jan  5 2002 10:00AM", compute_col3)) {
@@ -326,7 +326,7 @@ main(int argc, char *argv[])
 	}
 
 	if (verbose) {
-		fprintf(stdout, "Trying logout\n");
+		printf("Trying logout\n");
 	}
 	ret = try_ctlogout(ctx, conn, cmd, verbose);
 	if (ret != CS_SUCCEED) {

@@ -16,9 +16,6 @@
 #define MAX(X,Y)      (((X) > (Y)) ? (X) : (Y))
 #define MIN(X,Y)      (((X) < (Y)) ? (X) : (Y))
 
-static char software_version[] = "$Id: rpc_ct_setparam.c,v 1.11 2011-05-16 08:51:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 CS_RETCODE ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);
 CS_RETCODE ex_servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * errmsg);
 static CS_RETCODE ex_display_header(CS_INT numcols, CS_DATAFMT columns[]);
@@ -64,9 +61,9 @@ main(int argc, char *argv[])
 
 
 
-	fprintf(stdout, "%s: submit a stored procedure using ct_setparam \n", __FILE__);
+	printf("%s: submit a stored procedure using ct_setparam \n", __FILE__);
 	if (verbose) {
-		fprintf(stdout, "Trying login\n");
+		printf("Trying login\n");
 	}
 	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
@@ -307,7 +304,7 @@ main(int argc, char *argv[])
 	run_command(cmd, "DROP PROCEDURE sample_rpc");
 
 	if (verbose) {
-		fprintf(stdout, "Trying logout\n");
+		printf("Trying logout\n");
 	}
 	ret = try_ctlogout(ctx, conn, cmd, verbose);
 	if (ret != CS_SUCCEED) {
@@ -346,15 +343,15 @@ int i, j;
 			 */
 			switch ((int) res_type) {
 			case CS_ROW_RESULT:
-				fprintf(stdout, "\nROW RESULTS\n");
+				printf("\nROW RESULTS\n");
 				break;
 
 			case CS_PARAM_RESULT:
-				fprintf(stdout, "\nPARAMETER RESULTS\n");
+				printf("\nPARAMETER RESULTS\n");
 				break;
 
 			case CS_STATUS_RESULT:
-				fprintf(stdout, "\nSTATUS RESULTS\n");
+				printf("\nSTATUS RESULTS\n");
 				break;
 			}
 			fflush(stdout);
@@ -449,7 +446,7 @@ int i, j;
 				 * Check if we hit a recoverable error.
 				 */
 				if (ret == CS_ROW_FAIL) {
-					fprintf(stdout, "Error on row %d.\n", row_count);
+					printf("Error on row %d.\n", row_count);
 					fflush(stdout);
 				}
 
@@ -461,7 +458,7 @@ int i, j;
 					/*
 					 * Display the column value
 					 */
-					fprintf(stdout, "%s", coldata[i].value);
+					printf("%s", coldata[i].value);
 					fflush(stdout);
 
 					/*
@@ -476,7 +473,7 @@ int i, j;
 						}
 					}
 				}
-				fprintf(stdout, "\n");
+				printf("\n");
 				fflush(stdout);
 			}
 
@@ -498,7 +495,7 @@ int i, j;
 				/*
 				 * Everything went fine.
 				 */
-				fprintf(stdout, "All done processing rows.\n");
+				printf("All done processing rows.\n");
 				fflush(stdout);
 				break;
 
@@ -527,7 +524,7 @@ int i, j;
 				fprintf(stderr, "ct_res_info(msg_id) failed");
 				return 1;
 			}
-			fprintf(stdout, "ct_result returned CS_MSG_RESULT where msg id = %d.\n", msg_id);
+			printf("ct_result returned CS_MSG_RESULT where msg id = %d.\n", msg_id);
 			fflush(stdout);
 			break;
 
@@ -663,7 +660,7 @@ CS_INT disp_len;
 	fputc('\n', stdout);
 	for (i = 0; i < numcols; i++) {
 		disp_len = ex_display_dlen(&columns[i]);
-		fprintf(stdout, "%s", columns[i].name);
+		printf("%s", columns[i].name);
 		fflush(stdout);
 		l = disp_len - strlen(columns[i].name);
 		for (j = 0; j < l; j++) {
@@ -689,12 +686,12 @@ CS_INT disp_len;
 CS_RETCODE
 ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg)
 {
-	fprintf(stdout, "\nOpen Client Message:\n");
-	fprintf(stdout, "Message number: LAYER = (%ld) ORIGIN = (%ld) ", (long) CS_LAYER(errmsg->msgnumber), (long) CS_ORIGIN(errmsg->msgnumber));
-	fprintf(stdout, "SEVERITY = (%ld) NUMBER = (%ld)\n", (long) CS_SEVERITY(errmsg->msgnumber), (long) CS_NUMBER(errmsg->msgnumber));
-	fprintf(stdout, "Message String: %s\n", errmsg->msgstring);
+	printf("\nOpen Client Message:\n");
+	printf("Message number: LAYER = (%ld) ORIGIN = (%ld) ", (long) CS_LAYER(errmsg->msgnumber), (long) CS_ORIGIN(errmsg->msgnumber));
+	printf("SEVERITY = (%ld) NUMBER = (%ld)\n", (long) CS_SEVERITY(errmsg->msgnumber), (long) CS_NUMBER(errmsg->msgnumber));
+	printf("Message String: %s\n", errmsg->msgstring);
 	if (errmsg->osstringlen > 0) {
-		fprintf(stdout, "Operating System Error: %s\n", errmsg->osstring);
+		printf("Operating System Error: %s\n", errmsg->osstring);
 	}
 	fflush(stdout);
 
@@ -704,19 +701,19 @@ ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG *
 CS_RETCODE
 ex_servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * srvmsg)
 {
-	fprintf(stdout, "\nServer message:\n");
-	fprintf(stdout, "Message number: %ld, Severity %ld, ", (long) srvmsg->msgnumber, (long) srvmsg->severity);
-	fprintf(stdout, "State %ld, Line %ld\n", (long) srvmsg->state, (long) srvmsg->line);
+	printf("\nServer message:\n");
+	printf("Message number: %ld, Severity %ld, ", (long) srvmsg->msgnumber, (long) srvmsg->severity);
+	printf("State %ld, Line %ld\n", (long) srvmsg->state, (long) srvmsg->line);
 
 	if (srvmsg->svrnlen > 0) {
-		fprintf(stdout, "Server '%s'\n", srvmsg->svrname);
+		printf("Server '%s'\n", srvmsg->svrname);
 	}
 
 	if (srvmsg->proclen > 0) {
-		fprintf(stdout, " Procedure '%s'\n", srvmsg->proc);
+		printf(" Procedure '%s'\n", srvmsg->proc);
 	}
 
-	fprintf(stdout, "Message String: %s\n", srvmsg->text);
+	printf("Message String: %s\n", srvmsg->text);
 	fflush(stdout);
 
 	return CS_SUCCEED;

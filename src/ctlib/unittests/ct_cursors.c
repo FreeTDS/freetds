@@ -37,10 +37,10 @@ main(int argc, char **argv)
 	memset(col1, 0, sizeof(col1));
 	memset(col2, 0, sizeof(col2));
 
-	fprintf(stdout, "%s: use multiple cursors on the same connection\n", __FILE__);
+	printf("%s: use multiple cursors on the same connection\n", __FILE__);
 
 	if (verbose) {
-		fprintf(stdout, "Trying login\n");
+		printf("Trying login\n");
 	}
 	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
@@ -98,7 +98,7 @@ main(int argc, char **argv)
 
 
 	if (verbose) {
-		fprintf(stdout, "opening first cursor on connection\n");
+		printf("opening first cursor on connection\n");
 	}
 
 	strcpy(text, "select col1 from #test_table order by col1");
@@ -165,7 +165,7 @@ main(int argc, char **argv)
 				}
 
 				if (datafmt.status & CS_RETURN) {
-					fprintf(stdout, "ct_describe() column %d \n", i);
+					printf("ct_describe() column %d \n", i);
 				}
 
 				datafmt.datatype = CS_CHAR_TYPE;
@@ -192,7 +192,7 @@ main(int argc, char **argv)
 	}
 
 	if (verbose) {
-		fprintf(stdout, "opening second cursor on connection\n");
+		printf("opening second cursor on connection\n");
 	}
 
 	strcpy(text, "select col1 from #test_table2 order by col1");
@@ -259,7 +259,7 @@ main(int argc, char **argv)
 				}
 
 				if (datafmt2.status & CS_RETURN) {
-					fprintf(stdout, "ct_describe() column %d \n", i);
+					printf("ct_describe() column %d \n", i);
 				}
 
 				datafmt2.datatype = CS_CHAR_TYPE;
@@ -311,7 +311,7 @@ main(int argc, char **argv)
 	}
 
 	if (verbose) {
-		fprintf(stdout, "closing first cursor on connection\n");
+		printf("closing first cursor on connection\n");
 	}
 
 	ret = ct_cursor(cmd, CS_CURSOR_CLOSE, name, CS_NULLTERM, NULL, CS_UNUSED, CS_UNUSED);
@@ -361,7 +361,7 @@ main(int argc, char **argv)
 	}
 
 	if (verbose) {
-		fprintf(stdout, "closing second cursor on connection\n");
+		printf("closing second cursor on connection\n");
 	}
 
 	ret = ct_cursor(cmd2, CS_CURSOR_CLOSE, name2, CS_NULLTERM, NULL, CS_UNUSED, CS_UNUSED);
@@ -414,7 +414,7 @@ main(int argc, char **argv)
 	ct_cmd_drop(cmd3);
 
 	if (verbose) {
-		fprintf(stdout, "Trying logout\n");
+		printf("Trying logout\n");
 	}
 	ret = try_ctlogout(ctx, conn, cmd, verbose);
 	if (ret != CS_SUCCEED) {
@@ -423,7 +423,7 @@ main(int argc, char **argv)
 	}
 
 	if (verbose) {
-		fprintf(stdout, "Test succeded\n");
+		printf("Test succeded\n");
 	}
 	return 0;
 }

@@ -9,9 +9,6 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0003.c,v 1.11 2011-05-16 08:51:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 /* Testing: Retrieve CS_TEXT_TYPE using ct_bind() */
 int
 main(int argc, char **argv)
@@ -44,9 +41,9 @@ main(int argc, char **argv)
 	}
 	len600[600] = '\0';
 
-	fprintf(stdout, "%s: Retrieve CS_TEXT_TYPE using ct_bind()\n", __FILE__);
+	printf("%s: Retrieve CS_TEXT_TYPE using ct_bind()\n", __FILE__);
 	if (verbose) {
-		fprintf(stdout, "Trying login\n");
+		printf("Trying login\n");
 	}
 	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
@@ -118,7 +115,7 @@ main(int argc, char **argv)
 					return 1;
 				} else {	/* ret == CS_SUCCEED */
 					if (verbose) {
-						fprintf(stdout, "name = '%s'\n", name);
+						printf("name = '%s'\n", name);
 					}
 					if (strcmp(name, len600)) {
 						fprintf(stderr, "Bad return:\n'%s'\n! =\n'%s'\n", name, len600);
@@ -162,7 +159,7 @@ main(int argc, char **argv)
 	}
 
 	if (verbose) {
-		fprintf(stdout, "Trying logout\n");
+		printf("Trying logout\n");
 	}
 	ret = try_ctlogout(ctx, conn, cmd, verbose);
 	if (ret != CS_SUCCEED) {

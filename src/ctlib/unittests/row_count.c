@@ -252,7 +252,7 @@ ex_display_results(CS_COMMAND * cmd, char *results)
 				 * Check if we hit a recoverable error.
 				 */
 				if (ret == CS_ROW_FAIL) {
-					fprintf(stdout, "Error on row %d.\n", row_count);
+					printf("Error on row %d.\n", row_count);
 					fflush(stdout);
 				}
 			}

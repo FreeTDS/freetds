@@ -5,9 +5,6 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: cs_diag.c,v 1.5 2011-05-16 08:51:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 /*
  * ct_send SQL |select name = @@servername|
  * ct_bind variable
@@ -30,7 +27,7 @@ main(int argc, char **argv)
 	CS_INT num_msgs;
 	CS_CLIENTMSG client_message;
 
-	fprintf(stdout, "%s: Testing context callbacks\n", __FILE__);
+	printf("%s: Testing context callbacks\n", __FILE__);
 
 	srcfmt.datatype = CS_INT_TYPE;
 	srcfmt.maxlength = sizeof(CS_INT);
@@ -41,7 +38,7 @@ main(int argc, char **argv)
 	dstfmt.locale = NULL;
 
 	if (verbose) {
-		fprintf(stdout, "Trying clientmsg_cb with context\n");
+		printf("Trying clientmsg_cb with context\n");
 	}
 	if (cs_ctx_alloc(CS_VERSION_100, &ctx) != CS_SUCCEED) {
 		fprintf(stderr, "cs_ctx_alloc() failed\n");

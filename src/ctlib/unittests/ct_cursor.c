@@ -32,10 +32,10 @@ main(int argc, char **argv)
 	CS_INT num_cols, i, j;
 	CS_INT props_value;
 
-	fprintf(stdout, "%s: Testing ct_cursor()\n", __FILE__);
+	printf("%s: Testing ct_cursor()\n", __FILE__);
 
 	if (verbose) {
-		fprintf(stdout, "Trying login\n");
+		printf("Trying login\n");
 	}
 	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
@@ -74,7 +74,7 @@ main(int argc, char **argv)
 		return 1;
 
 	if (verbose) {
-		fprintf(stdout, "Trying declare, rows , open in one SEND\n");
+		printf("Trying declare, rows , open in one SEND\n");
 	}
 
 	strcpy(text, "select col1 from #test_table where 1 = 1");
@@ -158,7 +158,7 @@ main(int argc, char **argv)
 				}
 
 				if (datafmt.status & CS_RETURN) {
-					fprintf(stdout, "ct_describe() column %d \n", i);
+					printf("ct_describe() column %d \n", i);
 				}
 
 				datafmt.datatype = CS_CHAR_TYPE;
@@ -179,13 +179,13 @@ main(int argc, char **argv)
 
 				if (row_count == 0) {
 					for (j = 0; j < num_cols; j++) {
-						fprintf(stdout, "\n%s\n", datafmt.name);
+						printf("\n%s\n", datafmt.name);
 					}
-					fprintf(stdout, "------\n\n");
+					printf("------\n\n");
 				}
 
 				for (j = 0; j < num_cols; j++) {
-					fprintf(stdout, "%s\n\n", col1);
+					printf("%s\n\n", col1);
 					row_count++;
 				}
 
@@ -254,7 +254,7 @@ main(int argc, char **argv)
 	}
 
 	if (verbose) {
-		fprintf(stdout, "Trying declare, rows, open one at a time \n");
+		printf("Trying declare, rows, open one at a time \n");
 	}
 
 	strcpy(text, "select col1 from #test_table where 2 = 2");
@@ -330,7 +330,7 @@ main(int argc, char **argv)
 			fprintf(stderr, "ct_results(6) result_type CS_CMD_FAIL.\n");
 			break;
 		case CS_STATUS_RESULT:
-			fprintf(stdout, "ct_results: CS_STATUS_RESULT detected for sp_who\n");
+			printf("ct_results: CS_STATUS_RESULT detected for sp_who\n");
 
 		case CS_CURSOR_RESULT:
 			ret = ct_res_info(cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
@@ -356,7 +356,7 @@ main(int argc, char **argv)
 				}
 
 				if (datafmt.status & CS_RETURN) {
-					fprintf(stdout, "ct_describe() column %d \n", i);
+					printf("ct_describe() column %d \n", i);
 				}
 
 				datafmt.datatype = CS_CHAR_TYPE;
@@ -376,13 +376,13 @@ main(int argc, char **argv)
 
 				if (row_count == 0) {
 					for (j = 0; j < num_cols; j++) {
-						fprintf(stdout, "\n%s\n", datafmt.name);
+						printf("\n%s\n", datafmt.name);
 					}
-					fprintf(stdout, "------\n\n");
+					printf("------\n\n");
 				}
 
 				for (j = 0; j < num_cols; j++) {
-					fprintf(stdout, "%s\n\n", col1);
+					printf("%s\n\n", col1);
 					row_count++;
 				}
 			}
@@ -459,7 +459,7 @@ main(int argc, char **argv)
 	}
 
 	if (verbose) {
-		fprintf(stdout, "Running normal select command after cursor operations\n");
+		printf("Running normal select command after cursor operations\n");
 	}
 
 	ret = ct_command(cmd, CS_LANG_CMD, "select col1 from #test_table", CS_NULLTERM, CS_UNUSED);
@@ -536,7 +536,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 	if (verbose) {
-		fprintf(stdout, "Trying logout\n");
+		printf("Trying logout\n");
 	}
 
 	ct_cmd_drop(cmd2);
@@ -548,7 +548,7 @@ main(int argc, char **argv)
 	}
 
 	if (verbose) {
-		fprintf(stdout, "Test suceeded\n");
+		printf("Test suceeded\n");
 	}
 	return 0;
 }

@@ -38,9 +38,9 @@ main(int argc, char *argv[])
 	CS_CLIENTMSG client_message;
 	CS_SERVERMSG server_message;
 
-	fprintf(stdout, "%s: Retrieve data using array binding \n", __FILE__);
+	printf("%s: Retrieve data using array binding \n", __FILE__);
 	if (verbose) {
-		fprintf(stdout, "Trying login\n");
+		printf("Trying login\n");
 	}
 	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
@@ -59,7 +59,7 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	fprintf(stdout, "Maximum message limit is set to: %d\n", totmsgs);
+	printf("Maximum message limit is set to: %d\n", totmsgs);
 
 	ret = run_command(cmd, "CREATE TABLE #ctlibarray (col1 int not null,  col2 char(4) not null, col3 datetime not null)");
 	if (ret != CS_SUCCEED)
@@ -161,9 +161,9 @@ main(int argc, char *argv[])
 					fprintf(stderr, "ct_fetch() CS_ROW_FAIL on row %d.\n", row_count);
 					return 1;
 				} else {	/* ret == CS_SUCCEED */
-					fprintf(stdout, "ct_fetch returned %d rows\n", count);
+					printf("ct_fetch returned %d rows\n", count);
 					for (cv = 0; cv < count; cv++)
-						fprintf(stdout, "col1 = %d col2= '%s'\n", col1[cv], col2[cv]);
+						printf("col1 = %d col2= '%s'\n", col1[cv], col2[cv]);
 				}
 				count = 0;
 			}
@@ -207,14 +207,14 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	fprintf(stdout, "Total number of client/server messages = %d \n", num_msgs);
+	printf("Total number of client/server messages = %d \n", num_msgs);
 
 	if (ct_diag(conn, CS_STATUS, CS_CLIENTMSG_TYPE, CS_UNUSED, &num_msgs) != CS_SUCCEED) {
 		fprintf(stderr, "ct_diag(CS_STATUS) failed\n");
 		return 1;
 	}
 
-	fprintf(stdout, "Number of client messages returned: %d\n", num_msgs);
+	printf("Number of client messages returned: %d\n", num_msgs);
 
 	for (i = 0; i < num_msgs; i++) {
 
@@ -232,7 +232,7 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	fprintf(stdout, "Number of server messages returned: %d\n", num_msgs);
+	printf("Number of server messages returned: %d\n", num_msgs);
 
 	for (i = 0; i < num_msgs; i++) {
 
@@ -260,7 +260,7 @@ main(int argc, char *argv[])
 	}
 
 	if (verbose) {
-		fprintf(stdout, "Trying logout\n");
+		printf("Trying logout\n");
 	}
 	ret = try_ctlogout(ctx, conn, cmd, verbose);
 	if (ret != CS_SUCCEED) {

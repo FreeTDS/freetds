@@ -9,9 +9,6 @@
 #include <bkpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: blk_out.c,v 1.6 2011-05-16 08:51:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 /* Testing: array binding of result set */
 int
 main(int argc, char *argv[])
@@ -40,9 +37,9 @@ main(int argc, char *argv[])
 	int i;
 
 
-	fprintf(stdout, "%s: Retrieve data using array binding \n", __FILE__);
+	printf("%s: Retrieve data using array binding \n", __FILE__);
 	if (verbose) {
-		fprintf(stdout, "Trying login\n");
+		printf("Trying login\n");
 	}
 	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
 	if (ret != CS_SUCCEED) {

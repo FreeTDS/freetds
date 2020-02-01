@@ -2,7 +2,6 @@
  * Test from MATSUMOTO, Tadashi
  * Cfr "blk_init fails by the even number times execution" on ML, 2007-03-09
  * This mix bulk and cancel
- * $Id: blk_in2.c,v 1.2 2011-05-16 08:51:40 freddy77 Exp $
  */
 
 #include <config.h>
@@ -71,9 +70,9 @@ main(int argc, char **argv)
 
 	static char table_name[20] = "hogexxx";
 
-	fprintf(stdout, "%s: Inserting data using bulk cancelling\n", __FILE__);
+	printf("%s: Inserting data using bulk cancelling\n", __FILE__);
 	if (verbose) {
-		fprintf(stdout, "Trying login\n");
+		printf("Trying login\n");
 	}
 	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
