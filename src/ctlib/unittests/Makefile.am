@@ -5,7 +5,7 @@ TESTS = \
 	t0003$(EXEEXT) \
 	t0004$(EXEEXT) \
 	t0005$(EXEEXT) \
-	t0006$(EXEEXT) \
+	cs_convert$(EXEEXT) \
 	t0007$(EXEEXT) \
 	t0008$(EXEEXT) \
 	t0009$(EXEEXT) \
@@ -44,7 +44,7 @@ t0002_SOURCES		= t0002.c
 t0003_SOURCES		= t0003.c
 t0004_SOURCES		= t0004.c
 t0005_SOURCES		= t0005.c
-t0006_SOURCES		= t0006.c
+cs_convert_SOURCES	= cs_convert.c
 t0007_SOURCES		= t0007.c
 t0008_SOURCES		= t0008.c
 t0009_SOURCES		= t0009.c

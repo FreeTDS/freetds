@@ -455,7 +455,7 @@ ctlibcheck :
 	@ run/nodebug []t0003$(E)
 	@ run/nodebug []t0004$(E)
 	@ run/nodebug []t0005$(E)
-	@ run/nodebug []t0006$(E)
+	@ run/nodebug []cs_convert$(E)
 	@ run/nodebug []t0007$(E)
 	@ run/nodebug []t0008$(E)
 	@ run/nodebug []t0009$(E)
@@ -620,7 +620,7 @@ libtdstests : [.src.tds.unittests]dynamic1$(E) [.src.tds.unittests]iconv_fread$(
 	@ continue
 
 ctlibtests : [.src.ctlib.unittests]t0001$(E) [.src.ctlib.unittests]t0002$(E) [.src.ctlib.unittests]t0003$(E) \
-	[.src.ctlib.unittests]t0004$(E) [.src.ctlib.unittests]t0005$(E) [.src.ctlib.unittests]t0006$(E) \
+	[.src.ctlib.unittests]t0004$(E) [.src.ctlib.unittests]t0005$(E) [.src.ctlib.unittests]cs_convert$(E) \
 	[.src.ctlib.unittests]t0007$(E) [.src.ctlib.unittests]t0008$(E) [.src.ctlib.unittests]t0009$(E) \
 	[.src.ctlib.unittests]connect_fail$(E) [.src.ctlib.unittests]ct_options$(E) \
 	[.src.ctlib.unittests]lang_ct_param$(E) [.src.ctlib.unittests]array_bind$(E) \
@@ -865,10 +865,10 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 [.src.ctlib.unittests]t0005$(OBJ) : [.src.ctlib.unittests]t0005.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]t0006$(E) : [.src.ctlib.unittests]t0006$(OBJ)
+[.src.ctlib.unittests]cs_convert$(E) : [.src.ctlib.unittests]cs_convert$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
-[.src.ctlib.unittests]t0006$(OBJ) : [.src.ctlib.unittests]t0006.c
+[.src.ctlib.unittests]cs_convert$(OBJ) : [.src.ctlib.unittests]cs_convert.c
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
 [.src.ctlib.unittests]t0007$(E) : [.src.ctlib.unittests]t0007$(OBJ) [.src.ctlib.unittests]common$(OBJ)
