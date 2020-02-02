@@ -579,7 +579,7 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 
 	type = (TDS_SERVER_TYPE) tds_get_byte(tds);
 	info_len = tds_get_byte(tds);
-	if (!is_tds_type_valid(type))
+	if (!is_variant_inner_type(type))
 		goto error_type;
 	v = (TDSVARIANT*) curcol->column_data;
 	v->type = type;
