@@ -169,7 +169,6 @@ while(<IN>) {
 }
 close(IN);
 close(OUT);
-unlink('charset_lookup.gperf');
 
 # output enumerated charset indexes
 print "enum {\n";
