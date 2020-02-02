@@ -8,7 +8,7 @@
 #include <assert.h>
 #include <ctpublic.h>
 
-CS_CONTEXT *ctx;
+static CS_CONTEXT *ctx;
 static int allSuccess = 1;
 
 typedef const char *STR;
@@ -98,10 +98,11 @@ DoTest(
 	return 0;
       Failed:
 	fprintf(stderr, "Test %s failed (ret=%d len=%d)\n", err, (int) retcode, (int) reslen);
-	fprintf(stderr, "line: %d\n  DO_TEST(%s,\n"
-		"\t   %s,%s,%s,\n"
-		"\t   %s,%s,\n"
-		"\t   %s,%s,%s);\n", line, sdecl, sfromtype, sfromdata, sfromlen, stotype, stomaxlen, stores, stodata, stolen);
+	fprintf(stderr, "line: %d\n  DO_TEST(decl=%s,\n"
+		"\t   fromtype=%s,fromdata=%s,fromlen=%s,\n"
+		"\t   totype=%s,tomaxlen=%s,\n"
+		"\t   tores=%s,todata=%s,tolen=%s);\n",
+		line, sdecl, sfromtype, sfromdata, sfromlen, stotype, stomaxlen, stores, stodata, stolen);
 	allSuccess = 0;
 	return 1;
 }
