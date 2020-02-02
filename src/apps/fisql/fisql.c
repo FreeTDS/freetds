@@ -887,18 +887,18 @@ main(int argc, char *argv[])
 				if (dbrc != FAIL) {
 					if ((DBCOUNT(dbproc) >= 0) || dbhasretstat(dbproc)) {
 						if (DBCOUNT(dbproc) >= 0) {
-							fprintf(stdout, "(%d rows affected", (int) DBCOUNT(dbproc));
+							printf("(%d rows affected", (int) DBCOUNT(dbproc));
 							if (dbhasretstat(dbproc)) {
 								status_printed = 1;
 								dbrc = dbretstatus(dbproc);
-								fprintf(stdout, ", return status = %d", dbrc);
+								printf(", return status = %d", dbrc);
 							}
-							fprintf(stdout, ")\n");
+							printf(")\n");
 						} else {
 							if (dbhasretstat(dbproc)) {
 								status_printed = 1;
 								dbrc = dbretstatus(dbproc);
-								fprintf(stdout, "(return status = %d)\n", dbrc);
+								printf("(return status = %d)\n", dbrc);
 							}
 						}
 					}
@@ -906,7 +906,7 @@ main(int argc, char *argv[])
 			}
 			if (!status_printed && dbhasretstat(dbproc)) {
 				dbrc = dbretstatus(dbproc);
-				fprintf(stdout, "(return status = %d)\n", dbrc);
+				printf("(return status = %d)\n", dbrc);
 			}
 		} else {
 			/* Something failed, so change the default

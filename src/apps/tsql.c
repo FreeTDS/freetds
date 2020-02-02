@@ -267,7 +267,7 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 					fputs(opt_row_term, stdout);
 
 			}
-			if (!QUIET) fprintf(stdout, "(%d row%s affected)\n", rows, rows == 1 ? "" : "s");
+			if (!QUIET) printf("(%d row%s affected)\n", rows, rows == 1 ? "" : "s");
 			break;
 		case TDS_STATUS_RESULT:
 			if (!QUIET)

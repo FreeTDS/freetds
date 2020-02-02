@@ -274,9 +274,9 @@ main(int argc, char *argv[])
 	normal_select();
 
 	if ((s = getenv("BCP")) != NULL && 0 == strcmp(s, "nodrop")) {
-		fprintf(stdout, "BCP=nodrop: '%s' kept\n", table_name);
+		printf("BCP=nodrop: '%s' kept\n", table_name);
 	} else {
-		fprintf(stdout, "Dropping table %s\n", table_name);
+		printf("Dropping table %s\n", table_name);
 		odbc_command("drop table all_types_bcp_unittest");
 		if (tds_version >= 0x703)
 			odbc_command("drop table special_types_bcp_unittest");
@@ -296,14 +296,14 @@ static void normal_inserts(int prefixlen)
 	int rows_sent;
 
 	/* set up and send the bcp */
-	fprintf(stdout, "preparing to insert into %s ... ", table_name);
+	printf("preparing to insert into %s ... ", table_name);
 	if (bcp_init(odbc_conn, (bcp_init_char_t *) T(table_name), NULL, NULL, BCP_DIRECTION_IN) == FAIL)
 		report_bcp_error("bcp_init", __LINE__, __FILE__);
-	fprintf(stdout, "OK\n");
+	printf("OK\n");
 
 	test_bind(prefixlen);
 
-	fprintf(stdout, "Sending same row 10 times... \n");
+	printf("Sending same row 10 times... \n");
 	for (i=0; i<10; i++)
 		if (bcp_sendrow(odbc_conn) == FAIL)
 			report_bcp_error("bcp_sendrow", __LINE__, __FILE__);

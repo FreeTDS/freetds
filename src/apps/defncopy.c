@@ -603,7 +603,7 @@ print_results(DBPROCESS *dbproc)
 		/* 
 		 * Print the data to stdout.  
 		 */
-		fprintf(stdout, "%s", use_statement);
+		printf("%s", use_statement);
 		for (;(row_code = dbnextrow(dbproc)) != NO_MORE_ROWS; nrows++, prior_procedure_number = procedure_number) {
 			switch (row_code) {
 			case REG_ROW:
@@ -611,8 +611,8 @@ print_results(DBPROCESS *dbproc)
 					fprintf(stderr, "defncopy: error: unexpected NULL row in SQL text\n");
 				} else {
 					if (prior_procedure_number != procedure_number)
-						fprintf(stdout, "\nGO\n");
-					fprintf(stdout, "%s", sql_text);
+						printf("\nGO\n");
+					printf("%s", sql_text);
 				}
 				break;
 			case BUF_FULL:
@@ -623,7 +623,7 @@ print_results(DBPROCESS *dbproc)
 			} /* row_code */
 
 		} /* wend dbnextrow */
-		fprintf(stdout, "\nGO\n");
+		printf("\nGO\n");
 
 	} /* wend dbresults */
 	return nrows;

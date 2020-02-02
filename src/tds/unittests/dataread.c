@@ -168,7 +168,7 @@ test0(const char *type, ...)
 int
 main(int argc, char **argv)
 {
-	fprintf(stdout, "%s: Testing conversion from server\n", __FILE__);
+	printf("%s: Testing conversion from server\n", __FILE__);
 	if (try_tds_login(&login, &tds, __FILE__, 0) != TDS_SUCCESS) {
 		fprintf(stderr, "try_tds_login() failed\n");
 		return 1;

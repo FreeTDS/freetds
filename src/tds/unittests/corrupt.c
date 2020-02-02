@@ -103,7 +103,7 @@ main(int argc, char **argv)
 	TDS_INT8 i8;
 	unsigned limit;
 
-	fprintf(stdout, "%s: Testing login, logout\n", __FILE__);
+	printf("%s: Testing login, logout\n", __FILE__);
 	ret = try_tds_login(&login, &tds, __FILE__, verbose);
 	if (ret != TDS_SUCCESS) {
 		fprintf(stderr, "try_tds_login() failed\n");

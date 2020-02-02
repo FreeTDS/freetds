@@ -50,7 +50,7 @@ main(int argc, char **argv)
 		sprintf(strchr(long_query, 0), "name = '%c%s' OR ", 'A'+i, len200);
 	strcat(long_query, "name = 'correct')");
 
-	fprintf(stdout, "%s: Test large (>4096 bytes) queries\n", __FILE__);
+	printf("%s: Test large (>4096 bytes) queries\n", __FILE__);
 	rc = try_tds_login(&login, &tds, __FILE__, verbose);
 	if (rc != TDS_SUCCESS) {
 		fprintf(stderr, "try_tds_login() failed\n");
@@ -76,7 +76,7 @@ main(int argc, char **argv)
 	 * The heart of the test
 	 */
 	if (verbose) {
-		fprintf(stdout, "block size %d\n", tds->conn->env.block_size);
+		printf("block size %d\n", tds->conn->env.block_size);
 	}
 	rc = tds_submit_query(tds, long_query);
 	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_RETURN_ROWFMT|TDS_RETURN_ROW)) == TDS_SUCCESS) {

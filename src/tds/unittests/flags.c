@@ -72,7 +72,7 @@ test_begin(const char *cmd)
 {
 	TDS_INT result_type;
 
-	fprintf(stdout, "%s: Testing query\n", cmd);
+	printf("%s: Testing query\n", cmd);
 	if (tds_submit_query(tds, cmd) != TDS_SUCCESS)
 		fatal_error("tds_submit_query() failed");
 
@@ -112,7 +112,7 @@ main(int argc, char **argv)
 	TDSRESULTINFO *info;
 	char mymsg[256];
 
-	fprintf(stdout, "%s: Testing flags from server\n", __FILE__);
+	printf("%s: Testing flags from server\n", __FILE__);
 	if (try_tds_login(&login, &tds, __FILE__, 0) != TDS_SUCCESS) {
 		fprintf(stderr, "try_tds_login() failed\n");
 		return 1;

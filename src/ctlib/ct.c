@@ -3302,7 +3302,7 @@ ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT datalen,
 	switch (cmd->command_type) {
 	case CS_RPC_CMD:
 		if (cmd->rpc == NULL) {
-			fprintf(stdout, "RPC is NULL ct_param\n");
+			printf("RPC is NULL ct_param\n");
 			return CS_FAIL;
 		}
 
@@ -3406,7 +3406,7 @@ ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * dat
 	case CS_RPC_CMD:
 
 		if (cmd->rpc == NULL) {
-			fprintf(stdout, "RPC is NULL ct_param\n");
+			printf("RPC is NULL ct_param\n");
 			return CS_FAIL;
 		}
 
@@ -3438,7 +3438,7 @@ ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * dat
 	case CS_DYNAMIC_CMD :
 
 		if (cmd->dyn == NULL) {
-			fprintf(stdout, "cmd->dyn is NULL ct_param\n");
+			printf("cmd->dyn is NULL ct_param\n");
 			return CS_FAIL;
 		}
 

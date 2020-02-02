@@ -75,7 +75,7 @@ main(int argc, char **argv)
 	TDSDYNAMIC *dyn = NULL;
 	int rc;
 
-	fprintf(stdout, "%s: Test dynamic queries\n", __FILE__);
+	printf("%s: Test dynamic queries\n", __FILE__);
 	rc = try_tds_login(&login, &tds, __FILE__, verbose);
 	if (rc != TDS_SUCCESS)
 		fatal_error("try_tds_login() failed");

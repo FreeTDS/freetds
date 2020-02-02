@@ -149,7 +149,7 @@ print_error_message(SQLSMALLINT hType, SQLHANDLE handle) {
 		ret = SQLGetDiagRec(hType, handle, i, state, &error, text, sizeof(text), &len);
 		
 		if (ret == SQL_SUCCESS && error == 0) {
-			fprintf(stdout, "\"%s\"\n", text);
+			printf("\"%s\"\n", text);
 			continue;
 		}
 		
@@ -642,12 +642,12 @@ print_results(SQLHSTMT hStmt)
 			for (c=0; c < ncols; c++) {
 				switch (data[c].len) { /* handle nulls */
 				case SQL_NULL_DATA: /* is null */
-					fprintf(stdout, metadata[c].format_string, "NULL");
+					printf(metadata[c].format_string, "NULL");
 					break;
 				default:
 					assert(data[c].len >= 0);
 				case SQL_NO_TOTAL:
-					fprintf(stdout, metadata[c].format_string, data[c].buffer);
+					printf(metadata[c].format_string, data[c].buffer);
 					break;
 				}
 			}

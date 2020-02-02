@@ -40,7 +40,7 @@ main(int argc, char **argv)
 	int rc;
 	unsigned int n;
 
-	fprintf(stdout, "%s: Test creating a lot of dynamic queries\n", __FILE__);
+	printf("%s: Test creating a lot of dynamic queries\n", __FILE__);
 	rc = try_tds_login(&login, &tds, __FILE__, verbose);
 	if (rc != TDS_SUCCESS)
 		fatal_error("try_tds_login() failed");

@@ -30,7 +30,7 @@ main(int argc, char **argv)
 	int ret;
 	int verbose = 0;
 
-	fprintf(stdout, "%s: Testing login, logout\n", __FILE__);
+	printf("%s: Testing login, logout\n", __FILE__);
 	ret = try_tds_login(&login, &tds, __FILE__, verbose);
 	if (ret != TDS_SUCCESS) {
 		fprintf(stderr, "try_tds_login() failed\n");

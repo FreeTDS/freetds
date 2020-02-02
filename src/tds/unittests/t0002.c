@@ -54,7 +54,7 @@ main(int argc, char **argv)
 	int rc;
 	int i, done_flags;
 
-	fprintf(stdout, "%s: Test basic submit query, results\n", __FILE__);
+	printf("%s: Test basic submit query, results\n", __FILE__);
 	rc = try_tds_login(&login, &tds, __FILE__, verbose);
 	if (rc != TDS_SUCCESS) {
 		fprintf(stderr, "try_tds_login() failed\n");

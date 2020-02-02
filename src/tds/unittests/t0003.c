@@ -26,7 +26,7 @@ main(int argc, char **argv)
 	int verbose = 0;
 	int rc;
 
-	fprintf(stdout, "%s: Testing DB change -- 'use tempdb'\n", __FILE__);
+	printf("%s: Testing DB change -- 'use tempdb'\n", __FILE__);
 	rc = try_tds_login(&login, &tds, __FILE__, verbose);
 	if (rc != TDS_SUCCESS) {
 		fprintf(stderr, "try_tds_login() failed\n");
@@ -52,7 +52,7 @@ main(int argc, char **argv)
 
 	/* Test currently disabled during TDSENV changes */
 	if (verbose) {
-		fprintf(stdout, "database changed to %s\n", tds->conn->env.database);
+		printf("database changed to %s\n", tds->conn->env.database);
 	}
 	if (strcmp(tds->conn->env.database, "tempdb")) {
 		fprintf(stderr, "Wrong database, %s != tempdb\n", tds->conn->env.database);

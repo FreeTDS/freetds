@@ -614,25 +614,25 @@ print_results(DBPROCESS *dbproc)
 								}
 								break;
 							default:	/* image, binary */
-								fprintf(stdout, "0x");
+								printf("0x");
 								for (; p < pend; p++) {
 									printf("%02hx", (unsigned short int)*p);
 								}
 								break;
 							}
 						}
-						fprintf(stdout, metadata[c].format_string, ""); /* col/row separator */
+						printf(metadata[c].format_string, ""); /* col/row separator */
 						continue;
 					}
 					switch (data[c].status) { /* handle nulls */
 					case -1: /* is null */
 						/* TODO: FreeTDS 0.62 does not support dbsetnull() */
-						fprintf(stdout, metadata[c].format_string, "NULL");
+						printf(metadata[c].format_string, "NULL");
 						break;
 					case 0:
 					/* case >1 is datlen when buffer is too small */
 					default:
-						fprintf(stdout, metadata[c].format_string, data[c].buffer);
+						printf(metadata[c].format_string, data[c].buffer);
 						break;
 					}
 				}
@@ -671,12 +671,12 @@ print_results(DBPROCESS *dbproc)
 					switch (data->status) { /* handle nulls */
 					case -1: /* is null */
 						/* TODO: FreeTDS 0.62 does not support dbsetnull() */
-						fprintf(stdout, meta->format_string, "NULL");
+						printf(meta->format_string, "NULL");
 						break;
 					case 0:
 					/* case >1 is datlen when buffer is too small */
 					default:
-						fprintf(stdout, meta->format_string, data->buffer);
+						printf(meta->format_string, data->buffer);
 						break;
 					}
 				}

@@ -36,7 +36,7 @@ main(int argc, char **argv)
 		"01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
 	char large_sql[1000];
 
-	fprintf(stdout, "%s: Test large (>512 bytes) replies\n", __FILE__);
+	printf("%s: Test large (>512 bytes) replies\n", __FILE__);
 	rc = try_tds_login(&login, &tds, __FILE__, verbose);
 	if (rc != TDS_SUCCESS) {
 		fprintf(stderr, "try_tds_login() failed\n");

@@ -57,7 +57,7 @@ try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verb
 	char *appname_copy;
 
 	if (verbose) {
-		fprintf(stdout, "Entered tds_try_login()\n");
+		printf("Entered tds_try_login()\n");
 	}
 	if (!login) {
 		fprintf(stderr, "Invalid TDSLOGIN**\n");
@@ -69,12 +69,12 @@ try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verb
 	}
 
 	if (verbose) {
-		fprintf(stdout, "Trying read_login_info()\n");
+		printf("Trying read_login_info()\n");
 	}
 	read_login_info();
 
 	if (verbose) {
-		fprintf(stdout, "Setting login parameters\n");
+		printf("Setting login parameters\n");
 	}
 	*login = tds_alloc_login(1);
 	if (!*login) {
@@ -98,7 +98,7 @@ try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verb
 	free(appname_copy);
 
 	if (verbose) {
-		fprintf(stdout, "Connecting to database\n");
+		printf("Connecting to database\n");
 	}
 	test_context = tds_alloc_context(NULL);
 	*tds = tds_alloc_socket(test_context, 512);
@@ -124,7 +124,7 @@ int
 try_tds_logout(TDSLOGIN * login, TDSSOCKET * tds, int verbose)
 {
 	if (verbose) {
-		fprintf(stdout, "Entered tds_try_logout()\n");
+		printf("Entered tds_try_logout()\n");
 	}
 	tds_close_socket(tds);
 	tds_free_socket(tds);
