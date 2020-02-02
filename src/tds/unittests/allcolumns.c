@@ -46,10 +46,11 @@ free_convert(int type, CONV_RESULT *cr)
 
 static void create_type(TDSSOCKET *tds, int desttype, int server_type, tds_any_type_t *func);
 
+enum { TDSVER_MS = 0x704, TDSVER_SYB = 0x500 };
+
 void tds_all_types(TDSSOCKET *tds, tds_any_type_t *func)
 {
 	int desttype;
-	enum { TDSVER_MS = 0x704, TDSVER_SYB = 0x500 };
 
 	tds->conn->tds_version = TDSVER_MS;
 
@@ -281,6 +282,40 @@ static void create_type(TDSSOCKET *tds, int desttype, int server_type, tds_any_t
 	}
 
 	func(tds, curcol);
+
+	/* try to convert to SQL_VARIANT */
+	if (is_variant_inner_type(desttype)) {
+		TDSVARIANT *v;
+		TDSCOLUMN *basecol;
+
+		tds->conn->tds_version = TDSVER_MS;
+
+		results = tds_alloc_param_result(results);
+		assert(results);
+
+		basecol = results->columns[0];
+		curcol = results->columns[1];
+		tds_set_column_type(tds->conn, curcol, SYBVARIANT);
+		CHECK_COLUMN_EXTRA(curcol);
+
+		tds_alloc_param_data(curcol);
+		v = (TDSVARIANT *) curcol->column_data;
+		v->size = basecol->column_size;
+		v->type = basecol->column_type;
+		memcpy(v->collation, basecol->column_collation, sizeof(v->collation));
+
+		assert(basecol->column_cur_size > 0);
+		v->data = tds_new(TDS_CHAR, basecol->column_cur_size);
+		assert(v->data);
+		v->data_len = basecol->column_cur_size;
+		curcol->column_cur_size = v->data_len;
+		curcol->column_size = curcol->on_server.column_size = 8009;
+		assert(!is_blob_col(basecol));
+		memcpy(v->data, basecol->column_data, v->data_len);
+		CHECK_COLUMN_EXTRA(curcol);
+
+		func(tds, curcol);
+	}
 
 	tds_free_results(results);
 

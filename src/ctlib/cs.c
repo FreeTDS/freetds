@@ -1411,9 +1411,12 @@ int
 _cs_convert_not_client(CS_CONTEXT *ctx, const TDSCOLUMN *curcol, CONV_RESULT *convert_buffer, unsigned char **p_src)
 {
 	int ct_type;
-	TDS_SERVER_TYPE desttype;
+	TDS_SERVER_TYPE desttype, type = curcol->column_type;
 
-	switch (curcol->column_type) {
+	if (type == SYBVARIANT)
+		type = ((const TDSVARIANT *) curcol->column_data)->type;
+
+	switch (type) {
 	case SYBMSDATE:
 		desttype = SYBDATE;
 		ct_type = CS_DATE_TYPE;
@@ -1432,7 +1435,7 @@ _cs_convert_not_client(CS_CONTEXT *ctx, const TDSCOLUMN *curcol, CONV_RESULT *co
 	}
 
 	if (convert_buffer) {
-		int len = tds_convert(ctx->tds_ctx, curcol->column_type, *p_src,
+		int len = tds_convert(ctx->tds_ctx, type, *p_src,
 				      curcol->column_cur_size, desttype, convert_buffer);
 		if (len < 0)
 			return CS_ILLEGAL_TYPE; // TODO _csclient_msg ??
