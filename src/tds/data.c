@@ -692,6 +692,7 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 #endif
 	}
 	v->data_len = colsize;
+	CHECK_COLUMN_EXTRA(curcol);
 	return TDS_SUCCESS;
 
 error_type:

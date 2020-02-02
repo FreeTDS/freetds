@@ -1957,9 +1957,14 @@ ct_con_drop(CS_CONNECTION * con)
 int
 _ct_get_client_type(const TDSCOLUMN *col)
 {
-	tdsdump_log(TDS_DBG_FUNC, "_ct_get_client_type(type %d, user %d, size %d)\n", col->column_type, col->column_usertype, col->column_size);
+	TDS_SERVER_TYPE type = col->column_type;
 
-	switch (col->column_type) {
+	tdsdump_log(TDS_DBG_FUNC, "_ct_get_client_type(type %d, user %d, size %d)\n", type, col->column_usertype, col->column_size);
+
+	if (type == SYBVARIANT)
+		type = ((const TDSVARIANT *) col->column_data)->type;
+
+	switch (type) {
 	case SYBBIT:
 	case SYBBITN:
 		return CS_BIT_TYPE;
@@ -2086,6 +2091,9 @@ _ct_get_client_type(const TDSCOLUMN *col)
 		break;
 	case SYB5BIGDATETIME:
 		return CS_BIGDATETIME_TYPE;
+		break;
+	case SYBVARIANT:
+		return CS_CHAR_TYPE;
 		break;
 	/* handled by _cs_convert_not_client */
 	case SYBMSDATE:
