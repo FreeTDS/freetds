@@ -370,6 +370,7 @@ enum {
 	TDS_TYPEFLAG_BINARY   = 64,
 	TDS_TYPEFLAG_DATETIME = 128,
 	TDS_TYPEFLAG_NUMERIC  = 256,
+	TDS_TYPEFLAG_VARIANT  = 512,
 };
 
 extern const uint16_t tds_type_flags_ms[256];
@@ -381,6 +382,7 @@ extern const char *const tds_type_names[256];
 #define is_fixed_type(x)      ((tds_type_flags_ms[x] & TDS_TYPEFLAG_FIXED)    != 0)
 #define is_nullable_type(x)   ((tds_type_flags_ms[x] & TDS_TYPEFLAG_NULLABLE) != 0)
 #define is_variable_type(x)   ((tds_type_flags_ms[x] & TDS_TYPEFLAG_VARIABLE) != 0)
+#define is_variant_inner_type(x)   ((tds_type_flags_ms[x] & TDS_TYPEFLAG_VARIANT) != 0)
 
 
 #define is_blob_type(x)       ((x)==SYBTEXT || (x)==SYBIMAGE || (x)==SYBNTEXT)

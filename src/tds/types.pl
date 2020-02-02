@@ -196,7 +196,7 @@ foreach my $type (sort { $$a{value} <=> $$b{value} } values %types) {
 #	die "wrong fields" if $t{nullable} && $t{fixed};
 	die "wrong fields" if $t{variable} && $t{fixed};
 	my @f;
-	foreach my $n (qw(nullable fixed variable numeric collate unicode ascii datetime binary)) {
+	foreach my $n (qw(nullable fixed variable numeric collate unicode ascii datetime binary variant)) {
 		push @f, uc("TDS_TYPEFLAG_$n") if $t{$n} eq '1';
 	}
 	my $f = join("|", @f);
