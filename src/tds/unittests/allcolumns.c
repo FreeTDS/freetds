@@ -51,20 +51,16 @@ void tds_all_types(TDSSOCKET *tds, tds_any_type_t *func)
 	int desttype;
 	enum { TDSVER_MS = 0x704, TDSVER_SYB = 0x500 };
 
-	int i;
-
 	tds->conn->tds_version = TDSVER_MS;
 
 	/*
 	 * Test every type
 	 */
-	for (i = 0; i < 0x100; i++) {
+	for (desttype = 0; desttype < 0x100; desttype++) {
 		int types_buffer[10];
 		int *types = types_buffer, *types_end;
 		int server_type;
 		int varint, other_varint;
-
-		desttype = i & 0xff;
 
 		if (!is_tds_type_valid(desttype))
 			continue;
