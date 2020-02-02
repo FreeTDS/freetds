@@ -81,12 +81,12 @@ void tds_all_types(TDSSOCKET *tds, tds_any_type_t *func)
 
 		server_type = desttype;
 		switch (desttype) {
-		// unsupported
+		/* unsupported */
 		case SYBVOID:
 		case SYBINTERVAL:
 			continue;
-		// nullable, use another type
-		// TODO, try all sizes
+		/* nullable, use another type */
+		/* TODO, try all sizes */
 		case SYBINTN:
 			*types++ = SYBINT1;
 			*types++ = SYBINT2;
@@ -120,18 +120,18 @@ void tds_all_types(TDSSOCKET *tds, tds_any_type_t *func)
 		case SYB5INT8:
 			*types++ = SYBINT8;
 			break;
-		// TODO tds_set_column_type
+		/* TODO tds_set_column_type */
 
-		case SYBXML: // ??
-		case SYBNTEXT: // ??
+		case SYBXML: /* ?? */
+		case SYBNTEXT: /* ?? */
 		case XSYBNVARCHAR:
 		case XSYBNCHAR:
 		case SYBNVARCHAR:
 		case SYBMSUDT:
 		case SYBMSXML:
 		case SYBUNITEXT:
-		case SYBVARIANT: // TODO
-		case SYBSINT1: // TODO
+		case SYBVARIANT: /* TODO */
+		case SYBSINT1: /* TODO */
 			continue;
 		}
 
