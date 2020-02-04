@@ -630,7 +630,7 @@ SQLLEN odbc_tds2sql_col(TDS_STMT * stmt, TDSCOLUMN *curcol, int desttype, TDS_CH
 			srctype = ((TDSVARIANT *) src)->type;
 		src = ((TDSBLOB *) src)->textvalue;
 	}
-	if (is_variable_type(curcol->column_type)) {
+	if (is_variable_type(srctype)) {
 		src += curcol->column_text_sqlgetdatapos;
 		srclen -= curcol->column_text_sqlgetdatapos;
 	}
