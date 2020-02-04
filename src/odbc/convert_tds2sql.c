@@ -239,7 +239,7 @@ odbc_convert_datetime_to_binary(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype,
 	if (destlen == 0)
 		return len;
 
-	cplen = (destlen > len) ? len : destlen;
+	cplen = ODBC_MIN(destlen, len);
 	memcpy(dest, buf, cplen);
 	if (curcol)
 		curcol->column_text_sqlgetdatapos += cplen;
@@ -266,7 +266,7 @@ odbc_convert_to_binary(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR
 
 	/* if destlen == 0 we return only length */
 	if (destlen > 0) {
-		size_t cplen = (destlen > srclen) ? srclen : destlen;
+		size_t cplen = ODBC_MIN(destlen, srclen);
 		/* do not NUL terminate binary buffer */
 		memcpy(dest, src, cplen);
 		if (curcol)
@@ -413,7 +413,7 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 		}
 
 		nRetVal = strlen(buf);
-		memcpy(dest, buf, destlen < nRetVal ? destlen : nRetVal);
+		memcpy(dest, buf, ODBC_MIN(destlen, nRetVal));
 	} else {
 normal_conversion:
 		nRetVal = tds_convert(context, srctype, src, srclen, nDestSybType, &ores);
@@ -431,7 +431,7 @@ normal_conversion:
 		ret = nRetVal;
 		/* TODO handle not terminated configuration */
 		if (destlen > 0) {
-			cplen = (destlen - 1) > nRetVal ? nRetVal : (destlen - 1);
+			cplen = ODBC_MIN(destlen - 1, nRetVal);
 			assert(cplen >= 0);
 			/*
 			 * odbc always terminate but do not overwrite 
@@ -455,7 +455,7 @@ normal_conversion:
 			SQLWCHAR *wp = (SQLWCHAR *) dest;
 			SQLCHAR  *p  = (SQLCHAR *)  dest;
 
-			cplen = (destlen - 1) > nRetVal ? nRetVal : (destlen - 1);
+			cplen = ODBC_MIN(destlen - 1, nRetVal);
 			assert(cplen >= 0);
 			/*
 			 * odbc always terminate but do not overwrite 
