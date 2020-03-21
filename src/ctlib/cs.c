@@ -1411,7 +1411,7 @@ cs_diag_countmsg(CS_CONTEXT *context, CS_INT *count)
  * Try to convert to a type we can handle
  */
 int
-_cs_convert_not_client(CS_CONTEXT *ctx, TDSCOLUMN *curcol, CONV_RESULT *convert_buffer, unsigned char **p_src)
+_cs_convert_not_client(CS_CONTEXT *ctx, const TDSCOLUMN *curcol, CONV_RESULT *convert_buffer, unsigned char **p_src)
 {
 	int ct_type;
 	TDS_SERVER_TYPE desttype;
