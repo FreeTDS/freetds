@@ -105,7 +105,7 @@ print q|	default:
 # generate tds_get_varint_size
 print q|/**
  * tds_get_varint_size() returns the size of a variable length integer
- * returned in a TDS 7.0 result string
+ * returned in a result string
  */
 int
 tds_get_varint_size(TDSCONNECTION * conn, int datatype)
