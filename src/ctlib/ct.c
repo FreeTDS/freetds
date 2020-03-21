@@ -1955,7 +1955,7 @@ ct_con_drop(CS_CONNECTION * con)
 }
 
 int
-_ct_get_client_type(TDSCOLUMN *col)
+_ct_get_client_type(const TDSCOLUMN *col)
 {
 	tdsdump_log(TDS_DBG_FUNC, "_ct_get_client_type(type %d, user %d, size %d)\n", col->column_type, col->column_usertype, col->column_size);
 
