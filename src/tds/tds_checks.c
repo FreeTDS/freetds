@@ -45,7 +45,6 @@ tds_check_packet_extra(const TDSPACKET * packet)
 	assert(packet);
 	for (; packet; packet = packet->next) {
 		assert(packet->len <= packet->capacity);
-		assert(packet->sid >= -1);
 	}
 }
 
@@ -75,6 +74,8 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 	assert(tds->conn);
 
 #if ENABLE_ODBC_MARS
+	assert(tds->sid < tds->conn->num_sessions);
+	assert(tds->sid == 0 || tds->conn->mars);
 	if (tds->state != TDS_DEAD)
 		assert(!TDS_IS_SOCKET_INVALID(tds_get_s(tds)));
 #else
@@ -94,6 +95,8 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 		assert(tds->conn->send_pos <= tds->conn->send_packets->len);
 	if (tds->conn->recv_packet)
 		assert(tds->conn->recv_pos <= tds->conn->recv_packet->len);
+	if (tds->conn->mars)
+		assert(tds->out_buf >= tds->send_packet->buf + sizeof(TDS72_SMP_HEADER));
 #endif
 
 	assert(tds->in_pos <= tds->in_len);

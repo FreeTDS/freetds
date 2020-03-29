@@ -1184,6 +1184,11 @@ tds_init_socket(TDSSOCKET * tds_socket, unsigned int bufsize)
 	tds_socket->sid = 0;
 	if (tds_cond_init(&tds_socket->packet_cond))
 		goto Cleanup;
+
+	tds_socket->recv_seq = 0;
+	tds_socket->send_seq = 0;
+	tds_socket->recv_wnd = 4;
+	tds_socket->send_wnd = 4;
 #endif
 	return tds_socket;
 
@@ -1251,6 +1256,31 @@ tds_alloc_socket(TDSCONTEXT * context, unsigned int bufsize)
 	return NULL;
 }
 
+static bool
+tds_alloc_new_sid(TDSSOCKET *tds)
+{
+	uint16_t sid;
+	TDSCONNECTION *conn = tds->conn;
+
+	tds_mutex_lock(&conn->list_mtx);
+	for (sid = 1; sid < conn->num_sessions; ++sid)
+		if (!conn->sessions[sid])
+			break;
+	if (sid == conn->num_sessions) {
+		/* extend array */
+		TDSSOCKET **s = (TDSSOCKET **) TDS_RESIZE(conn->sessions, sid+64);
+		if (!s)
+			goto error;
+		memset(s + conn->num_sessions, 0, sizeof(*s) * 64);
+		conn->num_sessions += 64;
+	}
+	conn->sessions[sid] = tds;
+	tds->sid = sid;
+error:
+	tds_mutex_unlock(&conn->list_mtx);
+	return tds->sid != 0;
+}
+
 TDSSOCKET *
 tds_alloc_additional_socket(TDSCONNECTION *conn)
 {
@@ -1258,14 +1288,25 @@ tds_alloc_additional_socket(TDSCONNECTION *conn)
 	if (!IS_TDS72_PLUS(conn) || !conn->mars)
 		return NULL;
 
-	tds = tds_alloc_socket_base(conn->env.block_size);
+	tds = tds_alloc_socket_base(sizeof(TDS72_SMP_HEADER) + conn->env.block_size);
 	if (!tds)
 		return NULL;
+	tds->out_buf += sizeof(TDS72_SMP_HEADER);
+	tds->out_buf_max -= sizeof(TDS72_SMP_HEADER);
 
-	tds->sid = -1;
 	tds->conn = conn;
+	if (!tds_alloc_new_sid(tds))
+		goto Cleanup;
+
 	tds->state = TDS_IDLE;
+	if (TDS_FAILED(tds_append_syn(tds)))
+		goto Cleanup;
+
 	return tds;
+
+      Cleanup:
+	tds_free_socket(tds);
+	return NULL;
 }
 #else /* !ENABLE_ODBC_MARS */
 TDSSOCKET *
@@ -1290,6 +1331,11 @@ TDSSOCKET *
 tds_realloc_socket(TDSSOCKET * tds, size_t bufsize)
 {
 	TDSPACKET *packet;
+#if ENABLE_ODBC_MARS
+	size_t smp_hdr_len = tds->conn->mars ? sizeof(TDS72_SMP_HEADER) : 0;
+#else
+	enum { smp_hdr_len = 0 };
+#endif
 
 	assert(tds && tds->out_buf && tds->send_packet);
 
@@ -1301,11 +1347,11 @@ tds_realloc_socket(TDSSOCKET * tds, size_t bufsize)
 	if (tds->out_pos > bufsize)
 		return NULL;
 
-	packet = tds_realloc_packet(tds->send_packet, bufsize + TDS_ADDITIONAL_SPACE);
+	packet = tds_realloc_packet(tds->send_packet, smp_hdr_len + bufsize + TDS_ADDITIONAL_SPACE);
 	if (packet == NULL)
 		return NULL;
 
-	tds->out_buf = packet->buf;
+	tds->out_buf = packet->buf + smp_hdr_len;
 	tds->out_buf_max = bufsize;
 	tds->send_packet = packet;
 	return tds;
@@ -1318,7 +1364,7 @@ tds_connection_remove_socket(TDSCONNECTION *conn, TDSSOCKET *tds)
 	unsigned n;
 	bool must_free_connection = true;
 	tds_mutex_lock(&conn->list_mtx);
-	if (tds->sid >= 0 && tds->sid < conn->num_sessions)
+	if (tds->sid < conn->num_sessions)
 		conn->sessions[tds->sid] = NULL;
 	for (n = 0; n < conn->num_sessions; ++n)
 		if (TDSSOCKET_VALID(conn->sessions[n])) {
@@ -1332,7 +1378,6 @@ tds_connection_remove_socket(TDSCONNECTION *conn, TDSSOCKET *tds)
 	tds_mutex_unlock(&conn->list_mtx);
 
 	/* detach entirely */
-	tds->sid = -1;
 	tds->conn = NULL;
 
 	if (must_free_connection)

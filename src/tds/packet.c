@@ -60,7 +60,7 @@
 
 #if ENABLE_ODBC_MARS
 static TDSRET tds_update_recv_wnd(TDSSOCKET *tds, TDS_UINT new_recv_wnd);
-static short tds_packet_write(TDSCONNECTION *conn);
+static int tds_packet_write(TDSCONNECTION *conn);
 
 /* get packet from the cache */
 static TDSPACKET *
@@ -154,7 +154,7 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 	/* handle SMP */
 	if (conn->recv_pos > 0 && packet->buf[0] == TDS72_SMP) {
 		TDS72_SMP_HEADER mars_header;
-		short sid;
+		uint16_t sid;
 		TDSSOCKET *tds;
 		TDS_UINT size;
 
@@ -170,14 +170,15 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 		/* FIXME this is done even by caller !! */
 		tds = NULL;
 		tds_mutex_lock(&conn->list_mtx);
-		if (sid >= 0 && sid < conn->num_sessions)
+		if (sid < conn->num_sessions) {
 			tds = conn->sessions[sid];
+			packet->sid = sid;
+		}
 		tds_mutex_unlock(&conn->list_mtx);
-		packet->sid = sid;
 
 		if (tds == BUSY_SOCKET) {
 			if (mars_header.type != TDS_SMP_FIN) {
-				tdsdump_log(TDS_DBG_ERROR, "Received MARS with no session (%d)\n", sid);
+				tdsdump_log(TDS_DBG_ERROR, "Received MARS with no session (%u)\n", sid);
 				goto Severe_Error;
 			}
 
@@ -221,7 +222,6 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 				goto Severe_Error;
 			/* this socket shold now not start another session */
 //			tds_set_state(tds, TDS_DEAD);
-//			tds->sid = -1;
 		} else
 			goto Severe_Error;
 
@@ -258,69 +258,25 @@ Severe_Error:
 	conn->recv_packet = NULL;
 }
 
-static void
-tds_alloc_new_sid(TDSSOCKET *tds)
-{
-	int sid = -1;
-	TDSCONNECTION *conn = tds->conn;
-	TDSSOCKET **s;
-
-	tds_mutex_lock(&conn->list_mtx);
-	tds->sid = -1;
-	for (sid = 0; sid < conn->num_sessions; ++sid)
-		if (!conn->sessions[sid])
-			break;
-	if (sid == conn->num_sessions) {
-		/* extend array */
-		s = (TDSSOCKET **) TDS_RESIZE(conn->sessions, sid+64);
-		if (!s)
-			goto error;
-		memset(s + conn->num_sessions, 0, sizeof(*s) * 64);
-		conn->num_sessions += 64;
-	}
-	conn->sessions[sid] = tds;
-	tds->sid = sid;
-error:
-	tds_mutex_unlock(&conn->list_mtx);
-}
-
 static TDSPACKET*
 tds_build_packet(TDSSOCKET *tds, unsigned char *buf, unsigned len)
 {
 	unsigned start;
-	TDS72_SMP_HEADER mars[2], *p;
+	TDS72_SMP_HEADER mars[1], *p;
 	TDSPACKET *packet;
 
 	p = mars;
 	if (buf[0] != TDS72_SMP && tds->conn->mars) {
-		/* allocate a new sid */
-		if (tds->sid == -1) {
-			p->signature = TDS72_SMP;
-			p->type = TDS_SMP_SYN; /* start session */
-			/* FIXME check !!! */
-			tds_alloc_new_sid(tds);
-			tds->recv_seq = 0;
-			tds->send_seq = 0;
-			tds->recv_wnd = 4;
-			tds->send_wnd = 4;
-			TDS_PUT_A2LE(&p->sid, tds->sid);
-			p->size = TDS_HOST4LE(0x10);
-			p->seq = TDS_HOST4LE(0);
-			TDS_PUT_A4LE(&p->wnd, tds->recv_wnd);
-			p++;
-		}
-		if (tds->sid >= 0) {
-			p->signature = TDS72_SMP;
-			p->type = TDS_SMP_DATA;
-			TDS_PUT_A2LE(&p->sid, tds->sid);
-			TDS_PUT_A4LE(&p->size, len+16);
-			++tds->send_seq;
-			TDS_PUT_A4LE(&p->seq, tds->send_seq);
-			/* this is the acknowledge we give to server to stop sending !!! */
-			tds->recv_wnd = tds->recv_seq + 4;
-			TDS_PUT_A4LE(&p->wnd, tds->recv_wnd);
-			p++;
-		}
+		p->signature = TDS72_SMP;
+		p->type = TDS_SMP_DATA;
+		TDS_PUT_A2LE(&p->sid, tds->sid);
+		TDS_PUT_A4LE(&p->size, len+16);
+		++tds->send_seq;
+		TDS_PUT_A4LE(&p->seq, tds->send_seq);
+		/* this is the acknowledge we give to server to stop sending !!! */
+		tds->recv_wnd = tds->recv_seq + 4;
+		TDS_PUT_A4LE(&p->wnd, tds->recv_wnd);
+		p++;
 	}
 
 	start = (char*) p - (char *) mars;
@@ -407,12 +363,15 @@ tds_connection_network(TDSCONNECTION *conn, TDSSOCKET *tds, int send)
 		if (conn->send_packets && (rc & POLLOUT) != 0) {
 			TDSSOCKET *s;
 
-			short sid = tds_packet_write(conn);
+			int sid = tds_packet_write(conn);
+			if (sid < 0)
+				continue;
+
 			if (sid == tds->sid)
 				break;	/* return to caller */
 
 			tds_mutex_lock(&conn->list_mtx);
-			if (sid >= 0 && sid < conn->num_sessions) {
+			if (sid < conn->num_sessions) {
 				s = conn->sessions[sid];
 				if (TDSSOCKET_VALID(s))
 					tds_cond_signal(&s->packet_cond);
@@ -438,7 +397,7 @@ tds_connection_network(TDSCONNECTION *conn, TDSSOCKET *tds, int send)
 			tdsdump_dump_buf(TDS_DBG_NETWORK, "Received packet", packet->buf, packet->len);
 
 			tds_mutex_lock(&conn->list_mtx);
-			if (packet->sid >= 0 && packet->sid < conn->num_sessions) {
+			if (packet->sid < conn->num_sessions) {
 				s = conn->sessions[packet->sid];
 				if (TDSSOCKET_VALID(s)) {
 					/* append to correct session */
@@ -463,15 +422,15 @@ tds_connection_network(TDSCONNECTION *conn, TDSSOCKET *tds, int send)
 }
 
 static int
-tds_connection_put_packet(TDSSOCKET *tds, TDSPACKET *packet)
+tds_connection_put_packet(TDSSOCKET *tds)
 {
 	TDSCONNECTION *conn = tds->conn;
 
-	if (TDS_UNLIKELY(!packet)) {
-		tds_close_socket(tds);
-		return TDS_FAIL;
-	}
+	TDSPACKET *packet = tds->send_packet;
+	CHECK_TDS_EXTRA(tds);
+
 	tds->out_pos = 0;
+	packet->sid = tds->sid;
 
 	tds_mutex_lock(&conn->list_mtx);
 	tds->sending_packet = packet;
@@ -657,7 +616,7 @@ tds_update_recv_wnd(TDSSOCKET *tds, TDS_UINT new_recv_wnd)
 	TDS72_SMP_HEADER *mars;
 	TDSPACKET *packet;
 
-	if (!tds->conn->mars || tds->sid < 0)
+	if (!tds->conn->mars)
 		return TDS_SUCCESS;
 
 	packet = tds_get_packet(tds->conn, sizeof(*mars));
@@ -683,17 +642,17 @@ tds_update_recv_wnd(TDSSOCKET *tds, TDS_UINT new_recv_wnd)
 	return TDS_SUCCESS;
 }
 
-TDSRET
-tds_append_fin(TDSSOCKET *tds)
+static TDSRET
+tds_append_fin_syn(TDSSOCKET *tds, uint8_t type)
 {
 	TDS72_SMP_HEADER mars;
 	TDSPACKET *packet;
 
-	if (!tds->conn->mars || tds->sid < 0)
+	if (!tds->conn->mars)
 		return TDS_SUCCESS;
 
 	mars.signature = TDS72_SMP;
-	mars.type = TDS_SMP_FIN;
+	mars.type = type;
 	TDS_PUT_A2LE(&mars.sid, tds->sid);
 	mars.size = TDS_HOST4LE(16);
 	TDS_PUT_A4LE(&mars.seq, tds->send_seq);
@@ -709,12 +668,37 @@ tds_append_fin(TDSSOCKET *tds)
 	/* we already hold lock so do not lock */
 	tds_append_packet(&tds->conn->send_packets, packet);
 
-	/* now is no more an active session */
-	tds->conn->sessions[tds->sid] = BUSY_SOCKET;
-	tds_set_state(tds, TDS_DEAD);
-	tds->sid = -1;
+	if (type == TDS_SMP_FIN) {
+		/* now is no more an active session */
+		tds->conn->sessions[tds->sid] = BUSY_SOCKET;
+		tds_set_state(tds, TDS_DEAD);
+	}
 
 	return TDS_SUCCESS;
+}
+
+/**
+ * Append a SMP FIN packet.
+ * tds->conn->list_mtx must be locked.
+ */
+TDSRET
+tds_append_fin(TDSSOCKET *tds)
+{
+	return tds_append_fin_syn(tds, TDS_SMP_FIN);
+}
+
+/**
+ * Append a SMP SYN packet.
+ * tds->conn->list_mtx must be unlocked.
+ */
+TDSRET
+tds_append_syn(TDSSOCKET *tds)
+{
+	TDSRET ret;
+	tds_mutex_lock(&tds->conn->list_mtx);
+	ret = tds_append_fin_syn(tds, TDS_SMP_SYN);
+	tds_mutex_unlock(&tds->conn->list_mtx);
+	return ret;
 }
 #endif /* ENABLE_ODBC_MARS */
 
@@ -724,6 +708,10 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 {
 	int res;
 	unsigned int left = 0;
+#if ENABLE_ODBC_MARS
+	TDSPACKET *packet_next;
+	unsigned char *next_buf;
+#endif
 
 	if (tds->out_pos > tds->out_buf_max) {
 		left = tds->out_pos - tds->out_buf_max;
@@ -742,22 +730,60 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 		tds->out_buf[6] = 0x01;
 
 #if ENABLE_ODBC_MARS
-	res = tds_connection_put_packet(tds, tds_build_packet(tds, tds->out_buf, tds->out_pos));
+	tds->send_packet->len = tds->out_buf + tds->out_pos - tds->send_packet->buf;
+
+	if (tds->conn->mars) {
+		TDS72_SMP_HEADER *hdr;
+
+		/* fill SMP data */
+		hdr = (TDS72_SMP_HEADER *) (tds->out_buf - sizeof(TDS72_SMP_HEADER));
+		hdr->signature = TDS72_SMP;
+		hdr->type = TDS_SMP_DATA;
+		TDS_PUT_A2LE(&hdr->sid, tds->sid);
+		TDS_PUT_A4LE(&hdr->size, tds->out_pos + sizeof(TDS72_SMP_HEADER));
+		++tds->send_seq;
+		TDS_PUT_A4LE(&hdr->seq, tds->send_seq);
+		/* this is the acknowledge we give to server to stop sending !!! */
+		tds->recv_wnd = tds->recv_seq + 4;
+		TDS_PUT_A4LE(&hdr->wnd, tds->recv_wnd);
+
+		packet_next = tds_get_packet(tds->conn, sizeof(TDS72_SMP_HEADER) + tds->out_buf_max + TDS_ADDITIONAL_SPACE);
+		if (!packet_next)
+			return TDS_FAIL;
+
+		hdr = (TDS72_SMP_HEADER *) packet_next->buf;
+		hdr->signature = TDS72_SMP;
+		hdr->type = TDS_SMP_DATA;
+
+		next_buf = packet_next->buf + sizeof(TDS72_SMP_HEADER);
+	} else {
+		packet_next = tds_get_packet(tds->conn, tds->out_buf_max + TDS_ADDITIONAL_SPACE);
+		if (!packet_next)
+			return TDS_FAIL;
+		next_buf = packet_next->buf;
+	}
+	memcpy(next_buf + 8, tds->out_buf + tds->out_buf_max, left);
+
+	res = tds_connection_put_packet(tds);
+
+	tds->send_packet = packet_next;
+	tds->out_buf = next_buf;
+	tds->out_pos = left + 8;
 #else /* !ENABLE_ODBC_MARS */
 	tdsdump_dump_buf(TDS_DBG_NETWORK, "Sending packet", tds->out_buf, tds->out_pos);
 
 	/* GW added in check for write() returning <0 and SIGPIPE checking */
 	res = tds_connection_write(tds, tds->out_buf, tds->out_pos, final) <= 0 ?
 		TDS_FAIL : TDS_SUCCESS;
+
+	memcpy(tds->out_buf + 8, tds->out_buf + tds->out_buf_max, left);
+	tds->out_pos = left + 8;
 #endif /* !ENABLE_ODBC_MARS */
 
 	if (TDS_UNLIKELY(tds->conn->encrypt_single_packet)) {
 		tds->conn->encrypt_single_packet = 0;
 		tds_ssl_deinit(tds->conn);
 	}
-
-	memcpy(tds->out_buf + 8, tds->out_buf + tds->out_buf_max, left);
-	tds->out_pos = left + 8;
 
 	return res;
 }
@@ -791,7 +817,7 @@ tds_put_cancel(TDSSOCKET * tds)
 
 
 #if ENABLE_ODBC_MARS
-static short
+static int
 tds_packet_write(TDSCONNECTION *conn)
 {
 	int sent;
@@ -825,13 +851,12 @@ tds_packet_write(TDSCONNECTION *conn)
 	conn->send_pos += sent;
 	/* remove packet if sent all data */
 	if (conn->send_pos >= packet->len) {
-		short sid = packet->sid;
+		uint16_t sid = packet->sid;
+		TDSSOCKET *tds;
 		tds_mutex_lock(&conn->list_mtx);
-		if (sid >= 0 && sid < conn->num_sessions) {
-			TDSSOCKET *tds = conn->sessions[sid];
-			if (TDSSOCKET_VALID(tds) && tds->sending_packet == packet)
-				tds->sending_packet = NULL;
-		}
+		tds = conn->sessions[sid];
+		if (TDSSOCKET_VALID(tds) && tds->sending_packet == packet)
+			tds->sending_packet = NULL;
 		conn->send_packets = packet->next;
 		packet->next = NULL;
 		tds_packet_cache_add(conn, packet);

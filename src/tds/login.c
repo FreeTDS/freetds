@@ -611,9 +611,29 @@ reroute:
 #if ENABLE_ODBC_MARS
 	/* initialize SID */
 	if (IS_TDS72_PLUS(tds->conn) && login->mars) {
-		tds->conn->sessions[0] = NULL;
+		TDS72_SMP_HEADER *p;
+
+#if ENABLE_EXTRA_CHECKS
+		assert(tds->sid == 0);
+		assert(tds->conn->sessions[0] == tds);
+		assert(tds->send_packet);
+		assert(!tds->send_packet->next);
+#endif
 		tds->conn->mars = 1;
-		tds->sid = -1;
+
+		/* start session with a SMP SYN */
+		if (TDS_FAILED(tds_append_syn(tds)))
+			return -TDSEMEM;
+
+		/* reallocate send_packet */
+		if (!tds_realloc_socket(tds, tds->out_buf_max))
+			return -TDSEMEM;
+
+		/* start SMP DATA header */
+		p = (TDS72_SMP_HEADER *) tds->send_packet->buf;
+		p->signature = TDS72_SMP;
+		p->type = TDS_SMP_DATA;
+
 		tds_init_write_buf(tds);
 	}
 #endif

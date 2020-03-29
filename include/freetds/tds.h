@@ -1058,7 +1058,7 @@ typedef struct tds_authentication
 typedef struct tds_packet
 {
 	struct tds_packet *next;
-	short sid;
+	uint16_t sid;
 	unsigned len, capacity;
 	unsigned char buf[1];
 } TDSPACKET;
@@ -1177,12 +1177,21 @@ struct tds_socket
 
 #if ENABLE_ODBC_MARS
 	/** SID of MARS session.
-	 * <0   Will allocate a new SID.
-	 * ==0  Not in a MARS session.
+	 * ==0  Not in a MARS session or first session
 	 * >0   SID of MARS session valid.
 	 */
-	short sid;
+	uint16_t sid;
+
+	/**
+	 * This condition will be signaled by the network thread on packet
+	 * received or sent for this session
+	 */
 	tds_condition packet_cond;
+
+	/**
+	 * Packet we are trying to send to network.
+	 * This field should be protected by conn->list_mtx
+	 */
 	TDSPACKET *sending_packet;
 	TDS_UINT recv_seq;
 	TDS_UINT send_seq;
@@ -1519,6 +1528,7 @@ int tds_read_packet(TDSSOCKET * tds);
 TDSRET tds_write_packet(TDSSOCKET * tds, unsigned char final);
 #if ENABLE_ODBC_MARS
 int tds_append_cancel(TDSSOCKET *tds);
+TDSRET tds_append_syn(TDSSOCKET *tds);
 TDSRET tds_append_fin(TDSSOCKET *tds);
 #else
 int tds_put_cancel(TDSSOCKET * tds);
