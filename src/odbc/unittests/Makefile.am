@@ -173,14 +173,14 @@ noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h
 
 GLOBAL_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC) -DFREETDS_TOPDIR=\"$(top_srcdir)\"
-GLOBAL_LD_FLAGS	=	libcommon.a $(ODBC_LDFLAGS) ../../replacements/libreplacements.la $(NETWORK_LIBS)
+GLOBAL_LD_FLAGS	=	$(NETWORK_LIBS)
 AM_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
 if ODBC_WIDE_TESTS
 AM_CPPFLAGS	+=	-DUNICODE -D_UNICODE
 endif
 # this test cannot work using wide characters as use UTF-8 and single byte encoding
 utf8_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
-utf8_LDADD	=
+utf8_LDADD	=	$(ODBC_LDFLAGS)
 oldpwd_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
 
 if MINGW32
@@ -188,6 +188,7 @@ AM_LDFLAGS	=	-no-fast-install $(GLOBAL_LD_FLAGS) $(ODBCINST_LDFLAGS)
 else
 AM_LDFLAGS	=	-no-install -L../.libs -R $(abs_builddir)/../.libs $(GLOBAL_LD_FLAGS)
 endif
+LDADD		=	libcommon.a $(ODBC_LDFLAGS) ../../replacements/libreplacements.la
 DISTCLEANFILES	=	odbc.ini odbcinst.ini
 EXTRA_DIST	=	CMakeLists.txt
 
