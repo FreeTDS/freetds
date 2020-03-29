@@ -483,7 +483,7 @@ tds_connection_put_packet(TDSSOCKET *tds, TDSPACKET *packet)
 		}
 
 		/* limit packet sending looking at sequence/window */
-		if (tds->send_seq <= tds->send_wnd) {
+		if ((int32_t) (tds->send_seq - tds->send_wnd) <= 0) {
 			/* append packet */
 			tds_append_packet(&conn->send_packets, packet);
 			packet = NULL;
@@ -570,7 +570,7 @@ tds_read_packet(TDSSOCKET * tds)
 			tds->in_flag = tds->in_buf[0];
 
 			/* send acknowledge if needed */
-			if (tds->recv_seq + 2 >= tds->recv_wnd)
+			if ((int32_t) (tds->recv_seq + 2 - tds->recv_wnd) >= 0)
 				tds_update_recv_wnd(tds, tds->recv_seq + 4);
 
 			return tds->in_len;
