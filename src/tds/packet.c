@@ -408,7 +408,8 @@ tds_connection_network(TDSCONNECTION *conn, TDSSOCKET *tds, int send)
 			TDSSOCKET *s;
 
 			short sid = tds_packet_write(conn);
-			if (sid == tds->sid) break;	/* return to caller */
+			if (sid == tds->sid)
+				break;	/* return to caller */
 
 			tds_mutex_lock(&conn->list_mtx);
 			if (sid >= 0 && sid < conn->num_sessions) {
@@ -429,7 +430,8 @@ tds_connection_network(TDSCONNECTION *conn, TDSSOCKET *tds, int send)
 			/* try to read a packet */
 			tds_packet_read(conn, tds);
 			packet = conn->recv_packet;
-			if (!packet || conn->recv_pos < packet->len) continue;
+			if (!packet || conn->recv_pos < packet->len)
+				continue;	/* packet not complete */
 			conn->recv_packet = NULL;
 			conn->recv_pos = 0;
 
