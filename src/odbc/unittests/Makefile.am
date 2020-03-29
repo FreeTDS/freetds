@@ -174,10 +174,9 @@ libcommon_a_SOURCES = common.c common.h
 
 GLOBAL_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC) -DFREETDS_TOPDIR=\"$(top_srcdir)\"
 GLOBAL_LD_FLAGS	=	libcommon.a $(ODBC_LDFLAGS) ../../replacements/libreplacements.la $(NETWORK_LIBS)
-if ODBC_WIDE_TESTS
-AM_CPPFLAGS	=	$(GLOBAL_CPPFLAGS) -DUNICODE -D_UNICODE
-else
 AM_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
+if ODBC_WIDE_TESTS
+AM_CPPFLAGS	+=	-DUNICODE -D_UNICODE
 endif
 # this test cannot work using wide characters as use UTF-8 and single byte encoding
 utf8_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
