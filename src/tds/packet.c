@@ -805,8 +805,6 @@ tds_packet_write(TDSCONNECTION *conn)
 	/* take into account other packets for this session */
 	else if (packet->buf[0] != TDS72_SMP)
 		final = packet->buf[1] & 1;
-	else if (packet->len >= sizeof(TDS72_SMP_HEADER) + 2)
-		final = packet->buf[sizeof(TDS72_SMP_HEADER) + 1] & 1;
 	else
 		final = 1;
 
