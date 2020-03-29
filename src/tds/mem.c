@@ -1188,8 +1188,6 @@ tds_init_socket(TDSSOCKET * tds_socket, unsigned int bufsize)
 	return tds_socket;
 
       Cleanup:
-	tds_free_packets(tds_socket->recv_packet);
-	tds_free_packets(tds_socket->send_packet);
 	return NULL;
 }
 
