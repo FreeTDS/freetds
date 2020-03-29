@@ -1316,16 +1316,16 @@ static void
 tds_connection_remove_socket(TDSCONNECTION *conn, TDSSOCKET *tds)
 {
 	unsigned n;
-	int must_free = 1;
+	bool must_free_connection = true;
 	tds_mutex_lock(&conn->list_mtx);
 	if (tds->sid >= 0 && tds->sid < conn->num_sessions)
 		conn->sessions[tds->sid] = NULL;
 	for (n = 0; n < conn->num_sessions; ++n)
 		if (TDSSOCKET_VALID(conn->sessions[n])) {
-			must_free = 0;
+			must_free_connection = false;
 			break;
 		}
-	if (!must_free) {
+	if (!must_free_connection) {
 		/* tds use connection member so must be valid */
 		tds_append_fin(tds);
 	}
@@ -1335,7 +1335,7 @@ tds_connection_remove_socket(TDSCONNECTION *conn, TDSSOCKET *tds)
 	tds->sid = -1;
 	tds->conn = NULL;
 
-	if (must_free)
+	if (must_free_connection)
 		tds_free_connection(conn);
 }
 #else
