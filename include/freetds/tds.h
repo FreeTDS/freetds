@@ -1183,6 +1183,7 @@ struct tds_socket
 	 */
 	short sid;
 	tds_condition packet_cond;
+	TDSPACKET *sending_packet;
 	TDS_UINT recv_seq;
 	TDS_UINT send_seq;
 	TDS_UINT recv_wnd;

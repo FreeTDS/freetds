@@ -474,6 +474,7 @@ tds_connection_put_packet(TDSSOCKET *tds, TDSPACKET *packet)
 	tds->out_pos = 0;
 
 	tds_mutex_lock(&conn->list_mtx);
+	tds->sending_packet = packet;
 	for (;;) {
 		int wait_res;
 
@@ -492,8 +493,9 @@ tds_connection_put_packet(TDSSOCKET *tds, TDSPACKET *packet)
 		/* network ok ? process network */
 		if (!conn->in_net_tds) {
 			tds_connection_network(conn, tds, packet ? 0 : 1);
-			if (packet) continue;
-			/* FIXME we are not sure we sent the packet !!! */
+			if (packet || tds->sending_packet)
+				continue;
+			/* here we are sure we sent the packet */
 			break;
 		}
 
@@ -505,12 +507,14 @@ tds_connection_put_packet(TDSSOCKET *tds, TDSPACKET *packet)
 		wait_res = tds_cond_timedwait(&tds->packet_cond, &conn->list_mtx, tds->query_timeout);
 		if (wait_res == ETIMEDOUT
 		    && tdserror(tds_get_ctx(tds), tds, TDSETIME, ETIMEDOUT) != TDS_INT_CONTINUE) {
+			tds->sending_packet = NULL;
 			tds_mutex_unlock(&conn->list_mtx);
 			tds_close_socket(tds);
 			tds_free_packets(packet);
 			return TDS_FAIL;
 		}
 	}
+	tds->sending_packet = NULL;
 	tds_mutex_unlock(&conn->list_mtx);
 	if (TDS_UNLIKELY(packet)) {
 		tds_free_packets(packet);
@@ -823,6 +827,11 @@ tds_packet_write(TDSCONNECTION *conn)
 	if (conn->send_pos >= packet->len) {
 		short sid = packet->sid;
 		tds_mutex_lock(&conn->list_mtx);
+		if (sid >= 0 && sid < conn->num_sessions) {
+			TDSSOCKET *tds = conn->sessions[sid];
+			if (TDSSOCKET_VALID(tds) && tds->sending_packet == packet)
+				tds->sending_packet = NULL;
+		}
 		conn->send_packets = packet->next;
 		packet->next = NULL;
 		tds_packet_cache_add(conn, packet);
