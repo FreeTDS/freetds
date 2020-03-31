@@ -40,6 +40,7 @@ environment:
     VS_VERSION: "2017"
     TDSVER: "7.2"
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    ODBC_MARS: "1"
 
   - PLAT: Win64
     WIDTH: 64
@@ -58,6 +59,7 @@ environment:
     VS_VERSION: "2013"
     TDSVER: "auto"
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+    ODBC_MARS: "1"
 
   - PLAT: Win32
     WIDTH: 32
