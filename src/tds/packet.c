@@ -732,6 +732,11 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 #if ENABLE_ODBC_MARS
 	tds->send_packet->len = tds->out_buf + tds->out_pos - tds->send_packet->buf;
 
+	packet_next = tds_get_packet(tds->conn, tds->send_packet->capacity);
+	if (!packet_next)
+		return TDS_FAIL;
+	next_buf = packet_next->buf;
+
 	if (tds->conn->mars) {
 		TDS72_SMP_HEADER *hdr;
 
@@ -747,20 +752,11 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 		tds->recv_wnd = tds->recv_seq + 4;
 		TDS_PUT_A4LE(&hdr->wnd, tds->recv_wnd);
 
-		packet_next = tds_get_packet(tds->conn, sizeof(TDS72_SMP_HEADER) + tds->out_buf_max + TDS_ADDITIONAL_SPACE);
-		if (!packet_next)
-			return TDS_FAIL;
-
 		hdr = (TDS72_SMP_HEADER *) packet_next->buf;
 		hdr->signature = TDS72_SMP;
 		hdr->type = TDS_SMP_DATA;
 
-		next_buf = packet_next->buf + sizeof(TDS72_SMP_HEADER);
-	} else {
-		packet_next = tds_get_packet(tds->conn, tds->out_buf_max + TDS_ADDITIONAL_SPACE);
-		if (!packet_next)
-			return TDS_FAIL;
-		next_buf = packet_next->buf;
+		next_buf += sizeof(TDS72_SMP_HEADER);
 	}
 	memcpy(next_buf + 8, tds->out_buf + tds->out_buf_max, left);
 
@@ -768,7 +764,6 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 
 	tds->send_packet = packet_next;
 	tds->out_buf = next_buf;
-	tds->out_pos = left + 8;
 #else /* !ENABLE_ODBC_MARS */
 	tdsdump_dump_buf(TDS_DBG_NETWORK, "Sending packet", tds->out_buf, tds->out_pos);
 
@@ -777,8 +772,9 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 		TDS_FAIL : TDS_SUCCESS;
 
 	memcpy(tds->out_buf + 8, tds->out_buf + tds->out_buf_max, left);
-	tds->out_pos = left + 8;
 #endif /* !ENABLE_ODBC_MARS */
+
+	tds->out_pos = left + 8;
 
 	if (TDS_UNLIKELY(tds->conn->encrypt_single_packet)) {
 		tds->conn->encrypt_single_packet = 0;
