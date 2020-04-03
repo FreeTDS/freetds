@@ -22,13 +22,13 @@ static void Test(void)
 
 	/* this should not fail or return warnings */
 	if (use_cursors) {
-		CHKSetStmtAttr(SQL_ATTR_CONCURRENCY, int2ptr(SQL_CONCUR_READ_ONLY), 0, "S");
-		CHKSetStmtAttr(SQL_ATTR_CURSOR_TYPE, int2ptr(SQL_CURSOR_STATIC), 0, "S");
+		CHKSetStmtAttr(SQL_ATTR_CONCURRENCY, TDS_INT2PTR(SQL_CONCUR_READ_ONLY), 0, "S");
+		CHKSetStmtAttr(SQL_ATTR_CURSOR_TYPE, TDS_INT2PTR(SQL_CURSOR_STATIC), 0, "S");
 	}
 	CHKPrepare(T("SELECT c, i FROM #cursor6_test"), SQL_NTS, "S");
 	CHKExecute("S");
-	CHKSetStmtAttr(SQL_ATTR_ROW_BIND_TYPE, int2ptr(sizeof(data[0])), 0, "S");
-	CHKSetStmtAttr(SQL_ATTR_ROW_ARRAY_SIZE, int2ptr(ROWS), 0, "S");
+	CHKSetStmtAttr(SQL_ATTR_ROW_BIND_TYPE, TDS_INT2PTR(sizeof(data[0])), 0, "S");
+	CHKSetStmtAttr(SQL_ATTR_ROW_ARRAY_SIZE, TDS_INT2PTR(ROWS), 0, "S");
 	CHKSetStmtAttr(SQL_ATTR_ROW_STATUS_PTR, statuses, 0, "S");
 	CHKSetStmtAttr(SQL_ATTR_ROWS_FETCHED_PTR, &num_row, 0, "S");
 	if (bind_all)

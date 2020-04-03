@@ -5,6 +5,7 @@
 #include "common.h"
 #include <freetds/thread.h>
 #include <freetds/utils.h>
+#include <freetds/macros.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -97,7 +98,7 @@ test(DBPROCESS *dbproc)
 static TDS_THREAD_PROC_DECLARE(thread_test, arg)
 {
 	int i;
-	int num = ptr2int(arg);
+	int num = TDS_PTR2INT(arg);
 	DBPROCESS *dbproc;
 	LOGINREC *login;
 
@@ -205,7 +206,7 @@ main(int argc, char **argv)
 	}
 
 	for (i = 0; i < NUM_THREAD; ++i) {
-		int err = tds_thread_create(&th[i], thread_test, int2ptr(i));
+		int err = tds_thread_create(&th[i], thread_test, TDS_INT2PTR(i));
 		if (err != 0)
 		{
 			fprintf(stderr, "Error %d (%s) creating thread\n", err, strerror(err));

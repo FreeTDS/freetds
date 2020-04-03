@@ -83,7 +83,7 @@ init_fake_server(int ip_port)
 		CLOSESOCKET(s);
 		return 1;
 	}
-	if (tds_thread_create(&fake_thread, fake_thread_proc, int2ptr(s)) != 0) {
+	if (tds_thread_create(&fake_thread, fake_thread_proc, TDS_INT2PTR(s)) != 0) {
 		perror("tds_thread_create");
 		exit(1);
 	}
@@ -161,7 +161,7 @@ static enum { sending, receiving } flow = sending;
 
 static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 {
-	TDS_SYS_SOCKET s = ptr2int(arg), server_sock;
+	TDS_SYS_SOCKET s = TDS_PTR2INT(arg), server_sock;
 	socklen_t sock_len;
 	int len;
 	char buf[128];

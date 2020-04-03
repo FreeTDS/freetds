@@ -27,9 +27,7 @@
 
 #include "tds_sysdep_public.h"
 #include <freetds/thread.h>
-
-#define int2ptr(i) ((void*)(((char*)0)+(i)))
-#define ptr2int(p) ((int)(((char*)(p))-((char*)0)))
+#include <freetds/macros.h>
 
 #if !defined(TDS_NO_THREADSAFE)
 
@@ -73,7 +71,7 @@ test(tds_mutex *mtx)
 		exit(1);
 	}
 
-	if (ptr2int(res) != 0) {
+	if (TDS_PTR2INT(res) != 0) {
 		fprintf(stderr, "mutex should be locked inside thread\n");
 		exit(1);
 	}

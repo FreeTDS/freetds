@@ -92,11 +92,11 @@ test_params(void)
 	}
 
 	/* test setting just some test pointers */
-	set_ipd_params1((SQLULEN *) int2ptr(0x01020304));
+	set_ipd_params1((SQLULEN *) TDS_INT2PTR(0x01020304));
 	check_ipd_params();
-	set_ipd_params2((SQLULEN *) int2ptr(0xabcdef12));
+	set_ipd_params2((SQLULEN *) TDS_INT2PTR(0xabcdef12));
 	check_ipd_params();
-	set_ipd_params3((SQLULEN *) int2ptr(0x87654321));
+	set_ipd_params3((SQLULEN *) TDS_INT2PTR(0x87654321));
 	check_ipd_params();
 
 	/* now see results */
@@ -110,7 +110,7 @@ test_params(void)
 		(*p)(&len);
 		check_ipd_params();
 
-		CHKSetStmtAttr(SQL_ATTR_PARAMSET_SIZE, (void *) int2ptr(ARRAY_SIZE), 0, "S");
+		CHKSetStmtAttr(SQL_ATTR_PARAMSET_SIZE, (void *) TDS_INT2PTR(ARRAY_SIZE), 0, "S");
 		CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_ULONG, SQL_INTEGER, 5, 0, ids, 0, id_lens, "S");
 
 		odbc_command("INSERT INTO #tmp1(i) VALUES(?)");
@@ -202,9 +202,9 @@ test_rows(void)
 	}
 
 	/* test setting just some test pointers */
-	set_ird_params1((SQLULEN *) int2ptr(0x01020304));
+	set_ird_params1((SQLULEN *) TDS_INT2PTR(0x01020304));
 	check_ird_params();
-	set_ird_params2((SQLULEN *) int2ptr(0xabcdef12));
+	set_ird_params2((SQLULEN *) TDS_INT2PTR(0xabcdef12));
 	check_ird_params();
 
 	/* now see results */
@@ -222,19 +222,19 @@ test_rows(void)
 		check_ird_params();
 
 #if 0
-		CHKSetStmtAttr(SQL_ATTR_PARAMSET_SIZE, (void *) int2ptr(ARRAY_SIZE), 0, "S");
+		CHKSetStmtAttr(SQL_ATTR_PARAMSET_SIZE, (void *) TDS_INT2PTR(ARRAY_SIZE), 0, "S");
 		CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_ULONG, SQL_INTEGER, 5, 0, ids, 0, id_lens, "S");
 #endif
 
 		CHKBindCol(1, SQL_C_ULONG, ids, 0, id_lens, "S");
 		if (*p) {
-			CHKSetStmtAttr(SQL_ATTR_ROW_ARRAY_SIZE, (void *) int2ptr(ARRAY_SIZE), 0, "S");
+			CHKSetStmtAttr(SQL_ATTR_ROW_ARRAY_SIZE, (void *) TDS_INT2PTR(ARRAY_SIZE), 0, "S");
 
 			odbc_command("SELECT DISTINCT i FROM #tmp1");
 			SQLFetch(odbc_stmt);
 			test_name = "SQLSetStmtAttr";
 		} else {
-			CHKSetStmtAttr(SQL_ROWSET_SIZE, (void *) int2ptr(ARRAY_SIZE), 0, "S");
+			CHKSetStmtAttr(SQL_ROWSET_SIZE, (void *) TDS_INT2PTR(ARRAY_SIZE), 0, "S");
 			odbc_command("SELECT DISTINCT i FROM #tmp1");
 			CHKExtendedFetch(SQL_FETCH_NEXT, 0, &len, NULL, "S");
 			test_name = "SQLExtendedFetch";

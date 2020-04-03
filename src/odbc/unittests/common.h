@@ -26,6 +26,7 @@
 #include <sqlucode.h>
 
 #include <freetds/sysdep_private.h>
+#include <freetds/macros.h>
 
 #ifndef HAVE_SQLLEN
 #ifndef SQLULEN
@@ -176,8 +177,6 @@ int odbc_driver_is_freetds(void);
 int odbc_tds_version(void);
 
 #define ODBC_VECTOR_SIZE(x) (sizeof(x)/sizeof(x[0]))
-#define int2ptr(i) ((void*)(((char*)0)+(i)))
-#define ptr2int(p) ((int)(((char*)(p))-((char*)0)))
 
 #if !HAVE_SETENV
 void odbc_setenv(const char *name, const char *value, int overwrite);

@@ -35,7 +35,7 @@ main(int argc, char **argv)
 
 	CHKSetCursorName(T("c112"), SQL_NTS, "S");
 
-	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, int2ptr(SQL_AUTOCOMMIT_OFF), 0, "S");
+	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, TDS_INT2PTR(SQL_AUTOCOMMIT_OFF), 0, "S");
 
 	CHKPrepare(T("SELECT * FROM #t1 FOR UPDATE"), SQL_NTS, "S");
 
@@ -49,7 +49,7 @@ main(int argc, char **argv)
 
 	CHKEndTran(SQL_HANDLE_DBC, odbc_conn, SQL_COMMIT, "S");
 
-	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, int2ptr(SQL_AUTOCOMMIT_ON), 0, "S");
+	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, TDS_INT2PTR(SQL_AUTOCOMMIT_ON), 0, "S");
 
 	CHKExecDirect(T("SELECT c FROM #t1 WHERE k = 1"), SQL_NTS, "S");
 

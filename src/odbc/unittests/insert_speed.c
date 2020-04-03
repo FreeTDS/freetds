@@ -42,7 +42,7 @@ insert_test_man(void)
 
 	char string[64];
 
-	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, int2ptr(commit_off), SQL_IS_INTEGER, "SI");
+	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, TDS_INT2PTR(commit_off), SQL_IS_INTEGER, "SI");
 
 	odbc_reset_statement();
 
@@ -56,7 +56,7 @@ insert_test_man(void)
 	}
 
 	SQLEndTran(SQL_HANDLE_DBC, odbc_conn, SQL_COMMIT);
-	SQLSetConnectAttr(odbc_conn, SQL_ATTR_AUTOCOMMIT, int2ptr(commit_on), SQL_IS_INTEGER);
+	SQLSetConnectAttr(odbc_conn, SQL_ATTR_AUTOCOMMIT, TDS_INT2PTR(commit_on), SQL_IS_INTEGER);
 	odbc_reset_statement();
 }
 

@@ -71,7 +71,7 @@ init_fake_server(int ip_port)
 		return 1;
 	}
 	listen(s, 5);
-	err = tds_thread_create(&fake_thread, fake_thread_proc, int2ptr(s));
+	err = tds_thread_create(&fake_thread, fake_thread_proc, TDS_INT2PTR(s));
 	if (err != 0) {
 		perror("tds_thread_create");
 		exit(1);
@@ -82,7 +82,7 @@ init_fake_server(int ip_port)
 /* accept a socket and read data as much as you can */
 static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 {
-	TDS_SYS_SOCKET s = ptr2int(arg), sock;
+	TDS_SYS_SOCKET s = TDS_PTR2INT(arg), sock;
 	socklen_t len;
 	char buf[128];
 	struct sockaddr_in sin;

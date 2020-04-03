@@ -6,7 +6,7 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static void
 test_err(int n)
 {
-	CHKSetStmtAttr(SQL_ROWSET_SIZE, (SQLPOINTER) int2ptr(n), 0, "E");
+	CHKSetStmtAttr(SQL_ROWSET_SIZE, (SQLPOINTER) TDS_INT2PTR(n), 0, "E");
 	odbc_read_error();
 	if (strcmp(odbc_sqlstate, "HY024") != 0) {
 		fprintf(stderr, "Unexpected sql state returned\n");
@@ -47,8 +47,8 @@ main(int argc, char *argv[])
 	odbc_check_cursor();
 
 	/* set some correct values */
-	CHKSetStmtAttr(SQL_ROWSET_SIZE, (SQLPOINTER) int2ptr(2), 0, "S");
-	CHKSetStmtAttr(SQL_ROWSET_SIZE, (SQLPOINTER) int2ptr(1), 0, "S");
+	CHKSetStmtAttr(SQL_ROWSET_SIZE, (SQLPOINTER) TDS_INT2PTR(2), 0, "S");
+	CHKSetStmtAttr(SQL_ROWSET_SIZE, (SQLPOINTER) TDS_INT2PTR(1), 0, "S");
 
 	/* now check that SQLExtendedFetch works as expected */
 	odbc_command("CREATE TABLE #rowset(n INTEGER, c VARCHAR(20))");

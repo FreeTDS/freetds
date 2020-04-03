@@ -32,10 +32,8 @@
 #include "tds_sysdep_public.h"
 #include <freetds/thread.h>
 #include <freetds/utils.h>
+#include <freetds/macros.h>
 #include "replacements.h"
-
-#define int2ptr(i) ((void*)(((char*)0)+(i)))
-#define ptr2int(p) ((int)(((char*)(p))-((char*)0)))
 
 #if !defined(TDS_NO_THREADSAFE)
 
@@ -84,7 +82,7 @@ int main(void)
 	res = &th;
 	check(tds_thread_join(th, &res) != 0, "error waiting thread");
 
-	check(ptr2int(res) != 0, "error signaling condition");
+	check(TDS_PTR2INT(res) != 0, "error signaling condition");
 
 	/* under Windows mutex are recursive */
 #ifndef _WIN32
@@ -102,7 +100,7 @@ int main(void)
 	res = &th;
 	check(tds_thread_join(th, &res) != 0, "error waiting thread");
 
-	check(ptr2int(res) != 0, "error signaling condition");
+	check(TDS_PTR2INT(res) != 0, "error signaling condition");
 
 	check(tds_thread_create(&th, signal_proc, &cond) != 0, "error creating thread");
 
@@ -111,7 +109,7 @@ int main(void)
 	res = &th;
 	check(tds_thread_join(th, &res) != 0, "error waiting thread");
 
-	check(ptr2int(res) != 0, "error signaling condition");
+	check(TDS_PTR2INT(res) != 0, "error signaling condition");
 
 	tds_mutex_unlock(&mtx);
 

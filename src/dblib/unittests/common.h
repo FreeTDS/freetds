@@ -97,7 +97,4 @@ RETCODE sql_cmd(DBPROCESS *dbproc);
 RETCODE sql_rewind(void);
 RETCODE sql_reopen(const char *fn);
 
-#define int2ptr(i) ((void*)(((char*)0)+(i)))
-#define ptr2int(p) ((int)(((char*)(p))-((char*)0)))
-
 #endif

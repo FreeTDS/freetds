@@ -138,7 +138,7 @@ main(int argc, char **argv)
 			concise_type = p->type;
 			SQLGetStmtAttr(odbc_stmt, SQL_ATTR_APP_PARAM_DESC, &desc, sizeof(desc), &ind);
 			if (SQL_SUCCEEDED
-			    (SQLSetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, int2ptr(concise_type), sizeof(SQLSMALLINT))))
+			    (SQLSetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, TDS_INT2PTR(concise_type), sizeof(SQLSMALLINT))))
 			{
 				SQLGetDescField(desc, 1, SQL_DESC_TYPE, &type, sizeof(SQLSMALLINT), &ind);
 				SQLGetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, &concise_type, sizeof(SQLSMALLINT), &ind);
@@ -161,7 +161,7 @@ main(int argc, char **argv)
 		SQLSMALLINT concise_type = p->type;
 
 		if (SQL_SUCCEEDED
-		    (SQLSetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, int2ptr(concise_type), sizeof(SQLSMALLINT)))) {
+		    (SQLSetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, TDS_INT2PTR(concise_type), sizeof(SQLSMALLINT)))) {
 			SQLSMALLINT concise_type, type, code;
 
 			concise_type = type = code = 0;

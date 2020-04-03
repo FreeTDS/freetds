@@ -13,7 +13,7 @@
 static void
 AutoCommit(int onoff)
 {
-	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, int2ptr(onoff), 0, "S");
+	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, TDS_INT2PTR(onoff), 0, "S");
 }
 
 static void

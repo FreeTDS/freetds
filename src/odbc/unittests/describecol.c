@@ -384,15 +384,15 @@ main(int argc, char *argv[])
 			ret = SQL_ERROR;
 			switch (attr->type) {
 			case type_INTEGER:
-				ret = SQLSetDescField(desc, 1, attr->value, int2ptr(lookup(value, attr->lookup)),
+				ret = SQLSetDescField(desc, 1, attr->value, TDS_INT2PTR(lookup(value, attr->lookup)),
 						      sizeof(SQLINTEGER));
 				break;
 			case type_SMALLINT:
-				ret = SQLSetDescField(desc, 1, attr->value, int2ptr(lookup(value, attr->lookup)),
+				ret = SQLSetDescField(desc, 1, attr->value, TDS_INT2PTR(lookup(value, attr->lookup)),
 						      sizeof(SQLSMALLINT));
 				break;
 			case type_LEN:
-				ret = SQLSetDescField(desc, 1, attr->value, int2ptr(lookup(value, attr->lookup)),
+				ret = SQLSetDescField(desc, 1, attr->value, TDS_INT2PTR(lookup(value, attr->lookup)),
 						      sizeof(SQLLEN));
 				break;
 			case type_CHARP:

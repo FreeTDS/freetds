@@ -46,7 +46,7 @@ query_test(const char* expected, const char *expected_status)
 		assert(descs && ids && desc_lens && id_lens);
 	} else {
 		rec_size = (sizeof(Record) + (sizeof(SQLCHAR) * desc_len + sizeof(SQLLEN) - 1)) & ~(sizeof(SQLLEN) - 1);
-		SQLSetStmtAttr(odbc_stmt, SQL_ATTR_ROW_BIND_TYPE, int2ptr(rec_size), 0);
+		SQLSetStmtAttr(odbc_stmt, SQL_ATTR_ROW_BIND_TYPE, TDS_INT2PTR(rec_size), 0);
 		rec = (Record *) ODBC_GET(rec_size * ARRAY_SIZE);
 		ids = &rec->id;
 		id_lens = &rec->id_len;

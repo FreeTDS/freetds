@@ -22,7 +22,7 @@ ReadErrorConn(void)
 static void
 AutoCommit(int onoff)
 {
-	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, int2ptr(onoff), 0, "S");
+	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, TDS_INT2PTR(onoff), 0, "S");
 }
 
 static void
@@ -150,7 +150,7 @@ static int hide_error;
 static void
 my_attrs(void)
 {
-	CHKSetConnectAttr(SQL_ATTR_TXN_ISOLATION, int2ptr(global_txn), 0, "S");
+	CHKSetConnectAttr(SQL_ATTR_TXN_ISOLATION, TDS_INT2PTR(global_txn), 0, "S");
 	AutoCommit(SQL_AUTOCOMMIT_OFF);
 }
 
@@ -175,7 +175,7 @@ Test(int txn, const char *expected)
 		ConnectWithTxn(txn);
 		CHKSetStmtAttr(SQL_ATTR_QUERY_TIMEOUT, (SQLPOINTER) 2, 0, "S");
 	} else {
-		CHKSetConnectAttr(SQL_ATTR_TXN_ISOLATION, int2ptr(txn), 0, "S");
+		CHKSetConnectAttr(SQL_ATTR_TXN_ISOLATION, TDS_INT2PTR(txn), 0, "S");
 	}
 	SWAP_CONN();
 
@@ -203,7 +203,7 @@ main(int argc, char *argv[])
 	odbc_connect();
 
 	/* Invalid argument value */
-	CHKSetConnectAttr(SQL_ATTR_TXN_ISOLATION, int2ptr(SQL_TXN_REPEATABLE_READ | SQL_TXN_READ_COMMITTED), 0, "E");
+	CHKSetConnectAttr(SQL_ATTR_TXN_ISOLATION, TDS_INT2PTR(SQL_TXN_REPEATABLE_READ | SQL_TXN_READ_COMMITTED), 0, "E");
 	ReadErrorConn();
 	if (strcmp(odbc_sqlstate, "HY024") != 0) {
 		odbc_disconnect();
@@ -222,7 +222,7 @@ main(int argc, char *argv[])
 
 #ifdef ENABLE_DEVELOPING
 	/* test setting with active transaction "Operation invalid at this time" */
-	CHKSetConnectAttr(SQL_ATTR_TXN_ISOLATION, int2ptr(SQL_TXN_REPEATABLE_READ), 0, "E");
+	CHKSetConnectAttr(SQL_ATTR_TXN_ISOLATION, TDS_INT2PTR(SQL_TXN_REPEATABLE_READ), 0, "E");
 	ReadErrorConn();
 	if (strcmp(odbc_sqlstate, "HY011") != 0) {
 		odbc_disconnect();
@@ -236,7 +236,7 @@ main(int argc, char *argv[])
 	odbc_command("SELECT * FROM test_transaction");
 
 	/* test setting with pending data */
-	CHKSetConnectAttr(SQL_ATTR_TXN_ISOLATION, int2ptr(SQL_TXN_REPEATABLE_READ), 0, "E");
+	CHKSetConnectAttr(SQL_ATTR_TXN_ISOLATION, TDS_INT2PTR(SQL_TXN_REPEATABLE_READ), 0, "E");
 	ReadErrorConn();
 	if (strcmp(odbc_sqlstate, "HY011") != 0) {
 		odbc_disconnect();

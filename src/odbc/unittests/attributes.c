@@ -331,15 +331,15 @@ main(int argc, char *argv[])
 			switch (attr->type) {
 			case type_UINTEGER:
 			case type_INTEGER:
-				ret = SQLSetStmtAttr(odbc_stmt, attr->value, int2ptr(lookup(value, attr->lookup)),
+				ret = SQLSetStmtAttr(odbc_stmt, attr->value, TDS_INT2PTR(lookup(value, attr->lookup)),
 						      sizeof(SQLINTEGER));
 				break;
 			case type_SMALLINT:
-				ret = SQLSetStmtAttr(odbc_stmt, attr->value, int2ptr(lookup(value, attr->lookup)),
+				ret = SQLSetStmtAttr(odbc_stmt, attr->value, TDS_INT2PTR(lookup(value, attr->lookup)),
 						      sizeof(SQLSMALLINT));
 				break;
 			case type_LEN:
-				ret = SQLSetStmtAttr(odbc_stmt, attr->value, int2ptr(lookup(value, attr->lookup)),
+				ret = SQLSetStmtAttr(odbc_stmt, attr->value, TDS_INT2PTR(lookup(value, attr->lookup)),
 						      sizeof(SQLLEN));
 				break;
 			case type_CHARP:
