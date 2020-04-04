@@ -421,7 +421,9 @@ tds7_send_auth(TDSSOCKET * tds,
 	/* FIXME: stuff duplicate in tds7_send_login */
 	const char *domain;
 	const char *user_name;
+	const char *host_name;
 	const char *p;
+	char *convert_buffer;
 	size_t user_name_len, host_name_len, domain_len;
 	TDSRET rc;
 
@@ -437,21 +439,49 @@ tds7_send_auth(TDSSOCKET * tds,
 
 	/* parse a bit of config */
 	user_name = tds_dstr_cstr(&login->user_name);
+	user_name_len = tds_dstr_len(&login->user_name);
+	host_name = tds_dstr_cstr(&login->client_host_name);
 	host_name_len = tds_dstr_len(&login->client_host_name);
 
-	/* parse domain\username */
-	if ((p = strchr(user_name, '\\')) == NULL)
+	/* convert strings */
+	convert_buffer = malloc((user_name_len + host_name_len) * 2);
+	if (!convert_buffer)
 		return TDS_FAIL;
+
+	user_name_len = convert_to_usc2le_string(tds, user_name, user_name_len, convert_buffer);
+	user_name = convert_buffer;
+	if (user_name_len != (size_t) -1) {
+		host_name_len = convert_to_usc2le_string(tds, host_name, host_name_len, convert_buffer + user_name_len);
+		host_name = convert_buffer + user_name_len;
+	}
+	if (user_name_len == (size_t) -1 || host_name_len == (size_t) -1) {
+		free(convert_buffer);
+		return TDS_FAIL;
+	}
+
+	/* parse domain\username */
+	p = user_name;
+	for (;;) {
+		if (p >= user_name + user_name_len) {
+			free(convert_buffer);
+			return TDS_FAIL;
+		}
+		if (p[0] == '\\' && p[1] == 0)
+			break;
+		p += 2;
+	}
 
 	domain = user_name;
 	domain_len = p - user_name;
 
-	user_name = p + 1;
-	user_name_len = strlen(user_name);
+	user_name = p + 2;
+	user_name_len = domain + user_name_len - user_name;
 
 	rc = tds_answer_challenge(tds, login, challenge, &flags, names_blob, names_blob_len, &answer, &ntlm_v2_response);
-	if (TDS_FAILED(rc))
+	if (TDS_FAILED(rc)) {
+		free(convert_buffer);
 		return rc;
+	}
 
 	ntlm_response_len = ntlm_v2_response ? 16 + names_blob_len : 24;
 	/* ntlm_response_len = 0; */
@@ -460,8 +490,7 @@ tds7_send_auth(TDSSOCKET * tds,
 	tds_put_n(tds, "NTLMSSP", 8);
 	tds_put_int(tds, 3);	/* sequence 3 */
 
-	/* FIXME *2 work only for single byte encodings */
-	current_pos = 64u + (domain_len + user_name_len + host_name_len) * 2u;
+	current_pos = 64u + domain_len + user_name_len + host_name_len;
 
 	/* LM/LMv2 Response */
 	tds_put_smallint(tds, lm_response_len);	/* lan man resp length */
@@ -477,22 +506,22 @@ tds7_send_auth(TDSSOCKET * tds,
 	current_pos = 64;
 
 	/* Target Name - domain or server name */
-	TDS_PUT_SMALLINT(tds, domain_len * 2);
-	TDS_PUT_SMALLINT(tds, domain_len * 2);
+	TDS_PUT_SMALLINT(tds, domain_len);
+	TDS_PUT_SMALLINT(tds, domain_len);
 	TDS_PUT_INT(tds, current_pos);
-	current_pos += domain_len * 2u;
+	current_pos += domain_len;
 
 	/* username */
-	TDS_PUT_SMALLINT(tds, user_name_len * 2);
-	TDS_PUT_SMALLINT(tds, user_name_len * 2);
+	TDS_PUT_SMALLINT(tds, user_name_len);
+	TDS_PUT_SMALLINT(tds, user_name_len);
 	TDS_PUT_INT(tds, current_pos);
-	current_pos += user_name_len * 2u;
+	current_pos += user_name_len;
 
 	/* Workstation Name */
-	TDS_PUT_SMALLINT(tds, host_name_len * 2);
-	TDS_PUT_SMALLINT(tds, host_name_len * 2);
+	TDS_PUT_SMALLINT(tds, host_name_len);
+	TDS_PUT_SMALLINT(tds, host_name_len);
 	TDS_PUT_INT(tds, current_pos);
-	current_pos += host_name_len * 2u;
+	current_pos += host_name_len;
 
 	/* Session Key (optional) */
 	tds_put_smallint(tds, 0);
@@ -507,9 +536,9 @@ tds7_send_auth(TDSSOCKET * tds,
 	/* OS Version Structure (Optional) */
 
 	/* Data itself */
-	tds_put_string(tds, domain, (int)domain_len);
-	tds_put_string(tds, user_name, (int)user_name_len);
-	tds_put_string(tds, tds_dstr_cstr(&login->client_host_name), (int)host_name_len);
+	tds_put_n(tds, domain, domain_len);
+	tds_put_n(tds, user_name, user_name_len);
+	tds_put_n(tds, host_name, host_name_len);
 
 	/* data block */
 	tds_put_n(tds, answer.lm_resp, lm_response_len);
@@ -527,6 +556,7 @@ tds7_send_auth(TDSSOCKET * tds,
 	/* for security reason clear structure */
 	memset(&answer, 0, sizeof(TDSANSWER));
 
+	free(convert_buffer);
 	return tds_flush_packet(tds);
 }
 
