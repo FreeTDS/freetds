@@ -1962,7 +1962,7 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
  * \returns TDS_FAIL or TDS_SUCCESS
  */
 static TDSRET
-tds_send_emulated_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
+tds4_send_emulated_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 {
 	TDSCOLUMN *param;
 	int i, n;
@@ -2095,7 +2095,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params, TDS
 
 	/* emulate it for TDS4.x, send RPC for mssql */
 	if (tds->conn->tds_version < 0x500)
-		return tds_send_emulated_rpc(tds, rpc_name, params);
+		return tds4_send_emulated_rpc(tds, rpc_name, params);
 
 	/* TODO continue, support for TDS4?? */
 	tds_set_state(tds, TDS_IDLE);
