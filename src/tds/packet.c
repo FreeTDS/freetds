@@ -77,7 +77,7 @@ tds_get_packet(TDSCONNECTION *conn, unsigned len)
 		if (packet->capacity >= len) {
 			TDS_MARK_UNDEFINED(packet->buf, packet->capacity);
 			packet->next = NULL;
-			packet->len = 0;
+			packet->data_len = 0;
 			packet->sid = 0;
 			break;
 		}
@@ -140,16 +140,16 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 		if (!packet) goto Memory_Error;
 		TDS_MARK_UNDEFINED(packet->buf, packet->capacity);
 		conn->recv_pos = 0;
-		packet->len = 8;
+		packet->data_len = 8;
 	}
 
-	assert(conn->recv_pos < packet->len && packet->len <= packet->capacity);
+	assert(conn->recv_pos < packet->data_len && packet->data_len <= packet->capacity);
 
-	len = tds_connection_read(tds, packet->buf + conn->recv_pos, packet->len - conn->recv_pos);
+	len = tds_connection_read(tds, packet->buf + conn->recv_pos, packet->data_len - conn->recv_pos);
 	if (len < 0)
 		goto Severe_Error;
 	conn->recv_pos += len;
-	assert(conn->recv_pos <= packet->len && packet->len <= packet->capacity);
+	assert(conn->recv_pos <= packet->data_len && packet->data_len <= packet->capacity);
 
 	/* handle SMP */
 	if (conn->recv_pos > 0 && packet->buf[0] == TDS72_SMP) {
@@ -159,7 +159,7 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 		TDS_UINT size;
 
 		if (conn->recv_pos < 16) {
-			packet->len = 16;
+			packet->data_len = 16;
 			return;
 		}
 
@@ -188,7 +188,7 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 			tds_mutex_unlock(&conn->list_mtx);
 
 			/* reset packet to initial state to reuse it */
-			packet->len = 8;
+			packet->data_len = 8;
 			conn->recv_pos = 0;
 			return;
 		}
@@ -227,27 +227,27 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 
 		if (mars_header.type != TDS_SMP_DATA)
 			return;
-		if (packet->len < size) {
+		if (packet->data_len < size) {
 			packet = tds_realloc_packet(packet, size);
 			if (!packet) goto Memory_Error;
 			conn->recv_packet = packet;
 		}
-		packet->len = size;
+		packet->data_len = size;
 		return;
 	}
-	assert(conn->recv_pos <= packet->len && packet->len <= packet->capacity);
+	assert(conn->recv_pos <= packet->data_len && packet->data_len <= packet->capacity);
 
 	/* normal packet */
 	if (conn->recv_pos >= 8) {
 		len = TDS_GET_A2BE(&packet->buf[2]);
 		if (len < 8)
 			goto Severe_Error;
-		if (packet->len < len) {
+		if (packet->data_len < len) {
 			packet = tds_realloc_packet(packet, len);
 			if (!packet) goto Memory_Error;
 			conn->recv_packet = packet;
 		}
-		packet->len = len;
+		packet->data_len = len;
 	}
 	return;
 
@@ -285,7 +285,7 @@ tds_build_packet(TDSSOCKET *tds, unsigned char *buf, unsigned len)
 		packet->sid = tds->sid;
 		memcpy(packet->buf, mars, start);
 		memcpy(packet->buf + start, buf, len);
-		packet->len = len + start;
+		packet->data_len = len + start;
 	}
 	return packet;
 }
@@ -389,12 +389,12 @@ tds_connection_network(TDSCONNECTION *conn, TDSSOCKET *tds, int send)
 			/* try to read a packet */
 			tds_packet_read(conn, tds);
 			packet = conn->recv_packet;
-			if (!packet || conn->recv_pos < packet->len)
+			if (!packet || conn->recv_pos < packet->data_len)
 				continue;	/* packet not complete */
 			conn->recv_packet = NULL;
 			conn->recv_pos = 0;
 
-			tdsdump_dump_buf(TDS_DBG_NETWORK, "Received packet", packet->buf, packet->len);
+			tdsdump_dump_buf(TDS_DBG_NETWORK, "Received packet", packet->buf, packet->data_len);
 
 			tds_mutex_lock(&conn->list_mtx);
 			if (packet->sid < conn->num_sessions) {
@@ -528,7 +528,7 @@ tds_read_packet(TDSSOCKET * tds)
 
 			hdr_size = packet->buf[0] == TDS72_SMP ? sizeof(TDS72_SMP_HEADER) : 0;
 			tds->in_buf = packet->buf + hdr_size;
-			tds->in_len = packet->len - hdr_size;
+			tds->in_len = packet->data_len - hdr_size;
 			tds->in_pos  = 8;
 			tds->in_flag = tds->in_buf[0];
 
@@ -623,7 +623,7 @@ tds_update_recv_wnd(TDSSOCKET *tds, TDS_UINT new_recv_wnd)
 	if (!packet)
 		return TDS_FAIL;	/* TODO check result */
 
-	packet->len = sizeof(*mars);
+	packet->data_len = sizeof(*mars);
 	packet->sid = tds->sid;
 
 	mars = (TDS72_SMP_HEADER *) packet->buf;
@@ -730,7 +730,7 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 		tds->out_buf[6] = 0x01;
 
 #if ENABLE_ODBC_MARS
-	tds->send_packet->len = tds->out_buf + tds->out_pos - tds->send_packet->buf;
+	tds->send_packet->data_len = tds->out_buf + tds->out_pos - tds->send_packet->buf;
 
 	packet_next = tds_get_packet(tds->conn, tds->send_packet->capacity);
 	if (!packet_next)
@@ -823,7 +823,7 @@ tds_packet_write(TDSCONNECTION *conn)
 	assert(packet);
 
 	if (conn->send_pos == 0)
-		tdsdump_dump_buf(TDS_DBG_NETWORK, "Sending packet", packet->buf, packet->len);
+		tdsdump_dump_buf(TDS_DBG_NETWORK, "Sending packet", packet->buf, packet->data_len);
 
 	/* take into account other session packets */
 	if (packet->next != NULL)
@@ -835,7 +835,7 @@ tds_packet_write(TDSCONNECTION *conn)
 		final = 1;
 
 	sent = tds_connection_write(conn->in_net_tds, packet->buf + conn->send_pos,
-				    packet->len - conn->send_pos, final);
+				    packet->data_len - conn->send_pos, final);
 
 	if (TDS_UNLIKELY(sent < 0)) {
 		/* TODO tdserror called ?? */
@@ -846,7 +846,7 @@ tds_packet_write(TDSCONNECTION *conn)
 	/* update sent data */
 	conn->send_pos += sent;
 	/* remove packet if sent all data */
-	if (conn->send_pos >= packet->len) {
+	if (conn->send_pos >= packet->data_len) {
 		uint16_t sid = packet->sid;
 		TDSSOCKET *tds;
 		tds_mutex_lock(&conn->list_mtx);

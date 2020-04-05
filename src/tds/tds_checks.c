@@ -44,7 +44,7 @@ tds_check_packet_extra(const TDSPACKET * packet)
 {
 	assert(packet);
 	for (; packet; packet = packet->next) {
-		assert(packet->len <= packet->capacity);
+		assert(packet->data_len <= packet->capacity);
 	}
 }
 
@@ -92,9 +92,9 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 
 #if ENABLE_ODBC_MARS
 	if (tds->conn->send_packets)
-		assert(tds->conn->send_pos <= tds->conn->send_packets->len);
+		assert(tds->conn->send_pos <= tds->conn->send_packets->data_len);
 	if (tds->conn->recv_packet)
-		assert(tds->conn->recv_pos <= tds->conn->recv_packet->len);
+		assert(tds->conn->recv_pos <= tds->conn->recv_packet->data_len);
 	if (tds->conn->mars)
 		assert(tds->out_buf >= tds->send_packet->buf + sizeof(TDS72_SMP_HEADER));
 #endif
