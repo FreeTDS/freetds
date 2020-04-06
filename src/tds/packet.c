@@ -158,8 +158,9 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 		TDSSOCKET *tds;
 		TDS_UINT size;
 
-		if (conn->recv_pos < 16) {
-			packet->data_len = 16;
+		/* make sure we read the header */
+		if (conn->recv_pos < sizeof(mars_header)) {
+			packet->data_len = sizeof(mars_header);
 			return;
 		}
 
