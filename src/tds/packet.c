@@ -214,7 +214,7 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 				goto Severe_Error;
 			tds->recv_seq = TDS_GET_A4LE(&mars_header.seq);
 			/*
-			 * does not sent ACK here cause this would lead to memory waste
+			 * do not sent ACK here because this would lead to memory waste
 			 * if session is not able to handle all that packets
 			 */
 		} else if (mars_header.type == TDS_SMP_FIN) {
