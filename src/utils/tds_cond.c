@@ -64,7 +64,7 @@ new_cond_signal(tds_condition * cond)
 static int
 new_cond_timedwait(tds_condition * cond, tds_raw_mutex * mtx, int timeout_sec)
 {
-	if (sleep_cv(&cond->cv, &mtx->crit, timeout_sec < 0 ? INFINITE : timeout_sec * 1000))
+	if (sleep_cv(&cond->cv, &mtx->crit, timeout_sec <= 0 ? INFINITE : timeout_sec * 1000))
 		return 0;
 	return ETIMEDOUT;
 }
@@ -205,7 +205,7 @@ int tds_raw_cond_timedwait(tds_condition *cond, tds_raw_mutex *mtx, int timeout_
 	struct timeval tv;
 #endif
 
-	if (timeout_sec < 0)
+	if (timeout_sec <= 0)
 		return tds_raw_cond_wait(cond, mtx);
 
 #if defined(HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE_NP)
