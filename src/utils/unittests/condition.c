@@ -99,7 +99,7 @@ int main(void)
 
 	check(tds_cond_timedwait(&cond, &mtx, 1), "error on timed waiting condition");
 
-	res = &th;
+	res = &th; /* just to avoid NULL */
 	check(tds_thread_join(th, &res) != 0, "error waiting thread");
 
 	check(ptr2int(res) != 0, "error signaling condition");
@@ -108,7 +108,16 @@ int main(void)
 
 	check(tds_cond_timedwait(&cond, &mtx, -1), "error on timed waiting condition");
 
-	res = &th;
+	res = &th; /* just to avoid NULL */
+	check(tds_thread_join(th, &res) != 0, "error waiting thread");
+
+	check(ptr2int(res) != 0, "error signaling condition");
+
+	check(tds_thread_create(&th, signal_proc, &cond) != 0, "error creating thread");
+
+	check(tds_cond_timedwait(&cond, &mtx, 0), "error on timed waiting condition");
+
+	res = &th; /* just to avoid NULL */
 	check(tds_thread_join(th, &res) != 0, "error waiting thread");
 
 	check(ptr2int(res) != 0, "error signaling condition");
