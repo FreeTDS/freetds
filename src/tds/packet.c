@@ -501,13 +501,16 @@ tds_connection_put_packet(TDSSOCKET *tds, TDSPACKET *packet)
 
 		/* wait local condition */
 		wait_res = tds_cond_timedwait(&tds->packet_cond, &conn->list_mtx, tds->query_timeout);
-		if (wait_res == ETIMEDOUT
-		    && tdserror(tds_get_ctx(tds), tds, TDSETIME, ETIMEDOUT) != TDS_INT_CONTINUE) {
-			tds_mutex_unlock(&conn->list_mtx);
+		if (wait_res != ETIMEDOUT)
+			continue;
+
+		tds_mutex_unlock(&conn->list_mtx);
+		if (tdserror(tds_get_ctx(tds), tds, TDSETIME, ETIMEDOUT) != TDS_INT_CONTINUE) {
 			tds_close_socket(tds);
 			tds_free_packets(packet);
 			return TDS_FAIL;
 		}
+		tds_mutex_lock(&conn->list_mtx);
 	}
 	tds_mutex_unlock(&conn->list_mtx);
 	if (TDS_UNLIKELY(packet)) {
@@ -582,12 +585,15 @@ tds_read_packet(TDSSOCKET * tds)
 
 		/* wait local condition */
 		wait_res = tds_cond_timedwait(&tds->packet_cond, &conn->list_mtx, tds->query_timeout);
-		if (wait_res == ETIMEDOUT
-		    && tdserror(tds_get_ctx(tds), tds, TDSETIME, ETIMEDOUT) != TDS_INT_CONTINUE) {
-			tds_mutex_unlock(&conn->list_mtx);
+		if (wait_res != ETIMEDOUT)
+			continue;
+
+		tds_mutex_unlock(&conn->list_mtx);
+		if (tdserror(tds_get_ctx(tds), tds, TDSETIME, ETIMEDOUT) != TDS_INT_CONTINUE) {
 			tds_close_socket(tds);
 			return -1;
 		}
+		tds_mutex_lock(&conn->list_mtx);
 	}
 
 	tds_mutex_unlock(&conn->list_mtx);
