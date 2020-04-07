@@ -29,7 +29,7 @@ set(tests
 	array_error closestmt bcp
 	all_types utf8_3 empty_query
 	transaction3 transaction4
-	utf8_4
+	utf8_4 qn
 )
 
 if(WIN32)
