@@ -636,12 +636,13 @@ tds_iconv(TDSSOCKET * tds, TDSICONV * conv, TDS_ICONV_DIRECTION io,
 		size_t len = *inbytesleft < *outbytesleft ? *inbytesleft : *outbytesleft;
 
 		memcpy(*outbuf, *inbuf, len);
-		errno = *inbytesleft > *outbytesleft ? E2BIG : 0;
+		conv_errno = *inbytesleft > *outbytesleft ? E2BIG : 0;
 		*inbytesleft -= len;
 		*outbytesleft -= len;
 		*inbuf += len;
 		*outbuf += len;
-		return 0;
+		errno = conv_errno;
+		return conv_errno ? (size_t) -1 : 0;
 	}
 
 	/*
