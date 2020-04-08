@@ -36,6 +36,13 @@ main(int argc, char *argv[])
 	odbc_use_version3 = 1;
 	odbc_connect();
 
+	if (!odbc_db_is_microsoft() || odbc_tds_version() < 0x702) {
+		odbc_disconnect();
+		printf("Query notifications available only using TDS 7.2 or newer\n");
+		odbc_test_skipped();
+		return 0;
+	}
+
 	asprintf(&sql, "ALTER DATABASE %s SET ENABLE_BROKER", odbc_database);
 	odbc_command(sql);
 	free(sql);
