@@ -99,7 +99,7 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 	int res;
 	TDSSTATICINSTREAM r;
 	TDSDATAOUTSTREAM w;
-
+	enum TDS_ICONV_ENTRY iconv_entry;
 
 	if (len < 0) {
 		TDS_ENCODING *client;
@@ -128,7 +128,11 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 	assert(len >= 0);
 
 	/* valid test only if client and server share a character set. TODO conversions for Sybase */
-	if (!IS_TDS7_PLUS(tds->conn))	{
+	if (IS_TDS7_PLUS(tds->conn)) {
+		iconv_entry = client2ucs2;
+	} else if (IS_TDS50(tds->conn)) {
+		iconv_entry = client2server_chardata;
+	} else {
 		tds_put_n(tds, s, len);
 		return len;
 	}
@@ -136,7 +140,7 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 	tds_staticin_stream_init(&r, s, len);
 	tds_dataout_stream_init(&w, tds);
 
-	res = tds_convert_stream(tds, tds->conn->char_convs[client2ucs2], to_server, &r.stream, &w.stream);
+	res = tds_convert_stream(tds, tds->conn->char_convs[iconv_entry], to_server, &r.stream, &w.stream);
 	return w.written;
 }
 
