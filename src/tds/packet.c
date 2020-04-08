@@ -437,7 +437,7 @@ tds_connection_put_packet(TDSSOCKET *tds)
 
 	tds_mutex_lock(&conn->list_mtx);
 	tds->sending_packet = packet;
-	for (;;) {
+	while (tds->sending_packet) {
 		int wait_res;
 
 		if (IS_TDSDEAD(tds)) {
