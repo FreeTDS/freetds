@@ -3309,7 +3309,7 @@ tds_send_emulated_execute(TDSSOCKET * tds, const char *query, TDSPARAMINFO * par
 	 * NOTE: even for TDS5 we use this packet so to avoid computing 
 	 * entire sql command
 	 */
-	tds_start_query(tds, TDS_QUERY);
+	tds->out_flag = TDS_QUERY;
 	if (!num_placeholders) {
 		tds_put_string(tds, query, -1);
 		return TDS_SUCCESS;
