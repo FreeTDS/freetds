@@ -30,7 +30,6 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 	assert(odbc_stmt != SQL_NULL_HSTMT);
 	odbc_reset_statement();
 
-	odbc_command_with_result(odbc_stmt, "drop table #tmp1");
 	odbc_command("create table #tmp1 (id tinyint, value char(20))");
 
 	SQLSetStmtAttr(odbc_stmt, SQL_ATTR_PARAM_BIND_TYPE, SQL_PARAM_BIND_BY_COLUMN, 0);
@@ -128,11 +127,11 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 		if (ret != SQL_SUCCESS)
 			odbc_read_error();
 		failure = 1;
-		odbc_reset_statement();
-		return;
 	}
 
 	odbc_reset_statement();
+
+	odbc_command_with_result(odbc_stmt, "drop table #tmp1");
 }
 
 int
