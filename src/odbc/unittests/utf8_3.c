@@ -6,7 +6,6 @@
 int
 main(int argc, char *argv[])
 {
-	SQLSMALLINT slen;
 	SQLLEN len;
 	unsigned char buf[30];
 	static const char expected[] = "\xf0\x9f\x8e\x84";

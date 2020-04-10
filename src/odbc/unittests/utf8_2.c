@@ -33,7 +33,6 @@ main(int argc, char *argv[])
 	char tmp[1024];
 	char out[TDS_VECTOR_SIZE(column_names)][32];
 	SQLLEN n_len[TDS_VECTOR_SIZE(column_names)];
-	SQLSMALLINT len;
 	const column_t *p;
 	int n;
 

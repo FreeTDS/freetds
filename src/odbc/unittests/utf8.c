@@ -75,7 +75,6 @@ TestBinding(int minimun)
 int
 main(int argc, char *argv[])
 {
-	SQLSMALLINT len;
 	const char * const*p;
 	SQLINTEGER n;
 
