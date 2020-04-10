@@ -3235,7 +3235,7 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 	switch (curcol->column_type) {
 	/* binary/char, do conversion in line */
 	case SYBBINARY: case SYBVARBINARY: case SYBIMAGE: case XSYBBINARY: case XSYBVARBINARY:
-		tds_put_n(tds, "0x", 2);
+		tds_put_string(tds, "0x", 2);
 		for (i=0; src_len; ++src, --src_len) {
 			buf[i++] = tds_hex_digits[*src >> 4 & 0xF];
 			buf[i++] = tds_hex_digits[*src & 0xF];
