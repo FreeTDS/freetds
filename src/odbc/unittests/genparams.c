@@ -487,6 +487,8 @@ int
 main(int argc, char *argv[])
 {
 	odbc_use_version3 = 1;
+	odbc_conn_additional_params = "ClientCharset=ISO-8859-1;";
+
 	odbc_connect();
 
 	if (((char *) &big_endian)[0] == 1)
