@@ -44,6 +44,7 @@ extern HDBC odbc_conn;
 extern HSTMT odbc_stmt;
 extern int odbc_use_version3;
 extern void (*odbc_set_conn_attr)(void);
+extern const char *odbc_conn_additional_params;
 extern char odbc_err[512];
 extern char odbc_sqlstate[6];
 

@@ -3,16 +3,6 @@
 
 /* test conversion of Hebrew characters (which have shift sequences) */
 
-static void init_connect(void);
-
-static void
-init_connect(void)
-{
-	CHKAllocEnv(&odbc_env, "S");
-	SQLSetEnvAttr(odbc_env, SQL_ATTR_ODBC_VERSION, (SQLPOINTER) (SQL_OV_ODBC3), SQL_IS_UINTEGER);
-	CHKAllocConnect(&odbc_conn, "S");
-}
-
 static const char * const column_names[] = {
 	"hebrew",
 	"cn"
@@ -40,20 +30,17 @@ static const column_t columns[] = {
 int
 main(int argc, char *argv[])
 {
-	char tmp[512*4+64];
+	char tmp[1024];
 	char out[TDS_VECTOR_SIZE(column_names)][32];
 	SQLLEN n_len[TDS_VECTOR_SIZE(column_names)];
 	SQLSMALLINT len;
 	const column_t *p;
 	int n;
 
-	if (odbc_read_login_info())
-		exit(1);
+	odbc_use_version3 = 1;
+	odbc_conn_additional_params = "ClientCharset=UTF-8;";
 
-	/* connect string using DSN */
-	init_connect();
-	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;ClientCharset=UTF-8;", odbc_server, odbc_user, odbc_password, odbc_database);
-	CHKDriverConnect(NULL, T(tmp), SQL_NTS, (SQLTCHAR *) tmp, sizeof(tmp)/sizeof(SQLTCHAR), &len, SQL_DRIVER_NOPROMPT, "SI");
+	odbc_connect();
 	if (!odbc_driver_is_freetds()) {
 		odbc_disconnect();
 		printf("Driver is not FreeTDS, exiting\n");

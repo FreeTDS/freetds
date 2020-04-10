@@ -25,11 +25,14 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
+#include "replacements.h"
+
 HENV odbc_env;
 HDBC odbc_conn;
 HSTMT odbc_stmt;
 int odbc_use_version3 = 0;
 void (*odbc_set_conn_attr)(void) = NULL;
+const char *odbc_conn_additional_params = NULL;
 
 char odbc_user[512];
 char odbc_server[512];
@@ -279,7 +282,19 @@ odbc_connect(void)
 	if (odbc_set_conn_attr)
 		(*odbc_set_conn_attr)();
 
-	CHKConnect(T(odbc_server), SQL_NTS, T(odbc_user), SQL_NTS, T(odbc_password), SQL_NTS, "SI");
+	if (!odbc_conn_additional_params) {
+		CHKConnect(T(odbc_server), SQL_NTS, T(odbc_user), SQL_NTS, T(odbc_password), SQL_NTS, "SI");
+	} else {
+		char *params;
+		SQLSMALLINT len;
+
+		asprintf(&params, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;%s",
+			 odbc_server, odbc_user, odbc_password, odbc_database, odbc_conn_additional_params);
+		assert(params);
+		CHKDriverConnect(NULL, T(params), SQL_NTS, (SQLTCHAR *) command, sizeof(command)/sizeof(SQLTCHAR),
+				 &len, SQL_DRIVER_NOPROMPT, "SI");
+		free(params);
+	}
 
 	CHKAllocStmt(&odbc_stmt, "S");
 
