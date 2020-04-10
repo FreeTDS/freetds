@@ -39,6 +39,8 @@
 #include <freetds/convert.h>
 #include <freetds/utils/string.h>
 #include <freetds/checks.h>
+#include <freetds/stream.h>
+#include <freetds/bytes.h>
 #include "replacements.h"
 
 #include <assert.h>
@@ -3168,6 +3170,88 @@ tds_quote_and_put(TDSSOCKET * tds, const char *s, const char *end)
 	tds_put_string(tds, buf, i);
 }
 
+typedef struct tds_quoteout_stream {
+	TDSOUTSTREAM stream;
+	TDSSOCKET *tds;
+	char buffer[2048];
+} TDSQUOTEOUTSTREAM;
+
+static int
+tds_quoteout_stream_write(TDSOUTSTREAM *stream, size_t len)
+{
+	TDSQUOTEOUTSTREAM *s = (TDSQUOTEOUTSTREAM *) stream;
+	TDSSOCKET *tds = s->tds;
+	uint16_t buf[sizeof(s->buffer)];
+
+	assert(len <= stream->buf_len);
+
+#define QUOTE(type, ch) do { \
+	type *src, *dst = (type *) buf, *end = (type *) (s->buffer + len); \
+\
+	for (src = (type *) s->buffer; src < end; ++src) { \
+		if (*src == (ch)) \
+			*dst++ = *src; \
+		*dst++ = *src; \
+	} \
+	tds_put_n(tds, buf, (char *) dst - (char *) buf); \
+} while(0)
+
+	if (IS_TDS7_PLUS(tds->conn))
+		QUOTE(uint16_t, TDS_HOST2LE('\''));
+	else
+		QUOTE(char, '\'');
+
+#undef QUOTE
+
+	return len;
+}
+
+static void
+tds_quoteout_stream_init(TDSQUOTEOUTSTREAM * stream, TDSSOCKET * tds)
+{
+	stream->stream.write = tds_quoteout_stream_write;
+	stream->stream.buffer = stream->buffer;
+	stream->stream.buf_len = sizeof(stream->buffer);
+	stream->tds = tds;
+}
+
+static TDSRET
+tds_put_char_param_as_string(TDSSOCKET * tds, const TDSCOLUMN *curcol)
+{
+	TDS_CHAR *src;
+	TDSICONV *char_conv = curcol->char_conv;
+	int from, to;
+	TDSSTATICINSTREAM r;
+	TDSQUOTEOUTSTREAM w;
+
+	src = (TDS_CHAR *) curcol->column_data;
+	if (is_blob_col(curcol))
+		src = ((TDSBLOB *)src)->textvalue;
+
+	if (is_unicode_type(curcol->column_type))
+		tds_put_string(tds, "N", 1);
+	tds_put_string(tds, "\'", 1);
+
+	/* Compute proper characted conversion.
+	 * The conversion should be to UTF16/UCS2 for MS SQL.
+	 * Avoid double conversion, convert directly from client to server.
+	 */
+	from = char_conv ? char_conv->from.charset.canonic : tds->conn->char_convs[client2ucs2]->from.charset.canonic;
+	to = tds->conn->char_convs[IS_TDS7_PLUS(tds->conn) ? client2ucs2 : client2server_chardata]->to.charset.canonic;
+	if (!char_conv || char_conv->to.charset.canonic != to)
+		char_conv = tds_iconv_get_info(tds->conn, from, to);
+	if (!char_conv)
+		return TDS_FAIL;
+
+	tds_staticin_stream_init(&r, src, curcol->column_cur_size);
+	tds_quoteout_stream_init(&w, tds);
+
+	tds_convert_stream(tds, char_conv, to_server, &r.stream, &w.stream);
+
+	tds_put_string(tds, "\'", 1);
+	return TDS_SUCCESS;
+}
+
 /**
  * Send a parameter to server.
  * Parameters are converted to string and sent to server.
@@ -3182,15 +3266,12 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 	TDSCOLUMN *curcol = params->columns[n];
 	CONV_RESULT cr;
 	TDS_INT res;
-	TDS_CHAR *src = (TDS_CHAR *) curcol->column_data;
+	TDS_CHAR *src;
 	int src_len = curcol->column_cur_size;
-	
+
 	int i;
 	char buf[256];
-	int quote = 0;
-
-	TDS_CHAR *save_src;
-	int converted = 0;
+	bool quote = false;
 
 	CHECK_TDS_EXTRA(tds);
 	CHECK_PARAMINFO_EXTRA(params);
@@ -3203,34 +3284,13 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 			tds_put_string(tds, "NULL", 4);
 		return TDS_SUCCESS;
 	}
-	
+
+	if (is_char_type(curcol->column_type))
+		return tds_put_char_param_as_string(tds, curcol);
+
+	src = (TDS_CHAR *) curcol->column_data;
 	if (is_blob_col(curcol))
 		src = ((TDSBLOB *)src)->textvalue;
-
-	save_src = src;
-
-	/* TODO I don't like copy&paste too much, see above -- freddy77 */
-	/* convert string if needed */
-	if (curcol->char_conv && curcol->char_conv->flags != TDS_ENCODING_MEMCPY) {
-		size_t output_size;
-#if 0
-		/* TODO this case should be optimized */
-		/* we know converted bytes */
-		if (curcol->char_conv->client_charset.min_bytes_per_char == curcol->char_conv->client_charset.max_bytes_per_char 
-		    && curcol->char_conv->server_charset.min_bytes_per_char == curcol->char_conv->server_charset.max_bytes_per_char) {
-			converted_size = colsize * curcol->char_conv->server_charset.min_bytes_per_char / curcol->char_conv->client_charset.min_bytes_per_char;
-
-		} else {
-#endif
-		/* we need to convert data before */
-		/* TODO this can be a waste of memory... */
-		converted = 1;
-		src = (TDS_CHAR*) tds_convert_string(tds, curcol->char_conv, src, src_len, &output_size);
-		src_len = (int) output_size;
-		if (!src)
-			/* conversion error, exit with an error */
-			return TDS_FAIL;
-	}
 
 	/* we could try to use only tds_convert but is not good in all cases */
 	switch (curcol->column_type) {
@@ -3247,14 +3307,6 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 		}
 		tds_put_string(tds, buf, i);
 		break;
-	/* char, quote as necessary */
-	case SYBNVARCHAR: case SYBNTEXT: case XSYBNCHAR: case XSYBNVARCHAR:
-		tds_put_string(tds, "N", 1);
-	case SYBCHAR: case SYBVARCHAR: case SYBTEXT: case XSYBCHAR: case XSYBVARCHAR:
-		tds_put_string(tds, "\'", 1);
-		tds_quote_and_put(tds, src, src + src_len);
-		tds_put_string(tds, "\'", 1);
-		break;
 	/* TODO date, use iso format */
 	case SYBDATETIME:
 	case SYBDATETIME4:
@@ -3269,14 +3321,12 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 	case SYB5BIGDATETIME:
 		/* TODO use an ISO context */
 	case SYBUNIQUE:
-		quote = 1;
+		quote = true;
 	default:
 		res = tds_convert(tds_get_ctx(tds), tds_get_conversion_type(curcol->column_type, curcol->column_size), src, src_len, SYBCHAR, &cr);
-		if (res < 0) {
-			if (converted)
-				tds_convert_string_free(save_src, src);
+		if (res < 0)
 			return TDS_FAIL;
-		}
+
 		if (quote)
 			tds_put_string(tds, "\'", 1);
 		tds_quote_and_put(tds, cr.c, cr.c + res);
@@ -3284,8 +3334,6 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 			tds_put_string(tds, "\'", 1);
 		free(cr.c);
 	}
-	if (converted)
-		tds_convert_string_free(save_src, src);
 	return TDS_SUCCESS;
 }
 
