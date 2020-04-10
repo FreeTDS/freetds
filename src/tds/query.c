@@ -514,7 +514,7 @@ tds_skip_comment(const char *s)
 	if (*p == '-' && p[1] == '-') {
 		for (;*++p != '\0';)
 			if (*p == '\n')
-				return p;
+				return p + 1;
 	} else if (*p == '/' && p[1] == '*') {
 		++p;
 		for(;*++p != '\0';)
@@ -620,6 +620,7 @@ tds_skip_comment_ucs2le(const char *s, const char *end)
 		for(;(p+=2) < end;)
 			if (memcmp(p, "*\0/", 4) == 0)
 				return p + 4;
+		return end + 2;
 	} else
 		p += 2;
 
