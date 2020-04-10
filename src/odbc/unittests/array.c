@@ -43,7 +43,7 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 	for (i = 0; i < ARRAY_SIZE; i++) {
 		statuses[i] = SQL_PARAM_DIAG_UNAVAILABLE;
 		ids[i] = (i + 1) * multiply;
-		sprintf((char *) descs[i], "data %d", i * 7);
+		sprintf((char *) descs[i], "data %d \xf4", i * 7);
 		id_lens[i] = 0;
 		desc_lens[i] = SQL_NTS;
 		num_errors[i] = 0;
@@ -138,6 +138,7 @@ int
 main(int argc, char *argv[])
 {
 	odbc_use_version3 = 1;
+	odbc_conn_additional_params = "ClientCharset=ISO-8859-1;";
 	odbc_connect();
 
 	if (odbc_db_is_microsoft()) {
