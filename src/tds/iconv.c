@@ -713,7 +713,7 @@ tds_iconv(TDSSOCKET * tds, TDSICONV * conv, TDS_ICONV_DIRECTION io,
 /**
  * Get a iconv info structure, allocate and initialize if needed
  */
-static TDSICONV *
+TDSICONV *
 tds_iconv_get_info(TDSCONNECTION * conn, int canonic_client, int canonic_server)
 {
 	TDSICONV *info;
