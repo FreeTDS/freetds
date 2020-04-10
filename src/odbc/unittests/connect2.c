@@ -28,7 +28,7 @@ driver_connect(const char *conn_str)
 	SQLTCHAR tmp[1024];
 	SQLSMALLINT len;
 
-	CHKDriverConnect(NULL, T(conn_str), SQL_NTS, tmp, ODBC_VECTOR_SIZE(tmp), &len, SQL_DRIVER_NOPROMPT, "SI");
+	CHKDriverConnect(NULL, T(conn_str), SQL_NTS, tmp, TDS_VECTOR_SIZE(tmp), &len, SQL_DRIVER_NOPROMPT, "SI");
 }
 
 static void

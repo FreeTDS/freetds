@@ -206,10 +206,10 @@ main(int argc, char **argv)
 			strcat(buf, japanese);
 			len += strlen(to_utf8(japanese, tmp));
 		}
-		strings[sizeof(strings) / sizeof(strings[0]) - 5] = buf + 3;
-		strings[sizeof(strings) / sizeof(strings[0]) - 4] = buf + 2;
-		strings[sizeof(strings) / sizeof(strings[0]) - 3] = buf + 1;
-		strings[sizeof(strings) / sizeof(strings[0]) - 2] = buf;
+		strings[TDS_VECTOR_SIZE(strings) - 5] = buf + 3;
+		strings[TDS_VECTOR_SIZE(strings) - 4] = buf + 2;
+		strings[TDS_VECTOR_SIZE(strings) - 3] = buf + 1;
+		strings[TDS_VECTOR_SIZE(strings) - 2] = buf;
 
 		test("NVARCHAR(500)", "NVARCHAR with large size");
 

@@ -83,7 +83,7 @@ Test0(int use_sql, const char *create_sql, const char *insert_sql, const char *s
 				n[i - 1] = 321;
 				CHKSetPos(i, use_sql ? SQL_POSITION : SQL_UPDATE, SQL_LOCK_NO_CHANGE, "E");
 
-				CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, msg, ODBC_VECTOR_SIZE(msg), NULL, "S");
+				CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, msg, TDS_VECTOR_SIZE(msg), NULL, "S");
 				if (strstr(C(msg), "Invalid column name 'c'") == NULL) {
 					fprintf(stderr, "Expected message not found at line %d\n", __LINE__);
 					exit(1);

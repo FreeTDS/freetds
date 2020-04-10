@@ -80,7 +80,7 @@ Test(int direct, int long_query)
 			CHKNumResultCols(&cols, "E");
 	}
 
-	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, buf, ODBC_VECTOR_SIZE(buf), NULL, "SI");
+	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, buf, TDS_VECTOR_SIZE(buf), NULL, "SI");
 	sqlstate[5] = 0;
 	printf("state=%s err=%s\n", C(sqlstate), C(buf));
 	

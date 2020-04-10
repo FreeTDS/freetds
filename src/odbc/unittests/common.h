@@ -176,8 +176,6 @@ unsigned int odbc_db_version_int(void);
 int odbc_driver_is_freetds(void);
 int odbc_tds_version(void);
 
-#define ODBC_VECTOR_SIZE(x) (sizeof(x)/sizeof(x[0]))
-
 #if !HAVE_SETENV
 void odbc_setenv(const char *name, const char *value, int overwrite);
 

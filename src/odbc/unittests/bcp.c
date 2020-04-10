@@ -391,7 +391,7 @@ static void normal_select(void)
 	CHKFetch("SI");
 
 	/* first columns have values */
-	for (i = 0; i < sizeof(expected)/sizeof(expected[0]); ++i) {
+	for (i = 0; i < TDS_VECTOR_SIZE(expected); ++i) {
 		char output[128];
 		SQLLEN dataSize;
 		CHKGetData(i + 1, SQL_C_CHAR, output, sizeof(output), &dataSize, "S");
@@ -421,7 +421,7 @@ static void special_select(void)
 
 	odbc_command("select top 1 * from special_types_bcp_unittest");
 	CHKFetch("SI");
-	for (i = 0; i < sizeof(expected_special)/sizeof(expected_special[0]); ++i) {
+	for (i = 0; i < TDS_VECTOR_SIZE(expected_special); ++i) {
 		char output[128];
 		SQLLEN dataSize;
 		CHKGetData(i + 1, SQL_C_CHAR, output, sizeof(output), &dataSize, "S");

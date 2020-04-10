@@ -36,7 +36,7 @@ static void Test(void)
 	CHKBindCol(2, SQL_C_LONG, &data[0].i, sizeof(data[0].i), &data[0].ind_i, "S");
 
 #define FILL(s, n) do { \
-	int _n; for (_n = 0; _n < sizeof(s)/sizeof(s[0]); ++_n) s[_n] = n; \
+	int _n; for (_n = 0; _n < TDS_VECTOR_SIZE(s); ++_n) s[_n] = n; \
 } while(0)
 	FILL(statuses, 9876);
 	num_row = -3;

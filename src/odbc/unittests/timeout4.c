@@ -90,7 +90,7 @@ Test(int direct)
 	alarm(0);
 
 	memset(sqlstate, 'X', sizeof(sqlstate));
-	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, buf, ODBC_VECTOR_SIZE(buf), NULL, "SI");
+	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, buf, TDS_VECTOR_SIZE(buf), NULL, "SI");
 	sqlstate[5] = 0;
 	printf("Message: %s - %s\n", C(sqlstate), C(buf));
 	if (strcmp(C(sqlstate), "HYT00") || !strstr(C(buf), "Timeout")) {

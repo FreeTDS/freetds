@@ -96,7 +96,7 @@ main(int argc, char *argv[])
 			SQLSMALLINT namelen, type, digits, nullable;
 			SQLULEN size;
 
-			CHKDescribeCol(col + 1, name, ODBC_VECTOR_SIZE(name), &namelen, &type, &size, &digits, &nullable, "S");
+			CHKDescribeCol(col + 1, name, TDS_VECTOR_SIZE(name), &namelen, &type, &size, &digits, &nullable, "S");
 			if (col == 13) {
 				CHKGetData(col + 1, SQL_C_BINARY, buf, sizeof(buf), &len, "S");
 			} else {

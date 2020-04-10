@@ -25,7 +25,7 @@ main(int argc, char *argv[])
 	/* this should not fail or return warnings */
 	odbc_command("DROP TABLE #cursor2_test");
 
-	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, msg, ODBC_VECTOR_SIZE(msg), NULL, "No");
+	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, msg, TDS_VECTOR_SIZE(msg), NULL, "No");
 
 
 	odbc_reset_statement();

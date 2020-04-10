@@ -39,7 +39,7 @@ main(int argc, char *argv[])
 		{SQL_FETCH_RELATIVE, 1, 4, 2},
 		{SQL_FETCH_LAST, 0, 3, 3}
 	};
-	const int num_tests = sizeof(tests) / sizeof(TEST);
+	const int num_tests = TDS_VECTOR_SIZE(tests);
 
 	odbc_use_version3 = 1;
 

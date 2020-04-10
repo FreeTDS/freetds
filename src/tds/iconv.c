@@ -66,7 +66,7 @@ static void tds_iconv_info_close(TDSICONV * char_conv);
 #include "encodings.h"
 
 /* this will contain real iconv names */
-static const char *iconv_names[sizeof(canonic_charsets) / sizeof(canonic_charsets[0])];
+static const char *iconv_names[TDS_VECTOR_SIZE(canonic_charsets)];
 static int iconv_initialized = 0;
 static const char *ucs2name;
 

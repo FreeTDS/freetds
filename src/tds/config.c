@@ -866,7 +866,7 @@ tds_config_env_tdshost(TDSLOGIN * login)
 	}
 	return 1;
 }
-#define TDS_FIND(k,b,c) tds_find(k, b, sizeof(b)/sizeof(b[0]), sizeof(b[0]), c)
+#define TDS_FIND(k,b,c) tds_find(k, b, TDS_VECTOR_SIZE(b), sizeof(b[0]), c)
 
 
 static void *

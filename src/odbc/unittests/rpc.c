@@ -84,7 +84,7 @@ Test(const char *name)
 	printf("executing SQLAllocStmt\n");
 	CHKAllocStmt(&odbc_stmt, "S");
 
-	for( ipar=0; ipar < sizeof(args)/sizeof(args[0]); ipar++ ) {
+	for( ipar=0; ipar < TDS_VECTOR_SIZE(args); ipar++ ) {
 		printf("executing SQLBindParameter for parameter %d\n", 1+ipar);
 		if( args[ipar].BufferLength > 0 ) {
 			args[ipar].ParameterValuePtr = (SQLPOINTER) ODBC_GET(args[ipar].BufferLength);
@@ -131,7 +131,7 @@ Test(const char *name)
 		
 		for (icol=ncols; icol > 0; icol--) {
 			SQLULEN size;
-			CHKDescribeCol(icol, name, ODBC_VECTOR_SIZE(name),
+			CHKDescribeCol(icol, name, TDS_VECTOR_SIZE(name),
 				       &namelen, &type, &size, &scale, &nullable, "S");
 			printf("%-5d %-15s %5d %5ld %5d %8c\n", icol, C(name), type, (long int)size, scale, (nullable? 'Y' : 'N')); 
 		}
@@ -172,7 +172,7 @@ Test(const char *name)
 	} while (CHKMoreResults("SNo") == SQL_SUCCESS);
 	printf("done.\n");
 
-	for( ipar=0; ipar < sizeof(args)/sizeof(args[0]); ipar++ ) {
+	for( ipar=0; ipar < TDS_VECTOR_SIZE(args); ipar++ ) {
 		if (args[ipar].InputOutputType == SQL_PARAM_INPUT)
 			continue;
 		printf("bound data for parameter %d is %ld bytes: ", 1+ipar, (long int)args[ipar].ind);

@@ -189,12 +189,12 @@ main(int argc, char *argv[])
 	printf("try to connect to our port just to check connection timeout\n");
 	sprintf(conn, "DRIVER=FreeTDS;SERVER=127.0.0.1;Port=%d;TDS_Version=7.0;UID=test;PWD=test;DATABASE=tempdb;", port);
 	start_time = time(NULL);
-	CHKDriverConnect(NULL, T(conn), SQL_NTS, tmp, ODBC_VECTOR_SIZE(tmp), &len, SQL_DRIVER_NOPROMPT, "E");
+	CHKDriverConnect(NULL, T(conn), SQL_NTS, tmp, TDS_VECTOR_SIZE(tmp), &len, SQL_DRIVER_NOPROMPT, "E");
 	end_time = time(NULL);
 
 	memset(sqlstate, 'X', sizeof(sqlstate));
 	tmp[0] = 0;
-	CHKGetDiagRec(SQL_HANDLE_DBC, odbc_conn, 1, sqlstate, NULL, tmp, ODBC_VECTOR_SIZE(tmp), NULL, "SI");
+	CHKGetDiagRec(SQL_HANDLE_DBC, odbc_conn, 1, sqlstate, NULL, tmp, TDS_VECTOR_SIZE(tmp), NULL, "SI");
 	odbc_disconnect();
 	tds_mutex_lock(&mtx);
 	CLOSESOCKET(fake_sock);

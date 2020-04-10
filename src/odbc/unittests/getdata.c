@@ -39,7 +39,7 @@ mycmp(const char *s1, const char *s2)
 		return strcmp(s1, s2);
 
 	l = strlen(s2);
-	assert(l < (sizeof(buf)/sizeof(buf[0])));
+	assert(l < TDS_VECTOR_SIZE(buf));
 	wp = buf;
 	do {
 		*wp++ = *s2;

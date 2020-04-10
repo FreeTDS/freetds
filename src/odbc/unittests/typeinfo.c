@@ -18,7 +18,7 @@ TestName(int index, const char *expected_name)
 	} while(0)
 
 	/* retrieve with SQLDescribeCol */
-	CHKDescribeCol(index, name, ODBC_VECTOR_SIZE(name), &len, &type, NULL, NULL, NULL, "S");
+	CHKDescribeCol(index, name, TDS_VECTOR_SIZE(name), &len, &type, NULL, NULL, NULL, "S");
 	NAME_TEST;
 
 	/* retrieve with SQLColAttribute */

@@ -28,7 +28,7 @@ main(int argc, char *argv[])
 
 	CHKExecute("E");
 
-	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, msg, ODBC_VECTOR_SIZE(buf), NULL, "SI");
+	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, msg, TDS_VECTOR_SIZE(buf), NULL, "SI");
 	printf("err=%s\n", C(msg));
 
 	/* assure initial state */
@@ -38,7 +38,7 @@ main(int argc, char *argv[])
 	if (CHKPrepare(T("SELECT XXNOTCOLUMN FROM sysobjects"), SQL_NTS, "SE") == SQL_SUCCESS)
 		CHKExecute("E");
 
-	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, msg, ODBC_VECTOR_SIZE(buf), NULL, "SI");
+	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, msg, TDS_VECTOR_SIZE(buf), NULL, "SI");
 	printf("err=%s\n", C(msg));
 
 

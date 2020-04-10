@@ -220,7 +220,7 @@ odbc_report_error(const char *errmsg, int line, const char *file)
 		else
 			fprintf(stderr, "%s\n", errmsg);
 	}
-	ret = SQLGetDiagRec(handletype, handle, 1, sqlstate, NULL, msg, ODBC_VECTOR_SIZE(msg), NULL);
+	ret = SQLGetDiagRec(handletype, handle, 1, sqlstate, NULL, msg, TDS_VECTOR_SIZE(msg), NULL);
 	if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO)
 		fprintf(stderr, "SQL error %s -- %s\n", C(sqlstate), C(msg));
 	odbc_disconnect();
@@ -242,7 +242,7 @@ ReportODBCError(const char *errmsg, SQLSMALLINT handletype, SQLHANDLE handle, SQ
 		else
 			fprintf(stderr, "rc=%d %s\n", (int) rc, errmsg);
 	}
-	ret = SQLGetDiagRec(handletype, handle, 1, sqlstate, NULL, msg, ODBC_VECTOR_SIZE(msg), NULL);
+	ret = SQLGetDiagRec(handletype, handle, 1, sqlstate, NULL, msg, TDS_VECTOR_SIZE(msg), NULL);
 	if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO)
 		fprintf(stderr, "SQL error %s -- %s\n", C(sqlstate), C(msg));
 	odbc_disconnect();
@@ -564,7 +564,7 @@ odbc_check_cursor(void)
 		SQLTCHAR output[256];
 		SQLTCHAR sqlstate[6];
 
-		CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, output, ODBC_VECTOR_SIZE(output), NULL, "S");
+		CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, output, TDS_VECTOR_SIZE(output), NULL, "S");
 		sqlstate[5] = 0;
 		if (strcmp(C(sqlstate), "01S02") == 0) {
 			printf("Your connection seems to not support cursors, probably you are using wrong protocol version or Sybase\n");

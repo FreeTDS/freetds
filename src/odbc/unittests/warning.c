@@ -47,7 +47,7 @@ Test(const char *query)
 	if (odbc_db_is_microsoft() && tds_no_dm) {
 		SQLTCHAR output[256];
 
-		CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, NULL, NULL, output, ODBC_VECTOR_SIZE(output), NULL, "SI");
+		CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, NULL, NULL, output, TDS_VECTOR_SIZE(output), NULL, "SI");
 		printf("Message: %s\n", C(output));
 	}
 

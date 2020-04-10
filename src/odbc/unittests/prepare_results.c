@@ -38,7 +38,7 @@ Test(int use_ird)
 		exit(1);
 	}
 
-	CHKDescribeCol(1, name, ODBC_VECTOR_SIZE(name), &namelen, &type, &size, &digits, &nullable, "S");
+	CHKDescribeCol(1, name, TDS_VECTOR_SIZE(name), &namelen, &type, &size, &digits, &nullable, "S");
 
 	cname = (char*) C(name);
 	if (type != SQL_INTEGER || strcmp(cname, "i") != 0) {
@@ -46,7 +46,7 @@ Test(int use_ird)
 		exit(1);
 	}
 
-	CHKDescribeCol(2, name, ODBC_VECTOR_SIZE(name), &namelen, &type, &size, &digits, &nullable, "S");
+	CHKDescribeCol(2, name, TDS_VECTOR_SIZE(name), &namelen, &type, &size, &digits, &nullable, "S");
 
 	cname = (char*) C(name);
 	if (type != SQL_CHAR || strcmp(cname, "c") != 0 || (size != 20 && (odbc_db_is_microsoft() || size != 40))) {
@@ -54,7 +54,7 @@ Test(int use_ird)
 		exit(1);
 	}
 
-	CHKDescribeCol(3, name, ODBC_VECTOR_SIZE(name), &namelen, &type, &size, &digits, &nullable, "S");
+	CHKDescribeCol(3, name, TDS_VECTOR_SIZE(name), &namelen, &type, &size, &digits, &nullable, "S");
 
 	cname = (char*) C(name);
 	if (type != SQL_NUMERIC || strcmp(cname, "n") != 0 || size != 34 || digits != 12) {

@@ -147,7 +147,7 @@ lookup_attr(const char *name)
 
 	if (!name)
 		odbc_fatal(": NULL attribute\n");
-	for (i = 0; i < sizeof(attributes) / sizeof(attributes[0]); ++i)
+	for (i = 0; i < TDS_VECTOR_SIZE(attributes); ++i)
 		if (strcmp(attributes[i].name, name) == 0 || strcmp(attributes[i].name + 4, name) == 0)
 			return &attributes[i];
 	odbc_fatal(": attribute %s not found\n", name);

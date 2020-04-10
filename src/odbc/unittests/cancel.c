@@ -34,8 +34,8 @@ getErrorInfo(SQLSMALLINT sqlhdltype, SQLHANDLE sqlhandle)
 			      1,
 			      sqlstate,
 			      &naterror,
-			      msgtext, (SQLSMALLINT) ODBC_VECTOR_SIZE(msgtext), &msgtextl);
-	sqlstate[ODBC_VECTOR_SIZE(sqlstate)-1] = 0;
+			      msgtext, (SQLSMALLINT) TDS_VECTOR_SIZE(msgtext), &msgtextl);
+	sqlstate[TDS_VECTOR_SIZE(sqlstate)-1] = 0;
 	fprintf(stderr, "Diagnostic info:\n");
 	fprintf(stderr, "  SQL State: %s\n", C(sqlstate));
 	fprintf(stderr, "  SQL code : %d\n", (int) naterror);

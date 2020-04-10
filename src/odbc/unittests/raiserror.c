@@ -59,7 +59,7 @@ TestResult(SQLRETURN result0, int level, const char *func)
 	SqlState[0] = 0;
 	MessageText[0] = 0;
 	NativeError = 0;
-	rc = CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, SqlState, &NativeError, MessageText, ODBC_VECTOR_SIZE(MessageText), &TextLength, "SI");
+	rc = CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, SqlState, &NativeError, MessageText, TDS_VECTOR_SIZE(MessageText), &TextLength, "SI");
 	printf("Func=%s Result=%d DIAG REC 1: State=%s Error=%d: %s\n", func, (int) rc, C(SqlState), (int) NativeError, C(MessageText));
 
 	if (strstr(C(MessageText), "An error occurred") == NULL) {
@@ -165,7 +165,7 @@ Test(int level)
 		if (result != SQL_NO_DATA)
 			ODBC_REPORT_ERROR("SQLFetch should return NO DATA");
 		CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, SqlState, &NativeError, MessageText,
-				       ODBC_VECTOR_SIZE(MessageText), &TextLength, "No");
+				       TDS_VECTOR_SIZE(MessageText), &TextLength, "No");
 		result = SQLMoreResults(odbc_stmt);
 		expected = level > 10 ? SQL_ERROR : SQL_SUCCESS_WITH_INFO;
 		if (result != expected)

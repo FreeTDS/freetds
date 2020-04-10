@@ -74,7 +74,7 @@ Test(bool discard_test)
 
 	CHKMoreResults("E");
 
-	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, buf, ODBC_VECTOR_SIZE(buf), NULL, "SI");
+	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, buf, TDS_VECTOR_SIZE(buf), NULL, "SI");
 	printf("err=%s\n", C(buf));
 
 	CHKMoreResults("No");
