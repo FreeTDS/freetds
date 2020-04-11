@@ -11,6 +11,6 @@ strtok_r_SOURCES = strtok_r.c
 strsep_SOURCES = strsep.c
 
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(srcdir)/.. -I../
-LIBS = ../../replacements/libreplacements.la $(NETWORK_LIBS)
+LDADD = ../../replacements/libreplacements.la $(NETWORK_LIBS)
 EXTRA_DIST = CMakeLists.txt
 

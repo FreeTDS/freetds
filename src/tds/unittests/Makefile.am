@@ -63,7 +63,6 @@ parsing_SOURCES	=	parsing.c
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h utf8.c allcolumns.c
-LDADD = libcommon.a
 
 AM_CPPFLAGS	=	-I$(top_srcdir)/include -I$(srcdir)/.. -I../ -DFREETDS_TOPDIR=\"$(top_srcdir)\"
 if MINGW32
@@ -71,7 +70,7 @@ AM_LDFLAGS	=	-no-fast-install
 else
 AM_LDFLAGS	=	-no-install -L../.libs -R $(abs_builddir)/../.libs
 endif
-LIBS		=	../libtds.la ../../replacements/libreplacements.la $(LTLIBICONV) $(NETWORK_LIBS)
+LDADD		=	libcommon.a ../libtds.la ../../replacements/libreplacements.la $(LTLIBICONV) $(NETWORK_LIBS)
 CLEANFILES	=	tdsdump.out
 EXTRA_DIST	=	CMakeLists.txt
 

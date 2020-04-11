@@ -78,7 +78,6 @@ will_convert_SOURCES	= will_convert.c
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h
-LDADD = libcommon.a
 
 AM_CPPFLAGS	=	-I$(top_srcdir)/include
 if MINGW32
@@ -86,6 +85,6 @@ AM_LDFLAGS	=	-no-fast-install
 else
 AM_LDFLAGS	=	-no-install -L../.libs -R $(abs_builddir)/../.libs
 endif
-LIBS		=	../libct.la ../../replacements/libreplacements.la $(LTLIBICONV)
+LDADD		=	libcommon.a ../libct.la ../../replacements/libreplacements.la $(LTLIBICONV)
 CLEANFILES	=	tdsdump.out
 EXTRA_DIST	=	CMakeLists.txt
