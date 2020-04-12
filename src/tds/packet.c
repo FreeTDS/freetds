@@ -424,7 +424,7 @@ tds_connection_network(TDSCONNECTION *conn, TDSSOCKET *tds, int send)
 	conn->in_net_tds = NULL;
 }
 
-static int
+static TDSRET
 tds_connection_put_packet(TDSSOCKET *tds)
 {
 	TDSCONNECTION *conn = tds->conn;
@@ -715,7 +715,7 @@ tds_append_syn(TDSSOCKET *tds)
 TDSRET
 tds_write_packet(TDSSOCKET * tds, unsigned char final)
 {
-	int res;
+	TDSRET res;
 	unsigned int left = 0;
 #if ENABLE_ODBC_MARS
 	TDSPACKET *packet_next;
