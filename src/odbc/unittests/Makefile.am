@@ -90,7 +90,7 @@ t0002_SOURCES	=	t0002.c
 t0003_SOURCES	=	t0003.c
 t0004_SOURCES	=	t0004.c
 connect_SOURCES	=	connect.c
-connect_LDFLAGS =	$(GLOBAL_LD_FLAGS) $(ODBCINST_LDFLAGS) -no-install
+connect_LDFLAGS = $(GLOBAL_LD_ADD) -no-install
 print_SOURCES	=	print.c
 date_SOURCES	=	date.c
 norowset_SOURCES	= norowset.c
@@ -149,10 +149,13 @@ transaction2_SOURCES = transaction2.c
 cursor6_SOURCES	= cursor6.c
 cursor7_SOURCES	= cursor7.c
 utf8_SOURCES	= utf8.c common.c
+# this test cannot work using wide characters as use UTF-8 and single byte encoding
+utf8_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
+utf8_LDADD	=	$(ODBC_LDFLAGS) $(NETWORK_LIBS) $(ODBCINST_LDFLAGS)
 utf8_2_SOURCES	= utf8_2.c
 utf8_3_SOURCES	= utf8_3.c
 utf8_4_SOURCES	= utf8_4.c
-utf8_4_LDFLAGS = -static ../libtdsodbc.la ../../tds/unittests/libcommon.a -shared $(GLOBAL_LD_FLAGS) $(ODBCINST_LDFLAGS)
+utf8_4_LDFLAGS = -static ../libtdsodbc.la ../../tds/unittests/libcommon.a -shared $(GLOBAL_LD_ADD)
 stats_SOURCES	= stats.c
 descrec_SOURCES	= descrec.c
 peter_SOURCES	= peter.c
@@ -163,9 +166,11 @@ mars1_SOURCES = mars1.c
 array_error_SOURCES = array_error.c
 closestmt_SOURCES = closestmt.c
 oldpwd_SOURCES = oldpwd.c
+# this test cannot work using wide characters as use UTF-8 and single byte encoding
+oldpwd_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
 bcp_SOURCES = bcp.c
 all_types_SOURCES = all_types.c
-all_types_LDFLAGS = -static ../libtdsodbc.la ../../tds/unittests/libcommon.a -shared $(GLOBAL_LD_FLAGS) $(ODBCINST_LDFLAGS)
+all_types_LDFLAGS = -static ../libtdsodbc.la ../../tds/unittests/libcommon.a -shared $(GLOBAL_LD_ADD)
 empty_query_SOURCES = empty_query.c
 transaction3_SOURCES = transaction3.c
 transaction4_SOURCES = transaction4.c
@@ -175,22 +180,18 @@ noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h
 
 GLOBAL_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC) -DFREETDS_TOPDIR=\"$(top_srcdir)\"
-GLOBAL_LD_FLAGS	=	$(NETWORK_LIBS)
+GLOBAL_LD_ADD =	$(NETWORK_LIBS) $(ODBCINST_LDFLAGS)
 AM_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
 if ODBC_WIDE_TESTS
 AM_CPPFLAGS	+=	-DUNICODE -D_UNICODE
 endif
-# this test cannot work using wide characters as use UTF-8 and single byte encoding
-utf8_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
-utf8_LDADD	=	$(ODBC_LDFLAGS)
-oldpwd_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
 
 if MINGW32
-AM_LDFLAGS	=	-no-fast-install $(GLOBAL_LD_FLAGS) $(ODBCINST_LDFLAGS)
+AM_LDFLAGS	=	-no-fast-install
 else
-AM_LDFLAGS	=	-no-install -L../.libs -R $(abs_builddir)/../.libs $(GLOBAL_LD_FLAGS)
+AM_LDFLAGS	=	-no-install -L../.libs -R $(abs_builddir)/../.libs
 endif
-LDADD		=	libcommon.a $(ODBC_LDFLAGS) ../../replacements/libreplacements.la
+LDADD		=	libcommon.a $(ODBC_LDFLAGS) ../../replacements/libreplacements.la $(GLOBAL_LD_ADD)
 DISTCLEANFILES	=	odbc.ini odbcinst.ini
 EXTRA_DIST	=	CMakeLists.txt
 
