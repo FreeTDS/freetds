@@ -1519,6 +1519,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	curcol->column_nullable = curcol->column_flags & 0x01;
 	curcol->column_writeable = (curcol->column_flags & 0x08) > 0;
 	curcol->column_identity = (curcol->column_flags & 0x10) > 0;
+	curcol->column_computed = (curcol->column_flags & 0x20) > 0;
 
 	TDS_GET_COLUMN_TYPE(curcol);	/* sets "cardinal" type */
 
