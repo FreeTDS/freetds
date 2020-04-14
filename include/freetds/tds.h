@@ -729,6 +729,7 @@ struct tds_column
 	unsigned char column_hidden:1;
 	unsigned char column_output:1;
 	unsigned char column_timestamp:1;
+	unsigned char column_computed:1;
 	TDS_UCHAR column_collation[5];
 
 	/* additional fields flags for compute results */
