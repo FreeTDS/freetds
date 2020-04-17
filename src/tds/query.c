@@ -45,7 +45,7 @@
 
 #include <assert.h>
 
-static TDSRET tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags) TDS_WUR;
+static TDSRET tds5_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags) TDS_WUR;
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
 static void tds7_put_params_definition(TDSSOCKET * tds, const char *param_definition, size_t param_length);
 static TDSRET tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags);
@@ -399,7 +399,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 		if (params) {
 			/* add on parameters */
 			int flags = tds_dstr_isempty(&params->columns[0]->column_name) ? 0 : TDS_PUT_DATA_USE_NAME;
-			TDS_PROPAGATE(tds_put_params(tds, params, flags));
+			TDS_PROPAGATE(tds5_put_params(tds, params, flags));
 		}
 		free(new_query);
 	} else if (!IS_TDS7_PLUS(tds->conn) || !params || !params->num_cols) {
@@ -1457,7 +1457,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params,
 	tds_put_n(tds, query, (int)query_len);
 
 	if (params)
-		TDS_PROPAGATE(tds_put_params(tds, params, 0));
+		TDS_PROPAGATE(tds5_put_params(tds, params, 0));
 
 	return tds_flush_packet(tds);
 }
@@ -1789,7 +1789,7 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	tds_put_smallint(tds, 0);
 
 	if (dyn->params)
-		TDS_PROPAGATE(tds_put_params(tds, dyn->params, 0));
+		TDS_PROPAGATE(tds5_put_params(tds, dyn->params, 0));
 
 	/* send it */
 	return tds_query_flush_packet(tds);
@@ -1802,7 +1802,7 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
  * \param flags  0 or TDS_PUT_DATA_USE_NAME
  */
 static TDSRET
-tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags)
+tds5_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags)
 {
 	int i, len;
 
@@ -2090,7 +2090,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params, TDS
 		tds_put_smallint(tds, num_params ? 2 : 0);
 
 		if (num_params)
-			TDS_PROPAGATE(tds_put_params(tds, params, TDS_PUT_DATA_USE_NAME));
+			TDS_PROPAGATE(tds5_put_params(tds, params, TDS_PUT_DATA_USE_NAME));
 
 		/* send it */
 		return tds_query_flush_packet(tds);
