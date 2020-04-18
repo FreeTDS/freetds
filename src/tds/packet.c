@@ -445,7 +445,24 @@ tds_connection_put_packet(TDSSOCKET *tds)
 		}
 
 		/* limit packet sending looking at sequence/window */
-		if ((int32_t) (tds->send_seq - tds->send_wnd) <= 0) {
+		if (packet && (int32_t) (tds->send_seq - tds->send_wnd) < 0) {
+			/* prepare MARS header if needed */
+			if (tds->conn->mars) {
+				TDS72_SMP_HEADER *hdr;
+
+				/* fill SMP data */
+				hdr = (TDS72_SMP_HEADER *) packet->buf;
+				hdr->signature = TDS72_SMP;
+				hdr->type = TDS_SMP_DATA;
+				TDS_PUT_A2LE(&hdr->sid, packet->sid);
+				TDS_PUT_A4LE(&hdr->size, packet->data_len);
+				++tds->send_seq;
+				TDS_PUT_A4LE(&hdr->seq, tds->send_seq);
+				/* this is the acknowledge we give to server to stop sending */
+				tds->recv_wnd = tds->recv_seq + 4;
+				TDS_PUT_A4LE(&hdr->wnd, tds->recv_wnd);
+			}
+
 			/* append packet */
 			tds_append_packet(&conn->send_packets, packet);
 			packet = NULL;
@@ -749,17 +766,6 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 		TDS72_SMP_HEADER *hdr;
 
 		/* fill SMP data */
-		hdr = (TDS72_SMP_HEADER *) (tds->out_buf - sizeof(TDS72_SMP_HEADER));
-		hdr->signature = TDS72_SMP;
-		hdr->type = TDS_SMP_DATA;
-		TDS_PUT_A2LE(&hdr->sid, tds->sid);
-		TDS_PUT_A4LE(&hdr->size, tds->out_pos + sizeof(TDS72_SMP_HEADER));
-		++tds->send_seq;
-		TDS_PUT_A4LE(&hdr->seq, tds->send_seq);
-		/* this is the acknowledge we give to server to stop sending !!! */
-		tds->recv_wnd = tds->recv_seq + 4;
-		TDS_PUT_A4LE(&hdr->wnd, tds->recv_wnd);
-
 		hdr = (TDS72_SMP_HEADER *) packet_next->buf;
 		hdr->signature = TDS72_SMP;
 		hdr->type = TDS_SMP_DATA;
