@@ -432,7 +432,6 @@ tds_connection_put_packet(TDSSOCKET *tds)
 	TDSPACKET *packet = tds->send_packet;
 	CHECK_TDS_EXTRA(tds);
 
-	tds->out_pos = 0;
 	packet->sid = tds->sid;
 
 	tds_mutex_lock(&conn->list_mtx);
