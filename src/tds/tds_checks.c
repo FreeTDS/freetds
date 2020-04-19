@@ -310,4 +310,15 @@ tds_check_dynamic_extra(const TDSDYNAMIC * dyn)
 	assert(!dyn->emulated || dyn->query);
 }
 
+void
+tds_extra_assert_check(const char *fn, int line, int cond, const char *cond_str)
+{
+	if (cond)
+		return;
+
+	fprintf(stderr, "%s:%d: Failed checking condition '%s'\n", fn, line, cond_str);
+
+	abort();
+}
+
 #endif /* ENABLE_EXTRA_CHECKS */

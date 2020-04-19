@@ -613,12 +613,11 @@ reroute:
 	if (IS_TDS72_PLUS(tds->conn) && login->mars) {
 		TDS72_SMP_HEADER *p;
 
-#if ENABLE_EXTRA_CHECKS
-		assert(tds->sid == 0);
-		assert(tds->conn->sessions[0] == tds);
-		assert(tds->send_packet);
-		assert(!tds->send_packet->next);
-#endif
+		tds_extra_assert(tds->sid == 0);
+		tds_extra_assert(tds->conn->sessions[0] == tds);
+		tds_extra_assert(tds->send_packet != NULL);
+		tds_extra_assert(!tds->send_packet->next);
+
 		tds->conn->mars = 1;
 
 		/* start session with a SMP SYN */

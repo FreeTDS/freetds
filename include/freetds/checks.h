@@ -55,6 +55,14 @@ void tds_check_dynamic_extra(const TDSDYNAMIC * dynamic);
 #  define TDS_MARK_UNDEFINED(ptr, len) do {} while(0)
 #endif
 
+#if ENABLE_EXTRA_CHECKS
+void tds_extra_assert_check(const char *fn, int line, int cond, const char *cond_str);
+#  define tds_extra_assert(cond) \
+	tds_extra_assert_check(__FILE__, __LINE__, cond, #cond)
+#else
+#  define tds_extra_assert(cond) do { } while(0)
+#endif
+
 #include <freetds/popvis.h>
 
 #endif /* TDS_CHECKS_H */
