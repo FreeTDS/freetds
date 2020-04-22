@@ -445,6 +445,7 @@ libtdscheck :
 	@ run/nodebug []corrupt$(E)
 	@ run/nodebug []declarations$(E)
 	@ run/nodebug []portconf$(E)
+	@ run/nodebug []freeze$(E)
 	@ set default [---]
 
 ctlibcheck : 
@@ -616,7 +617,7 @@ libtdstests : [.src.tds.unittests]dynamic1$(E) [.src.tds.unittests]iconv_fread$(
 	[.src.tds.unittests]utf8_1$(E) [.src.tds.unittests]utf8_2$(E) [.src.tds.unittests]utf8_3$(E) \
 	[.src.tds.unittests]toodynamic$(E) [.src.tds.unittests]readconf$(E) \
 	[.src.tds.unittests]charconv$(E) [.src.tds.unittests]nulls$(E) [.src.tds.unittests]corrupt$(E) \
-	[.src.tds.unittests]declarations$(E) [.src.tds.unittests]portconf$(E)
+	[.src.tds.unittests]declarations$(E) [.src.tds.unittests]portconf$(E) [.src.tds.unittests]freeze$(E)
 	@ continue
 
 ctlibtests : [.src.ctlib.unittests]t0001$(E) [.src.ctlib.unittests]t0002$(E) [.src.ctlib.unittests]t0003$(E) \
@@ -830,6 +831,12 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]portconf$(OBJ) : [.src.tds.unittests]portconf.c
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[.src.tds.unittests]freeze$(E) : [.src.tds.unittests]freeze$(OBJ) [.src.tds.unittests]common$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
+
+[.src.tds.unittests]freeze$(OBJ) : [.src.tds.unittests]freeze.c
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
 

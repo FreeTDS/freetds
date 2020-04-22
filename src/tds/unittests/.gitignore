@@ -26,3 +26,4 @@ libcommon.a
 declarations
 portconf
 parsing
+freeze
