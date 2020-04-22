@@ -1342,10 +1342,12 @@ tds_realloc_socket(TDSSOCKET * tds, size_t bufsize)
 	if (bufsize < 512)
 		bufsize = 512;
 
-	tds->conn->env.block_size = bufsize;
-
+	/* prevent nasty memory conditions, server should send the request at
+	 * the beginning only */
 	if (tds->out_pos > bufsize)
 		return NULL;
+
+	tds->conn->env.block_size = bufsize;
 
 	packet = tds_realloc_packet(tds->send_packet, smp_hdr_len + bufsize + TDS_ADDITIONAL_SPACE);
 	if (packet == NULL)
