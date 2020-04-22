@@ -905,34 +905,6 @@ tds_generic_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 	return TDS_SUCCESS;
 }
 
-unsigned
-tds_generic_put_info_len(TDSSOCKET * tds, TDSCOLUMN * col)
-{
-	unsigned len = col->column_varint_size;
-
-	CHECK_TDS_EXTRA(tds);
-	CHECK_COLUMN_EXTRA(col);
-
-	switch (col->column_varint_size) {
-	case 5:
-		len = 4;
-		break;
-	case 8:
-		len = 2;
-		break;
-	}
-
-	if (IS_TDS50(tds->conn)
-	    && (col->on_server.column_type == SYBIMAGE || col->on_server.column_type == SYBTEXT))
-		len += 2;
-
-	/* TDS7.1 output collate information */
-	if (IS_TDS71_PLUS(tds->conn) && is_collate_type(col->on_server.column_type))
-		len += 5;
-
-	return len;
-}
-
 /**
  * Write data to wire
  * \param tds state information for the socket and the TDS protocol
@@ -1237,15 +1209,6 @@ tds_numeric_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 	return TDS_SUCCESS;
 }
 
-unsigned
-tds_numeric_put_info_len(TDSSOCKET * tds, TDSCOLUMN * col)
-{
-	CHECK_TDS_EXTRA(tds);
-	CHECK_COLUMN_EXTRA(col);
-
-	return 3;
-}
-
 TDSRET
 tds_numeric_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
 {
@@ -1441,12 +1404,6 @@ tds_clrudt_row_len(TDSCOLUMN *col)
 	return sizeof(TDSBLOB);
 }
 
-unsigned
-tds_clrudt_put_info_len(TDSSOCKET * tds, TDSCOLUMN * col)
-{
-	return 3;
-}
-
 TDSRET
 tds_clrudt_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 {
@@ -1499,12 +1456,6 @@ tds_sybbigtime_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 	return TDS_SUCCESS;
 }
 
-unsigned
-tds_sybbigtime_put_info_len(TDSSOCKET * tds, TDSCOLUMN * col)
-{
-	return 2;
-}
-
 TDSRET
 tds_sybbigtime_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
 {
@@ -1543,12 +1494,6 @@ TDSRET
 tds_invalid_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 {
 	return TDS_FAIL;
-}
-
-unsigned
-tds_invalid_put_info_len(TDSSOCKET * tds, TDSCOLUMN * col)
-{
-	return 0;
 }
 
 TDSRET

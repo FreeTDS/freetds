@@ -31,7 +31,6 @@
 	tds_ ## name ## _get_info, \
 	tds_ ## name ## _get, \
 	tds_ ## name ## _row_len, \
-	tds_ ## name ## _put_info_len, \
 	tds_ ## name ## _put_info, \
 	tds_ ## name ## _put, \
 	TDS_EXTRA_CHECK(tds_ ## name ## _check) \
@@ -40,7 +39,6 @@
 tds_func_get_info tds_invalid_get_info;
 tds_func_row_len  tds_invalid_row_len;
 tds_func_get_data tds_invalid_get;
-tds_func_put_info_len tds_invalid_put_info_len;
 tds_func_put_info tds_invalid_put_info;
 tds_func_put_data tds_invalid_put;
 tds_func_check    tds_invalid_check;
@@ -48,7 +46,6 @@ tds_func_check    tds_invalid_check;
 tds_func_get_info tds_generic_get_info;
 tds_func_row_len  tds_generic_row_len;
 tds_func_get_data tds_generic_get;
-tds_func_put_info_len tds_generic_put_info_len;
 tds_func_put_info tds_generic_put_info;
 tds_func_put_data tds_generic_put;
 tds_func_check    tds_generic_check;
@@ -56,7 +53,6 @@ tds_func_check    tds_generic_check;
 tds_func_get_info tds_numeric_get_info;
 tds_func_row_len  tds_numeric_row_len;
 tds_func_get_data tds_numeric_get;
-tds_func_put_info_len tds_numeric_put_info_len;
 tds_func_put_info tds_numeric_put_info;
 tds_func_put_data tds_numeric_put;
 tds_func_check    tds_numeric_check;
@@ -64,7 +60,6 @@ tds_func_check    tds_numeric_check;
 #define tds_variant_get_info tds_generic_get_info
 #define tds_variant_row_len  tds_generic_row_len
 tds_func_get_data tds_variant_get;
-#define tds_variant_put_info_len tds_generic_put_info_len
 tds_func_put_info tds_variant_put_info;
 tds_func_put_data tds_variant_put;
 tds_func_check    tds_variant_check;
@@ -72,7 +67,6 @@ tds_func_check    tds_variant_check;
 tds_func_get_info tds_msdatetime_get_info;
 tds_func_row_len  tds_msdatetime_row_len;
 tds_func_get_data tds_msdatetime_get;
-#define tds_msdatetime_put_info_len tds_generic_put_info_len
 tds_func_put_info tds_msdatetime_put_info;
 tds_func_put_data tds_msdatetime_put;
 tds_func_check    tds_msdatetime_check;
@@ -80,7 +74,6 @@ tds_func_check    tds_msdatetime_check;
 tds_func_get_info tds_clrudt_get_info;
 tds_func_row_len  tds_clrudt_row_len;
 #define tds_clrudt_get tds_generic_get
-tds_func_put_info_len tds_clrudt_put_info_len;
 tds_func_put_info tds_clrudt_put_info;
 #define tds_clrudt_put tds_generic_put
 tds_func_check    tds_clrudt_check;
@@ -88,7 +81,6 @@ tds_func_check    tds_clrudt_check;
 tds_func_get_info tds_sybbigtime_get_info;
 tds_func_row_len  tds_sybbigtime_row_len;
 tds_func_get_data tds_sybbigtime_get;
-tds_func_put_info_len tds_sybbigtime_put_info_len;
 tds_func_put_info tds_sybbigtime_put_info;
 tds_func_put_data tds_sybbigtime_put;
 tds_func_check    tds_sybbigtime_check;

@@ -633,7 +633,6 @@ typedef struct tds_bcpcoldata
 typedef TDSRET  tds_func_get_info(TDSSOCKET *tds, TDSCOLUMN *col);
 typedef TDSRET  tds_func_get_data(TDSSOCKET *tds, TDSCOLUMN *col);
 typedef TDS_INT tds_func_row_len(TDSCOLUMN *col);
-typedef unsigned tds_func_put_info_len(TDSSOCKET *tds, TDSCOLUMN *col);
 typedef TDSRET  tds_func_put_info(TDSSOCKET *tds, TDSCOLUMN *col);
 typedef TDSRET  tds_func_put_data(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7);
 typedef int     tds_func_check(const TDSCOLUMN *col);
@@ -643,12 +642,6 @@ typedef struct tds_column_funcs
 	tds_func_get_info *get_info;
 	tds_func_get_data *get_data;
 	tds_func_row_len  *row_len;
-	/**
-	 * Returns metadata column information size.
-	 * \tds
-	 * \param col  column to send
-	 */
-	tds_func_put_info_len *put_info_len;
 	/**
 	 * Send metadata column information to server.
 	 * \tds
