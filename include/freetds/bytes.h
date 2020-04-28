@@ -192,7 +192,7 @@ typedef union {
 # define TDS_BSWAP32(val) _byteswap_ulong(val)
 #endif
 
-#if defined(TDS_BSWAP16) && defined(WORDS_BIGENDIAN)
+#if defined(TDS_BSWAP16) && !defined(WORDS_BIGENDIAN)
 # undef TDS_GET_UA2BE
 # undef TDS_GET_UA4BE
 # define TDS_GET_UA2BE(ptr) TDS_BSWAP16(TDS_GET_UA2LE(ptr))
@@ -204,7 +204,7 @@ typedef union {
    uint16_t _tds_si = TDS_BSWAP16(val); TDS_PUT_UA2LE(ptr,_tds_si); } while(0)
 # define TDS_PUT_UA4BE(ptr,val) do {\
    uint32_t _tds_i = TDS_BSWAP32(val); TDS_PUT_UA4LE(ptr,_tds_i); } while(0)
-#elif defined(TDS_BSWAP16) && !defined(WORDS_BIGENDIAN)
+#elif defined(TDS_BSWAP16) && defined(WORDS_BIGENDIAN)
 # undef TDS_GET_UA2LE
 # undef TDS_GET_UA4LE
 # define TDS_GET_UA2LE(ptr) TDS_BSWAP16(TDS_GET_UA2BE(ptr))
