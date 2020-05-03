@@ -1847,7 +1847,7 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 
 		srcfmt.datatype = _cs_convert_not_client(ctx, curcol, &convert_buffer, &src);
 		if (srcfmt.datatype == CS_ILLEGAL_TYPE)
-			srcfmt.datatype = _ct_get_client_type(curcol);
+			srcfmt.datatype = _ct_get_client_type(curcol, false);
 		if (srcfmt.datatype == CS_ILLEGAL_TYPE) {
 			result = 1;
 			continue;
@@ -1955,11 +1955,14 @@ ct_con_drop(CS_CONNECTION * con)
 }
 
 int
-_ct_get_client_type(const TDSCOLUMN *col)
+_ct_get_client_type(const TDSCOLUMN *col, bool describe)
 {
 	TDS_SERVER_TYPE type = col->column_type;
 
 	tdsdump_log(TDS_DBG_FUNC, "_ct_get_client_type(type %d, user %d, size %d)\n", type, col->column_usertype, col->column_size);
+
+	if (type == SYBVARIANT && describe)
+		return CS_CHAR_TYPE;
 
 	if (type == SYBVARIANT)
 		type = ((const TDSVARIANT *) col->column_data)->type;
@@ -2424,7 +2427,7 @@ ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 	strlcpy(datafmt->name, tds_dstr_cstr(&curcol->column_name), sizeof(datafmt->name));
 	datafmt->namelen = strlen(datafmt->name);
 	/* need to turn the SYBxxx into a CS_xxx_TYPE */
-	datafmt->datatype = _ct_get_client_type(curcol);
+	datafmt->datatype = _ct_get_client_type(curcol, true);
 	if (datafmt->datatype == CS_ILLEGAL_TYPE)
 		return CS_FAIL;
 	tdsdump_log(TDS_DBG_INFO1, "ct_describe() datafmt->datatype = %d server type %d\n", datafmt->datatype,
