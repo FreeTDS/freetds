@@ -199,7 +199,7 @@ blk_describe(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt)
 	strlcpy(datafmt->name, tds_dstr_cstr(&curcol->column_name), sizeof(datafmt->name));
 	datafmt->namelen = strlen(datafmt->name);
 	/* need to turn the SYBxxx into a CS_xxx_TYPE */
-	datafmt->datatype = _ct_get_client_type(curcol);
+	datafmt->datatype = _ct_get_client_type(curcol, true);
 	if (datafmt->datatype == CS_ILLEGAL_TYPE)
 		return CS_FAIL;
 	tdsdump_log(TDS_DBG_INFO1, "blk_describe() datafmt->datatype = %d server type %d\n", datafmt->datatype,
@@ -691,7 +691,7 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 
 		destfmt.datatype = _cs_convert_not_client(ctx, bindcol, &convert_buffer, &src);
 		if (destfmt.datatype == CS_ILLEGAL_TYPE)
-			destfmt.datatype  = _ct_get_client_type(bindcol);
+			destfmt.datatype  = _ct_get_client_type(bindcol, false);
 		if (destfmt.datatype == CS_ILLEGAL_TYPE)
 			return CS_FAIL;
 		destfmt.maxlength = bindcol->on_server.column_size;
