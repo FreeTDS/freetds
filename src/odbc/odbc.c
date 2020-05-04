@@ -4951,7 +4951,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 		if (colinfo->column_text_sqlgetdatapos > 0
 		    && colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size
 		    && colinfo->column_iconv_left == 0)
-			// TODO check if SQL_SUCCESS instead !!
+			/* TODO check if SQL_SUCCESS instead !! */
 			ODBC_EXIT(stmt, SQL_NO_DATA);
 
 		if (!is_variable_type(colinfo->column_type)) {

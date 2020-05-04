@@ -309,7 +309,7 @@ typedef struct
 	DBINT      date;	/**< date, 0 = 1900-01-01 */
 	DBSMALLINT offset;	/**< time offset */
 	DBUSMALLINT time_prec:3;
-// fix a problem with some public headers defining _res
+/* fix a problem with some public headers defining _res */
 #undef _res
 	DBUSMALLINT _res:10;
 	DBUSMALLINT has_time:1;

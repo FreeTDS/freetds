@@ -1438,7 +1438,7 @@ _cs_convert_not_client(CS_CONTEXT *ctx, const TDSCOLUMN *curcol, CONV_RESULT *co
 		int len = tds_convert(ctx->tds_ctx, type, *p_src,
 				      curcol->column_cur_size, desttype, convert_buffer);
 		if (len < 0)
-			return CS_ILLEGAL_TYPE; // TODO _csclient_msg ??
+			return CS_ILLEGAL_TYPE; /* TODO _csclient_msg ?? */
 		*p_src = (unsigned char *) convert_buffer;
 	}
 	return ct_type;
