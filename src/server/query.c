@@ -78,14 +78,14 @@ tds_get_query_head(TDSSOCKET * tds, TDSHEADERS * head)
 
 	if (IS_TDS72_PLUS(tds->conn)) {
 		int qn_len = 0;
-		const char *qn_msgtext = NULL;
-		const char *qn_options = NULL;
+		char *qn_msgtext = NULL;
+		char *qn_options = NULL;
 		size_t qn_msgtext_len = 0;
 		size_t qn_options_len = 0;
 
 		qn_len = tds_get_int(tds) - 4 - 18;             /* total length */
-		tds_get_int(tds, 18);                          /* length: transaction descriptor, ignored */
-		tds_get_smallint(tds, 2);                      /* type: transaction descriptor, ignored */
+		tds_get_int(tds);                          /* length: transaction descriptor, ignored */
+		tds_get_smallint(tds);                      /* type: transaction descriptor, ignored */
 		tds_get_n(tds, tds->conn->tds72_transaction, 8);  /* transaction */
 		tds_get_int(tds, 1);                           /* request count, ignored */
 		if (qn_len != 0) {
@@ -109,7 +109,7 @@ tds_get_query_head(TDSSOCKET * tds, TDSHEADERS * head)
 			}
 			more = tds->in_len - tds->in_pos;
 			if (more)
-				tds_get_int(tds, head->qn_timeout);        /* timeout */
+				head->qn_timeout = tds_get_int(tds);        /* timeout */
 
 			head->qn_options = qn_options;
 			head->qn_msgtext = qn_msgtext;
@@ -212,7 +212,7 @@ char *tds_get_generic_query(TDSSOCKET * tds, TDSHEADERS * head)
 
 		case TDS_QUERY:
 			/* TDS7+ adds a query head */
-			if (tds_get_query_head(tds, TDS_QUERY, head) != TDS_SUCCESS)
+			if (tds_get_query_head(tds, head) != TDS_SUCCESS)
 				return TDS_FAIL;
 
 			/* TDS4 and TDS7+ fill the whole packet with a query */

@@ -425,7 +425,7 @@ pool_user_send_login_ack(TDS_POOL * pool, TDS_POOL_USER * puser)
 		tds_put_byte(tds, 0);
 	}
 
-	tds_send_login_ack(tds, mtds->conn->product_name);
+	tds_send_login_ack(tds, mtds->conn->product_name, mtds->conn->product_version);
 	sprintf(block, "%d", tds->conn->env.block_size);
 	tds_env_change(tds, TDS_ENV_PACKSIZE, block, block);
 	/* tds_send_capabilities_token(tds); */
