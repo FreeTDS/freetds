@@ -477,7 +477,7 @@ enum {
 	TDS5_SEC_LOG_APPDEFINED = 8,
 	TDS5_SEC_LOG_SECSESS = 16,
 	TDS5_SEC_LOG_ENCRYPT2 = 32,
-	TDS5_SEC_LOG_NONCE = 128
+	TDS5_SEC_LOG_ENCRYPT3 = 128,
 };
 
 /* MS encryption byte (pre login) */
