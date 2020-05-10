@@ -68,10 +68,10 @@ main(int argc, char **argv)
 	if (!strcmp(tds_dstr_cstr(&login->user_name), "guest") && !strcmp(tds_dstr_cstr(&login->password), "sybase")) {
 		tds->out_flag = TDS_REPLY;
 		tds_env_change(tds, TDS_ENV_DATABASE, "master", "pubs2");
-		//tds_send_msg(tds, 5701, 2, 10, "Changed database context to 'pubs2'.", "JDBC", "ZZZZZ", 1);
+		tds_send_msg(tds, 5701, 2, 10, "Changed database context to 'pubs2'.", "JDBC", "ZZZZZ", 1);
 		if (!login->suppress_language) {
 			tds_env_change(tds, TDS_ENV_LANG, NULL, "us_english");
-			//tds_send_msg(tds, 5703, 1, 10, "Changed language setting to 'us_english'.", "JDBC", "ZZZZZ", 1);
+			tds_send_msg(tds, 5703, 1, 10, "Changed language setting to 'us_english'.", "JDBC", "ZZZZZ", 1);
 		}
 		tds_env_change(tds, TDS_ENV_PACKSIZE, NULL, "512");
 		/* TODO set mssql if tds7+ */

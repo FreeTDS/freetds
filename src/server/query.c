@@ -87,22 +87,22 @@ tds_get_query_head(TDSSOCKET * tds, TDSHEADERS * head)
 		tds_get_int(tds);                          /* length: transaction descriptor, ignored */
 		tds_get_smallint(tds);                      /* type: transaction descriptor, ignored */
 		tds_get_n(tds, tds->conn->tds72_transaction, 8);  /* transaction */
-		tds_get_int(tds, 1);                           /* request count, ignored */
+		tds_get_int(tds);                           /* request count, ignored */
 		if (qn_len != 0) {
 			if (!head) {
 				tds_set_state(tds, TDS_IDLE);
 				return TDS_FAIL;
 			}
 
-			tds_get_int(tds, qn_len);                   /* length: query notification */
+			qn_len = tds_get_int(tds);                   /* length: query notification */
 			tds_get_smallint(tds);                      /* type: query notification, ignored */
-			tds_get_smallint(tds, qn_msgtext_len);  /* notifyid */
+			qn_msgtext_len = tds_get_smallint(tds);  /* notifyid */
 			if (qn_msgtext_len > 0) {
 				qn_msgtext = (char *) realloc(qn_msgtext, qn_msgtext_len);
 				tds_get_n(tds, qn_msgtext, qn_msgtext_len);
 			}
 
-			tds_get_smallint(tds, qn_options_len);  /* ssbdeployment */
+			qn_options_len = tds_get_smallint(tds);  /* ssbdeployment */
 			if (qn_options_len > 0) {
 				qn_options = (char *) realloc(qn_options, qn_options_len);
 				tds_get_n(tds, qn_options, qn_options_len);
@@ -213,7 +213,7 @@ char *tds_get_generic_query(TDSSOCKET * tds, TDSHEADERS * head)
 		case TDS_QUERY:
 			/* TDS7+ adds a query head */
 			if (tds_get_query_head(tds, head) != TDS_SUCCESS)
-				return TDS_FAIL;
+				return NULL;
 
 			/* TDS4 and TDS7+ fill the whole packet with a query */
 			len = 0;
