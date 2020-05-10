@@ -112,7 +112,7 @@ tds5_negotiate_handle_next(TDSSOCKET * tds, TDSAUTHENTICATION * tds_auth, size_t
 		goto error;
 
 	/* we only support RSA authentication, we should have send 2/3 parameters:
-	 * 1- integer.. unknown actually 1 TODO
+	 * 1- integer, cipher suite. 1 for RSA
 	 * 2- binary, rsa public key in PEM format
 	 * 3- binary, nonce (optional)
 	 */
