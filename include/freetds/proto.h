@@ -480,6 +480,62 @@ enum {
 	TDS5_SEC_LOG_ENCRYPT3 = 128,
 };
 
+/** TDS 5 TDS_MSG_TOKEN message types */
+enum {
+	TDS5_MSG_SEC_ENCRYPT = 1, /**< Start encrypted login protocol. */
+	TDS5_MSG_SEC_LOGPWD = 2, /**< Sending encrypted user password. */
+	TDS5_MSG_SEC_REMPWD = 3, /**< Sending remote server passwords. */
+	TDS5_MSG_SEC_CHALLENGE = 4, /**< Start challenge/response protocol. */
+	TDS5_MSG_SEC_RESPONSE = 5, /**< Returned encrypted challenge. */
+	TDS5_MSG_SEC_GETLABEL = 6, /**< Start trusted user login protocol. */
+	TDS5_MSG_SEC_LABEL = 7, /**< Return security labels. */
+	TDS5_MSG_SQL_TBLNAME = 8, /**< CS_MSG_TABLENAME */
+	TDS5_MSG_GW_RESERVED = 9, /**< Used by interoperability group. */
+	TDS5_MSG_OMNI_CAPABILITIES = 10, /**< Used by OMNI SQL Server. */
+	TDS5_MSG_SEC_OPAQUE = 11, /**< Send opaque security token. */
+	TDS5_MSG_HAFAILOVER = 12, /**< Used during login to obtain the HA Session ID */
+	TDS5_MSG_EMPTY = 13, /**< Sometimes a MSG response stream is required by TDS syntax,
+			but the sender has no real information to pass. This message type
+			indicates that the following paramfmt/param streams are meaningless */
+	TDS5_MSG_SEC_ENCRYPT2 = 14, /**< Start alternate encrypted password protocol. */
+	TDS5_MSG_SEC_LOGPWD2 = 15, /**< Return alternate encrypted passwords. */
+	TDS5_MSG_SEC_SUP_CIPHER = 16, /**< Returns list of supported ciphers. */
+	TDS5_MSG_MIG_REQ = 17, /**< Initiate client connection migration to alternative
+			server via address pro- vided as message parameter. */
+	TDS5_MSG_MIG_SYNC = 18, /**< Client sends to acknowledge receipt of TDS_MSG_MIG_REQ . */
+	TDS5_MSG_MIG_CONT = 19, /**< Server sends to start actual client migration to alternate server. */
+	TDS5_MSG_MIG_IGN = 20, /**< Server sends to abort previous TDS_MSG_MIG_REQ . */
+	TDS5_MSG_MIG_FAIL = 21, /**< Client sends to original server to indicate that the
+			migration attempt failed. Optional parameter indicates failure reason. */
+	TDS5_MSG_SEC_REMPWD2 = 22,
+	TDS5_MSG_MIG_RESUME = 23,
+	TDS5_MSG_SEC_ENCRYPT3 = 30,
+	TDS5_MSG_SEC_LOGPWD3 = 31,
+	TDS5_MSG_SEC_REMPWD3 = 32,
+	TDS5_MSG_DR_MAP = 33,
+};
+
+/**
+ * TDS 5 TDS5_MSG_SEC_OPAQUE types.
+ *
+ * TDS5_SEC_SECSESS has 5 parameters
+ * 1- security version. INTN(4). Always TDS5_SEC_VERSION
+ * 2- security message type. INTN(4). Always TDS5_SEC_SECSESS
+ * 3- security OID. VARBINARY.
+ * 4- opaque security token. LONGVARBINARY.
+ * 5- security services requested. INTN(4). A set of flags.
+ */
+enum {
+	TDS5_SEC_SECSESS = 1, /**< Security session token */
+	TDS5_SEC_FORWARD = 2, /**< Credential forwarding */
+	TDS5_SEC_SIGN = 3, /**< Data signature packet */
+	TDS5_SEC_OTHER = 4, /**< Other security message */
+};
+
+enum {
+	TDS5_SEC_VERSION = 50,
+};
+
 /* MS encryption byte (pre login) */
 enum {
 	TDS7_ENCRYPT_OFF,

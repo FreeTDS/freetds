@@ -118,7 +118,7 @@ tds5_negotiate_handle_next(TDSSOCKET * tds, TDSAUTHENTICATION * tds_auth, size_t
 	 */
 
 	/* message not supported */
-	if (auth->msg_type != 0x1e)
+	if (auth->msg_type != TDS5_MSG_SEC_ENCRYPT3)
 		goto error;
 
 	info = tds->param_info;
@@ -143,14 +143,14 @@ tds5_negotiate_handle_next(TDSSOCKET * tds, TDSAUTHENTICATION * tds_auth, size_t
 	tds->out_flag = TDS_NORMAL;
 
 	/* password */
-	tds5_send_msg(tds, 0x1f);
+	tds5_send_msg(tds, TDS5_MSG_SEC_LOGPWD3);
 	tds_put_n(tds, "\xec\x0e\x00\x01\x00\x00\x00\x00\x00\x00\x00\xe1\xff\xff\xff\x7f\x00", 0x11);
 	tds_put_byte(tds, TDS5_PARAMS_TOKEN);
 	tds_put_int(tds, em_size);
 	tds_put_n(tds, em, em_size);
 
 	/* remote password */
-	tds5_send_msg(tds, 0x20);
+	tds5_send_msg(tds, TDS5_MSG_SEC_REMPWD3);
 	tds_put_n(tds, "\xec\x17\x00\x02\x00\x00\x00\x00\x00\x00\x00\x27\xff\x00\x00\x00\x00\x00\x00\x00\xe1\xff\xff\xff\x7f\x00", 0x1a);
 	tds_put_byte(tds, TDS5_PARAMS_TOKEN);
 	tds_put_byte(tds, 0);
