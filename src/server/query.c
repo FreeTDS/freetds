@@ -65,6 +65,59 @@ tds_lastpacket(TDSSOCKET * tds)
 	return tds->in_buf[1] != 0;
 }
 
+
+/**
+ * get query packet of a given type
+ * \tds
+ * \param head         extra information to put in a TDS7 header
+ */
+static TDSRET
+tds_get_query_head(TDSSOCKET * tds, TDSHEADERS * head)
+{
+	int more;
+
+	if (IS_TDS72_PLUS(tds->conn)) {
+		int qn_len = 0;
+		const char *qn_msgtext = NULL;
+		const char *qn_options = NULL;
+		size_t qn_msgtext_len = 0;
+		size_t qn_options_len = 0;
+
+		qn_len = tds_get_int(tds) - 4 - 18;             /* total length */
+		tds_get_int(tds, 18);                          /* length: transaction descriptor, ignored */
+		tds_get_smallint(tds, 2);                      /* type: transaction descriptor, ignored */
+		tds_get_n(tds, tds->conn->tds72_transaction, 8);  /* transaction */
+		tds_get_int(tds, 1);                           /* request count, ignored */
+		if (qn_len != 0) {
+			if (!head) {
+				tds_set_state(tds, TDS_IDLE);
+				return TDS_FAIL;
+			}
+
+			tds_get_int(tds, qn_len);                   /* length: query notification */
+			tds_get_smallint(tds);                      /* type: query notification, ignored */
+			tds_get_smallint(tds, qn_msgtext_len);  /* notifyid */
+			if (qn_msgtext_len > 0) {
+				qn_msgtext = (char *) realloc(qn_msgtext, qn_msgtext_len);
+				tds_get_n(tds, qn_msgtext, qn_msgtext_len);
+			}
+
+			tds_get_smallint(tds, qn_options_len);  /* ssbdeployment */
+			if (qn_options_len > 0) {
+				qn_options = (char *) realloc(qn_options, qn_options_len);
+				tds_get_n(tds, qn_options, qn_options_len);
+			}
+			more = tds->in_len - tds->in_pos;
+			if (more)
+				tds_get_int(tds, head->qn_timeout);        /* timeout */
+
+			head->qn_options = qn_options;
+			head->qn_msgtext = qn_msgtext;
+		}
+	}
+	return TDS_SUCCESS;
+}
+
 /**
  * Read a query, and return it as an ASCII string with a \0 terminator.  This
  * should work for TDS4, TDS5, and TDS7+ connections.  Also, it converts RPC
@@ -72,10 +125,11 @@ tds_lastpacket(TDSSOCKET * tds)
  * string is returned in a static buffer which is overwritten each time this
  * function is called.
  * \param tds  The socket to read from.
+ * \param head  extra information to put in a TDS7 header
  * \return A query string if successful, or NULL if we either can't read from
  * the socket or we read something that we can't handle.
  */
-char *tds_get_generic_query(TDSSOCKET * tds)
+char *tds_get_generic_query(TDSSOCKET * tds, TDSHEADERS * head)
 {
  	int token, byte;
 	int len, more, i, j;
@@ -157,6 +211,10 @@ char *tds_get_generic_query(TDSSOCKET * tds)
 			break;
 
 		case TDS_QUERY:
+			/* TDS7+ adds a query head */
+			if (tds_get_query_head(tds, TDS_QUERY, head) != TDS_SUCCESS)
+				return TDS_FAIL;
+
 			/* TDS4 and TDS7+ fill the whole packet with a query */
 			len = 0;
 			for (;;) {

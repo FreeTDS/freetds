@@ -34,17 +34,17 @@ unsigned char *tds7_decrypt_pass(const unsigned char *crypt_pass, int len, unsig
 TDSSOCKET *tds_listen(TDSCONTEXT * ctx, int ip_port);
 int tds_read_login(TDSSOCKET * tds, TDSLOGIN * login);
 int tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login);
-TDSLOGIN *tds_alloc_read_login(TDSSOCKET * tds);
+TDSLOGIN *tds_alloc_read_login(TDSSOCKET * tds, TDS_USMALLINT tds_version);
 
 /* query.c */
 char *tds_get_query(TDSSOCKET * tds);
-char *tds_get_generic_query(TDSSOCKET * tds);
+char *tds_get_generic_query(TDSSOCKET * tds, TDSHEADERS * head);
 
 /* server.c */
 void tds_env_change(TDSSOCKET * tds, int type, const char *oldvalue, const char *newvalue);
 void tds_send_msg(TDSSOCKET * tds, int msgno, int msgstate, int severity, const char *msgtext, const char *srvname,
 		  const char *procname, int line);
-void tds_send_login_ack(TDSSOCKET * tds, const char *progname);
+void tds_send_login_ack(TDSSOCKET * tds, const char *progname, TDS_UINT product_version);
 void tds_send_eed(TDSSOCKET * tds, int msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line);
 void tds_send_err(TDSSOCKET * tds, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 void tds_send_capabilities_token(TDSSOCKET * tds);

@@ -310,13 +310,14 @@ tds_read_string(TDSSOCKET * tds, DSTR * s, int size)
  * function should call tds_free_login() on the returned structure when it is
  * no longer needed.
  * \param tds  The socket to read from
+ * \param tds_version  The tds version, if TDS7+
  * \return  Returns NULL if no login was received.  The calling function can
  * use IS_TDSDEAD(tds) to distinguish between an error/shutdown on the socket,
  * or the receipt of an unexpected packet type.  In the latter case,
  * tds->in_flag will indicate the return type.
  */
 TDSLOGIN *
-tds_alloc_read_login(TDSSOCKET * tds)
+tds_alloc_read_login(TDSSOCKET * tds, TDS_USMALLINT tds_version)
 {
 	TDSLOGIN * login;
 
@@ -358,7 +359,7 @@ tds_alloc_read_login(TDSSOCKET * tds)
 		break;
 
 	case TDS71_PRELOGIN: /* TDS7.1+ prelogin, hopefully followed by a login */
-		tds->conn->tds_version = 0x701;
+		tds->conn->tds_version = tds_version ? tds_version : 0x701;
 		/* ignore client and just send our reply TODO... finish */
 		tds71_send_prelogin(tds);
 		tds_flush_packet(tds);

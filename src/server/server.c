@@ -159,9 +159,12 @@ tds_send_err(TDSSOCKET * tds, int severity, int dberr, int oserr, char *dberrstr
 }
 
 void
-tds_send_login_ack(TDSSOCKET * tds, const char *progname)
+tds_send_login_ack(TDSSOCKET * tds, const char *progname, TDS_UINT product_version)
 {
 	TDS_UINT ui, version;
+
+	/* connections from SSMS require product_version */
+	tds->conn->product_version = product_version;
 
 	tds_put_byte(tds, TDS_LOGINACK_TOKEN);
 	tds_put_smallint(tds, 10 + (IS_TDS7_PLUS(tds->conn)? 2 : 1) * strlen(progname));	/* length of message */

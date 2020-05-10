@@ -59,7 +59,7 @@ main(int argc, char **argv)
 	if (!tds)
 		return 1;
 	/* get_incoming(tds->s); */
-	login = tds_alloc_read_login(tds);
+	login = tds_alloc_read_login(tds, 0x702);
 	if (!login) {
 		fprintf(stderr, "Error reading login\n");
 		exit(1);
@@ -68,14 +68,14 @@ main(int argc, char **argv)
 	if (!strcmp(tds_dstr_cstr(&login->user_name), "guest") && !strcmp(tds_dstr_cstr(&login->password), "sybase")) {
 		tds->out_flag = TDS_REPLY;
 		tds_env_change(tds, TDS_ENV_DATABASE, "master", "pubs2");
-		tds_send_msg(tds, 5701, 2, 10, "Changed database context to 'pubs2'.", "JDBC", "ZZZZZ", 1);
+		//tds_send_msg(tds, 5701, 2, 10, "Changed database context to 'pubs2'.", "JDBC", "ZZZZZ", 1);
 		if (!login->suppress_language) {
 			tds_env_change(tds, TDS_ENV_LANG, NULL, "us_english");
-			tds_send_msg(tds, 5703, 1, 10, "Changed language setting to 'us_english'.", "JDBC", "ZZZZZ", 1);
+			//tds_send_msg(tds, 5703, 1, 10, "Changed language setting to 'us_english'.", "JDBC", "ZZZZZ", 1);
 		}
 		tds_env_change(tds, TDS_ENV_PACKSIZE, NULL, "512");
 		/* TODO set mssql if tds7+ */
-		tds_send_login_ack(tds, "sql server");
+		tds_send_login_ack(tds, "sql server", TDS_MS_VER(10, 0, 6000));
 		if (IS_TDS50(tds->conn))
 			tds_send_capabilities_token(tds);
 		tds_send_done_token(tds, 0, 1);
@@ -87,7 +87,7 @@ main(int argc, char **argv)
 	tds_free_login(login);
 	login = NULL;
 	/* printf("incoming packet %d\n", tds_read_packet(tds)); */
-	printf("query : %s\n", tds_get_generic_query(tds));
+	printf("query : %s\n", tds_get_generic_query(tds, NULL));
 	tds->out_flag = TDS_REPLY;
 	resinfo = tds_alloc_results(1);
 	resinfo->columns[0]->column_type = SYBVARCHAR;
