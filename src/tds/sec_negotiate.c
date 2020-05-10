@@ -90,8 +90,8 @@ static void
 tds5_send_msg(TDSSOCKET *tds, uint16_t msg_type)
 {
 	tds_put_tinyint(tds, TDS_MSG_TOKEN);
-	tds_put_tinyint(tds, 3);
-	tds_put_tinyint(tds, 1);
+	tds_put_tinyint(tds, 3); /* length */
+	tds_put_tinyint(tds, 1); /* status, 1=has params */
 	tds_put_smallint(tds, msg_type);
 }
 
