@@ -387,7 +387,7 @@ tds_process_loginack(TDSSOCKET *tds, TDSRET *login_succeeded)
 	 * TDS 4.2 reports 1 on success and is not
 	 * present on failure
 	 */
-	if (ack == 5 || ack == 1) {
+	if (ack == 5 || ack == 1 || (IS_TDS50(tds->conn) && ack == 0x85)) {
 		*login_succeeded = TDS_SUCCESS;
 		/* authentication is now useless */
 		if (tds->conn->authentication) {

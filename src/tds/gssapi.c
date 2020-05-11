@@ -115,7 +115,7 @@ tds_gss_free(TDSCONNECTION * conn, struct tds_authentication * tds_auth)
 static TDSRET tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *token_ptr);
 
 static TDSRET
-tds_gss_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t len)
+tds7_gss_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t len)
 {
 	TDSRET res;
 	gss_buffer_desc recv_tok;
@@ -152,6 +152,71 @@ tds_gss_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t le
 	return TDS_SUCCESS;
 }
 
+static TDSRET
+tds5_gss_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t len)
+{
+	TDSRET res;
+	gss_buffer_desc recv_tok;
+	TDSPARAMINFO *info;
+	TDSCOLUMN *col;
+
+	if (((struct tds_gss_auth *) auth)->last_stat != GSS_S_CONTINUE_NEEDED)
+		return TDS_FAIL;
+
+	if (auth->packet) {
+		OM_uint32 min_stat;
+		gss_buffer_desc send_tok;
+
+		send_tok.value = (void *) auth->packet;
+		send_tok.length = auth->packet_len;
+		gss_release_buffer(&min_stat, &send_tok);
+		auth->packet = NULL;
+	}
+
+	/* parse from saved message */
+	if (auth->msg_type != TDS5_MSG_SEC_OPAQUE)
+		goto error;
+	auth->msg_type = 0;
+
+	info = tds->param_info;
+	if (!info || info->num_cols < 5)
+		goto error;
+
+	/* check first column is int and TDS5_SEC_VERSION */
+	col = info->columns[0];
+	if (tds_get_conversion_type(col->on_server.column_type, col->on_server.column_size) != SYBINT4)
+		goto error;
+	if (*((TDS_INT *) col->column_data) != TDS5_SEC_VERSION)
+		goto error;
+
+	/* check second column is int and TDS5_SEC_SECSESS */
+	col = info->columns[1];
+	if (tds_get_conversion_type(col->on_server.column_type, col->on_server.column_size) != SYBINT4)
+		goto error;
+	if (*((TDS_INT *) col->column_data) != TDS5_SEC_SECSESS)
+		goto error;
+
+	col = info->columns[3];
+	if (col->column_type != SYBLONGBINARY)
+		goto error;
+	recv_tok.value = ((TDSBLOB*) col->column_data)->textvalue;
+	recv_tok.length = col->column_size;
+
+	res = tds_gss_continue(tds, (struct tds_gss_auth *) auth, &recv_tok);
+	if (TDS_FAILED(res))
+		return res;
+
+	tds->out_flag = TDS_NORMAL;
+	res = tds5_gss_send(tds);
+	if (TDS_FAILED(res))
+		return res;
+
+	return tds_flush_packet(tds);
+
+error:
+	return TDS_FAIL;
+}
+
 /**
  * Build a GSSAPI packet to send to server
  * @param tds     A pointer to the TDSSOCKET structure managing a client/server operation.
@@ -178,6 +243,7 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	const char *server_name;
 	/* Storage for getaddrinfo calls */
 	struct addrinfo *addrs = NULL;
+	int len = 0;
 
 	struct tds_gss_auth *auth;
 
@@ -189,12 +255,12 @@ tds_gss_get_auth(TDSSOCKET * tds)
 		return NULL;
 
 	auth->tds_auth.free = tds_gss_free;
-	auth->tds_auth.handle_next = tds_gss_handle_next;
+	auth->tds_auth.handle_next = IS_TDS50(tds->conn) ? tds5_gss_handle_next : tds7_gss_handle_next;
 	auth->gss_context = GSS_C_NO_CONTEXT;
 	auth->last_stat = GSS_S_COMPLETE;
 
 	server_name = tds_dstr_cstr(&tds->login->server_host_name);
-	if (strchr(server_name, '.') == NULL) {
+	if (IS_TDS7_PLUS(tds->conn) && strchr(server_name, '.') == NULL) {
 		struct addrinfo hints;
 		memset(&hints, 0, sizeof(hints));
 		hints.ai_family = AF_UNSPEC;
@@ -207,17 +273,26 @@ tds_gss_get_auth(TDSSOCKET * tds)
 
 	if (!tds_dstr_isempty(&tds->login->server_spn)) {
 		auth->sname = strdup(tds_dstr_cstr(&tds->login->server_spn));
-	} else if (tds_dstr_isempty(&tds->login->server_realm_name)) {
-		if (asprintf(&auth->sname, "MSSQLSvc/%s:%d", server_name, tds->login->port) < 0)
-			auth->sname = NULL;
+	} else if (IS_TDS7_PLUS(tds->conn)) {
+		if (tds_dstr_isempty(&tds->login->server_realm_name)) {
+			len = asprintf(&auth->sname, "MSSQLSvc/%s:%d", server_name, tds->login->port);
+		} else {
+			len = asprintf(&auth->sname, "MSSQLSvc/%s:%d@%s", server_name, tds->login->port,
+				       tds_dstr_cstr(&tds->login->server_realm_name));
+		}
 	} else {
-		if (asprintf(&auth->sname, "MSSQLSvc/%s:%d@%s", server_name, tds->login->port,
-		             tds_dstr_cstr(&tds->login->server_realm_name)) < 0)
-			auth->sname = NULL;
+		/* TDS 5.0, Sybase */
+		server_name = tds_dstr_cstr(&tds->login->server_name);
+		if (tds_dstr_isempty(&tds->login->server_realm_name)) {
+			len = asprintf(&auth->sname, "%s", server_name);
+		} else {
+			len = asprintf(&auth->sname, "%s@%s", server_name,
+				       tds_dstr_cstr(&tds->login->server_realm_name));
+		}
 	}
 	if (addrs)
 		freeaddrinfo(addrs);
-	if (auth->sname == NULL) {
+	if (len < 0 || auth->sname == NULL) {
 		tds_gss_free(tds->conn, (TDSAUTHENTICATION *) auth);
 		return NULL;
 	}
@@ -385,6 +460,82 @@ tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *to
 
 	auth->tds_auth.packet = (uint8_t *) send_tok.value;
 	auth->tds_auth.packet_len = send_tok.length;
+
+	return TDS_SUCCESS;
+}
+
+static void
+tds5_send_msg(TDSSOCKET *tds, uint16_t msg_type)
+{
+	tds_put_tinyint(tds, TDS_MSG_TOKEN);
+	tds_put_tinyint(tds, 3); /* length */
+	tds_put_tinyint(tds, 1); /* status, 1=has params */
+	tds_put_smallint(tds, msg_type);
+}
+
+TDSRET
+tds5_gss_send(TDSSOCKET *tds)
+{
+	uint32_t flags = TDS5_SEC_NETWORK_AUTHENTICATION;
+
+	if (!tds->conn->authentication)
+		return TDS_FAIL;
+
+	if (tds->login) {
+		if (tds->login->gssapi_use_delegation)
+			flags |= TDS5_SEC_DELEGATION;
+		if (tds->login->mutual_authentication)
+			flags |= TDS5_SEC_MUTUAL_AUTHENTICATION;
+	}
+
+	tds5_send_msg(tds, TDS5_MSG_SEC_OPAQUE);
+
+	tds_put_byte(tds, TDS5_PARAMFMT_TOKEN);
+	TDS_START_LEN_USMALLINT(tds) {
+		tds_put_smallint(tds, 5); /* # parameters */
+
+		tds_put_n(tds, NULL, 6); /* name len + output + usertype */
+		tds_put_tinyint(tds, SYBINTN);
+		tds_put_tinyint(tds, 4);
+		tds_put_tinyint(tds, 0); /* locale len */
+
+		tds_put_n(tds, NULL, 6); /* name len + output + usertype */
+		tds_put_tinyint(tds, SYBINTN);
+		tds_put_tinyint(tds, 4);
+		tds_put_tinyint(tds, 0); /* locale len */
+
+		tds_put_n(tds, NULL, 6); /* name len + output + usertype */
+		tds_put_tinyint(tds, SYBVARBINARY);
+		tds_put_tinyint(tds, 255);
+		tds_put_tinyint(tds, 0); /* locale len */
+
+		tds_put_n(tds, NULL, 6); /* name len + output + usertype */
+		tds_put_tinyint(tds, SYBLONGBINARY);
+		tds_put_int(tds, 0x7fffffff);
+		tds_put_tinyint(tds, 0); /* locale len */
+
+		tds_put_n(tds, NULL, 6); /* name len + output + usertype */
+		tds_put_tinyint(tds, SYBINTN);
+		tds_put_tinyint(tds, 4);
+		tds_put_tinyint(tds, 0); /* locale len */
+	} TDS_END_LEN
+
+	tds_put_byte(tds, TDS5_PARAMS_TOKEN);
+
+	tds_put_tinyint(tds, 4);
+	tds_put_int(tds, TDS5_SEC_VERSION);
+
+	tds_put_tinyint(tds, 4);
+	tds_put_int(tds, TDS5_SEC_SECSESS);
+
+	tds_put_tinyint(tds, 12);
+	tds_put_n(tds, "\x06\x0a\x2b\x06\x01\x04\x01\x87\x01\x04\x06\x06", 12); /* KRB5 Sybase OID */
+
+	tds_put_int(tds, tds->conn->authentication->packet_len);
+	tds_put_n(tds, tds->conn->authentication->packet, tds->conn->authentication->packet_len);
+
+	tds_put_tinyint(tds, 4);
+	tds_put_int(tds, flags);
 
 	return TDS_SUCCESS;
 }

@@ -686,6 +686,8 @@ tds_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 
 	unsigned char protocol_version[4];
 	unsigned char program_version[4];
+	unsigned char sec_flags = 0;
+	bool use_kerberos = false;
 
 	int len;
 	char blockstr[16];
@@ -700,13 +702,27 @@ tds_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 		return TDS_FAIL;
 	}
 	if (tds_dstr_isempty(&login->user_name)) {
-		tdsdump_log(TDS_DBG_ERROR, "Kerberos login not supported using TDS 4.x or 5.0\n");
+		if (!IS_TDS50(tds->conn)) {
+			tdsdump_log(TDS_DBG_ERROR, "Kerberos login not supported using TDS 4.x\n");
+			return TDS_FAIL;
+		}
+
+#ifdef ENABLE_KRB5
+		/* try kerberos */
+		sec_flags = TDS5_SEC_LOG_SECSESS;
+		use_kerberos = true;
+		tds->conn->authentication = tds_gss_get_auth(tds);
+		if (!tds->conn->authentication)
+			return TDS_FAIL;
+#else
+		tdsdump_log(TDS_DBG_ERROR, "requested GSS authentication but not compiled in\n");
 		return TDS_FAIL;
+#endif
 	}
 	if (encryption_level == TDS_ENCRYPTION_DEFAULT)
 		encryption_level = TDS_ENCRYPTION_OFF;
-	if (encryption_level != TDS_ENCRYPTION_OFF) {
-		if (IS_TDS42(tds->conn)) {
+	if (!use_kerberos && encryption_level != TDS_ENCRYPTION_OFF) {
+		if (!IS_TDS50(tds->conn)) {
 			tdsdump_log(TDS_DBG_ERROR, "Encryption not supported using TDS 4.x\n");
 			return TDS_FAIL;
 		}
@@ -784,7 +800,9 @@ tds_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	/* oldsecure(2), should be zero, used by old software */
 	tds_put_n(tds, NULL, 2);
 	/* seclogin(1) bitmask */
-	tds_put_byte(tds, encryption_level != TDS_ENCRYPTION_OFF ? TDS5_SEC_LOG_ENCRYPT2|TDS5_SEC_LOG_ENCRYPT3 : 0);
+	if (sec_flags == 0 && encryption_level != TDS_ENCRYPTION_OFF)
+		sec_flags = TDS5_SEC_LOG_ENCRYPT2|TDS5_SEC_LOG_ENCRYPT3;
+	tds_put_byte(tds, sec_flags);
 	/* secbulk(1)
 	 * halogin(1) type of ha login
 	 * hasessionid(6) id of session to reconnect
@@ -818,6 +836,11 @@ tds_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 		tds_put_smallint(tds, sizeof(tds->conn->capabilities));
 		tds_put_n(tds, &tds->conn->capabilities, sizeof(tds->conn->capabilities));
 	}
+
+#ifdef ENABLE_KRB5
+	if (use_kerberos)
+		tds5_gss_send(tds);
+#endif
 
 	return tds_flush_packet(tds);
 }

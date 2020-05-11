@@ -1624,6 +1624,7 @@ TDSAUTHENTICATION * tds_gss_get_auth(TDSSOCKET * tds);
 #else
 TDSAUTHENTICATION * tds_sspi_get_auth(TDSSOCKET * tds);
 #endif
+TDSRET tds5_gss_send(TDSSOCKET *tds);
 
 
 /* random.c */
