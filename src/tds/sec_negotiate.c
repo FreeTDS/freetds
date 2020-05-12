@@ -62,8 +62,6 @@
 typedef struct tds5_negotiate
 {
 	TDSAUTHENTICATION tds_auth;
-	/** message type from server */
-	unsigned msg_type;
 } TDS5NEGOTIATE;
 
 static TDSRET
@@ -75,15 +73,6 @@ tds5_negotiate_free(TDSCONNECTION * conn, TDSAUTHENTICATION * tds_auth)
 	free(auth);
 
 	return TDS_SUCCESS;
-}
-
-void
-tds5_negotiate_set_msg_type(TDSSOCKET * tds, TDSAUTHENTICATION * tds_auth, unsigned msg_type)
-{
-	TDS5NEGOTIATE *auth = (TDS5NEGOTIATE *) tds_auth;
-
-	if (tds_auth && tds_auth->free == tds5_negotiate_free)
-		auth->msg_type = msg_type;
 }
 
 static void
@@ -98,7 +87,6 @@ tds5_send_msg(TDSSOCKET *tds, uint16_t msg_type)
 static TDSRET
 tds5_negotiate_handle_next(TDSSOCKET * tds, TDSAUTHENTICATION * tds_auth, size_t len)
 {
-	TDS5NEGOTIATE *auth = (TDS5NEGOTIATE *) tds_auth;
 	TDSPARAMINFO *info;
 	void *rsa, *nonce = NULL;
 	size_t rsa_len, nonce_len = 0;
@@ -118,7 +106,7 @@ tds5_negotiate_handle_next(TDSSOCKET * tds, TDSAUTHENTICATION * tds_auth, size_t
 	 */
 
 	/* message not supported */
-	if (auth->msg_type != TDS5_MSG_SEC_ENCRYPT3)
+	if (tds_auth->msg_type != TDS5_MSG_SEC_ENCRYPT3)
 		goto error;
 
 	info = tds->param_info;
@@ -192,11 +180,6 @@ tds5_negotiate_get_auth(TDSSOCKET * tds)
 }
 
 #else /* not HAVE_GNUTLS or HAVE_OPENSSL */
-
-void
-tds5_negotiate_set_msg_type(TDSSOCKET * tds, TDSAUTHENTICATION * tds_auth, unsigned msg_type)
-{
-}
 
 TDSAUTHENTICATION *
 tds5_negotiate_get_auth(TDSSOCKET * tds)

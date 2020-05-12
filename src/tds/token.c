@@ -252,7 +252,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		tok_size = tds_get_byte(tds);
 		if (tok_size >= 3) {
 			tds_get_byte(tds);
-			tds5_negotiate_set_msg_type(tds, tds->conn->authentication, tds_get_usmallint(tds));
+			tds5_negotiate_set_msg_type(tds->conn->authentication, tds_get_usmallint(tds));
 			tok_size -= 3;
 		}
 		tds_get_n(tds, NULL, tok_size);

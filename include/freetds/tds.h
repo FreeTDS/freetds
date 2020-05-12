@@ -1045,6 +1045,8 @@ typedef struct tds_authentication
 {
 	uint8_t *packet;
 	int packet_len;
+	/* TDS_MSG_TOKEN type, for TDS5 */
+	uint16_t msg_type;
 	TDSRET (*free)(TDSCONNECTION* conn, struct tds_authentication * auth);
 	TDSRET (*handle_next)(TDSSOCKET * tds, struct tds_authentication * auth, size_t len);
 } TDSAUTHENTICATION;
@@ -1627,7 +1629,12 @@ void tds_random_buffer(unsigned char *out, int len);
 
 /* sec_negotiate.c */
 TDSAUTHENTICATION * tds5_negotiate_get_auth(TDSSOCKET * tds);
-void tds5_negotiate_set_msg_type(TDSSOCKET * tds, TDSAUTHENTICATION * auth, unsigned msg_type);
+static inline
+void tds5_negotiate_set_msg_type(TDSAUTHENTICATION * tds_auth, unsigned msg_type)
+{
+	if (tds_auth)
+		tds_auth->msg_type = msg_type;
+}
 
 
 /* bulk.c */
