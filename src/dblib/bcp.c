@@ -224,6 +224,8 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 
 	if (dbproc->hostfileinfo == NULL)
 		goto memory_error;
+	dbproc->hostfileinfo->maxerrs = 10;
+	dbproc->hostfileinfo->firstrow = 1;
 	if ((dbproc->hostfileinfo->hostfile = strdup(hfile)) == NULL)
 		goto memory_error;
 
@@ -552,9 +554,13 @@ bcp_control(DBPROCESS * dbproc, int field, DBINT value)
 	switch (field) {
 
 	case BCPMAXERRS:
+		if (value < 1)
+			value = 10;
 		dbproc->hostfileinfo->maxerrs = value;
 		break;
 	case BCPFIRST:
+		if (value < 1)
+			value = 1;
 		dbproc->hostfileinfo->firstrow = value;
 		break;
 	case BCPLAST:
