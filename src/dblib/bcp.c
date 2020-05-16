@@ -85,7 +85,7 @@ static TDSRET _bcp_no_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int 
 
 static int rtrim(char *, int);
 static int rtrim_u16(uint16_t *str, int len, uint16_t space);
-static STATUS _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error);
+static STATUS _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error, bool skip);
 static int _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci);
 static int _bcp_get_term_var(BYTE * pdata, BYTE * term, int term_len);
 
@@ -1136,7 +1136,7 @@ rtrim_bcpcol(TDSCOLUMN *bcpcol)
  * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
  */
 static STATUS
-_bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
+_bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error, bool skip)
 {
 	TDSCOLUMN *bcpcol;
 	BCP_HOSTCOLINFO *hostcol;
@@ -1149,7 +1149,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 
 	int i, collen, data_is_null;
 
-	tdsdump_log(TDS_DBG_FUNC, "_bcp_read_hostfile(%p, %p, %p)\n", dbproc, hostfile, row_error);
+	tdsdump_log(TDS_DBG_FUNC, "_bcp_read_hostfile(%p, %p, %p, %d)\n", dbproc, hostfile, row_error, skip);
 	assert(dbproc);
 	assert(hostfile);
 	assert(row_error);
@@ -1324,7 +1324,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 		 * At this point, however the field was read, however big it was, its address is coldata and its size is collen.
 		 */
 		tdsdump_log(TDS_DBG_FUNC, "Data read from hostfile: collen is now %d, data_is_null is %d\n", collen, data_is_null);
-		if (bcpcol) {
+		if (!skip && bcpcol) {
 			if (data_is_null) {
 				bcpcol->bcp_column_data->is_null = 1;
 				bcpcol->bcp_column_data->datalen = 0;
@@ -1461,14 +1461,24 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 	row_of_hostfile = 0;
 	rows_written_so_far = 0;
 
-	row_start = ftello(hostfile);
 	row_error_count = 0;
-	row_error = 0;
 	dbproc->bcpinfo->parent = dbproc;
 
-	while ((ret=_bcp_read_hostfile(dbproc, hostfile, &row_error)) == MORE_ROWS) {
+	for (;;) {
+		bool skip;
+
+		row_start = ftello(hostfile);
+		row_error = 0;
 
 		row_of_hostfile++;
+
+		if (row_of_hostfile > MAX(dbproc->hostfileinfo->lastrow, 0x7FFFFFFF))
+			break;
+
+		skip = dbproc->hostfileinfo->firstrow > row_of_hostfile;
+		ret = _bcp_read_hostfile(dbproc, hostfile, &row_error, skip);
+		if (ret != MORE_ROWS)
+			break;
 
 		if (row_error) {
 			int count;
@@ -1539,35 +1549,32 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 			row_error_count++;
 			if (row_error_count >= dbproc->hostfileinfo->maxerrs)
 				break;
-		} else {
-			if (dbproc->hostfileinfo->firstrow <= row_of_hostfile && 
-							      row_of_hostfile <= MAX(dbproc->hostfileinfo->lastrow, 0x7FFFFFFF)) {
-
-				if (TDS_SUCCEED(tds_bcp_send_record(dbproc->tds_socket, dbproc->bcpinfo, _bcp_no_get_col_data, NULL, 0))) {
-			
-					rows_written_so_far++;
-	
-					if (dbproc->hostfileinfo->batch > 0 && rows_written_so_far == dbproc->hostfileinfo->batch) {
-						if (TDS_FAILED(tds_bcp_done(tds, &rows_written_so_far))) {
-							if (errfile)
-								fclose(errfile);
-							fclose(hostfile);
-							return FAIL;
-						}
-							
-						*rows_copied += rows_written_so_far;
-						rows_written_so_far = 0;
-	
-						dbperror(dbproc, SYBEBBCI, 0); /* batch copied to server */
-	
-						tds_bcp_start(tds, dbproc->bcpinfo);
-					}
-				}
-			} 
+			continue;
 		}
 
-		row_start = ftello(hostfile);
-		row_error = 0;
+		if (skip)
+			continue;
+
+		if (TDS_SUCCEED(tds_bcp_send_record(dbproc->tds_socket, dbproc->bcpinfo, _bcp_no_get_col_data, NULL, 0))) {
+
+			rows_written_so_far++;
+
+			if (dbproc->hostfileinfo->batch > 0 && rows_written_so_far == dbproc->hostfileinfo->batch) {
+				if (TDS_FAILED(tds_bcp_done(tds, &rows_written_so_far))) {
+					if (errfile)
+						fclose(errfile);
+					fclose(hostfile);
+					return FAIL;
+				}
+
+				*rows_copied += rows_written_so_far;
+				rows_written_so_far = 0;
+
+				dbperror(dbproc, SYBEBBCI, 0); /* batch copied to server */
+
+				tds_bcp_start(tds, dbproc->bcpinfo);
+			}
+		}
 	}
 	
 	if( row_error_count == 0 && row_of_hostfile < dbproc->hostfileinfo->firstrow ) {
