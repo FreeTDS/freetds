@@ -1531,7 +1531,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 				}
 			}
 			row_error_count++;
-			if (row_error_count > dbproc->hostfileinfo->maxerrs)
+			if (row_error_count >= dbproc->hostfileinfo->maxerrs)
 				break;
 		} else {
 			if (dbproc->hostfileinfo->firstrow <= row_of_hostfile && 
