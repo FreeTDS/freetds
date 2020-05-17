@@ -314,6 +314,9 @@ tds_read_string(TDSSOCKET * tds, DSTR * s, int size)
  * use IS_TDSDEAD(tds) to distinguish between an error/shutdown on the socket,
  * or the receipt of an unexpected packet type.  In the latter case,
  * tds->in_flag will indicate the return type.
+ * Microsoft products require tds_version TDS72+, and SSMS requires a
+ * product_version. Currently the highest this method will set is TDS71,
+ * override after if necessary.
  */
 TDSLOGIN *
 tds_alloc_read_login(TDSSOCKET * tds)
