@@ -29,6 +29,7 @@
 
 static char *query;
 static size_t query_buflen = 0;
+static TDSHEADERS head;
 
 /**
  * Read a TDS5 tokenized query.
@@ -63,6 +64,58 @@ tds_lastpacket(TDSSOCKET * tds)
 		return 1;
 	
 	return tds->in_buf[1] != 0;
+}
+
+/**
+ * get query packet of a given type
+ * \tds
+ * \param head         extra information to put in a TDS7 header
+ */
+static TDSRET
+tds_get_query_head(TDSSOCKET * tds, TDSHEADERS * head)
+{
+	if (!IS_TDS72_PLUS(tds->conn)) {
+		return TDS_SUCCESS;
+	}
+
+	int qn_len = 0, more;
+	char *qn_msgtext = NULL;
+	char *qn_options = NULL;
+	size_t qn_msgtext_len = 0;
+	size_t qn_options_len = 0;
+
+	qn_len = tds_get_int(tds) - 4 - 18;             /* total length */
+	tds_get_int(tds);                          /* length: transaction descriptor, ignored */
+	tds_get_smallint(tds);                      /* type: transaction descriptor, ignored */
+	tds_get_n(tds, tds->conn->tds72_transaction, 8);  /* transaction */
+	tds_get_int(tds);                           /* request count, ignored */
+	if (qn_len != 0) {
+		if (!head) {
+			tds_set_state(tds, TDS_IDLE);
+			return TDS_FAIL;
+		}
+
+		qn_len = tds_get_int(tds);                   /* length: query notification */
+		tds_get_smallint(tds);                      /* type: query notification, ignored */
+		qn_msgtext_len = tds_get_smallint(tds);  /* notifyid */
+		if (qn_msgtext_len > 0) {
+			qn_msgtext = (char *) realloc(qn_msgtext, qn_msgtext_len);
+			tds_get_n(tds, qn_msgtext, qn_msgtext_len);
+		}
+
+		qn_options_len = tds_get_smallint(tds);  /* ssbdeployment */
+		if (qn_options_len > 0) {
+			qn_options = (char *) realloc(qn_options, qn_options_len);
+			tds_get_n(tds, qn_options, qn_options_len);
+		}
+		more = tds->in_len - tds->in_pos;
+		if (more)
+			head->qn_timeout = tds_get_int(tds);        /* timeout */
+
+		head->qn_options = qn_options;
+		head->qn_msgtext = qn_msgtext;
+	}
+	return TDS_SUCCESS;
 }
 
 /**
@@ -157,6 +210,10 @@ char *tds_get_generic_query(TDSSOCKET * tds)
 			break;
 
 		case TDS_QUERY:
+			/* TDS7+ adds a query head */
+			if (IS_TDS72_PLUS(tds->conn) && tds_get_query_head(tds, &head) != TDS_SUCCESS)
+				return NULL;
+
 			/* TDS4 and TDS7+ fill the whole packet with a query */
 			len = 0;
 			for (;;) {
