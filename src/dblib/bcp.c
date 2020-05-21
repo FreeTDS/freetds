@@ -999,7 +999,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	}
 	hostfile = NULL;
 
-	if (dbproc->hostfileinfo->firstrow > 0 && row_of_query < dbproc->hostfileinfo->firstrow) {
+	if (row_of_query + 1 < dbproc->hostfileinfo->firstrow) {
 		/*
 		 * The table which bulk-copy is attempting to
 		 * copy to a host-file is shorter than the
