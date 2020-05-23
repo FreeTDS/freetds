@@ -1211,6 +1211,13 @@ This is the name of the database container in the server you are connecting to.<
 							<entry>Specify Kerberos SPN.</entry>
 							</row>
 						<row>
+							<entry><literal>mutual authentication</literal></entry>
+							<entry>on/off</entry>
+							<entry>off</entry>
+							<entry>Enable mutual authentication flag using Kerberos.
+								Always enabled for TDS 7.0 or above.</entry>
+							</row>
+						<row>
 							<entry><literal>use ntlmv2</literal></entry>
 							<entry>yes/no</entry>
 							<entry>yes</entry>

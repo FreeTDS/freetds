@@ -308,10 +308,12 @@ tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *to
 	 * We always want to ask for the mutual, replay, and integ flags.  
 	 * We may ask for delegation based on config in the tds.conf and other conf files.  
 	 */
-	gssapi_flags = GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_INTEG_FLAG;
+	gssapi_flags = GSS_C_REPLAY_FLAG | GSS_C_INTEG_FLAG;
 	
 	if (tds->login->gssapi_use_delegation)
 		gssapi_flags |= GSS_C_DELEG_FLAG;
+	if (tds->login->mutual_authentication || IS_TDS7_PLUS(tds->conn))
+		gssapi_flags |= GSS_C_MUTUAL_FLAG;
 
 	maj_stat = gss_init_sec_context(&min_stat, GSS_C_NO_CREDENTIAL, &auth->gss_context, auth->target_name, 
 					GSS_C_NULL_OID,

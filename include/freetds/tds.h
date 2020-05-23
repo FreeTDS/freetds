@@ -469,6 +469,8 @@ bool is_tds_type_valid(int type)
 #define TDS_STR_ENCRYPTION_REQUIRE "require"
 /* Defines to enable optional GSSAPI delegation */
 #define TDS_GSSAPI_DELEGATION "enable gssapi delegation"
+/* Mutual authentication */
+#define TDS_STR_MUTUAL_AUTHENTICATION "mutual authentication"
 /* Kerberos realm name */
 #define TDS_STR_REALM	"realm"
 /* Kerberos SPN */
@@ -555,6 +557,7 @@ typedef struct tds_login
 	unsigned int bulk_copy:1;	/**< if bulk copy should be enabled */
 	unsigned int suppress_language:1;
 	unsigned int gssapi_use_delegation:1;
+	unsigned int mutual_authentication:1;
 	unsigned int use_ntlmv2:1;
 	unsigned int use_ntlmv2_specified:1;
 	unsigned int use_lanman:1;

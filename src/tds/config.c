@@ -609,6 +609,8 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 	} else if (!strcmp(option, TDS_GSSAPI_DELEGATION)) {
 		/* gssapi flag addition */
 		login->gssapi_use_delegation = tds_config_boolean(option, value, login);
+	} else if (!strcmp(option, TDS_STR_MUTUAL_AUTHENTICATION)) {
+		login->mutual_authentication = tds_config_boolean(option, value, login);
 	} else if (!strcmp(option, TDS_STR_DUMPFILE)) {
 		s = tds_dstr_copy(&login->dump_file, value);
 	} else if (!strcmp(option, TDS_STR_DEBUGFLAGS)) {
