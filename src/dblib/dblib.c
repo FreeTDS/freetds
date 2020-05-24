@@ -713,7 +713,7 @@ dblogin(void)
 
 	tdsdump_log(TDS_DBG_FUNC, "dblogin(void)\n");
 
-	if ((loginrec = tds_new(LOGINREC, 1)) == NULL) {
+	if ((loginrec = tds_new0(LOGINREC, 1)) == NULL) {
 		dbperror(NULL, SYBEMEM, errno);
 		return NULL;
 	}
@@ -800,6 +800,9 @@ dbsetlname(LOGINREC * login, const char *value, int which)
 		break;
 	case DBSETDBNAME:
 		copy_ret = !!tds_dstr_copy(&login->tds_login->database, value_nonull);
+		break;
+	case DBSETSERVERPRINCIPAL:
+		copy_ret = !!tds_dstr_copy(&login->tds_login->server_spn, value_nonull);
 		break;
 	default:
 		dbperror(NULL, SYBEASUL, 0); /* Attempt to set unknown LOGINREC field */
@@ -921,6 +924,15 @@ dbsetlbool(LOGINREC * login, int value, int which)
 		return SUCCEED;
 	case DBSETREADONLY:
 		login->tds_login->readonly_intent = b_value;
+		return SUCCEED;
+	case DBSETNETWORKAUTH:
+		login->network_auth = b_value;
+		return SUCCEED;
+	case DBSETMUTUALAUTH:
+		login->tds_login->mutual_authentication = b_value;
+		return SUCCEED;
+	case DBSETDELEGATION:
+		login->tds_login->gssapi_use_delegation = b_value;
 		return SUCCEED;
 	case DBSETENCRYPT:
 	case DBSETLABELED:
@@ -1260,6 +1272,11 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 
 	tdsdump_log(TDS_DBG_FUNC, "tdsdbopen: Calling tds_connect_and_login(%p, %p)\n",
 		dbproc->tds_socket, connection);
+
+	if (login->network_auth) {
+		tds_dstr_empty(&connection->user_name);
+		tds_dstr_empty(&connection->password);
+	}
 
 	if (TDS_FAILED(tds_connect_and_login(dbproc->tds_socket, connection))) {
 		tdsdump_log(TDS_DBG_ERROR, "tdsdbopen: tds_connect_and_login failed for \"%s\"!\n",

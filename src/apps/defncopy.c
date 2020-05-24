@@ -730,11 +730,12 @@ get_login(int argc, char *argv[], OPTIONS *options)
 		}
 	}
 
-#ifdef MicrosoftsDbLib
-#if _WIN32
-	if (fdomain) 
+#if defined(MicrosoftsDbLib) && defined(_WIN32)
+	if (fdomain)
 		DBSETLSECURE(login);
-#endif
+#else
+	if (fdomain)
+		DBSETLNETWORKAUTH(login, TRUE);
 #endif /* MicrosoftsDbLib */
 	if (!options->servername) {
 		usage(options->appname);

@@ -43,6 +43,7 @@ typedef enum
 struct tds_dblib_loginrec
 {
 	TDSLOGIN *tds_login;
+	bool network_auth;
 };
 
 struct dblib_buffer_row;
