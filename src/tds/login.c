@@ -812,6 +812,8 @@ tds_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	} else if (IS_TDS50(tds->conn)) {
 		/* just padding to 8 bytes */
 		tds_put_n(tds, NULL, 4);
+
+		/* send capabilities */
 		tds_put_byte(tds, TDS_CAPABILITY_TOKEN);
 		tds_put_smallint(tds, sizeof(tds->conn->capabilities));
 		tds_put_n(tds, &tds->conn->capabilities, sizeof(tds->conn->capabilities));
