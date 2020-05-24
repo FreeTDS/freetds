@@ -897,27 +897,30 @@ dbsetlshort(LOGINREC * login, int value, int which)
 RETCODE
 dbsetlbool(LOGINREC * login, int value, int which)
 {
+	bool b_value;
+
 	tdsdump_log(TDS_DBG_FUNC, "dbsetlbool(%p, %d, %d)\n", login, value, which);
 
-	if( login == NULL ) {
+	if (login == NULL) {
 		dbperror(NULL, SYBEASNL, 0);
 		return FAIL;
 	}
 
+	b_value = (value != 0);
+
 	switch (which) {
 	case DBSETBCP:
-		tds_set_bulk(login->tds_login, !!value);
+		tds_set_bulk(login->tds_login, b_value);
 		return SUCCEED;
-		break;
 	case DBSETUTF16:
-		login->tds_login->use_utf16 = (value != 0);
+		login->tds_login->use_utf16 = b_value;
 		return SUCCEED;
 	case DBSETNTLMV2:
-		login->tds_login->use_ntlmv2 = (value != 0);
+		login->tds_login->use_ntlmv2 = b_value;
 		login->tds_login->use_ntlmv2_specified = 1;
 		return SUCCEED;
 	case DBSETREADONLY:
-		login->tds_login->readonly_intent = (value != 0);
+		login->tds_login->readonly_intent = b_value;
 		return SUCCEED;
 	case DBSETENCRYPT:
 	case DBSETLABELED:
