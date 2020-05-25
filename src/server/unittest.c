@@ -65,8 +65,8 @@ main(int argc, char **argv)
 		exit(1);
 	}
 	dump_login(login);
-	// tds->conn->tds_version = 0x702;
-	// tds->conn->product_version = G.TDS_MS_VER(10, 0, 6000);
+	/* tds->conn->tds_version = 0x702; */
+	/* tds->conn->product_version = TDS_MS_VER(10, 0, 6000); */
 	if (!strcmp(tds_dstr_cstr(&login->user_name), "guest") && !strcmp(tds_dstr_cstr(&login->password), "sybase")) {
 		tds->out_flag = TDS_REPLY;
 		tds_env_change(tds, TDS_ENV_DATABASE, "master", "pubs2");

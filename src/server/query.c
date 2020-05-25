@@ -49,7 +49,7 @@ tds_get_query(TDSSOCKET * tds)
 	assert(len >= 1);	/* TODO handle correctly */
 	if (len > query_buflen) {
 		query_buflen = len;
-		query = (char *) realloc(query, query_buflen);
+		query = (char *) xrealloc(query, query_buflen);
 	}
 	--len;
 	tds_get_n(tds, query, len);
@@ -74,43 +74,38 @@ tds_lastpacket(TDSSOCKET * tds)
 static TDSRET
 tds_get_query_head(TDSSOCKET * tds, TDSHEADERS * head)
 {
-	if (!IS_TDS72_PLUS(tds->conn)) {
-		return TDS_SUCCESS;
-	}
-
 	int qn_len = 0, more;
 	char *qn_msgtext = NULL;
 	char *qn_options = NULL;
 	size_t qn_msgtext_len = 0;
 	size_t qn_options_len = 0;
 
-	qn_len = tds_get_int(tds) - 4 - 18;             /* total length */
-	tds_get_int(tds);                          /* length: transaction descriptor, ignored */
-	tds_get_smallint(tds);                      /* type: transaction descriptor, ignored */
-	tds_get_n(tds, tds->conn->tds72_transaction, 8);  /* transaction */
-	tds_get_int(tds);                           /* request count, ignored */
-	if (qn_len != 0) {
-		if (!head) {
-			tds_set_state(tds, TDS_IDLE);
-			return TDS_FAIL;
-		}
+	if (!IS_TDS72_PLUS(tds->conn)) {
+		return TDS_SUCCESS;
+	}
 
-		qn_len = tds_get_int(tds);                   /* length: query notification */
-		tds_get_smallint(tds);                      /* type: query notification, ignored */
+	qn_len = tds_get_int(tds) - 4 - 18;  /* total length */
+	tds_get_int(tds);  /* length: transaction descriptor, ignored */
+	tds_get_smallint(tds);  /* type: transaction descriptor, ignored */
+	tds_get_n(tds, tds->conn->tds72_transaction, 8);  /* transaction */
+	tds_get_int(tds);  /* request count, ignored */
+	if (qn_len != 0) {
+		qn_len = tds_get_int(tds);  /* length: query notification */
+		tds_get_smallint(tds);  /* type: query notification, ignored */
 		qn_msgtext_len = tds_get_smallint(tds);  /* notifyid */
 		if (qn_msgtext_len > 0) {
-			qn_msgtext = (char *) realloc(qn_msgtext, qn_msgtext_len);
+			qn_msgtext = (char *) xrealloc(qn_msgtext, qn_msgtext_len);
 			tds_get_n(tds, qn_msgtext, qn_msgtext_len);
 		}
 
 		qn_options_len = tds_get_smallint(tds);  /* ssbdeployment */
 		if (qn_options_len > 0) {
-			qn_options = (char *) realloc(qn_options, qn_options_len);
+			qn_options = (char *) xrealloc(qn_options, qn_options_len);
 			tds_get_n(tds, qn_options, qn_options_len);
 		}
 		more = tds->in_len - tds->in_pos;
 		if (more)
-			head->qn_timeout = tds_get_int(tds);        /* timeout */
+			head->qn_timeout = tds_get_int(tds);  /* timeout */
 
 		head->qn_options = qn_options;
 		head->qn_msgtext = qn_msgtext;
@@ -159,7 +154,7 @@ char *tds_get_generic_query(TDSSOCKET * tds)
 				tds_get_byte(tds);	/* has args, ignored TODO */
 				if (len > query_buflen) {
 					query_buflen = len;
-					query = (char *) realloc(query, query_buflen);
+					query = (char *) xrealloc(query, query_buflen);
 				}
 				--len;
 				tds_get_n(tds, query, len);
@@ -176,7 +171,7 @@ char *tds_get_generic_query(TDSSOCKET * tds)
 				len = tds_get_byte(tds) + 1;/* sproc name size +1 */
 				if (len > query_buflen) {
 					query_buflen = len;
-					query = (char *) realloc(query, query_buflen);
+					query = (char *) xrealloc(query, query_buflen);
 				}
 
 				/*
@@ -226,7 +221,7 @@ char *tds_get_generic_query(TDSSOCKET * tds)
 				{
 					query_buflen = len + more + 1024u;
 					query_buflen -= query_buflen % 1024u;
-					query = (char *)realloc(query, query_buflen);
+					query = (char *) xrealloc(query, query_buflen);
 				}
 
 				/*
