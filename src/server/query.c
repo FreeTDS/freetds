@@ -49,7 +49,7 @@ tds_get_query(TDSSOCKET * tds)
 	assert(len >= 1);	/* TODO handle correctly */
 	if (len > query_buflen) {
 		query_buflen = len;
-		query = (char *) xrealloc(query, query_buflen);
+		query = (char *) realloc(query, query_buflen);
 	}
 	--len;
 	tds_get_n(tds, query, len);
@@ -94,13 +94,13 @@ tds_get_query_head(TDSSOCKET * tds, TDSHEADERS * head)
 		tds_get_smallint(tds);  /* type: query notification, ignored */
 		qn_msgtext_len = tds_get_smallint(tds);  /* notifyid */
 		if (qn_msgtext_len > 0) {
-			qn_msgtext = (char *) xrealloc(qn_msgtext, qn_msgtext_len);
+			qn_msgtext = (char *) realloc(qn_msgtext, qn_msgtext_len);
 			tds_get_n(tds, qn_msgtext, qn_msgtext_len);
 		}
 
 		qn_options_len = tds_get_smallint(tds);  /* ssbdeployment */
 		if (qn_options_len > 0) {
-			qn_options = (char *) xrealloc(qn_options, qn_options_len);
+			qn_options = (char *) realloc(qn_options, qn_options_len);
 			tds_get_n(tds, qn_options, qn_options_len);
 		}
 		more = tds->in_len - tds->in_pos;
@@ -154,7 +154,7 @@ char *tds_get_generic_query(TDSSOCKET * tds)
 				tds_get_byte(tds);	/* has args, ignored TODO */
 				if (len > query_buflen) {
 					query_buflen = len;
-					query = (char *) xrealloc(query, query_buflen);
+					query = (char *) realloc(query, query_buflen);
 				}
 				--len;
 				tds_get_n(tds, query, len);
@@ -171,7 +171,7 @@ char *tds_get_generic_query(TDSSOCKET * tds)
 				len = tds_get_byte(tds) + 1;/* sproc name size +1 */
 				if (len > query_buflen) {
 					query_buflen = len;
-					query = (char *) xrealloc(query, query_buflen);
+					query = (char *) realloc(query, query_buflen);
 				}
 
 				/*
@@ -221,7 +221,7 @@ char *tds_get_generic_query(TDSSOCKET * tds)
 				{
 					query_buflen = len + more + 1024u;
 					query_buflen -= query_buflen % 1024u;
-					query = (char *) xrealloc(query, query_buflen);
+					query = (char *) realloc(query, query_buflen);
 				}
 
 				/*
