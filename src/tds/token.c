@@ -46,6 +46,7 @@
 #include <freetds/bytes.h>
 #include <freetds/alloca.h>
 #include "replacements.h"
+#include "encodings.h"
 
 /** \cond HIDDEN_SYMBOLS */
 #define USE_ICONV (tds->conn->use_iconv)
@@ -3230,13 +3231,14 @@ adjust_character_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	if (curcol->on_server.column_type == SYBLONGBINARY && (
 		curcol->column_usertype == USER_UNICHAR_TYPE ||
 		curcol->column_usertype == USER_UNIVARCHAR_TYPE)) {
+		const int canonic_client = tds->conn->char_convs[client2ucs2]->from.charset.canonic;
 #ifdef WORDS_BIGENDIAN
-		static const char sybase_utf[] = "UTF-16BE";
+		const int sybase_utf = TDS_CHARSET_UTF_16BE;
 #else
-		static const char sybase_utf[] = "UTF-16LE";
+		const int sybase_utf = TDS_CHARSET_UTF_16LE;
 #endif
 
-		curcol->char_conv = tds_iconv_get(tds->conn, tds->conn->char_convs[client2ucs2]->from.charset.name, sybase_utf);
+		curcol->char_conv = tds_iconv_get_info(tds->conn, canonic_client, sybase_utf);
 
 		/* fallback to UCS-2LE */
 		/* FIXME should be useless. Does not works always */
