@@ -758,6 +758,12 @@ tds_config_login(TDSLOGIN * connection, TDSLOGIN * login)
 	if (login->block_size) {
 		connection->block_size = login->block_size;
 	}
+	if (login->gssapi_use_delegation)
+		connection->gssapi_use_delegation = login->gssapi_use_delegation;
+
+	if (login->mutual_authentication)
+		connection->mutual_authentication = login->mutual_authentication;
+
 	if (login->port)
 		connection->port = login->port;
 	if (login->connect_timeout)
