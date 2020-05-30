@@ -14,7 +14,7 @@
 	<!ENTITY odbc  '<systemitem class="library">ODBC</systemitem>'> 
 	<!ENTITY iODBC '<systemitem class="library">iODBC</systemitem>'>
 	<!ENTITY unixODBC '<systemitem class="library">unixODBC</systemitem>'>
-	<!ENTITY version "1.1">
+	<!ENTITY version "1.2">
 	<!ENTITY freetdsconf "<filename>freetds.conf</filename>">
 ]>
 <book>

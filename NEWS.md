@@ -1,5 +1,65 @@
 $Id: b4e6442475cd841716ce9526482ecf7d0e30f471 $
 
+Summary of Changes in release 1.2
+--------------------------------------------
+User visible (not in a particular order):
+- Sybase server:
+  - All strings are now converted as MSSQL;
+  - Support kerberos login;
+  - DB-Library: add DBSETNETWORKAUTH, DBSETMUTUALAUTH, DBSETDELEGATION and
+    DBSETSERVERPRINCIPAL;
+  - CT-Library: add CS_SEC_NETWORKAUTH, CS_SEC_NETWORKAUTH,
+    CS_SEC_NETWORKAUTH and CS_SEC_NETWORKAUTH;
+- Bulk copies:
+  - DB-Library: fix trim of unicode fields;
+  - (\*) Apply character conversion for Sybase, like MSSQL;
+  - (\*) Ignore computed columns;
+  - (\*) Properly support multibyte strings in column names;
+  - (\*) DB-Library: stop correctly on BCPMAXERRS setting;
+  - (\*) DB-Library: do not try to convert skipped rows reading file allowing
+    for instance to load CVS files;
+- (\*) CT-Library: added CS_DATABASE property to allows to connect correctly
+  to Azure servers;
+- (\*) Improve support for MS XML columns for both DB-Library and CT-Library;
+- (\*) Fix some issues with MSSQL server redirection (used for instance in
+  Azure);
+- (\*) Change SQL_DESC_OCTET_LENGTH value for wise character columns;
+- Better support for SQL_VARIANT:
+  - Better column checks;
+  - (\*) CT-Library: now supported, columns are returned as CS_CHAR_TYPE;
+- Some updates to server part:
+  - Set correctly initial state;
+  - IPv6 support;
+  - Fix TDS 7.2 logins;
+- Support extended character using domain logins under Unix;
+- Improve MARS:
+  - Less memory copies;
+  - (\*) Remove possible deadlock;
+  - Handle wrapping sequence/window numbers;
+  - Make sure we sent the wanted packet;
+- (\*) Support UTF-16 surrogate pairs in odbc_wide2utf and odbc_set_string_flag
+  fixing some character encoding support;
+- (\*) Fix multiple queries, used by ODBC to optimize data load;
+- (\*) Improve emulated parameter queries, fixing minor issues and reducing
+  memory usage;
+- Support DBVERSION_UNKNOWN in dbsetlversion (will use automatic detection);
+- CT-Library: define CS_MIN_SYBTYPE and CS_MAX_SYBTYPE;
+- (\*) CT-Library: fix cs_will_convert accepting library constants, not libTDS.
+
+(\*) Feature backported in stable 1.1 branch.
+
+Implementation:
+- User guide converted to XML;
+- Always use little endian on network level, simpler and faster;
+- Converted some files to markdown;
+- Optimize bytes endianess conversion;
+- Made character lookup faster making character conversion quicker;
+- Optimize data padding in CT-Library;
+- Fix some build dependencies causing some files to not be properly
+  recompiled during development;
+- Add "freeze" support allowing to pause sending in order to simplify
+  lengths computations sending data.
+
 Summary of Changes in release 1.1
 --------------------------------------------
 User visible (not in a particular order):

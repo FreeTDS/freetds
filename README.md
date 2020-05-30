@@ -1,7 +1,7 @@
-README for FreeTDS 1.1
+README for FreeTDS 1.2
 ====
 
-*Release date 13 March 2019*
+*Release date 13 TBD*
 
 **To build FreeTDS read the file [INSTALL](./INSTALL.md) or
 the [FreeTDS Users Guide](http://www.freetds.org/userguide/)**
