@@ -363,9 +363,15 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 		char *set_buffer = NULL;
 		bool copy_ret = true;
 
-		if (property == CS_USERNAME || property == CS_PASSWORD || property == CS_APPNAME ||
-			property == CS_HOSTNAME || property == CS_CLIENTCHARSET || property == CS_DATABASE ||
-			property == CS_SERVERADDR) {
+		switch (property) {
+		/* string properties */
+		case CS_USERNAME:
+		case CS_PASSWORD:
+		case CS_APPNAME:
+		case CS_HOSTNAME:
+		case CS_CLIENTCHARSET:
+		case CS_DATABASE:
+		case CS_SERVERADDR:
 			if (buflen == CS_NULLTERM) {
 				set_buffer = strdup((char *) buffer);
 			} else if (buflen == CS_UNUSED) {
@@ -373,6 +379,7 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			} else {
 				set_buffer = tds_strndup(buffer, buflen);
 			}
+			break;
 		}
 
 		/*
