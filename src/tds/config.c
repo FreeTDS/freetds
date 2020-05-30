@@ -777,6 +777,9 @@ tds_config_login(TDSLOGIN * connection, TDSLOGIN * login)
 		res = tds_dstr_dup(&connection->openssl_ciphers, &login->openssl_ciphers);
 	}
 
+	if (res && !tds_dstr_isempty(&login->server_spn))
+		res = tds_dstr_dup(&connection->server_spn, &login->server_spn);
+
 	/* copy other info not present in configuration file */
 	connection->capabilities = login->capabilities;
 
