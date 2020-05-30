@@ -126,6 +126,7 @@ struct _cs_connection
 	CS_COMMAND *cmds;
 	CS_DYNAMIC *dynlist;
 	char *server_addr;
+	bool network_auth;
 };
 
 /*

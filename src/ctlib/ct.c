@@ -372,6 +372,7 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 		case CS_CLIENTCHARSET:
 		case CS_DATABASE:
 		case CS_SERVERADDR:
+		case CS_SEC_SERVERPRINCIPAL:
 			if (buflen == CS_NULLTERM) {
 				set_buffer = strdup((char *) buffer);
 			} else if (buflen == CS_UNUSED) {
@@ -429,6 +430,9 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			tds_set_port(tds_login, portno);
 			break;
 		}
+		case CS_SEC_SERVERPRINCIPAL:
+			copy_ret = !!tds_dstr_copy(&tds_login->server_spn, set_buffer);
+			break;
 		case CS_LOC_PROP:
 			/* sybase docs say that this structure must be copied, not referenced */
 			if (!buffer)
@@ -499,6 +503,15 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 		case CS_LOGIN_TIMEOUT:
 			/* set the connect timeout as an integer in seconds */
 		        tds_login->connect_timeout = *(CS_INT *) buffer;
+			break;
+		case CS_SEC_NETWORKAUTH:
+			con->network_auth = !!(*(CS_INT *) buffer);
+			break;
+		case CS_SEC_MUTUALAUTH:
+		        tds_login->mutual_authentication = !!(*(CS_INT *) buffer);
+			break;
+		case CS_SEC_DELEGATION:
+		        tds_login->gssapi_use_delegation = !!(*(CS_INT *) buffer);
 			break;
 		default:
 			tdsdump_log(TDS_DBG_ERROR, "Unknown property %d\n", property);
@@ -702,6 +715,11 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 		if (con->locale->collate) {
 		}
 		*/
+	}
+
+	if (con->network_auth) {
+		tds_dstr_empty(&login->user_name);
+		tds_dstr_empty(&login->password);
 	}
 
 	if (TDS_FAILED(tds_connect_and_login(con->tds_socket, login)))
