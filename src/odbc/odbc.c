@@ -4785,11 +4785,27 @@ ODBC_FUNC(SQLColumns, (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),	/* o
 	WIDE))
 {
 	int retcode;
+	DSTR catalog_name = DSTR_INITIALIZER;
+	SQLSMALLINT catalog_size;
+	const char *proc = NULL;
 
 	ODBC_ENTER_HSTMT;
 
+	if (cbCatalogName == SQL_NTS) {
+		if (!odbc_dstr_copy(stmt->dbc, &catalog_name, cbCatalogName, szCatalogName))
+			goto memory_error;
+		catalog_size = tds_dstr_len(&catalog_name);
+	} else {
+		catalog_size = cbCatalogName;
+	}
+
+	proc = "sp_columns";
+	if (catalog_size > 0) {
+		proc = "..sp_columns";
+	}
+
 	retcode =
-		odbc_stat_execute(stmt _wide, "sp_columns", TDS_IS_MSSQL(stmt->dbc->tds_socket) ? 5 : 4,
+		odbc_stat_execute(stmt _wide, proc, TDS_IS_MSSQL(stmt->dbc->tds_socket) ? 5 : 4,
 				  "P@table_name", szTableName, cbTableName, "P@table_owner", szSchemaName,
 				  cbSchemaName, "O@table_qualifier", szCatalogName, cbCatalogName, "P@column_name", szColumnName,
 				  cbColumnName, "V@ODBCVer", (char*) NULL, 0);
@@ -4803,6 +4819,13 @@ ODBC_FUNC(SQLColumns, (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),	/* o
 		if (TDS_IS_SYBASE(stmt->dbc->tds_socket))
 			stmt->special_row = ODBC_SPECIAL_COLUMNS;
 	}
+
+	tds_dstr_free(&catalog_name);
+	ODBC_EXIT_(stmt);
+
+memory_error:
+	tds_dstr_free(&catalog_name);
+	odbc_errs_add(&stmt->errs, "HY001", NULL);
 	ODBC_EXIT_(stmt);
 }
 
