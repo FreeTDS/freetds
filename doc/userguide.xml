@@ -1760,7 +1760,8 @@ The server responds with a port number.
 	src/dblib/unittests
 	src/odbc/unittests
 	src/replacements/unittests
-	src/tds/unittests</computeroutput></screen>
+	src/tds/unittests
+	src/utils/unittests</computeroutput></screen>
 	
 				The unit tests rely on the <filename>PWD</filename> file in root of the &freetds; source tree.
 				<filename>PWD</filename> holds a username, password, servername, and database to be used for the unit tests.  We try to make sure to leave nothing behind: any data and objects created are either temporary or removed at the end of the test.  The tests should all work, subject to disclaimers in the directory's <filename>README</filename>.</para>
