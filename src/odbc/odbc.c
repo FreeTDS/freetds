@@ -4786,11 +4786,15 @@ ODBC_FUNC(SQLColumns, (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),	/* o
 	WIDE))
 {
 	int retcode;
+	const char *proc = "sp_columns";
 
 	ODBC_ENTER_HSTMT;
 
+	if (odbc_get_string_size(cbCatalogName, szCatalogName _wide))
+		proc = "..sp_columns";
+
 	retcode =
-		odbc_stat_execute(stmt _wide, "sp_columns", TDS_IS_MSSQL(stmt->dbc->tds_socket) ? 5 : 4,
+		odbc_stat_execute(stmt _wide, proc, TDS_IS_MSSQL(stmt->dbc->tds_socket) ? 5 : 4,
 				  "P@table_name", szTableName, cbTableName, "P@table_owner", szSchemaName,
 				  cbSchemaName, "O@table_qualifier", szCatalogName, cbCatalogName, "P@column_name", szColumnName,
 				  cbColumnName, "V@ODBCVer", (char*) NULL, 0);
