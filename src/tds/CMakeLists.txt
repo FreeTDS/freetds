@@ -7,15 +7,17 @@ if(PERL_FOUND AND NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
 		set(NULLNAME "NUL:")
 	endif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
+	set(ENC_SOURCE_DIR "${CMAKE_SOURCE_DIR}/include/freetds")
+
 	add_custom_command(OUTPUT tds_willconvert.h
 		COMMAND ${PERL_EXECUTABLE} tds_willconvert.pl ../../include/freetds/proto.h > tds_willconvert.h
 		MAIN_DEPENDENCY tds_willconvert.pl
 		WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
-	add_custom_command(OUTPUT encodings.h
-		COMMAND ${PERL_EXECUTABLE} encodings.pl . ${GPERF} > encodings.h 2> ${NULLNAME}
-		MAIN_DEPENDENCY encodings.pl
-		DEPENDS alternative_character_sets.h character_sets.h
-		WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
+	add_custom_command(OUTPUT "${CMAKE_BINARY_DIR}/include/freetds/encodings.h"
+		COMMAND ${PERL_EXECUTABLE} "${ENC_SOURCE_DIR}/encodings.pl" "${ENC_SOURCE_DIR}" ${GPERF} > encodings.h 2> ${NULLNAME}
+		MAIN_DEPENDENCY "${ENC_SOURCE_DIR}/encodings.pl"
+		DEPENDS "${ENC_SOURCE_DIR}/alternative_character_sets.h" "${ENC_SOURCE_DIR}/character_sets.h"
+		WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/include/freetds")
 	add_custom_command(OUTPUT num_limits.h
 		COMMAND ${PERL_EXECUTABLE} num_limits.pl > num_limits.h
 		MAIN_DEPENDENCY num_limits.pl
@@ -41,7 +43,8 @@ add_library(tds STATIC
         tds_checks.c log.c
         bulk.c packet.c stream.c random.c
         sec_negotiate_gnutls.h sec_negotiate_openssl.h sec_negotiate.c
-	tds_willconvert.h encodings.h num_limits.h tds_types.h
+	tds_willconvert.h num_limits.h tds_types.h
+	"${CMAKE_BINARY_DIR}/include/freetds/encodings.h"
 	${add_SRCS}
 )
 if (NOT WIN32)

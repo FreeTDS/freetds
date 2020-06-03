@@ -63,7 +63,7 @@ static void tds_iconv_info_close(TDSICONV * char_conv);
  */
 
 #define TDS_ICONV_ENCODING_TABLES
-#include "encodings.h"
+#include <freetds/encodings.h>
 
 /* this will contain real iconv names */
 static const char *iconv_names[TDS_VECTOR_SIZE(canonic_charsets)];
@@ -957,7 +957,7 @@ skip_charsize:
 	return charsize;
 }
 
-#include "charset_lookup.h"
+#include <freetds/charset_lookup.h>
 
 /**
  * Determine canonical iconv character set.

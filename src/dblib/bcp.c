@@ -45,12 +45,12 @@
 #include <freetds/convert.h>
 #include <freetds/bytes.h>
 #include <freetds/utils/string.h>
+#include <freetds/encodings.h>
 #include <replacements.h>
 #include <sybfront.h>
 #include <sybdb.h>
 #include <syberror.h>
 #include <dblib.h>
-#include "../tds/encodings.h"
 
 #define HOST_COL_CONV_ERROR 1
 #define HOST_COL_NULL_ERROR 2

@@ -1,7 +1,3 @@
 num_limits.h
-sybase_character_sets.h
 tds_willconvert.h
-encodings.h
 tds_types.h
-charset_lookup.h
-charset_lookup.gperf

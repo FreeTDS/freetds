@@ -29,7 +29,7 @@
 #include <freetds/odbc.h>
 
 #include <freetds/iconv.h>
-#include "../tds/encodings.h"
+#include <freetds/encodings.h>
 
 #if SIZEOF_SQLWCHAR != SIZEOF_WCHAR_T
 size_t sqlwcslen(const SQLWCHAR * s)

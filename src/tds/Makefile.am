@@ -39,7 +39,7 @@ endif
 libtds_la_LDFLAGS =
 libtds_la_LIBADD = $(NETWORK_LIBS)
 
-GENERATED_HEADER_FILES = tds_willconvert.h encodings.h num_limits.h tds_types.h charset_lookup.h
+GENERATED_HEADER_FILES = tds_willconvert.h num_limits.h tds_types.h
 noinst_HEADERS = $(GENERATED_HEADER_FILES)
 EXTRA_DIST = $(GENERATED_HEADER_FILES) \
 	CMakeLists.txt \
@@ -64,12 +64,6 @@ clean-local:
 
 tds_willconvert.h: tds_willconvert.pl Makefile
 	perl $(srcdir)/tds_willconvert.pl $(top_srcdir)/include/freetds/proto.h > $@.tmp
-	mv $@.tmp $@
-
-charset_lookup.h: encodings.h
-
-encodings.h: encodings.pl alternative_character_sets.h character_sets.h Makefile
-	perl $(srcdir)/encodings.pl $(srcdir) $(GPERF) > $@.tmp 2> /dev/null
 	mv $@.tmp $@
 
 num_limits.h: num_limits.pl Makefile

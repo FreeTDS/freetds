@@ -37,8 +37,8 @@
 #include <freetds/convert.h>
 #include <freetds/iconv.h>
 #include <freetds/utils/string.h>
+#include <freetds/encodings.h>
 #include <odbcss.h>
-#include "../tds/encodings.h"
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 

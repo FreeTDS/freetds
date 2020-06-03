@@ -39,9 +39,9 @@
 #include <freetds/iconv.h>
 #include <freetds/utils/string.h>
 #include <freetds/convert.h>
+#include <freetds/encodings.h>
 #include "replacements.h"
 #include "sqlwparams.h"
-#include "../tds/encodings.h"
 
 /* Include odbcss.h with all bcp functions */
 /* The define trick is to make inline functions calls internal

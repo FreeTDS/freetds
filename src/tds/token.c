@@ -45,8 +45,8 @@
 #include <freetds/checks.h>
 #include <freetds/bytes.h>
 #include <freetds/alloca.h>
+#include <freetds/encodings.h>
 #include "replacements.h"
-#include "encodings.h"
 
 /** \cond HIDDEN_SYMBOLS */
 #define USE_ICONV (tds->conn->use_iconv)
