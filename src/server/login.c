@@ -77,7 +77,7 @@ tds_listen(TDSCONTEXT * ctx, int ip_port)
 	TDSSOCKET *tds;
 	TDS_SYS_SOCKET fd, s;
 	socklen_t len;
-#ifdef AF_INET6
+#if defined(AF_INET6) && !defined(__VMS) /* in6addr_any may or may not exist on VMS */
 	struct sockaddr_in6 sin;
 
 	sin.sin6_addr = in6addr_any;
