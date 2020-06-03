@@ -80,6 +80,12 @@ OPENSSL_OPTIONS = ,openssl.opt/OPTIONS
 OPENSSL_OPTIONS =
 .ENDIF
 
+.IF @D_STDINT@ .EQ 1
+STDINT_H = [.vms]discard.tmp
+.ELSE
+STDINT_H = [.include]stdint.h
+.ENDIF
+
 CDEFINE =
 
 .IFDEF TDSVER
@@ -237,13 +243,13 @@ $(TDSODBCOBJS) : $(CONFIGS)
 	@ write sysconfh "#define FREETDS_SYSCONFDIR ""/FREETDS_ROOT"""
 	@ close sysconfh
 
-[.include]stdint.h :
+$(STDINT_H) :
 	@ IF F$SEARCH("$(MMS$TARGET)") .EQS. "" THEN COPY [.vms]stdint.h $(MMS$TARGET)
 
 [.include]tds_sysdep_public.h_in :
 	@ IF F$SEARCH("$(MMS$TARGET)") .EQS. "" THEN COPY [.include]tds_sysdep_public^.h.in $(MMS$TARGET)
 
-[.include]tds_sysdep_public.h : [.include]tds_sysdep_public.h_in [.include]stdint.h
+[.include]tds_sysdep_public.h : [.include]tds_sysdep_public.h_in $(STDINT_H)
 	@ open/write vmsconfigtmp vmsconfigtmp.com
 	@ write vmsconfigtmp "$ define/user_mode/nolog SYS$OUTPUT _NLA0:"
 	@ write vmsconfigtmp "$ edit/tpu/nodisplay/noinitialization -"
