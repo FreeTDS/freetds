@@ -102,6 +102,8 @@ $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@D_SOCKETPAIR@"",""''d_socketpair'"");"
 $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@D_OPENSSL@"",""''d_openssl'"");"
+$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
+$ write vmsconfigtmp "eve_global_replace(""@D_STDINT@"",""''d_stdint'"");"
 $ write vmsconfigtmp "out_file := GET_INFO (COMMAND_LINE, ""output_file"");"
 $ write vmsconfigtmp "WRITE_FILE (main_buffer, out_file);"
 $ write vmsconfigtmp "quit;"
@@ -185,6 +187,8 @@ $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@ENABLE_THREAD_SAFE@"",""''enable_thread_safe'"");"
 $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@D_OPENSSL@"",""''d_openssl'"");"
+$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
+$ write vmsconfigtmp "eve_global_replace(""@D_STDINT@"",""''d_stdint'"");"
 $ write vmsconfigtmp "out_file := GET_INFO (COMMAND_LINE, ""output_file"");"
 $ write vmsconfigtmp "WRITE_FILE (main_buffer, out_file);"
 $ write vmsconfigtmp "quit;"
@@ -299,9 +303,23 @@ $ tmp = "snprintf"
 $ GOSUB inlibc
 $ d_snprintf == tmp
 $!
+$!
+$! Check for stdint.h
+$!
+$ OS
+$ WS "#include <stdlib.h>"
+$ WS "#include <stdint.h>"
+$ WS "int main()"
+$ WS "{"
+$ WS "exit(0);"
+$ WS "}"
+$ CS
+$ tmp = "stdint"
+$ GOSUB inlibc
+$ d_stdint == tmp
+$!
 $ DS
 $ RETURN
-$!
 $!********************
 $inlibc: 
 $ GOSUB link_ok
