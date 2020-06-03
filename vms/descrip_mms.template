@@ -641,7 +641,7 @@ ctlibtests : [.src.ctlib.unittests]t0001$(E) [.src.ctlib.unittests]t0002$(E) [.s
 	[.src.ctlib.unittests]blk_in2$(E) [.src.ctlib.unittests]datafmt$(E) \
 	[.src.ctlib.unittests]rpc_fail$(E) [.src.ctlib.unittests]row_count$(E) \
 	[.src.ctlib.unittests]all_types$(E) [.src.ctlib.unittests]long_binary$(E) \
-	[.src.ctlib.unittests]will_convert$(E) \
+	[.src.ctlib.unittests]will_convert$(E)
 	@ continue
 
 dblibtests : [.src.dblib.unittests]rpc$(E)  [.src.dblib.unittests]t0001$(E) [.src.dblib.unittests]t0002$(E) \
