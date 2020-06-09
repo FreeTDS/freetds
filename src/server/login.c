@@ -80,7 +80,7 @@ tds_listen(TDSCONTEXT * ctx, int ip_port)
 #ifdef AF_INET6
 	struct sockaddr_in6 sin;
 
-	sin.sin6_addr = in6addr_any;
+	memset(&sin, 0, sizeof(sin));
 	sin.sin6_port = htons((short) ip_port);
 	sin.sin6_family = AF_INET6;
 
