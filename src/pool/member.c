@@ -326,14 +326,16 @@ pool_process_data(TDS_POOL *pool, TDS_POOL_MEMBER *pmbr)
  * pool_process_members
  * check the fd_set for members returning data to the client, lookup the 
  * client holding this member and forward the results.
+ * @return Timeout you should call this function again or -1 for infinite
  */
-void
+int
 pool_process_members(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
 {
 	TDS_POOL_MEMBER *pmbr, *next;
 	TDSSOCKET *tds;
 	time_t age;
 	time_t time_now;
+	int min_expire_left = -1;
 
 	for (next = dlist_member_first(&pool->active_members); (pmbr = next) != NULL; ) {
 		bool processed = false;
@@ -363,6 +365,9 @@ pool_process_members(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
 			pmbr->last_used_tm = time_now;
 	}
 
+	if (pool->num_active_members <= pool->min_open_conn)
+		return min_expire_left;
+
 	/* close old connections */
 	time_now = time(NULL);
 	for (next = dlist_member_first(&pool->idle_members); (pmbr = next) != NULL; ) {
@@ -373,12 +378,16 @@ pool_process_members(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
 		assert(!pmbr->current_user);
 
 		age = time_now - pmbr->last_used_tm;
-		if (age > pool->max_member_age
-		    && pool->num_active_members > pool->min_open_conn) {
+		if (age >= pool->max_member_age) {
 			tdsdump_log(TDS_DBG_INFO1, "member is %ld seconds old...closing\n", (long int) age);
 			pool_free_member(pool, pmbr);
+		} else {
+			int left = (int) (pool->max_member_age - age);
+			if (min_expire_left < 0 || left < min_expire_left)
+				min_expire_left = left;
 		}
 	}
+	return min_expire_left;
 }
 
 static bool
