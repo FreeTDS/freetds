@@ -322,6 +322,8 @@ pool_main_loop(TDS_POOL * pool)
 	TDS_POOL_USER *puser;
 	TDS_SYS_SOCKET s, wakeup;
 	SELECT_INFO sel;
+	int min_expire_left = -1;
+	struct timeval tv, *p_tv = NULL;
 
 	s = pool->listen_fd;
 	wakeup = pool->wakeup_fd;
@@ -343,8 +345,15 @@ pool_main_loop(TDS_POOL * pool)
 		DLIST_FOREACH(dlist_member, &pool->active_members, pmbr)
 			pool_select_add_socket(&sel, &pmbr->sock);
 
+		p_tv = NULL;
+		if (min_expire_left > 0) {
+			tv.tv_sec = min_expire_left;
+			tv.tv_usec = 0;
+			p_tv = &tv;
+		}
+
 		/* FIXME check return value */
-		select(sel.maxfd + 1, &sel.rfds, &sel.wfds, NULL, NULL);
+		select(sel.maxfd + 1, &sel.rfds, &sel.wfds, NULL, p_tv);
 		if (TDS_UNLIKELY(got_sigterm))
 			break;
 
@@ -368,7 +377,7 @@ pool_main_loop(TDS_POOL * pool)
 			pool_user_create(pool, s);
 		}
 		pool_process_users(pool, &sel.rfds, &sel.wfds);
-		pool_process_members(pool, &sel.rfds, &sel.wfds);
+		min_expire_left = pool_process_members(pool, &sel.rfds, &sel.wfds);
 
 		/* back from members */
 		if (dlist_user_first(&pool->waiters))
