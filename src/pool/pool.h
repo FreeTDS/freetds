@@ -137,7 +137,7 @@ struct tds_pool
 /* prototypes */
 
 /* member.c */
-void pool_process_members(TDS_POOL * pool, fd_set * rfds, fd_set * wfds);
+int pool_process_members(TDS_POOL * pool, fd_set * rfds, fd_set * wfds);
 TDS_POOL_MEMBER *pool_assign_idle_member(TDS_POOL * pool, TDS_POOL_USER *user);
 void pool_mbr_init(TDS_POOL * pool);
 void pool_mbr_destroy(TDS_POOL * pool);
