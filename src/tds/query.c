@@ -2165,6 +2165,7 @@ tds_quote(TDSSOCKET * tds, char *buffer, char quoting, const char *id, size_t le
  * \param id     id to quote
  * \param idlen  id length (< 0 for NUL terminated)
  * \result written chars (not including needed terminator)
+ * \see tds_quote_id_rpc
  */
 size_t
 tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen)
@@ -2199,6 +2200,32 @@ tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen)
 		buffer[len] = '\0';
 	}
 	return len;
+}
+
+/**
+ * Quote an id for a RPC call
+ * \param tds    state information for the socket and the TDS protocol
+ * \param buffer buffer to store quoted id. If NULL do not write anything
+ *        (useful to compute quote length)
+ * \param id     id to quote
+ * \param idlen  id length (< 0 for NUL terminated)
+ * \result written chars (not including needed terminator)
+ * \see tds_quote_id
+ */
+size_t
+tds_quote_id_rpc(TDSSOCKET * tds, char *buffer, const char *id, int idlen)
+{
+	size_t len;
+	/* We are quoting for RPC calls, not base language queries. For RPC calls Sybase
+	 * servers don't accept '[]' style quoting so don't use them but use normal
+	 * identifier quoting ('""') */
+	char quote_id_char = TDS_IS_MSSQL(tds) ? ']' : '\"';
+
+	CHECK_TDS_EXTRA(tds);
+
+	len = idlen < 0 ? strlen(id) : (size_t) idlen;
+
+	return tds_quote(tds, buffer, quote_id_char, id, len);
 }
 
 /**
