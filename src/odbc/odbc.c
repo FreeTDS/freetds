@@ -7328,8 +7328,8 @@ odbc_stat_execute(TDS_STMT * stmt _WIDE, const char *begin, int nparams, ...)
 			if (begin[0] == '.' && strstr(name, "qualifier")) {
 				if (!tds_dstr_dup(&qualifier, &value))
 					goto mem_error;
-				len += tds_quote_id(stmt->dbc->tds_socket, NULL,
-						    tds_dstr_cstr(&qualifier), tds_dstr_len(&qualifier));
+				len += tds_quote_id_rpc(stmt->dbc->tds_socket, NULL,
+							tds_dstr_cstr(&qualifier), tds_dstr_len(&qualifier));
 				param_qualifier = i;
 			}
 		}
@@ -7357,7 +7357,7 @@ odbc_stat_execute(TDS_STMT * stmt _WIDE, const char *begin, int nparams, ...)
 	/* build query string */
 	p = proc;
 	if (param_qualifier >= 0)
-		p += tds_quote_id(stmt->dbc->tds_socket, p, tds_dstr_cstr(&qualifier), tds_dstr_len(&qualifier));
+		p += tds_quote_id_rpc(stmt->dbc->tds_socket, p, tds_dstr_cstr(&qualifier), tds_dstr_len(&qualifier));
 	tds_dstr_free(&qualifier);
 	strcpy(p, begin);
 	p += strlen(begin);
