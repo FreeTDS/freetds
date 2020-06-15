@@ -2211,6 +2211,13 @@ string_to_datetime(const char *instr, TDS_UINT len, int desttype, CONV_RESULT * 
 		tok = strtok_r(NULL, " ,", &lasts);
 	}
 
+	if (current_state == STRING_GARBLED) {
+		tdsdump_log(TDS_DBG_INFO1,
+					"error_handler:  Attempt to convert data stopped by syntax error in source field \n");
+		free(in);
+		return TDS_CONVERT_SYNTAX;
+	}
+
 	i = (t.tm_mon - 13) / 12;
 	dt_days = 1461 * (t.tm_year + 1900 + i) / 4 +
 		(367 * (t.tm_mon - 1 - 12 * i)) / 12 - (3 * ((t.tm_year + 2000 + i) / 100)) / 4 + t.tm_mday - 693932;
