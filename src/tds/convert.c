@@ -1988,11 +1988,10 @@ tds_convert(const TDSCONTEXT *tds_ctx, int srctype, const void *src, TDS_UINT sr
 static int
 string_to_datetime(const char *instr, TDS_UINT len, int desttype, CONV_RESULT * cr)
 {
-	enum states
-	{ GOING_IN_BLIND,
+	enum states {
+		GOING_IN_BLIND,
 		PUT_NUMERIC_IN_CONTEXT,
-		DOING_ALPHABETIC_DATE,
-		STRING_GARBLED
+		DOING_ALPHABETIC_DATE
 	};
 
 	char *in;
@@ -2009,7 +2008,7 @@ string_to_datetime(const char *instr, TDS_UINT len, int desttype, CONV_RESULT * 
 	TDS_INT dt_days;
 	int i;
 
-	int current_state;
+	enum states current_state;
 
 	memset(&t, '\0', sizeof(t));
 	t.tm_mday = 1;
@@ -2036,7 +2035,7 @@ string_to_datetime(const char *instr, TDS_UINT len, int desttype, CONV_RESULT * 
 					monthdone++;
 					current_state = DOING_ALPHABETIC_DATE;
 				} else {
-					current_state = STRING_GARBLED;
+					goto string_garbled;
 				}
 			}
 
@@ -2072,13 +2071,13 @@ string_to_datetime(const char *instr, TDS_UINT len, int desttype, CONV_RESULT * 
 					if (store_yymmdd_date(tok, &t))
 						current_state = GOING_IN_BLIND;
 					else
-						current_state = STRING_GARBLED;
+						goto string_garbled;
 					break;
 
 					/* anything else is nonsense...               */
 
 				default:
-					current_state = STRING_GARBLED;
+					goto string_garbled;
 					break;
 				}
 			}
@@ -2099,7 +2098,7 @@ string_to_datetime(const char *instr, TDS_UINT len, int desttype, CONV_RESULT * 
 				current_state = GOING_IN_BLIND;
 			} else {
 				tdsdump_log(TDS_DBG_INFO1, "string_to_datetime: string_garbled\n");
-				current_state = STRING_GARBLED;
+				goto string_garbled;
 			}
 
 			break;	/* end of GOING_IN_BLIND */
@@ -2114,11 +2113,11 @@ string_to_datetime(const char *instr, TDS_UINT len, int desttype, CONV_RESULT * 
 					else
 						current_state = DOING_ALPHABETIC_DATE;
 				} else {
-					current_state = STRING_GARBLED;
+					goto string_garbled;
 				}
 			} else if (is_numeric(tok)) {
 				if (mdaydone && yeardone)
-					current_state = STRING_GARBLED;
+					goto string_garbled;
 				else
 					switch (strlen(tok)) {
 					case 4:
@@ -2151,10 +2150,10 @@ string_to_datetime(const char *instr, TDS_UINT len, int desttype, CONV_RESULT * 
 						break;
 
 					default:
-						current_state = STRING_GARBLED;
+						goto string_garbled;
 					}
 			} else {
-				current_state = STRING_GARBLED;
+				goto string_garbled;
 			}
 
 			break;	/* end of DOING_ALPHABETIC_DATE */
@@ -2174,7 +2173,7 @@ string_to_datetime(const char *instr, TDS_UINT len, int desttype, CONV_RESULT * 
 					store_hour(last_token, tok, &t);
 					current_state = GOING_IN_BLIND;
 				} else {
-					current_state = STRING_GARBLED;
+					goto string_garbled;
 				}
 			} else if (is_numeric(tok)) {
 				switch (strlen(tok)) {
@@ -2192,20 +2191,13 @@ string_to_datetime(const char *instr, TDS_UINT len, int desttype, CONV_RESULT * 
 					break;
 
 				default:
-					current_state = STRING_GARBLED;
+					goto string_garbled;
 				}
 			} else {
-				current_state = STRING_GARBLED;
+				goto string_garbled;
 			}
 
 			break;	/* end of PUT_NUMERIC_IN_CONTEXT */
-
-		case STRING_GARBLED:
-
-			tdsdump_log(TDS_DBG_INFO1,
-				    "error_handler:  Attempt to convert data stopped by syntax error in source field \n");
-			free(in);
-			return TDS_CONVERT_SYNTAX;
 		}
 
 		tok = strtok_r(NULL, " ,", &lasts);
@@ -2256,6 +2248,12 @@ string_to_datetime(const char *instr, TDS_UINT len, int desttype, CONV_RESULT * 
 	cr->dta.time_prec = 7; /* TODO correct value */
 	cr->dta.time = ((TDS_UINT8) dt_time) * 10000000u + t.tm_ns / 100u;
 	return sizeof(TDS_DATETIMEALL);
+
+string_garbled:
+	tdsdump_log(TDS_DBG_INFO1,
+		    "error_handler:  Attempt to convert data stopped by syntax error in source field \n");
+	free(in);
+	return TDS_CONVERT_SYNTAX;
 }
 
 static int
