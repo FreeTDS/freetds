@@ -7285,7 +7285,7 @@ odbc_stat_execute(TDS_STMT * stmt _WIDE, const char *begin, int nparams, ...)
 				add_always = true;
 				continue;
 			case '!':
-				convert = 0;
+				convert = false;
 				continue;
 			case 'V':	/* ODBC version */
 			case 'O':	/* ordinary arguments */
