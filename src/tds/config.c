@@ -925,7 +925,6 @@ tds_config_verstr(const char *tdsver, TDSLOGIN * login)
 		{ {   "0", 0x000 }
 		, {"auto", 0x000 }
 		, { "4.2", 0x402 }
-		, { "4.2", 0x402 }
 		, {  "46", 0x406 }
 		, { "4.6", 0x406 }
 		, {  "50", 0x500 }
