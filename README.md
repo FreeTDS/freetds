@@ -1,7 +1,7 @@
 README for FreeTDS 1.2
 ====
 
-*Release date 13 TBD*
+*Release date TBD*
 
 **To build FreeTDS read the file [INSTALL](./INSTALL.md) or
 the [FreeTDS Users Guide](http://www.freetds.org/userguide/)**
