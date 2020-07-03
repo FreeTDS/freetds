@@ -14,8 +14,6 @@ ReadCol(int i)
 	CHKGetData(i, SQL_C_CHAR, output, sizeof(output), &cnamesize, "S");
 }
 
-static const char *catalog = NULL;
-static const char *schema = NULL;
 static const char *proc = "stat_proc";
 static const char *table = "stat_proc";
 static const char *column = "@t";
@@ -23,9 +21,10 @@ static const char *column = "@t";
 #define LEN(x) (x) ? strlen(x) : 0
 
 static void
-TestProc(const char *type, const char *expected)
+TestProc(const char *catalog, const char *type, const char *expected)
 {
 	char sql[256];
+	char *schema = NULL;
 
 	odbc_command("IF OBJECT_ID('stat_proc') IS NOT NULL DROP PROC stat_proc");
 
@@ -49,13 +48,21 @@ TestProc(const char *type, const char *expected)
 }
 
 static void
-TestTable(const char *type, const char *expected)
+TestTable(const char *catalog, const char *type, const char *expected)
 {
 	char sql[256];
+	char *schema = NULL;
 
-	odbc_command("IF OBJECT_ID('stat_t') IS NOT NULL DROP TABLE stat_t");
+	if (catalog) {
+		schema = "dbo";
+		sprintf(sql, "IF OBJECT_ID('%s.%s.stat_t') IS NOT NULL DROP TABLE %s.%s.stat_t", catalog, schema, catalog, schema);
+		odbc_command(sql);
+		sprintf(sql, "CREATE TABLE %s.%s.stat_t(t %s)", catalog, schema, type);
+	} else {
+		odbc_command("IF OBJECT_ID('stat_t') IS NOT NULL DROP TABLE stat_t");
+		sprintf(sql, "CREATE TABLE stat_t(t %s)", type);
+	}
 
-	sprintf(sql, "CREATE TABLE stat_t(t %s)", type);
 	odbc_command(sql);
 
 	column = "t";
@@ -93,8 +100,9 @@ main(int argc, char *argv[])
 	odbc_use_version3 = 0;
 	odbc_connect();
 
-	TestProc("DATETIME", STR(SQL_TIMESTAMP));
-	TestTable("DATETIME", STR(SQL_TIMESTAMP));
+	TestProc(NULL, "DATETIME", STR(SQL_TIMESTAMP));
+	TestTable(NULL, "DATETIME", STR(SQL_TIMESTAMP));
+	TestTable("freetds_test", "DATETIME", STR(SQL_TIMESTAMP));
 
 	odbc_disconnect();
 
@@ -102,8 +110,9 @@ main(int argc, char *argv[])
 	odbc_use_version3 = 1;
 	odbc_connect();
 
-	TestProc("DATETIME", STR(SQL_TYPE_TIMESTAMP));
-	TestTable("DATETIME", STR(SQL_TYPE_TIMESTAMP));
+	TestProc(NULL, "DATETIME", STR(SQL_TYPE_TIMESTAMP));
+	TestTable(NULL, "DATETIME", STR(SQL_TYPE_TIMESTAMP));
+	TestTable("freetds_test", "DATETIME", STR(SQL_TYPE_TIMESTAMP));
 
 	odbc_disconnect();
 

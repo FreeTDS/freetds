@@ -66,7 +66,7 @@ bool
 pool_packet_read(TDSSOCKET *tds)
 {
 	unsigned int packet_len;
-	int readed, err;
+	int readed;
 
 	tdsdump_log(TDS_DBG_INFO1, "tds in_len %d in_pos %d\n", tds->in_len, tds->in_pos);
 
@@ -124,7 +124,7 @@ pool_packet_read(TDSSOCKET *tds)
 
 		/* error */
 		if (readed < 0) {
-			err = sock_errno;
+			int err = sock_errno;
 			if (err == EINTR)
 				continue;
 			if (TDSSOCK_WOULDBLOCK(err))
