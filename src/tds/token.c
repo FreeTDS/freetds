@@ -3282,6 +3282,11 @@ determine_adjusted_size(const TDSICONV * char_conv, int size)
 	if (!char_conv)
 		return size;
 
+	/* same charset */
+	if ((char_conv->flags & TDS_ENCODING_MEMCPY) != 0
+	    || char_conv->to.charset.canonic == char_conv->from.charset.canonic)
+		return size;
+
 	/* avoid possible overflow */
 	if (size >= 0x10000000)
 		return 0x7fffffff;
