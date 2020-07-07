@@ -1289,7 +1289,7 @@ RETCODE dbsetlversion (LOGINREC * login, BYTE version);
 #define DBSETMUTUALAUTH		102
 #define DBSETLMUTUALAUTH(x, y)	dbsetlbool((x), (y), DBSETMUTUALAUTH)
 #define DBSETSERVERPRINCIPAL	103
-#define DBSETLSERVERPRINCIPAL	dbsetlname((x), (y), DBSETSERVERPRINCIPAL)
+#define DBSETLSERVERPRINCIPAL(x,y)	dbsetlname((x), (y), DBSETSERVERPRINCIPAL)
 /* settings from here are purely FreeTDS extensions */
 #define DBSETUTF16		1001
 #define DBSETLUTF16(x,y)	dbsetlbool((x), (y), DBSETUTF16)
