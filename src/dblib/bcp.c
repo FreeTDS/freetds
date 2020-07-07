@@ -2084,7 +2084,7 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 						terminator, termlen, dbprtype(db_vartype), table_column);
 	CHECK_CONN(FAIL);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI, FAIL);
-	DBPERROR_RETURN(!is_tds_type_valid(db_vartype), SYBEUDTY);
+	DBPERROR_RETURN(db_vartype != 0 && !is_tds_type_valid(db_vartype), SYBEUDTY);
 	vartype = (TDS_SERVER_TYPE) db_vartype;
 
 	if (dbproc->hostfileinfo != NULL) {
