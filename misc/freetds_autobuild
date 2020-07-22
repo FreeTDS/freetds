@@ -320,14 +320,14 @@ test_mssql2008() {
 test_mssql2000() {
 	trap 'echo Error $? at line $LINENO' ERR
 	local pid_pool
-	cd test5
+	cd test2
 	./misc/grabcov -o pool.cov_info -- ./src/pool/tdspool msde &> /dev/null &
 	pid_pool=$!
 	sleep 5
 	pid_pool=$(pgrep -P $pid_pool tdspool)
 	cd ..
 	# do tests with mssql 2000
-	generic_test test5 PWD.msde_pool
+	generic_test test2 PWD.msde_pool
 	kill $pid_pool
 }
 
