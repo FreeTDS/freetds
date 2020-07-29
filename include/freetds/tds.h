@@ -1443,7 +1443,6 @@ TDSRET tds_process_simple_query(TDSSOCKET * tds);
 int tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_option, TDS_OPTION_ARG * tds_argument,
 			TDS_INT * tds_argsize);
 TDSRET tds_process_tokens(TDSSOCKET * tds, /*@out@*/ TDS_INT * result_type, /*@out@*/ int *done_flags, unsigned flag);
-int determine_adjusted_size(const TDSICONV * char_conv, int size);
 
 
 /* data.c */

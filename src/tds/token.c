@@ -94,7 +94,7 @@ static TDSRET tds_process_end(TDSSOCKET * tds, int marker, /*@out@*/ int *flags_
 static TDSRET tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param);
 static /*@observer@*/ const char *tds_token_name(unsigned char marker);
 static void adjust_character_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol);
-int determine_adjusted_size(const TDSICONV * char_conv, int size);
+static int determine_adjusted_size(const TDSICONV * char_conv, int size);
 static /*@observer@*/ const char *tds_pr_op(int op);
 static int tds_alloc_get_string(TDSSOCKET * tds, /*@special@*/ char **string, size_t len) /*allocates *string*/;
 
@@ -3276,7 +3276,7 @@ adjust_character_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
  * \param size unconverted byte size
  * \return maximum size for converted string
  */
-int
+static int
 determine_adjusted_size(const TDSICONV * char_conv, int size)
 {
 	if (!char_conv)
