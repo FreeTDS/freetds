@@ -3233,12 +3233,12 @@ adjust_character_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		curcol->column_usertype == USER_UNIVARCHAR_TYPE)) {
 		const int canonic_client = tds->conn->char_convs[client2ucs2]->from.charset.canonic;
 #ifdef WORDS_BIGENDIAN
-		const int sybase_utf = TDS_CHARSET_UTF_16BE;
+		const int sybase_utf16 = TDS_CHARSET_UTF_16BE;
 #else
-		const int sybase_utf = TDS_CHARSET_UTF_16LE;
+		const int sybase_utf16 = TDS_CHARSET_UTF_16LE;
 #endif
 
-		curcol->char_conv = tds_iconv_get_info(tds->conn, canonic_client, sybase_utf);
+		curcol->char_conv = tds_iconv_get_info(tds->conn, canonic_client, sybase_utf16);
 
 		/* fallback to UCS-2LE */
 		/* FIXME should be useless. Does not works always */
