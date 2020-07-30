@@ -1687,6 +1687,8 @@ bool tds_capability_enabled(const TDS_CAPABILITY_TYPE *cap, unsigned cap_num)
 }
 #define tds_capability_has_req(conn, cap) \
 	tds_capability_enabled(&conn->capabilities.types[0], cap)
+#define tds_capability_has_res(conn, cap) \
+	tds_capability_enabled(&conn->capabilities.types[1], cap)
 
 #define IS_TDS42(x) (x->tds_version==0x402)
 #define IS_TDS46(x) (x->tds_version==0x406)

@@ -46,6 +46,7 @@
 #include <freetds/bytes.h>
 #include <freetds/alloca.h>
 #include <freetds/encodings.h>
+#include <freetds/enum_cap.h>
 #include "replacements.h"
 
 /** \cond HIDDEN_SYMBOLS */
@@ -3224,19 +3225,35 @@ adjust_character_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	CHECK_TDS_EXTRA(tds);
 	CHECK_COLUMN_EXTRA(curcol);
 
-	if (is_unicode_type(curcol->on_server.column_type))
-		curcol->char_conv = tds->conn->char_convs[client2ucs2];
+	if (is_ascii_type(curcol->on_server.column_type)) {
+		/* don't override setting from column collation */
+		if (!curcol->char_conv)
+			curcol->char_conv = tds->conn->char_convs[client2server_chardata];
+		goto compute;
+	}
+
+	if (IS_TDS7_PLUS(tds->conn)) {
+		if (is_unicode_type(curcol->on_server.column_type))
+			curcol->char_conv = tds->conn->char_convs[client2ucs2];
+		goto compute;
+	}
 
 	/* Sybase UNI(VAR)CHAR fields are transmitted via SYBLONGBINARY and in UTF-16 */
-	if (curcol->on_server.column_type == SYBLONGBINARY && (
-		curcol->column_usertype == USER_UNICHAR_TYPE ||
-		curcol->column_usertype == USER_UNIVARCHAR_TYPE)) {
+	if (is_unicode_type(curcol->on_server.column_type) ||
+		(curcol->on_server.column_type == SYBLONGBINARY && (
+		 curcol->column_usertype == USER_UNICHAR_TYPE ||
+		 curcol->column_usertype == USER_UNIVARCHAR_TYPE))) {
 		const int canonic_client = tds->conn->char_convs[client2ucs2]->from.charset.canonic;
 #ifdef WORDS_BIGENDIAN
 		const int sybase_utf16 = TDS_CHARSET_UTF_16BE;
 #else
 		const int sybase_utf16 = TDS_CHARSET_UTF_16LE;
 #endif
+
+		if (tds_capability_has_res(tds->conn, TDS_RES_IMAGE_NONCHAR)) {
+			curcol->char_conv = tds_iconv_get_info(tds->conn, canonic_client, TDS_CHARSET_UTF_8);
+			goto compute;
+		}
 
 		curcol->char_conv = tds_iconv_get_info(tds->conn, canonic_client, sybase_utf16);
 
@@ -3246,9 +3263,7 @@ adjust_character_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			curcol->char_conv = tds->conn->char_convs[client2ucs2];
 	}
 
-	if (!curcol->char_conv && is_ascii_type(curcol->on_server.column_type))
-		curcol->char_conv = tds->conn->char_convs[client2server_chardata];
-
+compute:
 	if (!USE_ICONV || !curcol->char_conv)
 		return;
 
