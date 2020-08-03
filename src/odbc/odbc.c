@@ -2817,7 +2817,7 @@ ODBC_FUNC(SQLSetDescField, (P(SQLHDESC,hdesc), P(SQLSMALLINT,icol), P(SQLSMALLIN
 	}
 	drec = &desc->records[icol - 1];
 
-	tdsdump_log(TDS_DBG_INFO1, "SQLColAttributes: fDescType is %d\n", fDescType);
+	tdsdump_log(TDS_DBG_INFO1, "SQLSetDescField: fDescType is %d\n", fDescType);
 
 	switch (fDescType) {
 	case SQL_DESC_AUTO_UNIQUE_VALUE:
