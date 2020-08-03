@@ -1589,6 +1589,7 @@ dbexit()
 	if (g_dblib_ctx.connection_list) {
 		TDS_ZERO_FREE(g_dblib_ctx.connection_list);
 		g_dblib_ctx.connection_list_size = 0;
+		g_dblib_ctx.connection_list_size_represented = 0;
 	}
 
 	tds_mutex_unlock(&dblib_mutex);
