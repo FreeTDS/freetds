@@ -844,6 +844,9 @@ ODBCINSTGetProperties(HODBCINSTPROPERTY hLastProperty)
 	hLastProperty = definePropertyList(hLastProperty, odbc_param_Encryption, TDS_STR_ENCRYPTION_OFF, aEncryption, sizeof(aEncryption),
 		"The encryption method.");
 
+	hLastProperty = definePropertyString(hLastProperty, odbc_param_Timeout, "10", 
+		"Connection timeout.");
+
 	return 1;
 }
 
