@@ -514,7 +514,8 @@ bool get_login_info(HWND hwndParent, TDSLOGIN * login);
 	ODBC_PARAM(REALM) \
 	ODBC_PARAM(ServerSPN) \
 	ODBC_PARAM(AttachDbFilename) \
-	ODBC_PARAM(ApplicationIntent)
+	ODBC_PARAM(ApplicationIntent) \
+	ODBC_PARAM(Timeout)
 
 #define ODBC_PARAM(p) ODBC_PARAM_##p,
 enum {

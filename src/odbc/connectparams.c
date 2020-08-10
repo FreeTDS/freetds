@@ -251,6 +251,9 @@ odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSLOGIN * login)
 	if (myGetPrivateProfileString(DSN, odbc_param_AttachDbFilename, tmp) > 0)
 		tds_parse_conf_section(TDS_STR_DBFILENAME, tmp, login);
 
+	if (myGetPrivateProfileString(DSN, odbc_param_Timeout, tmp) > 0)
+		tds_parse_conf_section(TDS_STR_TIMEOUT, tmp, login);
+
 	return 1;
 }
 
@@ -441,6 +444,8 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 
 			tds_parse_conf_section(TDS_STR_READONLY_INTENT, readonly_intent, login);
 			tdsdump_log(TDS_DBG_INFO1, "Application Intent %s\n", readonly_intent);
+		} else if (CHK_PARAM(Timeout)) {
+			tds_parse_conf_section(TDS_STR_TIMEOUT, tds_dstr_cstr(&value), login);
 		}
 
 		if (num_param >= 0 && parsed_params) {
