@@ -572,10 +572,18 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 	/* A NULL username indicates a domain (trusted) login */
 	if (!username) {
 		username = tds_new0(char, 1);
+		if(!username){
+			fprintf(stderr, "Could not allocate memory to username\n");
+			exit(1);
+		}
 		use_domain_login = 1;
 	}
 	if (!password) {
 		password = tds_new0(char, 128);
+		if(!password){
+			fprintf(stderr, "Could not allocate memory to password\n");
+			exit(1);
+		}
 		if (!use_domain_login)
 			readpassphrase("Password: ", password, 128, RPP_ECHO_OFF);
 	}
@@ -750,9 +758,17 @@ main(int argc, char **argv)
 	setlocale(LC_ALL, "");
 
 	/* grab a login structure */
-	login = tds_alloc_login(1);
+	login = tds_alloc_login(1);	
+	if(login == NULL){
+		fprintf(stderr, "login cannot be null\n");
+		return 1;
+	}
 
 	context = tds_alloc_context(NULL);
+	if(context == NULL){
+		fprintf(stderr, "context cannot be null\n");
+		return 1;
+	}
 	if (context->locale && !context->locale->date_fmt) {
 		/* set default in case there's no locale file */
 		context->locale->date_fmt = strdup(STD_DATETIME_FMT);
@@ -840,6 +856,10 @@ main(int argc, char **argv)
 	/* give the buffer an initial size */
 	bufsz = 4096;
 	mybuf = tds_new(char, bufsz);
+	if(!mybuf){
+		fprintf(stderr, "Could not allocate memory to mybuf\n");
+		return 1;
+	}
 	mybuf[0] = '\0';
 	buflen = 0;
 

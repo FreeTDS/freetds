@@ -106,7 +106,15 @@ pool_mbr_login(const TDS_POOL * pool, int tds_version)
 		}
 	}
 	context = tds_alloc_context(NULL);
+	if(context == NULL){
+		fprintf(stderr, "Context cannot be null \n");
+		return NULL;
+	}
 	tds = tds_alloc_socket(context, 512);
+	if(tds == NULL){
+		fprintf(stderr, "tds cannot be null \n");
+		return NULL;		
+	}
 	connection = tds_read_config_info(tds, login, context->locale);
 	tds_free_login(login);
 	if (!connection || TDS_FAILED(tds_connect_and_login(tds, connection))) {
