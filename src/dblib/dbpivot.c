@@ -520,7 +520,7 @@ make_col_name(const KEY_T *k)
 	
 	s = names = tds_new0(char *, k->nkeys);
 	if(!s){
-		printf("could not allocate memory to metadata");
+		printf("could not allocate memory to s = names");
 		return NULL;
 	}
 	for(pc=k->keys; pc < k->keys + k->nkeys; pc++) {
