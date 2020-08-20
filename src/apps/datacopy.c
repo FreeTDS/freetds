@@ -655,7 +655,10 @@ transfer_data(const BCPPARAMDATA * params, DBPROCESS * dbsrc, DBPROCESS * dbdest
 	}
 
 	srcdata = (MIGCOLDATA *) calloc(sizeof(MIGCOLDATA), src_numcols);
-
+	if (!srcdata) {
+		fprintf(stderr, "Could not allocate memory for srcdata\n");
+		return FALSE;
+	}
 	for (col = 0; col < src_numcols; col++) {
 
 		/* Find out if there is an identity column. */

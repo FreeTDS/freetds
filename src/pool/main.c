@@ -114,6 +114,10 @@ pool_init(const char *name, const char *config_path)
 	/* initialize the pool */
 
 	pool = tds_new0(TDS_POOL, 1);
+	if (!pool) {
+		fprintf(stderr, "Could not allocate memory for pool\n");
+		exit(EXIT_FAILURE);
+	}
 	pool->password = strdup("");
 
 	pool->event_fd = INVALID_SOCKET;

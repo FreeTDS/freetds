@@ -509,7 +509,7 @@ key_cpy(KEY_T *pdest, const KEY_T *psrc)
 
 
 static char *
-make_col_name(const KEY_T *k)
+make_col_name(DBPROCESS *dbproc, const KEY_T *k)
 {
 	const struct col_t *pc;
 	char **names, **s, *output;
@@ -519,7 +519,10 @@ make_col_name(const KEY_T *k)
 	assert(k->keys);
 	
 	s = names = tds_new0(char *, k->nkeys);
-	
+	if (!s) {
+		dbperror(dbproc, SYBEMEM, errno);
+		return NULL;
+	}
 	for(pc=k->keys; pc < k->keys + k->nkeys; pc++) {
 		*s++ = strdup(string_value(pc));
 	}
@@ -1033,7 +1036,10 @@ dbpivot(DBPROCESS *dbproc, int nkeys, int *keys, int ncols, int *cols, DBPIVOT_F
 	 */
 	nmeta = input.row_key.nkeys + pp->nacross;	
 	metadata = tds_new0(struct metadata_t, nmeta);
-	
+	if (!metadata) {
+		dbperror(dbproc, SYBEMEM, errno);
+		return FAIL;
+	}
 	assert(pp->across || pp->nacross == 0);
 	
 	/* key columns are passed through as-is, verbatim */
@@ -1050,7 +1056,9 @@ dbpivot(DBPROCESS *dbproc, int nkeys, int *keys, int ncols, int *cols, DBPIVOT_F
 		if (!col_init(&col, SYBFLT8, sizeof(double)))
 			return FAIL;
 		assert(pmeta + i < metadata + nmeta);
-		pmeta[i].name = make_col_name(pp->across+i);
+		pmeta[i].name = make_col_name(dbproc, pp->across+i);
+		if (!pmeta[i].name)
+			return FAIL;
 		assert(pp->across);
 		pmeta[i].pacross = pp->across + i;
 		col_cpy(&pmeta[i].col, pp->nout? &pp->output[0].value : &col);

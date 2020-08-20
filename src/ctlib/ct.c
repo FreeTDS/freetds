@@ -3372,6 +3372,8 @@ ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT datalen,
 		}
 
 		param = tds_new0(CSREMOTE_PROC_PARAM, 1);
+		if (!param)
+			return CS_FAIL;
 
 		if (CS_SUCCEED != _ct_fill_param(cmd->command_type, param, datafmt, data, &datalen, &indicator, 1)) {
 			free(param);
@@ -3447,6 +3449,8 @@ ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * dat
 		}
 
 		param = tds_new0(CSREMOTE_PROC_PARAM, 1);
+		if (!param)
+			return CS_FAIL;
 
 		if (CS_SUCCEED != _ct_fill_param(cmd->command_type, param, datafmt, data, datalen, indicator, 0)) {
 			tdsdump_log(TDS_DBG_INFO1, "ct_setparam() failed to add rpc param\n");
@@ -3479,6 +3483,8 @@ ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * dat
 		}
 
 		param = tds_new0(CS_DYNAMIC_PARAM, 1);
+		if (!param)
+			return CS_FAIL;
 
 		if (CS_SUCCEED != _ct_fill_param(cmd->command_type, param, datafmt, data, datalen, indicator, 0)) {
 			tdsdump_log(TDS_DBG_INFO1, "ct_setparam() failed to add dynamic param\n");
@@ -3510,6 +3516,8 @@ ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * dat
 		}
 
 		param = tds_new0(CSREMOTE_PROC_PARAM, 1);
+		if (!param)
+			return CS_FAIL;
 
 		if (CS_SUCCEED != _ct_fill_param(cmd->command_type, param, datafmt, data, datalen, indicator, 0)) {
 			tdsdump_log(TDS_DBG_INFO1, "ct_setparam() failed to add language param\n");
