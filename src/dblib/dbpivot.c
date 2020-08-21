@@ -519,8 +519,8 @@ make_col_name(const KEY_T *k)
 	assert(k->keys);
 	
 	s = names = tds_new0(char *, k->nkeys);
-	if(!s){
-		printf("could not allocate memory to s = names");
+	if (!s) {
+		fprintf(stderr, "could not allocate memory for s = names\n");
 		return NULL;
 	}
 	for(pc=k->keys; pc < k->keys + k->nkeys; pc++) {
@@ -1036,8 +1036,8 @@ dbpivot(DBPROCESS *dbproc, int nkeys, int *keys, int ncols, int *cols, DBPIVOT_F
 	 */
 	nmeta = input.row_key.nkeys + pp->nacross;	
 	metadata = tds_new0(struct metadata_t, nmeta);
-	if(!metadata){
-		printf("could not allocate memory to metadata");
+	if (!metadata) {
+		fprintf(stderr, "could not allocate memory for metadata\n");
 		return FAIL;
 	}
 	assert(pp->across || pp->nacross == 0);
@@ -1057,7 +1057,7 @@ dbpivot(DBPROCESS *dbproc, int nkeys, int *keys, int ncols, int *cols, DBPIVOT_F
 			return FAIL;
 		assert(pmeta + i < metadata + nmeta);
 		pmeta[i].name = make_col_name(pp->across+i);
-		if(pmeta[i].name == NULL){
+		if (pmeta[i].name == NULL) {
 			return FAIL;
 		}
 		assert(pp->across);

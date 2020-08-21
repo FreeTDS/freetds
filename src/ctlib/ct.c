@@ -3372,8 +3372,7 @@ ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT datalen,
 		}
 
 		param = tds_new0(CSREMOTE_PROC_PARAM, 1);
-		if(!param){
-			printf("Could not allocate memory to param\n");
+		if (!param) {
 			return CS_FAIL;
 		}
 		if (CS_SUCCEED != _ct_fill_param(cmd->command_type, param, datafmt, data, &datalen, &indicator, 1)) {
@@ -3450,8 +3449,7 @@ ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * dat
 		}
 
 		param = tds_new0(CSREMOTE_PROC_PARAM, 1);
-		if(!param){
-			printf("Could not allocate memory to param\n");
+		if (!param) {
 			return CS_FAIL;
 		}
 		if (CS_SUCCEED != _ct_fill_param(cmd->command_type, param, datafmt, data, datalen, indicator, 0)) {
@@ -3485,7 +3483,7 @@ ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * dat
 		}
 
 		param = tds_new0(CS_DYNAMIC_PARAM, 1);
-		if(!param){
+		if (!param) {
 			printf("Could not allocate memory to param\n");
 			return CS_FAIL;
 		}
@@ -3519,7 +3517,7 @@ ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * dat
 		}
 
 		param = tds_new0(CSREMOTE_PROC_PARAM, 1);
-		if(!param){
+		if (!param) {
 			printf("Could not allocate memory to param\n");
 			return CS_FAIL;
 		}

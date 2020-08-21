@@ -655,8 +655,8 @@ transfer_data(const BCPPARAMDATA * params, DBPROCESS * dbsrc, DBPROCESS * dbdest
 	}
 
 	srcdata = (MIGCOLDATA *) calloc(sizeof(MIGCOLDATA), src_numcols);
-	if(srcdata == NULL){
-		printf("Could not allocate memory to srcdata\n");
+	if (!srcdata) {
+		fprintf(stderr, "%s", "Could not allocate memory for srcdata\n");
 		return FALSE;
 	}
 	for (col = 0; col < src_numcols; col++) {
