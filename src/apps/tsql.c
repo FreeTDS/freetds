@@ -765,7 +765,7 @@ main(int argc, char **argv)
 	}
 
 	context = tds_alloc_context(NULL);
-	if (context == NULL) {
+	if (!context) {
 		fprintf(stderr, "context cannot be null\n");
 		return 1;
 	}
