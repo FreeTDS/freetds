@@ -52,9 +52,6 @@ static TDSRET _ct_process_return_status(TDSSOCKET * tds);
 
 static int _ct_fill_param(CS_INT cmd_type, CS_PARAM * param, CS_DATAFMT * datafmt, CS_VOID * data,
 			  CS_INT * datalen, CS_SMALLINT * indicator, CS_BYTE byvalue);
-void _ctclient_msg(CS_CONNECTION * con, const char *funcname, int layer, int origin, int severity, int number,
-			  const char *fmt, ...);
-int _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo, CS_INT offset);
 static void _ct_initialise_cmd(CS_COMMAND *cmd);
 static CS_RETCODE _ct_cancel_cleanup(CS_COMMAND * cmd);
 static CS_INT _ct_map_compute_op(CS_INT comp_op);
