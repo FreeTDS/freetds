@@ -1099,7 +1099,7 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 
 	/* authentication stuff */
 	TDS_PUT_SMALLINT(tds, current_pos + data_stream.size);
-	TDS_PUT_SMALLINT(tds, auth_len);	/* this matches numbers at end of packet */
+	TDS_PUT_SMALLINT(tds, MIN(auth_len, 0xffffu));
 
 	/* db file */
 	PUT_STRING_FIELD_PTR(DB_FILENAME);
@@ -1109,7 +1109,7 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 		PUT_STRING_FIELD_PTR(NEW_PASSWORD);
 
 		/* SSPI long */
-		tds_put_int(tds, 0);
+		tds_put_int(tds, auth_len >= 0xffffu ? auth_len : 0);
 	}
 
 	tds_put_n(tds, data, data_stream.size);
