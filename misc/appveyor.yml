@@ -95,9 +95,8 @@ install:
   # if cache doesn't have it, download it
   - >
     if not exist C:\Windows\gperf.exe ((
-    curl -L -o %TEMP%\gperf.zip http://kent.dl.sourceforge.net/project/gnuwin32/gperf/3.0.1/gperf-3.0.1-bin.zip
-    || curl -L -o %TEMP%\gperf.zip https://www.freetds.org/gperf-3.0.1-bin.zip
-    ) && 7z e %TEMP%\gperf.zip -oC:\Windows bin\gperf.exe)
+    curl -L -o %TEMP%\gperf.zip http://kent.dl.sourceforge.net/project/gnuwin32/gperf/3.0.1/gperf-3.0.1-bin.zip && 7z e %TEMP%\gperf.zip -oC:\Windows bin\gperf.exe)
+    || (curl -L -o %TEMP%\gperf.zip https://www.freetds.org/gperf-3.0.1-bin.zip && 7z e %TEMP%\gperf.zip -oC:\Windows bin\gperf.exe))
 
 build_script:
   # build FreeTDS
