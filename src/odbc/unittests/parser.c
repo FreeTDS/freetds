@@ -110,7 +110,7 @@ odbc_set_bool(const char *name, int value)
 	value = !!value;
 	for (n = 0; n < MAX_BOOLS && bools[n].name; ++n)
 		if (!strcmp(bools[n].name, name)) {
-			bools[n]. value = value;
+			bools[n].value = value;
 			return;
 		}
 
@@ -129,7 +129,7 @@ get_bool(const char *name)
 		odbc_fatal(": boolean variable not provided\n");
 	for (n = 0; n < MAX_BOOLS && bools[n].name; ++n)
 		if (!strcmp(bools[n].name, name))
-			return bools[n]. value;
+			return bools[n].value;
 
 	odbc_fatal(": boolean variable %s not found\n", name);
 	return 0;
