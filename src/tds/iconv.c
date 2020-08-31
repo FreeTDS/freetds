@@ -994,11 +994,14 @@ collate2charset(TDSCONNECTION * conn, TDS_UCHAR collate[5])
 {
 	int cp = 0;
 	const int sql_collate = collate[4];
+	/* extract 16 bit of LCID (it's 20 bits but higher 4 are just variations) */
 	const int lcid = TDS_GET_UA2LE(collate);
 
 	/*
 	 * The table from the MSQLServer reference "Windows Collation Designators" 
-	 * and from " NLS Information for Microsoft Windows XP"
+	 * and from " NLS Information for Microsoft Windows XP".
+	 *
+	 * See also https://go.microsoft.com/fwlink/?LinkId=119987 [MSDN-SQLCollation]
 	 */
 
 	switch (sql_collate) {
