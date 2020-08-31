@@ -103,6 +103,15 @@ TestOutput(const char *type, const char *value_to_convert, SQLSMALLINT out_c_typ
 static char check_truncation = 0;
 static char use_nts = 0;
 
+/**
+ * Test a parameter as input to prepared statement
+ *
+ * "value_to_convert" will be inserted as database type "type" and C type "out_c_type" into a column of
+ * database type "param_type" and SQL type "out_sql_type". Then a select statement check that the column
+ * in the database is the same as "value_to_convert".
+ * "value_to_convert" can also contain a syntax like "input -> output", in this case the initial inserted
+ * value is "input" and the final check will check for "output".
+ */
 static void
 TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, const char *param_type, const char *value_to_convert)
 {
@@ -171,18 +180,23 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 
 	/* check if row is present */
 	if (!check_truncation) {
+		char *p;
+
 		odbc_reset_statement();
 		sep = "'";
 		if (strncmp(expected, "0x", 2) == 0)
 			sep = "";
+
+		strcpy(sbuf, "SELECT * FROM #tmp_insert WHERE ");
+		p = strchr(sbuf, 0);
 		if (strcmp(param_type, "TEXT") == 0)
-			sprintf(sbuf, "SELECT * FROM #tmp_insert WHERE CONVERT(VARCHAR(255), col) = CONVERT(VARCHAR(255), %s%s%s)", sep, expected, sep);
+			sprintf(p, "CONVERT(VARCHAR(255), col) = CONVERT(VARCHAR(255), %s%s%s)", sep, expected, sep);
 		else if (strcmp(param_type, "NTEXT") == 0)
-			sprintf(sbuf, "SELECT * FROM #tmp_insert WHERE CONVERT(NVARCHAR(2000), col) = CONVERT(NVARCHAR(2000), %s%s%s)", sep, expected, sep);
+			sprintf(p, "CONVERT(NVARCHAR(2000), col) = CONVERT(NVARCHAR(2000), %s%s%s)", sep, expected, sep);
 		else if (strcmp(param_type, "IMAGE") == 0)
-			sprintf(sbuf, "SELECT * FROM #tmp_insert WHERE CONVERT(VARBINARY(255), col) = CONVERT(VARBINARY(255), %s%s%s)", sep, expected, sep);
+			sprintf(p, "CONVERT(VARBINARY(255), col) = CONVERT(VARBINARY(255), %s%s%s)", sep, expected, sep);
 		else
-			sprintf(sbuf, "SELECT * FROM #tmp_insert WHERE col = CONVERT(%s, %s%s%s)", param_type, sep, expected, sep);
+			sprintf(p, "col = CONVERT(%s, %s%s%s)", param_type, sep, expected, sep);
 		odbc_command(sbuf);
 
 		CHKFetch("S");
