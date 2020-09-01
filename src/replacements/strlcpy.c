@@ -33,12 +33,11 @@ tds_strlcpy(char *dest, const char *src, size_t len)
 
 	if (len) {
 		--len;
-		if (l > len) {
-			memcpy(dest, src, len);
-			dest[len] = 0;
-		} else {
-			memcpy(dest, src, l + 1);
-		}
+		if (l <= len)
+			len = l;
+
+		memcpy(dest, src, len);
+		dest[len] = 0;
 	}
 	return l;
 }
