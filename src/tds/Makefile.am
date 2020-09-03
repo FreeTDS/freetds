@@ -30,11 +30,12 @@ libtds_la_SOURCES = \
 	sec_negotiate.c \
 	sec_negotiate_gnutls.h \
 	sec_negotiate_openssl.h \
+	gssapi.c \
 	$(NULL)
 if HAVE_SSPI
 libtds_la_SOURCES += sspi.c
 else
-libtds_la_SOURCES += challenge.c gssapi.c
+libtds_la_SOURCES += challenge.c
 endif
 libtds_la_LDFLAGS =
 libtds_la_LIBADD = $(NETWORK_LIBS)
@@ -44,7 +45,6 @@ noinst_HEADERS = $(GENERATED_HEADER_FILES)
 EXTRA_DIST = $(GENERATED_HEADER_FILES) \
 	CMakeLists.txt \
 	challenge.c \
-	gssapi.c \
 	sspi.c \
 	$(NULL)
 

@@ -32,7 +32,7 @@ endif(PERL_FOUND AND NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
 if(WIN32)
 	set(add_SRCS sspi.c)
 else(WIN32)
-	set(add_SRCS challenge.c gssapi.c)
+	set(add_SRCS challenge.c)
 endif(WIN32)
 
 add_library(tds STATIC
@@ -42,7 +42,7 @@ add_library(tds STATIC
         getmac.c data.c net.c tls.c
         tds_checks.c log.c
         bulk.c packet.c stream.c random.c
-        sec_negotiate_gnutls.h sec_negotiate_openssl.h sec_negotiate.c
+        sec_negotiate_gnutls.h sec_negotiate_openssl.h sec_negotiate.c gssapi.c
 	tds_willconvert.h num_limits.h tds_types.h
 	"${CMAKE_BINARY_DIR}/include/freetds/encodings.h"
 	${add_SRCS}
