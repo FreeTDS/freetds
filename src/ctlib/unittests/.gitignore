@@ -34,4 +34,5 @@ all_types
 long_binary
 will_convert
 data
+variant
 libcommon.a
