@@ -511,7 +511,7 @@ tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data
 		}
 
 #if USING_SYBEBCNN
-		Let the server reject if no default is defined for the column.
+		/* Let the server reject if no default is defined for the column. */
 		if (bcpcol->bcp_column_data->is_null) {
 			/* No value or default value available and NULL not allowed. */
 			null_error(bcpinfo, i, offset);
@@ -613,8 +613,8 @@ tds_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_d
 			return -1;
 
 #if USING_SYBEBCNN
-		/* If it's a NOT NULL column, and we have no data, throw an error. */
-		No, the column could have a default defined.
+		/* If it's a NOT NULL column, and we have no data, throw an error.
+		No, the column could have a default defined. */
 		if (!(bcpcol->column_nullable) && bcpcol->bcp_column_data->is_null) {
 			/* No value or default value available and NULL not allowed. */
 			null_error(bcpinfo, i, offset);
