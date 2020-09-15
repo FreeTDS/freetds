@@ -62,19 +62,31 @@ $   SAY "Using replacement socketpair()"
 $ ENDIF
 $!
 $!
-$! Enable OpenSSL if we have it.
+$! Enable OpenSSL if we have it. Don't bother looking for 0.9.x versions
 $!
-$ IF F$SEARCH("SSL1$INCLUDE:SSL.H") .NES. ""
+$ d_rsa_get0_key = "0"
+$ IF F$SEARCH("SSL111$INCLUDE:SSL.H") .NES. ""
 $ THEN
 $   d_openssl = "1"
-$   SAY "Found OpenSSL and creating linker options file..."
+$   d_rsa_get0_key = "1"
+$   SAY "Found OpenSSL 1.1.x and creating linker options file..."
 $   OPEN/WRITE sslopt openssl.opt
-$   WRITE sslopt "SYS$SHARE:SSL1$LIBSSL_SHR32.EXE/SHARE"
-$   WRITE sslopt "SYS$SHARE:SSL1$LIBCRYPTO_SHR32.EXE/SHARE"
+$   WRITE sslopt "SYS$SHARE:SSL111$LIBSSL_SHR32.EXE/SHARE"
+$   WRITE sslopt "SYS$SHARE:SSL111$LIBCRYPTO_SHR32.EXE/SHARE"
 $   CLOSE sslopt
 $ ELSE
-$   d_openssl = "0"
-$   SAY "Did not find OpenSSL"
+$   IF F$SEARCH("SSL1$INCLUDE:SSL.H") .NES. ""
+$   THEN
+$     d_openssl = "1"
+$     SAY "Found OpenSSL 1.0.x and creating linker options file..."
+$     OPEN/WRITE sslopt openssl.opt
+$     WRITE sslopt "SYS$SHARE:SSL1$LIBSSL_SHR32.EXE/SHARE"
+$     WRITE sslopt "SYS$SHARE:SSL1$LIBCRYPTO_SHR32.EXE/SHARE"
+$     CLOSE sslopt
+$   ELSE
+$     d_openssl = "0"
+$     SAY "Did not find OpenSSL"
+$   ENDIF
 $ ENDIF
 $!
 $! Generate config.h
@@ -104,6 +116,8 @@ $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@D_OPENSSL@"",""''d_openssl'"");"
 $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@D_STDINT@"",""''d_stdint'"");"
+$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
+$ write vmsconfigtmp "eve_global_replace(""@D_RSA_GET0_KEY@"",""''d_rsa_get0_key'"");"
 $ write vmsconfigtmp "out_file := GET_INFO (COMMAND_LINE, ""output_file"");"
 $ write vmsconfigtmp "WRITE_FILE (main_buffer, out_file);"
 $ write vmsconfigtmp "quit;"
