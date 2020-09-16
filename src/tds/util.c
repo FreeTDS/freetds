@@ -395,8 +395,6 @@ tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
  * do not assure they don't read past len bytes as they
  * use still strlen to check length to copy limiting
  * after strlen to size passed
- * Also this function is different from strndup as it assume
- * that len bytes are valid
  * String returned is NUL terminated
  *
  * \param s   string to copy from
@@ -408,9 +406,14 @@ char *
 tds_strndup(const void *s, TDS_INTPTR len)
 {
 	char *out;
+	const char *end;
 
 	if (len < 0)
 		return NULL;
+
+	end = (const char *) memchr(s, '\0', len);
+	if (end)
+		len = end - (const char *) s;
 
 	out = tds_new(char, len + 1);
 	if (out) {
