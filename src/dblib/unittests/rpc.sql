@@ -30,7 +30,7 @@ select name from sysobjects where 0=1
 select distinct convert(varchar(30), name) as 'type'  from systypes 
 where name in ('int', 'char', 'text') 
 select @nrows = @@rowcount 
-set @varchar_tds7_out = replicate(char(247), 8000)
+set @varchar_tds7_out = replicate(char(123), 8000)
 set @nvarchar_tds7_out = replicate(nchar(246), 4000)
 select distinct @nv as '@nv', convert(varchar(30), name) as name  from systypes
 select	  @null_input as 'null_input'

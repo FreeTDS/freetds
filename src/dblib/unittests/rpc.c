@@ -143,7 +143,7 @@ static struct parameters_t bindings[] = {
 #define PARAM_STR(s) sizeof(s)-1, (BYTE*) s
 static struct parameters_t bindings_mssql1[] = {
 	  { "", 0, SYBVARCHAR,  -1,  PARAM_STR("set @a='test123'") }
-	, { "", 0, SYBVARCHAR,  -1,  PARAM_STR("@a text out") }
+	, { "", 0, SYBVARCHAR,  -1,  PARAM_STR("@a varchar(max) out") }
 	, { "", DBRPCRETURN, SYBTEXT,  sizeof(param_data3), 0, (BYTE *) &param_data3 }
 	, { NULL, 0, 0, 0, 0, NULL }
 };
