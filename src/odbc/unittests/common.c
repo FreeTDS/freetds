@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include <stdarg.h>
 #include <assert.h>
 #include <ctype.h>
 
@@ -702,15 +703,21 @@ odbc_from_sqlwchar(char *dst, const SQLWCHAR *src, int n)
 ODBC_BUF *odbc_buf = NULL;
 
 void *
-odbc_buf_get(ODBC_BUF** buf, size_t s)
+odbc_buf_add(ODBC_BUF** buf, void *ptr)
 {
 	ODBC_BUF *p = (ODBC_BUF*) calloc(1, sizeof(ODBC_BUF));
+	assert(ptr);
 	assert(p);
-	p->buf = malloc(s);
-	assert(p->buf);
+	p->buf = ptr;
 	p->next = *buf;
 	*buf = p;
 	return p->buf;
+}
+
+void *
+odbc_buf_get(ODBC_BUF** buf, size_t s)
+{
+	return odbc_buf_add(buf, malloc(s));
 }
 
 void
@@ -751,6 +758,19 @@ odbc_get_sqlchar(ODBC_BUF** buf, SQLWCHAR *s)
 	out = (char *) odbc_buf_get(buf, n);
 	odbc_from_sqlwchar(out, s, n);
 	return out;
+}
+
+char *
+odbc_buf_asprintf(ODBC_BUF** buf, const char *fmt, ...)
+{
+	va_list ap;
+	char *ret = NULL;
+
+	va_start(ap, fmt);
+	vasprintf(&ret, fmt, ap);
+	va_end(ap);
+
+	return odbc_buf_add(buf, ret);
 }
 
 typedef union {
