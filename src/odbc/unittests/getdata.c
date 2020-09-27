@@ -58,12 +58,15 @@ test_split(const char *n_flag)
 	} \
 	} while(0)
 
-	char sql[80];
+	char *sql;
 	char *buf = NULL;
+	const char *collate = "";
 	SQLLEN len;
 
 	/* TODO test with VARCHAR too */
-	sprintf(sql, "SELECT CONVERT(%sTEXT,'Prova' + REPLICATE('x',500))", n_flag);
+	if (odbc_db_is_microsoft())
+		collate = " COLLATE Latin1_General_CI_AS";
+	sql = odbc_buf_asprintf(&odbc_buf, "SELECT CONVERT(%sTEXT,'Prova'%s + REPLICATE('x',500))%s", n_flag, collate, collate);
 	odbc_command(sql);
 
 	CHKFetch("S");
@@ -105,7 +108,7 @@ test_split(const char *n_flag)
 	odbc_reset_statement();
 
 	/* test with varchar, not blob but variable */
-	sprintf(sql, "SELECT CONVERT(%sVARCHAR(100), 'Other test')", n_flag);
+	sql = odbc_buf_asprintf(&odbc_buf, "SELECT CONVERT(%sVARCHAR(100), 'Other test')", n_flag);
 	odbc_command(sql);
 
 	CHKFetch("S");
@@ -281,7 +284,7 @@ main(int argc, char *argv[])
 		for (;;) {
 			void *buf = ODBC_GET(lc);
 
-			odbc_command("SELECT CONVERT(TEXT,'')");
+			odbc_command("SELECT CONVERT(TEXT,'' COLLATE Latin1_General_CI_AS)");
 
 			CHKFetch("S");
 
@@ -299,7 +302,7 @@ main(int argc, char *argv[])
 
 			buf = ODBC_GET(4096*lc);
 
-			odbc_command("SELECT CONVERT(TEXT,'')");
+			odbc_command("SELECT CONVERT(TEXT,'' COLLATE Latin1_General_CI_AS)");
 
 			CHKFetch("S");
 
@@ -321,7 +324,7 @@ main(int argc, char *argv[])
 			type = SQL_C_WCHAR;
 		}	
 
-		odbc_command("SELECT CONVERT(TEXT,'')");
+		odbc_command("SELECT CONVERT(TEXT,'' COLLATE Latin1_General_CI_AS)");
 
 		CHKFetch("S");
 
