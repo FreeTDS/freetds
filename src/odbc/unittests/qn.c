@@ -43,9 +43,8 @@ main(int argc, char *argv[])
 		return 0;
 	}
 
-	asprintf(&sql, "ALTER DATABASE %s SET ENABLE_BROKER", odbc_database);
+	sql = odbc_buf_asprintf(&odbc_buf, "ALTER DATABASE %s SET ENABLE_BROKER", odbc_database);
 	odbc_command(sql);
-	free(sql);
 
 	odbc_command2("DROP SERVICE FTDS_Service", "SENo");
 	odbc_command2("DROP QUEUE FTDS_Queue", "SENo");
@@ -73,7 +72,8 @@ main(int argc, char *argv[])
 	odbc_connect();
 	SWAP_CONN();
 
-	CHKSetStmtAttr(SQL_SOPT_SS_QUERYNOTIFICATION_OPTIONS, T("service=FTDS_Service;local database=tempdb"), SQL_NTS, "S");
+	sql = odbc_buf_asprintf(&odbc_buf, "service=FTDS_Service;local database=%s", odbc_database);
+	CHKSetStmtAttr(SQL_SOPT_SS_QUERYNOTIFICATION_OPTIONS, T(sql), SQL_NTS, "S");
 	CHKSetStmtAttr(SQL_SOPT_SS_QUERYNOTIFICATION_MSGTEXT, T("Table has changed"), SQL_NTS, "S");
 	CHKSetStmtAttr(SQL_SOPT_SS_QUERYNOTIFICATION_TIMEOUT, TDS_INT2PTR(60), SQL_IS_UINTEGER, "S");
 
