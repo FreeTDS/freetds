@@ -30,6 +30,19 @@ static char prepare_before = 0;
 static char use_cursors = 0;
 static int only_test = 0;
 
+static const char *
+split_collate(ODBC_BUF** buf, const char **type)
+{
+	const char *collate = "", *p;
+
+	if ((p = strstr(*type, " COLLATE ")) != NULL) {
+		if (odbc_db_is_microsoft())
+			collate = p;
+		*type = odbc_buf_asprintf(buf, "%.*s", (int) (p - *type), *type);
+	}
+	return collate;
+}
+
 static int
 TestOutput(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, SQLSMALLINT out_sql_type, const char *expected)
 {
@@ -37,15 +50,18 @@ TestOutput(const char *type, const char *value_to_convert, SQLSMALLINT out_c_typ
 	unsigned char out_buf[256];
 	SQLLEN out_len = 0;
 	const char *sep;
+	const char *collate;
 
 	odbc_reset_statement();
 
 	/* build store procedure to test */
 	odbc_command("IF OBJECT_ID('spTestProc') IS NOT NULL DROP PROC spTestProc");
 	sep = "'";
-	if (strncmp(value_to_convert, "0x", 2) == 0)
+	if (strncmp(value_to_convert, "0x", 2) == 0 || strncmp(value_to_convert, "NCHAR(", 6) == 0)
 		sep = "";
-	sprintf(sbuf, "CREATE PROC spTestProc @i %s OUTPUT AS SELECT @i = CONVERT(%s, %s%s%s)", type, type, sep, value_to_convert, sep);
+	collate = split_collate(&odbc_buf, &type);
+	sprintf(sbuf, "CREATE PROC spTestProc @i %s OUTPUT AS SELECT @i = CONVERT(%s, %s%s%s)%s",
+		type, type, sep, value_to_convert, sep, collate);
 	odbc_command(sbuf);
 	memset(out_buf, 0, sizeof(out_buf));
 
@@ -122,6 +138,7 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 	size_t value_len = strlen(value_to_convert);
 	const char *p;
 	const char *sep = "'";
+	const char *collate;
 
 	odbc_reset_statement();
 
@@ -132,7 +149,8 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 	}
 	if (value_len >= 2 && strncmp(value_to_convert, "0x", 2) == 0)
 		sep = "";
-	sprintf(sbuf, "SELECT CONVERT(%s, %s%.*s%s)", type, sep, (int) value_len, value_to_convert, sep);
+	collate = split_collate(&odbc_buf, &type);
+	sprintf(sbuf, "SELECT CONVERT(%s, %s%.*s%s%s)", type, sep, (int) value_len, value_to_convert, sep, collate);
 	odbc_command(sbuf);
 	SQLBindCol(odbc_stmt, 1, out_c_type, out_buf, sizeof(out_buf), &out_len);
 	CHKFetch("SI");
@@ -145,7 +163,8 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 
 	/* create a table with a column of that type */
 	odbc_reset_statement();
-	sprintf(sbuf, "CREATE TABLE #tmp_insert (col %s)", param_type);
+	collate = split_collate(&odbc_buf, &param_type);
+	sprintf(sbuf, "CREATE TABLE #tmp_insert (col %s%s)", param_type, collate);
 	odbc_command(sbuf);
 
 	if (use_cursors) {
@@ -398,7 +417,7 @@ AllTests(void)
 	TestInput(SQL_C_NUMERIC, "NUMERIC(20,3)", SQL_LONGVARCHAR, "TEXT", "578246.234 -> 578246");
 
 	TestInput(SQL_C_CHAR, "VARCHAR(100)", SQL_VARBINARY, "VARBINARY(20)", "4145544F -> AETO");
-	TestInput(SQL_C_CHAR, "TEXT", SQL_VARBINARY, "VARBINARY(20)", "4145544F -> AETO");
+	TestInput(SQL_C_CHAR, "TEXT COLLATE Latin1_General_CI_AS", SQL_VARBINARY, "VARBINARY(20)", "4145544F -> AETO");
 	TestInput(SQL_C_CHAR, "VARCHAR(100)", SQL_LONGVARBINARY, "IMAGE", "4145544F -> AETO");
 	TestInput(SQL_C_BINARY, "VARBINARY(100)", SQL_VARCHAR, "VARCHAR(20)", "0x4145544F -> AETO");
 	TestInput(SQL_C_BINARY, "IMAGE", SQL_VARCHAR, "VARCHAR(20)", "0x4145544F -> AETO");
@@ -423,7 +442,7 @@ AllTests(void)
 	/* while usually on Microsoft database this encoding is valid on Sybase the database
 	 * could use UTF-8 encoding where \xf8\xf9 is an invalid encoded string */
 	if (odbc_db_is_microsoft() && odbc_tds_version() > 0x700)
-		TestOutput("VARCHAR(20)", "0xf8f9", SQL_C_CHAR, SQL_VARCHAR, "2 \xf8\xf9");
+		TestOutput("VARCHAR(20) COLLATE Latin1_General_CI_AS", "NCHAR(0xf8) + NCHAR(0xf9)", SQL_C_CHAR, SQL_VARCHAR, "2 \xf8\xf9");
 
 	/* MSSQL 2000 using ptotocol 7.1+ */
 	if ((odbc_db_is_microsoft() && odbc_db_version_int() >= 0x08000000u && odbc_tds_version() > 0x700)
@@ -471,7 +490,7 @@ AllTests(void)
 		TestInput(SQL_C_WCHAR, "NVARCHAR(10)", SQL_INTEGER, "INT", " -423785  -> -423785");
 
 		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_VARBINARY, "VARBINARY(20)", "4145544F -> AETO");
-		TestInput(SQL_C_CHAR, "NTEXT", SQL_VARBINARY, "VARBINARY(20)", "4145544F -> AETO");
+		TestInput(SQL_C_CHAR, "NTEXT COLLATE Latin1_General_CI_AS", SQL_VARBINARY, "VARBINARY(20)", "4145544F -> AETO");
 
 		TestInput(SQL_C_BINARY, "VARBINARY(100)", SQL_WVARCHAR, "NVARCHAR(20)", "0x4100450054004F00 -> AETO");
 		TestInput(SQL_C_BINARY, "IMAGE", SQL_WVARCHAR, "NVARCHAR(20)", "0x4100450054004F00 -> AETO");
