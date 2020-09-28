@@ -107,8 +107,7 @@ read_login_info(int argc, char **argv)
 #if !defined(__MINGW32__) && !defined(_MSC_VER)
 	int ch;
 #endif
-	char line[512];
-	char *s1, *s2;
+	char *s1;
 	char filename[PATH_MAX];
 	static const char *PWD = "../../../PWD";
 	struct { char *username, *password, *servername, *database; char fverbose; } options;
@@ -196,30 +195,33 @@ read_login_info(int argc, char **argv)
 		sprintf(filename, "%s/%s", (DIRNAME) ? DIRNAME : ".", PWD);
 
 		in = fopen(filename, "r");
-		if (!in) {
-			fprintf(stderr, "Can not open %s file\n\n", filename);
-			goto Override;
-		}
 	}
 
-	while (fgets(line, 512, in)) {
-		s1 = strtok(line, "=");
-		s2 = strtok(NULL, "\n");
-		if (!s1 || !s2)
-			continue;
-		if (!strcmp(s1, "UID")) {
-			strcpy(USER, s2);
-		} else if (!strcmp(s1, "SRV")) {
-			strcpy(SERVER, s2);
-		} else if (!strcmp(s1, "PWD")) {
-			strcpy(PASSWORD, s2);
-		} else if (!strcmp(s1, "DB")) {
-			strcpy(DATABASE, s2);
-		}
-	}
-	fclose(in);
+	if (!in) {
+		fprintf(stderr, "Can not open %s file\n\n", filename);
+	} else {
+		char line[512];
 
-	Override:
+		while (fgets(line, sizeof(line), in)) {
+			const char *value;
+
+			s1 = strtok(line, "=");
+			value = strtok(NULL, "\n");
+			if (!s1 || !value)
+				continue;
+			if (!strcmp(s1, "UID")) {
+				strcpy(USER, value);
+			} else if (!strcmp(s1, "SRV")) {
+				strcpy(SERVER, value);
+			} else if (!strcmp(s1, "PWD")) {
+				strcpy(PASSWORD, value);
+			} else if (!strcmp(s1, "DB")) {
+				strcpy(DATABASE, value);
+			}
+		}
+		fclose(in);
+	}
+
 	/* apply command-line overrides */
 	if (options.username) {
 		strcpy(USER, options.username);
