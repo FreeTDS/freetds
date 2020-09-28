@@ -31,7 +31,7 @@ detail, see git log.
 Documentation
 =============
 
-A User Guide, in xml and html form, is included in this distribution.
+A User Guide, in XML and HTML form, is included in this distribution.
 Also included is a reference manual, generated in HTML with Doxygen.
 "make install" installs the HTML documentation, by default to
 /usr/local/share/doc/freetds-<version>.
