@@ -90,7 +90,7 @@ read_login_info(void)
 		return CS_FAIL;
 	}
 
-	while (fgets(line, 512, in)) {
+	while (fgets(line, sizeof(line), in)) {
 		s1 = strtok(line, "=");
 		s2 = strtok(NULL, "\n");
 		if (!s1 || !s2) {
