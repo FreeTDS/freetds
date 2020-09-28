@@ -13,6 +13,7 @@
 #endif /* HAVE_SYS_PARAM_H */
 
 #include <freetds/time.h>
+#include <freetds/bool.h>
 
 #if HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
@@ -82,7 +83,7 @@ tds_dirname(char* path)
 
 #endif
 
-char free_file_registered = 0;
+static bool free_file_registered = false;
 static void
 free_file(void)
 {
@@ -259,7 +260,7 @@ read_login_info(int argc, char **argv)
 
 	if (!free_file_registered)
 		atexit(free_file);
-	free_file_registered = 1;
+	free_file_registered = true;
 
 	printf("SQL text will be read from %s\n", sql_file);
 
