@@ -182,7 +182,7 @@ read_login_info(int argc, char **argv)
 		}
 	}
 #endif
-	strcpy(filename, PWD);
+	strlcpy(filename, PWD, sizeof(filename));
 
 	s1 = getenv("TDSPWDFILE");
 	if (s1 && s1[0])
@@ -210,13 +210,13 @@ read_login_info(int argc, char **argv)
 			if (!s1 || !value)
 				continue;
 			if (!strcmp(s1, "UID")) {
-				strcpy(USER, value);
+				strlcpy(USER, value, sizeof(USER));
 			} else if (!strcmp(s1, "SRV")) {
-				strcpy(SERVER, value);
+				strlcpy(SERVER, value, sizeof(SERVER));
 			} else if (!strcmp(s1, "PWD")) {
-				strcpy(PASSWORD, value);
+				strlcpy(PASSWORD, value, sizeof(PASSWORD));
 			} else if (!strcmp(s1, "DB")) {
-				strcpy(DATABASE, value);
+				strlcpy(DATABASE, value, sizeof(DATABASE));
 			}
 		}
 		fclose(in);
@@ -224,19 +224,19 @@ read_login_info(int argc, char **argv)
 
 	/* apply command-line overrides */
 	if (options.username) {
-		strcpy(USER, options.username);
+		strlcpy(USER, options.username, sizeof(USER));
 		free(options.username);
 	}
 	if (options.password) {
-		strcpy(PASSWORD, options.password);
+		strlcpy(PASSWORD, options.password, sizeof(PASSWORD));
 		free(options.password);
 	}
 	if (options.servername) {
-		strcpy(SERVER, options.servername);
+		strlcpy(SERVER, options.servername, sizeof(SERVER));
 		free(options.servername);
 	}
 	if (options.database) {
-		strcpy(DATABASE, options.database);
+		strlcpy(DATABASE, options.database, sizeof(DATABASE));
 		free(options.database);
 	}
 
