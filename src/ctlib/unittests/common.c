@@ -71,7 +71,7 @@ read_login_info(void)
 	FILE *in = NULL;
 	char line[512];
 	char *s1, *s2;
-	
+
 	if (common_pwd.initialized) {
 		strcpy(USER, common_pwd.USER);
 		strcpy(PASSWORD, common_pwd.PASSWORD);
@@ -122,7 +122,7 @@ establish_login(int argc, char **argv)
 
 	BASENAME = basename((char *)argv[0]);
 	DIRNAME = dirname((char *)argv[0]);
-	
+
 #if !defined(__MINGW32__) && !defined(_MSC_VER)
 	/* process command line options (handy for manual testing) */
 	while ((ch = getopt(argc, argv, "U:P:S:D:f:m:v")) != -1) {
@@ -158,9 +158,9 @@ establish_login(int argc, char **argv)
 	}
 #endif
 	read_login_info();
-	
+
 	/* override PWD file with command-line options */
-	
+
 	if (*options.USER)
 		strcpy(USER, options.USER);
 	if (*options.PASSWORD)
@@ -169,7 +169,7 @@ establish_login(int argc, char **argv)
 		strcpy(SERVER, options.SERVER);
 	if (*options.DATABASE)
 		strcpy(DATABASE, options.DATABASE);
-	
+
 	return (*USER && *SERVER && *DATABASE)? CS_SUCCEED : CS_FAIL;
 }
 
@@ -235,7 +235,7 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 		}
 		return ret;
 	}
-	if ((ret = ct_callback(*ctx, NULL, CS_SET, CS_CLIENTMSG_CB, 
+	if ((ret = ct_callback(*ctx, NULL, CS_SET, CS_CLIENTMSG_CB,
 			       (CS_VOID*) clientmsg_cb)) != CS_SUCCEED) {
 		fprintf(stderr, "ct_callback() failed\n");
 		return ret;
@@ -265,9 +265,9 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 		}
 		return ret;
 	}
-	
+
 	printf("connecting as %s to %s.%s\n", USER, SERVER, DATABASE);
-	
+
 	ret = ct_connect(*conn, SERVER, CS_NULLTERM);
 	if (ret != CS_SUCCEED) {
 		if (verbose) {
@@ -304,7 +304,7 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 CS_RETCODE
 try_ctlogout(CS_CONTEXT * ctx, CS_CONNECTION * conn, CS_COMMAND * cmd, int verbose)
 {
-CS_RETCODE ret;
+	CS_RETCODE ret;
 
 	ret = ct_cancel(conn, NULL, CS_CANCEL_ALL);
 	if (ret != CS_SUCCEED) {
@@ -326,8 +326,8 @@ CS_RETCODE ret;
 CS_RETCODE
 run_command(CS_COMMAND * cmd, const char *sql)
 {
-CS_RETCODE ret, results_ret;
-CS_INT result_type;
+	CS_RETCODE ret, results_ret;
+	CS_INT result_type;
 
 	if (cmd == NULL) {
 		return CS_FAIL;
@@ -414,11 +414,11 @@ servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * sr
 		fprintf(stderr, "%s\n", srvmsg->text);
 		return CS_SUCCEED;
 	}
-		
+
 	fprintf(stderr, "%s Message %d severity %d state %d line %d:\n",
-		srvmsg->svrnlen > 0? srvmsg->svrname : "Server", 
+		srvmsg->svrnlen > 0? srvmsg->svrname : "Server",
 		srvmsg->msgnumber, srvmsg->severity, srvmsg->state, srvmsg->line);
-	if (srvmsg->proclen > 0) 
+	if (srvmsg->proclen > 0)
 		fprintf(stderr, "proc %s: ", srvmsg->proc);
 	fprintf(stderr, "\t\"%s\"\n", srvmsg->text);
 

@@ -138,16 +138,16 @@ read_login_info(int argc, char **argv)
 #else
 	ARGV0 = strdup(argv[0]);
 #endif
-	
+
 	BASENAME = basename(ARGV0);
 #if defined(_WIN32) || defined(__VMS)
 	s1 = strrchr(BASENAME, '.');
 	if (s1) *s1 = 0;
 #endif
 	DIRNAME = dirname(ARGV0);
-	
+
 	memset(&options, 0, sizeof(options));
-	
+
 #if !defined(__MINGW32__) && !defined(_MSC_VER)
 	/* process command line options (handy for manual testing) */
 	while ((ch = getopt(argc, (char**)argv, "U:P:S:D:f:v")) != -1) {
@@ -217,7 +217,7 @@ read_login_info(int argc, char **argv)
 		}
 	}
 	fclose(in);
-	
+
 	Override:
 	/* apply command-line overrides */
 	if (options.username) {
@@ -241,9 +241,9 @@ read_login_info(int argc, char **argv)
 		fprintf(stderr, "no servername provided, quitting.\n");
 		exit(1);
 	}
-	
+
 	printf("found %s.%s for %s in \"%s\"\n", SERVER, DATABASE, USER, filename);
-	
+
 #if 0
 	dbrecftos(BASENAME);
 #endif
@@ -260,7 +260,7 @@ read_login_info(int argc, char **argv)
 	if (!free_file_registered)
 		atexit(free_file);
 	free_file_registered = 1;
-	
+
 	printf("SQL text will be read from %s\n", sql_file);
 
 	return 0;
@@ -269,7 +269,7 @@ read_login_info(int argc, char **argv)
 /*
  * Fill the command buffer from a file while echoing it to standard output.
  */
-RETCODE 
+RETCODE
 sql_cmd(DBPROCESS *dbproc)
 {
 	char line[2048], *p = line;
@@ -327,7 +327,7 @@ int
 syb_msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line)
 {
 	int *pexpected_msgno;
-	
+
 	/*
 	 * Check for "database changed", or "language changed" messages from
 	 * the client.  If we get one of these, then we need to pull the
@@ -343,7 +343,7 @@ syb_msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, cha
 	}
 
 	/*
-	 * If the user data indicates this is an expected error message (because we're testing the 
+	 * If the user data indicates this is an expected error message (because we're testing the
 	 * error propogation, say) then indicate this message was anticipated.
 	 */
 	if (dbproc != NULL) {
@@ -406,7 +406,7 @@ syb_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *db
 		return INT_CANCEL;
 
 	/*
-	 * If the user data indicates this is an expected error message (because we're testing the 
+	 * If the user data indicates this is an expected error message (because we're testing the
 	 * error propogation, say) then indicate this message was anticipated.
 	 */
 	if (dbproc != NULL) {
