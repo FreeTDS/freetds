@@ -623,7 +623,8 @@ bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen)
 {
 	int i;
 	static const char *const hints[] = {
-		"ORDER", "ROWS_PER_BATCH", "KILOBYTES_PER_BATCH", "TABLOCK", "CHECK_CONSTRAINTS", "FIRE_TRIGGERS", NULL
+		"ORDER", "ROWS_PER_BATCH", "KILOBYTES_PER_BATCH", "TABLOCK", "CHECK_CONSTRAINTS",
+		"FIRE_TRIGGERS", "KEEP_NULLS", NULL
 	};
 
 	tdsdump_log(TDS_DBG_FUNC, "bcp_options(%p, %d, %p, %d)\n", dbproc, option, value, valuelen);
