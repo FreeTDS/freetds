@@ -554,7 +554,7 @@ tdsodbccheck :
 	@ run/nodebug []t0001$(E)
 	@ run/nodebug []t0002$(E)
 	@ run/nodebug []t0003$(E)
-	@ run/nodebug []t0004$(E)
+	@ run/nodebug []moreresults$(E)
 	@ run/nodebug []connect$(E)
 	@ run/nodebug []print$(E)
 	@ run/nodebug []date$(E)
@@ -666,7 +666,7 @@ dblibtests : [.src.dblib.unittests]rpc$(E)  [.src.dblib.unittests]t0001$(E) [.sr
 	@ continue
 
 odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.odbc.unittests]t0003$(E) \
-	[.src.odbc.unittests]t0004$(E) [.src.odbc.unittests]connect$(E) [.src.odbc.unittests]print$(E) \
+	[.src.odbc.unittests]moreresults$(E) [.src.odbc.unittests]connect$(E) [.src.odbc.unittests]print$(E) \
 	[.src.odbc.unittests]date$(E) [.src.odbc.unittests]norowset$(E) [.src.odbc.unittests]funccall$(E) \
 	[.src.odbc.unittests]lang_error$(E) [.src.odbc.unittests]tables$(E) \
 	[.src.odbc.unittests]binary_test$(E) [.src.odbc.unittests]moreandcount$(E) \
@@ -1345,10 +1345,10 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 [.src.odbc.unittests]t0003$(OBJ) : [.src.odbc.unittests]t0003.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]t0004$(E) : [.src.odbc.unittests]t0004$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]moreresults$(E) : [.src.odbc.unittests]moreresults$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
-[.src.odbc.unittests]t0004$(OBJ) : [.src.odbc.unittests]t0004.c [.src.odbc.unittests]common.h
+[.src.odbc.unittests]moreresults$(OBJ) : [.src.odbc.unittests]moreresults.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
 [.src.odbc.unittests]connect$(E) : [.src.odbc.unittests]connect$(OBJ) [.src.odbc.unittests]common$(OBJ)

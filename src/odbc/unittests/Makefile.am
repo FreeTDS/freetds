@@ -3,7 +3,7 @@ TESTS =	\
 	t0001$(EXEEXT) \
 	t0002$(EXEEXT) \
 	t0003$(EXEEXT) \
-	t0004$(EXEEXT) \
+	moreresults$(EXEEXT) \
 	connect$(EXEEXT) \
 	print$(EXEEXT) \
 	date$(EXEEXT) \
@@ -88,7 +88,7 @@ check_PROGRAMS	=	$(TESTS) oldpwd$(EXEEXT)
 t0001_SOURCES	=	t0001.c
 t0002_SOURCES	=	t0002.c
 t0003_SOURCES	=	t0003.c
-t0004_SOURCES	=	t0004.c
+moreresults_SOURCES	=	moreresults.c
 connect_SOURCES	=	connect.c
 connect_LDFLAGS = $(GLOBAL_LD_ADD) -no-install
 print_SOURCES	=	print.c

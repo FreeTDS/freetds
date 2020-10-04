@@ -2,7 +2,7 @@ include_directories(..)
 
 set(tests
 	t0001 t0002 t0003
-	t0004 connect print
+	moreresults connect print
 	date norowset funccall
 	lang_error tables
 	binary_test moreandcount
