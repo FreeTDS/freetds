@@ -1,12 +1,10 @@
 #include "common.h"
+#include <freetds/bool.h>
 
 /* Test for SQLMoreResults */
 
-static char software_version[] = "$Id: t0004.c,v 1.19 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static void
-Test(int use_indicator)
+Test(bool use_indicator)
 {
 	char buf[128];
 	SQLLEN ind;
@@ -45,8 +43,8 @@ main(int argc, char *argv[])
 {
 	odbc_connect();
 
-	Test(1);
-	Test(0);
+	Test(true);
+	Test(false);
 
 	odbc_disconnect();
 
