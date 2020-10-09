@@ -25,6 +25,7 @@ TESTS =	\
 	portconf$(EXEEXT) \
 	parsing$(EXEEXT) \
 	freeze$(EXEEXT) \
+	strftime$(EXEEXT) \
 	$(NULL)
 
 # flags test commented, not necessary for 0.62
@@ -62,6 +63,7 @@ declarations_SOURCES	=	declarations.c
 portconf_SOURCES	= portconf.c portconf.in
 parsing_SOURCES	=	parsing.c
 freeze_SOURCES	=	freeze.c
+strftime_SOURCES	=	strftime.c
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h utf8.c allcolumns.c

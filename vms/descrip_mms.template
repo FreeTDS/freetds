@@ -161,6 +161,7 @@ TDSOBJS = [.src.tds]bulk$(OBJ), [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ
 	[.src.tds]vstrbuild$(OBJ), [.src.tds]write$(OBJ), \
 	[.src.tds]net$(OBJ), [.src.tds]tls$(OBJ), [.src.tds]log$(OBJ), [.src.tds]packet$(OBJ), \
 	[.src.tds]stream$(OBJ), [.src.tds]random$(OBJ), [.src.tds]sec_negotiate$(OBJ), \
+	[.src.tds]strftime$(OBJ), \
 	[.src.replacements]strlcpy$(OBJ), \
 	[.src.replacements]strlcat$(OBJ), \
 	[.src.utils]des$(OBJ), [.src.utils]md4$(OBJ), [.src.utils]md5$(OBJ), \
@@ -452,6 +453,7 @@ libtdscheck :
 	@ run/nodebug []declarations$(E)
 	@ run/nodebug []portconf$(E)
 	@ run/nodebug []freeze$(E)
+	@ run/nodebug []strftime$(E)
 	@ set default [---]
 
 ctlibcheck : 
@@ -623,7 +625,8 @@ libtdstests : [.src.tds.unittests]dynamic1$(E) [.src.tds.unittests]iconv_fread$(
 	[.src.tds.unittests]utf8_1$(E) [.src.tds.unittests]utf8_2$(E) [.src.tds.unittests]utf8_3$(E) \
 	[.src.tds.unittests]toodynamic$(E) [.src.tds.unittests]readconf$(E) \
 	[.src.tds.unittests]charconv$(E) [.src.tds.unittests]nulls$(E) [.src.tds.unittests]corrupt$(E) \
-	[.src.tds.unittests]declarations$(E) [.src.tds.unittests]portconf$(E) [.src.tds.unittests]freeze$(E)
+	[.src.tds.unittests]declarations$(E) [.src.tds.unittests]portconf$(E) [.src.tds.unittests]freeze$(E) \
+	[.src.tds.unittests]strftime$(E)
 	@ continue
 
 ctlibtests : [.src.ctlib.unittests]t0001$(E) [.src.ctlib.unittests]t0002$(E) [.src.ctlib.unittests]t0003$(E) \
@@ -844,6 +847,12 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 
 [.src.tds.unittests]freeze$(OBJ) : [.src.tds.unittests]freeze.c
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[.src.tds.unittests]strftime$(E) : [.src.tds.unittests]strftime$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
+
+[.src.tds.unittests]strftime$(OBJ) : [.src.tds.unittests]strftime.c
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE),[.src.tds]) $(CDBGFLAGS) $(MMS$SOURCE)
 
 
 # ctlib test detailed dependencies
