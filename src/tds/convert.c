@@ -2955,6 +2955,17 @@ tds_get_null_type(TDS_SERVER_TYPE srctype)
 	return srctype;
 }
 
+static void
+two_digit(char *out, int num)
+{
+	if (num < 1)
+		num = 1;
+	if (num > 31)
+		num = 31;
+	out[0] = num < 10 ? ' ' : num/10 + '0';
+	out[1] = num%10 + '0';
+}
+
 /**
  * format a date string according to an "extended" strftime(3) formatting definition.
  * @param buf     output buffer
@@ -3001,6 +3012,31 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 		return 0;
 
 	strcpy(our_format, format);
+
+	for (pz = our_format; *pz; ) {
+		if (*pz++ != '%')
+			continue;
+
+		switch (*pz) {
+		case 0:
+			continue;
+		case '%':
+			/* escaped, do not treat as format on next iteration */
+			break;
+		case 'e':
+			/* not portable: day of month, single digit preceded by a blank */
+			/* not supported on old Windows versions */
+			two_digit(pz-1, dr->day);
+			break;
+		case 'l':
+			/* not portable: 12-hour, single digit preceded by a blank */
+			/* not supported on: SCO Unix, AIX, HP-UX, Windows
+			 * supported on: *BSD, MacOS, Linux, Solaris */
+			two_digit(pz-1, (dr->hour + 11u) % 12u + 1);
+			break;
+		}
+		++pz;
+	}
 
 	/*
 	 * Look for "%z" in the format string.  If found, replace it with dr->milliseconds.
