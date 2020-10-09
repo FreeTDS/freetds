@@ -264,7 +264,7 @@ dblib_get_tds_ctx(void)
 
 		if (g_dblib_ctx.tds_ctx->locale && !g_dblib_ctx.tds_ctx->locale->date_fmt) {
 			/* set default in case there's no locale file */
-			const static char date_format[] = "%b %e %Y %I:%M:%S:%z%p";
+			const static char date_format[] = "%b %e %Y %l:%M:%S:%z%p";
 			g_dblib_ctx.tds_ctx->locale->date_fmt = strdup(date_format);
 		}
 	}
