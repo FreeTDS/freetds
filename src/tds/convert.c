@@ -2996,7 +2996,7 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 
 	size_t length;
 	char *our_format;
-	char *pz = NULL;
+	char *pz;
 	bool z_found = false;
 	
 	assert(buf);
@@ -3022,7 +3022,7 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 #endif
 
 	/* more characters are required because we replace %z with up to 7 digits */
-	our_format = tds_new(char, strlen(format) + 1 + 5);
+	our_format = tds_new(char, strlen(format) + 1 + 5 + 1);
 	if (!our_format)
 		return 0;
 
@@ -3034,6 +3034,8 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 
 		switch (*pz) {
 		case 0:
+			*pz++ = '%';
+			*pz = 0;
 			continue;
 		case '%':
 			/* escaped, do not treat as format on next iteration */
