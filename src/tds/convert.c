@@ -2983,6 +2983,7 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 	size_t length;
 	char *our_format;
 	char *pz = NULL;
+	bool z_found = false;
 	
 	assert(buf);
 	assert(format);
@@ -3034,31 +3035,31 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 			 * supported on: *BSD, MacOS, Linux, Solaris */
 			two_digit(pz-1, (dr->hour + 11u) % 12u + 1);
 			break;
+		case 'z':
+			/*
+			 * Look for "%z" in the format string.  If found, replace it with dr->milliseconds.
+			 * For example, if milliseconds is 124, the format string
+			 * "%b %d %Y %H:%M:%S.%z" would become
+			 * "%b %d %Y %H:%M:%S.124".
+			 */
+			if (z_found)
+				break;
+			z_found = true;
+
+			--pz;
+			if (prec || pz <= our_format || pz[-1] != '.') {
+				char buf[12];
+				sprintf(buf, "%07d", dr->decimicrosecond);
+				memcpy(pz, buf, prec);
+				strcpy(pz + prec, format + (pz - our_format) + 2);
+				pz += prec;
+			} else {
+				strcpy(pz - 1, format + (pz - our_format) + 2);
+				pz--;
+			}
+			continue;
 		}
 		++pz;
-	}
-
-	/*
-	 * Look for "%z" in the format string.  If found, replace it with dr->milliseconds.
-	 * For example, if milliseconds is 124, the format string
-	 * "%b %d %Y %H:%M:%S.%z" would become
-	 * "%b %d %Y %H:%M:%S.124".
-	 */
-	for (pz = our_format; (pz = strstr(pz, "%z")) != NULL; pz++) {
-		/* Skip any escaped cases (%%z) */
-		if (pz > our_format && *(pz - 1) != '%')
-			break;
-	}
-
-	if (pz) {
-		if (prec || pz <= our_format || pz[-1] != '.') {
-			char buf[12];
-			sprintf(buf, "%07d", dr->decimicrosecond);
-			memcpy(pz, buf, prec);
-			strcpy(pz + prec, format + (pz - our_format) + 2);
-		} else {
-			strcpy(pz - 1, format + (pz - our_format) + 2);
-		}
 	}
 
 	length = strftime(buf, maxsize, our_format, &tm);
