@@ -277,9 +277,8 @@ bcp_collen(DBPROCESS * dbproc, DBINT varlen, int table_column)
 	
 	bcpcol = dbproc->bcpinfo->bindinfo->columns[table_column - 1];
 
-#if USING_SYBEBCNN
-	DBPERROR_RETURN(varlen == 0  && !bcpcol->column_nullable, SYBEBCNN); /* non-nullable column cannot receive a NULL */
-#endif
+	/* Sybase library does not check for NULL here, only sending, so don't
+	 * check and send SYBEBCNN */
 	bcpcol->column_bindlen = varlen;
 
 	return SUCCEED;
