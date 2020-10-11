@@ -203,7 +203,7 @@ main(int argc, char **argv)
 	sprintf(cmd, "%s..%s", DATABASE, table_name);
 	printf("preparing to insert into %s ... ", cmd);
 	if (bcp_init(dbproc, cmd, NULL, NULL, DB_IN) == FAIL) {
-		printf("failed\n");
+		fprintf(stderr, "failed\n");
     		exit(1);
 	}
 	printf("OK\n");
@@ -213,7 +213,7 @@ main(int argc, char **argv)
 	printf("Sending same row 10 times... \n");
 	for (i=0; i<10; i++) {
 		if (bcp_sendrow(dbproc) == FAIL) {
-			printf("send failed\n");
+			fprintf(stderr, "send failed\n");
 		        exit(1);
 		}
 	}
@@ -223,20 +223,20 @@ main(int argc, char **argv)
 		int type = dbcoltype(dbproc, i);
 		int len = (type == SYBCHAR || type == SYBVARCHAR)? dbcollen(dbproc, i) : -1;
 		if (bcp_collen(dbproc, len, i) == FAIL) {
-			printf("bcp_collen failed for column %d\n", i);
+			fprintf(stderr, "bcp_collen failed for column %d\n", i);
 		        exit(1);
 		}
 	}
 	for (i=0; i<5; i++) {
 		if (bcp_sendrow(dbproc) == FAIL) {
-			printf("send failed\n");
+			fprintf(stderr, "send failed\n");
 		        exit(1);
 		}
 	}
 #if 1
 	rows_sent = bcp_batch(dbproc);
 	if (rows_sent == -1) {
-		printf("batch failed\n");
+		fprintf(stderr, "batch failed\n");
 	        exit(1);
 	}
 #endif
