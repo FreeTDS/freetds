@@ -1,11 +1,16 @@
 include_directories(.)
 
-if(PERL_FOUND AND NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
-	add_custom_command(OUTPUT iconv_charsets.h
-		COMMAND ${PERL_EXECUTABLE} iconv_charsets.pl > iconv_charsets.h
+if(PERL_FOUND AND NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/iconv_charsets.h")
+	add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/iconv_charsets.h"
+		COMMAND ${PERL_EXECUTABLE} iconv_charsets.pl > "${CMAKE_CURRENT_BINARY_DIR}/iconv_charsets.h"
 		MAIN_DEPENDENCY iconv_charsets.pl
 		WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
-endif(PERL_FOUND AND NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
+	add_custom_target(iconv_charsets_h DEPENDS
+		"${CMAKE_CURRENT_BINARY_DIR}/iconv_charsets.h")
+else(PERL_FOUND AND NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/iconv_charsets.h")
+	add_custom_target(iconv_charsets_h DEPENDS
+		"${CMAKE_CURRENT_SOURCE_DIR}/iconv_charsets.h")
+endif(PERL_FOUND AND NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/iconv_charsets.h")
 
 include(CheckFunctionExists)
 
@@ -28,9 +33,9 @@ add_library(replacements STATIC
 	poll.c
 	socketpair.c
 	getaddrinfo.c
-	iconv_charsets.h
 	${add_SRCS}
 )
+add_dependencies(replacements iconv_charsets_h)
 if (NOT WIN32)
 	set_target_properties(replacements PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
