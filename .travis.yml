@@ -34,7 +34,7 @@ env:
 notifications:
   email:
     recipients:
-      - msabramo+freetds_travis_ci@gmail.com
+      - freddy77@gmail.com
       # - other@example.com
     on_success: always  # [always|never|change] # default: change
     on_failure: always  # [always|never|change] # default: always
