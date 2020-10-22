@@ -21,7 +21,7 @@ script:
          (/^Microsoft SQL Server/)   { data = 1; print ""; print }
          (/1 row affected/)          { exit }'
 - misc/write_PWD_from_env_vars.sh
-- make -C src/tds/unittests check
+- make -C src/tds/unittests check VERBOSE=1
 env:
   global:
   - FREETDSCONF=/tmp/freetds.conf.local
