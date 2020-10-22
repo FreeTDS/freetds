@@ -1,6 +1,6 @@
 add_subdirectory(unittests)
 
-if(PERL_FOUND AND NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
+if(PERL_FOUND AND NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tds_willconvert.h")
 	# get name of null device
 	set(NULLNAME "/dev/null")
 	if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
@@ -9,8 +9,8 @@ if(PERL_FOUND AND NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
 
 	set(ENC_SOURCE_DIR "${CMAKE_SOURCE_DIR}/include/freetds")
 
-	add_custom_command(OUTPUT tds_willconvert.h
-		COMMAND ${PERL_EXECUTABLE} tds_willconvert.pl ../../include/freetds/proto.h > tds_willconvert.h
+	add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/tds_willconvert.h"
+		COMMAND ${PERL_EXECUTABLE} tds_willconvert.pl ../../include/freetds/proto.h > "${CMAKE_CURRENT_BINARY_DIR}/tds_willconvert.h"
 		MAIN_DEPENDENCY tds_willconvert.pl
 		WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
 	add_custom_command(OUTPUT "${CMAKE_BINARY_DIR}/include/freetds/encodings.h"
@@ -18,16 +18,27 @@ if(PERL_FOUND AND NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
 		MAIN_DEPENDENCY "${ENC_SOURCE_DIR}/encodings.pl"
 		DEPENDS "${ENC_SOURCE_DIR}/alternative_character_sets.h" "${ENC_SOURCE_DIR}/character_sets.h"
 		WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/include/freetds")
-	add_custom_command(OUTPUT num_limits.h
-		COMMAND ${PERL_EXECUTABLE} num_limits.pl > num_limits.h
+	add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/num_limits.h"
+		COMMAND ${PERL_EXECUTABLE} num_limits.pl > "${CMAKE_CURRENT_BINARY_DIR}/num_limits.h"
 		MAIN_DEPENDENCY num_limits.pl
 		WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
-	add_custom_command(OUTPUT tds_types.h
-		COMMAND ${PERL_EXECUTABLE} types.pl ../../misc/types.csv ../../include/freetds/proto.h > tds_types.h
+	add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/tds_types.h"
+		COMMAND ${PERL_EXECUTABLE} types.pl ../../misc/types.csv ../../include/freetds/proto.h > "${CMAKE_CURRENT_BINARY_DIR}/tds_types.h"
 		MAIN_DEPENDENCY types.pl
 		DEPENDS ../../misc/types.csv ../../include/freetds/proto.h
 		WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
-endif(PERL_FOUND AND NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
+	add_custom_target(encodings_h DEPENDS
+		"${CMAKE_CURRENT_BINARY_DIR}/tds_willconvert.h"
+		"${CMAKE_CURRENT_BINARY_DIR}/num_limits.h"
+		"${CMAKE_CURRENT_BINARY_DIR}/tds_types.h"
+		"${CMAKE_BINARY_DIR}/include/freetds/encodings.h")
+else(PERL_FOUND AND NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tds_willconvert.h")
+	add_custom_target(encodings_h DEPENDS
+		"${CMAKE_CURRENT_SOURCE_DIR}/tds_willconvert.h"
+		"${CMAKE_CURRENT_SOURCE_DIR}/num_limits.h"
+		"${CMAKE_CURRENT_SOURCE_DIR}/tds_types.h"
+		"${CMAKE_SOURCE_DIR}/include/freetds/encodings.h")
+endif(PERL_FOUND AND NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tds_willconvert.h")
 
 if(WIN32)
 	set(add_SRCS sspi.c)
@@ -43,10 +54,10 @@ add_library(tds STATIC
         tds_checks.c log.c
         bulk.c packet.c stream.c random.c
         sec_negotiate_gnutls.h sec_negotiate_openssl.h sec_negotiate.c gssapi.c
-	tds_willconvert.h num_limits.h tds_types.h
-	"${CMAKE_BINARY_DIR}/include/freetds/encodings.h"
 	${add_SRCS}
 )
+target_include_directories(tds PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
+add_dependencies(tds encodings_h)
 if (NOT WIN32)
 	set_target_properties(tds PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
