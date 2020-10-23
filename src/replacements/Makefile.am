@@ -25,6 +25,7 @@ EXTRA_DIST = \
 	vasprintf.c \
 	socketpair.c \
 	daemon.c \
+	setenv.c \
 	CMakeLists.txt \
 	$(PERL_OUTPUT) \
 	$(NULL)

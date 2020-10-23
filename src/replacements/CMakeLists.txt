@@ -10,7 +10,7 @@ endif(PERL_FOUND AND NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
 include(CheckFunctionExists)
 
 set(FUNCS asprintf vasprintf strtok_r readpassphrase
-strlcpy strlcat basename getopt strsep)
+strlcpy strlcat basename getopt strsep setenv)
 
 set(add_SRCS)
 

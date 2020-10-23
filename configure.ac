@@ -518,7 +518,7 @@ AC_DEFINE(HAVE_GETADDRINFO, 1, [Define if you have getaddrinfo function]))
 ACX_POP_LIBS
 
 AC_REPLACE_FUNCS([asprintf vasprintf strtok_r readpassphrase \
-strlcpy strlcat basename getopt strsep daemon])
+strlcpy strlcat basename getopt strsep daemon setenv])
 AC_FUNC_FSEEKO
 TDS_GETTIMEMILLI
 AC_FUNC_ALLOCA

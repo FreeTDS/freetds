@@ -180,6 +180,13 @@ int tds_daemon(int no_chdir, int no_close);
 #define daemon(d,c) tds_daemon(d,c)
 #endif
 
+#if !HAVE_SETENV
+int tds_setenv(const char *name, const char *value, int overwrite);
+#define setenv(n,v,o) tds_setenv(n,v,o)
+int tds_unsetenv(const char *name);
+#define unsetenv(n) tds_unsetenv(n)
+#endif
+
 #ifdef __cplusplus
 }
 #endif
