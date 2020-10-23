@@ -86,6 +86,14 @@ main(void)
 {
 	TDSCONTEXT *ctx = tds_alloc_context(NULL);
 	TDSSOCKET *tds = tds_alloc_socket(ctx, 512);
+	FILE *f;
+
+	/* set an empty base configuration */
+	f = fopen("empty.conf", "w");
+	if (f)
+		fclose(f);
+	putenv("FREETDSCONF=empty.conf");
+	unsetenv("TDSPORT");
 
 	set_interface();
 	if (!ctx || !tds) {
