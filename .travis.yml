@@ -1,9 +1,7 @@
 language: C
 before_install:
-- sudo apt-get install libgnutls-dev  # install libgnutls-dev BEFORE adding PPA; otherwise I seem to get some version that breaks things
-- sudo add-apt-repository ppa:dns/gnu --yes  # this PPA has a newer automake (1.14) than one in default repo (1.11)
 - sudo apt-get update
-- sudo apt-get install autoconf automake libtool gperf
+- sudo apt-get install autoconf automake libtool gperf libgnutls-dev
 - dpkg -l libgnutls-dev
 - autoreconf -i
 install:
