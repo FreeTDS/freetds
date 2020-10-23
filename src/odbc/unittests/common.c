@@ -61,20 +61,6 @@ check_lib(char *path, const char *file)
 	return 0;
 }
 
-/* some platforms do not have setenv, define a replacement */
-#if !HAVE_SETENV
-void
-odbc_setenv(const char *name, const char *value, int overwrite)
-{
-#if HAVE_PUTENV
-	char buf[1024];
-
-	sprintf(buf, "%s=%s", name, value);
-	putenv(buf);
-#endif
-}
-#endif
-
 /* this should be extended with all possible systems... */
 static const char *const search_driver[] = {
 	".libs/libtdsodbc.so",

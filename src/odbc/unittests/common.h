@@ -27,6 +27,7 @@
 
 #include <freetds/sysdep_private.h>
 #include <freetds/macros.h>
+#include "replacements.h"
 
 #ifndef HAVE_SQLLEN
 #ifndef SQLULEN
@@ -176,12 +177,6 @@ const char *odbc_db_version(void);
 unsigned int odbc_db_version_int(void);
 int odbc_driver_is_freetds(void);
 int odbc_tds_version(void);
-
-#if !HAVE_SETENV
-void odbc_setenv(const char *name, const char *value, int overwrite);
-
-#define setenv odbc_setenv
-#endif
 
 void odbc_mark_sockets_opened(void);
 TDS_SYS_SOCKET odbc_find_last_socket(void);
