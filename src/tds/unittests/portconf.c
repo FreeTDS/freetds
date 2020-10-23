@@ -81,6 +81,14 @@ test0(TDSCONTEXT *ctx, TDSSOCKET *tds, const char *input, const char *expected, 
 }
 #define test(in, out) test0(ctx, tds, in, out, __LINE__)
 
+#ifdef _WIN32
+static void
+unsetenv(const char *name)
+{
+	SetEnvironmentVariableA(name, NULL);
+}
+#endif
+
 int
 main(void)
 {
