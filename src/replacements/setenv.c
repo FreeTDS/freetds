@@ -10,6 +10,10 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#if HAVE_ERRNO_H
+#include <errno.h>
+#endif /* HAVE_ERRNO_H */
+
 #include <freetds/sysdep_private.h>
 #include <freetds/bool.h>
 #include "replacements.h"
