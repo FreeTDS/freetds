@@ -35,6 +35,7 @@ add_library(replacements STATIC
 	getaddrinfo.c
 	${add_SRCS}
 )
+target_include_directories(replacements PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 add_dependencies(replacements iconv_charsets_h)
 if (NOT WIN32)
 	set_target_properties(replacements PROPERTIES POSITION_INDEPENDENT_CODE ON)
