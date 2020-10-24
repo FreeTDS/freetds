@@ -103,18 +103,17 @@ build_script:
   # build FreeTDS
   - mkdir build
   - cd build
-  - set OPENSSL_ROOT_DIR=c:\openssl-win%WIDTH%
+  - set OPENSSL_ROOT_DIR=c:\openssl-v111-win%WIDTH%
   - set DEST_DIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
-  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Release \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" .."
+  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Release \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" \"-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%\" .."
   - "%WITH_COMPILER% nmake"
-  - set PATH=%PATH%;c:\openssl-win%WIDTH%
+  - set PATH=c:\openssl-v111-win%WIDTH%\bin;%PATH%
   - src\apps\tsql.exe -C
   - cd ..
   - mkdir build_debug
   - cd build_debug
-  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Debug -DENABLE_EXTRA_CHECKS=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" .."
+  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Debug -DENABLE_EXTRA_CHECKS=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" \"-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%\" .."
   - "%WITH_COMPILER% nmake"
-  - set PATH=%PATH%;c:\openssl-win%WIDTH%
   - src\apps\tsql.exe -C
   - cd ..
   - mkdir build_withoutssl
