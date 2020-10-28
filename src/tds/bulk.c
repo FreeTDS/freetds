@@ -426,7 +426,7 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 
 
 		if (var_cols_written) {
-			TDS_PUT_UA2(&record[row_sz_pos], row_pos);
+			TDS_PUT_UA2LE(&record[row_sz_pos], row_pos);
 			record[0] = var_cols_written;
 		}
 
