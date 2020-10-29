@@ -207,9 +207,6 @@
 #define USE_ICONV (tds->conn->use_iconv)
 
 static const TDSCOLUMNFUNCS *tds_get_column_funcs(TDSCONNECTION *conn, int type);
-#ifdef WORDS_BIGENDIAN
-static void tds_swap_datatype(int coltype, void *b);
-#endif
 static void tds_swap_numeric(TDS_NUMERIC *num);
 
 #undef MIN
@@ -1627,7 +1624,7 @@ tds_get_column_funcs(TDSCONNECTION *conn, int type)
 #include "tds_types.h"
 
 #ifdef WORDS_BIGENDIAN
-static void
+void
 tds_swap_datatype(int coltype, void *b)
 {
 	unsigned char *buf = (unsigned char *) b;
