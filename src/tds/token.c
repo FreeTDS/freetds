@@ -3244,11 +3244,7 @@ adjust_character_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		 curcol->column_usertype == USER_UNICHAR_TYPE ||
 		 curcol->column_usertype == USER_UNIVARCHAR_TYPE))) {
 		const int canonic_client = tds->conn->char_convs[client2ucs2]->from.charset.canonic;
-#ifdef WORDS_BIGENDIAN
-		const int sybase_utf16 = TDS_CHARSET_UTF_16BE;
-#else
 		const int sybase_utf16 = TDS_CHARSET_UTF_16LE;
-#endif
 
 		if (tds_capability_has_res(tds->conn, TDS_RES_IMAGE_NONCHAR)) {
 			curcol->char_conv = tds_iconv_get_info(tds->conn, canonic_client, TDS_CHARSET_UTF_8);
