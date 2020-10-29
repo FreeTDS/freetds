@@ -1632,12 +1632,14 @@ tds_swap_datatype(int coltype, void *b)
 	case SYBDATETIME4:
 		tds_swap_bytes(&buf[2], 2);
 	case SYBINT2:
+	case SYBUINT2:
 		tds_swap_bytes(buf, 2);
 		break;
 	case SYBMONEY:
 	case SYBDATETIME:
 		tds_swap_bytes(&buf[4], 4);
 	case SYBINT4:
+	case SYBUINT4:
 	case SYBMONEY4:
 	case SYBREAL:
 	case SYBDATE:
@@ -1645,6 +1647,7 @@ tds_swap_datatype(int coltype, void *b)
 		tds_swap_bytes(buf, 4);
 		break;
 	case SYBINT8:
+	case SYBUINT8:
 	case SYBFLT8:
 	case SYB5BIGTIME:
 	case SYB5BIGDATETIME:
