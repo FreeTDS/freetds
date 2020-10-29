@@ -1577,7 +1577,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 		}
 	}
 	
-	if( row_error_count == 0 && row_of_hostfile < dbproc->hostfileinfo->firstrow ) {
+	if (row_error_count == 0 && row_of_hostfile < dbproc->hostfileinfo->firstrow) {
 		/* "The BCP hostfile '%1!' contains only %2! rows.  */
 		dbperror(dbproc, SYBEBCSA, 0, dbproc->hostfileinfo->hostfile, row_of_hostfile); 
 	}
