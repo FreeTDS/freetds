@@ -126,7 +126,7 @@ main(int argc, char *argv[])
 
 		/* select type */
 		if (!strcmp(cmd, "select")) {
-			const char *type = odbc_get_tok(&p);
+			const char *type = odbc_get_str(&p);
 			const char *value = odbc_get_str(&p);
 			int c_type = lookup(odbc_get_tok(&p), odbc_sql_c_types);
 			const char *expected = odbc_get_str(&p);
