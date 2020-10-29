@@ -470,6 +470,14 @@ cleanup:
 	return rc;
 }
 
+static inline void
+tds5_swap_data(const TDSCOLUMN *col, void *p)
+{
+#ifdef WORDS_BIGENDIAN
+	tds_swap_datatype(tds_get_conversion_type(col->column_type, col->column_size), p);
+#endif
+}
+
 /**
  * Add fixed size columns to the row
  * \param bcpinfo BCP information
@@ -538,6 +546,7 @@ tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data
 			cpbytes = bcpcol->bcp_column_data->datalen > column_size ?
 				  column_size : bcpcol->bcp_column_data->datalen;
 			memcpy(&rowbuffer[row_pos], bcpcol->bcp_column_data->data, cpbytes);
+			tds5_swap_data(bcpcol, &rowbuffer[row_pos]);
 
 			/* CHAR data may need padding out to the database length with blanks */
 			/* TODO check binary !!! */
@@ -635,6 +644,7 @@ tds_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_d
 				cpbytes = bcpcol->bcp_column_data->datalen > bcpcol->column_size ?
 				bcpcol->column_size : bcpcol->bcp_column_data->datalen;
 				memcpy(&rowbuffer[row_pos], bcpcol->bcp_column_data->data, cpbytes);
+				tds5_swap_data(bcpcol, &rowbuffer[row_pos]);
 			}
 		}
 
