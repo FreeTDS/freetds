@@ -184,8 +184,12 @@ typedef union {
 
 #undef TDS_BSWAP16
 #undef TDS_BSWAP32
-#if defined (__GNUC__) && (__GNUC__ >= 4) && defined (__OPTIMIZE__)
+/* __builtin_bswap16 was introduced in GCC 4.8 */
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)) && defined(__OPTIMIZE__)
 # define TDS_BSWAP16(val) __builtin_bswap16(val)
+# define TDS_BSWAP32(val) __builtin_bswap32(val)
+/* __builtin_bswap32 was introduced in GCC 4.3 */
+#elif defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)) && defined(__OPTIMIZE__)
 # define TDS_BSWAP32(val) __builtin_bswap32(val)
 #elif defined(_MSC_VER)
 # define TDS_BSWAP16(val) _byteswap_ushort(val)
@@ -194,26 +198,32 @@ typedef union {
 
 #if defined(TDS_BSWAP16) && !defined(WORDS_BIGENDIAN)
 # undef TDS_GET_UA2BE
-# undef TDS_GET_UA4BE
 # define TDS_GET_UA2BE(ptr) TDS_BSWAP16(TDS_GET_UA2LE(ptr))
-# define TDS_GET_UA4BE(ptr) TDS_BSWAP32(TDS_GET_UA4LE(ptr))
 
 # undef TDS_PUT_UA2BE
-# undef TDS_PUT_UA4BE
 # define TDS_PUT_UA2BE(ptr,val) do {\
    uint16_t _tds_si = TDS_BSWAP16(val); TDS_PUT_UA2LE(ptr,_tds_si); } while(0)
-# define TDS_PUT_UA4BE(ptr,val) do {\
-   uint32_t _tds_i = TDS_BSWAP32(val); TDS_PUT_UA4LE(ptr,_tds_i); } while(0)
 #elif defined(TDS_BSWAP16) && defined(WORDS_BIGENDIAN)
 # undef TDS_GET_UA2LE
-# undef TDS_GET_UA4LE
 # define TDS_GET_UA2LE(ptr) TDS_BSWAP16(TDS_GET_UA2BE(ptr))
-# define TDS_GET_UA4LE(ptr) TDS_BSWAP32(TDS_GET_UA4BE(ptr))
 
 # undef TDS_PUT_UA2LE
-# undef TDS_PUT_UA4LE
 # define TDS_PUT_UA2LE(ptr,val) do {\
    uint16_t _tds_si = TDS_BSWAP16(val); TDS_PUT_UA2BE(ptr,_tds_si); } while(0)
+#endif
+
+#if defined(TDS_BSWAP32) && !defined(WORDS_BIGENDIAN)
+# undef TDS_GET_UA4BE
+# define TDS_GET_UA4BE(ptr) TDS_BSWAP32(TDS_GET_UA4LE(ptr))
+
+# undef TDS_PUT_UA4BE
+# define TDS_PUT_UA4BE(ptr,val) do {\
+   uint32_t _tds_i = TDS_BSWAP32(val); TDS_PUT_UA4LE(ptr,_tds_i); } while(0)
+#elif defined(TDS_BSWAP32) && defined(WORDS_BIGENDIAN)
+# undef TDS_GET_UA4LE
+# define TDS_GET_UA4LE(ptr) TDS_BSWAP32(TDS_GET_UA4BE(ptr))
+
+# undef TDS_PUT_UA4LE
 # define TDS_PUT_UA4LE(ptr,val) do {\
    uint32_t _tds_i = TDS_BSWAP32(val); TDS_PUT_UA4BE(ptr,_tds_i); } while(0)
 #endif
