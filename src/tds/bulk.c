@@ -853,6 +853,9 @@ tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_start(%p, %p)\n", tds, bcpinfo);
 
+	if (!IS_TDS50_PLUS(tds->conn))
+		return TDS_FAIL;
+
 	rc = tds_submit_query(tds, bcpinfo->insert_stmt);
 	if (TDS_FAILED(rc))
 		return rc;
