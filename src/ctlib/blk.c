@@ -55,6 +55,12 @@ blk_alloc(CS_CONNECTION * connection, CS_INT version, CS_BLKDESC ** blk_pointer)
 
 	tdsdump_log(TDS_DBG_FUNC, "blk_alloc(%p, %d, %p)\n", connection, version, blk_pointer);
 
+	if (!connection || !connection->tds_socket)
+		return CS_FAIL;
+
+	if (connection->tds_socket->conn->tds_version < 0x500)
+		return CS_FAIL;
+
 	blkdesc = (CS_BLKDESC *) tds_alloc_bcpinfo();
 	if (!blkdesc)
 		return CS_FAIL;
