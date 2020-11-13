@@ -444,7 +444,7 @@ tds7_send_auth(TDSSOCKET * tds,
 	host_name_len = tds_dstr_len(&login->client_host_name);
 
 	/* convert strings */
-	convert_buffer = malloc((user_name_len + host_name_len) * 2);
+	convert_buffer = tds_new(char, (user_name_len + host_name_len) * 2);
 	if (!convert_buffer)
 		return TDS_FAIL;
 

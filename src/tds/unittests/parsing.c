@@ -44,7 +44,7 @@ test_generic(const char *s, int expected_pos, bool comment, int line)
 
 	/* ucs2/utf16 */
 	len = strlen(s);
-	buf = malloc(len * 2); /* use malloc to help memory debuggers */
+	buf = tds_new(char, len * 2); /* use malloc to help memory debuggers */
 	for (n = 0; n < len; ++n) {
 		buf[n*2] = s[n];
 		buf[n*2 + 1] = 0;

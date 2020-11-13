@@ -756,7 +756,7 @@ odbc_buf_asprintf(ODBC_BUF** buf, const char *fmt, ...)
 	vasprintf(&ret, fmt, ap);
 	va_end(ap);
 
-	return odbc_buf_add(buf, ret);
+	return (char *) odbc_buf_add(buf, ret);
 }
 
 typedef union {
