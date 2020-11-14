@@ -64,9 +64,8 @@ tds_find(const void *key, const void *base, size_t nelem, size_t width,
 	size_t i;
 	for (i=0; i < nelem; i++) {
 		char *p = (char*)base + width * i;
-		if (true == compar(key, p)) {
+		if (compar(key, p))
 			return p;
-		}
 	}
 	return NULL;
 }
@@ -140,17 +139,17 @@ col_equal(const struct col_t *pc1, const struct col_t *pc2)
 	case SYBVARCHAR:
 		if( pc1->len != pc2->len)
 			return false;
-		return strncmp(pc1->s, pc2->s, pc1->len) == 0? true : false;
+		return strncmp(pc1->s, pc2->s, pc1->len) == 0;
 	case SYBINT1:
-		return pc1->data.ti == pc2->data.ti? true : false;
+		return pc1->data.ti == pc2->data.ti;
 	case SYBINT2:
-		return pc1->data.si == pc2->data.si? true : false;
+		return pc1->data.si == pc2->data.si;
 	case SYBINT4:
-		return pc1->data.i == pc2->data.i? true : false;
+		return pc1->data.i == pc2->data.i;
 	case SYBFLT8:
-		return pc1->data.f == pc2->data.f? true : false;
+		return pc1->data.f == pc2->data.f;
 	case SYBREAL:
-		return pc1->data.r == pc2->data.r? true : false;
+		return pc1->data.r == pc2->data.r;
 
 	case SYBINTN:
 	case SYBDATETIME:
@@ -289,7 +288,7 @@ static bool
 col_null( const struct col_t *pcol )
 {
 	assert(pcol);
-	return pcol->null_indicator == -1? true : false;
+	return pcol->null_indicator == -1;
 } 
 
 static char *
@@ -781,7 +780,7 @@ pivot_key_equal(const PIVOT_T *a, const PIVOT_T *b)
 {
 	assert(a && b);
 	
-	return a->dbproc == b->dbproc? true : false;
+	return a->dbproc == b->dbproc;
 }
 
 static PIVOT_T *pivots = NULL;
