@@ -99,7 +99,7 @@ col_init(struct col_t *pcol, int sybtype, int collen)
 		return NULL;
 	pcol->len = collen;
 
-	switch(sybtype) {
+	switch (sybtype) {
 	case 0:
 		pcol->len = 0;
 		return NULL;
@@ -134,7 +134,7 @@ col_equal(const struct col_t *pc1, const struct col_t *pc2)
 	assert( pc1 && pc2 );
 	assert( pc1->type == pc2->type );
 	
-	switch(pc1->type) {
+	switch (pc1->type) {
 	
 	case SYBCHAR:
 	case SYBVARCHAR:
@@ -179,7 +179,7 @@ col_equal(const struct col_t *pc1, const struct col_t *pc2)
 static void *
 col_buffer(struct col_t *pcol) 
 {
-	switch(pcol->type) {
+	switch (pcol->type) {
 	
 	case SYBCHAR:
 	case SYBVARCHAR:
@@ -226,7 +226,7 @@ col_print(FILE* out, const struct col_t *pcol)
 {
 	char *fmt;
 	
-	switch(pcol->type) {
+	switch (pcol->type) {
 	
 	case SYBCHAR:
 	case SYBVARCHAR:
@@ -298,7 +298,7 @@ string_value(const struct col_t *pcol)
 	char *output = NULL;
 	int len = -1;
 
-	switch(pcol->type) {
+	switch (pcol->type) {
 	case SYBCHAR:
 	case SYBVARCHAR:
 		if ((output = tds_new0(char, 1 + pcol->len)) == NULL)
@@ -374,7 +374,7 @@ join(int argc, char *argv[], const char sep[])
 static TDS_SERVER_TYPE
 infer_col_type(int sybtype) 
 {
-	switch(sybtype) {
+	switch (sybtype) {
 	case SYBCHAR:
 	case SYBVARCHAR:
 	case SYBTEXT:
@@ -417,7 +417,7 @@ infer_col_type(int sybtype)
 static int
 bind_type(int sybtype)
 {
-	switch(sybtype) {
+	switch (sybtype) {
 	case SYBCHAR:
 	case SYBVARCHAR:
 	case SYBTEXT:
