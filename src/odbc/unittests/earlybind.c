@@ -1,8 +1,5 @@
 #include "common.h"
 
-static char software_version[] = "$Id: earlybind.c,v 1.5 2010-07-05 09:20:33 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 int
 main(int argc, char *argv[])
 {
@@ -25,7 +22,7 @@ main(int argc, char *argv[])
 	/* get results */
 	id = -1;
 	memset(name, 0, sizeof(name));
-	SQLFetch(odbc_stmt);
+	CHKFetch("S");
 
 	if (id == -1 || strcmp(name, "sysobjects") != 0) {
 		fprintf(stderr, "wrong results\n");
@@ -33,13 +30,13 @@ main(int argc, char *argv[])
 	}
 
 	/* discard others data */
-	SQLFetch(odbc_stmt);
+	CHKFetch("No");
 
 	SQLMoreResults(odbc_stmt);
 
 	id = -1;
 	memset(name, 0, sizeof(name));
-	SQLFetch(odbc_stmt);
+	CHKFetch("S");
 
 	if (id != 123 || strcmp(name, "foo") != 0) {
 		fprintf(stderr, "wrong results\n");
@@ -47,7 +44,7 @@ main(int argc, char *argv[])
 	}
 
 	/* discard others data */
-	SQLFetch(odbc_stmt);
+	CHKFetch("No");
 
 	SQLMoreResults(odbc_stmt);
 
@@ -57,7 +54,7 @@ main(int argc, char *argv[])
 	/* get results */
 	id = -1;
 	memset(name, 0, sizeof(name));
-	SQLFetch(odbc_stmt);
+	CHKFetch("S");
 
 	if (id != 321 || strcmp(name, "minni") != 0) {
 		fprintf(stderr, "wrong results\n");
@@ -65,7 +62,7 @@ main(int argc, char *argv[])
 	}
 
 	/* discard others data */
-	SQLFetch(odbc_stmt);
+	CHKFetch("No");
 
 	SQLMoreResults(odbc_stmt);
 
