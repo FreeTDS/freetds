@@ -182,7 +182,8 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 		return FAIL;
 	}
 
-	if (strlen(tblname) > 92 && !IS_TDS7_PLUS(dbproc->tds_socket->conn)) {	/* 30.30.30 */
+	if (direction != DB_QUERYOUT && !IS_TDS7_PLUS(dbproc->tds_socket->conn) &&
+	    strlen(tblname) > 92) {	/* 30.30.30 for Sybase */
 		dbperror(dbproc, SYBEBCITBLEN, 0);
 		return FAIL;
 	}
