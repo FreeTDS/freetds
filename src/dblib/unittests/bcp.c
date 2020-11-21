@@ -266,6 +266,15 @@ main(int argc, char **argv)
 		}
 	}
 #endif
+
+	/* test initializing with a very long query and DB_QUERYOUT */
+	if (bcp_init(dbproc, select_table_sql, NULL, NULL, DB_QUERYOUT) == FAIL) {
+		fprintf(stderr, "failed\n");
+		exit(1);
+	}
+	bcp_done(dbproc);
+	printf("OK\n");
+
 	if ((s = getenv("BCP")) != NULL && 0 == strcmp(s, "nodrop")) {
 		printf("BCP=nodrop: '%s..%s' kept\n", DATABASE, table_name);
 	} else {
