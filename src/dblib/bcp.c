@@ -80,6 +80,7 @@ typedef long offset_type;
 
 static void _bcp_free_storage(DBPROCESS * dbproc);
 static void _bcp_free_columns(DBPROCESS * dbproc);
+static void _bcp_null_error(TDSBCPINFO *bcpinfo, int index, int offset);
 static TDSRET _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset);
 static TDSRET _bcp_no_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset);
 
@@ -1415,7 +1416,8 @@ bcp_sendrow(DBPROCESS * dbproc)
 	}
 
 	dbproc->bcpinfo->parent = dbproc;
-	return TDS_FAILED(tds_bcp_send_record(dbproc->tds_socket, dbproc->bcpinfo, _bcp_get_col_data, NULL, 0)) ? FAIL : SUCCEED;
+	return TDS_FAILED(tds_bcp_send_record(dbproc->tds_socket, dbproc->bcpinfo,
+			  _bcp_get_col_data, _bcp_null_error, 0)) ? FAIL : SUCCEED;
 }
 
 
@@ -1556,7 +1558,8 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 		if (skip)
 			continue;
 
-		if (TDS_SUCCEED(tds_bcp_send_record(dbproc->tds_socket, dbproc->bcpinfo, _bcp_no_get_col_data, NULL, 0))) {
+		if (TDS_SUCCEED(tds_bcp_send_record(dbproc->tds_socket, dbproc->bcpinfo,
+						    _bcp_no_get_col_data, _bcp_null_error, 0))) {
 
 			rows_written_so_far++;
 
@@ -2160,6 +2163,13 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 	}
 
 	return SUCCEED;
+}
+
+static void
+_bcp_null_error(TDSBCPINFO *bcpinfo, int index, int offset)
+{
+	DBPROCESS *dbproc = (DBPROCESS *) bcpinfo->parent;
+	dbperror(dbproc, SYBEBCNN, 0);
 }
 
 /** 
