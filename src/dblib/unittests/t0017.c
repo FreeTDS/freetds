@@ -6,14 +6,10 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: t0017.c,v 1.29 2009-02-27 15:52:48 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
-int failed = 0;
-
 int
 main(int argc, char *argv[])
 {
+	int failed = 0;
 	LOGINREC *login;
 	DBPROCESS *dbproc;
 	int i;
@@ -42,7 +38,7 @@ main(int argc, char *argv[])
 	set_malloc_options();
 
 	read_login_info(argc, argv);
-	printf("Starting %s\n", software_version);
+	printf("Starting %s\n", argv[0]);
 	dbinit();
 
 	dberrhandle(syb_err_handler);
