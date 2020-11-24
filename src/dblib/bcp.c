@@ -1140,16 +1140,7 @@ rtrim_bcpcol(TDSCOLUMN *bcpcol)
 static STATUS
 _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error, bool skip)
 {
-	TDSCOLUMN *bcpcol;
-	BCP_HOSTCOLINFO *hostcol;
-
-	TDS_TINYINT ti;
-	TDS_SMALLINT si;
-	TDS_INT li;
-	TDS_SERVER_TYPE desttype;
-	TDS_CHAR *coldata;
-
-	int i, collen, data_is_null;
+	int i;
 
 	tdsdump_log(TDS_DBG_FUNC, "_bcp_read_hostfile(%p, %p, %p, %d)\n", dbproc, hostfile, row_error, skip);
 	assert(dbproc);
@@ -1159,20 +1150,22 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error, bool ski
 	/* for each host file column defined by calls to bcp_colfmt */
 
 	for (i = 0; i < dbproc->hostfileinfo->host_colcount; i++) {
+		TDSCOLUMN *bcpcol = NULL;
+		BCP_HOSTCOLINFO *hostcol;
+		TDS_CHAR *coldata;
+		int collen = 0;
+		bool data_is_null = false;
 		offset_type col_start;
 
 		tdsdump_log(TDS_DBG_FUNC, "parsing host column %d\n", i + 1);
 		hostcol = dbproc->hostfileinfo->host_columns[i];
 
-		data_is_null = 0;
-		collen = 0;
 		hostcol->column_error = 0;
 
 		/* 
 		 * If this host file column contains table data,
 		 * find the right element in the table/column list.  
 		 */
-		bcpcol = NULL;
 		if (hostcol->tab_colnum > 0) {
 			if (hostcol->tab_colnum > dbproc->bcpinfo->bindinfo->num_cols) {
 				tdsdump_log(TDS_DBG_FUNC, "error: file wider than table: %d/%d\n", 
@@ -1192,6 +1185,9 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error, bool ski
 
 		/* a prefix length, if extant, specifies how many bytes to read */
 		if (hostcol->prefix_len > 0) {
+			TDS_TINYINT ti;
+			TDS_SMALLINT si;
+			TDS_INT li;
 
 			switch (hostcol->prefix_len) {
 			case 1:
@@ -1218,7 +1214,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error, bool ski
 			/* TODO test all NULL types */
 			/* TODO for < -1 error */
 			if (collen <= -1) {
-				data_is_null = 1;
+				data_is_null = true;
 				collen = 0;
 			}
 		}
@@ -1227,7 +1223,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error, bool ski
 
 		if (!data_is_null && hostcol->column_len >= 0) {
 			if (hostcol->column_len == 0)
-				data_is_null = 1;
+				data_is_null = true;
 			else if (collen)
 				collen = (hostcol->column_len < collen) ? hostcol->column_len : collen;
 			else
@@ -1283,7 +1279,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error, bool ski
 
 			collen = (int)col_bytes;
 			if (collen == 0)
-				data_is_null = 1;
+				data_is_null = true;
 
 			/*
 			 * TODO:  
@@ -1332,6 +1328,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error, bool ski
 				bcpcol->bcp_column_data->datalen = 0;
 			} else {
 				TDSRET rc;
+				TDS_SERVER_TYPE desttype;
 
 				desttype = tds_get_conversion_type(bcpcol->column_type, bcpcol->column_size);
 
