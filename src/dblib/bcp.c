@@ -1185,25 +1185,27 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error, bool ski
 
 		/* a prefix length, if extant, specifies how many bytes to read */
 		if (hostcol->prefix_len > 0) {
-			TDS_TINYINT ti;
-			TDS_SMALLINT si;
-			TDS_INT li;
+			union {
+				TDS_TINYINT ti;
+				TDS_SMALLINT si;
+				TDS_INT li;
+			} u;
 
 			switch (hostcol->prefix_len) {
 			case 1:
-				if (fread(&ti, 1, 1, hostfile) != 1)
+				if (fread(&u.ti, 1, 1, hostfile) != 1)
 					return _bcp_check_eof(dbproc, hostfile, i);
-				collen = ti ? ti : -1;
+				collen = u.ti ? u.ti : -1;
 				break;
 			case 2:
-				if (fread(&si, 2, 1, hostfile) != 1)
+				if (fread(&u.si, 2, 1, hostfile) != 1)
 					return _bcp_check_eof(dbproc, hostfile, i);
-				collen = si;
+				collen = u.si;
 				break;
 			case 4:
-				if (fread(&li, 4, 1, hostfile) != 1)
+				if (fread(&u.li, 4, 1, hostfile) != 1)
 					return _bcp_check_eof(dbproc, hostfile, i);
-				collen = li;
+				collen = u.li;
 				break;
 			default:
 				/* FIXME return error, remember that prefix_len can be 3 */
