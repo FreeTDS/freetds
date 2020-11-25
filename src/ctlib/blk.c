@@ -614,7 +614,7 @@ static TDSRET
 _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 {
 	int result = 0;
-	CS_INT null_column = 0;
+	bool null_column = false;
 	unsigned char *src = NULL;
 
 	CS_INT      srctype = 0;
@@ -686,7 +686,7 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 	}
 	if (srclen == 0) {
 		if (nullind && *nullind == -1)
-			null_column = 1;
+			null_column = true;
 	}
 
 	if (!null_column) {

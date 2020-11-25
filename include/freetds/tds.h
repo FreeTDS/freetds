@@ -629,7 +629,7 @@ typedef struct tds_bcpcoldata
 {
 	TDS_UCHAR *data;
 	TDS_INT    datalen;
-	TDS_INT    is_null;
+	bool       is_null;
 } BCPCOLDATA;
 
 

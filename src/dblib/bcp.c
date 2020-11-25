@@ -1058,7 +1058,7 @@ _bcp_convert_in(DBPROCESS *dbproc, TDS_SERVER_TYPE srctype, const TDS_CHAR *src,
 	CONV_RESULT cr, *p_cr;
 	TDS_INT len;
 
-	coldata->is_null = 0;
+	coldata->is_null = false;
 
 	if (!is_variable_type(desttype)) {
 		variable = 0;
@@ -1326,7 +1326,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error, bool ski
 		tdsdump_log(TDS_DBG_FUNC, "Data read from hostfile: collen is now %d, data_is_null is %d\n", collen, data_is_null);
 		if (!skip && bcpcol) {
 			if (data_is_null) {
-				bcpcol->bcp_column_data->is_null = 1;
+				bcpcol->bcp_column_data->is_null = true;
 				bcpcol->bcp_column_data->datalen = 0;
 			} else {
 				TDSRET rc;
@@ -2266,7 +2266,7 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 
 null_data:
 	bindcol->bcp_column_data->datalen = 0;
-	bindcol->bcp_column_data->is_null = 1;
+	bindcol->bcp_column_data->is_null = true;
 	return TDS_SUCCESS;
 }
 
