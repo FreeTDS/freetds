@@ -45,7 +45,7 @@ static struct addrinfo *server_addrs = NULL;
 #define DH_BITS 1024
 
 /* These are global */
-gnutls_certificate_credentials_t x509_cred;
+static gnutls_certificate_credentials_t x509_cred;
 
 static void put_packet(int sd);
 static void get_packet(int sd);
@@ -165,7 +165,10 @@ initialize_tls_session(unsigned flags)
 {
 	gnutls_session_t session;
 
-	gnutls_init(&session, flags);
+	if (gnutls_init(&session, flags) != GNUTLS_E_SUCCESS) {
+		fprintf(stderr, "Error initializing TLS session\n");
+		exit(1);
+	}
 	gnutls_transport_set_pull_function(session, tds_pull_func);
 	gnutls_transport_set_push_function(session, tds_push_func);
 
@@ -227,6 +230,7 @@ tcp_connect(void)
 	return sd;
 }
 
+/* Read plain TDS packet from socket */
 static void
 get_packet(int sd)
 {
@@ -236,8 +240,17 @@ get_packet(int sd)
 	packet_len = 0;
 	for (;;) {
 		full_len = 4;
-		if (packet_len >= 4)
+		if (packet_len >= 4) {
 			full_len = packet[2] * 0x100 + packet[3];
+			if (full_len < 8) {
+				fprintf(stderr, "Reveived packet too small %d\n", full_len);
+				exit(1);
+			}
+			if (full_len > 4096) {
+				fprintf(stderr, "Reveived packet too large %d\n", full_len);
+				exit(1);
+			}
+		}
 
 		l = recv(sd, (void *) (packet + packet_len), full_len - packet_len, 0);
 		if (l <= 0) {
@@ -251,6 +264,7 @@ get_packet(int sd)
 	}
 }
 
+/* Write plain TDS packet to socket */
 static void
 put_packet(int sd)
 {
