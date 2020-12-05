@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <netdb.h>
+#include <poll.h>
 #else
 #include <winsock2.h>
 #include <windows.h>
@@ -17,6 +18,7 @@
 typedef int socklen_t;
 typedef unsigned int in_addr_t;
 #define sleep(s) Sleep((s)*1000)
+#define poll WSAPoll
 #endif
 #include <gnutls/gnutls.h>
 
@@ -41,7 +43,7 @@ static struct addrinfo *server_addrs = NULL;
 
 #define SA struct sockaddr
 #define SOCKET_ERR(err,s) if (err==-1) { perror(s); exit(1); }
-#define MAX_BUF 1024
+#define MAX_BUF 4096
 #define DH_BITS 1024
 
 /* These are global */
@@ -49,7 +51,7 @@ static gnutls_certificate_credentials_t x509_cred;
 
 static void put_packet(int sd);
 static void get_packet(int sd);
-static void hexdump(const char *buffer, int len);
+static void hexdump(const unsigned char *buffer, int len);
 
 typedef enum
 {
@@ -65,7 +67,7 @@ static int client_sd = -1;
 static unsigned char packet[4096 + 192];
 static int packet_len;
 static int to_send = 0;
-static unsigned char packet_type = 0x12;
+static const unsigned char packet_type = 0x12;
 static int pos = 0;
 
 static int log_recv(int sock, void *data, int len, int flags)
@@ -280,11 +282,99 @@ put_packet(int sd)
 		}
 		sent += l;
 	}
+	packet_len = 0;
 	to_send = 0;
 }
 
+/* Read encrypted TDS packet */
+static int
+get_packet_tls(gnutls_session_t tls, unsigned char *const packet, int full_packet_len)
+{
+	int packet_len = 0;
+
+	printf("get_packet_tls\n");
+	for (;;) {
+		int full_len = 4;
+		if (packet_len >= 4) {
+			full_len = packet[2] * 0x100 + packet[3];
+			if (full_len < 8) {
+				fprintf(stderr, "Reveived packet too small %d\n", full_len);
+				exit(1);
+			}
+			if (full_len > full_packet_len) {
+				fprintf(stderr, "Reveived packet too large %d\n", full_len);
+				exit(1);
+			}
+		}
+
+		const int l = gnutls_record_recv(tls, (void *) (packet + packet_len), full_len - packet_len);
+		if (l == GNUTLS_E_INTERRUPTED)
+			continue;
+		if (l <= 0) {
+			fprintf(stderr, "error recv\n");
+			exit(1);
+		}
+		packet_len += l;
+
+		if (full_len >= 8 && packet_len == full_len)
+			break;
+	}
+	return packet_len;
+}
+
+/* Write encrypted TDS packet */
 static void
-hexdump(const char *buffer, int len)
+put_packet_tls(gnutls_session_t tls, unsigned char *packet, int packet_len)
+{
+	int sent = 0;
+
+	printf("put_packet_tls\n");
+	for (; sent < packet_len;) {
+		int l = gnutls_record_send(tls, (void *) (packet + sent), packet_len - sent);
+		if (l == GNUTLS_E_INTERRUPTED)
+			continue;
+
+		if (l <= 0) {
+			fprintf(stderr, "error send\n");
+			exit(1);
+		}
+		sent += l;
+	}
+}
+
+static int
+check_packet_for_ssl(void)
+{
+	if (packet_len < 9)
+		return 0;
+
+	const int pkt_len = packet_len - 8;
+	const unsigned char *const p = packet + 8;
+	int i, crypt_flag = 2;
+	for (i = 0;; i += 5) {
+		unsigned char type;
+		int off, len;
+
+		if (i >= pkt_len)
+			return 0;
+		type = p[i];
+		if (type == 0xff)
+			break;
+		/* check packet */
+		if (i+4 >= pkt_len)
+			return 0;
+		off = p[i+1] * 0x100 + p[i+2];
+		len = p[i+3] * 0x100 + p[i+4];
+		if (off > pkt_len || (off+len) > pkt_len)
+			return 0;
+		if (type == 1 && len >= 1)
+			crypt_flag = p[off];
+	}
+	return crypt_flag != 0;
+}
+
+static void
+hexdump(const unsigned char *buffer, int len)
 {
 	int i;
 	char hex[16 * 3 + 2], chars[20];
@@ -314,6 +404,34 @@ check_port(const char *port)
 	return n_port;
 }
 
+/* Wait input available on one socket, returns 0 or 1 (which descriptor has data) */
+static int
+wait_one_fd(int fd1, int fd2)
+{
+	struct pollfd fds[2];
+	fds[0].fd = fd1;
+	fds[0].events = POLLIN;
+	fds[0].revents = 0;
+	fds[1].fd = fd2;
+	fds[1].events = POLLIN;
+	fds[1].revents = 0;
+	for (;;) {
+		int num_fds = poll(fds, 2, -1);
+		if (num_fds > 0)
+			break;
+		if (errno == EINTR)
+			continue;
+		fprintf(stderr, "Error from poll %d\n", errno);
+		exit(1);
+	}
+	if (fds[0].revents & POLLIN)
+		return 0;
+	if (fds[1].revents & POLLIN)
+		return 1;
+	fprintf(stderr, "Unexpected event from poll\n");
+	exit(1);
+}
+
 int
 main(int argc, char **argv)
 {
@@ -322,12 +440,13 @@ main(int argc, char **argv)
 	struct sockaddr_in sa_serv;
 	struct sockaddr_in sa_cli;
 	socklen_t client_len;
-	gnutls_session_t client_session;
-	char buffer[MAX_BUF + 1];
+	gnutls_session_t client_session = NULL, server_session = NULL;
+	unsigned char buffer[MAX_BUF + 1];
 	int optval = 1;
 	struct addrinfo hints;
 	const char *server_ip;
 	const char *server_port;
+	int use_ssl = 1;
 
 #ifdef _WIN32
 	WSADATA wsa_data;
@@ -395,7 +514,21 @@ main(int argc, char **argv)
 
 	client_len = sizeof(sa_cli);
 	for (;;) {
+		if (client_session)
+			gnutls_deinit(client_session);
+		if (server_session)
+			gnutls_deinit(server_session);
 		client_session = initialize_tls_session(GNUTLS_SERVER);
+		server_session = initialize_tls_session(GNUTLS_CLIENT);
+
+		if (client_sd >= 0) {
+			close(client_sd);
+			client_sd = -1;
+		}
+		if (server_sd >= 0) {
+			close(server_sd);
+			server_sd = -1;
+		}
 
 		client_sd = accept(listen_sd, (SA *) & sa_cli, &client_len);
 
@@ -418,6 +551,7 @@ main(int argc, char **argv)
 		/* get prelogin reply from server */
 		printf("get prelogin reply from server\n");
 		get_packet(server_sd);
+		use_ssl = check_packet_for_ssl();
 
 		/* reply with same prelogin packet */
 		printf("reply with same prelogin packet\n");
@@ -438,10 +572,30 @@ main(int argc, char **argv)
 		}
 		printf("- Handshake was completed\n");
 
-		/* flush last packet */
-		packet[0] = 4;
-		packet[1] = 1;
-		put_packet(client_sd);
+		if (to_send) {
+			/* flush last packet */
+			packet[1] = 1;
+			put_packet(client_sd);
+		}
+
+		to_send = 0;
+		packet_len = 0;
+
+		gnutls_transport_set_ptr(server_session, (gnutls_transport_ptr_t) (((char*)0)+server_sd));
+		ret = gnutls_handshake(server_session);
+		if (ret < 0) {
+			close(server_sd);
+			gnutls_deinit(server_session);
+			fprintf(stderr, "*** Handshake has failed (%s)\n\n", gnutls_strerror(ret));
+			continue;
+		}
+		printf("- Handshake was completed\n");
+
+		if (to_send) {
+			/* flush last packet */
+			packet[1] = 1;
+			put_packet(server_sd);
+		}
 
 		/* on, reset all */
 		state = in_tls;
@@ -452,28 +606,41 @@ main(int argc, char **argv)
 
 		/* now log and do man-in-the-middle to see decrypted data !!! */
 		for (;;) {
-			/* wait all packet */
-			sleep(2);
-
-			/* get client */
-			ret = gnutls_record_recv(client_session, buffer, MAX_BUF);
-			if (ret > 0) {
-				hexdump(buffer, ret);
-
-				gnutls_record_send(client_session, buffer, ret);
-
-				ret = gnutls_record_recv(client_session, buffer, MAX_BUF);
-				if (ret > 0)
+			/* wait some data */
+			ret = wait_one_fd(client_sd, server_sd);
+			printf("returned %d\n", ret);
+			if (ret == 0) {
+				/* client */
+				ret = get_packet_tls(client_session, buffer, MAX_BUF);
+				if (ret > 0) {
 					hexdump(buffer, ret);
+					put_packet_tls(server_session, buffer, ret);
+				}
+				if (!use_ssl)
+					break;
+			} else if (ret == 1) {
+				/* server */
+				ret = get_packet_tls(server_session, buffer, MAX_BUF);
+				if (ret > 0) {
+					hexdump(buffer, ret);
+					put_packet_tls(client_session, buffer, ret);
+				}
 			}
-			/* for the moment.. */
-			exit(1);
-
-			/* send to server */
 		}
 
-		/* see the Getting peer's information example */
-		/* print_info(client_session); */
+		for (;;) {
+			/* wait some data */
+			ret = wait_one_fd(client_sd, server_sd);
+			if (ret == 0) {
+				/* client */
+				get_packet(client_sd);
+				put_packet(server_sd);
+			} else if (ret == 1) {
+				/* server */
+				get_packet(server_sd);
+				put_packet(client_sd);
+			}
+		}
 
 		for (;;) {
 			memset(buffer, 0, MAX_BUF + 1);
@@ -496,7 +663,9 @@ main(int argc, char **argv)
 		gnutls_bye(client_session, GNUTLS_SHUT_WR);
 
 		close(client_sd);
+		client_sd = -1;
 		gnutls_deinit(client_session);
+		client_session = NULL;
 
 	}
 	close(listen_sd);
