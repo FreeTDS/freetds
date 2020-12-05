@@ -39,7 +39,7 @@ static const char *server_ip = "127.0.0.1";
 static int server_port = 1433;
 
 #define SA struct sockaddr
-#define SOCKET_ERR(err,s) if(err==-1) {perror(s);return(1);}
+#define SOCKET_ERR(err,s) if (err==-1) { perror(s); exit(1); }
 #define MAX_BUF 1024
 #define DH_BITS 1024
 
