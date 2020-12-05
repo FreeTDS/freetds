@@ -48,6 +48,7 @@ gnutls_certificate_credentials_t x509_cred;
 
 static void put_packet(int sd);
 static void get_packet(int sd);
+static void hexdump(const char *buffer, int len);
 
 typedef enum
 {
@@ -65,6 +66,34 @@ static int packet_len;
 static int to_send = 0;
 static unsigned char packet_type = 0x12;
 static int pos = 0;
+
+static int log_recv(int sock, void *data, int len, int flags)
+{
+	int ret = recv(sock, data, len, flags);
+	int save_errno = errno;
+	if (ret > 0) {
+		printf("got buffer from recv %d\n", sock);
+		hexdump(data, ret);
+	}
+	errno = save_errno;
+	return ret;
+}
+#undef recv
+#define recv(a,b,c,d) log_recv(a,b,c,d)
+
+static int log_send(int sock, const void *data, int len, int flags)
+{
+	int ret = send(sock, data, len, flags);
+	int save_errno = errno;
+	if (ret > 0) {
+		printf("sent buffer with sent %d\n", sock);
+		hexdump(data, ret);
+	}
+	errno = save_errno;
+	return ret;
+}
+#undef send
+#define send(a,b,c,d) log_send(a,b,c,d)
 
 static ssize_t
 tds_pull_func(gnutls_transport_ptr_t ptr, void *data, size_t len)
@@ -243,7 +272,7 @@ put_packet(int sd)
 }
 
 static void
-hexdump(char *buffer, int len)
+hexdump(const char *buffer, int len)
 {
 	int i;
 	char hex[16 * 3 + 2], chars[20];
