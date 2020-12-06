@@ -543,6 +543,7 @@ dblibcheck :
 	@ run/nodebug []empty_rowsets$(E)
 	@ run/nodebug []string_bind$(E)
 	@ run/nodebug []colinfo$(E)
+	@ run/nodebug []bcp2$(E)
 	@ set default [---]
 
 tdsodbccheck : 
@@ -663,7 +664,8 @@ dblibtests : [.src.dblib.unittests]rpc$(E)  [.src.dblib.unittests]t0001$(E) [.sr
 	[.src.dblib.unittests]cancel$(E) [.src.dblib.unittests]spid$(E) [.src.dblib.unittests]canquery$(E) \
 	[.src.dblib.unittests]batch_stmt_ins_sel$(E) [.src.dblib.unittests]batch_stmt_ins_upd$(E) \
 	[.src.dblib.unittests]bcp_getl$(E) [.src.dblib.unittests]empty_rowsets$(E) \
-	[.src.dblib.unittests]string_bind$(E) [.src.dblib.unittests]colinfo$(E)
+	[.src.dblib.unittests]string_bind$(E) [.src.dblib.unittests]colinfo$(E) \
+	[.src.dblib.unittests]bcp2$(E)
 
 	@ continue
 
@@ -1331,6 +1333,12 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]colinfo$(OBJ) : [.src.dblib.unittests]colinfo.c [.src.dblib.unittests]common.h
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[.src.dblib.unittests]bcp2$(E) : [.src.dblib.unittests]bcp2$(OBJ) [.src.dblib.unittests]common$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
+
+[.src.dblib.unittests]bcp2$(OBJ) : [.src.dblib.unittests]bcp2.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
 # tdsodbc test detailed dependencies
