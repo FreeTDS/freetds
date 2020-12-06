@@ -58,7 +58,7 @@ main(int argc, char *argv[])
 	}
 	odbc_read_error();
 	if (!strstr(odbc_err, "MARS")) {
-		printf("Error message invalid \"%s\"\n", odbc_err);
+		fprintf(stderr, "Error message invalid \"%s\"\n", odbc_err);
 		return 1;
 	}
 
