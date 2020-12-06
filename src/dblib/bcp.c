@@ -2246,9 +2246,7 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 	if (bindcol->bcp_term_len > 0) {	/* terminated field */
 		bytes_read = _bcp_get_term_var(dataptr, (BYTE *)bindcol->bcp_terminator, bindcol->bcp_term_len);
 
-		if (collen)
-			collen = (bytes_read < collen) ? bytes_read : collen;
-		else
+		if (collen <= 0 || bytes_read < collen)
 			collen = bytes_read;
 
 		if (collen == 0)
