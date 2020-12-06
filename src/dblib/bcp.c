@@ -88,7 +88,7 @@ static int rtrim(char *, int);
 static int rtrim_u16(uint16_t *str, int len, uint16_t space);
 static STATUS _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error, bool skip);
 static int _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci);
-static int _bcp_get_term_var(BYTE * pdata, BYTE * term, int term_len);
+static int _bcp_get_term_var(const BYTE * pdata, const BYTE * term, int term_len);
 
 /*
  * "If a host file is being used ... the default data formats are as follows:
@@ -2296,7 +2296,7 @@ _bcp_no_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
  * \return data length.
  */
 static int
-_bcp_get_term_var(BYTE * pdata, BYTE * term, int term_len)
+_bcp_get_term_var(const BYTE * pdata, const BYTE * term, int term_len)
 {
 	int bufpos;
 
