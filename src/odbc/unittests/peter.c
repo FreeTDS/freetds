@@ -34,7 +34,7 @@ main(int argc, char *argv[])
 
 	CHKExecute("S");
 
-	CHKR(SQLFreeStmt, (odbc_stmt, SQL_RESET_PARAMS), "S");
+	CHKFreeStmt(SQL_RESET_PARAMS, "S");
 
 	CHKRowCount(&count, "S");
 
