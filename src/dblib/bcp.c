@@ -2234,11 +2234,11 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 
 	desttype = tds_get_conversion_type(bindcol->column_type, bindcol->column_size);
 
-	/* Fixed Length data - this overrides anything else specified */
 	coltype = bindcol->column_bindtype == 0 ? desttype : (TDS_SERVER_TYPE) bindcol->column_bindtype;
-	if (is_fixed_type(coltype)) {
+
+	/* Fixed Length data - this overrides anything else specified */
+	if (is_fixed_type(coltype))
 		collen = tds_get_size_by_type(coltype);
-	}
 
 	/* read the data, finally */
 
