@@ -127,7 +127,7 @@ static TDS_THREAD_PROC_DECLARE(thread_test, arg)
 	tds_mutex_lock(&mutex);
 	while (thread_count < NUM_THREAD) {
 		tds_mutex_unlock(&mutex);
-		tds_sleep_s(1);
+		tds_sleep_ms(50);
 		tds_mutex_lock(&mutex);
 	}
 	tds_mutex_unlock(&mutex);
