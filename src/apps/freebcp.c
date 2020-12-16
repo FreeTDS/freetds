@@ -255,7 +255,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 			pdata->Eflag++;
 			break;
 		case 'd':
-			tdsdump_open(NULL);
+			tdsdump_open("stderr");
 			break;
 		case 't':
 			pdata->tflag++;
