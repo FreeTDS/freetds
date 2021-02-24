@@ -114,6 +114,10 @@ tds_listen(TDSCONTEXT * ctx, int ip_port)
 	}
 	CLOSESOCKET(s);
 	tds = tds_alloc_socket(ctx, 4096);
+	if(!tds) {
+		printf('no memory to allocate');
+		return NULL;
+	}
 	tds_set_s(tds, fd);
 	tds->out_flag = TDS_LOGIN;
 	/* TODO proper charset */

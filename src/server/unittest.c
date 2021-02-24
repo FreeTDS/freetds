@@ -92,6 +92,10 @@ main(int argc, char **argv)
 	printf("query : %s\n", tds_get_generic_query(tds));
 	tds->out_flag = TDS_REPLY;
 	resinfo = tds_alloc_results(1);
+	if(!resinfo) {
+		printf('no memory to allocate');
+		exit(1);
+	}
 	resinfo->columns[0]->column_type = SYBVARCHAR;
 	resinfo->columns[0]->column_size = 30;
 	if (!tds_dstr_copy(&resinfo->columns[0]->column_name, "name"))

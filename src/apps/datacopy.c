@@ -664,8 +664,10 @@ transfer_data(const BCPPARAMDATA * params, DBPROCESS * dbsrc, DBPROCESS * dbdest
 		/* Find out if there is an identity column. */
 		colinfo.SizeOfStruct = sizeof(colinfo);
 
-		if (dbtablecolinfo(dbsrc, col+1, (DBCOL *) &colinfo) != SUCCEED)
+		if (dbtablecolinfo(dbsrc, col+1, (DBCOL *) &colinfo) != SUCCEED) { 
+			free(srcdata);
 			return FALSE;
+		}
 		if (colinfo.Identity)
 			identity_column_exists = TRUE;
 
@@ -747,6 +749,7 @@ transfer_data(const BCPPARAMDATA * params, DBPROCESS * dbsrc, DBPROCESS * dbdest
 		}
 		if (bcp_sendrow(dbdest) == FAIL) {
 			fprintf(stderr, "bcp_sendrow failed.  \n");
+			free(srcdata);
 			return FALSE;
 		} else {
 			rows_sent++;
@@ -754,6 +757,7 @@ transfer_data(const BCPPARAMDATA * params, DBPROCESS * dbsrc, DBPROCESS * dbdest
 				ret = bcp_batch(dbdest);
 				if (ret == -1) {
 					printf("bcp_batch error\n");
+					free(srcdata);
 					return FALSE;
 				} else {
 					rows_done += ret;
@@ -768,6 +772,7 @@ transfer_data(const BCPPARAMDATA * params, DBPROCESS * dbsrc, DBPROCESS * dbdest
 		ret = bcp_done(dbdest);
 		if (ret == -1) {
 			fprintf(stderr, "bcp_done failed.  \n");
+			free(srcdata);
 			return FALSE;
 		} else {
 			rows_done += ret;
@@ -788,6 +793,7 @@ transfer_data(const BCPPARAMDATA * params, DBPROCESS * dbsrc, DBPROCESS * dbdest
 		printf("rows per second      : %f\n", rows_done / elapsed_time);
 	}
 
+	free(srcdata);
 	return TRUE;
 
 
