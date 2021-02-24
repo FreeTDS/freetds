@@ -361,6 +361,8 @@ join(int argc, char *argv[], const char sep[])
 	len += 1 + argc * strlen(sep); /* allows one too many */ 
 	
 	output = tds_new0(char, len);
+	if (!output)
+		return NULL;
 	
 	for (p=argv; p < argv + argc; p++) {
 		if (p != argv)

@@ -522,6 +522,10 @@ print_results(DBPROCESS *dbproc)
 				bylist = dbbylist(dbproc, c+1, &nby);
 
 				bynames = strdup("by (");
+				if (!bynames) {
+					fprintf(stderr, "out of memory");
+					exit(1);
+				}
 				for (iby=0; iby < nby; iby++) {
 					char *s = NULL; 
 					int ret = asprintf(&s, "%s%s%s", bynames, dbcolname(dbproc, bylist[iby]), 
