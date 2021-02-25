@@ -354,7 +354,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 			
 			/* Look for index data */
 			if (0 == strcmp("index_name", dbcolname(dbproc, 1))) {
-				char *index_name, *index_description, *index_keys, *p, fprimary=0;
+				char *index_name, *index_description, *index_keys, *plain_index_keys, *p, *o, fprimary=0;
 				DBINT datlen;
 				
 				assert(dbnumcols(dbproc) >=3 );	/* column had better be in range */
@@ -371,12 +371,20 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 				assert(index_description);
 				memcpy(index_description, dbdata(dbproc, 2), datlen);
 				
-				/* columns */
+				/* columnnames escaped with [] */
 				datlen = dbdatlen(dbproc, 3);
-				index_keys = (char *) calloc(1, 1 + datlen);
+				plain_index_keys = (char *) calloc(1, 1 + datlen);
+				assert(plain_index_keys);
+				memcpy(plain_index_keys, dbdata(dbproc, 3), datlen);
+				p = plain_index_keys;
+				for (i=0; p[i]; p[i]==',' ? i++ : *p++);
+				o = index_keys = (char *) calloc(1, 3 + 2 * i + datlen);
 				assert(index_keys);
-				memcpy(index_keys, dbdata(dbproc, 3), datlen);
-				
+				p = strsep(&plain_index_keys, ",");
+				o += sprintf(o, "[%s]", p);
+				while ((p = strsep(&plain_index_keys, ",")) != NULL)
+					o += sprintf(o, ", [%s]", p + 1);
+
 				/* fix up the index attributes; we're going to use the string verbatim (almost). */
 				p = strstr(index_description, "located");
 				if (p) {
@@ -413,6 +421,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 					
 				free(index_name);
 				free(index_description);
+				free(plain_index_keys);
 				free(index_keys);
 				
 				continue;
@@ -494,6 +503,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 							};
 		const char **t;
 		char *type = NULL;
+		char *name = NULL;
 		int is_null;
 
 		/* get size of decimal, numeric, char, and image types */
@@ -519,11 +529,14 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 		else 
 			is_null = (0 == strcasecmp("1", ddl[i].nullable) || 0 == strcasecmp("yes", ddl[i].nullable));
 			
+		asprintf(&name, "[%s]", ddl[i].name);
+
 		/*      {(|,} name type [NOT] NULL */
-		printf("\t%c %-*s %-15s %3s NULL\n", (i==0? '(' : ','), maxnamelen, ddl[i].name, 
+		printf("\t%c %-*s %-15s %3s NULL\n", (i==0? '(' : ','), maxnamelen + 2, name,
 						(type? type : ddl[i].type), (is_null? "" : "NOT"));
 
 		free(type);
+		free(name);
 	}
 	printf("\t)\nGO\n\n");
 	
