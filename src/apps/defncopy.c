@@ -444,6 +444,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 
 			for( i=0; i < sizeof(struct DDL)/sizeof(char*); i++) {
 				DBINT datlen = dbdatlen(dbproc, colmap[i]);
+				int len = 0; // Sybase's sp_help returns the length as CHAR(6) we need to convert
 
 				assert(datlen >= 0);	/* column had better be in range */
 
@@ -452,14 +453,24 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 					continue;
 				}
 
-				*coldesc[i] = (char *) calloc(1, 1 + datlen); /* calloc will null terminate */
-				if( *coldesc[i] == NULL ) {
+				if ((i == 2) && (dbcoltype(dbproc, colmap[i]) != SYBINT4)) { // Sybase's sp_help returns the length as CHAR(6)
+					DBCHAR *p = (DBCHAR*) dbdata(dbproc, colmap[i]) + datlen -1;
+					for (int j = 0, pow = 1; j < datlen && *p != ' '; j++, pow*=10) { //converts char(6) to integer
+						len += (*(p--) - '0') * pow;
+					}
+				}
+
+				*coldesc[i] = (char *)calloc(1, (len > 0) ? sizeof(SYBINT4) : (1 + datlen)); /* calloc will null terminate */
+				if (*coldesc[i] == NULL) {
 					perror("error: insufficient memory for row detail");
 					assert(*coldesc[i] != NULL);
 					exit(1);
 				}
-				memcpy(*coldesc[i], dbdata(dbproc, colmap[i]), datlen);
-				
+				if (len > 0)
+					memcpy(*coldesc[i], &len, sizeof(SYBINT4));
+				else
+					memcpy(*coldesc[i], dbdata(dbproc, colmap[i]), datlen);
+
 				/* 
 				 * maxnamelen will determine how much room we allow for column names 
 				 * in the CREATE TABLE statement
