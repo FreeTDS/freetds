@@ -454,20 +454,21 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 				}
 
 				if ((i == 2) && (dbcoltype(dbproc, colmap[i]) != SYBINT4)) { // Sybase's sp_help returns the length as CHAR(6)
-					DBCHAR *p = (DBCHAR*) dbdata(dbproc, colmap[i]) + datlen -1;
-					for (int j = 0, pow = 1; j < datlen && *p != ' '; j++, pow *= 10) { //converts char(6) to integer
+					int j, pow;
+					DBCHAR *p = (DBCHAR*) dbdata(dbproc, colmap[i]) + datlen - 1;
+					for (j = 0, pow = 1; j < datlen && *p != ' '; j++, pow *= 10) { //converts char(6) to integer
 						len += (*(p--) - '0') * pow;
 					}
 				}
 
-				*coldesc[i] = (char *)calloc(1, (len > 0) ? sizeof(int) : (1 + datlen)); /* calloc will null terminate */
+				*coldesc[i] = (char *)calloc(1, (len > 0) ? sizeof(len) : (1 + datlen)); /* calloc will null terminate */
 				if (*coldesc[i] == NULL) {
 					perror("error: insufficient memory for row detail");
 					assert(*coldesc[i] != NULL);
 					exit(1);
 				}
 				if (len > 0)
-					memcpy(*coldesc[i], &len, sizeof(int));
+					memcpy(*coldesc[i], &len, sizeof(len));
 				else
 					memcpy(*coldesc[i], dbdata(dbproc, colmap[i]), datlen);
 
