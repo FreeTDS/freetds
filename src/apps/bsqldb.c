@@ -523,7 +523,7 @@ print_results(DBPROCESS *dbproc)
 
 				bynames = strdup("by (");
 				if(!bynames) {
-					printf('no memory to allocate');
+					printf("no memory to allocate");
 					exit(1);
 				}
 				for (iby=0; iby < nby; iby++) {

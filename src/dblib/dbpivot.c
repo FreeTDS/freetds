@@ -362,7 +362,7 @@ join(int argc, char *argv[], const char sep[])
 	
 	output = tds_new0(char, len);
 	if(!output) {
-		printf('no memory to allocate');
+		printf("no memory to allocate");
 		return NULL;
 	}
 	

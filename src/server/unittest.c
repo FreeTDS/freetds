@@ -93,7 +93,7 @@ main(int argc, char **argv)
 	tds->out_flag = TDS_REPLY;
 	resinfo = tds_alloc_results(1);
 	if(!resinfo) {
-		printf('no memory to allocate');
+		printf("no memory to allocate");
 		exit(1);
 	}
 	resinfo->columns[0]->column_type = SYBVARCHAR;
