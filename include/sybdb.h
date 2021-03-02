@@ -572,6 +572,7 @@ typedef int (*MHANDLEFUNC) (DBPROCESS * dbproc, DBINT msgno, int msgstate, int s
 
 #define DBPRCOLSEP  21
 #define DBPRLINELEN 22
+#define DBRPCNORETURN 0
 #define DBRPCRETURN 1
 #define DBRPCDEFAULT 2
 
