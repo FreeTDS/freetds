@@ -361,8 +361,7 @@ join(int argc, char *argv[], const char sep[])
 	len += 1 + argc * strlen(sep); /* allows one too many */ 
 	
 	output = tds_new0(char, len);
-	if(!output) {
-		printf("no memory to allocate");
+	if (!output) {
 		return NULL;
 	}
 	

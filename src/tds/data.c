@@ -606,8 +606,7 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			TDS_ZERO_FREE(v->data);
 		v->data_len = sizeof(TDS_NUMERIC);
 		num = tds_new0(TDS_NUMERIC, 1);
-		if(!num) {
-			printf("no memory to allocate");
+		if (!num) {
 			return TDS_FAIL;
 		}
 		v->data = (TDS_CHAR *) num;

@@ -522,8 +522,8 @@ print_results(DBPROCESS *dbproc)
 				bylist = dbbylist(dbproc, c+1, &nby);
 
 				bynames = strdup("by (");
-				if(!bynames) {
-					printf("no memory to allocate");
+				if (!bynames) {
+					printf("out of memory");
 					exit(1);
 				}
 				for (iby=0; iby < nby; iby++) {

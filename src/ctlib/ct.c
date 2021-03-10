@@ -372,16 +372,14 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 		case CS_SEC_SERVERPRINCIPAL:
 			if (buflen == CS_NULLTERM) {
 				set_buffer = strdup((char *) buffer);
-				if(!set_buffer) {
-					printf("no memory to allocate");
+				if (!set_buffer) {
 					return CS_FAIL;
 				}
 			} else if (buflen == CS_UNUSED) {
 				return CS_SUCCEED;
 			} else {
 				set_buffer = tds_strndup(buffer, buflen);
-				if(!set_buffer) {
-					printf("no memory to allocate");
+				if (!set_buffer) {
 					return CS_FAIL;
 				}
 			}
