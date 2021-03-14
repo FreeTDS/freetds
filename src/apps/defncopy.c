@@ -95,27 +95,27 @@ int getopt(int argc, const char *argv[], char *optstring);
 
 #ifndef MicrosoftsDbLib
 static int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
-static int msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, 
+static int msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext,
 		char *srvname, char *procname, int line);
 #else
 static int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, const char dberrstr[], const char oserrstr[]);
-static int msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, const char msgtext[], 
+static int msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, const char msgtext[],
 		const char srvname[], const char procname[], unsigned short int line);
 #endif /* MicrosoftsDbLib */
 
-typedef struct _options 
-{ 
+typedef struct _options
+{
 	int 	optind;
-	char 	*servername, 
-		*database, 
-		*appname, 
-		 hostname[128], 
-		*input_filename, 
-		*output_filename; 
+	char 	*servername,
+		*database,
+		*appname,
+		 hostname[128],
+		*input_filename,
+		*output_filename;
 } OPTIONS;
 
 typedef struct _procedure
-{ 
+{
 	char 	 name[512], owner[512];
 } PROCEDURE;
 
@@ -133,9 +133,9 @@ static char use_statement[512];
 
 
 /**
- * The purpose of this program is to load or extract the text of a stored procedure.  
- * This first cut does extract only.  
- * TODO: support loading procedures onto the server.  
+ * The purpose of this program is to load or extract the text of a stored procedure.
+ * This first cut does extract only.
+ * TODO: support loading procedures onto the server.
  */
 int
 main(int argc, char *argv[])
@@ -155,16 +155,16 @@ main(int argc, char *argv[])
 
 	/* Initialize db-lib */
 #if _WIN32 && defined(MicrosoftsDbLib)
-	LPCSTR msg = dbinit();	
+	LPCSTR msg = dbinit();
 	if (msg == NULL) {
-#else 
-	erc = dbinit();	
+#else
+	erc = dbinit();
 	if (erc == FAIL) {
 #endif /* MicrosoftsDbLib */
 		fprintf(stderr, "%s:%d: dbinit() failed\n", options.appname, __LINE__);
 		exit(1);
 	}
-	
+
 
 	memset(&options, 0, sizeof(options));
 	login = get_login(argc, argv, &options); /* get command-line parameters and call dblogin() */
@@ -174,8 +174,8 @@ main(int argc, char *argv[])
 	dberrhandle(err_handler);
 	dbmsghandle(msg_handler);
 
-	/* 
-	 * Override stdin, stdout, and stderr, as required 
+	/*
+	 * Override stdin, stdout, and stderr, as required
 	 */
 	if (options.input_filename) {
 		if (freopen(options.input_filename, "rb", stdin) == NULL) {
@@ -190,13 +190,13 @@ main(int argc, char *argv[])
 			exit(1);
 		}
 	}
-	
+
 	/* Select the specified database, if any */
 	if (options.database)
 		DBSETLDBNAME(login, options.database);
 
-	/* 
-	 * Connect to the server 
+	/*
+	 * Connect to the server
 	 */
 	dbproc = dbopen(login, options.servername);
 	if (!dbproc) {
@@ -204,8 +204,8 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	/* 
-	 * Read the procedure names and move their texts.  
+	/*
+	 * Read the procedure names and move their texts.
 	 */
 	for (i=options.optind; i < argc; i++) {
 #ifndef MicrosoftsDbLib
@@ -235,7 +235,7 @@ main(int argc, char *argv[])
 			fprintf(stderr, "%s:%d: dbsqlsend() failed\n", options.appname, __LINE__);
 			exit(1);
 		}
-		
+
 		/* Wait for it to execute */
 		erc = dbsqlok(dbproc);
 		if (erc == FAIL) {
@@ -245,7 +245,7 @@ main(int argc, char *argv[])
 
 		/* Write the output */
 		nrows = print_results(dbproc);
-		
+
 		if (0 == nrows) {
 			erc = dbfcmd(dbproc, query_table, procedure.owner, procedure.name);
 			assert(SUCCEED == erc);
@@ -261,7 +261,7 @@ main(int argc, char *argv[])
 		case -1:
 			return 1;
 		case 0:
-			fprintf(stderr, "%s: error: %s.%s.%s.%s not found\n", options.appname, 
+			fprintf(stderr, "%s: error: %s.%s.%s.%s not found\n", options.appname,
 					options.servername, options.database, procedure.owner, procedure.name);
 			return 2;
 		default:
@@ -276,7 +276,7 @@ static void
 parse_argument(const char argument[], PROCEDURE* procedure)
 {
 	const char *s = strchr(argument, '.');
-	
+
 	if (s) {
 		size_t len = s - argument;
 		if (len > sizeof(procedure->owner) - 1)
@@ -295,15 +295,15 @@ static char *
 rtrim(char * s)
 {
 	char *p = strchr(s, ' ');
-	if (p) 
+	if (p)
 		*p = '\0';
 	return s;
 }
 
 /*
- * Get the table information from sp_help, because it's easier to get the index information (eventually).  
- * The column descriptions are in resultset #2, which is where we start.  
- * As shown below, sp_help returns different columns for resultset #2, so we build a map. 
+ * Get the table information from sp_help, because it's easier to get the index information (eventually).
+ * The column descriptions are in resultset #2, which is where we start.
+ * As shown below, sp_help returns different columns for resultset #2, so we build a map.
  * 	    Sybase 	   	   Microsoft
  *	    -----------------      ----------------
  *	 1. Column_name            Column_name
@@ -316,13 +316,13 @@ rtrim(char * s)
  *	 8. Default_name	   TrimTrail
  *	 9. Rule_name              FixedLenNullIn
  *	10. Access_Rule_name       Collation
- *	11. Identity	
+ *	11. Identity
  */
 static int
-print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure) 
+print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 {
  	struct DDL { char *name, *type, *length, *precision, *scale, *nullable; } *ddl = NULL;
-	static int microsoft_colmap[6] = {1,2,  4,5,6,7}, 
+	static int microsoft_colmap[6] = {1,2,  4,5,6,7},
 		      sybase_colmap[6] = {1,2,3,4,5,6  };
 	int *colmap = NULL;
 
@@ -331,9 +331,9 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 	int row_code, iresultset, i, ret;
 	int maxnamelen = 0, nrows = 0;
 	char **p_str;
-	
+
 	create_index = tmpfile();
-	
+
 	assert(dbproc);
 	assert(procedure);
 	assert(create_index);
@@ -349,14 +349,14 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 		while ((row_code = dbnextrow(dbproc)) != NO_MORE_ROWS) {
 			struct DDL *p;
 			char **coldesc[sizeof(struct DDL)/sizeof(char*)];	/* an array of pointers to the DDL elements */
-			
+
 			assert(row_code == REG_ROW);
-			
+
 			/* Look for index data */
 			if (0 == strcmp("index_name", dbcolname(dbproc, 1))) {
 				char *index_name, *index_description, *index_keys, *p, fprimary=0;
 				DBINT datlen;
-				
+
 				assert(dbnumcols(dbproc) >=3 );	/* column had better be in range */
 
 				/* name */
@@ -364,19 +364,19 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 				index_name = (char *) calloc(1, 1 + datlen);
 				assert(index_name);
 				memcpy(index_name, dbdata(dbproc, 1), datlen);
-				
+
 				/* kind */
 				datlen = dbdatlen(dbproc, 2);
 				index_description = (char *) calloc(1, 1 + datlen);
 				assert(index_description);
 				memcpy(index_description, dbdata(dbproc, 2), datlen);
-				
+
 				/* columns */
 				datlen = dbdatlen(dbproc, 3);
 				index_keys = (char *) calloc(1, 1 + datlen);
 				assert(index_keys);
 				memcpy(index_keys, dbdata(dbproc, 3), datlen);
-				
+
 				/* fix up the index attributes; we're going to use the string verbatim (almost). */
 				p = strstr(index_description, "located");
 				if (p) {
@@ -387,7 +387,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 				if (p) {
 					fprimary = 1;
 					*p = '\0'; /* we don't care where it's located */
-					if ((p = strchr(index_description, ',')) != NULL) 
+					if ((p = strchr(index_description, ',')) != NULL)
 						*p = '\0'; /* we use only the first term (clustered/nonclustered) */
 				} else {
 					/* reorder "unique" and "clustered" */
@@ -395,7 +395,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 					char *pclustering = nonclustered;
 					if (NULL == strstr(index_description, pclustering)) {
 						pclustering += 3;
-						if (NULL == strstr(index_description, pclustering)) 
+						if (NULL == strstr(index_description, pclustering))
 							*pclustering = '\0';
 					}
 					if (NULL == strstr(index_description, unique))
@@ -404,27 +404,27 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 				}
 				/* Put it to a temporary file; we'll print it after the CREATE TABLE statement. */
 				if (fprimary) {
-					fprintf(create_index, "ALTER TABLE %s.%s ADD CONSTRAINT %s PRIMARY KEY %s (%s)\nGO\n\n", 
-						procedure->owner, procedure->name, index_name, index_description, index_keys); 
+					fprintf(create_index, "ALTER TABLE %s.%s ADD CONSTRAINT %s PRIMARY KEY %s (%s)\nGO\n\n",
+						procedure->owner, procedure->name, index_name, index_description, index_keys);
 				} else {
-					fprintf(create_index, "CREATE %s INDEX %s on %s.%s(%s)\nGO\n\n", 
+					fprintf(create_index, "CREATE %s INDEX %s on %s.%s(%s)\nGO\n\n",
 						index_description, index_name, procedure->owner, procedure->name, index_keys);
 				}
-					
+
 				free(index_name);
 				free(index_description);
 				free(index_keys);
-				
+
 				continue;
 			}
-			
+
 			/* skip other resultsets that don't describe the table's columns */
 			if (0 != strcmp("Column_name", dbcolname(dbproc, 1)))
 				continue;
-				
+
 			/* Infer which columns we need from their names */
 			colmap = (0 == strcmp("Computed", dbcolname(dbproc, 3)))? microsoft_colmap : sybase_colmap;
-				
+
 			/* Make room for the next row */
 			p = (struct DDL *) realloc(ddl, ++nrows * sizeof(struct DDL));
 			if (p == NULL) {
@@ -459,9 +459,9 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 					exit(1);
 				}
 				memcpy(*coldesc[i], dbdata(dbproc, colmap[i]), datlen);
-				
-				/* 
-				 * maxnamelen will determine how much room we allow for column names 
+
+				/*
+				 * maxnamelen will determine how much room we allow for column names
 				 * in the CREATE TABLE statement
 				 */
 				if (i == 0)
@@ -471,25 +471,25 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 	}
 
 	/*
-	 * We've collected the description for the columns in the 'ddl' array.  
-	 * Now we'll print the CREATE TABLE statement in jkl's preferred format.  
+	 * We've collected the description for the columns in the 'ddl' array.
+	 * Now we'll print the CREATE TABLE statement in jkl's preferred format.
 	 */
 	if (nrows == 0)
 		goto cleanup;
 
 	printf("%sCREATE TABLE %s.%s\n", use_statement, procedure->owner, procedure->name);
 	for (i=0; i < nrows; i++) {
-		static const char *varytypenames[] =    { "char"  		
-							, "nchar"  		
-							, "varchar"  		
-							, "nvarchar"  		
-							, "text"  		
-							, "ntext"  		
-							, "unichar"  		
-							, "univarchar"  		
-							, "binary"  		
-							, "varbinary"  		
-							, "image"  		
+		static const char *varytypenames[] =    { "char"
+							, "nchar"
+							, "varchar"
+							, "nvarchar"
+							, "text"
+							, "ntext"
+							, "unichar"
+							, "univarchar"
+							, "binary"
+							, "varbinary"
+							, "image"
 							, NULL
 							};
 		const char **t;
@@ -514,19 +514,19 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 		}
 		assert(ret >= 0);
 
-		if (colmap == sybase_colmap) 
+		if (colmap == sybase_colmap)
 			is_null = *(int*)ddl[i].nullable == 1;
-		else 
+		else
 			is_null = (0 == strcasecmp("1", ddl[i].nullable) || 0 == strcasecmp("yes", ddl[i].nullable));
-			
+
 		/*      {(|,} name type [NOT] NULL */
-		printf("\t%c %-*s %-15s %3s NULL\n", (i==0? '(' : ','), maxnamelen, ddl[i].name, 
+		printf("\t%c %-*s %-15s %3s NULL\n", (i==0? '(' : ','), maxnamelen, ddl[i].name,
 						(type? type : ddl[i].type), (is_null? "" : "NOT"));
 
 		free(type);
 	}
 	printf("\t)\nGO\n\n");
-	
+
 	/* print the CREATE INDEX statements */
 	rewind(create_index);
 	while ((i = fgetc(create_index)) != EOF) {
@@ -543,22 +543,22 @@ cleanup:
 }
 
 static int /* return count of SQL text rows */
-print_results(DBPROCESS *dbproc) 
+print_results(DBPROCESS *dbproc)
 {
 	RETCODE erc;
 	int row_code;
 	int iresultset;
 	int nrows=0;
 	int prior_procedure_number=1;
-	
+
 	/* bound variables */
 	enum column_id { ctext=1, number=2 };
 	char sql_text[16002];
 	int	 sql_text_status;
 	int	 procedure_number; /* for create proc abc;2 */
 	int	 procedure_number_status;
-	
-	/* 
+
+	/*
 	 * Set up each result set with dbresults()
 	 */
 	for (iresultset=1; (erc = dbresults(dbproc)) != NO_MORE_RESULTS; iresultset++) {
@@ -571,8 +571,8 @@ print_results(DBPROCESS *dbproc)
 			return 0;
 		}
 
-		/* 
-		 * Bind the columns to our variables.  
+		/*
+		 * Bind the columns to our variables.
 		 */
 		if (sizeof(sql_text) <= dbcollen(dbproc, ctext) ) {
 			assert(sizeof(sql_text) > dbcollen(dbproc, ctext));
@@ -600,14 +600,14 @@ print_results(DBPROCESS *dbproc)
 			return -1;
 		}
 
-		/* 
-		 * Print the data to stdout.  
+		/*
+		 * Print the data to stdout.
 		 */
 		printf("%s", use_statement);
 		for (;(row_code = dbnextrow(dbproc)) != NO_MORE_ROWS; nrows++, prior_procedure_number = procedure_number) {
 			switch (row_code) {
 			case REG_ROW:
-				if ( -1 == sql_text_status) { 
+				if ( -1 == sql_text_status) {
 					fprintf(stderr, "defncopy: error: unexpected NULL row in SQL text\n");
 				} else {
 					if (prior_procedure_number != procedure_number)
@@ -657,7 +657,7 @@ Usage: defncopy
     { in <file_name> <database_name> |
       out <file_name> <database_name> [<owner>.]<object_name>
           [[<owner>.]<object_name>...] }
-**/	
+**/
 }
 
 static LOGINREC *
@@ -672,18 +672,18 @@ get_login(int argc, char *argv[], OPTIONS *options)
 	extern int optind;
 
 	assert(options && argv);
-	
+
 	options->appname = basename(argv[0]);
-	
+
 	login = dblogin();
-	
+
 	if (!login) {
 		fprintf(stderr, "%s: unable to allocate login structure\n", options->appname);
 		exit(1);
 	}
-	
+
 	DBSETLAPP(login, options->appname);
-	
+
 	if (-1 != gethostname(options->hostname, sizeof(options->hostname))) {
 		DBSETLHOST(login, options->hostname);
 	}
@@ -743,7 +743,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 	}
 
 	options->optind = optind;
-	
+
 	return login;
 }
 
@@ -772,11 +772,11 @@ static int
 #ifndef MicrosoftsDbLib
 msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line)
 #else
-msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, const char msgtext[], 
+msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, const char msgtext[],
 		const char srvname[], const char procname[], unsigned short int line)
 #endif /* MicrosoftsDbLib */
 {
-	char *dbname, *endquote; 
+	char *dbname, *endquote;
 
 	switch (msgno) {
 	case 5701: /* Print "USE dbname" for "Changed database context to 'dbname'" */
@@ -788,12 +788,12 @@ msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, const c
 			break;
 		*endquote = '\0';
 		sprintf(use_statement, "USE %s\nGO\n\n", dbname);
-		return 0;		
+		return 0;
 
 	case 0:	/* Ignore print messages */
 	case 5703:	/* Ignore "Changed language setting to <language>". */
-		return 0;		
-		
+		return 0;
+
 	default:
 		break;
 	}
