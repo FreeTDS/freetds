@@ -275,8 +275,8 @@ odbc_connect(void)
 		char *params;
 		SQLSMALLINT len;
 
-		asprintf(&params, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;%s",
-			 odbc_server, odbc_user, odbc_password, odbc_database, odbc_conn_additional_params);
+		assert(asprintf(&params, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;%s",
+				odbc_server, odbc_user, odbc_password, odbc_database, odbc_conn_additional_params) >= 0);
 		assert(params);
 		CHKDriverConnect(NULL, T(params), SQL_NTS, (SQLTCHAR *) command, sizeof(command)/sizeof(SQLTCHAR),
 				 &len, SQL_DRIVER_NOPROMPT, "SI");
@@ -753,7 +753,7 @@ odbc_buf_asprintf(ODBC_BUF** buf, const char *fmt, ...)
 	char *ret = NULL;
 
 	va_start(ap, fmt);
-	vasprintf(&ret, fmt, ap);
+	assert(vasprintf(&ret, fmt, ap) >= 0);
 	va_end(ap);
 
 	return (char *) odbc_buf_add(buf, ret);
