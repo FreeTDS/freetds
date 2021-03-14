@@ -554,13 +554,10 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 							, "nchar"
 							, "varchar"
 							, "nvarchar"
-							, "text"
-							, "ntext"
 							, "unichar"
 							, "univarchar"
 							, "binary"
 							, "varbinary"
-							, "image"
 							, NULL
 							};
 		const char **t;
