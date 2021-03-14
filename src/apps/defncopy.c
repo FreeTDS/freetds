@@ -92,6 +92,8 @@ int getopt(int argc, const char *argv[], char *optstring);
 
 #include <freetds/sysdep_private.h>
 #include <freetds/utils.h>
+#include <freetds/bool.h>
+#include <freetds/macros.h>
 
 #ifndef MicrosoftsDbLib
 static int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -124,7 +126,8 @@ static int print_results(DBPROCESS *dbproc);
 static LOGINREC* get_login(int argc, char *argv[], OPTIONS *poptions);
 static void parse_argument(const char argument[], PROCEDURE* procedure);
 static void usage(const char invoked_as[]);
-static char * rtrim(char * s);
+static char *rtrim(char *s);
+static char *ltrim(char *s);
 
 /* global variables */
 static OPTIONS options;
@@ -292,13 +295,40 @@ parse_argument(const char argument[], PROCEDURE* procedure)
 }
 
 static char *
-rtrim(char * s)
+rtrim(char *s)
 {
 	char *p = strchr(s, '\0');
 
 	while (--p >= s && *p == ' ')
-		*p = '\0';
+		;
+	*(p + 1) = '\0';
+
 	return s;
+}
+
+static char *
+ltrim(char *s)
+{
+	char *p = s;
+
+	while (*p == ' ')
+		++p;
+	memmove(s, p, strlen(p) + 1);
+
+	return s;
+}
+
+static bool
+is_in(const char *item, const char *list)
+{
+	for (;;) {
+		size_t len = strlen(list);
+		if (len == 0)
+			return false;
+		if (strcasecmp(item, list) == 0)
+			return true;
+		list += len + 1;
+	}
 }
 
 /*
@@ -323,9 +353,15 @@ static int
 print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 {
  	struct DDL { char *name, *type, *length, *precision, *scale, *nullable; } *ddl = NULL;
-	static int microsoft_colmap[6] = {1,2,  4,5,6,7},
-		      sybase_colmap[6] = {1,2,3,4,5,6  };
-	int *colmap = NULL;
+	static const char *const colmap_names[6] = {
+		"column_name\0",
+		"type\0",
+		"length\0",
+		"prec\0",
+		"scale\0",
+		"nulls\0nullable\0",
+	};
+	int colmap[TDS_VECTOR_SIZE(colmap_names)];
 
 	FILE *create_index;
 	RETCODE erc;
@@ -420,11 +456,29 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 			}
 
 			/* skip other resultsets that don't describe the table's columns */
-			if (0 != strcmp("Column_name", dbcolname(dbproc, 1)))
+			if (0 != strcasecmp("Column_name", dbcolname(dbproc, 1)))
 				continue;
 
-			/* Infer which columns we need from their names */
-			colmap = (0 == strcmp("Computed", dbcolname(dbproc, 3)))? microsoft_colmap : sybase_colmap;
+			/* Find the columns we need */
+			for (i = 0; i < TDS_VECTOR_SIZE(colmap); ++i)
+				colmap[i] = -1;
+			for (i = 1; i <= dbnumcols(dbproc); ++i) {
+				const char *name = dbcolname(dbproc, i);
+				int j;
+
+				for (j = 0; j < TDS_VECTOR_SIZE(colmap); ++j) {
+					if (is_in(name, colmap_names[j])) {
+						colmap[j] = i;
+						break;
+					}
+				}
+			}
+			for (i = 0; i < TDS_VECTOR_SIZE(colmap); ++i) {
+				if (colmap[i] == -1) {
+					fprintf(stderr, "Expected column name %s not found\n", colmap_names[i]);
+					exit(1);
+				}
+			}
 
 			/* Make room for the next row */
 			p = (struct DDL *) realloc(ddl, ++nrows * sizeof(struct DDL));
@@ -444,7 +498,9 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 			coldesc[5] = &ddl[nrows-1].nullable;
 
 			for( i=0; i < sizeof(struct DDL)/sizeof(char*); i++) {
-				DBINT datlen = dbdatlen(dbproc, colmap[i]);
+				const int col_index = colmap[i];
+				const DBINT datlen = dbdatlen(dbproc, col_index);
+				const int type = dbcoltype(dbproc, col_index);
 
 				assert(datlen >= 0);	/* column had better be in range */
 
@@ -453,13 +509,27 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 					continue;
 				}
 
-				*coldesc[i] = (char *) calloc(1, 1 + datlen); /* calloc will null terminate */
-				if( *coldesc[i] == NULL ) {
-					perror("error: insufficient memory for row detail");
-					assert(*coldesc[i] != NULL);
-					exit(1);
+				if (type == SYBCHAR || type == SYBVARCHAR) {
+					*coldesc[i] = (char *) calloc(1, 1 + datlen); /* calloc will null terminate */
+					if (!*coldesc[i]) {
+						perror("error: insufficient memory for row detail");
+						exit(1);
+					}
+					memcpy(*coldesc[i], dbdata(dbproc, col_index), datlen);
+				} else {
+					char buf[256];
+					DBINT len = dbconvert(dbproc, type, dbdata(dbproc, col_index), datlen,
+						SYBVARCHAR, (BYTE *) buf, -1);
+					if (len < 0) {
+						fprintf(stderr, "Error converting column to char");
+						exit(1);
+					}
+					*coldesc[i] = strdup(buf);
+					if (!*coldesc[i]) {
+						perror("error: insufficient memory for row detail");
+						exit(1);
+					}
 				}
-				memcpy(*coldesc[i], dbdata(dbproc, colmap[i]), datlen);
 
 				/*
 				 * maxnamelen will determine how much room we allow for column names
@@ -508,17 +578,15 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 		} else {
 			for (t = varytypenames; *t; t++) {
 				if (0 == strcasecmp(*t, ddl[i].type)) {
-					ret = asprintf(&type, "%s(%d)", ddl[i].type, *(int*)ddl[i].length);
+					ltrim(rtrim(ddl[i].length));
+					ret = asprintf(&type, "%s(%s)", ddl[i].type, ddl[i].length);
 					break;
 				}
 			}
 		}
 		assert(ret >= 0);
 
-		if (colmap == sybase_colmap)
-			is_null = *(int*)ddl[i].nullable == 1;
-		else
-			is_null = (0 == strcasecmp("1", ddl[i].nullable) || 0 == strcasecmp("yes", ddl[i].nullable));
+		is_null = (0 == strcasecmp("1", ddl[i].nullable) || 0 == strcasecmp("yes", ddl[i].nullable));
 
 		/*      {(|,} name type [NOT] NULL */
 		printf("\t%c %-*s %-15s %3s NULL\n", (i==0? '(' : ','), maxnamelen, ddl[i].name,
