@@ -294,8 +294,9 @@ parse_argument(const char argument[], PROCEDURE* procedure)
 static char *
 rtrim(char * s)
 {
-	char *p = strchr(s, ' ');
-	if (p)
+	char *p = strchr(s, '\0');
+
+	while (--p >= s && *p == ' ')
 		*p = '\0';
 	return s;
 }
