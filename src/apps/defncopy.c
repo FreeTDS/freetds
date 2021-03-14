@@ -583,7 +583,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 		}
 		assert(ret >= 0);
 
-		is_null = (0 == strcasecmp("1", ddl[i].nullable) || 0 == strcasecmp("yes", ddl[i].nullable));
+		is_null = is_in(ddl[i].nullable, "1\0yes\0");
 
 		/*      {(|,} name type [NOT] NULL */
 		printf("\t%c %-*s %-15s %3s NULL\n", (i==0? '(' : ','), maxnamelen, ddl[i].name,
