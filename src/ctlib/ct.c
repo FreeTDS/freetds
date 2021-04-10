@@ -1992,9 +1992,8 @@ _ct_get_client_type(const TDSCOLUMN *col, bool describe)
 	if (type == SYBVARIANT)
 		type = ((const TDSVARIANT *) col->column_data)->type;
 
-	switch (type) {
+	switch (tds_get_conversion_type(type, col->column_size)) {
 	case SYBBIT:
-	case SYBBITN:
 		return CS_BIT_TYPE;
 		break;
 	case SYBCHAR:
@@ -2013,33 +2012,11 @@ _ct_get_client_type(const TDSCOLUMN *col, bool describe)
 	case SYBINT1:
 		return CS_TINYINT_TYPE;
 		break;
-	case SYBINTN:
-		switch (col->column_size) {
-		case 8:
-			return CS_BIGINT_TYPE;
-		case 4:
-			return CS_INT_TYPE;
-		case 2:
-			return CS_SMALLINT_TYPE;
-		case 1:
-			return CS_TINYINT_TYPE;
-		default:
-			fprintf(stderr, "Unknown size %d for SYBINTN\n", col->column_size);
-		}
-		break;
 	case SYBREAL:
 		return CS_REAL_TYPE;
 		break;
 	case SYBFLT8:
 		return CS_FLOAT_TYPE;
-		break;
-	case SYBFLTN:
-		if (col->column_size == 4) {
-			return CS_REAL_TYPE;
-		} else if (col->column_size == 8) {
-			return CS_FLOAT_TYPE;
-		}
-		fprintf(stderr, "Error! unknown float size of %d\n", col->column_size);
 		break;
 	case SYBMONEY:
 		return CS_MONEY_TYPE;
@@ -2047,27 +2024,11 @@ _ct_get_client_type(const TDSCOLUMN *col, bool describe)
 	case SYBMONEY4:
 		return CS_MONEY4_TYPE;
 		break;
-	case SYBMONEYN:
-		if (col->column_size == 4) {
-			return CS_MONEY4_TYPE;
-		} else if (col->column_size == 8) {
-			return CS_MONEY_TYPE;
-		}
-		fprintf(stderr, "Error! unknown money size of %d\n", col->column_size);
-		break;
 	case SYBDATETIME:
 		return CS_DATETIME_TYPE;
 		break;
 	case SYBDATETIME4:
 		return CS_DATETIME4_TYPE;
-		break;
-	case SYBDATETIMN:
-		if (col->column_size == 4) {
-			return CS_DATETIME4_TYPE;
-		} else if (col->column_size == 8) {
-			return CS_DATETIME_TYPE;
-		}
-		fprintf(stderr, "Error! unknown date size of %d\n", col->column_size);
 		break;
 	case SYBNUMERIC:
 		return CS_NUMERIC_TYPE;
