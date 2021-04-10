@@ -72,6 +72,8 @@ main(int argc, char **argv)
 	TDSSOCKET *tds;
 	CS_RETCODE ret;
 
+	tdsdump_open(getenv("TDSDUMP"));
+
 	ret = cs_ctx_alloc(CS_VERSION_100, &ctx);
 	assert(ret == CS_SUCCEED);
 
