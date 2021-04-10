@@ -95,6 +95,7 @@ void tds_all_types(TDSSOCKET *tds, tds_any_type_t *func)
 			*types++ = SYBUINT2;
 			*types++ = SYBUINT4;
 			*types++ = SYBUINT8;
+			tds->conn->tds_version = TDSVER_SYB;
 			break;
 		case SYBFLTN:
 			*types++ = SYBREAL;
@@ -110,9 +111,11 @@ void tds_all_types(TDSSOCKET *tds, tds_any_type_t *func)
 			break;
 		case SYBDATEN:
 			*types++ = SYBDATE;
+			tds->conn->tds_version = TDSVER_SYB;
 			break;
 		case SYBTIMEN:
 			*types++ = SYBTIME;
+			tds->conn->tds_version = TDSVER_SYB;
 			break;
 		case SYB5INT8:
 			*types++ = SYBINT8;
@@ -138,6 +141,8 @@ void tds_all_types(TDSSOCKET *tds, tds_any_type_t *func)
 		types_end = types;
 		for (types = types_buffer; types != types_end; ++types) {
 			create_type(tds, *types, server_type, func);
+			if (*types != server_type)
+				create_type(tds, *types, *types, func);
 		}
 	}
 }
@@ -256,8 +261,6 @@ static void create_type(TDSSOCKET *tds, int desttype, int server_type, tds_any_t
 	assert(curcol);
 
 	tds_set_column_type(tds->conn, curcol, server_type);
-	if (server_type != desttype)
-		curcol->column_type = desttype;
 	curcol->on_server.column_size = curcol->column_size = curcol->column_cur_size = result;
 	if (is_numeric_type(desttype)) {
 		curcol->column_prec = cr.n.precision;
