@@ -1980,16 +1980,19 @@ int
 _ct_get_client_type(const TDSCOLUMN *col, bool describe)
 {
 	TDS_SERVER_TYPE type = col->column_type;
+	TDS_INT size = col->column_size;
 
-	tdsdump_log(TDS_DBG_FUNC, "_ct_get_client_type(type %d, user %d, size %d)\n", type, col->column_usertype, col->column_size);
+	tdsdump_log(TDS_DBG_FUNC, "_ct_get_client_type(type %d, user %d, size %d)\n", type, col->column_usertype, size);
 
 	if (type == SYBVARIANT && describe)
 		return CS_CHAR_TYPE;
 
-	if (type == SYBVARIANT)
+	if (type == SYBVARIANT) {
 		type = ((const TDSVARIANT *) col->column_data)->type;
+		size = ((const TDSVARIANT *) col->column_data)->size;
+	}
 
-	switch (tds_get_conversion_type(type, col->column_size)) {
+	switch (tds_get_conversion_type(type, size)) {
 	case SYBBIT:
 		return CS_BIT_TYPE;
 		break;
