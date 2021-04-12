@@ -81,9 +81,6 @@ include(CheckPrototypeDefinition)
 
 find_package(Perl)
 find_program(GPERF NAMES gperf)
-if (NOT GPERF)
-    message(FATAL_ERROR "gperf not found!")
-endif()
 
 macro(config_write str)
 	file(APPEND "${CMAKE_BINARY_DIR}/include/config.h.in" "${str}")

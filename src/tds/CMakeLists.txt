@@ -1,6 +1,9 @@
 add_subdirectory(unittests)
 
 if(PERL_FOUND AND NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tds_willconvert.h")
+	if (NOT GPERF)
+	    message(FATAL_ERROR "gperf not found!")
+	endif()
 	# get name of null device
 	set(NULLNAME "/dev/null")
 	if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
