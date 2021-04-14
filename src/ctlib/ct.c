@@ -496,10 +496,16 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 		case CS_TIMEOUT:
 			/* set the query timeout as an integer in seconds */
 		        tds_login->query_timeout = *(CS_INT *) buffer;
+			if (tds_login->query_timeout == CS_NO_LIMIT)
+				tds_login->query_timeout = 0;
+			if (tds)
+				tds->query_timeout = tds_login->query_timeout;
 			break;
 		case CS_LOGIN_TIMEOUT:
 			/* set the connect timeout as an integer in seconds */
 		        tds_login->connect_timeout = *(CS_INT *) buffer;
+			if (tds_login->connect_timeout == CS_NO_LIMIT)
+				tds_login->connect_timeout = 0;
 			break;
 		case CS_SEC_NETWORKAUTH:
 			con->network_auth = !!(*(CS_INT *) buffer);
@@ -627,9 +633,13 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			break;
 		case CS_TIMEOUT:
 		        *(CS_INT *) buffer = tds_login->query_timeout;
+			if (tds_login->query_timeout == 0)
+				*(CS_INT *) buffer = CS_NO_LIMIT;
 			break;
 		case CS_LOGIN_TIMEOUT:
 		        *(CS_INT *) buffer = tds_login->connect_timeout;
+			if (tds_login->connect_timeout == 0)
+				*(CS_INT *) buffer = CS_NO_LIMIT;
 			break;
 		default:
 			tdsdump_log(TDS_DBG_ERROR, "Unknown property %d\n", property);
