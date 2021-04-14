@@ -436,14 +436,10 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		const TDSCONTEXT *old_ctx = tds_get_ctx(tds);
 		typedef void (*env_chg_func_t) (TDSSOCKET * tds, int type, char *oldval, char *newval);
 		env_chg_func_t old_env_chg = tds->env_chg_func;
-		/* the context of a socket is const; we have to modify it to suppress error messages during multiple tries. */
-		TDSCONTEXT *mod_ctx = (TDSCONTEXT *) tds_get_ctx(tds);
-		err_handler_t err_handler = tds_get_ctx(tds)->err_handler;
 
 		init_save_context(&save_ctx, old_ctx);
 		tds_set_ctx(tds, &save_ctx.ctx);
 		tds->env_chg_func = tds_save_env;
-		mod_ctx->err_handler = NULL;
 
 		for (i = 0; i < TDS_VECTOR_SIZE(versions); ++i) {
 			int orig_size = tds->conn->env.block_size;
@@ -463,7 +459,6 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 				break;
 		}
 		
-		mod_ctx->err_handler = err_handler;
 		tds->env_chg_func = old_env_chg;
 		tds_set_ctx(tds, old_ctx);
 		replay_save_context(tds, &save_ctx);
