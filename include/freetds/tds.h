@@ -48,6 +48,11 @@
 #include <sys/socket.h>
 #endif /* HAVE_SYS_SOCKET_H */
 
+#if defined(HAVE_THREADS_H)  &&  !defined(TLS)
+#include <threads.h>
+#define TLS thread_local
+#endif
+
 /* forward declaration */
 typedef struct tdsiconvinfo TDSICONV;
 typedef struct tds_connection TDSCONNECTION;
