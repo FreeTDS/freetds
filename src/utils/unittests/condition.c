@@ -29,7 +29,6 @@
 #include <unistd.h>
 #endif
 
-#include "tds_sysdep_public.h"
 #include <freetds/thread.h>
 #include <freetds/utils.h>
 #include <freetds/macros.h>

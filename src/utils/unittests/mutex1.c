@@ -25,7 +25,6 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
-#include "tds_sysdep_public.h"
 #include <freetds/thread.h>
 #include <freetds/macros.h>
 
