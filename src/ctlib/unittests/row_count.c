@@ -125,34 +125,35 @@ test(int final_rows, int no_rows)
 
 	run_command(cmd, "create table #tmp1 (i int not null)");
 
-	results[0] = 0;
-	strcpy(cmdbuf, "create proc sample_rpc as ");
+	strlcpy(cmdbuf, "create proc sample_rpc as ", sizeof(cmdbuf));
 
-	strcat(results, "CS_ROW_RESULT -1\n");
-	strcat(cmdbuf,  "insert into #tmp1 values(1) "
+	strlcpy(results, "CS_ROW_RESULT -1\n", sizeof(results));
+	strlcat(cmdbuf, "insert into #tmp1 values(1) "
 			"insert into #tmp1 values(2) "
-			"insert into #tmp1 values(3) "
+			"insert into #tmp1 values(3) ", sizeof(cmdbuf)
 	);
 
 	if (no_rows) {
-		strcat(cmdbuf,  "select * from #tmp1 where i > 10 ");
-		strcat(results, "CS_CMD_DONE 0\n");
+		strlcat(cmdbuf,  "select * from #tmp1 where i > 10 ",
+			sizeof(cmdbuf));
+		strlcat(results, "CS_CMD_DONE 0\n", sizeof(results));
 	} else {
-		strcat(cmdbuf,  "select * from #tmp1 ");
-		strcat(results, "CS_CMD_DONE 3\n");
+		strlcat(cmdbuf,  "select * from #tmp1 ", sizeof(cmdbuf));
+		strlcat(results, "CS_CMD_DONE 3\n", sizeof(results));
 	}
 
-	strcat(results, "CS_STATUS_RESULT -1\n");
+	strlcat(results, "CS_STATUS_RESULT -1\n", sizeof(results));
 
 	if (final_rows) {
-		strcat(cmdbuf,  "insert into #tmp1 values(4) "
-				"delete from #tmp1 where i <= 2 "
+		strlcat(cmdbuf,  "insert into #tmp1 values(4) "
+				 "delete from #tmp1 where i <= 2 ",
+			sizeof(cmdbuf)
 		);
-		strcat(results, "CS_CMD_SUCCEED 2\n"
-			        "CS_CMD_DONE 2\n");
+		strlcat(results, "CS_CMD_SUCCEED 2\n"
+			         "CS_CMD_DONE 2\n", sizeof(results));
 	} else {
-		strcat(results, "CS_CMD_SUCCEED -1\n"
-			        "CS_CMD_DONE -1\n");
+		strlcat(results, "CS_CMD_SUCCEED -1\n"
+			        "CS_CMD_DONE -1\n", sizeof(results));
 	}
 
 	printf("testing query:\n----\n%s\n----\n", cmdbuf);
