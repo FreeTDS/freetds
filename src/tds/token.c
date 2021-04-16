@@ -47,7 +47,7 @@
 #include <freetds/alloca.h>
 #include <freetds/encodings.h>
 #include <freetds/enum_cap.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 /** \cond HIDDEN_SYMBOLS */
 #define USE_ICONV (tds->conn->use_iconv)

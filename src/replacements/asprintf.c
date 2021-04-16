@@ -14,7 +14,7 @@
 #endif /* HAVE_STRING_H */
 
 #include <freetds/sysdep_private.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 int
 tds_asprintf(char **ret, const char *fmt, ...)

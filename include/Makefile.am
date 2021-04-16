@@ -22,9 +22,6 @@ nodist_include_HEADERS = tds_sysdep_public.h
 noinst_HEADERS = \
 	ctlib.h \
 	dblib.h \
-	replacements.h \
-	replacements/poll.h \
-	replacements/readpassphrase.h \
 	$(NULL)
 
 DISTCLEANFILES = tds_sysdep_public.h

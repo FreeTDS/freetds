@@ -35,9 +35,10 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#include <freetds/replacements.h>
+
 #include "cspublic.h"
 #include "ctlib.h"
-#include "replacements.h"
 
 #undef cs_dt_crack
 

@@ -54,7 +54,7 @@
 #include <freetds/odbc.h>
 #include <freetds/utils/string.h>
 #include <freetds/convert.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 #include <shlobj.h>
 

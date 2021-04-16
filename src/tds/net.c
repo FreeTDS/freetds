@@ -90,7 +90,7 @@
 #include <freetds/tds.h>
 #include <freetds/utils/string.h>
 #include <freetds/tls.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 #include <signal.h>
 #include <assert.h>

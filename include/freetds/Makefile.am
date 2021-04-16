@@ -32,6 +32,9 @@ noinst_HEADERS = \
 	utils/des.h \
 	utils/md5.h \
 	utils/hmac_md5.h \
+	replacements.h \
+	replacements/poll.h \
+	replacements/readpassphrase.h \
 	$(NULL)
 
 DISTCLEANFILES = sysconfdir.h

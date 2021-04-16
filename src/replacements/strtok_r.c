@@ -14,7 +14,7 @@
 #endif /* HAVE_STRING_H */
 
 #include <freetds/sysdep_private.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 char *
 tds_strtok_r(char *str, const char *sep, char **lasts)

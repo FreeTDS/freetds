@@ -10,7 +10,7 @@
 
 #include <freetds/thread.h>
 #include <freetds/utils.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 #if TDS_HAVE_MUTEX
 

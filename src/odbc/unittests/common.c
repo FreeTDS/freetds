@@ -26,7 +26,7 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 HENV odbc_env;
 HDBC odbc_conn;

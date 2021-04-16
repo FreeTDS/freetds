@@ -33,7 +33,7 @@
 #include <freetds/tls.h>
 #include <freetds/checks.h>
 #include <freetds/utils/string.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 #include <freetds/enum_cap.h>
 #include <freetds/utils.h>
 

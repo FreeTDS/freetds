@@ -52,7 +52,7 @@
 #include "tds_sysdep_public.h"
 #include <sql.h>
 #include <sqlext.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 #include <freetds/sysdep_private.h>
 

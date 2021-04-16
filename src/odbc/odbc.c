@@ -40,7 +40,7 @@
 #include <freetds/utils/string.h>
 #include <freetds/convert.h>
 #include <freetds/encodings.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 #include "sqlwparams.h"
 
 /* Include odbcss.h with all bcp functions */

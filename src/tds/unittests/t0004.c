@@ -17,7 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 #include "common.h"
-#include <replacements.h>
+#include <freetds/replacements.h>
 
 static char *
 varchar_as_string(TDSSOCKET * tds, int col_idx)

@@ -24,7 +24,7 @@
 #endif /* HAVE_STRING_H */
 
 #include <freetds/sysdep_private.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 #if ! HAVE_BASENAME
 

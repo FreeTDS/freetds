@@ -29,7 +29,7 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 static void
 test(const char *s, const char *sep)

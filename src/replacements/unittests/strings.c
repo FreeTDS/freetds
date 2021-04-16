@@ -28,7 +28,7 @@
 
 #include <assert.h>
 
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 /* If the system supplies these, we're going to simulate the situation
  * where it doesn't so we're always testing our own versions.

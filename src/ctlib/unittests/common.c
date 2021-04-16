@@ -15,7 +15,7 @@
 #endif
 
 #ifndef DBNTWIN32
-#include "replacements.h"
+#include <freetds/replacements.h>
 #endif
 
 #include <ctpublic.h>

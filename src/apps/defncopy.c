@@ -82,11 +82,11 @@ int getopt(int argc, const char *argv[], char *optstring);
 #include <sybfront.h>
 #include <sybdb.h>
 #ifndef MicrosoftsDbLib
-#include "replacements.h"
+#include <freetds/replacements.h>
 #else
 
 #ifndef _WIN32
-# include "replacements.h"
+# include <freetds/replacements.h>
 #endif
 #endif /* MicrosoftsDbLib */
 

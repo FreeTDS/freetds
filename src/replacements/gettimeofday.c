@@ -25,7 +25,7 @@
 #include <errno.h>
 #endif
 
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 /*
  * Number of micro-seconds between the beginning of the Windows epoch

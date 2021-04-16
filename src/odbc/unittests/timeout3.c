@@ -28,7 +28,7 @@
 
 #include <freetds/tds.h>
 #include <freetds/thread.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 #if TDS_HAVE_MUTEX
 

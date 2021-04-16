@@ -52,7 +52,7 @@
 #endif /* HAVE_ARPA_INET_H */
 
 #include "pool.h"
-#include "replacements.h"
+#include <freetds/replacements.h>
 #include <freetds/utils/string.h>
 
 #ifndef MAXHOSTNAMELEN

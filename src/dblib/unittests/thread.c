@@ -11,7 +11,7 @@
 #include <unistd.h>
 #endif
 
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 #ifdef TDS_HAVE_MUTEX
 

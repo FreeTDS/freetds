@@ -46,7 +46,7 @@
 #include <freetds/bytes.h>
 #include <freetds/utils/string.h>
 #include <freetds/encodings.h>
-#include <replacements.h>
+#include <freetds/replacements.h>
 #include <sybfront.h>
 #include <sybdb.h>
 #include <syberror.h>

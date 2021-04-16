@@ -24,7 +24,7 @@
 #endif /* HAVE_STRING_H */
 
 #include <freetds/sysdep_private.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 size_t 
 tds_strlcat(char *dest, const char *src, size_t len)

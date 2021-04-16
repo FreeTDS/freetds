@@ -33,7 +33,7 @@
 #include <freetds/thread.h>
 #include <freetds/utils.h>
 #include <freetds/macros.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 #if !defined(TDS_NO_THREADSAFE)
 

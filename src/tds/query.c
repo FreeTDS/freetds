@@ -41,7 +41,7 @@
 #include <freetds/checks.h>
 #include <freetds/stream.h>
 #include <freetds/bytes.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 #include <assert.h>
 

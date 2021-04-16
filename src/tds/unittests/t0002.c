@@ -19,7 +19,7 @@
 #include "common.h"
 
 #include <freetds/utils/string.h>
-#include <replacements.h>
+#include <freetds/replacements.h>
 
 static char *
 value_as_string(TDSSOCKET * tds, int col_idx)

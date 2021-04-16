@@ -38,7 +38,7 @@
 
 #include <freetds/tds.h>
 #include <freetds/configs.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 static void tds_parse_locale(const char *option, const char *value, void *param);
 

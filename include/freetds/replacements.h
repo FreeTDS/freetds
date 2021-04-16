@@ -24,7 +24,7 @@
 #include "tds_sysdep_public.h"
 #include <freetds/sysdep_private.h>
 
-#include <replacements/readpassphrase.h>
+#include <freetds/replacements/readpassphrase.h>
 
 /* these headers are needed for basename */
 #ifdef HAVE_STRING_H
@@ -38,7 +38,7 @@
 #endif
 
 #if !HAVE_POLL
-#include <replacements/poll.h>
+#include <freetds/replacements/poll.h>
 #endif /* !HAVE_POLL */
 
 #include <freetds/pushvis.h>

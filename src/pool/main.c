@@ -64,7 +64,7 @@
 #endif
 
 #include "pool.h"
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 /* to be set by sig term */
 static int got_sigterm = 0;

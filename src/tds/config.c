@@ -74,7 +74,7 @@
 #include <freetds/configs.h>
 #include <freetds/utils/string.h>
 #include <freetds/utils.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 static int tds_config_login(TDSLOGIN * connection, TDSLOGIN * login);
 static int tds_config_env_tdsdump(TDSLOGIN * login);

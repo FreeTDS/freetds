@@ -16,7 +16,7 @@
 
 #include <freetds/sysdep_private.h>
 #include <freetds/bool.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 #ifndef _WIN32
 #error Platform should have setenv/unsetenv

@@ -19,7 +19,7 @@
 #include <sys/resource.h>
 #endif /* HAVE_SYS_RESOURCE_H */
 
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 #if !defined(PATH_MAX)
 #define PATH_MAX 256

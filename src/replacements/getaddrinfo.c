@@ -39,7 +39,7 @@
 
 #include <freetds/sysdep_private.h>
 #include <freetds/utils.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 static struct hostent *tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer, int buflen, int *h_errnop);
 

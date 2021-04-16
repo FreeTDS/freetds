@@ -31,7 +31,7 @@
 #endif /* HAVE_STRING_H */
 
 #include <freetds/tds.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 struct string_linked_list
 {

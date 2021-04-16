@@ -30,7 +30,7 @@
 #include <freetds/odbc.h>
 #include <freetds/utils/string.h>
 #include <freetds/utils.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 #define ODBC_PARAM(p) static const char odbc_param_##p[] = #p;
 ODBC_PARAM_LIST

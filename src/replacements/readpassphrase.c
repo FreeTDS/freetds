@@ -69,7 +69,7 @@ static const char rcsid[] = "$OpenBSD: readpassphrase.c,v 1.16 2003/06/17 21:56:
 #include <paths.h> /* For _PATH_XXX */
 #endif
 
-#include <replacements/readpassphrase.h>
+#include <freetds/replacements/readpassphrase.h>
 
 #if !defined(_WIN32) && !defined(_WIN64)
 #include <termios.h>

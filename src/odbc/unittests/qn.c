@@ -3,7 +3,7 @@
 #include <assert.h>
 #include "odbcss.h"
 #include <freetds/thread.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 /* test query notifications */
 

@@ -44,7 +44,7 @@
 #endif /* HAVE_ARPA_INET_H */
 
 #include <freetds/sysdep_private.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 int
 tds_socketpair(int domain, int type, int protocol, TDS_SYS_SOCKET sv[2])

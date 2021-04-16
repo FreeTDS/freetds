@@ -73,7 +73,7 @@
 #include <freetds/sysdep_private.h>
 #include <freetds/utils.h>
 #include <freetds/thread.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 struct tm *
 tds_localtime_r(const time_t *timep, struct tm *result)

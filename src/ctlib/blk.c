@@ -31,12 +31,12 @@
 #endif /* HAVE_STRING_H */
 
 #include <freetds/utils.h>
+#include <freetds/replacements.h>
 
 #include "bkpublic.h"
 
 #include "ctpublic.h"
 #include "ctlib.h"
-#include "replacements.h"
 
 static void _blk_null_error(TDSBCPINFO *bcpinfo, int index, int offset);
 static TDSRET _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bcpcol, int offset);

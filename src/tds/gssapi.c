@@ -67,7 +67,7 @@
 
 #include <freetds/tds.h>
 #include <freetds/utils/string.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 /**
  * \ingroup libtds

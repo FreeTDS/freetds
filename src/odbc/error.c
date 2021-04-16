@@ -36,7 +36,7 @@
 #include <freetds/odbc.h>
 #include "odbcss.h"
 #include <freetds/utils/string.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 #include "sqlwparams.h"
 
 static void odbc_errs_pop(struct _sql_errors *errs);

@@ -29,7 +29,7 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 #ifdef _WIN32
 #define SHUT_WR SD_SEND

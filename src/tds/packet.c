@@ -46,7 +46,7 @@
 #include <freetds/tds.h>
 #include <freetds/bytes.h>
 #include <freetds/iconv.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 #include <freetds/checks.h>
 #include <freetds/tls.h>
 

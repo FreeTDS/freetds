@@ -44,7 +44,7 @@
 #include <freetds/utils/md5.h>
 #include <freetds/utils/hmac_md5.h>
 #include <freetds/utils/des.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 /**
  * \ingroup libtds

@@ -50,7 +50,7 @@
 
 #include <sybfront.h>
 #include <sybdb.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 #include <freetds/sysdep_private.h>
 #include <freetds/utils.h>

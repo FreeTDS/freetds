@@ -3,7 +3,7 @@
  */
 
 #include "common.h"
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 static int failed = 0;
 static DBPROCESS *dbproc = NULL;

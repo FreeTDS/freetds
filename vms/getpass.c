@@ -40,7 +40,7 @@
 #include <strings.h>
 #include <unistd.h>
 
-#include <replacements/readpassphrase.h>
+#include <freetds/replacements/readpassphrase.h>
 #include "readline.h"
 
 static FILE *tds_rl_instream = NULL;

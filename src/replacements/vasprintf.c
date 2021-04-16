@@ -30,7 +30,7 @@
 #endif /* HAVE_PATHS_H */
 
 #include <freetds/sysdep_private.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 #if defined(HAVE__VSNPRINTF) && !defined(HAVE_VSNPRINTF)
 #undef HAVE_VSNPRINTF

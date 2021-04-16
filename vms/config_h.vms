@@ -365,7 +365,7 @@ char * readpassphrase(const char *, char *, size_t, int);
 #define tds_sysdep_intptr_type int	/* 32-bit int */
 
 
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 /* If the CRTL ever complies with UNIX98 and defines socklen_t in
  * sys/socket.h, this _may_ prevent a conflicting definition but

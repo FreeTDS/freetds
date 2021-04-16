@@ -61,7 +61,7 @@
 #include <sys/stat.h>
 #endif /* HAVE_SYS_STAT_H */
 
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 #ifndef _WIN32
 

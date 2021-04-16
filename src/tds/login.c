@@ -52,7 +52,7 @@
 #include <freetds/tls.h>
 #include <freetds/stream.h>
 #include <freetds/checks.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 static TDSRET tds_send_login(TDSSOCKET * tds, const TDSLOGIN * login);
 static TDSRET tds71_do_login(TDSSOCKET * tds, TDSLOGIN * login);

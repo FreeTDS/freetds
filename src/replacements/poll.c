@@ -28,7 +28,7 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 #if HAVE_SYS_TYPES_H
 #include <sys/types.h>

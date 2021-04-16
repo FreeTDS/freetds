@@ -45,7 +45,7 @@
 #include <freetds/thread.h>
 #include <freetds/utils/string.h>
 #include <freetds/bool.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 /**
  * \ingroup libtds

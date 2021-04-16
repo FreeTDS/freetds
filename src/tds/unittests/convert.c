@@ -26,7 +26,7 @@
 #include "common.h"
 #include <assert.h>
 #include <freetds/convert.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 #include <freetds/time.h>
 

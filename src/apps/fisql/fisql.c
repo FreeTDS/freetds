@@ -43,6 +43,7 @@
 #endif /* HAVE_SYS_STAT_H */
 
 #include <freetds/bool.h>
+#include <freetds/replacements.h>
 
 #include <sybfront.h>
 #include <sybdb.h>
@@ -50,7 +51,6 @@
 #include "edit.h"
 #include "handlers.h"
 #include "interrupt.h"
-#include "replacements.h"
 
 #define READPASSPHRASE_MAXLEN 128
 

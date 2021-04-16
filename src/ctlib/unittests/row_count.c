@@ -68,7 +68,7 @@
 #include <assert.h>
 #include <ctpublic.h>
 #include "common.h"
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 static CS_CONTEXT *ctx;
 static CS_CONNECTION *conn;

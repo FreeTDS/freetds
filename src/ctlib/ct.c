@@ -38,7 +38,7 @@
 #include <freetds/utils/string.h>
 #include <freetds/enum_cap.h>
 #include <freetds/data.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 
 static const char * ct_describe_cmd_state(CS_INT state);

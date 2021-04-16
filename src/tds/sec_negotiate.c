@@ -37,7 +37,7 @@
 #include <freetds/tds.h>
 #include <freetds/bytes.h>
 #include <freetds/utils/string.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 #ifdef HAVE_GNUTLS
 #  include "sec_negotiate_gnutls.h"

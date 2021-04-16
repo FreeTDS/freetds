@@ -31,7 +31,7 @@ char *tds_strsep(char **stringp, const char *delim);
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include "replacements.h"
+#include <freetds/replacements.h>
 #endif
 
 #include <stdarg.h>

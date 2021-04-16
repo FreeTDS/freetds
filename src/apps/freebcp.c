@@ -57,7 +57,7 @@
 
 #include <freetds/tds.h>
 #include <freetds/utils.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 #include <sybfront.h>
 #include <sybdb.h>
 #include "freebcp.h"

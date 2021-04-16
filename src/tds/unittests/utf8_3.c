@@ -20,9 +20,9 @@
 #include "common.h"
 
 #include <freetds/utils/string.h>
+#include <freetds/replacements.h>
 #include <ctype.h>
 #include <assert.h>
-#include <replacements.h>
 
 static TDSSOCKET *tds;
 

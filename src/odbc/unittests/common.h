@@ -27,7 +27,7 @@
 
 #include <freetds/sysdep_private.h>
 #include <freetds/macros.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 #ifndef HAVE_SQLLEN
 #ifndef SQLULEN

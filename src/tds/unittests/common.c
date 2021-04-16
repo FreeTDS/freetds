@@ -1,6 +1,6 @@
 #define TDS_DONT_DEFINE_DEFAULT_FUNCTIONS
 #include "common.h"
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 char USER[512];
 char SERVER[512];

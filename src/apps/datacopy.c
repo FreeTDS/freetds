@@ -47,7 +47,7 @@
 #include <sybfront.h>
 #include <sybdb.h>
 
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 typedef struct
 {

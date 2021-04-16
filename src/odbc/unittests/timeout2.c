@@ -7,7 +7,7 @@
 #include <assert.h>
 
 #include <freetds/utils.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 /*
  * Test timeout on prepare

@@ -26,7 +26,7 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 /* Taken from glibc 2.6.1 */
 

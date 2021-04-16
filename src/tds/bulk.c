@@ -44,7 +44,7 @@
 #include <freetds/iconv.h>
 #include <freetds/stream.h>
 #include <freetds/utils/string.h>
-#include "replacements.h"
+#include <freetds/replacements.h>
 
 /** \cond HIDDEN_SYMBOLS */
 #ifndef MAX
