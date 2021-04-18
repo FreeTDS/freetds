@@ -56,6 +56,10 @@ int tds_g_append_mode = 0;
 static char *g_dump_filename = NULL;
 /** Tell if TDS debug logging is turned on or off */
 int tds_write_dump = 0;
+#ifdef TLS
+TLS
+#endif
+int tdsdump_elided = 0;
 static FILE *g_dumpfile = NULL;	/* file pointer for dump log          */
 static tds_mutex g_dump_mutex = TDS_MUTEX_INITIALIZER;
 
@@ -263,7 +267,8 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
 	char line_buf[BYTES_PER_LINE * 8 + 16], *p;
 	FILE *dumpfile;
 
-	if (((tds_debug_flags >> debug_lvl) & 1) == 0 || !tds_write_dump)
+	if (((tds_debug_flags >> debug_lvl) & 1) == 0 || !tds_write_dump
+            || tdsdump_elided)
 		return;
 
 	if (!g_dumpfile && !g_dump_filename)

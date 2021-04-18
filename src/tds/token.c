@@ -839,7 +839,10 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 
 	set_return_exit:
 		if (TDS_FAILED(rc)) {
-			tds_set_state(tds, rc == TDS_CANCELLED ? TDS_PENDING : TDS_DEAD);
+			if (rc == TDS_CANCELLED)
+				tds_set_state(tds, TDS_PENDING);
+			else
+				tds_close_socket(tds);
 			return rc;
 		}
 

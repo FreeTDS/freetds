@@ -857,6 +857,7 @@ AC_ARG_ENABLE(threadsafe,
 if test "$enable_threadsafe" != "no" ; then
 	CPPFLAGS="$CPPFLAGS -D_REENTRANT -D_THREAD_SAFE"
 	AC_MSG_RESULT(enabled)
+	AX_TLS
 else
 	AC_DEFINE(TDS_NO_THREADSAFE, 1, [Define if you don't care about thread safety])
 	AC_MSG_RESULT(disabled)

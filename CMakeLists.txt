@@ -124,6 +124,7 @@ foreach(fn
 	sys/time.h
 	sys/types.h
 	sys/wait.h
+	threads.h
 	unistd.h
 	fcntl.h
 	wchar.h
@@ -309,6 +310,58 @@ set(CMAKE_REQUIRED_LIBRARIES)
 
 check_struct_has_member("struct tm" "tm_zone" "time.h" HAVE_STRUCT_TM_TM_ZONE)
 config_write("#cmakedefine HAVE_STRUCT_TM_TM_ZONE 1\n\n")
+
+set(TLS NOTFOUND)
+macro(CHECK_TLS_SYNTAX SYNTAX)
+	string(REGEX REPLACE "\\((.*)\\)" "_\\1" SANITIZED ${SYNTAX})
+	string(TOUPPER "HAVE_${SANITIZED}" VARIABLE)
+	string(TOUPPER "CHECK_${SANITIZED}" CHECK)
+	if (NOT DEFINED ${VARIABLE})
+		set(MACRO_CHECK_TLS_DEFINITIONS
+			"-D${CHECK}=1 ${CMAKE_REQUIRED_FLAGS}")
+		message(STATUS "Checking support for TLS syntax ${SYNTAX}")
+		try_compile(${VARIABLE}
+			${CMAKE_BINARY_DIR}
+			${CMAKE_SOURCE_DIR}/misc/cmake_checks.c
+			COMPILE_DEFINITIONS ${CMAKE_REQUIRED_DEFINITIONS}
+			CMAKE_FLAGS
+			-DCOMPILE_DEFINITIONS:STRING=${MACRO_CHECK_TLS_DEFINITIONS}
+			OUTPUT_VARIABLE OUTPUT)
+		if(${VARIABLE})
+			set(${VARIABLE} 1 CACHE INTERNAL
+				"Have TLS syntax ${SYNTAX}")
+			message(STATUS "Checking support for ${SYNTAX}"
+				" - found")
+			file(APPEND
+				${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeOutput.log
+				"Determining if ${SYNTAX} is valid TLS syntax"
+				" passed with the following output:\n"
+				"${OUTPUT}\n\n")
+		else()
+			message(STATUS "Checking support for ${SYNTAX}"
+				" - not found")
+			set(${VARIABLE} "" CACHE INTERNAL
+				"Have TLS syntax ${SYNTAX}")
+			file(APPEND
+				${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log
+				"Determining if ${SYNTAX} is valid TLS syntax"
+				" failed with the following output:\n"
+				"${OUTPUT}\n\n")
+		endif()
+	endif()
+	if(${VARIABLE})
+		set(TLS ${SYNTAX})
+	endif()
+endmacro()
+
+foreach(syntax thread_local _Thread_local __thread "__declspec(thread)")
+	if (${TLS} STREQUAL NOTFOUND)
+		check_tls_syntax(${syntax})
+	endif()
+endforeach(syntax)
+if (NOT ${TLS} STREQUAL NOTFOUND)
+	config_write("#cmakedefine TLS ${TLS}\n\n")
+endif()
 
 macro(SEARCH_LIBRARY FUNC HAVE VAR LIBS)
 	foreach(lib ${LIBS})
