@@ -321,11 +321,12 @@ ltrim(char *s)
 static bool
 is_in(const char *item, const char *list)
 {
+	const size_t item_len = strlen(item);
 	for (;;) {
 		size_t len = strlen(list);
 		if (len == 0)
 			return false;
-		if (strcasecmp(item, list) == 0)
+		if (len == item_len && strcasecmp(item, list) == 0)
 			return true;
 		list += len + 1;
 	}
