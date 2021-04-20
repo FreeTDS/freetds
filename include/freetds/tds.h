@@ -1498,8 +1498,12 @@ char *tds_strndup(const void *s, TDS_INTPTR len);
 
 
 /* log.c */
-void tdsdump_off(void);
-void tdsdump_on(void);
+typedef struct tdsdump_off_item {
+	struct tdsdump_off_item *next;
+	tds_thread_id thread_id;
+} TDSDUMP_OFF_ITEM;
+void tdsdump_off(TDSDUMP_OFF_ITEM *off_item);
+void tdsdump_on(TDSDUMP_OFF_ITEM *off_item);
 int tdsdump_isopen(void);
 #include <freetds/popvis.h>
 int tdsdump_open(const char *filename);

@@ -56,6 +56,8 @@ int tds_g_append_mode = 0;
 static char *g_dump_filename = NULL;
 /** Tell if TDS debug logging is turned on or off */
 int tds_write_dump = 0;
+/** List of threads excluded from logging, used to exclude some sensitive data */
+static TDSDUMP_OFF_ITEM *off_list;
 static FILE *g_dumpfile = NULL;	/* file pointer for dump log          */
 static tds_mutex g_dump_mutex = TDS_MUTEX_INITIALIZER;
 
@@ -70,26 +72,43 @@ tds_util_deinit(void)
 #endif
 
 /**
- * Temporarily turn off logging.
+ * Temporarily turn off logging for current thread.
+ * @param off_item  List item to be used by the function.
+ *                  The item will be initialized by the function.
+ *                  It's retained till is removed with tdsdump_on so it must be kept alive.
  */
 void
-tdsdump_off(void)
+tdsdump_off(TDSDUMP_OFF_ITEM *off_item)
 {
+	/* if already off don't add current thread to exclude list to make it faster */
+	if (!tds_write_dump)
+		return;
+
+	off_item->thread_id = tds_thread_get_current_id();
 	tds_mutex_lock(&g_dump_mutex);
-	tds_write_dump = 0;
+	off_item->next = off_list;
+	off_list = off_item;
 	tds_mutex_unlock(&g_dump_mutex);
 }				/* tdsdump_off()  */
 
 
 /**
- * Turn logging back on.  You must call tdsdump_open() before calling this routine.
+ * Turn logging back on for current thread.
+ * @param off_item  List item to remove from global list.
+ *                  Previously used by tdsdump_off().
  */
 void
-tdsdump_on(void)
+tdsdump_on(TDSDUMP_OFF_ITEM *off_item)
 {
+	TDSDUMP_OFF_ITEM **curr;
+
 	tds_mutex_lock(&g_dump_mutex);
-	if (tdsdump_isopen())
-		tds_write_dump = 1;
+	for (curr = &off_list; *curr != NULL; curr = &(*curr)->next) {
+		if (*curr == off_item) {
+			*curr = (*curr)->next;
+			break;
+		}
+	}
 	tds_mutex_unlock(&g_dump_mutex);
 }
 
@@ -242,6 +261,24 @@ tdsdump_start(FILE *file, const char *fname, int line)
 	fputs(buf, file);
 }
 
+/**
+ * Check if current thread is in the list of excluded threads
+ * g_dump_mutex must be held.
+ */
+static bool
+current_thread_is_excluded(void)
+{
+	TDSDUMP_OFF_ITEM *curr_off;
+
+	tds_mutex_check_owned(&g_dump_mutex);
+
+	for (curr_off = off_list; curr_off; curr_off = curr_off->next)
+		if (tds_thread_is_current(curr_off->thread_id))
+			return true;
+
+	return false;
+}
+
 #undef tdsdump_dump_buf
 /**
  * Dump the contents of data into the log file in a human readable format.
@@ -270,6 +307,11 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
 		return;
 
 	tds_mutex_lock(&g_dump_mutex);
+
+	if (current_thread_is_excluded()) {
+		tds_mutex_unlock(&g_dump_mutex);
+		return;
+	}
 
 	dumpfile = g_dumpfile;
 #ifdef TDS_HAVE_MUTEX
@@ -365,6 +407,11 @@ tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...)
 		return;
 
 	tds_mutex_lock(&g_dump_mutex);
+
+	if (current_thread_is_excluded()) {
+		tds_mutex_unlock(&g_dump_mutex);
+		return;
+	}
 
 	dumpfile = g_dumpfile;
 #ifdef TDS_HAVE_MUTEX

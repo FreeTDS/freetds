@@ -1056,7 +1056,8 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 
 #if !defined(TDS_DEBUG_LOGIN)
 	tdsdump_log(TDS_DBG_INFO2, "quietly sending TDS 7+ login packet\n");
-	tdsdump_off();
+	do { TDSDUMP_OFF_ITEM off_item;
+	tdsdump_off(&off_item);
 #endif
 	TDS_PUT_INT(tds, packet_size);
 	switch (login->tds_version) {
@@ -1178,7 +1179,11 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 		tds_put_n(tds, ext_data, ext_len);
 
 	rc = tds_flush_packet(tds);
-	tdsdump_on();
+
+#if !defined(TDS_DEBUG_LOGIN)
+	tdsdump_on(&off_item);
+	} while(0);
+#endif
 
 	free(data);
 	return rc;
