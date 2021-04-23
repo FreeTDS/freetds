@@ -651,7 +651,7 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 				cpbytes = 16;
 				bcpcol->column_textpos = row_pos;               /* save for data write */
 			} else if (is_numeric_type(bcpcol->column_type)) {
-					TDS_NUMERIC *num = (TDS_NUMERIC *) bcpcol->bcp_column_data->data;
+				TDS_NUMERIC *num = (TDS_NUMERIC *) bcpcol->bcp_column_data->data;
 				cpbytes = tds_numeric_bytes_per_prec[num->precision];
 				memcpy(&rowbuffer[row_pos], num->array, cpbytes);
 			} else {
