@@ -412,7 +412,7 @@ create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbs
 	DBINT num_cols;
 	DBCOL2 colinfo;
 
-	sprintf(ls_command, "SET FMTONLY ON select * from %s SET FMTONLY OFF", sobjname);
+	sprintf(ls_command, "select * from %s where 0=1", sobjname);
 
 	if (dbcmd(dbsrc, ls_command) == FAIL) {
 		fprintf(stderr, "dbcmd failed\n");
@@ -503,7 +503,7 @@ check_table_structures(char *sobjname, char *dobjname, DBPROCESS * dbsrc, DBPROC
 	DBINT src_collen, dest_collen;
 
 
-	sprintf(ls_command, "SET FMTONLY ON select * from %s SET FMTONLY OFF", sobjname);
+	sprintf(ls_command, "select * from %s where 0=1", sobjname);
 
 	if (dbcmd(dbsrc, ls_command) == FAIL) {
 		fprintf(stderr, "dbcmd failed\n");
@@ -526,7 +526,7 @@ check_table_structures(char *sobjname, char *dobjname, DBPROCESS * dbsrc, DBPROC
 		return FALSE;
 	}
 
-	sprintf(ls_command, "SET FMTONLY ON select * from %s SET FMTONLY OFF", dobjname);
+	sprintf(ls_command, "select * from %s where 0=1", dobjname);
 
 	if (dbcmd(dbdest, ls_command) == FAIL) {
 		fprintf(stderr, "dbcmd failed\n");
