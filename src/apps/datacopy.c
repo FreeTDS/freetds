@@ -446,11 +446,8 @@ create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbs
 
 		strlcat(ls_command, colinfo.ServerTypeDeclaration, sizeof(ls_command));
 
-		if (colinfo.Null == TRUE) {
-			strlcat(ls_command, " NULL", sizeof(ls_command));
-		} else {
-			strlcat(ls_command, " NOT NULL", sizeof(ls_command));
-		}
+		strlcat(ls_command, colinfo.Identity ? " IDENTITY" : " ", sizeof(ls_command));
+		strlcat(ls_command, colinfo.Null ? " NULL" : " NOT NULL", sizeof(ls_command));
 	}
 	if (strlcat(ls_command, " )", sizeof(ls_command)) >= sizeof(ls_command)) {
 		fprintf(stderr, "Buffer overflow building command to create table\n");
