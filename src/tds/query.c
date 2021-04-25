@@ -728,12 +728,48 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 	size = tds_fix_column_size(tds, curcol);
 
 	switch (tds_get_conversion_type(curcol->on_server.column_type, curcol->on_server.column_size)) {
-	case XSYBCHAR:
+	case XSYBCHAR: //same as SYBLONGCHAR
+		if (!IS_TDS7_PLUS(tds->conn)) { //SYBLONGCHAR
+			switch (curcol->column_usertype) { // dirty temporary hack
+			case 2:
+				fmt = "VARCHAR(%u)";
+				break;
+			case 24:
+				fmt = "NCHAR(%u)";
+				break;
+			case 25:
+				fmt = "NVARCHAR(%u)";
+				break;
+			case 1:
+			default:
+				fmt = "CHAR(%u)";
+				break;
+			}
+			max_len = 32767;
+			break;
+		}
 	case SYBCHAR:
-		fmt = "CHAR(%u)";
+		if (!IS_TDS7_PLUS(tds->conn)) {
+			switch (curcol->column_usertype) { // dirty temporary hack
+			case 24:
+				fmt = "NCHAR(%u)";
+				break;
+			case 1:				
+			default:
+				fmt = "CHAR(%u)";
+				break;
+			}
+		}
 		break;
 	case SYBVARCHAR:
-	case XSYBVARCHAR:
+		if (!IS_TDS7_PLUS(tds->conn) && curcol->column_usertype == 25) {
+			if (curcol->column_varint_size == 8)
+				fmt = "NVARCHAR(MAX)";
+			else
+				fmt = "NVARCHAR(%u)";
+			break;
+		}
+	case XSYBVARCHAR: // MS only
 		if (curcol->column_varint_size == 8)
 			fmt = "VARCHAR(MAX)";
 		else
