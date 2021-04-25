@@ -138,7 +138,17 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		 * Or, see if the "lower" part is unused (and zeroed out) at this point, and just do one assignment.
 		 */
 		curcol->funcs = resinfo->columns[i]->funcs;
-		curcol->column_type = resinfo->columns[i]->column_type;
+		/* I believe the whole behaviour of figuring the column type out of column_type is flawed. It should
+		 * be based (at least partially!) on column_usertype (I haven't read documentation but that's from 
+		 * trials and error and the content of systypes table). The below is a dirty hack.
+		 * usertype = 2 > VARCHAR. 25 > NVARCHAR
+		 */
+		if ((resinfo->columns[i]->column_type == SYBCHAR) &&
+			(resinfo->columns[i]->column_usertype == 2 || resinfo->columns[i]->column_usertype == 25))
+			curcol->column_type = SYBVARCHAR;
+		else
+			curcol->column_type = resinfo->columns[i]->column_type;
+
 		curcol->column_usertype = resinfo->columns[i]->column_usertype;
 		curcol->column_flags = resinfo->columns[i]->column_flags;
 		if (curcol->column_varint_size == 0)
@@ -653,7 +663,7 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 				cpbytes = 16;
 				bcpcol->column_textpos = row_pos;               /* save for data write */
 			} else if (is_numeric_type(bcpcol->column_type)) {
-					TDS_NUMERIC *num = (TDS_NUMERIC *) bcpcol->bcp_column_data->data;
+				TDS_NUMERIC *num = (TDS_NUMERIC *) bcpcol->bcp_column_data->data;
 				cpbytes = tds_numeric_bytes_per_prec[num->precision];
 				memcpy(&rowbuffer[row_pos], num->array, cpbytes);
 			} else {
