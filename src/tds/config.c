@@ -886,16 +886,17 @@ tds_config_env_tdshost(TDSLOGIN * login)
 #define TDS_FIND(k,b,c) tds_find(k, b, TDS_VECTOR_SIZE(b), sizeof(b[0]), c)
 
 
-static void *
+static const void *
 tds_find(const void *key, const void *base, size_t nelem, size_t width,
          int (*compar)(const void *, const void *))
 {
-	size_t i;
-	for (i=0; i < nelem; i++) {
-		char *p = (char*)base + width * i;
-		if (0 == compar(key, p)) {
+	size_t n;
+	const char *p = (const char*) base;
+
+	for (n = nelem; n != 0; --n) {
+		if (0 == compar(key, p))
 			return p;
-		}
+		p += width;
 	}
 	return NULL;
 }

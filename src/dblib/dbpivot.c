@@ -61,11 +61,13 @@ static void *
 tds_find(const void *key, const void *base, size_t nelem, size_t width,
          compare_func compar)
 {
-	size_t i;
-	for (i=0; i < nelem; i++) {
-		char *p = (char*)base + width * i;
+	size_t n;
+	char *p = (char *) base;
+
+	for (n = nelem; n != 0; --n) {
 		if (compar(key, p))
 			return p;
+		p += width;
 	}
 	return NULL;
 }
