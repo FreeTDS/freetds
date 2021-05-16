@@ -74,7 +74,7 @@ typedef uint32_t ICONV_CHAR;
 static int
 get_utf8(const unsigned char *p, size_t len, ICONV_CHAR *out)
 {
-	uint32_t uc, state = 0;
+	uint32_t uc, state = UTF8_ACCEPT;
 	size_t l = 1;
 
 	do {
