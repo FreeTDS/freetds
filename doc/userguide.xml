@@ -14,7 +14,7 @@
 	<!ENTITY odbc  '<systemitem class="library">ODBC</systemitem>'> 
 	<!ENTITY iODBC '<systemitem class="library">iODBC</systemitem>'>
 	<!ENTITY unixODBC '<systemitem class="library">unixODBC</systemitem>'>
-	<!ENTITY version "1.2">
+	<!ENTITY version "1.3">
 	<!ENTITY freetdsconf "<filename>freetds.conf</filename>">
 ]>
 <book>
@@ -917,7 +917,7 @@ So the &freetds; developers adopted that version for &freetds;.
 Years later, when Microsoft started releasing official specs of the protocol, it became obvious that the TDS
 versions that &freetds; had labeled 8.0 and 9.0 were actually versions 7.1 and 7.2 respectively.</para>
 
-	<para>For compatibility reasons version 8.0 is still handled by &freetds; but you should avoid using it as it could be removed in a future version of &freetds; or it could clash with a future SQL server version.</para>
+	<para>Version 8.0 cannot be used from &freetds; version 1.3.</para>
 
 <para><itemizedlist>
 			<title>TDS 4.2 has limitations</title>
@@ -2047,6 +2047,12 @@ This setting allow to do it. You should specify <literal>Database</literal> attr
 							<entry>ReadWrite/ReadOnly</entry>
 							<entry>ReadWrite</entry>
 							<entry>Tell application intent. See <literal>read-only intent</literal> on freetds.conf.</entry>
+							</row>
+						<row>
+							<entry><literal>Timeout</literal></entry>
+							<entry>Integer number</entry>
+							<entry></entry>
+							<entry>Query timeout in seconds.</entry>
 							</row>
 						</tbody>
 					</tgroup>

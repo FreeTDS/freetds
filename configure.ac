@@ -11,7 +11,7 @@ dnl ------------------------------------------------------------
 # ------------------------------------------------------------
 # Initialization
 # ------------------------------------------------------------
-AC_INIT(FreeTDS, 1.3.dev.esyscmd(printf $(date +"%Y%m%d")))
+AC_INIT(FreeTDS, 1.4.dev.esyscmd(printf $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
 
@@ -40,7 +40,7 @@ fi
 MAJOR=[`echo $ver | sed "s,$match,\1,"`]
 MINOR=[`echo $ver | sed "s,$match,\2,"`]
 SUBVERSION=[`echo $ver | sed "s,$match,\3,"`]
-BUILD_NUMBER="`date +1%j` - 1000 + ( `date +%Y` - 2020 )"
+BUILD_NUMBER="`date +1%j` - 1000 + ( `date +%Y` - 2021 )"
 BUILD_NUMBER="`expr $BUILD_NUMBER \* 366`"
 if test "$SUBVERSION" = "9999"; then
 	MINOR=`expr $MINOR - 1`
