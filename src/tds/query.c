@@ -2722,10 +2722,10 @@ tds_cursor_get_cursor_info(TDSSOCKET *tds, TDSCURSOR *cursor, TDS_UINT *prow_num
 						TDSPARAMINFO *pinfo = tds->current_results;
 
 						/* Make sure the params retuned have the correct type and size */
-						if (pinfo && pinfo->num_cols==2 
-							  && pinfo->columns[0]->column_type==SYBINTN 
-							  && pinfo->columns[1]->column_type==SYBINTN 
-							  && pinfo->columns[0]->column_size==4 
+						if (pinfo && pinfo->num_cols==2
+							  && pinfo->columns[0]->on_server.column_type==SYBINTN
+							  && pinfo->columns[1]->on_server.column_type==SYBINTN
+							  && pinfo->columns[0]->column_size==4
 							  && pinfo->columns[1]->column_size==4) {
 							/* Take the values */
 							*prow_number = (TDS_UINT)(*(TDS_INT *) pinfo->columns[0]->column_data);
@@ -3153,7 +3153,7 @@ tds_put_char_param_as_string(TDSSOCKET * tds, const TDSCOLUMN *curcol)
 	if (is_blob_col(curcol))
 		src = ((TDSBLOB *)src)->textvalue;
 
-	if (is_unicode_type(curcol->column_type))
+	if (is_unicode_type(curcol->on_server.column_type))
 		tds_put_string(tds, "N", 1);
 	tds_put_string(tds, "\'", 1);
 
@@ -3203,14 +3203,14 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 
 	if (src_len < 0) {
 		/* on TDS 4 TEXT/IMAGE cannot be NULL, use empty */
-		if (!IS_TDS50_PLUS(tds->conn) && is_blob_type(curcol->column_type))
+		if (!IS_TDS50_PLUS(tds->conn) && is_blob_type(curcol->on_server.column_type))
 			tds_put_string(tds, "''", 2);
 		else
 			tds_put_string(tds, "NULL", 4);
 		return TDS_SUCCESS;
 	}
 
-	if (is_char_type(curcol->column_type))
+	if (is_char_type(curcol->on_server.column_type))
 		return tds_put_char_param_as_string(tds, curcol);
 
 	src = (TDS_CHAR *) curcol->column_data;
@@ -3218,7 +3218,7 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 		src = ((TDSBLOB *)src)->textvalue;
 
 	/* we could try to use only tds_convert but is not good in all cases */
-	switch (curcol->column_type) {
+	switch (curcol->on_server.column_type) {
 	/* binary/char, do conversion in line */
 	case SYBBINARY: case SYBVARBINARY: case SYBIMAGE: case XSYBBINARY: case XSYBVARBINARY:
 		tds_put_string(tds, "0x", 2);
@@ -3248,7 +3248,7 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 	case SYBUNIQUE:
 		quote = true;
 	default:
-		res = tds_convert(tds_get_ctx(tds), tds_get_conversion_type(curcol->column_type, curcol->column_size), src, src_len, SYBCHAR, &cr);
+		res = tds_convert(tds_get_ctx(tds), tds_get_conversion_type(curcol->on_server.column_type, curcol->column_size), src, src_len, SYBCHAR, &cr);
 		if (res < 0)
 			return TDS_FAIL;
 
@@ -3566,7 +3566,7 @@ tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option,
 						continue;
 
 					col = tds->current_results->columns[0];
-					ctype = tds_get_conversion_type(col->column_type, col->column_size);
+					ctype = tds_get_conversion_type(col->on_server.column_type, col->column_size);
 
 					src = col->column_data;
 					srclen = col->column_cur_size;
