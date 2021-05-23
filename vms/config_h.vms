@@ -180,6 +180,9 @@
 /* Define to 1 if you have the GNU Readline library. */
 #define HAVE_READLINE 1
 
+/* Define to 1 if you have the `setenv' function. */
+#define HAVE_SETENV 1
+
 /* Define to 1 if you have the `sethostent_r' function. */
 #undef HAVE_SETHOSTENT_R
 
