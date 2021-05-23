@@ -114,6 +114,7 @@ $(DOCDIR)/userguide/index.html: 	$(DOCDIR) userguide.xml userguide_desc.xml \
 # try xmlto ...
 	test -r $(abs_srcdir)/userguide.xml
 	test -r userguide.xml || ln -s $(srcdir)/userguide.xml userguide.xml
+	test -r userguide.xsl || ln -s $(srcdir)/userguide.xsl userguide.xsl
 	test -r userguide_desc.xml || ln -s $(srcdir)/userguide_desc.xml userguide_desc.xml
 	(cd $(DOCDIR)/userguide && \
 	if xmlto --version > /dev/null 2> /dev/null ; then \
