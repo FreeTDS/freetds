@@ -1756,6 +1756,7 @@ The server responds with a port number.
 		<sect2 id="Tests"><title><application>Unit Tests</application></title>
 
 <para>The source code directory of each &freetds; library includes a <filename>unittests</filename> directory.
+Although the directories are named <filename>unittests</filename> they are not unit tests, most of them require a configured database to work.
 				
 <screen>
 	<prompt>$ </prompt><userinput>ls -d -1 src/*/unittests</userinput>
@@ -1766,11 +1767,15 @@ The server responds with a port number.
 	src/tds/unittests
 	src/utils/unittests</computeroutput></screen>
 	
-				The unit tests rely on the <filename>PWD</filename> file in root of the &freetds; source tree.
-				<filename>PWD</filename> holds a username, password, servername, and database to be used for the unit tests.  We try to make sure to leave nothing behind: any data and objects created are either temporary or removed at the end of the test.  The tests should all work, subject to disclaimers in the directory's <filename>README</filename>.</para>
+The tests rely on the <filename>PWD</filename> file in root of the &freetds; source tree.
+<filename>PWD</filename> holds a username, password, servername, and database to be used for the unit tests.
+We try to make sure to leave nothing behind: any data and objects created are either temporary or removed at the end of the test.
+The tests should all work, subject to disclaimers in the directory's <filename>README.md</filename>.</para>
 
-<para>To invoke the tests, edit the <filename>PWD</filename> file and issue the command <command>make check</command>.  In order to execute all tests successfully, you must indicate a working, available servername in <filename>PWD</filename>.
-				Some tests require permission to create stored procedures on server.  In addition, some may require that a database named <literal>freetds_test</literal> exists on the server, and the user whose credentials are used during the testing process has sufficient permissions to create and manipulate tables in this database.</para>
+<para>To invoke the tests, edit the <filename>PWD</filename> file (you can copy from <filename>PWD.in</filename> which is a template) and issue the command <command>make check</command>.
+In order to execute all tests successfully, you must indicate a working, available servername in <filename>PWD</filename>.
+Some tests require permission to create stored procedures on server.
+In addition, some may require that a database named <literal>freetds_test</literal> exists on the server, and the user whose credentials are used during the testing process has sufficient permissions to create and manipulate tables in this database.</para>
 
 <para>To complete successfully, the ODBC tests require some additional setup.
 In your <filename>PWD</filename> file, add a <literal>SRV</literal> entry specifying the DSN entry for your <filename>odbc.ini</filename>.
