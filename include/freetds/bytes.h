@@ -192,6 +192,7 @@ typedef union {
 #elif defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)) && defined(__OPTIMIZE__)
 # define TDS_BSWAP32(val) __builtin_bswap32(val)
 #elif defined(_MSC_VER)
+# include <stdlib.h>
 # define TDS_BSWAP16(val) _byteswap_ushort(val)
 # define TDS_BSWAP32(val) _byteswap_ulong(val)
 #endif
