@@ -411,7 +411,7 @@ create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbs
 	DBINT num_cols;
 	DBCOL2 colinfo;
 
-	sprintf(ls_command, "SET FMTONLY ON select * from %s SET FMTONLY OFF", sobjname);
+	sprintf(ls_command, "select top 0 * from %s", sobjname);
 
 	if (dbcmd(dbsrc, ls_command) == FAIL) {
 		printf("dbcmd failed\n");
@@ -445,11 +445,8 @@ create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbs
 
 		strlcat(ls_command, colinfo.ServerTypeDeclaration, sizeof(ls_command));
 
-		if (colinfo.Null == TRUE) {
-			strlcat(ls_command, " NULL", sizeof(ls_command));
-		} else {
-			strlcat(ls_command, " NOT NULL", sizeof(ls_command));
-		}
+		strlcat(ls_command, (colinfo.Identity == TRUE) ? " IDENTITY" : " ", sizeof(ls_command));
+		strlcat(ls_command, (colinfo.Null == TRUE) ? " NULL" : " NOT NULL", sizeof(ls_command));
 	}
 	if (strlcat(ls_command, " )", sizeof(ls_command)) >= sizeof(ls_command)) {
 		fprintf(stderr, "Buffer overflow building command to create table\n");
@@ -502,7 +499,7 @@ check_table_structures(char *sobjname, char *dobjname, DBPROCESS * dbsrc, DBPROC
 	DBINT src_collen, dest_collen;
 
 
-	sprintf(ls_command, "SET FMTONLY ON select * from %s SET FMTONLY OFF", sobjname);
+	sprintf(ls_command, "select top 0 * from %s", sobjname);
 
 	if (dbcmd(dbsrc, ls_command) == FAIL) {
 		printf("dbcmd failed\n");
@@ -525,7 +522,7 @@ check_table_structures(char *sobjname, char *dobjname, DBPROCESS * dbsrc, DBPROC
 		return FALSE;
 	}
 
-	sprintf(ls_command, "SET FMTONLY ON select * from %s SET FMTONLY OFF", dobjname);
+	sprintf(ls_command, "select top 0 * from %s", dobjname);
 
 	if (dbcmd(dbdest, ls_command) == FAIL) {
 		printf("dbcmd failed\n");
