@@ -112,7 +112,7 @@ $(DOCDIR)/userguide/index.html: 	$(DOCDIR) userguide.xml userguide_desc.xml \
 		fi; \
 	fi
 # try xmlto ...
-	test -r $(abs_srcdir)/userguide.xml
+	test -r "$(abs_srcdir)/userguide.xml"
 	test -r userguide.xml || ln -s $(srcdir)/userguide.xml userguide.xml
 	test -r userguide.xsl || ln -s $(srcdir)/userguide.xsl userguide.xsl
 	test -r userguide_desc.xml || ln -s $(srcdir)/userguide_desc.xml userguide_desc.xml
@@ -120,7 +120,7 @@ $(DOCDIR)/userguide/index.html: 	$(DOCDIR) userguide.xml userguide_desc.xml \
 	if xmlto --version > /dev/null 2> /dev/null ; then \
 		xmlto -m ../userguide.xsl xhtml ../userguide.xml; \
 ## 		and copy the stylesheet
-		cp $(abs_srcdir)/userguide.css .; \
+		cp "$(abs_srcdir)/userguide.css" .; \
 	fi)
 # if still no joy, create a stub
 	if test ! -r $@ ; then \

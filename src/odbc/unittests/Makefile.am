@@ -189,7 +189,7 @@ endif
 if MINGW32
 AM_LDFLAGS	=	-no-fast-install
 else
-AM_LDFLAGS	=	-no-install -L../.libs -R $(abs_builddir)/../.libs
+AM_LDFLAGS	=	-no-install -L../.libs -R "$(abs_builddir)/../.libs"
 endif
 LDADD		=	libcommon.a $(ODBC_LDFLAGS) ../../replacements/libreplacements.la $(GLOBAL_LD_ADD)
 DISTCLEANFILES	=	odbc.ini odbcinst.ini

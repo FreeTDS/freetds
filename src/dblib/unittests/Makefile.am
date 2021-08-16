@@ -106,7 +106,7 @@ AM_CPPFLAGS	= 	-DFREETDS_TOPDIR=\"$(top_srcdir)\" -I$(top_srcdir)/include
 if MINGW32
 AM_LDFLAGS	=	-no-fast-install
 else
-AM_LDFLAGS	=	-no-install -L../.libs -R $(abs_builddir)/../.libs
+AM_LDFLAGS	=	-no-install -L../.libs -R "$(abs_builddir)/../.libs"
 endif
 LDADD		=	libcommon.a ../libsybdb.la ../../replacements/libreplacements.la $(LTLIBICONV)
 EXTRA_DIST	=	CMakeLists.txt
