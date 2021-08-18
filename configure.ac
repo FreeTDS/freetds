@@ -11,10 +11,11 @@ dnl ------------------------------------------------------------
 # ------------------------------------------------------------
 # Initialization
 # ------------------------------------------------------------
-AC_INIT(FreeTDS, 1.3.1)
+AC_INIT(FreeTDS, 1.4.dev.esyscmd(printf $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
 
+AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([dist-bzip2 parallel-tests subdir-objects foreign])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES(yes)])
 AC_CONFIG_HEADERS(include/config.h)
@@ -271,7 +272,7 @@ int main()
 	ACX_POP_LIBS
 	AC_SUBST(READLINE_LIBS)
 
-	ACX_PTHREAD
+	AX_PTHREAD
 	AM_CFLAGS="$AM_CFLAGS $PTHREAD_CFLAGS"
 	AC_SUBST(AM_CFLAGS)
 	LIBS="$PTHREAD_LIBS $LIBS"
