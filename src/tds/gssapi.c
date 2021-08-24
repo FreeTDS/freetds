@@ -378,13 +378,13 @@ tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *to
 	 * and that gss_init_sec_context returns GSS_S_CONTINUE_NEEDED if
 	 * and only if the server has another token to send us.
 	 */
-	
-	/* 
-	 * We always want to ask for the mutual, replay, and integ flags.  
-	 * We may ask for delegation based on config in the tds.conf and other conf files.  
+
+	/*
+	 * We always want to ask for the replay, and integ flags.
+	 * We may ask for delegation based on config in the tds.conf and other conf files.
 	 */
 	gssapi_flags = GSS_C_REPLAY_FLAG | GSS_C_INTEG_FLAG;
-	
+
 	if (tds->login->gssapi_use_delegation)
 		gssapi_flags |= GSS_C_DELEG_FLAG;
 	if (tds->login->mutual_authentication || IS_TDS7_PLUS(tds->conn))
