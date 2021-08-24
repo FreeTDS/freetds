@@ -135,6 +135,8 @@ put_utf8(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 static int
 get_ucs4le(const unsigned char *p, size_t len, ICONV_CHAR *out)
 {
+	TDS_EXTRA_CHECK(assert((((uintptr_t) p) & 3) == 0));
+
 	if (len < 4)
 		return -EINVAL;
 	*out = TDS_GET_A4LE(p);
@@ -144,6 +146,8 @@ get_ucs4le(const unsigned char *p, size_t len, ICONV_CHAR *out)
 static int
 put_ucs4le(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 {
+	TDS_EXTRA_CHECK(assert((((uintptr_t) buf) & 3) == 0));
+
 	if (buf_len < 4)
 		return -E2BIG;
 	TDS_PUT_A4LE(buf, c);
@@ -153,6 +157,8 @@ put_ucs4le(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 static int
 get_ucs4be(const unsigned char *p, size_t len, ICONV_CHAR *out)
 {
+	TDS_EXTRA_CHECK(assert((((uintptr_t) p) & 3) == 0));
+
 	if (len < 4)
 		return -EINVAL;
 	*out = TDS_GET_A4BE(p);
@@ -162,6 +168,8 @@ get_ucs4be(const unsigned char *p, size_t len, ICONV_CHAR *out)
 static int
 put_ucs4be(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 {
+	TDS_EXTRA_CHECK(assert((((uintptr_t) buf) & 3) == 0));
+
 	if (buf_len < 4)
 		return -E2BIG;
 	TDS_PUT_A4BE(buf, c);
@@ -172,6 +180,8 @@ static int
 get_utf16le(const unsigned char *p, size_t len, ICONV_CHAR *out)
 {
 	ICONV_CHAR c, c2;
+
+	TDS_EXTRA_CHECK(assert((((uintptr_t) p) & 1) == 0));
 
 	if (len < 2)
 		return -EINVAL;
@@ -192,6 +202,8 @@ get_utf16le(const unsigned char *p, size_t len, ICONV_CHAR *out)
 static int
 put_utf16le(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 {
+	TDS_EXTRA_CHECK(assert((((uintptr_t) buf) & 1) == 0));
+
 	if (c < 0x10000u) {
 		if (buf_len < 2)
 			return -E2BIG;
@@ -212,6 +224,8 @@ get_utf16be(const unsigned char *p, size_t len, ICONV_CHAR *out)
 {
 	ICONV_CHAR c, c2;
 
+	TDS_EXTRA_CHECK(assert((((uintptr_t) p) & 1) == 0));
+
 	if (len < 2)
 		return -EINVAL;
 	c = TDS_GET_A2BE(p);
@@ -231,6 +245,8 @@ get_utf16be(const unsigned char *p, size_t len, ICONV_CHAR *out)
 static int
 put_utf16be(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 {
+	TDS_EXTRA_CHECK(assert((((uintptr_t) buf) & 1) == 0));
+
 	if (c < 0x10000u) {
 		if (buf_len < 2)
 			return -E2BIG;

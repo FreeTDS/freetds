@@ -74,9 +74,11 @@ enum
 { POS_ISO1, POS_UTF8, POS_UCS2LE, POS_UCS2BE };
 
 static const struct {
-	uint8_t len;
-	char data[15];
+	uint32_t len;
+	/* this field must be aligned at least to 2 bytes */
+	char data[12];
 } test_strings[4] = {
+	/* same string in required charsets */
 	{ 4, "Ao\xD3\xE5" },
 	{ 6, "Ao\xC3\x93\xC3\xA5" },
 	{ 8, "A\x00o\x000\xD3\x00\xE5\x00" },
