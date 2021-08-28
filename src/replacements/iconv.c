@@ -135,7 +135,7 @@ put_utf8(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 static int
 get_ucs4le(const unsigned char *p, size_t len, ICONV_CHAR *out)
 {
-	TDS_EXTRA_CHECK(assert((((uintptr_t) p) & 3) == 0));
+	TDS_EXTRA_CHECK(assert((((TDS_UINTPTR) p) & 3) == 0));
 
 	if (len < 4)
 		return -EINVAL;
@@ -146,7 +146,7 @@ get_ucs4le(const unsigned char *p, size_t len, ICONV_CHAR *out)
 static int
 put_ucs4le(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 {
-	TDS_EXTRA_CHECK(assert((((uintptr_t) buf) & 3) == 0));
+	TDS_EXTRA_CHECK(assert((((TDS_UINTPTR) buf) & 3) == 0));
 
 	if (buf_len < 4)
 		return -E2BIG;
@@ -157,7 +157,7 @@ put_ucs4le(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 static int
 get_ucs4be(const unsigned char *p, size_t len, ICONV_CHAR *out)
 {
-	TDS_EXTRA_CHECK(assert((((uintptr_t) p) & 3) == 0));
+	TDS_EXTRA_CHECK(assert((((TDS_UINTPTR) p) & 3) == 0));
 
 	if (len < 4)
 		return -EINVAL;
@@ -168,7 +168,7 @@ get_ucs4be(const unsigned char *p, size_t len, ICONV_CHAR *out)
 static int
 put_ucs4be(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 {
-	TDS_EXTRA_CHECK(assert((((uintptr_t) buf) & 3) == 0));
+	TDS_EXTRA_CHECK(assert((((TDS_UINTPTR) buf) & 3) == 0));
 
 	if (buf_len < 4)
 		return -E2BIG;
@@ -181,7 +181,7 @@ get_utf16le(const unsigned char *p, size_t len, ICONV_CHAR *out)
 {
 	ICONV_CHAR c, c2;
 
-	TDS_EXTRA_CHECK(assert((((uintptr_t) p) & 1) == 0));
+	TDS_EXTRA_CHECK(assert((((TDS_UINTPTR) p) & 1) == 0));
 
 	if (len < 2)
 		return -EINVAL;
@@ -202,7 +202,7 @@ get_utf16le(const unsigned char *p, size_t len, ICONV_CHAR *out)
 static int
 put_utf16le(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 {
-	TDS_EXTRA_CHECK(assert((((uintptr_t) buf) & 1) == 0));
+	TDS_EXTRA_CHECK(assert((((TDS_UINTPTR) buf) & 1) == 0));
 
 	if (c < 0x10000u) {
 		if (buf_len < 2)
@@ -224,7 +224,7 @@ get_utf16be(const unsigned char *p, size_t len, ICONV_CHAR *out)
 {
 	ICONV_CHAR c, c2;
 
-	TDS_EXTRA_CHECK(assert((((uintptr_t) p) & 1) == 0));
+	TDS_EXTRA_CHECK(assert((((TDS_UINTPTR) p) & 1) == 0));
 
 	if (len < 2)
 		return -EINVAL;
@@ -245,7 +245,7 @@ get_utf16be(const unsigned char *p, size_t len, ICONV_CHAR *out)
 static int
 put_utf16be(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 {
-	TDS_EXTRA_CHECK(assert((((uintptr_t) buf) & 1) == 0));
+	TDS_EXTRA_CHECK(assert((((TDS_UINTPTR) buf) & 1) == 0));
 
 	if (c < 0x10000u) {
 		if (buf_len < 2)
@@ -408,7 +408,7 @@ tds_sys_iconv_open (const char* tocode, const char* fromcode)
 		fromto = Like_to_Like;
 	}
 
-	return (iconv_t) (intptr_t) fromto;
+	return (iconv_t) (TDS_INTPTR) fromto;
 } 
 
 int 
@@ -426,7 +426,7 @@ tds_sys_iconv (iconv_t cd, const char* * inbuf, size_t *inbytesleft, char* * out
 	int local_errno;
 
 #undef CD
-#define CD ((int) (intptr_t) cd)
+#define CD ((int) (TDS_INTPTR) cd)
 
 	/* iconv defines valid semantics for NULL inputs, but we don't support them. */
 	if (!inbuf || !*inbuf || !inbytesleft || !outbuf || !*outbuf || !outbytesleft)

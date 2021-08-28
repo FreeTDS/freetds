@@ -57,6 +57,7 @@ typedef struct tds_bcpinfo TDSBCPINFO;
 
 #include <freetds/version.h>
 #include <freetds/sysdep_private.h>
+#include <freetds/sysdep_types.h>
 #include <freetds/thread.h>
 #include <freetds/bool.h>
 #include <freetds/macros.h>
@@ -129,8 +130,6 @@ typedef int32_t TDS_INT;			/* 32-bit int      */
 typedef uint32_t TDS_UINT;			/* 32-bit unsigned */
 typedef int64_t TDS_INT8;			/* 64-bit integer  */
 typedef uint64_t TDS_UINT8;			/* 64-bit unsigned */
-typedef intptr_t TDS_INTPTR;
-typedef uintptr_t TDS_UINTPTR;
 typedef tds_sysdep_real32_type TDS_REAL;	/* 32-bit real     */
 typedef tds_sysdep_real64_type TDS_FLOAT;	/* 64-bit real     */
 

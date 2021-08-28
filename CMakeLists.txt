@@ -465,6 +465,7 @@ add_subdirectory(src/pool)
 
 configure_file(${CMAKE_BINARY_DIR}/include/config.h.in ${CMAKE_BINARY_DIR}/include/config.h)
 configure_file(${CMAKE_SOURCE_DIR}/include/tds_sysdep_public.h.in ${CMAKE_BINARY_DIR}/include/tds_sysdep_public.h)
+configure_file(${CMAKE_SOURCE_DIR}/include/freetds/sysdep_types.h.in ${CMAKE_BINARY_DIR}/include/freetds/sysdep_types.h)
 configure_file(${CMAKE_SOURCE_DIR}/include/freetds/version.h.in ${CMAKE_BINARY_DIR}/include/freetds/version.h)
 if(NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
 	configure_file(${CMAKE_SOURCE_DIR}/src/odbc/version.rc.in ${CMAKE_SOURCE_DIR}/src/odbc/version.rc)

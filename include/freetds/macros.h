@@ -30,6 +30,7 @@
 #endif /* HAVE_STDDEF_H */
 
 #include "tds_sysdep_public.h"
+#include <freetds/sysdep_types.h>
 
 #define TDS_ZERO_FREE(x) do {free((x)); (x) = NULL;} while(0)
 #define TDS_VECTOR_SIZE(x) (sizeof(x)/sizeof(x[0]))
@@ -72,7 +73,7 @@
 #define TDS_WUR
 #endif
 
-#define TDS_INT2PTR(i) ((void*)(((char*)0)+((intptr_t)(i))))
+#define TDS_INT2PTR(i) ((void*)(((char*)0)+((TDS_INTPTR)(i))))
 #define TDS_PTR2INT(p) ((int)(((char*)(p))-((char*)0)))
 
 #endif

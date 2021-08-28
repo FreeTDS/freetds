@@ -12,6 +12,7 @@ noinst_HEADERS = \
 	configs.h \
 	enum_cap.h \
 	sysdep_private.h \
+	sysdep_types.h \
 	stream.h \
 	data.h \
 	pushvis.h \
@@ -37,7 +38,9 @@ noinst_HEADERS = \
 	replacements/readpassphrase.h \
 	$(NULL)
 
-DISTCLEANFILES = sysconfdir.h
+DISTCLEANFILES = sysconfdir.h \
+	sysdep_types.h \
+	$(NULL)
 
 sysconfdir.h: Makefile
 	echo '#define FREETDS_SYSCONFDIR "$(sysconfdir)"' >$@

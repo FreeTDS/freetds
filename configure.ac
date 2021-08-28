@@ -977,6 +977,7 @@ AC_MSG_RESULT(done)
 # ------------------------------------------------------------
 AC_CONFIG_FILES(include/freetds/version.h \
 	include/tds_sysdep_public.h \
+	include/freetds/sysdep_types.h \
 	Makefile \
 	include/Makefile \
 	include/freetds/Makefile \
