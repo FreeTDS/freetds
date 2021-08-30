@@ -1235,6 +1235,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	SET_UI16BE(13, instance_name_len);
 	if (!IS_TDS72_PLUS(tds->conn)) {
 		SET_UI16BE(16, START_POS + 6 + 1 + instance_name_len);
+		/* strip MARS setting */
 		buf[20] = 0xff;
 	} else {
 		start_pos += 5;
