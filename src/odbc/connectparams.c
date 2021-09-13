@@ -446,6 +446,9 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 			tdsdump_log(TDS_DBG_INFO1, "Application Intent %s\n", readonly_intent);
 		} else if (CHK_PARAM(Timeout)) {
 			tds_parse_conf_section(TDS_STR_TIMEOUT, tds_dstr_cstr(&value), login);
+		} else {
+			tds_parse_conf_section(option, tds_dstr_cstr(&value), login);
+			tdsdump_log(TDS_DBG_INFO1, "FreeTDS option %s = %s\n", option, tds_dstr_cstr(&value));
 		}
 
 		if (num_param >= 0 && parsed_params) {
