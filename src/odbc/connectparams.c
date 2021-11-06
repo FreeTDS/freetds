@@ -656,16 +656,32 @@ tdoGetIniFileName()
 
 typedef struct tODBCINSTPROPERTY
 {
-	struct tODBCINSTPROPERTY *pNext;	/* pointer to next property, NULL if last property                                                                              */
+	/** pointer to next property, NULL if last property */
+	struct tODBCINSTPROPERTY *pNext;
 
-	char szName[INI_MAX_PROPERTY_NAME + 1];	/* property name                                                                                                                                                */
-	char szValue[INI_MAX_PROPERTY_VALUE + 1];	/* property value                                                                                                                                               */
-	int nPromptType;	/* PROMPTTYPE_TEXTEDIT, PROMPTTYPE_LISTBOX, PROMPTTYPE_COMBOBOX, PROMPTTYPE_FILENAME    */
-	char **aPromptData;	/* array of pointers terminated with a NULL value in array.                                                     */
-	char *pszHelp;		/* help on this property (driver setups should keep it short)                                                   */
-	void *pWidget;		/* CALLER CAN STORE A POINTER TO ? HERE                                                                                                 */
-	int bRefresh;		/* app should refresh widget ie Driver Setup has changed aPromptData or szValue                 */
-	void *hDLL;		/* for odbcinst internal use... only first property has valid one                                               */
+	/** property name */
+	char szName[INI_MAX_PROPERTY_NAME + 1];
+
+	/** property value */
+	char szValue[INI_MAX_PROPERTY_VALUE + 1];
+
+	/** PROMPTTYPE_TEXTEDIT, PROMPTTYPE_LISTBOX, PROMPTTYPE_COMBOBOX, PROMPTTYPE_FILENAME */
+	int nPromptType;
+
+	/** array of pointers terminated with a NULL value in array */
+	char **aPromptData;
+
+	/** help on this property (driver setups should keep it short) */
+	char *pszHelp;
+
+	/** CALLER CAN STORE A POINTER TO ? HERE */
+	void *pWidget;
+
+	/** app should refresh widget ie Driver Setup has changed aPromptData or szValue */
+	int bRefresh;
+
+	/** for odbcinst internal use... only first property has valid one */
+	void *hDLL;
 }
 ODBCINSTPROPERTY, *HODBCINSTPROPERTY;
 
