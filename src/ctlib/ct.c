@@ -448,6 +448,8 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 		case CS_USERDATA:
 			free(con->userdata);
 			con->userdata = (void *) malloc(buflen + 1);
+			if (!con->userdata)
+				return CS_FAIL;
 			tdsdump_log(TDS_DBG_INFO2, "setting userdata orig %p new %p\n", buffer, con->userdata);
 			con->userdata_len = buflen;
 			memcpy(con->userdata, buffer, buflen);
@@ -827,7 +829,8 @@ ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen,
 				break;
 			case _CS_COMMAND_BUILDING:
 				current_query_len = strlen(cmd->query);
-				cmd->query = (CS_CHAR *) realloc(cmd->query, current_query_len + query_len + 1);
+				if (!tds_realloc((void **) cmd->query, current_query_len + query_len + 1))
+					return CS_FAIL;
 				strncat(cmd->query, (const char *) buffer, query_len);
 				cmd->query[current_query_len + query_len] = '\0';
 				if (option == CS_MORE) {
@@ -2648,6 +2651,8 @@ ct_cmd_props(CS_COMMAND * cmd, CS_INT action, CS_INT property, CS_VOID * buffer,
 		case CS_USERDATA:
 			free(cmd->userdata);
 			cmd->userdata = (void *) malloc(buflen + 1);
+			if (!cmd->userdata)
+				return CS_FAIL;
 			tdsdump_log(TDS_DBG_INFO2, "setting userdata orig %p new %p\n", buffer, cmd->userdata);
 			cmd->userdata_len = buflen;
 			memcpy(cmd->userdata, buffer, buflen);
@@ -3012,6 +3017,8 @@ ct_data_info(CS_COMMAND * cmd, CS_INT action, CS_INT colnum, CS_IODESC * iodesc)
 			return CS_FAIL;
 		free(cmd->iodesc);
 		cmd->iodesc = tds_new0(CS_IODESC, 1);
+		if (!cmd->iodesc)
+			return CS_FAIL;
 
 		cmd->iodesc->iotype = CS_IODATA;
 		cmd->iodesc->datatype = iodesc->datatype;
