@@ -289,7 +289,7 @@ pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 				"\xff"
 				"\x0a\x00\x06\x40\x00\x00"
 				"\x02"
-				"\x01"
+				"\x00"
 				""
 				"\x00", 0x23);
 		tds_flush_packet(tds);
