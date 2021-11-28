@@ -6386,7 +6386,7 @@ RETCODE
 dbsafestr(DBPROCESS * dbproc, const char *src, DBINT srclen, char *dest, DBINT destlen, int quotetype)
 {
 	int i, j = 0;
-	int squote = FALSE, dquote = FALSE;
+	bool squote = false, dquote = false;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbsafestr(%p, %s, %d, %s, %d, %d)\n", dbproc, src, srclen, dest, destlen, quotetype);
 	CHECK_NULP(src, "dbsafestr", 2, FAIL);
@@ -6400,9 +6400,9 @@ dbsafestr(DBPROCESS * dbproc, const char *src, DBINT srclen, char *dest, DBINT d
 		srclen = (int)strlen(src);
 
 	if (quotetype == DBSINGLE || quotetype == DBBOTH)
-		squote = TRUE;
+		squote = true;
 	if (quotetype == DBDOUBLE || quotetype == DBBOTH)
-		dquote = TRUE;
+		dquote = true;
 
 	/* return FAIL if invalid quotetype */
 	if (!dquote && !squote)
