@@ -192,6 +192,7 @@ CS_RETCODE
 blk_describe(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt)
 {
 	TDSCOLUMN *curcol;
+	CS_INT status, datatype;
 
 	tdsdump_log(TDS_DBG_FUNC, "blk_describe(%p, %d, %p)\n", blkdesc, item, datafmt);
 
@@ -205,10 +206,11 @@ blk_describe(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt)
 	strlcpy(datafmt->name, tds_dstr_cstr(&curcol->column_name), sizeof(datafmt->name));
 	datafmt->namelen = strlen(datafmt->name);
 	/* need to turn the SYBxxx into a CS_xxx_TYPE */
-	datafmt->datatype = _ct_get_client_type(curcol, true);
-	if (datafmt->datatype == CS_ILLEGAL_TYPE)
+	datatype = _ct_get_client_type(curcol, true);
+	if (datatype == CS_ILLEGAL_TYPE)
 		return CS_FAIL;
-	tdsdump_log(TDS_DBG_INFO1, "blk_describe() datafmt->datatype = %d server type %d\n", datafmt->datatype,
+	datafmt->datatype = datatype;
+	tdsdump_log(TDS_DBG_INFO1, "blk_describe() datafmt->datatype = %d server type %d\n", datatype,
 			curcol->column_type);
 	/* FIXME is ok this value for numeric/decimal? */
 	datafmt->maxlength = curcol->column_size;
@@ -220,11 +222,12 @@ blk_describe(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt)
 	 * There are other options that can be returned, but these are the
 	 * only two being noted via the TDS layer.
 	 */
-	datafmt->status = 0;
+	status = 0;
 	if (curcol->column_nullable)
-		datafmt->status |= CS_CANBENULL;
+		status |= CS_CANBENULL;
 	if (curcol->column_identity)
-		datafmt->status |= CS_IDENTITY;
+		status |= CS_IDENTITY;
+	datafmt->status = status;
 
 	datafmt->count = 1;
 	datafmt->locale = NULL;
@@ -624,7 +627,6 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 	CS_INT      *datalen = NULL;
 	CS_BLKDESC *blkdesc = (CS_BLKDESC *) bulk;
 	CS_CONTEXT *ctx = CONN(blkdesc)->ctx;
-	CS_DATAFMT srcfmt, destfmt;
 
 	tdsdump_log(TDS_DBG_FUNC, "_blk_get_col_data(%p, %p, %d)\n", bulk, bindcol, offset);
 
@@ -691,25 +693,27 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 
 	if (!null_column) {
 		CONV_RESULT convert_buffer;
+		CS_DATAFMT srcfmt, destfmt;
+		CS_INT desttype;
 
 		srcfmt.datatype = srctype;
 		srcfmt.maxlength = srclen;
 
-		destfmt.datatype = _cs_convert_not_client(ctx, bindcol, &convert_buffer, &src);
-		if (destfmt.datatype == CS_ILLEGAL_TYPE)
-			destfmt.datatype  = _ct_get_client_type(bindcol, false);
-		if (destfmt.datatype == CS_ILLEGAL_TYPE)
+		desttype = _cs_convert_not_client(ctx, bindcol, &convert_buffer, &src);
+		if (desttype == CS_ILLEGAL_TYPE)
+			desttype = _ct_get_client_type(bindcol, false);
+		if (desttype == CS_ILLEGAL_TYPE)
 			return CS_FAIL;
+		destfmt.datatype  = desttype;
 		destfmt.maxlength = bindcol->on_server.column_size;
 		destfmt.precision = bindcol->column_prec;
 		destfmt.scale     = bindcol->column_scale;
-
-		destfmt.format	= CS_FMT_UNUSED;
+		destfmt.format    = CS_FMT_UNUSED;
 
 		/* if convert return FAIL mark error but process other columns */
 		if ((result = cs_convert(ctx, &srcfmt, (CS_VOID *) src, 
 					 &destfmt, (CS_VOID *) bindcol->bcp_column_data->data, &destlen)) != CS_SUCCEED) {
-			tdsdump_log(TDS_DBG_INFO1, "convert failed for %d \n", srcfmt.datatype);
+			tdsdump_log(TDS_DBG_INFO1, "convert failed for %d \n", srctype);
 			return CS_FAIL;
 		}
 	}

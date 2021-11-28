@@ -478,7 +478,7 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 	CONV_RESULT cres;
 	unsigned char *dest;
 	CS_RETCODE ret;
-	CS_INT dummy;
+	CS_INT dummy, datatype;
 	CS_VARCHAR *destvc = NULL;
 
 	tdsdump_log(TDS_DBG_FUNC, "cs_convert(%p, %p, %p, %p, %p, %p)\n", ctx, srcfmt, srcdata, destfmt, destdata, resultlen);
@@ -512,20 +512,23 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 
 	}
 
-	src_type = _ct_get_server_type(NULL, srcfmt->datatype);
+	datatype = srcfmt->datatype;
+	src_type = _ct_get_server_type(NULL, datatype);
 	if (src_type == TDS_INVALID_TYPE)
 		return CS_FAIL;
 	src_len = srcfmt->maxlength;
-	if (srcfmt->datatype == CS_VARCHAR_TYPE || srcfmt->datatype == CS_VARBINARY_TYPE) {
+	if (datatype == CS_VARCHAR_TYPE || datatype == CS_VARBINARY_TYPE) {
 		CS_VARCHAR *vc = (CS_VARCHAR *) srcdata;
 		src_len = vc->len;
 		srcdata = vc->str;
 	}
-	desttype = _ct_get_server_type(NULL, destfmt->datatype);
+
+	datatype = destfmt->datatype;
+	desttype = _ct_get_server_type(NULL, datatype);
 	if (desttype == TDS_INVALID_TYPE)
 		return CS_FAIL;
 	destlen = destfmt->maxlength;
-	if (destfmt->datatype == CS_VARCHAR_TYPE || destfmt->datatype == CS_VARBINARY_TYPE) {
+	if (datatype == CS_VARCHAR_TYPE || datatype == CS_VARBINARY_TYPE) {
 		destvc = (CS_VARCHAR *) destdata;
 		destlen  = sizeof(destvc->str);
 		destdata = destvc->str;

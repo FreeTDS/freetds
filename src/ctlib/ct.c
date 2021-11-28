@@ -1830,6 +1830,7 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 
 		CS_RETCODE ret;
 		CONV_RESULT convert_buffer;
+		CS_INT srctype;
 
 		curcol = resinfo->columns[i];
 		bindcol = bindinfo->columns[i];
@@ -1878,13 +1879,15 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 		if (is_blob_col(curcol))
 			src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
 
-		srcfmt.datatype = _cs_convert_not_client(ctx, curcol, &convert_buffer, &src);
-		if (srcfmt.datatype == CS_ILLEGAL_TYPE)
-			srcfmt.datatype = _ct_get_client_type(curcol, false);
-		if (srcfmt.datatype == CS_ILLEGAL_TYPE) {
+		srctype = _cs_convert_not_client(ctx, curcol, &convert_buffer, &src);
+		if (srctype == CS_ILLEGAL_TYPE)
+			srctype = _ct_get_client_type(curcol, false);
+		if (srctype == CS_ILLEGAL_TYPE) {
 			result = 1;
 			continue;
 		}
+
+		srcfmt.datatype  = srctype;
 		srcfmt.maxlength = curcol->column_cur_size;
 
 		destfmt.datatype = bindcol->column_bindtype;
@@ -1896,7 +1899,7 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 			tdsdump_log(TDS_DBG_FUNC, "cs_convert-result = %d\n", ret);
 			result = 1;
 			tdsdump_log(TDS_DBG_INFO1, "error: converted only %d bytes for type %d \n",
-							*pdatalen, srcfmt.datatype);
+							*pdatalen, srctype);
 		}
 
 		*nullind = 0;
@@ -2407,6 +2410,7 @@ ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 	TDSSOCKET *tds;
 	TDSRESULTINFO *resinfo;
 	TDSCOLUMN *curcol;
+	CS_INT status;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_describe(%p, %d, %p)\n", cmd, item, datafmt);
 
@@ -2443,19 +2447,20 @@ ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 	 * There are other options that can be returned, but these are the
 	 * only two being noted via the TDS layer.
 	 */
-	datafmt->status = 0;
+	status = 0;
 	if (curcol->column_nullable)
-		datafmt->status |= CS_CANBENULL;
+		status |= CS_CANBENULL;
 	if (curcol->column_identity)
-		datafmt->status |= CS_IDENTITY;
+		status |= CS_IDENTITY;
 	if (curcol->column_writeable)
-		datafmt->status |= CS_UPDATABLE;
+		status |= CS_UPDATABLE;
 	if (curcol->column_key)
-		datafmt->status |= CS_KEY;
+		status |= CS_KEY;
 	if (curcol->column_hidden)
-		datafmt->status |= CS_HIDDEN;
+		status |= CS_HIDDEN;
 	if (curcol->column_timestamp)
-		datafmt->status |= CS_TIMESTAMP;
+		status |= CS_TIMESTAMP;
+	datafmt->status = status;
 
 	datafmt->count = 1;
 	datafmt->locale = NULL;
@@ -4232,12 +4237,13 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *d
 	if (cmd_type == CS_DYNAMIC_CMD) {
 		param->name = NULL;
 	} else {
-		if (datafmt->namelen == CS_NULLTERM) {
+		CS_INT namelen = datafmt->namelen;
+		if (namelen == CS_NULLTERM) {
 			param->name = strdup(datafmt->name);
 			if (!param->name)
 				return CS_FAIL;
-		} else if (datafmt->namelen > 0) {
-			param->name = tds_strndup(datafmt->name, datafmt->namelen);
+		} else if (namelen > 0) {
+			param->name = tds_strndup(datafmt->name, namelen);
 			if (!param->name)
 				return CS_FAIL;
 		} else {
