@@ -457,11 +457,22 @@ enum
 #define CS_SEND_DATA_CMD 151
 #define CS_SEND_BULK_CMD 153
 
+#ifdef CS_NO_LARGE_IDENTIFIERS
 #define CS_VERSION_100	112
 #define CS_VERSION_110	1100
 #define CS_VERSION_120	1100
 #define CS_VERSION_125	12500
 #define CS_VERSION_150	15000
+#else
+#define CS_VERSION_100	113
+#define CS_VERSION_110	1101
+#define CS_VERSION_120	CS_VERSION_110
+#define CS_VERSION_125	12501
+#define CS_VERSION_150	15001
+#define CS_VERSION_155	15501
+#define CS_VERSION_157	15701
+#define CS_VERSION_160	16001
+#endif
 
 #define BLK_VERSION_100 CS_VERSION_100
 #define BLK_VERSION_110 CS_VERSION_110
@@ -685,9 +696,15 @@ typedef struct _cs_objname
 {
 	CS_BOOL thinkexists;
 	CS_INT object_type;
+#ifdef CS_NO_LARGE_IDENTIFIERS
 	CS_CHAR last_name[CS_MAX_NAME];
 	CS_INT lnlen;
 	CS_CHAR first_name[CS_MAX_NAME];
+#else
+	CS_CHAR last_name[CS_MAX_CHAR];
+	CS_INT lnlen;
+	CS_CHAR first_name[CS_MAX_CHAR];
+#endif
 	CS_INT fnlen;
 	CS_VOID *scope;
 	CS_INT scopelen;

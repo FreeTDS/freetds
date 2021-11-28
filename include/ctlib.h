@@ -23,6 +23,7 @@
 #include <freetds/tds.h>
 #include <freetds/convert.h>
 #include <freetds/utils/string.h>
+#include <freetds/bool.h>
 
 /*
  * Internal (not part of the exposed API) prototypes and such.
@@ -37,6 +38,9 @@ extern "C"
 }
 #endif
 #endif
+
+/* Fix a problem with Windows headers */
+#undef small
 
 /*
  * internal types
@@ -57,10 +61,65 @@ struct cs_diag_msg_client
 	CS_CLIENTMSG clientmsg;
 };
 
+typedef struct {
+	CS_MSGNUM msgnumber;
+	CS_INT state;
+	CS_INT severity;
+	CS_CHAR text[CS_MAX_MSG];
+	CS_INT textlen;
+	CS_CHAR svrname[132];
+	CS_INT svrnlen;
+	CS_CHAR proc[132];
+	CS_INT proclen;
+	CS_INT line;
+	CS_INT status;
+	CS_BYTE sqlstate[CS_SQLSTATE_SIZE];
+	CS_INT sqlstatelen;
+} CS_SERVERMSG_SMALL;
+
+typedef struct {
+	CS_MSGNUM msgnumber;
+	CS_INT state;
+	CS_INT severity;
+	CS_CHAR text[CS_MAX_MSG];
+	CS_INT textlen;
+	CS_CHAR svrname[256];
+	CS_INT svrnlen;
+	CS_CHAR proc[256];
+	CS_INT proclen;
+	CS_INT line;
+	CS_INT status;
+	CS_BYTE sqlstate[CS_SQLSTATE_SIZE];
+	CS_INT sqlstatelen;
+} CS_SERVERMSG_LARGE;
+
+typedef struct {
+	CS_MSGNUM msgnumber;
+	CS_INT state;
+	CS_INT severity;
+	CS_CHAR text[CS_MAX_MSG];
+	CS_INT textlen;
+} CS_SERVERMSG_COMMON1;
+
+typedef struct {
+	CS_INT line;
+	CS_INT status;
+	CS_BYTE sqlstate[CS_SQLSTATE_SIZE];
+	CS_INT sqlstatelen;
+} CS_SERVERMSG_COMMON2;
+
+typedef union
+{
+	CS_SERVERMSG_SMALL small;
+	CS_SERVERMSG_LARGE large;
+	CS_SERVERMSG_COMMON1 common;
+	CS_SERVERMSG user;
+} CS_SERVERMSG_INTERNAL;
+
 struct cs_diag_msg_svr
 {
 	struct cs_diag_msg_svr *next;
-	CS_SERVERMSG servermsg;
+	CS_SERVERMSG_INTERNAL servermsg;
 };
 
 /* Code changes ends here - CT_DIAG - 01 */
@@ -100,7 +159,17 @@ struct _cs_context
 	CS_CONFIG config;
 	int login_timeout;  /**< not used unless positive */
 	int query_timeout;  /**< not used unless positive */
+
+	/** structures uses large identifiers */
+	bool use_large_identifiers;
 };
+
+static inline size_t cs_servermsg_len(CS_CONTEXT *ctx)
+{
+	if (ctx->use_large_identifiers)
+		return sizeof(CS_SERVERMSG_LARGE);
+	return sizeof(CS_SERVERMSG_SMALL);
+}
 
 /*
  * internal typedefs
@@ -258,6 +327,53 @@ struct _cs_locale
 #define _CS_CURS_TYPE_REQUESTED  1
 #define _CS_CURS_TYPE_SENT       2
 
+typedef struct {
+	CS_CHAR name[132];
+	CS_INT namelen;
+	CS_INT datatype;
+	CS_INT format;
+	CS_INT maxlength;
+	CS_INT scale;
+	CS_INT precision;
+	CS_INT status;
+	CS_INT count;
+	CS_INT usertype;
+	CS_LOCALE *locale;
+} CS_DATAFMT_SMALL;
+
+typedef struct {
+	CS_CHAR name[256];
+	CS_INT namelen;
+	CS_INT datatype;
+	CS_INT format;
+	CS_INT maxlength;
+	CS_INT scale;
+	CS_INT precision;
+	CS_INT status;
+	CS_INT count;
+	CS_INT usertype;
+	CS_LOCALE *locale;
+} CS_DATAFMT_LARGE;
+
+typedef struct {
+	CS_INT datatype;
+	CS_INT format;
+	CS_INT maxlength;
+	CS_INT scale;
+	CS_INT precision;
+	CS_INT status;
+	CS_INT count;
+	CS_INT usertype;
+	CS_LOCALE *locale;
+} CS_DATAFMT_COMMON;
+
+typedef union
+{
+	CS_DATAFMT_SMALL small;
+	CS_DATAFMT_LARGE large;
+	CS_DATAFMT user;
+} CS_DATAFMT_INTERNAL;
+
 /*
  * internal prototypes
  */
@@ -274,6 +390,14 @@ CS_LOCALE *_cs_locale_copy(CS_LOCALE *orig);
 int _cs_locale_copy_inplace(CS_LOCALE *new_locale, CS_LOCALE *orig);
 
 int _cs_convert_not_client(CS_CONTEXT *ctx, const TDSCOLUMN *curcol, CONV_RESULT *convert_buffer, unsigned char **p_src);
+
+CS_RETCODE _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdata,
+	const CS_DATAFMT_COMMON * destfmt, CS_VOID * destdata, CS_INT * resultlen);
+bool _ct_is_large_identifiers_version(CS_INT version);
+const CS_DATAFMT_COMMON * _ct_datafmt_common(CS_CONTEXT * ctx, const CS_DATAFMT * datafmt);
+const CS_DATAFMT_LARGE *_ct_datafmt_conv_in(CS_CONTEXT * ctx, const CS_DATAFMT * datafmt, CS_DATAFMT_LARGE * fmtbuf);
+CS_DATAFMT_LARGE *_ct_datafmt_conv_prepare(CS_CONTEXT * ctx, CS_DATAFMT * datafmt, CS_DATAFMT_LARGE * fmtbuf);
+void _ct_datafmt_conv_back(CS_DATAFMT * datafmt, CS_DATAFMT_LARGE * fmtbuf);
 
 #ifdef __cplusplus
 #if 0

@@ -74,19 +74,22 @@ blk_alloc(CS_CONNECTION * connection, CS_INT version, CS_BLKDESC ** blk_pointer)
 
 
 CS_RETCODE
-blk_bind(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt, CS_VOID * buffer, CS_INT * datalen, CS_SMALLINT * indicator)
+blk_bind(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt_arg, CS_VOID * buffer, CS_INT * datalen, CS_SMALLINT * indicator)
 {
 	TDSCOLUMN *colinfo;
 	CS_CONNECTION *con;
 	CS_INT bind_count;
+	const CS_DATAFMT_COMMON * datafmt;
 	int i;
 
-	tdsdump_log(TDS_DBG_FUNC, "blk_bind(%p, %d, %p, %p, %p, %p)\n", blkdesc, item, datafmt, buffer, datalen, indicator);
+	tdsdump_log(TDS_DBG_FUNC, "blk_bind(%p, %d, %p, %p, %p, %p)\n", blkdesc, item, datafmt_arg, buffer, datalen, indicator);
 
-	if (!blkdesc) {
+	if (!blkdesc)
 		return CS_FAIL;
-	}
+
 	con = CONN(blkdesc);
+
+	datafmt = _ct_datafmt_common(con->ctx, datafmt_arg);
 
 	if (item == CS_UNUSED) {
 		/* clear all bindings */
@@ -189,12 +192,19 @@ blk_default(CS_BLKDESC * blkdesc, CS_INT colnum, CS_VOID * buffer, CS_INT buflen
 }
 
 CS_RETCODE
-blk_describe(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt)
+blk_describe(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt_arg)
 {
 	TDSCOLUMN *curcol;
 	CS_INT status, datatype;
+	CS_DATAFMT_LARGE *datafmt;
+	CS_DATAFMT_LARGE datafmt_buf;
 
-	tdsdump_log(TDS_DBG_FUNC, "blk_describe(%p, %d, %p)\n", blkdesc, item, datafmt);
+	tdsdump_log(TDS_DBG_FUNC, "blk_describe(%p, %d, %p)\n", blkdesc, item, datafmt_arg);
+
+	if (!blkdesc)
+		return CS_FAIL;
+
+	datafmt = _ct_datafmt_conv_prepare(CONN(blkdesc)->ctx, datafmt_arg, &datafmt_buf);
 
 	if (item < 1 || item > blkdesc->bcpinfo.bindinfo->num_cols) {
 		_ctclient_msg(CONN(blkdesc), "blk_describe", 2, 5, 1, 141, "%s, %d", "colnum", item);
@@ -232,6 +242,7 @@ blk_describe(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt)
 	datafmt->count = 1;
 	datafmt->locale = NULL;
 
+	_ct_datafmt_conv_back(datafmt_arg, datafmt);
 	return CS_SUCCEED;
 }
 
@@ -693,7 +704,7 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 
 	if (!null_column) {
 		CONV_RESULT convert_buffer;
-		CS_DATAFMT srcfmt, destfmt;
+		CS_DATAFMT_COMMON srcfmt, destfmt;
 		CS_INT desttype;
 
 		srcfmt.datatype = srctype;
@@ -711,7 +722,7 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 		destfmt.format    = CS_FMT_UNUSED;
 
 		/* if convert return FAIL mark error but process other columns */
-		if ((result = cs_convert(ctx, &srcfmt, (CS_VOID *) src, 
+		if ((result = _cs_convert(ctx, &srcfmt, (CS_VOID *) src,
 					 &destfmt, (CS_VOID *) bindcol->bcp_column_data->data, &destlen)) != CS_SUCCEED) {
 			tdsdump_log(TDS_DBG_INFO1, "convert failed for %d \n", srctype);
 			return CS_FAIL;

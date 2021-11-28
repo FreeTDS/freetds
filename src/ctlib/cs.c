@@ -325,6 +325,7 @@ cs_ctx_alloc(CS_INT version, CS_CONTEXT ** out_ctx)
 	ctx = tds_new0(CS_CONTEXT, 1);
 	if (!ctx)
 		return CS_FAIL;
+	ctx->use_large_identifiers = _ct_is_large_identifiers_version(version);
 	tds_ctx = tds_alloc_context(ctx);
 	if (!tds_ctx) {
 		free(ctx);
@@ -471,7 +472,8 @@ cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 }
 
 CS_RETCODE
-cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT * destfmt, CS_VOID * destdata, CS_INT * resultlen)
+_cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdata,
+	    const CS_DATAFMT_COMMON * destfmt, CS_VOID * destdata, CS_INT * resultlen)
 {
 	TDS_SERVER_TYPE src_type, desttype;
 	int src_len, destlen, len;
@@ -839,6 +841,13 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 	}
 	tdsdump_log(TDS_DBG_FUNC, "cs_convert() returning  %s\n", cs_prretcode(ret));
 	return (ret);
+}
+
+CS_RETCODE
+cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT * destfmt, CS_VOID * destdata, CS_INT * resultlen)
+{
+	return _cs_convert(ctx, _ct_datafmt_common(ctx, srcfmt), srcdata,
+			   _ct_datafmt_common(ctx, destfmt), destdata, resultlen);
 }
 
 CS_RETCODE

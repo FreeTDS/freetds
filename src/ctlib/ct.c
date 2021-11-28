@@ -50,7 +50,7 @@ static int _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT
 static int _ct_fetchable_results(CS_COMMAND * cmd);
 static TDSRET _ct_process_return_status(TDSSOCKET * tds);
 
-static int _ct_fill_param(CS_INT cmd_type, CS_PARAM * param, CS_DATAFMT * datafmt, CS_VOID * data,
+static int _ct_fill_param(CS_INT cmd_type, CS_PARAM * param, const CS_DATAFMT_LARGE * datafmt, CS_VOID * data,
 			  CS_INT * datalen, CS_SMALLINT * indicator, CS_BYTE byvalue);
 static void _ct_initialise_cmd(CS_COMMAND *cmd);
 static CS_RETCODE _ct_cancel_cleanup(CS_COMMAND * cmd);
@@ -262,6 +262,7 @@ ct_init(CS_CONTEXT * ctx, CS_INT version)
 
 	ctx->tds_ctx->msg_handler = _ct_handle_server_message;
 	ctx->tds_ctx->err_handler = _ct_handle_client_message;
+	ctx->use_large_identifiers = _ct_is_large_identifiers_version(version);
 
 	return CS_SUCCEED;
 }
@@ -1550,22 +1551,26 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 	}      /* for (;;)        */
 }
 
-
 CS_RETCODE
-ct_bind(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt, CS_VOID * buffer, CS_INT * copied, CS_SMALLINT * indicator)
+ct_bind(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt_arg, CS_VOID * buffer, CS_INT * copied, CS_SMALLINT * indicator)
 {
 	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 	CS_CONNECTION *con = cmd->con;
+	const CS_DATAFMT_COMMON * datafmt;
 	CS_INT bind_count;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_bind(%p, %d, %p, %p, %p, %p)\n", cmd, item, datafmt, buffer, copied, indicator);
-
-	tdsdump_log(TDS_DBG_FUNC, "ct_bind() datafmt count = %d column_number = %d\n", datafmt->count, item);
+	tdsdump_log(TDS_DBG_FUNC, "ct_bind(%p, %d, %p, %p, %p, %p)\n", cmd, item, datafmt_arg, buffer, copied, indicator);
 
 	if (!con || !con->tds_socket)
 		return CS_FAIL;
+
+	datafmt = _ct_datafmt_common(con->ctx, datafmt_arg);
+
+	bind_count = datafmt->count;
+
+	tdsdump_log(TDS_DBG_FUNC, "ct_bind() datafmt count = %d column_number = %d\n", bind_count, item);
 
 	tds = con->tds_socket;
 	resinfo = tds->current_results;
@@ -1820,7 +1825,7 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 	TDSCOLUMN *curcol, *bindcol;
 	unsigned char *src, *dest;
 	int i, result = 0;
-	CS_DATAFMT srcfmt, destfmt;
+	CS_DATAFMT_COMMON srcfmt, destfmt;
 	TDS_INT datalen_dummy, *pdatalen;
 	TDS_SMALLINT nullind_dummy, *nullind;
 
@@ -1895,7 +1900,7 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 		destfmt.format = bindcol->column_bindfmt;
 
 		/* if convert return FAIL mark error but process other columns */
-		if ((ret = cs_convert(ctx, &srcfmt, src, &destfmt, dest, pdatalen) != CS_SUCCEED)) {
+		if ((ret = _cs_convert(ctx, &srcfmt, src, &destfmt, dest, pdatalen) != CS_SUCCEED)) {
 			tdsdump_log(TDS_DBG_FUNC, "cs_convert-result = %d\n", ret);
 			result = 1;
 			tdsdump_log(TDS_DBG_INFO1, "error: converted only %d bytes for type %d \n",
@@ -2405,18 +2410,21 @@ _ct_cancel_cleanup(CS_COMMAND * cmd)
 }
 
 CS_RETCODE
-ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
+ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt_arg)
 {
 	TDSSOCKET *tds;
 	TDSRESULTINFO *resinfo;
 	TDSCOLUMN *curcol;
+	CS_DATAFMT_LARGE *datafmt;
+	CS_DATAFMT_LARGE datafmt_buf;
 	CS_INT status;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_describe(%p, %d, %p)\n", cmd, item, datafmt);
+	tdsdump_log(TDS_DBG_FUNC, "ct_describe(%p, %d, %p)\n", cmd, item, datafmt_arg);
 
 	if (!cmd->con || !cmd->con->tds_socket)
 		return CS_FAIL;
 
+	datafmt = _ct_datafmt_conv_prepare(cmd->con->ctx, datafmt_arg, &datafmt_buf);
 	tds = cmd->con->tds_socket;
 	resinfo = tds->current_results;;
 
@@ -2465,6 +2473,7 @@ ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 	datafmt->count = 1;
 	datafmt->locale = NULL;
 
+	_ct_datafmt_conv_back(datafmt_arg, datafmt);
 	return CS_SUCCEED;
 }
 
@@ -3303,17 +3312,21 @@ ct_dynamic(CS_COMMAND * cmd, CS_INT type, CS_CHAR * id, CS_INT idlen, CS_CHAR * 
 }
 
 CS_RETCODE
-ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT datalen, CS_SMALLINT indicator)
+ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt_arg, CS_VOID * data, CS_INT datalen, CS_SMALLINT indicator)
 {
 	CSREMOTE_PROC *rpc;
 	CS_DYNAMIC *dyn;
 	CS_PARAM **pparam;
 	CS_PARAM *param;
+	const CS_DATAFMT_LARGE *datafmt;
+	CS_DATAFMT_LARGE datafmt_buf;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_param(%p, %p, %p, %d, %hd)\n", cmd, datafmt, data, datalen, indicator);
+	tdsdump_log(TDS_DBG_FUNC, "ct_param(%p, %p, %p, %d, %hd)\n", cmd, datafmt_arg, data, datalen, indicator);
 
-	if (!cmd)
+	if (!cmd || !cmd->con)
 		return CS_FAIL;
+
+	datafmt = _ct_datafmt_conv_in(cmd->con->ctx, datafmt_arg, &datafmt_buf);
 
 	switch (cmd->command_type) {
 	case CS_RPC_CMD:
@@ -3399,22 +3412,26 @@ ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT datalen,
 }
 
 CS_RETCODE
-ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * datalen, CS_SMALLINT * indicator)
+ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt_arg, CS_VOID * data, CS_INT * datalen, CS_SMALLINT * indicator)
 {
 	CSREMOTE_PROC *rpc;
 	CS_PARAM **pparam;
 	CS_PARAM *param;
 	CS_DYNAMIC *dyn;
+	const CS_DATAFMT_LARGE *datafmt;
+	CS_DATAFMT_LARGE datafmt_buf;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_setparam(%p, %p, %p, %p, %p)\n", cmd, datafmt, data, datalen, indicator);
+	tdsdump_log(TDS_DBG_FUNC, "ct_setparam(%p, %p, %p, %p, %p)\n", cmd, datafmt_arg, data, datalen, indicator);
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_setparam() command type = %d, data type = %d\n", cmd->command_type, datafmt->datatype);
+	if (!cmd || !cmd->con)
+		return CS_FAIL;
+
+	datafmt = _ct_datafmt_conv_in(cmd->con->ctx, datafmt_arg, &datafmt_buf);
 
 	/* Code changed for RPC functionality - SUHA */
 	/* RPC code changes starts here */
 
-	if (!cmd)
-		return CS_FAIL;
+	tdsdump_log(TDS_DBG_FUNC, "ct_setparam() command type = %d, data type = %d\n", cmd->command_type, datafmt->datatype);
 
 	switch (cmd->command_type) {
 
@@ -4226,7 +4243,8 @@ param_clear(CS_PARAM * pparam)
 
 
 static int
-_ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *data, CS_INT *datalen,
+_ct_fill_param(CS_INT cmd_type, CS_PARAM *param,
+	       const CS_DATAFMT_LARGE *datafmt, CS_VOID *data, CS_INT *datalen,
 	       CS_SMALLINT *indicator, CS_BYTE byvalue)
 {
 	TDS_SERVER_TYPE desttype;
@@ -4516,7 +4534,7 @@ ct_diag_storeservermsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_SERVERMSG 
 		return CS_FAIL;
 
 	(*curptr)->next = NULL;
-	memcpy(&(*curptr)->servermsg, message, sizeof(CS_SERVERMSG));
+	memcpy(&(*curptr)->servermsg, message, cs_servermsg_len(conn->ctx));
 
 	return CS_SUCCEED;
 }
@@ -4560,7 +4578,7 @@ ct_diag_getservermsg(CS_CONTEXT * context, CS_INT idx, CS_SERVERMSG * message)
 	while (curptr != NULL) {
 		msg_count++;
 		if (msg_count == idx) {
-			memcpy(message, &curptr->servermsg, sizeof(CS_SERVERMSG));
+			memcpy(message, &curptr->servermsg, cs_servermsg_len(context));
 			return CS_SUCCEED;
 		}
 		curptr = curptr->next;

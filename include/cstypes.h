@@ -54,7 +54,12 @@ typedef unsigned char 		CS_BIT;
 
 typedef CS_INT CS_RETCODE;
 
+#ifdef CS_NO_LARGE_IDENTIFIERS
 #define CS_MAX_NAME 132
+#else
+#define CS_MAX_NAME 255
+#endif
+#define CS_MAX_CHAR 256
 #define CS_MAX_SCALE 77
 #define CS_MAX_PREC 77		/* used by php */
 #define CS_MAX_NUMLEN 33	/* used by roguewave */
@@ -112,7 +117,11 @@ typedef struct _cs_iodesc
 
 typedef struct _cs_datafmt
 {
+#ifdef CS_NO_LARGE_IDENTIFIERS
 	CS_CHAR name[CS_MAX_NAME];
+#else
+	CS_CHAR name[CS_MAX_CHAR];
+#endif
 	CS_INT namelen;
 	CS_INT datatype;
 	CS_INT format;
@@ -194,9 +203,15 @@ typedef struct _cs_servermsg
 	CS_INT severity;
 	CS_CHAR text[CS_MAX_MSG];
 	CS_INT textlen;
+#ifdef CS_NO_LARGE_IDENTIFIERS
 	CS_CHAR svrname[CS_MAX_NAME];
 	CS_INT svrnlen;
 	CS_CHAR proc[CS_MAX_NAME];
+#else
+	CS_CHAR svrname[CS_MAX_CHAR];
+	CS_INT svrnlen;
+	CS_CHAR proc[CS_MAX_CHAR];
+#endif
 	CS_INT proclen;
 	CS_INT line;
 	CS_INT status;

@@ -2,7 +2,7 @@ SUBDIRS		=	. unittests
 AM_CPPFLAGS	=	-I$(top_srcdir)/include
 
 lib_LTLIBRARIES	=	libct.la
-libct_la_SOURCES=	ct.c cs.c blk.c ctutil.c
+libct_la_SOURCES=	ct.c cs.c blk.c ctutil.c ct_small_checks.c ct_large_checks.c ct_checks.h
 if MINGW32
 libct_la_SOURCES +=	winmain.c
 endif

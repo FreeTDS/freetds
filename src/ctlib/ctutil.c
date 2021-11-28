@@ -165,9 +165,10 @@ _ct_handle_client_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAG
 TDSRET
 _ct_handle_server_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
-	CS_SERVERMSG errmsg;
+	CS_SERVERMSG_INTERNAL errmsg;
 	CS_CONNECTION *con = NULL;
-	CS_CONTEXT *ctx = NULL;
+	CS_CONTEXT *ctx;
+	CS_SERVERMSG_COMMON2 *common2;
 	CS_RETCODE ret = CS_SUCCEED;
 
 	tdsdump_log(TDS_DBG_FUNC, "_ct_handle_server_message(%p, %p, %p)\n", ctx_tds, tds, msg);
@@ -175,34 +176,144 @@ _ct_handle_server_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAG
 	if (tds && tds_get_parent(tds))
 		con = (CS_CONNECTION *) tds_get_parent(tds);
 
+	ctx = con ? con->ctx : (CS_CONTEXT *) ctx_tds->parent;
+
 	memset(&errmsg, '\0', sizeof(errmsg));
-	errmsg.msgnumber = msg->msgno;
-	strlcpy(errmsg.text, msg->message, sizeof(errmsg.text));
-	errmsg.textlen = strlen(errmsg.text);
-	errmsg.sqlstate[0] = 0;
+	errmsg.common.msgnumber = msg->msgno;
+	strlcpy(errmsg.common.text, msg->message, sizeof(errmsg.common.text));
+	errmsg.common.textlen = strlen(errmsg.common.text);
+	errmsg.common.state = msg->state;
+	errmsg.common.severity = msg->severity;
+
+#define MIDDLE_PART(part) do { \
+	common2 = (CS_SERVERMSG_COMMON2 *) &(errmsg.part.line); \
+	if (msg->server) { \
+		errmsg.part.svrnlen = strlen(msg->server); \
+		strlcpy(errmsg.part.svrname, msg->server, sizeof(errmsg.part.svrname)); \
+	} \
+	if (msg->proc_name) { \
+		errmsg.part.proclen = strlen(msg->proc_name); \
+		strlcpy(errmsg.part.proc, msg->proc_name, sizeof(errmsg.part.proc)); \
+	} \
+} while(0)
+
+	if (ctx->use_large_identifiers)
+		MIDDLE_PART(large);
+	else
+		MIDDLE_PART(small);
+#undef MIDDLE_PART
+
+	common2->sqlstate[0] = 0;
 	if (msg->sql_state)
-		strlcpy((char *) errmsg.sqlstate, msg->sql_state, sizeof(errmsg.sqlstate));
-	errmsg.sqlstatelen = strlen((char *) errmsg.sqlstate);
-	errmsg.state = msg->state;
-	errmsg.severity = msg->severity;
-	errmsg.line = msg->line_number;
-	if (msg->server) {
-		errmsg.svrnlen = strlen(msg->server);
-		strlcpy(errmsg.svrname, msg->server, CS_MAX_NAME);
-	}
-	if (msg->proc_name) {
-		errmsg.proclen = strlen(msg->proc_name);
-		strlcpy(errmsg.proc, msg->proc_name, CS_MAX_NAME);
-	}
+		strlcpy((char *) common2->sqlstate, msg->sql_state, sizeof(common2->sqlstate));
+	common2->sqlstatelen = strlen((char *) common2->sqlstate);
+	common2->line = msg->line_number;
+
 	/* if there is no connection, attempt to call the context handler */
 	if (!con) {
-		ctx = (CS_CONTEXT *) ctx_tds->parent;
 		if (ctx->_servermsg_cb)
-			ret = ctx->_servermsg_cb(ctx, con, &errmsg);
+			ret = ctx->_servermsg_cb(ctx, con, &errmsg.user);
 	} else if (con->_servermsg_cb) {
-		ret = con->_servermsg_cb(con->ctx, con, &errmsg);
-	} else if (con->ctx->_servermsg_cb) {
-		ret = con->ctx->_servermsg_cb(con->ctx, con, &errmsg);
+		ret = con->_servermsg_cb(ctx, con, &errmsg.user);
+	} else if (ctx->_servermsg_cb) {
+		ret = ctx->_servermsg_cb(ctx, con, &errmsg.user);
 	}
 	return ret == CS_SUCCEED ? TDS_SUCCESS : TDS_FAIL;
+}
+
+/**
+ * Check if a give version supports large identifiers.
+ */
+bool
+_ct_is_large_identifiers_version(CS_INT version)
+{
+	switch (version) {
+	case 112:
+	case 1100:
+	case 12500:
+	case 15000:
+		return false;
+	}
+	return true;
+}
+
+const CS_DATAFMT_COMMON *
+_ct_datafmt_common(CS_CONTEXT * ctx, const CS_DATAFMT * datafmt)
+{
+	if (!datafmt)
+		return NULL;
+	if (ctx->use_large_identifiers)
+		return (const CS_DATAFMT_COMMON *) &(((const CS_DATAFMT_LARGE *) datafmt)->datatype);
+	return (const CS_DATAFMT_COMMON *) &(((const CS_DATAFMT_SMALL *) datafmt)->datatype);
+}
+
+/**
+ * Converts CS_DATAFMT input parameter to CS_DATAFMT_LARGE.
+ * @param ctx      CTLib context
+ * @param datafmt  Input parameter
+ * @param fmtbuf   Buffer to use in case conversion is required
+ * @return parameter converted to large
+ */
+const CS_DATAFMT_LARGE *
+_ct_datafmt_conv_in(CS_CONTEXT * ctx, const CS_DATAFMT * datafmt, CS_DATAFMT_LARGE *fmtbuf)
+{
+	const CS_DATAFMT_SMALL *small;
+
+	if (!datafmt)
+		return NULL;
+
+	/* read directly from input */
+	if (ctx->use_large_identifiers)
+		return (CS_DATAFMT_LARGE *) datafmt;
+
+	/* convert small format to large */
+	small = (const CS_DATAFMT_SMALL *) datafmt;
+
+	strlcpy(fmtbuf->name, small->name, sizeof(fmtbuf->name));
+	fmtbuf->namelen = strlen(fmtbuf->name);
+	*((CS_DATAFMT_COMMON *) &fmtbuf->datatype) = *((CS_DATAFMT_COMMON *) &small->datatype);
+	return fmtbuf;
+}
+
+/**
+ * Prepares to Convert CS_DATAFMT output parameter to CS_DATAFMT_LARGE.
+ * @param ctx      CTLib context
+ * @param datafmt  Input parameter
+ * @param fmtbuf   Buffer to use in case conversion is required
+ * @return parameter converted to large
+ */
+CS_DATAFMT_LARGE *
+_ct_datafmt_conv_prepare(CS_CONTEXT * ctx, CS_DATAFMT * datafmt, CS_DATAFMT_LARGE *fmtbuf)
+{
+	if (!datafmt)
+		return NULL;
+
+	/* write directly to output */
+	if (ctx->use_large_identifiers)
+		return (CS_DATAFMT_LARGE *) datafmt;
+
+	return fmtbuf;
+}
+
+/**
+ * Converts CS_DATAFMT output parameter to CS_DATAFMT_LARGE after setting it.
+ * @param datafmt  Input parameter
+ * @param fmtbuf   Buffer to use in case conversion is required. You should pass
+ *                 value returned by _ct_datafmt_conv_prepare().
+ */
+void
+_ct_datafmt_conv_back(CS_DATAFMT * datafmt, CS_DATAFMT_LARGE *fmtbuf)
+{
+	CS_DATAFMT_SMALL *small;
+
+	/* already right format */
+	if ((void *) datafmt == (void*) fmtbuf)
+		return;
+
+	/* convert large format to small */
+	small = (CS_DATAFMT_SMALL *) datafmt;
+
+	strlcpy(small->name, fmtbuf->name, sizeof(small->name));
+	small->namelen = strlen(small->name);
+	*((CS_DATAFMT_COMMON *) &small->datatype) = *((CS_DATAFMT_COMMON *) &fmtbuf->datatype);
 }
