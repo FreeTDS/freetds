@@ -53,14 +53,14 @@ struct _cs_config
 
 struct cs_diag_msg_client
 {
-	CS_CLIENTMSG *clientmsg;
 	struct cs_diag_msg_client *next;
+	CS_CLIENTMSG clientmsg;
 };
 
 struct cs_diag_msg_svr
 {
-	CS_SERVERMSG *servermsg;
 	struct cs_diag_msg_svr *next;
+	CS_SERVERMSG servermsg;
 };
 
 /* Code changes ends here - CT_DIAG - 01 */

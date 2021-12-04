@@ -4427,15 +4427,11 @@ static CS_INT
 ct_diag_storeclientmsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_CLIENTMSG * message)
 {
 	struct cs_diag_msg_client **curptr;
-	struct cs_diag_msg_svr **scurptr;
-
 	CS_INT msg_count = 0;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_diag_storeclientmsg(%p, %p, %p)\n", context, conn, message);
 
 	curptr = &(conn->ctx->clientstore);
-
-	scurptr = &(conn->ctx->svrstore);
 
 	/* if we already have a list of messages, go to the end of the list... */
 
@@ -4455,9 +4451,12 @@ ct_diag_storeclientmsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_CLIENTMSG 
 	/* are simply discarded */
 
 	if (conn->ctx->cs_diag_msglimit_total != CS_NO_LIMIT) {
-		while (*scurptr != NULL) {
+		const struct cs_diag_msg_svr *scurptr;
+
+		scurptr = conn->ctx->svrstore;
+		while (scurptr != NULL) {
 			msg_count++;
-			scurptr = &((*scurptr)->next);
+			scurptr = scurptr->next;
 		}
 		if (msg_count >= conn->ctx->cs_diag_msglimit_total) {
 			return CS_FAIL;
@@ -4469,11 +4468,7 @@ ct_diag_storeclientmsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_CLIENTMSG 
 		return CS_FAIL;
 
 	(*curptr)->next = NULL;
-	(*curptr)->clientmsg = tds_new(CS_CLIENTMSG, 1);
-	if (!(*curptr)->clientmsg)
-		return CS_FAIL;
-
-	memcpy((*curptr)->clientmsg, message, sizeof(CS_CLIENTMSG));
+	memcpy(&(*curptr)->clientmsg, message, sizeof(CS_CLIENTMSG));
 
 	return CS_SUCCEED;
 }
@@ -4482,14 +4477,12 @@ static CS_INT
 ct_diag_storeservermsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_SERVERMSG * message)
 {
 	struct cs_diag_msg_svr **curptr;
-	struct cs_diag_msg_client **ccurptr;
 
 	CS_INT msg_count = 0;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_diag_storeservermsg(%p, %p, %p)\n", context, conn, message);
 
 	curptr = &(conn->ctx->svrstore);
-	ccurptr = &(conn->ctx->clientstore);
 
 	/* if we already have a list of messages, go to the end of the list...  */
 
@@ -4509,9 +4502,12 @@ ct_diag_storeservermsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_SERVERMSG 
 	/* are simply discarded...                  */
 
 	if (conn->ctx->cs_diag_msglimit_total != CS_NO_LIMIT) {
-		while (*ccurptr != NULL) {
+		const struct cs_diag_msg_client *ccurptr;
+
+		ccurptr = conn->ctx->clientstore;
+		while (ccurptr != NULL) {
 			msg_count++;
-			ccurptr = &((*ccurptr)->next);
+			ccurptr = ccurptr->next;
 		}
 		if (msg_count >= conn->ctx->cs_diag_msglimit_total) {
 			return CS_FAIL;
@@ -4523,11 +4519,7 @@ ct_diag_storeservermsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_SERVERMSG 
 		return CS_FAIL;
 
 	(*curptr)->next = NULL;
-	(*curptr)->servermsg = tds_new(CS_SERVERMSG, 1);
-	if (!(*curptr)->servermsg)
-		return CS_FAIL;
-
-	memcpy((*curptr)->servermsg, message, sizeof(CS_SERVERMSG));
+	memcpy(&(*curptr)->servermsg, message, sizeof(CS_SERVERMSG));
 
 	return CS_SUCCEED;
 }
@@ -4535,7 +4527,7 @@ ct_diag_storeservermsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_SERVERMSG 
 static CS_INT
 ct_diag_getclientmsg(CS_CONTEXT * context, CS_INT idx, CS_CLIENTMSG * message)
 {
-	struct cs_diag_msg_client *curptr;
+	const struct cs_diag_msg_client *curptr;
 	CS_INT msg_count = 0, msg_found = 0;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_diag_getclientmsg(%p, %d, %p)\n", context, idx, message);
@@ -4554,7 +4546,7 @@ ct_diag_getclientmsg(CS_CONTEXT * context, CS_INT idx, CS_CLIENTMSG * message)
 	}
 
 	if (msg_found) {
-		memcpy(message, curptr->clientmsg, sizeof(CS_CLIENTMSG));
+		memcpy(message, &curptr->clientmsg, sizeof(CS_CLIENTMSG));
 		return CS_SUCCEED;
 	}
 	return CS_NOMSG;
@@ -4582,41 +4574,39 @@ ct_diag_getservermsg(CS_CONTEXT * context, CS_INT idx, CS_SERVERMSG * message)
 	}
 
 	if (msg_found) {
-		memcpy(message, curptr->servermsg, sizeof(CS_SERVERMSG));
+		memcpy(message, &curptr->servermsg, sizeof(CS_SERVERMSG));
 		return CS_SUCCEED;
-	} else {
-		return CS_NOMSG;
 	}
+	return CS_NOMSG;
 }
 
 CS_INT
 _ct_diag_clearmsg(CS_CONTEXT * context, CS_INT type)
 {
-	struct cs_diag_msg_client *curptr, *freeptr;
-	struct cs_diag_msg_svr *scurptr, *sfreeptr;
-
 	tdsdump_log(TDS_DBG_FUNC, "_ct_diag_clearmsg(%p, %d)\n", context, type);
 
 	if (type == CS_CLIENTMSG_TYPE || type == CS_ALLMSG_TYPE) {
+		struct cs_diag_msg_client *curptr, *freeptr;
+
 		curptr = context->clientstore;
 		context->clientstore = NULL;
 
 		while (curptr != NULL) {
 			freeptr = curptr;
 			curptr = freeptr->next;
-			free(freeptr->clientmsg);
 			free(freeptr);
 		}
 	}
 
 	if (type == CS_SERVERMSG_TYPE || type == CS_ALLMSG_TYPE) {
+		struct cs_diag_msg_svr *scurptr, *sfreeptr;
+
 		scurptr = context->svrstore;
 		context->svrstore = NULL;
 
 		while (scurptr != NULL) {
 			sfreeptr = scurptr;
 			scurptr = sfreeptr->next;
-			free(sfreeptr->servermsg);
 			free(sfreeptr);
 		}
 	}
@@ -4626,14 +4616,13 @@ _ct_diag_clearmsg(CS_CONTEXT * context, CS_INT type)
 static CS_INT
 ct_diag_countmsg(CS_CONTEXT * context, CS_INT type, CS_INT * count)
 {
-	struct cs_diag_msg_client *curptr;
-	struct cs_diag_msg_svr *scurptr;
-
 	CS_INT msg_count = 0;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_diag_countmsg(%p, %d, %p)\n", context, type, count);
 
 	if (type == CS_CLIENTMSG_TYPE || type == CS_ALLMSG_TYPE) {
+		const struct cs_diag_msg_client *curptr;
+
 		curptr = context->clientstore;
 
 		while (curptr != NULL) {
@@ -4643,6 +4632,8 @@ ct_diag_countmsg(CS_CONTEXT * context, CS_INT type, CS_INT * count)
 	}
 
 	if (type == CS_SERVERMSG_TYPE || type == CS_ALLMSG_TYPE) {
+		const struct cs_diag_msg_svr *scurptr;
+
 		scurptr = context->svrstore;
 
 		while (scurptr != NULL) {
