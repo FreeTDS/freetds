@@ -343,6 +343,8 @@ AC_CHECK_SIZEOF(float)
 AC_CHECK_SIZEOF(double)
 AC_CHECK_SIZEOF(long double)
 AC_CHECK_SIZEOF(long long)
+# This will define SIZEOF_LONG_INT, used by some ODBC Driver Manager
+AC_CHECK_SIZEOF(long int)
 AC_CHECK_SIZEOF(__int64)
 AC_CHECK_SIZEOF(void *)
 AC_CHECK_SIZEOF(wchar_t,,[$ac_includes_default
