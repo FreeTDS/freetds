@@ -4399,14 +4399,14 @@ ct_diag(CS_CONNECTION * conn, CS_INT operation, CS_INT type, CS_INT idx, CS_VOID
 			    || (conn->ctx->cs_diag_msglimit_client != CS_NO_LIMIT && idx > conn->ctx->cs_diag_msglimit_client))
 				return CS_FAIL;
 
-			return (ct_diag_getclientmsg(conn->ctx, idx, (CS_CLIENTMSG *) buffer));
+			return ct_diag_getclientmsg(conn->ctx, idx, (CS_CLIENTMSG *) buffer);
 		}
 
 		if (type == CS_SERVERMSG_TYPE) {
 			if (idx == 0
 			    || (conn->ctx->cs_diag_msglimit_server != CS_NO_LIMIT && idx > conn->ctx->cs_diag_msglimit_server))
 				return CS_FAIL;
-			return (ct_diag_getservermsg(conn->ctx, idx, (CS_SERVERMSG *) buffer));
+			return ct_diag_getservermsg(conn->ctx, idx, (CS_SERVERMSG *) buffer);
 		}
 
 		break;
