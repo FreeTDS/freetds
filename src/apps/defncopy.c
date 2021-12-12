@@ -551,36 +551,29 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 
 	printf("%sCREATE TABLE %s.%s\n", use_statement, procedure->owner, procedure->name);
 	for (i=0; i < nrows; i++) {
-		static const char *varytypenames[] =    { "char"
-							, "nchar"
-							, "varchar"
-							, "nvarchar"
-							, "unichar"
-							, "univarchar"
-							, "binary"
-							, "varbinary"
-							, NULL
-							};
-		const char **t;
+		static const char varytypenames[] =	"char\0"
+							"nchar\0"
+							"varchar\0"
+							"nvarchar\0"
+							"unichar\0"
+							"univarchar\0"
+							"binary\0"
+							"varbinary\0"
+							;
 		char *type = NULL;
 		int is_null;
 
 		/* get size of decimal, numeric, char, and image types */
 		ret = 0;
-		if (0 == strcasecmp("decimal", ddl[i].type) || 0 == strcasecmp("numeric", ddl[i].type)) {
+		if (is_in(ddl[i].type, "decimal\0numeric\0")) {
 			if (ddl[i].precision && 0 != strcasecmp("NULL", ddl[i].precision)) {
 				rtrim(ddl[i].precision);
 				rtrim(ddl[i].scale);
 				ret = asprintf(&type, "%s(%s,%s)", ddl[i].type, ddl[i].precision, ddl[i].scale);
 			}
-		} else {
-			for (t = varytypenames; *t; t++) {
-				if (0 == strcasecmp(*t, ddl[i].type)) {
-					ltrim(rtrim(ddl[i].length));
-					ret = asprintf(&type, "%s(%s)", ddl[i].type, ddl[i].length);
-					break;
-				}
-			}
+		} else if (is_in(ddl[i].type, varytypenames)) {
+			ltrim(rtrim(ddl[i].length));
+			ret = asprintf(&type, "%s(%s)", ddl[i].type, ddl[i].length);
 		}
 		assert(ret >= 0);
 
