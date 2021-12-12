@@ -577,7 +577,10 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 			for (t = varytypenames; *t; t++) {
 				if (0 == strcasecmp(*t, ddl[i].type)) {
 					ltrim(rtrim(ddl[i].length));
-					ret = asprintf(&type, "%s(%s)", ddl[i].type, ddl[i].length);
+					if (strcmp(ddl[i].length, "-1") == 0)
+						ret = asprintf(&type, "%s(max)", ddl[i].type);
+					else
+						ret = asprintf(&type, "%s(%s)", ddl[i].type, ddl[i].length);
 					break;
 				}
 			}
