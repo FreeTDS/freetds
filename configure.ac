@@ -553,7 +553,7 @@ case "$with_tdsver" in
 esac
 
 AC_ARG_WITH(iodbc,
-AS_HELP_STRING([--with-iodbc=DIR], [build odbc driver against iODBC in DIR]))
+AS_HELP_STRING([--with-iodbc=DIR], [build ODBC driver against iODBC in DIR]))
 
 if test "x$with_iodbc" = "xyes"; then
 	# The user asked for iodbc support, but didn't tell us
@@ -583,7 +583,7 @@ elif test "x$with_iodbc" != "x" -a "x$with_iodbc" != "xno"; then
 fi
 
 AC_ARG_WITH(unixodbc,
-AS_HELP_STRING([--with-unixodbc=DIR], [build odbc driver against unixODBC in DIR]))
+AS_HELP_STRING([--with-unixodbc=DIR], [build ODBC driver against unixODBC in DIR]))
 
 if test "x$with_unixodbc" = "xyes"; then
 	# The user asked for unixodbc support, but didn't tell us
@@ -628,7 +628,7 @@ if test "x$with_unixodbc" != "x" -a "x$with_unixodbc" != "xno"; then
 fi
 
 AC_ARG_WITH(odbc_nodm,
-AS_HELP_STRING([--with-odbc-nodm=DIR], [build odbc using headers in DIR/include]))
+AS_HELP_STRING([--with-odbc-nodm=DIR], [build ODBC using headers in DIR/include]))
 if test "x$with_odbc_nodm" != "x" -a "x$with_odbc_nodm" != "xno"; then
 	if echo "$with_odbc_nodm" | grep -v '^/'; then
 		with_odbc_nodm="$PWD/$with_odbc_nodm"
@@ -649,7 +649,7 @@ fi
 build_odbc=yes
 if test "$odbc" != "true"; then
 AC_ARG_ENABLE(odbc,
-	AS_HELP_STRING([--disable-odbc], [do not attempt to build odbc the driver]),
+	AS_HELP_STRING([--disable-odbc], [do not attempt to build the ODBC driver]),
 	[build_odbc=$enableval], [build_odbc=yes])
 fi
 AM_CONDITIONAL(INCODBC, test "$build_odbc" = "yes")
@@ -666,7 +666,7 @@ then
 	AC_SUBST(FREETDS_ODBC_MODULE)
 
 	# odbc not specified, try to detect it
-	echo looking for installed odbc driver manager
+	echo "looking for installed ODBC driver manager"
 	if test "$odbc" != "true" -a $tds_mingw = yes; then
 		odbc=true
 		unixodbc=true
@@ -763,7 +763,7 @@ SQLRETURN SQL_API SQLParamOptions(SQLHSTMT       hstmt,
 
 	CPPFLAGS="$save_cppflags"
 else 
-	AC_MSG_NOTICE(odbc disabled)	
+	AC_MSG_NOTICE(ODBC disabled)
 fi
 
 AM_CONDITIONAL(ODBC, test "$odbc" = "true")
@@ -936,7 +936,7 @@ if test "$enable_mars" != "no" ; then
 fi
 
 AC_ARG_ENABLE(odbc-wide,
-  AS_HELP_STRING([--disable-odbc-wide], [disable wide string support in odbc]))
+  AS_HELP_STRING([--disable-odbc-wide], [disable wide string support in ODBC]))
 if test "$enable_odbc_wide" != "no" ; then
 	AC_DEFINE_UNQUOTED(ENABLE_ODBC_WIDE, 1, [Define to enable ODBC wide string support])
 
