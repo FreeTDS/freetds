@@ -331,6 +331,7 @@ vi_cmd(const char *command)
 static void
 system_cmd(const char *cmd)
 {
+#if HAVE_SYSTEM
 	int rv;
 	switch (rv = system(cmd)) {
 	case 0:
@@ -344,6 +345,9 @@ system_cmd(const char *cmd)
 		    "with code %d\n", cmd, rv);
 		break;
 	}
+#else
+	fprintf(stderr, "Your system cannot execute commands. Tried to execute `%s'\n", cmd);
+#endif
 }
 
 static void
