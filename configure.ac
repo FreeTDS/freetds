@@ -499,7 +499,8 @@ nl_langinfo locale_charset setenv putenv \
 getuid getpwuid getpwuid_r fstat alarm fork \
 gethrtime localtime_r setitimer eventfd \
 _fseeki64 _ftelli64 setrlimit pthread_cond_timedwait \
-_lock_file _unlock_file usleep nanosleep readdir_r])
+_lock_file _unlock_file usleep nanosleep readdir_r \
+system])
 
 ACX_PUSH_LIBS("$LIBS $NETWORK_LIBS")
 AC_CHECK_FUNCS([inet_ntoa_r getipnodebyaddr getipnodebyname \
