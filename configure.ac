@@ -11,7 +11,7 @@ dnl ------------------------------------------------------------
 # ------------------------------------------------------------
 # Initialization
 # ------------------------------------------------------------
-AC_INIT(FreeTDS, 1.3.5)
+AC_INIT(FreeTDS, 1.3.6)
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
 
@@ -496,8 +496,12 @@ nl_langinfo locale_charset setenv putenv \
 getuid getpwuid getpwuid_r fstat alarm fork \
 gethrtime localtime_r setitimer eventfd \
 _fseeki64 _ftelli64 setrlimit pthread_cond_timedwait \
-_lock_file _unlock_file usleep nanosleep readdir_r \
-system])
+_lock_file _unlock_file usleep nanosleep readdir_r])
+
+AC_TRY_LINK([#include <stdio.h>
+#include <stdlib.h>],
+[return system("ls") != 0;],
+AC_DEFINE(HAVE_SYSTEM, 1, [Define to 1 if you have the 'system' function]))
 
 ACX_PUSH_LIBS("$LIBS $NETWORK_LIBS")
 AC_CHECK_FUNCS([inet_ntoa_r getipnodebyaddr getipnodebyname \
