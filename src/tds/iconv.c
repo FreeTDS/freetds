@@ -67,7 +67,7 @@ static void tds_iconv_info_close(TDSICONV * char_conv);
 
 /* this will contain real iconv names */
 static const char *iconv_names[TDS_VECTOR_SIZE(canonic_charsets)];
-static int iconv_initialized = 0;
+static bool iconv_initialized = false;
 static const char *ucs2name;
 
 enum
@@ -380,7 +380,7 @@ tds_iconv_open(TDSCONNECTION * conn, const char *charset, int use_utf16)
 						  "use: \"configure --disable-libiconv\"", ret, names[ret-1]);
 			return TDS_FAIL;
 		}
-		iconv_initialized = 1;
+		iconv_initialized = true;
 	}
 
 	/* 
