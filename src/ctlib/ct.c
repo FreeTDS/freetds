@@ -941,7 +941,6 @@ CS_RETCODE
 ct_send(CS_COMMAND * cmd)
 {
 	TDSSOCKET *tds;
-	TDSRET ret;
 	TDSPARAMINFO *pparam_info;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_send(%p)\n", cmd);
@@ -1033,6 +1032,7 @@ ct_send(CS_COMMAND * cmd)
 
 	if (cmd->command_type == CS_RPC_CMD) {
 		CSREMOTE_PROC *rpc = cmd->rpc;
+		TDSRET ret;
 
 		/* sanity */
 		if (!cmd->rpc	/* ct_command should allocate pointer */
@@ -1056,7 +1056,8 @@ ct_send(CS_COMMAND * cmd)
 	/* RPC Code changes ends here */
 
 	if (cmd->command_type == CS_LANG_CMD) {
-		ret = TDS_FAIL;
+		TDSRET ret;
+
 		if (cmd->input_params) {
 			pparam_info = paraminfoalloc(tds, cmd->input_params);
 			ret = tds_submit_query_params(tds, cmd->query, pparam_info, NULL);
@@ -1079,6 +1080,7 @@ ct_send(CS_COMMAND * cmd)
 
 	if (cmd->command_type == CS_CUR_CMD) {
 		TDSCURSOR *cursor;
+		TDSRET ret = TDS_SUCCESS;
 
 		/* sanity */
 		/*
@@ -1107,47 +1109,41 @@ ct_send(CS_COMMAND * cmd)
 		}
 
 		if (cursor->status.declare == _CS_CURS_TYPE_REQUESTED) {
-			ret =  tds_cursor_declare(tds, cursor, NULL, &something_to_send);
-			if (TDS_SUCCEED(ret)){
-				cursor->status.declare = TDS_CURSOR_STATE_SENT; /* Cursor is declared */
-				if (something_to_send == 0) {
-					cmd->results_state = _CS_RES_END_RESULTS;
-				}
-			}
-			else {
+			TDSRET ret =  tds_cursor_declare(tds, cursor, NULL, &something_to_send);
+			if (TDS_FAILED(ret)){
 				tdsdump_log(TDS_DBG_WARN, "ct_send(): cursor declare failed \n");
 				return CS_FAIL;
+			}
+			cursor->status.declare = TDS_CURSOR_STATE_SENT; /* Cursor is declared */
+			if (something_to_send == 0) {
+				cmd->results_state = _CS_RES_END_RESULTS;
 			}
 		}
 
 		if (cursor->status.cursor_row == _CS_CURS_TYPE_REQUESTED &&
 			cursor->status.declare == _CS_CURS_TYPE_SENT) {
 
- 			ret = tds_cursor_setrows(tds, cursor, &something_to_send);
-			if (TDS_SUCCEED(ret)){
-				cursor->status.cursor_row = TDS_CURSOR_STATE_SENT; /* Cursor rows set */
-				if (something_to_send == 0) {
-					cmd->results_state = _CS_RES_END_RESULTS;
-				}
-			}
-			else {
+ 			TDSRET ret = tds_cursor_setrows(tds, cursor, &something_to_send);
+			if (TDS_FAILED(ret)){
 				tdsdump_log(TDS_DBG_WARN, "ct_send(): cursor set rows failed\n");
 				return CS_FAIL;
+			}
+			cursor->status.cursor_row = TDS_CURSOR_STATE_SENT; /* Cursor rows set */
+			if (something_to_send == 0) {
+				cmd->results_state = _CS_RES_END_RESULTS;
 			}
 		}
 
 		if (cursor->status.open == _CS_CURS_TYPE_REQUESTED &&
 			cursor->status.declare == _CS_CURS_TYPE_SENT) {
 
-			ret = tds_cursor_open(tds, cursor, NULL, &something_to_send);
- 			if (TDS_SUCCEED(ret)){
-				cursor->status.open = TDS_CURSOR_STATE_SENT;
-				cmd->results_state = _CS_RES_INIT;
-			}
-			else {
+			TDSRET ret = tds_cursor_open(tds, cursor, NULL, &something_to_send);
+ 			if (TDS_FAILED(ret)){
 				tdsdump_log(TDS_DBG_WARN, "ct_send(): cursor open failed\n");
 				return CS_FAIL;
 			}
+			cursor->status.open = TDS_CURSOR_STATE_SENT;
+			cmd->results_state = _CS_RES_INIT;
 		}
 
 		if (something_to_send) {
