@@ -561,7 +561,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 							"varbinary\0"
 							;
 		char *type = NULL;
-		int is_null;
+		bool is_null;
 
 		/* get size of decimal, numeric, char, and image types */
 		ret = 0;
