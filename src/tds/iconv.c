@@ -239,46 +239,41 @@ tds_set_iconv_name(int charset)
 {
 	int i;
 	iconv_t cd;
+	const char *name;
 
 	assert(iconv_initialized);
 
 	/* try using canonic name and UTF-8 and UCS2 */
-	cd = tds_sys_iconv_open(iconv_names[POS_UTF8], canonic_charsets[charset].name);
-	if (cd != (iconv_t) -1) {
-		iconv_names[charset] = canonic_charsets[charset].name;
-		tds_sys_iconv_close(cd);
-		return iconv_names[charset];
-	}
-	cd = tds_sys_iconv_open(ucs2name, canonic_charsets[charset].name);
-	if (cd != (iconv_t) -1) {
-		iconv_names[charset] = canonic_charsets[charset].name;
-		tds_sys_iconv_close(cd);
-		return iconv_names[charset];
-	}
+	name = canonic_charsets[charset].name;
+	cd = tds_sys_iconv_open(iconv_names[POS_UTF8], name);
+	if (cd != (iconv_t) -1)
+		goto found;
+	cd = tds_sys_iconv_open(ucs2name, name);
+	if (cd != (iconv_t) -1)
+		goto found;
 
 	/* try all alternatives */
 	for (i = 0; iconv_aliases[i].alias; ++i) {
 		if (iconv_aliases[i].canonic != charset)
 			continue;
 
-		cd = tds_sys_iconv_open(iconv_names[POS_UTF8], iconv_aliases[i].alias);
-		if (cd != (iconv_t) -1) {
-			iconv_names[charset] = iconv_aliases[i].alias;
-			tds_sys_iconv_close(cd);
-			return iconv_names[charset];
-		}
-
-		cd = tds_sys_iconv_open(ucs2name, iconv_aliases[i].alias);
-		if (cd != (iconv_t) -1) {
-			iconv_names[charset] = iconv_aliases[i].alias;
-			tds_sys_iconv_close(cd);
-			return iconv_names[charset];
-		}
+		name = iconv_aliases[i].alias;
+		cd = tds_sys_iconv_open(iconv_names[POS_UTF8], name);
+		if (cd != (iconv_t) -1)
+			goto found;
+		cd = tds_sys_iconv_open(ucs2name, name);
+		if (cd != (iconv_t) -1)
+			goto found;
 	}
 
 	/* charset not found, pretend it's ISO 8859-1 */
 	iconv_names[charset] = canonic_charsets[POS_ISO1].name;
 	return NULL;
+
+found:
+	iconv_names[charset] = name;
+	tds_sys_iconv_close(cd);
+	return name;
 }
 
 static void
