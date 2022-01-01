@@ -52,7 +52,6 @@
 #endif /* HAVE_ARPA_INET_H */
 
 #include "pool.h"
-#include <freetds/replacements.h>
 #include <freetds/utils/string.h>
 
 #ifndef MAXHOSTNAMELEN
@@ -341,32 +340,34 @@ pool_process_data(TDS_POOL *pool, TDS_POOL_MEMBER *pmbr)
  * @return Timeout you should call this function again or -1 for infinite
  */
 int
-pool_process_members(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
+pool_process_members(TDS_POOL * pool, struct pollfd *fds, unsigned num_fds)
 {
 	TDS_POOL_MEMBER *pmbr, *next;
 	TDSSOCKET *tds;
 	time_t age;
 	time_t time_now;
 	int min_expire_left = -1;
+	short revents;
 
 	for (next = dlist_member_first(&pool->active_members); (pmbr = next) != NULL; ) {
 		bool processed = false;
 
 		next = dlist_member_next(&pool->active_members, pmbr);
 
-		if (pmbr->doing_async)
+		if (pmbr->doing_async || pmbr->sock.poll_index > num_fds)
 			continue;
 
+		revents = fds[pmbr->sock.poll_index].revents;
 		tds = pmbr->sock.tds;
 		assert(tds);
 
 		time_now = time(NULL);
-		if (pmbr->sock.poll_recv && FD_ISSET(tds_get_s(tds), rfds)) {
+		if (pmbr->sock.poll_recv && (revents & POLLIN) != 0) {
 			if (!pool_process_data(pool, pmbr))
 				continue;
 			processed = true;
 		}
-		if (pmbr->sock.poll_send && FD_ISSET(tds_get_s(tds), wfds)) {
+		if (pmbr->sock.poll_send && (revents & POLLOUT) != 0) {
 			if (!pool_write_data(&pmbr->current_user->sock, &pmbr->sock)) {
 				pool_free_member(pool, pmbr);
 				continue;
