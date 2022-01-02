@@ -66,7 +66,7 @@
 #include "pool.h"
 
 /* to be set by sig term */
-static int got_sigterm = 0;
+static bool got_sigterm = false;
 static const char *logfile_name = NULL;
 
 static void sigterm_handler(int sig);
@@ -79,16 +79,16 @@ static bool pool_open_logfile(TDS_POOL * pool);
 static void
 sigterm_handler(int sig)
 {
-	got_sigterm = 1;
+	got_sigterm = true;
 }
 
 #ifndef _WIN32
-static int got_sighup = 0;
+static bool got_sighup = false;
 
 static void
 sighup_handler(int sig)
 {
-	got_sighup = 1;
+	got_sighup = true;
 }
 #endif
 
@@ -389,7 +389,7 @@ pool_main_loop(TDS_POOL * pool)
 
 #ifndef _WIN32
 		if (TDS_UNLIKELY(got_sighup)) {
-			got_sighup = 0;
+			got_sighup = false;
 			pool_open_logfile(pool);
 		}
 #endif
