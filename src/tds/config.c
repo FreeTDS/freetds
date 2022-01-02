@@ -1037,7 +1037,7 @@ hexdigit(int c)
 {
 	if (c >= '0' && c <= '9')
 		return c - '0';
-	/* ascii optimization, 'A' -> 'a', 'a' -> 'a' */
+	/* ASCII optimization, 'A' -> 'a', 'a' -> 'a' */
 	c |= 0x20;
 	if (c >= 'a' && c <= 'f')
 		return c - 'a' + 10;
