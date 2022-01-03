@@ -1497,7 +1497,7 @@ tds_convert_real(const TDS_REAL* src, int desttype, CONV_RESULT * cr)
 {
 	TDS_REAL the_value;
 
-/* FIXME how many big should be this buffer ?? */
+	/* FIXME how big should be this buffer ?? */
 	char tmp_str[128];
 	TDS_INT mymoney4;
 	TDS_INT8 mymoney;
