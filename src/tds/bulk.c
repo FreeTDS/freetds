@@ -510,7 +510,7 @@ tds5_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_dat
 	TDS_NUMERIC *num;
 	int row_pos = start;
 	int cpbytes;
-	int i, j;
+	int i;
 	int bitleft = 0, bitpos = 0;
 
 	assert(bcpinfo);
@@ -566,10 +566,8 @@ tds5_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_dat
 
 			/* CHAR data may need padding out to the database length with blanks */
 			/* TODO check binary !!! */
-			if (bcpcol->column_type == SYBCHAR && cpbytes < column_size) {
-				for (j = cpbytes; j <  column_size; j++)
-					rowbuffer[row_pos + j] = ' ';
-			}
+			if (bcpcol->column_type == SYBCHAR && cpbytes < column_size)
+				memset(rowbuffer + row_pos + cpbytes, ' ', column_size - cpbytes);
 		}
 
 		row_pos += column_size;
