@@ -511,7 +511,7 @@ tds5_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_dat
 	int row_pos = start;
 	int cpbytes;
 	int i, j;
-	int bitleft = 0, bitpos;
+	int bitleft = 0, bitpos = 0;
 
 	assert(bcpinfo);
 	assert(rowbuffer);
