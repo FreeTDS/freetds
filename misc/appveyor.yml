@@ -13,7 +13,7 @@ branches:
     - Branch-0_91
 
 services:
-- mssql2016
+- mssql2017
 
 version: "{build}"
 
@@ -31,9 +31,9 @@ environment:
   matrix:
   - PLAT: Win64
     WIDTH: 64
-    VS_VERSION: "2017"
+    VS_VERSION: "2019"
     TDSVER: "7.3"
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
 
   - PLAT: Win32
     WIDTH: 32
@@ -125,7 +125,8 @@ build_script:
   - cd ..
 
 test_script:
-  - set INSTANCENAME=SQL2016
+  - set INSTANCENAME=SQL2017
+  - if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2019" set INSTANCENAME=SQL2019
   - "powershell misc\\sql-server-activate-tcp-fixed-port.ps1"
   # Create freetds.conf
   # Create a test database
