@@ -71,6 +71,7 @@ then
 		done
 	done
 fi
+exec 3>&-
 
 ODBC_DIR=$(cat ${INI_DIRNAME}) && rm ${INI_DIRNAME}
 
