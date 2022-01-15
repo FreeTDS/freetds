@@ -53,13 +53,13 @@ then
 	(echo ${ISQL_DIR}; ldd "${ISQL}" | awk '/libodbc\./ {print $3}') \
 	| while read L
 	  do 
-	  	strings "$L" | grep '^/' | grep -v '/lib' \
+		strings "$L" | grep '^/' | grep -v '/lib' \
 		| while read D 
 		  do 
-		  	if [ ! -s "${INI_DIRNAME}" ]
+			if [ ! -s "${INI_DIRNAME}" ]
 			then
-			  	printf "	trying $D ... "
-			  	if [ -d "$D" -a -r "${D}/odbc.ini" ]
+				printf "	trying $D ... "
+				if [ -d "$D" -a -r "${D}/odbc.ini" ]
 				then
 					printf $D >&3
 					printf "OK"
@@ -68,8 +68,8 @@ then
 				fi
 				printf "\n"
 			fi
-		  done
-	  done
+		done
+	done
 fi
 
 ODBC_DIR=$(cat ${INI_DIRNAME}) && rm ${INI_DIRNAME}
