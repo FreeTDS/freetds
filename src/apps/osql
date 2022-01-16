@@ -48,8 +48,13 @@ exec 3> "${INI_DIRNAME}"
 # Check the libraries, too. 
 if [ -z "${OVER_DIR}" ]
 then 
+	libcmd='ldd "${ISQL}" | awk "/libodbc\./ {print \$3}"'
+	if ! command -V ldd >/dev/null 2>&1 && command -V otool >/dev/null 2>&1
+	then
+		libcmd='otool -L "${ISQL}" | awk "/libodbc\./ {print \$1}"'
+	fi
 	echo "checking shared odbc libraries linked to isql for default directories..."
-	(echo "${ISQL_DIR}"; ldd "${ISQL}" | awk '/libodbc\./ {print $3}') \
+	(echo ${ISQL_DIR}; eval "$libcmd") \
 	| while read L
 	  do 
 		strings "$L" | grep '^/' | grep -v '/lib' \
