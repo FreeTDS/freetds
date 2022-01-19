@@ -109,7 +109,7 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames)
 	char dummy_name2[20];
 	CS_INT destlen;
 	CS_INT rowsAffected = -1;
-	int rows_found;
+	int rows_found = 0;
 
 	/* clear table */
 	run_command(cmd, "delete #ctparam_lang");

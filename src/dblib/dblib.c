@@ -3621,6 +3621,8 @@ dbprrow(DBPROCESS * dbproc)
 				putchar(c);
 			}
 
+		} else if (col_printlens == NULL) {
+			return FAIL;
 		} else {
 
 			computeid = status;

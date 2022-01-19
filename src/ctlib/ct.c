@@ -1574,8 +1574,6 @@ ct_bind(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt, CS_VOID * buffer, C
 	if (!resinfo || item <= 0 || item > resinfo->num_cols)
 		return CS_FAIL;
 
-	colinfo = resinfo->columns[item - 1];
-
 	/*
 	 * Check whether the request is for array binding, and ensure that the user
 	 * supplies the same datafmt->count to the subsequent ct_bind calls
