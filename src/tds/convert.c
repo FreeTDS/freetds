@@ -78,26 +78,43 @@ static const char *parse_numeric(const char *buf, const char *pend,
 
 #define test_alloc(x) {if ((x)==NULL) return TDS_CONVERT_NOMEM;}
 
-#define IS_TINYINT(x) ( 0 <= (x) && (x) <= 0xff )
-#define IS_SMALLINT(x) ( -32768 <= (x) && (x) <= 32767 )
-#define IS_USMALLINT(x) ( 0 <= (x) && (x) <= 65535 )
 /*
+ * Macros for number checks.
+ * They work for signed/unsigned integers and floating point values
+ * (accounting for truncation of any fractional portions of the latter).
+ */
+#define IS_TINYINT(x) ( -1 < (x) && (x) < 0x100 )
+#define IS_SMALLINT(x) ( -32769 < (x) && (x) < 32768 )
+#define IS_USMALLINT(x) ( -1 < (x) && (x) < 65536 )
+
+/*
+ * Macros for integer number checks.
+ * IS_UINT works for both integers and floating point values.
+ *
  * f77: I don't write -2147483648, some compiler seem to have some problem 
  * with this constant although is a valid 32bit value
  */
-#define TDS_INT_MIN (-2147483647l-1l)
-#define TDS_INT_MAX 2147483647l
-#define IS_INT(x) (TDS_INT_MIN <= (x) && (x) <= TDS_INT_MAX)
-
-#define TDS_UINT_MAX 4294967295lu
-#define IS_UINT(x) (0 <= (x) && (x) <= TDS_UINT_MAX)
-
-#define TDS_INT8_MAX ((((TDS_INT8) 0x7fffffffl) << 32) + (TDS_INT8) 0xfffffffflu)
+#define TDS_INT_MIN (-2147483647-1)
+#define TDS_INT_MAX 2147483647
+#define INT_IS_INT(x) (TDS_INT_MIN <= (x) && (x) <= TDS_INT_MAX)
+#define TDS_UINT_MAX 4294967295u
+#define IS_UINT(x) (-1 < (TDS_INT8)(x) && (x) < (TDS_INT8) TDS_UINT_MAX + 1)
 #define TDS_INT8_MIN (-(((TDS_INT8)1)<<62) -(((TDS_INT8)1)<<62))
-#define IS_INT8(x) (TDS_INT8_MIN <= (x) && (x) <= TDS_INT8_MAX)
+#define TDS_INT8_MAX ((((TDS_INT8) 0x7fffffff) << 32) + (TDS_INT8) 0xffffffffu)
 
-#define TDS_UINT8_MAX ((((TDS_UINT8) 0xfffffffflu) << 32) + 0xfffffffflu)
-#define IS_UINT8(x) (0 <= (x) && (x) <= TDS_UINT8_MAX)
+/*
+ * Macros for floating point number checks.
+ * To avoid possible loss of precision, use upper bounds for floating point
+ * values and test MIN - (x) < 1 rather than MIN - 1 < (x) for signed
+ * destination types.
+ */
+#define TDS_INT_UPPER_FLOAT 2147483648.0f
+#define FLOAT_IS_INT(x) (TDS_INT_MIN - (x) < 1.0f && (x) < TDS_INT_UPPER_FLOAT)
+#define TDS_INT8_MIN_FLOAT (-9223372036854775808.0f)
+#define TDS_INT8_UPPER_FLOAT 9223372036854775808.0f
+#define FLOAT_IS_INT8(x) (TDS_INT8_MIN_FLOAT - (x) < 1.0f && (x) < TDS_INT8_UPPER_FLOAT)
+#define TDS_UINT8_UPPER 18446744073709551616.0f
+#define FLOAT_IS_UINT8(x) (-1.0f < (x) && (x) < TDS_UINT8_UPPER)
 
 #define TDS_ISDIGIT(c) ((c) >= '0' && (c) <= '9')
 
@@ -446,7 +463,7 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 			cr->m.mny = mymoney;
 			return sizeof(TDS_MONEY);
 		} else {
-			if (!IS_INT(mymoney))
+			if (!INT_IS_INT(mymoney))
 				return TDS_CONVERT_OVERFLOW;
 			cr->m4.mny4 = (TDS_INT) mymoney;
 			return sizeof(TDS_MONEY4);
@@ -713,7 +730,7 @@ tds_convert_int8(const TDS_INT8 *src, int desttype, CONV_RESULT * cr)
 	TDS_CHAR tmp_str[24];
 
 	memcpy(&buf, src, sizeof(buf));
-	if (IS_INT(buf))
+	if (INT_IS_INT(buf))
 		return tds_convert_int((TDS_INT) buf, desttype, cr);
 
 	switch (desttype) {
@@ -790,8 +807,8 @@ tds_convert_uint8(const TDS_UINT8 *src, int desttype, CONV_RESULT * cr)
 	TDS_CHAR tmp_str[24];
 
 	memcpy(&buf, src, sizeof(buf));
-	/* IS_INT does not work here due to unsigned/signed conversions */
-	if (buf <= (TDS_UINT8) TDS_INT_MAX)
+	/* INT_IS_INT does not work here due to unsigned/signed conversions */
+	if (buf <= TDS_INT_MAX)
 		return tds_convert_int((TDS_INT) buf, desttype, cr);
 
 	switch (desttype) {
@@ -815,7 +832,7 @@ tds_convert_uint8(const TDS_UINT8 *src, int desttype, CONV_RESULT * cr)
 		return sizeof(TDS_UINT);
 		break;
 	case SYBINT8:
-		if (buf > (TDS_UINT8) TDS_INT8_MAX)
+		if (buf > TDS_INT8_MAX)
 			return TDS_CONVERT_OVERFLOW;
 		cr->bi = (TDS_INT8) buf;
 		return sizeof(TDS_INT8);
@@ -1195,7 +1212,7 @@ tds_convert_money(const TDSCONTEXT * tds_ctx, const TDS_MONEY * src, int desttyp
 		break;
 	case SYBINT4:
 		dollars = mymoney / 10000;
-		if (!IS_INT(dollars))
+		if (!INT_IS_INT(dollars))
 			return TDS_CONVERT_OVERFLOW;
 		cr->i = (TDS_INT) dollars;
 		return sizeof(TDS_INT);
@@ -1232,7 +1249,7 @@ tds_convert_money(const TDSCONTEXT * tds_ctx, const TDS_MONEY * src, int desttyp
 		return sizeof(TDS_REAL);
 		break;
 	case SYBMONEY4:
-		if (!IS_INT(mymoney))
+		if (!INT_IS_INT(mymoney))
 			return TDS_CONVERT_OVERFLOW;
 		cr->m4.mny4 = (TDS_INT) mymoney;
 		return sizeof(TDS_MONEY4);
@@ -1526,7 +1543,7 @@ tds_convert_real(const TDS_REAL* src, int desttype, CONV_RESULT * cr)
 		return sizeof(TDS_USMALLINT);
 		break;
 	case SYBINT4:
-		if (!IS_INT(the_value))
+		if (!FLOAT_IS_INT(the_value))
 			return TDS_CONVERT_OVERFLOW;
 		cr->i = (TDS_INT) the_value;
 		return sizeof(TDS_INT);
@@ -1538,13 +1555,13 @@ tds_convert_real(const TDS_REAL* src, int desttype, CONV_RESULT * cr)
 		return sizeof(TDS_UINT);
 		break;
 	case SYBINT8:
-		if (the_value > (TDS_REAL) TDS_INT8_MAX || the_value < (TDS_REAL) TDS_INT8_MIN)
+		if (!FLOAT_IS_INT8(the_value))
 			return TDS_CONVERT_OVERFLOW;
 		cr->bi = (TDS_INT8) the_value;
 		return sizeof(TDS_INT8);
 		break;
 	case SYBUINT8:
-		if (the_value > (TDS_REAL) TDS_UINT8_MAX || the_value < 0)
+		if (!FLOAT_IS_UINT8(the_value))
 			return TDS_CONVERT_OVERFLOW;
 		cr->ubi = (TDS_UINT8) the_value;
 		return sizeof(TDS_UINT8);
@@ -1635,7 +1652,7 @@ tds_convert_flt8(const TDS_FLOAT* src, int desttype, CONV_RESULT * cr)
 		return sizeof(TDS_USMALLINT);
 		break;
 	case SYBINT4:
-		if (!IS_INT(the_value))
+		if (!FLOAT_IS_INT(the_value))
 			return TDS_CONVERT_OVERFLOW;
 		cr->i = (TDS_INT) the_value;
 		return sizeof(TDS_INT);
@@ -1647,13 +1664,13 @@ tds_convert_flt8(const TDS_FLOAT* src, int desttype, CONV_RESULT * cr)
 		return sizeof(TDS_UINT);
 		break;
 	case SYBINT8:
-		if (the_value > (TDS_FLOAT) TDS_INT8_MAX || the_value < (TDS_FLOAT) TDS_INT8_MIN)
+		if (!FLOAT_IS_INT8(the_value))
 			return TDS_CONVERT_OVERFLOW;
 		cr->bi = (TDS_INT8) the_value;
 		return sizeof(TDS_INT8);
 		break;
 	case SYBUINT8:
-		if (the_value > (TDS_FLOAT) TDS_UINT8_MAX || the_value < 0)
+		if (!FLOAT_IS_UINT8(the_value))
 			return TDS_CONVERT_OVERFLOW;
 		cr->ubi = (TDS_UINT8) the_value;
 		return sizeof(TDS_UINT8);
