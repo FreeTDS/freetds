@@ -2436,6 +2436,8 @@ ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 	else
 		datafmt->maxlength = curcol->column_size;
 	datafmt->usertype = curcol->column_usertype;
+	if (datafmt->usertype == 0 && datafmt->datatype == CS_BIGDATETIME_TYPE)
+		datafmt->usertype = curcol->column_type;
 	datafmt->precision = curcol->column_prec;
 	datafmt->scale = curcol->column_scale;
 
