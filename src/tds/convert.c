@@ -1273,9 +1273,7 @@ tds_convert_datetimeall(const TDSCONTEXT * tds_ctx, int srctype, const TDS_DATET
 
 		return string_to_result(desttype, whole_date_string, cr);
 	case SYBDATETIME:
-		if (!IS_INT(dta->date))
-			return TDS_CONVERT_OVERFLOW;
-		cr->dt.dtdays = (TDS_INT) dta->date;
+		cr->dt.dtdays = dta->date;
 		cr->dt.dttime = (TDS_INT) ((dta->time * 3u + 50000u) / 100000u);
 		return sizeof(TDS_DATETIME);
 	case SYBDATETIME4:
@@ -1291,9 +1289,7 @@ tds_convert_datetimeall(const TDSCONTEXT * tds_ctx, int srctype, const TDS_DATET
 		cr->dta = *dta;
 		return sizeof(TDS_DATETIMEALL);
 	case SYBDATE:
-		if (!IS_INT(dta->date))
-			return TDS_CONVERT_OVERFLOW;
-		cr->date = (TDS_INT) dta->date;
+		cr->date = dta->date;
 		return sizeof(TDS_DATE);
 	case SYBTIME:
 		cr->time = (TDS_INT) ((dta->time * 3u + 50000u) / 100000u);
