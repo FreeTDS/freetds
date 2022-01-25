@@ -16,6 +16,7 @@ add_library(tdsutils STATIC
 	bjoern-utf8.c
 	tdsstring.c
 	net.c
+	smp.c
 	${add_SRCS}
 )
 if (NOT WIN32)
