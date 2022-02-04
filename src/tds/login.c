@@ -1281,7 +1281,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	   tests for TDS_ENCRYPTION_DEFAULT.
 	*/
 	tds_put_byte(tds, encryption_level == TDS_ENCRYPTION_OFF ? TDS7_ENCRYPT_NOT_SUP :
-			  encryption_level >= TDS_ENCRYPTION_REQUIRE ? TDS7_ENCRYPT_ON :
+			  encryption_level >= TDS_ENCRYPTION_REQUEST ? TDS7_ENCRYPT_ON :
 			  TDS7_ENCRYPT_OFF);
 #endif
 	/* instance */
@@ -1373,4 +1373,3 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 
 	return ret;
 }
-
