@@ -1,0 +1,66 @@
+version: "3.7"  
+
+services: 
+  freetds: 
+    image: blieusong/freetds-dev-c 
+    hostname: freetds 
+    working_dir: /workspace 
+    networks: 
+      gbprod-bridge: 
+        aliases:  
+          - freetds 
+    cap_add:  
+      - SYS_PTRACE 
+    security_opt: 
+      - seccomp:unconfined 
+    tty: true 
+ 
+  mssql-server: 
+    image: mcr.microsoft.com/mssql/server:latest 
+    hostname: mssql-server 
+    environment: 
+      - MSSQL_SA_PASSWORD=micro50ft! 
+      - MSSQL_LCID=1033 
+      - MSSQL_COLLATION=Latin1_General_100_BIN2 
+      - MSSQL_MEMORY_LIMIT_MB=4096 
+      - MSSQL_BACKUP_DIR=/var/opt/mssql/data/ 
+      - MSSQL_DATA_DIR=/var/opt/mssql/data/ 
+      - MSSQL_LOG_DIR=/var/opt/mssql/data/ 
+      - MSSQL_DUMP_DIR=/var/opt/mssql/data/ 
+      - ACCEPT_EULA=y 
+      - MSSQL_ENABLE_AGENT=false 
+    volumes: 
+      - mssql_data:/var/opt/mssql/data 
+    user: "root:root" 
+    networks: 
+      gbprod-bridge: 
+        aliases:  
+          - mssql-server 
+    ports: 
+      - "1433:1433" 
+    tty: true 
+   
+  ase-server: 
+    image: blieusong/sybase-ase 
+    hostname: sybase-ase 
+    working_dir: /home/sybase 
+    volumes: 
+      - sybase_data:/data 
+    networks: 
+      gbprod-bridge: 
+        aliases:  
+          - ase-server 
+    ports: 
+      - "5000:5000" 
+    tty: true 
+    entrypoint: "/home/sybase/bin/entrypoint.sh" 
+ 
+networks: 
+  freetds-bridge: 
+    ipam: 
+      driver: default 
+
+volumes: 
+  mssql_data: 
+  sybase_data: 
+ 
