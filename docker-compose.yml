@@ -6,7 +6,7 @@ services:
     hostname: freetds 
     working_dir: /workspace 
     networks: 
-      gbprod-bridge: 
+      freetds-bridge: 
         aliases:  
           - freetds 
     cap_add:  
@@ -47,7 +47,7 @@ services:
     volumes: 
       - sybase_data:/data 
     networks: 
-      gbprod-bridge: 
+      freetds-bridge: 
         aliases:  
           - ase-server 
     ports: 
