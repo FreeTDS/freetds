@@ -14,7 +14,6 @@ include_HEADERS	= \
 	sybdb.h \
 	sybfront.h \
 	syberror.h \
-	odbcss.h \
 	$(NULL)
 
 nodist_include_HEADERS = tds_sysdep_public.h
@@ -23,5 +22,11 @@ noinst_HEADERS = \
 	ctlib.h \
 	dblib.h \
 	$(NULL)
+
+if HAVE_ODBCSS_H
+noinst_HEADERS += odbcss.h
+else
+include_HEADERS += odbcss.h
+endif
 
 DISTCLEANFILES = tds_sysdep_public.h

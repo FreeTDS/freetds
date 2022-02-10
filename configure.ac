@@ -11,7 +11,7 @@ dnl ------------------------------------------------------------
 # ------------------------------------------------------------
 # Initialization
 # ------------------------------------------------------------
-AC_INIT(FreeTDS, 1.3.8)
+AC_INIT(FreeTDS, 1.3.9)
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
 
@@ -310,13 +310,14 @@ AC_CHECK_HEADERS([errno.h libgen.h \
 	wchar.h inttypes.h winsock2.h \
 	localcharset.h valgrind/memcheck.h malloc.h dirent.h \
 	stdbool.h gnutls/abstract.h getopt.h fcntl.h])
-AC_CHECK_HEADERS([windows.h sql.h],[],[],[[#ifdef HAVE_WINDOWS_H
+AC_CHECK_HEADERS([windows.h sql.h odbcss.h],[],[],[[#ifdef HAVE_WINDOWS_H
 # include <windows.h>
 #endif
 #ifdef HAVE_SQL_H
 # include <sql.h>
 #endif
 ]])
+AM_CONDITIONAL(HAVE_ODBCSS_H, test "$ac_cv_header_odbcss_h" = "yes")
 if test $tds_mingw = no; then
     AC_CHECK_HEADERS([	arpa/inet.h \
 			langinfo.h \
