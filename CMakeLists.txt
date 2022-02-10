@@ -482,7 +482,6 @@ set(FREETDS_PUBLIC_INCLUDE
 	${CMAKE_SOURCE_DIR}/include/sybdb.h
 	${CMAKE_SOURCE_DIR}/include/sybfront.h
 	${CMAKE_SOURCE_DIR}/include/syberror.h
-	${CMAKE_SOURCE_DIR}/include/odbcss.h
 	${CMAKE_BINARY_DIR}/include/tds_sysdep_public.h)
 
 set(FREETDS_PUBLIC_INCLUDE_2
