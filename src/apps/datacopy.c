@@ -499,7 +499,7 @@ check_table_structures(char *sobjname, char *dobjname, DBPROCESS * dbsrc, DBPROC
 	DBINT src_collen, dest_collen;
 
 
-	sprintf(ls_command, "select top 0 * from %s", sobjname);
+	sprintf(ls_command, "select * from %s where 0=1", sobjname);
 
 	if (dbcmd(dbsrc, ls_command) == FAIL) {
 		printf("dbcmd failed\n");
@@ -522,7 +522,7 @@ check_table_structures(char *sobjname, char *dobjname, DBPROCESS * dbsrc, DBPROC
 		return FALSE;
 	}
 
-	sprintf(ls_command, "select top 0 * from %s", dobjname);
+	sprintf(ls_command, "select * from %s where 0=1", dobjname);
 
 	if (dbcmd(dbdest, ls_command) == FAIL) {
 		printf("dbcmd failed\n");
