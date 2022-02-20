@@ -728,9 +728,9 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 	size = tds_fix_column_size(tds, curcol);
 
 	switch (tds_get_conversion_type(curcol->on_server.column_type, curcol->on_server.column_size)) {
-	case XSYBCHAR: //same as SYBLONGCHAR
-		if (!IS_TDS7_PLUS(tds->conn)) { //SYBLONGCHAR
-			switch (curcol->column_usertype) { // dirty temporary hack
+	case XSYBCHAR: /* same as SYBLONGCHAR */
+		if (IS_TDS50(tds->conn)) { /* SYBLONGCHAR */
+			switch (curcol->column_usertype) { /* dirty temporary hack */
 			case 2:
 				fmt = "VARCHAR(%u)";
 				break;
@@ -749,8 +749,8 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 			break;
 		}
 	case SYBCHAR:
-		if (!IS_TDS7_PLUS(tds->conn)) {
-			switch (curcol->column_usertype) { // dirty temporary hack
+		if (IS_TDS50(tds->conn)) {
+			switch (curcol->column_usertype) { /* dirty temporary hack */
 			case 24:
 				fmt = "NCHAR(%u)";
 				break;
@@ -762,7 +762,7 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 		}
 		break;
 	case SYBVARCHAR:
-		if (!IS_TDS7_PLUS(tds->conn) && curcol->column_usertype == 25) {
+		if (IS_TDS50(tds->conn) && curcol->column_usertype == 25) {
 			if (curcol->column_varint_size == 8)
 				fmt = "NVARCHAR(MAX)";
 			else

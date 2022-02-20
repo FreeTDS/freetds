@@ -411,7 +411,7 @@ create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbs
 	DBINT num_cols;
 	DBCOL2 colinfo;
 
-	sprintf(ls_command, "select top 0 * from %s", sobjname);
+	sprintf(ls_command, "select * from %s where 0=1", sobjname);
 
 	if (dbcmd(dbsrc, ls_command) == FAIL) {
 		printf("dbcmd failed\n");
