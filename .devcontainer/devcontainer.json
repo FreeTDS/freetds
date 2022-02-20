@@ -5,12 +5,9 @@
 	"service": "freetds-dev",
 	"workspaceFolder": "/workspace",
 
-	"settings": {
-		"terminal.integrated.shell.linux": "/bin/bash"
-	},
-
 	"extensions": [
 		"ms-vscode.cpptools",
+		"foxundermoon.shell-format",
         "mhutchie.git-graph",
         "eamodio.gitlens"
 	],

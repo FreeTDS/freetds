@@ -3,7 +3,7 @@ version: "3.7"
 services:
   freetds-dev:
     image: blieusong/freetds-dev-c
-    hostname: freetds-dev-c
+    hostname: freetds
     working_dir: /workspace
     volumes:
       - ./freetds.conf:/usr/local/etc/freetds.conf
@@ -37,7 +37,7 @@ services:
     tty: true
   
   ase-server:
-    image: blieusong/sybase-ase
+    image: blieusong/ase-server
     hostname: ase-server
     working_dir: /home/sybase
     volumes:
@@ -57,5 +57,3 @@ networks:
   tds-bridge:
     ipam:
       driver: default
-      config:
-        - subnet: "172.24.0.0/16"
