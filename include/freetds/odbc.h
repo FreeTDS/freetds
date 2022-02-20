@@ -539,9 +539,9 @@ typedef struct {
  * \param connect_string      point to connection string
  * \param connect_string_end  point to end of connection string
  * \param connection          structure where to store informations
- * \return 0 if error, 1 otherwise
+ * \return true if error, false otherwise
  */
-int odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char *connect_string_end, TDSLOGIN * login, TDS_PARSED_PARAM *parsed_params);
+bool odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char *connect_string_end, TDSLOGIN * login, TDS_PARSED_PARAM *parsed_params);
 int odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSLOGIN * login);
 #ifdef _WIN32
 int odbc_build_connect_string(TDS_ERRS *errs, TDS_PARSED_PARAM *params, char **out);

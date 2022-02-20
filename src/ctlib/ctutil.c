@@ -27,6 +27,7 @@
 #include <freetds/utils.h>
 #include "cspublic.h"
 #include "ctlib.h"
+#include "syberror.h"
 #include <freetds/tds.h>
 #include <freetds/replacements.h>
 /* #include "fortify.h" */
@@ -72,6 +73,36 @@ TEST_ATTRIBUTE(t31,TDS_NUMERIC,scale,CS_DECIMAL,scale);
 TEST_ATTRIBUTE(t32,TDS_NUMERIC,array,CS_DECIMAL,array);
 #endif
 
+static int
+_ct_translate_severity(int tds_severity)
+{
+	switch (tds_severity) {
+	case EXINFO:
+		return CS_SV_INFORM; /* unused */
+	case EXUSER:
+		return CS_SV_CONFIG_FAIL;
+	case EXNONFATAL:
+		return CS_SV_INTERNAL_FAIL; /* unused */
+	case EXCONVERSION:
+		return CS_SV_API_FAIL;
+	case EXSERVER:
+		return CS_SV_INTERNAL_FAIL; /* unused */
+	case EXTIME:
+		return CS_SV_RETRY_FAIL;
+	case EXPROGRAM:
+		return CS_SV_API_FAIL;
+	case EXRESOURCE:
+		return CS_SV_RESOURCE_FAIL; /* unused */
+	case EXCOMM:
+		return CS_SV_COMM_FAIL;
+	case EXFATAL:
+		return CS_SV_FATAL; /* unused */
+	case EXCONSISTENCY:
+	default:
+		return CS_SV_INTERNAL_FAIL;
+	}
+}
+
 /* 
  * error handler 
  * This callback function should be invoked only from libtds through tds_ctx->err_handler.  
@@ -92,7 +123,7 @@ _ct_handle_client_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAG
 
 	memset(&errmsg, '\0', sizeof(errmsg));
 	errmsg.msgnumber = msg->msgno;
-	errmsg.severity = msg->severity;
+	errmsg.severity = _ct_translate_severity(msg->severity);
 	strlcpy(errmsg.msgstring, msg->message, sizeof(errmsg.msgstring));
 	errmsg.msgstringlen = strlen(errmsg.msgstring);
 	errmsg.osstring[0] = '\0';

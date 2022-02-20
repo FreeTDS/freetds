@@ -839,7 +839,10 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 
 	set_return_exit:
 		if (TDS_FAILED(rc)) {
-			tds_set_state(tds, rc == TDS_CANCELLED ? TDS_PENDING : TDS_DEAD);
+			if (rc == TDS_CANCELLED)
+				tds_set_state(tds, TDS_PENDING);
+			else
+				tds_close_socket(tds);
 			return rc;
 		}
 
@@ -2741,30 +2744,6 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 
 	return tds_alloc_row(info);
 }
-
-/**
- * tds_get_token_size() returns the size of a fixed length token
- * used by tds_process_cancel() to determine how to read past a token
- * \param marker token type.
- */
-int
-tds_get_token_size(int marker)
-{
-	/* TODO finish */
-	switch (marker) {
-	case TDS_DONE_TOKEN:
-	case TDS_DONEPROC_TOKEN:
-	case TDS_DONEINPROC_TOKEN:
-		return 8;
-	case TDS_RETURNSTATUS_TOKEN:
-		return 4;
-	case TDS_PROCID_TOKEN:
-		return 8;
-	default:
-		return 0;
-	}
-}
-
 
 /**
  * tds_process_compute_names() processes compute result sets.

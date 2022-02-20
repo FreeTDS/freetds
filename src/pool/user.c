@@ -236,23 +236,26 @@ pool_free_user(TDS_POOL *pool, TDS_POOL_USER * puser)
  * the query to that member.
  */
 void
-pool_process_users(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
+pool_process_users(TDS_POOL * pool, struct pollfd *fds, unsigned num_fds)
 {
 	TDS_POOL_USER *puser, *next;
+	short revents;
 
 	for (next = dlist_user_first(&pool->users); (puser = next) != NULL; ) {
 
 		next = dlist_user_next(&pool->users, puser);
 
-		if (!puser->sock.tds)
+		if (!puser->sock.tds || puser->sock.poll_index >= num_fds)
 			continue;	/* dead connection */
 
-		if (puser->sock.poll_recv && FD_ISSET(tds_get_s(puser->sock.tds), rfds)) {
+		revents = fds[puser->sock.poll_index].revents;
+
+		if (puser->sock.poll_recv && (revents & POLLIN) != 0) {
 			assert(puser->user_state == TDS_SRV_QUERY);
 			if (!pool_user_read(pool, puser))
 				continue;
 		}
-		if (puser->sock.poll_send && FD_ISSET(tds_get_s(puser->sock.tds), wfds)) {
+		if (puser->sock.poll_send && (revents & POLLOUT) != 0) {
 			if (!pool_write_data(&puser->assigned_member->sock, &puser->sock))
 				pool_free_member(pool, puser->assigned_member);
 		}
@@ -289,7 +292,7 @@ pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 				"\xff"
 				"\x0a\x00\x06\x40\x00\x00"
 				"\x02"
-				"\x01"
+				"\x00"
 				""
 				"\x00", 0x23);
 		tds_flush_packet(tds);

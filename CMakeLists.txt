@@ -59,7 +59,7 @@ endif()
 # get build number from date
 # use same formula used in configure.ac
 unset(BUILD_NUMBER)
-string(TIMESTAMP BUILD_NUMBER "( %Y - 2020 ) * 366 + 1%j - 1000")
+string(TIMESTAMP BUILD_NUMBER "( %Y - 2021 ) * 366 + 1%j - 1000")
 math(EXPR BUILD_NUMBER "${BUILD_NUMBER}")
 
 set(FREETDS_TOPDIR ${CMAKE_CURRENT_LIST_DIR})
@@ -263,7 +263,7 @@ set(FUNCS asprintf vasprintf strtok_r strtok_s readpassphrase
 	getaddrinfo inet_ntop gethostname poll socketpair
 	clock_gettime fseeko pthread_cond_timedwait pthread_cond_timedwait_relative_np
 	pthread_condattr_setclock _lock_file _unlock_file usleep nanosleep
-	readdir_r eventfd daemon)
+	readdir_r eventfd daemon system)
 
 # TODO
 set(HAVE_GETADDRINFO 1 CACHE INTERNAL "")
@@ -465,6 +465,7 @@ add_subdirectory(src/pool)
 
 configure_file(${CMAKE_BINARY_DIR}/include/config.h.in ${CMAKE_BINARY_DIR}/include/config.h)
 configure_file(${CMAKE_SOURCE_DIR}/include/tds_sysdep_public.h.in ${CMAKE_BINARY_DIR}/include/tds_sysdep_public.h)
+configure_file(${CMAKE_SOURCE_DIR}/include/freetds/sysdep_types.h.in ${CMAKE_BINARY_DIR}/include/freetds/sysdep_types.h)
 configure_file(${CMAKE_SOURCE_DIR}/include/freetds/version.h.in ${CMAKE_BINARY_DIR}/include/freetds/version.h)
 if(NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
 	configure_file(${CMAKE_SOURCE_DIR}/src/odbc/version.rc.in ${CMAKE_SOURCE_DIR}/src/odbc/version.rc)
@@ -481,7 +482,6 @@ set(FREETDS_PUBLIC_INCLUDE
 	${CMAKE_SOURCE_DIR}/include/sybdb.h
 	${CMAKE_SOURCE_DIR}/include/sybfront.h
 	${CMAKE_SOURCE_DIR}/include/syberror.h
-	${CMAKE_SOURCE_DIR}/include/odbcss.h
 	${CMAKE_BINARY_DIR}/include/tds_sysdep_public.h)
 
 set(FREETDS_PUBLIC_INCLUDE_2

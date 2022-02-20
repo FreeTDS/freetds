@@ -76,14 +76,14 @@
 #include <freetds/utils.h>
 #include <freetds/replacements.h>
 
-static int tds_config_login(TDSLOGIN * connection, TDSLOGIN * login);
-static int tds_config_env_tdsdump(TDSLOGIN * login);
+static bool tds_config_login(TDSLOGIN * connection, TDSLOGIN * login);
+static bool tds_config_env_tdsdump(TDSLOGIN * login);
 static void tds_config_env_tdsver(TDSLOGIN * login);
 static void tds_config_env_tdsport(TDSLOGIN * login);
-static int tds_config_env_tdshost(TDSLOGIN * login);
+static bool tds_config_env_tdshost(TDSLOGIN * login);
 static bool tds_read_conf_sections(FILE * in, const char *server, TDSLOGIN * login);
-static int tds_read_interfaces(const char *server, TDSLOGIN * login);
-static int parse_server_name_for_port(TDSLOGIN * connection, TDSLOGIN * login, bool update_server);
+static bool tds_read_interfaces(const char *server, TDSLOGIN * login);
+static bool parse_server_name_for_port(TDSLOGIN * connection, TDSLOGIN * login, bool update_server);
 static int tds_lookup_port(const char *portname);
 static void tds_config_encryption(const char * value, TDSLOGIN * login);
 
@@ -507,7 +507,7 @@ tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_pars
 	char *s;
 	char p;
 	int i;
-	int insection = 0;
+	bool insection = false;
 	bool found = false;
 
 	tdsdump_log(TDS_DBG_INFO1, "Looking for section %s.\n", section);
@@ -573,10 +573,10 @@ tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_pars
 
 			if (!strcasecmp(section, &option[1])) {
 				tdsdump_log(TDS_DBG_INFO1, "Got a match.\n");
-				insection = 1;
+				insection = true;
 				found = true;
 			} else {
-				insection = 0;
+				insection = false;
 			}
 		} else if (insection) {
 			tds_conf_parse(option, value, param);
@@ -700,7 +700,7 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		login->valid_configuration = 0;
 }
 
-static int
+static bool
 tds_config_login(TDSLOGIN * connection, TDSLOGIN * login)
 {
 	DSTR *res = &login->server_name;
@@ -810,28 +810,28 @@ tds_config_login(TDSLOGIN * connection, TDSLOGIN * login)
 	return res != NULL;
 }
 
-static int
+static bool
 tds_config_env_tdsdump(TDSLOGIN * login)
 {
 	char *s = getenv("TDSDUMP");
 	if (!s)
-		return 1;
+		return true;
 
 	if (!strlen(s)) {
 		char *path;
 		pid_t pid = getpid();
 		if (asprintf(&path, pid_logpath, (int) pid) < 0)
-			return 0;
+			return false;
 		if (!tds_dstr_set(&login->dump_file, path)) {
 			free(path);
-			return 0;
+			return false;
 		}
 	} else {
 		if (!tds_dstr_copy(&login->dump_file, s))
-			return 0;
+			return false;
 	}
 	tdsdump_log(TDS_DBG_INFO1, "Setting 'dump_file' to '%s' from $TDSDUMP.\n", tds_dstr_cstr(&login->dump_file));
-	return 1;
+	return true;
 }
 
 static void
@@ -860,7 +860,7 @@ tds_config_env_tdsver(TDSLOGIN * login)
 }
 
 /* TDSHOST env var, pkleef@openlinksw.com 01/21/02 */
-static int
+static bool
 tds_config_env_tdshost(TDSLOGIN * login)
 {
 	const char *tdshost;
@@ -868,34 +868,35 @@ tds_config_env_tdshost(TDSLOGIN * login)
 	struct addrinfo *addrs;
 
 	if (!(tdshost = getenv("TDSHOST")))
-		return 1;
+		return true;
 
 	if (TDS_FAILED(tds_lookup_host_set(tdshost, &login->ip_addrs))) {
 		tdsdump_log(TDS_DBG_WARN, "Name resolution failed for '%s' from $TDSHOST.\n", tdshost);
-		return 0;
+		return false;
 	}
 
 	if (!tds_dstr_copy(&login->server_host_name, tdshost))
-		return 0;
+		return false;
 	for (addrs = login->ip_addrs; addrs != NULL; addrs = addrs->ai_next) {
 		tdsdump_log(TDS_DBG_INFO1, "Setting IP Address to %s (%s) from $TDSHOST.\n",
 			    tds_addrinfo2str(addrs, tmp, sizeof(tmp)), tdshost);
 	}
-	return 1;
+	return true;
 }
 #define TDS_FIND(k,b,c) tds_find(k, b, TDS_VECTOR_SIZE(b), sizeof(b[0]), c)
 
 
-static void *
+static const void *
 tds_find(const void *key, const void *base, size_t nelem, size_t width,
          int (*compar)(const void *, const void *))
 {
-	size_t i;
-	for (i=0; i < nelem; i++) {
-		char *p = (char*)base + width * i;
-		if (0 == compar(key, p)) {
+	size_t n;
+	const char *p = (const char*) base;
+
+	for (n = nelem; n != 0; --n) {
+		if (0 == compar(key, p))
 			return p;
-		}
+		p += width;
 	}
 	return NULL;
 }
@@ -907,10 +908,10 @@ struct tdsvername_t
 };
 
 static int
-tds_vernanme_cmp(const void *key, const void *pelem)
+tds_vername_cmp(const void *key, const void *pelem)
 {
 	return strcmp((const char *)key, ((const struct tdsvername_t *)pelem)->name);
-}	
+}
 
 /**
  * Set TDS version from given string
@@ -941,7 +942,7 @@ tds_config_verstr(const char *tdsver, TDSLOGIN * login)
 		return NULL;
 	}
 
-	if ((pver = (const struct tdsvername_t *) TDS_FIND(tdsver, tds_versions, tds_vernanme_cmp)) == NULL) {
+	if ((pver = (const struct tdsvername_t *) TDS_FIND(tdsver, tds_versions, tds_vername_cmp)) == NULL) {
 		tdsdump_log(TDS_DBG_INFO1, "error: no such version: %s\n", tdsver);
 		return NULL;
 	}
@@ -991,6 +992,7 @@ tds_lookup_host(const char *servername)	/* (I) name of the server               
 	memset(&hints, '\0', sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
 
 #ifdef AI_ADDRCONFIG
 	hints.ai_flags |= AI_ADDRCONFIG;
@@ -1036,7 +1038,7 @@ hexdigit(int c)
 {
 	if (c >= '0' && c <= '9')
 		return c - '0';
-	/* ascii optimization, 'A' -> 'a', 'a' -> 'a' */
+	/* ASCII optimization, 'A' -> 'a', 'a' -> 'a' */
 	c |= 0x20;
 	if (c >= 'a' && c <= 'f')
 		return c - 'a' + 10;
@@ -1057,9 +1059,9 @@ hex2num(char *hex)
  * \param dir name of base directory for interface file
  * \param file name of the interface file
  * \param host logical host to search for
- * \return 0 if not fount 1 if found
+ * \return false if not fount true if found
  */
-static int
+static bool
 search_interface_file(TDSLOGIN * login, const char *dir, const char *file, const char *host)
 {
 	char *pathname;
@@ -1069,8 +1071,8 @@ search_interface_file(TDSLOGIN * login, const char *dir, const char *file, const
 	char tmp_ver[sizeof(line)];
 	FILE *in;
 	char *field;
-	int found = 0;
-	int server_found = 0;
+	bool found = false;
+	bool server_found = false;
 	char *lasts;
 
 	line[0] = '\0';
@@ -1081,7 +1083,7 @@ search_interface_file(TDSLOGIN * login, const char *dir, const char *file, const
 	tdsdump_log(TDS_DBG_INFO1, "Searching interfaces file %s/%s.\n", dir, file);
 	pathname = tds_new(char, strlen(dir) + strlen(file) + 10);
 	if (!pathname)
-		return 0;
+		return false;
 
 	/*
 	 * create the full pathname to the interface file
@@ -1105,7 +1107,7 @@ search_interface_file(TDSLOGIN * login, const char *dir, const char *file, const
 	if ((in = fopen(pathname, "r")) == NULL) {
 		tdsdump_log(TDS_DBG_INFO1, "Couldn't open %s.\n", pathname);
 		free(pathname);
-		return 0;
+		return false;
 	}
 	tdsdump_log(TDS_DBG_INFO1, "Interfaces file %s opened.\n", pathname);
 
@@ -1116,10 +1118,10 @@ search_interface_file(TDSLOGIN * login, const char *dir, const char *file, const
 		if (!TDS_ISSPACE(line[0])) {
 			field = strtok_r(line, "\n\t ", &lasts);
 			if (!strcmp(field, host)) {
-				found = 1;
+				found = true;
 				tdsdump_log(TDS_DBG_INFO1, "Found matching entry for host %s.\n", host);
 			} else
-				found = 0;
+				found = false;
 		} else if (found && TDS_ISSPACE(line[0])) {
 			field = strtok_r(line, "\n\t ", &lasts);
 			if (field != NULL && !strcmp(field, "query")) {
@@ -1144,7 +1146,7 @@ search_interface_file(TDSLOGIN * login, const char *dir, const char *file, const
 					field = strtok_r(NULL, "\n\t ", &lasts);	/* port */
 					strcpy(tmp_port, field);
 				}	/* else */
-				server_found = 1;
+				server_found = true;
 			}	/* if */
 		}		/* else if */
 	}			/* while */
@@ -1160,7 +1162,7 @@ search_interface_file(TDSLOGIN * login, const char *dir, const char *file, const
 		if (TDS_SUCCEED(tds_lookup_host_set(tmp_ip, &login->ip_addrs))) {
 			struct addrinfo *addrs;
 			if (!tds_dstr_copy(&login->server_host_name, tmp_ip))
-				return 0;
+				return false;
 			for (addrs = login->ip_addrs; addrs != NULL; addrs = addrs->ai_next) {
 				tdsdump_log(TDS_DBG_INFO1, "Resolved IP as '%s'.\n",
 					    tds_addrinfo2str(login->ip_addrs, line, sizeof(line)));
@@ -1182,10 +1184,10 @@ search_interface_file(TDSLOGIN * login, const char *dir, const char *file, const
  *
  * @note This function uses only the interfaces file and is deprecated.
  */
-static int
+static bool
 tds_read_interfaces(const char *server, TDSLOGIN * login)
 {
-	int found = 0;
+	bool found = false;
 
 	/* read $SYBASE/interfaces */
 
@@ -1274,7 +1276,7 @@ tds_read_interfaces(const char *server, TDSLOGIN * login)
 
 		if (TDS_SUCCEED(tds_lookup_host_set(server, &login->ip_addrs)))
 			if (!tds_dstr_copy(&login->server_host_name, server))
-				return 0;
+				return false;
 
 		if (ip_port)
 			login->port = ip_port;
@@ -1286,9 +1288,9 @@ tds_read_interfaces(const char *server, TDSLOGIN * login)
 /**
  * Check the server name to find port info first
  * Warning: connection-> & login-> are all modified when needed
- * \return 1 when found, else 0
+ * \return true when found, else false
  */
-static int
+static bool
 parse_server_name_for_port(TDSLOGIN * connection, TDSLOGIN * login, bool update_server)
 {
 	const char *pSep;
@@ -1314,17 +1316,17 @@ parse_server_name_for_port(TDSLOGIN * connection, TDSLOGIN * login, bool update_
 		/* handle instance name */
 		pSep = strrchr(server, '\\');
 		if (!pSep || pSep == server)
-			return 0;
+			return false;
 
 		if (!tds_dstr_copy(&connection->instance_name, pSep + 1))
-			return 0;
+			return false;
 		connection->port = 0;
 	}
 
 	if (!update_server || !tds_dstr_copyn(&connection->server_name, server, pSep - server))
-		return 0;
+		return false;
 
-	return 1;
+	return true;
 }
 
 /**

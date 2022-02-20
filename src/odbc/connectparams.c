@@ -273,9 +273,9 @@ odbc_dstr_swap(DSTR *a, DSTR *b)
  * @param connect_string     connect string
  * @param connect_string_end connect string end (pointer to char past last)
  * @param login         where to store connection info
- * @return 1 if success 0 otherwhise
+ * @return true if success false otherwise
  */
-int
+bool
 odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char *connect_string_end, TDSLOGIN * login,
 			  TDS_PARSED_PARAM *parsed_params)
 {
@@ -333,7 +333,7 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 
 		if (!tds_dstr_copyn(&value, p, end - p)) {
 			odbc_errs_add(errs, "HY001", NULL);
-			return 0;
+			return false;
 		}
 
 #define CHK_PARAM(p) (strcasecmp(option, odbc_param_##p) == 0 && (num_param=ODBC_PARAM_##p) >= 0)
@@ -342,14 +342,14 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 			if ((cfgs & (CFG_DSN|CFG_SERVERNAME)) != 0) {
 				tds_dstr_free(&value);
 				odbc_errs_add(errs, "HY000", "Only one between SERVER, SERVERNAME and DSN can be specified");
-				return 0;
+				return false;
 			}
 			if (!cfgs) {
 				dest_s = &login->server_name;
 				/* not that safe cast but works -- freddy77 */
 				if (!parse_server(errs, (char *) tds_dstr_cstr(&value), login)) {
 					tds_dstr_free(&value);
-					return 0;
+					return false;
 				}
 				cfgs = CFG_SERVER;
 			}
@@ -357,7 +357,7 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 			if ((cfgs & (CFG_DSN|CFG_SERVER)) != 0) {
 				tds_dstr_free(&value);
 				odbc_errs_add(errs, "HY000", "Only one between SERVER, SERVERNAME and DSN can be specified");
-				return 0;
+				return false;
 			}
 			if (!cfgs) {
 				odbc_dstr_swap(&login->server_name, &value);
@@ -370,12 +370,12 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 			if ((cfgs & (CFG_SERVER|CFG_SERVERNAME)) != 0) {
 				tds_dstr_free(&value);
 				odbc_errs_add(errs, "HY000", "Only one between SERVER, SERVERNAME and DSN can be specified");
-				return 0;
+				return false;
 			}
 			if (!cfgs) {
 				if (!odbc_get_dsn_info(errs, tds_dstr_cstr(&value), login)) {
 					tds_dstr_free(&value);
-					return 0;
+					return false;
 				}
 				cfgs = CFG_DSN;
 				p = connect_string;
@@ -439,7 +439,7 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 			} else {
 				tdsdump_log(TDS_DBG_ERROR, "Invalid ApplicationIntent %s\n", tds_dstr_cstr(&value));
 				tds_dstr_free(&value);
-				return 0;
+				return false;
 			}
 
 			tds_parse_conf_section(TDS_STR_READONLY_INTENT, readonly_intent, login);
@@ -478,7 +478,7 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 	}
 
 	tds_dstr_free(&value);
-	return 1;
+	return true;
 }
 
 #ifdef _WIN32
@@ -656,16 +656,32 @@ tdoGetIniFileName()
 
 typedef struct tODBCINSTPROPERTY
 {
-	struct tODBCINSTPROPERTY *pNext;	/* pointer to next property, NULL if last property                                                                              */
+	/** pointer to next property, NULL if last property */
+	struct tODBCINSTPROPERTY *pNext;
 
-	char szName[INI_MAX_PROPERTY_NAME + 1];	/* property name                                                                                                                                                */
-	char szValue[INI_MAX_PROPERTY_VALUE + 1];	/* property value                                                                                                                                               */
-	int nPromptType;	/* PROMPTTYPE_TEXTEDIT, PROMPTTYPE_LISTBOX, PROMPTTYPE_COMBOBOX, PROMPTTYPE_FILENAME    */
-	char **aPromptData;	/* array of pointers terminated with a NULL value in array.                                                     */
-	char *pszHelp;		/* help on this property (driver setups should keep it short)                                                   */
-	void *pWidget;		/* CALLER CAN STORE A POINTER TO ? HERE                                                                                                 */
-	int bRefresh;		/* app should refresh widget ie Driver Setup has changed aPromptData or szValue                 */
-	void *hDLL;		/* for odbcinst internal use... only first property has valid one                                               */
+	/** property name */
+	char szName[INI_MAX_PROPERTY_NAME + 1];
+
+	/** property value */
+	char szValue[INI_MAX_PROPERTY_VALUE + 1];
+
+	/** PROMPTTYPE_TEXTEDIT, PROMPTTYPE_LISTBOX, PROMPTTYPE_COMBOBOX, PROMPTTYPE_FILENAME */
+	int nPromptType;
+
+	/** array of pointers terminated with a NULL value in array */
+	char **aPromptData;
+
+	/** help on this property (driver setups should keep it short) */
+	char *pszHelp;
+
+	/** CALLER CAN STORE A POINTER TO ? HERE */
+	void *pWidget;
+
+	/** app should refresh widget ie Driver Setup has changed aPromptData or szValue */
+	int bRefresh;
+
+	/** for odbcinst internal use... only first property has valid one */
+	void *hDLL;
 }
 ODBCINSTPROPERTY, *HODBCINSTPROPERTY;
 

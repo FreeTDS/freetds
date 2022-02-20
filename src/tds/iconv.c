@@ -67,16 +67,18 @@ static void tds_iconv_info_close(TDSICONV * char_conv);
 
 /* this will contain real iconv names */
 static const char *iconv_names[TDS_VECTOR_SIZE(canonic_charsets)];
-static int iconv_initialized = 0;
+static bool iconv_initialized = false;
 static const char *ucs2name;
 
 enum
 { POS_ISO1, POS_UTF8, POS_UCS2LE, POS_UCS2BE };
 
 static const struct {
-	uint8_t len;
-	char data[15];
+	uint32_t len;
+	/* this field must be aligned at least to 2 bytes */
+	char data[12];
 } test_strings[4] = {
+	/* same string in required charsets */
 	{ 4, "Ao\xD3\xE5" },
 	{ 6, "Ao\xC3\x93\xC3\xA5" },
 	{ 8, "A\x00o\x000\xD3\x00\xE5\x00" },
@@ -237,46 +239,41 @@ tds_set_iconv_name(int charset)
 {
 	int i;
 	iconv_t cd;
+	const char *name;
 
 	assert(iconv_initialized);
 
 	/* try using canonic name and UTF-8 and UCS2 */
-	cd = tds_sys_iconv_open(iconv_names[POS_UTF8], canonic_charsets[charset].name);
-	if (cd != (iconv_t) -1) {
-		iconv_names[charset] = canonic_charsets[charset].name;
-		tds_sys_iconv_close(cd);
-		return iconv_names[charset];
-	}
-	cd = tds_sys_iconv_open(ucs2name, canonic_charsets[charset].name);
-	if (cd != (iconv_t) -1) {
-		iconv_names[charset] = canonic_charsets[charset].name;
-		tds_sys_iconv_close(cd);
-		return iconv_names[charset];
-	}
+	name = canonic_charsets[charset].name;
+	cd = tds_sys_iconv_open(iconv_names[POS_UTF8], name);
+	if (cd != (iconv_t) -1)
+		goto found;
+	cd = tds_sys_iconv_open(ucs2name, name);
+	if (cd != (iconv_t) -1)
+		goto found;
 
 	/* try all alternatives */
 	for (i = 0; iconv_aliases[i].alias; ++i) {
 		if (iconv_aliases[i].canonic != charset)
 			continue;
 
-		cd = tds_sys_iconv_open(iconv_names[POS_UTF8], iconv_aliases[i].alias);
-		if (cd != (iconv_t) -1) {
-			iconv_names[charset] = iconv_aliases[i].alias;
-			tds_sys_iconv_close(cd);
-			return iconv_names[charset];
-		}
-
-		cd = tds_sys_iconv_open(ucs2name, iconv_aliases[i].alias);
-		if (cd != (iconv_t) -1) {
-			iconv_names[charset] = iconv_aliases[i].alias;
-			tds_sys_iconv_close(cd);
-			return iconv_names[charset];
-		}
+		name = iconv_aliases[i].alias;
+		cd = tds_sys_iconv_open(iconv_names[POS_UTF8], name);
+		if (cd != (iconv_t) -1)
+			goto found;
+		cd = tds_sys_iconv_open(ucs2name, name);
+		if (cd != (iconv_t) -1)
+			goto found;
 	}
 
 	/* charset not found, pretend it's ISO 8859-1 */
 	iconv_names[charset] = canonic_charsets[POS_ISO1].name;
 	return NULL;
+
+found:
+	iconv_names[charset] = name;
+	tds_sys_iconv_close(cd);
+	return name;
 }
 
 static void
@@ -378,7 +375,7 @@ tds_iconv_open(TDSCONNECTION * conn, const char *charset, int use_utf16)
 						  "use: \"configure --disable-libiconv\"", ret, names[ret-1]);
 			return TDS_FAIL;
 		}
-		iconv_initialized = 1;
+		iconv_initialized = true;
 	}
 
 	/* 

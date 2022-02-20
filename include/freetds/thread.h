@@ -27,6 +27,7 @@
 #if defined(_THREAD_SAFE) && defined(TDS_HAVE_PTHREAD_MUTEX)
 
 #include <tds_sysdep_public.h>
+#include <freetds/sysdep_types.h>
 #include <pthread.h>
 #include <errno.h>
 
@@ -84,7 +85,7 @@ typedef pthread_t tds_thread_id;
 typedef void *(*tds_thread_proc)(void *arg);
 #define TDS_THREAD_PROC_DECLARE(name, arg) \
 	void *name(void *arg)
-#define TDS_THREAD_RESULT(n) ((void*)(intptr_t)(n))
+#define TDS_THREAD_RESULT(n) ((void*)(TDS_INTPTR)(n))
 
 static inline int tds_thread_create(tds_thread *ret, tds_thread_proc proc, void *arg)
 {
@@ -304,7 +305,7 @@ typedef int tds_thread_id;
 typedef void *(*tds_thread_proc)(void *arg);
 #define TDS_THREAD_PROC_DECLARE(name, arg) \
 	void *name(void *arg)
-#define TDS_THREAD_RESULT(n) ((void*)(intptr_t)(n))
+#define TDS_THREAD_RESULT(n) ((void*)(TDS_INTPTR)(n))
 
 #define tds_thread_create(ret, proc, arg) \
 	FreeTDS_Thread_not_compiled

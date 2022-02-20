@@ -606,6 +606,8 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			TDS_ZERO_FREE(v->data);
 		v->data_len = sizeof(TDS_NUMERIC);
 		num = tds_new0(TDS_NUMERIC, 1);
+		if (!num)
+			goto error_memory;
 		v->data = (TDS_CHAR *) num;
 		num->precision = tds_get_byte(tds);
 		num->scale     = tds_get_byte(tds);
@@ -696,6 +698,7 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	return TDS_SUCCESS;
 
 error_type:
+error_memory:
 	tds_get_n(tds, NULL, colsize);
 	return TDS_FAIL;
 }

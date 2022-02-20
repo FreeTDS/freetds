@@ -2152,7 +2152,6 @@ tds_send_cancel(TDSSOCKET * tds)
 
 /**
  * Quote a string properly. Output string is always NUL-terminated
- * \tds
  * \param buffer   output buffer. If NULL function will just return
  *        required bytes
  * \param quoting  quote character (should be one of '\'', '"', ']')
@@ -2161,13 +2160,11 @@ tds_send_cancel(TDSSOCKET * tds)
  * \returns size of output string
  */
 static size_t
-tds_quote(TDSSOCKET * tds, char *buffer, char quoting, const char *id, size_t len)
+tds_quote(char *buffer, char quoting, const char *id, size_t len)
 {
 	size_t size;
 	const char *src, *pend;
 	char *dst;
-
-	CHECK_TDS_EXTRA(tds);
 
 	pend = id + len;
 
@@ -2214,7 +2211,7 @@ tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen)
 
 	/* quote always for mssql */
 	if (TDS_IS_MSSQL(tds) || tds->conn->product_version >= TDS_SYB_VER(12, 5, 1))
-		return tds_quote(tds, buffer, ']', id, len);
+		return tds_quote(buffer, ']', id, len);
 
 	/* need quote ?? */
 	for (i = 0; i < len; ++i) {
@@ -2228,7 +2225,7 @@ tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen)
 			continue;
 		if (c == '_')
 			continue;
-		return tds_quote(tds, buffer, '\"', id, len);
+		return tds_quote(buffer, '\"', id, len);
 	}
 
 	if (buffer) {
@@ -2261,7 +2258,7 @@ tds_quote_id_rpc(TDSSOCKET * tds, char *buffer, const char *id, int idlen)
 
 	len = idlen < 0 ? strlen(id) : (size_t) idlen;
 
-	return tds_quote(tds, buffer, quote_id_char, id, len);
+	return tds_quote(buffer, quote_id_char, id, len);
 }
 
 /**
@@ -2276,7 +2273,7 @@ tds_quote_id_rpc(TDSSOCKET * tds, char *buffer, const char *id, int idlen)
 size_t
 tds_quote_string(TDSSOCKET * tds, char *buffer, const char *str, int len)
 {
-	return tds_quote(tds, buffer, '\'', str, len < 0 ? strlen(str) : (size_t) len);
+	return tds_quote(buffer, '\'', str, len < 0 ? strlen(str) : (size_t) len);
 }
 
 /**
@@ -2758,10 +2755,10 @@ tds_cursor_get_cursor_info(TDSSOCKET *tds, TDSCURSOR *cursor, TDS_UINT *prow_num
 						TDSPARAMINFO *pinfo = tds->current_results;
 
 						/* Make sure the params retuned have the correct type and size */
-						if (pinfo && pinfo->num_cols==2 
-							  && pinfo->columns[0]->column_type==SYBINTN 
-							  && pinfo->columns[1]->column_type==SYBINTN 
-							  && pinfo->columns[0]->column_size==4 
+						if (pinfo && pinfo->num_cols==2
+							  && pinfo->columns[0]->on_server.column_type==SYBINTN
+							  && pinfo->columns[1]->on_server.column_type==SYBINTN
+							  && pinfo->columns[0]->column_size==4
 							  && pinfo->columns[1]->column_size==4) {
 							/* Take the values */
 							*prow_number = (TDS_UINT)(*(TDS_INT *) pinfo->columns[0]->column_data);
@@ -3189,7 +3186,7 @@ tds_put_char_param_as_string(TDSSOCKET * tds, const TDSCOLUMN *curcol)
 	if (is_blob_col(curcol))
 		src = ((TDSBLOB *)src)->textvalue;
 
-	if (is_unicode_type(curcol->column_type))
+	if (is_unicode_type(curcol->on_server.column_type))
 		tds_put_string(tds, "N", 1);
 	tds_put_string(tds, "\'", 1);
 
@@ -3239,14 +3236,14 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 
 	if (src_len < 0) {
 		/* on TDS 4 TEXT/IMAGE cannot be NULL, use empty */
-		if (!IS_TDS50_PLUS(tds->conn) && is_blob_type(curcol->column_type))
+		if (!IS_TDS50_PLUS(tds->conn) && is_blob_type(curcol->on_server.column_type))
 			tds_put_string(tds, "''", 2);
 		else
 			tds_put_string(tds, "NULL", 4);
 		return TDS_SUCCESS;
 	}
 
-	if (is_char_type(curcol->column_type))
+	if (is_char_type(curcol->on_server.column_type))
 		return tds_put_char_param_as_string(tds, curcol);
 
 	src = (TDS_CHAR *) curcol->column_data;
@@ -3254,7 +3251,7 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 		src = ((TDSBLOB *)src)->textvalue;
 
 	/* we could try to use only tds_convert but is not good in all cases */
-	switch (curcol->column_type) {
+	switch (curcol->on_server.column_type) {
 	/* binary/char, do conversion in line */
 	case SYBBINARY: case SYBVARBINARY: case SYBIMAGE: case XSYBBINARY: case XSYBVARBINARY:
 		tds_put_string(tds, "0x", 2);
@@ -3284,7 +3281,7 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 	case SYBUNIQUE:
 		quote = true;
 	default:
-		res = tds_convert(tds_get_ctx(tds), tds_get_conversion_type(curcol->column_type, curcol->column_size), src, src_len, SYBCHAR, &cr);
+		res = tds_convert(tds_get_ctx(tds), tds_get_conversion_type(curcol->on_server.column_type, curcol->column_size), src, src_len, SYBCHAR, &cr);
 		if (res < 0)
 			return TDS_FAIL;
 
@@ -3602,7 +3599,7 @@ tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option,
 						continue;
 
 					col = tds->current_results->columns[0];
-					ctype = tds_get_conversion_type(col->column_type, col->column_size);
+					ctype = tds_get_conversion_type(col->on_server.column_type, col->column_size);
 
 					src = col->column_data;
 					srclen = col->column_cur_size;

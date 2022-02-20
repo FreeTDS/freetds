@@ -547,6 +547,9 @@ tds_ssl_init(TDSSOCKET *tds)
 
 	tdsdump_log(TDS_DBG_INFO1, "handshake succeeded!!\n");
 
+	/* some TLS implementations send some sort of paddind at the end, remove it */
+	tds->in_pos = tds->in_len;
+
 	gnutls_transport_set_ptr(session, tds->conn);
 	gnutls_transport_set_pull_function(session, tds_pull_func);
 	gnutls_transport_set_push_function(session, tds_push_func);
@@ -1047,6 +1050,9 @@ tds_ssl_init(TDSSOCKET *tds)
 	}
 
 	tdsdump_log(TDS_DBG_INFO1, "handshake succeeded!!\n");
+
+	/* some TLS implementations send some sort of paddind at the end, remove it */
+	tds->in_pos = tds->in_len;
 
 	BIO_set_init(b2, 1);
 	BIO_set_data(b2, tds->conn);

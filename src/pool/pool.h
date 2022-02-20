@@ -37,8 +37,13 @@
 #include <sys/time.h>
 #endif
 
+#if HAVE_POLL_H
+#include <poll.h>
+#endif /* HAVE_POLL_H */
+
 #include <freetds/tds.h>
 #include <freetds/utils/dlist.h>
+#include <freetds/replacements.h>
 
 /* defines */
 #define PGSIZ 2048
@@ -69,6 +74,7 @@ struct tds_pool_event
 struct tds_pool_socket
 {
 	TDSSOCKET *tds;
+	uint32_t poll_index;
 	bool poll_recv;
 	bool poll_send;
 };
@@ -137,7 +143,7 @@ struct tds_pool
 /* prototypes */
 
 /* member.c */
-int pool_process_members(TDS_POOL * pool, fd_set * rfds, fd_set * wfds);
+int pool_process_members(TDS_POOL * pool, struct pollfd *fds, unsigned num_fds);
 TDS_POOL_MEMBER *pool_assign_idle_member(TDS_POOL * pool, TDS_POOL_USER *user);
 void pool_mbr_init(TDS_POOL * pool);
 void pool_mbr_destroy(TDS_POOL * pool);
@@ -148,7 +154,7 @@ void pool_reset_member(TDS_POOL *pool, TDS_POOL_MEMBER * pmbr);
 bool pool_packet_read(TDSSOCKET * tds);
 
 /* user.c */
-void pool_process_users(TDS_POOL * pool, fd_set * rfds, fd_set * wfds);
+void pool_process_users(TDS_POOL * pool, struct pollfd *fds, unsigned num_fds);
 void pool_user_init(TDS_POOL * pool);
 void pool_user_destroy(TDS_POOL * pool);
 TDS_POOL_USER *pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s);

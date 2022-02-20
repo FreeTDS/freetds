@@ -64,10 +64,9 @@
 #endif
 
 #include "pool.h"
-#include <freetds/replacements.h>
 
 /* to be set by sig term */
-static int got_sigterm = 0;
+static bool got_sigterm = false;
 static const char *logfile_name = NULL;
 
 static void sigterm_handler(int sig);
@@ -80,16 +79,16 @@ static bool pool_open_logfile(TDS_POOL * pool);
 static void
 sigterm_handler(int sig)
 {
-	got_sigterm = 1;
+	got_sigterm = true;
 }
 
 #ifndef _WIN32
-static int got_sighup = 0;
+static bool got_sighup = false;
 
 static void
 sighup_handler(int sig)
 {
-	got_sighup = 1;
+	got_sighup = true;
 }
 #endif
 
@@ -207,24 +206,39 @@ pool_schedule_waiters(TDS_POOL * pool)
 
 typedef struct select_info
 {
-	fd_set rfds, wfds;
-	TDS_SYS_SOCKET maxfd;
+	struct pollfd *fds;
+	uint32_t num_fds, alloc_fds;
 } SELECT_INFO;
 
 static void
 pool_select_add_socket(SELECT_INFO *sel, TDS_POOL_SOCKET *sock)
 {
+	short events;
+	struct pollfd *fd;
+
 	/* skip dead connections */
 	if (IS_TDSDEAD(sock->tds))
 		return;
 	if (!sock->poll_recv && !sock->poll_send)
 		return;
-	if (tds_get_s(sock->tds) > sel->maxfd)
-		sel->maxfd = tds_get_s(sock->tds);
+
+	events = 0;
 	if (sock->poll_recv)
-		FD_SET(tds_get_s(sock->tds), &sel->rfds);
+		events |= POLLIN;
 	if (sock->poll_send)
-		FD_SET(tds_get_s(sock->tds), &sel->wfds);
+		events |= POLLOUT;
+	if (sel->num_fds >= sel->alloc_fds) {
+		sel->alloc_fds *= 2;
+		if (!TDS_RESIZE(sel->fds, sel->alloc_fds)) {
+			fprintf(stderr, "Out of memory allocating fds\n");
+			exit(EXIT_FAILURE);
+		}
+	}
+	sock->poll_index = sel->num_fds;
+	fd = &sel->fds[sel->num_fds++];
+	fd->fd = tds_get_s(sock->tds);
+	fd->events = events;
+	fd->revents = 0;
 }
 
 static void
@@ -325,21 +339,28 @@ pool_main_loop(TDS_POOL * pool)
 	TDS_POOL_MEMBER *pmbr;
 	TDS_POOL_USER *puser;
 	TDS_SYS_SOCKET s, wakeup;
-	SELECT_INFO sel;
+	SELECT_INFO sel = { NULL, 0, 8 };
 	int min_expire_left = -1;
-	struct timeval tv, *p_tv = NULL;
+	int rc;
 
 	s = pool->listen_fd;
 	wakeup = pool->wakeup_fd;
 
+	/* add the listening socket to the read list */
+	if (!TDS_RESIZE(sel.fds, sel.alloc_fds)) {
+		fprintf(stderr, "Out of memory allocating fds\n");
+		exit(EXIT_FAILURE);
+	}
+	sel.fds[0].fd = s;
+	sel.fds[0].events = POLLIN;
+	sel.fds[1].fd = wakeup;
+	sel.fds[1].events = POLLIN;
+
 	while (!got_sigterm) {
 
-		FD_ZERO(&sel.rfds);
-		FD_ZERO(&sel.wfds);
-		/* add the listening socket to the read list */
-		FD_SET(s, &sel.rfds);
-		FD_SET(wakeup, &sel.rfds);
-		sel.maxfd = s > wakeup ? s : wakeup;
+		sel.num_fds = 2;
+		sel.fds[0].revents = 0;
+		sel.fds[1].revents = 0;
 
 		/* add the user sockets to the read list */
 		DLIST_FOREACH(dlist_user, &pool->users, puser)
@@ -349,27 +370,32 @@ pool_main_loop(TDS_POOL * pool)
 		DLIST_FOREACH(dlist_member, &pool->active_members, pmbr)
 			pool_select_add_socket(&sel, &pmbr->sock);
 
-		p_tv = NULL;
-		if (min_expire_left > 0) {
-			tv.tv_sec = min_expire_left;
-			tv.tv_usec = 0;
-			p_tv = &tv;
-		}
+		if (min_expire_left > 0)
+			min_expire_left *= 1000;
 
-		/* FIXME check return value */
-		select(sel.maxfd + 1, &sel.rfds, &sel.wfds, NULL, p_tv);
+		rc = poll(sel.fds, sel.num_fds, min_expire_left);
+		if (TDS_UNLIKELY(rc < 0)) {
+			char *errstr;
+
+			if (sock_errno == TDSSOCK_EINTR)
+				continue;
+			errstr = sock_strerror(sock_errno);
+			fprintf(stderr, "Error: poll returned %d, %s\n", sock_errno, errstr);
+			sock_strerror_free(errstr);
+			exit(EXIT_FAILURE);
+		}
 		if (TDS_UNLIKELY(got_sigterm))
 			break;
 
 #ifndef _WIN32
 		if (TDS_UNLIKELY(got_sighup)) {
-			got_sighup = 0;
+			got_sighup = false;
 			pool_open_logfile(pool);
 		}
 #endif
 
 		/* process events */
-		if (FD_ISSET(wakeup, &sel.rfds)) {
+		if ((sel.fds[1].revents & POLLIN) != 0) {
 			char buf[32];
 			READSOCKET(wakeup, buf, sizeof(buf));
 
@@ -377,11 +403,11 @@ pool_main_loop(TDS_POOL * pool)
 		}
 
 		/* process the sockets */
-		if (FD_ISSET(s, &sel.rfds)) {
+		if ((sel.fds[0].revents & POLLIN) != 0) {
 			pool_user_create(pool, s);
 		}
-		pool_process_users(pool, &sel.rfds, &sel.wfds);
-		min_expire_left = pool_process_members(pool, &sel.rfds, &sel.wfds);
+		pool_process_users(pool, sel.fds, sel.num_fds);
+		min_expire_left = pool_process_members(pool, sel.fds, sel.num_fds);
 
 		/* back from members */
 		if (dlist_user_first(&pool->waiters))

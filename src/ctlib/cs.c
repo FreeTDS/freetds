@@ -315,27 +315,31 @@ Cleanup:
 }
 
 CS_RETCODE
-cs_ctx_alloc(CS_INT version, CS_CONTEXT ** ctx)
+cs_ctx_alloc(CS_INT version, CS_CONTEXT ** out_ctx)
 {
 	TDSCONTEXT *tds_ctx;
+	CS_CONTEXT *ctx;
 
-	tdsdump_log(TDS_DBG_FUNC, "cs_ctx_alloc(%d, %p)\n", version, ctx);
+	tdsdump_log(TDS_DBG_FUNC, "cs_ctx_alloc(%d, %p)\n", version, out_ctx);
 
-	*ctx = tds_new0(CS_CONTEXT, 1);
-	tds_ctx = tds_alloc_context(*ctx);
+	ctx = tds_new0(CS_CONTEXT, 1);
+	if (!ctx)
+		return CS_FAIL;
+	tds_ctx = tds_alloc_context(ctx);
 	if (!tds_ctx) {
-		free(*ctx);
+		free(ctx);
 		return CS_FAIL;
 	}
-	(*ctx)->tds_ctx = tds_ctx;
+	ctx->tds_ctx = tds_ctx;
 	if (tds_ctx->locale && !tds_ctx->locale->date_fmt) {
 		/* set default in case there's no locale file */
 		tds_ctx->locale->date_fmt = strdup(STD_DATETIME_FMT);
 	}
 
-	(*ctx)->login_timeout = -1;
-	(*ctx)->query_timeout = -1;
+	ctx->login_timeout = -1;
+	ctx->query_timeout = -1;
 
+	*out_ctx = ctx;
 	return CS_SUCCEED;
 }
 

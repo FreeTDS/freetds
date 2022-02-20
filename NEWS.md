@@ -1,5 +1,49 @@
 $Id: b4e6442475cd841716ce9526482ecf7d0e30f471 $
 
+Summary of Changes in release 1.3
+--------------------------------------------
+User visible (not in a particular order):
+- Generic:
+  - Support UTF-8 columns using MSSQL 2019;
+  - Do not accept TDS protocol versions "4.6" (never really supported) and
+    "8.0";
+  - Minor portability issues;
+  - Fix log elision for login;
+  - Detect some possible minor memory failure in application;
+  - Support long (more than 64k) SSPI packets (never encountered but you
+    never know);
+  - Fix unicode columns for ASA database;
+  - Avoid using BCP with old protocols;
+  - (\*) Fix bulk copy using big endian machines;
+  - (\*) Fix Sybase uni(var)char and unsigned types for big endian machines;
+  - (\*) Do not send nullable data during bulk copy if type is not nullable;
+- ODBC:
+  - Added "Timeout" setting;
+- Applications:
+  - Improve defncopy utility:
+    - Fix some declaration;
+    - Fix Sybase support;
+  - (\*) Fix datacopy and freebcp logging ;
+- CT-Library:
+  - Minor fix for variant type;
+  - Better support for timeout setting;
+  - (\*) Support some missing types (like nullable unsigned integers) for
+    Sybase;
+- DB-library:
+  - Unify date format (all systems can use the same syntax);
+  - (\*) Allows to pass 0 as type for bcp_bind;
+  - (\*) Fix DBSETLSERVERPRINCIPAL macro;
+  - (\*) Do not limit queries length for bcp using Sybase;
+  - (\*) Add KEEP_NULLS to BCP hints.
+
+(\*) Feature backported in stable 1.2 branch.
+
+Implementation:
+- Move replacement headers under freetds directory for coherence with other
+  internal headers;
+- Lot of style updates;
+- Optimize UTF-8 encoding for ODBC, reuse common code.
+
 Summary of Changes in release 1.2
 --------------------------------------------
 User visible (not in a particular order):

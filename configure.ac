@@ -11,10 +11,11 @@ dnl ------------------------------------------------------------
 # ------------------------------------------------------------
 # Initialization
 # ------------------------------------------------------------
-AC_INIT(FreeTDS, 1.3.dev.esyscmd(printf $(date +"%Y%m%d")))
+AC_INIT(FreeTDS, 1.4.dev.esyscmd(printf $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
 
+AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([dist-bzip2 parallel-tests subdir-objects foreign])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES(yes)])
 AC_CONFIG_HEADERS(include/config.h)
@@ -40,7 +41,7 @@ fi
 MAJOR=[`echo $ver | sed "s,$match,\1,"`]
 MINOR=[`echo $ver | sed "s,$match,\2,"`]
 SUBVERSION=[`echo $ver | sed "s,$match,\3,"`]
-BUILD_NUMBER="`date +1%j` - 1000 + ( `date +%Y` - 2020 )"
+BUILD_NUMBER="`date +1%j` - 1000 + ( `date +%Y` - 2021 )"
 BUILD_NUMBER="`expr $BUILD_NUMBER \* 366`"
 if test "$SUBVERSION" = "9999"; then
 	MINOR=`expr $MINOR - 1`
@@ -271,7 +272,7 @@ int main()
 	ACX_POP_LIBS
 	AC_SUBST(READLINE_LIBS)
 
-	ACX_PTHREAD
+	AX_PTHREAD
 	AM_CFLAGS="$AM_CFLAGS $PTHREAD_CFLAGS"
 	AC_SUBST(AM_CFLAGS)
 	LIBS="$PTHREAD_LIBS $LIBS"
@@ -310,13 +311,14 @@ AC_CHECK_HEADERS([errno.h libgen.h \
 	wchar.h inttypes.h winsock2.h \
 	localcharset.h valgrind/memcheck.h malloc.h dirent.h \
 	stdbool.h gnutls/abstract.h getopt.h fcntl.h])
-AC_CHECK_HEADERS([windows.h sql.h],[],[],[[#ifdef HAVE_WINDOWS_H
+AC_CHECK_HEADERS([windows.h sql.h odbcss.h],[],[],[[#ifdef HAVE_WINDOWS_H
 # include <windows.h>
 #endif
 #ifdef HAVE_SQL_H
 # include <sql.h>
 #endif
 ]])
+AM_CONDITIONAL(HAVE_ODBCSS_H, test "$ac_cv_header_odbcss_h" = "yes")
 if test $tds_mingw = no; then
     AC_CHECK_HEADERS([	arpa/inet.h \
 			langinfo.h \
@@ -342,6 +344,8 @@ AC_CHECK_SIZEOF(float)
 AC_CHECK_SIZEOF(double)
 AC_CHECK_SIZEOF(long double)
 AC_CHECK_SIZEOF(long long)
+# This will define SIZEOF_LONG_INT, used by some ODBC Driver Manager
+AC_CHECK_SIZEOF(long int)
 AC_CHECK_SIZEOF(__int64)
 AC_CHECK_SIZEOF(void *)
 AC_CHECK_SIZEOF(wchar_t,,[$ac_includes_default
@@ -498,6 +502,11 @@ gethrtime localtime_r setitimer eventfd \
 _fseeki64 _ftelli64 setrlimit pthread_cond_timedwait \
 _lock_file _unlock_file usleep nanosleep readdir_r])
 
+AC_TRY_LINK([#include <stdio.h>
+#include <stdlib.h>],
+[return system("ls") != 0;],
+AC_DEFINE(HAVE_SYSTEM, 1, [Define to 1 if you have the 'system' function]))
+
 ACX_PUSH_LIBS("$LIBS $NETWORK_LIBS")
 AC_CHECK_FUNCS([inet_ntoa_r getipnodebyaddr getipnodebyname \
 getaddrinfo inet_ntop gethostname poll socketpair strtok_s])
@@ -550,7 +559,7 @@ case "$with_tdsver" in
 esac
 
 AC_ARG_WITH(iodbc,
-AS_HELP_STRING([--with-iodbc=DIR], [build odbc driver against iODBC in DIR]))
+AS_HELP_STRING([--with-iodbc=DIR], [build ODBC driver against iODBC in DIR]))
 
 if test "x$with_iodbc" = "xyes"; then
 	# The user asked for iodbc support, but didn't tell us
@@ -580,7 +589,7 @@ elif test "x$with_iodbc" != "x" -a "x$with_iodbc" != "xno"; then
 fi
 
 AC_ARG_WITH(unixodbc,
-AS_HELP_STRING([--with-unixodbc=DIR], [build odbc driver against unixODBC in DIR]))
+AS_HELP_STRING([--with-unixodbc=DIR], [build ODBC driver against unixODBC in DIR]))
 
 if test "x$with_unixodbc" = "xyes"; then
 	# The user asked for unixodbc support, but didn't tell us
@@ -625,7 +634,7 @@ if test "x$with_unixodbc" != "x" -a "x$with_unixodbc" != "xno"; then
 fi
 
 AC_ARG_WITH(odbc_nodm,
-AS_HELP_STRING([--with-odbc-nodm=DIR], [build odbc using headers in DIR/include]))
+AS_HELP_STRING([--with-odbc-nodm=DIR], [build ODBC using headers in DIR/include]))
 if test "x$with_odbc_nodm" != "x" -a "x$with_odbc_nodm" != "xno"; then
 	if echo "$with_odbc_nodm" | grep -v '^/'; then
 		with_odbc_nodm="$PWD/$with_odbc_nodm"
@@ -646,7 +655,7 @@ fi
 build_odbc=yes
 if test "$odbc" != "true"; then
 AC_ARG_ENABLE(odbc,
-	AS_HELP_STRING([--disable-odbc], [do not attempt to build odbc the driver]),
+	AS_HELP_STRING([--disable-odbc], [do not attempt to build the ODBC driver]),
 	[build_odbc=$enableval], [build_odbc=yes])
 fi
 AM_CONDITIONAL(INCODBC, test "$build_odbc" = "yes")
@@ -663,7 +672,7 @@ then
 	AC_SUBST(FREETDS_ODBC_MODULE)
 
 	# odbc not specified, try to detect it
-	echo looking for installed odbc driver manager
+	echo "looking for installed ODBC driver manager"
 	if test "$odbc" != "true" -a $tds_mingw = yes; then
 		odbc=true
 		unixodbc=true
@@ -760,7 +769,7 @@ SQLRETURN SQL_API SQLParamOptions(SQLHSTMT       hstmt,
 
 	CPPFLAGS="$save_cppflags"
 else 
-	AC_MSG_NOTICE(odbc disabled)	
+	AC_MSG_NOTICE(ODBC disabled)
 fi
 
 AM_CONDITIONAL(ODBC, test "$odbc" = "true")
@@ -933,7 +942,7 @@ if test "$enable_mars" != "no" ; then
 fi
 
 AC_ARG_ENABLE(odbc-wide,
-  AS_HELP_STRING([--disable-odbc-wide], [disable wide string support in odbc]))
+  AS_HELP_STRING([--disable-odbc-wide], [disable wide string support in ODBC]))
 if test "$enable_odbc_wide" != "no" ; then
 	AC_DEFINE_UNQUOTED(ENABLE_ODBC_WIDE, 1, [Define to enable ODBC wide string support])
 
@@ -976,6 +985,7 @@ AC_MSG_RESULT(done)
 # ------------------------------------------------------------
 AC_CONFIG_FILES(include/freetds/version.h \
 	include/tds_sysdep_public.h \
+	include/freetds/sysdep_types.h \
 	Makefile \
 	include/Makefile \
 	include/freetds/Makefile \

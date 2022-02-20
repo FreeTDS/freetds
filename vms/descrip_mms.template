@@ -170,6 +170,7 @@ TDSOBJS = [.src.tds]bulk$(OBJ), [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ
 	[.src.utils]threadsafe$(OBJ), \
 	[.src.utils]net$(OBJ), \
 	[.src.utils]bjoern-utf8$(OBJ), \
+	[.src.utils]smp$(OBJ), \
 	$(ASPRINTFOBJ) $(VASPRINTFOBJ) $(SNPRINTFOBJ) $(STRTOK_ROBJ) $(LIBICONVOBJ) $(SOCKETPAIROBJ) \
 	[.vms]getpass$(OBJ)
 
@@ -202,7 +203,7 @@ all : []libtds$(OLB) []libct$(OLB) []libsybdb$(OLB) []libtdssrv$(OLB) $(TDSODBCS
 # Configuration dependencies
 
 CONFIGS = [.include]config.h [.include.freetds]sysconfdir.h [.include]tds_sysdep_public.h \
-	[.include]readline.h [.include]history.h
+	[.include]readline.h [.include]history.h [.include.freetds]sysdep_types.h
 
 $(TDSOBJS) : $(CONFIGS)
 
@@ -250,6 +251,39 @@ $(STDINT_H) :
 	@ IF F$SEARCH("$(MMS$TARGET)") .EQS. "" THEN COPY [.include]tds_sysdep_public^.h.in $(MMS$TARGET)
 
 [.include]tds_sysdep_public.h : [.include]tds_sysdep_public.h_in $(STDINT_H)
+	@ open/write vmsconfigtmp vmsconfigtmp.com
+	@ write vmsconfigtmp "$ define/user_mode/nolog SYS$OUTPUT _NLA0:"
+	@ write vmsconfigtmp "$ edit/tpu/nodisplay/noinitialization -"
+	@ write vmsconfigtmp "/section=sys$library:eve$section.tpu$section -"
+	@ write vmsconfigtmp "/command=sys$input/output=$(MMS$TARGET) $(MMS$SOURCE)"
+	@ write vmsconfigtmp "input_file := GET_INFO (COMMAND_LINE, ""file_name"");"
+	@ write vmsconfigtmp "main_buffer:= CREATE_BUFFER (""main"", input_file);"
+	@ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
+	@ write vmsconfigtmp "eve_global_replace(""@tds_sysdep_int16_type@"",""short"");"
+	@ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
+	@ write vmsconfigtmp "eve_global_replace(""@tds_sysdep_int32_type@"",""int"");"
+	@ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
+	@ write vmsconfigtmp "eve_global_replace(""@tds_sysdep_int64_type@"",""__int64"");"
+	@ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
+	@ write vmsconfigtmp "eve_global_replace(""@tds_sysdep_real32_type@"",""float"");"
+	@ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
+	@ write vmsconfigtmp "eve_global_replace(""@tds_sysdep_real64_type@"",""double"");"
+	@ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
+	@ write vmsconfigtmp "eve_global_replace(""@tds_sysdep_intptr_type@"",""int"");"
+	@ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
+	@ write vmsconfigtmp "eve_global_replace(""@dblib_define@"",""#$(DBLIB_DEFINE)"");"
+	@ write vmsconfigtmp "out_file := GET_INFO (COMMAND_LINE, ""output_file"");"
+	@ write vmsconfigtmp "WRITE_FILE (main_buffer, out_file);"
+	@ write vmsconfigtmp "quit;"
+	@ write vmsconfigtmp "$ exit"
+	@ close vmsconfigtmp
+	@ @vmsconfigtmp.com
+	@ delete/noconfirm/nolog vmsconfigtmp.com;
+
+[.include.freetds]sysdep_types.h_in :
+	@ IF F$SEARCH("$(MMS$TARGET)") .EQS. "" THEN COPY [.include.freetds]sysdep_types^.h.in $(MMS$TARGET)
+
+[.include.freetds]sysdep_types.h : [.include.freetds]sysdep_types.h_in $(STDINT_H)
 	@ open/write vmsconfigtmp vmsconfigtmp.com
 	@ write vmsconfigtmp "$ define/user_mode/nolog SYS$OUTPUT _NLA0:"
 	@ write vmsconfigtmp "$ edit/tpu/nodisplay/noinitialization -"
@@ -1727,10 +1761,12 @@ clean : distclean
 	@ if f$search("[.include]readline.h") .nes. "" then delete/noconfirm [.include]readline.h;*
 	@ if f$search("[.include]history.h") .nes. "" then delete/noconfirm [.include]history.h;*
 	@ if f$search("[.include]tds_sysdep_public.h_in") .nes. "" then delete/noconfirm [.include]tds_sysdep_public.h_in;*
+	@ if f$search("[.include.freetds]sysdep_types.h_in") .nes. "" then delete/noconfirm [.include.freetds]sysdep_types.h_in;*
 	@ if f$search("[]openssl.opt") .nes. "" then delete/noconfirm []openssl.opt;*
 	@ if f$search("[]descrip.mms") .nes. "" then delete/noconfirm []descrip.mms;*
 	@ if f$search("[.include.freetds]sysconfdir.h") .nes. "" then delete/noconfirm [.include.freetds]sysconfdir.h;*
 	@ if f$search("[.include]tds_sysdep_public.h") .nes. "" then delete/noconfirm [.include]tds_sysdep_public.h;*
+	@ if f$search("[.include.freetds]sysdep_types.h") .nes. "" then delete/noconfirm [.include.freetds]sysdep_types.h;*
 	@ if f$search("[.src.replacements]libiconv.c") .nes. "" then delete/noconfirm [.src.replacements]libiconv.c;*
 
 

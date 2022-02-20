@@ -627,7 +627,7 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 
 	if (data_is_null) {
 		bindcol->bcp_column_data->datalen = 0;
-		bindcol->bcp_column_data->is_null = 1;
+		bindcol->bcp_column_data->is_null = true;
 	} else {
 		if ((converted_data_size =
 		     _tdsodbc_dbconvert(dbc, coltype,
@@ -637,7 +637,7 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 		}
 
 		bindcol->bcp_column_data->datalen = converted_data_size;
-		bindcol->bcp_column_data->is_null = 0;
+		bindcol->bcp_column_data->is_null = false;
 	}
 
 	return TDS_SUCCESS;

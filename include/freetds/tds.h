@@ -57,6 +57,7 @@ typedef struct tds_bcpinfo TDSBCPINFO;
 
 #include <freetds/version.h>
 #include <freetds/sysdep_private.h>
+#include <freetds/sysdep_types.h>
 #include <freetds/thread.h>
 #include <freetds/bool.h>
 #include <freetds/macros.h>
@@ -129,8 +130,6 @@ typedef int32_t TDS_INT;			/* 32-bit int      */
 typedef uint32_t TDS_UINT;			/* 32-bit unsigned */
 typedef int64_t TDS_INT8;			/* 64-bit integer  */
 typedef uint64_t TDS_UINT8;			/* 64-bit unsigned */
-typedef intptr_t TDS_INTPTR;
-typedef uintptr_t TDS_UINTPTR;
 typedef tds_sysdep_real32_type TDS_REAL;	/* 32-bit real     */
 typedef tds_sysdep_real64_type TDS_FLOAT;	/* 64-bit real     */
 
@@ -1436,7 +1435,6 @@ TDSRET tds_multiple_execute(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDSDYNAMIC * 
 
 /* token.c */
 TDSRET tds_process_cancel(TDSSOCKET * tds);
-int tds_get_token_size(int marker);
 TDSRET tds_process_login_tokens(TDSSOCKET * tds);
 TDSRET tds_process_simple_query(TDSSOCKET * tds);
 int tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_option, TDS_OPTION_ARG * tds_argument,

@@ -85,7 +85,7 @@ AM_CPPFLAGS	=	-I$(top_srcdir)/include
 if MINGW32
 AM_LDFLAGS	=	-no-fast-install
 else
-AM_LDFLAGS	=	-no-install -L../.libs -R $(abs_builddir)/../.libs
+AM_LDFLAGS	=	-no-install -L../.libs -R "$(abs_builddir)/../.libs"
 endif
 LDADD		=	libcommon.a ../libct.la ../../replacements/libreplacements.la $(LTLIBICONV)
 CLEANFILES	=	tdsdump.out

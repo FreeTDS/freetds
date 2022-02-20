@@ -69,6 +69,29 @@ bytes_left(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int pos, int maxlen
 		return 0;
 }
 
+/**
+ * tds_get_token_size() returns the size of a fixed length token
+ * \param marker token type.
+ */
+static int
+tds_get_token_size(int marker)
+{
+	/* TODO finish */
+	switch (marker) {
+	case TDS_DONE_TOKEN:
+	case TDS_DONEPROC_TOKEN:
+	case TDS_DONEINPROC_TOKEN:
+		// XXX 12 for TDS >= 7.2
+		return 8;
+	case TDS_RETURNSTATUS_TOKEN:
+		return 4;
+	case TDS_PROCID_TOKEN:
+		return 8;
+	default:
+		return 0;
+	}
+}
+
 /*
  * attempts to read a fixed length token, returns 1 if successful
  * bytes_read is set to the number of bytes read fromt the input stream.
