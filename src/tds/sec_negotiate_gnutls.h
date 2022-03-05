@@ -49,7 +49,7 @@
  */
 
 #ifndef HAVE_GNUTLS
-#error HAVE_GNUTLS not defines, this file should not be included
+#error HAVE_GNUTLS not defined, this file should not be included
 #endif
 
 /* emulate GMP if not present */
@@ -68,7 +68,7 @@ typedef struct {
 #endif
 
 
-/* emulate Nettle is not present */
+/* emulate Nettle if not present */
 #ifndef HAVE_NETTLE
 #define HAVE_NETTLE 1
 
