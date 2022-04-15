@@ -433,13 +433,13 @@ tds5_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 
 	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
 		TDSCOLUMN  *bindcol = bcpinfo->bindinfo->columns[i];
-		if (is_blob_type(bindcol->column_type)) {
+		if (is_blob_type(bindcol->on_server.column_type)) {
 			TDSRET rc = get_col_data(bcpinfo, bindcol, offset);
 			if (TDS_FAILED(rc))
 				return rc;
 			/* unknown but zero */
 			tds_put_smallint(tds, 0);
-			tds_put_byte(tds, bindcol->column_type);
+			tds_put_byte(tds, bindcol->on_server.column_type);
 			tds_put_byte(tds, 0xff - blob_cols);
 			/*
 			 * offset of txptr we stashed during variable
@@ -489,7 +489,7 @@ static inline void
 tds5_swap_data(const TDSCOLUMN *col, void *p)
 {
 #ifdef WORDS_BIGENDIAN
-	tds_swap_datatype(tds_get_conversion_type(col->column_type, col->column_size), p);
+	tds_swap_datatype(tds_get_conversion_type(col->on_server.column_type, col->column_size), p);
 #endif
 }
 
@@ -524,7 +524,7 @@ tds5_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_dat
 		TDSCOLUMN *const bcpcol = bcpinfo->bindinfo->columns[i];
 		const TDS_INT column_size = bcpcol->on_server.column_size;
 
-		if (is_nullable_type(bcpcol->column_type) || bcpcol->column_nullable)
+		if (is_nullable_type(bcpcol->on_server.column_type) || bcpcol->column_nullable)
 			continue;
 
 		tdsdump_log(TDS_DBG_FUNC, "tds5_bcp_add_fixed_columns column %d is a fixed column\n", i + 1);
@@ -543,7 +543,7 @@ tds5_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_dat
 			return -1;
 		}
 
-		if (is_numeric_type(bcpcol->column_type)) {
+		if (is_numeric_type(bcpcol->on_server.column_type)) {
 			num = (TDS_NUMERIC *) bcpcol->bcp_column_data->data;
 			cpbytes = tds_numeric_bytes_per_prec[num->precision];
 			memcpy(&rowbuffer[row_pos], num->array, cpbytes);
@@ -607,10 +607,10 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 								"is null" );
 	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
 		TDSCOLUMN *bcpcol = bcpinfo->bindinfo->columns[i];
-		tdsdump_log(TDS_DBG_FUNC, "%4d %8d %18s %18s %8s\n", 	i, 
-									bcpcol->column_type,  
-									is_nullable_type(bcpcol->column_type)? "yes" : "no", 
-									bcpcol->column_nullable? "yes" : "no", 
+		tdsdump_log(TDS_DBG_FUNC, "%4d %8d %18s %18s %8s\n", 	i,
+									bcpcol->on_server.column_type,
+									is_nullable_type(bcpcol->on_server.column_type)? "yes" : "no",
+									bcpcol->column_nullable? "yes" : "no",
 									bcpcol->bcp_column_data->is_null? "yes" : "no" );
 	}
 
@@ -628,7 +628,7 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 		 * Is this column of "variable" type, i.e. NULLable
 		 * or naturally variable length e.g. VARCHAR
 		 */
-		if (!is_nullable_type(bcpcol->column_type) && !bcpcol->column_nullable)
+		if (!is_nullable_type(bcpcol->on_server.column_type) && !bcpcol->column_nullable)
 			continue;
 
 		tdsdump_log(TDS_DBG_FUNC, "%4d %8d %8d %8d\n", i, ncols, row_pos, cpbytes);
@@ -647,10 +647,10 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 
 		/* move the column buffer into the rowbuffer */
 		if (!bcpcol->bcp_column_data->is_null) {
-			if (is_blob_type(bcpcol->column_type)) {
+			if (is_blob_type(bcpcol->on_server.column_type)) {
 				cpbytes = 16;
 				bcpcol->column_textpos = row_pos;               /* save for data write */
-			} else if (is_numeric_type(bcpcol->column_type)) {
+			} else if (is_numeric_type(bcpcol->on_server.column_type)) {
 				TDS_NUMERIC *num = (TDS_NUMERIC *) bcpcol->bcp_column_data->data;
 				cpbytes = tds_numeric_bytes_per_prec[num->precision];
 				memcpy(&rowbuffer[row_pos], num->array, cpbytes);
