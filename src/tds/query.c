@@ -3687,7 +3687,7 @@ tds_submit_begin_tran(TDSSOCKET *tds)
  * \sa tds_submit_begin_tran, tds_submit_commit
  */
 TDSRET
-tds_submit_rollback(TDSSOCKET *tds, int cont)
+tds_submit_rollback(TDSSOCKET *tds, bool cont)
 {
 	CHECK_TDS_EXTRA(tds);
 
@@ -3718,7 +3718,7 @@ tds_submit_rollback(TDSSOCKET *tds, int cont)
  * \sa tds_submit_rollback, tds_submit_begin_tran
  */
 TDSRET
-tds_submit_commit(TDSSOCKET *tds, int cont)
+tds_submit_commit(TDSSOCKET *tds, bool cont)
 {
 	CHECK_TDS_EXTRA(tds);
 
