@@ -1143,6 +1143,19 @@ struct tds_connection
 	int spid;
 	int client_spid;
 
+	/**
+	 * Ratio between bytes allocated for a NCHAR type and type length (Sybase).
+	 * For instance in case a NVARCHAR(3) takes 9 bytes it's 3.
+	 */
+	uint8_t ncharsize;
+
+	/**
+	 * Ratio between bytes allocated for a UNICHAR type and type length (Sybase).
+	 * For instance in case a UNIVARCHAR(2) takes 4 bytes it's 2.
+	 * It really should be only 2.
+	 */
+	uint8_t unicharsize;
+
 	void *tls_session;
 #if defined(HAVE_GNUTLS)
 	void *tls_credentials;

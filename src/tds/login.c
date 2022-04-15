@@ -304,11 +304,53 @@ free_save_context(TDSSAVECONTEXT *ctx)
 }
 
 /**
- * Retrieve and set @@spid
+ * Set @@spid based on column data
+ * \tds
+ * @param curcol  column with spid data.
+ */
+static TDSRET
+tds_set_spid(TDSSOCKET * tds, TDSCOLUMN *curcol)
+{
+	switch (tds_get_conversion_type(curcol->column_type, curcol->column_size)) {
+	case SYBINT2:
+		tds->conn->spid = *((TDS_USMALLINT *) curcol->column_data);
+		break;
+	case SYBINT4:
+		tds->conn->spid = *((TDS_UINT *) curcol->column_data);
+		break;
+	default:
+		return TDS_FAIL;
+	}
+	return TDS_SUCCESS;
+}
+
+/**
+ * Set ncharsize and unicharsize based on column data.
+ * \tds
+ * @param res_info  resultset to get data from.
+ */
+static TDSRET
+tds_set_nvc(TDSSOCKET * tds, TDSRESULTINFO *res_info)
+{
+	int charsize;
+
+	/* Compute the ratios, put some acceptance in order to avoid issues. */
+	/* The "3" constant came from the query issued (NVARCHAR(3) and UNIVARCHAR(3)) */
+	charsize = res_info->columns[0]->on_server.column_size / 3;
+	if (charsize >= 1 && charsize <= 4)
+		tds->conn->ncharsize = (uint8_t) charsize;
+	charsize = res_info->columns[1]->on_server.column_size / 3;
+	if (charsize >= 1 && charsize <= 4)
+		tds->conn->unicharsize = (uint8_t) charsize;
+	return TDS_SUCCESS;
+}
+
+/**
+ * Parse the results from login queries
  * \tds
  */
 static TDSRET
-tds_set_spid(TDSSOCKET * tds)
+tds_parse_login_results(TDSSOCKET * tds)
 {
 	TDS_INT result_type;
 	TDS_INT done_flags;
@@ -321,24 +363,20 @@ tds_set_spid(TDSSOCKET * tds)
 
 		switch (result_type) {
 		case TDS_ROW_RESULT:
-			if (!tds->res_info)
+			if (!tds->res_info && tds->res_info->num_cols < 1)
 				return TDS_FAIL;
-			if (tds->res_info->num_cols != 1)
-				break;
 			curcol = tds->res_info->columns[0];
-			switch (tds_get_conversion_type(curcol->column_type, curcol->column_size)) {
-			case SYBINT2:
-				tds->conn->spid = *((TDS_USMALLINT *) curcol->column_data);
-				break;
-			case SYBINT4:
-				tds->conn->spid = *((TDS_UINT *) curcol->column_data);
-				break;
-			default:
-				return TDS_FAIL;
-			}
+			if (tds->res_info->num_cols == 1 && strcmp(tds_dstr_cstr(&curcol->column_name), "spid") == 0)
+				rc = tds_set_spid(tds, curcol);
+			if (tds->res_info->num_cols == 2 && strcmp(tds_dstr_cstr(&curcol->column_name), "nvc") == 0)
+				rc = tds_set_nvc(tds, tds->res_info);
+			if (TDS_FAILED(rc))
+				return rc;
 			break;
 
 		case TDS_DONE_RESULT:
+		case TDS_DONEPROC_RESULT:
+		case TDS_DONEINPROC_RESULT:
 			if ((done_flags & TDS_DONE_ERROR) != 0)
 				return TDS_FAIL;
 			break;
@@ -356,25 +394,31 @@ tds_setup_connection(TDSSOCKET *tds, TDSLOGIN *login, bool set_db, bool set_spid
 	TDSRET erc;
 	char *str;
 	int len;
+	bool parse_results = false;
 
-	len = 128 + tds_quote_id(tds, NULL, tds_dstr_cstr(&login->database),-1);
+	len = 192 + tds_quote_id(tds, NULL, tds_dstr_cstr(&login->database),-1);
 	if ((str = tds_new(char, len)) == NULL)
 		return TDS_FAIL;
 
 	str[0] = 0;
 	if (login->text_size) {
-		sprintf(str, "set textsize %d ", login->text_size);
+		sprintf(str, "SET TEXTSIZE %d ", login->text_size);
 	}
 	if (set_spid && tds->conn->spid == -1) {
-		strcat(str, "select @@spid ");
+		strcat(str, "SELECT @@spid AS spid ");
+		parse_results = true;
 	}
 	/* Select proper database if specified.
 	 * SQL Anywhere does not support multiple databases and USE statement
 	 * so don't send the request to avoid connection failures */
 	if (set_db && !tds_dstr_isempty(&login->database) &&
 	    (tds->conn->product_name == NULL || strcasecmp(tds->conn->product_name, "SQL Anywhere") != 0)) {
-		strcat(str, "use ");
+		strcat(str, "USE ");
 		tds_quote_id(tds, strchr(str, 0), tds_dstr_cstr(&login->database), -1);
+	}
+	if (IS_TDS50(tds->conn)) {
+		strcat(str, " SELECT CAST('abc' AS NVARCHAR(3)) AS nvc, CAST('xyz' AS UNIVARCHAR(3)) AS uvc");
+		parse_results = true;
 	}
 
 	/* nothing to set, just return */
@@ -388,8 +432,8 @@ tds_setup_connection(TDSSOCKET *tds, TDSLOGIN *login, bool set_db, bool set_spid
 	if (TDS_FAILED(erc))
 		return erc;
 
-	if (set_spid && tds->conn->spid == -1)
-		erc = tds_set_spid(tds);
+	if (parse_results)
+		erc = tds_parse_login_results(tds);
 	else
 		erc = tds_process_simple_query(tds);
 

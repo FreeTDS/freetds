@@ -1135,6 +1135,8 @@ tds_init_connection(TDSCONNECTION *conn, TDSCONTEXT *context, unsigned int bufsi
 	conn->s = INVALID_SOCKET;
 	conn->use_iconv = 1;
 	conn->tds_ctx = context;
+	conn->ncharsize = 1;
+	conn->unicharsize = 1;
 
 	if (tds_wakeup_init(&conn->wakeup))
 		goto Cleanup;

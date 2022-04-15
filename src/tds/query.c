@@ -700,6 +700,26 @@ tds_count_placeholders_ucs2le(const char *query, const char *query_end)
 	}
 }
 
+static const char*
+tds50_char_declaration_from_usertype(TDSSOCKET *tds, TDS_INT usertype, unsigned int *p_size)
+{
+	switch (usertype) {
+	case USER_CHAR_TYPE:
+		return "CHAR(%u)";
+	case USER_VARCHAR_TYPE:
+		return "VARCHAR(%u)";
+	case USER_SYSNAME_TYPE:
+		return "SYSNAME";
+	case USER_NCHAR_TYPE:
+		*p_size /= tds->conn->ncharsize;
+		return "NCHAR(%u)";
+	case USER_NVARCHAR_TYPE:
+		*p_size /= tds->conn->ncharsize;
+		return "NVARCHAR(%u)";
+	}
+	return NULL;
+}
+
 /**
  * Return declaration for column (like "varchar(20)").
  *
@@ -729,10 +749,21 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 
 	switch (tds_get_conversion_type(curcol->on_server.column_type, curcol->on_server.column_size)) {
 	case XSYBCHAR:
+		if (IS_TDS50(tds->conn)) {
+			max_len = 32767;
+			fmt = tds50_char_declaration_from_usertype(tds, curcol->column_usertype, &size);
+			if (fmt != NULL)
+				break;
+		}
 	case SYBCHAR:
 		fmt = "CHAR(%u)";
 		break;
 	case SYBVARCHAR:
+		if (IS_TDS50(tds->conn)) {
+			fmt = tds50_char_declaration_from_usertype(tds, curcol->column_usertype, &size);
+			if (fmt != NULL)
+				break;
+		}
 	case XSYBVARCHAR:
 		if (curcol->column_varint_size == 8)
 			fmt = "VARCHAR(MAX)";
@@ -773,6 +804,25 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 		break;
 	case SYBLONGBINARY:	/* TODO correct ?? */
 	case SYBIMAGE:
+		if (IS_TDS50(tds->conn)) {
+			switch (curcol->column_usertype) {
+			case USER_UNICHAR_TYPE:
+				size /= 2u;
+				max_len = 8192;
+				fmt = "UNICHAR(%u)";
+				break;
+			case USER_UNIVARCHAR_TYPE:
+				size /= 2u;
+				max_len = 8192;
+				fmt = "UNIVARCHAR(%u)";
+				break;
+			case USER_UNITEXT_TYPE:
+				fmt = "UNITEXT";
+				break;
+			}
+			if (fmt != NULL)
+				break;
+		}
 		fmt = "IMAGE";
 		break;
 	case SYBMONEY4:
