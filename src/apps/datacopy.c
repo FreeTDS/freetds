@@ -446,7 +446,7 @@ create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbs
 
 		strlcat(ls_command, colinfo.ServerTypeDeclaration, sizeof(ls_command));
 
-		strlcat(ls_command, colinfo.Identity ? " IDENTITY" : " ", sizeof(ls_command));
+		strlcat(ls_command, colinfo.Identity ? " IDENTITY" : "", sizeof(ls_command));
 		strlcat(ls_command, colinfo.Null ? " NULL" : " NOT NULL", sizeof(ls_command));
 	}
 	if (strlcat(ls_command, " )", sizeof(ls_command)) >= sizeof(ls_command)) {
