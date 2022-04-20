@@ -149,8 +149,7 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		curcol->column_varint_size = resinfo->columns[i]->column_varint_size;
 		curcol->column_prec = resinfo->columns[i]->column_prec;
 		curcol->column_scale = resinfo->columns[i]->column_scale;
-		curcol->on_server.column_type = resinfo->columns[i]->on_server.column_type;
-		curcol->on_server.column_size = resinfo->columns[i]->on_server.column_size;
+		curcol->on_server = resinfo->columns[i]->on_server;
 		curcol->char_conv = resinfo->columns[i]->char_conv;
 		if (!tds_dstr_dup(&curcol->column_name, &resinfo->columns[i]->column_name))
 			goto cleanup;
