@@ -1668,6 +1668,14 @@ enum tds_bcp_directions
 	TDS_BCP_QUERYOUT = 3
 };
 
+typedef struct tds5_colinfo
+{
+	TDS_TINYINT type;
+	TDS_TINYINT status;
+	TDS_SMALLINT offset;
+	TDS_INT length;
+} TDS5COLINFO;
+
 struct tds_bcpinfo
 {
 	const char *hint;
@@ -1679,6 +1687,8 @@ struct tds_bcpinfo
 	TDS_INT xfer_init;
 	TDS_INT bind_count;
 	TDSRESULTINFO *bindinfo;
+	TDS5COLINFO *sybase_colinfo;
+	TDS_INT sybase_count;
 };
 
 TDSRET tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);

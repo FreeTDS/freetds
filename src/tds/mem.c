@@ -1857,6 +1857,8 @@ tds_deinit_bcpinfo(TDSBCPINFO *bcpinfo)
 	TDS_ZERO_FREE(bcpinfo->insert_stmt);
 	tds_free_results(bcpinfo->bindinfo);
 	bcpinfo->bindinfo = NULL;
+	TDS_ZERO_FREE(bcpinfo->sybase_colinfo);
+	bcpinfo->sybase_count = 0;
 }
 
 void
