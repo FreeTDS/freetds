@@ -826,18 +826,25 @@ tds_check_wildcard_test(void)
 static int
 check_name_match(ASN1_STRING *name, const char *hostname)
 {
-	char *name_utf8 = NULL;
+	char *name_utf8 = NULL, *tmp_name;
 	int ret, name_len;
 
 	name_len = ASN1_STRING_to_UTF8((unsigned char **) &name_utf8, name);
 	if (name_len < 0)
 		return 0;
 
+	tmp_name = tds_strndup(name_utf8, name_len);
+	OPENSSL_free(name_utf8);
+	if (!tmp_name)
+		return 0;
+
+	name_utf8 = tmp_name;
+
 	tdsdump_log(TDS_DBG_INFO1, "Got name %s\n", name_utf8);
 	ret = 0;
 	if (strlen(name_utf8) == name_len && check_wildcard(name_utf8, hostname))
 		ret = 1;
-	OPENSSL_free(name_utf8);
+	free(name_utf8);
 	return ret;
 }
 
