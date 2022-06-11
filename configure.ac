@@ -11,7 +11,7 @@ dnl ------------------------------------------------------------
 # ------------------------------------------------------------
 # Initialization
 # ------------------------------------------------------------
-AC_INIT(FreeTDS, 1.3.11)
+AC_INIT(FreeTDS, 1.3.12)
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
 
@@ -246,7 +246,7 @@ if test $tds_mingw = no; then
 	# linked in. Others (inc debian) have termcap built into ncurses.
 	ACX_PUSH_LIBS("")
 	AC_SEARCH_LIBS(tgetent, [readline ncurses curses termcap])
-	AC_CHECK_LIB([readline], [readline], [LIBS="$LIBS -lreadline"
+	AC_CHECK_LIB([readline], [readline], [LIBS="-lreadline $LIBS"
 	  AC_DEFINE(HAVE_READLINE, 1, [Define to 1 if you have the GNU Readline library.])], [LIBS=""] )
 	AC_CHECK_FUNCS([rl_on_new_line rl_reset_line_state])
 	AC_LINK_IFELSE([AC_LANG_SOURCE([[
