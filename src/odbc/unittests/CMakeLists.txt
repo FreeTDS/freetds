@@ -30,6 +30,7 @@ set(tests
 	all_types utf8_3 empty_query
 	transaction3 transaction4
 	utf8_4 qn connection_string_parse
+	tvp
 )
 
 if(WIN32)

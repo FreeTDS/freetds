@@ -82,6 +82,7 @@ TESTS =	\
 	utf8_4$(EXEEXT) \
 	qn$(EXEEXT) \
 	connection_string_parse$(EXEEXT) \
+	tvp$(EXEEXT) \
 	$(NULL)
 
 check_PROGRAMS	=	$(TESTS) oldpwd$(EXEEXT)
