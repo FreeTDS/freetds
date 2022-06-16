@@ -343,8 +343,16 @@ tds_free_param_result(TDSPARAMINFO * param_info)
 }
 
 static void
+tds_free_tvp_row(TDS_TVP_ROW * row)
+{
+	tds_free_param_results(row->params);
+}
+
+static void
 tds_param_free(TDSCOLUMN *col)
 {
+	TDS_TVP_ROW * tvp_row, * next_row;
+
 	if (!col->column_data)
 		return;
 
@@ -352,6 +360,20 @@ tds_param_free(TDSCOLUMN *col)
 		TDSBLOB *blob = (TDSBLOB *) col->column_data;
 		free(blob->textvalue);
 	}
+
+	if (col->column_type == SYBTABLETYPE) {
+		TDS_TVP * table = (TDS_TVP *) col->column_data;
+		TDS_ZERO_FREE(table->schema);
+		TDS_ZERO_FREE(table->name);
+		tds_free_tvp_row(table->metadata);
+		TDS_ZERO_FREE(table->metadata);
+		for (tvp_row = table->row; tvp_row != NULL; tvp_row = next_row) {
+			next_row = tvp_row->next;
+			tds_free_tvp_row(tvp_row);
+			TDS_ZERO_FREE(tvp_row);
+		}
+	}
+
 	TDS_ZERO_FREE(col->column_data);
 }
 

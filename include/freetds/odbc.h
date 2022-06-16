@@ -431,6 +431,7 @@ struct _hstmt
 	TDS_ODBC_SPECIAL_ROWS special_row;
 	/* do NOT free cursor, free from socket or attach to connection */
 	TDSCURSOR *cursor;
+	int param_focus;
 };
 
 typedef struct _henv TDS_ENV;
@@ -568,6 +569,32 @@ TDS_DBC *desc_get_dbc(TDS_DESC *desc);
 /*
  * odbc.c
  */
+/* Temporarily store the bound TVP columns */
+/* Follow the naming in _SQLBindParameter for convenience */
+typedef struct {
+	SQLSMALLINT fParamType; /* InputOutputParam */
+	SQLSMALLINT fCType;     /* C data type */
+	SQLSMALLINT fSqlType;   /* SQL data type */
+	SQLULEN cbColDef;       /* columnsize */
+	SQLSMALLINT ibScale;    /* precision */
+	SQLPOINTER rgbValue;    /* content buffer */
+	SQLLEN cbValueMax;      /* buffer length */
+	SQLLEN * pcbValue;      /* content length buffer */
+} SQLTVPCOLUMN;
+
+typedef struct sql_tvp_column_list {
+	SQLTVPCOLUMN * column;
+	SQLUSMALLINT ipar;
+	struct sql_tvp_column_list * next;
+} SQLTVPCOLUMNLIST;
+
+typedef struct {
+	char * type_name;
+	SQLLEN type_name_len;
+	int num_cols;
+	SQLTVPCOLUMNLIST * col_list;
+} SQLTVP;
+
 SQLRETURN _SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow);
 
 /*

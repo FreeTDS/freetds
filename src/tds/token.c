@@ -3090,6 +3090,7 @@ tds_prtype(int type)
 		TYPE(SYBTIME, "time");
 		TYPE(SYB5BIGTIME, "bigtime");
 		TYPE(SYB5BIGDATETIME, "bigdatetime");
+		TYPE(SYBTABLETYPE, "user-defined table type");
 	default:
 		break;
 	}

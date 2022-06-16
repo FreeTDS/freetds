@@ -1456,6 +1456,21 @@ TDSRET tds_process_tokens(TDSSOCKET * tds, /*@out@*/ TDS_INT * result_type, /*@o
 
 
 /* data.c */
+typedef struct tds_tvp_row
+{
+	TDSPARAMINFO * params;
+	struct tds_tvp_row * next;
+} TDS_TVP_ROW;
+
+typedef struct tds_tvp
+{
+	char * schema;
+	char * name;
+	int num_cols;
+	TDS_TVP_ROW * metadata;
+	TDS_TVP_ROW * row;
+} TDS_TVP;
+
 void tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE type);
 void tds_set_column_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE type);
 #ifdef WORDS_BIGENDIAN
