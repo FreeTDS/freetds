@@ -652,6 +652,8 @@ odbc_c_to_server_type(int c_type)
 		/* ODBC numeric/decimal formats are completely differect from tds one */
 	case SQL_C_NUMERIC:
 		return SYBNUMERIC;
+	case SQL_C_SS_TABLE:
+		return SYBTABLETYPE;
 		/* not supported */
 	case SQL_C_INTERVAL_YEAR:
 	case SQL_C_INTERVAL_MONTH:
@@ -724,6 +726,8 @@ odbc_sql_to_c_type_default(int sql_type)
 	case SQL_VARBINARY:
 	case SQL_LONGVARBINARY:
 		return SQL_C_BINARY;
+	case SQL_SS_TABLE:
+		return SQL_C_SS_TABLE;
 		/* TODO interval types */
 	default:
 		return 0;
@@ -841,6 +845,8 @@ odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned)
 		return SYBVARBINARY;
 	case SQL_LONGVARBINARY:
 		return SYBIMAGE;
+	case SQL_SS_TABLE:
+		return SYBTABLETYPE;
 		/* TODO interval types */
 	default:
 		return TDS_INVALID_TYPE;
@@ -940,6 +946,8 @@ odbc_get_param_len(const struct _drecord *drec_axd, const struct _drecord *drec_
 	TYPE_NORMAL(SQL_SS_VARIANT) \
 	TYPE_NORMAL(SQL_TYPE_DATE) \
 	TYPE_NORMAL(SQL_TYPE_TIME) \
+\
+	TYPE_NORMAL(SQL_SS_TABLE) \
 \
 	TYPE_VERBOSE_START(SQL_DATETIME) \
 	TYPE_VERBOSE_DATE(SQL_DATETIME, SQL_CODE_TIMESTAMP, SQL_TYPE_TIMESTAMP, SQL_TIMESTAMP) \
@@ -1041,6 +1049,8 @@ odbc_set_concise_sql_type(SQLSMALLINT concise_type, struct _drecord * drec, int 
 \
 	TYPE_NORMAL(SQL_C_FLOAT) \
 	TYPE_NORMAL(SQL_C_DOUBLE)\
+\
+	TYPE_NORMAL(SQL_C_SS_TABLE)\
 \
 	TYPE_VERBOSE_START(SQL_DATETIME) \
 	TYPE_VERBOSE_DATE(SQL_DATETIME, SQL_CODE_DATE, SQL_C_TYPE_DATE, SQL_C_DATE) \

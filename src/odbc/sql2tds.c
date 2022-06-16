@@ -149,6 +149,167 @@ _odbc_blob_free(TDSCOLUMN *col)
         TDS_ZERO_FREE(col->column_data);
 }
 
+static TDS_INT
+odbc_convert_table_row(TDS_DESC *apd, TDS_DESC *ipd,
+	SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLSMALLINT fCType, SQLSMALLINT fSqlType,
+	SQLULEN cbColDef, SQLSMALLINT ibScale, SQLPOINTER rgbValue, SQLLEN cbValueMax, SQLLEN FAR *pcbValue)
+{
+	bool is_numeric = false;
+	struct _drecord *drec;
+
+	if (fSqlType == SQL_DECIMAL || fSqlType == SQL_NUMERIC)
+		is_numeric = true;
+
+	if (ipar > apd->header.sql_desc_count && desc_alloc_records(apd, ipar) != SQL_SUCCESS)
+		return TDS_FAIL;
+
+	drec = &apd->records[ipar - 1];
+
+	if (odbc_set_concise_c_type(fCType, drec, 0) != SQL_SUCCESS)
+		return TDS_FAIL;
+
+	if (drec->sql_desc_type == SQL_C_CHAR || drec->sql_desc_type == SQL_C_WCHAR || drec->sql_desc_type == SQL_C_BINARY)
+		drec->sql_desc_octet_length = cbValueMax;
+	drec->sql_desc_indicator_ptr = pcbValue;
+	drec->sql_desc_octet_length_ptr = pcbValue;
+	drec->sql_desc_data_ptr = (char *) rgbValue;
+
+	if (ipar > ipd->header.sql_desc_count && desc_alloc_records(ipd, ipar) != SQL_SUCCESS)
+		return TDS_FAIL;
+
+	drec = &ipd->records[ipar - 1];
+
+	drec->sql_desc_parameter_type = fParamType;
+	if (odbc_set_concise_sql_type(fSqlType, drec, 0) != SQL_SUCCESS)
+		return TDS_FAIL;
+
+	if (is_numeric) {
+		drec->sql_desc_precision = cbColDef;
+		drec->sql_desc_scale = ibScale;
+	} else {
+		drec->sql_desc_length = cbColDef;
+	}
+
+	return TDS_SUCCESS;
+}
+
+static TDS_INT
+odbc_convert_table(TDS_STMT *stmt, SQLTVP *src, TDS_TVP *dest, SQLLEN num_rows)
+{
+	SQLLEN i;
+	int j;
+	TDS_TVP_ROW *row;
+	TDS_TVP_ROW **prow;
+	TDSPARAMINFO *params, *new_params;
+	TDS_DESC *apd, *ipd;
+	SQLPOINTER rgbValue;
+	SQLTVPCOLUMN **cols;
+	SQLTVPCOLUMNLIST *node;
+	char *type_name, *pch;
+
+	dest->num_cols = src->num_cols;
+	dest->metadata = NULL;
+	dest->row = NULL;
+
+	if ((type_name = tds_strndup(src->type_name, src->type_name_len)) == NULL) {
+		odbc_errs_add(&stmt->errs, "HY001", NULL);
+		return TDS_CONVERT_NOMEM;
+	}
+
+	/* Tokenize and extract the schema & TVP typename from the TVP's full name */
+	pch = strchr(type_name, '.');
+	if (pch == NULL) {
+		dest->schema = tds_strndup("", 0);
+		dest->name = type_name;
+	} else {
+		*pch = 0;
+		dest->schema = tds_strndup(type_name, src->type_name_len);
+		dest->name = tds_strndup(++pch, src->type_name_len);
+		free(type_name);
+	}
+
+	/* Ensure that the TVP typename does not contain any more '.' */
+	/* Otherwise, report it as an invalid data type error */
+	pch = strchr(dest->name, '.');
+	if (pch != NULL) {
+		odbc_errs_add(&stmt->errs, "HY004", NULL);
+		return TDS_CONVERT_SYNTAX;
+	}
+
+	/* Convert the columns from a linked list to an array */
+	if ((cols = malloc(src->num_cols * sizeof(SQLTVPCOLUMN *))) == NULL)
+		return TDS_CONVERT_NOMEM;
+
+	for (node = src->col_list; node != NULL; node = node->next)
+		cols[node->ipar - 1] = node->column;
+
+	/* Create a dummy row to store column metadata */
+	apd = desc_alloc(stmt, DESC_APD, SQL_DESC_ALLOC_AUTO);
+	ipd = desc_alloc(stmt, DESC_IPD, SQL_DESC_ALLOC_AUTO);
+
+	if ((dest->metadata = malloc(sizeof(TDS_TVP_ROW))) == NULL)
+		return TDS_CONVERT_NOMEM;
+
+	dest->metadata->next = NULL;
+	params = NULL;
+	for (j = 0; j < src->num_cols; j++) {
+		if (!(new_params = tds_alloc_param_result(params)))
+			return TDS_CONVERT_NOMEM;
+
+		odbc_convert_table_row(apd, ipd, j + 1, cols[j]->fParamType, cols[j]->fCType,
+			cols[j]->fSqlType, cols[j]->cbColDef, cols[j]->ibScale,
+			NULL, cols[j]->cbValueMax, (SQLLEN *) SQL_NULL_DATA);
+
+		odbc_sql2tds(stmt, &ipd->records[j], &apd->records[j], new_params->columns[j], 0, apd, 0);
+		params = new_params;
+	}
+	dest->metadata->params = params;
+
+	/* Free the associated TDS_DESC objects */
+	desc_free(apd);
+	desc_free(ipd);
+	apd = NULL;
+	ipd = NULL;
+
+	for (i = 0, prow = &dest->row; i < num_rows; prow = &(*prow)->next, i++) {
+		if ((row = malloc(sizeof(TDS_TVP_ROW))) == NULL)
+			return -1;
+
+		row->params = NULL;
+		row->next = NULL;
+
+		*prow = row;
+
+		apd = desc_alloc(stmt, DESC_APD, SQL_DESC_ALLOC_AUTO);
+		ipd = desc_alloc(stmt, DESC_IPD, SQL_DESC_ALLOC_AUTO);
+
+		params = NULL;
+		for (j = 0; j < src->num_cols; j++) {
+			if (!(new_params = tds_alloc_param_result(params)))
+				return TDS_CONVERT_NOMEM;
+
+			rgbValue = ((BYTE *) cols[j]->rgbValue) + i * cols[j]->cbValueMax;
+			odbc_convert_table_row(apd, ipd, j + 1, cols[j]->fParamType, cols[j]->fCType,
+				cols[j]->fSqlType, cols[j]->cbColDef, cols[j]->ibScale,
+				rgbValue, cols[j]->cbValueMax, &cols[j]->pcbValue[i]);
+
+			odbc_sql2tds(stmt, &ipd->records[j], &apd->records[j], new_params->columns[j], 1, apd, 0);
+			params = new_params;
+		}
+		row->params = params;
+
+		/* Free the associated TDS_DESC objects */
+		desc_free(apd);
+		desc_free(ipd);
+		apd = NULL;
+		ipd = NULL;
+	}
+
+	free(cols);
+
+	return sizeof(TDS_TVP);
+}
+
 /**
  * Convert parameters to libtds format
  * @param stmt        ODBC statement
@@ -237,6 +398,10 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 		if (dest_type != SYBUNIQUE && !is_fixed_type(dest_type)) {
 			curcol->column_cur_size = 0;
 			curcol->column_size = drec_ixd->sql_desc_length;
+			/* Ensure that the column_cur_size and column_size are consistent, */
+			/* since drec_ixd->sql_desc_length contains the number of rows for a TVP */
+			if (dest_type == SYBTABLETYPE)
+				curcol->column_size = sizeof(TDS_TVP);
 			if (curcol->column_size < 0) {
 				curcol->on_server.column_size = curcol->column_size = 0x7FFFFFFFl;
 			} else {
@@ -495,6 +660,9 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 	case SYB5BIGTIME:
 	case SYB5BIGDATETIME:
 		res = tds_convert(dbc->env->tds_ctx, src_type, src, len, dest_type, (CONV_RESULT*) dest);
+		break;
+	case SYBTABLETYPE:
+		res = odbc_convert_table(stmt, (SQLTVP *) src, (TDS_TVP *) dest, drec_ixd->sql_desc_length);
 		break;
 	default:
 	case SYBVOID:
