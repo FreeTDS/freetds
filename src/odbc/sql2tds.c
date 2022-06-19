@@ -203,8 +203,7 @@ odbc_convert_table(TDS_STMT *stmt, SQLTVP *src, TDS_TVP *dest, SQLLEN num_rows)
 	TDSPARAMINFO *params, *new_params;
 	TDS_DESC *apd, *ipd;
 	SQLPOINTER rgbValue;
-	SQLTVPCOLUMN **cols;
-	SQLTVPCOLUMNLIST *node;
+	SQLTVPCOLUMN ** const cols = src->columns;
 	char *type_name, *pch;
 
 	dest->num_cols = src->num_cols;
@@ -235,13 +234,6 @@ odbc_convert_table(TDS_STMT *stmt, SQLTVP *src, TDS_TVP *dest, SQLLEN num_rows)
 		odbc_errs_add(&stmt->errs, "HY004", NULL);
 		return TDS_CONVERT_SYNTAX;
 	}
-
-	/* Convert the columns from a linked list to an array */
-	if ((cols = malloc(src->num_cols * sizeof(SQLTVPCOLUMN *))) == NULL)
-		return TDS_CONVERT_NOMEM;
-
-	for (node = src->col_list; node != NULL; node = node->next)
-		cols[node->ipar - 1] = node->column;
 
 	/* Create a dummy row to store column metadata */
 	apd = desc_alloc(stmt, DESC_APD, SQL_DESC_ALLOC_AUTO);
@@ -304,8 +296,6 @@ odbc_convert_table(TDS_STMT *stmt, SQLTVP *src, TDS_TVP *dest, SQLLEN num_rows)
 		apd = NULL;
 		ipd = NULL;
 	}
-
-	free(cols);
 
 	return sizeof(TDS_TVP);
 }

@@ -1403,9 +1403,10 @@ add_table_column(SQLTVP *tvp, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLSMAL
 		  SQLULEN cbColDef, SQLSMALLINT ibScale, SQLPOINTER rgbValue, SQLLEN cbValueMax, SQLLEN FAR *pcbValue)
 {
 	SQLTVPCOLUMN *new_col = NULL;
-	SQLTVPCOLUMNLIST *new_node = NULL;
 
-	if ((new_col = malloc(sizeof(SQLTVPCOLUMN))) == NULL)
+	if (ipar <= tvp->num_cols && tvp->columns[ipar - 1] != NULL)
+		new_col = tvp->columns[ipar - 1];
+	else if ((new_col = tds_new(SQLTVPCOLUMN, 1)) == NULL)
 		goto Cleanup;
 
 	new_col->fParamType = fParamType;
@@ -1417,15 +1418,13 @@ add_table_column(SQLTVP *tvp, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLSMAL
 	new_col->cbValueMax = cbValueMax;
 	new_col->pcbValue = pcbValue;
 
-	if ((new_node = malloc(sizeof(SQLTVPCOLUMNLIST))) == NULL)
-		goto Cleanup;
-
-	new_node->column = new_col;
-	new_node->ipar = ipar;
-	new_node->next = tvp->col_list;
-
-	tvp->col_list = new_node;
-	tvp->num_cols = ODBC_MAX(tvp->num_cols, ipar);
+	if (ipar > tvp->num_cols) {
+		if (!TDS_RESIZE(tvp->columns, ipar))
+			goto Cleanup;
+		memset(tvp->columns + tvp->num_cols, 0, sizeof(tvp->columns[0]) * (ipar - tvp->num_cols));
+		tvp->num_cols = ipar;
+	}
+	tvp->columns[ipar - 1] = new_col;
 
 	return SQL_SUCCESS;
 

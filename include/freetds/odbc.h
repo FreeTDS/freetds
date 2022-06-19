@@ -582,17 +582,11 @@ typedef struct {
 	SQLLEN *pcbValue;       /* content length buffer */
 } SQLTVPCOLUMN;
 
-typedef struct sql_tvp_column_list {
-	SQLTVPCOLUMN *column;
-	SQLUSMALLINT ipar;
-	struct sql_tvp_column_list *next;
-} SQLTVPCOLUMNLIST;
-
 typedef struct {
 	char *type_name;
 	SQLLEN type_name_len;
 	int num_cols;
-	SQLTVPCOLUMNLIST *col_list;
+	SQLTVPCOLUMN **columns;
 } SQLTVP;
 
 SQLRETURN _SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow);

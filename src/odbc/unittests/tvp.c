@@ -1,7 +1,15 @@
+/* Test binding and calling of TVPs */
+
 #include "common.h"
+#include <assert.h>
 #include <odbcss.h>
 
-/* Test binding and calling of TVPs */
+#if (defined(HAVE_MALLINFO2) || defined(HAVE_MALLINFO)) && defined(HAVE_MALLOC_H)
+#  include <malloc.h>
+#  define MEMORY_TESTS
+#else
+#  undef MEMORY_TESTS
+#endif
 
 #define MAX_ROWS 5
 #define MAX_STRING_LENGTH 20
@@ -207,6 +215,48 @@ TestTVPMemoryManagement(void)
 	CHKCloseCursor("SI");
 }
 
+#ifdef MEMORY_TESTS
+static size_t
+memory_usage(void)
+{
+#if defined(HAVE_MALLINFO2)
+	struct mallinfo2 info = mallinfo2();
+	size_t ret = info.uordblks;
+#else
+	struct mallinfo info = mallinfo();
+	size_t ret = (size_t) info.uordblks;
+#endif
+	return ret;
+}
+
+static void
+TestInitializeLeak(void)
+{
+	SQLCHAR tableName[MAX_STRING_LENGTH];
+	SQLLEN numRows;
+	size_t initial_memory;
+	int i;
+
+	strncpy((char *) tableName, "TVPType", MAX_STRING_LENGTH);
+
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_DEFAULT, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, &numRows, "S");
+
+	CHKSetStmtAttr(SQL_SOPT_SS_PARAM_FOCUS, (SQLPOINTER) 1, SQL_IS_INTEGER, "S");
+
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, intCol, sizeof(SQLINTEGER), lIntCol, "S");
+
+	/* try to repeat binding column */
+	initial_memory = memory_usage();
+	for (i = 0; i < 1024; ++i)
+		CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, intCol, sizeof(SQLINTEGER), lIntCol, "S");
+
+	/* memory should not increase a lot */
+	assert(memory_usage() - initial_memory < 10240);
+
+	odbc_reset_statement();
+}
+#endif
+
 int
 main(int argc, char *argv[])
 {
@@ -224,6 +274,10 @@ main(int argc, char *argv[])
 	TestTVPInsert();
 	TestTVPInsert2();
 	TestTVPMemoryManagement();
+
+#ifdef MEMORY_TESTS
+	TestInitializeLeak();
+#endif
 
 	odbc_disconnect();
 

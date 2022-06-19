@@ -500,7 +500,7 @@ nl_langinfo locale_charset setenv putenv \
 getuid getpwuid getpwuid_r fstat alarm fork \
 gethrtime localtime_r setitimer eventfd \
 _fseeki64 _ftelli64 setrlimit pthread_cond_timedwait \
-_lock_file _unlock_file usleep nanosleep readdir_r])
+_lock_file _unlock_file usleep nanosleep readdir_r mallinfo mallinfo2])
 
 AC_TRY_LINK([#include <stdio.h>
 #include <stdlib.h>],

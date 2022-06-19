@@ -126,20 +126,17 @@ desc_alloc_records(TDS_DESC * desc, unsigned count)
 static void
 desc_free_record(struct _drecord *drec)
 {
-	SQLTVP *table;
-	SQLTVPCOLUMNLIST *node, *next_node;
 #define STR_OP(name) tds_dstr_free(&drec->name)
 	SQL_DESC_STRINGS;
 #undef STR_OP
 	if (drec->sql_desc_concise_type == SQL_C_SS_TABLE) {
-		table = (SQLTVP *) drec->sql_desc_data_ptr;
+		int i;
+		SQLTVP *table = (SQLTVP *) drec->sql_desc_data_ptr;
 		/* Reclaim memory used to contain the table buffer */
-		for (node = table->col_list; node != NULL; ) {
-			next_node = node->next;
-			free(node->column);
-			free(node);
-			node = next_node;
-		}
+		for (i = 0; i < table->num_cols; ++i)
+			free(table->columns[i]);
+
+		free(table->columns);
 		free(table);
 	}
 }
