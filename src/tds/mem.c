@@ -351,27 +351,14 @@ tds_free_tvp_row(TDS_TVP_ROW *row)
 static void
 tds_param_free(TDSCOLUMN *col)
 {
-	TDS_TVP_ROW *tvp_row, *next_row;
-
 	if (!col->column_data)
 		return;
 
-	if (is_blob_col(col)) {
+	if (col->column_type == SYBMSTABLE) {
+		tds_deinit_tvp((TDS_TVP *) col->column_data);
+	} else if (is_blob_col(col)) {
 		TDSBLOB *blob = (TDSBLOB *) col->column_data;
 		free(blob->textvalue);
-	}
-
-	if (col->column_type == SYBMSTABLE) {
-		TDS_TVP *table = (TDS_TVP *) col->column_data;
-
-		free(table->schema);
-		free(table->name);
-		tds_free_param_results(table->metadata);
-		for (tvp_row = table->row; tvp_row != NULL; tvp_row = next_row) {
-			next_row = tvp_row->next;
-			tds_free_tvp_row(tvp_row);
-			free(tvp_row);
-		}
 	}
 
 	TDS_ZERO_FREE(col->column_data);
@@ -402,8 +389,8 @@ tds_alloc_param_data(TDSCOLUMN * curparam)
 	if (!data)
 		return NULL;
 	/* if is a blob reset buffer */
-	if (is_blob_col(curparam))
-		memset(data, 0, sizeof(TDSBLOB));
+	if (is_blob_col(curparam) || curparam->column_type == SYBMSTABLE)
+		memset(data, 0, data_size);
 
 	return data;
 }
@@ -1920,6 +1907,25 @@ tds_realloc(void **pp, size_t new_size)
 		*pp = p;
 
 	return p;
+}
+
+void
+tds_deinit_tvp(TDS_TVP *table)
+{
+	TDS_TVP_ROW *tvp_row, *next_row;
+
+	free(table->schema);
+	table->schema = NULL;
+	free(table->name);
+	table->name = NULL;
+	tds_free_param_results(table->metadata);
+	table->metadata = NULL;
+	for (tvp_row = table->row; tvp_row != NULL; tvp_row = next_row) {
+		next_row = tvp_row->next;
+		tds_free_tvp_row(tvp_row);
+		free(tvp_row);
+	}
+	table->row = NULL;
 }
 
 /** @} */

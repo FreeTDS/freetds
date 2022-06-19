@@ -160,9 +160,8 @@ odbc_convert_table(TDS_STMT *stmt, SQLTVP *src, TDS_TVP *dest, SQLLEN num_rows)
 	TDS_DESC *apd = src->apd, *ipd = src->ipd;
 	char *type_name, *pch;
 
+	tds_deinit_tvp(dest);
 	dest->num_cols = ipd->header.sql_desc_count;
-	dest->metadata = NULL;
-	dest->row = NULL;
 
 	if ((type_name = strdup(tds_dstr_cstr(&src->type_name))) == NULL) {
 		odbc_errs_add(&stmt->errs, "HY001", NULL);
@@ -190,11 +189,13 @@ odbc_convert_table(TDS_STMT *stmt, SQLTVP *src, TDS_TVP *dest, SQLLEN num_rows)
 
 	params = NULL;
 	for (j = 0; j < ipd->header.sql_desc_count; j++) {
-		if (!(new_params = tds_alloc_param_result(params)))
+		if (!(new_params = tds_alloc_param_result(params))) {
+			tds_free_param_results(params);
 			return TDS_CONVERT_NOMEM;
-
-		odbc_sql2tds(stmt, &ipd->records[j], &apd->records[j], new_params->columns[j], 0, apd, 0);
+		}
 		params = new_params;
+
+		odbc_sql2tds(stmt, &ipd->records[j], &apd->records[j], new_params->columns[j], false, apd, 0);
 	}
 	dest->metadata = params;
 
@@ -206,11 +207,13 @@ odbc_convert_table(TDS_STMT *stmt, SQLTVP *src, TDS_TVP *dest, SQLLEN num_rows)
 
 		params = NULL;
 		for (j = 0; j < ipd->header.sql_desc_count; j++) {
-			if (!(new_params = tds_alloc_param_result(params)))
+			if (!(new_params = tds_alloc_param_result(params))) {
+				tds_free_param_results(params);
 				return TDS_CONVERT_NOMEM;
-
-			odbc_sql2tds(stmt, &ipd->records[j], &apd->records[j], new_params->columns[j], 1, apd, i);
+			}
 			params = new_params;
+
+			odbc_sql2tds(stmt, &ipd->records[j], &apd->records[j], new_params->columns[j], true, apd, i);
 		}
 		row->params = params;
 	}

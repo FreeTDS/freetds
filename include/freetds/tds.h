@@ -1287,6 +1287,21 @@ struct tds_socket
 #define tds_get_s(tds) ((tds)->conn->s)
 #define tds_set_s(tds, val) do { ((tds)->conn->s) = (val); } while(0)
 
+typedef struct tds_tvp_row
+{
+	TDSPARAMINFO *params;
+	struct tds_tvp_row *next;
+} TDS_TVP_ROW;
+
+typedef struct tds_tvp
+{
+	char *schema;
+	char *name;
+	int num_cols;
+	TDSPARAMINFO *metadata;
+	TDS_TVP_ROW *row;
+} TDS_TVP;
+
 
 /* config.c */
 const TDS_COMPILETIME_SETTINGS *tds_get_compiletime_settings(void);
@@ -1379,6 +1394,7 @@ void tds_free_packets(TDSPACKET *packet);
 TDSBCPINFO *tds_alloc_bcpinfo(void);
 void tds_free_bcpinfo(TDSBCPINFO *bcpinfo);
 void tds_deinit_bcpinfo(TDSBCPINFO *bcpinfo);
+void tds_deinit_tvp(TDS_TVP *table);
 
 
 /* login.c */
@@ -1460,21 +1476,6 @@ TDSRET tds_process_tokens(TDSSOCKET * tds, /*@out@*/ TDS_INT * result_type, /*@o
 
 
 /* data.c */
-typedef struct tds_tvp_row
-{
-	TDSPARAMINFO *params;
-	struct tds_tvp_row *next;
-} TDS_TVP_ROW;
-
-typedef struct tds_tvp
-{
-	char *schema;
-	char *name;
-	int num_cols;
-	TDSPARAMINFO *metadata;
-	TDS_TVP_ROW *row;
-} TDS_TVP;
-
 void tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE type);
 void tds_set_column_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE type);
 #ifdef WORDS_BIGENDIAN
