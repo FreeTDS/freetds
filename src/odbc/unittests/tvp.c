@@ -6,21 +6,21 @@
 #define MAX_ROWS 5
 #define MAX_STRING_LENGTH 20
 
-SQLCHAR buffer[MAX_STRING_LENGTH];
+static SQLCHAR buffer[MAX_STRING_LENGTH];
 
-SQLINTEGER intCol[MAX_ROWS];
-SQLCHAR strCol[MAX_ROWS][MAX_STRING_LENGTH], binCol[MAX_ROWS][MAX_STRING_LENGTH];
-SQL_DATE_STRUCT dateCol[MAX_ROWS];
-SQL_NUMERIC_STRUCT numericCol[MAX_ROWS];
+static SQLINTEGER intCol[MAX_ROWS];
+static SQLCHAR strCol[MAX_ROWS][MAX_STRING_LENGTH], binCol[MAX_ROWS][MAX_STRING_LENGTH];
+static SQL_DATE_STRUCT dateCol[MAX_ROWS];
+static SQL_NUMERIC_STRUCT numericCol[MAX_ROWS];
 
-SQLLEN lIntCol[MAX_ROWS];
-SQLLEN lStrCol[MAX_ROWS];
-SQLLEN lDateCol[MAX_ROWS];
-SQLLEN lNumericCol[MAX_ROWS];
-SQLLEN lBinCol[MAX_ROWS];
+static SQLLEN lIntCol[MAX_ROWS];
+static SQLLEN lStrCol[MAX_ROWS];
+static SQLLEN lDateCol[MAX_ROWS];
+static SQLLEN lNumericCol[MAX_ROWS];
+static SQLLEN lBinCol[MAX_ROWS];
 
-SQLCHAR outputBuffer[256];
-SQLLEN lenBuffer;
+static SQLCHAR outputBuffer[256];
+static SQLLEN lenBuffer;
 
 /*
  * Generate some data as the columns of our TVPs
