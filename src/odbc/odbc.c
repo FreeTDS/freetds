@@ -1457,7 +1457,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 	TDS_DESC *apd, *ipd;
 	struct _drecord *drec;
 	SQLSMALLINT orig_apd_size, orig_ipd_size;
-	int is_numeric = 0;
+	bool is_numeric = false;
 
 	ODBC_ENTER_HSTMT;
 
@@ -1488,7 +1488,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 
 	/* check cbColDef and ibScale */
 	if (fSqlType == SQL_DECIMAL || fSqlType == SQL_NUMERIC) {
-		is_numeric = 1;
+		is_numeric = true;
 		if (cbColDef < 1 || cbColDef > 38) {
 			odbc_errs_add(&stmt->errs, "HY104", "Invalid precision value");
 			ODBC_EXIT_(stmt);
