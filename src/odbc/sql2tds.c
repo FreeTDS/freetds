@@ -150,7 +150,7 @@ _odbc_blob_free(TDSCOLUMN *col)
 }
 
 static TDS_INT
-odbc_convert_table_row(TDS_DESC *apd, TDS_DESC *ipd,
+odbc_convert_table_elem(TDS_DESC *apd, TDS_DESC *ipd,
 	SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLSMALLINT fCType, SQLSMALLINT fSqlType,
 	SQLULEN cbColDef, SQLSMALLINT ibScale, SQLPOINTER rgbValue, SQLLEN cbValueMax, SQLLEN FAR *pcbValue)
 {
@@ -197,7 +197,7 @@ static TDS_INT
 odbc_convert_table(TDS_STMT *stmt, SQLTVP *src, TDS_TVP *dest, SQLLEN num_rows)
 {
 	SQLLEN i;
-	int j;
+	int j, res;
 	TDS_TVP_ROW *row;
 	TDS_TVP_ROW **prow;
 	TDSPARAMINFO *params, *new_params;
@@ -237,11 +237,18 @@ odbc_convert_table(TDS_STMT *stmt, SQLTVP *src, TDS_TVP *dest, SQLLEN num_rows)
 	}
 
 	/* Convert the columns from a linked list to an array */
-	if ((cols = malloc(src->num_cols * sizeof(SQLTVPCOLUMN *))) == NULL)
+	if ((cols = calloc(src->num_cols, sizeof(SQLTVPCOLUMN *))) == NULL)
 		return TDS_CONVERT_NOMEM;
 
+	/* Convert the most recently bound column */
+	/* The head of the linked list of columns (node) is the most recent */
+	/* and the tail is the oldest, so if a column is not NULL, it has   */
+	/* already been bound to something newer, hence we ignore it.       */
 	for (node = src->col_list; node != NULL; node = node->next)
-		cols[node->ipar - 1] = node->column;
+	{
+		if (cols[node->ipar - 1] == NULL)
+			cols[node->ipar - 1] = node->column;
+	}
 
 	/* Create a dummy row to store column metadata */
 	apd = desc_alloc(stmt, DESC_APD, SQL_DESC_ALLOC_AUTO);
@@ -256,9 +263,11 @@ odbc_convert_table(TDS_STMT *stmt, SQLTVP *src, TDS_TVP *dest, SQLLEN num_rows)
 		if (!(new_params = tds_alloc_param_result(params)))
 			return TDS_CONVERT_NOMEM;
 
-		odbc_convert_table_row(apd, ipd, j + 1, cols[j]->fParamType, cols[j]->fCType,
+		res = odbc_convert_table_elem(apd, ipd, j + 1, cols[j]->fParamType, cols[j]->fCType,
 			cols[j]->fSqlType, cols[j]->cbColDef, cols[j]->ibScale,
 			NULL, cols[j]->cbValueMax, (SQLLEN *) SQL_NULL_DATA);
+		if (res != TDS_SUCCESS)
+			return res;
 
 		odbc_sql2tds(stmt, &ipd->records[j], &apd->records[j], new_params->columns[j], 0, apd, 0);
 		params = new_params;
@@ -289,9 +298,11 @@ odbc_convert_table(TDS_STMT *stmt, SQLTVP *src, TDS_TVP *dest, SQLLEN num_rows)
 				return TDS_CONVERT_NOMEM;
 
 			rgbValue = ((BYTE *) cols[j]->rgbValue) + i * cols[j]->cbValueMax;
-			odbc_convert_table_row(apd, ipd, j + 1, cols[j]->fParamType, cols[j]->fCType,
+			res = odbc_convert_table_elem(apd, ipd, j + 1, cols[j]->fParamType, cols[j]->fCType,
 				cols[j]->fSqlType, cols[j]->cbColDef, cols[j]->ibScale,
 				rgbValue, cols[j]->cbValueMax, &cols[j]->pcbValue[i]);
+			if (res != TDS_SUCCESS)
+				return res;
 
 			odbc_sql2tds(stmt, &ipd->records[j], &apd->records[j], new_params->columns[j], 1, apd, 0);
 			params = new_params;
