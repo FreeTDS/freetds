@@ -83,7 +83,7 @@ static void tds_config_env_tdsport(TDSLOGIN * login);
 static int tds_config_env_tdshost(TDSLOGIN * login);
 static bool tds_read_conf_sections(FILE * in, const char *server, TDSLOGIN * login);
 static int tds_read_interfaces(const char *server, TDSLOGIN * login);
-static int parse_server_name_for_port(TDSLOGIN * connection, TDSLOGIN * login, bool update_server);
+static bool parse_server_name_for_port(TDSLOGIN * connection, TDSLOGIN * login, bool update_server);
 static int tds_lookup_port(const char *portname);
 static void tds_config_encryption(const char * value, TDSLOGIN * login);
 
@@ -1287,9 +1287,9 @@ tds_read_interfaces(const char *server, TDSLOGIN * login)
 /**
  * Check the server name to find port info first
  * Warning: connection-> & login-> are all modified when needed
- * \return 1 when found, else 0
+ * \return true when found, else false
  */
-static int
+static bool
 parse_server_name_for_port(TDSLOGIN * connection, TDSLOGIN * login, bool update_server)
 {
 	const char *pSep;
@@ -1315,17 +1315,24 @@ parse_server_name_for_port(TDSLOGIN * connection, TDSLOGIN * login, bool update_
 		/* handle instance name */
 		pSep = strrchr(server, '\\');
 		if (!pSep || pSep == server)
-			return 0;
+			return false;
 
 		if (!tds_dstr_copy(&connection->instance_name, pSep + 1))
-			return 0;
+			return false;
 		connection->port = 0;
 	}
 
-	if (!update_server || !tds_dstr_copyn(&connection->server_name, server, pSep - server))
-		return 0;
+	if (!update_server)
+		return true;
 
-	return 1;
+	if (server[0] == '[' && pSep > server && pSep[-1] == ']') {
+		server++;
+		pSep--;
+	}
+	if (!tds_dstr_copyn(&connection->server_name, server, pSep - server))
+		return false;
+
+	return true;
 }
 
 /**
