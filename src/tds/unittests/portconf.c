@@ -105,6 +105,9 @@ main(void)
 	test("localhost:1234", "localhost,localhost,,1234");
 	test("NotExistingServer1\\named", "my_server,8.7.6.5,named,0");
 	test("localhost\\named", "localhost,localhost,named,0");
+	test("2.3.4.5:2345", "2.3.4.5,2.3.4.5,,2345");
+	test("[2::3]:432", "2::3,2::3,,432");
+	test("[2::3:4]\\instance", "2::3:4,2::3:4,instance,0");
 
 	tds_free_socket(tds);
 	tds_free_context(ctx);

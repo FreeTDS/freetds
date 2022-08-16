@@ -1323,7 +1323,14 @@ parse_server_name_for_port(TDSLOGIN * connection, TDSLOGIN * login, bool update_
 		connection->port = 0;
 	}
 
-	if (!update_server || !tds_dstr_copyn(&connection->server_name, server, pSep - server))
+	if (!update_server)
+		return true;
+
+	if (server[0] == '[' && pSep > server && pSep[-1] == ']') {
+		server++;
+		pSep--;
+	}
+	if (!tds_dstr_copyn(&connection->server_name, server, pSep - server))
 		return false;
 
 	return true;
