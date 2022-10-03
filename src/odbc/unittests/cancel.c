@@ -76,7 +76,7 @@ static TDS_THREAD_PROC_DECLARE(wait_thread_proc, arg)
 	printf(">>>> SQLCancel() ...\n");
 	CHKCancel("S");
 	printf(">>>> ... SQLCancel done\n");
-	
+
 	for (n = 0; n < 4; ++n) {
 		tds_sleep_s(1);
 		tds_mutex_lock(&mtx);
@@ -151,7 +151,7 @@ main(int argc, char **argv)
 
 	/*
 	 * prepare our odbcinst.ini
-	 * is better to do it before connect cause uniODBC cache INIs
+	 * is better to do it before connect cause unixODBC cache INIs
 	 * the name must be odbcinst.ini cause unixODBC accept only this name
 	 */
 	if (odbc_driver[0]) {
