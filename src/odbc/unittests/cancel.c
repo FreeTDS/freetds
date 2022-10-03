@@ -10,6 +10,7 @@
 
 #include <freetds/thread.h>
 #include <freetds/utils.h>
+#include <freetds/bool.h>
 #include <freetds/replacements.h>
 
 #if TDS_HAVE_MUTEX
@@ -64,7 +65,7 @@ sigalrm_handler(int s)
 #define signal(sig,h)
 #endif
 
-volatile int exit_thread;
+volatile bool exit_thread;
 
 static TDS_THREAD_PROC_DECLARE(wait_thread_proc, arg)
 {
@@ -91,7 +92,7 @@ static TDS_THREAD_PROC_DECLARE(wait_thread_proc, arg)
 }
 
 static void
-Test(int use_threads, int return_data)
+Test(bool use_threads, bool return_data)
 {
 	tds_thread wait_thread;
 
@@ -107,7 +108,7 @@ Test(int use_threads, int return_data)
 	} else {
 		int err;
 
-		exit_thread = 0;
+		exit_thread = false;
 		err = tds_thread_create(&wait_thread, wait_thread_proc, NULL);
 		if (err != 0) {
 			perror("tds_thread_create");
@@ -120,7 +121,7 @@ Test(int use_threads, int return_data)
 		odbc_command2("SELECT MAX(p1.k + p2.k * p3.k ^ p4.k) FROM tab1 p1, tab1 p2, tab1 p3, tab1 p4", "E");
 
 	tds_mutex_lock(&mtx);
-	exit_thread = 1;
+	exit_thread = true;
 	tds_mutex_unlock(&mtx);
 	if (!use_threads) {
 		alarm(0);
@@ -186,10 +187,10 @@ main(int argc, char **argv)
 
 	odbc_reset_statement();
 
-	Test(0, 0);
-	Test(1, 0);
-	Test(0, 1);
-	Test(1, 1);
+	Test(false, false);
+	Test(true,  false);
+	Test(false, true);
+	Test(true,  true);
 
 	odbc_command("DROP TABLE tab1");
 
