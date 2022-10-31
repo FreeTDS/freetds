@@ -214,11 +214,16 @@ main(int argc, char *argv[])
 
 	odbc_connect();
 
-	if (odbc_tds_version() >= 0x703) {
-		TestTVPInsert();
-		TestTVPInsert2();
-		TestTVPMemoryManagement();
+	if (odbc_tds_version() < 0x703) {
+		odbc_disconnect();
+		printf("TVP data is supported since protocol 7.3, MSSQL only.\n");
+		odbc_test_skipped();
+		return 0;
 	}
+
+	TestTVPInsert();
+	TestTVPInsert2();
+	TestTVPMemoryManagement();
 
 	odbc_disconnect();
 
