@@ -357,6 +357,7 @@ struct _hsattr
 	DSTR qn_msgtext;
 	DSTR qn_options;
 	SQLUINTEGER qn_timeout;
+	SQLUINTEGER param_focus;
 };
 
 typedef enum
@@ -431,7 +432,6 @@ struct _hstmt
 	TDS_ODBC_SPECIAL_ROWS special_row;
 	/* do NOT free cursor, free from socket or attach to connection */
 	TDSCURSOR *cursor;
-	int param_focus;
 };
 
 typedef struct _henv TDS_ENV;

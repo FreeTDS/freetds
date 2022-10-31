@@ -1507,7 +1507,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 
 	/* If the parameter focus is set to 0, bind values as arguments */
 	/* Otherwise, bind values as the columns of a table-valued parameter */
-	if (stmt->param_focus != 0) {
+	if (stmt->attr.param_focus != 0) {
 		SQLTVP *tvp;
 
 		/* Columns of table types are strictly read-only */
@@ -1516,7 +1516,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 			ODBC_EXIT_(stmt);
 		}
 
-		tvp = (SQLTVP *) stmt->apd[stmt->param_focus - 1].records->sql_desc_data_ptr;
+		tvp = (SQLTVP *) stmt->apd[stmt->attr.param_focus - 1].records->sql_desc_data_ptr;
 		if (add_table_column(tvp, ipar, fParamType, fCType, fSqlType, cbColDef, ibScale, rgbValue, cbValueMax, pcbValue) != SQL_SUCCESS)
 			odbc_errs_add(&stmt->errs, "HY001", NULL);
 
@@ -1900,7 +1900,7 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 	if (dbc->attr.cursor_type != SQL_CURSOR_FORWARD_ONLY)
 		_SQLSetStmtAttr(stmt, SQL_CURSOR_TYPE, (SQLPOINTER) (TDS_INTPTR) dbc->attr.cursor_type, SQL_IS_INTEGER _wide0);
 
-	stmt->param_focus = 0;
+	stmt->attr.param_focus = 0;
 
 	ODBC_EXIT_(dbc);
 }
@@ -6809,7 +6809,7 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		}
 		break;
 	case SQL_SOPT_SS_PARAM_FOCUS:
-		stmt->param_focus = ui;
+		stmt->attr.param_focus = ui;
 		break;
 	default:
 		odbc_errs_add(&stmt->errs, "HY092", NULL);
