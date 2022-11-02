@@ -1437,17 +1437,7 @@ Cleanup:
 static SQLTVP *
 odbc_alloc_table(void)
 {
-	SQLTVP *tvp;
-
-	if ((tvp = malloc(sizeof(SQLTVP))) == NULL)
-		return NULL;
-
-	tvp->type_name = NULL;
-	tvp->type_name_len = 0;
-	tvp->num_cols = 0;
-	tvp->col_list = NULL;
-
-	return tvp;
+	return tds_new0(SQLTVP, 1);
 }
 
 static SQLRETURN
