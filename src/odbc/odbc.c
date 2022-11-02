@@ -1495,6 +1495,12 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 		ODBC_EXIT_(stmt);
 	}
 
+	/* Table types are strictly read-only */
+	if (fSqlType == SQL_SS_TABLE && fParamType != SQL_PARAM_INPUT) {
+		odbc_errs_add(&stmt->errs, "HY105", NULL);
+		ODBC_EXIT_(stmt);
+	}
+
 	/* If the parameter focus is set to 0, bind values as arguments */
 	/* Otherwise, bind values as the columns of a table-valued parameter */
 	if (stmt->attr.param_focus != 0) {
@@ -1547,12 +1553,6 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 		/* Use this the column type as a marker for us */
 		/* to free up memory allocated with odbc_alloc_table() */
 		drec->sql_desc_type = drec->sql_desc_concise_type = SQL_C_SS_TABLE;
-
-		/* Table types are strictly read-only */
-		if (fParamType != SQL_PARAM_INPUT) {
-			odbc_errs_add(&stmt->errs, "HY105", NULL);
-			ODBC_EXIT_(stmt);
-		}
 
 		tvp = odbc_alloc_table();
 		if ((drec->sql_desc_data_ptr = (char *) tvp) == NULL) {
