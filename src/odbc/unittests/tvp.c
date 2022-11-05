@@ -73,7 +73,7 @@ dirty_name(SQLWCHAR *name)
 }
 
 /*
- * Test calling a RPC with a TVP containing 3 columns and 5 rows
+ * Test calling a RPC with a TVP containing 3 columns and 4 rows
  */
 static void
 TestTVPInsert(void)
@@ -103,7 +103,8 @@ TestTVPInsert(void)
 	CHKSetStmtAttr(SQL_SOPT_SS_PARAM_FOCUS, (SQLPOINTER) 0, SQL_IS_INTEGER, "S");
 
 	/* Population of the StrLen_or_IndPtr buffer can be deferred */
-	numRows = MAX_ROWS;
+	/* We use one rows less than the maximum to check if code is using the right value */
+	numRows = MAX_ROWS - 1;
 
 	CHKExecDirect(T("{CALL TestTVPProc(?)}"), SQL_NTS, "S");
 
@@ -114,7 +115,7 @@ TestTVPInsert(void)
 
 	CHKGetData(1, SQL_C_CHAR, outputBuffer, sizeof(outputBuffer), &lenBuffer, "S");
 	if (atoi((char *) outputBuffer) != numRows) {
-		fprintf(stderr, "Wrong number of columns inserted, expected %ld, got %s\n", (long) numRows, outputBuffer);
+		fprintf(stderr, "Wrong number of rows inserted, expected %ld, got %s\n", (long) numRows, outputBuffer);
 		exit(1);
 	}
 
@@ -126,7 +127,7 @@ TestTVPInsert(void)
 	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM TVPTable WHERE PersonID = 10 AND Name = 'Dummy value 3') SELECT 1");
 	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM TVPTable WHERE PersonID = 20 AND Name = 'Dummy value 6') SELECT 1");
 	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM TVPTable WHERE PersonID = 30 AND Name = 'Dummy value 9') SELECT 1");
-	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM TVPTable WHERE PersonID = 40 AND Name = 'Dummy value 12') SELECT 1");
+	odbc_check_no_row("IF EXISTS(SELECT * FROM TVPTable WHERE PersonID = 40 AND Name = 'Dummy value 12') SELECT 1");
 
 	odbc_command("DROP PROC TestTVPProc");
 	odbc_command("DROP TYPE TVPType");

@@ -651,7 +651,8 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 		res = tds_convert(dbc->env->tds_ctx, src_type, src, len, dest_type, (CONV_RESULT*) dest);
 		break;
 	case SYBTABLETYPE:
-		res = odbc_convert_table(stmt, (SQLTVP *) src, (TDS_TVP *) dest, drec_ixd->sql_desc_length);
+		res = odbc_convert_table(stmt, (SQLTVP *) src, (TDS_TVP *) dest,
+					 drec_axd->sql_desc_octet_length_ptr == NULL ? 1 : *drec_axd->sql_desc_octet_length_ptr);
 		break;
 	default:
 	case SYBVOID:

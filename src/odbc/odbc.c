@@ -1566,10 +1566,6 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 			ODBC_EXIT_(stmt);
 		}
 
-		/* For a table value, the pcbValue is a buffer containing the number of rows present */
-		/* Replace it with a pointer to the actual size of a TDS_TVP struct */
-		drec->sql_desc_octet_length_ptr = NULL;
-
 		/* Use this the column type as a marker for us */
 		/* to free up memory allocated with odbc_alloc_table() */
 		drec->sql_desc_type = drec->sql_desc_concise_type = SQL_C_SS_TABLE;
