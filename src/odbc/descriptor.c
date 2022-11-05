@@ -130,17 +130,8 @@ desc_free_record(struct _drecord *drec)
 #define STR_OP(name) tds_dstr_free(&drec->name)
 	SQL_DESC_STRINGS;
 #undef STR_OP
-	if (drec->sql_desc_concise_type == SQL_C_SS_TABLE) {
-		int i;
-		SQLTVP *table = (SQLTVP *) drec->sql_desc_data_ptr;
-		/* Reclaim memory used to contain the table buffer */
-		for (i = 0; i < table->num_cols; ++i)
-			free(table->columns[i]);
-
-		free(table->columns);
-		tds_dstr_free(&table->type_name);
-		free(table);
-	}
+	if (drec->sql_desc_concise_type == SQL_SS_TABLE)
+		tvp_free((SQLTVP *) drec->sql_desc_data_ptr);
 }
 
 SQLRETURN
@@ -231,3 +222,28 @@ desc_get_dbc(TDS_DESC *desc)
 	return (TDS_DBC *) desc->parent;
 }
 
+SQLTVP *
+tvp_alloc(TDS_STMT *stmt)
+{
+	SQLTVP *tvp = tds_new0(SQLTVP, 1);
+	tds_dstr_init(&tvp->type_name);
+	tvp->ipd = desc_alloc(stmt, DESC_IPD, SQL_DESC_ALLOC_AUTO);
+	tvp->apd = desc_alloc(stmt, DESC_APD, SQL_DESC_ALLOC_AUTO);
+	if (!tvp->ipd || !tvp->apd) {
+		tvp_free(tvp);
+		return NULL;
+	}
+	return tvp;
+}
+
+void
+tvp_free(SQLTVP *tvp)
+{
+	if (!tvp)
+		return;
+
+	desc_free(tvp->ipd);
+	desc_free(tvp->apd);
+	tds_dstr_free(&tvp->type_name);
+	free(tvp);
+}

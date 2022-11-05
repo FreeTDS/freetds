@@ -652,8 +652,6 @@ odbc_c_to_server_type(int c_type)
 		/* ODBC numeric/decimal formats are completely differect from tds one */
 	case SQL_C_NUMERIC:
 		return SYBNUMERIC;
-	case SQL_C_SS_TABLE:
-		return SYBMSTABLE;
 		/* not supported */
 	case SQL_C_INTERVAL_YEAR:
 	case SQL_C_INTERVAL_MONTH:
@@ -727,7 +725,7 @@ odbc_sql_to_c_type_default(int sql_type)
 	case SQL_LONGVARBINARY:
 		return SQL_C_BINARY;
 	case SQL_SS_TABLE:
-		return SQL_C_SS_TABLE;
+		return SQL_C_BINARY;
 		/* TODO interval types */
 	default:
 		return 0;
@@ -998,6 +996,9 @@ odbc_set_concise_sql_type(SQLSMALLINT concise_type, struct _drecord * drec, int 
 		return SQL_ERROR;
 	}
 	if (!check_only) {
+		if (drec->sql_desc_concise_type == SQL_SS_TABLE)
+			tvp_free((SQLTVP *) drec->sql_desc_data_ptr);
+
 		drec->sql_desc_concise_type = concise_type;
 		drec->sql_desc_type = type;
 		drec->sql_desc_datetime_interval_code = interval_code;
@@ -1050,8 +1051,6 @@ odbc_set_concise_sql_type(SQLSMALLINT concise_type, struct _drecord * drec, int 
 \
 	TYPE_NORMAL(SQL_C_FLOAT) \
 	TYPE_NORMAL(SQL_C_DOUBLE)\
-\
-	TYPE_NORMAL(SQL_C_SS_TABLE)\
 \
 	TYPE_VERBOSE_START(SQL_DATETIME) \
 	TYPE_VERBOSE_DATE(SQL_DATETIME, SQL_CODE_DATE, SQL_C_TYPE_DATE, SQL_C_DATE) \

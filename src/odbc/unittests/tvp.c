@@ -345,6 +345,11 @@ TestErrors(void)
 
 	CHKSetStmtAttr(SQL_SOPT_SS_PARAM_FOCUS, (SQLPOINTER) 1, SQL_IS_INTEGER, "S");
 
+	/* SQL error HY004 -- [Microsoft][ODBC Driver 17 for SQL Server]Invalid SQL data type */
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_DEFAULT, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, &numRows, "E");
+	odbc_read_error();
+	assert(strcmp(odbc_sqlstate, "HY004") == 0);
+
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, intCol, sizeof(SQLINTEGER), lIntCol, "S");
 	CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, MAX_STRING_LENGTH, 0, strCol, MAX_STRING_LENGTH, lStrCol, "S");
 
@@ -372,10 +377,19 @@ TestDescriptorValues(void)
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_DEFAULT, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, &numRows, "S");
 	dirty_name(tableName);
 
+	count = GET_DESC_FIELD(IMP, 1, SQL_DESC_LENGTH, SQLULEN);
+	CHECK_COND((count == 0, "count %d == 0", (int) count));
+
+	count = GET_DESC_FIELD(APP, 0, SQL_DESC_ARRAY_SIZE, SQLULEN);
+	CHECK_COND((count == 1, "count %d == 1", (int) count));
+
 	count = GET_DESC_FIELD(APP, 0, SQL_DESC_COUNT, SQLSMALLINT);
 	CHECK_COND((count == 1, "count %d == 1", (int) count));
 	count = GET_DESC_FIELD(IMP, 0, SQL_DESC_COUNT, SQLSMALLINT);
 	CHECK_COND((count == 1, "count %d == 1", (int) count));
+
+	ptr = GET_DESC_FIELD(APP, 1, SQL_DESC_DATA_PTR, SQLPOINTER);
+	CHECK_COND((ptr == tableName, "SQL_DESC_DATA_PTR expected %p got %p", tableName, ptr));
 
 	ptr = GET_DESC_FIELD(APP, 1, SQL_DESC_INDICATOR_PTR, SQLPOINTER);
 	CHECK_COND((ptr == &numRows, "SQL_DESC_INDICATOR_PTR expected %p got %p", &numRows, ptr));

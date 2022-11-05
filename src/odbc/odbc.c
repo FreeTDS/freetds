@@ -1399,49 +1399,6 @@ SQLGetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER B
 	} while(0)
 
 static SQLRETURN
-add_table_column(SQLTVP *tvp, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLSMALLINT fCType, SQLSMALLINT fSqlType,
-		  SQLULEN cbColDef, SQLSMALLINT ibScale, SQLPOINTER rgbValue, SQLLEN cbValueMax, SQLLEN FAR *pcbValue)
-{
-	SQLTVPCOLUMN *new_col = NULL;
-
-	if (ipar <= tvp->num_cols && tvp->columns[ipar - 1] != NULL)
-		new_col = tvp->columns[ipar - 1];
-	else if ((new_col = tds_new(SQLTVPCOLUMN, 1)) == NULL)
-		goto Cleanup;
-
-	new_col->fParamType = fParamType;
-	new_col->fCType = fCType;
-	new_col->fSqlType = fSqlType;
-	new_col->cbColDef = cbColDef;
-	new_col->ibScale = ibScale;
-	new_col->rgbValue = rgbValue;
-	new_col->cbValueMax = cbValueMax;
-	new_col->pcbValue = pcbValue;
-
-	if (ipar > tvp->num_cols) {
-		if (!TDS_RESIZE(tvp->columns, ipar))
-			goto Cleanup;
-		memset(tvp->columns + tvp->num_cols, 0, sizeof(tvp->columns[0]) * (ipar - tvp->num_cols));
-		tvp->num_cols = ipar;
-	}
-	tvp->columns[ipar - 1] = new_col;
-
-	return SQL_SUCCESS;
-
-Cleanup:
-	free(new_col);
-	return SQL_ERROR;
-}
-
-static SQLTVP *
-odbc_alloc_table(void)
-{
-	SQLTVP *tvp = tds_new0(SQLTVP, 1);
-	tds_dstr_init(&tvp->type_name);
-	return tvp;
-}
-
-static SQLRETURN
 _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLSMALLINT fCType, SQLSMALLINT fSqlType,
 		  SQLULEN cbColDef, SQLSMALLINT ibScale, SQLPOINTER rgbValue, SQLLEN cbValueMax, SQLLEN FAR * pcbValue)
 {
@@ -1508,10 +1465,19 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 		ODBC_EXIT_(stmt);
 	}
 
+	apd = stmt->apd;
+	ipd = stmt->ipd;
+
 	/* If the parameter focus is set to 0, bind values as arguments */
 	/* Otherwise, bind values as the columns of a table-valued parameter */
 	if (stmt->attr.param_focus != 0) {
 		SQLTVP *tvp;
+
+		/* a table type cannot contain a table type */
+		if (fSqlType == SQL_SS_TABLE) {
+			odbc_errs_add(&stmt->errs, "HY004", NULL);
+			ODBC_EXIT_(stmt);
+		}
 
 		/* Columns of table types are strictly read-only */
 		if (fParamType != SQL_PARAM_INPUT) {
@@ -1519,15 +1485,26 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 			ODBC_EXIT_(stmt);
 		}
 
-		tvp = (SQLTVP *) stmt->apd[stmt->attr.param_focus - 1].records->sql_desc_data_ptr;
-		if (add_table_column(tvp, ipar, fParamType, fCType, fSqlType, cbColDef, ibScale, rgbValue, cbValueMax, pcbValue) != SQL_SUCCESS)
-			odbc_errs_add(&stmt->errs, "HY001", NULL);
+		/* check index */
+		if (stmt->attr.param_focus > ipd->header.sql_desc_count) {
+			odbc_errs_add(&stmt->errs, "IM020", NULL);
+			ODBC_EXIT_(stmt);
+		}
 
-		ODBC_EXIT_(stmt);
+		drec = &ipd->records[stmt->attr.param_focus - 1];
+
+		/* check idp type */
+		if (drec->sql_desc_concise_type != SQL_SS_TABLE) {
+			odbc_errs_add(&stmt->errs, "IM020", NULL);
+			ODBC_EXIT_(stmt);
+		}
+
+		tvp = (SQLTVP *) drec->sql_desc_data_ptr;
+		apd = tvp->apd;
+		ipd = tvp->ipd;
 	}
 
 	/* fill APD related fields */
-	apd = stmt->apd;
 	orig_apd_size = apd->header.sql_desc_count;
 	if (ipar > apd->header.sql_desc_count && desc_alloc_records(apd, ipar) != SQL_SUCCESS) {
 		odbc_errs_add(&stmt->errs, "HY001", NULL);
@@ -1550,31 +1527,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 	drec->sql_desc_octet_length_ptr = pcbValue;
 	drec->sql_desc_data_ptr = (char *) rgbValue;
 
-	if (fSqlType == SQL_SS_TABLE) {
-		SQLTVP *tvp;
-		int wide = 1;
-
-		tvp = odbc_alloc_table();
-		if (tvp == NULL) {
-			odbc_errs_add(&stmt->errs, "HY001", NULL);
-			ODBC_EXIT_(stmt);
-		}
-
-		if (!odbc_dstr_copy(stmt->dbc, &tvp->type_name, cbValueMax, (ODBC_CHAR *) rgbValue)) {
-			free(tvp);
-			odbc_errs_add(&stmt->errs, "HY001", NULL);
-			ODBC_EXIT_(stmt);
-		}
-
-		/* Use this the column type as a marker for us */
-		/* to free up memory allocated with odbc_alloc_table() */
-		drec->sql_desc_type = drec->sql_desc_concise_type = SQL_C_SS_TABLE;
-
-		drec->sql_desc_data_ptr = (char *) tvp;
-	}
-
 	/* field IPD related fields */
-	ipd = stmt->ipd;
 	orig_ipd_size = ipd->header.sql_desc_count;
 	if (ipar > ipd->header.sql_desc_count && desc_alloc_records(ipd, ipar) != SQL_SUCCESS) {
 		desc_alloc_records(apd, orig_apd_size);
@@ -1584,6 +1537,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 	drec = &ipd->records[ipar - 1];
 
 	drec->sql_desc_parameter_type = fParamType;
+
 	if (odbc_set_concise_sql_type(fSqlType, drec, 0) != SQL_SUCCESS) {
 		desc_alloc_records(ipd, orig_ipd_size);
 		desc_alloc_records(apd, orig_apd_size);
@@ -1595,6 +1549,36 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 		drec->sql_desc_scale = ibScale;
 	} else {
 		drec->sql_desc_length = cbColDef;
+	}
+
+	if (fSqlType == SQL_SS_TABLE) {
+		SQLTVP *tvp;
+		int wide = 1;
+
+		tvp = tvp_alloc(stmt);
+		if (tvp == NULL) {
+			desc_alloc_records(ipd, orig_ipd_size);
+			desc_alloc_records(apd, orig_apd_size);
+			odbc_errs_add(&stmt->errs, "HY001", NULL);
+			ODBC_EXIT_(stmt);
+		}
+		tvp->apd->header.sql_desc_array_size = cbColDef;
+
+		if (!odbc_dstr_copy(stmt->dbc, &tvp->type_name, cbValueMax, (ODBC_CHAR *) rgbValue)) {
+			free(tvp);
+			desc_alloc_records(ipd, orig_ipd_size);
+			desc_alloc_records(apd, orig_apd_size);
+			odbc_errs_add(&stmt->errs, "HY001", NULL);
+			ODBC_EXIT_(stmt);
+		}
+
+		/* Use this the column type as a marker for us */
+		/* to free up memory allocated with odbc_alloc_table() */
+		drec->sql_desc_type = drec->sql_desc_concise_type = SQL_SS_TABLE;
+
+		drec->sql_desc_data_ptr = tvp;
+
+		drec->sql_desc_length = 0;
 	}
 
 	ODBC_EXIT_(stmt);
@@ -6824,7 +6808,7 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		break;
 	case SQL_SOPT_SS_PARAM_FOCUS:
 		if (ui > 0 && (ui > stmt->apd->header.sql_desc_count
-			       || stmt->apd->records[ui - 1].sql_desc_concise_type != SQL_C_SS_TABLE)) {
+			       || stmt->ipd->records[ui - 1].sql_desc_concise_type != SQL_SS_TABLE)) {
 			odbc_errs_add(&stmt->errs, "IM020", NULL);
 			break;
 		}

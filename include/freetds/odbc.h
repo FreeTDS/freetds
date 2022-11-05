@@ -561,34 +561,24 @@ SQLLEN odbc_tds2sql_int4(TDS_STMT * stmt, TDS_INT *src, int desttype, TDS_CHAR *
 /*
  * descriptor.c
  */
+typedef struct {
+	DSTR type_name;
+	TDS_DESC *apd;
+	TDS_DESC *ipd;
+} SQLTVP;
+
 TDS_DESC *desc_alloc(SQLHANDLE parent, int desc_type, SQLSMALLINT alloc_type);
 SQLRETURN desc_free(TDS_DESC * desc);
 SQLRETURN desc_alloc_records(TDS_DESC * desc, unsigned count);
 SQLRETURN desc_copy(TDS_DESC * dest, TDS_DESC * src);
 SQLRETURN desc_free_records(TDS_DESC * desc);
 TDS_DBC *desc_get_dbc(TDS_DESC *desc);
+SQLTVP *tvp_alloc(TDS_STMT *stmt);
+void tvp_free(SQLTVP *tvp);
 
 /*
  * odbc.c
  */
-/* Temporarily store the bound TVP columns */
-/* Follow the naming in _SQLBindParameter for convenience */
-typedef struct {
-	SQLSMALLINT fParamType; /* InputOutputParam */
-	SQLSMALLINT fCType;     /* C data type */
-	SQLSMALLINT fSqlType;   /* SQL data type */
-	SQLULEN cbColDef;       /* columnsize */
-	SQLSMALLINT ibScale;    /* precision */
-	SQLPOINTER rgbValue;    /* content buffer */
-	SQLLEN cbValueMax;      /* buffer length */
-	SQLLEN *pcbValue;       /* content length buffer */
-} SQLTVPCOLUMN;
-
-typedef struct {
-	DSTR type_name;
-	int num_cols;
-	SQLTVPCOLUMN **columns;
-} SQLTVP;
 
 SQLRETURN _SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow);
 

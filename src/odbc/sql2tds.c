@@ -150,50 +150,6 @@ _odbc_blob_free(TDSCOLUMN *col)
 }
 
 static TDS_INT
-odbc_convert_table_row(TDS_DESC *apd, TDS_DESC *ipd,
-	SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLSMALLINT fCType, SQLSMALLINT fSqlType,
-	SQLULEN cbColDef, SQLSMALLINT ibScale, SQLPOINTER rgbValue, SQLLEN cbValueMax, SQLLEN FAR *pcbValue)
-{
-	bool is_numeric = false;
-	struct _drecord *drec;
-
-	if (fSqlType == SQL_DECIMAL || fSqlType == SQL_NUMERIC)
-		is_numeric = true;
-
-	if (ipar > apd->header.sql_desc_count && desc_alloc_records(apd, ipar) != SQL_SUCCESS)
-		return TDS_FAIL;
-
-	drec = &apd->records[ipar - 1];
-
-	if (odbc_set_concise_c_type(fCType, drec, 0) != SQL_SUCCESS)
-		return TDS_FAIL;
-
-	if (drec->sql_desc_type == SQL_C_CHAR || drec->sql_desc_type == SQL_C_WCHAR || drec->sql_desc_type == SQL_C_BINARY)
-		drec->sql_desc_octet_length = cbValueMax;
-	drec->sql_desc_indicator_ptr = pcbValue;
-	drec->sql_desc_octet_length_ptr = pcbValue;
-	drec->sql_desc_data_ptr = (char *) rgbValue;
-
-	if (ipar > ipd->header.sql_desc_count && desc_alloc_records(ipd, ipar) != SQL_SUCCESS)
-		return TDS_FAIL;
-
-	drec = &ipd->records[ipar - 1];
-
-	drec->sql_desc_parameter_type = fParamType;
-	if (odbc_set_concise_sql_type(fSqlType, drec, 0) != SQL_SUCCESS)
-		return TDS_FAIL;
-
-	if (is_numeric) {
-		drec->sql_desc_precision = cbColDef;
-		drec->sql_desc_scale = ibScale;
-	} else {
-		drec->sql_desc_length = cbColDef;
-	}
-
-	return TDS_SUCCESS;
-}
-
-static TDS_INT
 odbc_convert_table(TDS_STMT *stmt, SQLTVP *src, TDS_TVP *dest, SQLLEN num_rows)
 {
 	SQLLEN i;
@@ -201,12 +157,10 @@ odbc_convert_table(TDS_STMT *stmt, SQLTVP *src, TDS_TVP *dest, SQLLEN num_rows)
 	TDS_TVP_ROW *row;
 	TDS_TVP_ROW **prow;
 	TDSPARAMINFO *params, *new_params;
-	TDS_DESC *apd, *ipd;
-	SQLPOINTER rgbValue;
-	SQLTVPCOLUMN ** const cols = src->columns;
+	TDS_DESC *apd = src->apd, *ipd = src->ipd;
 	char *type_name, *pch;
 
-	dest->num_cols = src->num_cols;
+	dest->num_cols = ipd->header.sql_desc_count;
 	dest->metadata = NULL;
 	dest->row = NULL;
 
@@ -234,33 +188,19 @@ odbc_convert_table(TDS_STMT *stmt, SQLTVP *src, TDS_TVP *dest, SQLLEN num_rows)
 		return TDS_CONVERT_SYNTAX;
 	}
 
-	/* Create a dummy row to store column metadata */
-	apd = desc_alloc(stmt, DESC_APD, SQL_DESC_ALLOC_AUTO);
-	ipd = desc_alloc(stmt, DESC_IPD, SQL_DESC_ALLOC_AUTO);
-
 	if ((dest->metadata = malloc(sizeof(TDS_TVP_ROW))) == NULL)
 		return TDS_CONVERT_NOMEM;
 
 	dest->metadata->next = NULL;
 	params = NULL;
-	for (j = 0; j < src->num_cols; j++) {
+	for (j = 0; j < ipd->header.sql_desc_count; j++) {
 		if (!(new_params = tds_alloc_param_result(params)))
 			return TDS_CONVERT_NOMEM;
-
-		odbc_convert_table_row(apd, ipd, j + 1, cols[j]->fParamType, cols[j]->fCType,
-			cols[j]->fSqlType, cols[j]->cbColDef, cols[j]->ibScale,
-			NULL, cols[j]->cbValueMax, (SQLLEN *) SQL_NULL_DATA);
 
 		odbc_sql2tds(stmt, &ipd->records[j], &apd->records[j], new_params->columns[j], 0, apd, 0);
 		params = new_params;
 	}
 	dest->metadata->params = params;
-
-	/* Free the associated TDS_DESC objects */
-	desc_free(apd);
-	desc_free(ipd);
-	apd = NULL;
-	ipd = NULL;
 
 	for (i = 0, prow = &dest->row; i < num_rows; prow = &(*prow)->next, i++) {
 		if ((row = malloc(sizeof(TDS_TVP_ROW))) == NULL)
@@ -271,29 +211,15 @@ odbc_convert_table(TDS_STMT *stmt, SQLTVP *src, TDS_TVP *dest, SQLLEN num_rows)
 
 		*prow = row;
 
-		apd = desc_alloc(stmt, DESC_APD, SQL_DESC_ALLOC_AUTO);
-		ipd = desc_alloc(stmt, DESC_IPD, SQL_DESC_ALLOC_AUTO);
-
 		params = NULL;
-		for (j = 0; j < src->num_cols; j++) {
+		for (j = 0; j < ipd->header.sql_desc_count; j++) {
 			if (!(new_params = tds_alloc_param_result(params)))
 				return TDS_CONVERT_NOMEM;
 
-			rgbValue = ((BYTE *) cols[j]->rgbValue) + i * cols[j]->cbValueMax;
-			odbc_convert_table_row(apd, ipd, j + 1, cols[j]->fParamType, cols[j]->fCType,
-				cols[j]->fSqlType, cols[j]->cbColDef, cols[j]->ibScale,
-				rgbValue, cols[j]->cbValueMax, &cols[j]->pcbValue[i]);
-
-			odbc_sql2tds(stmt, &ipd->records[j], &apd->records[j], new_params->columns[j], 1, apd, 0);
+			odbc_sql2tds(stmt, &ipd->records[j], &apd->records[j], new_params->columns[j], 1, apd, i);
 			params = new_params;
 		}
 		row->params = params;
-
-		/* Free the associated TDS_DESC objects */
-		desc_free(apd);
-		desc_free(ipd);
-		apd = NULL;
-		ipd = NULL;
 	}
 
 	return sizeof(TDS_TVP);
@@ -654,6 +580,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 		res = tds_convert(dbc->env->tds_ctx, src_type, src, len, dest_type, (CONV_RESULT*) dest);
 		break;
 	case SYBMSTABLE:
+		src = drec_ixd->sql_desc_data_ptr;
 		res = odbc_convert_table(stmt, (SQLTVP *) src, (TDS_TVP *) dest,
 					 drec_axd->sql_desc_octet_length_ptr == NULL ? 1 : *drec_axd->sql_desc_octet_length_ptr);
 		break;

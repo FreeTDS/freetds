@@ -98,10 +98,6 @@ extern "C" {
 #define SQL_C_SS_TIMESTAMPOFFSET	(0x4001)
 #endif
 
-#ifndef SQL_C_SS_TABLE
-#define SQL_C_SS_TABLE	(0x4002)
-#endif
-
 #ifndef SQL_CA_SS_BASE
 #define SQL_CA_SS_BASE 1200
 #endif
