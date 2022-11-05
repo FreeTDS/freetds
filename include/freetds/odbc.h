@@ -147,6 +147,7 @@ void odbc_errs_add(struct _sql_errors *errs, const char *sqlstate, const char *m
 void odbc_errs_add_rdbms(struct _sql_errors *errs, TDS_UINT native, const char *sqlstate, const char *msg, int linenum,
 			 int msgstate, const char *server, int row);
 
+/** Descriptor header */
 struct _dheader
 {
 	SQLSMALLINT sql_desc_alloc_type;
@@ -159,6 +160,7 @@ struct _dheader
 	SQLLEN *sql_desc_bind_offset_ptr;
 };
 
+/** Descriptor record */
 struct _drecord
 {
 	SQLUINTEGER sql_desc_auto_unique_value;
