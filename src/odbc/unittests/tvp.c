@@ -11,6 +11,8 @@
 #  undef MEMORY_TESTS
 #endif
 
+#include <freetds/bool.h>
+
 #define MAX_ROWS 5
 #define MAX_STRING_LENGTH 20
 
@@ -27,6 +29,69 @@ static SQLLEN lBinCol[MAX_ROWS];
 
 static SQLCHAR outputBuffer[256];
 static SQLLEN lenBuffer;
+
+typedef union {
+	SQLPOINTER fldSQLPOINTER;
+	SQLSMALLINT fldSQLSMALLINT;
+	SQLUSMALLINT fldSQLUSMALLINT;
+	SQLINTEGER fldSQLINTEGER;
+	SQLUINTEGER fldSQLUINTEGER;
+	SQLLEN fldSQLLEN;
+	SQLULEN fldSQLULEN;
+} field_output;
+
+/* utility to get a field from descriptor */
+static field_output
+get_desc_field(SQLINTEGER desc_type, SQLSMALLINT icol, SQLSMALLINT fDescType, size_t size)
+{
+	SQLHDESC desc;
+	SQLINTEGER ind;
+	field_output buf;
+
+	assert(size <= sizeof(buf));
+	CHKGetStmtAttr(desc_type, &desc, sizeof(desc), &ind, "S");
+
+	memset(&buf, 0x5a, sizeof(buf));
+	ind = 1234;
+	CHKGetDescField(desc, icol, fDescType, &buf, size, &ind, "S");
+	assert(ind == size);
+
+	return buf;
+}
+
+/* Utility to get a field from descriptor.
+ * desc_type   APP or IMP.
+ * col         column number (or 0 if does not matter).
+ * field       descriptor field (SQL_DESC_xxx).
+ * type        SQL type to be returned, strings not supported.
+ */
+#define GET_DESC_FIELD(desc_type, col, field, type) \
+	(get_desc_field(SQL_ATTR_ ## desc_type ## _PARAM_DESC, col, field, sizeof(type)).fld ## type)
+
+/* utility to check condition and returns error string */
+static char*
+check_cond(bool condition, const char *fmt, ...)
+{
+	va_list ap;
+	char *ret = NULL;
+
+	if (condition)
+		return ret;
+
+	va_start(ap, fmt);
+	assert(vasprintf(&ret, fmt, ap) >= 0);
+	va_end(ap);
+	return ret;
+}
+
+#define CHECK_COND(args) do { \
+	char *err = check_cond args; \
+	if (err) { \
+		failed = true; \
+		fprintf(stderr, "Wrong condition at line %d: %s\n", __LINE__, err); \
+		free(err); \
+	} \
+} while(0)
 
 /*
  * Generate some data as the columns of our TVPs
@@ -288,6 +353,56 @@ TestErrors(void)
 	odbc_reset_statement();
 }
 
+static void
+TestDescriptorValues(void)
+{
+	SQLWCHAR *tableName;
+	SQLLEN numRows;
+	SQLPOINTER ptr;
+	SQLSMALLINT count;
+	bool failed = false;
+
+	tableName = odbc_get_sqlwchar(&odbc_buf, "TVPType");
+
+	count = GET_DESC_FIELD(APP, 0, SQL_DESC_COUNT, SQLSMALLINT);
+	CHECK_COND((count == 0, "count %d == 0", (int) count));
+	count = GET_DESC_FIELD(IMP, 0, SQL_DESC_COUNT, SQLSMALLINT);
+	CHECK_COND((count == 0, "count %d == 0", (int) count));
+
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_DEFAULT, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, &numRows, "S");
+	dirty_name(tableName);
+
+	count = GET_DESC_FIELD(APP, 0, SQL_DESC_COUNT, SQLSMALLINT);
+	CHECK_COND((count == 1, "count %d == 1", (int) count));
+	count = GET_DESC_FIELD(IMP, 0, SQL_DESC_COUNT, SQLSMALLINT);
+	CHECK_COND((count == 1, "count %d == 1", (int) count));
+
+	ptr = GET_DESC_FIELD(APP, 1, SQL_DESC_INDICATOR_PTR, SQLPOINTER);
+	CHECK_COND((ptr == &numRows, "SQL_DESC_INDICATOR_PTR expected %p got %p", &numRows, ptr));
+
+	ptr = GET_DESC_FIELD(APP, 1, SQL_DESC_OCTET_LENGTH_PTR, SQLPOINTER);
+	CHECK_COND((ptr == &numRows, "SQL_DESC_OCTET_LENGTH_PTR expected %p got %p", &numRows, ptr));
+
+	/* setting parameter focus should move to different descriptors */
+	CHKSetStmtAttr(SQL_SOPT_SS_PARAM_FOCUS, (SQLPOINTER) 1, SQL_IS_INTEGER, "S");
+
+	/* modify descriptors */
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, intCol, sizeof(SQLINTEGER), lIntCol, "S");
+	CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, MAX_STRING_LENGTH, 0, strCol, MAX_STRING_LENGTH, lStrCol, "S");
+
+	/* switch back to main descriptors */
+	CHKSetStmtAttr(SQL_SOPT_SS_PARAM_FOCUS, (SQLPOINTER) 0, SQL_IS_INTEGER, "S");
+
+	count = GET_DESC_FIELD(APP, 0, SQL_DESC_COUNT, SQLSMALLINT);
+	CHECK_COND((count == 1, "count %d == 1", (int) count));
+	count = GET_DESC_FIELD(IMP, 0, SQL_DESC_COUNT, SQLSMALLINT);
+	CHECK_COND((count == 1, "count %d == 1", (int) count));
+
+	assert(!failed);
+
+	odbc_reset_statement();
+}
+
 #ifdef MEMORY_TESTS
 static size_t
 memory_usage(void)
@@ -350,6 +465,7 @@ main(int argc, char *argv[])
 	TestTVPInsert2();
 	TestTVPMemoryManagement();
 	TestErrors();
+	TestDescriptorValues();
 
 #ifdef MEMORY_TESTS
 	TestInitializeLeak();
