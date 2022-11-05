@@ -215,6 +215,56 @@ TestTVPMemoryManagement(void)
 	CHKCloseCursor("SI");
 }
 
+/* Test some errors happens when we expect them */
+static void
+TestErrors(void)
+{
+	SQLCHAR tableName[MAX_STRING_LENGTH];
+	SQLLEN numRows;
+
+	memset(tableName, 0, sizeof(tableName));
+	strncpy((char *) tableName, "TVPType", MAX_STRING_LENGTH);
+
+	// SQL error 07006 -- [Microsoft][ODBC Driver 17 for SQL Server]Restricted data type attribute violation
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, &numRows, "E");
+	odbc_read_error();
+	assert(strcmp(odbc_sqlstate, "07006") == 0);
+
+	// SQL error HY105 -- [Microsoft][ODBC Driver 17 for SQL Server]Invalid parameter type
+	CHKBindParameter(1, SQL_PARAM_OUTPUT, SQL_C_DEFAULT, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, &numRows, "E");
+	odbc_read_error();
+	assert(strcmp(odbc_sqlstate, "HY105") == 0);
+
+	// SQL error HY105 -- [Microsoft][ODBC Driver 17 for SQL Server]Invalid parameter type
+	CHKBindParameter(1, SQL_PARAM_OUTPUT, SQL_C_LONG, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, &numRows, "E");
+	odbc_read_error();
+	assert(strcmp(odbc_sqlstate, "HY105") == 0);
+
+	// SQL error HY105 -- [Microsoft][ODBC Driver 17 for SQL Server]Invalid parameter type
+	CHKBindParameter(1, SQL_PARAM_INPUT_OUTPUT, SQL_C_DEFAULT, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, &numRows, "E");
+	odbc_read_error();
+	assert(strcmp(odbc_sqlstate, "HY105") == 0);
+
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_DEFAULT, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, &numRows, "S");
+	tableName[0] = 'A';
+
+	CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, intCol, sizeof(SQLINTEGER), lIntCol, "S");
+
+	// SQL error IM020 -- [Microsoft][ODBC Driver 17 for SQL Server]Parameter focus does not refer to a table-valued parameter
+	CHKSetStmtAttr(SQL_SOPT_SS_PARAM_FOCUS, (SQLPOINTER) 2, SQL_IS_INTEGER, "E");
+	odbc_read_error();
+	assert(strcmp(odbc_sqlstate, "IM020") == 0);
+
+	CHKSetStmtAttr(SQL_SOPT_SS_PARAM_FOCUS, (SQLPOINTER) 1, SQL_IS_INTEGER, "S");
+
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, intCol, sizeof(SQLINTEGER), lIntCol, "S");
+	CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, MAX_STRING_LENGTH, 0, strCol, MAX_STRING_LENGTH, lStrCol, "S");
+
+	CHKSetStmtAttr(SQL_SOPT_SS_PARAM_FOCUS, (SQLPOINTER) 0, SQL_IS_INTEGER, "S");
+
+	odbc_reset_statement();
+}
+
 #ifdef MEMORY_TESTS
 static size_t
 memory_usage(void)
@@ -260,6 +310,8 @@ TestInitializeLeak(void)
 int
 main(int argc, char *argv[])
 {
+	odbc_use_version3 = 1;
+
 	setup();
 
 	odbc_connect();
@@ -274,6 +326,7 @@ main(int argc, char *argv[])
 	TestTVPInsert();
 	TestTVPInsert2();
 	TestTVPMemoryManagement();
+	TestErrors();
 
 #ifdef MEMORY_TESTS
 	TestInitializeLeak();

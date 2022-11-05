@@ -159,6 +159,7 @@ static const struct s_SqlMsgMap SqlMsgMap[] = {
 	ODBCERR("S0012", "Index not found"),
 	ODBCERR("S0021", "Column already exists"),
 	ODBCERR("S0022", "Column not found"),
+	ODBCERR("IM020", "Parameter focus does not refer to a table-valued parameter"),
 	ODBCERR("", NULL)
 };
 
@@ -222,6 +223,7 @@ static const struct s_v3to2map v3to2map[] = {
 	{"HYT00", "S1T00"},
 	{"08001", "S1000"},
 	{"IM007", "S1000"},
+	{"IM020", "S1000"},
 	{"", ""}
 };
 

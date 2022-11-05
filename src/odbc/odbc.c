@@ -1500,6 +1500,12 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 		ODBC_EXIT_(stmt);
 	}
 
+	/* Table types are strictly read-only */
+	if (fSqlType == SQL_SS_TABLE && fCType != SQL_C_DEFAULT) {
+		odbc_errs_add(&stmt->errs, "07006", NULL);
+		ODBC_EXIT_(stmt);
+	}
+
 	/* If the parameter focus is set to 0, bind values as arguments */
 	/* Otherwise, bind values as the columns of a table-valued parameter */
 	if (stmt->attr.param_focus != 0) {
@@ -6798,6 +6804,11 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		}
 		break;
 	case SQL_SOPT_SS_PARAM_FOCUS:
+		if (ui > 0 && (ui > stmt->apd->header.sql_desc_count
+			       || stmt->apd->records[ui - 1].sql_desc_concise_type != SQL_C_SS_TABLE)) {
+			odbc_errs_add(&stmt->errs, "IM020", NULL);
+			break;
+		}
 		stmt->attr.param_focus = ui;
 		break;
 	default:
