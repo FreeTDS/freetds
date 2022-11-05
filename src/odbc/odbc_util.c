@@ -1001,6 +1001,7 @@ odbc_set_concise_sql_type(SQLSMALLINT concise_type, struct _drecord * drec, int 
 		drec->sql_desc_concise_type = concise_type;
 		drec->sql_desc_type = type;
 		drec->sql_desc_datetime_interval_code = interval_code;
+		drec->sql_desc_data_ptr = NULL;
 
 		switch (drec->sql_desc_type) {
 		case SQL_NUMERIC:
