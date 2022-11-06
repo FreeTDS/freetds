@@ -2645,6 +2645,7 @@ ODBC_FUNC(SQLGetDescField, (P(SQLHDESC,hdesc), P(SQLSMALLINT,icol), P(SQLSMALLIN
 {
 	struct _drecord *drec;
 	SQLRETURN result = SQL_SUCCESS;
+	SQLINTEGER dummy_size;
 
 	ODBC_ENTER_HDESC;
 
@@ -2655,10 +2656,16 @@ ODBC_FUNC(SQLGetDescField, (P(SQLHDESC,hdesc), P(SQLSMALLINT,icol), P(SQLSMALLIN
 #define IOUT(type, src) do { \
 	/* trick warning if type wrong */ \
 	type *p_test = &src; p_test = p_test; \
-	*((type *)Value) = src; } while(0)
+	*((type *)Value) = src; \
+	*StringLength = sizeof(type); } while(0)
 #else
-#define IOUT(type, src) *((type *)Value) = src
+#define IOUT(type, src) do { \
+	*((type *)Value) = src; \
+	*StringLength = sizeof(type); } while(0)
 #endif
+
+	if (!StringLength)
+		StringLength = &dummy_size;
 
 	/* dont check column index for these */
 	switch (fDescType) {
