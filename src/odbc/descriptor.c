@@ -137,6 +137,7 @@ desc_free_record(struct _drecord *drec)
 			free(table->columns[i]);
 
 		free(table->columns);
+		tds_dstr_free(&table->type_name);
 		free(table);
 	}
 }

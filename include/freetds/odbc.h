@@ -583,8 +583,7 @@ typedef struct {
 } SQLTVPCOLUMN;
 
 typedef struct {
-	char *type_name;
-	SQLLEN type_name_len;
+	DSTR type_name;
 	int num_cols;
 	SQLTVPCOLUMN **columns;
 } SQLTVP;

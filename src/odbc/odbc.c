@@ -1436,7 +1436,9 @@ Cleanup:
 static SQLTVP *
 odbc_alloc_table(void)
 {
-	return tds_new0(SQLTVP, 1);
+	SQLTVP *tvp = tds_new0(SQLTVP, 1);
+	tds_dstr_init(&tvp->type_name);
+	return tvp;
 }
 
 static SQLRETURN
@@ -1550,6 +1552,19 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 
 	if (fSqlType == SQL_SS_TABLE) {
 		SQLTVP *tvp;
+		int wide = 1;
+
+		tvp = odbc_alloc_table();
+		if (tvp == NULL) {
+			odbc_errs_add(&stmt->errs, "HY001", NULL);
+			ODBC_EXIT_(stmt);
+		}
+
+		if (!odbc_dstr_copy(stmt->dbc, &tvp->type_name, cbValueMax, (ODBC_CHAR *) rgbValue)) {
+			free(tvp);
+			odbc_errs_add(&stmt->errs, "HY001", NULL);
+			ODBC_EXIT_(stmt);
+		}
 
 		/* For a table value, the pcbValue is a buffer containing the number of rows present */
 		/* Replace it with a pointer to the actual size of a TDS_TVP struct */
@@ -1559,14 +1574,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 		/* to free up memory allocated with odbc_alloc_table() */
 		drec->sql_desc_type = drec->sql_desc_concise_type = SQL_C_SS_TABLE;
 
-		tvp = odbc_alloc_table();
-		if ((drec->sql_desc_data_ptr = (char *) tvp) == NULL) {
-			odbc_errs_add(&stmt->errs, "HY001", NULL);
-			ODBC_EXIT_(stmt);
-		}
-
-		tvp->type_name = rgbValue;
-		tvp->type_name_len = cbValueMax == SQL_NTS ? strlen(rgbValue) : cbValueMax;
+		drec->sql_desc_data_ptr = (char *) tvp;
 	}
 
 	/* field IPD related fields */

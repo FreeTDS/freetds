@@ -65,16 +65,23 @@ setup(void)
 	}
 }
 
+static void
+dirty_name(SQLWCHAR *name)
+{
+	const SQLWCHAR f = name[0];
+	name[0] = (f == 'X' || f == 'x') ? 'Y' : 'X';
+}
+
 /*
  * Test calling a RPC with a TVP containing 3 columns and 5 rows
  */
 static void
 TestTVPInsert(void)
 {
-	SQLCHAR tableName[MAX_STRING_LENGTH];
+	SQLWCHAR *tableName;
 	SQLLEN numRows;
 
-	strncpy((char *) tableName, "TVPType", MAX_STRING_LENGTH);
+	tableName = odbc_get_sqlwchar(&odbc_buf, "TVPType");
 
 	odbc_command("IF OBJECT_ID('TestTVPProc') IS NOT NULL DROP PROC TestTVPProc");
 	odbc_command("IF TYPE_ID('TVPType') IS NOT NULL DROP TYPE TVPType");
@@ -86,6 +93,7 @@ TestTVPInsert(void)
 		"AS INSERT INTO TVPTable SELECT * FROM @TVPParam");
 
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_DEFAULT, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, &numRows, "S");
+	dirty_name(tableName);
 
 	CHKSetStmtAttr(SQL_SOPT_SS_PARAM_FOCUS, (SQLPOINTER) 1, SQL_IS_INTEGER, "S");
 
@@ -111,13 +119,13 @@ TestTVPInsert(void)
 	}
 
 	CHKFetch("No");
+	CHKCloseCursor("SI");
 
 	odbc_command("DROP PROC TestTVPProc");
 	odbc_command("DROP TYPE TVPType");
 	odbc_command("DROP TABLE TVPTable");
 
 	CHKFreeStmt(SQL_RESET_PARAMS, "S");
-	CHKCloseCursor("SI");
 }
 
 /*
@@ -126,10 +134,10 @@ TestTVPInsert(void)
 static void
 TestTVPInsert2(void)
 {
-	SQLCHAR tableName[MAX_STRING_LENGTH];	/* Test explicit schema declaration */
+	SQLWCHAR *tableName;	/* Test explicit schema declaration */
 	SQLLEN numRows;
 
-	strncpy((char *) tableName, "dbo.TVPType2", MAX_STRING_LENGTH);
+	tableName = odbc_get_sqlwchar(&odbc_buf, "dbo.TVPType2");
 
 	odbc_command("IF OBJECT_ID('TestTVPProc2') IS NOT NULL DROP PROC TestTVPProc2");
 	odbc_command("IF TYPE_ID('TVPType2') IS NOT NULL DROP TYPE TVPType2");
@@ -141,6 +149,7 @@ TestTVPInsert2(void)
 		"AS INSERT INTO TVPTable2 SELECT vNum, vBin FROM @TVPParam");
 
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_DEFAULT, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, &numRows, "S");
+	dirty_name(tableName);
 
 	CHKSetStmtAttr(SQL_SOPT_SS_PARAM_FOCUS, (SQLPOINTER) 1, SQL_IS_INTEGER, "S");
 
@@ -168,13 +177,14 @@ TestTVPInsert2(void)
 	}
 
 	CHKFetch("No");
+	CHKFetch("No");
+	CHKCloseCursor("SI");
 
 	odbc_command("DROP PROC TestTVPProc2");
 	odbc_command("DROP TYPE TVPType2");
 	odbc_command("DROP TABLE TVPTable2");
 
 	CHKFreeStmt(SQL_RESET_PARAMS, "S");
-	CHKCloseCursor("SI");
 }
 
 /*
@@ -184,10 +194,10 @@ TestTVPInsert2(void)
 static void
 TestTVPMemoryManagement(void)
 {
-	SQLCHAR tableName[MAX_STRING_LENGTH];
+	SQLWCHAR *tableName;
 	SQLLEN numRows;
 
-	strncpy((char *) tableName, "TVPType", MAX_STRING_LENGTH);
+	tableName = odbc_get_sqlwchar(&odbc_buf, "TVPType");
 
 	odbc_command("IF OBJECT_ID('TestTVPProc') IS NOT NULL DROP PROC TestTVPProc");
 	odbc_command("IF TYPE_ID('TVPType') IS NOT NULL DROP TYPE TVPType");
@@ -199,6 +209,7 @@ TestTVPMemoryManagement(void)
 		"AS INSERT INTO TVPTable SELECT * FROM @TVPParam");
 
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_DEFAULT, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, &numRows, "S");
+	dirty_name(tableName);
 
 	CHKSetStmtAttr(SQL_SOPT_SS_PARAM_FOCUS, (SQLPOINTER) 1, SQL_IS_INTEGER, "S");
 
@@ -212,18 +223,16 @@ TestTVPMemoryManagement(void)
 	odbc_command("DROP TABLE TVPTable");
 
 	CHKFreeStmt(SQL_RESET_PARAMS, "S");
-	CHKCloseCursor("SI");
 }
 
 /* Test some errors happens when we expect them */
 static void
 TestErrors(void)
 {
-	SQLCHAR tableName[MAX_STRING_LENGTH];
+	SQLWCHAR *tableName;
 	SQLLEN numRows;
 
-	memset(tableName, 0, sizeof(tableName));
-	strncpy((char *) tableName, "TVPType", MAX_STRING_LENGTH);
+	tableName = odbc_get_sqlwchar(&odbc_buf, "TVPType");
 
 	// SQL error 07006 -- [Microsoft][ODBC Driver 17 for SQL Server]Restricted data type attribute violation
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, &numRows, "E");
@@ -282,12 +291,12 @@ memory_usage(void)
 static void
 TestInitializeLeak(void)
 {
-	SQLCHAR tableName[MAX_STRING_LENGTH];
+	SQLWCHAR *tableName;
 	SQLLEN numRows;
 	size_t initial_memory;
 	int i;
 
-	strncpy((char *) tableName, "TVPType", MAX_STRING_LENGTH);
+	tableName = odbc_get_sqlwchar(&odbc_buf, "TVPType");
 
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_DEFAULT, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, &numRows, "S");
 

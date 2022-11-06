@@ -210,7 +210,7 @@ odbc_convert_table(TDS_STMT *stmt, SQLTVP *src, TDS_TVP *dest, SQLLEN num_rows)
 	dest->metadata = NULL;
 	dest->row = NULL;
 
-	if ((type_name = tds_strndup(src->type_name, src->type_name_len)) == NULL) {
+	if ((type_name = strdup(tds_dstr_cstr(&src->type_name))) == NULL) {
 		odbc_errs_add(&stmt->errs, "HY001", NULL);
 		return TDS_CONVERT_NOMEM;
 	}
@@ -222,9 +222,8 @@ odbc_convert_table(TDS_STMT *stmt, SQLTVP *src, TDS_TVP *dest, SQLLEN num_rows)
 		dest->name = type_name;
 	} else {
 		*pch = 0;
-		dest->schema = tds_strndup(type_name, src->type_name_len);
-		dest->name = tds_strndup(++pch, src->type_name_len);
-		free(type_name);
+		dest->schema = type_name;
+		dest->name = strdup(++pch);
 	}
 
 	/* Ensure that the TVP typename does not contain any more '.' */
