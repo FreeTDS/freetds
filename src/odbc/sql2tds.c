@@ -316,8 +316,8 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 {
 	TDS_DBC * dbc = stmt->dbc;
 	TDSCONNECTION * conn = dbc->tds_socket->conn;
-	TDS_SERVER_TYPE dest_type;
-	int src_type, sql_src_type, res;
+	TDS_SERVER_TYPE dest_type, src_type;
+	int sql_src_type, res;
 	CONV_RESULT ores;
 	TDSBLOB *blob;
 	char *src, *converted_src;
