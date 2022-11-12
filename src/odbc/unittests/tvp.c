@@ -113,7 +113,7 @@ TestTVPInsert(void)
 	CHKFetch("SI");
 
 	CHKGetData(1, SQL_C_CHAR, outputBuffer, sizeof(outputBuffer), &lenBuffer, "S");
-	if (strcmp((char *) outputBuffer, "5") != 0) {
+	if (atoi((char *) outputBuffer) != numRows) {
 		fprintf(stderr, "Wrong number of columns inserted, expected %ld, got %s\n", (long) numRows, outputBuffer);
 		exit(1);
 	}
