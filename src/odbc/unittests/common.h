@@ -167,6 +167,10 @@ SQLSMALLINT odbc_alloc_handle_err_type(SQLSMALLINT type);
 	CHKR2(SQLColumns, (odbc_stmt,a,b,c,d,e,f,g,h), SQL_HANDLE_STMT, odbc_stmt, res)
 #define CHKGetDescRec(a,b,c,d,e,f,g,h,i,j,res) \
 	CHKR2(SQLGetDescRec, (Descriptor,a,b,c,d,e,f,g,h,i,j), SQL_HANDLE_STMT, Descriptor, res)
+#define CHKGetDescField(desc,a,b,c,d,e,res) \
+	CHKR2(SQLGetDescField, ((desc),a,b,c,d,e), SQL_HANDLE_DESC, (desc), res)
+#define CHKSetDescField(desc,a,b,c,d,res) \
+	CHKR2(SQLSetDescField, ((desc),a,b,c,d), SQL_HANDLE_DESC, (desc), res)
 
 int odbc_connect(void);
 int odbc_disconnect(void);

@@ -28,8 +28,7 @@ check_ipd_params(void)
 	/* get IPD */
 	CHKGetStmtAttr(SQL_ATTR_IMP_PARAM_DESC, &desc, sizeof(desc), &ind, "S");
 
-	CHKR2(SQLGetDescField, (desc, 0, SQL_DESC_ROWS_PROCESSED_PTR, &ptr2, sizeof(ptr2), &ind),
-	      SQL_HANDLE_DESC, desc, "S");
+	CHKGetDescField(desc, 0, SQL_DESC_ROWS_PROCESSED_PTR, &ptr2, sizeof(ptr2), &ind, "S");
 
 	if (ptr != ptr2) {
 		fprintf(stderr, "IPD inconsistency ptr %p ptr2 %p\n", ptr, ptr2);
@@ -52,8 +51,7 @@ set_ipd_params2(SQLULEN *ptr)
 	/* get IPD */
 	CHKGetStmtAttr(SQL_ATTR_IMP_PARAM_DESC, &desc, sizeof(desc), &ind, "S");
 
-	CHKR2(SQLSetDescField, (desc, 1, SQL_DESC_ROWS_PROCESSED_PTR, ptr, 0),
-	      SQL_HANDLE_DESC, desc, "S");
+	CHKSetDescField(desc, 1, SQL_DESC_ROWS_PROCESSED_PTR, ptr, 0, "S");
 }
 
 static void
@@ -148,8 +146,7 @@ check_ird_params(void)
 	/* get IRD */
 	CHKGetStmtAttr(SQL_ATTR_IMP_ROW_DESC, &desc, sizeof(desc), &ind, "S");
 
-	CHKR2(SQLGetDescField, (desc, 0, SQL_DESC_ROWS_PROCESSED_PTR, &ptr2, sizeof(ptr2), &ind),
-	      SQL_HANDLE_DESC, desc, "S");
+	CHKGetDescField(desc, 0, SQL_DESC_ROWS_PROCESSED_PTR, &ptr2, sizeof(ptr2), &ind, "S");
 
 	if (ptr != ptr2) {
 		fprintf(stderr, "IRD inconsistency ptr %p ptr2 %p\n", ptr, ptr2);
@@ -172,8 +169,7 @@ set_ird_params2(SQLULEN *ptr)
 	/* get IRD */
 	CHKGetStmtAttr(SQL_ATTR_IMP_ROW_DESC, &desc, sizeof(desc), &ind, "S");
 
-	CHKR2(SQLSetDescField, (desc, 1, SQL_DESC_ROWS_PROCESSED_PTR, ptr, 0),
-	      SQL_HANDLE_DESC, desc, "S");
+	CHKSetDescField(desc, 1, SQL_DESC_ROWS_PROCESSED_PTR, ptr, 0, "S");
 }
 
 static const rows_set_t row_set[] = {
