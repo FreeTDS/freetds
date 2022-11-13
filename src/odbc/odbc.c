@@ -3064,6 +3064,7 @@ SQLCopyDesc(SQLHDESC hsrc, SQLHDESC hdesc)
 	tdsdump_log(TDS_DBG_FUNC, "SQLCopyDesc(%p, %p)\n", 
 			hsrc, hdesc);
 
+	/* check source descriptor handle, destination one was already checked */
 	if (SQL_NULL_HDESC == hsrc || !IS_HDESC(hsrc))
 		return SQL_INVALID_HANDLE;
 	src = (TDS_DESC *) hsrc;
