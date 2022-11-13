@@ -56,7 +56,7 @@ setup(void)
 		numericCol[i].scale = 5;
 		numericCol[i].sign = i % 2;
 		memset(numericCol[i].val, 0, SQL_MAX_NUMERIC_LEN);
-		sprintf((char *) numericCol[i].val, "%x", i * 1000);
+		sprintf((char *) numericCol[i].val, "%x", i * 10);
 		lNumericCol[i] = sizeof(SQL_NUMERIC_STRUCT);
 
 		/* Setup binary values column */
@@ -121,6 +121,13 @@ TestTVPInsert(void)
 	CHKFetch("No");
 	CHKCloseCursor("SI");
 
+	/* check all rows are present */
+	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM TVPTable WHERE PersonID = 0 AND Name = 'Dummy value 0') SELECT 1");
+	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM TVPTable WHERE PersonID = 10 AND Name = 'Dummy value 3') SELECT 1");
+	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM TVPTable WHERE PersonID = 20 AND Name = 'Dummy value 6') SELECT 1");
+	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM TVPTable WHERE PersonID = 30 AND Name = 'Dummy value 9') SELECT 1");
+	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM TVPTable WHERE PersonID = 40 AND Name = 'Dummy value 12') SELECT 1");
+
 	odbc_command("DROP PROC TestTVPProc");
 	odbc_command("DROP TYPE TVPType");
 	odbc_command("DROP TABLE TVPTable");
@@ -179,6 +186,12 @@ TestTVPInsert2(void)
 	CHKFetch("No");
 	CHKFetch("No");
 	CHKCloseCursor("SI");
+
+	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM TVPTable2 WHERE Bin = 0x30 AND Num = -0.00048) SELECT 1");
+	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM TVPTable2 WHERE Bin = 0x3131 AND Num = 0.00097) SELECT 1");
+	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM TVPTable2 WHERE Bin = 0x3232 AND Num = -0.13361) SELECT 1");
+	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM TVPTable2 WHERE Bin = 0x3333 AND Num = 0.25905) SELECT 1");
+	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM TVPTable2 WHERE Bin = 0x3434 AND Num = -0.14386) SELECT 1");
 
 	odbc_command("DROP PROC TestTVPProc2");
 	odbc_command("DROP TYPE TVPType2");
