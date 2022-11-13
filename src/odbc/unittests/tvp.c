@@ -247,22 +247,22 @@ TestErrors(void)
 
 	tableName = odbc_get_sqlwchar(&odbc_buf, "TVPType");
 
-	// SQL error 07006 -- [Microsoft][ODBC Driver 17 for SQL Server]Restricted data type attribute violation
+	/* SQL error 07006 -- [Microsoft][ODBC Driver 17 for SQL Server]Restricted data type attribute violation */
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, &numRows, "E");
 	odbc_read_error();
 	assert(strcmp(odbc_sqlstate, "07006") == 0);
 
-	// SQL error HY105 -- [Microsoft][ODBC Driver 17 for SQL Server]Invalid parameter type
+	/* SQL error HY105 -- [Microsoft][ODBC Driver 17 for SQL Server]Invalid parameter type */
 	CHKBindParameter(1, SQL_PARAM_OUTPUT, SQL_C_DEFAULT, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, &numRows, "E");
 	odbc_read_error();
 	assert(strcmp(odbc_sqlstate, "HY105") == 0);
 
-	// SQL error HY105 -- [Microsoft][ODBC Driver 17 for SQL Server]Invalid parameter type
+	/* SQL error HY105 -- [Microsoft][ODBC Driver 17 for SQL Server]Invalid parameter type */
 	CHKBindParameter(1, SQL_PARAM_OUTPUT, SQL_C_LONG, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, &numRows, "E");
 	odbc_read_error();
 	assert(strcmp(odbc_sqlstate, "HY105") == 0);
 
-	// SQL error HY105 -- [Microsoft][ODBC Driver 17 for SQL Server]Invalid parameter type
+	/* SQL error HY105 -- [Microsoft][ODBC Driver 17 for SQL Server]Invalid parameter type */
 	CHKBindParameter(1, SQL_PARAM_INPUT_OUTPUT, SQL_C_DEFAULT, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, &numRows, "E");
 	odbc_read_error();
 	assert(strcmp(odbc_sqlstate, "HY105") == 0);
@@ -272,7 +272,7 @@ TestErrors(void)
 
 	CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, intCol, sizeof(SQLINTEGER), lIntCol, "S");
 
-	// SQL error IM020 -- [Microsoft][ODBC Driver 17 for SQL Server]Parameter focus does not refer to a table-valued parameter
+	/* SQL error IM020 -- [Microsoft][ODBC Driver 17 for SQL Server]Parameter focus does not refer to a table-valued parameter */
 	CHKSetStmtAttr(SQL_SOPT_SS_PARAM_FOCUS, (SQLPOINTER) 2, SQL_IS_INTEGER, "E");
 	odbc_read_error();
 	assert(strcmp(odbc_sqlstate, "IM020") == 0);
