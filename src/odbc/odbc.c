@@ -100,7 +100,7 @@ static void odbc_ird_check(TDS_STMT * stmt);
 /* utils to check handles */
 #define INIT_HANDLE(t, n) \
 	TDS_##t *n = (TDS_##t*)h##n; \
-	if (SQL_NULL_H##t  == h##n || !IS_H##t(h##n)) return SQL_INVALID_HANDLE; \
+	if (SQL_NULL_H##t  == h##n || (n)->htype != SQL_HANDLE_##t) return SQL_INVALID_HANDLE; \
 	tds_mutex_lock(&n->mtx); \
 	CHECK_##t##_EXTRA(n); \
 	odbc_errs_reset(&n->errs);
