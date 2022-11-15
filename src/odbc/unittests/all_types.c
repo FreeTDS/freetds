@@ -94,9 +94,9 @@ main(int argc, char *argv[])
 		return 0;
 
 	/* get internal structures */
-	CHKR(SQLGetInfo, (odbc_conn, SQL_DRIVER_HDBC, &ulen, sizeof(ulen), NULL), "S");
+	CHKGetInfo(SQL_DRIVER_HDBC, &ulen, sizeof(ulen), NULL, "S");
 	dbc = (TDS_DBC *) (TDS_UINTPTR) ulen;
-	CHKR(SQLGetInfo, (odbc_conn, SQL_DRIVER_HENV, &ulen, sizeof(ulen), NULL), "S");
+	CHKGetInfo(SQL_DRIVER_HENV, &ulen, sizeof(ulen), NULL, "S");
 	env = (TDS_ENV *) (TDS_UINTPTR) ulen;
 	assert(dbc && env);
 	assert(env->tds_ctx);
