@@ -151,10 +151,10 @@ void odbc_errs_add_rdbms(struct _sql_errors *errs, TDS_UINT native, const char *
 struct _dheader
 {
 	SQLSMALLINT sql_desc_alloc_type;
-	SQLINTEGER sql_desc_bind_type;
-	SQLULEN sql_desc_array_size;
 	/* TODO SQLLEN ?? see http://support.microsoft.com/default.aspx?scid=kb;en-us;298678 */
 	SQLSMALLINT sql_desc_count;
+	SQLINTEGER sql_desc_bind_type;
+	SQLULEN sql_desc_array_size;
 	SQLUSMALLINT *sql_desc_array_status_ptr;
 	SQLULEN *sql_desc_rows_processed_ptr;
 	SQLLEN *sql_desc_bind_offset_ptr;
@@ -163,17 +163,16 @@ struct _dheader
 /** Descriptor record */
 struct _drecord
 {
-	SQLUINTEGER sql_desc_auto_unique_value;
 	DSTR sql_desc_base_column_name;
 	DSTR sql_desc_base_table_name;
+	SQLUINTEGER sql_desc_auto_unique_value;
 	SQLINTEGER sql_desc_case_sensitive;
 	DSTR sql_desc_catalog_name;
-	SQLSMALLINT sql_desc_concise_type;
 	SQLPOINTER sql_desc_data_ptr;
+	SQLSMALLINT sql_desc_concise_type;
 	SQLSMALLINT sql_desc_datetime_interval_code;
 	SQLINTEGER sql_desc_datetime_interval_precision;
 	SQLLEN sql_desc_display_size;
-	SQLSMALLINT sql_desc_fixed_prec_scale;
 	SQLLEN *sql_desc_indicator_ptr;
 	DSTR sql_desc_label;
 	SQLULEN sql_desc_length;
@@ -183,6 +182,7 @@ struct _drecord
 	const char *sql_desc_literal_suffix;
 	DSTR sql_desc_local_type_name;
 	DSTR sql_desc_name;
+	SQLSMALLINT sql_desc_fixed_prec_scale;
 	SQLSMALLINT sql_desc_nullable;
 	SQLINTEGER sql_desc_num_prec_radix;
 	SQLLEN sql_desc_octet_length;
@@ -192,8 +192,8 @@ struct _drecord
 	SQLSMALLINT sql_desc_rowver;
 	SQLSMALLINT sql_desc_scale;
 	DSTR sql_desc_schema_name;
-	SQLSMALLINT sql_desc_searchable;
 	DSTR sql_desc_table_name;
+	SQLSMALLINT sql_desc_searchable;
 	SQLSMALLINT sql_desc_type;
 	/* this point to a constant buffer, do not free or modify */
 	const char *sql_desc_type_name;
