@@ -94,6 +94,7 @@ odbc_check_desc_extra(TDS_DESC * desc)
 	assert(desc && desc->htype == SQL_HANDLE_DESC);
 	assert(desc->header.sql_desc_alloc_type == SQL_DESC_ALLOC_AUTO || desc->header.sql_desc_alloc_type == SQL_DESC_ALLOC_USER);
 	assert((desc->type != DESC_IPD && desc->type != DESC_IRD) || desc->header.sql_desc_alloc_type == SQL_DESC_ALLOC_AUTO);
+	assert(desc->parent && (IS_HSTMT(desc->parent) || IS_HDBC(desc->parent)));
 	for (i = 0; i < desc->header.sql_desc_count; ++i) {
 		odbc_check_drecord(desc, &desc->records[i]);
 	}
