@@ -3061,8 +3061,11 @@ SQLCopyDesc(SQLHDESC hsrc, SQLHDESC hdesc)
 			hsrc, hdesc);
 
 	/* check source descriptor handle, destination one was already checked */
-	if (SQL_NULL_HDESC == hsrc || !IS_HDESC(hsrc))
+	if (SQL_NULL_HDESC == hsrc || !IS_HDESC(hsrc)) {
+		tds_mutex_unlock(&desc->mtx);
 		return SQL_INVALID_HANDLE;
+	}
+
 	src = (TDS_DESC *) hsrc;
 	CHECK_DESC_EXTRA(src);
 

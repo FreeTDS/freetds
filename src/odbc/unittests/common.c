@@ -605,6 +605,10 @@ odbc_check_res(const char *file, int line, SQLRETURN rc, SQLSMALLINT handle_type
 			if (rc == SQL_NEED_DATA)
 				return rc;
 			p += 2;
+		} else if (*p == 'V') {
+			if (rc == SQL_INVALID_HANDLE)
+				return rc;
+			++p;
 		} else if (!*p) {
 			break;
 		} else {

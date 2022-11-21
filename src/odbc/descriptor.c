@@ -69,6 +69,7 @@ desc_alloc(SQLHANDLE parent, int desc_type, int alloc_type)
 		free(desc);
 		return NULL;
 	}
+	CHECK_DESC_EXTRA(desc);
 	return desc;
 }
 
@@ -166,6 +167,9 @@ desc_copy(TDS_DESC * dest, TDS_DESC * src)
 	/* copy header */
 	tmp.header = src->header;
 
+	/* sql_desc_alloc_type should remain unchanged */
+	tmp.header.sql_desc_alloc_type = dest->header.sql_desc_alloc_type;
+
 	/* set no records */
 	tmp.header.sql_desc_count = 0;
 	tmp.records = NULL;
@@ -180,7 +184,7 @@ desc_copy(TDS_DESC * dest, TDS_DESC * src)
 		struct _drecord *src_rec = &src->records[i];
 		struct _drecord *dest_rec = &tmp.records[i];
 
-		/* copy all integer in one time ! */
+		/* copy all integers at once ! */
 		memcpy(dest_rec, src_rec, sizeof(struct _drecord));
 
 		/* reinitialize string, avoid doubling pointers */
