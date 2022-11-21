@@ -38,7 +38,7 @@
 static void desc_free_record(struct _drecord *drec);
 
 TDS_DESC *
-desc_alloc(SQLHANDLE parent, int desc_type, int alloc_type)
+desc_alloc(SQLHANDLE parent, int desc_type, SQLSMALLINT alloc_type)
 {
 	TDS_DESC *desc;
 

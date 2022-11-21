@@ -561,7 +561,7 @@ SQLLEN odbc_tds2sql_int4(TDS_STMT * stmt, TDS_INT *src, int desttype, TDS_CHAR *
 /*
  * descriptor.c
  */
-TDS_DESC *desc_alloc(SQLHANDLE parent, int desc_type, int alloc_type);
+TDS_DESC *desc_alloc(SQLHANDLE parent, int desc_type, SQLSMALLINT alloc_type);
 SQLRETURN desc_free(TDS_DESC * desc);
 SQLRETURN desc_alloc_records(TDS_DESC * desc, unsigned count);
 SQLRETURN desc_copy(TDS_DESC * dest, TDS_DESC * src);
