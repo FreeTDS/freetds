@@ -361,7 +361,7 @@ tds_param_free(TDSCOLUMN *col)
 		free(blob->textvalue);
 	}
 
-	if (col->column_type == SYBTABLETYPE) {
+	if (col->column_type == SYBMSTABLE) {
 		TDS_TVP *table = (TDS_TVP *) col->column_data;
 
 		free(table->schema);

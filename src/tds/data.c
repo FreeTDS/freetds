@@ -1728,7 +1728,7 @@ tds_get_column_funcs(TDSCONNECTION *conn, int type)
 	case SYB5BIGTIME:
 	case SYB5BIGDATETIME:
 		return &tds_sybbigtime_funcs;
-	case SYBTABLETYPE:
+	case SYBMSTABLE:
 		return &tds_mstabletype_funcs;
 	}
 	return &tds_generic_funcs;

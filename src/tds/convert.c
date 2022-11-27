@@ -1984,7 +1984,7 @@ tds_convert(const TDSCONTEXT *tds_ctx, int srctype, const void *src, TDS_UINT sr
 		break;
 	case SYBNVARCHAR:
 	case SYBNTEXT:
-	case SYBTABLETYPE:
+	case SYBMSTABLE:
 	default:
 		return TDS_CONVERT_NOAVAIL;
 		break;

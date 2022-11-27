@@ -653,7 +653,7 @@ odbc_c_to_server_type(int c_type)
 	case SQL_C_NUMERIC:
 		return SYBNUMERIC;
 	case SQL_C_SS_TABLE:
-		return SYBTABLETYPE;
+		return SYBMSTABLE;
 		/* not supported */
 	case SQL_C_INTERVAL_YEAR:
 	case SQL_C_INTERVAL_MONTH:
@@ -846,7 +846,7 @@ odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned)
 	case SQL_LONGVARBINARY:
 		return SYBIMAGE;
 	case SQL_SS_TABLE:
-		return SYBTABLETYPE;
+		return SYBMSTABLE;
 		/* TODO interval types */
 	default:
 		return TDS_INVALID_TYPE;

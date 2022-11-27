@@ -142,7 +142,7 @@ data_sybbigtime_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER
 static void
 data_mstabletype_set_type_info(TDSCOLUMN *col, struct _drecord *drec, SQLINTEGER odbc_ver)
 {
-	drec->sql_desc_concise_type = SYBTABLETYPE;
+	drec->sql_desc_concise_type = SYBMSTABLE;
 	drec->sql_desc_octet_length = sizeof(SQLTVP);
 }
 
@@ -406,7 +406,7 @@ data_generic_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER od
 	case SYBMSDATETIMEOFFSET:
 	case SYB5BIGDATETIME:
 	case SYB5BIGTIME:
-	case SYBTABLETYPE:
+	case SYBMSTABLE:
 		break;
 	}
 	SET_INFO("", "", "");
