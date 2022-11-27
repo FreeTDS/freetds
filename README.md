@@ -19,7 +19,6 @@ details.
 Other files you might want to peruse:
 
 * [AUTHORS](./AUTHORS.md)  Who's involved
-* [BUGS](./BUGS.md)        Some things we fixed, or think we did
 * [NEWS](./NEWS.md)        Summary of feature changes and fixes
 * [TODO](./TODO.md)        The roadmap, such as it is
 

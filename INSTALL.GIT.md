@@ -15,6 +15,7 @@ The git repository is maintained on GitHub. Follow these steps:
 	make		(GNU or BSD Make.)
 	gcc		(GNU Compiler Collection, for C code compilation)
 	perl		(Perl, used to generate some files)
+	gperf		(GNU Perf, used to generate some files)
 	```
 
 	Autotool versions that work:
@@ -38,7 +39,4 @@ The git repository is maintained on GitHub. Follow these steps:
 
 3. compile the source using `make`
 
-4. switch to a user that can write to the target installation
-   directory, usually root with `su root`
-
-5. Install with `make install`
+4. Install with `sudo make install`
