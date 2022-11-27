@@ -1526,6 +1526,7 @@ tds_mstabletype_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
 	TDSPARAMINFO *params;
 	TDSCOLUMN *tds_col;
 	TDS_TVP_ROW *row;
+	TDSRET ret;
 	int i;
 
 	/* COL_METADATA */
@@ -1544,8 +1545,9 @@ tds_mstabletype_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
 			tds_put_smallint(tds, tds_col->column_flags);
 			/* TYPE_INFO */
 			tds_put_byte(tds, tds_col->on_server.column_type);
-			if (tds_col->funcs->put_info(tds, tds_col) == TDS_FAIL)
-				return TDS_FAIL;
+			ret = tds_col->funcs->put_info(tds, tds_col);
+			if (TDS_FAILED(ret))
+				return ret;
 
 			/* ColName - Empty string */
 			tds_put_byte(tds, 0x00);
@@ -1562,8 +1564,9 @@ tds_mstabletype_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
 		params = row->params;
 		for (i = 0; i < table->num_cols; i++) {
 			tds_col = params->columns[i];
-			if (tds_col->funcs->put_data(tds, tds_col, 0) == TDS_FAIL)
-				return TDS_FAIL;
+			ret = tds_col->funcs->put_data(tds, tds_col, 0);
+			if (TDS_FAILED(ret))
+				return ret;
 		}
 	}
 
