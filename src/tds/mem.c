@@ -363,14 +363,15 @@ tds_param_free(TDSCOLUMN *col)
 
 	if (col->column_type == SYBTABLETYPE) {
 		TDS_TVP *table = (TDS_TVP *) col->column_data;
-		TDS_ZERO_FREE(table->schema);
-		TDS_ZERO_FREE(table->name);
+
+		free(table->schema);
+		free(table->name);
 		tds_free_tvp_row(table->metadata);
-		TDS_ZERO_FREE(table->metadata);
+		free(table->metadata);
 		for (tvp_row = table->row; tvp_row != NULL; tvp_row = next_row) {
 			next_row = tvp_row->next;
 			tds_free_tvp_row(tvp_row);
-			TDS_ZERO_FREE(tvp_row);
+			free(tvp_row);
 		}
 	}
 
