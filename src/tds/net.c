@@ -749,7 +749,6 @@ tds_socket_read(TDSCONNECTION * conn, TDSSOCKET *tds, unsigned char *buf, int bu
 		return 0;
 
 	/* detect connection close */
-	tds_connection_close(conn);
 	tdserror(conn->tds_ctx, tds, len == 0 ? TDSESEOF : TDSEREAD, len == 0 ? 0 : err);
 	return -1;
 }
