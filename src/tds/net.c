@@ -566,7 +566,6 @@ tds_close_socket(TDSSOCKET * tds)
 		}
 #else
 		tds_disconnect(tds);
-		tds_ssl_deinit(tds->conn);
 		if (!TDS_IS_SOCKET_INVALID(tds_get_s(tds)) && CLOSESOCKET(tds_get_s(tds)) == -1)
 			tdserror(tds_get_ctx(tds), tds,  TDSECLOS, sock_errno);
 		tds_set_s(tds, INVALID_SOCKET);
@@ -582,7 +581,6 @@ tds_connection_close(TDSCONNECTION *conn)
 	unsigned n = 0;
 #endif
 
-	tds_ssl_deinit(conn);
 	if (!TDS_IS_SOCKET_INVALID(conn->s)) {
 		/* TODO check error ?? how to return it ?? */
 		CLOSESOCKET(conn->s);
