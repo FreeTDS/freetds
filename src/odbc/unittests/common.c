@@ -483,7 +483,7 @@ const char *odbc_db_version(void)
 		SQLTCHAR buf[32];
 		SQLSMALLINT version_len;
 
-		CHKR(SQLGetInfo, (odbc_conn, SQL_DBMS_VER, buf, sizeof(buf), &version_len), "S");
+		CHKGetInfo(SQL_DBMS_VER, buf, sizeof(buf), &version_len, "S");
 		strcpy(db_str_version, C(buf));
 		ODBC_FREE();
 	}
@@ -605,6 +605,10 @@ odbc_check_res(const char *file, int line, SQLRETURN rc, SQLSMALLINT handle_type
 			if (rc == SQL_NEED_DATA)
 				return rc;
 			p += 2;
+		} else if (*p == 'V') {
+			if (rc == SQL_INVALID_HANDLE)
+				return rc;
+			++p;
 		} else if (!*p) {
 			break;
 		} else {

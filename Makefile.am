@@ -5,7 +5,7 @@ SUBDIRS	=	include src doc samples win32 vms misc
 
 ACLOCAL_AMFLAGS = -I m4
 
-EXTRA_DIST = 	interfaces PWD.in BUGS.md \
+EXTRA_DIST = 	interfaces PWD.in \
 		freetds.conf locales.conf \
 		autogen.sh freetds.spec.in freetds.spec tds.dox \
 		config.rpath CMakeLists.txt Thanks-1.0 \

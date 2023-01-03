@@ -268,6 +268,65 @@ odbc_dstr_swap(DSTR *a, DSTR *b)
 	*b = tmp;
 }
 
+static const char *
+parse_value(TDS_ERRS *errs, const char *p, const char *connect_string_end, DSTR *value)
+{
+	const char *end;
+	char *dst;
+
+	/* easy case, just ';' terminated */
+	if (p == connect_string_end || *p != '{') {
+		end = (const char *) memchr(p, ';', connect_string_end - p);
+		if (!end)
+			end = connect_string_end;
+		if (!tds_dstr_copyn(value, p, end - p)) {
+			odbc_errs_add(errs, "HY001", NULL);
+			return NULL;
+		}
+		return end;
+	}
+
+	++p;
+	/* search "};" */
+	end = p;
+	for (;;) {
+		/* search next '}' */
+		end = (const char *) memchr(end, '}', connect_string_end - end);
+		if (end == NULL) {
+			odbc_errs_add(errs, "HY000", "Syntax error in connection string");
+			return NULL;
+		}
+		end++;
+
+		/* termination ? */
+		if (end == connect_string_end || end[0] == ';') {
+			end--;
+			break;
+		}
+
+		/* wrong syntax ? */
+		if (end[0] != '}') {
+			odbc_errs_add(errs, "HY000", "Syntax error in connection string");
+			return NULL;
+		}
+		end++;
+	}
+	if (!tds_dstr_alloc(value, end - p)) {
+		odbc_errs_add(errs, "HY001", NULL);
+		return NULL;
+	}
+	dst = tds_dstr_buf(value);
+	for (; p < end; ++p) {
+		char ch = *p;
+		*dst++ = ch;
+		if (ch == '}')
+			++p;
+	}
+	tds_dstr_setlen(value, dst - tds_dstr_buf(value));
+
+	return end + 1;
+}
+
 /** 
  * Parse connection string and fill login according
  * @param connect_string     connect string
@@ -316,25 +375,9 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 
 		/* parse value */
 		p = end + 1;
-		if (*p == '{') {
-			++p;
-			/* search "};" */
-			end = p;
-			while ((end = (const char *) memchr(end, '}', connect_string_end - end)) != NULL) {
-				if ((end + 1) != connect_string_end && end[1] == ';')
-					break;
-				++end;
-			}
-		} else {
-			end = (const char *) memchr(p, ';', connect_string_end - p);
-		}
+		end = parse_value(errs, p, connect_string_end, &value);
 		if (!end)
-			end = connect_string_end;
-
-		if (!tds_dstr_copyn(&value, p, end - p)) {
-			odbc_errs_add(errs, "HY001", NULL);
 			return false;
-		}
 
 #define CHK_PARAM(p) (strcasecmp(option, odbc_param_##p) == 0 && (num_param=ODBC_PARAM_##p) >= 0)
 		if (CHK_PARAM(Server)) {
@@ -458,11 +501,9 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 			odbc_dstr_swap(dest_s, &value);
 
 		p = end;
-		/* handle "" ";.." "};.." cases */
+		/* handle "" ";.." cases */
 		if (p >= connect_string_end)
 			break;
-		if (*p == '}')
-			++p;
 		++p;
 	}
 

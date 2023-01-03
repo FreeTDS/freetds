@@ -121,9 +121,9 @@ main(int argc, char **argv)
 			/* get APD */
 			SQLGetStmtAttr(odbc_stmt, SQL_ATTR_APP_PARAM_DESC, &desc, sizeof(desc), &ind);
 
-			SQLGetDescField(desc, 1, SQL_DESC_TYPE, &type, sizeof(SQLSMALLINT), &ind);
-			SQLGetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, &concise_type, sizeof(SQLSMALLINT), &ind);
-			SQLGetDescField(desc, 1, SQL_DESC_DATETIME_INTERVAL_CODE, &code, sizeof(SQLSMALLINT), &ind);
+			CHKGetDescField(desc, 1, SQL_DESC_TYPE, &type, sizeof(SQLSMALLINT), &ind, "S");
+			CHKGetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, &concise_type, sizeof(SQLSMALLINT), &ind, "S");
+			CHKGetDescField(desc, 1, SQL_DESC_DATETIME_INTERVAL_CODE, &code, sizeof(SQLSMALLINT), &ind, "S");
 			printf("Setted type %s -> [%d (%s), %d (%s), %d]\n",
 			       p->name, (int) concise_type, get_type_name(concise_type), (int) type, get_type_name(type), code);
 			check_msg(p->flags & FLAG_C, "Type not C successed to be set in APD");
@@ -140,9 +140,9 @@ main(int argc, char **argv)
 			if (SQL_SUCCEEDED
 			    (SQLSetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, TDS_INT2PTR(concise_type), sizeof(SQLSMALLINT))))
 			{
-				SQLGetDescField(desc, 1, SQL_DESC_TYPE, &type, sizeof(SQLSMALLINT), &ind);
-				SQLGetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, &concise_type, sizeof(SQLSMALLINT), &ind);
-				SQLGetDescField(desc, 1, SQL_DESC_DATETIME_INTERVAL_CODE, &code, sizeof(SQLSMALLINT), &ind);
+				CHKGetDescField(desc, 1, SQL_DESC_TYPE, &type, sizeof(SQLSMALLINT), &ind, "S");
+				CHKGetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, &concise_type, sizeof(SQLSMALLINT), &ind, "S");
+				CHKGetDescField(desc, 1, SQL_DESC_DATETIME_INTERVAL_CODE, &code, sizeof(SQLSMALLINT), &ind, "S");
 				printf("Setted type %s -> [%d (%s), %d (%s), %d]\n",
 				       p->name,
 				       (int) concise_type, get_type_name(concise_type), (int) type, get_type_name(type), code);
@@ -166,9 +166,9 @@ main(int argc, char **argv)
 
 			concise_type = type = code = 0;
 
-			SQLGetDescField(desc, 1, SQL_DESC_TYPE, &type, sizeof(SQLSMALLINT), &ind);
-			SQLGetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, &concise_type, sizeof(SQLSMALLINT), &ind);
-			SQLGetDescField(desc, 1, SQL_DESC_DATETIME_INTERVAL_CODE, &code, sizeof(SQLSMALLINT), &ind);
+			CHKGetDescField(desc, 1, SQL_DESC_TYPE, &type, sizeof(SQLSMALLINT), &ind, "S");
+			CHKGetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, &concise_type, sizeof(SQLSMALLINT), &ind, "S");
+			CHKGetDescField(desc, 1, SQL_DESC_DATETIME_INTERVAL_CODE, &code, sizeof(SQLSMALLINT), &ind, "S");
 			printf("Setted type %s -> [%d (%s), %d (%s), %d]\n",
 			       p->name, (int) concise_type, get_type_name(concise_type), (int) type, get_type_name(type), code);
 			check_msg(p->flags & FLAG_SQL, "Type not SQL successed to be set in IPD");

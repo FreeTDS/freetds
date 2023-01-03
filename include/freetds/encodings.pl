@@ -163,7 +163,7 @@ close(OUT);
 
 open(OUT, '>charset_lookup.h') or die;
 open(IN, '-|', $gperf, '-m', '100', '-C', '-K', 'alias_pos', '-t', 'charset_lookup.gperf',
-	'-F', ',-1', '-P','-H','hash_charset','-N','charset_lookup', '-L', 'ANSI-C') or die;
+	'-F', ',-1', '-P','-H','hash_charset','-N','charset_lookup', '-L', 'ANSI-C', '--enum') or die;
 while(<IN>) {
 	s/\Q(int)(long)&((struct\E/(int)(size_t)&((struct/;
 	s/\Q(int)(size_t)&((struct stringpool_t *)0)->stringpool_str\E(\d+),/(int)offsetof(struct stringpool_t, stringpool_str\1),/;

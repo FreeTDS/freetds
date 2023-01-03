@@ -33,11 +33,12 @@
 
 #include <freetds/odbc.h>
 #include <freetds/utils/string.h>
+#include <odbcss.h>
 
 static void desc_free_record(struct _drecord *drec);
 
 TDS_DESC *
-desc_alloc(SQLHANDLE parent, int desc_type, int alloc_type)
+desc_alloc(SQLHANDLE parent, int desc_type, SQLSMALLINT alloc_type)
 {
 	TDS_DESC *desc;
 
@@ -68,6 +69,7 @@ desc_alloc(SQLHANDLE parent, int desc_type, int alloc_type)
 		free(desc);
 		return NULL;
 	}
+	CHECK_DESC_EXTRA(desc);
 	return desc;
 }
 
@@ -128,6 +130,17 @@ desc_free_record(struct _drecord *drec)
 #define STR_OP(name) tds_dstr_free(&drec->name)
 	SQL_DESC_STRINGS;
 #undef STR_OP
+	if (drec->sql_desc_concise_type == SQL_C_SS_TABLE) {
+		int i;
+		SQLTVP *table = (SQLTVP *) drec->sql_desc_data_ptr;
+		/* Reclaim memory used to contain the table buffer */
+		for (i = 0; i < table->num_cols; ++i)
+			free(table->columns[i]);
+
+		free(table->columns);
+		tds_dstr_free(&table->type_name);
+		free(table);
+	}
 }
 
 SQLRETURN
@@ -154,6 +167,9 @@ desc_copy(TDS_DESC * dest, TDS_DESC * src)
 	/* copy header */
 	tmp.header = src->header;
 
+	/* sql_desc_alloc_type should remain unchanged */
+	tmp.header.sql_desc_alloc_type = dest->header.sql_desc_alloc_type;
+
 	/* set no records */
 	tmp.header.sql_desc_count = 0;
 	tmp.records = NULL;
@@ -168,7 +184,7 @@ desc_copy(TDS_DESC * dest, TDS_DESC * src)
 		struct _drecord *src_rec = &src->records[i];
 		struct _drecord *dest_rec = &tmp.records[i];
 
-		/* copy all integer in one time ! */
+		/* copy all integers at once ! */
 		memcpy(dest_rec, src_rec, sizeof(struct _drecord));
 
 		/* reinitialize string, avoid doubling pointers */

@@ -2898,6 +2898,7 @@ dblib_coltype(TDSCOLUMN *colinfo)
 	case SYBMONEYN:
 	case SYBTIMEN:
 	case SYBUINTN:
+	case SYBMSTABLE:
 		break;
 	/* these types are supported */
 	case SYBCHAR:
@@ -3270,6 +3271,8 @@ dbvarylen(DBPROCESS * dbproc, int column)
 	case SYBXML:
 	case SYBMSUDT:
 	case SYBMSXML:
+		return TRUE;
+	case SYBMSTABLE:
 		return TRUE;
 
 	case SYBLONGCHAR:
@@ -7410,6 +7413,7 @@ tds_prdatatype(int datatype_token)
 	case SYBUINTN:		return "SYBUINTN";
 	case SYBUNITEXT:	return "SYBUNITEXT";
 	case SYBXML:		return "SYBXML";
+	case SYBMSTABLE:	return "SYBMSTABLE";
 	}
 	return "(unknown)";
 }

@@ -100,7 +100,7 @@ static void odbc_ird_check(TDS_STMT * stmt);
 /* utils to check handles */
 #define INIT_HANDLE(t, n) \
 	TDS_##t *n = (TDS_##t*)h##n; \
-	if (SQL_NULL_H##t  == h##n || !IS_H##t(h##n)) return SQL_INVALID_HANDLE; \
+	if (SQL_NULL_H##t  == h##n || (n)->htype != SQL_HANDLE_##t) return SQL_INVALID_HANDLE; \
 	tds_mutex_lock(&n->mtx); \
 	CHECK_##t##_EXTRA(n); \
 	odbc_errs_reset(&n->errs);
@@ -1399,13 +1399,56 @@ SQLGetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER B
 	} while(0)
 
 static SQLRETURN
+add_table_column(SQLTVP *tvp, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLSMALLINT fCType, SQLSMALLINT fSqlType,
+		  SQLULEN cbColDef, SQLSMALLINT ibScale, SQLPOINTER rgbValue, SQLLEN cbValueMax, SQLLEN FAR *pcbValue)
+{
+	SQLTVPCOLUMN *new_col = NULL;
+
+	if (ipar <= tvp->num_cols && tvp->columns[ipar - 1] != NULL)
+		new_col = tvp->columns[ipar - 1];
+	else if ((new_col = tds_new(SQLTVPCOLUMN, 1)) == NULL)
+		goto Cleanup;
+
+	new_col->fParamType = fParamType;
+	new_col->fCType = fCType;
+	new_col->fSqlType = fSqlType;
+	new_col->cbColDef = cbColDef;
+	new_col->ibScale = ibScale;
+	new_col->rgbValue = rgbValue;
+	new_col->cbValueMax = cbValueMax;
+	new_col->pcbValue = pcbValue;
+
+	if (ipar > tvp->num_cols) {
+		if (!TDS_RESIZE(tvp->columns, ipar))
+			goto Cleanup;
+		memset(tvp->columns + tvp->num_cols, 0, sizeof(tvp->columns[0]) * (ipar - tvp->num_cols));
+		tvp->num_cols = ipar;
+	}
+	tvp->columns[ipar - 1] = new_col;
+
+	return SQL_SUCCESS;
+
+Cleanup:
+	free(new_col);
+	return SQL_ERROR;
+}
+
+static SQLTVP *
+odbc_alloc_table(void)
+{
+	SQLTVP *tvp = tds_new0(SQLTVP, 1);
+	tds_dstr_init(&tvp->type_name);
+	return tvp;
+}
+
+static SQLRETURN
 _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLSMALLINT fCType, SQLSMALLINT fSqlType,
 		  SQLULEN cbColDef, SQLSMALLINT ibScale, SQLPOINTER rgbValue, SQLLEN cbValueMax, SQLLEN FAR * pcbValue)
 {
 	TDS_DESC *apd, *ipd;
 	struct _drecord *drec;
 	SQLSMALLINT orig_apd_size, orig_ipd_size;
-	int is_numeric = 0;
+	bool is_numeric = false;
 
 	ODBC_ENTER_HSTMT;
 
@@ -1428,7 +1471,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 	}
 
 	/* Check max buffer length */
-	if (cbValueMax < 0) {
+	if (cbValueMax < 0 && cbValueMax != SQL_NTS) {
 		odbc_errs_add(&stmt->errs, "HY090", NULL);
 		ODBC_EXIT_(stmt);
 	}
@@ -1436,7 +1479,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 
 	/* check cbColDef and ibScale */
 	if (fSqlType == SQL_DECIMAL || fSqlType == SQL_NUMERIC) {
-		is_numeric = 1;
+		is_numeric = true;
 		if (cbColDef < 1 || cbColDef > 38) {
 			odbc_errs_add(&stmt->errs, "HY104", "Invalid precision value");
 			ODBC_EXIT_(stmt);
@@ -1450,6 +1493,36 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 	/* Check parameter number */
 	if (ipar <= 0 || ipar > 4000) {
 		odbc_errs_add(&stmt->errs, "07009", NULL);
+		ODBC_EXIT_(stmt);
+	}
+
+	/* Table types are strictly read-only */
+	if (fSqlType == SQL_SS_TABLE && fParamType != SQL_PARAM_INPUT) {
+		odbc_errs_add(&stmt->errs, "HY105", NULL);
+		ODBC_EXIT_(stmt);
+	}
+
+	/* Table types are strictly read-only */
+	if (fSqlType == SQL_SS_TABLE && fCType != SQL_C_DEFAULT) {
+		odbc_errs_add(&stmt->errs, "07006", NULL);
+		ODBC_EXIT_(stmt);
+	}
+
+	/* If the parameter focus is set to 0, bind values as arguments */
+	/* Otherwise, bind values as the columns of a table-valued parameter */
+	if (stmt->attr.param_focus != 0) {
+		SQLTVP *tvp;
+
+		/* Columns of table types are strictly read-only */
+		if (fParamType != SQL_PARAM_INPUT) {
+			odbc_errs_add(&stmt->errs, "HY105", NULL);
+			ODBC_EXIT_(stmt);
+		}
+
+		tvp = (SQLTVP *) stmt->apd[stmt->attr.param_focus - 1].records->sql_desc_data_ptr;
+		if (add_table_column(tvp, ipar, fParamType, fCType, fSqlType, cbColDef, ibScale, rgbValue, cbValueMax, pcbValue) != SQL_SUCCESS)
+			odbc_errs_add(&stmt->errs, "HY001", NULL);
+
 		ODBC_EXIT_(stmt);
 	}
 
@@ -1476,6 +1549,29 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 	drec->sql_desc_indicator_ptr = pcbValue;
 	drec->sql_desc_octet_length_ptr = pcbValue;
 	drec->sql_desc_data_ptr = (char *) rgbValue;
+
+	if (fSqlType == SQL_SS_TABLE) {
+		SQLTVP *tvp;
+		int wide = 1;
+
+		tvp = odbc_alloc_table();
+		if (tvp == NULL) {
+			odbc_errs_add(&stmt->errs, "HY001", NULL);
+			ODBC_EXIT_(stmt);
+		}
+
+		if (!odbc_dstr_copy(stmt->dbc, &tvp->type_name, cbValueMax, (ODBC_CHAR *) rgbValue)) {
+			free(tvp);
+			odbc_errs_add(&stmt->errs, "HY001", NULL);
+			ODBC_EXIT_(stmt);
+		}
+
+		/* Use this the column type as a marker for us */
+		/* to free up memory allocated with odbc_alloc_table() */
+		drec->sql_desc_type = drec->sql_desc_concise_type = SQL_C_SS_TABLE;
+
+		drec->sql_desc_data_ptr = (char *) tvp;
+	}
 
 	/* field IPD related fields */
 	ipd = stmt->ipd;
@@ -1802,6 +1898,8 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 
 	if (dbc->attr.cursor_type != SQL_CURSOR_FORWARD_ONLY)
 		_SQLSetStmtAttr(stmt, SQL_CURSOR_TYPE, (SQLPOINTER) (TDS_INTPTR) dbc->attr.cursor_type, SQL_IS_INTEGER _wide0);
+
+	stmt->attr.param_focus = 0;
 
 	ODBC_EXIT_(dbc);
 }
@@ -2543,6 +2641,7 @@ ODBC_FUNC(SQLGetDescField, (P(SQLHDESC,hdesc), P(SQLSMALLINT,icol), P(SQLSMALLIN
 {
 	struct _drecord *drec;
 	SQLRETURN result = SQL_SUCCESS;
+	SQLINTEGER dummy_size;
 
 	ODBC_ENTER_HDESC;
 
@@ -2553,10 +2652,16 @@ ODBC_FUNC(SQLGetDescField, (P(SQLHDESC,hdesc), P(SQLSMALLINT,icol), P(SQLSMALLIN
 #define IOUT(type, src) do { \
 	/* trick warning if type wrong */ \
 	type *p_test = &src; p_test = p_test; \
-	*((type *)Value) = src; } while(0)
+	*((type *)Value) = src; \
+	*StringLength = sizeof(type); } while(0)
 #else
-#define IOUT(type, src) *((type *)Value) = src
+#define IOUT(type, src) do { \
+	*((type *)Value) = src; \
+	*StringLength = sizeof(type); } while(0)
 #endif
+
+	if (!StringLength)
+		StringLength = &dummy_size;
 
 	/* dont check column index for these */
 	switch (fDescType) {
@@ -2955,8 +3060,12 @@ SQLCopyDesc(SQLHDESC hsrc, SQLHDESC hdesc)
 	tdsdump_log(TDS_DBG_FUNC, "SQLCopyDesc(%p, %p)\n", 
 			hsrc, hdesc);
 
-	if (SQL_NULL_HDESC == hsrc || !IS_HDESC(hsrc))
+	/* check source descriptor handle, destination one was already checked */
+	if (SQL_NULL_HDESC == hsrc || !IS_HDESC(hsrc)) {
+		tds_mutex_unlock(&desc->mtx);
 		return SQL_INVALID_HANDLE;
+	}
+
 	src = (TDS_DESC *) hsrc;
 	CHECK_DESC_EXTRA(src);
 
@@ -6708,6 +6817,14 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 			odbc_errs_add(&stmt->errs, "HY001", NULL);
 			break;
 		}
+		break;
+	case SQL_SOPT_SS_PARAM_FOCUS:
+		if (ui > 0 && (ui > stmt->apd->header.sql_desc_count
+			       || stmt->apd->records[ui - 1].sql_desc_concise_type != SQL_C_SS_TABLE)) {
+			odbc_errs_add(&stmt->errs, "IM020", NULL);
+			break;
+		}
+		stmt->attr.param_focus = ui;
 		break;
 	default:
 		odbc_errs_add(&stmt->errs, "HY092", NULL);

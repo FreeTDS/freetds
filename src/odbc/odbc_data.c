@@ -140,6 +140,13 @@ data_sybbigtime_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER
 }
 
 static void
+data_mstabletype_set_type_info(TDSCOLUMN *col, struct _drecord *drec, SQLINTEGER odbc_ver)
+{
+	drec->sql_desc_concise_type = SYBMSTABLE;
+	drec->sql_desc_octet_length = sizeof(SQLTVP);
+}
+
+static void
 data_generic_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
 {
 	TDS_SERVER_TYPE col_type = col->on_server.column_type;
@@ -399,6 +406,7 @@ data_generic_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER od
 	case SYBMSDATETIMEOFFSET:
 	case SYB5BIGDATETIME:
 	case SYB5BIGTIME:
+	case SYBMSTABLE:
 		break;
 	}
 	SET_INFO("", "", "");
@@ -438,3 +446,4 @@ TDS_DEFINE_FUNCS(variant);
 TDS_DEFINE_FUNCS(msdatetime);
 TDS_DEFINE_FUNCS(clrudt);
 TDS_DEFINE_FUNCS(sybbigtime);
+TDS_DEFINE_FUNCS(mstabletype);

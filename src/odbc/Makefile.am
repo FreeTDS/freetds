@@ -22,7 +22,7 @@ libtdsodbc_la_LIBADD +=	setup.res
 libtdsodbc_la_LDFLAGS += -Wl,--kill-at -Wl,--enable-stdcall-fixup -Wl,-s -Wl,@srcdir@/odbc_w.def -Wl,setup.res
 
 .rc.res:
-	$(RC) -i $< --input-format=rc -o $@ -O coff
+	$(RC) -i $< --input-format=rc -o $@ -O coff -I @builddir@
 else
 if !MACOSX
 libtdsodbc_la_LDFLAGS += -export-symbols-regex '^(SQL|ODBCINST).*'

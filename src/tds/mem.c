@@ -343,8 +343,16 @@ tds_free_param_result(TDSPARAMINFO * param_info)
 }
 
 static void
+tds_free_tvp_row(TDS_TVP_ROW *row)
+{
+	tds_free_param_results(row->params);
+}
+
+static void
 tds_param_free(TDSCOLUMN *col)
 {
+	TDS_TVP_ROW *tvp_row, *next_row;
+
 	if (!col->column_data)
 		return;
 
@@ -352,6 +360,21 @@ tds_param_free(TDSCOLUMN *col)
 		TDSBLOB *blob = (TDSBLOB *) col->column_data;
 		free(blob->textvalue);
 	}
+
+	if (col->column_type == SYBMSTABLE) {
+		TDS_TVP *table = (TDS_TVP *) col->column_data;
+
+		free(table->schema);
+		free(table->name);
+		tds_free_tvp_row(table->metadata);
+		free(table->metadata);
+		for (tvp_row = table->row; tvp_row != NULL; tvp_row = next_row) {
+			next_row = tvp_row->next;
+			tds_free_tvp_row(tvp_row);
+			free(tvp_row);
+		}
+	}
+
 	TDS_ZERO_FREE(col->column_data);
 }
 
@@ -1135,6 +1158,8 @@ tds_init_connection(TDSCONNECTION *conn, TDSCONTEXT *context, unsigned int bufsi
 	conn->s = INVALID_SOCKET;
 	conn->use_iconv = 1;
 	conn->tds_ctx = context;
+	conn->ncharsize = 1;
+	conn->unicharsize = 1;
 
 	if (tds_wakeup_init(&conn->wakeup))
 		goto Cleanup;
@@ -1855,6 +1880,8 @@ tds_deinit_bcpinfo(TDSBCPINFO *bcpinfo)
 	TDS_ZERO_FREE(bcpinfo->insert_stmt);
 	tds_free_results(bcpinfo->bindinfo);
 	bcpinfo->bindinfo = NULL;
+	TDS_ZERO_FREE(bcpinfo->sybase_colinfo);
+	bcpinfo->sybase_count = 0;
 }
 
 void

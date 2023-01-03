@@ -1,4 +1,4 @@
-$Id: b4e6442475cd841716ce9526482ecf7d0e30f471 $
+$Id$
 
 Summary of Changes in release 1.3
 --------------------------------------------

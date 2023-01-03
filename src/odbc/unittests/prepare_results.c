@@ -28,7 +28,7 @@ Test(int use_ird)
 		/* get IRD */
 		CHKGetStmtAttr(SQL_ATTR_IMP_ROW_DESC, &desc, sizeof(desc), &ind, "S");
 
-		CHKR(SQLGetDescField, (desc, 0, SQL_DESC_COUNT, &count, sizeof(count), &ind), "S");
+		CHKGetDescField(desc, 0, SQL_DESC_COUNT, &count, sizeof(count), &ind, "S");
 	} else {
 		CHKNumResultCols(&count, "S");
 	}

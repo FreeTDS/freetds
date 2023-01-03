@@ -170,6 +170,7 @@ TDSOBJS = [.src.tds]bulk$(OBJ), [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ
 	[.src.utils]threadsafe$(OBJ), \
 	[.src.utils]net$(OBJ), \
 	[.src.utils]bjoern-utf8$(OBJ), \
+	[.src.utils]smp$(OBJ), \
 	$(ASPRINTFOBJ) $(VASPRINTFOBJ) $(SNPRINTFOBJ) $(STRTOK_ROBJ) $(LIBICONVOBJ) $(SOCKETPAIROBJ) \
 	[.vms]getpass$(OBJ)
 

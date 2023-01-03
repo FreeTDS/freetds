@@ -23,7 +23,6 @@ Post Install
 * Build and test the package that requires FreeTDS.
 
 If you want to build the ODBC driver, you'll probably first want to install
-a Driver Manager (on Unix-like systems).  This release of FreeTDS was tested
-with unixODBC 2.2.11.
+a Driver Manager (on Unix-like systems).
 
 For any other information please see the Users Guide.

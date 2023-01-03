@@ -81,6 +81,8 @@ TESTS =	\
 	transaction4$(EXEEXT) \
 	utf8_4$(EXEEXT) \
 	qn$(EXEEXT) \
+	connection_string_parse$(EXEEXT) \
+	tvp$(EXEEXT) \
 	$(NULL)
 
 check_PROGRAMS	=	$(TESTS) oldpwd$(EXEEXT)
@@ -175,6 +177,9 @@ empty_query_SOURCES = empty_query.c
 transaction3_SOURCES = transaction3.c
 transaction4_SOURCES = transaction4.c
 qn_SOURCES = qn.c
+connection_string_parse_SOURCES = connection_string_parse.c
+connection_string_parse_CPPFLAGS = $(GLOBAL_CPPFLAGS)
+connection_string_parse_LDFLAGS = -static ../libtdsodbc.la ../../tds/unittests/libcommon.a -shared $(GLOBAL_LD_ADD)
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h

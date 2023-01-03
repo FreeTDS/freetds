@@ -115,7 +115,8 @@ main(int argc, char **argv)
 
 	if (params.cflag) {
 		if (create_target_table(params.src.dbobject, params.owner, params.dest.dbobject, dbsrc, dbtarget) == FALSE) {
-			printf("datacopy: could not create target table %s.%s . terminating\n", params.owner, params.dest.dbobject);
+			fprintf(stderr, "datacopy: could not create target table %s.%s . terminating\n",
+			        params.owner, params.dest.dbobject);
 			dbclose(dbsrc);
 			dbclose(dbtarget);
 			return 1;
@@ -123,15 +124,15 @@ main(int argc, char **argv)
 	}
 
 	if (check_table_structures(params.src.dbobject, params.dest.dbobject, dbsrc, dbtarget) == FALSE) {
-		printf("datacopy: table structures do not match. terminating\n");
+		fprintf(stderr, "datacopy: table structures do not match. terminating\n");
 		dbclose(dbsrc);
 		dbclose(dbtarget);
 		return 1;
 	}
 
 	if (transfer_data(&params, dbsrc, dbtarget) == FALSE) {
-		printf("datacopy: table copy failed.\n");
-		printf("           the data may have been partially copied into the target database \n");
+		fprintf(stderr, "datacopy: table copy failed.\n");
+		fprintf(stderr, "           the data may have been partially copied into the target database \n");
 		dbclose(dbsrc);
 		dbclose(dbtarget);
 		return 1;
@@ -411,15 +412,15 @@ create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbs
 	DBINT num_cols;
 	DBCOL2 colinfo;
 
-	sprintf(ls_command, "SET FMTONLY ON select * from %s SET FMTONLY OFF", sobjname);
+	sprintf(ls_command, "select * from %s where 0=1", sobjname);
 
 	if (dbcmd(dbsrc, ls_command) == FAIL) {
-		printf("dbcmd failed\n");
+		fprintf(stderr, "dbcmd failed\n");
 		return FALSE;
 	}
 
 	if (dbsqlexec(dbsrc) == FAIL) {
-		printf("table %s not found on SOURCE\n", sobjname);
+		fprintf(stderr, "table %s not found on SOURCE\n", sobjname);
 		return FALSE;
 	}
 
@@ -445,11 +446,8 @@ create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbs
 
 		strlcat(ls_command, colinfo.ServerTypeDeclaration, sizeof(ls_command));
 
-		if (colinfo.Null == TRUE) {
-			strlcat(ls_command, " NULL", sizeof(ls_command));
-		} else {
-			strlcat(ls_command, " NOT NULL", sizeof(ls_command));
-		}
+		strlcat(ls_command, colinfo.Identity ? " IDENTITY" : "", sizeof(ls_command));
+		strlcat(ls_command, colinfo.Null ? " NULL" : " NOT NULL", sizeof(ls_command));
 	}
 	if (strlcat(ls_command, " )", sizeof(ls_command)) >= sizeof(ls_command)) {
 		fprintf(stderr, "Buffer overflow building command to create table\n");
@@ -457,12 +455,12 @@ create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbs
 	}
 
 	if (dbcmd(dbdest, ls_command) == FAIL) {
-		printf("dbcmd failed\n");
+		fprintf(stderr, "dbcmd failed\n");
 		return FALSE;
 	}
 
 	if (dbsqlexec(dbdest) == FAIL) {
-		printf("create table on DESTINATION failed\n");
+		fprintf(stderr, "create table on DESTINATION failed\n");
 		return FALSE;
 	}
 
@@ -502,54 +500,54 @@ check_table_structures(char *sobjname, char *dobjname, DBPROCESS * dbsrc, DBPROC
 	DBINT src_collen, dest_collen;
 
 
-	sprintf(ls_command, "SET FMTONLY ON select * from %s SET FMTONLY OFF", sobjname);
+	sprintf(ls_command, "select * from %s where 0=1", sobjname);
 
 	if (dbcmd(dbsrc, ls_command) == FAIL) {
-		printf("dbcmd failed\n");
+		fprintf(stderr, "dbcmd failed\n");
 		return FALSE;
 	}
 
 	if (dbsqlexec(dbsrc) == FAIL) {
-		printf("table %s not found on SOURCE\n", sobjname);
+		fprintf(stderr, "table %s not found on SOURCE\n", sobjname);
 		return FALSE;
 	}
 
 	while ((ret=dbresults(dbsrc)) == SUCCEED)
 		src_numcols = dbnumcols(dbsrc);
 	if (ret != NO_MORE_RESULTS) {
-		printf("Error in dbresults\n");
+		fprintf(stderr, "Error in dbresults\n");
 		return FALSE;
 	}
 	if (0 == src_numcols) {
-		printf("Error in dbnumcols 1\n");
+		fprintf(stderr, "Error in dbnumcols 1\n");
 		return FALSE;
 	}
 
-	sprintf(ls_command, "SET FMTONLY ON select * from %s SET FMTONLY OFF", dobjname);
+	sprintf(ls_command, "select * from %s where 0=1", dobjname);
 
 	if (dbcmd(dbdest, ls_command) == FAIL) {
-		printf("dbcmd failed\n");
+		fprintf(stderr, "dbcmd failed\n");
 		return FALSE;
 	}
 
 	if (dbsqlexec(dbdest) == FAIL) {
-		printf("table %s not found on DEST\n", sobjname);
+		fprintf(stderr, "table %s not found on DEST\n", sobjname);
 		return FALSE;
 	}
 
 	while ((ret=dbresults(dbdest)) == SUCCEED)
 		dest_numcols = dbnumcols(dbdest);
 	if (ret != NO_MORE_RESULTS) {
-		printf("Error in dbresults\n");
+		fprintf(stderr, "Error in dbresults\n");
 		return FALSE;
 	}
 	if (0 == dest_numcols) {
-		printf("Error in dbnumcols 2\n");
+		fprintf(stderr, "Error in dbnumcols 2\n");
 		return FALSE;
 	}
 
 	if (src_numcols != dest_numcols) {
-		printf("number of columns do not match. source : %d , dest: %d\n", src_numcols, dest_numcols);
+		fprintf(stderr, "number of columns do not match. source : %d , dest: %d\n", src_numcols, dest_numcols);
 		return FALSE;
 	}
 
@@ -567,9 +565,9 @@ check_table_structures(char *sobjname, char *dobjname, DBPROCESS * dbsrc, DBPROC
 		}
 
 		if (src_coltype != dest_coltype || src_collen != dest_collen) {
-			printf("COLUMN TYPE MISMATCH: column %d\n", i);
-			printf("source: type %d, length %d\n", src_coltype, src_collen);
-			printf("dest  : type %d, length %d\n", dest_coltype, dest_collen);
+			fprintf(stderr, "COLUMN TYPE MISMATCH: column %d\n", i);
+			fprintf(stderr, "source: type %d, length %d\n", src_coltype, src_collen);
+			fprintf(stderr, "dest  : type %d, length %d\n", dest_coltype, dest_collen);
 			return FALSE;
 		}
 	}
@@ -612,17 +610,17 @@ transfer_data(const BCPPARAMDATA * params, DBPROCESS * dbsrc, DBPROCESS * dbdest
 		sprintf(ls_command, "truncate table %s", params->dest.dbobject);
 
 		if (dbcmd(dbdest, ls_command) == FAIL) {
-			printf("dbcmd failed\n");
+			fprintf(stderr, "dbcmd failed\n");
 			return FALSE;
 		}
 
 		if (dbsqlexec(dbdest) == FAIL) {
-			printf("dbsqlexec failed\n");
+			fprintf(stderr, "dbsqlexec failed\n");
 			return FALSE;
 		}
 
 		if (dbresults(dbdest) == FAIL) {
-			printf("Error in dbresults\n");
+			fprintf(stderr, "Error in dbresults\n");
 			return FALSE;
 		}
 	}
@@ -631,18 +629,18 @@ transfer_data(const BCPPARAMDATA * params, DBPROCESS * dbsrc, DBPROCESS * dbdest
 	sprintf(ls_command, "select * from %s", params->src.dbobject);
 
 	if (dbcmd(dbsrc, ls_command) == FAIL) {
-		printf("dbcmd failed\n");
+		fprintf(stderr, "dbcmd failed\n");
 		return FALSE;
 	}
 
 	if (dbsqlexec(dbsrc) == FAIL) {
-		printf("dbsqlexec failed\n");
+		fprintf(stderr, "dbsqlexec failed\n");
 		return FALSE;
 	}
 
 	if (NO_MORE_RESULTS != dbresults(dbsrc)) {
 		if (0 == (src_numcols = dbnumcols(dbsrc))) {
-			printf("Error in dbnumcols\n");
+			fprintf(stderr, "Error in dbnumcols\n");
 			return FALSE;
 		}
 	}
@@ -650,7 +648,7 @@ transfer_data(const BCPPARAMDATA * params, DBPROCESS * dbsrc, DBPROCESS * dbdest
 
 
 	if (bcp_init(dbdest, params->dest.dbobject, (char *) NULL, (char *) NULL, DB_IN) == FAIL) {
-		printf("Error in bcp_init\n");
+		fprintf(stderr, "Error in bcp_init\n");
 		return FALSE;
 	}
 
@@ -756,7 +754,7 @@ transfer_data(const BCPPARAMDATA * params, DBPROCESS * dbsrc, DBPROCESS * dbdest
 			if (rows_sent == params->batchsize) {
 				ret = bcp_batch(dbdest);
 				if (ret == -1) {
-					printf("bcp_batch error\n");
+					fprintf(stderr, "bcp_batch error\n");
 					free(srcdata);
 					return FALSE;
 				} else {

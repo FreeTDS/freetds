@@ -29,7 +29,8 @@ set(tests
 	array_error closestmt bcp
 	all_types utf8_3 empty_query
 	transaction3 transaction4
-	utf8_4 qn
+	utf8_4 qn connection_string_parse
+	tvp
 )
 
 if(WIN32)
@@ -40,7 +41,7 @@ endif()
 
 add_library(o_common STATIC common.c common.h c2string.c parser.c parser.h)
 
-set(static_tests all_types utf8_4)
+set(static_tests all_types utf8_4 connection_string_parse)
 set(unicode_tests utf8 oldpwd)
 foreach(target ${tests})
 	add_executable(o_${target} EXCLUDE_FROM_ALL ${target}.c)

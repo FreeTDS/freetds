@@ -27,6 +27,7 @@ TESTS =	\
 	freeze$(EXEEXT) \
 	strftime$(EXEEXT) \
 	log_elision$(EXEEXT) \
+	convert_bounds$(EXEEXT) \
 	$(NULL)
 
 # flags test commented, not necessary for 0.62
@@ -66,6 +67,7 @@ parsing_SOURCES	=	parsing.c
 freeze_SOURCES	=	freeze.c
 strftime_SOURCES	=	strftime.c
 log_elision_SOURCES	=	log_elision.c
+convert_bounds_SOURCES	=	convert_bounds.c
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h utf8.c allcolumns.c

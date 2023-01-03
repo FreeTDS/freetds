@@ -1143,6 +1143,19 @@ struct tds_connection
 	int spid;
 	int client_spid;
 
+	/**
+	 * Ratio between bytes allocated for a NCHAR type and type length (Sybase).
+	 * For instance in case a NVARCHAR(3) takes 9 bytes it's 3.
+	 */
+	uint8_t ncharsize;
+
+	/**
+	 * Ratio between bytes allocated for a UNICHAR type and type length (Sybase).
+	 * For instance in case a UNIVARCHAR(2) takes 4 bytes it's 2.
+	 * It really should be only 2.
+	 */
+	uint8_t unicharsize;
+
 	void *tls_session;
 #if defined(HAVE_GNUTLS)
 	void *tls_credentials;
@@ -1399,8 +1412,8 @@ TDSRET tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn);
 TDSRET tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params, TDSHEADERS * head);
 TDSRET tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option, TDS_OPTION_ARG *param, TDS_INT param_size);
 TDSRET tds_submit_begin_tran(TDSSOCKET *tds);
-TDSRET tds_submit_rollback(TDSSOCKET *tds, int cont);
-TDSRET tds_submit_commit(TDSSOCKET *tds, int cont);
+TDSRET tds_submit_rollback(TDSSOCKET *tds, bool cont);
+TDSRET tds_submit_commit(TDSSOCKET *tds, bool cont);
 TDSRET tds_disconnect(TDSSOCKET * tds);
 size_t tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen);
 size_t tds_quote_id_rpc(TDSSOCKET * tds, char *buffer, const char *id, int idlen);
@@ -1443,6 +1456,21 @@ TDSRET tds_process_tokens(TDSSOCKET * tds, /*@out@*/ TDS_INT * result_type, /*@o
 
 
 /* data.c */
+typedef struct tds_tvp_row
+{
+	TDSPARAMINFO *params;
+	struct tds_tvp_row *next;
+} TDS_TVP_ROW;
+
+typedef struct tds_tvp
+{
+	char *schema;
+	char *name;
+	int num_cols;
+	TDS_TVP_ROW *metadata;
+	TDS_TVP_ROW *row;
+} TDS_TVP;
+
 void tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE type);
 void tds_set_column_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE type);
 #ifdef WORDS_BIGENDIAN
@@ -1655,6 +1683,14 @@ enum tds_bcp_directions
 	TDS_BCP_QUERYOUT = 3
 };
 
+typedef struct tds5_colinfo
+{
+	TDS_TINYINT type;
+	TDS_TINYINT status;
+	TDS_SMALLINT offset;
+	TDS_INT length;
+} TDS5COLINFO;
+
 struct tds_bcpinfo
 {
 	const char *hint;
@@ -1666,6 +1702,8 @@ struct tds_bcpinfo
 	TDS_INT xfer_init;
 	TDS_INT bind_count;
 	TDSRESULTINFO *bindinfo;
+	TDS5COLINFO *sybase_colinfo;
+	TDS_INT sybase_count;
 };
 
 TDSRET tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);

@@ -36,6 +36,20 @@
 
 #if ENABLE_EXTRA_CHECKS
 
+/* Check common fields in ODBC structures */
+#define TEST_ATTRIBUTE(t,sa,fa,sb,fb) \
+        TDS_COMPILE_CHECK(t,sizeof(((sa*)0)->fa) == sizeof(((sb*)0)->fb) && TDS_OFFSET(sa,fa) == TDS_OFFSET(sb,fb))
+
+#define SAME_TDS_CHK_FIELDS(t,struct) \
+	TEST_ATTRIBUTE(t ## _a,TDS_CHK,htype,struct,htype); \
+	TEST_ATTRIBUTE(t ## _b,TDS_CHK,errs, struct,errs); \
+	TEST_ATTRIBUTE(t ## _c,TDS_CHK,mtx,  struct,mtx)
+
+SAME_TDS_CHK_FIELDS(t1, TDS_ENV);
+SAME_TDS_CHK_FIELDS(t2, TDS_DBC);
+SAME_TDS_CHK_FIELDS(t3, TDS_STMT);
+SAME_TDS_CHK_FIELDS(t4, TDS_DESC);
+
 void
 odbc_check_env_extra(TDS_ENV * env)
 {
@@ -94,6 +108,7 @@ odbc_check_desc_extra(TDS_DESC * desc)
 	assert(desc && desc->htype == SQL_HANDLE_DESC);
 	assert(desc->header.sql_desc_alloc_type == SQL_DESC_ALLOC_AUTO || desc->header.sql_desc_alloc_type == SQL_DESC_ALLOC_USER);
 	assert((desc->type != DESC_IPD && desc->type != DESC_IRD) || desc->header.sql_desc_alloc_type == SQL_DESC_ALLOC_AUTO);
+	assert(desc->parent && (IS_HSTMT(desc->parent) || IS_HDBC(desc->parent)));
 	for (i = 0; i < desc->header.sql_desc_count; ++i) {
 		odbc_check_drecord(desc, &desc->records[i]);
 	}

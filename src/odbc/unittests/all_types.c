@@ -37,11 +37,28 @@ static void test_type(TDSSOCKET *tds, TDSCOLUMN *col)
 		SQLLEN len;
 		int sql_c_type = sql_c_types[n];
 		const char *sql_c_type_name = sql_c_types_names[n];
+		struct _drecord drec_ixd;
+		SQLLEN dest_len = sizeof(buffer);
+		TDSPARAMINFO *params;
 
 		len = odbc_tds2sql_col(stmt, col, sql_c_type, buffer, sizeof(buffer), NULL);
 		if (len == SQL_NULL_DATA) {
 			printf("error converting to %3d (%s)\n", sql_c_type, sql_c_type_name);
+			continue;
 		}
+
+		params = tds_alloc_param_result(NULL);
+		assert(params);
+
+		/* convert back to server */
+		memset(&drec_ixd, 0, sizeof(drec_ixd));
+		drec_ixd.sql_desc_concise_type = sql_c_type;
+		drec_ixd.sql_desc_data_ptr = buffer;
+		drec_ixd.sql_desc_octet_length_ptr = &dest_len;
+		drec_ixd.sql_desc_precision = 18;
+		drec_ixd.sql_desc_scale = 4;
+		odbc_sql2tds(stmt, &drec_ixd, &drec, params->columns[0], true, stmt->ard, 0);
+		tds_free_param_results(params);
 	}
 }
 
@@ -77,9 +94,9 @@ main(int argc, char *argv[])
 		return 0;
 
 	/* get internal structures */
-	CHKR(SQLGetInfo, (odbc_conn, SQL_DRIVER_HDBC, &ulen, sizeof(ulen), NULL), "S");
+	CHKGetInfo(SQL_DRIVER_HDBC, &ulen, sizeof(ulen), NULL, "S");
 	dbc = (TDS_DBC *) (TDS_UINTPTR) ulen;
-	CHKR(SQLGetInfo, (odbc_conn, SQL_DRIVER_HENV, &ulen, sizeof(ulen), NULL), "S");
+	CHKGetInfo(SQL_DRIVER_HENV, &ulen, sizeof(ulen), NULL, "S");
 	env = (TDS_ENV *) (TDS_UINTPTR) ulen;
 	assert(dbc && env);
 	assert(env->tds_ctx);

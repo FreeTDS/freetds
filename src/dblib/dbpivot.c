@@ -171,6 +171,7 @@ col_equal(const struct col_t *pc1, const struct col_t *pc2)
 	case SYBFLTN:
 	case SYBMONEYN:
 	case SYBDATETIMN:
+	case SYBMSTABLE:
 		assert( false && pc1->type );
 		break;
 	}
@@ -214,6 +215,7 @@ col_buffer(struct col_t *pcol)
 	case SYBFLTN:
 	case SYBMONEYN:
 	case SYBDATETIMN:
+	case SYBMSTABLE:
 		assert( false && pcol->type );
 		break;
 	}

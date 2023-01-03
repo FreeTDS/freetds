@@ -1054,14 +1054,14 @@ static TDSRET
 _bcp_convert_in(DBPROCESS *dbproc, TDS_SERVER_TYPE srctype, const TDS_CHAR *src, TDS_UINT srclen,
 		TDS_SERVER_TYPE desttype, BCPCOLDATA *coldata)
 {
-	int variable = 1;
+	bool variable = true;
 	CONV_RESULT cr, *p_cr;
 	TDS_INT len;
 
 	coldata->is_null = false;
 
 	if (!is_variable_type(desttype)) {
-		variable = 0;
+		variable = false;
 		p_cr = (CONV_RESULT *) coldata->data;
 	} else {
 		p_cr = &cr;
@@ -2259,6 +2259,7 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 					    desttype, bindcol->bcp_column_data);
 	if (TDS_FAILED(rc))
 		return rc;
+	rtrim_bcpcol(bindcol);
 
 	return TDS_SUCCESS;
 

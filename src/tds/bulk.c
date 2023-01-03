@@ -43,6 +43,7 @@
 #include <freetds/bytes.h>
 #include <freetds/iconv.h>
 #include <freetds/stream.h>
+#include <freetds/convert.h>
 #include <freetds/utils/string.h>
 #include <freetds/replacements.h>
 
@@ -72,6 +73,7 @@ static int tds5_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data 
 static int tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error,
 					 int offset, TDS_UCHAR *rowbuffer, int start, int *pncols);
 static void tds_bcp_row_free(TDSRESULTINFO* result, unsigned char *row);
+static TDSRET tds5_process_insert_bulk_reply(TDSSOCKET * tds, TDSBCPINFO *bcpinfo);
 
 /**
  * Initialize BCP information.
@@ -149,8 +151,7 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		curcol->column_varint_size = resinfo->columns[i]->column_varint_size;
 		curcol->column_prec = resinfo->columns[i]->column_prec;
 		curcol->column_scale = resinfo->columns[i]->column_scale;
-		curcol->on_server.column_type = resinfo->columns[i]->on_server.column_type;
-		curcol->on_server.column_size = resinfo->columns[i]->on_server.column_size;
+		curcol->on_server = resinfo->columns[i]->on_server;
 		curcol->char_conv = resinfo->columns[i]->char_conv;
 		if (!tds_dstr_dup(&curcol->column_name, &resinfo->columns[i]->column_name))
 			goto cleanup;
@@ -433,13 +434,13 @@ tds5_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 
 	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
 		TDSCOLUMN  *bindcol = bcpinfo->bindinfo->columns[i];
-		if (is_blob_type(bindcol->column_type)) {
+		if (is_blob_type(bindcol->on_server.column_type)) {
 			TDSRET rc = get_col_data(bcpinfo, bindcol, offset);
 			if (TDS_FAILED(rc))
 				return rc;
 			/* unknown but zero */
 			tds_put_smallint(tds, 0);
-			tds_put_byte(tds, bindcol->column_type);
+			tds_put_byte(tds, bindcol->on_server.column_type);
 			tds_put_byte(tds, 0xff - blob_cols);
 			/*
 			 * offset of txptr we stashed during variable
@@ -489,7 +490,7 @@ static inline void
 tds5_swap_data(const TDSCOLUMN *col, void *p)
 {
 #ifdef WORDS_BIGENDIAN
-	tds_swap_datatype(tds_get_conversion_type(col->column_type, col->column_size), p);
+	tds_swap_datatype(tds_get_conversion_type(col->on_server.column_type, col->column_size), p);
 #endif
 }
 
@@ -524,10 +525,16 @@ tds5_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_dat
 		TDSCOLUMN *const bcpcol = bcpinfo->bindinfo->columns[i];
 		const TDS_INT column_size = bcpcol->on_server.column_size;
 
-		if (is_nullable_type(bcpcol->column_type) || bcpcol->column_nullable)
-			continue;
+		/* if possible check information from server */
+		if (bcpinfo->sybase_count > i) {
+			if (bcpinfo->sybase_colinfo[i].offset < 0)
+				continue;
+		} else {
+			if (is_nullable_type(bcpcol->on_server.column_type) || bcpcol->column_nullable)
+				continue;
+		}
 
-		tdsdump_log(TDS_DBG_FUNC, "tds5_bcp_add_fixed_columns column %d is a fixed column\n", i + 1);
+		tdsdump_log(TDS_DBG_FUNC, "tds5_bcp_add_fixed_columns column %d (%s) is a fixed column\n", i + 1, tds_dstr_cstr(&bcpcol->column_name));
 
 		if (TDS_FAILED(get_col_data(bcpinfo, bcpcol, offset))) {
 			tdsdump_log(TDS_DBG_INFO1, "get_col_data (column %d) failed\n", i + 1);
@@ -543,7 +550,7 @@ tds5_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_dat
 			return -1;
 		}
 
-		if (is_numeric_type(bcpcol->column_type)) {
+		if (is_numeric_type(bcpcol->on_server.column_type)) {
 			num = (TDS_NUMERIC *) bcpcol->bcp_column_data->data;
 			cpbytes = tds_numeric_bytes_per_prec[num->precision];
 			memcpy(&rowbuffer[row_pos], num->array, cpbytes);
@@ -607,10 +614,10 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 								"is null" );
 	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
 		TDSCOLUMN *bcpcol = bcpinfo->bindinfo->columns[i];
-		tdsdump_log(TDS_DBG_FUNC, "%4d %8d %18s %18s %8s\n", 	i, 
-									bcpcol->column_type,  
-									is_nullable_type(bcpcol->column_type)? "yes" : "no", 
-									bcpcol->column_nullable? "yes" : "no", 
+		tdsdump_log(TDS_DBG_FUNC, "%4d %8d %18s %18s %8s\n", 	i,
+									bcpcol->on_server.column_type,
+									is_nullable_type(bcpcol->on_server.column_type)? "yes" : "no",
+									bcpcol->column_nullable? "yes" : "no",
 									bcpcol->bcp_column_data->is_null? "yes" : "no" );
 	}
 
@@ -628,8 +635,13 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 		 * Is this column of "variable" type, i.e. NULLable
 		 * or naturally variable length e.g. VARCHAR
 		 */
-		if (!is_nullable_type(bcpcol->column_type) && !bcpcol->column_nullable)
-			continue;
+		if (bcpinfo->sybase_count > i) {
+			if (bcpinfo->sybase_colinfo[i].offset >= 0)
+				continue;
+		} else {
+			if (!is_nullable_type(bcpcol->on_server.column_type) && !bcpcol->column_nullable)
+				continue;
+		}
 
 		tdsdump_log(TDS_DBG_FUNC, "%4d %8d %8d %8d\n", i, ncols, row_pos, cpbytes);
 
@@ -647,11 +659,11 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 
 		/* move the column buffer into the rowbuffer */
 		if (!bcpcol->bcp_column_data->is_null) {
-			if (is_blob_type(bcpcol->column_type)) {
+			if (is_blob_type(bcpcol->on_server.column_type)) {
 				cpbytes = 16;
 				bcpcol->column_textpos = row_pos;               /* save for data write */
-			} else if (is_numeric_type(bcpcol->column_type)) {
-					TDS_NUMERIC *num = (TDS_NUMERIC *) bcpcol->bcp_column_data->data;
+			} else if (is_numeric_type(bcpcol->on_server.column_type)) {
+				TDS_NUMERIC *num = (TDS_NUMERIC *) bcpcol->bcp_column_data->data;
 				cpbytes = tds_numeric_bytes_per_prec[num->precision];
 				memcpy(&rowbuffer[row_pos], num->array, cpbytes);
 			} else {
@@ -879,9 +891,11 @@ tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 
 	/*
 	 * In TDS 5 we get the column information as a result set from the "insert bulk" command.
-	 * We're going to ignore it.  
 	 */
-	rc = tds_process_simple_query(tds);
+	if (IS_TDS50(tds->conn))
+		rc = tds5_process_insert_bulk_reply(tds, bcpinfo);
+	else
+		rc = tds_process_simple_query(tds);
 	if (TDS_FAILED(rc))
 		return rc;
 
@@ -893,6 +907,159 @@ tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		tds7_bcp_send_colmetadata(tds, bcpinfo);
 	
 	return TDS_SUCCESS;
+}
+
+enum {
+	/* list of columns we need, 0-nnn */
+	BULKCOL_colcnt,
+	BULKCOL_colid,
+	BULKCOL_type,
+	BULKCOL_length,
+	BULKCOL_status,
+	BULKCOL_offset,
+
+	/* number of columns needed */
+	BULKCOL_COUNT,
+
+	/* bitmask to have them all */
+	BULKCOL_ALL = (1 << BULKCOL_COUNT) -1,
+};
+
+static int
+tds5_bulk_insert_column(const char *name)
+{
+#define BULKCOL(n) do {\
+	if (strcmp(name, #n) == 0) \
+		return BULKCOL_ ## n; \
+} while(0)
+
+	switch (name[0]) {
+	case 'c':
+		BULKCOL(colcnt);
+		BULKCOL(colid);
+		break;
+	case 't':
+		BULKCOL(type);
+		break;
+	case 'l':
+		BULKCOL(length);
+		break;
+	case 's':
+		BULKCOL(status);
+		break;
+	case 'o':
+		BULKCOL(offset);
+		break;
+	}
+#undef BULKCOL
+	return -1;
+}
+
+static TDSRET
+tds5_process_insert_bulk_reply(TDSSOCKET * tds, TDSBCPINFO *bcpinfo)
+{
+	TDS_INT res_type;
+	TDS_INT done_flags;
+	TDSRET  rc;
+	TDSRET  ret = TDS_SUCCESS;
+	bool row_match = false;
+	TDSRESULTINFO *res_info;
+	int icol;
+	unsigned col_flags;
+	/* position of the columns in the row */
+	int cols_pos[BULKCOL_COUNT];
+	int cols_values[BULKCOL_COUNT];
+	TDS5COLINFO *colinfo;
+
+	CHECK_TDS_EXTRA(tds);
+
+	while ((rc = tds_process_tokens(tds, &res_type, &done_flags, TDS_RETURN_DONE|TDS_RETURN_ROWFMT|TDS_RETURN_ROW)) == TDS_SUCCESS) {
+		switch (res_type) {
+		case TDS_ROWFMT_RESULT:
+			/* check if it's the resultset with column information and save column positions */
+			row_match = false;
+			col_flags = 0;
+			res_info = tds->current_results;
+			if (!res_info)
+				continue;
+			for (icol = 0; icol < res_info->num_cols; ++icol) {
+				const TDSCOLUMN *col = res_info->columns[icol];
+				int scol = tds5_bulk_insert_column(tds_dstr_cstr(&col->column_name));
+				if (scol < 0)
+					continue;
+				cols_pos[scol] = icol;
+				col_flags |= 1 << scol;
+			}
+			if (col_flags == BULKCOL_ALL)
+				row_match = true;
+			break;
+		case TDS_ROW_RESULT:
+			/* get the results */
+			col_flags = 0;
+			if (!row_match)
+				continue;
+			res_info = tds->current_results;
+			if (!res_info)
+				continue;
+			for (icol = 0; icol < BULKCOL_COUNT; ++icol) {
+				const TDSCOLUMN *col = res_info->columns[cols_pos[icol]];
+				int ctype = tds_get_conversion_type(col->on_server.column_type, col->column_size);
+				unsigned char *src = col->column_data;
+				int srclen = col->column_cur_size;
+				CONV_RESULT dres;
+
+				if (tds_convert(tds_get_ctx(tds), ctype, src, srclen, SYBINT4, &dres) < 0)
+					break;
+				col_flags |= 1 << icol;
+				cols_values[icol] = dres.i;
+			}
+			/* save informations */
+			if (col_flags != BULKCOL_ALL ||
+				cols_values[BULKCOL_colcnt] < 1 ||
+				cols_values[BULKCOL_colcnt] > 4096 || /* limit of columns accepted */
+				cols_values[BULKCOL_colid] < 1 ||
+				cols_values[BULKCOL_colid] > cols_values[BULKCOL_colcnt]) {
+				rc = TDS_FAIL;
+				break;
+			}
+			if (bcpinfo->sybase_colinfo == NULL) {
+				bcpinfo->sybase_colinfo = calloc(cols_values[BULKCOL_colcnt], sizeof(*bcpinfo->sybase_colinfo));
+				if (bcpinfo->sybase_colinfo == NULL) {
+					rc = TDS_FAIL;
+					break;
+				}
+				bcpinfo->sybase_count = cols_values[BULKCOL_colcnt];
+			}
+			/* bound check, colcnt could have changed from row to row */
+			if (cols_values[BULKCOL_colid] > bcpinfo->sybase_count) {
+				rc = TDS_FAIL;
+				break;
+			}
+			colinfo = &bcpinfo->sybase_colinfo[cols_values[BULKCOL_colid] - 1];
+			colinfo->type = cols_values[BULKCOL_type];
+			colinfo->status = cols_values[BULKCOL_status];
+			colinfo->offset = cols_values[BULKCOL_offset];
+			colinfo->length = cols_values[BULKCOL_length];
+			tdsdump_log(TDS_DBG_INFO1, "gotten row information %d type %d length %d status %d offset %d\n",
+					cols_values[BULKCOL_colid],
+					colinfo->type,
+					colinfo->length,
+					colinfo->status,
+					colinfo->offset);
+			break;
+		case TDS_DONE_RESULT:
+		case TDS_DONEPROC_RESULT:
+		case TDS_DONEINPROC_RESULT:
+			if ((done_flags & TDS_DONE_ERROR) != 0)
+				ret = TDS_FAIL;
+		default:
+			break;
+		}
+	}
+	if (TDS_FAILED(rc))
+		ret = rc;
+
+	return ret;
 }
 
 /**

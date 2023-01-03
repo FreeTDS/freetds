@@ -204,6 +204,7 @@ typedef enum
 	SYBMSTIME = 41,  	/* 0x29 */
 	SYBMSDATETIME2 = 42,  	/* 0x2a */
 	SYBMSDATETIMEOFFSET = 43,/* 0x2b */
+	SYBMSTABLE = 243,	/* 0xF3 */
 
 /*
  * Sybase only types
@@ -234,8 +235,14 @@ typedef enum
 
 typedef enum
 {
+	USER_CHAR_TYPE = 1,		/* 0x01 */
+	USER_VARCHAR_TYPE = 2,		/* 0x02 */
+	USER_SYSNAME_TYPE = 18,		/* 0x12 */
+	USER_NCHAR_TYPE = 24,		/* 0x18 */
+	USER_NVARCHAR_TYPE = 25,	/* 0x19 */
 	USER_UNICHAR_TYPE = 34,		/* 0x22 */
-	USER_UNIVARCHAR_TYPE = 35	/* 0x23 */
+	USER_UNIVARCHAR_TYPE = 35,	/* 0x23 */
+	USER_UNITEXT_TYPE = 36,		/* 0x24 */
 } TDS_USER_TYPE;
 
 /* compute operator */

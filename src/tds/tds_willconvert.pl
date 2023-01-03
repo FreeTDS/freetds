@@ -132,17 +132,18 @@ print "};\n";
 __DATA__
           To
 From
-            CHARx TEXT BINARYx INTx FLTx NUMERIC DECIMAL BITx MONEYx DATETIMEx BOUNDARY UNIQUE SENSITIVITY
-CHARx       T     T    T       T    T    T       T       T    T      T         T        T      t
-TEXT        T     T    T       T    T    T       T       T    T      T         T        T      t
-BINARYx     T     T    T       T    T    F       F       F    T      F         F        F      F
-INTx        T     T    T       T    T    T       T       T    T      F         F        F      F
-FLTx        T     T    T       T    T    T       T       T    T      F         F        F      F
-NUMERIC     T     T    T       T    T    T       T       T    T      F         F        F      F
-DECIMAL     T     T    T       T    T    T       T       T    T      F         F        F      F
-BITx        T     T    T       T    T    T       T       T    T      F         F        F      F
-MONEYx      T     T    T       T    T    T       T       T    T      F         F        F      F
-DATETIMEx   T     T    T       F    F    F       F       F    F      T         F        F      F
-BOUNDARY    T     T    F       F    F    F       F       F    F      F         T        F      F
-UNIQUE      T     T    T       F    F    F       F       F    F      F         F        T      F
-SENSITIVITY t     t    F       F    F    F       F       F    F      F         F        F      t
+            CHARx TEXT BINARYx INTx FLTx NUMERIC DECIMAL BITx MONEYx DATETIMEx BOUNDARY UNIQUE SENSITIVITY MSTABLE
+CHARx       T     T    T       T    T    T       T       T    T      T         T        T      t           F
+TEXT        T     T    T       T    T    T       T       T    T      T         T        T      t           F
+BINARYx     T     T    T       T    T    F       F       F    T      F         F        F      F           F
+INTx        T     T    T       T    T    T       T       T    T      F         F        F      F           F
+FLTx        T     T    T       T    T    T       T       T    T      F         F        F      F           F
+NUMERIC     T     T    T       T    T    T       T       T    T      F         F        F      F           F
+DECIMAL     T     T    T       T    T    T       T       T    T      F         F        F      F           F
+BITx        T     T    T       T    T    T       T       T    T      F         F        F      F           F
+MONEYx      T     T    T       T    T    T       T       T    T      F         F        F      F           F
+DATETIMEx   T     T    T       F    F    F       F       F    F      T         F        F      F           F
+BOUNDARY    T     T    F       F    F    F       F       F    F      F         T        F      F           F
+UNIQUE      T     T    T       F    F    F       F       F    F      F         F        T      F           F
+SENSITIVITY t     t    F       F    F    F       F       F    F      F         F        F      t           F
+MSTABLE     F     F    F       F    F    F       F       F    F      F         F        F      F           T

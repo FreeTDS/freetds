@@ -132,6 +132,7 @@ void tds_all_types(TDSSOCKET *tds, tds_any_type_t *func)
 		case SYBUNITEXT:
 		case SYBVARIANT: /* TODO */
 		case SYBSINT1: /* TODO */
+		case SYBMSTABLE: /* TODO */
 			continue;
 		}
 

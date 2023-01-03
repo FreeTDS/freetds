@@ -263,7 +263,7 @@ set(FUNCS asprintf vasprintf strtok_r strtok_s readpassphrase
 	getaddrinfo inet_ntop gethostname poll socketpair
 	clock_gettime fseeko pthread_cond_timedwait pthread_cond_timedwait_relative_np
 	pthread_condattr_setclock _lock_file _unlock_file usleep nanosleep
-	readdir_r eventfd daemon system)
+	readdir_r eventfd daemon system mallinfo mallinfo2)
 
 # TODO
 set(HAVE_GETADDRINFO 1 CACHE INTERNAL "")
@@ -482,7 +482,6 @@ set(FREETDS_PUBLIC_INCLUDE
 	${CMAKE_SOURCE_DIR}/include/sybdb.h
 	${CMAKE_SOURCE_DIR}/include/sybfront.h
 	${CMAKE_SOURCE_DIR}/include/syberror.h
-	${CMAKE_SOURCE_DIR}/include/odbcss.h
 	${CMAKE_BINARY_DIR}/include/tds_sysdep_public.h)
 
 set(FREETDS_PUBLIC_INCLUDE_2

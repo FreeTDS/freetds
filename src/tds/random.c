@@ -56,8 +56,6 @@ tds_random_buffer(unsigned char *out, int len)
 #elif defined(HAVE_OPENSSL)
 	if (RAND_bytes(out, len) == 1)
 		return;
-	if (RAND_pseudo_bytes(out, len) >= 0)
-		return;
 #endif
 
 	/* TODO find a better random... */

@@ -247,7 +247,7 @@ if test $tds_mingw = no; then
 	# linked in. Others (inc debian) have termcap built into ncurses.
 	ACX_PUSH_LIBS("")
 	AC_SEARCH_LIBS(tgetent, [readline ncurses curses termcap])
-	AC_CHECK_LIB([readline], [readline], [LIBS="$LIBS -lreadline"
+	AC_CHECK_LIB([readline], [readline], [LIBS="-lreadline $LIBS"
 	  AC_DEFINE(HAVE_READLINE, 1, [Define to 1 if you have the GNU Readline library.])], [LIBS=""] )
 	AC_CHECK_FUNCS([rl_on_new_line rl_reset_line_state])
 	AC_LINK_IFELSE([AC_LANG_SOURCE([[
@@ -311,13 +311,14 @@ AC_CHECK_HEADERS([errno.h libgen.h \
 	wchar.h inttypes.h winsock2.h \
 	localcharset.h valgrind/memcheck.h malloc.h dirent.h \
 	stdbool.h gnutls/abstract.h getopt.h fcntl.h])
-AC_CHECK_HEADERS([windows.h sql.h],[],[],[[#ifdef HAVE_WINDOWS_H
+AC_CHECK_HEADERS([windows.h sql.h odbcss.h],[],[],[[#ifdef HAVE_WINDOWS_H
 # include <windows.h>
 #endif
 #ifdef HAVE_SQL_H
 # include <sql.h>
 #endif
 ]])
+AM_CONDITIONAL(HAVE_ODBCSS_H, test "$ac_cv_header_odbcss_h" = "yes")
 if test $tds_mingw = no; then
     AC_CHECK_HEADERS([	arpa/inet.h \
 			langinfo.h \
@@ -499,7 +500,7 @@ nl_langinfo locale_charset setenv putenv \
 getuid getpwuid getpwuid_r fstat alarm fork \
 gethrtime localtime_r setitimer eventfd \
 _fseeki64 _ftelli64 setrlimit pthread_cond_timedwait \
-_lock_file _unlock_file usleep nanosleep readdir_r])
+_lock_file _unlock_file usleep nanosleep readdir_r mallinfo mallinfo2])
 
 AC_TRY_LINK([#include <stdio.h>
 #include <stdlib.h>],

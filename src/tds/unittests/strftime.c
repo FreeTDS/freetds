@@ -62,6 +62,9 @@ main(int argc, char **argv)
 	TEST(4, "%z%%", "1234%");
 	TEST(4, "%z%H", "123400");
 
+	/* not terminated format, should not overflow */
+	TEST(3, "%", "%");
+
 	/* not portable %l, we should handle it */
 	TEST(0, "%l", "12");
 	TEST(0, "%%%l", "%12");

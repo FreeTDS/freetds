@@ -49,7 +49,7 @@
  */
 
 #ifndef HAVE_GNUTLS
-#error HAVE_GNUTLS not defines, this file should not be included
+#error HAVE_GNUTLS not defined, this file should not be included
 #endif
 
 /* emulate GMP if not present */
@@ -68,7 +68,7 @@ typedef struct {
 #endif
 
 
-/* emulate Nettle is not present */
+/* emulate Nettle if not present */
 #ifndef HAVE_NETTLE
 #define HAVE_NETTLE 1
 
@@ -191,12 +191,6 @@ sha1(uint8_t *hash, const void *data, size_t len)
 #endif
 
 
-static void
-rnd_func(void *ctx, size_t len, uint8_t * out)
-{
-	tds_random_buffer(out, len);
-}
-
 #define dumpl(b,l) tdsdump_dump_buf(TDS_DBG_INFO1, #b, b, l)
 #ifndef dumpl
 #define dumpl(b,l) do {} while(0)
@@ -243,8 +237,7 @@ mgf_mask(uint8_t *dest, size_t dest_len, const uint8_t *mask, size_t mask_len)
 }
 
 static int
-oaep_encrypt(size_t key_size, void *random_ctx, nettle_random_func *random,
-	       size_t length, const uint8_t *message, mpz_t m)
+oaep_encrypt(size_t key_size, size_t length, const uint8_t *message, mpz_t m)
 {
 	/* EM: 0x00 ROS (HASH 0x00.. 0x01 message) */
 	struct {
@@ -266,7 +259,7 @@ oaep_encrypt(size_t key_size, void *random_ctx, nettle_random_func *random,
 	dumpl(em.db, db_len);
 
 	/* create ros */
-	random(random_ctx, hash_len, em.ros);
+	tds_random_buffer(em.ros, hash_len);
 	dump(em.ros);
 
 	/* mask db */
@@ -283,10 +276,10 @@ oaep_encrypt(size_t key_size, void *random_ctx, nettle_random_func *random,
 }
 
 static int
-rsa_encrypt_oaep(const struct rsa_public_key *key, void *random_ctx, nettle_random_func *random,
+rsa_encrypt_oaep(const struct rsa_public_key *key,
 	    size_t length, const uint8_t *message, mpz_t gibberish)
 {
-	if (!oaep_encrypt(key->size, random_ctx, random, length, message, gibberish))
+	if (!oaep_encrypt(key->size, length, message, gibberish))
 		return 0;
 
 	mpz_powm(gibberish, gibberish, key->e, key->n);
@@ -340,7 +333,7 @@ tds5_rsa_encrypt(const void *key, size_t key_len, const void *nonce, size_t nonc
 	}
 
 	/* get password encrypted */
-	ret = rsa_encrypt_oaep(&pubkey, NULL, rnd_func, message_len, message, p);
+	ret = rsa_encrypt_oaep(&pubkey, message_len, message, p);
 	if (!ret) {
 		tdsdump_log(TDS_DBG_ERROR, "Error encrypting message\n");
 		goto error;
