@@ -3775,18 +3775,28 @@ static int
 _get_printable_size(TDSCOLUMN * colinfo)
 {
 	switch (tds_get_conversion_type(colinfo->column_type, colinfo->column_size)) {
+	case SYBUINT1:
 	case SYBINT1:
 		return 3;
+	case SYBSINT1:
+		return 4;
+	case SYBUINT2:
+		return 5;
 	case SYBINT2:
 		return 6;
+	case SYBUINT4:
+		return 10;
 	case SYBINT4:
 		return 11;
+	case SYBUINT8:
+		return 20;
 	case SYBINT8:
 		return 21;
 	case SYBVARCHAR:
 	case SYBCHAR:
 	case SYBTEXT:
 	case SYBNTEXT:
+	case SYBUNITEXT:
 	case SYBNVARCHAR:
 	case SYBLONGCHAR:
 		return colinfo->column_size;
@@ -3809,13 +3819,24 @@ _get_printable_size(TDSCOLUMN * colinfo)
 	case SYBTIME:
 	case SYB5BIGTIME:
 		return 15;
+	case SYBMSTIME:
+		return 16;
 	case SYBDATE:
+	case SYBMSDATE:
 		return 10;
+	case SYBMSDATETIME2:
+		return 27;
+	case SYBMSDATETIMEOFFSET:
+		return 33;
 	case SYBUNIQUE:
 		return 36;
 	case SYBBIT:
 		return 1;
+	case SYBNUMERIC:
+	case SYBDECIMAL:
+		return colinfo->column_prec + 2;
 		/* FIX ME -- not all types present */
+	case SYBVOID: /* or 4 bytes for "null" ? */
 	default:
 		return 0;
 	}
