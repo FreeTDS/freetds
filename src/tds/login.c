@@ -561,6 +561,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 	tds->conn->capabilities = login->capabilities;
 
 reroute:
+	tds_ssl_deinit(tds->conn);
 	erc = TDSEINTF;
 	orig_port = login->port;
 	for (addrs = login->ip_addrs; addrs != NULL; addrs = addrs->ai_next) {
