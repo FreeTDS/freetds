@@ -51,7 +51,7 @@
 static int collate2charset(TDSCONNECTION * conn, TDS_UCHAR collate[5]);
 static size_t skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, const char **input, size_t * input_size);
 static int tds_iconv_info_init(TDSICONV * char_conv, int client_canonic, int server_canonic);
-static int tds_iconv_init(void);
+static bool tds_iconv_init(void);
 static void _iconv_close(iconv_t * cd);
 static void tds_iconv_info_close(TDSICONV * char_conv);
 
@@ -88,7 +88,7 @@ static const struct {
 /**
  * Initialize charset searching for UTF-8, UCS-2 and ISO8859-1
  */
-static int
+static bool
 tds_iconv_init(void)
 {
 	int i;
@@ -130,8 +130,10 @@ tds_iconv_init(void)
 				break;
 		}
 		/* required characters not found !!! */
-		if (!iconv_names[POS_ISO1])
-			return 1;
+		if (!iconv_names[POS_ISO1]) {
+			tdsdump_log(TDS_DBG_ERROR, "iconv name for ISO-8859-1 not found\n");
+			return false;
+		}
 	}
 
 	/* now search for UCS-2 */
@@ -189,8 +191,10 @@ tds_iconv_init(void)
 		}
 	}
 	/* we need a UCS-2 (big endian or little endian) */
-	if (!iconv_names[POS_UCS2LE] && !iconv_names[POS_UCS2BE])
-		return 2;
+	if (!iconv_names[POS_UCS2LE] && !iconv_names[POS_UCS2BE]) {
+		tdsdump_log(TDS_DBG_ERROR, "iconv name for UCS-2 not found\n");
+		return false;
+	}
 
 	ucs2name = iconv_names[POS_UCS2LE] ? iconv_names[POS_UCS2LE] : iconv_names[POS_UCS2BE];
 
@@ -211,8 +215,10 @@ tds_iconv_init(void)
 		if (!iconv_names[from] || !iconv_names[to])
 			continue;
 		cd = tds_sys_iconv_open(iconv_names[to], iconv_names[from]);
-		if (cd == (iconv_t) -1)
-			return 1;
+		if (cd == (iconv_t) -1) {
+			tdsdump_log(TDS_DBG_ERROR, "iconv_open(%s, %s) failed\n", iconv_names[to], iconv_names[from]);
+			return false;
+		}
 
 		pib = (ICONV_CONST char *) test_strings[from].data;
 		il = test_strings[from].len;
@@ -223,12 +229,15 @@ tds_iconv_init(void)
 
 		if (res != 0
 		    || sizeof(ob) - ol != test_strings[to].len
-		    || memcmp(ob, test_strings[to].data, test_strings[to].len) != 0)
-			return 1;
+		    || memcmp(ob, test_strings[to].data, test_strings[to].len) != 0) {
+			tdsdump_log(TDS_DBG_ERROR, "iconv(%s, %s) failed res %d\n", iconv_names[to], iconv_names[from], (int) res);
+			tdsdump_log(TDS_DBG_ERROR, "len %d\n", (int) (sizeof(ob) - ol));
+			return false;
+		}
 	}
 
 	/* success (it should always occurs) */
-	return 0;
+	return true;
 }
 
 /**
@@ -354,12 +363,12 @@ tds_iconv_open(TDSCONNECTION * conn, const char *charset, int use_utf16)
 	int canonic;
 	int canonic_charset = tds_canonical_charset(charset);
 	int canonic_env_charset = conn->env.charset ? tds_canonical_charset(conn->env.charset) : -1;
-	int fOK, ret;
+	int fOK;
 
 	TDS_ENCODING *client = &conn->char_convs[client2ucs2]->from.charset;
 	TDS_ENCODING *server = &conn->char_convs[client2ucs2]->to.charset;
 
-	tdsdump_log(TDS_DBG_FUNC, "tds_iconv_open(%p, %s)\n", conn, charset);
+	tdsdump_log(TDS_DBG_FUNC, "tds_iconv_open(%p, %s, %d)\n", conn, charset, use_utf16);
 
 	/* TDS 5.0 support only UTF-16 encodings */
 	if (IS_TDS50(conn))
@@ -367,12 +376,9 @@ tds_iconv_open(TDSCONNECTION * conn, const char *charset, int use_utf16)
 
 	/* initialize */
 	if (!iconv_initialized) {
-		if ((ret = tds_iconv_init()) > 0) {
-			static const char names[][12] = { "ISO 8859-1", "UCS-2" };
-			assert(ret < 3);
-			tdsdump_log(TDS_DBG_FUNC, "error: tds_iconv_init() returned %d; "
-						  "could not find a name for %s that your iconv accepts.\n"
-						  "use: \"configure --disable-libiconv\"", ret, names[ret-1]);
+		if (!tds_iconv_init()) {
+			tdsdump_log(TDS_DBG_ERROR, "error: tds_iconv_init() failed; "
+						   "try using GNU libiconv library\n");
 			return TDS_FAIL;
 		}
 		iconv_initialized = true;
