@@ -31,7 +31,8 @@ simple_string(void)
 
 	const char *connect_string_end = connect_string + strlen(connect_string);
 	login = tds_alloc_login(0);
-	tds_set_language(login, "us_english");
+	if (!tds_set_language(login, "us_english"))
+		return 1;
 	locale = tds_alloc_locale();
 	login = tds_init_login(login, locale);
 
@@ -63,7 +64,8 @@ simple_escaped_string(void)
 
 	const char *connect_string_end = connect_string + strlen(connect_string);
 	login = tds_alloc_login(0);
-	tds_set_language(login, "us_english");
+	if (!tds_set_language(login, "us_english"))
+		return 1;
 	locale = tds_alloc_locale();
 	login = tds_init_login(login, locale);
 
@@ -95,7 +97,8 @@ test_special_symbols(void)
 
 	const char *connect_string_end = connect_string + strlen(connect_string);
 	login = tds_alloc_login(0);
-	tds_set_language(login, "us_english");
+	if (!tds_set_language(login, "us_english"))
+		return 1;
 	locale = tds_alloc_locale();
 	login = tds_init_login(login, locale);
 
@@ -127,7 +130,8 @@ password_contains_curly_braces(void)
 
 	const char *connect_string_end = connect_string + strlen(connect_string);
 	login = tds_alloc_login(0);
-	tds_set_language(login, "us_english");
+	if (!tds_set_language(login, "us_english"))
+		return 1;
 	locale = tds_alloc_locale();
 	login = tds_init_login(login, locale);
 
@@ -159,7 +163,8 @@ password_contains_curly_braces_and_separator(void)
 
 	const char *connect_string_end = connect_string + strlen(connect_string);
 	login = tds_alloc_login(0);
-	tds_set_language(login, "us_english");
+	if (!tds_set_language(login, "us_english"))
+		return 1;
 	locale = tds_alloc_locale();
 	login = tds_init_login(login, locale);
 
