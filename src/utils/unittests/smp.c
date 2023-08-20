@@ -35,12 +35,12 @@ static void
 same_smp(smp n, const char *s, int line)
 {
 	char *out = smp_to_string(n);
-	bool fail = (strcmp(s, out) != 0);
-	free(out);
-	if (fail) {
+	if (strcmp(s, out) != 0) {
 		fprintf(stderr, "%d: Wrong number, expected %s got %s\n", line, s, out);
+		free(out);
 		exit(1);
 	}
+	free(out);
 }
 #define same_smp(n, s) same_smp(n, s, __LINE__)
 
