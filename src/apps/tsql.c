@@ -769,9 +769,9 @@ main(int argc, char **argv)
 		fprintf(stderr, "context cannot be null\n");
 		return 1;
 	}
-	if (context->locale && !context->locale->date_fmt) {
+	if (context->locale && !context->locale->datetime_fmt) {
 		/* set default in case there's no locale file */
-		context->locale->date_fmt = strdup(STD_DATETIME_FMT);
+		context->locale->datetime_fmt = strdup(STD_DATETIME_FMT);
 	}
 
 	context->msg_handler = tsql_handle_message;

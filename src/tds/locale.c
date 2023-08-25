@@ -118,8 +118,14 @@ tds_parse_locale(const char *option, const char *value, void *param)
 	} else if (!strcmp(option, TDS_STR_LANGUAGE)) {
 		free(locale->language);
 		locale->language = strdup(value);
+	} else if (!strcmp(option, TDS_STR_DATETIMEFMT)) {
+		free(locale->datetime_fmt);
+		locale->datetime_fmt = strdup(value);
 	} else if (!strcmp(option, TDS_STR_DATEFMT)) {
 		free(locale->date_fmt);
 		locale->date_fmt = strdup(value);
+	} else if (!strcmp(option, TDS_STR_TIMEFMT)) {
+		free(locale->time_fmt);
+		locale->time_fmt = strdup(value);
 	}
 }

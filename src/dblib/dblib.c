@@ -262,10 +262,10 @@ dblib_get_tds_ctx(void)
 		g_dblib_ctx.tds_ctx->err_handler = _dblib_handle_err_message;
 		g_dblib_ctx.tds_ctx->int_handler = _dblib_check_and_handle_interrupt;
 
-		if (g_dblib_ctx.tds_ctx->locale && !g_dblib_ctx.tds_ctx->locale->date_fmt) {
+		if (g_dblib_ctx.tds_ctx->locale && !g_dblib_ctx.tds_ctx->locale->datetime_fmt) {
 			/* set default in case there's no locale file */
-			const static char date_format[] = "%b %e %Y %l:%M:%S:%z%p";
-			g_dblib_ctx.tds_ctx->locale->date_fmt = strdup(date_format);
+			const static char datetime_format[] = "%b %e %Y %l:%M:%S:%z%p";
+			g_dblib_ctx.tds_ctx->locale->datetime_fmt = strdup(datetime_format);
 		}
 	}
 	tds_mutex_unlock(&dblib_mutex);

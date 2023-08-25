@@ -454,7 +454,9 @@ bool is_tds_type_valid(int type)
 #define TDS_STR_USE_UTF_16	"use utf-16"
 #define TDS_STR_LANGUAGE	"language"
 #define TDS_STR_APPENDMODE	"dump file append"
-#define TDS_STR_DATEFMT	"date format"
+#define TDS_STR_DATETIMEFMT	"date format"
+#define TDS_STR_DATEFMT	"date-only format"
+#define TDS_STR_TIMEFMT	"time-only format"
 #define TDS_STR_INSTANCE "instance"
 #define TDS_STR_ASA_DATABASE	"asa database"
 #define TDS_STR_DATABASE	"database"
@@ -581,7 +583,9 @@ typedef struct tds_locale
 {
 	char *language;
 	char *server_charset;
+	char *datetime_fmt;
 	char *date_fmt;
+	char *time_fmt;
 } TDSLOCALE;
 
 /** 

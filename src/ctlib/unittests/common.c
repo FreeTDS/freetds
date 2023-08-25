@@ -222,9 +222,9 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 #ifdef TDS_STATIC_CAST
 	/* Force default date format, some tests rely on it */
 	tds_ctx = (TDSCONTEXT *) (*ctx)->tds_ctx;
-	if (tds_ctx && tds_ctx->locale && tds_ctx->locale->date_fmt) {
-		free(tds_ctx->locale->date_fmt);
-		tds_ctx->locale->date_fmt = strdup("%b %d %Y %I:%M%p");
+	if (tds_ctx && tds_ctx->locale && tds_ctx->locale->datetime_fmt) {
+		free(tds_ctx->locale->datetime_fmt);
+		tds_ctx->locale->datetime_fmt = strdup("%b %d %Y %I:%M%p");
 	}
 #endif
 

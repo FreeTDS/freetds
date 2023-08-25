@@ -718,10 +718,10 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 		}
 		if (con->locale->time && tds_get_ctx(con->tds_socket)) {
 			TDSLOCALE *locale = tds_get_ctx(con->tds_socket)->locale;
-			free(locale->date_fmt);
+			free(locale->datetime_fmt);
 			/* TODO convert format from CTLib to libTDS */
-			locale->date_fmt = strdup(con->locale->time);
-			if (!locale->date_fmt)
+			locale->datetime_fmt = strdup(con->locale->time);
+			if (!locale->datetime_fmt)
 				goto Cleanup;
 		}
 		/* TODO how to handle this?

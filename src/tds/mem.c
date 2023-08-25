@@ -1474,7 +1474,9 @@ tds_free_locale(TDSLOCALE * locale)
 
 	free(locale->language);
 	free(locale->server_charset);
+	free(locale->datetime_fmt);
 	free(locale->date_fmt);
+	free(locale->time_fmt);
 	free(locale);
 }
 

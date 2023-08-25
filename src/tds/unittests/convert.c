@@ -98,10 +98,14 @@ main(int argc, char **argv)
 
 	ctx = tds_alloc_context(NULL);
 	assert(ctx);
-	if (ctx->locale && !ctx->locale->date_fmt) {
+	if (!ctx->locale->datetime_fmt) {
 		/* set default in case there's no locale file */
-		ctx->locale->date_fmt = strdup(STD_DATETIME_FMT);
+		ctx->locale->datetime_fmt = strdup(STD_DATETIME_FMT);
 	}
+	free(ctx->locale->date_fmt);
+	ctx->locale->date_fmt = strdup("%Y-%m-%d");
+	free(ctx->locale->time_fmt);
+	ctx->locale->time_fmt = strdup("%H:%M:%S");
 
 
 	/*

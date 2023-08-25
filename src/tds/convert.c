@@ -1279,13 +1279,19 @@ static TDS_INT
 tds_convert_datetimeall(const TDSCONTEXT * tds_ctx, int srctype, const TDS_DATETIMEALL * dta, int desttype, CONV_RESULT * cr)
 {
 	char whole_date_string[64];
+	const char *datetime_fmt;
 	TDSDATEREC when;
 
 	switch (desttype) {
 	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
 		tds_datecrack(srctype, dta, &when);
-		tds_strftime(whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when, 
+		datetime_fmt = tds_ctx->locale->datetime_fmt;
+		if (srctype == SYBMSDATE && tds_ctx->locale->date_fmt)
+			datetime_fmt = tds_ctx->locale->date_fmt;
+		if (srctype == SYBMSTIME && tds_ctx->locale->time_fmt)
+			datetime_fmt = tds_ctx->locale->time_fmt;
+		tds_strftime(whole_date_string, sizeof(whole_date_string), datetime_fmt, &when,
 		             dta->time_prec);
 
 		return string_to_result(desttype, whole_date_string, cr);
@@ -1350,7 +1356,7 @@ tds_convert_datetime(const TDSCONTEXT * tds_ctx, const TDS_DATETIME * dt, int de
 	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
 		tds_datecrack(SYBDATETIME, dt, &when);
-		tds_strftime(whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when, 3);
+		tds_strftime(whole_date_string, sizeof(whole_date_string), tds_ctx->locale->datetime_fmt, &when, 3);
 
 		return string_to_result(desttype, whole_date_string, cr);
 	case SYBDATETIME:
@@ -1434,33 +1440,37 @@ tds_convert_datetime4(const TDSCONTEXT * tds_ctx, const TDS_DATETIME4 * dt4, int
 static TDS_INT
 tds_convert_time(const TDSCONTEXT * tds_ctx, const TDS_TIME * time, int desttype, CONV_RESULT * cr)
 {
-	TDS_DATETIME dt;
+	TDS_DATETIMEALL dta;
 
 	if (desttype == SYBTIME) {
 		cr->time = *time;
 		return sizeof(TDS_TIME);
 	}
 
-	/* convert to DATETIME and use tds_convert_datetime */
-	dt.dtdays = 0;
-	dt.dttime = *time;
-	return tds_convert_datetime(tds_ctx, &dt, desttype, 0, cr);
+	/* convert to DATETIMEALL and use tds_convert_datetimeall */
+	memset(&dta, 0, sizeof(dta));
+	dta.has_time = 1;
+	dta.time_prec = 3;
+	dta.time = ((TDS_UINT8) *time * 100000 + 2) / 3;
+	dta.time = (((TDS_UINT8) *time) * 20 + 3) / 6 * 10000;
+	return tds_convert_datetimeall(tds_ctx, SYBMSTIME, &dta, desttype, cr);
 }
 
 static TDS_INT
 tds_convert_date(const TDSCONTEXT * tds_ctx, const TDS_DATE * date, int desttype, CONV_RESULT * cr)
 {
-	TDS_DATETIME dt;
+	TDS_DATETIMEALL dta;
 
 	if (desttype == SYBDATE) {
 		cr->date = *date;
 		return sizeof(TDS_DATE);
 	}
 
-	/* convert to DATETIME and use tds_convert_datetime */
-	dt.dtdays = *date;
-	dt.dttime = 0;
-	return tds_convert_datetime(tds_ctx, &dt, desttype, 0, cr);
+	/* convert to DATETIMEALL and use tds_convert_datetimeall */
+	memset(&dta, 0, sizeof(dta));
+	dta.has_date = 1;
+	dta.date = *date;
+	return tds_convert_datetimeall(tds_ctx, SYBMSDATE, &dta, desttype, cr);
 }
 
 static TDS_INT
