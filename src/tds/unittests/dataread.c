@@ -217,8 +217,12 @@ main(int argc, char **argv)
 	test("NUMERIC(18,4)", "12765.761234", "12765.7612");
 
 	/* date */
+	free(test_context->locale->datetime_fmt);
+	test_context->locale->datetime_fmt = strdup("%Y-%m-%d %H:%M:%S");
 	free(test_context->locale->date_fmt);
-	test_context->locale->date_fmt = strdup("%Y-%m-%d %H:%M:%S");
+	test_context->locale->date_fmt = strdup("%Y-%m-%d");
+	free(test_context->locale->time_fmt);
+	test_context->locale->time_fmt = strdup("%H:%M:%S");
 
 	test("DATETIME", "2003-04-21 17:50:03", NULL);
 	test("SMALLDATETIME", "2003-04-21 17:50:03", "2003-04-21 17:50:00");

@@ -1650,8 +1650,12 @@ _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version)
 	ctx->err_handler = odbc_errmsg_handler;
 
 	/* ODBC has its own format */
+	free(ctx->locale->datetime_fmt);
+	ctx->locale->datetime_fmt = strdup("%Y-%m-%d %H:%M:%S.%z");
 	free(ctx->locale->date_fmt);
-	ctx->locale->date_fmt = strdup("%Y-%m-%d %H:%M:%S.%z");
+	ctx->locale->date_fmt = strdup("%Y-%m-%d");
+	free(ctx->locale->time_fmt);
+	ctx->locale->time_fmt = strdup("%H:%M:%S.%z");
 
 	tds_mutex_init(&env->mtx);
 	*phenv = (SQLHENV) env;

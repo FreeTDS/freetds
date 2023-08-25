@@ -328,9 +328,9 @@ cs_ctx_alloc(CS_INT version, CS_CONTEXT ** ctx)
 		return CS_FAIL;
 	}
 	(*ctx)->tds_ctx = tds_ctx;
-	if (tds_ctx->locale && !tds_ctx->locale->date_fmt) {
+	if (tds_ctx->locale && !tds_ctx->locale->datetime_fmt) {
 		/* set default in case there's no locale file */
-		tds_ctx->locale->date_fmt = strdup(STD_DATETIME_FMT);
+		tds_ctx->locale->datetime_fmt = strdup(STD_DATETIME_FMT);
 	}
 
 	(*ctx)->login_timeout = -1;

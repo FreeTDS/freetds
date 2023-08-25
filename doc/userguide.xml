@@ -1409,6 +1409,18 @@ This is supported from MSSQL 2012.
 							</listitem>
 						</varlistentry>
 					<varlistentry>
+						<term><literal>date-only format</literal></term>
+						<listitem>
+<para>Similar to <literal>date format</literal> but apply to DATE type.</para>
+							</listitem>
+						</varlistentry>
+					<varlistentry>
+						<term><literal>time-only format</literal></term>
+						<listitem>
+<para>Similar to <literal>date format</literal> but apply to TIME and BIGTIME types.</para>
+							</listitem>
+						</varlistentry>
+					<varlistentry>
 						<term><literal>language</literal></term>
 						<listitem>
 

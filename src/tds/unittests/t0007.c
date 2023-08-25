@@ -193,8 +193,12 @@ main(int argc, char **argv)
 		return 1;
 
 	/* date */
+	free(ctx.locale->datetime_fmt);
+	ctx.locale->datetime_fmt = strdup("%Y-%m-%d %H:%M:%S.%z");
 	free(ctx.locale->date_fmt);
-	ctx.locale->date_fmt = strdup("%Y-%m-%d %H:%M:%S.%z");
+	ctx.locale->date_fmt = strdup("%Y-%m-%d");
+	free(ctx.locale->time_fmt);
+	ctx.locale->time_fmt = strdup("%H:%M:%S.%z");
 
 	/* test some conversion */
 	printf("some checks...\n");
@@ -364,8 +368,8 @@ main(int argc, char **argv)
 	test2("12:34:56.337", SYBTIME, SYBDATE, "0");
 #endif
 
-	test2("2006-01-02", SYBDATE, SYBCHAR, "len=23 2006-01-02 00:00:00.000");
-	test2("12:34:56.337", SYBTIME, SYBCHAR, "len=23 1900-01-01 12:34:56.337");
+	test2("2006-01-02", SYBDATE, SYBCHAR, "len=10 2006-01-02");
+	test2("12:34:56.337", SYBTIME, SYBCHAR, "len=12 12:34:56.337");
 
 	test2("123", SYBINT1, SYBBINARY, "len=1 7B");
 	test2("0.000001", SYBFLT8, SYBNUMERIC, "0.00000100");
