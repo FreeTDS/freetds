@@ -4524,7 +4524,7 @@ static CS_INT
 ct_diag_getclientmsg(CS_CONTEXT * context, CS_INT idx, CS_CLIENTMSG * message)
 {
 	const struct cs_diag_msg_client *curptr;
-	CS_INT msg_count = 0, msg_found = 0;
+	CS_INT msg_count = 0;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_diag_getclientmsg(%p, %d, %p)\n", context, idx, message);
 
@@ -4535,16 +4535,12 @@ ct_diag_getclientmsg(CS_CONTEXT * context, CS_INT idx, CS_CLIENTMSG * message)
 	while (curptr != NULL) {
 		msg_count++;
 		if (msg_count == idx) {
-			msg_found++;
-			break;
+			memcpy(message, &curptr->clientmsg, sizeof(CS_CLIENTMSG));
+			return CS_SUCCEED;
 		}
 		curptr = curptr->next;
 	}
 
-	if (msg_found) {
-		memcpy(message, &curptr->clientmsg, sizeof(CS_CLIENTMSG));
-		return CS_SUCCEED;
-	}
 	return CS_NOMSG;
 }
 
@@ -4552,7 +4548,7 @@ static CS_INT
 ct_diag_getservermsg(CS_CONTEXT * context, CS_INT idx, CS_SERVERMSG * message)
 {
 	struct cs_diag_msg_svr *curptr;
-	CS_INT msg_count = 0, msg_found = 0;
+	CS_INT msg_count = 0;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_diag_getservermsg(%p, %d, %p)\n", context, idx, message);
 
@@ -4563,16 +4559,12 @@ ct_diag_getservermsg(CS_CONTEXT * context, CS_INT idx, CS_SERVERMSG * message)
 	while (curptr != NULL) {
 		msg_count++;
 		if (msg_count == idx) {
-			msg_found++;
-			break;
+			memcpy(message, &curptr->servermsg, sizeof(CS_SERVERMSG));
+			return CS_SUCCEED;
 		}
 		curptr = curptr->next;
 	}
 
-	if (msg_found) {
-		memcpy(message, &curptr->servermsg, sizeof(CS_SERVERMSG));
-		return CS_SUCCEED;
-	}
 	return CS_NOMSG;
 }
 
