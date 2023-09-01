@@ -3355,14 +3355,11 @@ ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT datalen,
 			return CS_FAIL;
 		}
 
-		if (!cmd->input_params) {
-			cmd->input_params = param;
-		} else {
-			pparam = &cmd->input_params;
-			while ((*pparam)->next)
-				pparam = &(*pparam)->next;
-			(*pparam)->next = param;
-		}
+		pparam = &cmd->input_params;
+		while (*pparam)
+			pparam = &(*pparam)->next;
+		*pparam = param;
+
 		tdsdump_log(TDS_DBG_INFO1, "ct_param() added input value\n");
 		return CS_SUCCEED;
 		break;
