@@ -5078,7 +5078,7 @@ It does not do so at the current time, beside using wide functions in ODBC.</par
 		<section id="moreinfo"><title>For further information</title>
 			<simplelist type="vert" columns="1">
 				<member><ulink url="http://www.cl.cam.ac.uk/~mgk25/unicode.html">UTF-8 and Unicode FAQ for Unix/Linux</ulink>, by Markus Kuhn.  As the man says, very comprehensive.  	</member>
-				<member><ulink url="http://worldpowersystems.com/J/codes/">ASCII: American Standard Code for Information Infiltration</ulink>, by Tom Jennings.  Everything you ever wanted know about ASCII, but didn't know whom to ask.    </member>
+				<member><ulink url="https://www.sensitiveresearch.com/Archive/CharCodeHist/">ASCII: American Standard Code for Information Infiltration</ulink>, by Tom Jennings.  Everything you ever wanted know about ASCII, but didn't know whom to ask.</member>
 				<member><ulink url="http://tronweb.super-nova.co.jp/characcodehist.html">A Brief History of Character Codes</ulink>, by Steven J. Searle.  Includes useful references.  </member>
 				<member><ulink url="http://www.unicode.org/">Unicode Home Page</ulink>.  </member>
 <!--member><ulink url=""></ulink>.  </member -->
