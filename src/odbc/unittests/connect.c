@@ -69,6 +69,7 @@ main(int argc, char *argv[])
 
 	if (!is_freetds) {
 		printf("Driver is not FreeTDS, exiting\n");
+		odbc_test_skipped();
 		return 0;
 	}
 
