@@ -390,12 +390,12 @@ tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
 
 /**
  * Copy a string of length len to a new allocated buffer
- * This function does not read more than len bytes
- * Please note that some system implementation of strndup
+ * This function does not read more than len bytes.
+ * Please note that some system implementations of strndup
  * do not assure they don't read past len bytes as they
  * use still strlen to check length to copy limiting
- * after strlen to size passed
- * String returned is NUL terminated
+ * after strlen to size passed.
+ * String returned is NUL terminated.
  *
  * \param s   string to copy from
  * \param len length to copy
