@@ -337,7 +337,7 @@ odbc_command_with_result(HSTMT stmt, const char *command)
 }
 
 static int ms_db = -1;
-int
+bool
 odbc_db_is_microsoft(void)
 {
 	ODBC_BUF *odbc_buf = NULL;
@@ -353,10 +353,10 @@ odbc_db_is_microsoft(void)
 		ms_db = (strstr(C(buf), "microsoft") != NULL);
 	}
 	ODBC_FREE();
-	return ms_db;
+	return !!ms_db;
 }
 
-int
+bool
 odbc_driver_is_freetds(void)
 {
 	ODBC_BUF *odbc_buf = NULL;
@@ -372,7 +372,7 @@ odbc_driver_is_freetds(void)
 		freetds_driver = (strstr(C(buf), "tds") != NULL);
 	}
 	ODBC_FREE();
-	return freetds_driver;
+	return !!freetds_driver;
 }
 
 /* Detect protocol version using queries

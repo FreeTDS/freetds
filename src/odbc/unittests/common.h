@@ -30,6 +30,7 @@
 #include <freetds/sysdep_private.h>
 #include <freetds/macros.h>
 #include <freetds/replacements.h>
+#include <freetds/bool.h>
 
 #ifndef HAVE_SQLLEN
 #ifndef SQLULEN
@@ -180,10 +181,10 @@ SQLRETURN odbc_command_proc(HSTMT stmt, const char *command, const char *file, i
 #define odbc_command(cmd) odbc_command_proc(odbc_stmt, cmd, __FILE__, __LINE__, "SNo")
 #define odbc_command2(cmd, res) odbc_command_proc(odbc_stmt, cmd, __FILE__, __LINE__, res)
 SQLRETURN odbc_command_with_result(HSTMT stmt, const char *command);
-int odbc_db_is_microsoft(void);
+bool odbc_db_is_microsoft(void);
 const char *odbc_db_version(void);
 unsigned int odbc_db_version_int(void);
-int odbc_driver_is_freetds(void);
+bool odbc_driver_is_freetds(void);
 int odbc_tds_version(void);
 
 void odbc_mark_sockets_opened(void);
