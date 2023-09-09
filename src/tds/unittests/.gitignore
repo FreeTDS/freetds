@@ -28,4 +28,5 @@ portconf
 parsing
 freeze
 strftime
+log_elision
 convert_bounds
