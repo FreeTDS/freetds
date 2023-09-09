@@ -570,6 +570,9 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 		src = (char *) &num;
 		break;
 		/* TODO intervals */
+	default:
+		/* prevents some compiler warnings about missing cases */
+		break;
 	}
 
 	converted_src = NULL;
