@@ -93,7 +93,7 @@ tds_func_put_data tds_mstabletype_put;
 tds_func_check    tds_mstabletype_check;
 
 /**
- * If TDS_DONT_DEFINE_DEFAULT_FUNCTIONS is no defined
+ * If TDS_DONT_DEFINE_DEFAULT_FUNCTIONS is not defined
  * define default implementations for these tables
  */
 #ifndef TDS_DONT_DEFINE_DEFAULT_FUNCTIONS
