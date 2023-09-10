@@ -360,7 +360,7 @@ pool_process_members(TDS_POOL * pool, struct pollfd *fds, unsigned num_fds)
 		assert(pmbr->sock.tds);
 
 		time_now = time(NULL);
-		if (pmbr->sock.poll_recv && (revents & POLLIN) != 0) {
+		if (pmbr->sock.poll_recv && (revents & (POLLIN|POLLHUP)) != 0) {
 			if (!pool_process_data(pool, pmbr))
 				continue;
 			processed = true;

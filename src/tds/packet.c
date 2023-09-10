@@ -396,7 +396,7 @@ tds_connection_network(TDSCONNECTION *conn, TDSSOCKET *tds, int send)
 		}
 
 		/* received */
-		if (rc & POLLIN) {
+		if (rc & (POLLIN|POLLHUP)) {
 			TDSPACKET *packet;
 			TDSSOCKET *s;
 

@@ -252,7 +252,7 @@ pool_process_users(TDS_POOL * pool, struct pollfd *fds, unsigned num_fds)
 
 		revents = fds[puser->sock.poll_index].revents;
 
-		if (puser->sock.poll_recv && (revents & POLLIN) != 0) {
+		if (puser->sock.poll_recv && (revents & (POLLIN|POLLHUP)) != 0) {
 			assert(puser->user_state == TDS_SRV_QUERY);
 			if (!pool_user_read(pool, puser))
 				continue;

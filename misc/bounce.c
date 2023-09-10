@@ -454,9 +454,9 @@ wait_one_fd(int fd1, int fd2)
 		fprintf(stderr, "Error from poll %d\n", errno);
 		return -1;
 	}
-	if (fds[0].revents & POLLIN)
+	if (fds[0].revents & (POLLIN|POLLHUP))
 		return 0;
-	if (fds[1].revents & POLLIN)
+	if (fds[1].revents & (POLLIN|POLLHUP))
 		return 1;
 	fprintf(stderr, "Unexpected event from poll\n");
 	return -1;
