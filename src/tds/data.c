@@ -1535,7 +1535,7 @@ tds_mstabletype_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
 	else {
 		tds_put_smallint(tds, table->num_cols);
 
-		params = table->metadata->params;
+		params = table->metadata;
 		for (i = 0; i < table->num_cols; i++) {
 			tds_col = params->columns[i];
 

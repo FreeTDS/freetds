@@ -1471,7 +1471,7 @@ typedef struct tds_tvp
 	char *schema;
 	char *name;
 	int num_cols;
-	TDS_TVP_ROW *metadata;
+	TDSPARAMINFO *metadata;
 	TDS_TVP_ROW *row;
 } TDS_TVP;
 

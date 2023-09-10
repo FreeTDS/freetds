@@ -366,8 +366,7 @@ tds_param_free(TDSCOLUMN *col)
 
 		free(table->schema);
 		free(table->name);
-		tds_free_tvp_row(table->metadata);
-		free(table->metadata);
+		tds_free_param_results(table->metadata);
 		for (tvp_row = table->row; tvp_row != NULL; tvp_row = next_row) {
 			next_row = tvp_row->next;
 			tds_free_tvp_row(tvp_row);

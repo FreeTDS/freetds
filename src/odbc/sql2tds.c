@@ -188,9 +188,6 @@ odbc_convert_table(TDS_STMT *stmt, SQLTVP *src, TDS_TVP *dest, SQLLEN num_rows)
 		return TDS_CONVERT_SYNTAX;
 	}
 
-	if ((dest->metadata = tds_new0(TDS_TVP_ROW, 1)) == NULL)
-		return TDS_CONVERT_NOMEM;
-
 	params = NULL;
 	for (j = 0; j < ipd->header.sql_desc_count; j++) {
 		if (!(new_params = tds_alloc_param_result(params)))
@@ -199,7 +196,7 @@ odbc_convert_table(TDS_STMT *stmt, SQLTVP *src, TDS_TVP *dest, SQLLEN num_rows)
 		odbc_sql2tds(stmt, &ipd->records[j], &apd->records[j], new_params->columns[j], 0, apd, 0);
 		params = new_params;
 	}
-	dest->metadata->params = params;
+	dest->metadata = params;
 
 	for (i = 0, prow = &dest->row; i < num_rows; prow = &(*prow)->next, i++) {
 		if ((row = tds_new0(TDS_TVP_ROW, 1)) == NULL)
