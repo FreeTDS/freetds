@@ -161,7 +161,6 @@ odbc_convert_table(TDS_STMT *stmt, SQLTVP *src, TDS_TVP *dest, SQLLEN num_rows)
 	char *type_name, *pch;
 
 	tds_deinit_tvp(dest);
-	dest->num_cols = ipd->header.sql_desc_count;
 
 	if ((type_name = strdup(tds_dstr_cstr(&src->type_name))) == NULL) {
 		odbc_errs_add(&stmt->errs, "HY001", NULL);

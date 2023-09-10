@@ -1528,15 +1528,16 @@ tds_mstabletype_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
 	TDS_TVP_ROW *row;
 	TDSRET ret;
 	int i;
+	TDS_USMALLINT num_cols = table->metadata ? table->metadata->num_cols : 0;
 
 	/* COL_METADATA */
-	if (table->num_cols == 0)
+	if (num_cols == 0)
 		tds_put_smallint(tds, 0xffff); /* TVP_NULL_TOKEN */
 	else {
-		tds_put_smallint(tds, table->num_cols);
+		tds_put_smallint(tds, num_cols);
 
 		params = table->metadata;
-		for (i = 0; i < table->num_cols; i++) {
+		for (i = 0; i < num_cols; i++) {
 			tds_col = params->columns[i];
 
 			/* UserType*/
@@ -1562,7 +1563,7 @@ tds_mstabletype_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
 		tds_put_byte(tds, 0x01);
 
 		params = row->params;
-		for (i = 0; i < table->num_cols; i++) {
+		for (i = 0; i < num_cols; i++) {
 			tds_col = params->columns[i];
 			ret = tds_col->funcs->put_data(tds, tds_col, 0);
 			if (TDS_FAILED(ret))
