@@ -118,7 +118,7 @@ setup(void)
 
 		/* Setup numeric values column */
 		numericCol[i].precision = 10;
-		numericCol[i].scale = 5;
+		numericCol[i].scale = 0;
 		numericCol[i].sign = i % 2;
 		memset(numericCol[i].val, 0, SQL_MAX_NUMERIC_LEN);
 		sprintf((char *) numericCol[i].val, "%x", i * 10);
@@ -210,7 +210,7 @@ TestTVPInsert2(void)
 	SQLWCHAR *tableName;	/* Test explicit schema declaration */
 	SQLLEN numRows;
 
-	tableName = odbc_get_sqlwchar(&odbc_buf, "dbo.TVPType2");
+	tableName = odbc_get_sqlwchar(&odbc_buf, "TVPType2");
 
 	odbc_command("IF OBJECT_ID('TestTVPProc2') IS NOT NULL DROP PROC TestTVPProc2");
 	odbc_command("IF TYPE_ID('TVPType2') IS NOT NULL DROP TYPE TVPType2");
@@ -253,11 +253,11 @@ TestTVPInsert2(void)
 	CHKFetch("No");
 	CHKCloseCursor("SI");
 
-	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM TVPTable2 WHERE Bin = 0x30 AND Num = -0.00048) SELECT 1");
-	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM TVPTable2 WHERE Bin = 0x3131 AND Num = 0.00097) SELECT 1");
-	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM TVPTable2 WHERE Bin = 0x3232 AND Num = -0.13361) SELECT 1");
-	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM TVPTable2 WHERE Bin = 0x3333 AND Num = 0.25905) SELECT 1");
-	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM TVPTable2 WHERE Bin = 0x3434 AND Num = -0.14386) SELECT 1");
+	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM TVPTable2 WHERE Bin = 0x30 AND Num = -48) SELECT 1");
+	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM TVPTable2 WHERE Bin = 0x3131 AND Num = 97) SELECT 1");
+	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM TVPTable2 WHERE Bin = 0x3232 AND Num = -13361) SELECT 1");
+	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM TVPTable2 WHERE Bin = 0x3333 AND Num = 25905) SELECT 1");
+	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM TVPTable2 WHERE Bin = 0x3434 AND Num = -14386) SELECT 1");
 
 	odbc_command("DROP PROC TestTVPProc2");
 	odbc_command("DROP TYPE TVPType2");
