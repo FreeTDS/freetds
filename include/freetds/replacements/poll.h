@@ -5,31 +5,6 @@
 #if !defined(_tdsguard_g3Yr0q7NdWY6GI4uTB9PNx_) && !defined(HAVE_POLL)
 #define _tdsguard_g3Yr0q7NdWY6GI4uTB9PNx_
 
-#include <config.h>
-
-#if HAVE_LIMITS_H
-#include <limits.h>
-#endif 
-
-#if HAVE_SYS_SELECT_H
-#include <sys/select.h>
-#endif 
-
-#if defined(_WIN32)
-#include <winsock2.h>
-#endif
-
-#if defined(__VMS)
-#include <time.h> /* FD_SETSIZE is in here */
-#endif
-
-#if !defined(FD_SETSIZE)
-# if !defined(OPEN_MAX)
-# error cannot establish FD_SETSIZE
-# endif
-#define FD_SETSIZE OPEN_MAX
-#endif
-
 #include <freetds/pushvis.h>
 
 #ifndef _WIN32

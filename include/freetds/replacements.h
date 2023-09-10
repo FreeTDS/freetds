@@ -20,6 +20,10 @@
 #ifndef _tdsguard_fELDB9J1dGrLHROMPkGfXj_
 #define _tdsguard_fELDB9J1dGrLHROMPkGfXj_
 
+#ifndef _freetds_config_h_
+#error should include config.h before
+#endif
+
 #include <stdarg.h>
 #include "tds_sysdep_public.h"
 #include <freetds/sysdep_private.h>
@@ -39,6 +43,8 @@
 
 #if !HAVE_POLL
 #include <freetds/replacements/poll.h>
+#elif HAVE_POLL_H
+#include <poll.h>
 #endif /* !HAVE_POLL */
 
 #include <freetds/pushvis.h>

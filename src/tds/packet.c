@@ -39,10 +39,6 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#if HAVE_POLL_H
-#include <poll.h>
-#endif /* HAVE_POLL_H */
-
 #include <freetds/tds.h>
 #include <freetds/bytes.h>
 #include <freetds/iconv.h>

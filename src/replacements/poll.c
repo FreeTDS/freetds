@@ -38,6 +38,29 @@
 #include <errno.h>
 #endif /* HAVE_ERRNO_H */
 
+#if HAVE_LIMITS_H
+#include <limits.h>
+#endif
+
+#if HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#endif
+
+#if defined(_WIN32)
+#include <winsock2.h>
+#endif
+
+#if defined(__VMS)
+#include <time.h> /* FD_SETSIZE is in here */
+#endif
+
+#if !defined(FD_SETSIZE)
+# if !defined(OPEN_MAX)
+# error cannot establish FD_SETSIZE
+# endif
+#define FD_SETSIZE OPEN_MAX
+#endif
+
 #include <freetds/time.h>
 
 #include <string.h>

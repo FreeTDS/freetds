@@ -69,10 +69,6 @@
 #include <sys/select.h>
 #endif /* HAVE_SELECT_H */
 
-#if HAVE_POLL_H
-#include <poll.h>
-#endif /* HAVE_POLL_H */
-
 #if HAVE_FCNTL_H
 #include <fcntl.h>
 #endif /* HAVE_FCNTL_H */

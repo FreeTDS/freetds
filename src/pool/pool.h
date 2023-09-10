@@ -37,10 +37,6 @@
 #include <sys/time.h>
 #endif
 
-#if HAVE_POLL_H
-#include <poll.h>
-#endif /* HAVE_POLL_H */
-
 #include <freetds/tds.h>
 #include <freetds/utils/dlist.h>
 #include <freetds/replacements.h>

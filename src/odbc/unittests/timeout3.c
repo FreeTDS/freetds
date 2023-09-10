@@ -22,10 +22,6 @@
 #include <netinet/in.h>
 #endif /* HAVE_NETINET_IN_H */
 
-#if HAVE_POLL_H
-#include <poll.h>
-#endif /* HAVE_POLL_H */
-
 #include <freetds/tds.h>
 #include <freetds/thread.h>
 #include <freetds/replacements.h>
