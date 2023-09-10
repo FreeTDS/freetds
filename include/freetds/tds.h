@@ -597,7 +597,7 @@ typedef struct tds_blob
 	TDS_CHAR *textvalue;
 	TDS_CHAR textptr[16];
 	TDS_CHAR timestamp[8];
-	unsigned char valid_ptr;
+	bool valid_ptr;
 } TDSBLOB;
 
 /**
