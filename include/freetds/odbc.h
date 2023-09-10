@@ -208,6 +208,13 @@ struct _hdesc
 	struct _sql_errors errs;	/* do not reorder this field */
 	tds_mutex mtx;
 	int type;
+	/**
+	 * Nested descriptor to use.
+	 * -1: nested, cannot have focus.
+	 * 0 : self.
+	 * >0: descriptor from IPD.
+	 */
+	int focus;
 	SQLHANDLE parent;
 	struct _dheader header;
 	struct _drecord *records;

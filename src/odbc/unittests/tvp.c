@@ -145,6 +145,9 @@ TestTVPInsert(void)
 {
 	SQLWCHAR *tableName;
 	SQLLEN numRows;
+	SQLHDESC apd;
+	bool failed = false;
+	SQLPOINTER ptr;
 
 	tableName = odbc_get_sqlwchar(&odbc_buf, "TVPType");
 
@@ -157,8 +160,20 @@ TestTVPInsert(void)
 	odbc_command("CREATE PROCEDURE TestTVPProc (@TVPParam TVPType READONLY) "
 		"AS INSERT INTO TVPTable SELECT * FROM @TVPParam");
 
-	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_DEFAULT, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, &numRows, "S");
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, intCol, sizeof(SQLINTEGER), lIntCol, "S");
+	ptr = GET_DESC_FIELD(APP, 1, SQL_DESC_DATA_PTR, SQLPOINTER);
+	CHECK_COND((ptr == intCol, "SQL_DESC_DATA_PTR expected %p got %p", intCol, ptr));
+	CHKGetStmtAttr(SQL_ATTR_APP_PARAM_DESC, &apd, sizeof(apd), NULL, "S");
+	CHKSetDescField(apd, 1, SQL_DESC_CONCISE_TYPE, TDS_INT2PTR(SQL_C_DOUBLE), sizeof(SQLSMALLINT), "S");
+	ptr = GET_DESC_FIELD(APP, 1, SQL_DESC_DATA_PTR, SQLPOINTER);
+	CHECK_COND((ptr == NULL, "SQL_DESC_DATA_PTR expected %p got %p", NULL, ptr));
+	assert(!failed);
+
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_DEFAULT, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, NULL, "S");
 	dirty_name(tableName);
+
+	CHKGetStmtAttr(SQL_ATTR_APP_PARAM_DESC, &apd, sizeof(apd), NULL, "S");
+	CHKSetDescField(apd, 1, SQL_DESC_OCTET_LENGTH_PTR, (SQLPOINTER) &numRows, sizeof(void*), "S");
 
 	CHKSetStmtAttr(SQL_SOPT_SS_PARAM_FOCUS, (SQLPOINTER) 1, SQL_IS_INTEGER, "S");
 
@@ -400,9 +415,22 @@ TestDescriptorValues(void)
 	/* setting parameter focus should move to different descriptors */
 	CHKSetStmtAttr(SQL_SOPT_SS_PARAM_FOCUS, (SQLPOINTER) 1, SQL_IS_INTEGER, "S");
 
+	count = GET_DESC_FIELD(APP, 0, SQL_DESC_COUNT, SQLSMALLINT);
+	CHECK_COND((count == 0, "count %d == 0", (int) count));
+	count = GET_DESC_FIELD(IMP, 0, SQL_DESC_COUNT, SQLSMALLINT);
+	CHECK_COND((count == 0, "count %d == 0", (int) count));
+
+	count = GET_DESC_FIELD(APP, 0, SQL_DESC_ARRAY_SIZE, SQLULEN);
+	CHECK_COND((count == 5, "count %d == 5", (int) count));
+
 	/* modify descriptors */
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, intCol, sizeof(SQLINTEGER), lIntCol, "S");
 	CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, MAX_STRING_LENGTH, 0, strCol, MAX_STRING_LENGTH, lStrCol, "S");
+
+	count = GET_DESC_FIELD(APP, 0, SQL_DESC_COUNT, SQLSMALLINT);
+	CHECK_COND((count == 2, "count %d == 2", (int) count));
+	count = GET_DESC_FIELD(IMP, 0, SQL_DESC_COUNT, SQLSMALLINT);
+	CHECK_COND((count == 2, "count %d == 2", (int) count));
 
 	/* switch back to main descriptors */
 	CHKSetStmtAttr(SQL_SOPT_SS_PARAM_FOCUS, (SQLPOINTER) 0, SQL_IS_INTEGER, "S");
@@ -411,6 +439,22 @@ TestDescriptorValues(void)
 	CHECK_COND((count == 1, "count %d == 1", (int) count));
 	count = GET_DESC_FIELD(IMP, 0, SQL_DESC_COUNT, SQLSMALLINT);
 	CHECK_COND((count == 1, "count %d == 1", (int) count));
+
+	/* switch back to table */
+	CHKSetStmtAttr(SQL_SOPT_SS_PARAM_FOCUS, (SQLPOINTER) 1, SQL_IS_INTEGER, "S");
+
+	/* this should fail, cannot set table inside a table */
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_DEFAULT, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, &numRows, "E");
+
+	CHKSetStmtAttr(SQL_SOPT_SS_PARAM_FOCUS, (SQLPOINTER) 0, SQL_IS_INTEGER, "S");
+
+	/* reset parameters, we should reset TVP */
+	CHKFreeStmt(SQL_RESET_PARAMS, "S");
+
+	count = GET_DESC_FIELD(APP, 0, SQL_DESC_COUNT, SQLSMALLINT);
+	CHECK_COND((count == 0, "count %d == 0", (int) count));
+
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_DEFAULT, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, &numRows, "S");
 
 	assert(!failed);
 

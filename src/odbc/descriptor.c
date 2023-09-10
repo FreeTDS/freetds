@@ -233,6 +233,8 @@ tvp_alloc(TDS_STMT *stmt)
 		tvp_free(tvp);
 		return NULL;
 	}
+	tvp->ipd->focus = -1;
+	tvp->apd->focus = -1;
 	return tvp;
 }
 
