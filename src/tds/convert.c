@@ -1905,7 +1905,7 @@ tds_convert(const TDSCONTEXT *tds_ctx, int srctype, const void *src, TDS_UINT sr
 	assert(srclen >= 0 && srclen <= 2147483647u);
 
 	if (srctype == SYBVARIANT) {
-		TDSVARIANT *v = (TDSVARIANT*) src;
+		const TDSVARIANT *v = (const TDSVARIANT*) src;
 		srctype = v->type;
 		src = v->data;
 		srclen = v->data_len;
