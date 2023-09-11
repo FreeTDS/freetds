@@ -142,8 +142,8 @@ data_sybbigtime_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER
 static void
 data_mstabletype_set_type_info(TDSCOLUMN *col, struct _drecord *drec, SQLINTEGER odbc_ver)
 {
-	drec->sql_desc_concise_type = SYBMSTABLE;
-	drec->sql_desc_octet_length = sizeof(SQLTVP);
+	drec->sql_desc_concise_type = SQL_SS_TABLE;
+	drec->sql_desc_octet_length = 0;
 }
 
 static void
