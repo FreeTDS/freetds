@@ -149,7 +149,7 @@ _odbc_blob_free(TDSCOLUMN *col)
         TDS_ZERO_FREE(col->column_data);
 }
 
-static TDS_INT
+static SQLRETURN
 odbc_convert_table(TDS_STMT *stmt, SQLTVP *src, TDS_TVP *dest, SQLLEN num_rows)
 {
 	SQLLEN i;
@@ -158,14 +158,14 @@ odbc_convert_table(TDS_STMT *stmt, SQLTVP *src, TDS_TVP *dest, SQLLEN num_rows)
 	TDS_TVP_ROW **prow;
 	TDSPARAMINFO *params, *new_params;
 	TDS_DESC *apd = src->apd, *ipd = src->ipd;
+	SQLRETURN ret;
 	char *type_name, *pch;
 
 	tds_deinit_tvp(dest);
 
-	if ((type_name = strdup(tds_dstr_cstr(&src->type_name))) == NULL) {
-		odbc_errs_add(&stmt->errs, "HY001", NULL);
-		return TDS_CONVERT_NOMEM;
-	}
+	type_name = strdup(tds_dstr_cstr(&src->type_name));
+	if (!type_name)
+		goto Memory_Error;
 
 	/* Tokenize and extract the schema & TVP typename from the TVP's full name */
 	pch = strchr(type_name, '.');
@@ -177,30 +177,36 @@ odbc_convert_table(TDS_STMT *stmt, SQLTVP *src, TDS_TVP *dest, SQLLEN num_rows)
 		dest->schema = type_name;
 		dest->name = strdup(++pch);
 	}
+	if (!dest->schema || !dest->name)
+		goto Memory_Error;
 
 	/* Ensure that the TVP typename does not contain any more '.' */
 	/* Otherwise, report it as an invalid data type error */
 	pch = strchr(dest->name, '.');
 	if (pch != NULL) {
 		odbc_errs_add(&stmt->errs, "HY004", NULL);
-		return TDS_CONVERT_SYNTAX;
+		return SQL_ERROR;
 	}
 
 	params = NULL;
 	for (j = 0; j < ipd->header.sql_desc_count; j++) {
 		if (!(new_params = tds_alloc_param_result(params))) {
 			tds_free_param_results(params);
-			return TDS_CONVERT_NOMEM;
+			goto Memory_Error;
 		}
 		params = new_params;
 
-		odbc_sql2tds(stmt, &ipd->records[j], &apd->records[j], new_params->columns[j], false, apd, 0);
+		ret = odbc_sql2tds(stmt, &ipd->records[j], &apd->records[j], new_params->columns[j], false, apd, 0);
+		if (!SQL_SUCCEEDED(ret)) {
+			tds_free_param_results(params);
+			return ret;
+		}
 	}
 	dest->metadata = params;
 
 	for (i = 0, prow = &dest->row; i < num_rows; prow = &(*prow)->next, i++) {
 		if ((row = tds_new0(TDS_TVP_ROW, 1)) == NULL)
-			return TDS_CONVERT_NOMEM;
+			goto Memory_Error;
 
 		*prow = row;
 
@@ -208,16 +214,24 @@ odbc_convert_table(TDS_STMT *stmt, SQLTVP *src, TDS_TVP *dest, SQLLEN num_rows)
 		for (j = 0; j < ipd->header.sql_desc_count; j++) {
 			if (!(new_params = tds_alloc_param_result(params))) {
 				tds_free_param_results(params);
-				return TDS_CONVERT_NOMEM;
+				goto Memory_Error;
 			}
 			params = new_params;
 
-			odbc_sql2tds(stmt, &ipd->records[j], &apd->records[j], new_params->columns[j], true, apd, i);
+			ret = odbc_sql2tds(stmt, &ipd->records[j], &apd->records[j], new_params->columns[j], true, apd, i);
+			if (!SQL_SUCCEEDED(ret)) {
+				tds_free_param_results(params);
+				return ret;
+			}
 		}
 		row->params = params;
 	}
 
-	return sizeof(TDS_TVP);
+	return SQL_SUCCESS;
+
+Memory_Error:
+	odbc_errs_add(&stmt->errs, "HY001", NULL);
+	return SQL_ERROR;
 }
 
 /**
@@ -576,10 +590,11 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 		res = tds_convert(dbc->env->tds_ctx, src_type, src, len, dest_type, (CONV_RESULT*) dest);
 		break;
 	case SYBMSTABLE:
+		free(converted_src);
 		src = drec_ixd->sql_desc_data_ptr;
-		res = odbc_convert_table(stmt, (SQLTVP *) src, (TDS_TVP *) dest,
-					 drec_axd->sql_desc_octet_length_ptr == NULL ? 1 : *drec_axd->sql_desc_octet_length_ptr);
-		break;
+		curcol->column_cur_size = sizeof(TDS_TVP);
+		return odbc_convert_table(stmt, (SQLTVP *) src, (TDS_TVP *) dest,
+					  drec_axd->sql_desc_octet_length_ptr == NULL ? 1 : *drec_axd->sql_desc_octet_length_ptr);
 	default:
 	case SYBVOID:
 	case SYBVARIANT:
