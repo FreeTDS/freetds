@@ -392,6 +392,8 @@ TestDescriptorValues(void)
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_DEFAULT, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, &numRows, "S");
 	dirty_name(tableName);
 
+	count = GET_DESC_FIELD(APP, 1, SQL_DESC_LENGTH, SQLULEN);
+	CHECK_COND((count == 1, "count %d == 1", (int) count));
 	count = GET_DESC_FIELD(IMP, 1, SQL_DESC_LENGTH, SQLULEN);
 	CHECK_COND((count == 0, "count %d == 0", (int) count));
 

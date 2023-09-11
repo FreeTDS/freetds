@@ -1527,6 +1527,9 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 	drec->sql_desc_octet_length_ptr = pcbValue;
 	drec->sql_desc_data_ptr = (char *) rgbValue;
 
+	if (fSqlType == SQL_SS_TABLE)
+		drec->sql_desc_length = 1;
+
 	/* field IPD related fields */
 	orig_ipd_size = ipd->header.sql_desc_count;
 	if (ipar > ipd->header.sql_desc_count && desc_alloc_records(ipd, ipar) != SQL_SUCCESS) {
