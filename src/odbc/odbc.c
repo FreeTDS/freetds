@@ -1453,16 +1453,20 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 		ODBC_EXIT_(stmt);
 	}
 
-	/* Table types are strictly read-only */
-	if (fSqlType == SQL_SS_TABLE && fParamType != SQL_PARAM_INPUT) {
-		odbc_errs_add(&stmt->errs, "HY105", NULL);
-		ODBC_EXIT_(stmt);
-	}
+	/* special checks for table type */
+	if (fSqlType == SQL_SS_TABLE) {
+		/* Table types are strictly read-only */
+		if (fParamType != SQL_PARAM_INPUT) {
+			odbc_errs_add(&stmt->errs, "HY105", NULL);
+			ODBC_EXIT_(stmt);
+		}
 
-	/* Table types are strictly read-only */
-	if (fSqlType == SQL_SS_TABLE && fCType != SQL_C_DEFAULT) {
-		odbc_errs_add(&stmt->errs, "07006", NULL);
-		ODBC_EXIT_(stmt);
+		/* Only SQL_C_DEFAULT is accepted */
+		if (fCType != SQL_C_DEFAULT) {
+			odbc_errs_add(&stmt->errs, "07006", NULL);
+			ODBC_EXIT_(stmt);
+		}
+		fCType = SQL_C_BINARY;
 	}
 
 	apd = stmt->apd;

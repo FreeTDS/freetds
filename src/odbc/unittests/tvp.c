@@ -380,7 +380,8 @@ TestDescriptorValues(void)
 	SQLWCHAR *tableName;
 	SQLLEN numRows;
 	SQLPOINTER ptr;
-	SQLSMALLINT count;
+	SQLSMALLINT count, type;
+	SQLLEN len;
 	bool failed = false;
 
 	tableName = odbc_get_sqlwchar(&odbc_buf, "TVPType");
@@ -406,14 +407,41 @@ TestDescriptorValues(void)
 	count = GET_DESC_FIELD(IMP, 0, SQL_DESC_COUNT, SQLSMALLINT);
 	CHECK_COND((count == 1, "count %d == 1", (int) count));
 
+	/* data pointer should point to table name */
 	ptr = GET_DESC_FIELD(APP, 1, SQL_DESC_DATA_PTR, SQLPOINTER);
 	CHECK_COND((ptr == tableName, "SQL_DESC_DATA_PTR expected %p got %p", tableName, ptr));
+	if (odbc_driver_is_freetds()) {
+		/* MS driver cannot read this, used internally by FreeTDS */
+		ptr = GET_DESC_FIELD(IMP, 1, SQL_DESC_DATA_PTR, SQLPOINTER);
+		printf("Internal pointer %p\n", ptr);
+	}
 
+	/* indicator should be the pointer to number of rows */
 	ptr = GET_DESC_FIELD(APP, 1, SQL_DESC_INDICATOR_PTR, SQLPOINTER);
 	CHECK_COND((ptr == &numRows, "SQL_DESC_INDICATOR_PTR expected %p got %p", &numRows, ptr));
+	if (odbc_driver_is_freetds()) {
+		ptr = GET_DESC_FIELD(IMP, 1, SQL_DESC_INDICATOR_PTR, SQLPOINTER);
+		CHECK_COND((ptr == NULL, "SQL_DESC_INDICATOR_PTR expected %p got %p", NULL, ptr));
+	}
 
+	/* octect length pointer should be the pointer to number of rows */
 	ptr = GET_DESC_FIELD(APP, 1, SQL_DESC_OCTET_LENGTH_PTR, SQLPOINTER);
 	CHECK_COND((ptr == &numRows, "SQL_DESC_OCTET_LENGTH_PTR expected %p got %p", &numRows, ptr));
+	if (odbc_driver_is_freetds()) {
+		ptr = GET_DESC_FIELD(IMP, 1, SQL_DESC_OCTET_LENGTH_PTR, SQLPOINTER);
+		CHECK_COND((ptr == NULL, "SQL_DESC_OCTET_LENGTH_PTR expected %p got %p", NULL, ptr));
+	}
+
+	/* this should be then length of tableName passed to SQLBindParameter */
+	len = GET_DESC_FIELD(APP, 1, SQL_DESC_OCTET_LENGTH, SQLLEN);
+	CHECK_COND((len == SQL_NTS, "SQL_DESC_OCTET_LENGTH expected %ld got %ld", (long) SQL_NTS, (long) len));
+	len = GET_DESC_FIELD(IMP, 1, SQL_DESC_OCTET_LENGTH, SQLLEN);
+	CHECK_COND((len == 0, "SQL_DESC_OCTET_LENGTH expected %ld got %ld", (long) 0, (long) len));
+
+	type = GET_DESC_FIELD(APP, 1, SQL_DESC_CONCISE_TYPE, SQLSMALLINT);
+	CHECK_COND((type == SQL_C_BINARY, "SQL_DESC_CONCISE_TYPE expected %d got %d", SQL_C_BINARY, type));
+	type = GET_DESC_FIELD(IMP, 1, SQL_DESC_CONCISE_TYPE, SQLSMALLINT);
+	CHECK_COND((type == SQL_SS_TABLE, "SQL_DESC_CONCISE_TYPE expected %d got %d", SQL_SS_TABLE, type));
 
 	/* setting parameter focus should move to different descriptors */
 	CHKSetStmtAttr(SQL_SOPT_SS_PARAM_FOCUS, (SQLPOINTER) 1, SQL_IS_INTEGER, "S");
