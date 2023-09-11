@@ -500,6 +500,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 	if (sql_src_type == SQL_C_WCHAR) {
 		converted_src = src = odbc_wstr2str(stmt, src, &len);
 		if (!src)
+			/* TODO add proper error */
 			return SQL_ERROR;
 		src_type = SYBVARCHAR;
 	}
