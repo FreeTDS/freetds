@@ -1567,7 +1567,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 		}
 		tvp->apd->header.sql_desc_array_size = cbColDef;
 
-		if (!odbc_dstr_copy(stmt->dbc, &tvp->type_name, cbValueMax, (ODBC_CHAR *) rgbValue)) {
+		if (!odbc_dstr_copy_oct(stmt->dbc, &tvp->type_name, cbValueMax, (ODBC_CHAR *) rgbValue)) {
 			free(tvp);
 			desc_alloc_records(ipd, orig_ipd_size);
 			desc_alloc_records(apd, orig_apd_size);

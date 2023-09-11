@@ -149,7 +149,8 @@ TestTVPInsert(void)
 	bool failed = false;
 	SQLPOINTER ptr;
 
-	tableName = odbc_get_sqlwchar(&odbc_buf, "TVPType");
+	/* here we append some dummy string to check binding with a length */
+	tableName = odbc_get_sqlwchar(&odbc_buf, "TVPType_and_garbage");
 
 	odbc_command("IF OBJECT_ID('TestTVPProc') IS NOT NULL DROP PROC TestTVPProc");
 	odbc_command("IF TYPE_ID('TVPType') IS NOT NULL DROP TYPE TVPType");
@@ -169,7 +170,7 @@ TestTVPInsert(void)
 	CHECK_COND((ptr == NULL, "SQL_DESC_DATA_PTR expected %p got %p", NULL, ptr));
 	assert(!failed);
 
-	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_DEFAULT, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, NULL, "S");
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_DEFAULT, SQL_SS_TABLE, MAX_ROWS, 0, tableName, 7 * sizeof(SQLWCHAR), NULL, "S");
 	dirty_name(tableName);
 
 	CHKGetStmtAttr(SQL_ATTR_APP_PARAM_DESC, &apd, sizeof(apd), NULL, "S");
