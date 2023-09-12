@@ -67,6 +67,7 @@ make RPM_OPT_FLAGS="$RPM_OPT_FLAGS"
 rm -rf "$RPM_BUILD_ROOT"
 make DESTDIR="$RPM_BUILD_ROOT" install
 rm -rf "$RPM_BUILD_ROOT/%{_datadir}/doc/freetds"
+find "$RPM_BUILD_ROOT" -name "*.la" -delete
 
 %post 
 /sbin/ldconfig 2> /dev/null
@@ -103,7 +104,6 @@ rm -rf $RPM_BUILD_ROOT
 %files devel 
 %defattr (-,root,root) 
 %{_libdir}/*.a
-%{_libdir}/*.la
 %{_libdir}/*.so
 %{_includedir}/*
 
