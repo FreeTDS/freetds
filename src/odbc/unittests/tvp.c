@@ -528,9 +528,25 @@ TestInitializeLeak(void)
 		CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, intCol, sizeof(SQLINTEGER), lIntCol, "S");
 
 	/* memory should not increase a lot */
-	assert(memory_usage() - initial_memory < 10240);
+	assert(memory_usage() < initial_memory + 10240);
 
 	odbc_reset_statement();
+
+	/* check we don't leak binding table multiple times */
+	/* this leak memory on MS driver */
+	if (odbc_driver_is_freetds()) {
+		CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_DEFAULT, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, &numRows, "S");
+
+		/* try to repeat set of the table */
+		initial_memory = memory_usage();
+		for (i = 0; i < 1024; ++i)
+			CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_DEFAULT, SQL_SS_TABLE, MAX_ROWS, 0, tableName, SQL_NTS, &numRows, "S");
+
+		/* memory should not increase a lot */
+		assert(memory_usage() < initial_memory + 10240);
+
+		odbc_reset_statement();
+	}
 }
 #endif
 
