@@ -83,7 +83,7 @@ install:
   - ren win-iconv-%WIN_ICONV_VER% iconv
   - mkdir iconv-build
   - cd iconv-build
-  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DBUILD_STATIC=on -D BUILD_SHARED=off -DBUILD_EXECUTABLE=off -DBUILD_TEST=on -DCMAKE_BUILD_TYPE=Release ..\\iconv"
+  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DBUILD_STATIC=on -D BUILD_SHARED=off -DBUILD_EXECUTABLE=off -DBUILD_TEST=on -DENABLE_MSDBLIB=on -DCMAKE_BUILD_TYPE=Release ..\\iconv"
   - "%WITH_COMPILER% nmake"
   - win_iconv_test.exe
   - cd ..\iconv
@@ -105,21 +105,21 @@ build_script:
   - cd build
   - set OPENSSL_ROOT_DIR=c:\openssl-v111-win%WIDTH%
   - set DEST_DIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
-  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Release \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" \"-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%\" .."
+  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Release -DENABLE_MSDBLIB=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" \"-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%\" .."
   - "%WITH_COMPILER% nmake"
   - set PATH=c:\openssl-v111-win%WIDTH%\bin;%PATH%
   - src\apps\tsql.exe -C
   - cd ..
   - mkdir build_debug
   - cd build_debug
-  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Debug -DENABLE_EXTRA_CHECKS=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" \"-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%\" .."
+  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Debug -DENABLE_EXTRA_CHECKS=on -DENABLE_MSDBLIB=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" \"-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%\" .."
   - "%WITH_COMPILER% nmake"
   - src\apps\tsql.exe -C
   - cd ..
   - mkdir build_withoutssl
   - cd build_withoutssl
   - set OPENSSL_ROOT_DIR=
-  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Release -DWITH_OPENSSL=off \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" .."
+  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Release -DWITH_OPENSSL=off -DENABLE_MSDBLIB=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" .."
   - "%WITH_COMPILER% nmake"
   - src\apps\tsql.exe -C
   - cd ..

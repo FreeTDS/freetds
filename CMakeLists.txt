@@ -7,6 +7,7 @@ option(ENABLE_ODBC_WIDE    "Enable ODBC wide character support" ON)
 option(ENABLE_KRB5         "Enable Kerberos support" OFF)
 option(ENABLE_ODBC_MARS    "Enable MARS" ON)
 option(ENABLE_EXTRA_CHECKS "Enable internal extra checks, DO NOT USE in production" OFF)
+option(ENABLE_MSDBLIB      "Enable MS style dblib" OFF)
 
 if(COMMAND cmake_policy)
 	cmake_policy(SET CMP0003 NEW)
@@ -345,6 +346,12 @@ endif()
 foreach(flag ODBC_WIDE EXTRA_CHECKS KRB5 ODBC_MARS)
 	config_write("#cmakedefine ENABLE_${flag} 1\n\n")
 endforeach(flag)
+
+if (ENABLE_MSDBLIB)
+	set(dblib_define "#define MSDBLIB 1")
+else()
+	set(dblib_define "#define SYBDBLIB 1")
+endif()
 
 config_write("#define VERSION \"\\@VERSION\\@\"\n\n")
 
