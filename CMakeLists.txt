@@ -59,7 +59,7 @@ endif()
 # get build number from date
 # use same formula used in configure.ac
 unset(BUILD_NUMBER)
-string(TIMESTAMP BUILD_NUMBER "( %Y - 2021 ) * 366 + 1%j - 1000")
+string(TIMESTAMP BUILD_NUMBER "( %Y - 2023 ) * 366 + 1%j - 1000")
 math(EXPR BUILD_NUMBER "${BUILD_NUMBER}")
 
 set(FREETDS_TOPDIR ${CMAKE_CURRENT_LIST_DIR})
