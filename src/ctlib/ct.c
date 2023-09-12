@@ -794,9 +794,9 @@ ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen,
 	if (!cmd)
 		return CS_FAIL;
 
-	/* 
-	 * Unless we are in the process of building a CS_LANG_CMD command, 
-	 * clear everything, ready to start anew 
+	/*
+	 * Unless we are in the process of building a CS_LANG_CMD command,
+	 * clear everything, ready to start anew
 	 */
 	if (cmd->command_state != _CS_COMMAND_BUILDING) {
 		_ct_initialise_cmd(cmd);
@@ -1124,7 +1124,7 @@ ct_send(CS_COMMAND * cmd)
 		if (cursor->status.cursor_row == _CS_CURS_TYPE_REQUESTED &&
 			cursor->status.declare == _CS_CURS_TYPE_SENT) {
 
- 			TDSRET ret = tds_cursor_setrows(tds, cursor, &something_to_send);
+			TDSRET ret = tds_cursor_setrows(tds, cursor, &something_to_send);
 			if (TDS_FAILED(ret)){
 				tdsdump_log(TDS_DBG_WARN, "ct_send(): cursor set rows failed\n");
 				return CS_FAIL;
@@ -1139,7 +1139,7 @@ ct_send(CS_COMMAND * cmd)
 			cursor->status.declare == _CS_CURS_TYPE_SENT) {
 
 			TDSRET ret = tds_cursor_open(tds, cursor, NULL, &something_to_send);
- 			if (TDS_FAILED(ret)){
+			if (TDS_FAILED(ret)){
 				tdsdump_log(TDS_DBG_WARN, "ct_send(): cursor open failed\n");
 				return CS_FAIL;
 			}
@@ -3876,7 +3876,7 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 		return CS_SUCCEED;
 		break;
 
- 	case CS_CURSOR_ROWS:
+	case CS_CURSOR_ROWS:
 
 		cursor = cmd->cursor;
 		if (!cursor) {
