@@ -4,6 +4,10 @@
  * \todo We test returning INT_CANCEL for a login timeout.  We don't test it for a query_timeout.
  */
 
+/* this test requires Sybase behaviour for some timeout handling */
+#undef MSDBLIB
+#define SYBDBLIB 1
+
 #include "common.h"
 #include <time.h>
 
