@@ -161,6 +161,12 @@ odbc_convert_table(TDS_STMT *stmt, SQLTVP *src, TDS_TVP *dest, SQLLEN num_rows)
 	SQLRETURN ret;
 	char *type_name, *pch;
 
+	/* probably data at execution attempt, currently not supported for TVP */
+	if (num_rows < 0) {
+		odbc_errs_add(&stmt->errs, "HYC00", "Data at execution are not supported for TVP columns");
+		return SQL_ERROR;
+	}
+
 	tds_deinit_tvp(dest);
 
 	type_name = strdup(tds_dstr_cstr(&src->type_name));
