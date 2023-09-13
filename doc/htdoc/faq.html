@@ -115,22 +115,12 @@
         <li><a href="#Which.Perl.library.should.I.use">Which Perl
         library should I use?</a></li>
 
-        <li><a href="#Are.there.any.known.issues">Are there any
-        known issues?</a></li>
-
-        <li><a href="#What.features.are.missing">What features are missing</a> compared to the vendors' implementations?</li>
-
         <li><a href="#pending">Why does each connection support
         only one query at a time?</a></li>
 
         <li><a href="#thread.safe">Is FreeTDS be thread
         safe?</a></li>
 
-        <li><a href=
-        "#Are.there.plans.to.implement.the.OpenServer.protocol.library">
-        Are there plans to implement the OpenServer
-        protocol/library?</a></li>
-        
         <li><a href="mars.html">What's wrong with MARS?</a></li>
       </ul>
     </li>
@@ -140,26 +130,11 @@
         I'm not getting my output parameters returned</a>, but I seem
         to be doing everything right!</li>
 
-	<li><a href="#unknownmarker">What does this <tt>unknown
-        marker</tt> message mean?</a></li>
-
         <li><a href="#connectionrefused">What if I get a
         'connection refused' message?</a></li>
 
-         <li><a href="#encrypted">Do encrypted connections work?</a></li>
-
-       <li><a href="#integratedsecurity">The server is listening,
-        but logins fail? (MS SQL only)</a></li>
-
-        <li><a href="#textdata">My <tt>text</tt> data are being
-        truncated or are causing my client to break.</a></li>
-
         <li><a href="#dateformat">My dates aren't formatted
         right!</a></li>
-        <li>My PHP script works from the command line but 
-		<a href="#php">fails in the browser!</a></li>
-		
-		<li>How do I debug my <a href="#oracle">Oracle Heterogeneous Services</a> error?</li>
       </ul>
     </li>
   </ol>
@@ -245,8 +220,8 @@
 		most of the current encryption logic. Project maintainer since 2015.</dd>
 	</dl>
       <p>For a more complete history, see AUTHORS in the distribution.  
-      Thanks also go to the folks at A2i, Inc. <a href=
-      "http://www.a2i.com">http://www.a2i.com</a> for funding the original
+      Thanks also go to the folks at A2i, Inc.
+      for funding the original
       development of DB-Library host file bulk copy and writetext
       support, and to Dave Poyourow there for helping with the
       debugging.</p>
@@ -291,10 +266,6 @@
     Online</a>.</li>
     <!-- goes to http://www.microsoft.com/sql/techinfo/productdoc/2000/default.asp -->
     <!-- valid as at 12th november 2001 -->
-
-    <li><a href="http://www.sybase.com/support/manuals">Sybase's
-    Product Manuals</a>.</li>
-    <!-- valid as at 12th november 2001 -->
   </ul>
 
   <h3 id="protocol">Is there any documentation on the TDS protocol?</h3>
@@ -314,7 +285,8 @@
   <!-- Implementation -->
 
   <h2>Implementation</h2>
-  	<a name="SYBASE" id="SYBASE"></a>
+
+  <h3 id="SYBASE">What's this SYBASE environment variable for?</h3>
 
 
   <p>Many programs look for the <var>SYBASE</var> environment
@@ -383,39 +355,6 @@
   you need paramaterized queries on a Microsoft server, use <tt>DBD::ODBC</tt></p>
 
 
-  <h3 id="Are.there.any.known.issues">Are there any known issues?</h3>
-  <ul>
-    <li>ODBC can be confusing to set up. See the <tt>samples</tt>
-    directory for example <tt>.ini</tt> files, and follow the User
-    Guide's instructions carefully.</li>
-
-    <li>BCP does not support TDS 4.2. You must use a more modern
-    protocol version.</li>
-
-    <li>DBD::Sybase dynamic SQL placeholders don't work, pending a client-side SQL parser.  (The ODBC ones do.)</li>
-
-    <li>There are no plans to implement DB-Library browse mode.</li>
-  </ul>
-
-  <p>Errors can sometimes be confusing. When an application uses
-  the library incorrectly, or when there are problems in a data
-  file being uploaded with BCP, the message returned by FreeTDS can
-  sometimes be misleading. In the latter case, it's often necessary
-  to examine the log file to understand what went wrong. </p>
-
- <h3 id="What.features.are.missing"> What features are missing compared to the vendors' implementations?</h3>
- 
- 	<p>In no particular order: </p>
-	<ul>
-		<li>DB-Library browse API</li>
-		<li>Parameterized queries in CT-Library with TDS 7.0+ (i.e. Microsoft servers)</li>
-		<li>CT-Library money functions</li>
-	</ul>
-	
-	<p>For specific functions, consult <code>doc/api_status.txt</code> in your distribution. </p>
-	
-	<p>Very few programs actually need the missing functionality.  Parameterized CT-Library queries would benefit Perl DBD::Sybase users, but the functionality would require departing from Sybase's documented API.</p>
-	
   <h3 id="pending">Why does each connection support only one query at a time?</h3>
 
   <p>If you are accustomed to programming with other database
@@ -478,12 +417,6 @@
   interfering with each other. Threads may not share a DBPROCESS or
   CS_CONNECTION without controlling access via a mutex.</p>
 
-  <h3 id="Are.there.plans.to.implement.the.OpenServer.protocol.library">Are there plans to implement the OpenServer protocol/library?</h3>
-
-  <p>Not at this point, there is still much work to do on the
-  client protocol. But, <tt>libtdssrv</tt> will do the trick for
-  some applications.</p>
-  <hr />
   <!-- RUNNING -->
 
   <h2>Problems Running</h2>
@@ -496,18 +429,6 @@
   <p>Microsoft SQL Server 7 with SP3, and later versions, quietly changed (which is to say, broke) how they respond to queries that execute stored procedures with output parameters.  Earlier servers let you send a query like <font size="-1"><code>EXECUTE A @P OUTPUT</code></font> and fetch the output parameter as a special result row (technique varying by library).  Newer servers simply don't send back that data.  To elicit output parameters from them, you have to use the RPC functions such as the DB-Library <a href="reference/a00336.html#a129">dbrpcparam</a>.  
   </p>
          
-  <h3 id="unknownmarker">What does this <tt>unknown marker</tt> message mean?</h3>
-
-  <p>Most of the time, it means you're not using the right protocol
-  version. That <i>can</i> happen even if your <tt>./configure</tt>
-  was done correctly. Try setting the <tt>TDSVER</tt> variable to a
-  value appropriate for your server: normally <code>5.0</code> for
-  Sybase and <code>7.0</code> for Microsoft. If that works, double
-  check your work. If your <kbd>freetds.conf</kbd> file and
-  <kbd><strong>configure</strong></kbd> options were right, but you
-  needed the environment variable anyway, please post a message to
-  the list and help us track it down.</p>
-
   <h3 id="connectionrefused">
 	  What if I get a 
   	<tt><font size="+1">connection refused</font></tt> message?</h3>
@@ -568,70 +489,6 @@
     </li>
   </ol>
 
-  <h3 id="integratedsecurity">The Microsoft SQL Server is listening, 
-  	my configuration and
-	environment are set up per question 6.1, but logins still
-	fail.</h3>
-
-  <p>Microsoft supports two security models in three
-  permutations:</p>
-
-  <ol>
-    <li>Windows NT Authentication Mode (Windows NT
-    Authentication)</li>
-
-    <li>Standard Mode (SQL Server Authentication)</li>
-
-    <li>Mixed Mode (Windows NT Authentication and SQL Server
-    Authentication)</li>
-  </ol>
-
-  <p>"Windows NT Authentication", often called "integrated
-  security", relies on Microsoft's domain logins, which establish a
-  user's network security attributes at network login time. When
-  connecting to the database server, SQL Server accepts an
-  encrypted password in the login packet, and uses Windows NT
-  facilities authenticate it, usually via the Primary Domain
-  Controller (PDC). The server then permits or denies login access
-  based on the response.</p>
-
-  <p>With traditional "Standard Mode" authentication, usernames and
-  passwords are stored within SQL Server. They are passed in the
-  login packet as plaintext, and connection requests are
-  authenticated without consulting the operating system.</p>
-
-  <p>FreeTDS supports both security models. Domain logins are
-  recognized by the presence of a backslash (\) character in the
-  username. See the <a href=
-  "userguide/domains.html">User Guide</a> for
-  details. </p>
-
-  <h3 id="encrypted">Do encrypted connections work?</h3>
-  
-  <p>Yes.  Sometimes it's tricky, though.  </p>
-
-  <h3 id="textdata">My <tt>text</tt> data are being truncated or are causing my
-  client to break.</h3>
-
-  <p>The <tt>text</tt> data type is different from <tt>char</tt>
-  and <tt>varchar</tt> types. The maximum data length of a
-  <tt>text</tt> column is governed by the <tt>textsize</tt>
-  connection option. Microsoft <i>claims</i> in their
-  documentation to use a default <tt>textsize</tt> of 4000
-  characters, but in fact their implementation is inconsistent.
-  Sometimes <tt>text</tt> columns are returned with a size of 4
-  GB!</p>
-
-  <p>The best solution is to make sure you set the <tt>textsize</tt> option to
-  a reasonable value when establishing a connection. For
-  example:</p>
-  <pre class="screen">
-<tt class="userinput">
-1&gt; <b>set <tt class="envar">textsize</tt> 10000</b></tt>
-2&gt; <b>go</b></pre>
-
-  See also the <tt>text size</tt> option in <tt>freetds.conf</tt>.
-
   <h3 id="dateformat">My dates aren't formatted right!</h3>
 
   <p>Some dates turn out better than others.</p>
@@ -669,21 +526,6 @@
   Guide for details.</p>
   
 
-  <h3 id="php">My PHP script fails in the browser!</h3>
-  
-  <p> This is usually a webserver configuration issue, typically
-  permissions reading <kbd>freetds.conf</kbd> or similar.  
-  Remember that the account running the e.g. Apache server is 
-  normally not the one you use to log in, or to test your script
-  with on the command line.  </p>
-
-	<h3 id="oracle">How do I debug my Oracle Heterogeneous Services error?</h3>
-	
-	<p>The message produced by the Oracle server is seldom detailed enough to understand what's wrong.  
-		Really, the only way to debug these errors reliably is with a TDSDUMP log of the session. 
-		The log will contain any error messages from the server and/or from the library.  Often that's
-		all the information needed.  If not, post the log to the mailing list. </p>
-  
   <!-- footer -->
   <hr size="1" />
   <font size="-1">Updates and comments <a href=
