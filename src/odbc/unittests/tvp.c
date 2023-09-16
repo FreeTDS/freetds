@@ -4,11 +4,18 @@
 #include <assert.h>
 #include <odbcss.h>
 
-#if (defined(HAVE_MALLINFO2) || defined(HAVE_MALLINFO)) && defined(HAVE_MALLOC_H)
+#undef MEMORY_TESTS
+#if defined(HAVE_MALLOC_H)
 #  include <malloc.h>
-#  define MEMORY_TESTS
+#  if defined(HAVE_MALLINFO2) || defined(HAVE_MALLINFO) || defined(HAVE__HEAPWALK)
+#    define MEMORY_TESTS 1
+#  endif
+#endif
+
+#if defined(HAVE_VALGRIND_MEMCHECK_H)
+#  include <valgrind/valgrind.h>
 #else
-#  undef MEMORY_TESTS
+#  define RUNNING_ON_VALGRIND 0
 #endif
 
 #include <freetds/bool.h>
@@ -496,12 +503,28 @@ TestDescriptorValues(void)
 static size_t
 memory_usage(void)
 {
-#if defined(HAVE_MALLINFO2)
-	struct mallinfo2 info = mallinfo2();
-	size_t ret = info.uordblks;
+	size_t ret = 0;
+
+	/* mallinfo does not work on Valgrind, ignore */
+	if (RUNNING_ON_VALGRIND > 0)
+		return ret;
+
+#if defined(HAVE__HEAPWALK)
+	{
+		_HEAPINFO hinfo;
+		int heapstatus;
+
+		hinfo._pentry = NULL;
+		while ((heapstatus = _heapwalk(&hinfo)) == _HEAPOK) {
+			if (hinfo._useflag == _USEDENTRY)
+				ret += hinfo._size;
+		}
+		assert(heapstatus == _HEAPEMPTY || heapstatus == _HEAPEND);
+	}
+#elif defined(HAVE_MALLINFO2)
+	ret = mallinfo2().uordblks;
 #else
-	struct mallinfo info = mallinfo();
-	size_t ret = (size_t) info.uordblks;
+	ret = (size_t) (mallinfo().uordblks);
 #endif
 	return ret;
 }
