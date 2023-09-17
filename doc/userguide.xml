@@ -3525,7 +3525,8 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 		<sect2 id="Sendpatch">
 			<title>Send a patch</title>
 
-<para>Good patches are nearly always applied in short order.  Patches uploaded to <ulink url="http://sourceforge.net/tracker/?group_id=33106&amp;atid=407808">SourceForge</ulink> trigger automatic notification to the &freetds;  mailing list.</para>
+<para>Good patches are nearly always applied in short order.
+	Patches uploaded to <ulink url="https://sourceforge.net/p/freetds/patches/">SourceForge</ulink> trigger automatic notification to the &freetds;  mailing list.</para>
 			</sect2>
 		<sect2 id="Correct">
 			<title>Correct this User Guide</title>
@@ -3537,7 +3538,8 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 		<sect2 id="Documentapi">
 			<title>Document an <acronym>API</acronym></title>
 
-<para>We have just begun an independent reference manual to &freetds;; the main <acronym>API</acronym> documents are the work of the server vendors.  We're using <ulink url="http://www.doxygen.org">Doxygen</ulink>, which extracts documentation directly from comments in the source code, and we're maybe 25% done.</para>
+<para>We have just begun an independent reference manual to &freetds;; the main <acronym>API</acronym> documents are the work of the server vendors.
+	We're using <ulink url="https://www.doxygen.nl">Doxygen</ulink>, which extracts documentation directly from comments in the source code, and we're maybe 25% done.</para>
 
 <para>The <acronym>TDS</acronym> protocol is partly documented, as are the <acronym>API</acronym>s to <filename>libtds</filename> and &dblib;, but much remains.</para>
 			</sect2>
@@ -3617,7 +3619,11 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 
 <para>The <ulink url="../reference/index.html">reference manual</ulink> is installed as part of &freetds;.  It can be regenerated at any time using <productname>Doxygen</productname> with <command>cd <filename>doc</filename>; make doc</command>.</para>
 
-<para>The reference manual is a work in progress: only &dblib; is completely documented, and quite minimally at that.  Should you find it inadequate, you may be interested to learn it's not hard to add to, technically.  <productname>Doxygen</productname> generates a manual from encoded comments in the source code.  Its markup syntax is not hard to learn.  You can read more about it at the <ulink url="http://www.doxygen.org">Doxygen website</ulink>.</para>
+<para>The reference manual is a work in progress: only &dblib; is completely documented, and quite minimally at that.
+	Should you find it inadequate, you may be interested to learn it's not hard to add to, technically.
+	<productname>Doxygen</productname> generates a manual from encoded comments in the source code.
+	Its markup syntax is not hard to learn.
+	You can read more about it at the <ulink url="https://www.doxygen.nl">Doxygen website</ulink>.</para>
 
 <para>Basic API coverage information for the db-lib, ct-lib, and ODBC client libraries is maintained in <filename>doc/api_status.txt</filename>, included in the source distribution.  For your convenience and enjoyment, we include that file in the following sections.  In each table, we note for the function
 			<footnote><para>Sybase and Microsoft sometimes use slightly different names for the same function.  It is the intention of the <option>--enable-msdblib</option> option to align
@@ -3663,10 +3669,7 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 <para>Microsoft's version of &dblib; is
 			<ulink url="http://msdn.microsoft.com/en-us/library/aa936988(SQL.80).aspx">online</ulink>.
 			Sybase's is both
-			<ulink url="http://manuals.sybase.com/onlinebooks/group-cnarc/cng1110e/dblib/@Generic__BookTextView;pt=4602;nh=1">online</ulink>
-			and can be
-			<ulink url="http://download.sybase.com/pdfdocs/cng1250j/dblib.pdf">downloaded</ulink>
-			as a PDF file.
+			<ulink url="https://help.sap.com/doc/4091f120b0c9429d8503322daeeff2be/16.0.3.8/en-US/DB-Library_C_Reference_Manual_en.pdf">online</ulink>.
 			
 			<footnote><para>Links such as these are quite perishable.  Should you find them broken, please check
 			the <ulink url="https://www.freetds.org/userguide/dblib.api.summary.html">&freetds; User Guide</ulink> posted on our website.
@@ -3678,8 +3681,7 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 		<title>ct-lib API Implementation Summary</title>
 
 <para>Sybase ct-lib documentation can be found
-			<ulink url="http://manuals.sybase.com/onlinebooks/group-cnarc/cng1110e/ctref/@Generic__BookView">online</ulink>
-			and in <ulink url="http://download.sybase.com/pdfdocs/cng1000e/ref.pdf">PDF</ulink> form.
+			<ulink url="https://help.sap.com/doc/f5548966bc5840f68d18799e0531c1bc/16.0.3.6/en-US/Client-Library_C_Reference_Manual_en.pdf">online</ulink>.
 			<footnote><para>Links such as these are quite perishable.
 			Should you find them broken, please check the <ulink url="https://www.freetds.org/userguide/ctlib.api.summary.html">&freetds; User Guide</ulink> posted on our website.
 			If it's out of date, please let us know, so we can correct it.  Thanks.</para></footnote></para>
@@ -4949,7 +4951,11 @@ By the way before looking for <filename>$SYBASE/interfaces</filename> file FreeT
 <para>For better or worse, &freetds; brings the otherwise innocent programmer into contact with the arcane business of how data are stored and transported.  &freetds; is a data communications library that of course connects to databases, which are charged with storing information in a way that is neutral to all architectures and languages.  On the surface, that might not seem very complex, even worth discussing.  Under the surface, things are not so simple.</para>
 	<section id="ascii"><title><acronym>ASCII</acronym>: What everyone knows</title>
 
-<para>The world we are all familiar with, programmingwise, is <acronym>ASCII</acronym>.  Our email (mostly), our <quote>text</quote> files, our web pages (mostly), all use <acronym>ASCII</acronym> to represent English (or English-like) text. Perhaps because <ulink url="http://czyborra.com/charsets/iso646.html"><acronym>ASCII</acronym></ulink> was standardized back in 1972 by the ISO, it seems like the <quote>natural</quote> way to store information.  But let's look under the hood a little bit, and examine our assumptions.</para>
+<para>The world we are all familiar with, programmingwise, is <acronym>ASCII</acronym>.
+	Our email (mostly), our <quote>text</quote> files, our web pages (mostly), all use <acronym>ASCII</acronym> to represent English (or English-like) text.
+	Perhaps because <ulink url="http://czyborra.com/charsets/iso646.html"><acronym>ASCII</acronym></ulink> was standardized back in 1972 by the ISO,
+	it seems like the <quote>natural</quote> way to store information.
+	But let's look under the hood a little bit, and examine our assumptions.</para>
 
 <para>Our so-called <quote>text</quote> files are nothing special, nothing but a little agreement we enter into with our operating system.  The only reason we can <quote>read</quote> them with <command>cat</command> or <command>vi</command> is that the operating system and its tools are in on the agreement.  A file is only a stream of bytes, after all, no more <quote>text</quote> than an executable.  The only thing distinguishing a <quote>text</quote> file from any other, is our understanding to treat it like one.  We agree that the number 65 will represent the letter <literal>A</literal>, 66, <literal>B</literal>, and so on, 127 values in all.  See <command>man ascii</command> for further details.</para>
 
@@ -4973,7 +4979,12 @@ By the way before looking for <filename>$SYBASE/interfaces</filename> file FreeT
 		</section>
 	<section id="Unicode"><title>Unicode: East meets West</title>
 
-<para><acronym>ASCII</acronym> and its 8-bit cousins are on the way out, and with them the assumption that a character can be represented by a single byte.  The new kid on the block is <ulink url="http://www.unicode.org/">Unicode</ulink>, similar to but not precisely the same as ISO 10646.  Unicode (despite its name) is a set of standards.  The most widely implemented is the 16-bit form, called UCS-2.  As you might guess, UCS-2 uses two bytes per character, allowing it to encode most characters of most languages.  Because <quote>most</quote> is far from <emphasis>all</emphasis>, there are nascent 32-bit forms, too, but they are neither complete nor in common use.</para>
+<para><acronym>ASCII</acronym> and its 8-bit cousins are on the way out, and with them the assumption that a character can be represented by a single byte.
+	The new kid on the block is <ulink url="https://home.unicode.org/">Unicode</ulink>, similar to but not precisely the same as ISO 10646.
+	Unicode (despite its name) is a set of standards.
+	The most widely implemented is the 16-bit form, called UCS-2.
+	As you might guess, UCS-2 uses two bytes per character, allowing it to encode most characters of most languages.
+	Because <quote>most</quote> is far from <emphasis>all</emphasis>, there are nascent 32-bit forms, too, but they are neither complete nor in common use.</para>
 
 <para>In the same sense that 7-bit <acronym>ASCII</acronym> was extended to 8 bits, Unicode extends the most prevalent <quote>8-bit <acronym>ASCII</acronym></quote>,  <acronym>ISO 8859-1</acronym>, to 16 and 32 bits.  The first 256 values remain in Unicode as in <acronym>ISO 8859-1</acronym>: 65 is still <literal>A</literal>, except instead of being 8 bits (0x40), it's 16 bits (0x0040).  Unlike the 8-bit extensions, Unicode has a unique 1:1 map of numbers to characters, so no language context or <quote>character set</quote> name is needed to decode a Unicode string.</para>
 
@@ -4987,7 +4998,11 @@ Microsoft also designed version 7.0 (and up) of the <acronym>TDS</acronym> proto
 
 <para>The basic problem, from a programmer's perspective, is the ancient agreement Unix entered into 30 years ago, the <quote><acronym>ASCII</acronym> Compact,</quote> alluded to earlier.  Assumptions about <acronym>ASCII</acronym> are littered throughout Unix-like systems, beginning with C's convention of representing strings as arrays of characters ending in a zero.  Returning to our HELLO example earlier, C will store <literal>HELLO</literal> as  <literal>72 69 76 76 79 0</literal>, in very nice <acronym>ASCII</acronym>.  Many many parts of the operating system and its associated tools and applications will recognize that as a 5-letter word because it's terminated by a null (zero).  In UCS-2 Unicode, though, that same <literal>HELLO</literal> uses 2 bytes for every character and becomes <literal>72 0 69 0 76 0 76 0 79 0 0 0</literal>.  Practically the whole OS will think that's a 1-letter word, <quote>H</quote>.  Not a good thing.</para>
 
-<para>Even if every OS were magically rid of all <acronym>ASCII</acronym> assumptions and C strings, there would still be the problem of Endianism.  <ulink url="http://whatis.techtarget.com/definition/0,,sid9_gci211659,00.html">Technical</ulink> explanations on the subject are not hard to find.  The long and short of it is, given a 16-bit integer (2 bytes), different hardware architectures will store the value differently.  Asked to store our friend <quote>A</quote>, (0x41), for instance, a Sparc processor will put the least significant byte at the higher address (00 41) whereas an Intel processor will put it in the lower address (41 00).  Put aside the questions of left, right, and wrong; architectures are a fact of life.  Endianism shows up wherever integers are stored and retrieved in heterogeneous environments.</para>
+<para>Even if every OS were magically rid of all <acronym>ASCII</acronym> assumptions and C strings, there would still be the problem of Endianism.
+	<ulink url="https://www.techtarget.com/searchnetworking/definition/big-endian-and-little-endian">Technical</ulink> explanations on the subject are not hard to find.
+	The long and short of it is, given a 16-bit integer (2 bytes), different hardware architectures will store the value differently.
+	Asked to store our friend <quote>A</quote>, (0x41), for instance, a Sparc processor will put the least significant byte at the higher address (00 41) whereas an Intel processor will put it in the lower address (41 00).
+	Put aside the questions of left, right, and wrong; architectures are a fact of life.  Endianism shows up wherever integers are stored and retrieved in heterogeneous environments.</para>
 
 <para>The Unicode folks knew about Endianism, of course, and had to address it.  A Unicode bytestream is supposed to begin with a byte-order mark.  Needless to say, perhaps, many don't.</para>
 		</section>
@@ -5033,10 +5048,11 @@ It does not do so at the current time, beside using wide functions in ODBC.</par
 <para>Sybase servers, by the way, adhere to a <quote>server makes right</quote> policy: they transmit their data in whatever character set the client requested at login time.  The list of available character sets is fairly short, but includes UTF-8.  While  &freetds; <emphasis>could</emphasis> convert Sybase data streams as easily as it does Microsoft data streams, to our knowledge no one is doing so.  The Sybase server can perform the conversion itself, making &freetds;'s capability in this regard largely redundant and irrelevant.</para>
 		<section id="moreinfo"><title>For further information</title>
 			<simplelist type="vert" columns="1">
-				<member><ulink url="http://www.cl.cam.ac.uk/~mgk25/unicode.html">UTF-8 and Unicode FAQ for Unix/Linux</ulink>, by Markus Kuhn.  As the man says, very comprehensive.  	</member>
+				<member><ulink url="https://www.cl.cam.ac.uk/~mgk25/unicode.html">UTF-8 and Unicode FAQ for Unix/Linux</ulink>, by Markus Kuhn.
+				As the man says, very comprehensive.  	</member>
 				<member><ulink url="https://www.sensitiveresearch.com/Archive/CharCodeHist/">ASCII: American Standard Code for Information Infiltration</ulink>, by Tom Jennings.  Everything you ever wanted know about ASCII, but didn't know whom to ask.</member>
 				<member><ulink url="http://tronweb.super-nova.co.jp/characcodehist.html">A Brief History of Character Codes</ulink>, by Steven J. Searle.  Includes useful references.  </member>
-				<member><ulink url="http://www.unicode.org/">Unicode Home Page</ulink>.  </member>
+				<member><ulink url="https://home.unicode.org/">Unicode Home Page</ulink>.</member>
 <!--member><ulink url=""></ulink>.  </member -->
 				</simplelist>
 						
