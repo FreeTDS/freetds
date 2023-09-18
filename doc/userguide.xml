@@ -634,9 +634,6 @@ The list of builds is at
 You can find there builds of code in the master banch and (from time to
 time) builds from the post-1.4 release fixes-only Branch-1_4 branch.
 Every build matrix element generates its artifact.</para>
-
-<para>Ramiro Morales also maintains similar builds of the Branch-0_95 branch at
-<ulink url="https://github.com/ramiro/freetds/releases">https://github.com/ramiro/freetds/releases</ulink>.</para>
 				</sect3>
 
 			<sect3 id="regsvr32"><title>ODBC driver registration</title>
@@ -2334,29 +2331,6 @@ If it behaves strangely, try &freetds;'s <command>bsqlodbc</command> before you 
 	<title>Advanced Configurations</title>
 
 <para>This chapter details some advanced configurations that need expanded explanation.</para>
-	<sect1 id="emulle">
-		<title>Big Endian Clients with Buggy <productname>Microsoft SQL Server</productname>s</title>
-
-<para>Several version of Microsoft SQL server have a bug that affects big endian clients.
-This includes 7.0 GA and 7.0 SP1.
-Furthermore, <acronym>TDS</acronym> Protocol version 7.0 is natively little endian.
-<productname>Microsoft SQL Server 2000</productname> is also reported not to work from big endian clients without little endian emulation turned on.</para>
-		<note><para>The terms <emphasis>big endian</emphasis> and <emphasis>little endian</emphasis> come originally from Gulliver's Travels.  In computer science they refer to the the integer byte-order for a processor.  Big endian processors, such as Sparc and PowerPC store the most significant byte in the first memory location of a multi-byte integer.  Little endian processors, such as Intel and Alpha do it the other way around.  So the 16-bit number 258 would be 0x0102 on big endian and 0x0201 on little endian machines.</para></note>
-		
-
-<para>In this example we want to force connections to a server named <literal>mssql</literal> to emulate a little endian client.  We are using protocol version 4.2 here, version 7.0 or above will automatically emulate little endian mode regardless of the &freetdsconf; setting.
-			<emphasis>You shouldn't use this option, set another protocol version instead (7.0, 7.1, 7.2, 7.3 or 7.4)</emphasis>.</para>
-		<example id="e.g.LittleEndian">
-			<title>Emulate Little Endian &freetdsconf; setting</title>
-<programlisting>
-	[mssql]
-	host = ntbox.mydomain.com
-	port = 1433
-	tds version = 4.2
-	emulate little endian = yes
-	</programlisting>
-			</example>
-		</sect1>
 	<sect1 id="Localization">
 		<title>Localization and <acronym>TDS</acronym> 7.0</title>
 
@@ -3097,20 +3071,6 @@ for BLOBs allocating memory as needed instead, so you should not have to reduce 
 data returned by queries.</para>
 			</sect2>
 
-			<sect2 id="Endianism">
-				<title>Endianism</title>
-
-<para>If either your server or your client is a big endian system, pay careful attention to all references to endianism anywhere near &freetds;.  See the section on <link linkend="emulle">Little Endian Emulation</link> for details.</para>
-			</sect2>
-		<sect2 id="Datetime">
-			<title><type>Datetime</type> and <type>Money</type></title>
-
-<para>Big endian clients may experience difficulty with Microsoft servers.
-Some versions of <productname>Microsoft SQL Server</productname> 7 did not handle these types on these machines correctly, according to the protocol.
-According to
-				<ulink url="http://support.microsoft.com/support/kb/articles/Q254/1/23.ASP"> http://support.microsoft.com/support/kb/articles/Q254/1/23.ASP</ulink> on the Microsoft support site, it's fixed as of service pack 3.  Unfortunately, there's no direct way for &freetds; to know whether or not a service pack has been installed, and how/whether to support the buggy version is an outstanding issue.  Your best bet is to apply their patch.
-				<note><para>The Knowledge Base article states <quote>The Sybase CT-Lib client is the only known big-endian client that can connect to <productname>SQL Server</productname>.</quote>  Depends on who's doing the knowing, of course.</para></note></para>
-			</sect2>
 		<sect2 id="IntegratedSecurity">
 			<title>Microsoft's <quote>Integrated Security</quote></title>
 
