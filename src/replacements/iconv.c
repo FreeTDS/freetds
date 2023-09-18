@@ -44,6 +44,7 @@
 #include <freetds/tds.h>
 #include <freetds/bytes.h>
 #include <freetds/iconv.h>
+#include <freetds/bool.h>
 #include <freetds/utils/bjoern-utf8.h>
 
 #include "iconv_charsets.h"
@@ -348,10 +349,10 @@ tds_sys_iconv_open (const char* tocode, const char* fromcode)
 	const char *enc_name;
 	unsigned char encodings[2];
 
-	static char first_time = 1;
+	static bool first_time = true;
 
 	if (TDS_UNLIKELY(first_time)) {
-		first_time = 0;
+		first_time = false;
 		tdsdump_log(TDS_DBG_INFO1, "Using trivial iconv\n");
 	}
 
