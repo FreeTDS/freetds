@@ -107,12 +107,7 @@ static const char *opt_col_term = "\t";
 static const char *opt_row_term = "\n";
 static const char *opt_default_db = NULL;
 
-static int do_query(TDSSOCKET * tds, char *buf, int opt_flags);
-static int get_opt_flags(char *s, int *opt_flags);
-static void populate_login(TDSLOGIN * login, int argc, char **argv);
 static int tsql_handle_message(const TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * msg);
-static int tsql_handle_error  (const TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * msg);
-static void slurp_input_file(char *fname, char **mybuf, size_t *bufsz, size_t *buflen, int *line);
 
 static char *
 tsql_readline(char *prompt)
