@@ -502,6 +502,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 			       "OpenSSL", yes_no(settings->openssl),
 			       "GnuTLS", yes_no(settings->gnutls),
 			       "MARS", yes_no(settings->mars));
+			tds_free_login(login);
 			exit(0);
 			break;
 		default:
@@ -759,8 +760,12 @@ main(int argc, char **argv)
 		return 1;
 	}
 
+	/* process all the command line args into the login structure */
+	populate_login(login, argc, argv);
+
 	context = tds_alloc_context(NULL);
 	if (!context) {
+		tds_free_login(login);
 		fprintf(stderr, "context cannot be null\n");
 		return 1;
 	}
@@ -771,9 +776,6 @@ main(int argc, char **argv)
 
 	context->msg_handler = tsql_handle_message;
 	context->err_handler = tsql_handle_error;
-
-	/* process all the command line args into the login structure */
-	populate_login(login, argc, argv);
 
 	/* Try to open a connection */
 	tds = tds_alloc_socket(context, 512);
