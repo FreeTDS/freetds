@@ -7,7 +7,6 @@
 	<!ENTITY % ug.desc SYSTEM "userguide_desc.xml">
 	%ug.desc;
 	<!ENTITY % comment "IGNORE" >
-	<!ENTITY ora "O'Reilly &amp; Associates">
 	<!ENTITY freetds "<productname>FreeTDS</productname>">
 	<!ENTITY dblib '<systemitem class="library">DB-Library</systemitem>'>
 	<!ENTITY ctlib '<systemitem class="library">CT-Library</systemitem>'>
@@ -55,6 +54,10 @@
 		<year>2017</year>
 		<year>2018</year>
 		<year>2019</year>
+		<year>2020</year>
+		<year>2021</year>
+		<year>2022</year>
+		<year>2023</year>
 		<holder>Frediano Ziglio</holder>
 		</copyright>
 	<legalnotice><para>Permission is granted to copy, distribute and/or modify this document
@@ -68,7 +71,7 @@
 	</bookinfo>
 
 <toc></toc>
-<!-- nettiquette quoting: http://www.netmeister.org/news/learn2quote.html-->
+<!-- nettiquette quoting: https://www.netmeister.org/news/learn2quote.html -->
 <!-- ////////////////// CHAPTER /////////////////////// -->
 <preface id="about"><title>About this User Guide</title>
 
@@ -85,10 +88,16 @@
 				</simplelist>
 			</footnote>
 		can be found on the &freetds;
-		<ulink url="http://www.freetds.org/userguide/">web site</ulink>, where you will also find the most up to date <ulink url="http://www.freetds.org/faq.html">FAQ</ulink>, as well as links to the anonymous and browseable git repository.  If you find something wrong, unclear, badly put, misleading, or incorrigible, I hope you will let us know.  Post your musings or rants to the mailing list (see <link linkend="contrib">Helping</link>).  Patches to <filename>doc/userguide.xml</filename> are especially welcome, of course.  By taking the time let us know what you think, perhaps the path to enlightenment will be made a little smoother for the fellow behind you.</para>
+		<ulink url="https://www.freetds.org/userguide/">web site</ulink>, where you will also find the most up to date
+		<ulink url="https://www.freetds.org/faq.html">FAQ</ulink>, as well as links to the anonymous and browseable git repository.
+		If you find something wrong, unclear, badly put, misleading, or incorrigible, I hope you will let us know.
+		Post your musings or rants to the mailing list (see <link linkend="contrib">Helping</link>).
+		Patches to <filename>doc/userguide.xml</filename> are especially welcome, of course.
+		By taking the time let us know what you think, perhaps the path to enlightenment will be made a little smoother for the fellow behind you.</para>
 
-<para>A few technical notes.  This guide is written in XML DocBook format, specifications for which are found in the <ulink url="http://www.docbook.org/tdg/en/html/docbook.html">DocBook book</ulink>.  It was converted to HTML with <ulink url="https://pagure.io/xmlto">xmlto</ulink>.
-		The XML text is distributed with the rest of the source code, and may be edited with your favorite or least favorite text editor.</para>
+<para>A few technical notes.  This guide is written in XML DocBook format, specifications for which are found in the <ulink url="https://tdg.docbook.org/tdg/4.5/docbook.html">DocBook book</ulink>.
+	It was converted to HTML with <ulink url="https://pagure.io/xmlto">xmlto</ulink>.
+	The XML text is distributed with the rest of the source code, and may be edited with your favorite or least favorite text editor.</para>
 
 <para>Enough.  Let's begin.</para>
 
@@ -206,7 +215,10 @@ Please see the <filename>AUTHORS.md</filename> in the distribution for a (we hop
 			<title>Current Projects</title>
 
 <para>&freetds; consists of some C libraries.</para>
-<para>The &freetds; libraries support three separate <acronym>API</acronym>s: &dblib;, &ctlib;, and &odbc;.  Underlying these three is libtds, which handles the low-level details of the <acronym>TDS</acronym> protocol, such as sending, receiving, and datatype conversion.  This document and the <ulink url="http://www.freetds.org/">FreeTDS</ulink> website are dedicated to these libraries.
+<para>The &freetds; libraries support three separate <acronym>API</acronym>s: &dblib;, &ctlib;, and &odbc;.
+	Underlying these three is libtds, which handles the low-level details of the <acronym>TDS</acronym> protocol,
+	such as sending, receiving, and datatype conversion.
+	This document and the <ulink url="https://www.freetds.org/">FreeTDS</ulink> website are dedicated to these libraries.
 </para>
 			</sect2>
 		<sect2 id="Status">
@@ -224,9 +236,17 @@ Please see the <filename>AUTHORS.md</filename> in the distribution for a (we hop
 
 <para>In addition to the core &dblib; <acronym>API</acronym>, &freetds;  includes a full implementation of &dblib;'s <acronym>bcp</acronym> functions, as well as <command>freebcp</command>, a replacement for Sybase's <application>bcp</application> utility.</para>
 
-<para>How big is it?  &freetds; has over 100,000 lines of C code, maintained by a handful of developers.  Patches arrive irregularly, varying in size from one-liners to thousand-line monsters.  Almost all are applied or used in some way.  The mailing list has some 700 or so subscribers at this writing.  Safe to say, &freetds;'s success so far lies somewhere between the Beetle and the Edsel.</para>
+<para>How big is it?  &freetds; has over 100,000 lines of C code, maintained by a handful of developers.
+	Patches arrive irregularly, varying in size from one-liners to thousand-line monsters.
+	Almost all are applied or used in some way.  The mailing list has some 600 or so subscribers at this writing.
+	Safe to say, &freetds;'s success so far lies somewhere between the Beetle and the Edsel.</para>
 
-<para>Who uses it?  Oh, pretty much everyone.  &freetds; users number in the tens of thousands.  It's used by large corporations, by the U.S. federal government (e.g. <ulink url="http://www.ncbi.nlm.nih.gov/books/bv.fcgi?rid=toolkit.chapter.ch_dbapi">Database Access Library</ulink> at the National Center for Biotechnology Information) and, judging by the mailing list, by many webservers running Apache and PHP.  Sybase recommends &freetds; for their EAServer product.  Microsoft recommends &freetds; to their customers who want access to Microsoft SQL Server from non-Win32 clients.  So do we.</para>
+<para>Who uses it?  Oh, pretty much everyone.  &freetds; users number in the tens of thousands.
+	It's used by large corporations, by the U.S. federal government
+	(e.g. <ulink url="https://ncbi.github.io/cxx-toolkit/pages/ch_dbapi">Database Access Library</ulink> at the
+	National Center for Biotechnology Information) and, judging by the mailing list, by many webservers running Apache and PHP.
+	Sybase recommends &freetds; for their EAServer product.
+	Microsoft recommends &freetds; to their customers who want access to Microsoft SQL Server from non-Win32 clients.  So do we.</para>
 			</sect2>
 		<sect2 id="Languages">
 			<title>Languages besides C</title>
@@ -240,7 +260,7 @@ Please see the <filename>AUTHORS.md</filename> in the distribution for a (we hop
 				<varlistentry>
 					<term>jTDS</term>
 					<listitem><para>If Java is your game, we refer you to the
-						<ulink url="http://sourceforge.net/projects/jtds/">jTDS</ulink>
+						<ulink url="https://sourceforge.net/projects/jtds/">jTDS</ulink>
 						project on SourceForge.  It is a fork of the
 						<productname>FreeTDS/JDBC</productname> project, by Craig Spannring, and is a free, native 100% Java implementation of a Type 4  <acronym>JDBC</acronym> driver.</para>
 						</listitem>
@@ -256,13 +276,10 @@ Please see the <filename>AUTHORS.md</filename> in the distribution for a (we hop
 					</varlistentry>
 				<varlistentry>
 					<term>&odbc; bridge products</term>
-					<listitem><para>They use the &odbc; driver on the NT box where your <productname>SQL Server</productname> runs so you'll never have trouble with new protocols and the like.  On the downside, they can be costly and may be inefficient.  We know of <productname>EasySoft ODBC-ODBC Bridge</productname> from <ulink url="http://www.easysoft.com">EasySoft</ulink>, <productname>Universal Data Access Driver</productname> from <ulink url="http://www.openlinksw.com">OpenLink Software</ulink>, <productname>SequeLink</productname> from <ulink url="http://www.merant.com/">Merant</ulink>, and
-							<application>&odbc; Router</application> from <ulink url="http://www.augsoft.com/">August Software</ulink> Corporation.</para>
-						</listitem>
-					</varlistentry>
-				<varlistentry>
-					<term>Inline &odbc; driver</term>
-					<listitem><para>Based on <systemitem class="library">libtds</systemitem>, this is a native &odbc; driver for i386 *nix. It is free in price, but comes only as a binary at the present time.</para>
+					<listitem><para>They use the &odbc; driver on the NT box where your <productname>SQL Server</productname> runs so you'll never have trouble with new protocols and the like.  On the downside, they can be costly and may be inefficient.
+					We know of <productname>EasySoft ODBC-ODBC Bridge</productname> from <ulink url="https://www.easysoft.com">EasySoft</ulink>,
+					<productname>Universal Data Access Driver</productname> from <ulink url="https://www.openlinksw.com">OpenLink Software</ulink>,
+					and <application>&odbc; Router</application> from <ulink url="https://www.augsoft.com/">August Software</ulink> Corporation.</para>
 						</listitem>
 					</varlistentry>
 				<varlistentry>
@@ -289,7 +306,7 @@ Please see the <filename>AUTHORS.md</filename> in the distribution for a (we hop
 		<itemizedlist spacing="compact">
 			<title>Versions used for this release</title>
 			<listitem><para>autoconf (GNU Autoconf) 2.69</para></listitem>
-			<listitem><para>automake (GNU automake) 1.15</para></listitem>
+			<listitem><para>automake (GNU automake) 1.16.1</para></listitem>
 			<listitem><para>ltmain.sh (GNU libtool) 2.4.6</para></listitem>
 			</itemizedlist>
 	</footnote> to increase portability.</para>
@@ -304,8 +321,8 @@ Because everyone is a beginner once and no one is an expert at everything, we'll
 		<title>What to build: Packages, Tarballs, and the <productname>git</productname> repository</title>
 
 <para>The latest &freetds; package is always available from
-			<ulink url="ftp://ftp.freetds.org/pub/freetds/stable/freetds-stable.tgz">
-				<citetitle>ftp.freetds.org</citetitle></ulink>.</para>
+			<ulink url="https://www.freetds.org/files/stable/freetds-stable.tgz">
+				<citetitle>www.freetds.org</citetitle></ulink>.</para>
 
 <para>Code changes by the developers are immediately available in the <productname>git</productname> repository.  If you've run into a problem, you may want to check out from <productname>git</productname> to see if it's fixed there.</para>
 
@@ -315,7 +332,7 @@ Because everyone is a beginner once and no one is an expert at everything, we'll
 	<prompt>$ </prompt></screen></para>
 
 <para>For those behind firewalls or otherwise unable to access <productname>git</productname>, nightly snapshots of <productname>git</productname> are rolled up into tarballs for your convenience.  They can be downloaded from
-			<ulink url="ftp://ftp.freetds.org/pub/freetds/current/freetds-current.tgz">ftp.freetds.org</ulink>.</para>
+			<ulink url="https://www.freetds.org/files/current/freetds-current.tgz">www.freetds.org</ulink>.</para>
 
 <para>In general, the <productname>git</productname> master branch (the basis of the current nightly snapshot) works better and has more functionality than the release version.  Bugs sometimes persist in the release version but are usually fixed in short order (once identified) in <productname>git</productname> master.</para>
 		<tip><para>As with any project of this sort, if you want to use the <productname>git</productname> master branch, it's a good idea to join the mailing list.
@@ -331,9 +348,7 @@ Because everyone is a beginner once and no one is an expert at everything, we'll
 <screen>
 	<prompt>$ </prompt><userinput>./configure --prefix=/usr/local</userinput>
 	<prompt>$ </prompt><userinput>make</userinput>
-	<prompt>$ </prompt><userinput>su root</userinput>
-	<prompt>Password: </prompt>
-	<prompt>$ </prompt><userinput>make install</userinput></screen>
+	<prompt>$ </prompt><userinput>sudo make install</userinput></screen>
 	
 
 <para>Building from git is described in the file <filename>INSTALL.GIT.md</filename>.</para>
@@ -537,7 +552,8 @@ Cf. <link linkend="withOdbcNoDM"><option>--with-odbc-nodm</option></link>.</para
 					
 					<varlistentry>
 						<term><option>--with-openssl=<replaceable>DIR</replaceable></option></term>
-						<listitem><para>Enable SSL using OpenSSL. Unlike &freetds;, OpenSSL does not use the LGPL.  Please read the <ulink url="http://www.openssl.org/source/license.html">OpenSSL license</ulink> before distributing binaries compiled with this option.</para>
+						<listitem><para>Enable SSL using OpenSSL. Unlike &freetds;, OpenSSL does not use the LGPL.
+							Please read the <ulink url="https://www.openssl.org/source/license.html">OpenSSL license</ulink> before distributing binaries compiled with this option.</para>
 							</listitem>
 						</varlistentry>
 					
@@ -616,11 +632,8 @@ The list of builds is at
 <ulink url="https://ci.appveyor.com/project/FreeTDS/freetds/history">https://ci.appveyor.com/project/FreeTDS/freetds/history</ulink>.
 
 You can find there builds of code in the master banch and (from time to
-time) builds from the post-1.0 release fixes-only Branch-1_00 branch.
+time) builds from the post-1.4 release fixes-only Branch-1_4 branch.
 Every build matrix element generates its artifact.</para>
-
-<para>Ramiro Morales also maintains similar builds of the Branch-0_95 branch at
-<ulink url="https://github.com/ramiro/freetds/releases">https://github.com/ramiro/freetds/releases</ulink>.</para>
 				</sect3>
 
 			<sect3 id="regsvr32"><title>ODBC driver registration</title>
@@ -711,7 +724,7 @@ or
 				configure option.</para>
 
 <para>Another problem seems to be that the linker isn't asked to pull in all the requisite libraries.  Cf. this helpful
-				<ulink url="http://lists.ibiblio.org/pipermail/freetds/2004q3/016748.html">mailing list message</ulink>.</para>
+				<ulink url="https://lists.ibiblio.org/pipermail/freetds/2004q3/016748.html">mailing list message</ulink>.</para>
 			</sect2>
 		
 		<sect2 id="RPM"><title>GNU/Linux distributions that use RPMs</title>
@@ -720,7 +733,7 @@ or
 				know it is easily done:
 				
 <screen>
-	<prompt>$ </prompt><userinput>rpmbuild -ta freetds-0.95.tar.bz2</userinput></screen></para>
+	<prompt>$ </prompt><userinput>rpmbuild -ta freetds-1.4.tar.bz2</userinput></screen></para>
 			</sect2>
 	
 		</sect1>
@@ -1235,14 +1248,14 @@ This is the name of the database container in the server you are connecting to.<
 						<row>
 							<entry><literal>use utf-16</literal></entry>
 							<entry>yes/no</entry>
-							<entry>no</entry>
+							<entry>yes</entry>
 							<entry>Instead of using UCS-2 for database wide character encoding use UTF-16.  Newer Windows versions use this encoding instead of UCS-2. This could result in some issues if clients assume that a character is always 2 bytes.</entry>
 							</row>
 						<row>
 							<entry><literal>ca file</literal></entry>
 							<entry>any filename or <literal>system</literal></entry>
 							<entry>none</entry>
-							<entry>File that hold root certificates (in PEM format) to verify server certificate, used during an encrypted connection.
+							<entry>File that holds root certificates (in PEM format) to verify server certificate, used during an encrypted connection.
 If not specify or empty any certificate will be accepted from server.
 If you specify <literal>system</literal> &freetds; will use system wide certificate list.
 If a certiticate is not installed server can generate a self signed certificate, in this case is useful to disable certificate validation (which is the default).
@@ -1397,7 +1410,7 @@ This is supported from MSSQL 2012.
 
 <para>The format of <filename>locales.conf</filename> is similar to that of &freetdsconf;.  There is a <literal>[default]</literal> section, and a section for each locale.
 				
-				<filename>locales.conf</filename> controls three settings
+				<filename>locales.conf</filename> controls five settings
 				<variablelist id="tab.locales.conf">
 					<varlistentry>
 						<term><literal>date format</literal></term>
@@ -2011,7 +2024,7 @@ The ODBC tests all build their own <filename>odbc.ini</filename> and try to redi
 							<entry><literal>Encryption</literal></entry>
 							<entry>off/request/require</entry>
 							<entry>off</entry>
-							<entry>Specify encryption. See encryption on freetds.conf</entry>
+							<entry>Specify encryption. See encryption on &freetdsconf;</entry>
 							</row>
 						<row>
 							<entry><literal>MARS_Connection</literal></entry>
@@ -2022,7 +2035,7 @@ The ODBC tests all build their own <filename>odbc.ini</filename> and try to redi
 						<row>
 							<entry><literal>UseNTLMv2</literal></entry>
 							<entry>Yes/No</entry>
-							<entry>No</entry>
+							<entry>Yes</entry>
 							<entry>Use NTLMv2 instead of normal NTLM. Use this option if your Windows domain have this setting.</entry>
 							</row>
 						<row>
@@ -2124,7 +2137,7 @@ This setting allow to do it. You should specify <literal>Database</literal> attr
 	</programlisting>
 				</example>
 			
-You can even establish a connection without reference to either <filename>odbc.ini</filename> or <filename>freetd.conf</filename>.
+You can even establish a connection without reference to either <filename>odbc.ini</filename> or <filename>freetds.conf</filename>.
 			
 			<example id="e.g.ConnectDSNlessnoconf">
 				<title>Connecting with a DSN-less configuration that does not use &freetdsconf;</title>
@@ -2318,29 +2331,6 @@ If it behaves strangely, try &freetds;'s <command>bsqlodbc</command> before you 
 	<title>Advanced Configurations</title>
 
 <para>This chapter details some advanced configurations that need expanded explanation.</para>
-	<sect1 id="emulle">
-		<title>Big Endian Clients with Buggy <productname>Microsoft SQL Server</productname>s</title>
-
-<para>Several version of Microsoft SQL server have a bug that affects big endian clients.
-This includes 7.0 GA and 7.0 SP1.
-Furthermore, <acronym>TDS</acronym> Protocol version 7.0 is natively little endian.
-<productname>Microsoft SQL Server 2000</productname> is also reported not to work from big endian clients without little endian emulation turned on.</para>
-		<note><para>The terms <emphasis>big endian</emphasis> and <emphasis>little endian</emphasis> come originally from Gulliver's Travels.  In computer science they refer to the the integer byte-order for a processor.  Big endian processors, such as Sparc and PowerPC store the most significant byte in the first memory location of a multi-byte integer.  Little endian processors, such as Intel and Alpha do it the other way around.  So the 16-bit number 258 would be 0x0102 on big endian and 0x0201 on little endian machines.</para></note>
-		
-
-<para>In this example we want to force connections to a server named <literal>mssql</literal> to emulate a little endian client.  We are using protocol version 4.2 here, version 7.0 or above will automatically emulate little endian mode regardless of the &freetdsconf; setting.
-			<emphasis>You shouldn't use this option, set another protocol version instead (7.0, 7.1, 7.2, 7.3 or 7.4)</emphasis>.</para>
-		<example id="e.g.LittleEndian">
-			<title>Emulate Little Endian &freetdsconf; setting</title>
-<programlisting>
-	[mssql]
-	host = ntbox.mydomain.com
-	port = 1433
-	tds version = 4.2
-	emulate little endian = yes
-	</programlisting>
-			</example>
-		</sect1>
 	<sect1 id="Localization">
 		<title>Localization and <acronym>TDS</acronym> 7.0</title>
 
@@ -2349,10 +2339,10 @@ Furthermore, <acronym>TDS</acronym> Protocol version 7.0 is natively little endi
 <para>Because most Unix tools and environments do not support <acronym>UCS-2</acronym>, &freetds; provides for conversion by
 the client to other character sets.
 The mechanism used is determined by the <filename>configure</filename> script, which looks for a <function>iconv(3)</function> function,
-an implementation of the <ulink url="http://www.opengroup.org/onlinepubs/7908799/xsh/iconv.html">iconv</ulink> standard.
+an implementation of the <ulink url="https://pubs.opengroup.org/onlinepubs/7908799/xsh/iconv.html">iconv</ulink> standard.
 If no <function>iconv</function> library is found, or if it is explicitly disabled, &freetds; will use its built-in
 <function>iconv</function> substitute, and will be capable of converting among only <acronym>ISO 8859-1</acronym>, <acronym>UTF-8</acronym>,
-<acronym>UCS-2</acronym>, <acronym>UTF-16</acronym> and <acronym>UTF-16</acronym>.</para>
+<acronym>UCS-2</acronym>, <acronym>UCS-4</acronym> and <acronym>UTF-16</acronym>.</para>
 
 <para>To learn what character set the client wants, &freetds; prefers the applicable <link linkend="clientcharset">&freetdsconf;</link> <literal>client charset</literal> property.  If that is not set, it parses the <envar>LANG</envar> environment variable.  In either case, the found string is passed to <function>iconv</function>(3) (or its built-in replacement).  <footnote><para>The built-in replacement expects GNU iconv names: <literal>ISO-8859-1</literal>, <literal>US-ASCII</literal>, or <literal>UTF-8</literal>.</para></footnote>.  If neither is found, <acronym>UCS-2</acronym> data are converted to <acronym>ISO 8859-1</acronym>.</para>
 		
@@ -2449,7 +2439,7 @@ logins instead of standard server logins.  Passwords are encrypted on the wire u
 			
 
 <para>For a technical description of the protocol used for domain logins, see
-				<ulink url="http://davenport.sourceforge.net/ntlm.html">http://davenport.sourceforge.net/ntlm.html</ulink></para>
+	<ulink url="https://davenport.sourceforge.net/ntlm.html">https://davenport.sourceforge.net/ntlm.html</ulink></para>
 			</sect2>
 		</sect1>
 	<sect1 id="kerberos">
@@ -2460,7 +2450,9 @@ This affords single-signon (or, at most, <quote>double-signon</quote>) capabilit
 
 <para>To take advantage of Kerberos you have to set up your machine with keytab
 	<footnote><para>No, the author does not really know what he's talking about.</para></footnote> 
-from your Active Directory.  You could use <ulink url="http://www.samba.org/">Samba</ulink> or configure Kerberos directly (<filename>/etc/krb5.conf</filename>).  <command>configure</command> includes options to define the location of your Kerberos installation  (cf. <xref linkend="Configure.Options"/>).  </para>
+from your Active Directory.
+You could use <ulink url="https://www.samba.org/">Samba</ulink> or configure Kerberos directly (<filename>/etc/krb5.conf</filename>).
+<command>configure</command> includes options to define the location of your Kerberos installation  (cf. <xref linkend="Configure.Options"/>).</para>
 
 <para>By default UNIX does not initialize a Kerberos ticket with your login account. You must use <command>kinit</command> to initialize a ticket.  You could also configure Kerberos in PAM to initialize a Kerberos ticket at login time.</para>
 		</sect1>
@@ -2510,7 +2502,9 @@ To avoid this problem, choose a threading model in <filename>odbcinst.ini</filen
 		<important><para>Because there will be one log file being opened and closed more or less continuously, there is going to be a negative impact on performance. Also, be advised that the log file will grow quite large.
 </para></important>
 
-<para>As an alternative to &freetds; logging, you might also consider using <command>tcpdump</command> or <ulink url="http://www.wireshark.org/">wireshark</ulink> to log network packets.  While not as useful as a <acronym>TDS</acronym> log, it can also help to identify problems.</para>
+<para>As an alternative to &freetds; logging, you might also consider using <command>tcpdump</command> or
+	<ulink url="https://www.wireshark.org/">wireshark</ulink> to log network packets.
+	While not as useful as a <acronym>TDS</acronym> log, it can also help to identify problems.</para>
 				
 		</sect1>
 	<sect1 id="tdspool">
@@ -2637,73 +2631,6 @@ To avoid this problem, choose a threading model in <filename>odbcinst.ini</filen
 	<prompt>$ </prompt><userinput> tdspool mypool</userinput></screen></para>
 
 <para>Before your clients connect to the pool, you must edit your &freetdsconf; to include the host and port of the pooling server, and point your clients at it.</para>
-		</sect1>
-	
-	<sect1 id="stunnel">
-		<title>stunnel HOWTO</title>
-
-<para>Contributed by <ulink url="mailto:bradleyb@u.washington.edu">Bradley Bell</ulink>.</para>
-
-<para>To set up &freetds; over stunnel between a Linux webserver and a W2k SQL server:</para>
-		<orderedlist>
-			<listitem>
-
-<para>Get unencrypted &freetds; working</para></listitem>
-			<listitem>
-
-<para>Install openssl and stunnel on the Linux box:
-					<ulink url="http://www.stunnel.org/">stunnel.org</ulink>
-</para></listitem>
-			<listitem>
-
-<para>Download the <ulink url="http://www.stunnel.org/download/binaries.html">stunnel binary</ulink> and openssl dll's for Windows.
-</para></listitem>
-			<listitem>
-
-<para>Generate stunnel.pem (complete with Diffie-Hellman parameters) for
-					placement on the W2k box. See <ulink url="http://www.stunnel.org/faq/certs.html">instructions</ulink> in the stunnel FAQ.
-</para></listitem>
-			<listitem>
-
-<para>Start stunnel on the W2k box:</para>
-<screen>
-	<prompt>$ </prompt><userinput>stunnel.exe -d 61666 -r localhost:1433</userinput></screen>
-	
-
-<para>61666 is just an arbitrary port number.
-</para></listitem>
-			<listitem>
-
-<para>Start stunnel on the Linux box:</para>
-<screen>
-	<prompt>$ </prompt><userinput>stunnel -c -d 1433 -r <replaceable>win2kserver</replaceable>:61666</userinput></screen>
-
-<para>where <replaceable>win2kserver</replaceable> is the hostname or IP address of the W2k box.
-</para></listitem>
-			<listitem>
-
-<para>Set up &freetds; to use the tunnel.  If this is your unencrypted entry in
-					&freetdsconf;:</para>
-				<example id="e.g.Unencrypted">
-					<title>Unencrypted entry in &freetdsconf;</title>
-<programlisting>
-	[win2kserver]
-	host = win2kserver
-	port = 1433
-	</programlisting>
-					</example>
-
-<para>   the encrypted equivalent uses:</para>
-				<example id="e.g.Encrypted">
-					<title>Encrypted entry in &freetdsconf;</title>
-<programlisting>
-	[win2kserver]
-	host = localhost
-	port = 1433
-	</programlisting>
-					</example>
-				</listitem>
-			</orderedlist>
 		</sect1>
 	</chapter>
 <!-- ////////////////// CHAPTER /////////////////////// -->
@@ -2876,9 +2803,7 @@ To avoid this problem, choose a threading model in <filename>odbcinst.ini</filen
 	<prompt>$ </prompt><userinput>export DBI_PASS=sybase</userinput>
 	<prompt>$ </prompt><userinput>perl Makefile.PL</userinput>
 	<prompt>$ </prompt><userinput>make</userinput>
-	<prompt>$ </prompt><userinput>su root</userinput>
-	<prompt>Password: </prompt>
-	<prompt>$ </prompt><userinput>make install</userinput></screen>
+	<prompt>$ </prompt><userinput>sudo make install</userinput></screen>
 	</example>
 	<note><para>We used the public  <acronym>JDBC</acronym> server logins for our configuration here.  You'll want to replace these with ones suitable to your environment.</para></note></para>
 
@@ -2913,9 +2838,7 @@ To avoid this problem, choose a threading model in <filename>odbcinst.ini</filen
 	<prompt>$ </prompt><userinput>export SYBASE=/usr/local/freetds</userinput>
 	<prompt>$ </prompt><userinput>perl Makefile.PL</userinput>
 	<prompt>$ </prompt><userinput>make</userinput>
-	<prompt>$ </prompt><userinput>su root</userinput>
-	<prompt>Password: </prompt>
-	<prompt>$ </prompt><userinput>make install</userinput></screen>
+	<prompt>$ </prompt><userinput>sudo make install</userinput></screen>
 	</example>
 
 				There will be some output about missing libraries after <userinput>perl Makefile.PL</userinput>. These are normal.</para>
@@ -2953,7 +2876,8 @@ You'll note this is the same program as for <systemitem class="library">DBD::ODB
 		<title>PHP</title>
 
 <para>There are three options for building PHP with support for &freetds; corresponding to the three <acronym>API</acronym>s that &freetds; supports: &dblib;, &ctlib;, and &odbc;.
-			<note><para>All these examples build the CGI version.  Consult <ulink url="http://www.php.net/docs.php">PHP's documentation</ulink> for building the Apache module and including other extensions.</para></note></para>
+			<note><para>All these examples build the CGI version.
+			Consult <ulink url="https://www.php.net/docs.php">PHP's documentation</ulink> for building the Apache module and including other extensions.</para></note></para>
 		<sect2 id="phpDblib">
 			<title>&dblib;</title>
 
@@ -2965,18 +2889,14 @@ You'll note this is the same program as for <systemitem class="library">DBD::ODB
 <screen>
 	<prompt>$ </prompt><userinput>./configure --prefix=/usr/local/freetds</userinput>
 	<prompt>$ </prompt><userinput>make</userinput>
-	<prompt>$ </prompt><userinput>su root</userinput>
-	<prompt>Password: </prompt>
-	<prompt>$ </prompt><userinput>make install</userinput></screen>
+	<prompt>$ </prompt><userinput>sudo make install</userinput></screen>
 
 <para>Then build PHP with support for <quote>Sybase</quote></para>
 <screen>
 	<prompt>$ </prompt><userinput>cd php</userinput>
 	<prompt>$ </prompt><userinput>./configure --with-sybase=/usr/local/freetds</userinput>
 	<prompt>$ </prompt><userinput>make</userinput>
-	<prompt>$ </prompt><userinput>su root</userinput>
-	<prompt>Password: </prompt>
-	<prompt>$ </prompt><userinput>make install</userinput></screen>
+	<prompt>$ </prompt><userinput>sudo make install</userinput></screen>
 
 <para>And that's it!</para>
 					</example></para>
@@ -2992,9 +2912,7 @@ You'll note this is the same program as for <systemitem class="library">DBD::ODB
 	Now edit the <filename>Zend/Makefile</filename> looking for the <literal>libZend_la_LDFLAGS</literal> line and remove <literal>-lsybtcl -lintl -lcomn</literal> and <literal>-lcs</literal>, leaving the <literal>-lct</literal>. Then proceed to make and install PHP.
 <screen>
 	<prompt>$ </prompt><userinput>make</userinput>
-	<prompt>$ </prompt><userinput>su root</userinput>
-	<prompt>Password: </prompt>
-	<prompt>$ </prompt><userinput>make install</userinput></screen>
+	<prompt>$ </prompt><userinput>sudo make install</userinput></screen>
 	We hope an upcoming version of PHP will automatically detect the presence of &freetds; and include only the <literal>-lct</literal> library.</para>
 	</sect2>
 	<sect2 id="ODBC">
@@ -3007,9 +2925,7 @@ Then build PHP with support for ODBC.
 	<prompt>$ </prompt><userinput>cd php</userinput>
 	<prompt>$ </prompt><userinput>./configure --with-iodbc=/usr/local</userinput>
 	<prompt>$ </prompt><userinput>make</userinput>
-	<prompt>$ </prompt><userinput>su root</userinput>
-	<prompt>Password: </prompt>
-	<prompt>$ </prompt><userinput>make install</userinput></screen>
+	<prompt>$ </prompt><userinput>sudo make install</userinput></screen>
 	Now everything should run.  There is a sample PHP script in the &freetds; samples directory called <filename>odbctest.php</filename>.</para>
 	</sect2>
 	</sect1>
@@ -3017,7 +2933,8 @@ Then build PHP with support for ODBC.
 		<title>Python</title>
 	<sect2 id="pymssql">
 	<title>pymssql</title>
-<para>The <productname>pymssql</productname> module is a simple database interface to Microsoft SQL Server for <productname>Python</productname> that builds on top of &freetds; to provide a Python DB-API v2 (<ulink url="http://www.python.org/dev/peps/pep-0249/">PEP-249</ulink>) interface to Microsoft SQL Server.</para>
+<para>The <productname>pymssql</productname> module is a simple database interface to Microsoft SQL Server for <productname>Python</productname> that builds on top of &freetds;
+	to provide a Python DB-API v2 (<ulink url="https://www.python.org/dev/peps/pep-0249/">PEP-249</ulink>) interface to Microsoft SQL Server.</para>
 
 <para>The 2.x branch of <productname>pymssql</productname> take advantage of recent releases (0.91 and newer) of &freetds; and by doing that removes many of the limitations previously found with older &freetds; versions and the 1.x branch.</para>
 
@@ -3027,17 +2944,18 @@ Then build PHP with support for ODBC.
 	<listitem><para>Unicode friendly</para></listitem>
 	<listitem><para>Python 3 friendly</para></listitem>
 	<listitem><para>Works on most popular operating systems</para></listitem>
-	<listitem><para>Written in <ulink url="http://cython.org/">Cython</ulink> for performance</para></listitem>
+	<listitem><para>Written in <ulink url="https://cython.org/">Cython</ulink> for performance</para></listitem>
 	<listitem><para>Includes a supported and documented low-level module (<filename>_mssql</filename>) that you can use instead of the DB-API</para></listitem>
 	<listitem><para>Supports stored procedures with both return values and output parameters</para></listitem>
 	<listitem><para>A comprehensive test suite</para></listitem>
 </itemizedlist>
 
-<para>Please refer to the <productname>pymssql</productname> <ulink url="http://pymssql.org">home page</ulink> where you'll find complete documentation on how to obtain, install and use it.</para>
+<para>Please refer to the <productname>pymssql</productname> <ulink url="https://pymssql.org">home page</ulink>
+	where you'll find complete documentation on how to obtain, install and use it.</para>
 	</sect2>
 	<sect2 id="Sybase.Python.Module">
 	<title>Sybase module</title>
-<para>You can obtain the <productname>Python</productname> Sybase module <ulink url="http://object-craft.com.au/projects/sybase/download.html">here</ulink>.
+<para>You can obtain the <productname>Python</productname> Sybase module <ulink url="https://object-craft.com.au/projects/sybase/download.html">here</ulink>.
 This example uses version 0.37, the most current at the time of this writing, please adjust accordingly if using a different version.
 	<screen>
 	<prompt>$ </prompt><userinput>tar xvfz sybase-0.37.tgz</userinput>
@@ -3153,20 +3071,6 @@ for BLOBs allocating memory as needed instead, so you should not have to reduce 
 data returned by queries.</para>
 			</sect2>
 
-			<sect2 id="Endianism">
-				<title>Endianism</title>
-
-<para>If either your server or your client is a big endian system, pay careful attention to all references to endianism anywhere near &freetds;.  See the section on <link linkend="emulle">Little Endian Emulation</link> for details.</para>
-			</sect2>
-		<sect2 id="Datetime">
-			<title><type>Datetime</type> and <type>Money</type></title>
-
-<para>Big endian clients may experience difficulty with Microsoft servers.
-Some versions of <productname>Microsoft SQL Server</productname> 7 did not handle these types on these machines correctly, according to the protocol.
-According to
-				<ulink url="http://support.microsoft.com/support/kb/articles/Q254/1/23.ASP"> http://support.microsoft.com/support/kb/articles/Q254/1/23.ASP</ulink> on the Microsoft support site, it's fixed as of service pack 3.  Unfortunately, there's no direct way for &freetds; to know whether or not a service pack has been installed, and how/whether to support the buggy version is an outstanding issue.  Your best bet is to apply their patch.
-				<note><para>The Knowledge Base article states <quote>The Sybase CT-Lib client is the only known big-endian client that can connect to <productname>SQL Server</productname>.</quote>  Depends on who's doing the knowing, of course.</para></note></para>
-			</sect2>
 		<sect2 id="IntegratedSecurity">
 			<title>Microsoft's <quote>Integrated Security</quote></title>
 
@@ -3500,7 +3404,8 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 		<sect2 id="Archive"><title>The Archive</title>
 			
 
-<para>The &freetds; mailing list <ulink url="http://lists.ibiblio.org/pipermail/freetds/">archive</ulink> is a good place to start.  It is searchable.  It should be considered the most up to date (and least edited) source of information.</para>
+<para>The &freetds; mailing list <ulink url="https://lists.ibiblio.org/pipermail/freetds/">archive</ulink> is a good place to start.
+	It is searchable.  It should be considered the most up to date (and least edited) source of information.</para>
 
 <para>New developments between releases tend <emphasis>not</emphasis> to be announced on the website.  The website is updated only intermittently, when we post a new release or &freetds; is somehow in the news, say.  If you found a bug or need a feature, you may find it was announced/discussed/fixed by perusing the archive.</para>
 			</sect2>
@@ -3580,7 +3485,8 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 		<sect2 id="Sendpatch">
 			<title>Send a patch</title>
 
-<para>Good patches are nearly always applied in short order.  Patches uploaded to <ulink url="http://sourceforge.net/tracker/?group_id=33106&amp;atid=407808">SourceForge</ulink> trigger automatic notification to the &freetds;  mailing list.</para>
+<para>Good patches are nearly always applied in short order.
+	Patches uploaded to <ulink url="https://sourceforge.net/p/freetds/patches/">SourceForge</ulink> trigger automatic notification to the &freetds;  mailing list.</para>
 			</sect2>
 		<sect2 id="Correct">
 			<title>Correct this User Guide</title>
@@ -3592,7 +3498,8 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 		<sect2 id="Documentapi">
 			<title>Document an <acronym>API</acronym></title>
 
-<para>We have just begun an independent reference manual to &freetds;; the main <acronym>API</acronym> documents are the work of the server vendors.  We're using <ulink url="http://www.doxygen.org">Doxygen</ulink>, which extracts documentation directly from comments in the source code, and we're maybe 25% done.</para>
+<para>We have just begun an independent reference manual to &freetds;; the main <acronym>API</acronym> documents are the work of the server vendors.
+	We're using <ulink url="https://www.doxygen.nl">Doxygen</ulink>, which extracts documentation directly from comments in the source code, and we're maybe 25% done.</para>
 
 <para>The <acronym>TDS</acronym> protocol is partly documented, as are the <acronym>API</acronym>s to <filename>libtds</filename> and &dblib;, but much remains.</para>
 			</sect2>
@@ -3666,13 +3573,17 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 	<sect1 id="TDSprotocolref">
 		<title>TDS protocol reference</title>
 
-<para>Can be found on <ulink url="http://www.freetds.org/tds.html">www.freetds.org</ulink></para>
+<para>Can be found on <ulink url="https://www.freetds.org/tds.html">www.freetds.org</ulink></para>
 		</sect1>
 	<sect1 id="apireference"><title>API Reference Manual</title>
 
 <para>The <ulink url="../reference/index.html">reference manual</ulink> is installed as part of &freetds;.  It can be regenerated at any time using <productname>Doxygen</productname> with <command>cd <filename>doc</filename>; make doc</command>.</para>
 
-<para>The reference manual is a work in progress: only &dblib; is completely documented, and quite minimally at that.  Should you find it inadequate, you may be interested to learn it's not hard to add to, technically.  <productname>Doxygen</productname> generates a manual from encoded comments in the source code.  Its markup syntax is not hard to learn.  You can read more about it at the <ulink url="http://www.doxygen.org">Doxygen website</ulink>.</para>
+<para>The reference manual is a work in progress: only &dblib; is completely documented, and quite minimally at that.
+	Should you find it inadequate, you may be interested to learn it's not hard to add to, technically.
+	<productname>Doxygen</productname> generates a manual from encoded comments in the source code.
+	Its markup syntax is not hard to learn.
+	You can read more about it at the <ulink url="https://www.doxygen.nl">Doxygen website</ulink>.</para>
 
 <para>Basic API coverage information for the db-lib, ct-lib, and ODBC client libraries is maintained in <filename>doc/api_status.txt</filename>, included in the source distribution.  For your convenience and enjoyment, we include that file in the following sections.  In each table, we note for the function
 			<footnote><para>Sybase and Microsoft sometimes use slightly different names for the same function.  It is the intention of the <option>--enable-msdblib</option> option to align
@@ -3718,12 +3629,11 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 <para>Microsoft's version of &dblib; is
 			<ulink url="http://msdn.microsoft.com/en-us/library/aa936988(SQL.80).aspx">online</ulink>.
 			Sybase's is both
-			<ulink url="http://manuals.sybase.com/onlinebooks/group-cnarc/cng1110e/dblib/@Generic__BookTextView;pt=4602;nh=1">online</ulink>
-			and can be
-			<ulink url="http://download.sybase.com/pdfdocs/cng1250j/dblib.pdf">downloaded</ulink>
-			as a PDF file.
+			<ulink url="https://help.sap.com/doc/4091f120b0c9429d8503322daeeff2be/16.0.3.8/en-US/DB-Library_C_Reference_Manual_en.pdf">online</ulink>.
 			
-			<footnote><para>Links such as these are quite perishable.  Should you find them broken, please check the <ulink url="http://www.freetds.org/userguide/dblib.api.summary.htm">&freetds; User Guide</ulink> posted on our website.  If it's out of date, please let us know, so we can correct it.  Thanks.</para></footnote></para>
+			<footnote><para>Links such as these are quite perishable.  Should you find them broken, please check
+			the <ulink url="https://www.freetds.org/userguide/dblib.api.summary.html">&freetds; User Guide</ulink> posted on our website.
+			If it's out of date, please let us know, so we can correct it.  Thanks.</para></footnote></para>
 		&dblibapixml;
 		</sect1>
 	
@@ -3731,8 +3641,10 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 		<title>ct-lib API Implementation Summary</title>
 
 <para>Sybase ct-lib documentation can be found
-			<ulink url="http://manuals.sybase.com/onlinebooks/group-cnarc/cng1110e/ctref/@Generic__BookView">online</ulink>
-			and in <ulink url="http://download.sybase.com/pdfdocs/cng1000e/ref.pdf">PDF</ulink> form. <footnote><para>Links such as these are quite perishable.  Should you find them broken, please check the <ulink url="http://www.freetds.org/userguide/ctlib.api.summary.htm">&freetds; User Guide</ulink> posted on our website.  If it's out of date, please let us know, so we can correct it.  Thanks.</para></footnote></para>
+			<ulink url="https://help.sap.com/doc/f5548966bc5840f68d18799e0531c1bc/16.0.3.6/en-US/Client-Library_C_Reference_Manual_en.pdf">online</ulink>.
+			<footnote><para>Links such as these are quite perishable.
+			Should you find them broken, please check the <ulink url="https://www.freetds.org/userguide/ctlib.api.summary.html">&freetds; User Guide</ulink> posted on our website.
+			If it's out of date, please let us know, so we can correct it.  Thanks.</para></footnote></para>
 		&ctlibapixml;
 		</sect1>
 	
@@ -3740,10 +3652,13 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 		<title>ODBC API Implementation Summary</title>
 
 <para>Microsoft's ODBC documentation is
-			<ulink url="http://msdn.microsoft.com/en-us/library/ms714177.aspx">online</ulink>.</para>
+			<ulink url="https://msdn.microsoft.com/en-us/library/ms714177.aspx">online</ulink>.</para>
 		
 
-<para>The functions are linked to the reference page on Microsoft's website.  <footnote><para>Links such as these are quite perishable.  Should you find them broken, please check the <ulink url="http://www.freetds.org/userguide/odbc.api.summary.htm">&freetds; User Guide</ulink> posted on our website.  If it's out of date, please let us know, so we can correct it.  Thanks.</para></footnote></para>
+<para>The functions are linked to the reference page on Microsoft's website.
+	<footnote><para>Links such as these are quite perishable.
+	Should you find them broken, please check the <ulink url="https://www.freetds.org/userguide/odbc.api.summary.html">&freetds; User Guide</ulink> posted on our website.
+	If it's out of date, please let us know, so we can correct it.  Thanks.</para></footnote></para>
 		&odbcapixml;
 		</sect1>
 	
@@ -4663,7 +4578,10 @@ It has an address &mdash; a location &mdash; in the <firstterm>text</firstterm> 
 		<section id="rtl.define.library.dynamic">
 			<title>Dynamic libraries</title>
 
-<para>Dynamic libraries are the new kid on the block, as these things go, arriving on the Unix scene circa 1985.   Like a static library, a dynamic library is a collection of functions with a table of contents.  They are referenced at build time to give the executatble information about how they will eventually be used, but they aren't <emphasis>used</emphasis> until run time.  </para>
+<para>Dynamic libraries are the new kid on the block, as these things go, arriving on the Unix scene circa 1985.
+	Like a static library, a dynamic library is a collection of functions with a table of contents.
+	They are referenced at build time to give the executable information about how they will eventually be used,
+	but they aren't <emphasis>used</emphasis> until run time.</para>
 
 <para>Dynamic libraries are part of the run-time environment.  When a program is run, the run-time linker finds the dynamic libraries needed by the program, finds the addresses of the required functions, and assembles a runable image in memory.  Missing libraries and/or missing functions &mdash; or the wrong versions of them &mdash; can lead to head-scratching and other amusing behavior.  </para>
 
@@ -4993,7 +4911,11 @@ By the way before looking for <filename>$SYBASE/interfaces</filename> file FreeT
 <para>For better or worse, &freetds; brings the otherwise innocent programmer into contact with the arcane business of how data are stored and transported.  &freetds; is a data communications library that of course connects to databases, which are charged with storing information in a way that is neutral to all architectures and languages.  On the surface, that might not seem very complex, even worth discussing.  Under the surface, things are not so simple.</para>
 	<section id="ascii"><title><acronym>ASCII</acronym>: What everyone knows</title>
 
-<para>The world we are all familiar with, programmingwise, is <acronym>ASCII</acronym>.  Our email (mostly), our <quote>text</quote> files, our web pages (mostly), all use <acronym>ASCII</acronym> to represent English (or English-like) text. Perhaps because <ulink url="http://czyborra.com/charsets/iso646.html"><acronym>ASCII</acronym></ulink> was standardized back in 1972 by the ISO, it seems like the <quote>natural</quote> way to store information.  But let's look under the hood a little bit, and examine our assumptions.</para>
+<para>The world we are all familiar with, programmingwise, is <acronym>ASCII</acronym>.
+	Our email (mostly), our <quote>text</quote> files, our web pages (mostly), all use <acronym>ASCII</acronym> to represent English (or English-like) text.
+	Perhaps because <ulink url="http://czyborra.com/charsets/iso646.html"><acronym>ASCII</acronym></ulink> was standardized back in 1972 by the ISO,
+	it seems like the <quote>natural</quote> way to store information.
+	But let's look under the hood a little bit, and examine our assumptions.</para>
 
 <para>Our so-called <quote>text</quote> files are nothing special, nothing but a little agreement we enter into with our operating system.  The only reason we can <quote>read</quote> them with <command>cat</command> or <command>vi</command> is that the operating system and its tools are in on the agreement.  A file is only a stream of bytes, after all, no more <quote>text</quote> than an executable.  The only thing distinguishing a <quote>text</quote> file from any other, is our understanding to treat it like one.  We agree that the number 65 will represent the letter <literal>A</literal>, 66, <literal>B</literal>, and so on, 127 values in all.  See <command>man ascii</command> for further details.</para>
 
@@ -5017,7 +4939,12 @@ By the way before looking for <filename>$SYBASE/interfaces</filename> file FreeT
 		</section>
 	<section id="Unicode"><title>Unicode: East meets West</title>
 
-<para><acronym>ASCII</acronym> and its 8-bit cousins are on the way out, and with them the assumption that a character can be represented by a single byte.  The new kid on the block is <ulink url="http://www.unicode.org/">Unicode</ulink>, similar to but not precisely the same as ISO 10646.  Unicode (despite its name) is a set of standards.  The most widely implemented is the 16-bit form, called UCS-2.  As you might guess, UCS-2 uses two bytes per character, allowing it to encode most characters of most languages.  Because <quote>most</quote> is far from <emphasis>all</emphasis>, there are nascent 32-bit forms, too, but they are neither complete nor in common use.</para>
+<para><acronym>ASCII</acronym> and its 8-bit cousins are on the way out, and with them the assumption that a character can be represented by a single byte.
+	The new kid on the block is <ulink url="https://home.unicode.org/">Unicode</ulink>, similar to but not precisely the same as ISO 10646.
+	Unicode (despite its name) is a set of standards.
+	The most widely implemented is the 16-bit form, called UCS-2.
+	As you might guess, UCS-2 uses two bytes per character, allowing it to encode most characters of most languages.
+	Because <quote>most</quote> is far from <emphasis>all</emphasis>, there are nascent 32-bit forms, too, but they are neither complete nor in common use.</para>
 
 <para>In the same sense that 7-bit <acronym>ASCII</acronym> was extended to 8 bits, Unicode extends the most prevalent <quote>8-bit <acronym>ASCII</acronym></quote>,  <acronym>ISO 8859-1</acronym>, to 16 and 32 bits.  The first 256 values remain in Unicode as in <acronym>ISO 8859-1</acronym>: 65 is still <literal>A</literal>, except instead of being 8 bits (0x40), it's 16 bits (0x0040).  Unlike the 8-bit extensions, Unicode has a unique 1:1 map of numbers to characters, so no language context or <quote>character set</quote> name is needed to decode a Unicode string.</para>
 
@@ -5031,7 +4958,11 @@ Microsoft also designed version 7.0 (and up) of the <acronym>TDS</acronym> proto
 
 <para>The basic problem, from a programmer's perspective, is the ancient agreement Unix entered into 30 years ago, the <quote><acronym>ASCII</acronym> Compact,</quote> alluded to earlier.  Assumptions about <acronym>ASCII</acronym> are littered throughout Unix-like systems, beginning with C's convention of representing strings as arrays of characters ending in a zero.  Returning to our HELLO example earlier, C will store <literal>HELLO</literal> as  <literal>72 69 76 76 79 0</literal>, in very nice <acronym>ASCII</acronym>.  Many many parts of the operating system and its associated tools and applications will recognize that as a 5-letter word because it's terminated by a null (zero).  In UCS-2 Unicode, though, that same <literal>HELLO</literal> uses 2 bytes for every character and becomes <literal>72 0 69 0 76 0 76 0 79 0 0 0</literal>.  Practically the whole OS will think that's a 1-letter word, <quote>H</quote>.  Not a good thing.</para>
 
-<para>Even if every OS were magically rid of all <acronym>ASCII</acronym> assumptions and C strings, there would still be the problem of Endianism.  <ulink url="http://whatis.techtarget.com/definition/0,,sid9_gci211659,00.html">Technical</ulink> explanations on the subject are not hard to find.  The long and short of it is, given a 16-bit integer (2 bytes), different hardware architectures will store the value differently.  Asked to store our friend <quote>A</quote>, (0x41), for instance, a Sparc processor will put the least significant byte at the higher address (00 41) whereas an Intel processor will put it in the lower address (41 00).  Put aside the questions of left, right, and wrong; architectures are a fact of life.  Endianism shows up wherever integers are stored and retrieved in heterogeneous environments.</para>
+<para>Even if every OS were magically rid of all <acronym>ASCII</acronym> assumptions and C strings, there would still be the problem of Endianism.
+	<ulink url="https://www.techtarget.com/searchnetworking/definition/big-endian-and-little-endian">Technical</ulink> explanations on the subject are not hard to find.
+	The long and short of it is, given a 16-bit integer (2 bytes), different hardware architectures will store the value differently.
+	Asked to store our friend <quote>A</quote>, (0x41), for instance, a Sparc processor will put the least significant byte at the higher address (00 41) whereas an Intel processor will put it in the lower address (41 00).
+	Put aside the questions of left, right, and wrong; architectures are a fact of life.  Endianism shows up wherever integers are stored and retrieved in heterogeneous environments.</para>
 
 <para>The Unicode folks knew about Endianism, of course, and had to address it.  A Unicode bytestream is supposed to begin with a byte-order mark.  Needless to say, perhaps, many don't.</para>
 		</section>
@@ -5077,10 +5008,11 @@ It does not do so at the current time, beside using wide functions in ODBC.</par
 <para>Sybase servers, by the way, adhere to a <quote>server makes right</quote> policy: they transmit their data in whatever character set the client requested at login time.  The list of available character sets is fairly short, but includes UTF-8.  While  &freetds; <emphasis>could</emphasis> convert Sybase data streams as easily as it does Microsoft data streams, to our knowledge no one is doing so.  The Sybase server can perform the conversion itself, making &freetds;'s capability in this regard largely redundant and irrelevant.</para>
 		<section id="moreinfo"><title>For further information</title>
 			<simplelist type="vert" columns="1">
-				<member><ulink url="http://www.cl.cam.ac.uk/~mgk25/unicode.html">UTF-8 and Unicode FAQ for Unix/Linux</ulink>, by Markus Kuhn.  As the man says, very comprehensive.  	</member>
+				<member><ulink url="https://www.cl.cam.ac.uk/~mgk25/unicode.html">UTF-8 and Unicode FAQ for Unix/Linux</ulink>, by Markus Kuhn.
+				As the man says, very comprehensive.  	</member>
 				<member><ulink url="https://www.sensitiveresearch.com/Archive/CharCodeHist/">ASCII: American Standard Code for Information Infiltration</ulink>, by Tom Jennings.  Everything you ever wanted know about ASCII, but didn't know whom to ask.</member>
 				<member><ulink url="http://tronweb.super-nova.co.jp/characcodehist.html">A Brief History of Character Codes</ulink>, by Steven J. Searle.  Includes useful references.  </member>
-				<member><ulink url="http://www.unicode.org/">Unicode Home Page</ulink>.  </member>
+				<member><ulink url="https://home.unicode.org/">Unicode Home Page</ulink>.</member>
 <!--member><ulink url=""></ulink>.  </member -->
 				</simplelist>
 						
@@ -5526,7 +5458,7 @@ It does not do so at the current time, beside using wide functions in ODBC.</par
 			Such new versions will be similar in spirit to the present
 			version, but may differ in detail to address new problems or
 			concerns.  See <ulink
-				url="http://www.gnu.org/copyleft/">http://www.gnu.org/copyleft/</ulink>.</para>
+				url="https://www.gnu.org/copyleft/">https://www.gnu.org/copyleft/</ulink>.</para>
 		
 
 <para>Each version of the License is given a distinguishing
