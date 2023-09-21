@@ -626,7 +626,7 @@ SQLLEN odbc_tds2sql_col(TDS_STMT * stmt, TDSCOLUMN *curcol, int desttype, TDS_CH
 		    curcol->column_usertype == USER_UNICHAR_TYPE ||
 		    curcol->column_usertype == USER_UNIVARCHAR_TYPE))
 			srctype = SYBNTEXT;
-		if (curcol->column_type == SYBVARIANT)
+		if (srctype == SYBVARIANT)
 			srctype = ((TDSVARIANT *) src)->type;
 		src = ((TDSBLOB *) src)->textvalue;
 	}
