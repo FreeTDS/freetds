@@ -1287,7 +1287,7 @@ This is supported from MSSQL 2012.
 						<row>
 							<entry><literal>enable tls v1</literal></entry>
 							<entry>yes/no</entry>
-							<entry>yes</entry>
+							<entry>no</entry>
 							<entry>Enable or disable TLS version 1.0. Useful to increase security. Not too recent Windows version (like Windows 2008) does not enable higher versions by default so be aware.</entry>
 							</row>
 						</tbody>

@@ -7,6 +7,7 @@ User visible (not in a particular order):
 - Always use Unicode for SSPI allowing not ASCII to work;
 - Improve BCP copy, especially for Sybase;
 - Better error reporting for ICONV failures;
+- Disable TLSv1 by default;
 - ODBC: partial TVP support (missing data at execution);
 - ODBC: support for quoted string in connection string;
 - CT-Library: support large identifiers;

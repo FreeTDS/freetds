@@ -137,7 +137,7 @@ odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT 
 }
 
 /**
- * Handle conversions from TDS NCHAR to ISO8859-1 striping spaces (for fixed types)
+ * Handle conversions from TDS NCHAR to ISO8859-1 stripping spaces (for fixed types)
  */
 static int
 odbc_tds_convert_wide_iso(TDSCOLUMN *curcol, TDS_CHAR *src, TDS_UINT srclen, TDS_CHAR *buf, TDS_UINT buf_len)
@@ -177,7 +177,7 @@ odbc_tds_convert_wide_iso(TDSCOLUMN *curcol, TDS_CHAR *src, TDS_UINT srclen, TDS
 	return p - buf;
 }
 
-/* The following structure is going to write in these structure not using them
+/* The following function is going to write in these structure not using them
  * but just knowing the ABI. Check these ABI. Mainly make sure the alignment
  * is still correct.
  */
@@ -626,7 +626,7 @@ SQLLEN odbc_tds2sql_col(TDS_STMT * stmt, TDSCOLUMN *curcol, int desttype, TDS_CH
 		    curcol->column_usertype == USER_UNICHAR_TYPE ||
 		    curcol->column_usertype == USER_UNIVARCHAR_TYPE))
 			srctype = SYBNTEXT;
-		if (curcol->column_type == SYBVARIANT)
+		if (srctype == SYBVARIANT)
 			srctype = ((TDSVARIANT *) src)->type;
 		src = ((TDSBLOB *) src)->textvalue;
 	}
