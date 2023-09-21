@@ -136,8 +136,8 @@ test0(const char *src, int len, int midtype, int dsttype, const char *result, in
 	free(copy);
 }
 
-#define test(s,d,r)    test0(s,strlen(s),0,d,r,__LINE__)
-#define test2(s,m,d,r) test0(s,strlen(s),m,d,r,__LINE__)
+#define test(s,d,r)    test0(s,(int)strlen(s),0,d,r,__LINE__)
+#define test2(s,m,d,r) test0(s,(int)strlen(s),m,d,r,__LINE__)
 
 static int
 int_types[] = {
