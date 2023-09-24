@@ -762,15 +762,6 @@ static const char *const aBoolean[] = {
 	NULL
 };
 
-/*
-static const char *aAuth[] = {
-	"Server",
-	"Domain",
-	"Both",
-	NULL
-};
-*/
-
 static HODBCINSTPROPERTY
 addProperty(HODBCINSTPROPERTY hLastProperty)
 {
@@ -873,14 +864,6 @@ ODBCINSTGetProperties(HODBCINSTPROPERTY hLastProperty)
 
 	hLastProperty = definePropertyString(hLastProperty, odbc_param_PWD, "", 
 		"Password (Beware of security issues).");
-*/
-
-/*
-	hLastProperty = definePropertyList(hLastProperty, odbc_param_Authentication, "Server", aAuth, sizeof(aAuth),
-		"The server authentication mechanism.");
-
-	hLastProperty = definePropertyString(hLastProperty, odbc_param_Domain, "", 
-		"The default domain to use when using Domain Authentication.");
 */
 
 	hLastProperty = definePropertyString(hLastProperty, odbc_param_PacketSize, "", 
