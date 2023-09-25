@@ -330,22 +330,27 @@ db_env_chg(TDSSOCKET * tds, int type, char *oldval, char *newval)
 static TDSCOLUMN*
 dbcolptr(DBPROCESS* dbproc, int column)
 {
+	TDSSOCKET *tds;
+	TDSRESULTINFO *info;
+
 	if (!dbproc) {
 		dbperror(dbproc, SYBENULL, 0);
 		return NULL;
 	}
-	if (IS_TDSDEAD(dbproc->tds_socket)) {
+	tds = dbproc->tds_socket;
+	if (IS_TDSDEAD(tds)) {
 		dbperror(dbproc, SYBEDDNE, 0);
 		return NULL;
 	}
-	if (!dbproc->tds_socket->res_info)
+	info = tds->res_info;
+	if (!info)
 		return NULL;
-	if (column < 1 || column > dbproc->tds_socket->res_info->num_cols) {
+	if (column < 1 || column > info->num_cols) {
 		dbperror(dbproc, SYBECNOR, 0);
 		return NULL;
 	} 
 	
-	return dbproc->tds_socket->res_info->columns[column - 1];
+	return info->columns[column - 1];
 }
 
 static TDSCOLUMN*
