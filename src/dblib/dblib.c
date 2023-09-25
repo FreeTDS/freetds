@@ -349,7 +349,7 @@ dbcolptr(DBPROCESS* dbproc, int column)
 }
 
 static TDSCOLUMN*
-dbacolptr(DBPROCESS* dbproc, int computeid, int column, int is_bind)
+dbacolptr(DBPROCESS* dbproc, int computeid, int column, bool is_bind)
 {
 	unsigned int i;
 	TDSSOCKET *tds;
@@ -1901,7 +1901,7 @@ dbacolname(DBPROCESS * dbproc, int computeid, int column)
 
 	tdsdump_log(TDS_DBG_FUNC, "dbacolname(%p, %d, %d)\n", dbproc, computeid, column);
 
-	colinfo = dbacolptr(dbproc, computeid, column, 1);
+	colinfo = dbacolptr(dbproc, computeid, column, true);
 	if (!colinfo)
 		return NULL;
 
@@ -2779,7 +2779,7 @@ dbanullbind(DBPROCESS * dbproc, int computeid, int column, DBINT * indicator)
 
 	tdsdump_log(TDS_DBG_FUNC, "dbanullbind(%p, %d, %d, %p)\n", dbproc, computeid, column, indicator);
 
-	curcol = dbacolptr(dbproc, computeid, column, 1);
+	curcol = dbacolptr(dbproc, computeid, column, true);
 	if (!curcol)
 		return FAIL;
 
@@ -4313,7 +4313,7 @@ dbaltcolid(DBPROCESS * dbproc, int computeid, int column)
 
 	tdsdump_log(TDS_DBG_FUNC, "dbaltcolid(%p, %d, %d)\n", dbproc, computeid, column);
 
-	curcol = dbacolptr(dbproc, computeid, column, 0);
+	curcol = dbacolptr(dbproc, computeid, column, false);
 	if (!curcol)
 		return -1;
 
@@ -4340,7 +4340,7 @@ dbadlen(DBPROCESS * dbproc, int computeid, int column)
 
 	tdsdump_log(TDS_DBG_FUNC, "dbadlen(%p, %d, %d)\n", dbproc, computeid, column);
 
-	colinfo = dbacolptr(dbproc, computeid, column, 0);
+	colinfo = dbacolptr(dbproc, computeid, column, false);
 	if (!colinfo)
 		return -1;
 
@@ -4369,7 +4369,7 @@ dbalttype(DBPROCESS * dbproc, int computeid, int column)
 
 	tdsdump_log(TDS_DBG_FUNC, "dbalttype(%p, %d, %d)\n", dbproc, computeid, column);
 
-	colinfo = dbacolptr(dbproc, computeid, column, 0);
+	colinfo = dbacolptr(dbproc, computeid, column, false);
 	if (!colinfo)
 		return -1;
 
@@ -4399,7 +4399,7 @@ dbaltbind(DBPROCESS * dbproc, int computeid, int column, int vartype, DBINT varl
 
 	tdsdump_log(TDS_DBG_FUNC, "dbaltbind(%p, %d, %d, %d, %d, %p)\n", dbproc, computeid, column, vartype, varlen, varaddr);
 
-	colinfo = dbacolptr(dbproc, computeid, column, 1);
+	colinfo = dbacolptr(dbproc, computeid, column, true);
 	if (!colinfo)
 		return FAIL;
 	CHECK_PARAMETER(varaddr, SYBEABNV, FAIL);
@@ -4444,7 +4444,7 @@ dbadata(DBPROCESS * dbproc, int computeid, int column)
 
 	tdsdump_log(TDS_DBG_FUNC, "dbadata(%p, %d, %d)\n", dbproc, computeid, column);
 
-	colinfo = dbacolptr(dbproc, computeid, column, 0);
+	colinfo = dbacolptr(dbproc, computeid, column, false);
 	if (!colinfo)
 		return NULL;
 
@@ -4473,7 +4473,7 @@ dbaltop(DBPROCESS * dbproc, int computeid, int column)
 
 	tdsdump_log(TDS_DBG_FUNC, "dbaltop(%p, %d, %d)\n", dbproc, computeid, column);
 
-	if ((curcol=dbacolptr(dbproc, computeid, column, 0)) == NULL)
+	if ((curcol=dbacolptr(dbproc, computeid, column, false)) == NULL)
 		return -1;
 
 	return curcol->column_operator;
@@ -7143,7 +7143,7 @@ dbaltutype(DBPROCESS * dbproc, int computeid, int column)
 
 	tdsdump_log(TDS_DBG_FUNC, "dbaltutype(%p, %d, %d)\n", dbproc, computeid, column);
 
-	colinfo = dbacolptr(dbproc, computeid, column, 0);
+	colinfo = dbacolptr(dbproc, computeid, column, false);
 	if (!colinfo)
 		return -1;
 
@@ -7166,7 +7166,7 @@ dbaltlen(DBPROCESS * dbproc, int computeid, int column)
 
 	tdsdump_log(TDS_DBG_FUNC, "dbaltlen(%p, %d, %d)\n", dbproc, computeid, column);
 
-	colinfo = dbacolptr(dbproc, computeid, column, 0);
+	colinfo = dbacolptr(dbproc, computeid, column, false);
 	if (!colinfo)
 		return -1;
 
