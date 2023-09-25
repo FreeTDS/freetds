@@ -1,7 +1,7 @@
 README for FreeTDS 1.4
 ====
 
-*Release date TBD*
+*Release date 23th September 2023*
 
 **To build FreeTDS read the file [INSTALL](./INSTALL.md) or
 the [FreeTDS Users Guide](http://www.freetds.org/userguide/)**
