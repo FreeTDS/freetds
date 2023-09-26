@@ -332,7 +332,7 @@ tds_free_param_result(TDSPARAMINFO * param_info)
 		TDS_ZERO_FREE(param_info->columns);
 
 	/*
-	 * NOTE some informations should be freed too but when this function 
+	 * NOTE some information should be freed too but when this function
 	 * is called are not used. I hope to remove the need for this
 	 * function ASAP
 	 * A better way is to support different way to allocate and get

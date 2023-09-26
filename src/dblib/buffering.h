@@ -1,5 +1,5 @@
 typedef struct dblib_buffer_row {
-	/** pointer to result informations */
+	/** pointer to result information */
 	TDSRESULTINFO *resinfo;
 	/** row data, NULL for resinfo->current_row */
 	unsigned char *row_data;

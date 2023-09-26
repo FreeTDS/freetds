@@ -7483,7 +7483,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, TDS_SERVER_TYPE srctype, const BYTE * 
 			else
 				num = (DBNUMERIC*) dest;
 		} else if (dbproc->msdblib) {
-			/* MS by default use only destination informations */
+			/* MS by default use only destination information */
 			num = (DBNUMERIC*) dest;
 		} else {
 			/* Sybase, dbbind means source or default */

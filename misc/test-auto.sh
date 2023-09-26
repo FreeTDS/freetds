@@ -55,7 +55,7 @@ output_save () {
 	log "END $OUT"
 }
 
-# output informations
+# output information
 if test $HEADER = yes; then
 	log "INFO HOSTNAME `hostname`"
 	VER=`gcc --version 2> /dev/null | grep 'GCC'`

@@ -524,7 +524,7 @@ odbc_prepare(TDS_STMT *stmt)
 				break;
 
 			case TDS_ROWFMT_RESULT:
-				/* store first row informations */
+				/* store first row information */
 				if (!in_row)
 					odbc_populate_ird(stmt);
 				stmt->row = 0;

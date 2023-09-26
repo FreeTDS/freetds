@@ -258,7 +258,7 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 	if (!tds_init_secdll())
 		return NULL;
 
-	/* parse username/password informations */
+	/* parse username/password information */
 	memset(&identity, 0, sizeof(identity));
 #ifdef UNICODE
 	if (convert_to_ucs2le_string(tds, tds_dstr_cstr(&login->user_name), tds_dstr_len(&login->user_name)+1,

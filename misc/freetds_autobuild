@@ -11,7 +11,7 @@ export PATH="/usr/kerberos/bin:/usr/local/bin:/bin:/usr/bin:/usr/X11R6/bin:/usr/
 
 . $HOME/.bashrc
 
-# do not use ccache, not work well with profile informations
+# do not use ccache, not work well with profile information
 export PATH="/usr/kerberos/bin:/usr/local/bin:$HOME/bin:$HOME/install/bin:/bin:/usr/bin:/usr/X11R6/bin"
 
 GROUPDIR=/home/groups/f/fr/freetds/htdocs
@@ -240,7 +240,7 @@ upload "$OUTDIR/test" '*.html' '*.txt'
 cd ..
 
 # test connection using named port
-# using tsql directly with grep do not update coverage informations
+# using tsql directly with grep do not update coverage information
 echo -e 'select @@version\ngo\nbye' | TDSPORT=ms-sql-s cov named_port ./src/apps/tsql -S $tSRV -U "$tUID" -P "$tPWD" > out.txt || true
 if grep -q 'Microsoft Corporation' out.txt; then
 	echo "named port ok"
@@ -251,7 +251,7 @@ fi
 rm -f out.txt
 
 # test dump to file
-# using tsql directly with grep do not update coverage informations
+# using tsql directly with grep do not update coverage information
 echo -e 'select @@version\ngo\nbye' | TDSDUMP=dump.txt cov dump ./src/apps/tsql -S $tSRV -U "$tUID" -P "$tPWD" > out.txt || true
 res=ok
 grep -q 'Microsoft Corporation' out.txt || res=ko
@@ -269,7 +269,7 @@ rm -f out.txt dump.txt
 #
 # test domain password and TDSPORT with service name
 if test "$DOMAIN_UID" != ""; then
-	# using tsql directly with grep do not update coverage informations
+	# using tsql directly with grep do not update coverage information
 	echo -e 'select @@version\ngo\nbye' | TDSDUMP=stdout cov domain ./src/apps/tsql -S $tSRV -U "$DOMAIN_UID" -P "$DOMAIN_PWD" > out.txt || true
 	if grep -q 'Microsoft Corporation' out.txt; then
 		echo "domain password ok"
@@ -282,7 +282,7 @@ fi
 
 # test connection forcing port
 if test "$MSSQL_PORT" != ""; then
-	# using tsql directly with grep do not update coverage informations
+	# using tsql directly with grep do not update coverage information
 	echo -e 'select @@version\ngo\nbye' | cov forced_port ./src/apps/tsql -S "$tSRV:$MSSQL_PORT" -U "$tUID" -P "$tPWD" > out.txt || true
 	if grep -q 'Microsoft Corporation' out.txt; then
 		echo "override port ok"
@@ -295,7 +295,7 @@ fi
 
 # test connection using instance name
 if test "$MSSQL_INSTANCE" != ""; then
-	# using tsql directly with grep do not update coverage informations
+	# using tsql directly with grep do not update coverage information
 	echo -e 'select @@version\ngo\nbye' | cov instance ./src/apps/tsql -S "$tSRV\\$MSSQL_INSTANCE" -U "$tUID" -P "$tPWD" > out.txt || true
 	if grep -q 'Microsoft Corporation' out.txt; then
 		echo "override instance ok"
@@ -353,7 +353,7 @@ done
 
 # test autodiscovery
 set_pwd_file $ROOT/PWD.sybase15
-# using tsql directly with grep do not update coverage informations
+# using tsql directly with grep do not update coverage information
 echo -e 'select @@version\ngo\nbye' | TDSVER=auto cov discovery ./src/apps/tsql -S "$tSRV" -U "$tUID" -P "$tPWD" > out.txt || true
 if grep -q 'Adaptive Server Enterprise' out.txt; then
 	echo "autodiscovery ok"

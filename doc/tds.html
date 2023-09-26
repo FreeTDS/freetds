@@ -95,7 +95,7 @@ of what goes on.
 <h2 class="section">The packet format</h2>
 <p>
 <a name="packet"></a>
-Every informations in TDS protocol (query, RPCs, responses and so on) is splitted in packets.</p>
+Every information in TDS protocol (query, RPCs, responses and so on) is splitted in packets.</p>
 <p>All packets start with the following 8 byte header.  
 
 <pre>
@@ -1050,7 +1050,7 @@ optional
 +--------------+---------+--------------+------+---------+--------------+
 </pre>
 
-<p>This token is the first token that contain result informations. Is usually followed by <a href="#t161">Column Format</a> token (0xA1 161)</p>
+<p>This token is the first token that contain result information. Is usually followed by <a href="#t161">Column Format</a> token (0xA1 161)</p>
 
 <hr>
 <h2 id="t161" class="subsection">Column Format (0xA1 161)</h2>
@@ -1153,8 +1153,8 @@ operand       ???
 usertype      usertype
 <a href="#types">column type</a>   data type
 size          data size
-locale length length of locale informations
-locale info   locale informations (unknown)
+locale length length of locale information
+locale info   locale information (unknown)
 </pre>
 
 <p>Each bycol information contains column info for a specific column.</p>

@@ -1013,7 +1013,7 @@ tds5_process_insert_bulk_reply(TDSSOCKET * tds, TDSBCPINFO *bcpinfo)
 				col_flags |= 1 << icol;
 				cols_values[icol] = dres.i;
 			}
-			/* save informations */
+			/* save information */
 			if (col_flags != BULKCOL_ALL ||
 				cols_values[BULKCOL_colcnt] < 1 ||
 				cols_values[BULKCOL_colcnt] > 4096 || /* limit of columns accepted */

@@ -879,7 +879,7 @@ ODBCINSTGetProperties(HODBCINSTPROPERTY hLastProperty)
 		"Appends dump file instead of overwriting it. Useful for debugging when many processes are active.");
 
 	hLastProperty = definePropertyString(hLastProperty, odbc_param_DebugFlags, "", 
-		"Sets granularity of logging. A set of bit that specify levels and informations. See table below for bit specification.");
+		"Sets granularity of logging. A set of bit that specify levels and information. See table below for bit specification.");
 
 	hLastProperty = definePropertyList(hLastProperty, odbc_param_Encryption, TDS_STR_ENCRYPTION_OFF, aEncryption, sizeof(aEncryption),
 		"The encryption method.");

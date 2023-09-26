@@ -42,7 +42,7 @@ Test(int use_ird)
 
 	cname = (char*) C(name);
 	if (type != SQL_INTEGER || strcmp(cname, "i") != 0) {
-		fprintf(stderr, "wrong column 1 informations (type %d name '%s' size %d)\n", (int) type, cname, (int) size);
+		fprintf(stderr, "wrong column 1 information (type %d name '%s' size %d)\n", (int) type, cname, (int) size);
 		exit(1);
 	}
 
@@ -50,7 +50,7 @@ Test(int use_ird)
 
 	cname = (char*) C(name);
 	if (type != SQL_CHAR || strcmp(cname, "c") != 0 || (size != 20 && (odbc_db_is_microsoft() || size != 40))) {
-		fprintf(stderr, "wrong column 2 informations (type %d name '%s' size %d)\n", (int) type, cname, (int) size);
+		fprintf(stderr, "wrong column 2 information (type %d name '%s' size %d)\n", (int) type, cname, (int) size);
 		exit(1);
 	}
 
@@ -58,7 +58,7 @@ Test(int use_ird)
 
 	cname = (char*) C(name);
 	if (type != SQL_NUMERIC || strcmp(cname, "n") != 0 || size != 34 || digits != 12) {
-		fprintf(stderr, "wrong column 3 informations (type %d name '%s' size %d)\n", (int) type, cname, (int) size);
+		fprintf(stderr, "wrong column 3 information (type %d name '%s' size %d)\n", (int) type, cname, (int) size);
 		exit(1);
 	}
 	ODBC_FREE();

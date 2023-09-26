@@ -548,7 +548,7 @@ typedef struct {
  * Parses a connection string for SQLDriverConnect().
  * \param connect_string      point to connection string
  * \param connect_string_end  point to end of connection string
- * \param connection          structure where to store informations
+ * \param connection          structure where to store information
  * \return true if error, false otherwise
  */
 bool odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char *connect_string_end, TDSLOGIN * login, TDS_PARSED_PARAM *parsed_params);

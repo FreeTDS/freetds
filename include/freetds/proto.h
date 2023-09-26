@@ -352,7 +352,7 @@ typedef enum tds_packet_type
 } TDS_PACKET_TYPE;
 
 /** 
- * TDS 7.1 collation informations.
+ * TDS 7.1 collation information.
  */
 typedef struct
 {

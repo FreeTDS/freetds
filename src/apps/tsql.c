@@ -323,7 +323,7 @@ tsql_print_usage(const char *progname)
 		"-o options:\n"
 		"\tf\tDo not print footer\n"
 		"\th\tDo not print header\n"
-		"\tt\tPrint time informations\n"
+		"\tt\tPrint time information\n"
 		"\tv\tPrint TDS version\n"
 		"\tq\tQuiet\n\n"
 		"\tDelimiters can be multi-char strings appropriately escaped for your shell.\n"

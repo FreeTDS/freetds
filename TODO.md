@@ -122,7 +122,7 @@ Test and fix
 * hidden fields (FOR BROWSE select, see flag test on tds)
  * what happen if we bind to an hidden field??
  * if we use SQLGetData??
- * if we request informations with SQLDescribeCol/SQLColAttribute(s)/
+ * if we request information with SQLDescribeCol/SQLColAttribute(s)/
    SQLGetDescField??
  * as you noted returning # columns hidden fields are not counted (there
    is however a setting which is a mssql extension which threat hidden

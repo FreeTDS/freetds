@@ -1,5 +1,5 @@
 /*
- * Purpose: Test check dbcolinfo/dbtableinfo informations
+ * Purpose: Test check dbcolinfo/dbtableinfo information
  * Functions: dbresults dbsqlexec dbtablecolinfo
  */
 

@@ -1973,7 +1973,7 @@ tds4_send_emulated_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * par
  * Calls a RPC from server. Output parameters will be stored in tds->param_info.
  * \param tds      state information for the socket and the TDS protocol
  * \param rpc_name name of RPC
- * \param params   parameters informations. NULL for no parameters
+ * \param params   parameters information. NULL for no parameters
  */
 TDSRET
 tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params, TDSHEADERS * head)

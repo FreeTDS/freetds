@@ -29,7 +29,7 @@ Row handling
 Upper layer should be able to read data from network and handle rows
 Possibility to stop sending/receiving data for SQLPutData and similar
 Allow upper layer to get if libTDS is sending a request (add new state??)
-tds_process_tokens should "return" any row/done/other informations,
+tds_process_tokens should "return" any row/done/other information,
 not only done_flags
 libTDS should handle multiple reply from server (cursors and so on)
 

@@ -49,7 +49,7 @@ main(int argc, char **argv)
 	/*
 	 * Sybase cannot pass this test without complicated query parsing.
 	 * Query with blob columns cannot be prepared so prepared query must
-	 * be emulated loosing column informations from server and Sybase do
+	 * be emulated loosing column information from server and Sybase do
 	 * not convert implicitly VARCHAR to INT
 	 */
 	if (odbc_db_is_microsoft())
