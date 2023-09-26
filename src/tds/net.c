@@ -702,7 +702,7 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 				return 0;
 			default:
 				tdsdump_log(TDS_DBG_NETWORK, 
-					"tds_select: invalid interupt handler return code: %d\n", timeout_action);
+					"tds_select: invalid interrupt handler return code: %d\n", timeout_action);
 				return -1;
 			}
 		}
