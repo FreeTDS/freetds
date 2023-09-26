@@ -582,7 +582,7 @@ tds_ssl_deinit(TDSCONNECTION *conn)
 	conn->encrypt_single_packet = 0;
 }
 
-#else
+#else /* !HAVE_GNUTLS */
 static long
 tds_ssl_ctrl_login(BIO *b, int cmd, long num, void *ptr)
 {
@@ -869,13 +869,11 @@ check_alt_names(X509 *cert, const char *hostname)
 		ret = inet_pton(AF_INET, hostname, &ip.v4);
 	}
 	if (ret == 0)
-		return -1;
-
-	ret = -1;
+		ip_size = 0;
 
 	alt_names = X509_get_ext_d2i(cert, NID_subject_alt_name, NULL, NULL);
 	if (!alt_names)
-		return ret;
+		return -1;
 
 	num = sk_GENERAL_NAME_num(alt_names);
 	tdsdump_log(TDS_DBG_INFO1, "Alt names number %d\n", num);
@@ -891,11 +889,9 @@ check_alt_names(X509 *cert, const char *hostname)
 		altlen = (size_t) ASN1_STRING_length(name->d.ia5);
 
 		if (name->type == GEN_DNS && ip_size == 0) {
-			ret = 0;
 			if (!check_name_match(name->d.dNSName, hostname))
 				continue;
 		} else if (name->type == GEN_IPADD && ip_size != 0) {
-			ret = 0;
 			if (altlen != ip_size || memcmp(altptr, &ip, altlen) != 0)
 				continue;
 		} else {
@@ -906,7 +902,7 @@ check_alt_names(X509 *cert, const char *hostname)
 		return 1;
 	}
 	sk_GENERAL_NAME_pop_free(alt_names, GENERAL_NAME_free);
-	return ret;
+	return -1;
 }
 
 static int
