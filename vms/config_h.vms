@@ -295,9 +295,6 @@
 /* The size of a `__int64', as computed by sizeof. */
 #undef SIZEOF___INT64
 
-/* Define to 1 if you have the ANSI C header files. */
-#define STDC_HEADERS 1
-
 /* define to constant to use for clock_gettime */
 #if __CRTL_VER >= 70302000
 #define TDS_GETTIMEMILLI_CONST CLOCK_REALTIME

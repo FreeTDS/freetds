@@ -28,12 +28,12 @@ dnl check for constants for clock_gettime
 AC_DEFUN([TDS_CLOCK_GETTIME_CONST],
 [
   AC_MSG_CHECKING(if clock_gettime support $1)
-  AC_TRY_COMPILE([
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <time.h>
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
-], [struct timespec ts; clock_gettime($1, &ts); ], tds_clock_gettime_const=yes, tds_clock_gettime_const=no)
+]], [[struct timespec ts; clock_gettime($1, &ts); ]])], tds_clock_gettime_const=yes, tds_clock_gettime_const=no)
     AC_MSG_RESULT($tds_clock_gettime_const)
 ])
 

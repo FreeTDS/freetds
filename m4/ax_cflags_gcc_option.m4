@@ -51,7 +51,7 @@ AS_VAR_PUSHDEF([VAR],[ac_cv_cflags_gcc_option_$2])dnl
 AC_CACHE_CHECK([m4_ifval($1,$1,FLAGS) for gcc m4_ifval($2,$2,-option)],
 VAR,[VAR="no, unknown"
  AC_LANG_SAVE
- AC_LANG_C
+ AC_LANG([C])
  ac_save_[]FLAGS="$[]FLAGS"
 for ac_arg dnl
 in "-pedantic  % m4_ifval($2,$2,-option)"  dnl   GCC
@@ -86,7 +86,7 @@ AS_VAR_PUSHDEF([VAR],[ac_cv_cxxflags_gcc_option_$2])dnl
 AC_CACHE_CHECK([m4_ifval($1,$1,FLAGS) for gcc m4_ifval($2,$2,-option)],
 VAR,[VAR="no, unknown"
  AC_LANG_SAVE
- AC_LANG_CXX
+ AC_LANG([C++])
  ac_save_[]FLAGS="$[]FLAGS"
 for ac_arg dnl
 in "-pedantic  % m4_ifval($2,$2,-option)"  dnl   GCC
@@ -120,7 +120,7 @@ AS_VAR_PUSHDEF([VAR],[ac_cv_cflags_gcc_option_$1])dnl
 AC_CACHE_CHECK([m4_ifval($2,$2,FLAGS) for gcc m4_ifval($1,$1,-option)],
 VAR,[VAR="no, unknown"
  AC_LANG_SAVE
- AC_LANG_C
+ AC_LANG([C])
  ac_save_[]FLAGS="$[]FLAGS"
 for ac_arg dnl
 in "-pedantic  % m4_ifval($1,$1,-option)"  dnl   GCC
@@ -155,7 +155,7 @@ AS_VAR_PUSHDEF([VAR],[ac_cv_cxxflags_gcc_option_$1])dnl
 AC_CACHE_CHECK([m4_ifval($2,$2,FLAGS) for gcc m4_ifval($1,$1,-option)],
 VAR,[VAR="no, unknown"
  AC_LANG_SAVE
- AC_LANG_CXX
+ AC_LANG([C++])
  ac_save_[]FLAGS="$[]FLAGS"
 for ac_arg dnl
 in "-pedantic  % m4_ifval($1,$1,-option)"  dnl   GCC

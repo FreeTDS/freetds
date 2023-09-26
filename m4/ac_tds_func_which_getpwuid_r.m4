@@ -20,7 +20,7 @@ struct passwd bpw;
 char buf[1024];
 char *dir = getpwuid_r(getuid(), &bpw, buf, sizeof(buf))->pw_dir;
 ]])],ac_cv_func_which_getpwuid_r=four_pw,
-[AC_TRY_RUN([
+[AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <unistd.h>
 #include <pwd.h>
 int main() {
@@ -29,8 +29,8 @@ char buf[1024];
 getpwuid_r(getuid(), &bpw, buf, sizeof(buf));
 return 0;
 }
-],ac_cv_func_which_getpwuid_r=four, 
-  [AC_TRY_RUN([
+]])],ac_cv_func_which_getpwuid_r=four,
+  [AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <unistd.h>
 #include <pwd.h>
 int main() {
@@ -39,7 +39,7 @@ char buf[1024];
 getpwuid_r(getuid(), &bpw, buf, sizeof(buf), &pw);
 return 0;
 }
-],ac_cv_func_which_getpwuid_r=five,
+]])],ac_cv_func_which_getpwuid_r=five,
 ac_cv_func_which_getpwuid_r=no)],
 [# cross compile case
 ac_cv_func_which_getpwuid_r=no
@@ -51,7 +51,7 @@ for params in "int" "size_t, struct passwd **"; do
 extern int getpwuid_r(uid_t, struct passwd *, char *, $params);
           ],[])],[
 	if test $ac_cv_func_which_getpwuid_r != no; then
-		AC_ERROR([Two types of getpwuid_r detected])
+		AC_MSG_ERROR([Two types of getpwuid_r detected])
 	fi
 	ac_cv_func_which_getpwuid_r=$num_params
 	])
