@@ -922,12 +922,12 @@ check_hostname(X509 *cert, const char *hostname)
 		return ret;
 
 	/* check by common name (old method) */
-	subject= X509_get_subject_name(cert);
+	subject = X509_get_subject_name(cert);
 	if (!subject)
 		return 0;
 
 	i = -1;
-	while (X509_NAME_get_index_by_NID(subject, NID_commonName, i) >=0)
+	while (X509_NAME_get_index_by_NID(subject, NID_commonName, i) >= 0)
 		i = X509_NAME_get_index_by_NID(subject, NID_commonName, i);
 	if (i < 0)
 		return 0;
