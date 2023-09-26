@@ -28,6 +28,7 @@ TESTS =	\
 	strftime$(EXEEXT) \
 	log_elision$(EXEEXT) \
 	convert_bounds$(EXEEXT) \
+	tls$(EXEEXT) \
 	$(NULL)
 
 # flags test commented, not necessary for 0.62
@@ -68,6 +69,7 @@ freeze_SOURCES	=	freeze.c
 strftime_SOURCES	=	strftime.c
 log_elision_SOURCES	=	log_elision.c
 convert_bounds_SOURCES	=	convert_bounds.c
+tls_SOURCES	=	tls.c
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h utf8.c allcolumns.c
