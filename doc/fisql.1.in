@@ -136,7 +136,7 @@ Cf. DBSETLNATLANG.
 is a filter; it reads from standard input, writes to standard output,
 and writes errors to standard error. The
 .Fl i Ns ,
-.FL o Ns ,
+.Fl o Ns ,
 and
 .Fl e
 options override these defaults.

@@ -180,8 +180,6 @@ Do not define both
 and
 .Fa instance Ns
 \&.  One implies the other.  
-
-
 .Pp
 Boolean property values may be denoted as on/off, true/false, or 1/0.
 .
@@ -214,7 +212,7 @@ That name can be overridden with the FREETDSCONF environment variable.
 FreeTDS will search conf files for a servername in the following order:
 .Bl -enum -offset indent -compact
 .It
-a filename set programatically via dbsetifile() that is in .conf format
+a filename set programmatically via dbsetifile() that is in .conf format
 .It
 a filename in the environment variable FREETDSCONF that is in .conf format
 .It
@@ -232,7 +230,7 @@ an
 file in the following order:
 .Bl -enum -offset indent -compact
 .It
-a filename set programatically via dbsetifile() that is in
+a filename set programmatically via dbsetifile() that is in
 .Pa interfaces
 format
 .It
@@ -287,4 +285,4 @@ file.
 .%B FreeTDS User Guide
 .
 .Sh HISTORY
-\.conf files first appeared with version 0.53 of FreeTDS.
+\&.conf files first appeared with version 0.53 of FreeTDS.

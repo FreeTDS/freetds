@@ -40,7 +40,6 @@ and
 parameters are provided to let the user verify a server is listening on
 the named host and port. These parameters override any configuration files
 and environment variables.
-.Pl
 The
 .Fl S
 parameter can be used to test the local configuration. FreeTDS will use

@@ -81,6 +81,7 @@ If not specified,
 prompts the user for the information.
 .It Fl E
 Keep identity values.
+.El
 .Sh SEE ALSO
 .Xr freebcp 1 , Xr defncopy 1 , Xr bsqldb 1 , Xr tsql 1 , 
 .%B FreeTDS User Guide.

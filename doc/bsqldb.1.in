@@ -31,7 +31,6 @@ batches. The last batch need not be followed by "go".
 .Nm
 makes use of the DB-Library API provided by FreeTDS. This API is of
 course also available to application developers.
-
 .Sh OPTIONS
 .Bl -tag -width indent
 .It Fl D Ar database
@@ -128,4 +127,3 @@ parameters unless the RPC functions are used. This means
 .Nm
 cannot return output parameters for stored procedures with these
 servers.
-
