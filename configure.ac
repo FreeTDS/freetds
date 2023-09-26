@@ -11,7 +11,7 @@ dnl ------------------------------------------------------------
 # ------------------------------------------------------------
 # Initialization
 # ------------------------------------------------------------
-AC_INIT(FreeTDS, 1.4)
+AC_INIT(FreeTDS, 1.4.1)
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
 
@@ -95,7 +95,7 @@ if test $netdb_reentrant = yes; then
 	AC_DEFINE(NETDB_REENTRANT, 1, [Define to 1 if the BSD-style netdb interface is reentrant.])
 fi
 
-AC_GNU_SOURCE
+AC_USE_SYSTEM_EXTENSIONS
 AC_SYS_LARGEFILE
 
 # ------------------------------------------------------------
@@ -113,8 +113,7 @@ define([AC_LIBTOOL_LANG_F77_CONFIG], [:])dnl
 define([AC_LIBTOOL_LANG_GCJ_CONFIG], [:])dnl
 
 LT_INIT([win32-dll])
-AC_LTDL_DLLIB
-LT_AC_PROG_RC
+LT_PROG_RC
 
 AC_ARG_ENABLE(libiconv,
 	AS_HELP_STRING([--disable-libiconv], [do not attempt to include libiconv]),
@@ -295,8 +294,6 @@ fi
 # ------------------------------------------------------------
 # Checks for header files.
 # ------------------------------------------------------------
-AC_HEADER_STDC
-AC_HEADER_TIME
 AC_STRUCT_TIMEZONE
 AC_CHECK_MEMBERS([struct tm.__tm_zone],,,[#include <sys/types.h>
 #include <$ac_cv_struct_tm>
@@ -431,9 +428,9 @@ AC_EGREP_CPP(yes,
 TYPE_SOCKLEN_T
 
 AC_MSG_CHECKING([whether getopt has optreset support])
-AC_TRY_LINK([#ifdef HAVE_GETOPT_H
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#ifdef HAVE_GETOPT_H
 #include <getopt.h>
-#endif], [optreset = 0;],
+#endif]], [[optreset = 0;]])],
 [AC_MSG_RESULT(yes)
 AC_DEFINE(HAVE_GETOPT_OPTRESET, 1, [Define if your getopt(3) defines and uses optreset])],
 [AC_MSG_RESULT(no)]
@@ -503,15 +500,15 @@ _fseeki64 _ftelli64 setrlimit pthread_cond_timedwait \
 _lock_file _unlock_file usleep nanosleep readdir_r \
 mallinfo mallinfo2 _heapwalk])
 
-AC_TRY_LINK([#include <stdio.h>
-#include <stdlib.h>],
-[return system("ls") != 0;],
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <stdio.h>
+#include <stdlib.h>]],
+[[return system("ls") != 0;]])],
 AC_DEFINE(HAVE_SYSTEM, 1, [Define to 1 if you have the 'system' function]))
 
 ACX_PUSH_LIBS("$LIBS $NETWORK_LIBS")
 AC_CHECK_FUNCS([inet_ntoa_r getipnodebyaddr getipnodebyname \
 getaddrinfo inet_ntop gethostname poll socketpair strtok_s])
-AC_TRY_LINK([#ifdef HAVE_SYS_TYPES_H
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
 #ifdef HAVE_SYS_SOCKET_H
@@ -523,8 +520,8 @@ AC_TRY_LINK([#ifdef HAVE_SYS_TYPES_H
 #ifdef HAVE_WINSOCK2_H
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#endif],
-[return getaddrinfo(NULL, NULL, NULL, NULL);],
+#endif]],
+[[return getaddrinfo(NULL, NULL, NULL, NULL);]])],
 AC_DEFINE(HAVE_GETADDRINFO, 1, [Define if you have getaddrinfo function]))
 ACX_POP_LIBS
 
@@ -723,13 +720,13 @@ then
 	# test for SQLLEN (iODBC do not define but typedef it)
 	save_cppflags="$CPPFLAGS"
 	CPPFLAGS="$CPPFLAGS $ODBC_INC"
-	AC_TRY_COMPILE([#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
 #include <windows.h>
 #endif
-#include <sql.h>], [SQLLEN len = 123;],
+#include <sql.h>]], [[SQLLEN len = 123;]])],
 		AC_DEFINE(HAVE_SQLLEN, 1, [Define if sqltypes.h define SQLLEN])
 		# check SQLColAttribute definition
-		AC_TRY_COMPILE([#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
 #include <windows.h>
 #endif
 #include <sql.h>
@@ -739,11 +736,11 @@ SQLRETURN  SQL_API SQLColAttribute (SQLHSTMT StatementHandle,
 	SQLUSMALLINT ColumnNumber, SQLUSMALLINT FieldIdentifier,
 	SQLPOINTER CharacterAttribute, SQLSMALLINT BufferLength,
 	SQLSMALLINT *StringLength, SQLLEN * NumericAttribute) {
-}], [return 0],
+}]], [[return 0]])],
 		AC_DEFINE(TDS_SQLCOLATTRIBUTE_SQLLEN, 1, [Define to 1 if last argument of SQLColAttribute it's SQLLEN *]))
 
 		# check is SQLParamOptions accept SQLULEN
-		AC_TRY_COMPILE([#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
 #include <windows.h>
 #endif
 #include <sql.h>
@@ -752,7 +749,7 @@ SQLRETURN  SQL_API SQLColAttribute (SQLHSTMT StatementHandle,
 SQLRETURN SQL_API SQLParamOptions(SQLHSTMT       hstmt,
 	SQLULEN crow, SQLULEN *pirow) {
 	return SQL_SUCCESS;
-}], [return 0],
+}]], [[return 0]])],
 		AC_DEFINE(TDS_SQLPARAMOPTIONS_SQLLEN, 1, [Define to 1 if SQLParamOptions accept SQLULEN as arguments]))
 	)
 
@@ -781,9 +778,9 @@ AC_SUBST(ODBC_LDFLAGS)
 AC_SUBST(ODBCINST_LDFLAGS)
 
 AC_DEFUN([TDS_CHECK_GMP], [
-AC_TRY_LINK([#include <stdio.h>
-#include <gmp.h>],
-[mpz_t x; mpz_init(x); mpz_powm(x,x,x,x); mpz_clear(x); return 0;],
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <stdio.h>
+#include <gmp.h>]],
+[[mpz_t x; mpz_init(x); mpz_powm(x,x,x,x); mpz_clear(x); return 0;]])],
 AC_DEFINE(HAVE_GMP, 1, [Define if you have GMP library]),
 [$1])])
 
@@ -897,19 +894,19 @@ AC_tds_FUNC_WHICH_GETPWUID_R
 AC_tds_FUNC_WHICH_LOCALTIME_R
 
 # easy test for pthread (no library, only mutex support)
-AC_TRY_LINK([#include <pthread.h>
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <pthread.h>
 #if !defined(_WIN32)
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-#endif],
-[pthread_mutex_lock(&mutex);
-pthread_mutex_unlock(&mutex)], AC_DEFINE(TDS_HAVE_PTHREAD_MUTEX, 1, [Define if you have pthread with mutex support]))
+#endif]],
+[[pthread_mutex_lock(&mutex);
+pthread_mutex_unlock(&mutex)]])], AC_DEFINE(TDS_HAVE_PTHREAD_MUTEX, 1, [Define if you have pthread with mutex support]))
 
 # easy test for locking stdio
-AC_TRY_LINK([#include <stdio.h>],
-[int c;
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <stdio.h>]],
+[[int c;
 flockfile(stdin);
 c = getc_unlocked(stdin);
-funlockfile(stdin);], AC_DEFINE(TDS_HAVE_STDIO_LOCKED, 1, [Define if stdio support locking]))
+funlockfile(stdin);]])], AC_DEFINE(TDS_HAVE_STDIO_LOCKED, 1, [Define if stdio support locking]))
 
 AC_ARG_ENABLE(debug,
 	AS_HELP_STRING([--disable-debug], [disable assert and other things]),
