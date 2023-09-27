@@ -185,6 +185,38 @@ password_contains_curly_braces_and_separator(void)
 	return 0;
 }
 
+static int
+password_bug_report(void)
+{
+	TDSLOGIN *login;
+	TDS_ERRS errs = {0};
+	TDSLOCALE *locale;
+	TDS_PARSED_PARAM parsed_params[ODBC_PARAM_SIZE];
+	const char *connect_string = "Driver=FreeTDS;Server=1.2.3.4;Port=1433;Database=test;uid=test_user;pwd={p@ssw0rd}";
+
+	const char *connect_string_end = connect_string + strlen(connect_string);
+	login = tds_alloc_login(0);
+	if (!tds_set_language(login, "us_english"))
+		return 1;
+	locale = tds_alloc_locale();
+	login = tds_init_login(login, locale);
+
+	odbc_errs_reset(&errs);
+
+	if (!odbc_parse_connect_string(&errs, connect_string, connect_string_end, login, parsed_params))
+		return 1;
+
+	assert_equal_str(parsed_params[ODBC_PARAM_UID], "test_user");
+	assert_equal_dstr(login->server_name, "1.2.3.4");
+	assert_equal_dstr(login->password, "p@ssw0rd");
+	assert_equal_str(parsed_params[ODBC_PARAM_PWD], "{p@ssw0rd}");
+	assert(login->port == 1433);
+
+	tds_free_login(login);
+	tds_free_locale(locale);
+
+	return 0;
+}
 
 int main(int argc, char *argv[])
 {
@@ -205,6 +237,9 @@ int main(int argc, char *argv[])
 		return 1;
 
 	if (password_contains_curly_braces_and_separator() != 0)
+		return 1;
+
+	if (password_bug_report() != 0)
 		return 1;
 
 	return 0;
