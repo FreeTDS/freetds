@@ -63,12 +63,6 @@ struct tds_time
 };
 
 static TDS_INT tds_convert_int(TDS_INT num, int desttype, CONV_RESULT * cr);
-static TDS_INT tds_convert_int1(const TDS_TINYINT * src, int desttype, CONV_RESULT * cr);
-static TDS_INT tds_convert_int2(const TDS_SMALLINT * src, int desttype, CONV_RESULT * cr);
-static TDS_INT tds_convert_uint2(const TDS_USMALLINT * src, int desttype, CONV_RESULT * cr);
-static TDS_INT tds_convert_int4(const TDS_INT* src, int desttype, CONV_RESULT * cr);
-static TDS_INT tds_convert_uint4(const TDS_UINT * src, int desttype, CONV_RESULT * cr);
-static TDS_INT tds_convert_int8(const TDS_INT8 * src, int desttype, CONV_RESULT * cr);
 static TDS_INT tds_convert_uint8(const TDS_UINT8 * src, int desttype, CONV_RESULT * cr);
 static int string_to_datetime(const char *datestr, TDS_UINT len, int desttype, CONV_RESULT * cr);
 static bool is_dd_mon_yyyy(char *t);
@@ -1042,7 +1036,6 @@ tds_convert_numeric(const TDS_NUMERIC * src, int desttype, CONV_RESULT * cr)
 		cr->r = (TDS_REAL) atof(tmpstr);
 		return 4;
 		break;
-		/* TODO conversions to money */
 		/* conversions not allowed */
 	case SYBUNIQUE:
 	case SYBDATETIME4:
@@ -1059,13 +1052,13 @@ tds_convert_money4(const TDSCONTEXT * tds_ctx, const TDS_MONEY4 * src, int destt
 {
 	TDS_MONEY4 mny;
 	long dollars;
-	char tmp_str[33];
-	char *p;
 
 	mny = *src;
 	switch (desttype) {
 	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR: {
+		char tmp_str[33];
+		char *p;
 		unsigned dollars;
 		/*
 		 * round to 2 decimal digits
