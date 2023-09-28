@@ -233,7 +233,9 @@ fi
 
 # upload our test results
 cd logs
-perl -pe "\$_ = '' if \$_ =~ /^2:.*content model is mixed but does not allow #PCDATA everywhere/" < log.txt | ../misc/online.pl
+<log.txt perl -pe "\$_ = '' if \$_ =~ /^2:.*\\Qcontent model is mixed but does not allow \\#PCDATA everywhere\\E|
+        ^2:ar:.*\\Qmodifier ignored since\\E/x" | ../misc/online.pl
+
 rm log.txt
 find -name test\*.txt -delete
 upload "$OUTDIR/test" '*.html' '*.txt'
