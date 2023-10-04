@@ -1090,7 +1090,7 @@ ct_send(CS_COMMAND * cmd)
 		 * cursor name cannot be NULL
 		 */
 
-		int something_to_send = 0;
+		bool something_to_send = false;
 
 		tdsdump_log(TDS_DBG_FUNC, "ct_send() : CS_CUR_CMD\n");
 
@@ -1116,7 +1116,7 @@ ct_send(CS_COMMAND * cmd)
 				return CS_FAIL;
 			}
 			cursor->status.declare = TDS_CURSOR_STATE_SENT; /* Cursor is declared */
-			if (something_to_send == 0) {
+			if (!something_to_send) {
 				cmd->results_state = _CS_RES_END_RESULTS;
 			}
 		}
@@ -1130,7 +1130,7 @@ ct_send(CS_COMMAND * cmd)
 				return CS_FAIL;
 			}
 			cursor->status.cursor_row = TDS_CURSOR_STATE_SENT; /* Cursor rows set */
-			if (something_to_send == 0) {
+			if (!something_to_send) {
 				cmd->results_state = _CS_RES_END_RESULTS;
 			}
 		}
@@ -1151,7 +1151,7 @@ ct_send(CS_COMMAND * cmd)
 			tdsdump_log(TDS_DBG_WARN, "ct_send(): sending cursor commands\n");
 			tds_flush_packet(tds);
 			tds_set_state(tds, TDS_PENDING);
-			something_to_send = 0;
+			something_to_send = false;
 
 			ct_set_command_state(cmd, _CS_COMMAND_SENT);
 

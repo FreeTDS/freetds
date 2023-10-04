@@ -3302,7 +3302,8 @@ static TDSRET
 odbc_cursor_execute(TDS_STMT * stmt)
 {
 	TDSSOCKET *tds = stmt->tds;
-	int send = 0, i;
+	int i;
+	bool send = false;
 	TDSRET ret;
 	TDSCURSOR *cursor;
 	TDSPARAMINFO *params = stmt->params;
@@ -3936,7 +3937,7 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 		}
 
 		if (cursor->cursor_rows != num_rows) {
-			int send = 0;
+			bool send = false;
 			cursor->cursor_rows = num_rows;
 			/* TODO handle change rows (tds5) */
 			/*
