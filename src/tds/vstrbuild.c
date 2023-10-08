@@ -49,7 +49,7 @@ norm_fmt(const char *fmt, int fmtlen)
 {
 	char *newfmt;
 	char *cp;
-	char skip = 0;
+	bool skip = false;
 
 	if (fmtlen == TDS_NULLTERM) {
 		fmtlen = strlen(fmt);
@@ -63,11 +63,11 @@ norm_fmt(const char *fmt, int fmtlen)
 		case ' ':
 			if (!skip) {
 				*cp++ = '\377';
-				skip = 1;
+				skip = true;
 			}
 			break;
 		default:
-			skip = 0;
+			skip = false;
 			*cp++ = *fmt;
 			break;
 		}
