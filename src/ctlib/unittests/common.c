@@ -333,7 +333,7 @@ run_command(CS_COMMAND * cmd, const char *sql)
 		return CS_FAIL;
 	}
 
-	ret = ct_command(cmd, CS_LANG_CMD, sql, CS_NULLTERM, CS_UNUSED);
+	ret = ct_command(cmd, CS_LANG_CMD, (void *) sql, CS_NULLTERM, CS_UNUSED);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "ct_command() failed\n");
 		return ret;
