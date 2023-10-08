@@ -378,10 +378,10 @@ cslibmsg_cb(CS_CONTEXT * connection, CS_CLIENTMSG * errmsg)
 {
 	cslibmsg_cb_invoked++;
 	fprintf(stderr, "\nCS-Library Message:\n");
-	fprintf(stderr, "number %d layer %d origin %d severity %d number %d\n",
+	fprintf(stderr, "number %#x layer %d origin %d severity %d number %d\n",
 		errmsg->msgnumber,
-		CS_LAYER(errmsg->msgnumber),
-		CS_ORIGIN(errmsg->msgnumber), CS_SEVERITY(errmsg->msgnumber), CS_NUMBER(errmsg->msgnumber));
+		(int) CS_LAYER(errmsg->msgnumber), (int) CS_ORIGIN(errmsg->msgnumber),
+		(int) CS_SEVERITY(errmsg->msgnumber), (int) CS_NUMBER(errmsg->msgnumber));
 	fprintf(stderr, "msgstring: %s\n", errmsg->msgstring);
 	fprintf(stderr, "osstring: %s\n", (errmsg->osstringlen > 0)
 		? errmsg->osstring : "(null)");
