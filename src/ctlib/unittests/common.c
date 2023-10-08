@@ -275,6 +275,7 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 		}
 		ct_con_drop(*conn);
 		*conn = NULL;
+		ct_exit(ctx, CS_UNUSED);
 		cs_ctx_drop(*ctx);
 		*ctx = NULL;
 		return ret;
@@ -286,6 +287,7 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 		}
 		ct_con_drop(*conn);
 		*conn = NULL;
+		ct_exit(ctx, CS_UNUSED);
 		cs_ctx_drop(*ctx);
 		*ctx = NULL;
 		return ret;
