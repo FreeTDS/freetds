@@ -31,7 +31,6 @@ char DATABASE[512];
 
 COMMON_PWD common_pwd = {0};
 
-static char *DIRNAME = NULL;
 static const char *BASENAME = NULL;
 
 static const char *PWD = "../../../PWD";
@@ -42,28 +41,6 @@ int clientmsg_cb_invoked = 0;
 int servermsg_cb_invoked = 0;
 
 static CS_RETCODE continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, int verbose);
-
-#if defined(__MINGW32__) || defined(_MSC_VER)
-static char *
-tds_dirname(char* path)
-{
-	char *p, *p2;
-
-	for (p = path + strlen(path); --p > path && (*p == '/' || *p == '\\');)
-		*p = '\0';
-
-	p = strrchr(path, '/');
-	if (!p)
-		p = path;
-	p2 = strrchr(p, '\\');
-	if (p2)
-		p = p2;
-	*p = 0;
-	return path;
-}
-#define dirname tds_dirname
-
-#endif
 
 CS_RETCODE
 read_login_info(void)
@@ -121,7 +98,6 @@ establish_login(int argc, char **argv)
 #endif
 
 	BASENAME = basename((char *)argv[0]);
-	DIRNAME = dirname((char *)argv[0]);
 
 #if !defined(__MINGW32__) && !defined(_MSC_VER)
 	/* process command line options (handy for manual testing) */
