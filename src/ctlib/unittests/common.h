@@ -2,6 +2,8 @@
 #ifndef _freetds_ctlib_common_h
 #define _freetds_ctlib_common_h
 
+#include <freetds/bool.h>
+
 extern char SERVER[512];
 extern char DATABASE[512];
 extern char USER[512];
@@ -24,6 +26,7 @@ CS_RETCODE read_login_info(void);
 extern int cslibmsg_cb_invoked;
 extern int clientmsg_cb_invoked;
 extern int servermsg_cb_invoked;
+extern bool error_to_stdout;
 
 CS_RETCODE try_ctlogin(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, int verbose);
 CS_RETCODE try_ctlogin_with_options(int argc, char **argv, CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, 

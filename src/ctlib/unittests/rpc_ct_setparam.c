@@ -16,8 +16,6 @@
 #define MAX(X,Y)      (((X) > (Y)) ? (X) : (Y))
 #define MIN(X,Y)      (((X) < (Y)) ? (X) : (Y))
 
-CS_RETCODE ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);
-CS_RETCODE ex_servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * errmsg);
 static CS_RETCODE ex_display_header(CS_INT numcols, CS_DATAFMT columns[]);
 static CS_INT ex_display_dlen(CS_DATAFMT *column);
 static CS_INT ex_display_results(CS_COMMAND * cmd);
@@ -70,10 +68,7 @@ main(int argc, char *argv[])
 		fprintf(stderr, "Login failed\n");
 		return 1;
 	}
-
-	ct_callback(ctx, NULL, CS_SET, CS_CLIENTMSG_CB, (CS_VOID *) ex_clientmsg_cb);
-
-	ct_callback(ctx, NULL, CS_SET, CS_SERVERMSG_CB, (CS_VOID *) ex_servermsg_cb);
+	error_to_stdout = true;
 
 	/* do not test error */
 	ret = run_command(cmd, "IF OBJECT_ID('sample_rpc') IS NOT NULL DROP PROCEDURE sample_rpc");
@@ -681,42 +676,6 @@ CS_INT disp_len;
 		fputc(' ', stdout);
 	}
 	fputc('\n', stdout);
-
-	return CS_SUCCEED;
-}
-
-CS_RETCODE
-ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg)
-{
-	printf("\nOpen Client Message:\n");
-	printf("Message number: LAYER = (%ld) ORIGIN = (%ld) ", (long) CS_LAYER(errmsg->msgnumber), (long) CS_ORIGIN(errmsg->msgnumber));
-	printf("SEVERITY = (%ld) NUMBER = (%ld)\n", (long) CS_SEVERITY(errmsg->msgnumber), (long) CS_NUMBER(errmsg->msgnumber));
-	printf("Message String: %s\n", errmsg->msgstring);
-	if (errmsg->osstringlen > 0) {
-		printf("Operating System Error: %s\n", errmsg->osstring);
-	}
-	fflush(stdout);
-
-	return CS_SUCCEED;
-}
-
-CS_RETCODE
-ex_servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * srvmsg)
-{
-	printf("\nServer message:\n");
-	printf("Message number: %ld, Severity %ld, ", (long) srvmsg->msgnumber, (long) srvmsg->severity);
-	printf("State %ld, Line %ld\n", (long) srvmsg->state, (long) srvmsg->line);
-
-	if (srvmsg->svrnlen > 0) {
-		printf("Server '%s'\n", srvmsg->svrname);
-	}
-
-	if (srvmsg->proclen > 0) {
-		printf(" Procedure '%s'\n", srvmsg->proc);
-	}
-
-	printf("Message String: %s\n", srvmsg->text);
-	fflush(stdout);
 
 	return CS_SUCCEED;
 }

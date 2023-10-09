@@ -39,6 +39,7 @@ static const char *PWD = "../../../PWD";
 int cslibmsg_cb_invoked = 0;
 int clientmsg_cb_invoked = 0;
 int servermsg_cb_invoked = 0;
+bool error_to_stdout = false;
 
 static CS_RETCODE continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, int verbose);
 
@@ -371,35 +372,43 @@ cslibmsg_cb(CS_CONTEXT * connection, CS_CLIENTMSG * errmsg)
 CS_RETCODE
 clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg)
 {
+	FILE *out = error_to_stdout ? stdout: stderr;
+
 	clientmsg_cb_invoked++;
-	fprintf(stderr, "\nOpen Client Message:\n");
-	fprintf(stderr, "number %#x layer %d origin %d severity %d number %d\n",
+	fprintf(out, "\nOpen Client Message:\n");
+	fprintf(out, "number %#x layer %d origin %d severity %d number %d\n",
 		errmsg->msgnumber,
 		(int) CS_LAYER(errmsg->msgnumber), (int) CS_ORIGIN(errmsg->msgnumber),
 		(int) CS_SEVERITY(errmsg->msgnumber), (int) CS_NUMBER(errmsg->msgnumber));
-	fprintf(stderr, "msgstring: %s\n", errmsg->msgstring);
-	fprintf(stderr, "osstring: %s\n", (errmsg->osstringlen > 0)
+	fprintf(out, "msgstring: %s\n", errmsg->msgstring);
+	fprintf(out, "osstring: %s\n", (errmsg->osstringlen > 0)
 		? errmsg->osstring : "(null)");
+	fflush(out);
 	return CS_SUCCEED;
 }
 
 CS_RETCODE
 servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * srvmsg)
 {
+	FILE *out = error_to_stdout ? stdout: stderr;
+
 	servermsg_cb_invoked++;
 
 	if (srvmsg->msgnumber == 5701 || srvmsg->msgnumber == 5703) {
-		fprintf(stderr, "%s\n", srvmsg->text);
+		fprintf(out, "%s\n", srvmsg->text);
+		fflush(out);
 		return CS_SUCCEED;
 	}
 
-	fprintf(stderr, "%s Message %d severity %d state %d line %d:\n",
+	fprintf(out, "\nServer message:\n");
+	fprintf(out, "%s Message %d severity %d state %d line %d:\n",
 		srvmsg->svrnlen > 0? srvmsg->svrname : "Server",
 		srvmsg->msgnumber, srvmsg->severity, srvmsg->state, srvmsg->line);
 	if (srvmsg->proclen > 0)
-		fprintf(stderr, "proc %s: ", srvmsg->proc);
-	fprintf(stderr, "\t\"%s\"\n", srvmsg->text);
+		fprintf(out, "proc %s: ", srvmsg->proc);
+	fprintf(out, "\t\"%s\"\n", srvmsg->text);
 
+	fflush(out);
 	return CS_SUCCEED;
 }
 
