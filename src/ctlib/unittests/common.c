@@ -33,11 +33,12 @@ static const char *BASENAME = NULL;
 
 static const char *PWD = "../../../PWD";
 
-
 int cslibmsg_cb_invoked = 0;
 int clientmsg_cb_invoked = 0;
 int servermsg_cb_invoked = 0;
 bool error_to_stdout = false;
+
+ct_message ct_last_message;
 
 static CS_RETCODE continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, int verbose);
 
@@ -350,6 +351,12 @@ CS_INT
 cslibmsg_cb(CS_CONTEXT * connection, CS_CLIENTMSG * errmsg)
 {
 	cslibmsg_cb_invoked++;
+
+	ct_reset_last_message();
+	ct_last_message.type = CTMSG_CSLIB;
+	ct_last_message.number = errmsg->msgnumber;
+	strlcpy(ct_last_message.text, errmsg->msgstring, sizeof(ct_last_message.text));
+
 	fprintf(stderr, "\nCS-Library Message:\n");
 	fprintf(stderr, "number %#x layer %d origin %d severity %d number %d\n",
 		errmsg->msgnumber,
@@ -363,13 +370,21 @@ cslibmsg_cb(CS_CONTEXT * connection, CS_CLIENTMSG * errmsg)
 
 
 
-CS_RETCODE
-clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg)
+static CS_RETCODE
+clientmsg_gen_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg,
+		 ct_message_type msg_type)
 {
 	FILE *out = error_to_stdout ? stdout: stderr;
 
 	clientmsg_cb_invoked++;
-	fprintf(out, "\nOpen Client Message:\n");
+
+	ct_reset_last_message();
+	ct_last_message.type = msg_type;
+	ct_last_message.number = errmsg->msgnumber;
+	strlcpy(ct_last_message.text, errmsg->msgstring, sizeof(ct_last_message.text));
+
+	fprintf(out, "\nOpen Client Message%s: %p %p\n",
+		msg_type == CTMSG_CLIENT ? "" : " #2", context, connection);
 	fprintf(out, "number %#x layer %d origin %d severity %d number %d\n",
 		errmsg->msgnumber,
 		(int) CS_LAYER(errmsg->msgnumber), (int) CS_ORIGIN(errmsg->msgnumber),
@@ -382,11 +397,28 @@ clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * er
 }
 
 CS_RETCODE
+clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg)
+{
+	return clientmsg_gen_cb(context, connection, errmsg, CTMSG_CLIENT);
+}
+
+CS_RETCODE
+clientmsg_cb2(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg)
+{
+	return clientmsg_gen_cb(context, connection, errmsg, CTMSG_CLIENT2);
+}
+
+CS_RETCODE
 servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * srvmsg)
 {
 	FILE *out = error_to_stdout ? stdout: stderr;
 
 	servermsg_cb_invoked++;
+
+	ct_reset_last_message();
+	ct_last_message.type = CTMSG_SERVER;
+	ct_last_message.number = srvmsg->msgnumber;
+	strlcpy(ct_last_message.text, srvmsg->text, sizeof(ct_last_message.text));
 
 	if (srvmsg->msgnumber == 5701 || srvmsg->msgnumber == 5703) {
 		fprintf(out, "%s\n", srvmsg->text);
@@ -435,4 +467,10 @@ _check_ret(const char *name, CS_RETCODE ret, int line)
 		fprintf(stderr, "%s():%d: failed\n", name, line);
 		exit(1);
 	}
+}
+
+void
+ct_reset_last_message(void)
+{
+	memset(&ct_last_message, 0, sizeof(ct_last_message));
 }
