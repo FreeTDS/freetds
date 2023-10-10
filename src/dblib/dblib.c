@@ -803,6 +803,9 @@ dbsetlname(LOGINREC * login, const char *value, int which)
 	case DBSETSERVERPRINCIPAL:
 		copy_ret = !!tds_dstr_copy(&login->tds_login->server_spn, value_nonull);
 		break;
+	case DBSETENCRYPTION:
+		copy_ret = tds_parse_conf_section(TDS_STR_ENCRYPTION, value_nonull, login->tds_login);
+		break;
 	default:
 		dbperror(NULL, SYBEASUL, 0); /* Attempt to set unknown LOGINREC field */
 		return FAIL;
