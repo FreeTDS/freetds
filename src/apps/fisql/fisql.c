@@ -702,7 +702,7 @@ main(int argc, char *argv[])
 		DBSETLCHARSET(login, char_set);
 	}
 	if (use_encryption) {
-		DBSETLENCRYPT(login, TRUE);
+		DBSETLENCRYPT(login, "require");
 	}
 	if (hostname) {
 		DBSETLHOST(login, hostname);

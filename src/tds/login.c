@@ -170,6 +170,22 @@ tds_set_language(TDSLOGIN * tds_login, const char *language)
 	return !!tds_dstr_copy(&tds_login->language, language);
 }
 
+bool
+tds_set_encryption(TDSLOGIN * tds_login, const char *encryption)
+{
+	if (stricmp(encryption,TDS_STR_ENCRYPTION_OFF)==0)
+		tds_login->encryption_level = TDS_ENCRYPTION_OFF;
+	else
+	if (stricmp(encryption,TDS_STR_ENCRYPTION_REQUEST)==0)
+		tds_login->encryption_level = TDS_ENCRYPTION_REQUEST;
+	else
+	if (stricmp(encryption,TDS_STR_ENCRYPTION_REQUIRE)==0)
+		tds_login->encryption_level = TDS_ENCRYPTION_REQUIRE;
+	else
+		tds_login->encryption_level = TDS_ENCRYPTION_DEFAULT;
+	return true;
+}
+
 struct tds_save_msg
 {
 	TDSMESSAGE msg;

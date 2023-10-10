@@ -1278,7 +1278,7 @@ RETCODE dbsetlversion (LOGINREC * login, BYTE version);
 #define DBSETLPACKET(x,y)	dbsetllong((x), (y), DBSETPACKET)
 #define dbsetlpacket(x,y)	dbsetllong((x), (y), DBSETPACKET)
 #define DBSETENCRYPT		12
-#define DBSETLENCRYPT(x,y)	dbsetlbool((x), (y), DBSETENCRYPT)
+#define DBSETLENCRYPT(x,y)	dbsetlname((x), (y), DBSETENCRYPT)
 #define DBSETLABELED		13
 #define DBSETLLABELED(x,y)	dbsetlbool((x), (y), DBSETLABELED)
 #define BCP_SETLABELED(x,y)	dbsetlbool((x), (y), DBSETLABELED)
