@@ -14,9 +14,7 @@
 #include <unistd.h>
 #endif
 
-#ifndef DBNTWIN32
 #include <freetds/replacements.h>
-#endif
 
 #include <ctpublic.h>
 #include "common.h"
@@ -94,13 +92,10 @@ establish_login(int argc, char **argv)
 	extern char *optarg;
 	extern int optind;
 	COMMON_PWD options = {0};
-#if !defined(__MINGW32__) && !defined(_MSC_VER)
 	int ch;
-#endif
 
 	BASENAME = basename((char *)argv[0]);
 
-#if !defined(__MINGW32__) && !defined(_MSC_VER)
 	/* process command line options (handy for manual testing) */
 	while ((ch = getopt(argc, argv, "U:P:S:D:f:m:v")) != -1) {
 		switch (ch) {
@@ -133,7 +128,6 @@ establish_login(int argc, char **argv)
 			exit(1);
 		}
 	}
-#endif
 	read_login_info();
 
 	/* override PWD file with command-line options */
