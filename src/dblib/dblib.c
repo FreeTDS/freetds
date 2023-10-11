@@ -219,7 +219,6 @@ dblib_add_connection(DBLIBCONTEXT * ctx, TDSSOCKET * tds)
 	while (i < list_size && ctx->connection_list[i])
 		i++;
 	if (i == list_size) {
-		dbperror((DBPROCESS *) tds_get_parent(tds), 50001, 0);
 		return 1;
 	} else {
 		ctx->connection_list[i] = tds;
@@ -1185,6 +1184,7 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 {
 	DBPROCESS *dbproc = NULL;
 	TDSLOGIN *connection;
+	int add_connection_res;
 
 	char *tdsdump = getenv("TDSDUMP");
 	if (tdsdump && *tdsdump) {
@@ -1245,6 +1245,15 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 
 	tdsdump_log(TDS_DBG_FUNC, "tdsdbopen: About to call tds_read_config_info...\n");
 
+	tds_mutex_lock(&dblib_mutex);
+	add_connection_res = dblib_add_connection(&g_dblib_ctx, dbproc->tds_socket);
+	tds_mutex_unlock(&dblib_mutex);
+	if (add_connection_res) {
+		dbperror(dbproc, SYBEDBPS, 0);
+		dbclose(dbproc);
+		return NULL;
+	}
+
 	connection = tds_read_config_info(dbproc->tds_socket, login->tds_login, g_dblib_ctx.tds_ctx->locale);
 	if (!connection) {
 		dbclose(dbproc);
@@ -1289,10 +1298,6 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 
 	dbproc->dbbuf = NULL;
 	dbproc->dbbufsz = 0;
-
-	tds_mutex_lock(&dblib_mutex);
-	dblib_add_connection(&g_dblib_ctx, dbproc->tds_socket);
-	tds_mutex_unlock(&dblib_mutex);
 
 	/* set the DBBUFFER capacity to nil */
 	buffer_set_capacity(dbproc, 0);
@@ -8102,8 +8107,6 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
 						"with the xlt_todisp parameter has been freed\0" }
 	, { SYBEZTXT,              EXINFO,	"Attempt to send zero length TEXT or IMAGE to dataserver via dbwritetext\0" }
 	, { SYBECOLSIZE,           EXINFO,      "Invalid column information structure size\0" }
-	, { 50000,           EXCONVERSION,	"Data is truncated during conversion\0" }
-	, { 50001,              EXPROGRAM,	"Max connections reached, increase value of TDS_MAX_CONN\0" }
 	};
 
 /**  \internal

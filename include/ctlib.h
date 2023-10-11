@@ -382,7 +382,8 @@ int _ct_handle_client_message(const TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDS
 TDS_SERVER_TYPE _ct_get_server_type(TDSSOCKET *tds, int datatype);
 int _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo, CS_INT offset);
 int _ct_get_client_type(const TDSCOLUMN *col, bool describe);
-void _ctclient_msg(CS_CONNECTION * con, const char *funcname, int layer, int origin, int severity, int number,
+void _ctclient_msg(CS_CONTEXT *ctx, CS_CONNECTION * con, const char *funcname,
+		   int layer, int origin, int severity, int number,
 		   const char *fmt, ...);
 CS_INT _ct_diag_clearmsg(CS_CONTEXT * context, CS_INT type);
 void _cs_locale_free(CS_LOCALE *locale);
@@ -390,8 +391,6 @@ CS_LOCALE *_cs_locale_copy(CS_LOCALE *orig);
 int _cs_locale_copy_inplace(CS_LOCALE *new_locale, CS_LOCALE *orig);
 
 int _cs_convert_not_client(CS_CONTEXT *ctx, const TDSCOLUMN *curcol, CONV_RESULT *convert_buffer, unsigned char **p_src);
-void _csclient_msg(CS_CONTEXT * ctx, const char *funcname, int layer,
-		   int origin, int severity, int number, const char *fmt, ...);
 
 CS_RETCODE _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdata,
 	const CS_DATAFMT_COMMON * destfmt, CS_VOID * destdata, CS_INT * resultlen);

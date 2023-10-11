@@ -111,7 +111,7 @@ blk_bind(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt_arg, CS_VOID * 
 	/* check item value */
 
 	if (item < 1 || item > blkdesc->bcpinfo.bindinfo->num_cols) {
-		_ctclient_msg(con, "blk_bind", 2, 5, 1, 141, "%s, %d", "colnum", item);
+		_ctclient_msg(NULL, con, "blk_bind", 2, 5, 1, 141, "%s, %d", "colnum", item);
 		return CS_FAIL;
 	}
 
@@ -147,7 +147,7 @@ blk_bind(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt_arg, CS_VOID * 
 	} else {
 		/* all subsequent binds for this result set - the bind counts must be the same */
 		if (blkdesc->bcpinfo.bind_count != bind_count) {
-			_ctclient_msg(con, "blk_bind", 1, 1, 1, 137, "%d, %d", bind_count, blkdesc->bcpinfo.bind_count);
+			_ctclient_msg(NULL, con, "blk_bind", 1, 1, 1, 137, "%d, %d", bind_count, blkdesc->bcpinfo.bind_count);
 			return CS_FAIL;
 		}
 	}
@@ -207,7 +207,7 @@ blk_describe(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt_arg)
 	datafmt = _ct_datafmt_conv_prepare(CONN(blkdesc)->ctx, datafmt_arg, &datafmt_buf);
 
 	if (item < 1 || item > blkdesc->bcpinfo.bindinfo->num_cols) {
-		_ctclient_msg(CONN(blkdesc), "blk_describe", 2, 5, 1, 141, "%s, %d", "colnum", item);
+		_ctclient_msg(NULL, CONN(blkdesc), "blk_describe", 2, 5, 1, 141, "%s, %d", "colnum", item);
 		return CS_FAIL;
 	}
 
@@ -259,7 +259,7 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 	switch (type) {
 	case CS_BLK_BATCH:
 		if (TDS_FAILED(tds_bcp_done(tds, &rows_copied))) {
-			_ctclient_msg(CONN(blkdesc), "blk_done", 2, 5, 1, 140, "");
+			_ctclient_msg(NULL, CONN(blkdesc), "blk_done", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 		
@@ -267,14 +267,14 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 			*outrow = rows_copied;
 		
 		if (TDS_FAILED(tds_bcp_start(tds, &blkdesc->bcpinfo))) {
-			_ctclient_msg(CONN(blkdesc), "blk_done", 2, 5, 1, 140, "");
+			_ctclient_msg(NULL, CONN(blkdesc), "blk_done", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 		break;
 		
 	case CS_BLK_ALL:
 		if (TDS_FAILED(tds_bcp_done(tds, &rows_copied))) {
-			_ctclient_msg(CONN(blkdesc), "blk_done", 2, 5, 1, 140, "");
+			_ctclient_msg(NULL, CONN(blkdesc), "blk_done", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 		
@@ -335,12 +335,12 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 	}
 
 	if (direction != CS_BLK_IN && direction != CS_BLK_OUT ) {
-		_ctclient_msg(CONN(blkdesc), "blk_init", 2, 6, 1, 138, "");
+		_ctclient_msg(NULL, CONN(blkdesc), "blk_init", 2, 6, 1, 138, "");
 		return CS_FAIL;
 	}
 
 	if (!tablename) {
-		_ctclient_msg(CONN(blkdesc), "blk_init", 2, 6, 1, 139, "");
+		_ctclient_msg(NULL, CONN(blkdesc), "blk_init", 2, 6, 1, 139, "");
 		return CS_FAIL;
 	}
 	if (tnamelen == CS_NULLTERM)
@@ -359,7 +359,7 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 	blkdesc->bcpinfo.xfer_init = 0;
 
 	if (TDS_FAILED(tds_bcp_init(CONN(blkdesc)->tds_socket, &blkdesc->bcpinfo))) {
-		_ctclient_msg(CONN(blkdesc), "blk_init", 2, 5, 1, 140, "");
+		_ctclient_msg(NULL, CONN(blkdesc), "blk_init", 2, 5, 1, 140, "");
 		return CS_FAIL;
 	}
 	blkdesc->bcpinfo.bind_count = CS_UNUSED;
@@ -397,13 +397,13 @@ blk_props(CS_BLKDESC * blkdesc, CS_INT action, CS_INT property, CS_VOID * buffer
 			return CS_SUCCEED;
 			break;
 		default:
-			_ctclient_msg(CONN(blkdesc), "blk_props", 2, 5, 1, 141, "%s, %d", "action", action);
+			_ctclient_msg(NULL, CONN(blkdesc), "blk_props", 2, 5, 1, 141, "%s, %d", "action", action);
 			break;
 		}
 		break;
 
 	default:
-		_ctclient_msg(CONN(blkdesc), "blk_props", 2, 5, 1, 141, "%s, %d", "property", property);
+		_ctclient_msg(NULL, CONN(blkdesc), "blk_props", 2, 5, 1, 141, "%s, %d", "property", property);
 		break;
 	}
 	return CS_FAIL;
@@ -520,7 +520,7 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 	if (blkdesc->bcpinfo.xfer_init == 0) {
 
 		if (TDS_FAILED(tds_submit_queryf(tds, "select * from %s", tds_dstr_cstr(&blkdesc->bcpinfo.tablename)))) {
-			_ctclient_msg(CONN(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
+			_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 
@@ -530,7 +530,7 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 		}
 	
 		if (ret != TDS_SUCCESS || result_type != TDS_ROW_RESULT) {
-			_ctclient_msg(CONN(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
+			_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 
@@ -562,7 +562,7 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 			break;
 
 		default:
-			_ctclient_msg(CONN(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
+			_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
 			return CS_FAIL;
 			break;
 		}
@@ -597,7 +597,7 @@ _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred
 		 */
 
 		if (TDS_FAILED(tds_bcp_start_copy_in(tds, &blkdesc->bcpinfo))) {
-			_ctclient_msg(CONN(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
+			_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 
@@ -621,7 +621,7 @@ _blk_null_error(TDSBCPINFO *bcpinfo, int index, int offset)
 
 	tdsdump_log(TDS_DBG_FUNC, "_blk_null_error(%p, %d, %d)\n", bcpinfo, index, offset);
 
-	_ctclient_msg(CONN(blkdesc), "blk_rowxfer", 2, 7, 1, 142, "%d, %d",  index + 1, offset + 1);
+	_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 2, 7, 1, 142, "%d, %d",  index + 1, offset + 1);
 }
 
 static TDSRET
@@ -688,9 +688,7 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 			case CS_UBIGINT_TYPE:	    srclen = 8; break;
 			case CS_UNIQUE_TYPE:	    srclen = 16; break;
 			default:
-				tdsdump_log(TDS_DBG_ERROR,
-					    "Not fixed length type (%d)"
-					    " and datalen not specified\n",
+				tdsdump_log(TDS_DBG_ERROR, "Not fixed length type (%d) and datalen not specified\n",
 					    bindcol->column_bindtype);
 				return CS_FAIL;
 			}

@@ -135,6 +135,15 @@ _ct_get_user_api_layer_error(int error)
 	tdsdump_log(TDS_DBG_FUNC, "_ct_get_user_api_layer_error(%d)\n", error);
 
 	switch (error) {
+	case 2:
+		return "Memory allocation failure.";
+		break;
+	case 5:
+		return "An illegal value of %1! given for parameter %2!.";
+		break;
+	case 51:
+		return "Exactly one of context and connection must be non-NULL.";
+		break;
 	case 137:
 		return  "A bind count of %1! is not consistent with the count supplied for existing binds. "
 			"The current bind count is %2!.";
@@ -182,18 +191,30 @@ _ct_get_msgstr(const char *funcname, int layer, int origin, int severity, int nu
 }
 
 void
-_ctclient_msg(CS_CONNECTION * con, const char *funcname, int layer, int origin, int severity, int number, const char *fmt, ...)
+_ctclient_msg(CS_CONTEXT *ctx, CS_CONNECTION * con, const char *funcname,
+	      int layer, int origin, int severity, int number, const char *fmt, ...)
 {
-	CS_CONTEXT *ctx = con->ctx;
 	va_list ap;
 	CS_CLIENTMSG cm;
 	char *msgstr;
+	CS_CLIENTMSG_FUNC clientmsg_cb = NULL;
 
-	tdsdump_log(TDS_DBG_FUNC, "_ctclient_msg(%p, %s, %d, %d, %d, %d, %s)\n", con, funcname, layer, origin, severity, number, fmt);
+	tdsdump_log(TDS_DBG_FUNC, "_ctclient_msg(%p, %p, %s, %d, %d, %d, %d, %s)\n",
+		    ctx, con, funcname, layer, origin, severity, number, fmt);
+
+	if (!con && !ctx)
+		return;
+
+	if (con) {
+		ctx = con->ctx;
+		clientmsg_cb = con->_clientmsg_cb;
+	}
+	if (!clientmsg_cb)
+		clientmsg_cb = ctx->_clientmsg_cb;
 
 	va_start(ap, fmt);
 
-	if (ctx->_clientmsg_cb) {
+	if (clientmsg_cb) {
 		cm.severity = severity;
 		cm.msgnumber = (((layer << 24) & 0xFF000000)
 				| ((origin << 16) & 0x00FF0000)
@@ -209,7 +230,7 @@ _ctclient_msg(CS_CONNECTION * con, const char *funcname, int layer, int origin, 
 		cm.status = 0;
 		/* cm.sqlstate */
 		cm.sqlstatelen = 0;
-		ctx->_clientmsg_cb(ctx, con, &cm);
+		clientmsg_cb(ctx, con, &cm);
 	}
 
 	va_end(ap);
@@ -311,6 +332,16 @@ ct_callback(CS_CONTEXT * ctx, CS_CONNECTION * con, CS_INT action, CS_INT type, C
 	if (!ctx && !con)
 		return CS_FAIL;
 
+	if (!!ctx == !!con) {
+		_ctclient_msg(ctx, con, "ct_callback()", 1, 1, 1, 51, "");
+		return CS_FAIL;
+	}
+
+	if (action != CS_GET && action != CS_SET) {
+		_ctclient_msg(ctx, con, "ct_callback()", 1, 1, 1, 5, "%d, %s", action, "action");
+		return CS_FAIL;
+	}
+
 	if (action == CS_GET) {
 		switch (type) {
 		case CS_CLIENTMSG_CB:
@@ -320,10 +351,9 @@ ct_callback(CS_CONTEXT * ctx, CS_CONNECTION * con, CS_INT action, CS_INT type, C
 			*(void **) func = (CS_VOID *) (con ? con->_servermsg_cb : ctx->_servermsg_cb);
 			return CS_SUCCEED;
 		default:
-			_csclient_msg(ctx, "ct_callback", 2, 1, 16, 27,
-				      "%d", type);
+			_ctclient_msg(ctx, con, "ct_callback()", 1, 1, 1, 5, "%d, %s", type, "type");
 			*(void **) func = NULL;
-			return CS_SUCCEED;
+			return CS_FAIL;
 		}
 	}
 	/* CS_SET */
@@ -340,6 +370,9 @@ ct_callback(CS_CONTEXT * ctx, CS_CONNECTION * con, CS_INT action, CS_INT type, C
 		else
 			ctx->_servermsg_cb = (CS_SERVERMSG_FUNC) funcptr;
 		break;
+	default:
+		_ctclient_msg(ctx, con, "ct_callback()", 1, 1, 1, 5, "%d, %s", type, "type");
+		return CS_FAIL;
 	}
 	return CS_SUCCEED;
 }
@@ -961,7 +994,7 @@ ct_send(CS_COMMAND * cmd)
 
 	if (cmd->command_state == _CS_COMMAND_IDLE) {
 		tdsdump_log(TDS_DBG_FUNC, "ct_send() command_state = IDLE\n");
-		_ctclient_msg(cmd->con, "ct_send", 1, 1, 1, 155, "");
+		_ctclient_msg(NULL, cmd->con, "ct_send", 1, 1, 1, 155, "");
 		return CS_FAIL;
 	}
 
@@ -1594,7 +1627,7 @@ ct_bind(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt_arg, CS_VOID * buffe
 	} else {
 		/* all subsequent binds for this result set - the bind counts must be the same */
 		if (cmd->bind_count != bind_count) {
-			_ctclient_msg(con, "ct_bind", 1, 1, 1, 137, "%d, %d", bind_count, cmd->bind_count);
+			_ctclient_msg(NULL, con, "ct_bind", 1, 1, 1, 137, "%d, %d", bind_count, cmd->bind_count);
 			return CS_FAIL;
 		}
 	}
@@ -1631,7 +1664,7 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * p
 		return CS_FAIL;
 
 	if (cmd->command_state == _CS_COMMAND_IDLE) {
-		_ctclient_msg(cmd->con, "ct_fetch", 1, 1, 1, 155, "");
+		_ctclient_msg(NULL, cmd->con, "ct_fetch", 1, 1, 1, 155, "");
 		return CS_FAIL;
 	}
 
@@ -2518,8 +2551,7 @@ ct_res_info(CS_COMMAND * cmd, CS_INT type, CS_VOID * buffer, CS_INT buflen, CS_I
 		memcpy(buffer, &int_val, sizeof(CS_INT));
 		break;
 	default:
-		_csclient_msg(cmd->con->ctx, "ct_res_info", 2, 1, 16, 32,
-			      "%d", type);
+		_ctclient_msg(NULL, cmd->con, "ct_res_info", 1, 1, 1, 5, "%d, %s", type, "operation");
 		return CS_FAIL;
 		break;
 	}
@@ -2814,8 +2846,7 @@ ct_compute_info(CS_COMMAND * cmd, CS_INT type, CS_INT colnum, CS_VOID * buffer, 
 			*outlen = sizeof(CS_INT);
 		break;
 	default:
-		_csclient_msg(cmd->con->ctx, "ct_compute_info", 2, 1, 16, 32,
-			      "%d", type);
+		_ctclient_msg(NULL, cmd->con, "ct_compute_info", 1, 1, 1, 5, "%d, %s", type, "type");
 		return CS_FAIL;
 		break;
 	}
@@ -3334,8 +3365,7 @@ ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt_arg, CS_VOID * data, CS_INT data
 	switch (cmd->command_type) {
 	case CS_RPC_CMD:
 		if (!cmd->rpc) {
-			tdsdump_log(TDS_DBG_ERROR,
-				    "RPC is NULL in ct_param\n");
+			tdsdump_log(TDS_DBG_ERROR, "RPC is NULL in ct_param\n");
 			return CS_FAIL;
 		}
 
@@ -3442,8 +3472,7 @@ ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt_arg, CS_VOID * data, CS_INT *
 	case CS_RPC_CMD:
 
 		if (!cmd->rpc) {
-			tdsdump_log(TDS_DBG_ERROR,
-				    "RPC is NULL in ct_setparam\n");
+			tdsdump_log(TDS_DBG_ERROR, "RPC is NULL in ct_setparam\n");
 			return CS_FAIL;
 		}
 
@@ -3477,8 +3506,7 @@ ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt_arg, CS_VOID * data, CS_INT *
 	case CS_DYNAMIC_CMD :
 
 		if (!cmd->dyn) {
-			tdsdump_log(TDS_DBG_ERROR,
-				    "cmd->dyn is NULL in ct_setparam\n");
+			tdsdump_log(TDS_DBG_ERROR, "cmd->dyn is NULL in ct_setparam\n");
 			return CS_FAIL;
 		}
 
@@ -4196,8 +4224,7 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 
 memory_error:
 	tdsdump_log(TDS_DBG_SEVERE, "out of memory for rpc!");
-	_csclient_msg(((CS_CONNECTION*)tds_get_parent(tds))->ctx,
-		      "paraminfoalloc", 2, 1, 17, 33, "");
+	_ctclient_msg(NULL, ((CS_CONNECTION*)tds_get_parent(tds)), "paraminfoalloc", 1, 1, 17, 2, "");
 type_error:
 	tds_free_param_results(params);
 	return NULL;

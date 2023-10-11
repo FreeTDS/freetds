@@ -841,8 +841,7 @@ dbnextrow_pivoted(DBPROCESS *dbproc, PIVOT_T *pp)
 			}
 		}
 		if (!pcol->column_varaddr) {
-			tdsdump_log(TDS_DBG_ERROR,
-				    "no pcol->column_varaddr in col %d\n", i);
+			tdsdump_log(TDS_DBG_ERROR, "no pcol->column_varaddr in col %d\n", i);
 			continue;
 		}
 
@@ -867,20 +866,6 @@ dbnextrow_pivoted(DBPROCESS *dbproc, PIVOT_T *pp)
 		
 		assert(pval);
 		
-#if 0
-		tdsdump_log(TDS_DBG_FUNC,
-			    "copying col %d, type %d/%d, len %d to %p\n",
-			    i, pval->type, pcol->column_type, pval->len,
-			    pcol->column_varaddr);
-		switch (pval->type) {
-		case 48:
-			tdsdump_log(TDS_DBG_FUNC, "value %d\n", (int)pval->ti);
-			break;
-		case 56:
-			tdsdump_log(TDS_DBG_FUNC, "value %d\n", (int)pval->si);
-			break;
-		}
-#endif		
 		pcol->column_size = pval->len;
 		pcol->column_data = col_buffer(pval);
 		
@@ -1079,20 +1064,6 @@ dbpivot(DBPROCESS *dbproc, int nkeys, int *keys, int ncols, int *cols, DBPIVOT_F
 	}
 	
 	return SUCCEED;
-	
-#if 0
-	for (pp->pout=pp->output; pp->pout < pp->output + pp->nout; pp->pout++) {
-		char name[256] = {0};
-	
-		assert(pp->pout->col_key.keys[0].len < sizeof(name));
-		memset(name, '\0', sizeof(name));
-		memcpy(name, pp->pout->col_key.keys[0].s, pp->pout->col_key.keys[0].len), 
-		tdsdump_log(TDS_DBG_FUNC, "%5d  %-30s  %5d\n",
-			    pp->pout->row_key.keys[0].i, name,
-			    pp->pout->value.i );
-	}
-	exit(1);
-#endif
 }
 
 /* 

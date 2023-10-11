@@ -141,8 +141,8 @@ buffer_index_valid(const DBPROC_ROWBUF *buf, int idx)
 	
 	if (buf->tail <= idx && idx < buf->capacity)
 		return 1;
-#if 0	
-	tdsdump_log(TDS_DBG_FUNC, "buffer_index_valid: idx = %d\n", idx);
+#if 0
+	tdsdump_log(TDS_DBG_INFO1, "buffer_index_valid: idx = %d\n", idx);
 	buffer_struct_print(buf);
 #endif
 	return 0;	
@@ -374,13 +374,13 @@ buffer_struct_print(const DBPROC_ROWBUF *buf)
 {
 	assert(buf);
 
-	tdsdump_log(TDS_DBG_FUNC, "%d rows in buffer\n",    buffer_count(buf));
+	tdsdump_log(TDS_DBG_INFO1, "%d rows in buffer\n",    buffer_count(buf));
 
-	tdsdump_log(TDS_DBG_FUNC, "head = %d\n",	    buf->head);
-	tdsdump_log(TDS_DBG_FUNC, "tail = %d\n",	    buf->tail);
-	tdsdump_log(TDS_DBG_FUNC, "current = %d\n",	    buf->current);
-	tdsdump_log(TDS_DBG_FUNC, "capacity = %d\n",	    buf->capacity);
-	tdsdump_log(TDS_DBG_FUNC, "head row number = %d\n", buf->received);
+	tdsdump_log(TDS_DBG_INFO1, "head = %d\n",	    buf->head);
+	tdsdump_log(TDS_DBG_INFO1, "tail = %d\n",	    buf->tail);
+	tdsdump_log(TDS_DBG_INFO1, "current = %d\n",	    buf->current);
+	tdsdump_log(TDS_DBG_INFO1, "capacity = %d\n",	    buf->capacity);
+	tdsdump_log(TDS_DBG_INFO1, "head row number = %d\n", buf->received);
 }
 
 /* * * Functions called only by public db-lib API take DBPROCESS* * */
