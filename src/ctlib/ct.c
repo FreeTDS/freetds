@@ -157,7 +157,7 @@ _ct_get_user_api_layer_error(int error)
 	case 143:
 		return "parameter name(s) must be supplied for LANGUAGE command.";
 		break;
-	case 16843163:
+	case 155:
 		return "This routine cannot be called when the command structure is idle.";
 		break;
 	default:
@@ -960,7 +960,7 @@ ct_send(CS_COMMAND * cmd)
 
 	if (cmd->command_state == _CS_COMMAND_IDLE) {
 		tdsdump_log(TDS_DBG_FUNC, "ct_send() command_state = IDLE\n");
-		_ctclient_msg(cmd->con, "ct_send", 1, 1, 1, 16843163, "");
+		_ctclient_msg(cmd->con, "ct_send", 1, 1, 1, 155, "");
 		return CS_FAIL;
 	}
 
@@ -1630,7 +1630,7 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * p
 		return CS_FAIL;
 
 	if (cmd->command_state == _CS_COMMAND_IDLE) {
-		_ctclient_msg(cmd->con, "ct_fetch", 1, 1, 1, 16843163, "");
+		_ctclient_msg(cmd->con, "ct_fetch", 1, 1, 1, 155, "");
 		return CS_FAIL;
 	}
 
