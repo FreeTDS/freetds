@@ -16,7 +16,6 @@ main(int argc, char *argv[])
 	CS_CONNECTION *conn;
 	CS_COMMAND *cmd;
 	int verbose = 0;
-	CS_RETCODE ret;
 	int i;
 	CS_INT num_msgs, totMsgs;
 	CS_SERVERMSG server_message;
@@ -24,63 +23,37 @@ main(int argc, char *argv[])
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Login failed\n");
-		return 1;
-	}
+	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));
 
-	if (ct_diag(conn, CS_INIT, CS_UNUSED, CS_UNUSED, NULL) != CS_SUCCEED) {
-		fprintf(stderr, "ct_diag(CS_INIT) failed\n");
-		return 1;
-	}
+	check_call(ct_diag, (conn, CS_INIT, CS_UNUSED, CS_UNUSED, NULL));
 
 	totMsgs = 4;
 
-	if (ct_diag(conn, CS_MSGLIMIT, CS_SERVERMSG_TYPE, CS_UNUSED, &totMsgs) != CS_SUCCEED) {
-		fprintf(stderr, "ct_diag(CS_STATUS) failed\n");
-		return 1;
-	}
+	check_call(ct_diag, (conn, CS_MSGLIMIT, CS_SERVERMSG_TYPE, CS_UNUSED, &totMsgs));
 
 	printf("Maximum message limit is set to %d.\n", totMsgs);
 
-	if (ct_diag(conn, CS_STATUS, CS_SERVERMSG_TYPE, CS_UNUSED, &num_msgs) != CS_SUCCEED) {
-		fprintf(stderr, "ct_diag(CS_STATUS) failed\n");
-		return 1;
-	}
+	check_call(ct_diag, (conn, CS_STATUS, CS_SERVERMSG_TYPE, CS_UNUSED, &num_msgs));
 
 	printf("Number of messages returned: %d\n", num_msgs);
 
 	for (i = 0; i < num_msgs; i++) {
 
-		if (ct_diag(conn, CS_GET, CS_SERVERMSG_TYPE, i + 1, &server_message) != CS_SUCCEED) {
-			fprintf(stderr, "cs_diag(CS_GET) failed\n");
-			return 1;
-		}
+		check_call(ct_diag, (conn, CS_GET, CS_SERVERMSG_TYPE, i + 1, &server_message));
 
 		servermsg_cb(ctx, conn, &server_message);
 
 	}
 
-	if (ct_diag(conn, CS_CLEAR, CS_SERVERMSG_TYPE, CS_UNUSED, NULL) != CS_SUCCEED) {
-		fprintf(stderr, "cs_diag(CS_CLEAR) failed\n");
-		return 1;
-	}
+	check_call(ct_diag, (conn, CS_CLEAR, CS_SERVERMSG_TYPE, CS_UNUSED, NULL));
 
-	if (ct_diag(conn, CS_STATUS, CS_SERVERMSG_TYPE, CS_UNUSED, &num_msgs) != CS_SUCCEED) {
-		fprintf(stderr, "cs_diag(CS_STATUS) failed\n");
-		return 1;
-	}
+	check_call(ct_diag, (conn, CS_STATUS, CS_SERVERMSG_TYPE, CS_UNUSED, &num_msgs));
 	if (num_msgs != 0) {
 		fprintf(stderr, "cs_diag(CS_CLEAR) failed there are still %d messages on queue\n", num_msgs);
 		return 1;
 	}
 
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Logout failed\n");
-		return 1;
-	}
+	check_call(try_ctlogout, (ctx, conn, cmd, verbose));
 
 	return 0;
 }

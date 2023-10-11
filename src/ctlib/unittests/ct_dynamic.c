@@ -24,8 +24,6 @@ static CS_COMMAND *cmd2;
 static void
 cleanup(void)
 {
-	CS_RETCODE ret;
-
 	if (verbose) {
 		printf("Trying logout\n");
 	}
@@ -33,11 +31,7 @@ cleanup(void)
 	if (cmd2)
 		ct_cmd_drop(cmd2);
 
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Logout failed\n");
-		exit(1);
-	}
+	check_call(try_ctlogout, (ctx, conn, cmd, verbose));
 }
 
 static void
@@ -86,11 +80,7 @@ main(int argc, char *argv[])
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Login failed\n");
-		return 1;
-	}
+	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));
 	error_to_stdout = true;
 
 	ret = ct_cmd_alloc(conn, &cmd2);

@@ -28,31 +28,24 @@
 
 static const char create_table_sql[] = "CREATE TABLE hogexxx (col varchar(100))";
 
-static CS_RETCODE
+static void
 hoge_blkin(CS_CONNECTION * con, CS_BLKDESC * blk, char *table, char *data)
 {
 	CS_DATAFMT meta = { "" };
 	CS_INT length = 5;
 	CS_INT row = 0;
 
-	if (CS_SUCCEED != ct_cancel(con, NULL, CS_CANCEL_ALL))
-		return CS_FAIL;
-	if (CS_SUCCEED != blk_init(blk, CS_BLK_IN, table, CS_NULLTERM))
-		return CS_FAIL;
+	check_call(ct_cancel, (con, NULL, CS_CANCEL_ALL));
+	check_call(blk_init, (blk, CS_BLK_IN, table, CS_NULLTERM));
 
 	meta.count = 1;
 	meta.datatype = CS_CHAR_TYPE;
 	meta.format = CS_FMT_PADBLANK;
 	meta.maxlength = 5;
 
-	if (CS_SUCCEED != blk_bind(blk, (int) 1, &meta, data, &length, NULL))
-		return CS_FAIL;
-	if (CS_SUCCEED != blk_rowxfer(blk))
-		return CS_FAIL;
-	if (CS_SUCCEED != blk_done(blk, CS_BLK_ALL, &row))
-		return CS_FAIL;
-
-	return CS_SUCCEED;
+	check_call(blk_bind, (blk, (int) 1, &meta, data, &length, NULL));
+	check_call(blk_rowxfer, (blk));
+	check_call(blk_done, (blk, CS_BLK_ALL, &row));
 }
 
 int
@@ -63,7 +56,6 @@ main(int argc, char **argv)
 	CS_COMMAND *cmd;
 	CS_BLKDESC *blkdesc;
 	int verbose = 0;
-	int ret = 0;
 	int i;
 	char command[512];
 
@@ -74,37 +66,23 @@ main(int argc, char **argv)
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Login failed\n");
-		return 1;
-	}
+	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));
 
 	sprintf(command, "if exists (select 1 from sysobjects where type = 'U' and name = '%s') drop table %s",
 		table_name, table_name);
 
-	ret = run_command(cmd, command);
-	if (ret != CS_SUCCEED)
-		return 1;
+	check_call(run_command, (cmd, command));
 
-	ret = run_command(cmd, create_table_sql);
-	if (ret != CS_SUCCEED)
-		return 1;
+	check_call(run_command, (cmd, create_table_sql));
 
-	ret = blk_alloc(conn, BLK_VERSION_100, &blkdesc);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "blk_alloc() failed\n");
-		return 1;
-	}
+	check_call(blk_alloc, (conn, BLK_VERSION_100, &blkdesc));
 
 	for (i = 0; i < 10; i++) {
 		/* compute some data */
 		memset(command, ' ', sizeof(command));
 		memset(command, 'a' + i, (i * 37) % 11);
 
-		ret = hoge_blkin(conn, blkdesc, table_name, command);
-		if (ret != CS_SUCCEED)
-			return 1;
+		hoge_blkin(conn, blkdesc, table_name, command);
 	}
 
 	blk_drop(blkdesc);
@@ -113,11 +91,7 @@ main(int argc, char **argv)
 
 	printf("done\n");
 
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Logout failed\n");
-		return 1;
-	}
+	check_call(try_ctlogout, (ctx, conn, cmd, verbose));
 
 	return 0;
 }

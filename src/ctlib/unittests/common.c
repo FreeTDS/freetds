@@ -427,3 +427,12 @@ res_type_str(CS_RETCODE ret)
 	sprintf(str, "?? (%d)", (int) ret);
 	return str;
 }
+
+void
+_check_ret(const char *name, CS_RETCODE ret, int line)
+{
+	if (ret != CS_SUCCEED) {
+		fprintf(stderr, "%s():%d: failed\n", name, line);
+		exit(1);
+	}
+}

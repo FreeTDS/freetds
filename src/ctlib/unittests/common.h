@@ -40,4 +40,11 @@ CS_RETCODE clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLI
 CS_RETCODE servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * srvmsg);
 
 const char *res_type_str(CS_RETCODE ret);
+
+void _check_ret(const char *name, CS_RETCODE ret, int line);
+
+#define check_call(func, args) do { \
+	_check_ret(#func, func args, __LINE__); \
+} while(0)
+
 #endif

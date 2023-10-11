@@ -30,7 +30,6 @@ main(int argc, char *argv[])
 	CS_COMMAND *cmd;
 	int verbose = 0;
 
-	CS_RETCODE ret;
 	CS_CHAR cmdbuf[4096];
 
 	if (argc > 1 && (0 == strcmp(argv[1], "-v")))
@@ -40,23 +39,13 @@ main(int argc, char *argv[])
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Login failed\n");
-		return 1;
-	}
+	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));
 	error_to_stdout = true;
 
 	strcpy(cmdbuf, "create table #ctparam_lang (id numeric identity not null, \
 		name varchar(30), name2 varchar(20), age int, cost money, bdate datetime, fval float) ");
 
-	ret = run_command(cmd, cmdbuf);
-
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "create table failed\n");
-		errCode = 1;
-		goto ERR;
-	}
+	check_call(run_command, (cmd, cmdbuf));
 
 	/* test by name */
 	errCode = insert_test(conn, cmd, 1);
@@ -70,15 +59,10 @@ main(int argc, char *argv[])
 	if (verbose && (0 == errCode))
 		printf("lang_ct_param tests successful\n");
 
-ERR:
 	if (verbose) {
 		printf("Trying logout\n");
 	}
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Logout failed\n");
-		return 1;
-	}
+	check_call(try_ctlogout, (ctx, conn, cmd, verbose));
 
 	return errCode;
 }

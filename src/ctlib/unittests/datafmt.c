@@ -36,28 +36,15 @@ main(int argc, char *argv[])
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin_with_options(argc, argv, &ctx, &conn, &cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Login failed\n");
-		return 1;
-	}
+	check_call(try_ctlogin_with_options, (argc, argv, &ctx, &conn, &cmd, verbose));
 	verbose += common_pwd.fverbose;
 
 	strcpy(select, "select name from systypes where datalength(name) > 2*9 order by datalength(name)");
 	printf("%s\n", select);
 
-	ret = ct_command(cmd, CS_LANG_CMD, select, CS_NULLTERM, CS_UNUSED);
+	check_call(ct_command, (cmd, CS_LANG_CMD, select, CS_NULLTERM, CS_UNUSED));
 
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_command(%s) failed\n", select);
-		return 1;
-	}
-
-	ret = ct_send(cmd);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_send() failed\n");
-		return 1;
-	}
+	check_call(ct_send, (cmd));
 
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
 		switch ((int) result_type) {
@@ -71,20 +58,10 @@ main(int argc, char *argv[])
 			return 1;
 		case CS_ROW_RESULT:
 
-			ret = ct_res_info(cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
-			if (ret != CS_SUCCEED) {
-				fprintf(stderr, "ct_res_info() failed");
-				free(addr);
-				return 1;
-			}
+			check_call(ct_res_info, (cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL));
 			fprintf(stderr, "%d column%s\n", num_cols, num_cols==1? "":"s");
 
-			ret = ct_describe(cmd, 1, &datafmt);
-			if (ret != CS_SUCCEED) {
-				fprintf(stderr, "ct_describe() failed\n");
-				free(addr);
-				return 1;
-			}
+			check_call(ct_describe, (cmd, 1, &datafmt));
 
 			fprintf(stderr, "type = %d\n", datafmt.datatype);
 			fprintf(stderr, "maxlength = %d\n", datafmt.maxlength);
@@ -100,12 +77,7 @@ main(int argc, char *argv[])
 			if (common_pwd.maxlength) 
 				datafmt.maxlength = common_pwd.maxlength;
 
-			ret = ct_bind(cmd, 1, &datafmt, addr, &copied, &ind);
-			if (ret != CS_SUCCEED) {
-				fprintf(stderr, "ct_bind() failed\n");
-				free(addr);
-				return 1;
-			}
+			check_call(ct_bind, (cmd, 1, &datafmt, addr, &copied, &ind));
 
 			fprintf(stderr, "fetching rows with datafmt.maxlength = %d\n", datafmt.maxlength);
 
@@ -160,12 +132,7 @@ main(int argc, char *argv[])
 	if (verbose) {
 		printf("Trying logout\n");
 	}
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Logout failed\n");
-		free(addr);
-		return 1;
-	}
+	check_call(try_ctlogout, (ctx, conn, cmd, verbose));
 
 	free(addr);
 	return 0;

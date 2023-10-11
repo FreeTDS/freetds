@@ -17,7 +17,6 @@ main(int argc, char *argv[])
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;
 	CS_COMMAND *cmd;
-	CS_RETCODE ret;
 
 	CS_INT datefirst = 0;
 	CS_INT dateformat = 0;
@@ -35,27 +34,17 @@ main(int argc, char *argv[])
 		strcpy(common_pwd.PASSWORD, argv[4]);
 	}
 
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Login failed\n");
-		return 1;
-	}
+	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));
 
 	printf("%s: Set/Retrieve DATEFIRST\n", __FILE__);
 
 	/* DATEFIRST */
 	datefirst = CS_OPT_WEDNESDAY;
-	if (ct_options(conn, CS_SET, CS_OPT_DATEFIRST, &datefirst, CS_UNUSED, NULL) != CS_SUCCEED) {
-		fprintf(stderr, "ct_options() failed\n");
-		return 1;
-	}
+	check_call(ct_options, (conn, CS_SET, CS_OPT_DATEFIRST, &datefirst, CS_UNUSED, NULL));
 
 	datefirst = 999;
 
-	if (ct_options(conn, CS_GET, CS_OPT_DATEFIRST, &datefirst, CS_UNUSED, NULL) != CS_SUCCEED) {
-		fprintf(stderr, "ct_options() failed\n");
-		return 1;
-	}
+	check_call(ct_options, (conn, CS_GET, CS_OPT_DATEFIRST, &datefirst, CS_UNUSED, NULL));
 	if (datefirst != CS_OPT_WEDNESDAY) {
 		fprintf(stderr, "ct_options(DATEFIRST) didn't work retrieved %d expected %d\n", datefirst, CS_OPT_WEDNESDAY);
 		return 1;
@@ -65,17 +54,11 @@ main(int argc, char *argv[])
 
 	/* DATEFORMAT */
 	dateformat = CS_OPT_FMTMYD;
-	if (ct_options(conn, CS_SET, CS_OPT_DATEFORMAT, &dateformat, CS_UNUSED, NULL) != CS_SUCCEED) {
-		fprintf(stderr, "ct_options() failed\n");
-		return 1;
-	}
+	check_call(ct_options, (conn, CS_SET, CS_OPT_DATEFORMAT, &dateformat, CS_UNUSED, NULL));
 
 	dateformat = 999;
 
-	if (ct_options(conn, CS_GET, CS_OPT_DATEFORMAT, &dateformat, CS_UNUSED, NULL) != CS_SUCCEED) {
-		fprintf(stderr, "ct_options() failed\n");
-		return 1;
-	}
+	check_call(ct_options, (conn, CS_GET, CS_OPT_DATEFORMAT, &dateformat, CS_UNUSED, NULL));
 	if (dateformat != CS_OPT_FMTMYD) {
 		fprintf(stderr, "ct_options(DATEFORMAT) didn't work retrieved %d expected %d\n", dateformat, CS_OPT_FMTMYD);
 		return 1;
@@ -84,16 +67,10 @@ main(int argc, char *argv[])
 	printf("%s: Set/Retrieve ANSINULL\n", __FILE__);
 	/* ANSI NULLS */
 	truefalse = CS_TRUE;
-	if (ct_options(conn, CS_SET, CS_OPT_ANSINULL, &truefalse, CS_UNUSED, NULL) != CS_SUCCEED) {
-		fprintf(stderr, "ct_options() failed\n");
-		return 1;
-	}
+	check_call(ct_options, (conn, CS_SET, CS_OPT_ANSINULL, &truefalse, CS_UNUSED, NULL));
 
 	truefalse = 999;
-	if (ct_options(conn, CS_GET, CS_OPT_ANSINULL, &truefalse, CS_UNUSED, NULL) != CS_SUCCEED) {
-		fprintf(stderr, "ct_options() failed\n");
-		return 1;
-	}
+	check_call(ct_options, (conn, CS_GET, CS_OPT_ANSINULL, &truefalse, CS_UNUSED, NULL));
 	if (truefalse != CS_TRUE) {
 		fprintf(stderr, "ct_options(ANSINULL) didn't work\n");
 		return 1;
@@ -102,16 +79,10 @@ main(int argc, char *argv[])
 	printf("%s: Set/Retrieve CHAINXACTS\n", __FILE__);
 	/* CHAINED XACT */
 	truefalse = CS_TRUE;
-	if (ct_options(conn, CS_SET, CS_OPT_CHAINXACTS, &truefalse, CS_UNUSED, NULL) != CS_SUCCEED) {
-		fprintf(stderr, "ct_options() failed\n");
-		return 1;
-	}
+	check_call(ct_options, (conn, CS_SET, CS_OPT_CHAINXACTS, &truefalse, CS_UNUSED, NULL));
 
 	truefalse = 999;
-	if (ct_options(conn, CS_GET, CS_OPT_CHAINXACTS, &truefalse, CS_UNUSED, NULL) != CS_SUCCEED) {
-		fprintf(stderr, "ct_options() failed\n");
-		return 1;
-	}
+	check_call(ct_options, (conn, CS_GET, CS_OPT_CHAINXACTS, &truefalse, CS_UNUSED, NULL));
 	if (truefalse != CS_TRUE) {
 		fprintf(stderr, "ct_options(CHAINXACTS) didn't work\n");
 		return 1;
@@ -120,11 +91,7 @@ main(int argc, char *argv[])
 	if (verbose) {
 		printf("Trying logout\n");
 	}
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Logout failed\n");
-		return 1;
-	}
+	check_call(try_ctlogout, (ctx, conn, cmd, verbose));
 
 	return 0;
 }

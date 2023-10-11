@@ -37,8 +37,6 @@ main(int argc, char *argv[])
 	CS_COMMAND *cmd;
 	int verbose = 0;
 
-	CS_RETCODE ret;
-
 	CS_INT datalength;
 	CS_SMALLINT nullind;
 	CS_SMALLINT notnullind;
@@ -63,15 +61,11 @@ main(int argc, char *argv[])
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Login failed\n");
-		return 1;
-	}
+	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));
 	error_to_stdout = true;
 
 	/* do not test error */
-	ret = run_command(cmd, "IF OBJECT_ID('sample_rpc') IS NOT NULL DROP PROCEDURE sample_rpc");
+	run_command(cmd, "IF OBJECT_ID('sample_rpc') IS NOT NULL DROP PROCEDURE sample_rpc");
 
 	strcpy(cmdbuf, "create proc sample_rpc (@intparam int, \
         @sintparam smallint output, @floatparam float output, \
@@ -90,12 +84,7 @@ main(int argc, char *argv[])
         select @binaryparam = @binaryparam \
         print \'This is the message printed out by sample_rpc.\'");
 
-	ret = run_command(cmd, cmdbuf);
-
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "create proc failed\n");
-		return 1;
-	}
+	check_call(run_command, (cmd, cmdbuf));
 
 	/*
 	 * Assign values to the variables used for parameter passing.
@@ -131,27 +120,14 @@ main(int argc, char *argv[])
 	 * to a CS_MONEY variable. Since this routine does not have the
 	 * context handle, we use the property functions to get it.
 	 */
-	if ((ret = ct_cmd_props(cmd, CS_GET, CS_PARENT_HANDLE, &conn, CS_UNUSED, NULL)) != CS_SUCCEED) {
-		fprintf(stderr, "ct_cmd_props() failed");
-		return 1;
-	}
-	if ((ret = ct_con_props(conn, CS_GET, CS_PARENT_HANDLE, &ctx, CS_UNUSED, NULL)) != CS_SUCCEED) {
-		fprintf(stderr, "ct_con_props() failed");
-		return 1;
-	}
-	ret = cs_convert(ctx, &srcfmt, (CS_VOID *) moneystring, &destfmt, &moneyvar, &destlen);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "cs_convert() failed");
-		return 1;
-	}
+	check_call(ct_cmd_props, (cmd, CS_GET, CS_PARENT_HANDLE, &conn, CS_UNUSED, NULL));
+	check_call(ct_con_props, (conn, CS_GET, CS_PARENT_HANDLE, &ctx, CS_UNUSED, NULL));
+	check_call(cs_convert, (ctx, &srcfmt, (CS_VOID *) moneystring, &destfmt, &moneyvar, &destlen));
 
 	/*
 	 * Send the RPC command for our stored procedure.
 	 */
-	if ((ret = ct_command(cmd, CS_RPC_CMD, rpc_name, CS_NULLTERM, CS_NO_RECOMPILE)) != CS_SUCCEED) {
-		fprintf(stderr, "ct_command(CS_RPC_CMD) failed");
-		return 1;
-	}
+	check_call(ct_command, (cmd, CS_RPC_CMD, rpc_name, CS_NULLTERM, CS_NO_RECOMPILE));
 
 	nullind    = -1;
 	notnullind = 0;
@@ -169,10 +145,7 @@ main(int argc, char *argv[])
 
 	datalength = CS_SIZEOF(CS_INT);
 
-	if ((ret = ct_setparam(cmd, &datafmt, (CS_VOID *) & intvar, &datalength, &notnullind)) != CS_SUCCEED) {
-		fprintf(stderr, "ct_setparam(int) failed");
-		return 1;
-	}
+	check_call(ct_setparam, (cmd, &datafmt, (CS_VOID *) & intvar, &datalength, &notnullind));
 
 	strcpy(datafmt.name, "@sintparam");
 	datafmt.namelen = CS_NULLTERM;
@@ -183,10 +156,7 @@ main(int argc, char *argv[])
 
 	datalength = CS_SIZEOF(CS_SMALLINT);
 
-	if ((ret = ct_setparam(cmd, &datafmt, (CS_VOID *) & smallintvar, &datalength, &notnullind)) != CS_SUCCEED) {
-		fprintf(stderr, "ct_setparam(smallint) failed");
-		return 1;
-	}
+	check_call(ct_setparam, (cmd, &datafmt, (CS_VOID *) & smallintvar, &datalength, &notnullind));
 
 	strcpy(datafmt.name, "@floatparam");
 	datafmt.namelen = CS_NULLTERM;
@@ -197,11 +167,7 @@ main(int argc, char *argv[])
 
 	datalength = CS_SIZEOF(CS_FLOAT);
 
-	if ((ret = ct_setparam(cmd, &datafmt, (CS_VOID *) & floatvar, &datalength, &notnullind)) != CS_SUCCEED) {
-		fprintf(stderr, "ct_setparam(float) failed");
-		return 1;
-	}
-
+	check_call(ct_setparam, (cmd, &datafmt, (CS_VOID *) & floatvar, &datalength, &notnullind));
 
 	strcpy(datafmt.name, "@moneyparam");
 	datafmt.namelen = CS_NULLTERM;
@@ -212,10 +178,7 @@ main(int argc, char *argv[])
 
 	datalength = CS_SIZEOF(CS_MONEY);
 
-	if ((ret = ct_setparam(cmd, &datafmt, (CS_VOID *) & moneyvar, &datalength, &notnullind)) != CS_SUCCEED) {
-		fprintf(stderr, "ct_setparam(money) failed");
-		return 1;
-	}
+	check_call(ct_setparam, (cmd, &datafmt, (CS_VOID *) & moneyvar, &datalength, &notnullind));
 
 	strcpy(datafmt.name, "@dateparam");
 	datafmt.namelen = CS_NULLTERM;
@@ -231,10 +194,7 @@ main(int argc, char *argv[])
 
 	datalength = 0;
 
-	if ((ret = ct_setparam(cmd, &datafmt, NULL, &datalength, &nullind)) != CS_SUCCEED) {
-		fprintf(stderr, "ct_setparam(datetime4) failed");
-		return 1;
-	}
+	check_call(ct_setparam, (cmd, &datafmt, NULL, &datalength, &nullind));
 	strcpy(datafmt.name, "@charparam");
 	datafmt.namelen = CS_NULLTERM;
 	datafmt.datatype = CS_CHAR_TYPE;
@@ -249,10 +209,7 @@ main(int argc, char *argv[])
 	 * The character string variable is filled in by the RPC so pass NULL
 	 * for the data 0 for data length, and -1 for the indicator arguments.
 	 */
-	if ((ret = ct_setparam(cmd, &datafmt, NULL, &datalength, &nullind)) != CS_SUCCEED) {
-		fprintf(stderr, "ct_setparam(char) failed");
-		return 1;
-	}
+	check_call(ct_setparam, (cmd, &datafmt, NULL, &datalength, &nullind));
 
 	strcpy(datafmt.name, "@binaryparam");
 	datafmt.namelen = CS_NULLTERM;
@@ -264,48 +221,27 @@ main(int argc, char *argv[])
 	datalength = CS_SIZEOF(CS_BINARY);
 	nullind = -1;
 
-	if ((ret = ct_setparam(cmd, &datafmt, (CS_VOID *) & binaryvar, &datalength, &notnullind)) != CS_SUCCEED) {
-		fprintf(stderr, "ct_setparam(binary) failed");
-		return 1;
-	}
+	check_call(ct_setparam, (cmd, &datafmt, (CS_VOID *) & binaryvar, &datalength, &notnullind));
 
 	/*
 	 * Send the command to the server
 	 */
-	if (ct_send(cmd) != CS_SUCCEED) {
-		fprintf(stderr, "ct_send(RPC) failed");
-		return 1;
-	}
+	check_call(ct_send, (cmd));
 
-	ret = ex_display_results(cmd);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ex_display_results failed\n");
-		return 1;
-	}
+	check_call(ex_display_results, (cmd));
 
 	intvar = 3;
 
-	if (ct_send(cmd) != CS_SUCCEED) {
-		fprintf(stderr, "ct_send(RPC) failed");
-		return 1;
-	}
+	check_call(ct_send, (cmd));
 
-	ret = ex_display_results(cmd);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ex_display_results failed\n");
-		return 1;
-	}
+	check_call(ex_display_results, (cmd));
 
 	run_command(cmd, "DROP PROCEDURE sample_rpc");
 
 	if (verbose) {
 		printf("Trying logout\n");
 	}
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Logout failed\n");
-		return 1;
-	}
+	check_call(try_ctlogout, (ctx, conn, cmd, verbose));
 
 	return 0;
 }
@@ -361,11 +297,7 @@ int i, j;
 			/*
 			 * Find out how many columns there are in this result set.
 			 */
-			ret = ct_res_info(cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
-			if (ret != CS_SUCCEED) {
-				fprintf(stderr, "ct_res_info(CS_NUMDATA) failed");
-				return 1;
-			}
+			check_call(ct_res_info, (cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL));
 
 			/*
 			 * Make sure we have at least one column
@@ -516,11 +448,7 @@ int i, j;
 			break;
 
 		case CS_MSG_RESULT:
-			ret = ct_res_info(cmd, CS_MSGTYPE, (CS_VOID *) & msg_id, CS_UNUSED, NULL);
-			if (ret != CS_SUCCEED) {
-				fprintf(stderr, "ct_res_info(msg_id) failed");
-				return 1;
-			}
+			check_call(ct_res_info, (cmd, CS_MSGTYPE, (CS_VOID *) & msg_id, CS_UNUSED, NULL));
 			printf("ct_result returned CS_MSG_RESULT where msg id = %d.\n", msg_id);
 			fflush(stdout);
 			break;

@@ -81,14 +81,8 @@ static int test(int final_rows, int no_rows);
 int
 main(int argc, char *argv[])
 {
-	CS_RETCODE ret;
-
 	printf("%s: check row count returned\n", __FILE__);
-	ret = try_ctlogin(&ctx, &conn, &cmd, 0);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Login failed\n");
-		return 1;
-	}
+	check_call(try_ctlogin, (&ctx, &conn, &cmd, 0));
 	error_to_stdout = true;
 
 	/* do not test error */
@@ -103,11 +97,7 @@ main(int argc, char *argv[])
 	if (test(0, 1) || test(1, 1))
 		return 1;
 
-	ret = try_ctlogout(ctx, conn, cmd, 0);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Logout failed\n");
-		return 1;
-	}
+	check_call(try_ctlogout, (ctx, conn, cmd, 0));
 
 	return 0;
 }
@@ -115,7 +105,6 @@ main(int argc, char *argv[])
 static int
 test(int final_rows, int no_rows)
 {
-	CS_RETCODE ret;
 	CS_CHAR cmdbuf[4096];
 	char results[1024];
 
@@ -154,22 +143,12 @@ test(int final_rows, int no_rows)
 
 	printf("testing query:\n----\n%s\n----\n", cmdbuf);
 
-	ret = run_command(cmd, cmdbuf);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "create proc failed\n");
-		return 1;
-	}
+	check_call(run_command, (cmd, cmdbuf));
 
 	printf("----------\n");
-	if ((ret = ct_command(cmd, CS_RPC_CMD, "sample_rpc", CS_NULLTERM, CS_NO_RECOMPILE)) != CS_SUCCEED) {
-		fprintf(stderr, "ct_command(CS_RPC_CMD) failed");
-		return 1;
-	}
+	check_call(ct_command, (cmd, CS_RPC_CMD, "sample_rpc", CS_NULLTERM, CS_NO_RECOMPILE));
 
-	if (ct_send(cmd) != CS_SUCCEED) {
-		fprintf(stderr, "ct_send(RPC) failed");
-		return 1;
-	}
+	check_call(ct_send, (cmd));
 	ex_display_results(cmd, results);
 
 	/* cleanup */
@@ -224,11 +203,7 @@ ex_display_results(CS_COMMAND * cmd, char *results)
 			/*
 			 * Find out how many columns there are in this result set.
 			 */
-			ret = ct_res_info(cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
-			if (ret != CS_SUCCEED) {
-				fprintf(stderr, "ct_res_info(CS_NUMDATA) failed");
-				return 1;
-			}
+			check_call(ct_res_info, (cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL));
 
 			/*
 			 * Make sure we have at least one column
@@ -287,11 +262,7 @@ ex_display_results(CS_COMMAND * cmd, char *results)
 			break;
 
 		case CS_MSG_RESULT:
-			ret = ct_res_info(cmd, CS_MSGTYPE, (CS_VOID *) & msg_id, CS_UNUSED, NULL);
-			if (ret != CS_SUCCEED) {
-				fprintf(stderr, "ct_res_info(msg_id) failed");
-				return 1;
-			}
+			check_call(ct_res_info, (cmd, CS_MSGTYPE, (CS_VOID *) & msg_id, CS_UNUSED, NULL));
 			printf("ct_result returned CS_MSG_RESULT where msg id = %d.\n", msg_id);
 			fflush(stdout);
 			break;

@@ -40,17 +40,10 @@ main(int argc, char **argv)
 	if (verbose) {
 		printf("Trying clientmsg_cb with context\n");
 	}
-	if (cs_ctx_alloc(CS_VERSION_100, &ctx) != CS_SUCCEED) {
-		fprintf(stderr, "cs_ctx_alloc() failed\n");
-	}
-	if (ct_init(ctx, CS_VERSION_100) != CS_SUCCEED) {
-		fprintf(stderr, "ct_init() failed\n");
-	}
+	check_call(cs_ctx_alloc, (CS_VERSION_100, &ctx));
+	check_call(ct_init, (ctx, CS_VERSION_100));
 
-	if (cs_diag(ctx, CS_INIT, CS_UNUSED, CS_UNUSED, NULL) != CS_SUCCEED) {
-		fprintf(stderr, "cs_diag(CS_INIT) failed\n");
-		return 1;
-	}
+	check_call(cs_diag, (ctx, CS_INIT, CS_UNUSED, CS_UNUSED, NULL));
 
 	if (cs_convert(ctx, &srcfmt, &src, &dstfmt, &dst, NULL) == CS_SUCCEED) {
 		fprintf(stderr, "cs_convert() succeeded when failure was expected\n");
@@ -66,20 +59,12 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	if (cs_diag(ctx, CS_STATUS, CS_CLIENTMSG_TYPE, CS_UNUSED, &num_msgs) != CS_SUCCEED) {
-		fprintf(stderr, "cs_diag(CS_STATUS) failed\n");
-		return 1;
-	}
+	check_call(cs_diag, (ctx, CS_STATUS, CS_CLIENTMSG_TYPE, CS_UNUSED, &num_msgs));
 
 	for (i = 0; i < num_msgs; i++ ) {
-
-		if (cs_diag(ctx, CS_GET, CS_CLIENTMSG_TYPE, i + 1, &client_message) != CS_SUCCEED) {
-			fprintf(stderr, "cs_diag(CS_GET) failed\n");
-			return 1;
-		}
+		check_call(cs_diag, (ctx, CS_GET, CS_CLIENTMSG_TYPE, i + 1, &client_message));
 	
-	    cslibmsg_cb(NULL, &client_message);
-	
+		cslibmsg_cb(NULL, &client_message);
 	}
 
 	if ((ret = cs_diag(ctx, CS_GET, CS_CLIENTMSG_TYPE, i + 1, &client_message)) != CS_NOMSG) {
@@ -87,26 +72,16 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	if (cs_diag(ctx, CS_CLEAR, CS_CLIENTMSG_TYPE, CS_UNUSED, NULL) != CS_SUCCEED) {
-		fprintf(stderr, "cs_diag(CS_CLEAR) failed\n");
-		return 1;
-	}
+	check_call(cs_diag, (ctx, CS_CLEAR, CS_CLIENTMSG_TYPE, CS_UNUSED, NULL));
 
-	if (cs_diag(ctx, CS_STATUS, CS_CLIENTMSG_TYPE, CS_UNUSED, &num_msgs) != CS_SUCCEED) {
-		fprintf(stderr, "cs_diag(CS_STATUS) failed\n");
-		return 1;
-	}
+	check_call(cs_diag, (ctx, CS_STATUS, CS_CLIENTMSG_TYPE, CS_UNUSED, &num_msgs));
 	if (num_msgs != 0) {
 		fprintf(stderr, "cs_diag(CS_CLEAR) failed there are still %d messages on queue\n", num_msgs);
 		return 1;
 	}
 
-	if (ct_exit(ctx, CS_UNUSED) != CS_SUCCEED) {
-		fprintf(stderr, "ct_exit() failed\n");
-	}
-	if (cs_ctx_drop(ctx) != CS_SUCCEED) {
-		fprintf(stderr, "cx_ctx_drop() failed\n");
-	}
+	check_call(ct_exit, (ctx, CS_UNUSED));
+	check_call(cs_ctx_drop, (ctx));
 
 	return 0;
 }
