@@ -69,23 +69,30 @@ DoTest(
 		goto Failed;
 	}
 
-	/* test result len */
-	if (reslen != tolen) {
-		err = "result length";
-		goto Failed;
-	}
-
 	/* test buffer */
-	if (todata && memcmp(todata, buffer, tolen) != 0) {
+	if (todata && (reslen != tolen || memcmp(todata, buffer, tolen) != 0)) {
 		int n;
+		printf("exp");
 		for (n = 0; n < tolen; ++n)
-			printf("%02x ", ((unsigned char*)todata)[n]);
-		printf("\n");
-		for (n = 0; n < tolen; ++n)
-			printf("%02x ", ((unsigned char*)buffer)[n]);
+			printf(" %02x", ((unsigned char*)todata)[n]);
+		printf("\ngot");
+		for (n = 0; n < reslen; ++n)
+			printf(" %02x", ((unsigned char*)buffer)[n]);
 		printf("\n");
 
 		err = "result data";
+		goto Failed;
+	}
+
+	/* test result len */
+	if (reslen != tolen) {
+		int n;
+		printf("got");
+		for (n = 0; n < reslen; ++n)
+			printf(" %02x", ((unsigned char*)buffer)[n]);
+		printf("\n");
+
+		err = "result length";
 		goto Failed;
 	}
 
@@ -101,7 +108,7 @@ DoTest(
 	/* success */
 	return 0;
       Failed:
-	fprintf(stderr, "Test %s failed (ret=%d len=%d)\n", err, (int) retcode, (int) reslen);
+	fprintf(stderr, "Test %s failed (got ret=%d len=%d)\n", err, (int) retcode, (int) reslen);
 	fprintf(stderr, "line: %d\n  DO_TEST(decl=%s,\n"
 		"\t   fromtype=%s,fromdata=%s,fromlen=%s,\n"
 		"\t   totype=%s,tomaxlen=%s,\n"
@@ -315,6 +322,7 @@ main(void)
 		CS_CHAR_TYPE, test, 12, CS_VARBINARY_TYPE, 12, CS_SUCCEED, &test2, 258);
 	dest_format = CS_FMT_UNUSED;
 
+	check_call(ct_exit, (ctx, CS_UNUSED));
 	check_call(cs_ctx_drop, (ctx));
 
 	if (verbose && allSuccess) {
