@@ -66,11 +66,7 @@ main(int argc, char **argv)
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Login failed\n");
-		return 1;
-	}
+	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));
 
 	ret = ct_con_props(conn, CS_GET, CS_TDS_VERSION, &tds_version, CS_UNUSED, NULL);
 	if (ret == CS_SUCCEED) {
@@ -81,25 +77,13 @@ main(int argc, char **argv)
 		}
 	}
 
-	ret = run_command(cmd, "CREATE TABLE #test_table (id int, name text)");
-	if (ret != CS_SUCCEED)
-		return 1;
+	check_call(run_command, (cmd, "CREATE TABLE #test_table (id int, name text)"));
 
 	sprintf(large_sql, "INSERT #test_table (id, name) VALUES (2, '%s')", len600);
-	ret = run_command(cmd, large_sql);
-	if (ret != CS_SUCCEED)
-		return 1;
+	check_call(run_command, (cmd, large_sql));
 
-	ret = ct_command(cmd, CS_LANG_CMD, "SELECT id, name FROM #test_table", CS_NULLTERM, CS_UNUSED);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_command() failed\n");
-		return 1;
-	}
-	ret = ct_send(cmd);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_send() failed\n");
-		return 1;
-	}
+	check_call(ct_command, (cmd, CS_LANG_CMD, "SELECT id, name FROM #test_table", CS_NULLTERM, CS_UNUSED));
+	check_call(ct_send, (cmd));
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
 		switch ((int) result_type) {
 		case CS_CMD_SUCCEED:
@@ -110,30 +94,18 @@ main(int argc, char **argv)
 			fprintf(stderr, "ct_results() result_type CS_CMD_FAIL.\n");
 			return 1;
 		case CS_ROW_RESULT:
-			ret = ct_res_info(cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
-			if (ret != CS_SUCCEED) {
-				fprintf(stderr, "ct_res_info() failed");
-				return 1;
-			}
+			check_call(ct_res_info, (cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL));
 			if (num_cols != 2) {
 				fprintf(stderr, "num_cols %d != 2", num_cols);
 				return 1;
 			}
 
-			ret = ct_describe(cmd, 1, &datafmt);
-			if (ret != CS_SUCCEED) {
-				fprintf(stderr, "ct_describe() failed");
-				return 1;
-			}
+			check_call(ct_describe, (cmd, 1, &datafmt));
 			datafmt.format = CS_FMT_UNUSED;
 			if (datafmt.maxlength > 1024) {
 				datafmt.maxlength = 1024;
 			}
-			ret = ct_bind(cmd, 1, &datafmt, &id, &datalength, &ind);
-			if (ret != CS_SUCCEED) {
-				fprintf(stderr, "ct_bind() failed\n");
-				return 1;
-			}
+			check_call(ct_bind, (cmd, 1, &datafmt, &id, &datalength, &ind));
 
 			while (((ret = ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, &count)) == CS_SUCCEED)
 			       || (ret == CS_ROW_FAIL)) {
@@ -161,15 +133,12 @@ main(int argc, char **argv)
 					}
 					printf("%s: Trying ct_data_info on text column\n", __FILE__);
 
-					if (ct_data_info(cmd, CS_GET, 2, &iodesc) != CS_SUCCEED) {
-						fprintf(stderr, "ct_data_info() failed\n");
-						return 1;
-					} else {
-						printf("datatype = %d\n", iodesc.datatype);
-						printf("usertype = %d\n", iodesc.usertype);
-						printf("text len = %d\n", iodesc.total_txtlen);
-						printf("name     = %*.*s\n", iodesc.namelen, iodesc.namelen, iodesc.name);
-					}
+					check_call(ct_data_info, (cmd, CS_GET, 2, &iodesc));
+
+					printf("datatype = %d\n", iodesc.datatype);
+					printf("usertype = %d\n", iodesc.usertype);
+					printf("text len = %d\n", iodesc.total_txtlen);
+					printf("name     = %*.*s\n", iodesc.namelen, iodesc.namelen, iodesc.name);
 				}
 			}
 			switch ((int) ret) {
@@ -203,34 +172,19 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	if ((ret = ct_command(cmd, CS_SEND_DATA_CMD, NULL, CS_UNUSED, CS_COLUMN_DATA)) != CS_SUCCEED) {
-		fprintf(stderr, "ct_command(CS_SEND_DATA_CMD) failed.\n");
-		return 1;
-	}
+	check_call(ct_command, (cmd, CS_SEND_DATA_CMD, NULL, CS_UNUSED, CS_COLUMN_DATA));
 
 	iodesc.total_txtlen = 800;
 	iodesc.log_on_update = CS_TRUE;
 
-	if (ct_data_info(cmd, CS_SET, CS_UNUSED, &iodesc) != CS_SUCCEED) {
-		fprintf(stderr, "ct_data_info() failed\n");
-		return 1;
-	}
+	check_call(ct_data_info, (cmd, CS_SET, CS_UNUSED, &iodesc));
 
 	for ( i = 0 ; i < 800 ; i += 200 ) {
 		textptr = &len800[i];
 
-		ret = ct_send_data(cmd, textptr, (CS_INT) 200);
-		if (ret != CS_SUCCEED) {
-			fprintf(stderr, "ct_send_data failed\n");
-			return 1;
-		}
+		check_call(ct_send_data, (cmd, textptr, (CS_INT) 200));
 	}
-	ret = ct_send(cmd);
-
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_send failed\n");
-		return 1;
-	}
+	check_call(ct_send, (cmd));
 
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
 		switch ((int) result_type) {
@@ -268,11 +222,7 @@ main(int argc, char **argv)
 	if (verbose) {
 		printf("Trying logout\n");
 	}
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Logout failed\n");
-		return 1;
-	}
+	check_call(try_ctlogout, (ctx, conn, cmd, verbose));
 
 	return 0;
 }

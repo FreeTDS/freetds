@@ -24,27 +24,15 @@ main(int argc, char **argv)
 		printf("Trying cs_config with CS_USERDATA\n\n");
 	}
 
-	if (cs_ctx_alloc(CS_VERSION_100, &ctx) != CS_SUCCEED) {
-		fprintf(stderr, "cs_ctx_alloc() for first context failed\n");
-	}
-	if (ct_init(ctx, CS_VERSION_100) != CS_SUCCEED) {
-		fprintf(stderr, "ct_init() for first context failed\n");
-	}
+	check_call(cs_ctx_alloc, (CS_VERSION_100, &ctx));
+	check_call(ct_init, (ctx, CS_VERSION_100));
 
 	printf("Testing CS_SET/GET USERDATA with char array\n");
 
 	strcpy(string_in,"FreeTDS");
 
-	if (cs_config(ctx, CS_SET, CS_USERDATA, (CS_VOID *)string_in,  CS_NULLTERM, NULL)
-	    != CS_SUCCEED) {
-		fprintf(stderr, "cs_config() set failed\n");
-		return 1;
-	}
-	if (cs_config(ctx, CS_GET, CS_USERDATA, (CS_VOID *)string_out, 16, &ret_len)
-	    != CS_SUCCEED) {
-		fprintf(stderr, "cs_config() get failed\n");
-		return 1;
-	}
+	check_call(cs_config, (ctx, CS_SET, CS_USERDATA, (CS_VOID *)string_in,  CS_NULLTERM, NULL));
+	check_call(cs_config, (ctx, CS_GET, CS_USERDATA, (CS_VOID *)string_out, 16, &ret_len));
 
 	if (strcmp(string_in, string_out)) {
 		printf("returned value >%s< not as stored >%s<\n", (char *)string_out, (char *)string_in);
@@ -59,19 +47,11 @@ main(int argc, char **argv)
 
 	strcpy(string_in,"FreeTDS");
 
-	if (cs_config(ctx, CS_SET, CS_USERDATA, (CS_VOID *)string_in,  CS_NULLTERM, NULL)
-	    != CS_SUCCEED) {
-		fprintf(stderr, "cs_config() set failed\n");
-		return 1;
-	}
+	check_call(cs_config, (ctx, CS_SET, CS_USERDATA, (CS_VOID *)string_in,  CS_NULLTERM, NULL));
 
 	strcpy(string_out,"XXXXXXXXXXXXXXX");
 
-	if (cs_config(ctx, CS_GET, CS_USERDATA, (CS_VOID *)string_out, 4, &ret_len)
-	    != CS_SUCCEED) {
-		fprintf(stderr, "cs_config() get failed\n");
-		return 1;
-	}
+	check_call(cs_config, (ctx, CS_GET, CS_USERDATA, (CS_VOID *)string_out, 4, &ret_len));
 
 	if (strcmp(string_out, "FreeXXXXXXXXXXX")) {
 		printf("returned value >%s< not as expected >%s<\n", (char *)string_out, "FreeXXXXXXXXXXX");
@@ -86,16 +66,8 @@ main(int argc, char **argv)
 
 	int_in = 255;
 
-	if (cs_config(ctx, CS_SET, CS_USERDATA, (CS_VOID *)&int_in,  sizeof(int), NULL)
-	    != CS_SUCCEED) {
-		fprintf(stderr, "cs_config() set failed\n");
-		return 1;
-	}
-	if (cs_config(ctx, CS_GET, CS_USERDATA, (CS_VOID *)&int_out, sizeof(int), &ret_len)
-	    != CS_SUCCEED) {
-		fprintf(stderr, "cs_config() get failed\n");
-		return 1;
-	}
+	check_call(cs_config, (ctx, CS_SET, CS_USERDATA, (CS_VOID *)&int_in,  sizeof(int), NULL));
+	check_call(cs_config, (ctx, CS_GET, CS_USERDATA, (CS_VOID *)&int_out, sizeof(int), &ret_len));
 
 	if (int_in != int_out) {
 		printf("returned value >%d< not as stored >%d<\n", int_out, int_in);

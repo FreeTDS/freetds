@@ -42,60 +42,21 @@ main(int argc, char **argv)
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Login failed\n");
-		return 1;
-	}
+	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));
 
-	ret = ct_cmd_alloc(conn, &cmd2);
-	if (ret != CS_SUCCEED) {
-		if (verbose) {
-			fprintf(stderr, "Command Alloc failed!\n");
-		}
-		return ret;
-	}
+	check_call(ct_cmd_alloc, (conn, &cmd2));
 
-	ret = ct_cmd_alloc(conn, &cmd3);
-	if (ret != CS_SUCCEED) {
-		if (verbose) {
-			fprintf(stderr, "Command Alloc failed!\n");
-		}
-		return ret;
-	}
+	check_call(ct_cmd_alloc, (conn, &cmd3));
 
-	ret = run_command(cmd, "CREATE TABLE #test_table (col1 char(4))");
-	if (ret != CS_SUCCEED)
-		return 1;
+	check_call(run_command, (cmd, "CREATE TABLE #test_table (col1 char(4))"));
+	check_call(run_command, (cmd, "INSERT #test_table (col1) VALUES ('AAA')"));
+	check_call(run_command, (cmd, "INSERT #test_table (col1) VALUES ('BBB')"));
+	check_call(run_command, (cmd, "INSERT #test_table (col1) VALUES ('CCC')"));
 
-	ret = run_command(cmd, "INSERT #test_table (col1) VALUES ('AAA')");
-	if (ret != CS_SUCCEED)
-		return 1;
-	ret = run_command(cmd, "INSERT #test_table (col1) VALUES ('BBB')");
-	if (ret != CS_SUCCEED)
-		return 1;
-	ret = run_command(cmd, "INSERT #test_table (col1) VALUES ('CCC')");
-	if (ret != CS_SUCCEED)
-		return 1;
-
-	ret = run_command(cmd, "CREATE TABLE #test_table2 (col1 char(4))");
-	if (ret != CS_SUCCEED)
-		return 1;
-
-	ret = run_command(cmd, "INSERT #test_table2 (col1) VALUES ('XXX')");
-	if (ret != CS_SUCCEED)
-		return 1;
-
-	ret = run_command(cmd, "INSERT #test_table2 (col1) VALUES ('YYY')");
-	if (ret != CS_SUCCEED)
-		return 1;
-
-	ret = run_command(cmd, "INSERT #test_table2 (col1) VALUES ('ZZZ')");
-
-
-	if (ret != CS_SUCCEED)
-		return 1;
-
+	check_call(run_command, (cmd, "CREATE TABLE #test_table2 (col1 char(4))"));
+	check_call(run_command, (cmd, "INSERT #test_table2 (col1) VALUES ('XXX')"));
+	check_call(run_command, (cmd, "INSERT #test_table2 (col1) VALUES ('YYY')"));
+	check_call(run_command, (cmd, "INSERT #test_table2 (col1) VALUES ('ZZZ')"));
 
 	if (verbose) {
 		printf("opening first cursor on connection\n");
@@ -103,32 +64,13 @@ main(int argc, char **argv)
 
 	strcpy(text, "select col1 from #test_table order by col1");
 
-	ret = ct_cursor(cmd, CS_CURSOR_DECLARE, name, CS_NULLTERM, text, CS_NULLTERM, CS_UNUSED);
+	check_call(ct_cursor, (cmd, CS_CURSOR_DECLARE, name, CS_NULLTERM, text, CS_NULLTERM, CS_UNUSED));
 
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_cursor declare failed\n");
-		return 1;
-	}
+	check_call(ct_cursor, (cmd, CS_CURSOR_ROWS, name, CS_NULLTERM, NULL, CS_UNUSED, (CS_INT) 1));
 
-	ret = ct_cursor(cmd, CS_CURSOR_ROWS, name, CS_NULLTERM, NULL, CS_UNUSED, (CS_INT) 1);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_cursor set cursor rows failed");
-		return 1;
-	}
+	check_call(ct_cursor, (cmd, CS_CURSOR_OPEN, name, CS_NULLTERM, text, CS_NULLTERM, CS_UNUSED));
 
-	ret = ct_cursor(cmd, CS_CURSOR_OPEN, name, CS_NULLTERM, text, CS_NULLTERM, CS_UNUSED);
-
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_cursor open failed\n");
-		return 1;
-	}
-
-	ret = ct_send(cmd);
-
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_send failed\n");
-		return 1;
-	}
+	check_call(ct_send, (cmd));
 
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
 		switch ((int) result_type) {
@@ -142,12 +84,7 @@ main(int argc, char **argv)
 			break;
 
 		case CS_CURSOR_RESULT:
-			ret = ct_res_info(cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
-
-			if (ret != CS_SUCCEED) {
-				fprintf(stderr, "ct_res_info() failed");
-				return 1;
-			}
+			check_call(ct_res_info, (cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL));
 
 			if (num_cols != 1) {
 				fprintf(stderr, "unexpected num of columns =  %d \n", num_cols);
@@ -157,12 +94,7 @@ main(int argc, char **argv)
 			for (i = 0; i < num_cols; i++) {
 
 				/* here we can finally test for the return status column */
-				ret = ct_describe(cmd, i + 1, &datafmt);
-
-				if (ret != CS_SUCCEED) {
-					fprintf(stderr, "ct_describe() failed for column %d\n", i);
-					return 1;
-				}
+				check_call(ct_describe, (cmd, i + 1, &datafmt));
 
 				if (datafmt.status & CS_RETURN) {
 					printf("ct_describe() column %d \n", i);
@@ -173,11 +105,7 @@ main(int argc, char **argv)
 				datafmt.maxlength = 6;
 				datafmt.count = 1;
 				datafmt.locale = NULL;
-				ret = ct_bind(cmd, 1, &datafmt, col1, &datalength, &ind);
-				if (ret != CS_SUCCEED) {
-					fprintf(stderr, "ct_bind() failed\n");
-					return 1;
-				}
+				check_call(ct_bind, (cmd, 1, &datafmt, col1, &datalength, &ind));
 
 			}
 			break;
@@ -197,32 +125,13 @@ main(int argc, char **argv)
 
 	strcpy(text, "select col1 from #test_table2 order by col1");
 
-	ret = ct_cursor(cmd2, CS_CURSOR_DECLARE, name2, CS_NULLTERM, text, CS_NULLTERM, CS_UNUSED);
+	check_call(ct_cursor, (cmd2, CS_CURSOR_DECLARE, name2, CS_NULLTERM, text, CS_NULLTERM, CS_UNUSED));
 
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_cursor declare failed\n");
-		return 1;
-	}
+	check_call(ct_cursor, (cmd2, CS_CURSOR_ROWS, name2, CS_NULLTERM, NULL, CS_UNUSED, (CS_INT) 1));
 
-	ret = ct_cursor(cmd2, CS_CURSOR_ROWS, name2, CS_NULLTERM, NULL, CS_UNUSED, (CS_INT) 1);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_cursor set cursor rows failed");
-		return 1;
-	}
+	check_call(ct_cursor, (cmd2, CS_CURSOR_OPEN, name2, CS_NULLTERM, text, CS_NULLTERM, CS_UNUSED));
 
-	ret = ct_cursor(cmd2, CS_CURSOR_OPEN, name2, CS_NULLTERM, text, CS_NULLTERM, CS_UNUSED);
-
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_cursor open failed\n");
-		return 1;
-	}
-
-	ret = ct_send(cmd2);
-
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_send failed\n");
-		return 1;
-	}
+	check_call(ct_send, (cmd2));
 
 	while ((results_ret = ct_results(cmd2, &result_type)) == CS_SUCCEED) {
 		switch ((int) result_type) {
@@ -236,12 +145,7 @@ main(int argc, char **argv)
 			break;
 
 		case CS_CURSOR_RESULT:
-			ret = ct_res_info(cmd2, CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
-
-			if (ret != CS_SUCCEED) {
-				fprintf(stderr, "ct_res_info() failed");
-				return 1;
-			}
+			check_call(ct_res_info, (cmd2, CS_NUMDATA, &num_cols, CS_UNUSED, NULL));
 
 			if (num_cols != 1) {
 				fprintf(stderr, "unexpected num of columns =  %d \n", num_cols);
@@ -251,12 +155,7 @@ main(int argc, char **argv)
 			for (i = 0; i < num_cols; i++) {
 
 				/* here we can finally test for the return status column */
-				ret = ct_describe(cmd2, i + 1, &datafmt2);
-
-				if (ret != CS_SUCCEED) {
-					fprintf(stderr, "ct_describe() failed for column %d\n", i);
-					return 1;
-				}
+				check_call(ct_describe, (cmd2, i + 1, &datafmt2));
 
 				if (datafmt2.status & CS_RETURN) {
 					printf("ct_describe() column %d \n", i);
@@ -267,12 +166,7 @@ main(int argc, char **argv)
 				datafmt2.maxlength = 6;
 				datafmt2.count = 1;
 				datafmt2.locale = NULL;
-				ret = ct_bind(cmd2, 1, &datafmt2, col2, &datalength, &ind);
-				if (ret != CS_SUCCEED) {
-					fprintf(stderr, "ct_bind() failed\n");
-					return 1;
-				}
-
+				check_call(ct_bind, (cmd2, 1, &datafmt2, col2, &datalength, &ind));
 			}
 			break;
 
@@ -314,17 +208,9 @@ main(int argc, char **argv)
 		printf("closing first cursor on connection\n");
 	}
 
-	ret = ct_cursor(cmd, CS_CURSOR_CLOSE, name, CS_NULLTERM, NULL, CS_UNUSED, CS_UNUSED);
+	check_call(ct_cursor, (cmd, CS_CURSOR_CLOSE, name, CS_NULLTERM, NULL, CS_UNUSED, CS_UNUSED));
 
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_cursor(close) failed\n");
-		return ret;
-	}
-
-	if ((ret = ct_send(cmd)) != CS_SUCCEED) {
-		fprintf(stderr, "BILL ct_send() failed\n");
-		return ret;
-	}
+	check_call(ct_send, (cmd));
 
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
 		if (result_type == CS_CMD_FAIL) {
@@ -337,17 +223,9 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	ret = ct_cursor(cmd, CS_CURSOR_DEALLOC, name, CS_NULLTERM, NULL, CS_UNUSED, CS_UNUSED);
+	check_call(ct_cursor, (cmd, CS_CURSOR_DEALLOC, name, CS_NULLTERM, NULL, CS_UNUSED, CS_UNUSED));
 
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_cursor(dealloc) failed\n");
-		return ret;
-	}
-
-	if ((ret = ct_send(cmd)) != CS_SUCCEED) {
-		fprintf(stderr, "ct_send() failed\n");
-		return ret;
-	}
+	check_call(ct_send, (cmd));
 
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
 		if (result_type == CS_CMD_FAIL) {
@@ -364,17 +242,9 @@ main(int argc, char **argv)
 		printf("closing second cursor on connection\n");
 	}
 
-	ret = ct_cursor(cmd2, CS_CURSOR_CLOSE, name2, CS_NULLTERM, NULL, CS_UNUSED, CS_UNUSED);
+	check_call(ct_cursor, (cmd2, CS_CURSOR_CLOSE, name2, CS_NULLTERM, NULL, CS_UNUSED, CS_UNUSED));
 
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_cursor(close) failed\n");
-		return ret;
-	}
-
-	if ((ret = ct_send(cmd2)) != CS_SUCCEED) {
-		fprintf(stderr, "BILL ct_send() failed\n");
-		return ret;
-	}
+	check_call(ct_send, (cmd2));
 
 	while ((results_ret = ct_results(cmd2, &result_type)) == CS_SUCCEED) {
 		if (result_type == CS_CMD_FAIL) {
@@ -387,17 +257,9 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	ret = ct_cursor(cmd2, CS_CURSOR_DEALLOC, name2, CS_NULLTERM, NULL, CS_UNUSED, CS_UNUSED);
+	check_call(ct_cursor, (cmd2, CS_CURSOR_DEALLOC, name2, CS_NULLTERM, NULL, CS_UNUSED, CS_UNUSED));
 
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_cursor(dealloc) failed\n");
-		return ret;
-	}
-
-	if ((ret = ct_send(cmd2)) != CS_SUCCEED) {
-		fprintf(stderr, "ct_send() failed\n");
-		return ret;
-	}
+	check_call(ct_send, (cmd2));
 
 	while ((results_ret = ct_results(cmd2, &result_type)) == CS_SUCCEED) {
 		if (result_type == CS_CMD_FAIL) {
@@ -416,11 +278,7 @@ main(int argc, char **argv)
 	if (verbose) {
 		printf("Trying logout\n");
 	}
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Logout failed\n");
-		return 2;
-	}
+	check_call(try_ctlogout, (ctx, conn, cmd, verbose));
 
 	if (verbose) {
 		printf("Test succeded\n");

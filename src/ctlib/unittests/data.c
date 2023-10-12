@@ -39,11 +39,7 @@ main(int argc, char *argv[])
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin_with_options(argc, argv, &ctx, &conn, &cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Login failed\n");
-		return 1;
-	}
+	check_call(try_ctlogin_with_options, (argc, argv, &ctx, &conn, &cmd, verbose));
 	verbose += common_pwd.fverbose;
 
 	ret = ct_con_props(conn, CS_GET, CS_TDS_VERSION, &tds_version, CS_UNUSED, NULL);
@@ -60,14 +56,11 @@ main(int argc, char *argv[])
 	select = "select cast('<a b=\"aaa\"><b>ciao</b>hi</a>' as xml) as name";
 	printf("%s\n", select);
 
-	ret = ct_command(cmd, CS_LANG_CMD, select, CS_NULLTERM, CS_UNUSED);
-	assert(ret == CS_SUCCEED);
+	check_call(ct_command, (cmd, CS_LANG_CMD, select, CS_NULLTERM, CS_UNUSED));
 
-	ret = ct_send(cmd);
-	assert(ret == CS_SUCCEED);
+	check_call(ct_send, (cmd));
 
-	ret = ct_results(cmd, &result_type);
-	assert(ret == CS_SUCCEED);
+	check_call(ct_results, (cmd, &result_type));
 
 	switch (result_type) {
 	case CS_CMD_FAIL:
@@ -81,12 +74,10 @@ main(int argc, char *argv[])
 		goto Cleanup;
 	}
 
-	ret = ct_res_info(cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
-	assert(ret == CS_SUCCEED);
+	check_call(ct_res_info, (cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL));
 	assert(num_cols == 1);
 
-	ret = ct_describe(cmd, 1, &datafmt);
-	assert(ret == CS_SUCCEED);
+	check_call(ct_describe, (cmd, 1, &datafmt));
 
 	assert(strcmp(datafmt.name, "name") == 0);
 	assert(datafmt.datatype == CS_LONGCHAR_TYPE);
@@ -98,8 +89,7 @@ main(int argc, char *argv[])
 	datafmt.maxlength = 100;
 
 	printf("binding column 1\n");
-	ret = ct_bind(cmd, 1, &datafmt, buffer, &copied, &ind);
-	assert(ret == CS_SUCCEED);
+	check_call(ct_bind, (cmd, 1, &datafmt, buffer, &copied, &ind));
 
 	printf("fetching rows.\n");
 	while ((ret = ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, &count)) == CS_SUCCEED) {
@@ -119,8 +109,7 @@ main(int argc, char *argv[])
 	if (verbose) {
 		printf("Trying logout\n");
 	}
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
-	assert(ret == CS_SUCCEED);
+	check_call(try_ctlogout, (ctx, conn, cmd, verbose));
 
 	return 0;
 

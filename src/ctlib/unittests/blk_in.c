@@ -207,7 +207,6 @@ main(int argc, char **argv)
 	CS_BLKDESC *blkdesc;
 	int verbose = 0;
 	int count = 0;
-	int ret;
 	int i;
 
 	const char *table_name = "all_types_bcp_unittest";
@@ -216,51 +215,27 @@ main(int argc, char **argv)
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Login failed\n");
-		return 1;
-	}
+	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));
 
 	sprintf(command,"if exists (select 1 from sysobjects where type = 'U' and name = '%s') drop table %s", 
                     table_name, table_name);
 
-	ret = run_command(cmd, command);
-	if (ret != CS_SUCCEED)
-		return 1;
+	check_call(run_command, (cmd, command));
 
-	ret = run_command(cmd, create_table_sql);
-	if (ret != CS_SUCCEED)
-		return 1;
+	check_call(run_command, (cmd, create_table_sql));
 
-	ret = blk_alloc(conn, BLK_VERSION_100, &blkdesc);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "blk_alloc() failed\n");
-		return 1;
-	}
+	check_call(blk_alloc, (conn, BLK_VERSION_100, &blkdesc));
 
-	ret = blk_init(blkdesc, CS_BLK_IN, (char *) table_name, CS_NULLTERM );
-
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "blk_init() failed\n");
-		return 1;
-	}
+	check_call(blk_init, (blkdesc, CS_BLK_IN, (char *) table_name, CS_NULLTERM));
 
 	do_binds(blkdesc);
 
 	printf("Sending same row 10 times... \n");
 	for (i=0; i<10; i++) {
-		if((ret = blk_rowxfer(blkdesc)) != CS_SUCCEED) {
-			fprintf(stderr, "blk_rowxfer() failed\n");
-			return 1;
-		}
+		check_call(blk_rowxfer, (blkdesc));
 	}
 
-	ret = blk_done(blkdesc, CS_BLK_ALL, &count);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "blk_done() failed\n");
-		return 1;
-	}
+	check_call(blk_done, (blkdesc, CS_BLK_ALL, &count));
 
 	blk_drop(blkdesc);
 
@@ -268,11 +243,7 @@ main(int argc, char **argv)
 
 	printf("done\n");
 
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Logout failed\n");
-		return 1;
-	}
+	check_call(try_ctlogout, (ctx, conn, cmd, verbose));
 
 	return 0;
 }

@@ -107,9 +107,7 @@ read_login_info(int argc, char **argv)
 {
 	int len;
 	FILE *in = NULL;
-#if !defined(__MINGW32__) && !defined(_MSC_VER)
 	int ch;
-#endif
 	char *s1;
 	char filename[PATH_MAX];
 	static const char *PWD = "../../../PWD";
@@ -153,7 +151,6 @@ read_login_info(int argc, char **argv)
 
 	memset(&options, 0, sizeof(options));
 
-#if !defined(__MINGW32__) && !defined(_MSC_VER)
 	/* process command line options (handy for manual testing) */
 	while ((ch = getopt(argc, (char**)argv, "U:P:S:D:f:v")) != -1) {
 		switch (ch) {
@@ -186,7 +183,6 @@ read_login_info(int argc, char **argv)
 			exit(1);
 		}
 	}
-#endif
 	strlcpy(filename, PWD, sizeof(filename));
 
 	s1 = getenv("TDSPWDFILE");

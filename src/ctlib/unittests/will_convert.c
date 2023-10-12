@@ -19,15 +19,6 @@
 
 static CS_CONTEXT *context;
 
-static void
-check_ret(const char *name, CS_RETCODE ret)
-{
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "%s(): failed\n", name);
-		exit(1);
-	}
-}
-
 typedef struct {
 	const char *expected;
 	CS_INT from;
@@ -163,7 +154,7 @@ main(int argc, char **argv)
 	CS_INT from, to;
 	const test_row *row;
 
-	check_ret("try_ctlogin", try_ctlogin(&context, &connection, &command, verbose));
+	check_call(try_ctlogin, (&context, &connection, &command, verbose));
 
 	for (row = test_rows; row->expected; ++row) {
 		const CS_INT *type;

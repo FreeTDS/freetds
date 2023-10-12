@@ -20,7 +20,6 @@ main(int argc, char **argv)
 	CS_COMMAND *cmd;
 	int i, verbose = 0;
 
-	CS_RETCODE ret;
 	CS_RETCODE results_ret;
 
 	char query[1024];
@@ -32,28 +31,14 @@ main(int argc, char **argv)
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Login failed\n");
-		return 1;
-	}
+	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));
 
-	ret = run_command(cmd, "CREATE TABLE #t0004 (id int)");
-	if (ret != CS_SUCCEED)
-		return 1;
+	check_call(run_command, (cmd, "CREATE TABLE #t0004 (id int)"));
 	for (i = 0; i < NUMROWS; i++) {
 		sprintf(query, "INSERT #t0004 (id) VALUES (%d)", i);
 
-		ret = ct_command(cmd, CS_LANG_CMD, query, CS_NULLTERM, CS_UNUSED);
-		if (ret != CS_SUCCEED) {
-			fprintf(stderr, "ct_command() failed\n");
-			return 1;
-		}
-		ret = ct_send(cmd);
-		if (ret != CS_SUCCEED) {
-			fprintf(stderr, "ct_send() failed\n");
-			return 1;
-		}
+		check_call(ct_command, (cmd, CS_LANG_CMD, query, CS_NULLTERM, CS_UNUSED));
+		check_call(ct_send, (cmd));
 
 		results_ret = do_results(cmd, insert_results);
 		switch ((int) results_ret) {
@@ -69,16 +54,8 @@ main(int argc, char **argv)
 		}
 	}
 
-	ret = ct_command(cmd, CS_LANG_CMD, "UPDATE #t0004 SET id = id + 1", CS_NULLTERM, CS_UNUSED);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_command() failed\n");
-		return 1;
-	}
-	ret = ct_send(cmd);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_send() failed\n");
-		return 1;
-	}
+	check_call(ct_command, (cmd, CS_LANG_CMD, "UPDATE #t0004 SET id = id + 1", CS_NULLTERM, CS_UNUSED));
+	check_call(ct_send, (cmd));
 
 	results_ret = do_results(cmd, update_results);
 	switch ((int) results_ret) {
@@ -94,16 +71,8 @@ main(int argc, char **argv)
 	}
 
 	/* single row select */
-	ret = ct_command(cmd, CS_LANG_CMD, "SELECT * FROM #t0004 WHERE id = 1", CS_NULLTERM, CS_UNUSED);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_command() failed\n");
-		return 1;
-	}
-	ret = ct_send(cmd);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_send() failed\n");
-		return 1;
-	}
+	check_call(ct_command, (cmd, CS_LANG_CMD, "SELECT * FROM #t0004 WHERE id = 1", CS_NULLTERM, CS_UNUSED));
+	check_call(ct_send, (cmd));
 
 	results_ret = do_results(cmd, select_results);
 	switch ((int) results_ret) {
@@ -120,11 +89,7 @@ main(int argc, char **argv)
 	if (verbose) {
 		printf("Trying logout\n");
 	}
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Logout failed\n");
-		return 1;
-	}
+	check_call(try_ctlogout, (ctx, conn, cmd, verbose));
 
 	return 0;
 }

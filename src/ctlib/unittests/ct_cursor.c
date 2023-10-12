@@ -37,41 +37,17 @@ main(int argc, char **argv)
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Login failed\n");
-		return 1;
-	}
+	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));
 
-	ret = ct_cmd_alloc(conn, &cmd2);
-	if (ret != CS_SUCCEED) {
-		if (verbose) {
-			fprintf(stderr, "Command Alloc failed!\n");
-		}
-		return ret;
-	}
+	check_call(ct_cmd_alloc, (conn, &cmd2));
 
-	ret = run_command(cmd, "CREATE TABLE #test_table (col1 char(4))");
-	if (ret != CS_SUCCEED)
-		return 1;
+	check_call(run_command, (cmd, "CREATE TABLE #test_table (col1 char(4))"));
+	check_call(run_command, (cmd, "INSERT #test_table (col1) VALUES ('AAA')"));
+	check_call(run_command, (cmd, "INSERT #test_table (col1) VALUES ('BBB')"));
+	check_call(run_command, (cmd, "INSERT #test_table (col1) VALUES ('CCC')"));
 
-	ret = run_command(cmd, "INSERT #test_table (col1) VALUES ('AAA')");
-	if (ret != CS_SUCCEED)
-		return 1;
-	ret = run_command(cmd, "INSERT #test_table (col1) VALUES ('BBB')");
-	if (ret != CS_SUCCEED)
-		return 1;
-	ret = run_command(cmd, "INSERT #test_table (col1) VALUES ('CCC')");
-	if (ret != CS_SUCCEED)
-		return 1;
-
-	ret = run_command(cmd2, "CREATE TABLE #test_table2 (col1 char(4))");
-	if (ret != CS_SUCCEED)
-		return 1;
-
-	ret = run_command(cmd2, "INSERT #test_table2 (col1) VALUES ('---')");
-	if (ret != CS_SUCCEED)
-		return 1;
+	check_call(run_command, (cmd2, "CREATE TABLE #test_table2 (col1 char(4))"));
+	check_call(run_command, (cmd2, "INSERT #test_table2 (col1) VALUES ('---')"));
 
 	if (verbose) {
 		printf("Trying declare, rows , open in one SEND\n");
@@ -80,31 +56,13 @@ main(int argc, char **argv)
 	strcpy(text, "select col1 from #test_table where 1 = 1");
 	strcpy(name, "c1");
 
-	ret = ct_cursor(cmd, CS_CURSOR_DECLARE, name, CS_NULLTERM, text, CS_NULLTERM, CS_UNUSED);
+	check_call(ct_cursor, (cmd, CS_CURSOR_DECLARE, name, CS_NULLTERM, text, CS_NULLTERM, CS_UNUSED));
 
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_cursor declare failed\n");
-		return 1;
-	}
+	check_call(ct_cursor, (cmd, CS_CURSOR_ROWS, name, CS_NULLTERM, NULL, CS_UNUSED, (CS_INT) 1));
 
-	ret = ct_cursor(cmd, CS_CURSOR_ROWS, name, CS_NULLTERM, NULL, CS_UNUSED, (CS_INT) 1);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_cursor set cursor rows failed");
-		return 1;
-	}
+	check_call(ct_cursor, (cmd, CS_CURSOR_OPEN, name, CS_NULLTERM, text, CS_NULLTERM, CS_UNUSED));
 
-	ret = ct_cursor(cmd, CS_CURSOR_OPEN, name, CS_NULLTERM, text, CS_NULLTERM, CS_UNUSED);
-
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_cursor open failed\n");
-		return 1;
-	}
-
-	ret = ct_send(cmd);
-
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_send failed\n");
-	}
+	check_call(ct_send, (cmd));
 
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
 		switch ((int) result_type) {
@@ -117,11 +75,7 @@ main(int argc, char **argv)
 
 		case CS_CURSOR_RESULT:
 
-			ret = ct_cmd_props(cmd, CS_GET, CS_CUR_STATUS, &props_value, sizeof(CS_INT), NULL); 
-			if (ret != CS_SUCCEED) {
-				fprintf(stderr, "ct_cmd_props() failed\n");
-				return 1;
-			}
+			check_call(ct_cmd_props, (cmd, CS_GET, CS_CUR_STATUS, &props_value, sizeof(CS_INT), NULL)); 
 			if (props_value & CS_CURSTAT_DECLARED) {
 				fprintf(stderr, "ct_cmd_props claims cursor is in DECLARED state when it should be OPEN\n");
 				return 1;
@@ -135,12 +89,7 @@ main(int argc, char **argv)
 				return 1;
 			}
 
-			ret = ct_res_info(cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
-
-			if (ret != CS_SUCCEED) {
-				fprintf(stderr, "ct_res_info() failed");
-				return 1;
-			}
+			check_call(ct_res_info, (cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL));
 
 			if (num_cols != 1) {
 				fprintf(stderr, "unexpected num of columns =  %d \n", num_cols);
@@ -150,12 +99,7 @@ main(int argc, char **argv)
 			for (i = 0; i < num_cols; i++) {
 
 				/* here we can finally test for the return status column */
-				ret = ct_describe(cmd, i + 1, &datafmt);
-
-				if (ret != CS_SUCCEED) {
-					fprintf(stderr, "ct_describe() failed for column %d\n", i);
-					return 1;
-				}
+				check_call(ct_describe, (cmd, i + 1, &datafmt));
 
 				if (datafmt.status & CS_RETURN) {
 					printf("ct_describe() column %d \n", i);
@@ -166,12 +110,7 @@ main(int argc, char **argv)
 				datafmt.maxlength = 6;
 				datafmt.count = 1;
 				datafmt.locale = NULL;
-				ret = ct_bind(cmd, 1, &datafmt, col1, &datalength, &ind);
-				if (ret != CS_SUCCEED) {
-					fprintf(stderr, "ct_bind() failed\n");
-					return 1;
-				}
-
+				check_call(ct_bind, (cmd, 1, &datafmt, col1, &datalength, &ind));
 			}
 			row_count = 0;
 			while (((ret = ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, &count)) == CS_SUCCEED)
@@ -219,17 +158,9 @@ main(int argc, char **argv)
 	}
 
 
-	ret = ct_cursor(cmd, CS_CURSOR_CLOSE, name, CS_NULLTERM, NULL, CS_UNUSED, CS_DEALLOC);
+	check_call(ct_cursor, (cmd, CS_CURSOR_CLOSE, name, CS_NULLTERM, NULL, CS_UNUSED, CS_DEALLOC));
 
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_cursor(close) failed\n");
-		return ret;
-	}
-
-	if ((ret = ct_send(cmd)) != CS_SUCCEED) {
-		fprintf(stderr, "BILL ct_send() failed\n");
-		return ret;
-	}
+	check_call(ct_send, (cmd));
 
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
 		if (result_type == CS_CMD_FAIL) {
@@ -242,11 +173,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	ret = ct_cmd_props(cmd, CS_GET, CS_CUR_STATUS, &props_value, sizeof(CS_INT), NULL); 
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_cmd_props() failed");
-		return 1;
-	}
+	check_call(ct_cmd_props, (cmd, CS_GET, CS_CUR_STATUS, &props_value, sizeof(CS_INT), NULL)); 
 
 	if (props_value != CS_CURSTAT_NONE) {
 		fprintf(stderr, "ct_cmd_props() CS_CUR_STATUS != CS_CURSTAT_NONE \n");
@@ -259,18 +186,9 @@ main(int argc, char **argv)
 
 	strcpy(text, "select col1 from #test_table where 2 = 2");
 
-	ret = ct_cursor(cmd, CS_CURSOR_DECLARE, name, 3, text, CS_NULLTERM, CS_UNUSED);
+	check_call(ct_cursor, (cmd, CS_CURSOR_DECLARE, name, 3, text, CS_NULLTERM, CS_UNUSED));
 
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_cursor declare failed\n");
-		return 1;
-	}
-
-	ret = ct_send(cmd);
-
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_send failed\n");
-	}
+	check_call(ct_send, (cmd));
 
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
 		if (result_type == CS_CMD_FAIL) {
@@ -283,17 +201,9 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	ret = ct_cursor(cmd, CS_CURSOR_ROWS, name, 3, NULL, CS_UNUSED, (CS_INT) 1);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_cursor set cursor rows failed");
-		return 1;
-	}
+	check_call(ct_cursor, (cmd, CS_CURSOR_ROWS, name, 3, NULL, CS_UNUSED, (CS_INT) 1));
 
-	ret = ct_send(cmd);
-
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_send failed\n");
-	}
+	check_call(ct_send, (cmd));
 
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
 		if (result_type == CS_CMD_FAIL) {
@@ -306,18 +216,9 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	ret = ct_cursor(cmd, CS_CURSOR_OPEN, name, 3, text, 26, CS_UNUSED);
+	check_call(ct_cursor, (cmd, CS_CURSOR_OPEN, name, 3, text, 26, CS_UNUSED));
 
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_cursor open failed\n");
-		return 1;
-	}
-
-	ret = ct_send(cmd);
-
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_send failed\n");
-	}
+	check_call(ct_send, (cmd));
 
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
 		switch ((int) result_type) {
@@ -333,12 +234,7 @@ main(int argc, char **argv)
 			printf("ct_results: CS_STATUS_RESULT detected for sp_who\n");
 
 		case CS_CURSOR_RESULT:
-			ret = ct_res_info(cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
-
-			if (ret != CS_SUCCEED) {
-				fprintf(stderr, "ct_res_info() failed");
-				return 1;
-			}
+			check_call(ct_res_info, (cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL));
 
 			if (num_cols != 1) {
 				fprintf(stderr, "unexpected num of columns =  %d \n", num_cols);
@@ -348,12 +244,7 @@ main(int argc, char **argv)
 			for (i = 0; i < num_cols; i++) {
 
 				/* here we can finally test for the return status column */
-				ret = ct_describe(cmd, i + 1, &datafmt);
-
-				if (ret != CS_SUCCEED) {
-					fprintf(stderr, "ct_describe() failed for column %d\n", i);
-					return 1;
-				}
+				check_call(ct_describe, (cmd, i + 1, &datafmt));
 
 				if (datafmt.status & CS_RETURN) {
 					printf("ct_describe() column %d \n", i);
@@ -364,11 +255,7 @@ main(int argc, char **argv)
 				datafmt.maxlength = 6;
 				datafmt.count = 1;
 				datafmt.locale = NULL;
-				ret = ct_bind(cmd, 1, &datafmt, col1, &datalength, &ind);
-				if (ret != CS_SUCCEED) {
-					fprintf(stderr, "ct_bind() failed\n");
-					return 1;
-				}
+				check_call(ct_bind, (cmd, 1, &datafmt, col1, &datalength, &ind));
 			}
 			row_count = 0;
 			while (((ret = ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, &count)) == CS_SUCCEED)
@@ -413,17 +300,9 @@ main(int argc, char **argv)
 	}
 
 
-	ret = ct_cursor(cmd, CS_CURSOR_CLOSE, name, 3, NULL, CS_UNUSED, CS_UNUSED);
+	check_call(ct_cursor, (cmd, CS_CURSOR_CLOSE, name, 3, NULL, CS_UNUSED, CS_UNUSED));
 
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_cursor(close) failed\n");
-		return ret;
-	}
-
-	if ((ret = ct_send(cmd)) != CS_SUCCEED) {
-		fprintf(stderr, "ct_send() failed\n");
-		return ret;
-	}
+	check_call(ct_send, (cmd));
 
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
 		if (result_type == CS_CMD_FAIL) {
@@ -435,17 +314,9 @@ main(int argc, char **argv)
 		fprintf(stderr, "ct_results() returned BAD.\n");
 		return 1;
 	}
-	ret = ct_cursor(cmd, CS_CURSOR_DEALLOC, name, 3, NULL, CS_UNUSED, CS_UNUSED);
+	check_call(ct_cursor, (cmd, CS_CURSOR_DEALLOC, name, 3, NULL, CS_UNUSED, CS_UNUSED));
 
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_cursor(dealloc) failed\n");
-		return ret;
-	}
-
-	if ((ret = ct_send(cmd)) != CS_SUCCEED) {
-		fprintf(stderr, "ct_send() failed\n");
-		return ret;
-	}
+	check_call(ct_send, (cmd));
 
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
 		if (result_type == CS_CMD_FAIL) {
@@ -462,16 +333,8 @@ main(int argc, char **argv)
 		printf("Running normal select command after cursor operations\n");
 	}
 
-	ret = ct_command(cmd, CS_LANG_CMD, "select col1 from #test_table", CS_NULLTERM, CS_UNUSED);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_command() failed\n");
-		return 1;
-	}
-	ret = ct_send(cmd);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_send() failed\n");
-		return 1;
-	}
+	check_call(ct_command, (cmd, CS_LANG_CMD, "select col1 from #test_table", CS_NULLTERM, CS_UNUSED));
+	check_call(ct_send, (cmd));
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
 		switch ((int) result_type) {
 		case CS_CMD_SUCCEED:
@@ -487,11 +350,7 @@ main(int argc, char **argv)
 			datafmt.maxlength = 6;
 			datafmt.count = 1;
 			datafmt.locale = NULL;
-			ret = ct_bind(cmd, 1, &datafmt, col1, &datalength, &ind);
-			if (ret != CS_SUCCEED) {
-				fprintf(stderr, "ct_bind() failed\n");
-				return 1;
-			}
+			check_call(ct_bind, (cmd, 1, &datafmt, col1, &datalength, &ind));
 
 			while (((ret = ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, &count)) == CS_SUCCEED)
 			       || (ret == CS_ROW_FAIL)) {
@@ -541,11 +400,7 @@ main(int argc, char **argv)
 
 	ct_cmd_drop(cmd2);
 
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Logout failed\n");
-		return 2;
-	}
+	check_call(try_ctlogout, (ctx, conn, cmd, verbose));
 
 	if (verbose) {
 		printf("Test suceeded\n");

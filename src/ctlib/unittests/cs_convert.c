@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <ctpublic.h>
+#include "common.h"
 
 static CS_CONTEXT *ctx;
 static int allSuccess = 1;
@@ -117,17 +118,12 @@ DoTest(
 int
 main(int argc, char **argv)
 {
-	CS_RETCODE ret;
 	volatile CS_BIGINT one = 1;
 	int verbose = 1;
 
 	printf("%s: Testing conversion\n", __FILE__);
 
-	ret = cs_ctx_alloc(CS_VERSION_100, &ctx);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Init failed\n");
-		return 1;
-	}
+	check_call(cs_ctx_alloc, (CS_VERSION_100, &ctx));
 
 	/* TODO For each conversion test different values of fromlen and tolen */
 
@@ -296,11 +292,7 @@ main(int argc, char **argv)
 	DO_TEST(CS_CHAR test[] = "abcdef";
 		CS_CHAR test2[] = "616263", CS_BINARY_TYPE, test, 6, CS_CHAR_TYPE, 6, CS_FAIL, test2, 6);
 
-	ret = cs_ctx_drop(ctx);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Drop failed\n");
-		return 2;
-	}
+	check_call(cs_ctx_drop, (ctx));
 
 	if (verbose && allSuccess) {
 		printf("Test succeded\n");

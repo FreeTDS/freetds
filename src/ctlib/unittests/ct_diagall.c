@@ -42,51 +42,25 @@ main(int argc, char *argv[])
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Login failed\n");
-		return 1;
-	}
+	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));
 
-	if (ct_diag(conn, CS_INIT, CS_UNUSED, CS_UNUSED, NULL) != CS_SUCCEED) {
-		fprintf(stderr, "ct_diag(CS_INIT) failed\n");
-		return 1;
-	}
+	check_call(ct_diag, (conn, CS_INIT, CS_UNUSED, CS_UNUSED, NULL));
 
 	totmsgs = 5;
-	if (ct_diag(conn, CS_MSGLIMIT, CS_ALLMSG_TYPE, CS_UNUSED, &totmsgs) != CS_SUCCEED) {
-		fprintf(stderr, "ct_diag(CS_MSGLIMIT) failed\n");
-		return 1;
-	}
+	check_call(ct_diag, (conn, CS_MSGLIMIT, CS_ALLMSG_TYPE, CS_UNUSED, &totmsgs));
 
 	printf("Maximum message limit is set to: %d\n", totmsgs);
 
-	ret = run_command(cmd, "CREATE TABLE #ctlibarray (col1 int not null,  col2 char(4) not null, col3 datetime not null)");
-	if (ret != CS_SUCCEED)
-		return 1;
+	check_call(run_command, (cmd, "CREATE TABLE #ctlibarray (col1 int not null,  col2 char(4) not null, col3 datetime not null)"));
 
-	ret = run_command(cmd, "insert into #ctlibarray values (1, 'AAAA', 'Jan  1 2002 10:00:00AM')");
-	if (ret != CS_SUCCEED)
-		return 1;
-
-	ret = run_command(cmd, "insert into #ctlibarray values (2, 'BBBB', 'Jan  2 2002 10:00:00AM')");
-	if (ret != CS_SUCCEED)
-		return 1;
+	check_call(run_command, (cmd, "insert into #ctlibarray values (1, 'AAAA', 'Jan  1 2002 10:00:00AM')"));
+	check_call(run_command, (cmd, "insert into #ctlibarray values (2, 'BBBB', 'Jan  2 2002 10:00:00AM')"));
 
 	strcpy(select, "select col1, col2 from #ctlibarray order by col1 ");
 
-	ret = ct_command(cmd, CS_LANG_CMD, select, CS_NULLTERM, CS_UNUSED);
+	check_call(ct_command, (cmd, CS_LANG_CMD, select, CS_NULLTERM, CS_UNUSED));
 
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_command(%s) failed\n", select);
-		return 1;
-	}
-
-	ret = ct_send(cmd);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_send() failed\n");
-		return 1;
-	}
+	check_call(ct_send, (cmd));
 
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
 		switch ((int) result_type) {
@@ -99,21 +73,13 @@ main(int argc, char *argv[])
 			return 1;
 		case CS_ROW_RESULT:
 
-			ret = ct_res_info(cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
-			if (ret != CS_SUCCEED) {
-				fprintf(stderr, "ct_res_info() failed");
-				return 1;
-			}
+			check_call(ct_res_info, (cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL));
 			if (num_cols != 2) {
 				fprintf(stderr, "num_cols %d != 2", num_cols);
 				return 1;
 			}
 
-			ret = ct_describe(cmd, 1, &datafmt);
-			if (ret != CS_SUCCEED) {
-				fprintf(stderr, "ct_describe() failed");
-				return 1;
-			}
+			check_call(ct_describe, (cmd, 1, &datafmt));
 			datafmt.format = CS_FMT_UNUSED;
 			if (datafmt.maxlength > 1024) {
 				datafmt.maxlength = 1024;
@@ -121,17 +87,9 @@ main(int argc, char *argv[])
 
 			datafmt.count = 2;
 
-			ret = ct_bind(cmd, 1, &datafmt, &col1[0], datalength, ind);
-			if (ret != CS_SUCCEED) {
-				fprintf(stderr, "ct_bind() failed\n");
-				return 1;
-			}
+			check_call(ct_bind, (cmd, 1, &datafmt, &col1[0], datalength, ind));
 
-			ret = ct_describe(cmd, 2, &datafmt);
-			if (ret != CS_SUCCEED) {
-				fprintf(stderr, "ct_describe() failed");
-				return 1;
-			}
+			check_call(ct_describe, (cmd, 2, &datafmt));
 
 			datafmt.format = CS_FMT_NULLTERM;
 			datafmt.maxlength = 5;
@@ -145,12 +103,7 @@ main(int argc, char *argv[])
 				datafmt.maxlength = 5;
 				datafmt.count = 2;
 
-				ret = ct_bind(cmd, 2, &datafmt, &col2[0], datalength, ind);
-
-			}
-
-			if (ret != CS_SUCCEED) {
-				return 1;
+				check_call(ct_bind, (cmd, 2, &datafmt, &col2[0], datalength, ind));
 			}
 
 			count = 0;
@@ -202,58 +155,37 @@ main(int argc, char *argv[])
 	ret = run_command(cmd, "DROP TABLE #ctlibarray4");
 	ret = run_command(cmd, "DROP TABLE #ctlibarray5");
 
-	if (ct_diag(conn, CS_STATUS, CS_ALLMSG_TYPE, CS_UNUSED, &num_msgs) != CS_SUCCEED) {
-		fprintf(stderr, "ct_diag(CS_STATUS) failed\n");
-		return 1;
-	}
+	check_call(ct_diag, (conn, CS_STATUS, CS_ALLMSG_TYPE, CS_UNUSED, &num_msgs));
 
 	printf("Total number of client/server messages = %d \n", num_msgs);
 
-	if (ct_diag(conn, CS_STATUS, CS_CLIENTMSG_TYPE, CS_UNUSED, &num_msgs) != CS_SUCCEED) {
-		fprintf(stderr, "ct_diag(CS_STATUS) failed\n");
-		return 1;
-	}
+	check_call(ct_diag, (conn, CS_STATUS, CS_CLIENTMSG_TYPE, CS_UNUSED, &num_msgs));
 
 	printf("Number of client messages returned: %d\n", num_msgs);
 
 	for (i = 0; i < num_msgs; i++) {
 
-		if (ct_diag(conn, CS_GET, CS_CLIENTMSG_TYPE, i + 1, &client_message) != CS_SUCCEED) {
-			fprintf(stderr, "cs_diag(CS_GET) failed\n");
-			return 1;
-		}
+		check_call(ct_diag, (conn, CS_GET, CS_CLIENTMSG_TYPE, i + 1, &client_message));
 
 		clientmsg_cb(ctx, conn, &client_message);
 
 	}
 
-	if (ct_diag(conn, CS_STATUS, CS_SERVERMSG_TYPE, CS_UNUSED, &num_msgs) != CS_SUCCEED) {
-		fprintf(stderr, "ct_diag(CS_STATUS) failed\n");
-		return 1;
-	}
+	check_call(ct_diag, (conn, CS_STATUS, CS_SERVERMSG_TYPE, CS_UNUSED, &num_msgs));
 
 	printf("Number of server messages returned: %d\n", num_msgs);
 
 	for (i = 0; i < num_msgs; i++) {
 
-		if (ct_diag(conn, CS_GET, CS_SERVERMSG_TYPE, i + 1, &server_message) != CS_SUCCEED) {
-			fprintf(stderr, "cs_diag(CS_GET) failed\n");
-			return 1;
-		}
+		check_call(ct_diag, (conn, CS_GET, CS_SERVERMSG_TYPE, i + 1, &server_message));
 
 		servermsg_cb(ctx, conn, &server_message);
 
 	}
 
-	if (ct_diag(conn, CS_CLEAR, CS_ALLMSG_TYPE, CS_UNUSED, NULL) != CS_SUCCEED) {
-		fprintf(stderr, "cs_diag(CS_CLEAR) failed\n");
-		return 1;
-	}
+	check_call(ct_diag, (conn, CS_CLEAR, CS_ALLMSG_TYPE, CS_UNUSED, NULL));
 
-	if (ct_diag(conn, CS_STATUS, CS_ALLMSG_TYPE, CS_UNUSED, &num_msgs) != CS_SUCCEED) {
-		fprintf(stderr, "cs_diag(CS_STATUS) failed\n");
-		return 1;
-	}
+	check_call(ct_diag, (conn, CS_STATUS, CS_ALLMSG_TYPE, CS_UNUSED, &num_msgs));
 	if (num_msgs != 0) {
 		fprintf(stderr, "cs_diag(CS_CLEAR) failed there are still %d messages on queue\n", num_msgs);
 		return 1;
@@ -262,11 +194,7 @@ main(int argc, char *argv[])
 	if (verbose) {
 		printf("Trying logout\n");
 	}
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Logout failed\n");
-		return 1;
-	}
+	check_call(try_ctlogout, (ctx, conn, cmd, verbose));
 
 	return 0;
 }

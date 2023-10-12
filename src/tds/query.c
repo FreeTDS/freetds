@@ -2306,7 +2306,7 @@ tds_set_cur_cursor(TDSSOCKET *tds, TDSCURSOR *cursor)
 }
 
 TDSRET
-tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *something_to_send)
+tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, bool *something_to_send)
 {
 	CHECK_TDS_EXTRA(tds);
 
@@ -2345,14 +2345,14 @@ tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, in
 			} TDS_END_LEN
 			tds_put_tinyint(tds, 0);	/* number of columns = 0 , valid value applicable only for updatable cursor */
 		} TDS_END_LEN
-		*something_to_send = 1;
+		*something_to_send = true;
 	}
 
 	return TDS_SUCCESS;
 }
 
 TDSRET
-tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *something_to_send)
+tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, bool *something_to_send)
 {
 	CHECK_TDS_EXTRA(tds);
 
@@ -2383,7 +2383,7 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *
 			} TDS_END_LEN
 			tds_put_byte(tds, 0);	/* Cursor status : 0 for no arguments */
 		} TDS_END_LEN
-		*something_to_send = 1;
+		*something_to_send = true;
 	}
 	if (IS_TDS7_PLUS(tds->conn)) {
 		const char *converted_query;
@@ -2484,7 +2484,7 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *
 		}
 		tds_freeze_close(&outer);
 
-		*something_to_send = 1;
+		*something_to_send = true;
 		tds->current_op = TDS_OP_CURSOROPEN;
 		tdsdump_log(TDS_DBG_ERROR, "tds_cursor_open (): RPC call set up \n");
 	}
@@ -2495,7 +2495,7 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *
 }
 
 TDSRET
-tds_cursor_setrows(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
+tds_cursor_setrows(TDSSOCKET * tds, TDSCURSOR * cursor, bool *something_to_send)
 {
 	CHECK_TDS_EXTRA(tds);
 
@@ -2537,7 +2537,7 @@ tds_cursor_setrows(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 			tds_put_byte(tds, 0x20);	/* Status - TDS_CUR_ISTAT_ROWCNT 0x0020 */
 			tds_put_int(tds, cursor->cursor_rows);	/* row count to set */
 		} TDS_END_LEN
-		*something_to_send = 1;
+		*something_to_send = true;
 
 	}
 	return TDS_SUCCESS;
