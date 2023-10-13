@@ -1,10 +1,9 @@
 #!/bin/bash
 
-# $Id: sybase_tests,v 1.6 2010-07-27 07:19:18 freddy77 Exp $
 # these commands build dblib and ctlib tests using Sybase libraries
 
 errore() {
-	echo $* >&2
+	printf '%s\n' "$*" >&2
 	exit 1
 }
 
