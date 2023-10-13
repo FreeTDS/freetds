@@ -53,6 +53,7 @@ static const type_desc number_types[] = {
 	{ SYBMONEY, true },
 	{ SYBREAL, false },
 	{ SYBFLT8, false },
+	{ SYBNUMERIC, true },
 	{ 0, false },
 };
 
@@ -108,7 +109,12 @@ main(int argc, char **argv)
 static TDS_INT
 convert_and_free(int srctype, const void *src, TDS_UINT srclen, int desttype, CONV_RESULT *cr)
 {
-	TDS_INT res = tds_convert(ctx, srctype, src, srclen, desttype, cr);
+	TDS_INT res;
+
+	cr->n.precision = 20;
+	cr->n.scale = 0;
+
+	res = tds_convert(ctx, srctype, src, srclen, desttype, cr);
 	if (res < 0)
 		return res;
 
@@ -147,9 +153,10 @@ real_test(smp n, int srctype, bool is_integer)
 				int desttype = t->type;
 				CONV_RESULT cr_src, cr_dest;
 				int result;
+				smp num = smp_add(n, smp_from_int(diff * precision_factor));
 
 				/* convert from char to check for validity */
-				s_num = smp_to_string(smp_add(n, smp_from_int(diff * precision_factor)));
+				s_num = smp_to_string(num);
 				valid_src = is_valid(s_num, srctype, &cr_src);
 
 				/* if we were not able to get the source number do not check conversion */
@@ -157,6 +164,10 @@ real_test(smp n, int srctype, bool is_integer)
 					TDS_ZERO_FREE(s_num);
 					continue;
 				}
+
+				/* NUMERIC has a special encoding for -0 number */
+				if (srctype == SYBNUMERIC && i > 0 && smp_is_zero(num))
+					cr_src.n.array[0] = 1;
 
 				if (is_integer) {
 					valid_dest = is_valid(s_num, desttype, NULL);
@@ -189,7 +200,7 @@ real_test(smp n, int srctype, bool is_integer)
 			}
 		}
 
-		if (smp_is_zero(n))
+		if (smp_is_zero(n) && srctype != SYBNUMERIC)
 			break;
 		n = smp_negate(n);
 	}
