@@ -450,8 +450,8 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 			mynumber[i++] = '0';
 
 		/* convert number and check for overflow */
-		if (string_to_int8(mynumber, mynumber + i, &mymoney) < 0)
-			return TDS_CONVERT_OVERFLOW;
+		if ((rc = string_to_int8(mynumber, mynumber + i, &mymoney)) < 0)
+			return rc;
 
 		if (desttype == SYBMONEY) {
 			cr->m.mny = mymoney;
