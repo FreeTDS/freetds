@@ -911,7 +911,7 @@ tds_convert_numeric(const TDS_NUMERIC * src, int desttype, CONV_RESULT * cr)
 		i = TDS_GET_UA2BE(&(cr->n.array[2]));
 		if (cr->n.array[0])
 			i = -i;
-		if (((i >> 15) ^ cr->n.array[0]) & 1)
+		if (i != 0 && ((i >> 15) ^ cr->n.array[0]) & 1)
 			return TDS_CONVERT_OVERFLOW;
 		cr->si = (TDS_SMALLINT) i;
 		return sizeof(TDS_SMALLINT);
@@ -921,9 +921,9 @@ tds_convert_numeric(const TDS_NUMERIC * src, int desttype, CONV_RESULT * cr)
 		ret = tds_numeric_change_prec_scale(&(cr->n), 5, 0);
 		if (ret < 0)
 			return ret;
-		if (cr->n.array[0] || cr->n.array[1])
-			return TDS_CONVERT_OVERFLOW;
 		i = TDS_GET_UA2BE(&(cr->n.array[2]));
+		if ((i != 0 && cr->n.array[0]) || cr->n.array[1])
+			return TDS_CONVERT_OVERFLOW;
 		cr->usi = (TDS_USMALLINT) i;
 		return sizeof(TDS_USMALLINT);
 		break;
@@ -937,7 +937,7 @@ tds_convert_numeric(const TDS_NUMERIC * src, int desttype, CONV_RESULT * cr)
 		i = TDS_GET_UA4BE(&(cr->n.array[2]));
 		if (cr->n.array[0])
 			i = -i;
-		if (((i >> 31) ^ cr->n.array[0]) & 1)
+		if (i != 0 && ((i >> 31) ^ cr->n.array[0]) & 1)
 			return TDS_CONVERT_OVERFLOW;
 		cr->i = i;
 		return sizeof(TDS_INT);
@@ -947,9 +947,9 @@ tds_convert_numeric(const TDS_NUMERIC * src, int desttype, CONV_RESULT * cr)
 		ret = tds_numeric_change_prec_scale(&(cr->n), 10, 0);
 		if (ret < 0)
 			return ret;
-		if (cr->n.array[0] || cr->n.array[1])
-			return TDS_CONVERT_OVERFLOW;
 		i = TDS_GET_UA4BE(&(cr->n.array[2]));
+		if ((i != 0 && cr->n.array[0]) || cr->n.array[1])
+			return TDS_CONVERT_OVERFLOW;
 		cr->ui = i;
 		return sizeof(TDS_UINT);
 		break;
@@ -964,7 +964,7 @@ tds_convert_numeric(const TDS_NUMERIC * src, int desttype, CONV_RESULT * cr)
 		bi = (bi << 32) + TDS_GET_UA4BE(&(cr->n.array[6]));
 		if (cr->n.array[0])
 			bi = -bi;
-		if (((bi >> 63) ^ cr->n.array[0]) & 1)
+		if (bi != 0 && ((bi >> 63) ^ cr->n.array[0]) & 1)
 			return TDS_CONVERT_OVERFLOW;
 		cr->bi = bi;
 		return sizeof(TDS_INT8);
@@ -974,10 +974,10 @@ tds_convert_numeric(const TDS_NUMERIC * src, int desttype, CONV_RESULT * cr)
 		ret = tds_numeric_change_prec_scale(&(cr->n), 20, 0);
 		if (ret < 0)
 			return ret;
-		if (cr->n.array[0] || cr->n.array[1])
-			return TDS_CONVERT_OVERFLOW;
 		bi = TDS_GET_UA4BE(&(cr->n.array[2]));
 		bi = (bi << 32) + TDS_GET_UA4BE(&(cr->n.array[6]));
+		if ((bi != 0 && cr->n.array[0]) || cr->n.array[1])
+			return TDS_CONVERT_OVERFLOW;
 		cr->ubi = bi;
 		return sizeof(TDS_UINT8);
 		break;
@@ -1001,7 +1001,7 @@ tds_convert_numeric(const TDS_NUMERIC * src, int desttype, CONV_RESULT * cr)
 		i = TDS_GET_UA4BE(&(cr->n.array[2]));
 		if (cr->n.array[0])
 			i = -i;
-		if (((i >> 31) ^ cr->n.array[0]) & 1)
+		if (i != 0 && ((i >> 31) ^ cr->n.array[0]) & 1)
 			return TDS_CONVERT_OVERFLOW;
 		cr->m4.mny4 = i;
 		return sizeof(TDS_MONEY4);
@@ -1017,7 +1017,7 @@ tds_convert_numeric(const TDS_NUMERIC * src, int desttype, CONV_RESULT * cr)
 		bi = (bi << 32) + TDS_GET_UA4BE(&(cr->n.array[6]));
 		if (cr->n.array[0])
 			bi = -bi;
-		if (((bi >> 63) ^ cr->n.array[0]) & 1)
+		if (bi != 0 && ((bi >> 63) ^ cr->n.array[0]) & 1)
 			return TDS_CONVERT_OVERFLOW;
 		cr->m.mny = bi;
 		return sizeof(TDS_MONEY);
