@@ -21,7 +21,8 @@ get_entry(const char *key)
 	static TCHAR buf[256];
 
 	entry = NULL;
-	if (SQLGetPrivateProfileString(T(odbc_server), T(key), TEXT(""), buf, TDS_VECTOR_SIZE(buf), TEXT("odbc.ini")) > 0)
+	if (SQLGetPrivateProfileString((LPCTSTR) T(odbc_server), (LPCTSTR) T(key), TEXT(""),
+				       buf, TDS_VECTOR_SIZE(buf), TEXT("odbc.ini")) > 0)
 		entry = C(buf);
 
 	return entry;
