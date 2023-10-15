@@ -20,12 +20,7 @@
 #include <odbcinst.h>
 #endif
 
-#ifndef _WIN32
 #include <freetds/sysdep_private.h>
-#else
-#define TDS_SDIR_SEPARATOR "\\"
-#endif
-
 #include <freetds/replacements.h>
 
 HENV odbc_env;
