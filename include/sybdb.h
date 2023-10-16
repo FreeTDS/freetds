@@ -1278,7 +1278,7 @@ RETCODE dbsetlversion (LOGINREC * login, BYTE version);
 #define DBSETLPACKET(x,y)	dbsetllong((x), (y), DBSETPACKET)
 #define dbsetlpacket(x,y)	dbsetllong((x), (y), DBSETPACKET)
 #define DBSETENCRYPT		12
-#define DBSETLENCRYPT(x,y)	dbsetlname((x), (y), DBSETENCRYPT)
+#define DBSETLENCRYPT(x,y)	dbsetlbool((x), (y), DBSETENCRYPT)
 #define DBSETLABELED		13
 #define DBSETLLABELED(x,y)	dbsetlbool((x), (y), DBSETLABELED)
 #define BCP_SETLABELED(x,y)	dbsetlbool((x), (y), DBSETLABELED)
@@ -1300,6 +1300,8 @@ RETCODE dbsetlversion (LOGINREC * login, BYTE version);
 #define DBSETLREADONLY(x,y)	dbsetlbool((x), (y), DBSETREADONLY)
 #define DBSETDELEGATION		1004
 #define DBSETLDELEGATION(x, y)	dbsetlbool((x), (y), DBSETDELEGATION)
+#define DBSETENCRYPTION		1005
+#define DBSETLENCRYPTION(x, y)  dbsetlname((x), (y), DBSETENCRYPTION)
 
 RETCODE bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char *errfile, int direction);
 DBINT bcp_done(DBPROCESS * dbproc);

@@ -804,8 +804,9 @@ dbsetlname(LOGINREC * login, const char *value, int which)
 	case DBSETSERVERPRINCIPAL:
 		copy_ret = !!tds_dstr_copy(&login->tds_login->server_spn, value_nonull);
 		break;
-	case DBSETENCRYPT:
-		copy_ret = tds_set_encryption(login->tds_login, value_nonull);
+	case DBSETENCRYPTION:
+		tds_parse_conf_section(TDS_STR_ENCRYPTION, value_nonull, login->tds_login);
+		return SUCCEED;
 		break;
 	default:
 		dbperror(NULL, SYBEASUL, 0); /* Attempt to set unknown LOGINREC field */
@@ -937,6 +938,7 @@ dbsetlbool(LOGINREC * login, int value, int which)
 	case DBSETDELEGATION:
 		login->tds_login->gssapi_use_delegation = b_value;
 		return SUCCEED;
+	case DBSETENCRYPT:
 	case DBSETLABELED:
 	default:
 		tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbsetlbool() which = %d\n", which);
