@@ -36,6 +36,7 @@ TESTS = \
 	long_binary$(EXEEXT) \
 	will_convert$(EXEEXT) \
 	variant$(EXEEXT) \
+	errors$(EXEEXT) \
 	$(NULL)
 
 check_PROGRAMS	=	$(TESTS)
@@ -77,6 +78,7 @@ all_types_LDFLAGS	= -static ../libct.la ../../tds/unittests/libcommon.a -shared
 long_binary_SOURCES	= long_binary.c
 will_convert_SOURCES	= will_convert.c
 variant_SOURCES		= variant.c
+errors_SOURCES		= errors.c
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h

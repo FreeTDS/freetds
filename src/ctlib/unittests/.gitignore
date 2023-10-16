@@ -35,4 +35,5 @@ long_binary
 will_convert
 data
 variant
+errors
 libcommon.a

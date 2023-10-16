@@ -14,9 +14,7 @@
 #include <unistd.h>
 #endif
 
-#ifndef DBNTWIN32
 #include <freetds/replacements.h>
-#endif
 
 #include <ctpublic.h>
 #include "common.h"
@@ -31,39 +29,18 @@ char DATABASE[512];
 
 COMMON_PWD common_pwd = {0};
 
-static char *DIRNAME = NULL;
 static const char *BASENAME = NULL;
 
 static const char *PWD = "../../../PWD";
 
-
 int cslibmsg_cb_invoked = 0;
 int clientmsg_cb_invoked = 0;
 int servermsg_cb_invoked = 0;
+bool error_to_stdout = false;
+
+ct_message ct_last_message;
 
 static CS_RETCODE continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, int verbose);
-
-#if defined(__MINGW32__) || defined(_MSC_VER)
-static char *
-tds_dirname(char* path)
-{
-	char *p, *p2;
-
-	for (p = path + strlen(path); --p > path && (*p == '/' || *p == '\\');)
-		*p = '\0';
-
-	p = strrchr(path, '/');
-	if (!p)
-		p = path;
-	p2 = strrchr(p, '\\');
-	if (p2)
-		p = p2;
-	*p = 0;
-	return path;
-}
-#define dirname tds_dirname
-
-#endif
 
 CS_RETCODE
 read_login_info(void)
@@ -116,14 +93,10 @@ establish_login(int argc, char **argv)
 	extern char *optarg;
 	extern int optind;
 	COMMON_PWD options = {0};
-#if !defined(__MINGW32__) && !defined(_MSC_VER)
 	int ch;
-#endif
 
 	BASENAME = basename((char *)argv[0]);
-	DIRNAME = dirname((char *)argv[0]);
 
-#if !defined(__MINGW32__) && !defined(_MSC_VER)
 	/* process command line options (handy for manual testing) */
 	while ((ch = getopt(argc, argv, "U:P:S:D:f:m:v")) != -1) {
 		switch (ch) {
@@ -156,7 +129,6 @@ establish_login(int argc, char **argv)
 			exit(1);
 		}
 	}
-#endif
 	read_login_info();
 
 	/* override PWD file with command-line options */
@@ -275,6 +247,7 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 		}
 		ct_con_drop(*conn);
 		*conn = NULL;
+		ct_exit(*ctx, CS_UNUSED);
 		cs_ctx_drop(*ctx);
 		*ctx = NULL;
 		return ret;
@@ -286,6 +259,7 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 		}
 		ct_con_drop(*conn);
 		*conn = NULL;
+		ct_exit(*ctx, CS_UNUSED);
 		cs_ctx_drop(*ctx);
 		*ctx = NULL;
 		return ret;
@@ -333,7 +307,7 @@ run_command(CS_COMMAND * cmd, const char *sql)
 		return CS_FAIL;
 	}
 
-	ret = ct_command(cmd, CS_LANG_CMD, sql, CS_NULLTERM, CS_UNUSED);
+	ret = ct_command(cmd, CS_LANG_CMD, (void *) sql, CS_NULLTERM, CS_UNUSED);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "ct_command() failed\n");
 		return ret;
@@ -377,11 +351,17 @@ CS_INT
 cslibmsg_cb(CS_CONTEXT * connection, CS_CLIENTMSG * errmsg)
 {
 	cslibmsg_cb_invoked++;
+
+	ct_reset_last_message();
+	ct_last_message.type = CTMSG_CSLIB;
+	ct_last_message.number = errmsg->msgnumber;
+	strlcpy(ct_last_message.text, errmsg->msgstring, sizeof(ct_last_message.text));
+
 	fprintf(stderr, "\nCS-Library Message:\n");
-	fprintf(stderr, "number %d layer %d origin %d severity %d number %d\n",
+	fprintf(stderr, "number %#x layer %d origin %d severity %d number %d\n",
 		errmsg->msgnumber,
-		CS_LAYER(errmsg->msgnumber),
-		CS_ORIGIN(errmsg->msgnumber), CS_SEVERITY(errmsg->msgnumber), CS_NUMBER(errmsg->msgnumber));
+		(int) CS_LAYER(errmsg->msgnumber), (int) CS_ORIGIN(errmsg->msgnumber),
+		(int) CS_SEVERITY(errmsg->msgnumber), (int) CS_NUMBER(errmsg->msgnumber));
 	fprintf(stderr, "msgstring: %s\n", errmsg->msgstring);
 	fprintf(stderr, "osstring: %s\n", (errmsg->osstringlen > 0)
 		? errmsg->osstring : "(null)");
@@ -390,38 +370,71 @@ cslibmsg_cb(CS_CONTEXT * connection, CS_CLIENTMSG * errmsg)
 
 
 
+static CS_RETCODE
+clientmsg_gen_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg,
+		 ct_message_type msg_type)
+{
+	FILE *out = error_to_stdout ? stdout: stderr;
+
+	clientmsg_cb_invoked++;
+
+	ct_reset_last_message();
+	ct_last_message.type = msg_type;
+	ct_last_message.number = errmsg->msgnumber;
+	strlcpy(ct_last_message.text, errmsg->msgstring, sizeof(ct_last_message.text));
+
+	fprintf(out, "\nOpen Client Message%s: %p %p\n",
+		msg_type == CTMSG_CLIENT ? "" : " #2", context, connection);
+	fprintf(out, "number %#x layer %d origin %d severity %d number %d\n",
+		errmsg->msgnumber,
+		(int) CS_LAYER(errmsg->msgnumber), (int) CS_ORIGIN(errmsg->msgnumber),
+		(int) CS_SEVERITY(errmsg->msgnumber), (int) CS_NUMBER(errmsg->msgnumber));
+	fprintf(out, "msgstring: %s\n", errmsg->msgstring);
+	fprintf(out, "osstring: %s\n", (errmsg->osstringlen > 0)
+		? errmsg->osstring : "(null)");
+	fflush(out);
+	return CS_SUCCEED;
+}
+
 CS_RETCODE
 clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg)
 {
-	clientmsg_cb_invoked++;
-	fprintf(stderr, "\nOpen Client Message:\n");
-	fprintf(stderr, "number %d layer %d origin %d severity %d number %d\n",
-		errmsg->msgnumber,
-		CS_LAYER(errmsg->msgnumber),
-		CS_ORIGIN(errmsg->msgnumber), CS_SEVERITY(errmsg->msgnumber), CS_NUMBER(errmsg->msgnumber));
-	fprintf(stderr, "msgstring: %s\n", errmsg->msgstring);
-	fprintf(stderr, "osstring: %s\n", (errmsg->osstringlen > 0)
-		? errmsg->osstring : "(null)");
-	return CS_SUCCEED;
+	return clientmsg_gen_cb(context, connection, errmsg, CTMSG_CLIENT);
+}
+
+CS_RETCODE
+clientmsg_cb2(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg)
+{
+	return clientmsg_gen_cb(context, connection, errmsg, CTMSG_CLIENT2);
 }
 
 CS_RETCODE
 servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * srvmsg)
 {
+	FILE *out = error_to_stdout ? stdout: stderr;
+
 	servermsg_cb_invoked++;
 
+	ct_reset_last_message();
+	ct_last_message.type = CTMSG_SERVER;
+	ct_last_message.number = srvmsg->msgnumber;
+	strlcpy(ct_last_message.text, srvmsg->text, sizeof(ct_last_message.text));
+
 	if (srvmsg->msgnumber == 5701 || srvmsg->msgnumber == 5703) {
-		fprintf(stderr, "%s\n", srvmsg->text);
+		fprintf(out, "%s\n", srvmsg->text);
+		fflush(out);
 		return CS_SUCCEED;
 	}
 
-	fprintf(stderr, "%s Message %d severity %d state %d line %d:\n",
+	fprintf(out, "\nServer message:\n");
+	fprintf(out, "%s Message %d severity %d state %d line %d:\n",
 		srvmsg->svrnlen > 0? srvmsg->svrname : "Server",
 		srvmsg->msgnumber, srvmsg->severity, srvmsg->state, srvmsg->line);
 	if (srvmsg->proclen > 0)
-		fprintf(stderr, "proc %s: ", srvmsg->proc);
-	fprintf(stderr, "\t\"%s\"\n", srvmsg->text);
+		fprintf(out, "proc %s: ", srvmsg->proc);
+	fprintf(out, "\t\"%s\"\n", srvmsg->text);
 
+	fflush(out);
 	return CS_SUCCEED;
 }
 
@@ -445,4 +458,19 @@ res_type_str(CS_RETCODE ret)
 
 	sprintf(str, "?? (%d)", (int) ret);
 	return str;
+}
+
+void
+_check_ret(const char *name, CS_RETCODE ret, int line)
+{
+	if (ret != CS_SUCCEED) {
+		fprintf(stderr, "%s():%d: failed\n", name, line);
+		exit(1);
+	}
+}
+
+void
+ct_reset_last_message(void)
+{
+	memset(&ct_last_message, 0, sizeof(ct_last_message));
 }

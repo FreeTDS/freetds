@@ -17,9 +17,6 @@
 static const char *query =
 	"insert into #ctparam_lang (name,name2,age,cost,bdate,fval) values (@in1, @in2, @in3, @moneyval, @dateval, @floatval)";
 
-CS_RETCODE ex_servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * errmsg);
-CS_RETCODE ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);
-
 static int insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames);
 
 /* Testing: binding of data via ct_param */
@@ -33,7 +30,6 @@ main(int argc, char *argv[])
 	CS_COMMAND *cmd;
 	int verbose = 0;
 
-	CS_RETCODE ret;
 	CS_CHAR cmdbuf[4096];
 
 	if (argc > 1 && (0 == strcmp(argv[1], "-v")))
@@ -43,26 +39,13 @@ main(int argc, char *argv[])
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Login failed\n");
-		return 1;
-	}
-
-	ct_callback(ctx, NULL, CS_SET, CS_CLIENTMSG_CB, (CS_VOID *) ex_clientmsg_cb);
-
-	ct_callback(ctx, NULL, CS_SET, CS_SERVERMSG_CB, (CS_VOID *) ex_servermsg_cb);
+	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));
+	error_to_stdout = true;
 
 	strcpy(cmdbuf, "create table #ctparam_lang (id numeric identity not null, \
 		name varchar(30), name2 varchar(20), age int, cost money, bdate datetime, fval float) ");
 
-	ret = run_command(cmd, cmdbuf);
-
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "create table failed\n");
-		errCode = 1;
-		goto ERR;
-	}
+	check_call(run_command, (cmd, cmdbuf));
 
 	/* test by name */
 	errCode = insert_test(conn, cmd, 1);
@@ -76,15 +59,10 @@ main(int argc, char *argv[])
 	if (verbose && (0 == errCode))
 		printf("lang_ct_param tests successful\n");
 
-ERR:
 	if (verbose) {
 		printf("Trying logout\n");
 	}
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Logout failed\n");
-		return 1;
-	}
+	check_call(try_ctlogout, (ctx, conn, cmd, verbose));
 
 	return errCode;
 }
@@ -338,40 +316,4 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames)
 	}
 
 	return 0;
-}
-
-CS_RETCODE
-ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg)
-{
-	printf("\nOpen Client Message:\n");
-	printf("Message number: LAYER = (%d) ORIGIN = (%d) ", CS_LAYER(errmsg->msgnumber), CS_ORIGIN(errmsg->msgnumber));
-	printf("SEVERITY = (%d) NUMBER = (%d)\n", CS_SEVERITY(errmsg->msgnumber), CS_NUMBER(errmsg->msgnumber));
-	printf("Message String: %s\n", errmsg->msgstring);
-	if (errmsg->osstringlen > 0) {
-		printf("Operating System Error: %s\n", errmsg->osstring);
-	}
-	fflush(stdout);
-
-	return CS_SUCCEED;
-}
-
-CS_RETCODE
-ex_servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * srvmsg)
-{
-	printf("\nServer message:\n");
-	printf("Message number: %d, Severity %d, ", srvmsg->msgnumber, srvmsg->severity);
-	printf("State %d, Line %d\n", srvmsg->state, srvmsg->line);
-
-	if (srvmsg->svrnlen > 0) {
-		printf("Server '%s'\n", srvmsg->svrname);
-	}
-
-	if (srvmsg->proclen > 0) {
-		printf(" Procedure '%s'\n", srvmsg->proc);
-	}
-
-	printf("Message String: %s\n", srvmsg->text);
-	fflush(stdout);
-
-	return CS_SUCCEED;
 }

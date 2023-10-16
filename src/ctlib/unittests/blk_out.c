@@ -41,58 +41,23 @@ main(int argc, char *argv[])
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Login failed\n");
-		return 1;
-	}
+	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));
 
 	/* do not test error */
 	ret = run_command(cmd, "IF OBJECT_ID('tempdb..#ctlibarray') IS NOT NULL DROP TABLE #ctlibarray");
 
-	ret = run_command(cmd, "CREATE TABLE #ctlibarray (col1 int null,  col2 char(4) not null, col3 datetime not null)");
-	if (ret != CS_SUCCEED)
-		return 1;
+	check_call(run_command, (cmd, "CREATE TABLE #ctlibarray (col1 int null,  col2 char(4) not null, col3 datetime not null)"));
+	check_call(run_command, (cmd, "insert into #ctlibarray values (1, 'AAAA', 'Jan  1 2002 10:00:00AM')"));
+	check_call(run_command, (cmd, "insert into #ctlibarray values (2, 'BBBB', 'Jan  2 2002 10:00:00AM')"));
+	check_call(run_command, (cmd, "insert into #ctlibarray values (3, 'CCCC', 'Jan  3 2002 10:00:00AM')"));
+	check_call(run_command, (cmd, "insert into #ctlibarray values (8, 'DDDD', 'Jan  4 2002 10:00:00AM')"));
+	check_call(run_command, (cmd, "insert into #ctlibarray values (NULL, 'EEEE', 'Jan  5 2002 10:00:00AM')"));
 
-	ret = run_command(cmd, "insert into #ctlibarray values (1, 'AAAA', 'Jan  1 2002 10:00:00AM')");
-	if (ret != CS_SUCCEED)
-		return 1;
+	check_call(blk_alloc, (conn, BLK_VERSION_100, &blkdesc));
 
-	ret = run_command(cmd, "insert into #ctlibarray values (2, 'BBBB', 'Jan  2 2002 10:00:00AM')");
-	if (ret != CS_SUCCEED)
-		return 1;
+	check_call(blk_init, (blkdesc, CS_BLK_OUT, "#ctlibarray", CS_NULLTERM));
 
-	ret = run_command(cmd, "insert into #ctlibarray values (3, 'CCCC', 'Jan  3 2002 10:00:00AM')");
-	if (ret != CS_SUCCEED)
-		return 1;
-
-	ret = run_command(cmd, "insert into #ctlibarray values (8, 'DDDD', 'Jan  4 2002 10:00:00AM')");
-	if (ret != CS_SUCCEED)
-		return 1;
-
-	ret = run_command(cmd, "insert into #ctlibarray values (NULL, 'EEEE', 'Jan  5 2002 10:00:00AM')");
-	if (ret != CS_SUCCEED)
-		return 1;
-
-	ret = blk_alloc(conn, BLK_VERSION_100, &blkdesc);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "blk_alloc() failed\n");
-		return 1;
-	}
-
-	ret = blk_init(blkdesc, CS_BLK_OUT, "#ctlibarray", CS_NULLTERM );
-
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "blk_init() failed\n");
-		return 1;
-	}
-
-
-	ret = blk_describe(blkdesc, 1, &datafmt);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "blk_describe(1) failed");
-		return 1;
-	}
+	check_call(blk_describe, (blkdesc, 1, &datafmt));
 
 	datafmt.format = CS_FMT_UNUSED;
 	if (datafmt.maxlength > 1024) {
@@ -101,45 +66,24 @@ main(int argc, char *argv[])
 
 	datafmt.count = 2;
 
-	ret = blk_bind(blkdesc, 1, &datafmt, &col1[0], &lencol1[0], &indcol1[0]);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "blk_bind() failed\n");
-		return 1;
-	}
+	check_call(blk_bind, (blkdesc, 1, &datafmt, &col1[0], &lencol1[0], &indcol1[0]));
 
-
-	ret = blk_describe(blkdesc, 2, &datafmt);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "blk_describe(2) failed");
-		return 1;
-	}
+	check_call(blk_describe, (blkdesc, 2, &datafmt));
 
 	datafmt.format = CS_FMT_NULLTERM;
 	datafmt.maxlength = 5;
 	datafmt.count = 2;
 
-	ret = blk_bind(blkdesc, 2, &datafmt, col2[0], &lencol2[0], &indcol2[0]);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "blk_bind() failed\n");
-		return 1;
-	}
+	check_call(blk_bind, (blkdesc, 2, &datafmt, col2[0], &lencol2[0], &indcol2[0]));
 
-	ret = blk_describe(blkdesc, 3, &datafmt);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "blk_describe() failed");
-		return 1;
-	}
+	check_call(blk_describe, (blkdesc, 3, &datafmt));
 
 	datafmt.datatype = CS_CHAR_TYPE;
 	datafmt.format = CS_FMT_NULLTERM;
 	datafmt.maxlength = 32;
 	datafmt.count = 2;
 
-	ret = blk_bind(blkdesc, 3, &datafmt, col3[0], &lencol3[0], &indcol3[0]);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_bind() failed\n");
-		return 1;
-	}
+	check_call(blk_bind, (blkdesc, 3, &datafmt, col3[0], &lencol3[0], &indcol3[0]));
 
 	while((ret = blk_rowxfer_mult(blkdesc, &count)) == CS_SUCCEED) {
 		for(i = 0; i < count; i++) {
@@ -166,11 +110,7 @@ main(int argc, char *argv[])
 
 	blk_drop(blkdesc);
 
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Logout failed\n");
-		return 1;
-	}
+	check_call(try_ctlogout, (ctx, conn, cmd, verbose));
 
 	return 0;
 }

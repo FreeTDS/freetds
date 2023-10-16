@@ -70,12 +70,10 @@ main(int argc, char **argv)
 {
 	TDSCONTEXT *tds_ctx;
 	TDSSOCKET *tds;
-	CS_RETCODE ret;
 
 	tdsdump_open(getenv("TDSDUMP"));
 
-	ret = cs_ctx_alloc(CS_VERSION_100, &ctx);
-	assert(ret == CS_SUCCEED);
+	check_call(cs_ctx_alloc, (CS_VERSION_100, &ctx));
 
 	tds_ctx = tds_alloc_context(NULL);
 	assert(tds_ctx);

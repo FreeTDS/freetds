@@ -1449,9 +1449,9 @@ void tds_convert_string_free(const char *original, const char *converted);
 #endif
 TDSRET tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out);
 
-TDSRET tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *send);
-TDSRET tds_cursor_setrows(TDSSOCKET * tds, TDSCURSOR * cursor, int *send);
-TDSRET tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *send);
+TDSRET tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, bool *send);
+TDSRET tds_cursor_setrows(TDSSOCKET * tds, TDSCURSOR * cursor, bool *send);
+TDSRET tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, bool *send);
 TDSRET tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_FETCH fetch_type, TDS_INT i_row);
 TDSRET tds_cursor_get_cursor_info(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_UINT * row_number, TDS_UINT * row_count);
 TDSRET tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor);

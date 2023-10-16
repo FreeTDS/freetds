@@ -25,15 +25,6 @@ csmsg_callback(CS_CONTEXT *ctx, CS_CLIENTMSG * emsgp)
 	return CS_SUCCEED;
 }
 
-static void
-check_ret(const char *name, CS_RETCODE ret)
-{
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "%s(): failed\n", name);
-		exit(1);
-	}
-}
-
 static int
 fetch_results(CS_COMMAND * command)
 {
@@ -46,11 +37,11 @@ fetch_results(CS_COMMAND * command)
 	datafmt.datatype = CS_INT_TYPE;
 	datafmt.count = 1;
 
-	check_ret("ct_results", ct_results(command, &result_type));
+	check_call(ct_results, (command, &result_type));
 	do {
 		if (result_type == CS_ROW_RESULT) {
-			check_ret("ct_bind", ct_bind(command, 1, &datafmt, &int_result, &copied, &ind));
-			check_ret("ct_fetch", ct_fetch(command, CS_UNUSED, CS_UNUSED, CS_UNUSED, &rows_read));
+			check_call(ct_bind, (command, 1, &datafmt, &int_result, &copied, &ind));
+			check_call(ct_fetch, (command, CS_UNUSED, CS_UNUSED, CS_UNUSED, &rows_read));
 			printf("received %d bytes\n", (int) int_result);
 			result_len = int_result;
 		}
@@ -65,8 +56,8 @@ static int
 execute_sql(CS_COMMAND * command, const char *sql)
 {
 	printf("executing sql: %s\n", sql);
-	check_ret("ct_command", ct_command(command, CS_LANG_CMD, sql, nullterm, unused));
-	check_ret("ct_send", ct_send(command));
+	check_call(ct_command, (command, CS_LANG_CMD, sql, nullterm, unused));
+	check_call(ct_send, (command));
 	return fetch_results(command);
 }
 
@@ -86,8 +77,8 @@ main(int argc, char **argv)
 
 	printf("-- begin --\n");
 
-	check_ret("try_ctlogin", try_ctlogin(&context, &connection, &command, verbose));
-	check_ret("cs_config", cs_config(context, CS_SET, CS_MESSAGE_CB, (CS_VOID *) csmsg_callback, unused, 0));
+	check_call(try_ctlogin, (&context, &connection, &command, verbose));
+	check_call(cs_config, (context, CS_SET, CS_MESSAGE_CB, (CS_VOID *) csmsg_callback, unused, 0));
 
 	execute_sql(command, "if object_id('mps_table') is not null drop table mps_table");
 	execute_sql(command, "if object_id('mps_rpc') is not null drop procedure mps_rpc");
@@ -116,9 +107,9 @@ main(int argc, char **argv)
 	datafmt.datatype = CS_IMAGE_TYPE;
 	datafmt.status = CS_INPUTVALUE;
 
-	check_ret("ct_command", ct_command(command, CS_RPC_CMD, "mps_rpc", nullterm, unused));
-	check_ret("ct_setparam", ct_setparam(command, &datafmt, buffer, &buffer_len, &ind));
-	check_ret("ct_send", ct_send(command));
+	check_call(ct_command, (command, CS_RPC_CMD, "mps_rpc", nullterm, unused));
+	check_call(ct_setparam, (command, &datafmt, buffer, &buffer_len, &ind));
+	check_call(ct_send, (command));
 
 	fetch_results(command);
 

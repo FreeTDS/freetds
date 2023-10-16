@@ -44,21 +44,11 @@ main(int argc, char *argv[])
 	CS_INT rows_read;
 
 	printf("%s: submit a not existing stored procedure\n", __FILE__);
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Login failed\n");
-		return 1;
-	}
+	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));
 
-	if ((ret = ct_command(cmd, CS_RPC_CMD, "IDoNotExist", CS_NULLTERM, CS_NO_RECOMPILE)) != CS_SUCCEED) {
-		fprintf(stderr, "ct_command(CS_RPC_CMD) failed");
-		return 1;
-	}
+	check_call(ct_command, (cmd, CS_RPC_CMD, "IDoNotExist", CS_NULLTERM, CS_NO_RECOMPILE));
 
-	if (ct_send(cmd) != CS_SUCCEED) {
-		fprintf(stderr, "ct_send(RPC) failed");
-		return 1;
-	}
+	check_call(ct_send, (cmd));
 
 	while ((ret = ct_results(cmd, &res_type)) == CS_SUCCEED) {
 		printf("ct_results returned %s\n", printable_ret(res_type));
@@ -78,11 +68,7 @@ main(int argc, char *argv[])
 			return 1;
 
 		case CS_MSG_RESULT:
-			ret = ct_res_info(cmd, CS_MSGTYPE, (CS_VOID *) & msg_id, CS_UNUSED, NULL);
-			if (ret != CS_SUCCEED) {
-				fprintf(stderr, "ct_res_info(msg_id) failed");
-				return 1;
-			}
+			check_call(ct_res_info, (cmd, CS_MSGTYPE, (CS_VOID *) & msg_id, CS_UNUSED, NULL));
 			printf("ct_result returned CS_MSG_RESULT where msg id = %d.\n", msg_id);
 			break;
 
@@ -122,11 +108,7 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Logout failed\n");
-		return 1;
-	}
+	check_call(try_ctlogout, (ctx, conn, cmd, verbose));
 
 	return 0;
 }

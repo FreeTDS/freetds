@@ -58,23 +58,15 @@ main(int argc, char **argv)
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Login failed\n");
-		return 1;
-	}
+	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));
 
 	/* Create needed tables */
-	ret = run_command(cmd, "CREATE TABLE #t0010 (id int, col1 varchar(255))");
-	if (ret != CS_SUCCEED)
-		return 1;
+	check_call(run_command, (cmd, "CREATE TABLE #t0010 (id int, col1 varchar(255))"));
 
 	for (i = 0; i < 10; i++) {
 		sprintf(query, "INSERT #t0010 (id, col1) values (%d, 'This is field no %d')", i, i);
 
-		ret = run_command(cmd, query);
-		if (ret != CS_SUCCEED)
-			return 1;
+		check_call(run_command, (cmd, query));
 	}
 
 	/* Set SIGALRM signal handler */
@@ -93,17 +85,10 @@ main(int argc, char **argv)
 		}
 
 		/* Issue a command returning many rows */
-		ret = ct_command(cmd, CS_LANG_CMD, "SELECT * FROM #t0010 t1, #t0010 t2, #t0010 t3, #t0010 t4", CS_NULLTERM, CS_UNUSED);
-		if (ret != CS_SUCCEED) {
-			fprintf(stderr, "ct_command() failed.\n");
-			return 1;
-		}
+		check_call(ct_command, 
+			   (cmd, CS_LANG_CMD, "SELECT * FROM #t0010 t1, #t0010 t2, #t0010 t3, #t0010 t4", CS_NULLTERM, CS_UNUSED));
 
-		ret = ct_send(cmd);
-		if (ret != CS_SUCCEED) {
-			fprintf(stderr, "first ct_send() failed.\n");
-			return 1;
-		}
+		check_call(ct_send, (cmd));
 
 		/* Save a global reference for the interrupt handler */
 		g_cmd = cmd;
@@ -146,17 +131,9 @@ main(int argc, char **argv)
 	 * Issue another command, this will be executed after a ct_cancel, 
 	 * to test if wire state is consistent 
 	 */
-	ret = ct_command(cmd, CS_LANG_CMD, "SELECT * FROM #t0010 t1, #t0010 t2, #t0010 t3", CS_NULLTERM, CS_UNUSED);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_command() failed.\n");
-		return 1;
-	}
+	check_call(ct_command, (cmd, CS_LANG_CMD, "SELECT * FROM #t0010 t1, #t0010 t2, #t0010 t3", CS_NULLTERM, CS_UNUSED));
 
-	ret = ct_send(cmd);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "second ct_send() failed.\n");
-		return 1;
-	}
+	check_call(ct_send, (cmd));
 
 	while ((ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
 		printf("More results?...\n");
@@ -179,11 +156,7 @@ main(int argc, char **argv)
 	if (verbose) {
 		printf("Trying logout\n");
 	}
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Logout failed\n");
-		return 1;
-	}
+	check_call(try_ctlogout, (ctx, conn, cmd, verbose));
 
 	printf("%s: asynchronous cancel test: PASSED\n", __FILE__);
 

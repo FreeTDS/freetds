@@ -10,27 +10,18 @@ main(int argc, char **argv)
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;
 	CS_COMMAND *cmd;
-	CS_RETCODE ret;
 	int verbose = 0;
 
 	printf("%s: Testing login, logout\n", __FILE__);
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Login failed\n");
-		return 1;
-	}
+	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));
 
 	if (verbose) {
 		printf("Trying logout\n");
 	}
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Logout failed\n");
-		return 2;
-	}
+	check_call(try_ctlogout, (ctx, conn, cmd, verbose));
 
 	if (verbose) {
 		printf("Test succeeded\n");

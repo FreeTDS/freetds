@@ -74,8 +74,6 @@ static CS_CONTEXT *ctx;
 static CS_CONNECTION *conn;
 static CS_COMMAND *cmd;
 
-static CS_RETCODE ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);
-static CS_RETCODE ex_servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * errmsg);
 static CS_INT ex_display_results(CS_COMMAND * cmd, char *results);
 
 static int test(int final_rows, int no_rows);
@@ -83,17 +81,9 @@ static int test(int final_rows, int no_rows);
 int
 main(int argc, char *argv[])
 {
-	CS_RETCODE ret;
-
 	printf("%s: check row count returned\n", __FILE__);
-	ret = try_ctlogin(&ctx, &conn, &cmd, 0);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Login failed\n");
-		return 1;
-	}
-
-	ct_callback(ctx, NULL, CS_SET, CS_CLIENTMSG_CB, (CS_VOID *) ex_clientmsg_cb);
-	ct_callback(ctx, NULL, CS_SET, CS_SERVERMSG_CB, (CS_VOID *) ex_servermsg_cb);
+	check_call(try_ctlogin, (&ctx, &conn, &cmd, 0));
+	error_to_stdout = true;
 
 	/* do not test error */
 	run_command(cmd, "DROP PROCEDURE sample_rpc");
@@ -107,11 +97,7 @@ main(int argc, char *argv[])
 	if (test(0, 1) || test(1, 1))
 		return 1;
 
-	ret = try_ctlogout(ctx, conn, cmd, 0);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Logout failed\n");
-		return 1;
-	}
+	check_call(try_ctlogout, (ctx, conn, cmd, 0));
 
 	return 0;
 }
@@ -119,7 +105,6 @@ main(int argc, char *argv[])
 static int
 test(int final_rows, int no_rows)
 {
-	CS_RETCODE ret;
 	CS_CHAR cmdbuf[4096];
 	char results[1024];
 
@@ -158,22 +143,12 @@ test(int final_rows, int no_rows)
 
 	printf("testing query:\n----\n%s\n----\n", cmdbuf);
 
-	ret = run_command(cmd, cmdbuf);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "create proc failed\n");
-		return 1;
-	}
+	check_call(run_command, (cmd, cmdbuf));
 
 	printf("----------\n");
-	if ((ret = ct_command(cmd, CS_RPC_CMD, "sample_rpc", CS_NULLTERM, CS_NO_RECOMPILE)) != CS_SUCCEED) {
-		fprintf(stderr, "ct_command(CS_RPC_CMD) failed");
-		return 1;
-	}
+	check_call(ct_command, (cmd, CS_RPC_CMD, "sample_rpc", CS_NULLTERM, CS_NO_RECOMPILE));
 
-	if (ct_send(cmd) != CS_SUCCEED) {
-		fprintf(stderr, "ct_send(RPC) failed");
-		return 1;
-	}
+	check_call(ct_send, (cmd));
 	ex_display_results(cmd, results);
 
 	/* cleanup */
@@ -228,11 +203,7 @@ ex_display_results(CS_COMMAND * cmd, char *results)
 			/*
 			 * Find out how many columns there are in this result set.
 			 */
-			ret = ct_res_info(cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
-			if (ret != CS_SUCCEED) {
-				fprintf(stderr, "ct_res_info(CS_NUMDATA) failed");
-				return 1;
-			}
+			check_call(ct_res_info, (cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL));
 
 			/*
 			 * Make sure we have at least one column
@@ -291,11 +262,7 @@ ex_display_results(CS_COMMAND * cmd, char *results)
 			break;
 
 		case CS_MSG_RESULT:
-			ret = ct_res_info(cmd, CS_MSGTYPE, (CS_VOID *) & msg_id, CS_UNUSED, NULL);
-			if (ret != CS_SUCCEED) {
-				fprintf(stderr, "ct_res_info(msg_id) failed");
-				return 1;
-			}
+			check_call(ct_res_info, (cmd, CS_MSGTYPE, (CS_VOID *) & msg_id, CS_UNUSED, NULL));
 			printf("ct_result returned CS_MSG_RESULT where msg id = %d.\n", msg_id);
 			fflush(stdout);
 			break;
@@ -340,42 +307,6 @@ ex_display_results(CS_COMMAND * cmd, char *results)
 		fprintf(stderr, "ct_results returned unexpected result type.");
 		break;
 	}
-
-	return CS_SUCCEED;
-}
-
-static CS_RETCODE
-ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg)
-{
-	printf("\nOpen Client Message:\n");
-	printf("Message number: LAYER = (%ld) ORIGIN = (%ld) ", (long) CS_LAYER(errmsg->msgnumber), (long) CS_ORIGIN(errmsg->msgnumber));
-	printf("SEVERITY = (%ld) NUMBER = (%ld)\n", (long) CS_SEVERITY(errmsg->msgnumber), (long) CS_NUMBER(errmsg->msgnumber));
-	printf("Message String: %s\n", errmsg->msgstring);
-	if (errmsg->osstringlen > 0) {
-		printf("Operating System Error: %s\n", errmsg->osstring);
-	}
-	fflush(stdout);
-
-	return CS_SUCCEED;
-}
-
-static CS_RETCODE
-ex_servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * srvmsg)
-{
-	printf("\nServer message:\n");
-	printf("Message number: %ld, Severity %ld, ", (long) srvmsg->msgnumber, (long) srvmsg->severity);
-	printf("State %ld, Line %ld\n", (long) srvmsg->state, (long) srvmsg->line);
-
-	if (srvmsg->svrnlen > 0) {
-		printf("Server '%s'\n", srvmsg->svrname);
-	}
-
-	if (srvmsg->proclen > 0) {
-		printf(" Procedure '%s'\n", srvmsg->proc);
-	}
-
-	printf("Message String: %s\n", srvmsg->text);
-	fflush(stdout);
 
 	return CS_SUCCEED;
 }

@@ -33,22 +33,10 @@ main(int argc, char **argv)
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Login failed\n");
-		return 1;
-	}
+	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));
 
-	ret = ct_command(cmd, CS_LANG_CMD, "select name = @@servername", CS_NULLTERM, CS_UNUSED);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_command() failed\n");
-		return 1;
-	}
-	ret = ct_send(cmd);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_send() failed\n");
-		return 1;
-	}
+	check_call(ct_command, (cmd, CS_LANG_CMD, "select name = @@servername", CS_NULLTERM, CS_UNUSED));
+	check_call(ct_send, (cmd));
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
 		switch ((int) result_type) {
 		case CS_CMD_SUCCEED:
@@ -64,11 +52,7 @@ main(int argc, char **argv)
 			datafmt.maxlength = 256;
 			datafmt.count = 1;
 			datafmt.locale = NULL;
-			ret = ct_bind(cmd, 1, &datafmt, name, &datalength, &ind);
-			if (ret != CS_SUCCEED) {
-				fprintf(stderr, "ct_bind() failed\n");
-				return 1;
-			}
+			check_call(ct_bind, (cmd, 1, &datafmt, name, &datalength, &ind));
 
 			while (((ret = ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, &count)) == CS_SUCCEED)
 			       || (ret == CS_ROW_FAIL)) {
@@ -123,11 +107,7 @@ main(int argc, char **argv)
 	if (verbose) {
 		printf("Trying logout\n");
 	}
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "Logout failed\n");
-		return 1;
-	}
+	check_call(try_ctlogout, (ctx, conn, cmd, verbose));
 
 	return 0;
 }
