@@ -359,8 +359,10 @@ config_write("#define FREETDS_TOPDIR \"${FREETDS_TOPDIR}\"\n\n")
 
 # TODO allow to configure default TDS protocol version
 
-config_write("#ifdef _MSC_VER
+config_write("#if defined(_MSC_VER) && !defined(__cplusplus)
 #  define inline __inline
+#endif
+#if defined(_MSC_VER)
 #  define _CRT_SECURE_NO_WARNINGS 1
 #endif\n\n")
 
