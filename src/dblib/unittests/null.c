@@ -153,7 +153,7 @@ main(int argc, char **argv)
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
-	DBSETLAPP(login, "thread");
+	DBSETLAPP(login, "null");
 
 	printf("About to open \"%s\"\n", SERVER);
 

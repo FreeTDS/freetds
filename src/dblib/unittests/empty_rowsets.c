@@ -36,7 +36,7 @@ main(int argc, char *argv[])
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
-	DBSETLAPP(login, "t0012");
+	DBSETLAPP(login, "empty_rowsets");
 
 	dbproc = dbopen(login, SERVER);
 	if (strlen(DATABASE)) {

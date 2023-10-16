@@ -172,7 +172,7 @@ main(int argc, char *argv[])
 	login = dblogin();
 	DBSETLUSER(login, USER);
 	DBSETLPWD(login, PASSWORD);
-	DBSETLAPP(login, __FILE__);
+	DBSETLAPP(login, "done_handling");
 
 	dbproc = dbopen(login, SERVER);
 	dbloginfree(login);

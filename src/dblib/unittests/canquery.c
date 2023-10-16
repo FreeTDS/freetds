@@ -29,7 +29,7 @@ main(int argc, char **argv)
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
-	DBSETLAPP(login, "spid");
+	DBSETLAPP(login, "canquery");
 
 	printf("About to open \"%s\"\n", SERVER);
 

@@ -30,7 +30,7 @@ main(int argc, char **argv)
 	printf("after dblogin\n");
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
-	DBSETLAPP(login, "t0024");
+	DBSETLAPP(login, "dbmorecmds");
 
 	printf("About to open [%s]\n", USER);
 
