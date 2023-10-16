@@ -55,10 +55,11 @@ main(int argc, char *argv[])
 		printf("Result %d has %d columns\n", num_res, num_cols);
 		if (!(num_res % 2) && num_cols)
 			set_failed();
-		while(dbnextrow(dbproc) != NO_MORE_ROWS) {};
+		while (dbnextrow(dbproc) != NO_MORE_ROWS)
+			continue;
 		num_res++;
 	}
-	if (ret_code == FAIL)
+	if (ret_code != NO_MORE_RESULTS)
 		set_failed();
 
 	dbclose(dbproc);
