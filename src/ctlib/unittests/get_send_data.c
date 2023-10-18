@@ -68,14 +68,14 @@ main(void)
 	}
 	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));
 
-	ret = ct_con_props(conn, CS_GET, CS_TDS_VERSION, &tds_version, CS_UNUSED, NULL);
-	if (ret == CS_SUCCEED) {
-		if (tds_version >= CS_TDS_72) {
-			printf("Protocol TDS7.2+ detected, test not supported\n");
-			try_ctlogout(ctx, conn, cmd, verbose);
-			return 0;
-		}
+	check_call(ct_con_props, (conn, CS_GET, CS_TDS_VERSION, &tds_version, CS_UNUSED, NULL));
+#ifdef CS_TDS_72
+	if (tds_version >= CS_TDS_72) {
+		printf("Protocol TDS7.2+ detected, test not supported\n");
+		try_ctlogout(ctx, conn, cmd, verbose);
+		return 0;
 	}
+#endif
 
 	check_call(run_command, (cmd, "CREATE TABLE #test_table (id int, name text)"));
 
@@ -139,6 +139,10 @@ main(void)
 					printf("usertype = %d\n", iodesc.usertype);
 					printf("text len = %d\n", iodesc.total_txtlen);
 					printf("name     = %*.*s\n", iodesc.namelen, iodesc.namelen, iodesc.name);
+					if (iodesc.datatype != CS_TEXT_TYPE) {
+						fprintf(stderr, "Unexpected datatype %d\n", iodesc.datatype);
+						return 1;
+					}
 				}
 			}
 			switch ((int) ret) {
