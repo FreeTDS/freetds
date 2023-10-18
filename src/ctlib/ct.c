@@ -2916,7 +2916,7 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 		/* now populate the io_desc structure for this data item */
 
 		cmd->iodesc->iotype = CS_IODATA;
-		cmd->iodesc->datatype = curcol->column_type;
+		cmd->iodesc->datatype = _ct_get_client_type(curcol, true);
 		cmd->iodesc->locale = cmd->con->locale;
 		cmd->iodesc->usertype = curcol->column_usertype;
 		cmd->iodesc->total_txtlen = curcol->column_cur_size;
