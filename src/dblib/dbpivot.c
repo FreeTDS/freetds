@@ -914,7 +914,7 @@ dbpivot(DBPROCESS *dbproc, int nkeys, int *keys, int ncols, int *cols, DBPIVOT_F
 	tdsdump_log(TDS_DBG_FUNC, "dbpivot(%p, %d,%p, %d,%p, %p, %d)\n", dbproc, nkeys, keys, ncols, cols, func, val);
 	if (logalot) {
 		char buffer[1024] = {'\0'}, *s = buffer;
-		const static char *const names[2] = { "\tkeys (down)", "\n\tcols (across)" };
+		static const char *const names[2] = { "\tkeys (down)", "\n\tcols (across)" };
 		int *p = keys, *pend = p + nkeys;
 		
 		for (i=0; i < 2; i++) {

@@ -468,7 +468,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 	 * A major version of 0 means try to guess the TDS version. 
 	 * We try them in an order that should work. 
 	 */
-	const static TDS_USMALLINT versions[] =
+	static const TDS_USMALLINT versions[] =
 		{ 0x704
 		, 0x500
 		};

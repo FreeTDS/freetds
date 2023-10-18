@@ -263,7 +263,7 @@ dblib_get_tds_ctx(void)
 
 		if (g_dblib_ctx.tds_ctx->locale && !g_dblib_ctx.tds_ctx->locale->datetime_fmt) {
 			/* set default in case there's no locale file */
-			const static char datetime_format[] = "%b %e %Y %l:%M:%S:%z%p";
+			static const char datetime_format[] = "%b %e %Y %l:%M:%S:%z%p";
 			g_dblib_ctx.tds_ctx->locale->datetime_fmt = strdup(datetime_format);
 		}
 	}
@@ -3381,7 +3381,7 @@ static BYTE *
 _dbcoldata(TDSCOLUMN *colinfo)
 {
 	BYTE *res;
-	const static BYTE empty[1] = { 0 };
+	static const BYTE empty[1] = { 0 };
 
 	if (!colinfo || colinfo->column_cur_size < 0)
 		return NULL;

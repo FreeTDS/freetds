@@ -146,7 +146,7 @@ do_test(const char comment[])
 int
 main(int argc, char *argv[])
 {
-	const static int invalid_column_name = 207;
+	static const int invalid_column_name = 207;
 	LOGINREC *login;	/* Our login information. */
 	int i;
 
