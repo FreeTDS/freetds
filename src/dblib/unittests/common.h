@@ -34,6 +34,7 @@
 #include <sqldb.h>
 
 #include <freetds/sysdep_private.h>
+#include <freetds/macros.h>
 
 #if !defined(EXIT_FAILURE)
 #define EXIT_FAILURE 1

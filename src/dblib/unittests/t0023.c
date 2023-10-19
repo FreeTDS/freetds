@@ -10,7 +10,8 @@ static int got_error = 0;
 static int compute_supported = 1;
 
 static int
-compute_msg_handler(DBPROCESS * dbproc, DBINT msgno, int state, int severity, char *text, char *server, char *proc, int line)
+compute_msg_handler(DBPROCESS * dbproc TDS_UNUSED, DBINT msgno TDS_UNUSED, int state TDS_UNUSED, int severity TDS_UNUSED,
+		    char *text TDS_UNUSED, char *server TDS_UNUSED, char *proc TDS_UNUSED, int line TDS_UNUSED)
 {
 	if (strstr(text, "compute"))
 		compute_supported = 0;

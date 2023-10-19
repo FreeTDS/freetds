@@ -1145,7 +1145,7 @@ tds_numeric_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 }
 
 TDS_INT
-tds_numeric_row_len(TDSCOLUMN *col)
+tds_numeric_row_len(TDSCOLUMN *col TDS_UNUSED)
 {
 	return sizeof(TDS_NUMERIC);
 }
@@ -1214,7 +1214,7 @@ tds_numeric_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 }
 
 TDSRET
-tds_numeric_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
+tds_numeric_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7 TDS_UNUSED)
 {
 	TDS_NUMERIC *num = (TDS_NUMERIC *) col->column_data, buf;
 	unsigned char colsize;
@@ -1234,14 +1234,14 @@ tds_numeric_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
 }
 
 TDSRET
-tds_variant_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
+tds_variant_put_info(TDSSOCKET * tds TDS_UNUSED, TDSCOLUMN * col TDS_UNUSED)
 {
 	/* TODO */
 	return TDS_FAIL;
 }
 
 TDSRET
-tds_variant_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
+tds_variant_put(TDSSOCKET *tds TDS_UNUSED, TDSCOLUMN *col TDS_UNUSED, int bcp7 TDS_UNUSED)
 {
 	/* TODO */
 	return TDS_FAIL;
@@ -1261,7 +1261,7 @@ tds_msdatetime_get_info(TDSSOCKET * tds, TDSCOLUMN * col)
 }
 
 TDS_INT
-tds_msdatetime_row_len(TDSCOLUMN *col)
+tds_msdatetime_row_len(TDSCOLUMN *col TDS_UNUSED)
 {
 	return sizeof(TDS_DATETIMEALL);
 }
@@ -1341,7 +1341,7 @@ tds_msdatetime_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 }
 
 TDSRET
-tds_msdatetime_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
+tds_msdatetime_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7 TDS_UNUSED)
 {
 	const TDS_DATETIMEALL *dta = (const TDS_DATETIMEALL *) col->column_data;
 	unsigned char buf[12], *p;
@@ -1409,9 +1409,9 @@ tds_clrudt_row_len(TDSCOLUMN *col)
 }
 
 TDSRET
-tds_clrudt_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
+tds_clrudt_put_info(TDSSOCKET * tds, TDSCOLUMN * col TDS_UNUSED)
 {
-	/* FIXME support properly*/
+	/* FIXME support properly */
 	tds_put_byte(tds, 0);	/* db_name */
 	tds_put_byte(tds, 0);	/* schema_name */
 	tds_put_byte(tds, 0);	/* type_name */
@@ -1430,7 +1430,7 @@ tds_sybbigtime_get_info(TDSSOCKET * tds, TDSCOLUMN * col)
 }
 
 TDS_INT
-tds_sybbigtime_row_len(TDSCOLUMN *col)
+tds_sybbigtime_row_len(TDSCOLUMN *col TDS_UNUSED)
 {
 	return sizeof(TDS_UINT8);
 }
@@ -1453,7 +1453,7 @@ tds_sybbigtime_get(TDSSOCKET * tds, TDSCOLUMN * col)
 }
 
 TDSRET
-tds_sybbigtime_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
+tds_sybbigtime_put_info(TDSSOCKET * tds, TDSCOLUMN * col TDS_UNUSED)
 {
 	tds_put_byte(tds, 8);
 	tds_put_byte(tds, 6);
@@ -1461,7 +1461,7 @@ tds_sybbigtime_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 }
 
 TDSRET
-tds_sybbigtime_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
+tds_sybbigtime_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7 TDS_UNUSED)
 {
 	const TDS_UINT8 *dt = (const TDS_UINT8 *) col->column_data;
 
@@ -1477,20 +1477,20 @@ tds_sybbigtime_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
 }
 
 TDSRET
-tds_mstabletype_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
+tds_mstabletype_get_info(TDSSOCKET *tds TDS_UNUSED, TDSCOLUMN *col TDS_UNUSED)
 {
 	/* Table type is strictly only an input variable */
 	return TDS_FAIL;
 }
 
 TDS_INT
-tds_mstabletype_row_len(TDSCOLUMN *col)
+tds_mstabletype_row_len(TDSCOLUMN *col TDS_UNUSED)
 {
 	return sizeof(TDS_TVP);
 }
 
 TDSRET
-tds_mstabletype_get(TDSSOCKET *tds, TDSCOLUMN *col)
+tds_mstabletype_get(TDSSOCKET *tds TDS_UNUSED, TDSCOLUMN *col TDS_UNUSED)
 {
 	/* Table type is strictly only an input variable */
 	return TDS_FAIL;
@@ -1520,7 +1520,7 @@ tds_mstabletype_put_info(TDSSOCKET *tds, TDSCOLUMN *col)
 }
 
 TDSRET
-tds_mstabletype_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
+tds_mstabletype_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7 TDS_UNUSED)
 {
 	TDS_TVP *table = (TDS_TVP *) col->column_data;
 	TDSPARAMINFO *params;
@@ -1578,38 +1578,38 @@ tds_mstabletype_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
 }
 
 TDSRET
-tds_invalid_get_info(TDSSOCKET * tds, TDSCOLUMN * col)
+tds_invalid_get_info(TDSSOCKET * tds TDS_UNUSED, TDSCOLUMN * col TDS_UNUSED)
 {
 	return TDS_FAIL;
 }
 
 TDS_INT
-tds_invalid_row_len(TDSCOLUMN *col)
+tds_invalid_row_len(TDSCOLUMN *col TDS_UNUSED)
 {
 	return 0;
 }
 
 TDSRET
-tds_invalid_get(TDSSOCKET * tds, TDSCOLUMN * col)
+tds_invalid_get(TDSSOCKET * tds TDS_UNUSED, TDSCOLUMN * col TDS_UNUSED)
 {
 	return TDS_FAIL;
 }
 
 TDSRET
-tds_invalid_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
+tds_invalid_put_info(TDSSOCKET * tds TDS_UNUSED, TDSCOLUMN * col TDS_UNUSED)
 {
 	return TDS_FAIL;
 }
 
 TDSRET
-tds_invalid_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
+tds_invalid_put(TDSSOCKET *tds TDS_UNUSED, TDSCOLUMN *col TDS_UNUSED, int bcp7 TDS_UNUSED)
 {
 	return TDS_FAIL;
 }
 
 #if ENABLE_EXTRA_CHECKS
 int
-tds_generic_check(const TDSCOLUMN *col)
+tds_generic_check(const TDSCOLUMN *col TDS_UNUSED)
 {
 	return 0;
 }
@@ -1632,13 +1632,13 @@ tds_sybbigtime_check(const TDSCOLUMN *col)
 }
 
 int
-tds_mstabletype_check(const TDSCOLUMN *col)
+tds_mstabletype_check(const TDSCOLUMN *col TDS_UNUSED)
 {
 	return 0;
 }
 
 int
-tds_clrudt_check(const TDSCOLUMN *col)
+tds_clrudt_check(const TDSCOLUMN *col TDS_UNUSED)
 {
 	return 0;
 }
@@ -1665,7 +1665,7 @@ tds_msdatetime_check(const TDSCOLUMN *col)
 }
 
 int
-tds_variant_check(const TDSCOLUMN *col)
+tds_variant_check(const TDSCOLUMN *col TDS_UNUSED)
 {
 	return 0;
 }
@@ -1687,7 +1687,7 @@ tds_numeric_check(const TDSCOLUMN *col)
 }
 
 int
-tds_invalid_check(const TDSCOLUMN *col)
+tds_invalid_check(const TDSCOLUMN *col TDS_UNUSED)
 {
 	return 1;
 }

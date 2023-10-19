@@ -65,7 +65,7 @@ typedef struct tds5_negotiate
 } TDS5NEGOTIATE;
 
 static TDSRET
-tds5_negotiate_free(TDSCONNECTION * conn, TDSAUTHENTICATION * tds_auth)
+tds5_negotiate_free(TDSCONNECTION * conn TDS_UNUSED, TDSAUTHENTICATION * tds_auth)
 {
 	TDS5NEGOTIATE *auth = (TDS5NEGOTIATE *) tds_auth;
 
@@ -85,7 +85,7 @@ tds5_send_msg(TDSSOCKET *tds, uint16_t msg_type)
 }
 
 static TDSRET
-tds5_negotiate_handle_next(TDSSOCKET * tds, TDSAUTHENTICATION * tds_auth, size_t len)
+tds5_negotiate_handle_next(TDSSOCKET * tds, TDSAUTHENTICATION * tds_auth, size_t len TDS_UNUSED)
 {
 	TDSPARAMINFO *info;
 	void *rsa, *nonce = NULL;
@@ -182,7 +182,7 @@ tds5_negotiate_get_auth(TDSSOCKET * tds)
 #else /* not HAVE_GNUTLS or HAVE_OPENSSL */
 
 TDSAUTHENTICATION *
-tds5_negotiate_get_auth(TDSSOCKET * tds)
+tds5_negotiate_get_auth(TDSSOCKET * tds TDS_UNUSED)
 {
 	tdsdump_log(TDS_DBG_ERROR,
 		"Sybase authentication not supported if GnuTLS or OpenSSL are not present\n");

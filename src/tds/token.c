@@ -2079,7 +2079,7 @@ tds_process_pending_closes(TDSSOCKET *tds)
  *        Is NULL nothing is returned
  */
 static TDSRET
-tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
+tds_process_end(TDSSOCKET * tds, int marker TDS_UNUSED, int *flags_parm)
 {
 	bool more_results, was_cancelled, error, done_count_valid;
 	int tmp;

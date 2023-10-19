@@ -780,7 +780,7 @@ pusage(void)
 }
 
 int
-err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
+err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr TDS_UNUSED, char *dberrstr, char *oserrstr TDS_UNUSED)
 {
 	static int sent = 0;
 
@@ -804,7 +804,8 @@ err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrs
 }
 
 int
-msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line)
+msg_handler(DBPROCESS * dbproc TDS_UNUSED, DBINT msgno, int msgstate, int severity,
+	    char *msgtext, char *srvname, char *procname, int line)
 {
 	/*
 	 * If it's a database change message, we'll ignore it.

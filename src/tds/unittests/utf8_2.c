@@ -172,7 +172,7 @@ test(int n, int type)
 }
 
 static int
-err_handler(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
+err_handler(const TDSCONTEXT * tds_ctx TDS_UNUSED, TDSSOCKET * tds TDS_UNUSED, TDSMESSAGE * msg)
 {
 	int error = 0;
 

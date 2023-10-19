@@ -15,11 +15,13 @@
 #include <ctpublic.h>
 #include "common.h"
 
+#include <freetds/macros.h>
+
 static const CS_INT unused = CS_UNUSED, nullterm = CS_NULLTERM;
 static CS_INT result_len = -1;
 
 static CS_RETCODE
-csmsg_callback(CS_CONTEXT *ctx, CS_CLIENTMSG * emsgp)
+csmsg_callback(CS_CONTEXT *ctx TDS_UNUSED, CS_CLIENTMSG * emsgp)
 {
 	printf("message from csmsg_callback(): %s\n", emsgp->msgstring);
 	return CS_SUCCEED;

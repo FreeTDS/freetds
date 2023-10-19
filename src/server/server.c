@@ -86,7 +86,8 @@ tds_env_change(TDSSOCKET * tds, int type, const char *oldvalue, const char *newv
 }
 
 void
-tds_send_eed(TDSSOCKET * tds, int msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line)
+tds_send_eed(TDSSOCKET * tds, int msgno, int msgstate, int severity, char *msgtext, char *srvname,
+	     char *procname, int line TDS_UNUSED)
 {
 	int totsize;
 
@@ -153,7 +154,8 @@ tds_send_msg(TDSSOCKET * tds, int msgno, int msgstate, int severity,
 }
 
 void
-tds_send_err(TDSSOCKET * tds, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
+tds_send_err(TDSSOCKET * tds, int severity TDS_UNUSED, int dberr TDS_UNUSED, int oserr TDS_UNUSED,
+	     char *dberrstr TDS_UNUSED, char *oserrstr TDS_UNUSED)
 {
 	tds_put_byte(tds, TDS_ERROR_TOKEN);
 }

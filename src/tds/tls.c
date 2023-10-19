@@ -584,7 +584,7 @@ tds_ssl_deinit(TDSCONNECTION *conn)
 
 #else /* !HAVE_GNUTLS */
 static long
-tds_ssl_ctrl_login(BIO *b, int cmd, long num, void *ptr)
+tds_ssl_ctrl_login(BIO *b TDS_UNUSED, int cmd, long num TDS_UNUSED, void *ptr TDS_UNUSED)
 {
 	switch (cmd) {
 	case BIO_CTRL_FLUSH:
@@ -594,7 +594,7 @@ tds_ssl_ctrl_login(BIO *b, int cmd, long num, void *ptr)
 }
 
 static int
-tds_ssl_free(BIO *a)
+tds_ssl_free(BIO *a TDS_UNUSED)
 {
 	/* nothing to do but required */
 	return 1;

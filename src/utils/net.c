@@ -50,6 +50,7 @@
 #endif
 
 #include <freetds/utils.h>
+#include <freetds/macros.h>
 
 /**
  * \addtogroup network
@@ -69,7 +70,7 @@
  * @return 0 on success or error code
  */
 int
-tds_socket_set_nosigpipe(TDS_SYS_SOCKET sock, int on)
+tds_socket_set_nosigpipe(TDS_SYS_SOCKET sock TDS_UNUSED, int on)
 {
 #if defined(SO_NOSIGPIPE)
 	if (setsockopt(sock, SOL_SOCKET, SO_NOSIGPIPE, (const void *) &on, sizeof(on)))

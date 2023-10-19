@@ -15,6 +15,7 @@
 #endif
 
 #include <freetds/replacements.h>
+#include <freetds/macros.h>
 
 #include <ctpublic.h>
 #include "common.h"
@@ -356,7 +357,7 @@ run_command(CS_COMMAND * cmd, const char *sql)
 }
 
 CS_INT
-cslibmsg_cb(CS_CONTEXT * connection, CS_CLIENTMSG * errmsg)
+cslibmsg_cb(CS_CONTEXT * connection TDS_UNUSED, CS_CLIENTMSG * errmsg)
 {
 	cslibmsg_cb_invoked++;
 
@@ -417,7 +418,7 @@ clientmsg_cb2(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * e
 }
 
 CS_RETCODE
-servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * srvmsg)
+servermsg_cb(CS_CONTEXT * context TDS_UNUSED, CS_CONNECTION * connection TDS_UNUSED, CS_SERVERMSG * srvmsg)
 {
 	FILE *out = error_to_stdout ? stdout: stderr;
 

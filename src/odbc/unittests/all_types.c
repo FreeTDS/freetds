@@ -16,7 +16,7 @@ HINSTANCE hinstFreeTDS;
 
 static TDS_STMT *stmt;
 
-static void test_type(TDSSOCKET *tds, TDSCOLUMN *col)
+static void test_type(TDSSOCKET *tds TDS_UNUSED, TDSCOLUMN *col)
 {
 	unsigned n;
 

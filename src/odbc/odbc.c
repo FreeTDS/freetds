@@ -337,7 +337,7 @@ odbc_get_stmt(TDSSOCKET *tds)
 
 
 static void
-odbc_env_change(TDSSOCKET * tds, int type, char *oldval, char *newval)
+odbc_env_change(TDSSOCKET * tds, int type, char *oldval TDS_UNUSED, char *newval)
 {
 	TDS_DBC *dbc;
 
@@ -458,7 +458,7 @@ memory_error:
  * know how many rows the query could return.
  */
 static SQLRETURN
-odbc_update_ird(TDS_STMT *stmt, TDS_ERRS *errs)
+odbc_update_ird(TDS_STMT *stmt, TDS_ERRS *errs TDS_UNUSED)
 {
 	SQLRETURN res;
 
@@ -3109,7 +3109,7 @@ SQLCopyDesc(SQLHDESC hsrc, SQLHDESC hdesc)
 
 #if ENABLE_EXTRA_CHECKS
 static void
-odbc_ird_check(TDS_STMT * stmt)
+odbc_ird_check(TDS_STMT * stmt TDS_UNUSED)
 {
 #if !ENABLE_ODBC_MARS
 	TDS_DESC *ird = stmt->ird;

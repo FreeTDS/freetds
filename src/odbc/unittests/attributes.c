@@ -217,7 +217,9 @@ lookup_attr(const char *name)
 
 #define SEP " \t\n"
 
-#define ATTR_PARAMS const struct attribute *attr, int expected
+#define ATTR_PARAMS \
+	const struct attribute *attr TDS_UNUSED, \
+	int expected TDS_UNUSED
 typedef int (*get_attr_t) (ATTR_PARAMS);
 
 static int

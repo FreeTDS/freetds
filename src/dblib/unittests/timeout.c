@@ -78,14 +78,14 @@ timeout_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char
 }
 
 static int
-chkintr(DBPROCESS * dbproc)
+chkintr(DBPROCESS * dbproc TDS_UNUSED)
 {
 	printf("in chkintr, %ld seconds elapsed\n", (long int) (time(NULL) - start_time));
 	return FALSE;
 }
 
 static int
-hndlintr(DBPROCESS * dbproc)
+hndlintr(DBPROCESS * dbproc TDS_UNUSED)
 {
 	printf("in hndlintr, %ld seconds elapsed\n", (long int) (time(NULL) - start_time));
 	return INT_CONTINUE;

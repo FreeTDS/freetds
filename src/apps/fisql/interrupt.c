@@ -16,17 +16,20 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#include <config.h>
+
 #include <setjmp.h>
 #include <signal.h>
 #include <sybfront.h>
 #include <sybdb.h>
+#include <freetds/macros.h>
 #include "interrupt.h"
 
 sigjmp_buf restart;
 volatile int os_interrupt = 0;
 
 void
-inactive_interrupt_handler(int sig)
+inactive_interrupt_handler(int sig TDS_UNUSED)
 {
 	siglongjmp(restart, 1);
 }
@@ -50,7 +53,7 @@ maybe_handle_active_interrupt(void)
 }
 
 int
-active_interrupt_pending(DBPROCESS * dbproc)
+active_interrupt_pending(DBPROCESS * dbproc TDS_UNUSED)
 {
 	if (os_interrupt) {
 		return TRUE;
@@ -59,7 +62,7 @@ active_interrupt_pending(DBPROCESS * dbproc)
 }
 
 int
-active_interrupt_servhandler(DBPROCESS * dbproc)
+active_interrupt_servhandler(DBPROCESS * dbproc TDS_UNUSED)
 {
 	return INT_CANCEL;
 }

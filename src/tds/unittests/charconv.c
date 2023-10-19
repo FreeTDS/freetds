@@ -148,7 +148,7 @@ add_odd2(char *buf, int *pos, enum Odd type)
 static int captured_errno = 0;
 
 static int
-err_handler(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
+err_handler(const TDSCONTEXT * tds_ctx TDS_UNUSED, TDSSOCKET * tds TDS_UNUSED, TDSMESSAGE * msg)
 {
 	int old_err = captured_errno;
 	if (msg->msgno == TDSEICONVAVAIL) {

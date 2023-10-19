@@ -1404,7 +1404,7 @@ tds_connection_remove_socket(TDSCONNECTION *conn, TDSSOCKET *tds)
 }
 #else
 static void inline
-tds_connection_remove_socket(TDSCONNECTION *conn, TDSSOCKET *tds)
+tds_connection_remove_socket(TDSCONNECTION *conn, TDSSOCKET *tds TDS_UNUSED)
 {
 	tds_deinit_connection(conn);
 }

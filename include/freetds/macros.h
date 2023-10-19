@@ -45,12 +45,9 @@
 # if defined(__llvm__) || (defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)))
 # define TDS_COMPILE_CHECK(name,check) \
     _Static_assert(check,#name)
-# elif defined(__GNUC__) && __GNUC__ >= 2
-# define TDS_COMPILE_CHECK(name,check) \
-    extern int name[(check)?1:-1] __attribute__ ((unused))
 # else
 # define TDS_COMPILE_CHECK(name,check) \
-    extern int name[(check)?1:-1]
+    extern int name[(check)?1:-1] TDS_UNUSED
 # endif
 # define TDS_EXTRA_CHECK(stmt) stmt
 #else
@@ -71,6 +68,12 @@
 #define TDS_WUR __attribute__ ((__warn_unused_result__))
 #else
 #define TDS_WUR
+#endif
+
+#if defined(__GNUC__) && __GNUC__ >= 2
+#define TDS_UNUSED __attribute__ ((unused))
+#else
+#define TDS_UNUSED
 #endif
 
 #define TDS_INT2PTR(i) ((void*)(((char*)0)+((TDS_INTPTR)(i))))

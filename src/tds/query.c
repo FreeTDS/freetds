@@ -1538,7 +1538,7 @@ failure:
  * Get column size for wire
  */
 size_t
-tds_fix_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
+tds_fix_column_size(TDSSOCKET * tds TDS_UNUSED, TDSCOLUMN * curcol)
 {
 	size_t size = curcol->on_server.column_size, min;
 
@@ -2285,7 +2285,7 @@ tds_quote_id_rpc(TDSSOCKET * tds, char *buffer, const char *id, int idlen)
  * \result written chars (not including needed terminator)
  */
 size_t
-tds_quote_string(TDSSOCKET * tds, char *buffer, const char *str, int len)
+tds_quote_string(TDSSOCKET * tds TDS_UNUSED, char *buffer, const char *str, int len)
 {
 	return tds_quote(buffer, '\'', str, len < 0 ? strlen(str) : (size_t) len);
 }

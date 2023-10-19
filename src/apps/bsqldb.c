@@ -54,6 +54,7 @@
 
 #include <freetds/sysdep_private.h>
 #include <freetds/utils.h>
+#include <freetds/macros.h>
 
 #ifdef _WIN32
 #define NULL_DEVICE "NUL:"
@@ -1072,7 +1073,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 }
 
 int
-err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
+err_handler(DBPROCESS * dbproc TDS_UNUSED, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
 {
 	if (dberr) {
 		fprintf(stderr, "%s: Msg %d, Level %d", options.appname, dberr, severity);
@@ -1091,7 +1092,8 @@ err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrs
 }
 
 int
-msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line)
+msg_handler(DBPROCESS * dbproc TDS_UNUSED, DBINT msgno, int msgstate, int severity,
+	    char *msgtext, char *srvname, char *procname, int line)
 {
 	enum {changed_database = 5701, changed_language = 5703 };
 	

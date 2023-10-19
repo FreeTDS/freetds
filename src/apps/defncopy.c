@@ -812,9 +812,11 @@ get_login(int argc, char *argv[], OPTIONS *options)
 
 static int
 #ifndef MicrosoftsDbLib
-err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
+err_handler(DBPROCESS * dbproc TDS_UNUSED, int severity, int dberr, int oserr TDS_UNUSED,
+	    char *dberrstr, char *oserrstr TDS_UNUSED)
 #else
-err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, const char dberrstr[], const char oserrstr[])
+err_handler(DBPROCESS * dbproc TDS_UNUSED, int severity, int dberr, int oserr TDS_UNUSED,
+	    const char dberrstr[], const char oserrstr[] TDS_UNUSED)
 #endif /* MicrosoftsDbLib */
 {
 
@@ -833,10 +835,11 @@ err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, const char d
 
 static int
 #ifndef MicrosoftsDbLib
-msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line)
+msg_handler(DBPROCESS * dbproc TDS_UNUSED, DBINT msgno, int msgstate TDS_UNUSED, int severity TDS_UNUSED, char *msgtext,
+	    char *srvname TDS_UNUSED, char *procname TDS_UNUSED, int line TDS_UNUSED)
 #else
-msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, const char msgtext[],
-		const char srvname[], const char procname[], unsigned short int line)
+msg_handler(DBPROCESS * dbproc TDS_UNUSED, DBINT msgno, int msgstate TDS_UNUSED, int severity TDS_UNUSED, const char msgtext[],
+	    const char srvname[] TDS_UNUSED, const char procname[] TDS_UNUSED, unsigned short int line TDS_UNUSED)
 #endif /* MicrosoftsDbLib */
 {
 	char *dbname, *endquote;

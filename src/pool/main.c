@@ -77,7 +77,7 @@ static void pool_main_loop(TDS_POOL * pool);
 static bool pool_open_logfile(void);
 
 static void
-sigterm_handler(int sig)
+sigterm_handler(int sig TDS_UNUSED)
 {
 	got_sigterm = true;
 }
@@ -86,7 +86,7 @@ sigterm_handler(int sig)
 static bool got_sighup = false;
 
 static void
-sighup_handler(int sig)
+sighup_handler(int sig TDS_UNUSED)
 {
 	got_sighup = true;
 }

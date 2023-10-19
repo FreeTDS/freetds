@@ -156,7 +156,7 @@ tsql_readline(char *prompt)
 }
 
 static void
-tsql_add_history(const char *s)
+tsql_add_history(const char *s TDS_UNUSED)
 {
 #ifdef HAVE_READLINE
 	if (istty)
@@ -633,7 +633,7 @@ out_of_memory:
 }
 
 static int
-tsql_handle_message(const TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * msg)
+tsql_handle_message(const TDSCONTEXT * context TDS_UNUSED, TDSSOCKET * tds TDS_UNUSED, TDSMESSAGE * msg)
 {
 	if (msg->msgno == 0) {
 		fprintf(stderr, "%s\n", msg->message);
@@ -662,7 +662,7 @@ tsql_handle_message(const TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * ms
 }
 
 static int	/* error from library, not message from server */
-tsql_handle_error(const TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * msg)
+tsql_handle_error(const TDSCONTEXT * context TDS_UNUSED, TDSSOCKET * tds TDS_UNUSED, TDSMESSAGE * msg)
 {
 	fprintf(stderr, "Error %d (severity %d):\n\t%s\n", msg->msgno, msg->severity, msg->message);
 	if (0 != msg->oserr) {
@@ -714,7 +714,7 @@ print_instance_data(TDSLOGIN *login)
 
 #if defined(HAVE_ALARM) && !defined(_WIN32)
 static void
-count_alarm(int s)
+count_alarm(int s TDS_UNUSED)
 {
 	static int count = 0;
 	char buf[64];

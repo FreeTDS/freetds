@@ -45,14 +45,14 @@ getErrorInfo(SQLSMALLINT sqlhdltype, SQLHANDLE sqlhandle)
 }
 
 static void
-exit_forced(int s)
+exit_forced(int s TDS_UNUSED)
 {
 	exit(1);
 }
 
 #if HAVE_ALARM
 static void
-sigalrm_handler(int s)
+sigalrm_handler(int s TDS_UNUSED)
 {
 	printf(">>>> SQLCancel() ...\n");
 	CHKCancel("S");
@@ -113,7 +113,7 @@ static void alarm(unsigned int timeout)
 
 volatile bool exit_thread;
 
-static TDS_THREAD_PROC_DECLARE(wait_thread_proc, arg)
+static TDS_THREAD_PROC_DECLARE(wait_thread_proc, arg TDS_UNUSED)
 {
 	int n;
 

@@ -125,7 +125,7 @@ _dblib_handle_info_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSA
  *		decides what to do based on the universal libtds return code, thank you. 
  */	
 int
-_dblib_handle_err_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
+_dblib_handle_err_message(const TDSCONTEXT * tds_ctx TDS_UNUSED, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
 	DBPROCESS *dbproc = (tds && tds_get_parent(tds))? (DBPROCESS *) tds_get_parent(tds) : NULL;
 	int rc = INT_CANCEL;

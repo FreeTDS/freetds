@@ -91,30 +91,30 @@ tds_ssl_write(TDSCONNECTION *conn, const unsigned char *buf, int buflen)
 #  endif
 #else
 static inline TDSRET
-tds_ssl_init(TDSSOCKET *tds)
+tds_ssl_init(TDSSOCKET *tds TDS_UNUSED)
 {
 	return TDS_FAIL;
 }
 
 static inline void
-tds_ssl_deinit(TDSCONNECTION *conn)
+tds_ssl_deinit(TDSCONNECTION *conn TDS_UNUSED)
 {
 }
 
 static inline int
-tds_ssl_pending(TDSCONNECTION *conn)
+tds_ssl_pending(TDSCONNECTION *conn TDS_UNUSED)
 {
 	return 0;
 }
 
 static inline int
-tds_ssl_read(TDSCONNECTION *conn, unsigned char *buf, int buflen)
+tds_ssl_read(TDSCONNECTION *conn TDS_UNUSED, unsigned char *buf TDS_UNUSED, int buflen TDS_UNUSED)
 {
 	return -1;
 }
 
 static inline int
-tds_ssl_write(TDSCONNECTION *conn, const unsigned char *buf, int buflen)
+tds_ssl_write(TDSCONNECTION *conn TDS_UNUSED, const unsigned char *buf TDS_UNUSED, int buflen TDS_UNUSED)
 {
 	return -1;
 }

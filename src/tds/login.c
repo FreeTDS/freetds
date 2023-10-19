@@ -216,14 +216,14 @@ tds_save(TDSSAVECONTEXT *ctx, char type, TDSMESSAGE *msg)
 }
 
 static int
-tds_save_msg(const TDSCONTEXT *ctx, TDSSOCKET *tds, TDSMESSAGE *msg)
+tds_save_msg(const TDSCONTEXT *ctx, TDSSOCKET *tds TDS_UNUSED, TDSMESSAGE *msg)
 {
 	tds_save((TDSSAVECONTEXT *) ctx, 0, msg);
 	return 0;
 }
 
 static int
-tds_save_err(const TDSCONTEXT *ctx, TDSSOCKET *tds, TDSMESSAGE *msg)
+tds_save_err(const TDSCONTEXT *ctx, TDSSOCKET *tds TDS_UNUSED, TDSMESSAGE *msg)
 {
 	tds_save((TDSSAVECONTEXT *) ctx, 1, msg);
 	return TDS_INT_CANCEL;

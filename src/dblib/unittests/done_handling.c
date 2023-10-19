@@ -1,8 +1,5 @@
 #include "common.h"
 
-static char software_version[] = "$Id: done_handling.c,v 1.11 2010-09-22 07:03:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 /*
  * This test try do discovery how dblib process token looking for state
  * at every iteration. It issue a query to server and check
@@ -213,7 +210,7 @@ main(int argc, char *argv[])
 }
 
 static int
-err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
+err_handler(DBPROCESS * dbproc TDS_UNUSED, int severity, int dberr TDS_UNUSED, int oserr, char *dberrstr, char *oserrstr)
 {
 	if (silent)
 		return INT_CANCEL;
@@ -229,7 +226,8 @@ err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrs
 }
 
 static int
-msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line)
+msg_handler(DBPROCESS * dbproc TDS_UNUSED, DBINT msgno, int msgstate, int severity,
+	    char *msgtext, char *srvname, char *procname, int line)
 {
 	if (silent)
 		return 0;

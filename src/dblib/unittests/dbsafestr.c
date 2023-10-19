@@ -16,7 +16,7 @@ static const char *unsafestr = "This is a string with ' and \" in it.";
 static char safestr[100];
 
 int
-main(int argc, char **argv)
+main(int argc TDS_UNUSED, char **argv)
 {
 	int len;
 	RETCODE ret;

@@ -487,7 +487,7 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 }
 
 static inline void
-tds5_swap_data(const TDSCOLUMN *col, void *p)
+tds5_swap_data(const TDSCOLUMN *col TDS_UNUSED, void *p TDS_UNUSED)
 {
 #ifdef WORDS_BIGENDIAN
 	tds_swap_datatype(tds_get_conversion_type(col->on_server.column_type, col->column_size), p);
@@ -1066,7 +1066,7 @@ tds5_process_insert_bulk_reply(TDSSOCKET * tds, TDSBCPINFO *bcpinfo)
  * Free row data allocated in the result set.
  */
 static void 
-tds_bcp_row_free(TDSRESULTINFO* result, unsigned char *row)
+tds_bcp_row_free(TDSRESULTINFO* result, unsigned char *row TDS_UNUSED)
 {
 	result->row_size = 0;
 	TDS_ZERO_FREE(result->current_row);

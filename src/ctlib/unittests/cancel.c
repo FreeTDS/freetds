@@ -14,6 +14,8 @@
 #include <ctpublic.h>
 #include "common.h"
 
+#include <freetds/macros.h>
+
 #if defined(HAVE_ALARM) && defined(HAVE_SETITIMER)
 
 /* protos */
@@ -24,7 +26,7 @@ void catch_alrm(int);
 static volatile CS_COMMAND *g_cmd = NULL;
 
 void
-catch_alrm(int sig_num)
+catch_alrm(int sig_num TDS_UNUSED)
 {
 	signal(SIGALRM, catch_alrm);
 

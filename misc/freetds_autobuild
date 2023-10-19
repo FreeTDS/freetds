@@ -148,7 +148,8 @@ fi
 cp $ROOT/php5.2-latest.tar.bz2 .
 
 # -U_FORTIFY_SOURCE is to avoid a bug in Valgrind detecting memmove as memcpy
-LDFLAGS='-lgcov' CFLAGS='-O2 -pipe -g -U_FORTIFY_SOURCE -fprofile-arcs -ftest-coverage' sh autogen.sh --enable-extra-checks --prefix=$HOME/install --with-odbc-nodm=/usr --enable-krb5 $FLAGS_ADD
+LDFLAGS='-lgcov' CFLAGS='-O2 -pipe -g -U_FORTIFY_SOURCE -fprofile-arcs -ftest-coverage -Wunused-parameter' \
+	sh autogen.sh --enable-extra-checks --prefix=$HOME/install --with-odbc-nodm=/usr --enable-krb5 $FLAGS_ADD
 
 # compile, test with mssql server
 set_pwd_file $ROOT/PWD.mssql2005

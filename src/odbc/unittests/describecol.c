@@ -154,7 +154,9 @@ lookup_attr(const char *name)
 	return NULL;
 }
 
-#define ATTR_PARAMS const struct attribute *attr, const char *expected_values[]
+#define ATTR_PARAMS \
+	const struct attribute *attr TDS_UNUSED, \
+	const char *expected_values[] TDS_UNUSED
 typedef void (*check_attr_t) (ATTR_PARAMS);
 
 static bool

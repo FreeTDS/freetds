@@ -9,7 +9,7 @@
 static bool proc_limit_hit = false;
 
 static int
-err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
+err_handler(DBPROCESS * dbproc TDS_UNUSED, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
 {
 	if (dberr == 20011) {
 		proc_limit_hit = true;

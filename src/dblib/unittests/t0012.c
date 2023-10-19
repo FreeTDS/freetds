@@ -26,11 +26,14 @@ static void set_failed(int line)
 #define datensecond nanosecond
 #endif
 
+#ifdef SYBMSDATETIME2
 static int
-ignore_msg_handler(DBPROCESS * dbproc, DBINT msgno, int state, int severity, char *text, char *server, char *proc, int line)
+ignore_msg_handler(DBPROCESS * dbproc TDS_UNUSED, DBINT msgno TDS_UNUSED, int state TDS_UNUSED, int severity TDS_UNUSED,
+		   char *text TDS_UNUSED, char *server TDS_UNUSED, char *proc TDS_UNUSED, int line TDS_UNUSED)
 {
 	return 0;
 }
+#endif
 
 int
 main(int argc, char *argv[])

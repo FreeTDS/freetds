@@ -90,7 +90,7 @@ typedef struct tds_gss_auth
 } TDSGSSAUTH;
 
 static TDSRET
-tds_gss_free(TDSCONNECTION * conn, struct tds_authentication * tds_auth)
+tds_gss_free(TDSCONNECTION * conn TDS_UNUSED, struct tds_authentication * tds_auth)
 {
 	TDSGSSAUTH *auth = (TDSGSSAUTH *) tds_auth;
 	OM_uint32 min_stat;
@@ -153,7 +153,7 @@ tds7_gss_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 }
 
 static TDSRET
-tds5_gss_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t len)
+tds5_gss_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t len TDS_UNUSED)
 {
 	TDSRET res;
 	gss_buffer_desc recv_tok;

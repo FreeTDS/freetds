@@ -542,7 +542,7 @@ _tdsodbc_dbconvert(TDS_DBC *dbc, int srctype, const TDS_CHAR * src, SQLLEN src_l
 }
 
 static TDSRET
-_bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
+_bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset TDS_UNUSED)
 {
 	TDS_TINYINT ti;
 	TDS_SMALLINT si;

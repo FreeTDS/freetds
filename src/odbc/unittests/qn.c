@@ -14,7 +14,7 @@ static HENV env = SQL_NULL_HENV;
 static HDBC dbc = SQL_NULL_HDBC;
 static HSTMT stmt = SQL_NULL_HSTMT;
 
-static TDS_THREAD_PROC_DECLARE(change_thread_proc, arg)
+static TDS_THREAD_PROC_DECLARE(change_thread_proc, arg TDS_UNUSED)
 {
 	SQLHSTMT odbc_stmt = stmt;
 

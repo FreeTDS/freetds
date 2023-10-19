@@ -16,7 +16,7 @@ int test(int srctype, const void *srcdata, int srclen, int dsttype, int dstlen);
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 
 int
-err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
+err_handler(DBPROCESS * dbproc TDS_UNUSED, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
 {
 	/*
 	 * For server messages, cancel the query and rely on the

@@ -14,7 +14,7 @@
 
 static CS_CONTEXT *ctx = NULL;
 
-static void test_type(TDSSOCKET *tds, TDSCOLUMN *col)
+static void test_type(TDSSOCKET *tds TDS_UNUSED, TDSCOLUMN *col)
 {
 	TDSRESULTINFO *resinfo, *bindinfo;
 	TDSCOLUMN *oldcol, *bindcol;
