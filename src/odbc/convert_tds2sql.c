@@ -140,7 +140,7 @@ odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT 
  * Handle conversions from TDS NCHAR to ISO8859-1 stripping spaces (for fixed types)
  */
 static int
-odbc_tds_convert_wide_iso(TDSCOLUMN *curcol, TDS_CHAR *src, TDS_UINT srclen, TDS_CHAR *buf, TDS_UINT buf_len)
+odbc_tds_convert_wide_iso(TDS_CHAR *src, TDS_UINT srclen, TDS_CHAR *buf, TDS_UINT buf_len)
 {
 	TDS_CHAR *p;
 	/*
@@ -203,7 +203,7 @@ TDS_COMPILE_CHECK(timestamp_struct, sizeof(TIMESTAMP_STRUCT) == 16
  * These types have a different binary representation in libTDS.
  */
 static SQLLEN
-odbc_convert_datetime_to_binary(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_DATETIMEALL * dta, TDS_CHAR * dest, SQLULEN destlen)
+odbc_convert_datetime_to_binary(TDSCOLUMN *curcol, int srctype, TDS_DATETIMEALL * dta, TDS_CHAR * dest, SQLULEN destlen)
 {
 	size_t len, cplen;
 	TDS_USMALLINT buf[10];
@@ -247,7 +247,7 @@ odbc_convert_datetime_to_binary(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype,
 }
 
 static SQLLEN
-odbc_convert_to_binary(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TDS_UINT srclen, TDS_CHAR * dest, SQLULEN destlen)
+odbc_convert_to_binary(TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TDS_UINT srclen, TDS_CHAR * dest, SQLULEN destlen)
 {
 	SQLLEN ret = srclen;
 
@@ -261,7 +261,7 @@ odbc_convert_to_binary(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR
 	case SYBTIME:
 	case SYB5BIGTIME:
 	case SYB5BIGDATETIME:
-		return odbc_convert_datetime_to_binary(stmt, curcol, srctype, (TDS_DATETIMEALL *) src, dest, destlen);
+		return odbc_convert_datetime_to_binary(curcol, srctype, (TDS_DATETIMEALL *) src, dest, destlen);
 	}
 
 	/* if destlen == 0 we return only length */
@@ -315,7 +315,7 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 			ores.n.precision = ((TDS_NUMERIC *) src)->precision;
 			ores.n.scale = ((TDS_NUMERIC *) src)->scale;
 		} else {
-			return odbc_convert_to_binary(stmt, curcol, srctype, src, srclen, dest, destlen);
+			return odbc_convert_to_binary(curcol, srctype, src, srclen, dest, destlen);
 		}
 	} else if (is_numeric_type(nDestSybType)) {
 		/* TODO use descriptor information (APD) ?? However APD can contain SQL_C_DEFAULT... */
@@ -334,7 +334,7 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 			 * convert to single and then process normally.
 			 * Here we processed SQL_C_BINARY and SQL_C_*CHAR so only fixed types are left
 			 */
-			i = odbc_tds_convert_wide_iso(curcol, src, srclen, conv_buf, sizeof(conv_buf));
+			i = odbc_tds_convert_wide_iso(src, srclen, conv_buf, sizeof(conv_buf));
 			if (i < 0)
 				return SQL_NULL_DATA;
 			src = conv_buf;

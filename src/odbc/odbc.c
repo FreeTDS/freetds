@@ -3357,7 +3357,7 @@ odbc_cursor_execute(TDS_STMT * stmt)
 	}
 	cursor->concurrency = 0x2000 | i;
 
-	ret = tds_cursor_declare(tds, cursor, params, &send);
+	ret = tds_cursor_declare(tds, cursor, &send);
 	if (TDS_FAILED(ret))
 		return ret;
 	ret = tds_cursor_open(tds, cursor, params, &send);

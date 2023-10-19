@@ -2306,7 +2306,7 @@ tds_set_cur_cursor(TDSSOCKET *tds, TDSCURSOR *cursor)
 }
 
 TDSRET
-tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, bool *something_to_send)
+tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, bool *something_to_send)
 {
 	CHECK_TDS_EXTRA(tds);
 

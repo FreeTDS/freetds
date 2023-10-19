@@ -1144,7 +1144,7 @@ ct_send(CS_COMMAND * cmd)
 		}
 
 		if (cursor->status.declare == _CS_CURS_TYPE_REQUESTED) {
-			TDSRET ret =  tds_cursor_declare(tds, cursor, NULL, &something_to_send);
+			TDSRET ret =  tds_cursor_declare(tds, cursor, &something_to_send);
 			if (TDS_FAILED(ret)){
 				tdsdump_log(TDS_DBG_WARN, "ct_send(): cursor declare failed \n");
 				return CS_FAIL;

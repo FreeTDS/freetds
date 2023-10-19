@@ -74,7 +74,7 @@ static void pool_schedule_waiters(TDS_POOL * pool);
 static TDS_POOL *pool_init(const char *name, const char *config_path);
 static void pool_socket_init(TDS_POOL * pool);
 static void pool_main_loop(TDS_POOL * pool);
-static bool pool_open_logfile(TDS_POOL * pool);
+static bool pool_open_logfile(void);
 
 static void
 sigterm_handler(int sig)
@@ -151,7 +151,7 @@ pool_init(const char *name, const char *config_path)
 
 	pool->name = strdup(name);
 
-	pool_open_logfile(pool);
+	pool_open_logfile();
 
 	pool_mbr_init(pool);
 	pool_user_init(pool);
@@ -264,7 +264,7 @@ pool_process_events(TDS_POOL *pool)
 }
 
 static bool
-pool_open_logfile(TDS_POOL *pool)
+pool_open_logfile(void)
 {
 	int fd;
 
@@ -390,7 +390,7 @@ pool_main_loop(TDS_POOL * pool)
 #ifndef _WIN32
 		if (TDS_UNLIKELY(got_sighup)) {
 			got_sighup = false;
-			pool_open_logfile(pool);
+			pool_open_logfile();
 		}
 #endif
 

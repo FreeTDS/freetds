@@ -120,7 +120,7 @@ type_name(CS_INT value)
 }
 
 static void
-test0(CS_INT from, CS_INT to, CS_BOOL expected, int line)
+test(CS_INT from, CS_INT to, CS_BOOL expected)
 {
 	CS_BOOL res;
 	res = 123;
@@ -142,8 +142,6 @@ test0(CS_INT from, CS_INT to, CS_BOOL expected, int line)
 		exit(1);
 	}
 }
-
-#define test(from, to, expected) test0(from, to, expected, __LINE__)
 
 int
 main(void)
