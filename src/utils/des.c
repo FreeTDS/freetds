@@ -285,7 +285,7 @@ des_init(DES_KEY * key)
 
 /* Set key (initialize key schedule array) */
 int
-tds_des_set_key(DES_KEY * dkey, const des_cblock user_key, int len)
+tds_des_set_key(DES_KEY * dkey, const des_cblock user_key)
 {
 	char pc1m[56];		/* place to modify pc1 into */
 	char pcr[56];		/* place to rotate pc1 into */
