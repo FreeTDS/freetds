@@ -1,8 +1,5 @@
 #include "common.h"
 
-static char software_version[] = "$Id: rowset.c,v 1.8 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static void
 test_err(int n)
 {
@@ -16,7 +13,7 @@ test_err(int n)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	int i;
 	SQLLEN len;

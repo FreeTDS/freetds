@@ -121,7 +121,7 @@ query_test(const char* expected, const char *expected_status)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	int i;
 

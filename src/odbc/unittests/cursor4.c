@@ -16,7 +16,7 @@ exec_direct(const char *stmt)
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	char buff[64];
 	SQLLEN ind;

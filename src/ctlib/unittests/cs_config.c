@@ -11,7 +11,7 @@
 #include "common.h"
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	int verbose = 1;
 	CS_CONTEXT *ctx;

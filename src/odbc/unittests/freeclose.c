@@ -274,7 +274,7 @@ static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	SQLLEN sql_nts = SQL_NTS;
 	const char *query;

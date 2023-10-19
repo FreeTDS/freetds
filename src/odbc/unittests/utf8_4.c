@@ -37,7 +37,7 @@ wide_test(const WCHAR* input, size_t input_len, const char *exp, int line)
 #endif
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 #ifdef ENABLE_ODBC_WIDE
 	DSTR s = DSTR_INITIALIZER;

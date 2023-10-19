@@ -120,7 +120,8 @@ CHECK(password_bug_report,
 	assert(login->port == 1433);
 }
 
-int main(int argc, char *argv[])
+int
+main(void)
 {
 #ifdef _WIN32
 	hinstFreeTDS = GetModuleHandle(NULL);

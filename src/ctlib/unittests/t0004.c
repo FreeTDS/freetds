@@ -13,7 +13,7 @@ CS_RETCODE do_results(CS_COMMAND * cmd, CS_INT * results);
 
 /* Testing: Test order of ct_results() */
 int
-main(int argc, char **argv)
+main(void)
 {
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;

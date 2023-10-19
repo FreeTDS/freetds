@@ -73,7 +73,7 @@ TestBinding(int minimun)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	const char * const*p;
 	SQLINTEGER n;

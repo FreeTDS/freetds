@@ -7,11 +7,8 @@
 	This test on Sybase should not raise an error
 */
 
-static char software_version[] = "$Id: peter.c,v 1.2 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 int
-main(int argc, char *argv[])
+main(void)
 {
 	SQLSMALLINT num_params, cols;
 	SQLLEN count;

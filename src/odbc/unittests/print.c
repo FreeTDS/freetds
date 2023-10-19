@@ -92,7 +92,7 @@ test(int odbc3)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	int ret;
 

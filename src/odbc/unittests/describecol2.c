@@ -19,7 +19,7 @@ do_check(int c, const char *test, int line)
 #define check(s) do_check(s, #s, __LINE__)
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	SQLSMALLINT len, type;
 	SQLTCHAR name[128];

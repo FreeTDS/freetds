@@ -94,7 +94,7 @@ unfinished_query_test(TDSSOCKET *tds)
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	TDSLOGIN *login;
 	TDSSOCKET *tds;

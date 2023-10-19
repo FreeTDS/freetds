@@ -39,7 +39,7 @@ Test(bool use_indicator)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	odbc_connect();
 

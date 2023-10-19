@@ -284,7 +284,7 @@ extract_collations(void)
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	TDSLOGIN *login;
 	int ret;

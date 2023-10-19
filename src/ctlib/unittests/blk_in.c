@@ -199,7 +199,7 @@ do_bind(CS_BLKDESC * blkdesc, int colnum, CS_INT host_format, CS_INT host_type, 
 
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;

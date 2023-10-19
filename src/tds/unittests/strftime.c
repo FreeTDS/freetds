@@ -44,7 +44,7 @@ test(const TDSDATEREC* dr, int prec, const char *fmt, const char *expected, int 
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	TDSDATEREC dr;
 

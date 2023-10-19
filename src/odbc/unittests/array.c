@@ -135,7 +135,7 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	odbc_use_version3 = 1;
 	odbc_conn_additional_params = "ClientCharset=ISO-8859-1;";

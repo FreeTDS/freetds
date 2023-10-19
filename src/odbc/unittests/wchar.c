@@ -3,7 +3,7 @@
 /* test SQL_C_DEFAULT with NCHAR type */
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	char buf[102];
 	SQLLEN ind;

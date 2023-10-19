@@ -251,7 +251,7 @@ static void special_select(void);
 static const char table_name[] = "all_types_bcp_unittest";
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	const char *s;
 

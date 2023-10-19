@@ -132,7 +132,7 @@ test_split(const char *n_flag)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	char buf[32];
 	SQLINTEGER int_buf;

@@ -1,7 +1,7 @@
 #include "common.h"
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	SQLINTEGER id;
 	SQLLEN ind1, ind2;

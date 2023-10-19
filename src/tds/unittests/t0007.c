@@ -179,7 +179,7 @@ int_values[] = {
 };
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	int *type1, *type2;
 	const char **value;

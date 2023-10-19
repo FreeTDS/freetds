@@ -4,7 +4,7 @@
 	odbc_stmt = old_odbc_stmt; old_odbc_stmt = xyz; } while(0)
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	HSTMT old_odbc_stmt = SQL_NULL_HSTMT;
 

@@ -1,11 +1,8 @@
 /* Tests 2 active statements */
 #include "common.h"
 
-static char software_version[] = "$Id: cursor3.c,v 1.11 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 int
-main(int argc, char **argv)
+main(void)
 {
 	SQLHSTMT stmt1 = SQL_NULL_HSTMT;
 	SQLHSTMT stmt2 = SQL_NULL_HSTMT;

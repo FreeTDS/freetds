@@ -31,7 +31,7 @@ fatal_error(const char *msg)
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	TDSLOGIN *login;
 	TDSSOCKET *tds;

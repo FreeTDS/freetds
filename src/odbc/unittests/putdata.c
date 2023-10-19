@@ -226,7 +226,7 @@ Test(int direct)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	odbc_connect();
 

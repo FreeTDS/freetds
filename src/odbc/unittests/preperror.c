@@ -2,11 +2,8 @@
 
 /* test error on prepared statement, from Nathaniel Talbott test */
 
-static char software_version[] = "$Id: preperror.c,v 1.10 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 int
-main(int argc, char *argv[])
+main(void)
 {
 	SQLLEN cbInString = SQL_NTS;
 	char buf[256];

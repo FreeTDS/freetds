@@ -93,7 +93,7 @@ check_msg(int check, const char *msg)
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	const struct type *p;
 	char buf[16];

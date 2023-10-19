@@ -2,9 +2,6 @@
 
 /* Test for SQLMoreResults */
 
-static char software_version[] = "$Id: t0003.c,v 1.21 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static void
 DoTest(int prepared)
 {
@@ -51,7 +48,7 @@ DoTest(int prepared)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	odbc_connect();
 

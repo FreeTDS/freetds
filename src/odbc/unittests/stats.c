@@ -1,8 +1,5 @@
 #include "common.h"
 
-static char software_version[] = "$Id: stats.c,v 1.4 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static SQLLEN cnamesize;
 static char output[256];
 
@@ -93,7 +90,7 @@ str(char *buf, int n)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	char int_buf[32];
 

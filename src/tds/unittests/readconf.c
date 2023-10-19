@@ -57,7 +57,7 @@ test(const char *section, const char *entry, const char *expected)
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	const char *in_file = FREETDS_SRCDIR "/readconf.in";
 

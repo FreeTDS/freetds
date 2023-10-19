@@ -460,7 +460,7 @@ test(int mars, void (*real_test)(void))
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	int mars;
 

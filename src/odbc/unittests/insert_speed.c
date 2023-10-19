@@ -1,9 +1,6 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: insert_speed.c,v 1.10 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 #define SQL_QUERY_LENGTH 80
 
 /* test correctly inserted data after insert */
@@ -61,7 +58,7 @@ insert_test_man(void)
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	odbc_connect();
 

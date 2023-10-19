@@ -4,7 +4,7 @@
 #include "common.h"
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	SQLSMALLINT cnt = 0;
 	int failed = 0;

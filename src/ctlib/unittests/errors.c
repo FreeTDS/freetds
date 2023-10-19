@@ -26,7 +26,7 @@ static CS_CONNECTION *conn;
 static CS_COMMAND *cmd;
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	int verbose = 1;
 

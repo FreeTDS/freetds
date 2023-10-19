@@ -4,7 +4,7 @@
 /* test conversion using SQLGetData */
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	SQLLEN len;
 	unsigned char buf[30];

@@ -66,7 +66,7 @@ static void test_type(TDSSOCKET *tds, TDSCOLUMN *col)
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	TDSCONTEXT *tds_ctx;
 	TDSSOCKET *tds;

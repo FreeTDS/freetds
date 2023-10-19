@@ -30,7 +30,7 @@ static const char *printable_ret(CS_RETCODE ret)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;

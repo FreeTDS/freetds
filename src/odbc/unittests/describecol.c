@@ -290,7 +290,7 @@ check_attr_none(ATTR_PARAMS)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	int cond = 1;
 #define TEST_FILE "describecol.in"

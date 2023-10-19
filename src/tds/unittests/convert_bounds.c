@@ -79,7 +79,7 @@ static const char *bounds[] = {
 };
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	const char **bound;
 

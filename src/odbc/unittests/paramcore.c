@@ -4,14 +4,11 @@
  * Try to make core dump using SQLBindParameter
  */
 
-static char software_version[] = "$Id: paramcore.c,v 1.9 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 #define SP_TEXT "{call sp_paramcore_test(?)}"
 #define OUTSTRING_LEN 20
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	SQLLEN cb = SQL_NTS;
 

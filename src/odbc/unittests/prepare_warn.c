@@ -9,7 +9,7 @@
 #include "common.h"
 
 int
-main(int argc, char **argv)
+main(void)
 {
 #define ARRAY_SIZE 10
 	SQLCHAR v_dec[ARRAY_SIZE][21];

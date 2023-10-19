@@ -96,7 +96,7 @@ lookup(const char *name, const struct odbc_lookup_int *table)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	int cond = 1;
 

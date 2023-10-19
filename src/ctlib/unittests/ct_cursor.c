@@ -12,7 +12,7 @@
 static int update_second_table(CS_COMMAND * cmd2, char *value);
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;

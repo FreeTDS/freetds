@@ -36,7 +36,7 @@
 static char buf[4096+80];
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	static const char out_file[] = "iconv_fread.out";
 	int i;

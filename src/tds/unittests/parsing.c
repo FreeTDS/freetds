@@ -65,7 +65,7 @@ test_generic(const char *s, int expected_pos, bool comment, int line)
 #define test_quote(s, e) test_generic(s, e, false, __LINE__)
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	tdsdump_open(getenv("TDSDUMP"));
 

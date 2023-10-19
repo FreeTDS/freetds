@@ -2,9 +2,6 @@
 
 /* Test for data format returned from SQLPrepare */
 
-static char software_version[] = "$Id: prepare_results.c,v 1.15 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static void
 Test(int use_ird)
 {
@@ -65,7 +62,7 @@ Test(int use_ird)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	SQLSMALLINT count;
 

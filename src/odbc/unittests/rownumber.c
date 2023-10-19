@@ -7,9 +7,6 @@
  * TODO make it work and add to Makefile.am
  */
 
-static char software_version[] = "$Id: rownumber.c,v 1.6 2010-07-05 09:20:33 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static void
 CheckRowNum(int n, int line)
 {
@@ -64,7 +61,7 @@ DoTest()
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	odbc_use_version3 = 1;
 

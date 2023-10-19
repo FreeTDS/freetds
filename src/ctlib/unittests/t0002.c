@@ -13,7 +13,7 @@ static int sp_who(CS_COMMAND *cmd);
  * ct_fetch and print results
  */
 int
-main(int argc, char **argv)
+main(void)
 {
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;

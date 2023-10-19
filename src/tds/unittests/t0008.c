@@ -69,7 +69,7 @@ test(const char *src, const char *intro, const char *cont, int prec, int scale, 
 #define test(a,b,c,d,e,f) test(a,b,c,d,e,f,__LINE__)
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	/* very long string for test buffer overflow */
 	int i;

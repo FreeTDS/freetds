@@ -2,9 +2,6 @@
 
 /* Test for SQLMoreResults and SQLRowCount on batch */
 
-static char software_version[] = "$Id: moreandcount.c,v 1.20 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static void
 DoTest(int prepare)
 {
@@ -84,7 +81,7 @@ DoTest(int prepare)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	odbc_connect();
 

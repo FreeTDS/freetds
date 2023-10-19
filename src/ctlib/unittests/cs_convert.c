@@ -119,7 +119,7 @@ DoTest(
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	volatile CS_BIGINT one = 1;
 	int verbose = 1;

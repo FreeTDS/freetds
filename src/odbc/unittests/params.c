@@ -3,9 +3,6 @@
 /* Test for store procedure and params */
 /* Test from Tom Rogers */
 
-static char software_version[] = "$Id: params.c,v 1.13 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 /* SP definition */
 
 static const char sp_define[] = "CREATE PROCEDURE spTestProc\n"
@@ -79,7 +76,7 @@ Test(int bind_before)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	if (Test(0))
 		return 1;

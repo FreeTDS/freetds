@@ -146,7 +146,7 @@ test0(CS_INT from, CS_INT to, CS_BOOL expected, int line)
 #define test(from, to, expected) test0(from, to, expected, __LINE__)
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	int verbose = 0;
 	CS_COMMAND *command;

@@ -10,7 +10,7 @@
 
 /* Testing: Client Messages */
 int
-main(int argc, char *argv[])
+main(void)
 {
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;

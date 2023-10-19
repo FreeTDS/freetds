@@ -30,7 +30,7 @@ get_entry(const char *key)
 #endif
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	char tmp[1024*4];
 	SQLSMALLINT len;
