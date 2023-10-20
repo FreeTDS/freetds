@@ -40,7 +40,7 @@ const smp smp_one = {
 smp
 smp_add(smp a, smp b)
 {
-	int i;
+	size_t i;
 	uint32_t carry = 0;
 	smp res;
 
@@ -56,7 +56,7 @@ smp_add(smp a, smp b)
 smp
 smp_not(smp a)
 {
-	int i;
+	size_t i;
 	smp res;
 	for (i = 0; i < SMP_NUM_COMPONENTS; ++i)
 		res.comp[i] = a.comp[i] ^ 0xffffu;
@@ -72,7 +72,7 @@ smp_negate(smp a)
 smp
 smp_from_int(int64_t n)
 {
-	int i;
+	size_t i;
 	uint64_t un;
 	smp res;
 
@@ -99,7 +99,7 @@ smp_is_negative(smp a)
 bool
 smp_is_zero(smp a)
 {
-	int i;
+	size_t i;
 	uint16_t or = 0;
 
 	for (i = 0; i < SMP_NUM_COMPONENTS; ++i)
@@ -117,7 +117,7 @@ smp_sub(smp a, smp b)
 double
 smp_to_double(smp a)
 {
-	int i;
+	size_t i;
 	double n = 0;
 	double mult = 1.0;
 	smp b = a;
@@ -147,10 +147,10 @@ smp_cmp(smp a, smp b)
 static uint16_t
 div_small(smp *n, uint16_t div)
 {
-	int i;
+	size_t i;
 	uint32_t remainder = 0;
-	for (i = SMP_NUM_COMPONENTS; --i >= 0;) {
-		uint32_t comp = remainder * 0x10000u + n->comp[i];
+	for (i = SMP_NUM_COMPONENTS; i > 0;) {
+		uint32_t comp = remainder * 0x10000u + n->comp[--i];
 		remainder = comp % div;
 		n->comp[i] = (uint16_t) (comp / div);
 	}
@@ -178,7 +178,7 @@ smp_to_string(smp a)
 static void
 mul_small(smp *n, uint16_t factor)
 {
-	int i;
+	size_t i;
 	uint32_t carry = 0;
 	for (i = 0; i < SMP_NUM_COMPONENTS; ++i) {
 		uint32_t comp = (uint32_t) n->comp[i] * factor + carry;
