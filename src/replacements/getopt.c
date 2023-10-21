@@ -29,6 +29,8 @@
  * SUCH DAMAGE.
  */
 
+#include <config.h>
+
 #undef LIBC_SCCS
 
 #if !defined(_WIN32)

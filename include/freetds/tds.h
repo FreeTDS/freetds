@@ -57,7 +57,6 @@ typedef struct tds_bcpinfo TDSBCPINFO;
 
 #include <freetds/version.h>
 #include <freetds/sysdep_private.h>
-#include <freetds/sysdep_types.h>
 #include <freetds/thread.h>
 #include <freetds/bool.h>
 #include <freetds/macros.h>

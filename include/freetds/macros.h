@@ -30,7 +30,7 @@
 #endif /* HAVE_STDDEF_H */
 
 #include "tds_sysdep_public.h"
-#include <freetds/sysdep_types.h>
+#include <freetds/sysdep_private.h>
 
 #define TDS_ZERO_FREE(x) do {free((x)); (x) = NULL;} while(0)
 #define TDS_VECTOR_SIZE(x) (sizeof(x)/sizeof(x[0]))

@@ -27,7 +27,7 @@
 #if defined(_THREAD_SAFE) && defined(TDS_HAVE_PTHREAD_MUTEX)
 
 #include <tds_sysdep_public.h>
-#include <freetds/sysdep_types.h>
+#include <freetds/sysdep_private.h>
 #include <pthread.h>
 #include <errno.h>
 

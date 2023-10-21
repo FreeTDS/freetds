@@ -93,8 +93,8 @@ static const char *parse_numeric(const char *buf, const char *pend,
 #define INT_IS_INT(x) (TDS_INT_MIN <= (x) && (x) <= TDS_INT_MAX)
 #define TDS_UINT_MAX 4294967295u
 #define IS_UINT(x) (-1 < (TDS_INT8)(x) && (x) < (TDS_INT8) TDS_UINT_MAX + 1)
-#define TDS_INT8_MIN (-(((TDS_INT8)1)<<62) -(((TDS_INT8)1)<<62))
-#define TDS_INT8_MAX ((((TDS_INT8) 0x7fffffff) << 32) + (TDS_INT8) 0xffffffffu)
+#define TDS_INT8_MIN (-INT64_C(9223372036854775807)-1)
+#define TDS_INT8_MAX INT64_C(9223372036854775807)
 
 /*
  * Macros for floating point number checks.
@@ -1315,7 +1315,7 @@ tds_convert_datetimeall(const TDSCONTEXT * tds_ctx, int srctype, const TDS_DATET
 		return sizeof(TDS_UINT8);
 	case SYB5BIGDATETIME:
 		cr->bigtime = dta->time / 10u
-			      + (dta->date + BIGDATETIME_BIAS) * ((TDS_UINT8) 86400u * 1000000u);
+			      + (dta->date + BIGDATETIME_BIAS) * (UINT64_C(86400) * 1000000u);
 		return sizeof(TDS_UINT8);
 		/* conversions not allowed */
 	case SYBUNIQUE:
@@ -1378,7 +1378,7 @@ tds_convert_datetime(const TDSCONTEXT * tds_ctx, const TDS_DATETIME * dt, int de
 		if (desttype != SYBMSDATE) {
 			cr->dta.has_time = 1;
 			cr->dta.time_prec = 3;
-			cr->dta.time = (((TDS_UINT8) dt->dttime) * 20 + 3) / 6 * 10000u;
+			cr->dta.time = (dt->dttime * UINT64_C(20) + 3) / 6 * 10000u;
 		}
 		if (desttype != SYBMSTIME) {
 			cr->dta.has_date = 1;
@@ -1386,11 +1386,11 @@ tds_convert_datetime(const TDSCONTEXT * tds_ctx, const TDS_DATETIME * dt, int de
 		}
 		return sizeof(TDS_DATETIMEALL);
 	case SYB5BIGTIME:
-		cr->bigtime = (((TDS_UINT8) dt->dttime) * 20u + 3u) / 6u * 1000u;
+		cr->bigtime = (dt->dttime * UINT64_C(20) + 3u) / 6u * 1000u;
 		return sizeof(TDS_BIGTIME);
 	case SYB5BIGDATETIME:
-		cr->bigdatetime = (((TDS_UINT8) dt->dttime) * 20u + 3u) / 6u * 1000u
-				  + (dt->dtdays + BIGDATETIME_BIAS) * ((TDS_UINT8) 86400u * 1000000u);
+		cr->bigdatetime = (dt->dttime * UINT64_C(20) + 3u) / 6u * 1000u
+				  + (dt->dtdays + BIGDATETIME_BIAS) * (UINT64_C(86400) * 1000000u);
 		return sizeof(TDS_BIGDATETIME);
 		/* conversions not allowed */
 	case SYBUNIQUE:
@@ -1444,8 +1444,8 @@ tds_convert_time(const TDSCONTEXT * tds_ctx, const TDS_TIME * time, int desttype
 	memset(&dta, 0, sizeof(dta));
 	dta.has_time = 1;
 	dta.time_prec = 3;
-	dta.time = ((TDS_UINT8) *time * 100000 + 2) / 3;
-	dta.time = (((TDS_UINT8) *time) * 20 + 3) / 6 * 10000;
+	dta.time = (*time * UINT64_C(100000) + 2) / 3;
+	dta.time = (*time * UINT64_C(20) + 3) / 6 * 10000;
 	return tds_convert_datetimeall(tds_ctx, SYBMSTIME, &dta, desttype, cr);
 }
 
@@ -1480,7 +1480,7 @@ tds_convert_bigtime(const TDSCONTEXT * tds_ctx, const TDS_BIGTIME * bigtime, int
 	memset(&dta, 0, sizeof(dta));
 	dta.time_prec = 6;
 	dta.has_time = 1;
-	dta.time = *bigtime % ((TDS_UINT8) 86400u * 1000000u) * 10u;
+	dta.time = *bigtime % (UINT64_C(86400) * 1000000u) * 10u;
 	return tds_convert_datetimeall(tds_ctx, SYBMSTIME, &dta, desttype, cr);
 }
 
@@ -1500,8 +1500,8 @@ tds_convert_bigdatetime(const TDSCONTEXT * tds_ctx, const TDS_BIGDATETIME * bigd
 	memset(&dta, 0, sizeof(dta));
 	dta.time_prec = 6;
 	dta.has_time = 1;
-	dta.time = bdt % ((TDS_UINT8) 86400u * 1000000u) * 10u;
-	bdt /= (TDS_UINT8) 86400u * 1000000u;
+	dta.time = bdt % (UINT64_C(86400) * 1000000u) * 10u;
+	bdt /= UINT64_C(86400) * 1000000u;
 	dta.has_date = 1;
 	dta.date = bdt - BIGDATETIME_BIAS;
 	return tds_convert_datetimeall(tds_ctx, SYBMSDATETIME2, &dta, desttype, cr);
@@ -2248,12 +2248,12 @@ string_to_datetime(const char *instr, TDS_UINT len, int desttype, CONV_RESULT * 
 		return sizeof(TDS_TIME);
 	}
 	if (desttype == SYB5BIGTIME) {
-		cr->bigtime = dt_time * (TDS_UINT8) 1000000u + t.tm_ns / 1000u;
+		cr->bigtime = dt_time * UINT64_C(1000000) + t.tm_ns / 1000u;
 		return sizeof(TDS_BIGTIME);
 	}
 	if (desttype == SYB5BIGDATETIME) {
-		cr->bigdatetime = (dt_days + BIGDATETIME_BIAS) * ((TDS_UINT8) 86400u * 1000000u)
-				  + dt_time * (TDS_UINT8) 1000000u + t.tm_ns / 1000u;
+		cr->bigdatetime = (dt_days + BIGDATETIME_BIAS) * (UINT64_C(86400) * 1000000u)
+				  + dt_time * UINT64_C(1000000) + t.tm_ns / 1000u;
 		return sizeof(TDS_BIGDATETIME);
 	}
 
@@ -2263,7 +2263,7 @@ string_to_datetime(const char *instr, TDS_UINT len, int desttype, CONV_RESULT * 
 	cr->dta.date = dt_days;
 	cr->dta.has_time = 1;
 	cr->dta.time_prec = 7; /* TODO correct value */
-	cr->dta.time = ((TDS_UINT8) dt_time) * 10000000u + t.tm_ns / 100u;
+	cr->dta.time = dt_time * UINT64_C(10000000) + t.tm_ns / 100u;
 	return sizeof(TDS_DATETIMEALL);
 
 string_garbled:
@@ -3354,7 +3354,7 @@ parse_int8(const char *buf, const char *pend, TDS_UINT8 * res, bool * p_negative
 	for (; digits; --digits, ++buf) {
 		/* add a digit to number and check for overflow */
 		TDS_UINT8 prev = num;
-		if (num > (((TDS_UINT8) 1u) << 63) / 5u)
+		if (num > (UINT64_C(1) << 63) / 5u)
 			return TDS_CONVERT_OVERFLOW;
 		num = num * 10u + (*buf - '0');
 		if (num < prev)
@@ -3383,11 +3383,11 @@ string_to_int8(const char *buf, const char *pend, TDS_INT8 * res)
 
 	/* check for overflow and convert unsigned to signed */
 	if (negative) {
-		if (num > (((TDS_UINT8) 1) << 63))
+		if (num > UINT64_C(1) << 63)
 			return TDS_CONVERT_OVERFLOW;
 		*res = 0 - num;
 	} else {
-		if (num >= (((TDS_UINT8) 1) << 63))
+		if (num >= UINT64_C(1) << 63)
 			return TDS_CONVERT_OVERFLOW;
 		*res = num;
 	}

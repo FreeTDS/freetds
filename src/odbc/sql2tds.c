@@ -107,7 +107,7 @@ convert_datetime2server(int bindtype, const void *src, TDS_DATETIMEALL * dta)
 
 	dta->has_time = 1;
 	dt_time = (src_tm.tm_hour * 60 + src_tm.tm_min) * 60 + src_tm.tm_sec;
-	dta->time = dt_time * ((TDS_UINT8) 10000000u) + tm_dms;
+	dta->time = dt_time * UINT64_C(10000000) + tm_dms;
 	return sizeof(TDS_DATETIMEALL);
 }
 
