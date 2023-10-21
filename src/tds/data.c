@@ -1008,7 +1008,7 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 			/* this difference for BCP operation is due to
 			 * a bug in different server version that does
 			 * not accept a length here */
-			tds_put_int8(tds, bcp7 ? -2 : colsize);
+			tds_put_int8(tds, bcp7 ? (TDS_INT8) -2 : (TDS_INT8) colsize);
 			tds_put_int(tds, colsize);
 			break;
 		case 4:	/* It's a BLOB... */
