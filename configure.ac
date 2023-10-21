@@ -395,6 +395,10 @@ $ac_cv_sizeof___int64)   tds_sysdep_intptr_type=__int64;;
 *)                     AC_MSG_ERROR(No intptr type found.)
 esac
 
+if test "$ac_cv_sizeof_long_long" -ne 0; then
+	AC_DEFINE(HAVE_LONG_LONG, 1, [Define if you have long long])
+fi
+
 AC_SUBST(tds_sysdep_int16_type)
 AC_SUBST(tds_sysdep_int32_type)
 AC_SUBST(tds_sysdep_real32_type)
