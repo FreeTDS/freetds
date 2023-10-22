@@ -1410,7 +1410,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 	ODBC_ENTER_HSTMT;
 
 	tdsdump_log(TDS_DBG_FUNC, "_SQLBindParameter(%p, %u, %d, %d, %d, %u, %d, %p, %d, %p)\n", 
-			hstmt, (unsigned short)ipar, (int)fParamType, (int)fCType, (int)fSqlType, (unsigned int)cbColDef, 
+			hstmt, (unsigned)ipar, (int)fParamType, (int)fCType, (int)fSqlType, (unsigned int)cbColDef,
 			(int)ibScale, rgbValue, (int)cbValueMax, pcbValue);
 
 #ifdef TDS_NO_DM
