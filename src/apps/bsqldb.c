@@ -512,8 +512,8 @@ print_results(DBPROCESS *dbproc)
 				char *colname, *bynames;
 				int altcolid = dbaltcolid(dbproc, i+1, c+1);
 				
-				metacompute[i]->meta[c].type = dbalttype(dbproc, i+1, c+1);
-				metacompute[i]->meta[c].size = dbaltlen(dbproc, i+1, c+1);
+				meta->type = dbalttype(dbproc, i+1, c+1);
+				meta->size = dbaltlen(dbproc, i+1, c+1);
 
 				/* 
 				 * Jump through hoops to determine a useful name for the computed column 
@@ -545,16 +545,15 @@ print_results(DBPROCESS *dbproc)
 					colname = metadata[--altcolid].name;
 				}
 
-				ret = asprintf(&metacompute[i]->meta[c].name, "%s(%s)", dbprtype(dbaltop(dbproc, i+1, c+1)), colname);
+				ret = asprintf(&meta->name, "%s(%s)", dbprtype(dbaltop(dbproc, i+1, c+1)), colname);
 				if (ret < 0) {
 					fprintf(stderr, "%s:%d: asprintf(), column %d failed\n", options.appname, __LINE__, c+1);
 					exit(1);
 				}
 
-				metacompute[i]->meta[c].width = get_printable_size(metacompute[i]->meta[c].type, 
-										   metacompute[i]->meta[c].size);
-				if (metacompute[i]->meta[c].width < strlen(metacompute[i]->meta[c].name))
-					metacompute[i]->meta[c].width = strlen(metacompute[i]->meta[c].name);
+				meta->width = get_printable_size(meta->type, meta->size);
+				if (meta->width < strlen(meta->name))
+					meta->width = strlen(meta->name);
 
 				ret = set_format_string(meta, (c+1 < metacompute[i]->numalts)? options.colsep : "\n");
 				if (ret <= 0) {
@@ -562,17 +561,17 @@ print_results(DBPROCESS *dbproc)
 					fprintf(stderr, "%s:%d: asprintf(), column %d failed\n", options.appname, __LINE__, c+1);
 					exit(1);
 				}
-				
+
 				fprintf(options.verbose, "\tcolumn %d is %s, type %s, size %d %s\n", 
-					c+1, metacompute[i]->meta[c].name, dbprtype(metacompute[i]->meta[c].type),
-					metacompute[i]->meta[c].size, (nby > 0)? bynames : "");
+					c+1, meta->name, dbprtype(meta->type),
+					meta->size, (nby > 0)? bynames : "");
 				free(bynames);
-	
+
 				/* allocate buffer */
 				assert(metacompute[i]->data);
-				metacompute[i]->data[c].buffer = (char *) calloc(1, metacompute[i]->meta[c].width);
+				metacompute[i]->data[c].buffer = (char *) calloc(1, meta->width);
 				assert(metacompute[i]->data[c].buffer);
-				
+
 				/* bind */
 				erc = dbaltbind(dbproc, i+1, c+1, bindtype, -1, (BYTE*) metacompute[i]->data[c].buffer);
 				if (erc == FAIL) {
