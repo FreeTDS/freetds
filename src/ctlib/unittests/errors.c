@@ -12,6 +12,7 @@
 static void test_ct_callback(void);
 static void test_ct_res_info(void);
 static void test_ct_send(void);
+static void test_cs_config(void);
 
 static void
 report_wrong_error(void)
@@ -44,6 +45,7 @@ main(void)
 	test_ct_callback();
 	test_ct_res_info();
 	test_ct_send();
+	test_cs_config();
 
 	if (verbose) {
 		printf("Trying logout\n");
@@ -161,4 +163,91 @@ test_ct_send(void)
 	if (ct_last_message.type != CTMSG_CLIENT2 || ct_last_message.number != 0x0101019b
 	    || !strstr(ct_last_message.text, "idle"))
 		report_wrong_error();
+}
+
+static void
+test_cs_config(void)
+{
+	/* a set of invalid, not accepted values */
+	static const CS_INT invalid_values[] = {
+		-1,
+		-5,
+		-200,
+		CS_WILDCARD,
+		CS_NO_LIMIT,
+		CS_UNUSED,
+		0 /* terminator */
+	};
+	const CS_INT *p_invalid;
+	CS_INT out_len;
+	char out_buf[8];
+
+	check_call(cs_config, (ctx, CS_SET, CS_USERDATA, (CS_VOID *)"test",  CS_NULLTERM, NULL));
+
+	/* check that value written does not have the NUL terminator */
+	strcpy(out_buf, "123456");
+	check_call(cs_config, (ctx, CS_GET, CS_USERDATA, (CS_VOID *)out_buf, 8, NULL));
+	if (strcmp(out_buf, "test56") != 0) {
+		fprintf(stderr, "Wrong output buffer '%s'\n", out_buf);
+		exit(1);
+	}
+
+	check_call(cs_config, (ctx, CS_SET, CS_USERDATA, (CS_VOID *)"test123",  4, NULL));
+
+	/* check that value written does not have more characters */
+	strcpy(out_buf, "123456");
+	check_call(cs_config, (ctx, CS_GET, CS_USERDATA, (CS_VOID *)out_buf, 8, NULL));
+	if (strcmp(out_buf, "test56") != 0) {
+		fprintf(stderr, "Wrong output buffer '%s'\n", out_buf);
+		exit(1);
+	}
+
+	for (p_invalid = invalid_values; *p_invalid != 0; ++p_invalid) {
+		check_fail(cs_config, (ctx, CS_SET, CS_USERDATA, (CS_VOID *)"test", *p_invalid, NULL));
+		if (ct_last_message.type != CTMSG_CSLIB || ct_last_message.number != 0x02010106
+		    || !strstr(ct_last_message.text, "buflen"))
+			report_wrong_error();
+	}
+
+	/* wrong action */
+	check_fail(cs_config, (ctx, 1000, CS_USERDATA, (CS_VOID *)"test", 4, NULL));
+	if (ct_last_message.type != CTMSG_CSLIB || ct_last_message.number != 0x02010106
+	    || !strstr(ct_last_message.text, "action"))
+		report_wrong_error();
+
+	/* wrong property */
+	check_fail(cs_config, (ctx, CS_SET, 100000, NULL, CS_UNUSED, NULL));
+	if (ct_last_message.type != CTMSG_CSLIB || ct_last_message.number != 0x02010106
+	    || !strstr(ct_last_message.text, "property"))
+		report_wrong_error();
+
+	/* read exactly expected bytes */
+	check_call(cs_config, (ctx, CS_GET, CS_USERDATA, (CS_VOID *)out_buf, 4, NULL));
+
+	/* wrong buflen getting value */
+	out_len = -123;
+	check_fail(cs_config, (ctx, CS_GET, CS_USERDATA, (CS_VOID *)out_buf, CS_NULLTERM, &out_len));
+	if (ct_last_message.type != CTMSG_CSLIB || ct_last_message.number != 0x02010106
+	    || !strstr(ct_last_message.text, "buflen"))
+		report_wrong_error();
+	if (out_len != -123) {
+		fprintf(stderr, "Wrong buffer length returned\n");
+		exit(1);
+	}
+
+	/* shorter buffer */
+	out_len = -123;
+	strcpy(out_buf, "123456");
+	check_fail(cs_config, (ctx, CS_GET, CS_USERDATA, (CS_VOID *)out_buf, 2, &out_len));
+	if (ct_last_message.type != CTMSG_CSLIB || ct_last_message.number != 0x02010102
+	    || !strstr(ct_last_message.text, " 2 bytes"))
+		report_wrong_error();
+	if (out_len != 4) {
+		fprintf(stderr, "Wrong buffer length returned\n");
+		exit(1);
+	}
+	if (strcmp(out_buf, "123456") != 0) {
+		fprintf(stderr, "Wrong buffer returned\n");
+		exit(1);
+	}
 }

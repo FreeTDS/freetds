@@ -32,14 +32,15 @@ main(void)
 	strcpy(string_in,"FreeTDS");
 
 	check_call(cs_config, (ctx, CS_SET, CS_USERDATA, (CS_VOID *)string_in,  CS_NULLTERM, NULL));
+	strcpy(string_out,"XXXXXXXXXXXXXXX");
 	check_call(cs_config, (ctx, CS_GET, CS_USERDATA, (CS_VOID *)string_out, 16, &ret_len));
 
-	if (strcmp(string_in, string_out)) {
+	if (strcmp(string_out, "FreeTDSXXXXXXXX")) {
 		printf("returned value >%s< not as stored >%s<\n", (char *)string_out, (char *)string_in);
 		return 1;
 	}
-	if (ret_len != (strlen(string_in) + 1)) {
-		printf("returned length >%d< not as expected >%u<\n", ret_len, (unsigned int) (strlen(string_in) + 1));
+	if (ret_len < 0 || (CS_UINT) ret_len != strlen(string_in)) {
+		printf("returned length >%d< not as expected >%d<\n", ret_len, (int) strlen(string_in));
 		return 1;
 	}
 
@@ -51,14 +52,14 @@ main(void)
 
 	strcpy(string_out,"XXXXXXXXXXXXXXX");
 
-	check_call(cs_config, (ctx, CS_GET, CS_USERDATA, (CS_VOID *)string_out, 4, &ret_len));
+	check_call(cs_config, (ctx, CS_GET, CS_USERDATA, (CS_VOID *)string_out, 7, &ret_len));
 
-	if (strcmp(string_out, "FreeXXXXXXXXXXX")) {
-		printf("returned value >%s< not as expected >%s<\n", (char *)string_out, "FreeXXXXXXXXXXX");
+	if (strcmp(string_out, "FreeTDSXXXXXXXX")) {
+		printf("returned value >%s< not as expected >%s<\n", (char *)string_out, "FreeTDSXXXXXXXX");
 		return 1;
 	}
-	if (ret_len != (strlen(string_in) + 1)) {
-		printf("returned length >%d< not as expected >%u<\n", ret_len, (unsigned int) (strlen(string_in) + 1));
+	if (ret_len < 0 || (CS_UINT) ret_len != strlen(string_in)) {
+		printf("returned length >%d< not as expected >%d<\n", ret_len, (int) strlen(string_in));
 		return 1;
 	}
 

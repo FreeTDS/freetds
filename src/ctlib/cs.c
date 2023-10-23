@@ -127,8 +127,14 @@ _cs_get_user_api_layer_error(int error)
 	tdsdump_log(TDS_DBG_FUNC, "_cs_get_user_api_layer_error(%d)\n", error);
 
 	switch (error) {
+	case 2:
+		return "The information being retrieved will not fit in a buffer of %1! bytes.";
+		break;
 	case 3:
 		return "Memory allocation failure.";
+		break;
+	case 6:
+		return "An illegal value of %1! given for parameter %2!.";
 		break;
 	case 16:
 		return "Conversion between %1! and %2! datatypes is not supported.";
@@ -393,21 +399,30 @@ cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 		}
 		switch (property) {
 		case CS_MESSAGE_CB:
-			*(void **) buffer = (void*) ctx->_cslibmsg_cb;
+			*(CS_CSLIBMSG_FUNC*) buffer = ctx->_cslibmsg_cb;
 			return CS_SUCCEED;
 		case CS_USERDATA:
+			if (buflen < 0) {
+				_csclient_msg(ctx, "cs_config", 2, 1, 1, 6, "%d, %s", buflen, "buflen");
+				return CS_FAIL;
+			}
+
 			maxcp = ctx->userdata_len;
 			if (outlen)
 				*outlen = maxcp;
-			if (maxcp > buflen)
-				maxcp = buflen;
 
+			if (buflen < maxcp) {
+				_csclient_msg(ctx, "cs_config", 2, 1, 1, 2, "%d", buflen);
+				return CS_FAIL;
+			}
 			memcpy(buffer, ctx->userdata, maxcp); 
-			
 			return CS_SUCCEED;
+
+		default:
 		case CS_EXTRA_INF:
 		case CS_LOC_PROP:
 		case CS_VERSION:
+			_csclient_msg(ctx, "cs_config", 2, 1, 1, 6, "%d, %s", property, "property");
 			return CS_FAIL;
 			break;
 		}
@@ -422,13 +437,17 @@ cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 			ctx->cs_errhandletype = _CS_ERRHAND_CB;
 			return CS_SUCCEED;
 		case CS_USERDATA:
-			free(ctx->userdata);
-	
+			if (buflen < 0 && buflen != CS_NULLTERM) {
+				_csclient_msg(ctx, "cs_config", 2, 1, 1, 6, "%d, %s", buflen, "buflen");
+				return CS_FAIL;
+			}
+
 			if (buflen == CS_NULLTERM) {
-				maxcp = strlen((char*) buffer) + 1;
+				maxcp = strlen((char*) buffer);
 			} else {
 				maxcp = buflen;
 			}
+			free(ctx->userdata);
 			ctx->userdata = (void *) malloc(maxcp);
 			if ( ctx->userdata == NULL) {
 				return CS_FAIL;
@@ -441,10 +460,12 @@ cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 				return CS_FAIL;
 			}
 			return CS_SUCCEED;
-	
+
+		default:
 		case CS_EXTRA_INF:
 		case CS_LOC_PROP:
 		case CS_VERSION:
+			_csclient_msg(ctx, "cs_config", 2, 1, 1, 6, "%d, %s", property, "property");
 			return CS_FAIL;
 			break;
 		}
@@ -461,16 +482,21 @@ cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 		case CS_USERDATA:
 			free(ctx->userdata);
 			ctx->userdata = NULL;
+			ctx->userdata_len = 0;
 	
 			return CS_SUCCEED;
-	
+
+		default:
 		case CS_EXTRA_INF:
 		case CS_LOC_PROP:
 		case CS_VERSION:
+			_csclient_msg(ctx, "cs_config", 2, 1, 1, 6, "%d, %s", property, "property");
 			return CS_FAIL;
 			break;
 		}
 	}
+
+	_csclient_msg(ctx, "cs_config", 2, 1, 1, 6, "%d, %s", action, "action");
 	return CS_FAIL;
 }
 
