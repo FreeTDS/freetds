@@ -9,10 +9,16 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static void test_ct_callback(void);
-static void test_ct_res_info(void);
-static void test_ct_send(void);
-static void test_cs_config(void);
+#define ALL_TESTS \
+	TEST(ct_callback) \
+	TEST(ct_res_info) \
+	TEST(ct_send) \
+	TEST(cs_config)
+
+/* forward declare all tests */
+#undef TEST
+#define TEST(name) static void test_ ## name(void);
+ALL_TESTS
 
 static void
 report_wrong_error(void)
@@ -42,10 +48,10 @@ main(void)
 	/* set different callback for the connection */
 	check_call(ct_callback, (NULL, conn, CS_SET, CS_CLIENTMSG_CB, (CS_VOID*) clientmsg_cb2));
 
-	test_ct_callback();
-	test_ct_res_info();
-	test_ct_send();
-	test_cs_config();
+	/* call all tests */
+#undef TEST
+#define TEST(name) test_ ## name();
+	ALL_TESTS
 
 	if (verbose) {
 		printf("Trying logout\n");
