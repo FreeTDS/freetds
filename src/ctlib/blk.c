@@ -343,8 +343,11 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 		_ctclient_msg(NULL, CONN(blkdesc), "blk_init", 2, 6, 1, 139, "");
 		return CS_FAIL;
 	}
-	if (tnamelen == CS_NULLTERM)
-		tnamelen = strlen(tablename);
+	tnamelen = _ct_get_string_length(tablename, tnamelen);
+	if (tnamelen < 0) {
+		_ctclient_msg(NULL, CONN(blkdesc), "blk_init", 1, 1, 1, 4, "tblnamelen, %d", tnamelen);
+		return CS_FAIL;
+	}
 
 	/* free allocated storage in blkdesc & initialise flags, etc. */
 	tds_deinit_bcpinfo(&blkdesc->bcpinfo);

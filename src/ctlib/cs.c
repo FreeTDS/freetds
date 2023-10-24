@@ -134,7 +134,7 @@ _cs_get_user_api_layer_error(int error)
 		return "Memory allocation failure.";
 		break;
 	case 6:
-		return "An illegal value of %1! given for parameter %2!.";
+		return "An illegal value of %1! was given for parameter %2!.";
 		break;
 	case 16:
 		return "Conversion between %1! and %2! datatypes is not supported.";
@@ -442,11 +442,7 @@ cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 				return CS_FAIL;
 			}
 
-			if (buflen == CS_NULLTERM) {
-				maxcp = strlen((char*) buffer);
-			} else {
-				maxcp = buflen;
-			}
+			maxcp = _ct_get_string_length(buffer, buflen);
 			free(ctx->userdata);
 			ctx->userdata = (void *) malloc(maxcp);
 			if ( ctx->userdata == NULL) {
@@ -996,8 +992,10 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 			break;
 
 		case CS_SYB_CHARSET:
-			if (buflen == CS_NULLTERM) {
-				buflen = strlen((char *)buffer);
+			buflen = _ct_get_string_length(buffer, buflen);
+			if (buflen < 0) {
+				_csclient_msg(ctx, "cs_locale", 2, 1, 1, 6, "%d, buflen", buflen);
+				return CS_FAIL;
 			}
 			
 			free(locale->charset);
@@ -1009,8 +1007,10 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 			break;
 
 		case CS_SYB_LANG:
-			if (buflen == CS_NULLTERM) {
-				buflen = strlen((char *)buffer);
+			buflen = _ct_get_string_length(buffer, buflen);
+			if (buflen < 0) {
+				_csclient_msg(ctx, "cs_locale", 2, 1, 1, 6, "%d, buflen", buflen);
+				return CS_FAIL;
 			}
 			
 			free(locale->language);
@@ -1026,8 +1026,10 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 			int i;
 			char *b = (char *)buffer;
 
-			if (buflen == CS_NULLTERM) {
-				buflen = strlen(b);
+			buflen = _ct_get_string_length(buffer, buflen);
+			if (buflen < 0) {
+				_csclient_msg(ctx, "cs_locale", 2, 1, 1, 6, "%d, buflen", buflen);
+				return CS_FAIL;
 			}
 
 			/* find '.' character */
@@ -1058,8 +1060,10 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 
 		/* TODO commented out until the code works end-to-end
 		case CS_SYB_SORTORDER:
-			if (buflen == CS_NULLTERM) {
-				buflen = strlen((char *)buffer);
+			buflen = _ct_get_string_length(buffer, buflen);
+			if (buflen < 0) {
+				_csclient_msg(ctx, "cs_locale", 2, 1, 1, 6, "%d, buflen", buflen);
+				return CS_FAIL;
 			}
 			
 			free(locale->collate);
