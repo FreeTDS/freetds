@@ -21,7 +21,8 @@
 	TEST(cs_locale) \
 	TEST(ct_dynamic) \
 	TEST(ct_connect) \
-	TEST(ct_command)
+	TEST(ct_command) \
+	TEST(ct_cursor)
 
 /* forward declare all tests */
 #undef TEST
@@ -391,4 +392,20 @@ test_ct_command(void)
 	/* wrong query length, RPC */
 	check_fail(ct_command, (cmd, CS_RPC_CMD, "test", -3, CS_UNUSED));
 	check_last_message(CTMSG_CLIENT2, 0x01010105, " -3 given for parameter buflen");
+}
+
+static void
+test_ct_cursor(void)
+{
+	/* wrong name length */
+	check_fail(ct_cursor, (cmd, CS_CURSOR_DECLARE, "test", -4, "query", CS_NULLTERM, CS_UNUSED));
+	check_last_message(CTMSG_CLIENT2, 0x01010105, " -4 given for parameter namelen");
+
+	/* wrong query length */
+	check_fail(ct_cursor, (cmd, CS_CURSOR_DECLARE, "test", CS_NULLTERM, "query", -3, CS_UNUSED));
+	check_last_message(CTMSG_CLIENT2, 0x01010105, " -3 given for parameter tlen");
+
+	/* wrong name and query length */
+	check_fail(ct_cursor, (cmd, CS_CURSOR_DECLARE, "test", -11, "query", -3, CS_UNUSED));
+	check_last_message(CTMSG_CLIENT2, 0x01010105, " -11 given for parameter namelen");
 }
