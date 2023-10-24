@@ -7,13 +7,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctpublic.h>
+#include <bkpublic.h>
 #include "common.h"
 
 #define ALL_TESTS \
 	TEST(ct_callback) \
 	TEST(ct_res_info) \
 	TEST(ct_send) \
-	TEST(cs_config)
+	TEST(cs_config) \
+	TEST(blk_init)
 
 /* forward declare all tests */
 #undef TEST
@@ -250,4 +252,23 @@ test_cs_config(void)
 		fprintf(stderr, "Wrong buffer returned\n");
 		exit(1);
 	}
+}
+
+static void
+test_blk_init(void)
+{
+	CS_BLKDESC *blkdesc;
+        check_call(blk_alloc, (conn, BLK_VERSION_100, &blkdesc));
+
+	/* invalid direction */
+	check_fail(blk_init, (blkdesc, 100, "testname", CS_NULLTERM));
+	check_last_message(CTMSG_CLIENT2, 0x0101010f, "CS_BLK_IN or CS_BLK_OUT");
+
+	/* invalid tablename */
+	check_fail(blk_init, (blkdesc, CS_BLK_IN, NULL, CS_NULLTERM));
+	check_last_message(CTMSG_CLIENT2, 0x01010106, "tblname cannot be NULL");
+
+	/* invalid tablename length */
+	check_fail(blk_init, (blkdesc, CS_BLK_IN, "testname", -4));
+	check_last_message(CTMSG_CLIENT2, 0x01010104, "tblnamelen has an illegal value of -4");
 }

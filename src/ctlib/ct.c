@@ -144,18 +144,18 @@ _ct_get_user_api_layer_error(int error)
 	case 5:
 		return "An illegal value of %1! given for parameter %2!.";
 		break;
+	case 6:
+		return "The parameter %1! cannot be NULL.";
+		break;
+	case 15:
+		return "Use direction CS_BLK_IN or CS_BLK_OUT for a bulk copy operation.";
+		break;
 	case 51:
 		return "Exactly one of context and connection must be non-NULL.";
 		break;
 	case 137:
 		return  "A bind count of %1! is not consistent with the count supplied for existing binds. "
 			"The current bind count is %2!.";
-		break;
-	case 138:
-		return "Use direction CS_BLK_IN or CS_BLK_OUT for a bulk copy operation.";
-		break;
-	case 139:
-		return "The parameter tblname cannot be NULL.";
 		break;
 	case 140:
 		return "Failed when processing results from server.";
