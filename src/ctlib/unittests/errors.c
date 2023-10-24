@@ -15,7 +15,10 @@
 	TEST(ct_res_info) \
 	TEST(ct_send) \
 	TEST(cs_config) \
-	TEST(blk_init)
+	TEST(blk_init) \
+	TEST(cs_loc_alloc) \
+	TEST(cs_loc_drop) \
+	TEST(cs_locale)
 
 /* forward declare all tests */
 #undef TEST
@@ -271,4 +274,60 @@ test_blk_init(void)
 	/* invalid tablename length */
 	check_fail(blk_init, (blkdesc, CS_BLK_IN, "testname", -4));
 	check_last_message(CTMSG_CLIENT2, 0x01010104, "tblnamelen has an illegal value of -4");
+}
+
+static void
+test_cs_loc_alloc(void)
+{
+	/* no context or locale */
+	check_fail(cs_loc_alloc, (NULL, NULL));
+	check_last_message(CTMSG_NONE, 0, NULL);
+
+	/* no locale */
+	check_fail(cs_loc_alloc, (ctx, NULL));
+	check_last_message(CTMSG_CSLIB, 0x02010104, " loc_pointer cannot be NULL");
+}
+
+static void
+test_cs_loc_drop(void)
+{
+	/* no context or locale */
+	check_fail(cs_loc_drop, (NULL, NULL));
+	check_last_message(CTMSG_NONE, 0, NULL);
+
+	/* no locale */
+	check_fail(cs_loc_drop, (ctx, NULL));
+	check_last_message(CTMSG_CSLIB, 0x02010104, " locale cannot be NULL");
+}
+
+static void
+test_cs_locale(void)
+{
+	CS_LOCALE *locale;
+
+	check_call(cs_loc_alloc, (ctx, &locale));
+
+	check_call(cs_locale, (ctx, CS_SET, locale, CS_SYB_CHARSET, "utf8", 4, NULL));
+
+	/* no context  */
+	check_fail(cs_locale, (NULL, CS_SET, locale, CS_SYB_CHARSET, "utf8", 4, NULL));
+	check_last_message(CTMSG_NONE, 0, NULL);
+
+	/* no locale  */
+	check_fail(cs_locale, (ctx, CS_SET, NULL, CS_SYB_CHARSET, "utf8", 4, NULL));
+	check_last_message(CTMSG_CSLIB, 0x02010104, " locale cannot be NULL");
+
+	/* wrong action */
+	check_fail(cs_locale, (ctx, 1000, locale, CS_SYB_CHARSET, "utf8", 4, NULL));
+	check_last_message(CTMSG_CSLIB, 0x02010106, " 1000 was given for parameter action");
+
+	/* wrong type */
+	check_fail(cs_locale, (ctx, CS_SET, locale, 1000, "utf8", 4, NULL));
+	check_last_message(CTMSG_CSLIB, 0x02010106, " 1000 was given for parameter type");
+
+	/* wrong length  */
+	check_fail(cs_locale, (ctx, CS_SET, locale, CS_SYB_CHARSET, "utf8", -4, NULL));
+	check_last_message(CTMSG_CSLIB, 0x02010106, " -4 was given for parameter buflen");
+
+	check_call(cs_loc_drop, (ctx, locale));
 }

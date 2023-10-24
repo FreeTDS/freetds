@@ -133,6 +133,9 @@ _cs_get_user_api_layer_error(int error)
 	case 3:
 		return "Memory allocation failure.";
 		break;
+	case 4:
+		return "The parameter %1! cannot be NULL.";
+		break;
 	case 6:
 		return "An illegal value of %1! was given for parameter %2!.";
 		break;
@@ -949,17 +952,25 @@ cs_dt_crack(CS_CONTEXT * ctx, CS_INT datetype, CS_VOID * dateval, CS_DATEREC * d
 }
 
 CS_RETCODE
-cs_loc_alloc(CS_CONTEXT * ctx, CS_LOCALE ** locptr)
+cs_loc_alloc(CS_CONTEXT * ctx, CS_LOCALE ** loc_pointer)
 {
 	CS_LOCALE *tds_csloc;
 
-	tdsdump_log(TDS_DBG_FUNC, "cs_loc_alloc(%p, %p)\n", ctx, locptr);
+	tdsdump_log(TDS_DBG_FUNC, "cs_loc_alloc(%p, %p)\n", ctx, loc_pointer);
+
+	if (!ctx)
+		return CS_FAIL;
+
+	if (!loc_pointer) {
+		_csclient_msg(ctx, "cs_loc_alloc", 2, 1, 1, 4, "loc_pointer");
+		return CS_FAIL;
+	}
 
 	tds_csloc = _cs_locale_alloc();
 	if (!tds_csloc)
 		return CS_FAIL;
 
-	*locptr = tds_csloc;
+	*loc_pointer = tds_csloc;
 	return CS_SUCCEED;
 }
 
@@ -968,8 +979,13 @@ cs_loc_drop(CS_CONTEXT * ctx, CS_LOCALE * locale)
 {
 	tdsdump_log(TDS_DBG_FUNC, "cs_loc_drop(%p, %p)\n", ctx, locale);
 
-	if (!locale)
+	if (!ctx)
 		return CS_FAIL;
+
+	if (!locale) {
+		_csclient_msg(ctx, "cs_loc_drop", 2, 1, 1, 4, "locale");
+		return CS_FAIL;
+	}
 
 	_cs_locale_free(locale);
 	return CS_SUCCEED;
@@ -981,6 +997,14 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 	CS_RETCODE code = CS_FAIL;
 
 	tdsdump_log(TDS_DBG_FUNC, "cs_locale(%p, %d, %p, %d, %p, %d, %p)\n", ctx, action, locale, type, buffer, buflen, outlen);
+
+	if (!ctx)
+		return CS_FAIL;
+
+	if (!locale) {
+		_csclient_msg(ctx, "cs_locale", 2, 1, 1, 4, "locale");
+		return CS_FAIL;
+	}
 
 	if (action == CS_SET) {
 		switch (type) {
@@ -1074,6 +1098,11 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 			code = CS_SUCCEED;
 			break;
 		*/
+
+		default:
+			_csclient_msg(ctx, "cs_locale", 2, 1, 1, 6, "%d, type", type);
+			code = CS_FAIL;
+			break;
 		}
 	}
 	else if (action == CS_GET)
@@ -1151,7 +1180,15 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 				((char *)buffer)[0] = '\0';
 			code = CS_SUCCEED;
 			break;
+
+		default:
+			_csclient_msg(ctx, "cs_locale", 2, 1, 1, 6, "%d, type", type);
+			code = CS_FAIL;
+			break;
 		}
+	} else {
+		_csclient_msg(ctx, "cs_locale", 2, 1, 1, 6, "%d, action", action);
+		code = CS_FAIL;
 	}
 	return code;
 }
