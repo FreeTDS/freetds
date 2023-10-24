@@ -179,6 +179,7 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 {
 	CS_RETCODE ret;
 	char query[512+10];
+	CS_INT bulk_enabled = CS_TRUE;
 #ifdef TDS_STATIC_CAST
 	TDSCONTEXT *tds_ctx;
 #endif
@@ -234,6 +235,13 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 	if (ret != CS_SUCCEED) {
 		if (verbose) {
 			fprintf(stderr, "ct_con_props() SET PASSWORD failed!\n");
+		}
+		return ret;
+	}
+	ret = ct_con_props(*conn, CS_SET, CS_BULK_LOGIN, &bulk_enabled, CS_UNUSED, NULL);
+	if (ret != CS_SUCCEED) {
+		if (verbose) {
+			fprintf(stderr, "ct_con_props() SET BULK failed!\n");
 		}
 		return ret;
 	}
