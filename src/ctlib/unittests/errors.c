@@ -20,7 +20,8 @@
 	TEST(cs_loc_drop) \
 	TEST(cs_locale) \
 	TEST(ct_dynamic) \
-	TEST(ct_connect)
+	TEST(ct_connect) \
+	TEST(ct_command)
 
 /* forward declare all tests */
 #undef TEST
@@ -374,4 +375,20 @@ test_ct_connect(void)
 	check_last_message(CTMSG_CLIENT, 0x01010105, " -5 given for parameter snamelen");
 
 	check_call(ct_con_drop, (conn));
+}
+
+static void
+test_ct_command(void)
+{
+	/* wrong query length, CS_UNUSED, this was behaving differently */
+	check_fail(ct_command, (cmd, CS_LANG_CMD, "test", CS_UNUSED, CS_UNUSED));
+	check_last_message(CTMSG_CLIENT2, 0x01010105, " given for parameter buflen");
+
+	/* wrong query length */
+	check_fail(ct_command, (cmd, CS_LANG_CMD, "test", -7, CS_UNUSED));
+	check_last_message(CTMSG_CLIENT2, 0x01010105, " -7 given for parameter buflen");
+
+	/* wrong query length, RPC */
+	check_fail(ct_command, (cmd, CS_RPC_CMD, "test", -3, CS_UNUSED));
+	check_last_message(CTMSG_CLIENT2, 0x01010105, " -3 given for parameter buflen");
 }
