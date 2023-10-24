@@ -22,7 +22,8 @@
 	TEST(ct_dynamic) \
 	TEST(ct_connect) \
 	TEST(ct_command) \
-	TEST(ct_cursor)
+	TEST(ct_cursor) \
+	TEST(ct_con_props)
 
 /* forward declare all tests */
 #undef TEST
@@ -408,4 +409,25 @@ test_ct_cursor(void)
 	/* wrong name and query length */
 	check_fail(ct_cursor, (cmd, CS_CURSOR_DECLARE, "test", -11, "query", -3, CS_UNUSED));
 	check_last_message(CTMSG_CLIENT2, 0x01010105, " -11 given for parameter namelen");
+}
+
+static void
+test_ct_con_props(void)
+{
+	CS_CONNECTION *conn;
+
+	check_call(ct_con_alloc, (ctx, &conn));
+
+	/* wrong buffer length */
+	check_fail(ct_con_props, (conn, CS_SET, CS_APPNAME, "app", -3, NULL));
+	check_last_message(CTMSG_CLIENT, 0x01010105, " -3 given for parameter buflen");
+
+	/* wrong buffer length, CS_UNUSED, it had a different behaviour */
+	check_fail(ct_con_props, (conn, CS_SET, CS_APPNAME, "app", CS_UNUSED, NULL));
+	check_last_message(CTMSG_CLIENT, 0x01010105, " given for parameter buflen");
+
+	check_call(ct_con_drop, (conn));
+
+	check_fail(ct_con_props, (NULL, CS_SET, CS_APPNAME, "app", 3, NULL));
+	check_last_message(CTMSG_NONE, 0, NULL);
 }
