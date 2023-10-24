@@ -57,70 +57,51 @@ main(void)
 }
 
 static void
-test_ct_callback(void)
+_check_fail(const char *name, CS_RETCODE ret, int line)
 {
-	CS_RETCODE ret;
-
-	/* this should fail, context or connection should be not NULL */
-	ct_reset_last_message();
-	ret = ct_callback(NULL, NULL, CS_SET, CS_SERVERMSG_CB, servermsg_cb);
 	if (ret != CS_FAIL) {
-		fprintf(stderr, "ct_callback succeeded\n");
+		fprintf(stderr, "%s():%d: succeeded\n", name, line);
 		exit(1);
 	}
+}
+#define check_fail(func, args) do { \
+	ct_reset_last_message(); \
+	_check_fail(#func, func args, __LINE__); \
+} while(0)
+
+static void
+test_ct_callback(void)
+{
+	/* this should fail, context or connection should be not NULL */
+	check_fail(ct_callback, (NULL, NULL, CS_SET, CS_SERVERMSG_CB, servermsg_cb));
 	if (ct_last_message.type != CTMSG_NONE)
 		report_wrong_error();
 
 	/* this should fail, context and connection cannot be both not NULL */
-	ct_reset_last_message();
-	ret = ct_callback(ctx, conn, CS_SET, CS_SERVERMSG_CB, servermsg_cb);
-	if (ret != CS_FAIL) {
-		fprintf(stderr, "ct_callback succeeded\n");
-		exit(1);
-	}
+	check_fail(ct_callback, (ctx, conn, CS_SET, CS_SERVERMSG_CB, servermsg_cb));
 	if (ct_last_message.type != CTMSG_CLIENT2 || ct_last_message.number != 0x01010133)
 		report_wrong_error();
 
 	/* this should fail, invalid action */
-	ct_reset_last_message();
-	ret = ct_callback(ctx, NULL, 3, CS_SERVERMSG_CB, servermsg_cb);
-	if (ret != CS_FAIL) {
-		fprintf(stderr, "ct_callback succeeded\n");
-		exit(1);
-	}
+	check_fail(ct_callback, (ctx, NULL, 3, CS_SERVERMSG_CB, servermsg_cb));
 	if (ct_last_message.type != CTMSG_CLIENT || ct_last_message.number != 0x01010105
 	    || !strstr(ct_last_message.text, "action"))
 		report_wrong_error();
 
 	/* this should fail, invalid action */
-	ct_reset_last_message();
-	ret = ct_callback(NULL, conn, 3, CS_SERVERMSG_CB, servermsg_cb);
-	if (ret != CS_FAIL) {
-		fprintf(stderr, "ct_callback succeeded\n");
-		exit(1);
-	}
+	check_fail(ct_callback, (NULL, conn, 3, CS_SERVERMSG_CB, servermsg_cb));
 	if (ct_last_message.type != CTMSG_CLIENT2 || ct_last_message.number != 0x01010105
 	    || !strstr(ct_last_message.text, "action"))
 		report_wrong_error();
 
 	/* this should fail, invalid type */
-	ct_reset_last_message();
-	ret = ct_callback(ctx, NULL, CS_SET, 20, servermsg_cb);
-	if (ret != CS_FAIL) {
-		fprintf(stderr, "ct_callback succeeded\n");
-		exit(1);
-	}
+	check_fail(ct_callback, (ctx, NULL, CS_SET, 20, servermsg_cb));
 	if (ct_last_message.type != CTMSG_CLIENT || ct_last_message.number != 0x01010105
 	    || !strstr(ct_last_message.text, "type"))
 		report_wrong_error();
 
 	/* this should fail, invalid type */
-	ct_reset_last_message();
-	ret = ct_callback(NULL, conn, CS_SET, 20, servermsg_cb);
-	if (ret != CS_FAIL) {
-		fprintf(stderr, "ct_callback succeeded\n");
-		exit(1);
-	}
+	check_fail(ct_callback, (NULL, conn, CS_SET, 20, servermsg_cb));
 	if (ct_last_message.type != CTMSG_CLIENT2 || ct_last_message.number != 0x01010105
 	    || !strstr(ct_last_message.text, "type"))
 		report_wrong_error();
@@ -144,12 +125,7 @@ test_ct_res_info(void)
 			break;
 		case CS_ROW_RESULT:
 			/* this should fail, invalid number */
-			ct_reset_last_message();
-			ret = ct_res_info(cmd, 1234, &num_cols, CS_UNUSED, NULL);
-			if (ret != CS_FAIL) {
-				fprintf(stderr, "ct_res_info succeeded\n");
-				exit(1);
-			}
+			check_fail(ct_res_info, (cmd, 1234, &num_cols, CS_UNUSED, NULL));
 			if (ct_last_message.type != CTMSG_CLIENT2 || ct_last_message.number != 0x01010105
 			    || !strstr(ct_last_message.text, "operation"))
 				report_wrong_error();
@@ -176,19 +152,12 @@ test_ct_res_info(void)
 static void
 test_ct_send(void)
 {
-	CS_RETCODE ret;
-
 	/* reset command to idle state */
 	check_call(ct_cmd_drop, (cmd));
 	check_call(ct_cmd_alloc, (conn, &cmd));
 
 	/* this should fail, invalid command state */
-	ct_reset_last_message();
-	ret = ct_send(cmd);
-	if (ret != CS_FAIL) {
-		fprintf(stderr, "ct_send succeeded\n");
-		exit(1);
-	}
+	check_fail(ct_send, (cmd));
 	if (ct_last_message.type != CTMSG_CLIENT2 || ct_last_message.number != 0x0101019b
 	    || !strstr(ct_last_message.text, "idle"))
 		report_wrong_error();
