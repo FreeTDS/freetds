@@ -153,6 +153,9 @@ _ct_get_user_api_layer_error(int error)
 	case 51:
 		return "Exactly one of context and connection must be non-NULL.";
 		break;
+	case 135:
+		return "The specified id does not exist on this connection.";
+		break;
 	case 137:
 		return  "A bind count of %1! is not consistent with the count supplied for existing binds. "
 			"The current bind count is %2!.";
@@ -3292,7 +3295,7 @@ ct_dynamic(CS_COMMAND * cmd, CS_INT type, CS_CHAR * id, CS_INT idlen, CS_CHAR * 
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_dynamic(%p, %d, %p, %d, %p, %d)\n", cmd, type, id, idlen, buffer, buflen);
 
-	if (!cmd->con)
+	if (!cmd || !cmd->con)
 		return CS_FAIL;
 
 	con = cmd->con;
@@ -3337,6 +3340,7 @@ ct_dynamic(CS_COMMAND * cmd, CS_INT type, CS_CHAR * id, CS_INT idlen, CS_CHAR * 
 		cmd->dyn->param_list = NULL;
 		break;
 	default:
+		_ctclient_msg(NULL, con, "ct_dynamic", 1, 1, 1, 5, "%d, type", type);
 		return CS_FAIL;
 	}
 
@@ -4709,30 +4713,37 @@ _ct_allocate_dynamic(CS_CONNECTION * con, char *id, int id_len)
 
 	tdsdump_log(TDS_DBG_FUNC, "_ct_allocate_dynamic(%p, %p, %d)\n", con, id, id_len);
 
-	dyn = tds_new0(CS_DYNAMIC, 1);
-
 	id_len = _ct_get_string_length(id, id_len);
 	if (id_len < 0) {
 		_ctclient_msg(NULL, con, "ct_dynamic", 1, 1, 1, 5, "%d, idlen", id_len);
 		return NULL;
 	}
 
-	if (dyn != NULL) {
-		dyn->id = tds_strndup(id, id_len);
-
-		if (!con->dynlist) {
-			tdsdump_log(TDS_DBG_INFO1, "_ct_allocate_dynamic() attaching dynamic command to head\n");
-			con->dynlist = dyn;
-		} else {
-			pdyn = &con->dynlist;
-			while (*pdyn) {
-				pdyn = &(*pdyn)->next;
-			}
-
-			*pdyn = dyn;
-		}
+	dyn = tds_new0(CS_DYNAMIC, 1);
+	if (!dyn) {
+		_ctclient_msg(NULL, con, "ct_dynamic", 1, 1, 1, 2, "");
+		return NULL;
 	}
-	return (dyn);
+
+	dyn->id = tds_strndup(id, id_len);
+	if (!dyn->id) {
+		free(dyn);
+		_ctclient_msg(NULL, con, "ct_dynamic", 1, 1, 1, 2, "");
+		return NULL;
+	}
+
+	if (!con->dynlist) {
+		tdsdump_log(TDS_DBG_INFO1, "_ct_allocate_dynamic() attaching dynamic command to head\n");
+		con->dynlist = dyn;
+	} else {
+		pdyn = &con->dynlist;
+		while (*pdyn) {
+			pdyn = &(*pdyn)->next;
+		}
+
+		*pdyn = dyn;
+	}
+	return dyn;
 }
 
 static CS_DYNAMIC *
@@ -4752,11 +4763,13 @@ _ct_locate_dynamic(CS_CONNECTION * con, char *id, int id_len)
 
 	for (dyn = con->dynlist; dyn != NULL; dyn = dyn->next) {
 		tdsdump_log(TDS_DBG_INFO1, "_ct_locate_dynamic() matching with %s\n", (char *) dyn->id);
-		if (strncmp(dyn->id, id, id_len) == 0)
+		if (strncmp(dyn->id, id, id_len) == 0 && strlen(dyn->id) == id_len + 0u)
 			break;
 	}
 
-	return (dyn);
+	if (!dyn)
+		_ctclient_msg(NULL, con, "ct_dynamic", 1, 1, 1, 135, "");
+	return dyn;
 }
 
 static CS_INT

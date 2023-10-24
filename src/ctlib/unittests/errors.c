@@ -18,7 +18,8 @@
 	TEST(blk_init) \
 	TEST(cs_loc_alloc) \
 	TEST(cs_loc_drop) \
-	TEST(cs_locale)
+	TEST(cs_locale) \
+	TEST(ct_dynamic)
 
 /* forward declare all tests */
 #undef TEST
@@ -330,4 +331,32 @@ test_cs_locale(void)
 	check_last_message(CTMSG_CSLIB, 0x02010106, " -4 was given for parameter buflen");
 
 	check_call(cs_loc_drop, (ctx, locale));
+}
+
+static void
+test_ct_dynamic(void)
+{
+	/* wrong type */
+	check_fail(ct_dynamic, (cmd, 10000, "test", CS_NULLTERM, "query", CS_NULLTERM));
+	check_last_message(CTMSG_CLIENT2, 0x01010105, " 10000 given for parameter type");
+
+	/* wrong id length */
+	check_fail(ct_dynamic, (cmd, CS_PREPARE, "test", -5, "query", CS_NULLTERM));
+	check_last_message(CTMSG_CLIENT2, 0x01010105, " -5 given for parameter idlen");
+
+	/* wrong query length */
+	check_fail(ct_dynamic, (cmd, CS_PREPARE, "test", CS_NULLTERM, "query", -6));
+	check_last_message(CTMSG_CLIENT2, 0x01010105, " -6 given for parameter buflen");
+
+	/* wrong id and query length */
+	check_fail(ct_dynamic, (cmd, CS_PREPARE, "test", -5, "query", -6));
+	check_last_message(CTMSG_CLIENT2, 0x01010105, " -5 given for parameter idlen");
+
+	/* id not existing */
+	check_fail(ct_dynamic, (cmd, CS_DEALLOC, "notexisting", CS_NULLTERM, NULL, CS_UNUSED));
+	check_last_message(CTMSG_CLIENT2, 0x01010187, " specified id does not exist ");
+
+	/* wrong id length */
+	check_fail(ct_dynamic, (cmd, CS_DEALLOC, "notexisting", -7, NULL, CS_UNUSED));
+	check_last_message(CTMSG_CLIENT2, 0x01010105, " -7 given for parameter idlen");
 }
