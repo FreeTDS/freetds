@@ -19,7 +19,8 @@
 	TEST(cs_loc_alloc) \
 	TEST(cs_loc_drop) \
 	TEST(cs_locale) \
-	TEST(ct_dynamic)
+	TEST(ct_dynamic) \
+	TEST(ct_connect)
 
 /* forward declare all tests */
 #undef TEST
@@ -359,4 +360,18 @@ test_ct_dynamic(void)
 	/* wrong id length */
 	check_fail(ct_dynamic, (cmd, CS_DEALLOC, "notexisting", -7, NULL, CS_UNUSED));
 	check_last_message(CTMSG_CLIENT2, 0x01010105, " -7 given for parameter idlen");
+}
+
+static void
+test_ct_connect(void)
+{
+	CS_CONNECTION *conn;
+
+	check_call(ct_con_alloc, (ctx, &conn));
+
+	/* wrong server name length */
+	check_fail(ct_connect, (conn, "test", -5));
+	check_last_message(CTMSG_CLIENT, 0x01010105, " -5 given for parameter snamelen");
+
+	check_call(ct_con_drop, (conn));
 }
