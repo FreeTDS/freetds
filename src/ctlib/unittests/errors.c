@@ -279,6 +279,8 @@ test_blk_init(void)
 	/* invalid tablename length */
 	check_fail(blk_init, (blkdesc, CS_BLK_IN, "testname", -4));
 	check_last_message(CTMSG_CLIENT2, 0x01010104, "tblnamelen has an illegal value of -4");
+
+        check_call(blk_drop, (blkdesc));
 }
 
 static void
