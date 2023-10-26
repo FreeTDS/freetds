@@ -1,6 +1,6 @@
-project(FreeTDS)
+cmake_minimum_required(VERSION 3.5)
 
-cmake_minimum_required(VERSION 3.3)
+project(FreeTDS)
 
 option(WITH_OPENSSL        "Link in OpenSSL if found" ON)
 option(ENABLE_ODBC_WIDE    "Enable ODBC wide character support" ON)
