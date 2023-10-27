@@ -4498,7 +4498,7 @@ _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEG
 		break;
 	case SQL_ATTR_METADATA_ID:
 		size = sizeof(stmt->attr.metadata_id);
-		src = &stmt->attr.noscan;
+		src = &stmt->attr.metadata_id;
 		break;
 	case SQL_ATTR_NOSCAN:
 		size = sizeof(stmt->attr.noscan);
