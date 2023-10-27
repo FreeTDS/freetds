@@ -13,22 +13,6 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static const char *printable_ret(CS_RETCODE ret)
-{
-#define CASE(x) case x: return #x;
-	switch (ret) {
-	CASE(CS_STATUS_RESULT)
-	CASE(CS_ROW_RESULT)
-	CASE(CS_PARAM_RESULT)
-	CASE(CS_CMD_SUCCEED)
-	CASE(CS_MSG_RESULT)
-	CASE(CS_CMD_DONE)
-	CASE(CS_CMD_FAIL)
-	default:
-		return "Unknown";
-	}
-}
-
 int
 main(void)
 {
@@ -51,7 +35,7 @@ main(void)
 	check_call(ct_send, (cmd));
 
 	while ((ret = ct_results(cmd, &res_type)) == CS_SUCCEED) {
-		printf("ct_results returned %s\n", printable_ret(res_type));
+		printf("ct_results returned %s\n", res_type_str(res_type));
 		switch ((int) res_type) {
 		case CS_STATUS_RESULT:
 			while (ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, &rows_read) == CS_SUCCEED)
