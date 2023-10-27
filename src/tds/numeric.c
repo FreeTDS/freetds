@@ -275,6 +275,8 @@ tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, uns
 	 * (** is power).
 	 * The shifts are computed to make sure the multiplication error
 	 * does not cause a wrong result.
+	 *
+	 * See also misc/reverse_divisor script.
 	 */
 	static const TDS_DWORD reverse_dividers[] = {
 		1 /* not used */,
