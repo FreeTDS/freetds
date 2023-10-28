@@ -67,7 +67,7 @@ test(TDSSOCKET * tds, TDSDYNAMIC * dyn, TDS_INT n, const char *s)
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	TDSLOGIN *login;
 	TDSSOCKET *tds;

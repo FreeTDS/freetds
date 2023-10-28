@@ -127,8 +127,17 @@ _cs_get_user_api_layer_error(int error)
 	tdsdump_log(TDS_DBG_FUNC, "_cs_get_user_api_layer_error(%d)\n", error);
 
 	switch (error) {
+	case 2:
+		return "The information being retrieved will not fit in a buffer of %1! bytes.";
+		break;
 	case 3:
 		return "Memory allocation failure.";
+		break;
+	case 4:
+		return "The parameter %1! cannot be NULL.";
+		break;
+	case 6:
+		return "An illegal value of %1! was given for parameter %2!.";
 		break;
 	case 16:
 		return "Conversion between %1! and %2! datatypes is not supported.";
@@ -393,21 +402,30 @@ cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 		}
 		switch (property) {
 		case CS_MESSAGE_CB:
-			*(void **) buffer = (void*) ctx->_cslibmsg_cb;
+			*(CS_CSLIBMSG_FUNC*) buffer = ctx->_cslibmsg_cb;
 			return CS_SUCCEED;
 		case CS_USERDATA:
+			if (buflen < 0) {
+				_csclient_msg(ctx, "cs_config", 2, 1, 1, 6, "%d, %s", buflen, "buflen");
+				return CS_FAIL;
+			}
+
 			maxcp = ctx->userdata_len;
 			if (outlen)
 				*outlen = maxcp;
-			if (maxcp > buflen)
-				maxcp = buflen;
 
+			if (buflen < maxcp) {
+				_csclient_msg(ctx, "cs_config", 2, 1, 1, 2, "%d", buflen);
+				return CS_FAIL;
+			}
 			memcpy(buffer, ctx->userdata, maxcp); 
-			
 			return CS_SUCCEED;
+
+		default:
 		case CS_EXTRA_INF:
 		case CS_LOC_PROP:
 		case CS_VERSION:
+			_csclient_msg(ctx, "cs_config", 2, 1, 1, 6, "%d, %s", property, "property");
 			return CS_FAIL;
 			break;
 		}
@@ -422,13 +440,13 @@ cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 			ctx->cs_errhandletype = _CS_ERRHAND_CB;
 			return CS_SUCCEED;
 		case CS_USERDATA:
-			free(ctx->userdata);
-	
-			if (buflen == CS_NULLTERM) {
-				maxcp = strlen((char*) buffer) + 1;
-			} else {
-				maxcp = buflen;
+			if (buflen < 0 && buflen != CS_NULLTERM) {
+				_csclient_msg(ctx, "cs_config", 2, 1, 1, 6, "%d, %s", buflen, "buflen");
+				return CS_FAIL;
 			}
+
+			maxcp = _ct_get_string_length(buffer, buflen);
+			free(ctx->userdata);
 			ctx->userdata = (void *) malloc(maxcp);
 			if ( ctx->userdata == NULL) {
 				return CS_FAIL;
@@ -441,10 +459,12 @@ cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 				return CS_FAIL;
 			}
 			return CS_SUCCEED;
-	
+
+		default:
 		case CS_EXTRA_INF:
 		case CS_LOC_PROP:
 		case CS_VERSION:
+			_csclient_msg(ctx, "cs_config", 2, 1, 1, 6, "%d, %s", property, "property");
 			return CS_FAIL;
 			break;
 		}
@@ -461,16 +481,21 @@ cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 		case CS_USERDATA:
 			free(ctx->userdata);
 			ctx->userdata = NULL;
+			ctx->userdata_len = 0;
 	
 			return CS_SUCCEED;
-	
+
+		default:
 		case CS_EXTRA_INF:
 		case CS_LOC_PROP:
 		case CS_VERSION:
+			_csclient_msg(ctx, "cs_config", 2, 1, 1, 6, "%d, %s", property, "property");
 			return CS_FAIL;
 			break;
 		}
 	}
+
+	_csclient_msg(ctx, "cs_config", 2, 1, 1, 6, "%d, %s", action, "action");
 	return CS_FAIL;
 }
 
@@ -749,12 +774,14 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 		}
 		memcpy(dest, cres.ib, len);
 		free(cres.ib);
-		*resultlen = destlen;
+		*resultlen = len;
 		if (destvc) {
 			destvc->len = len;
 			*resultlen = sizeof(*destvc);
+		} else if (destfmt->format == CS_FMT_PADNULL) {
+			*resultlen = destlen;
+			memset(dest + len, '\0', destlen - len);
 		}
-		memset(dest + len, '\0', destlen - len);
 		break;
 	case SYBBIT:
 	case SYBBITN:
@@ -925,17 +952,25 @@ cs_dt_crack(CS_CONTEXT * ctx, CS_INT datetype, CS_VOID * dateval, CS_DATEREC * d
 }
 
 CS_RETCODE
-cs_loc_alloc(CS_CONTEXT * ctx, CS_LOCALE ** locptr)
+cs_loc_alloc(CS_CONTEXT * ctx, CS_LOCALE ** loc_pointer)
 {
 	CS_LOCALE *tds_csloc;
 
-	tdsdump_log(TDS_DBG_FUNC, "cs_loc_alloc(%p, %p)\n", ctx, locptr);
+	tdsdump_log(TDS_DBG_FUNC, "cs_loc_alloc(%p, %p)\n", ctx, loc_pointer);
+
+	if (!ctx)
+		return CS_FAIL;
+
+	if (!loc_pointer) {
+		_csclient_msg(ctx, "cs_loc_alloc", 2, 1, 1, 4, "loc_pointer");
+		return CS_FAIL;
+	}
 
 	tds_csloc = _cs_locale_alloc();
 	if (!tds_csloc)
 		return CS_FAIL;
 
-	*locptr = tds_csloc;
+	*loc_pointer = tds_csloc;
 	return CS_SUCCEED;
 }
 
@@ -944,8 +979,13 @@ cs_loc_drop(CS_CONTEXT * ctx, CS_LOCALE * locale)
 {
 	tdsdump_log(TDS_DBG_FUNC, "cs_loc_drop(%p, %p)\n", ctx, locale);
 
-	if (!locale)
+	if (!ctx)
 		return CS_FAIL;
+
+	if (!locale) {
+		_csclient_msg(ctx, "cs_loc_drop", 2, 1, 1, 4, "locale");
+		return CS_FAIL;
+	}
 
 	_cs_locale_free(locale);
 	return CS_SUCCEED;
@@ -958,6 +998,14 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 
 	tdsdump_log(TDS_DBG_FUNC, "cs_locale(%p, %d, %p, %d, %p, %d, %p)\n", ctx, action, locale, type, buffer, buflen, outlen);
 
+	if (!ctx)
+		return CS_FAIL;
+
+	if (!locale) {
+		_csclient_msg(ctx, "cs_locale", 2, 1, 1, 4, "locale");
+		return CS_FAIL;
+	}
+
 	if (action == CS_SET) {
 		switch (type) {
 		case CS_LC_ALL:
@@ -968,8 +1016,10 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 			break;
 
 		case CS_SYB_CHARSET:
-			if (buflen == CS_NULLTERM) {
-				buflen = strlen((char *)buffer);
+			buflen = _ct_get_string_length(buffer, buflen);
+			if (buflen < 0) {
+				_csclient_msg(ctx, "cs_locale", 2, 1, 1, 6, "%d, buflen", buflen);
+				return CS_FAIL;
 			}
 			
 			free(locale->charset);
@@ -981,8 +1031,10 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 			break;
 
 		case CS_SYB_LANG:
-			if (buflen == CS_NULLTERM) {
-				buflen = strlen((char *)buffer);
+			buflen = _ct_get_string_length(buffer, buflen);
+			if (buflen < 0) {
+				_csclient_msg(ctx, "cs_locale", 2, 1, 1, 6, "%d, buflen", buflen);
+				return CS_FAIL;
 			}
 			
 			free(locale->language);
@@ -998,8 +1050,10 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 			int i;
 			char *b = (char *)buffer;
 
-			if (buflen == CS_NULLTERM) {
-				buflen = strlen(b);
+			buflen = _ct_get_string_length(buffer, buflen);
+			if (buflen < 0) {
+				_csclient_msg(ctx, "cs_locale", 2, 1, 1, 6, "%d, buflen", buflen);
+				return CS_FAIL;
 			}
 
 			/* find '.' character */
@@ -1030,8 +1084,10 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 
 		/* TODO commented out until the code works end-to-end
 		case CS_SYB_SORTORDER:
-			if (buflen == CS_NULLTERM) {
-				buflen = strlen((char *)buffer);
+			buflen = _ct_get_string_length(buffer, buflen);
+			if (buflen < 0) {
+				_csclient_msg(ctx, "cs_locale", 2, 1, 1, 6, "%d, buflen", buflen);
+				return CS_FAIL;
 			}
 			
 			free(locale->collate);
@@ -1042,6 +1098,11 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 			code = CS_SUCCEED;
 			break;
 		*/
+
+		default:
+			_csclient_msg(ctx, "cs_locale", 2, 1, 1, 6, "%d, type", type);
+			code = CS_FAIL;
+			break;
 		}
 	}
 	else if (action == CS_GET)
@@ -1119,7 +1180,15 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 				((char *)buffer)[0] = '\0';
 			code = CS_SUCCEED;
 			break;
+
+		default:
+			_csclient_msg(ctx, "cs_locale", 2, 1, 1, 6, "%d, type", type);
+			code = CS_FAIL;
+			break;
 		}
+	} else {
+		_csclient_msg(ctx, "cs_locale", 2, 1, 1, 6, "%d, action", action);
+		code = CS_FAIL;
 	}
 	return code;
 }

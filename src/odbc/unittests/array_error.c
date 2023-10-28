@@ -7,7 +7,7 @@
 */
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	SQLSMALLINT num_params;
 	SQLLEN sql_nts = SQL_NTS;

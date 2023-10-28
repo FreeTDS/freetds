@@ -278,7 +278,7 @@ Test2(int nocount, int second_select)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	odbc_connect();
 

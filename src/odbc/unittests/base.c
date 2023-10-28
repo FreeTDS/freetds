@@ -3,7 +3,7 @@
 /* TODO place comment here */
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	/* TODO remove if not neeeded */
 	odbc_use_version3 = 1;

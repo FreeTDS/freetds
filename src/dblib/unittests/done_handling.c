@@ -146,7 +146,7 @@ do_test(const char comment[])
 int
 main(int argc, char *argv[])
 {
-	const static int invalid_column_name = 207;
+	static const int invalid_column_name = 207;
 	LOGINREC *login;	/* Our login information. */
 	int i;
 
@@ -172,7 +172,7 @@ main(int argc, char *argv[])
 	login = dblogin();
 	DBSETLUSER(login, USER);
 	DBSETLPWD(login, PASSWORD);
-	DBSETLAPP(login, __FILE__);
+	DBSETLAPP(login, "done_handling");
 
 	dbproc = dbopen(login, SERVER);
 	dbloginfree(login);

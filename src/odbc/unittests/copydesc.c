@@ -20,7 +20,7 @@ check_alloc_type(SQLHDESC hdesc, SQLSMALLINT expected_alloc_type, const char *ex
 #define check_alloc_type(d,e) check_alloc_type(d, e, #e, __LINE__)
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	SQLHDESC ard, ard2, ard3;
 	SQLINTEGER id;

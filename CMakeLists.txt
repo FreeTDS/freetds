@@ -1,6 +1,6 @@
-project(FreeTDS)
+cmake_minimum_required(VERSION 3.5)
 
-cmake_minimum_required(VERSION 3.3)
+project(FreeTDS)
 
 option(WITH_OPENSSL        "Link in OpenSSL if found" ON)
 option(ENABLE_ODBC_WIDE    "Enable ODBC wide character support" ON)
@@ -190,7 +190,7 @@ add_header(HAVE_WCHAR_H wchar.h)
 add_header(HAVE_WINDOWS_H windows.h)
 add_header(HAVE_SQL_H sql.h)
 add_header(HAVE_SQLEXT_H sqlext.h)
-foreach(fn char double float int short long "long double" "long long" "SQLWCHAR" "void *" wchar_t __int64
+foreach(fn char double float int short long "long double" "long long" "SQLWCHAR" "void *" wchar_t __int64 __int128
 	  SQLLEN SQLROWOFFSET SQLROWSETSIZE SQLSETPOSIROW)
 	string(REGEX REPLACE "[/. ]" "_" var "${fn}")
 	string(REPLACE "*" "P" var "${var}")
@@ -359,8 +359,10 @@ config_write("#define FREETDS_TOPDIR \"${FREETDS_TOPDIR}\"\n\n")
 
 # TODO allow to configure default TDS protocol version
 
-config_write("#ifdef _MSC_VER
+config_write("#if defined(_MSC_VER) && !defined(__cplusplus)
 #  define inline __inline
+#endif
+#if defined(_MSC_VER)
 #  define _CRT_SECURE_NO_WARNINGS 1
 #endif\n\n")
 

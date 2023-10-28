@@ -26,7 +26,7 @@ static TDS_THREAD_PROC_DECLARE(change_thread_proc, arg)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	char *sql = NULL;
 	tds_thread th;

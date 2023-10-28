@@ -317,3 +317,20 @@ _ct_datafmt_conv_back(CS_DATAFMT * datafmt, CS_DATAFMT_LARGE *fmtbuf)
 	small->namelen = strlen(small->name);
 	*((CS_DATAFMT_COMMON *) &small->datatype) = *((CS_DATAFMT_COMMON *) &fmtbuf->datatype);
 }
+
+/**
+ * Get length of a string buffer
+ *
+ * @return length of string or original negative value if error.
+ */
+CS_INT
+_ct_get_string_length(const char *buf, CS_INT buflen)
+{
+	if (buflen >= 0)
+		return buflen;
+
+	if (buflen == CS_NULLTERM)
+		return (CS_INT) strlen(buf);
+
+	return buflen;
+}

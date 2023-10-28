@@ -4,9 +4,6 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: convert_error.c,v 1.12 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static int test_num = 0;
 
 static void
@@ -34,7 +31,7 @@ Test(const char *bind1, SQLSMALLINT type1, const char *bind2, SQLSMALLINT type2)
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	odbc_use_version3 = 1;
 	odbc_connect();

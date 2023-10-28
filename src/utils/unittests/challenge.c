@@ -154,7 +154,7 @@ des(const char *src, const char *out)
 	size_t out_len;
 
 	memset(digest, 0, sizeof(digest));
-	tds_des_set_key(&ks, key, sizeof(key));
+	tds_des_set_key(&ks, key);
 	tds_des_ecb_encrypt(src, strlen(src), &ks, digest);
 
 	out_len = strlen(src) & ~7u;

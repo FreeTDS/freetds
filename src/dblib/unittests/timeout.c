@@ -120,7 +120,7 @@ test(int per_process)
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
-	DBSETLAPP(login, "#timeout");
+	DBSETLAPP(login, "timeout");
 
 	printf("About to open %s.%s\n", SERVER, DATABASE);
 

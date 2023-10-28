@@ -91,7 +91,7 @@ test(const char *src, int prec, int scale, int scale2)
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	int i;
 	memset(&ctx, 0, sizeof(ctx));
@@ -112,7 +112,8 @@ main(int argc, char **argv)
 
 	/* decrease scale */
 	test("1234", 10, 4, 0);
-	test("1234.765", 30, 20, 2);
+	for (i = 2; i < 20; ++i)
+		test("1234.765", 30, 20, i);
 
 	test0("765432.2", 30, 2, 20, 2);
 	test0("765432.2", 30, 2, 40, 2);

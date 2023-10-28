@@ -31,7 +31,7 @@ varchar_as_string(TDSSOCKET * tds, int col_idx)
 
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	TDSLOGIN *login;
 	TDSSOCKET *tds;

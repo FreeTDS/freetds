@@ -68,7 +68,7 @@ static TDS_THREAD_PROC_DECLARE(log_func, idx_ptr)
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	int i, ret;
 	tds_thread threads[THREADS];

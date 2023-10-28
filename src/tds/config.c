@@ -139,11 +139,8 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 {
 	TDSLOGIN *connection;
 	char *s;
-	char *path;
-	pid_t pid;
 	int opened = 0;
 	bool found;
-	struct addrinfo *addrs;
 
 	/* allocate a new structure with hard coded and build-time defaults */
 	connection = tds_alloc_login(0);
@@ -157,7 +154,8 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 		if (*s) {
 			opened = tdsdump_open(s);
 		} else {
-			pid = getpid();
+			char *path;
+			pid_t pid = getpid();
 			if (asprintf(&path, pid_config_logpath, (int) pid) >= 0) {
 				if (*path) {
 					opened = tdsdump_open(path);
@@ -213,6 +211,7 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 	}
 	
 	if (opened) {
+		struct addrinfo *addrs;
 		char tmp[128];
 
 		tdsdump_log(TDS_DBG_INFO1, "Final connection parameters:\n");

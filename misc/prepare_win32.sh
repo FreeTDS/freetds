@@ -8,7 +8,7 @@
 # to test tests with MS dblib
 
 errore() {
-	echo "$*" >&2
+	printf '%s\n' "$*" >&2
 	exit 1
 }
 

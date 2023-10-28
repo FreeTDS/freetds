@@ -39,7 +39,7 @@ catch_alrm(int sig_num)
 
 /* Testing: Test asynchronous ct_cancel() */
 int
-main(int argc, char **argv)
+main(void)
 {
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;

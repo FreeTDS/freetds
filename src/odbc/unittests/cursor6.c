@@ -85,7 +85,7 @@ static void Init(void)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	odbc_use_version3 = 1;
 	odbc_connect();

@@ -194,7 +194,7 @@ DoTest(int version3)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	DoTest(0);
 

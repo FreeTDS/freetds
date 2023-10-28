@@ -9,7 +9,7 @@
 #define SWAP_STMT(b) do { SQLHSTMT xyz = odbc_stmt; odbc_stmt = b; b = xyz; } while(0)
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	char sql[128];
 	int i;

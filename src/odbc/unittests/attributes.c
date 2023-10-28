@@ -266,7 +266,7 @@ get_attr_none(ATTR_PARAMS)
 #endif
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 #define TEST_FILE "attributes.in"
 	const char *in_file = FREETDS_SRCDIR "/" TEST_FILE;

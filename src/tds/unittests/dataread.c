@@ -166,7 +166,7 @@ test0(const char *type, ...)
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	printf("%s: Testing conversion from server\n", __FILE__);
 	if (try_tds_login(&login, &tds, __FILE__, 0) != TDS_SUCCESS) {

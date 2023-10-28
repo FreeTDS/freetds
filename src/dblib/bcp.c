@@ -86,7 +86,7 @@ static TDSRET _bcp_no_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int 
 
 static int rtrim(char *, int);
 static int rtrim_u16(uint16_t *str, int len, uint16_t space);
-static STATUS _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error, bool skip);
+static STATUS _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool skip);
 static int _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci);
 static int _bcp_get_term_var(const BYTE * pdata, const BYTE * term, int term_len);
 
@@ -509,7 +509,9 @@ RETCODE
 bcp_colfmt_ps(DBPROCESS * dbproc, int host_colnum, int host_type,
 	      int host_prefixlen, DBINT host_collen, BYTE * host_term, int host_termlen, int table_colnum, DBTYPEINFO * typeinfo)
 {
-	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED: bcp_colfmt_ps(%p, %d, %d)\n", dbproc, host_colnum, host_type);
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED: bcp_colfmt_ps(%p, %d, %d, %d, %d, %p, %d, %d, %p)\n",
+		    dbproc, host_colnum, host_type, host_prefixlen, (int) host_collen,
+		    host_term, host_termlen, table_colnum, typeinfo);
 	CHECK_CONN(FAIL);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI, FAIL);
 	
@@ -1138,7 +1140,7 @@ rtrim_bcpcol(TDSCOLUMN *bcpcol)
  * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
  */
 static STATUS
-_bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error, bool skip)
+_bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool skip)
 {
 	int i;
 
@@ -1260,7 +1262,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error, bool ski
 			if (TDS_FAILED(conv_res)) {
 				tdsdump_log(TDS_DBG_FUNC, "col %d: error converting %ld bytes!\n",
 							(i+1), (long) collen);
-				*row_error = TRUE;
+				*row_error = true;
 				free(coldata);
 				dbperror(dbproc, SYBEBCOR, 0);
 				return FAIL;
@@ -1273,7 +1275,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error, bool ski
 
 			if (col_bytes > 0x7fffffffl) {
 				free(coldata);
-				*row_error = TRUE;
+				*row_error = true;
 				tdsdump_log(TDS_DBG_FUNC, "data from file is too large!\n");
 				dbperror(dbproc, SYBEBCOR, 0);
 				return FAIL;
@@ -1296,7 +1298,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error, bool ski
 
 			coldata = tds_new(TDS_CHAR, 1 + collen);
 			if (coldata == NULL) {
-				*row_error = TRUE;
+				*row_error = true;
 				dbperror(dbproc, SYBEMEM, errno);
 				return FAIL;
 			}
@@ -1338,7 +1340,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error, bool ski
 						     desttype, bcpcol->bcp_column_data);
 				if (TDS_FAILED(rc)) {
 					hostcol->column_error = HOST_COL_CONV_ERROR;
-					*row_error = 1;
+					*row_error = true;
 					tdsdump_log(TDS_DBG_FUNC, 
 						"_bcp_read_hostfile failed to convert %d bytes at offset 0x%" PRIx64 " in the data file.\n",
 						    collen, (TDS_INT8) col_start);
@@ -1352,7 +1354,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error, bool ski
 					if (!bcpcol->column_nullable) {
 						/* too bad if the column is not nullable */
 						hostcol->column_error = HOST_COL_NULL_ERROR;
-						*row_error = 1;
+						*row_error = true;
 						dbperror(dbproc, SYBEBCNN, 0);
 					}
 				}
@@ -1439,7 +1441,8 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 	STATUS ret;
 
 	int i, row_of_hostfile, rows_written_so_far;
-	int row_error, row_error_count;
+	int row_error_count;
+	bool row_error;
 	offset_type row_start, row_end;
 	offset_type error_row_size;
 	const size_t chunk_size = 0x20000u;
@@ -1470,7 +1473,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 		bool skip;
 
 		row_start = ftello(hostfile);
-		row_error = 0;
+		row_error = false;
 
 		row_of_hostfile++;
 

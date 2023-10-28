@@ -20,12 +20,7 @@
 #include <odbcinst.h>
 #endif
 
-#ifndef _WIN32
 #include <freetds/sysdep_private.h>
-#else
-#define TDS_SDIR_SEPARATOR "\\"
-#endif
-
 #include <freetds/replacements.h>
 
 HENV odbc_env;
@@ -173,10 +168,12 @@ odbc_read_login_info(void)
 #else
 	if (ini_override && SQLGetConfigMode(&old_config_mode)) {
 		ODBC_BUF *odbc_buf = NULL;
+		LPCTSTR server = (LPCTSTR) T(odbc_server);
+		LPCTSTR filename = (LPCTSTR) T("odbc.ini");
 		SQLSetConfigMode(ODBC_USER_DSN);
-		SQLWritePrivateProfileString(T(odbc_server), T("Driver"), T(odbc_driver), T("odbc.ini"));
-		SQLWritePrivateProfileString(T(odbc_server), T("Database"), T(odbc_database), T("odbc.ini"));
-		SQLWritePrivateProfileString(T(odbc_server), T("Servername"), T(odbc_server), T("odbc.ini"));
+		SQLWritePrivateProfileString(server, (LPCTSTR) T("Driver"), (void *) T(odbc_driver), filename);
+		SQLWritePrivateProfileString(server, (LPCTSTR) T("Database"), (LPCTSTR) T(odbc_database), filename);
+		SQLWritePrivateProfileString(server, (LPCTSTR) T("Servername"), (LPCTSTR) T(odbc_server), filename);
 		SQLSetConfigMode(old_config_mode);
 		ODBC_FREE();
 	}

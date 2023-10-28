@@ -19,7 +19,7 @@
 #include "common.h"
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	TDSLOGIN *login;
 	TDSSOCKET *tds;

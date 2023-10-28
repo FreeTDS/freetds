@@ -10,7 +10,7 @@
 
 /* Testing: Retrieve CS_TEXT_TYPE using ct_bind() */
 int
-main(int argc, char **argv)
+main(void)
 {
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;

@@ -60,7 +60,7 @@ set_dbname(const char *dbname)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	char tmp[1024*3];
 

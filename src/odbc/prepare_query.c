@@ -242,7 +242,6 @@ start_parse_prepared_query(struct _hstmt *stmt, bool compute_row)
 	/* TODO should be NULL already ?? */
 	tds_free_param_results(stmt->params);
 	stmt->params = NULL;
-	stmt->param_num = 0;
 
 	stmt->param_num = stmt->prepared_query_is_func ? 2 : 1;
 	return parse_prepared_query(stmt, compute_row);

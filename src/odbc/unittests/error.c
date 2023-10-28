@@ -3,7 +3,7 @@
 /* some tests on error reporting */
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	SQLRETURN RetCode;
 	HSTMT stmt;

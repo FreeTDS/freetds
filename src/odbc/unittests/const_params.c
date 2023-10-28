@@ -3,7 +3,7 @@
 /* Test for {?=call store(?,123,'foo')} syntax and run */
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	SQLINTEGER input, output;
 	SQLINTEGER out1;

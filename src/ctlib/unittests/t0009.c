@@ -13,7 +13,7 @@ static int compute_supported = 1;
 
 /* Testing: Retrieve compute results */
 int
-main(int argc, char *argv[])
+main(void)
 {
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;

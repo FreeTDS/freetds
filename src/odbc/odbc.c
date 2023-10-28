@@ -1410,7 +1410,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 	ODBC_ENTER_HSTMT;
 
 	tdsdump_log(TDS_DBG_FUNC, "_SQLBindParameter(%p, %u, %d, %d, %d, %u, %d, %p, %d, %p)\n", 
-			hstmt, (unsigned short)ipar, (int)fParamType, (int)fCType, (int)fSqlType, (unsigned int)cbColDef, 
+			hstmt, (unsigned)ipar, (int)fParamType, (int)fCType, (int)fSqlType, (unsigned int)cbColDef,
 			(int)ibScale, rgbValue, (int)cbValueMax, pcbValue);
 
 #ifdef TDS_NO_DM
@@ -1809,7 +1809,7 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 	stmt->num_param_rows = 1;
 	pstr = NULL;
 	/* TODO test initial cursor ... */
-	if (asprintf(&pstr, "SQL_CUR%lx", (unsigned long) stmt) < 0 || !tds_dstr_set(&stmt->cursor_name, pstr)) {
+	if (asprintf(&pstr, "SQL_CUR%lx", (unsigned long) (TDS_UINTPTR) stmt) < 0 || !tds_dstr_set(&stmt->cursor_name, pstr)) {
 		free(stmt);
 		free(pstr);
 		odbc_errs_add(&dbc->errs, "HY001", NULL);
@@ -3357,7 +3357,7 @@ odbc_cursor_execute(TDS_STMT * stmt)
 	}
 	cursor->concurrency = 0x2000 | i;
 
-	ret = tds_cursor_declare(tds, cursor, params, &send);
+	ret = tds_cursor_declare(tds, cursor, &send);
 	if (TDS_FAILED(ret))
 		return ret;
 	ret = tds_cursor_open(tds, cursor, params, &send);
@@ -4498,7 +4498,7 @@ _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEG
 		break;
 	case SQL_ATTR_METADATA_ID:
 		size = sizeof(stmt->attr.metadata_id);
-		src = &stmt->attr.noscan;
+		src = &stmt->attr.metadata_id;
 		break;
 	case SQL_ATTR_NOSCAN:
 		size = sizeof(stmt->attr.noscan);

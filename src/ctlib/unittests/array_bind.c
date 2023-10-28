@@ -12,7 +12,7 @@
 
 /* Testing: array binding of result set */
 int
-main(int argc, char *argv[])
+main(void)
 {
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;

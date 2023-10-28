@@ -73,7 +73,7 @@ test_hostname(X509 *cert, const char *hostname, bool expected)
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	BIO *bufio;
 	X509 *cert;

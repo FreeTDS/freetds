@@ -187,7 +187,7 @@ Test(bool use_threads, bool return_data)
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	if (tds_mutex_init(&mtx))
 		return 1;

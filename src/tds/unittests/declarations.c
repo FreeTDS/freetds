@@ -36,7 +36,7 @@ static void test_declaration(TDSSOCKET *tds, TDSCOLUMN *curcol)
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	int g_result = 0;
 	TDSCONTEXT *ctx;

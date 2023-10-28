@@ -344,6 +344,7 @@ AC_CHECK_SIZEOF(long long)
 # This will define SIZEOF_LONG_INT, used by some ODBC Driver Manager
 AC_CHECK_SIZEOF(long int)
 AC_CHECK_SIZEOF(__int64)
+AC_CHECK_SIZEOF(__int128)
 AC_CHECK_SIZEOF(void *)
 AC_CHECK_SIZEOF(wchar_t,,[$ac_includes_default
 #ifdef HAVE_WCHAR_H
@@ -393,6 +394,10 @@ $ac_cv_sizeof_long_long) tds_sysdep_intptr_type="long long";;
 $ac_cv_sizeof___int64)   tds_sysdep_intptr_type=__int64;;
 *)                     AC_MSG_ERROR(No intptr type found.)
 esac
+
+if test "$ac_cv_sizeof_long_long" -ne 0; then
+	AC_DEFINE(HAVE_LONG_LONG, 1, [Define if you have long long])
+fi
 
 AC_SUBST(tds_sysdep_int16_type)
 AC_SUBST(tds_sysdep_int32_type)

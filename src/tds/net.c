@@ -371,7 +371,8 @@ TDSERRNO
 tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int timeout, int *p_oserr)
 {
 	TDSCONNECTION *conn = tds->conn;
-	int len, i;
+	size_t len, i;
+	int oserr;
 	TDSERRNO tds_error;
 	struct addrinfo *curr_addr;
 	struct pollfd *fds;
@@ -480,12 +481,12 @@ tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int ti
 		}
 		tds_error = TDSECONN;
 		rc = poll(fds, len, poll_timeout);
-		i = sock_errno; /* save to avoid overrides */
+		oserr = sock_errno; /* save to avoid overrides */
 		curr_time = tds_gettime_ms();
 
 		/* error */
 		if (rc < 0) {
-			*p_oserr = i;
+			*p_oserr = oserr;
 			if (*p_oserr == TDSSOCK_EINTR)
 				continue;
 			goto exit;
@@ -529,7 +530,8 @@ exit:
 		tds->state = TDS_IDLE;
 	}
 
-	while (--len >= 0) {
+	while (len > 0) {
+		--len;
 		if (!TDS_IS_SOCKET_INVALID(fds[len].fd))
 			CLOSESOCKET(fds[len].fd);
 	}

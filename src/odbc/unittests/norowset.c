@@ -1,12 +1,9 @@
 #include "common.h"
 
-static char software_version[] = "$Id: norowset.c,v 1.9 2010-07-05 09:20:33 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 /* Test that a select following a store procedure execution return results */
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	char output[256];
 	SQLLEN dataSize;

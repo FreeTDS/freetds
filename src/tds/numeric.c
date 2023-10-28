@@ -30,6 +30,7 @@
 #include <freetds/tds.h>
 #include <freetds/convert.h>
 #include <freetds/bytes.h>
+#include <freetds/windows.h>
 #include <stdlib.h>
 
 /**
@@ -238,13 +239,70 @@ tds_packet_check_overflow(TDS_WORD *packet, unsigned int packet_len, unsigned in
 	return 0;
 }
 
+#undef USE_128_MULTIPLY
+#if defined(__GNUC__) && SIZEOF___INT128 > 0
+#define USE_128_MULTIPLY 1
+#undef __umulh
+#define __umulh(multiplier, multiplicand) \
+	((uint64_t) ((((unsigned __int128) (multiplier)) * (multiplicand)) >> 64))
+#endif
+#if defined(_MSC_VER) && (defined(_M_AMD64) || defined(_M_X64) || defined(_M_ARM64))
+#include <intrin.h>
+#define USE_128_MULTIPLY 1
+#endif
+
+#undef USE_I386_DIVIDE
+#undef USE_64_MULTIPLY
+#ifndef USE_128_MULTIPLY
+# if defined(__GNUC__) && __GNUC__ >= 3 && defined(__i386__)
+#  define USE_I386_DIVIDE 1
+# else
+#  define USE_64_MULTIPLY
+# endif
+#endif
+
 TDS_INT
 tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, unsigned char new_scale)
 {
+#define TDS_WORD_BITS (8 * sizeof(TDS_WORD))
 	static const TDS_WORD factors[] = {
 		1, 10, 100, 1000, 10000,
 		100000, 1000000, 10000000, 100000000, 1000000000
 	};
+#ifndef USE_I386_DIVIDE
+	/* These numbers are computed as
+	 * (2 ** (reverse_dividers_shift[i] + 64)) / (10 ** i) + 1
+	 * (** is power).
+	 * The shifts are computed to make sure the multiplication error
+	 * does not cause a wrong result.
+	 *
+	 * See also misc/reverse_divisor script.
+	 */
+	static const TDS_DWORD reverse_dividers[] = {
+		1 /* not used */,
+		UINT64_C(1844674407370955162),
+		UINT64_C(184467440737095517),
+		UINT64_C(18446744073709552),
+		UINT64_C(1844674407370956),
+		UINT64_C(737869762948383),
+		UINT64_C(2361183241434823),
+		UINT64_C(15111572745182865),
+		UINT64_C(48357032784585167),
+		UINT64_C(1237940039285380275),
+	};
+	static const uint8_t reverse_dividers_shift[] = {
+		0 /* not used */,
+		0,
+		0,
+		0,
+		0,
+		2,
+		7,
+		13,
+		18,
+		26,
+	};
+#endif
 
 	TDS_WORD packet[(sizeof(numeric->array) - 1) / sizeof(TDS_WORD)];
 
@@ -310,7 +368,7 @@ tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, uns
 			for (i = 0; i < packet_len; ++i) {
 				TDS_DWORD n = packet[i] * ((TDS_DWORD) factor) + carry;
 				packet[i] = (TDS_WORD) n;
-				carry = n >> (8 * sizeof(TDS_WORD));
+				carry = n >> TDS_WORD_BITS;
 			}
 			/* here we can expand number safely cause we know that it can't overflow */
 			if (carry)
@@ -328,22 +386,38 @@ tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, uns
 			unsigned int n = scale_diff > TDS_WORD_DDIGIT ? TDS_WORD_DDIGIT : scale_diff;
 			TDS_WORD factor = factors[n];
 			TDS_WORD borrow = 0;
+#if defined(USE_128_MULTIPLY)
+			TDS_DWORD reverse_divider = reverse_dividers[n];
+			uint8_t shift = reverse_dividers_shift[n];
+#elif defined(USE_64_MULTIPLY)
+			TDS_WORD reverse_divider_low = (TDS_WORD) reverse_dividers[n];
+			TDS_WORD reverse_divider_high = (TDS_WORD) (reverse_dividers[n] >> TDS_WORD_BITS);
+			uint8_t shift = reverse_dividers_shift[n];
+#endif
 			scale_diff -= n;
 			for (i = packet_len; i > 0; ) {
-#if defined(__GNUC__) && __GNUC__ >= 3 && defined(__i386__)
+#ifdef USE_I386_DIVIDE
 				--i;
+				/* For different reasons this code is still here.
+				 * But mainly because although compilers do wonderful things this is hard to get.
+				 * One of the reason is that it's hard to understand that the double-precision division
+				 * result will fit into 32-bit.
+				 */
 				__asm__ ("divl %4": "=a"(packet[i]), "=d"(borrow): "0"(packet[i]), "1"(borrow), "r"(factor));
-#elif defined(__WATCOMC__) && defined(DOS32X)
-				TDS_WORD Int64div32(TDS_WORD* low,TDS_WORD high,TDS_WORD factor);
-				#pragma aux Int64div32 = "mov eax, dword ptr[esi]" \
-					"div ecx" \
-					"mov dword ptr[esi], eax" \
-					parm [ESI] [EDX] [ECX] value [EDX] modify [EAX EDX];
-				borrow = Int64div32(&packet[i], borrow, factor);
 #else
-				TDS_DWORD n = (((TDS_DWORD) borrow) << (8 * sizeof(TDS_WORD))) + packet[--i];
-				packet[i] = (TDS_WORD) (n / factor);
-				borrow = n % factor;
+				TDS_DWORD n = (((TDS_DWORD) borrow) << TDS_WORD_BITS) + packet[--i];
+#if defined(USE_128_MULTIPLY)
+				TDS_DWORD quotient = __umulh(n, reverse_divider);
+#else
+				TDS_DWORD mul1 = (TDS_DWORD) packet[i] * reverse_divider_low;
+				TDS_DWORD mul2 = (TDS_DWORD) borrow * reverse_divider_low + (mul1 >> TDS_WORD_BITS);
+				TDS_DWORD mul3 = (TDS_DWORD) packet[i] * reverse_divider_high;
+				TDS_DWORD quotient = (TDS_DWORD) borrow * reverse_divider_high + (mul3 >> TDS_WORD_BITS);
+				quotient += (mul2 + (mul3 & 0xffffffffu)) >> TDS_WORD_BITS;
+#endif
+				quotient >>= shift;
+				packet[i] = (TDS_WORD) quotient;
+				borrow = (TDS_WORD) (n - quotient * factor);
 #endif
 			}
 		} while (scale_diff > 0);
@@ -355,7 +429,7 @@ tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, uns
 	bytes = tds_numeric_bytes_per_prec[numeric->precision] - 1;
 	for (i = bytes / sizeof(TDS_WORD); i >= packet_len; --i)
 		packet[i] = 0;
-	for (i = 0; bytes >= sizeof(TDS_WORD); bytes -= sizeof(TDS_WORD), ++i) {
+	for (i = 0; bytes >= (int) sizeof(TDS_WORD); bytes -= sizeof(TDS_WORD), ++i) {
 		TDS_PUT_UA4BE(&numeric->array[bytes-3], packet[i]);
 	}
 

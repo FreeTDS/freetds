@@ -2,9 +2,6 @@
 
 /* Test SQLFetchScroll with a non-unitary rowset, using bottom-up direction */
 
-static char software_version[] = "$Id: cursor7.c,v 1.10 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static void
 Test(void)
 {
@@ -80,7 +77,7 @@ Init(void)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	odbc_use_version3 = 1;
 	odbc_connect();

@@ -230,7 +230,7 @@ free_tests(void)
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	SQLRETURN RetCode;
 	SQLHSTMT old_odbc_stmt = SQL_NULL_HSTMT;

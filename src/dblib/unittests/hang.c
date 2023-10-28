@@ -96,7 +96,7 @@ test(int close_socket)
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
-	DBSETLAPP(login, "t0020");
+	DBSETLAPP(login, "hang");
 
 	printf("About to open\n");
 

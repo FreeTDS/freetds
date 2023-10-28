@@ -960,7 +960,8 @@ odbc_get_concise_sql_type(SQLSMALLINT type, SQLSMALLINT interval)
 #define TYPE_VERBOSE_DATE(t, interval, concise, old) \
 	case interval: return concise;
 #define TYPE_VERBOSE_END(t) \
-	}
+	} \
+	break;
 
 	switch (type) {
 		SQL_TYPES;
@@ -1085,7 +1086,8 @@ odbc_get_concise_c_type(SQLSMALLINT type, SQLSMALLINT interval)
 #define TYPE_VERBOSE_DATE(t, interval, concise, old) \
 	case interval: return concise;
 #define TYPE_VERBOSE_END(t) \
-	}
+	} \
+	break;
 
 	switch (type) {
 		C_TYPES;

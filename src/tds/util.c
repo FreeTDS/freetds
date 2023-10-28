@@ -364,7 +364,7 @@ tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
 
 		TDS_ZERO_FREE(msg.sql_state);
 	} else {
-		const static char msg[] = "tdserror: client library not called because either "
+		static const char msg[] = "tdserror: client library not called because either "
 					  "tds_ctx (%p) or tds_ctx->err_handler is NULL\n";
 		tdsdump_log(TDS_DBG_ERROR, msg, tds_ctx);
 	}

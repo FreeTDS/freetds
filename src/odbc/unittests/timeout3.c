@@ -130,7 +130,7 @@ static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	SQLTCHAR tmp[2048];
 	char conn[128];

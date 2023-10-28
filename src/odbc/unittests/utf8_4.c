@@ -29,7 +29,7 @@ wide_test(const WCHAR* input, size_t input_len, const char *exp, int line)
 			     tds_dstr_cstr(&s), (int) tds_dstr_len(&s), 0x11);
 	if (outlen < 0 || outlen !=input_len
 	    || memcmp(outbuf, input, input_len * sizeof(input[0])) != 0) {
-		fprintf(stderr, "%d: out_len %u %x %x %x\n", line, outlen, outbuf[0], outbuf[1], outbuf[2]);
+		fprintf(stderr, "%d: out_len %u %x %x %x\n", line, (unsigned) outlen, outbuf[0], outbuf[1], outbuf[2]);
 		exit(1);
 	}
 	tds_dstr_free(&s);
@@ -37,7 +37,7 @@ wide_test(const WCHAR* input, size_t input_len, const char *exp, int line)
 #endif
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 #ifdef ENABLE_ODBC_WIDE
 	DSTR s = DSTR_INITIALIZER;

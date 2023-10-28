@@ -138,13 +138,13 @@ init(void)
 }
 
 #define VARCHAR_BIND(x) \
-	bcp_bind( odbc_conn, (unsigned char *) (prefixlen == 0 ? (void*)&x.value : &x), prefixlen, strlen(x.value), NULL, termlen, BCP_TYPE_SQLVARCHAR, col++ )
+	bcp_bind( odbc_conn, (prefixlen == 0 ? (void*)&x.value : (void*)&x.prefix), prefixlen, strlen(x.value), NULL, termlen, BCP_TYPE_SQLVARCHAR, col++ )
 
 #define INT_BIND(x) \
-	bcp_bind( odbc_conn, (unsigned char *) (prefixlen == 0 ? (void*)&x.value : &x), prefixlen, SQL_VARLEN_DATA, NULL, termlen, BCP_TYPE_SQLINT4,    col++ )
+	bcp_bind( odbc_conn, (prefixlen == 0 ? (void*)&x.value : (void*)&x.prefix), prefixlen, SQL_VARLEN_DATA, NULL, termlen, BCP_TYPE_SQLINT4,    col++ )
 
 #define NULL_BIND(x, type) \
-	bcp_bind( odbc_conn, (unsigned char *) (prefixlen == 0 ? (void*)&x.value : &null_prefix), prefixlen, prefixlen == 0 ? SQL_NULL_DATA : SQL_VARLEN_DATA, NULL, termlen, type,    col++ )
+	bcp_bind( odbc_conn, (prefixlen == 0 ? (void*)&x.value : (void*)&null_prefix), prefixlen, prefixlen == 0 ? SQL_NULL_DATA : SQL_VARLEN_DATA, NULL, termlen, type,    col++ )
 
 static void
 test_bind(int prefixlen)
@@ -251,7 +251,7 @@ static void special_select(void);
 static const char table_name[] = "all_types_bcp_unittest";
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	const char *s;
 

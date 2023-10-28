@@ -134,7 +134,7 @@ Test(int use_sql)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	odbc_connect();
 	odbc_check_cursor();

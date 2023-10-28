@@ -30,11 +30,9 @@
 #endif
 
 #ifdef __cplusplus
-extern "C"
-{
-#if 0
-}
-#endif
+#define TDS_EXTERN_C extern "C"
+#else
+#define TDS_EXTERN_C
 #endif
 
 #ifdef __INCvxWorksh
@@ -62,9 +60,9 @@ typedef int pid_t;
 #define CLOSESOCKET(a)		closesocket((a))
 #define IOCTLSOCKET(a,b,c)	ioctlsocket((a), (b), (c))
 #define SOCKLEN_T int
-int  tds_socket_init(void);
+TDS_EXTERN_C int  tds_socket_init(void);
 #define INITSOCKET()	tds_socket_init()
-void tds_socket_done(void);
+TDS_EXTERN_C void tds_socket_done(void);
 #define DONESOCKET()	tds_socket_done()
 #define NETDB_REENTRANT 1	/* BSD-style netdb interface is reentrant */
 
@@ -250,6 +248,10 @@ typedef SOCKET TDS_SYS_SOCKET;
 #define TDS_SDIR_SEPARATOR "/"
 #endif /* !TDS_SDIR_SEPARATOR */
 
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif
+
 #ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
@@ -264,11 +266,24 @@ typedef SOCKET TDS_SYS_SOCKET;
 #define PRIx64 TDS_I64_PREFIX "x"
 #endif
 
-#ifdef __cplusplus
-#if 0
-{
+#ifndef UINT64_C
+# if SIZEOF_INT >= 8
+#  define UINT64_C(c) c ## U
+#  define INT64_C(c) c
+# elif SIZEOF_LONG >= 8
+#  define UINT64_C(c) c ## UL
+#  define INT64_C(c) c ## L
+# elif SIZEOF_LONG_LONG >= 8
+#  define UINT64_C(c) c ## ULL
+#  define INT64_C(c) c ## LL
+# elif SIZEOF___INT64 >= 8
+#  define UINT64_C(c) c ## i64
+#  define INT64_C(c) c ## ui64
+# else
+#  error Unable to understand how to define 64 bit constants
+# endif
 #endif
-}
-#endif
+
+#include <freetds/sysdep_types.h>
 
 #endif /* _tds_sysdep_private_h_ */

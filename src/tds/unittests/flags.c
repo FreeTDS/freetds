@@ -107,7 +107,7 @@ test_end(void)
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	TDSRESULTINFO *info;
 	char mymsg[256];

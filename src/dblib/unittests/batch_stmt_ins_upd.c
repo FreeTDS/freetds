@@ -39,7 +39,7 @@ main(int argc, char **argv)
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
-	DBSETLAPP(login, "wf_dbresults");
+	DBSETLAPP(login, "batch_stmt_ins_upd");
 
 	if (argc > 1) {
 		printf("server and login timeout overrides (%s and %s) detected\n", argv[0], argv[1]);

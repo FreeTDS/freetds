@@ -20,7 +20,7 @@ typedef struct des_key
 	uint8_t  fperm[16][16][8];
 } DES_KEY;
 
-int tds_des_set_key(DES_KEY * dkey, const des_cblock user_key, int len);
+int tds_des_set_key(DES_KEY * dkey, const des_cblock user_key);
 void tds_des_encrypt(const DES_KEY * key, des_cblock block);
 #endif
 
@@ -35,7 +35,7 @@ static inline void tds_des_encrypt(const DES_KEY * key, des_cblock block)
 	nettle_des_encrypt(key, sizeof(des_cblock), block, block);
 }
 
-static inline int tds_des_set_key(DES_KEY * dkey, const des_cblock user_key, int len)
+static inline int tds_des_set_key(DES_KEY * dkey, const des_cblock user_key)
 {
 	return nettle_des_set_key(dkey, user_key);
 }

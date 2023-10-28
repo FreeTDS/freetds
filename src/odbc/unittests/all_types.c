@@ -63,7 +63,7 @@ static void test_type(TDSSOCKET *tds, TDSCOLUMN *col)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	TDS_DBC *dbc;
 	TDS_ENV *env;

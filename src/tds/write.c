@@ -66,7 +66,7 @@ tds_put_n(TDSSOCKET * tds, const void *buf, size_t n)
 	const unsigned char *bufp = (const unsigned char *) buf;
 
 	for (; n;) {
-		if (tds->out_buf_max <= tds->out_pos) {
+		if (tds->out_pos >= tds->out_buf_max) {
 			tds_write_packet(tds, 0x0);
 			continue;
 		}
@@ -202,7 +202,7 @@ tds_put_smallint(TDSSOCKET * tds, TDS_SMALLINT si)
 int
 tds_put_byte(TDSSOCKET * tds, unsigned char c)
 {
-	if (tds->out_pos >= (unsigned int)tds->out_buf_max)
+	if (tds->out_pos >= tds->out_buf_max)
 		tds_write_packet(tds, 0x0);
 	tds->out_buf[tds->out_pos++] = c;
 	return 0;

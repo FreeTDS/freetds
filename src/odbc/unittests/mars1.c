@@ -30,7 +30,7 @@ my_attrs(void)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	SQLINTEGER len, out;
 	int i;

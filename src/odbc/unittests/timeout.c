@@ -3,9 +3,6 @@
 
 /* Test timeout of query */
 
-static char software_version[] = "$Id: timeout.c,v 1.14 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static void
 AutoCommit(int onoff)
 {
@@ -19,7 +16,7 @@ EndTransaction(SQLSMALLINT type)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	HENV env;
 	HDBC dbc;

@@ -406,7 +406,7 @@ tds_convert_key(const unsigned char *key_56, DES_KEY * ks)
 	key[7] = (key_56[6] << 1) & 0xFF;
 
 	tds_des_set_odd_parity(key);
-	tds_des_set_key(ks, key, sizeof(key));
+	tds_des_set_key(ks, key);
 
 	memset(&key, 0, sizeof(key));
 }

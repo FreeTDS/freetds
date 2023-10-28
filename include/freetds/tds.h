@@ -57,7 +57,6 @@ typedef struct tds_bcpinfo TDSBCPINFO;
 
 #include <freetds/version.h>
 #include <freetds/sysdep_private.h>
-#include <freetds/sysdep_types.h>
 #include <freetds/thread.h>
 #include <freetds/bool.h>
 #include <freetds/macros.h>
@@ -396,8 +395,8 @@ extern const char *const tds_type_names[256];
 #define is_binary_type(x)     ((tds_type_flags_ms[x] & TDS_TYPEFLAG_BINARY) != 0)
 #define is_char_type(x)       ((tds_type_flags_ms[x] & (TDS_TYPEFLAG_ASCII|TDS_TYPEFLAG_UNICODE)) != 0)
 #define is_similar_type(x, y) (is_char_type(x) && is_char_type(y))
-static inline
-bool is_tds_type_valid(int type)
+inline static bool
+is_tds_type_valid(int type)
 {
 	return (unsigned) type < 256u && tds_type_flags_ms[type] != 0;
 }
@@ -1359,8 +1358,8 @@ void tds_free_context(TDSCONTEXT * locale);
 TDSPARAMINFO *tds_alloc_param_result(TDSPARAMINFO * old_param);
 void tds_free_input_params(TDSDYNAMIC * dyn);
 void tds_release_dynamic(TDSDYNAMIC ** dyn);
-static inline
-void tds_release_cur_dyn(TDSSOCKET * tds)
+inline static void
+tds_release_cur_dyn(TDSSOCKET * tds)
 {
 	tds_release_dynamic(&tds->cur_dyn);
 }
@@ -1449,7 +1448,7 @@ void tds_convert_string_free(const char *original, const char *converted);
 #endif
 TDSRET tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out);
 
-TDSRET tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, bool *send);
+TDSRET tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, bool *send);
 TDSRET tds_cursor_setrows(TDSSOCKET * tds, TDSCURSOR * cursor, bool *send);
 TDSRET tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, bool *send);
 TDSRET tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_FETCH fetch_type, TDS_INT i_row);
@@ -1582,7 +1581,8 @@ int tds_socket_set_nonblocking(TDS_SYS_SOCKET sock);
 int tds_wakeup_init(TDSPOLLWAKEUP *wakeup);
 void tds_wakeup_close(TDSPOLLWAKEUP *wakeup);
 void tds_wakeup_send(TDSPOLLWAKEUP *wakeup, char cancel);
-static inline TDS_SYS_SOCKET tds_wakeup_get_fd(const TDSPOLLWAKEUP *wakeup)
+inline static TDS_SYS_SOCKET
+tds_wakeup_get_fd(const TDSPOLLWAKEUP *wakeup)
 {
 	return wakeup->s_signaled;
 }
@@ -1616,7 +1616,7 @@ TDSRET tds_freeze_abort(TDSFREEZE *freeze);
 TDSRET tds_freeze_close(TDSFREEZE *freeze);
 TDSRET tds_freeze_close_len(TDSFREEZE *freeze, int32_t size);
 
-static void inline
+inline static void
 tds_set_current_send_packet(TDSSOCKET *tds, TDSPACKET *pkt)
 {
 	tds->send_packet = pkt;
@@ -1670,8 +1670,8 @@ void tds_random_buffer(unsigned char *out, int len);
 
 /* sec_negotiate.c */
 TDSAUTHENTICATION * tds5_negotiate_get_auth(TDSSOCKET * tds);
-static inline
-void tds5_negotiate_set_msg_type(TDSAUTHENTICATION * tds_auth, unsigned msg_type)
+inline static void
+tds5_negotiate_set_msg_type(TDSAUTHENTICATION * tds_auth, unsigned msg_type)
 {
 	if (tds_auth)
 		tds_auth->msg_type = msg_type;
@@ -1727,8 +1727,8 @@ TDSRET tds_writetext_continue(TDSSOCKET *tds, const TDS_UCHAR *text, TDS_UINT si
 TDSRET tds_writetext_end(TDSSOCKET *tds);
 
 
-static inline
-bool tds_capability_enabled(const TDS_CAPABILITY_TYPE *cap, unsigned cap_num)
+inline static bool
+tds_capability_enabled(const TDS_CAPABILITY_TYPE *cap, unsigned cap_num)
 {
 	return (cap->values[sizeof(cap->values)-1-(cap_num>>3)] >> (cap_num&7)) & 1;
 }

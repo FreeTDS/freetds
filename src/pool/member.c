@@ -318,7 +318,7 @@ pool_process_data(TDS_POOL *pool, TDS_POOL_MEMBER *pmbr)
 		if (!puser)
 			break;
 
-		tdsdump_log(TDS_DBG_INFO1, "writing it sock %d\n", tds_get_s(puser->sock.tds));
+		tdsdump_log(TDS_DBG_INFO1, "writing it sock %d\n", (int) tds_get_s(puser->sock.tds));
 		if (!pool_write_data(&pmbr->sock, &puser->sock)) {
 			tdsdump_log(TDS_DBG_ERROR, "member received error while writing\n");
 			pool_free_user(pool, puser);

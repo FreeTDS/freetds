@@ -77,7 +77,7 @@ typedef struct pollfd pollfd_t;
 #endif
 
 #undef poll
-int tds_poll(struct pollfd fds[], int nfds, int timeout);
+int tds_poll(struct pollfd fds[], size_t nfds, int timeout);
 #define poll(fds, nfds, timeout) tds_poll(fds, nfds, timeout)
 
 #include <freetds/popvis.h>
