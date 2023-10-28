@@ -570,7 +570,7 @@ typedef struct
 }
 ProfileParam;
 
-static void
+static bool
 tdoParseProfile(const char *option, const char *value, void *param)
 {
 	ProfileParam *p = (ProfileParam *) param;
@@ -581,6 +581,7 @@ tdoParseProfile(const char *option, const char *value, void *param)
 		p->ret_val = strlen(p->buffer);
 		p->found = 1;
 	}
+	return true;
 }
 
 static int
