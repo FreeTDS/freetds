@@ -6758,6 +6758,11 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		stmt->apd->header.sql_desc_array_size = ui;
 		break;
 	case SQL_ATTR_QUERY_TIMEOUT:
+		/* Microsoft allows a maximum value of 65534 */
+		if (ui > 65534) {
+			odbc_errs_add(&stmt->errs, "01S02", NULL);
+			ui = 65534;
+		}
 		stmt->attr.query_timeout = ui;
 		break;
 		/* retrieve data after positioning the cursor */
