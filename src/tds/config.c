@@ -85,7 +85,7 @@ static bool tds_read_conf_sections(FILE * in, const char *server, TDSLOGIN * log
 static bool tds_read_interfaces(const char *server, TDSLOGIN * login);
 static bool parse_server_name_for_port(TDSLOGIN * connection, TDSLOGIN * login, bool update_server);
 static int tds_lookup_port(const char *portname);
-static void tds_config_encryption(const char * value, TDSLOGIN * login);
+static bool tds_config_encryption(const char * value, TDSLOGIN * login);
 
 static char *interf_file = NULL;
 
@@ -468,7 +468,20 @@ tds_config_boolean(const char *option, const char *value, TDSLOGIN *login)
 	return 0;
 }
 
-static void
+static int
+tds_parse_boolean_option(const char *option, const char *value, int default_value, bool *p_error)
+{
+	int ret = tds_parse_boolean(value, -1);
+	if (ret >= 0)
+		return ret;
+
+	tdsdump_log(TDS_DBG_ERROR, "UNRECOGNIZED option value '%s' for boolean setting '%s'!\n",
+		    value, option);
+	*p_error = true;
+	return default_value;
+}
+
+static bool
 tds_config_encryption(const char * value, TDSLOGIN * login)
 {
 	TDS_ENCRYPTION_LEVEL lvl = TDS_ENCRYPTION_OFF;
@@ -485,10 +498,11 @@ tds_config_encryption(const char * value, TDSLOGIN * login)
 		tdsdump_log(TDS_DBG_ERROR, "Valid settings are: ('%s', '%s', '%s')\n",
 		        TDS_STR_ENCRYPTION_OFF, TDS_STR_ENCRYPTION_REQUEST, TDS_STR_ENCRYPTION_REQUIRE);
 		lvl = TDS_ENCRYPTION_REQUIRE;  /* Assuming "require" is safer than "no" */
-		login->valid_configuration = 0;
+		return false;
 	}
 
 	login->encryption_level = lvl;
+	return true;
 }
 
 /**
@@ -588,11 +602,15 @@ tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_pars
 }
 
 /* Also used to scan ODBC.INI entries */
-void
+bool
 tds_parse_conf_section(const char *option, const char *value, void *param)
 {
+#define parse_boolean(option, value, variable) do { \
+	variable = tds_parse_boolean_option(option, value, variable, &got_error); \
+} while(0)
 	TDSLOGIN *login = (TDSLOGIN *) param;
 	void *s = param;
+	bool got_error = false;
 
 	tdsdump_log(TDS_DBG_INFO1, "\t%s = '%s'\n", option, value);
 
@@ -607,9 +625,9 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		tds_config_boolean(option, value, login);
 	} else if (!strcmp(option, TDS_GSSAPI_DELEGATION)) {
 		/* gssapi flag addition */
-		login->gssapi_use_delegation = tds_config_boolean(option, value, login);
+		parse_boolean(option, value, login->gssapi_use_delegation);
 	} else if (!strcmp(option, TDS_STR_MUTUAL_AUTHENTICATION)) {
-		login->mutual_authentication = tds_config_boolean(option, value, login);
+		parse_boolean(option, value, login->mutual_authentication);
 	} else if (!strcmp(option, TDS_STR_DUMPFILE)) {
 		s = tds_dstr_copy(&login->dump_file, value);
 	} else if (!strcmp(option, TDS_STR_DEBUGFLAGS)) {
@@ -630,7 +648,7 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 
 		if (TDS_FAILED(tds_lookup_host_set(value, &login->ip_addrs))) {
 			tdsdump_log(TDS_DBG_WARN, "Found host entry %s however name resolution failed. \n", value);
-			return;
+			return false;
 		}
 
 		tdsdump_log(TDS_DBG_INFO1, "Found host entry %s \n", value);
@@ -654,22 +672,23 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		s = tds_dstr_copy(&login->client_charset, value);
 		tdsdump_log(TDS_DBG_INFO1, "tds_parse_conf_section: %s is %s.\n", option, tds_dstr_cstr(&login->client_charset));
 	} else if (!strcmp(option, TDS_STR_USE_UTF_16)) {
-		login->use_utf16 = tds_config_boolean(option, value, login);
+		parse_boolean(option, value, login->use_utf16);
 	} else if (!strcmp(option, TDS_STR_LANGUAGE)) {
 		s = tds_dstr_copy(&login->language, value);
 	} else if (!strcmp(option, TDS_STR_APPENDMODE)) {
-		tds_g_append_mode = tds_config_boolean(option, value, login);
+		parse_boolean(option, value, tds_g_append_mode);
 	} else if (!strcmp(option, TDS_STR_INSTANCE)) {
 		s = tds_dstr_copy(&login->instance_name, value);
 	} else if (!strcmp(option, TDS_STR_ENCRYPTION)) {
-		tds_config_encryption(value, login);
+		if (!tds_config_encryption(value, login))
+			s = NULL;
 	} else if (!strcmp(option, TDS_STR_ASA_DATABASE)) {
 		s = tds_dstr_copy(&login->server_name, value);
 	} else if (!strcmp(option, TDS_STR_USENTLMV2)) {
-		login->use_ntlmv2 = tds_config_boolean(option, value, login);
+		parse_boolean(option, value, login->use_ntlmv2);
 		login->use_ntlmv2_specified = 1;
 	} else if (!strcmp(option, TDS_STR_USELANMAN)) {
-		login->use_lanman = tds_config_boolean(option, value, login);
+		parse_boolean(option, value, login->use_lanman);
 	} else if (!strcmp(option, TDS_STR_REALM)) {
 		s = tds_dstr_copy(&login->server_realm_name, value);
 	} else if (!strcmp(option, TDS_STR_SPN)) {
@@ -679,25 +698,29 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 	} else if (!strcmp(option, TDS_STR_CRLFILE)) {
 		s = tds_dstr_copy(&login->crlfile, value);
 	} else if (!strcmp(option, TDS_STR_CHECKSSLHOSTNAME)) {
-		login->check_ssl_hostname = tds_config_boolean(option, value, login);
+		parse_boolean(option, value, login->check_ssl_hostname);
 	} else if (!strcmp(option, TDS_STR_DBFILENAME)) {
 		s = tds_dstr_copy(&login->db_filename, value);
 	} else if (!strcmp(option, TDS_STR_DATABASE)) {
 		s = tds_dstr_copy(&login->database, value);
 	} else if (!strcmp(option, TDS_STR_READONLY_INTENT)) {
-		login->readonly_intent = tds_config_boolean(option, value, login);
+		parse_boolean(option, value, login->readonly_intent);
 		tdsdump_log(TDS_DBG_FUNC, "Setting ReadOnly Intent to '%s'.\n", value);
 	} else if (!strcmp(option, TLS_STR_OPENSSL_CIPHERS)) {
 		s = tds_dstr_copy(&login->openssl_ciphers, value);
 	} else if (!strcmp(option, TDS_STR_ENABLE_TLS_V1)) {
-		login->enable_tls_v1 = tds_config_boolean(option, value, login);
+		parse_boolean(option, value, login->enable_tls_v1);
 		login->enable_tls_v1_specified = 1;
 	} else {
 		tdsdump_log(TDS_DBG_INFO1, "UNRECOGNIZED option '%s' ... ignoring.\n", option);
 	}
 
-	if (!s)
+	if (!s || got_error) {
 		login->valid_configuration = 0;
+		return false;
+	}
+	return true;
+#undef parse_boolean
 }
 
 static bool
