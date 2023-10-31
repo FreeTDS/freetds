@@ -57,7 +57,7 @@ typedef struct {
 	char **err;
 } conf_params;
 
-static void pool_parse(const char *option, const char *value, void *param);
+static bool pool_parse(const char *option, const char *value, void *param);
 static bool pool_read_conf_file(const char *path, const char *poolname, conf_params *params);
 
 bool
@@ -119,7 +119,7 @@ pool_get_uint(const char *value)
 	return (int) val;
 }
 
-static void
+static bool
 pool_parse(const char *option, const char *value, void *param)
 {
 	conf_params *params = (conf_params *) param;
@@ -163,5 +163,7 @@ pool_parse(const char *option, const char *value, void *param)
 		free(*params->err);
 		if (asprintf(params->err, "Invalid value '%s' specified for %s", value, option) < 0)
 			*params->err = "Memory error parsing options";
+		return false;
 	}
+	return true;
 }

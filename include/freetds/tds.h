@@ -1304,10 +1304,10 @@ typedef struct tds_tvp
 
 /* config.c */
 const TDS_COMPILETIME_SETTINGS *tds_get_compiletime_settings(void);
-typedef void (*TDSCONFPARSE) (const char *option, const char *value, void *param);
+typedef bool (*TDSCONFPARSE) (const char *option, const char *value, void *param);
 bool tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_parse, void *parse_param);
 bool tds_read_conf_file(TDSLOGIN * login, const char *server);
-void tds_parse_conf_section(const char *option, const char *value, void *param);
+bool tds_parse_conf_section(const char *option, const char *value, void *param);
 TDSLOGIN *tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale);
 void tds_fix_login(TDSLOGIN* login);
 TDS_USMALLINT * tds_config_verstr(const char *tdsver, TDSLOGIN* login);

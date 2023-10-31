@@ -40,7 +40,7 @@
 #include <freetds/configs.h>
 #include <freetds/replacements.h>
 
-static void tds_parse_locale(const char *option, const char *value, void *param);
+static bool tds_parse_locale(const char *option, const char *value, void *param);
 
 /**
  * Get locale information. 
@@ -107,7 +107,7 @@ tds_get_locale(void)
 	return locale;
 }
 
-static void
+static bool
 tds_parse_locale(const char *option, const char *value, void *param)
 {
 	TDSLOCALE *locale = (TDSLOCALE *) param;
@@ -127,5 +127,8 @@ tds_parse_locale(const char *option, const char *value, void *param)
 	} else if (!strcmp(option, TDS_STR_TIMEFMT)) {
 		free(locale->time_fmt);
 		locale->time_fmt = strdup(value);
+	} else {
+		return false;
 	}
+	return true;
 }
