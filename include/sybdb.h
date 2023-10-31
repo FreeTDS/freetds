@@ -1220,7 +1220,6 @@ DBINT dbvarylen(DBPROCESS * dbproc, int column);
 #define SYBEBBFL        20297	/* -001- Batch failed in bulk-copy to SQL Server */
 #define SYBEDCL         20298	/* -004- DCL Error */
 #define SYBECS          20299	/* -004- cs context Error */
-#define SYBEINITLOGIN   20300	/* Initialization of the login structure failed */
 #define SYBEBULKINSERT  20599	/* cannot build bulk insert statement */
 #define SYBECOLSIZE     22000   /* Invalid column information structure size */
 

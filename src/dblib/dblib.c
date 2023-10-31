@@ -723,12 +723,6 @@ dblogin(void)
 	}
 
 	/* set default values for loginrec */
-	if (!tds_init_login(loginrec->tds_login, NULL)) {
-		dbperror(NULL, SYBEINITLOGIN, errno);
-		free(loginrec);
-		return NULL;
-	}
-	
 	if (!tds_set_library(loginrec->tds_login, "DB-Library")) {
 		dbperror(NULL, SYBEMEM, errno);
 		free(loginrec);
@@ -810,8 +804,7 @@ dbsetlname(LOGINREC * login, const char *value, int which)
 		copy_ret = !!tds_dstr_copy(&login->tds_login->server_spn, value_nonull);
 		break;
 	case DBSETENCRYPTION:
-		tds_parse_conf_section(TDS_STR_ENCRYPTION, value_nonull, login->tds_login);
-		copy_ret = !!login->tds_login->valid_configuration;
+		copy_ret = tds_parse_conf_section(TDS_STR_ENCRYPTION, value_nonull, login->tds_login);
 		break;
 	default:
 		dbperror(NULL, SYBEASUL, 0); /* Attempt to set unknown LOGINREC field */
