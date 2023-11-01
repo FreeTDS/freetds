@@ -977,7 +977,7 @@ AC_SUBST(LTLIBOBJS)
 
 # enable some warning for gcc
 if test "$ac_compiler_gnu" = "yes" ; then
-	CPPFLAGS="$CPPFLAGS -Wall -Wstrict-prototypes -Wmissing-prototypes -Wno-long-long -Wpointer-arith"
+	CPPFLAGS="$CPPFLAGS -Wall -Wstrict-prototypes -Wmissing-prototypes -Wno-long-long -Wpointer-arith -Wunused-parameter"
 fi
 
 AX_CFLAGS_GCC_OPTION([-Wdeclaration-after-statement])
