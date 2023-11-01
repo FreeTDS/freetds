@@ -1,3 +1,5 @@
+#include <config.h>
+
 #if defined(_MSC_VER) && defined(_DEBUG)
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
@@ -5,6 +7,7 @@
 #endif
 
 #include <freetds/windows.h>
+#include <freetds/macros.h>
 
 #ifdef DLL_EXPORT
 
@@ -13,7 +16,7 @@ HINSTANCE hinstFreeTDS;
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved);
 
 BOOL WINAPI
-DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
+DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved TDS_UNUSED)
 {
 	WSADATA wsaData;
 

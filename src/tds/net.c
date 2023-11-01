@@ -1037,7 +1037,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen)
 }
 
 void
-tds_socket_flush(TDS_SYS_SOCKET sock)
+tds_socket_flush(TDS_SYS_SOCKET sock TDS_UNUSED)
 {
 #ifdef USE_CORK
 	int opt;

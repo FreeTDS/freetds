@@ -41,7 +41,7 @@ typedef struct
 #define DLIST_ITEM(ring) \
 	((DLIST_ITEM_TYPE *) (((char *) (ring)) - TDS_OFFSET(DLIST_ITEM_TYPE, DLIST_NAME(item))))
 
-static inline void DLIST_NAME(check)(DLIST_LIST_TYPE *list)
+static inline void DLIST_NAME(check)(DLIST_LIST_TYPE *list TDS_UNUSED)
 {
 #if ENABLE_EXTRA_CHECKS
 	assert(list != NULL);

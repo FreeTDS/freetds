@@ -386,7 +386,8 @@ ConfigDSN(HWND hwndParent, WORD fRequest, LPCSTR lpszDriver, LPCSTR lpszAttribut
 
 /** Add or remove an ODBC driver */
 BOOL INSTAPI
-ConfigDriver(HWND hwndParent, WORD fRequest, LPCSTR lpszDriver, LPCSTR lpszArgs, LPSTR lpszMsg, WORD cbMsgMax, WORD * pcbMsgOut)
+ConfigDriver(HWND hwndParent TDS_UNUSED, WORD fRequest, LPCSTR lpszDriver TDS_UNUSED, LPCSTR lpszArgs TDS_UNUSED,
+	     LPSTR lpszMsg, WORD cbMsgMax, WORD * pcbMsgOut)
 {
 	const char *msg = NULL;
 
@@ -408,7 +409,7 @@ ConfigDriver(HWND hwndParent, WORD fRequest, LPCSTR lpszDriver, LPCSTR lpszArgs,
 }
 
 BOOL INSTAPI
-ConfigTranslator(HWND hwndParent, DWORD * pvOption)
+ConfigTranslator(HWND hwndParent TDS_UNUSED, DWORD * pvOption TDS_UNUSED)
 {
 	return TRUE;
 }

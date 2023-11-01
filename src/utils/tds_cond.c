@@ -31,6 +31,7 @@
 
 #include <freetds/thread.h>
 #include <freetds/time.h>
+#include <freetds/macros.h>
 
 /* implementation for systems that support Condition Variables */
 typedef VOID(WINAPI * init_cv_t) (TDS_CONDITION_VARIABLE * cv);
@@ -49,7 +50,7 @@ new_cond_init(tds_condition * cond)
 }
 
 static int
-new_cond_destroy(tds_condition * cond)
+new_cond_destroy(tds_condition * cond TDS_UNUSED)
 {
 	return 0;
 }

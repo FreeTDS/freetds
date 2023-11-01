@@ -45,9 +45,10 @@
 
 #include <freetds/sysdep_private.h>
 #include <freetds/replacements.h>
+#include <freetds/macros.h>
 
 int
-tds_socketpair(int domain, int type, int protocol, TDS_SYS_SOCKET sv[2])
+tds_socketpair(int domain TDS_UNUSED, int type, int protocol TDS_UNUSED, TDS_SYS_SOCKET sv[2])
 {
 	struct sockaddr_in sa, sa2;
 	SOCKLEN_T addrlen;

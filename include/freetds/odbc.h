@@ -115,7 +115,7 @@ typedef struct _sql_errors TDS_ERRS;
 #if ENABLE_EXTRA_CHECKS
 void odbc_check_struct_extra(void *p);
 #else
-static inline void odbc_check_struct_extra(void *p) {}
+static inline void odbc_check_struct_extra(void *p TDS_UNUSED) {}
 #endif
 
 #define ODBC_RETURN(handle, rc) \

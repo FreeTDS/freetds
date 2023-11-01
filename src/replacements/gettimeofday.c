@@ -26,6 +26,7 @@
 #endif
 
 #include <freetds/replacements.h>
+#include <freetds/macros.h>
 
 /*
  * Number of micro-seconds between the beginning of the Windows epoch
@@ -39,7 +40,7 @@
 # define DELTA_EPOCH_IN_USEC  11644473600000000ULL
 #endif
 
-int tds_gettimeofday (struct timeval *tv, void *tz)
+int tds_gettimeofday (struct timeval *tv, void *tz TDS_UNUSED)
 {
 	FILETIME  ft;
 	uint64_t tim;
