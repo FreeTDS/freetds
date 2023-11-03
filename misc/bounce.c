@@ -8,9 +8,11 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <netdb.h>
 #else
 #include <winsock2.h>
 #include <windows.h>
+#include <ws2tcpip.h>
 #define close(s) closesocket(s)
 typedef int socklen_t;
 typedef unsigned int in_addr_t;
@@ -34,9 +36,8 @@ typedef unsigned int in_addr_t;
 
 /* port to listen to, you should connect to this port */
 static int listen_port = 1433;
-/* server and port to connect to, the real server you want to tunnel */
-static const char *server_ip = "127.0.0.1";
-static int server_port = 1433;
+/* address to connect to, the real server you want to tunnel */
+static struct addrinfo *server_addrs = NULL;
 
 #define SA struct sockaddr
 #define SOCKET_ERR(err,s) if (err==-1) { perror(s); exit(1); }
@@ -208,19 +209,13 @@ static int
 tcp_connect(void)
 {
 	int err, sd;
-	struct sockaddr_in sa;
 
 	/* connects to server 
 	 */
-	sd = socket(AF_INET, SOCK_STREAM, 0);
+	sd = socket(server_addrs->ai_family, SOCK_STREAM, 0);
 	SOCKET_ERR(sd, "socket");
 
-	memset(&sa, '\0', sizeof(sa));
-	sa.sin_family = AF_INET;
-	sa.sin_port = htons(server_port);
-	sa.sin_addr.s_addr = inet_addr(server_ip);
-
-	err = connect(sd, (SA *) & sa, sizeof(sa));
+	err = connect(sd, server_addrs->ai_addr, server_addrs->ai_addrlen);
 	if (sd < 0 || err < 0) {
 		fprintf(stderr, "Connect error\n");
 		exit(1);
@@ -315,6 +310,9 @@ main(int argc, char **argv)
 	gnutls_session_t client_session;
 	char buffer[MAX_BUF + 1];
 	int optval = 1;
+	struct addrinfo hints;
+	const char *server_ip;
+	const char *server_port;
 
 #ifdef _WIN32
 	WSADATA wsa_data;
@@ -322,17 +320,24 @@ main(int argc, char **argv)
 #endif
 
 	if (argc < 4) {
-		fprintf(stderr, "bounce <listen_port> <server_ipv4> <server_port>\n");
+		fprintf(stderr, "bounce <listen_port> <server> <server_port>\n");
 		exit(1);
 	}
 	listen_port = check_port(argv[1]);
+	server_port = argv[3];
+	check_port(server_port);
 	server_ip = argv[2];
-	in_addr_t addr = inet_addr(server_ip);
-	if (addr == INADDR_NONE) {
+
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_V4MAPPED|AI_ADDRCONFIG;
+
+	ret = getaddrinfo(server_ip, server_port, &hints, &server_addrs);
+	if (ret != 0 || server_addrs == NULL) {
 		fprintf(stderr, "Invalid server ip specified: %s\n", server_ip);
 		exit(1);
 	}
-	server_port = check_port(argv[3]);
 
 	/* this must be called once in the program
 	 */
