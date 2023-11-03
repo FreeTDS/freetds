@@ -274,14 +274,12 @@ hexdump(const char *buffer, int len)
 
 	hex[0] = 0;
 	for (i = 0; len > 0 && i < len; ++i) {
-		if ((i & 15) == 0) {
-			hex[0] = 0;
-			chars[0] = 0;
-		}
-		sprintf(strchr(hex, 0), "%02x ", (unsigned char) buffer[i]);
-		chars[i & 15] = buffer[i] >= 32 && buffer[i] < 126 ? buffer[i] : ' ';
-		chars[(i & 15) + 1] = 0;
-		if ((i & 15) == 15)
+		const int col = i & 15;
+		sprintf(hex + col * 3, "%02x ", (unsigned char) buffer[i]);
+		hex[8 * 3 - 1] = '-';
+		chars[col] = buffer[i] >= 32 && buffer[i] < 126 ? buffer[i] : '.';
+		chars[col + 1] = 0;
+		if (col == 15)
 			printf("%04x: %-48s %s\n", i & 0xfff0, hex, chars);
 	}
 	if ((i & 15) != 0)
