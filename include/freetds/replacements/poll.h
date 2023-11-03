@@ -57,7 +57,7 @@ typedef struct pollfd {
 
 #else /* Windows */
 /*
- * Windows use different constants then Unix
+ * Windows use different constants than Unix
  * Newer version have a WSAPoll which is equal to Unix poll
  */
 # if !defined(POLLRDNORM) && !defined(POLLWRNORM)

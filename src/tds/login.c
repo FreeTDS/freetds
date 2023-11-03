@@ -1072,6 +1072,7 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 				return TDS_FAIL;
 			}
 		} else if (ext_len && field == &data_fields[EXTENSION]) {
+			/* reserve 4 bytes in the stream to put the extention offset */
 			if (data_stream.stream.write(&data_stream.stream, 4) != 4) {
 				free(data);
 				return TDS_FAIL;
