@@ -89,7 +89,7 @@ static int log_send(int sock, const void *data, int len, int flags)
 	int ret = send(sock, data, len, flags);
 	int save_errno = errno;
 	if (ret > 0) {
-		printf("sent buffer with sent %d\n", sock);
+		printf("sent buffer with send %d\n", sock);
 		hexdump(data, ret);
 	}
 	errno = save_errno;
