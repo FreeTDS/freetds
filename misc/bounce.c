@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <pthread.h>
 #ifndef _WIN32
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -51,6 +52,7 @@ static int put_packet(int sd, unsigned char *const packet, int packet_len);
 static int get_packet(int sd, unsigned char *const packet);
 static void hexdump(const unsigned char *buffer, int len);
 static void handle_session(int sd);
+static void* handle_client_thread(void *);
 
 static const unsigned char packet_type = 0x12;
 
@@ -449,7 +451,6 @@ int
 main(int argc, char **argv)
 {
 	int err, listen_sd;
-	int client_sd = -1;
 	int ret;
 	struct sockaddr_in sa_serv;
 	struct sockaddr_in sa_cli;
@@ -526,17 +527,19 @@ main(int argc, char **argv)
 
 	client_len = sizeof(sa_cli);
 	for (;;) {
-		if (client_sd >= 0) {
-			close(client_sd);
-			client_sd = -1;
-		}
-
-		client_sd = accept(listen_sd, (SA *) & sa_cli, &client_len);
+		int client_sd = accept(listen_sd, (SA *) & sa_cli, &client_len);
+		if (client_sd < 0)
+			break;
 
 		printf("- connection from %s, port %d\n",
 		       inet_ntoa(sa_cli.sin_addr), ntohs(sa_cli.sin_port));
 
-		handle_session(client_sd);
+		pthread_t th;
+		if (pthread_create(&th, NULL, handle_client_thread, (char*) 0 + client_sd)) {
+			fprintf(stderr, "Error creating thread\n");
+			exit(1);
+		}
+		pthread_detach(th);
 	}
 	close(listen_sd);
 
@@ -691,4 +694,11 @@ exit:
 	if (server_sd >= 0)
 		close(server_sd);
 	close(client_sd);
+}
+
+static void*
+handle_client_thread(void *arg)
+{
+	handle_session((char*) arg - (char*) 0);
+	return NULL;
 }
