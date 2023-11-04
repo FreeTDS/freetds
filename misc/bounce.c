@@ -47,8 +47,8 @@ static struct addrinfo *server_addrs = NULL;
 /* These are global */
 static gnutls_certificate_credentials_t x509_cred;
 
-static int put_packet(int sd);
-static int get_packet(int sd);
+static int put_packet(int sd, unsigned char *const packet, int packet_len);
+static int get_packet(int sd, unsigned char *const packet);
 static void hexdump(const unsigned char *buffer, int len);
 static void handle_session(int sd);
 
@@ -96,7 +96,7 @@ tds_pull_func(gnutls_transport_ptr_t ptr, void *data, size_t len)
 	/* if we have some data send it */
 	if (to_send && packet_len >= 8) {
 		packet[1] = 1;
-		if (put_packet(sock) < 0)
+		if (put_packet(sock, packet, packet_len) < 0)
 			exit(1);
 		packet_len = 0;
 		to_send = 0;
@@ -104,7 +104,8 @@ tds_pull_func(gnutls_transport_ptr_t ptr, void *data, size_t len)
 
 	/* read from packet */
 	if (!packet_len || pos >= packet_len) {
-		if (get_packet(sock) < 0)
+		packet_len = get_packet(sock, packet);
+		if (packet_len < 0)
 			exit(1);
 		pos = 8;
 	}
@@ -132,7 +133,7 @@ tds_push_func(gnutls_transport_ptr_t ptr, const void *data, size_t len)
 	left = 4096 - packet_len;
 	if (left <= 0) {
 		packet[1] = 0;	/* not last */
-		if (put_packet(sock) < 0)
+		if (put_packet(sock, packet, packet_len) < 0)
 			exit(1);
 		packet_len = 8;
 		left = 4096 - packet_len;
@@ -239,10 +240,10 @@ tcp_connect(void)
 
 /* Read plain TDS packet from socket */
 static int
-get_packet(int sd)
+get_packet(int sd, unsigned char *const packet)
 {
 	printf("get_packet\n");
-	packet_len = 0;
+	int packet_len = 0;
 	for (;;) {
 		int full_len = 4;
 		if (packet_len >= 4) {
@@ -272,7 +273,7 @@ get_packet(int sd)
 
 /* Write plain TDS packet to socket */
 static int
-put_packet(int sd)
+put_packet(int sd, unsigned char *const packet, const int packet_len)
 {
 	int sent = 0;
 
@@ -286,8 +287,6 @@ put_packet(int sd)
 		}
 		sent += l;
 	}
-	packet_len = 0;
-	to_send = 0;
 	return sent;
 }
 
@@ -559,7 +558,7 @@ start_tls_session(unsigned flags, int sd)
 	if (to_send) {
 		/* flush last packet */
 		packet[1] = 1;
-		if (put_packet(sd) < 0)
+		if (put_packet(sd, packet, packet_len) < 0)
 			goto exit;
 	}
 
@@ -582,7 +581,8 @@ handle_session(int client_sd)
 	int server_sd = -1;
 	int use_ssl = 1;
 	int ret;
-	unsigned char buffer[MAX_BUF];
+	unsigned char packet[MAX_BUF];
+	int packet_len;
 
 	/* now do prelogin */
 	/* connect to real peer */
@@ -595,23 +595,23 @@ handle_session(int client_sd)
 
 	/* get prelogin packet from client */
 	printf("get prelogin packet from client\n");
-	if (get_packet(client_sd) < 0)
+	if ((packet_len = get_packet(client_sd, packet)) < 0)
 		goto exit;
 
 	/* send prelogin packet to server */
 	printf("send prelogin packet to server\n");
-	if (put_packet(server_sd) < 0)
+	if (put_packet(server_sd, packet, packet_len) < 0)
 		goto exit;
 
 	/* get prelogin reply from server */
 	printf("get prelogin reply from server\n");
-	if (get_packet(server_sd) < 0)
+	if ((packet_len = get_packet(server_sd, packet)) < 0)
 		goto exit;
 	use_ssl = check_packet_for_ssl(packet, packet_len);
 
 	/* reply with same prelogin packet */
 	printf("reply with same prelogin packet\n");
-	if (put_packet(client_sd) < 0)
+	if (put_packet(client_sd, packet, packet_len) < 0)
 		goto exit;
 
 	/* now we must do authentication with client and with server */
@@ -632,19 +632,19 @@ handle_session(int client_sd)
 		ret = wait_one_fd(client_sd, server_sd);
 		if (ret == 0) {
 			/* client */
-			ret = get_packet_tls(client_session, buffer, MAX_BUF);
+			ret = get_packet_tls(client_session, packet, MAX_BUF);
 			if (ret > 0) {
-				hexdump(buffer, ret);
-				ret = put_packet_tls(server_session, buffer, ret);
+				hexdump(packet, ret);
+				ret = put_packet_tls(server_session, packet, ret);
 			}
 			if (!use_ssl)
 				break;
 		} else if (ret == 1) {
 			/* server */
-			ret = get_packet_tls(server_session, buffer, MAX_BUF);
+			ret = get_packet_tls(server_session, packet, MAX_BUF);
 			if (ret > 0) {
-				hexdump(buffer, ret);
-				ret = put_packet_tls(client_session, buffer, ret);
+				hexdump(packet, ret);
+				ret = put_packet_tls(client_session, packet, ret);
 			}
 		}
 		if (ret < 0)
@@ -656,14 +656,14 @@ handle_session(int client_sd)
 		ret = wait_one_fd(client_sd, server_sd);
 		if (ret == 0) {
 			/* client */
-			if (get_packet(client_sd) < 0)
+			if ((packet_len = get_packet(client_sd, packet)) < 0)
 				goto exit;
-			ret = put_packet(server_sd);
+			ret = put_packet(server_sd, packet, packet_len);
 		} else if (ret == 1) {
 			/* server */
-			if (get_packet(server_sd) < 0)
+			if ((packet_len = get_packet(server_sd, packet)) < 0)
 				goto exit;
-			ret = put_packet(client_sd);
+			ret = put_packet(client_sd, packet, packet_len);
 		}
 		if (ret < 0)
 			goto exit;
