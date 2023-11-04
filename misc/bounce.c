@@ -36,8 +36,6 @@ typedef unsigned int in_addr_t;
  */
 #define CERTFILE "mycert.pem"
 
-/* port to listen to, you should connect to this port */
-static int listen_port = 1433;
 /* address to connect to, the real server you want to tunnel */
 static struct addrinfo *server_addrs = NULL;
 
@@ -61,8 +59,6 @@ typedef enum
 	in_tls
 } State;
 static State state;
-
-static int client_sd = -1;
 
 static unsigned char packet[4096 + 192];
 static int packet_len;
@@ -343,7 +339,7 @@ put_packet_tls(gnutls_session_t tls, unsigned char *packet, int packet_len)
 }
 
 static int
-check_packet_for_ssl(void)
+check_packet_for_ssl(unsigned char *packet, int packet_len)
 {
 	if (packet_len < 9)
 		return 0;
@@ -436,12 +432,14 @@ int
 main(int argc, char **argv)
 {
 	int err, listen_sd;
+	int client_sd = -1;
 	int ret;
 	struct sockaddr_in sa_serv;
 	struct sockaddr_in sa_cli;
 	socklen_t client_len;
 	int optval = 1;
 	struct addrinfo hints;
+	int listen_port;
 	const char *server_ip;
 	const char *server_port;
 
@@ -560,7 +558,7 @@ handle_session(int client_sd)
 	/* get prelogin reply from server */
 	printf("get prelogin reply from server\n");
 	get_packet(server_sd);
-	use_ssl = check_packet_for_ssl();
+	use_ssl = check_packet_for_ssl(packet, packet_len);
 
 	/* reply with same prelogin packet */
 	printf("reply with same prelogin packet\n");
