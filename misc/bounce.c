@@ -533,8 +533,10 @@ main(int argc, char **argv)
 	close(listen_sd);
 
 	gnutls_certificate_free_credentials(x509_cred);
-
+	gnutls_dh_params_deinit(dh_params);
 	gnutls_global_deinit();
+
+	freeaddrinfo(server_addrs);
 
 	return 0;
 }
