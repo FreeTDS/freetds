@@ -47,8 +47,8 @@ static struct addrinfo *server_addrs = NULL;
 /* These are global */
 static gnutls_certificate_credentials_t x509_cred;
 
-static void put_packet(int sd);
-static void get_packet(int sd);
+static int put_packet(int sd);
+static int get_packet(int sd);
 static void hexdump(const unsigned char *buffer, int len);
 static void handle_session(int sd);
 
@@ -104,7 +104,8 @@ tds_pull_func(gnutls_transport_ptr_t ptr, void *data, size_t len)
 	/* if we have some data send it */
 	if (to_send && packet_len >= 8) {
 		packet[1] = 1;
-		put_packet(sock);
+		if (put_packet(sock) < 0)
+			exit(1);
 		packet_len = 0;
 		to_send = 0;
 	}
@@ -114,7 +115,8 @@ tds_pull_func(gnutls_transport_ptr_t ptr, void *data, size_t len)
 	}
 	/* read from packet */
 	if (!packet_len || pos >= packet_len) {
-		get_packet(sock);
+		if (get_packet(sock) < 0)
+			exit(1);
 		pos = 8;
 	}
 	if (!packet_len)
@@ -144,7 +146,8 @@ tds_push_func(gnutls_transport_ptr_t ptr, const void *data, size_t len)
 	left = 4096 - packet_len;
 	if (left <= 0) {
 		packet[1] = 0;	/* not last */
-		put_packet(sock);
+		if (put_packet(sock) < 0)
+			exit(1);
 		packet_len = 8;
 		left = 4096 - packet_len;
 	}
@@ -165,7 +168,7 @@ initialize_tls_session(unsigned flags)
 
 	if (gnutls_init(&session, flags) != GNUTLS_E_SUCCESS) {
 		fprintf(stderr, "Error initializing TLS session\n");
-		exit(1);
+		return NULL;
 	}
 	gnutls_transport_set_pull_function(session, tds_pull_func);
 	gnutls_transport_set_push_function(session, tds_push_func);
@@ -217,53 +220,56 @@ tcp_connect(void)
 	/* connects to server 
 	 */
 	sd = socket(server_addrs->ai_family, SOCK_STREAM, 0);
-	SOCKET_ERR(sd, "socket");
+	if (sd < 0) {
+		perror("socket");
+		return -1;
+	}
 
 	err = connect(sd, server_addrs->ai_addr, server_addrs->ai_addrlen);
-	if (sd < 0 || err < 0) {
+	if (err < 0) {
+		close(sd);
 		fprintf(stderr, "Connect error\n");
-		exit(1);
+		return -1;
 	}
 
 	return sd;
 }
 
 /* Read plain TDS packet from socket */
-static void
+static int
 get_packet(int sd)
 {
-	int full_len, l;
-
 	printf("get_packet\n");
 	packet_len = 0;
 	for (;;) {
-		full_len = 4;
+		int full_len = 4;
 		if (packet_len >= 4) {
 			full_len = packet[2] * 0x100 + packet[3];
 			if (full_len < 8) {
 				fprintf(stderr, "Reveived packet too small %d\n", full_len);
-				exit(1);
+				return -1;
 			}
 			if (full_len > 4096) {
 				fprintf(stderr, "Reveived packet too large %d\n", full_len);
-				exit(1);
+				return -1;
 			}
 		}
 
-		l = recv(sd, (void *) (packet + packet_len), full_len - packet_len, 0);
+		int l = recv(sd, (void *) (packet + packet_len), full_len - packet_len, 0);
 		if (l <= 0) {
 			fprintf(stderr, "error recv\n");
-			exit(1);
+			return -1;
 		}
 		packet_len += l;
 
 		if (full_len >= 8 && packet_len == full_len)
 			break;
 	}
+	return packet_len;
 }
 
 /* Write plain TDS packet to socket */
-static void
+static int
 put_packet(int sd)
 {
 	int sent = 0;
@@ -274,12 +280,13 @@ put_packet(int sd)
 
 		if (l <= 0) {
 			fprintf(stderr, "error send\n");
-			exit(1);
+			return -1;
 		}
 		sent += l;
 	}
 	packet_len = 0;
 	to_send = 0;
+	return sent;
 }
 
 /* Read encrypted TDS packet */
@@ -295,11 +302,11 @@ get_packet_tls(gnutls_session_t tls, unsigned char *const packet, int full_packe
 			full_len = packet[2] * 0x100 + packet[3];
 			if (full_len < 8) {
 				fprintf(stderr, "Reveived packet too small %d\n", full_len);
-				exit(1);
+				return -1;
 			}
 			if (full_len > full_packet_len) {
 				fprintf(stderr, "Reveived packet too large %d\n", full_len);
-				exit(1);
+				return -1;
 			}
 		}
 
@@ -308,7 +315,7 @@ get_packet_tls(gnutls_session_t tls, unsigned char *const packet, int full_packe
 			continue;
 		if (l <= 0) {
 			fprintf(stderr, "error recv\n");
-			exit(1);
+			return -1;
 		}
 		packet_len += l;
 
@@ -319,7 +326,7 @@ get_packet_tls(gnutls_session_t tls, unsigned char *const packet, int full_packe
 }
 
 /* Write encrypted TDS packet */
-static void
+static int
 put_packet_tls(gnutls_session_t tls, unsigned char *packet, int packet_len)
 {
 	int sent = 0;
@@ -332,10 +339,11 @@ put_packet_tls(gnutls_session_t tls, unsigned char *packet, int packet_len)
 
 		if (l <= 0) {
 			fprintf(stderr, "error send\n");
-			exit(1);
+			return -1;
 		}
 		sent += l;
 	}
+	return sent;
 }
 
 static int
@@ -418,14 +426,14 @@ wait_one_fd(int fd1, int fd2)
 		if (errno == EINTR)
 			continue;
 		fprintf(stderr, "Error from poll %d\n", errno);
-		exit(1);
+		return -1;
 	}
 	if (fds[0].revents & POLLIN)
 		return 0;
 	if (fds[1].revents & POLLIN)
 		return 1;
 	fprintf(stderr, "Unexpected event from poll\n");
-	exit(1);
+	return -1;
 }
 
 int
@@ -541,28 +549,38 @@ handle_session(int client_sd)
 
 	client_session = initialize_tls_session(GNUTLS_SERVER);
 	server_session = initialize_tls_session(GNUTLS_CLIENT);
+	if (!client_session || !server_session)
+		goto exit;
 
 	/* now do prelogin */
 	/* connect to real peer */
 	printf("connect to real peer\n");
 	server_sd = tcp_connect();
+	if (server_sd < 0) {
+		fprintf(stderr, "Error connecting to server\n");
+		goto exit;
+	}
 
 	/* get prelogin packet from client */
 	printf("get prelogin packet from client\n");
-	get_packet(client_sd);
+	if (get_packet(client_sd) < 0)
+		goto exit;
 
 	/* send prelogin packet to server */
 	printf("send prelogin packet to server\n");
-	put_packet(server_sd);
+	if (put_packet(server_sd) < 0)
+		goto exit;
 
 	/* get prelogin reply from server */
 	printf("get prelogin reply from server\n");
-	get_packet(server_sd);
+	if (get_packet(server_sd) < 0)
+		goto exit;
 	use_ssl = check_packet_for_ssl(packet, packet_len);
 
 	/* reply with same prelogin packet */
 	printf("reply with same prelogin packet\n");
-	put_packet(client_sd);
+	if (put_packet(client_sd) < 0)
+		goto exit;
 
 	/* now we must do authentication with client and with server */
 	state = auth;
@@ -580,7 +598,8 @@ handle_session(int client_sd)
 	if (to_send) {
 		/* flush last packet */
 		packet[1] = 1;
-		put_packet(client_sd);
+		if (put_packet(client_sd) < 0)
+			goto exit;
 	}
 
 	to_send = 0;
@@ -597,7 +616,8 @@ handle_session(int client_sd)
 	if (to_send) {
 		/* flush last packet */
 		packet[1] = 1;
-		put_packet(server_sd);
+		if (put_packet(server_sd) < 0)
+			goto exit;
 	}
 
 	/* on, reset all */
@@ -616,7 +636,7 @@ handle_session(int client_sd)
 			ret = get_packet_tls(client_session, buffer, MAX_BUF);
 			if (ret > 0) {
 				hexdump(buffer, ret);
-				put_packet_tls(server_session, buffer, ret);
+				ret = put_packet_tls(server_session, buffer, ret);
 			}
 			if (!use_ssl)
 				break;
@@ -625,9 +645,11 @@ handle_session(int client_sd)
 			ret = get_packet_tls(server_session, buffer, MAX_BUF);
 			if (ret > 0) {
 				hexdump(buffer, ret);
-				put_packet_tls(client_session, buffer, ret);
+				ret = put_packet_tls(client_session, buffer, ret);
 			}
 		}
+		if (ret < 0)
+			goto exit;
 	}
 
 	for (;;) {
@@ -635,13 +657,17 @@ handle_session(int client_sd)
 		ret = wait_one_fd(client_sd, server_sd);
 		if (ret == 0) {
 			/* client */
-			get_packet(client_sd);
-			put_packet(server_sd);
+			if (get_packet(client_sd) < 0)
+				goto exit;
+			ret = put_packet(server_sd);
 		} else if (ret == 1) {
 			/* server */
-			get_packet(server_sd);
-			put_packet(client_sd);
+			if (get_packet(server_sd) < 0)
+				goto exit;
+			ret = put_packet(client_sd);
 		}
+		if (ret < 0)
+			goto exit;
 	}
 
 exit:
