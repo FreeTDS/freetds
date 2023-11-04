@@ -277,8 +277,8 @@ typedef SOCKET TDS_SYS_SOCKET;
 #  define UINT64_C(c) c ## ULL
 #  define INT64_C(c) c ## LL
 # elif SIZEOF___INT64 >= 8
-#  define UINT64_C(c) c ## i64
-#  define INT64_C(c) c ## ui64
+#  define UINT64_C(c) c ## ui64
+#  define INT64_C(c) c ## i64
 # else
 #  error Unable to understand how to define 64 bit constants
 # endif
