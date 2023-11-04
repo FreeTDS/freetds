@@ -52,11 +52,7 @@ static int get_packet(int sd, unsigned char *const packet);
 static void hexdump(const unsigned char *buffer, int len);
 static void handle_session(int sd);
 
-static unsigned char packet[4096 + 192];
-static int packet_len;
-static int to_send = 0;
 static const unsigned char packet_type = 0x12;
-static int pos = 0;
 
 static int log_recv(int sock, void *data, int len, int flags)
 {
@@ -86,35 +82,47 @@ static int log_send(int sock, const void *data, int len, int flags)
 #undef send
 #define send(a,b,c,d) log_send(a,b,c,d)
 
+typedef struct session {
+	gnutls_session_t tls;
+	int sock;
+	int pos; // only pull
+	int to_send;
+	unsigned char packet[4096];
+	int packet_len;
+} session;
+
 static ssize_t
 tds_pull_func(gnutls_transport_ptr_t ptr, void *data, size_t len)
 {
-	int sock = (int) (intptr_t) ptr;
+	session *const session = (struct session *) ptr;
 
 	fprintf(stderr, "in tds_pull_func\n");
 
 	/* if we have some data send it */
-	if (to_send && packet_len >= 8) {
-		packet[1] = 1;
-		if (put_packet(sock, packet, packet_len) < 0)
+	int packet_len = session->packet_len;
+	if (session->to_send && packet_len >= 8) {
+		session->packet[1] = 1;
+		if (put_packet(session->sock, session->packet, packet_len) < 0)
 			exit(1);
-		packet_len = 0;
-		to_send = 0;
+		session->packet_len = packet_len = 0;
+		session->to_send = 0;
 	}
 
 	/* read from packet */
+	int pos = session->pos;
 	if (!packet_len || pos >= packet_len) {
-		packet_len = get_packet(sock, packet);
+		packet_len = get_packet(session->sock, session->packet);
 		if (packet_len < 0)
 			exit(1);
+		session->packet_len = packet_len;
 		pos = 8;
 	}
-	if (!packet_len)
+	if (packet_len < 0)
 		exit(1);
 	if (len > (packet_len - pos))
 		len = packet_len - pos;
-	memcpy(data, packet + pos, len);
-	pos += len;
+	memcpy(data, session->packet + pos, len);
+	session->pos = pos + len;
 	printf("read %d bytes\n", (int) len);
 	return len;
 }
@@ -122,29 +130,29 @@ tds_pull_func(gnutls_transport_ptr_t ptr, void *data, size_t len)
 static ssize_t
 tds_push_func(gnutls_transport_ptr_t ptr, const void *data, size_t len)
 {
-	int sock = (int) (intptr_t) ptr;
+	session *const session = (struct session *) ptr;
 	int left;
 
 	/* write to packet */
-	if (!to_send)
-		packet_len = 8;
-	to_send = 1;
-	packet[0] = packet_type;
-	left = 4096 - packet_len;
+	if (!session->to_send)
+		session->packet_len = 8;
+	session->to_send = 1;
+	session->packet[0] = packet_type;
+	left = 4096 - session->packet_len;
 	if (left <= 0) {
-		packet[1] = 0;	/* not last */
-		if (put_packet(sock, packet, packet_len) < 0)
+		session->packet[1] = 0;	/* not last */
+		if (put_packet(session->sock, session->packet, session->packet_len) < 0)
 			exit(1);
-		packet_len = 8;
-		left = 4096 - packet_len;
+		session->packet_len = 8;
+		left = 4096 - session->packet_len;
 	}
-	packet[1] = 1;		/* last */
+	session->packet[1] = 1;		/* last */
 	if (len > left)
 		len = left;
-	memcpy(packet + packet_len, data, len);
-	packet_len += len;
-	packet[2] = packet_len >> 8;
-	packet[3] = packet_len;
+	memcpy(session->packet + session->packet_len, data, len);
+	session->packet_len += len;
+	session->packet[2] = session->packet_len >> 8;
+	session->packet[3] = session->packet_len;
 	return len;
 }
 
@@ -548,7 +556,12 @@ start_tls_session(unsigned flags, int sd)
 	if (!tls)
 		return NULL;
 
-	gnutls_transport_set_ptr(tls, (char*) 0 + sd);
+	session session;
+	memset(&session, 0, sizeof(session));
+	session.tls = tls;
+	session.sock = sd;
+
+	gnutls_transport_set_ptr(tls, &session);
 
 	int ret = gnutls_handshake(tls);
 	if (ret < 0) {
@@ -557,17 +570,16 @@ start_tls_session(unsigned flags, int sd)
 	}
 	printf("- Handshake was completed\n");
 
-	if (to_send) {
+	if (session.to_send) {
 		/* flush last packet */
-		packet[1] = 1;
-		if (put_packet(sd, packet, packet_len) < 0)
+		session.packet[1] = 1;
+		if (put_packet(sd, session.packet, session.packet_len) < 0)
 			goto exit;
 	}
 
+	gnutls_transport_set_ptr(tls, (char*) 0 + sd);
 	gnutls_transport_set_pull_function(tls, tds_pull_null_func);
 	gnutls_transport_set_push_function(tls, tds_push_null_func);
-	packet_len = 0;
-	to_send = 0;
 
 	return tls;
 
