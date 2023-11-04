@@ -52,14 +52,6 @@ static int get_packet(int sd);
 static void hexdump(const unsigned char *buffer, int len);
 static void handle_session(int sd);
 
-typedef enum
-{
-	prelogin,
-	auth,
-	in_tls
-} State;
-static State state;
-
 static unsigned char packet[4096 + 192];
 static int packet_len;
 static int to_send = 0;
@@ -110,9 +102,6 @@ tds_pull_func(gnutls_transport_ptr_t ptr, void *data, size_t len)
 		to_send = 0;
 	}
 
-	if (state == in_tls) {
-		return recv(sock, data, len, 0);
-	}
 	/* read from packet */
 	if (!packet_len || pos >= packet_len) {
 		if (get_packet(sock) < 0)
@@ -135,9 +124,6 @@ tds_push_func(gnutls_transport_ptr_t ptr, const void *data, size_t len)
 	int sock = (int) (intptr_t) ptr;
 	int left;
 
-	if (state == in_tls)
-		return send(sock, data, len, 0);
-
 	/* write to packet */
 	if (!to_send)
 		packet_len = 8;
@@ -159,6 +145,22 @@ tds_push_func(gnutls_transport_ptr_t ptr, const void *data, size_t len)
 	packet[2] = packet_len >> 8;
 	packet[3] = packet_len;
 	return len;
+}
+
+static ssize_t
+tds_pull_null_func(gnutls_transport_ptr_t ptr, void *data, size_t len)
+{
+	int sock = (char*) ptr - (char*) 0;
+
+	return recv(sock, data, len, 0);
+}
+
+static ssize_t
+tds_push_null_func(gnutls_transport_ptr_t ptr, const void *data, size_t len)
+{
+	int sock = (char*) ptr - (char*) 0;
+
+	return send(sock, data, len, 0);
 }
 
 static gnutls_session_t
@@ -538,6 +540,41 @@ main(int argc, char **argv)
 	return 0;
 }
 
+static gnutls_session_t
+start_tls_session(unsigned flags, int sd)
+{
+	gnutls_session_t tls = initialize_tls_session(flags);
+	if (!tls)
+		return NULL;
+
+	gnutls_transport_set_ptr(tls, (char*) 0 + sd);
+
+	int ret = gnutls_handshake(tls);
+	if (ret < 0) {
+		fprintf(stderr, "*** Handshake has failed (%s)\n\n", gnutls_strerror(ret));
+		goto exit;
+	}
+	printf("- Handshake was completed\n");
+
+	if (to_send) {
+		/* flush last packet */
+		packet[1] = 1;
+		if (put_packet(sd) < 0)
+			goto exit;
+	}
+
+	gnutls_transport_set_pull_function(tls, tds_pull_null_func);
+	gnutls_transport_set_push_function(tls, tds_push_null_func);
+	packet_len = 0;
+	to_send = 0;
+
+	return tls;
+
+exit:
+	gnutls_deinit(tls);
+	return NULL;
+}
+
 static void
 handle_session(int client_sd)
 {
@@ -546,11 +583,6 @@ handle_session(int client_sd)
 	int use_ssl = 1;
 	int ret;
 	unsigned char buffer[MAX_BUF];
-
-	client_session = initialize_tls_session(GNUTLS_SERVER);
-	server_session = initialize_tls_session(GNUTLS_CLIENT);
-	if (!client_session || !server_session)
-		goto exit;
 
 	/* now do prelogin */
 	/* connect to real peer */
@@ -583,49 +615,16 @@ handle_session(int client_sd)
 		goto exit;
 
 	/* now we must do authentication with client and with server */
-	state = auth;
-	packet_len = 0;
 
 	/* do with client */
-	gnutls_transport_set_ptr(client_session, (gnutls_transport_ptr_t) (((char*)0)+client_sd));
-	ret = gnutls_handshake(client_session);
-	if (ret < 0) {
-		fprintf(stderr, "*** Handshake has failed (%s)\n\n", gnutls_strerror(ret));
+	client_session = start_tls_session(GNUTLS_SERVER, client_sd);
+	if (!client_session)
 		goto exit;
-	}
-	printf("- Handshake was completed\n");
-
-	if (to_send) {
-		/* flush last packet */
-		packet[1] = 1;
-		if (put_packet(client_sd) < 0)
-			goto exit;
-	}
-
-	to_send = 0;
-	packet_len = 0;
-
-	gnutls_transport_set_ptr(server_session, (gnutls_transport_ptr_t) (((char*)0)+server_sd));
-	ret = gnutls_handshake(server_session);
-	if (ret < 0) {
-		fprintf(stderr, "*** Handshake has failed (%s)\n\n", gnutls_strerror(ret));
-		goto exit;
-	}
-	printf("- Handshake was completed\n");
-
-	if (to_send) {
-		/* flush last packet */
-		packet[1] = 1;
-		if (put_packet(server_sd) < 0)
-			goto exit;
-	}
-
-	/* on, reset all */
-	state = in_tls;
-	to_send = 0;
-	packet_len = 0;
 
 	/* do with server */
+	server_session = start_tls_session(GNUTLS_CLIENT, server_sd);
+	if (!server_session)
+		goto exit;
 
 	/* now log and do man-in-the-middle to see decrypted data !!! */
 	for (;;) {
