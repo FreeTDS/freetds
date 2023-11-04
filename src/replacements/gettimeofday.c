@@ -27,18 +27,13 @@
 
 #include <freetds/replacements.h>
 #include <freetds/macros.h>
+#include <freetds/sysdep_private.h>
 
 /*
  * Number of micro-seconds between the beginning of the Windows epoch
  * (Jan. 1, 1601) and the Unix epoch (Jan. 1, 1970).
- *
- * This assumes all Win32 compilers have 64-bit support.
  */
-#if defined(_MSC_VER) || defined(_MSC_EXTENSIONS) || defined(__WATCOMC__)
-# define DELTA_EPOCH_IN_USEC  11644473600000000Ui64
-#else
-# define DELTA_EPOCH_IN_USEC  11644473600000000ULL
-#endif
+#define DELTA_EPOCH_IN_USEC UINT64_C(11644473600000000)
 
 int tds_gettimeofday (struct timeval *tv, void *tz TDS_UNUSED)
 {
