@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <stdbool.h>
 #include <pthread.h>
 #ifndef _WIN32
 #include <sys/types.h>
@@ -11,6 +12,7 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <poll.h>
+#include <signal.h>
 #else
 #include <winsock2.h>
 #include <windows.h>
@@ -447,6 +449,16 @@ wait_one_fd(int fd1, int fd2)
 	return -1;
 }
 
+#ifndef _WIN32
+static int g_listen_sd = -1;
+
+static void
+handle_int_term(int sig)
+{
+	shutdown(g_listen_sd, SHUT_RDWR);
+}
+#endif
+
 int
 main(int argc, char **argv)
 {
@@ -522,6 +534,18 @@ main(int argc, char **argv)
 	SOCKET_ERR(err, "bind");
 	err = listen(listen_sd, 1024);
 	SOCKET_ERR(err, "listen");
+
+#ifndef _WIN32
+	g_listen_sd = listen_sd;
+	{
+		struct sigaction sa;
+		memset(&sa, 0, sizeof(sa));
+		sa.sa_flags = SA_RESTART;
+		sa.sa_handler = handle_int_term;
+		sigaction(SIGTERM, &sa, NULL);
+		sigaction(SIGINT, &sa, NULL);
+	}
+#endif
 
 	printf("Server ready. Listening to port '%d'.\n\n", listen_port);
 
