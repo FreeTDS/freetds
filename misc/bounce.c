@@ -52,6 +52,7 @@ static gnutls_certificate_credentials_t x509_cred;
 static void put_packet(int sd);
 static void get_packet(int sd);
 static void hexdump(const unsigned char *buffer, int len);
+static void handle_session(int sd);
 
 typedef enum
 {
@@ -61,7 +62,6 @@ typedef enum
 } State;
 static State state;
 
-static int server_sd = -1;
 static int client_sd = -1;
 
 static unsigned char packet[4096 + 192];
@@ -440,13 +440,10 @@ main(int argc, char **argv)
 	struct sockaddr_in sa_serv;
 	struct sockaddr_in sa_cli;
 	socklen_t client_len;
-	gnutls_session_t client_session = NULL, server_session = NULL;
-	unsigned char buffer[MAX_BUF + 1];
 	int optval = 1;
 	struct addrinfo hints;
 	const char *server_ip;
 	const char *server_port;
-	int use_ssl = 1;
 
 #ifdef _WIN32
 	WSADATA wsa_data;
@@ -514,20 +511,9 @@ main(int argc, char **argv)
 
 	client_len = sizeof(sa_cli);
 	for (;;) {
-		if (client_session)
-			gnutls_deinit(client_session);
-		if (server_session)
-			gnutls_deinit(server_session);
-		client_session = initialize_tls_session(GNUTLS_SERVER);
-		server_session = initialize_tls_session(GNUTLS_CLIENT);
-
 		if (client_sd >= 0) {
 			close(client_sd);
 			client_sd = -1;
-		}
-		if (server_sd >= 0) {
-			close(server_sd);
-			server_sd = -1;
 		}
 
 		client_sd = accept(listen_sd, (SA *) & sa_cli, &client_len);
@@ -535,138 +521,7 @@ main(int argc, char **argv)
 		printf("- connection from %s, port %d\n",
 		       inet_ntoa(sa_cli.sin_addr), ntohs(sa_cli.sin_port));
 
-		/* now do prelogin */
-		/* connect to real peer */
-		printf("connect to real peer\n");
-		server_sd = tcp_connect();
-
-		/* get prelogin packet from client */
-		printf("get prelogin packet from client\n");
-		get_packet(client_sd);
-
-		/* send prelogin packet to server */
-		printf("send prelogin packet to server\n");
-		put_packet(server_sd);
-
-		/* get prelogin reply from server */
-		printf("get prelogin reply from server\n");
-		get_packet(server_sd);
-		use_ssl = check_packet_for_ssl();
-
-		/* reply with same prelogin packet */
-		printf("reply with same prelogin packet\n");
-		put_packet(client_sd);
-
-		/* now we must do authentication with client and with server */
-		state = auth;
-		packet_len = 0;
-
-		/* do with client */
-		gnutls_transport_set_ptr(client_session, (gnutls_transport_ptr_t) (((char*)0)+client_sd));
-		ret = gnutls_handshake(client_session);
-		if (ret < 0) {
-			close(client_sd);
-			gnutls_deinit(client_session);
-			fprintf(stderr, "*** Handshake has failed (%s)\n\n", gnutls_strerror(ret));
-			continue;
-		}
-		printf("- Handshake was completed\n");
-
-		if (to_send) {
-			/* flush last packet */
-			packet[1] = 1;
-			put_packet(client_sd);
-		}
-
-		to_send = 0;
-		packet_len = 0;
-
-		gnutls_transport_set_ptr(server_session, (gnutls_transport_ptr_t) (((char*)0)+server_sd));
-		ret = gnutls_handshake(server_session);
-		if (ret < 0) {
-			close(server_sd);
-			gnutls_deinit(server_session);
-			fprintf(stderr, "*** Handshake has failed (%s)\n\n", gnutls_strerror(ret));
-			continue;
-		}
-		printf("- Handshake was completed\n");
-
-		if (to_send) {
-			/* flush last packet */
-			packet[1] = 1;
-			put_packet(server_sd);
-		}
-
-		/* on, reset all */
-		state = in_tls;
-		to_send = 0;
-		packet_len = 0;
-
-		/* do with server */
-
-		/* now log and do man-in-the-middle to see decrypted data !!! */
-		for (;;) {
-			/* wait some data */
-			ret = wait_one_fd(client_sd, server_sd);
-			printf("returned %d\n", ret);
-			if (ret == 0) {
-				/* client */
-				ret = get_packet_tls(client_session, buffer, MAX_BUF);
-				if (ret > 0) {
-					hexdump(buffer, ret);
-					put_packet_tls(server_session, buffer, ret);
-				}
-				if (!use_ssl)
-					break;
-			} else if (ret == 1) {
-				/* server */
-				ret = get_packet_tls(server_session, buffer, MAX_BUF);
-				if (ret > 0) {
-					hexdump(buffer, ret);
-					put_packet_tls(client_session, buffer, ret);
-				}
-			}
-		}
-
-		for (;;) {
-			/* wait some data */
-			ret = wait_one_fd(client_sd, server_sd);
-			if (ret == 0) {
-				/* client */
-				get_packet(client_sd);
-				put_packet(server_sd);
-			} else if (ret == 1) {
-				/* server */
-				get_packet(server_sd);
-				put_packet(client_sd);
-			}
-		}
-
-		for (;;) {
-			memset(buffer, 0, MAX_BUF + 1);
-			ret = gnutls_record_recv(client_session, buffer, MAX_BUF);
-
-			if (ret == 0) {
-				printf("\n- Peer has closed the GNUTLS connection\n");
-				break;
-			} else if (ret < 0) {
-				fprintf(stderr, "\n*** Received corrupted " "data(%d). Closing the connection.\n\n", ret);
-				break;
-			} else if (ret > 0) {
-				/* echo data back to the client */
-				hexdump(buffer, ret);
-				gnutls_record_send(client_session, buffer, ret);
-			}
-		}
-		printf("\n");
-		/* do not wait for the peer to close the connection. */
-		gnutls_bye(client_session, GNUTLS_SHUT_WR);
-
-		close(client_sd);
-		client_sd = -1;
-		gnutls_deinit(client_session);
-		client_session = NULL;
-
+		handle_session(client_sd);
 	}
 	close(listen_sd);
 
@@ -677,3 +532,126 @@ main(int argc, char **argv)
 	return 0;
 }
 
+static void
+handle_session(int client_sd)
+{
+	gnutls_session_t client_session = NULL, server_session = NULL;
+	int server_sd = -1;
+	int use_ssl = 1;
+	int ret;
+	unsigned char buffer[MAX_BUF];
+
+	client_session = initialize_tls_session(GNUTLS_SERVER);
+	server_session = initialize_tls_session(GNUTLS_CLIENT);
+
+	/* now do prelogin */
+	/* connect to real peer */
+	printf("connect to real peer\n");
+	server_sd = tcp_connect();
+
+	/* get prelogin packet from client */
+	printf("get prelogin packet from client\n");
+	get_packet(client_sd);
+
+	/* send prelogin packet to server */
+	printf("send prelogin packet to server\n");
+	put_packet(server_sd);
+
+	/* get prelogin reply from server */
+	printf("get prelogin reply from server\n");
+	get_packet(server_sd);
+	use_ssl = check_packet_for_ssl();
+
+	/* reply with same prelogin packet */
+	printf("reply with same prelogin packet\n");
+	put_packet(client_sd);
+
+	/* now we must do authentication with client and with server */
+	state = auth;
+	packet_len = 0;
+
+	/* do with client */
+	gnutls_transport_set_ptr(client_session, (gnutls_transport_ptr_t) (((char*)0)+client_sd));
+	ret = gnutls_handshake(client_session);
+	if (ret < 0) {
+		fprintf(stderr, "*** Handshake has failed (%s)\n\n", gnutls_strerror(ret));
+		goto exit;
+	}
+	printf("- Handshake was completed\n");
+
+	if (to_send) {
+		/* flush last packet */
+		packet[1] = 1;
+		put_packet(client_sd);
+	}
+
+	to_send = 0;
+	packet_len = 0;
+
+	gnutls_transport_set_ptr(server_session, (gnutls_transport_ptr_t) (((char*)0)+server_sd));
+	ret = gnutls_handshake(server_session);
+	if (ret < 0) {
+		fprintf(stderr, "*** Handshake has failed (%s)\n\n", gnutls_strerror(ret));
+		goto exit;
+	}
+	printf("- Handshake was completed\n");
+
+	if (to_send) {
+		/* flush last packet */
+		packet[1] = 1;
+		put_packet(server_sd);
+	}
+
+	/* on, reset all */
+	state = in_tls;
+	to_send = 0;
+	packet_len = 0;
+
+	/* do with server */
+
+	/* now log and do man-in-the-middle to see decrypted data !!! */
+	for (;;) {
+		/* wait some data */
+		ret = wait_one_fd(client_sd, server_sd);
+		if (ret == 0) {
+			/* client */
+			ret = get_packet_tls(client_session, buffer, MAX_BUF);
+			if (ret > 0) {
+				hexdump(buffer, ret);
+				put_packet_tls(server_session, buffer, ret);
+			}
+			if (!use_ssl)
+				break;
+		} else if (ret == 1) {
+			/* server */
+			ret = get_packet_tls(server_session, buffer, MAX_BUF);
+			if (ret > 0) {
+				hexdump(buffer, ret);
+				put_packet_tls(client_session, buffer, ret);
+			}
+		}
+	}
+
+	for (;;) {
+		/* wait some data */
+		ret = wait_one_fd(client_sd, server_sd);
+		if (ret == 0) {
+			/* client */
+			get_packet(client_sd);
+			put_packet(server_sd);
+		} else if (ret == 1) {
+			/* server */
+			get_packet(server_sd);
+			put_packet(client_sd);
+		}
+	}
+
+exit:
+	if (client_session)
+		gnutls_deinit(client_session);
+	if (server_session)
+		gnutls_deinit(server_session);
+	if (server_sd >= 0)
+		close(server_sd);
+	close(client_sd);
+}
