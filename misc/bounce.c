@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include <getopt.h>
 #ifndef _WIN32
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -25,15 +26,17 @@ typedef unsigned int in_addr_t;
 #endif
 #include <gnutls/gnutls.h>
 
+#include "dump_write.h"
+
 /* This small application make man-in-the-middle with a crypted SQL Server
  * to be able to see decrypted login.
  * Works only with mssql2k or later.
  * Based on GnuTLS echo example.
  * compile with:
- *    gcc -O2 -Wall -o bounce bounce.c -lgnutls
+ *    gcc -O2 -Wall -o bounce bounce.c dump_write.c -lgnutls
  */
 
-/* path to certificate, can be created with 
+/* path to certificate, can be created with
  * openssl req -x509 -nodes -days 365 -newkey rsa:1024 -keyout mycert.pem -out mycert.pem
  */
 #define CERTFILE "mycert.pem"
@@ -48,6 +51,9 @@ static struct addrinfo *server_addrs = NULL;
 
 /* These are global */
 static gnutls_certificate_credentials_t x509_cred;
+static bool debug = false;
+static tcpdump_writer* dump_writer = NULL;
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static int put_packet(int sd, unsigned char *const packet, int packet_len);
 static int get_packet(int sd, unsigned char *const packet);
@@ -61,7 +67,7 @@ static int log_recv(int sock, void *data, int len, int flags)
 {
 	int ret = recv(sock, data, len, flags);
 	int save_errno = errno;
-	if (ret > 0) {
+	if (ret > 0 && debug) {
 		printf("got buffer from recv %d\n", sock);
 		hexdump(data, ret);
 	}
@@ -75,7 +81,7 @@ static int log_send(int sock, const void *data, int len, int flags)
 {
 	int ret = send(sock, data, len, flags);
 	int save_errno = errno;
-	if (ret > 0) {
+	if (ret > 0 && debug) {
 		printf("sent buffer with send %d\n", sock);
 		hexdump(data, ret);
 	}
@@ -99,7 +105,8 @@ tds_pull_func(gnutls_transport_ptr_t ptr, void *data, size_t len)
 {
 	session *const session = (struct session *) ptr;
 
-	fprintf(stderr, "in tds_pull_func\n");
+	if (debug)
+		fprintf(stderr, "in tds_pull_func\n");
 
 	/* if we have some data send it */
 	int packet_len = session->packet_len;
@@ -126,7 +133,8 @@ tds_pull_func(gnutls_transport_ptr_t ptr, void *data, size_t len)
 		len = packet_len - pos;
 	memcpy(data, session->packet + pos, len);
 	session->pos = pos + len;
-	printf("read %d bytes\n", (int) len);
+	if (debug)
+		printf("read %d bytes\n", (int) len);
 	return len;
 }
 
@@ -231,7 +239,7 @@ tcp_connect(void)
 {
 	int err, sd;
 
-	/* connects to server 
+	/* connects to server
 	 */
 	sd = socket(server_addrs->ai_family, SOCK_STREAM, 0);
 	if (sd < 0) {
@@ -253,7 +261,8 @@ tcp_connect(void)
 static int
 get_packet(int sd, unsigned char *const packet)
 {
-	printf("get_packet\n");
+	if (debug)
+		printf("get_packet\n");
 	int packet_len = 0;
 	for (;;) {
 		int full_len = 4;
@@ -288,7 +297,8 @@ put_packet(int sd, unsigned char *const packet, const int packet_len)
 {
 	int sent = 0;
 
-	printf("put_packet\n");
+	if (debug)
+		printf("put_packet\n");
 	for (; sent < packet_len;) {
 		int l = send(sd, (void *) (packet + sent), packet_len - sent, 0);
 
@@ -307,7 +317,8 @@ get_packet_tls(gnutls_session_t tls, unsigned char *const packet, int full_packe
 {
 	int packet_len = 0;
 
-	printf("get_packet_tls\n");
+	if (debug)
+		printf("get_packet_tls\n");
 	for (;;) {
 		int full_len = 4;
 		if (packet_len >= 4) {
@@ -343,7 +354,8 @@ put_packet_tls(gnutls_session_t tls, unsigned char *packet, int packet_len)
 {
 	int sent = 0;
 
-	printf("put_packet_tls\n");
+	if (debug)
+		printf("put_packet_tls\n");
 	for (; sent < packet_len;) {
 		int l = gnutls_record_send(tls, (void *) (packet + sent), packet_len - sent);
 		if (l == GNUTLS_E_INTERRUPTED)
@@ -458,6 +470,13 @@ handle_int_term(int sig)
 }
 #endif
 
+static void
+usage(void)
+{
+	fprintf(stderr, "bounce [-v] [-d] <listen_port> <server> <server_port>\n");
+	exit(1);
+}
+
 int
 main(int argc, char **argv)
 {
@@ -468,6 +487,7 @@ main(int argc, char **argv)
 	socklen_t client_len;
 	int optval = 1;
 	struct addrinfo hints;
+	int ch;
 	int listen_port;
 	const char *server_ip;
 	const char *server_port;
@@ -477,14 +497,27 @@ main(int argc, char **argv)
 	WSAStartup(MAKEWORD(2, 2), &wsa_data);
 #endif
 
-	if (argc < 4) {
-		fprintf(stderr, "bounce <listen_port> <server> <server_port>\n");
-		exit(1);
+	while ((ch = getopt(argc, argv, "dD:")) != -1) {
+		switch (ch) {
+		case 'd':
+			debug = true;
+			break;
+		case 'D':
+			dump_writer = tcpdump_writer_open(optarg);
+			break;
+		default:
+			usage();
+			break;
+		}
 	}
-	listen_port = check_port(argv[1]);
-	server_port = argv[3];
+
+	if (optind + 3 != argc)
+		usage();
+
+	listen_port = check_port(argv[optind]);
+	server_port = argv[optind+2];
 	check_port(server_port);
-	server_ip = argv[2];
+	server_ip = argv[optind+1];
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
@@ -501,7 +534,8 @@ main(int argc, char **argv)
 	 */
 	gnutls_global_init();
 	gnutls_global_set_log_level(11);
-	gnutls_global_set_log_function(tds_tls_log);
+	if (debug)
+		gnutls_global_set_log_function(tds_tls_log);
 
 
 	gnutls_certificate_allocate_credentials(&x509_cred);
@@ -572,6 +606,8 @@ main(int argc, char **argv)
 
 	freeaddrinfo(server_addrs);
 
+	tcpdump_writer_close(dump_writer);
+
 	return 0;
 }
 
@@ -594,7 +630,8 @@ start_tls_session(unsigned flags, int sd)
 		fprintf(stderr, "*** Handshake has failed (%s)\n\n", gnutls_strerror(ret));
 		goto exit;
 	}
-	printf("- Handshake was completed\n");
+	if (debug)
+		printf("- Handshake was completed\n");
 
 	if (session.to_send) {
 		/* flush last packet */
@@ -614,6 +651,43 @@ exit:
 	return NULL;
 }
 
+static tcpdump_flow*
+get_dump_flow(void)
+{
+	static uint16_t next_port = 10000;
+	static uint32_t next_ip = 0x0a000002;
+
+	if (!dump_writer)
+		return NULL;
+
+	uint16_t port;
+	uint32_t ip;
+	pthread_mutex_lock(&mutex);
+	port = next_port;
+	ip = next_ip;
+	++next_port;
+	if (next_port >= 60000) {
+		next_port = 10000;
+		++next_ip;
+	}
+	pthread_mutex_unlock(&mutex);
+
+	return tcpdump_flow_new(ip, port, 0x01020304, 1433);
+}
+
+static void
+dump_packet(tcpdump_flow* flow, enum tcpdump_flow_direction dir,
+	    const void *data, size_t data_size)
+{
+	if (!dump_writer || !flow)
+		return;
+
+	pthread_mutex_lock(&mutex);
+	// TODO handle errors
+	tcpdump_flow_write_data(dump_writer, flow, dir, data, data_size);
+	pthread_mutex_unlock(&mutex);
+}
+
 static void
 handle_session(int client_sd)
 {
@@ -623,6 +697,7 @@ handle_session(int client_sd)
 	int ret;
 	unsigned char packet[MAX_BUF];
 	int packet_len;
+	tcpdump_flow *flow = get_dump_flow();
 
 	/* now do prelogin */
 	/* connect to real peer */
@@ -637,6 +712,7 @@ handle_session(int client_sd)
 	printf("get prelogin packet from client\n");
 	if ((packet_len = get_packet(client_sd, packet)) < 0)
 		goto exit;
+	dump_packet(flow, TCPDUMP_FLOW_CLIENT, packet, packet_len);
 
 	/* send prelogin packet to server */
 	printf("send prelogin packet to server\n");
@@ -647,6 +723,7 @@ handle_session(int client_sd)
 	printf("get prelogin reply from server\n");
 	if ((packet_len = get_packet(server_sd, packet)) < 0)
 		goto exit;
+	dump_packet(flow, TCPDUMP_FLOW_SERVER, packet, packet_len);
 	use_ssl = check_packet_for_ssl(packet, packet_len);
 
 	/* reply with same prelogin packet */
@@ -674,6 +751,7 @@ handle_session(int client_sd)
 			/* client */
 			ret = get_packet_tls(client_session, packet, MAX_BUF);
 			if (ret > 0) {
+				dump_packet(flow, TCPDUMP_FLOW_CLIENT, packet, ret);
 				hexdump(packet, ret);
 				ret = put_packet_tls(server_session, packet, ret);
 			}
@@ -683,6 +761,7 @@ handle_session(int client_sd)
 			/* server */
 			ret = get_packet_tls(server_session, packet, MAX_BUF);
 			if (ret > 0) {
+				dump_packet(flow, TCPDUMP_FLOW_SERVER, packet, ret);
 				hexdump(packet, ret);
 				ret = put_packet_tls(client_session, packet, ret);
 			}
@@ -698,11 +777,15 @@ handle_session(int client_sd)
 			/* client */
 			if ((packet_len = get_packet(client_sd, packet)) < 0)
 				goto exit;
+			if (packet_len > 0)
+				dump_packet(flow, TCPDUMP_FLOW_CLIENT, packet, packet_len);
 			ret = put_packet(server_sd, packet, packet_len);
 		} else if (ret == 1) {
 			/* server */
 			if ((packet_len = get_packet(server_sd, packet)) < 0)
 				goto exit;
+			if (packet_len > 0)
+				dump_packet(flow, TCPDUMP_FLOW_SERVER, packet, packet_len);
 			ret = put_packet(client_sd, packet, packet_len);
 		}
 		if (ret < 0)
@@ -710,6 +793,7 @@ handle_session(int client_sd)
 	}
 
 exit:
+	tcpdump_flow_free(flow);
 	if (client_session)
 		gnutls_deinit(client_session);
 	if (server_session)
