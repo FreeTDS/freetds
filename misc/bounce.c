@@ -26,10 +26,9 @@ typedef unsigned int in_addr_t;
 #include <gnutls/gnutls.h>
 
 /* This small application make man-in-the-middle with a crypted SQL Server
- * to be able to see decrypted login
- * It's just a small utility, at end of login it close connection and don't
- * handle a lot of cases. Works only with mssql2k or later
- * Based on GnuTLS echo example
+ * to be able to see decrypted login.
+ * Works only with mssql2k or later.
+ * Based on GnuTLS echo example.
  * compile with:
  *    gcc -O2 -Wall -o bounce bounce.c -lgnutls
  */
