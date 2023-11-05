@@ -103,7 +103,8 @@ build_script:
   # build FreeTDS
   - mkdir build
   - cd build
-  - set OPENSSL_ROOT_DIR=c:\openssl-v30-win%WIDTH%
+  - if exist c:\openssl-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-win%WIDTH%
+  - if exist c:\openssl-v30-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-v30-win%WIDTH%
   - set DEST_DIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
   - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Release -DENABLE_MSDBLIB=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" \"-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%\" .."
   - "%WITH_COMPILER% nmake"
@@ -158,10 +159,16 @@ test_script:
 after_test:
   - type %CD%\build_debug\confdump
   - type %CD%\build_debug\conndump
+  - if exist c:\openssl-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-win%WIDTH%
+  - if exist c:\openssl-v30-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-v30-win%WIDTH%
   # Create zipball artifact
   - cd build
   - "%WITH_COMPILER% nmake install"
   - set DEST_DIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
+  - if exist %OPENSSL_ROOT_DIR%\libssl-3-x64.dll copy %OPENSSL_ROOT_DIR%\libssl-3-x64.dll %DEST_DIR%\bin\
+  - if exist %OPENSSL_ROOT_DIR%\libcrypto-3-x64.dll copy %OPENSSL_ROOT_DIR%\libcrypto-3-x64.dll %DEST_DIR%\bin\
+  - if exist %OPENSSL_ROOT_DIR%\libeay32.dll copy %OPENSSL_ROOT_DIR%\libeay32.dll %DEST_DIR%\bin\
+  - if exist %OPENSSL_ROOT_DIR%\ssleay32.dll copy %OPENSSL_ROOT_DIR%\ssleay32.dll %DEST_DIR%\bin\
   - 7z a ..\%DEST_DIR%.zip %DEST_DIR%
   # END of non-test code specifically related to creation of artifacts published via GitHub  - 7z a ..\%DEST_DIR%.zip %DEST_DIR%
   - cd ..
