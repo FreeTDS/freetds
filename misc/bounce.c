@@ -122,6 +122,8 @@ tds_pull_func(gnutls_transport_ptr_t ptr, void *data, size_t len)
 	int pos = session->pos;
 	if (!packet_len || pos >= packet_len) {
 		packet_len = get_packet(session->sock, session->packet);
+		if (packet_len == 0)
+			return 0;
 		if (packet_len < 0)
 			exit(1);
 		session->packet_len = packet_len;
@@ -280,8 +282,8 @@ get_packet(int sd, unsigned char *const packet)
 
 		int l = recv(sd, (void *) (packet + packet_len), full_len - packet_len, 0);
 		if (l <= 0) {
-			fprintf(stderr, "error recv\n");
-			return -1;
+			fprintf(stderr, "error recv %s\n", strerror(errno));
+			return l < 0 ? -1 : 0;
 		}
 		packet_len += l;
 
@@ -710,7 +712,7 @@ handle_session(int client_sd)
 
 	/* get prelogin packet from client */
 	printf("get prelogin packet from client\n");
-	if ((packet_len = get_packet(client_sd, packet)) < 0)
+	if ((packet_len = get_packet(client_sd, packet)) <= 0)
 		goto exit;
 	dump_packet(flow, TCPDUMP_FLOW_CLIENT, packet, packet_len);
 
@@ -721,7 +723,7 @@ handle_session(int client_sd)
 
 	/* get prelogin reply from server */
 	printf("get prelogin reply from server\n");
-	if ((packet_len = get_packet(server_sd, packet)) < 0)
+	if ((packet_len = get_packet(server_sd, packet)) <= 0)
 		goto exit;
 	dump_packet(flow, TCPDUMP_FLOW_SERVER, packet, packet_len);
 	use_ssl = check_packet_for_ssl(packet, packet_len);
@@ -775,14 +777,14 @@ handle_session(int client_sd)
 		ret = wait_one_fd(client_sd, server_sd);
 		if (ret == 0) {
 			/* client */
-			if ((packet_len = get_packet(client_sd, packet)) < 0)
+			if ((packet_len = get_packet(client_sd, packet)) <= 0)
 				goto exit;
 			if (packet_len > 0)
 				dump_packet(flow, TCPDUMP_FLOW_CLIENT, packet, packet_len);
 			ret = put_packet(server_sd, packet, packet_len);
 		} else if (ret == 1) {
 			/* server */
-			if ((packet_len = get_packet(server_sd, packet)) < 0)
+			if ((packet_len = get_packet(server_sd, packet)) <= 0)
 				goto exit;
 			if (packet_len > 0)
 				dump_packet(flow, TCPDUMP_FLOW_SERVER, packet, packet_len);
