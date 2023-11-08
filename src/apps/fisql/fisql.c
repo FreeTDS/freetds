@@ -44,6 +44,7 @@
 
 #include <freetds/bool.h>
 #include <freetds/replacements.h>
+#include <freetds/macros.h>
 
 #include <sybfront.h>
 #include <sybdb.h>
@@ -103,7 +104,7 @@ fisql_readline(char *prompt)
 }
 
 static void
-fisql_add_history(const char *s)
+fisql_add_history(const char *s TDS_UNUSED)
 {
 }
 
