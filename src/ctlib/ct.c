@@ -2217,11 +2217,18 @@ _ct_get_server_type(TDSSOCKET *tds, int datatype)
 			return SYB5BIGTIME;
 		return SYBDATETIME;
 
+	/* TODO */
+	case CS_SENSITIVITY_TYPE:
+	case CS_BOUNDARY_TYPE:
+	case CS_VOID_TYPE:
+	case CS_USHORT_TYPE:
+	case CS_BLOB_TYPE:
+	case CS_UNITEXT_TYPE:
+	case CS_XML_TYPE:
+	case CS_TEXTLOCATOR_TYPE:
+	case CS_IMAGELOCATOR_TYPE:
+	case CS_UNITEXTLOCATOR_TYPE:
 	default:
-		/* TODO
-		 * SENSITIVITY, BOUNDARY, VOID, USHORT, BLOB, UNITEXT, XML,
-		 * USER
-		 */
 		return TDS_INVALID_TYPE;
 		break;
 	}
