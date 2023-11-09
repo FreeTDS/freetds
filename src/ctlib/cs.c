@@ -142,6 +142,9 @@ _cs_get_user_api_layer_error(int error)
 	case 16:
 		return "Conversion between %1! and %2! datatypes is not supported.";
 		break;
+	case 18:
+		return "An illegal value of %1! was placed in the %2! field of the CS_DATAFMT structure.";
+		break;
 	case 20:
 		return "The conversion/operation resulted in overflow.";
 		break;
@@ -513,22 +516,19 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 
 	tdsdump_log(TDS_DBG_FUNC, "cs_convert(%p, %p, %p, %p, %p, %p)\n", ctx, srcfmt, srcdata, destfmt, destdata, resultlen);
 
-	/* If destination is NULL we have a problem */
-	if (destdata == NULL) {
-		/* TODO: add error message */
-		tdsdump_log(TDS_DBG_FUNC, "error: destdata is null\n");
-		return CS_FAIL;
-
-	}
-
 	/* If destfmt is NULL we have a problem */
 	if (destfmt == NULL) {
-		/* TODO: add error message */
-		tdsdump_log(TDS_DBG_FUNC, "error: destfmt is null\n");
+		_csclient_msg(ctx, "cs_convert", 2, 1, 1, 4, "destfmt");
+		return CS_FAIL;
+	}
+
+	/* If destination is NULL we have a problem */
+	if (destdata == NULL) {
+		_csclient_msg(ctx, "cs_convert", 2, 1, 1, 4, "destdata");
 		return CS_FAIL;
 
 	}
-	
+
 	if (resultlen == NULL) 
 		resultlen = &dummy;
 
@@ -539,13 +539,14 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 		memset(destdata, '\0', destfmt->maxlength);
 		*resultlen = 0;
 		return CS_SUCCEED;
-
 	}
 
 	datatype = srcfmt->datatype;
 	src_type = _ct_get_server_type(NULL, datatype);
-	if (src_type == TDS_INVALID_TYPE)
+	if (src_type == TDS_INVALID_TYPE) {
+		_csclient_msg(ctx, "cs_convert", 2, 1, 1, 16, "%d, %d", srcfmt->datatype, destfmt->datatype);
 		return CS_FAIL;
+	}
 	src_len = srcfmt->maxlength;
 	if (datatype == CS_VARCHAR_TYPE || datatype == CS_VARBINARY_TYPE) {
 		CS_VARCHAR *vc = (CS_VARCHAR *) srcdata;
@@ -555,8 +556,10 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 
 	datatype = destfmt->datatype;
 	desttype = _ct_get_server_type(NULL, datatype);
-	if (desttype == TDS_INVALID_TYPE)
+	if (desttype == TDS_INVALID_TYPE) {
+		_csclient_msg(ctx, "cs_convert", 2, 1, 1, 16, "%d, %d", srcfmt->datatype, destfmt->datatype);
 		return CS_FAIL;
+	}
 	destlen = destfmt->maxlength;
 	if (datatype == CS_VARCHAR_TYPE || datatype == CS_VARBINARY_TYPE) {
 		destvc = (CS_VARCHAR *) destdata;
@@ -569,7 +572,8 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 	tdsdump_log(TDS_DBG_FUNC, "converting type %d (%d bytes) to type = %d (%d bytes)\n",
 		    src_type, src_len, desttype, destlen);
 
-	if (!is_fixed_type(desttype) && (destlen <= 0)) {
+	if (!is_fixed_type(desttype) && destlen < 0) {
+		_csclient_msg(ctx, "cs_convert", 2, 1, 1, 18, "%d, %s", destlen, "maxlength");
 		return CS_FAIL;
 	}
 

@@ -23,7 +23,8 @@
 	TEST(ct_connect) \
 	TEST(ct_command) \
 	TEST(ct_cursor) \
-	TEST(ct_con_props)
+	TEST(ct_con_props) \
+	TEST(cs_convert)
 
 /* forward declare all tests */
 #undef TEST
@@ -432,4 +433,49 @@ test_ct_con_props(void)
 
 	check_fail(ct_con_props, (NULL, CS_SET, CS_APPNAME, "app", 3, NULL));
 	check_last_message(CTMSG_NONE, 0, NULL);
+}
+
+static void
+test_cs_convert(void)
+{
+	CS_INT retlen;
+	char outbuf[32];
+
+	CS_DATAFMT destfmt, srcfmt;
+	memset(&srcfmt, 0, sizeof(srcfmt));
+	memset(&destfmt, 0, sizeof(destfmt));
+
+	/* destdata == NULL */
+	check_fail(cs_convert, (ctx, &srcfmt, "src", &destfmt, NULL, &retlen));
+	check_last_message(CTMSG_CSLIB, 0x2010104, "The parameter destdata cannot be NULL");
+
+	/* destfmt == NULL */
+	check_fail(cs_convert, (ctx, &srcfmt, "src", NULL, outbuf, &retlen));
+	check_last_message(CTMSG_CSLIB, 0x2010104, "The parameter destfmt cannot be NULL");
+
+	/* destdata == NULL && destfmt == NULL */
+	check_fail(cs_convert, (ctx, &srcfmt, "src", NULL, NULL, &retlen));
+	check_last_message(CTMSG_CSLIB, 0x2010104, "The parameter destfmt cannot be NULL");
+
+	/* invalid source type */
+	srcfmt.datatype = 1234;
+	check_fail(cs_convert, (ctx, &srcfmt, "src", &destfmt, outbuf, &retlen));
+	check_last_message(CTMSG_CSLIB, 0x2010110, "Conversion between 1234 and 0 datatypes is not supported");
+	srcfmt.datatype = 0;
+
+	/* invalid destination type */
+	destfmt.datatype = 1234;
+	check_fail(cs_convert, (ctx, &srcfmt, "src", &destfmt, outbuf, &retlen));
+	check_last_message(CTMSG_CSLIB, 0x2010110, "Conversion between 0 and 1234 datatypes is not supported");
+	destfmt.datatype = 0;
+
+	/* not fixed and maxlength == 0 */
+	check_call(cs_convert, (ctx, &srcfmt, "src", &destfmt, outbuf, &retlen));
+
+	/* not fixed and maxlength <= 0 */
+	destfmt.maxlength = -1;
+	check_fail(cs_convert, (ctx, &srcfmt, "src", &destfmt, outbuf, &retlen));
+	check_last_message(CTMSG_CSLIB, 0x2010112,
+			   "An illegal value of -1 was placed in the maxlength field of the CS_DATAFMT structure");
+	destfmt.maxlength = 0;
 }
