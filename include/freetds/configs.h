@@ -20,7 +20,11 @@
 #ifndef _tds_configs_h_
 #define _tds_configs_h_
 
+#ifndef _WIN32
 #include <freetds/sysconfdir.h>
+#else
+#define FREETDS_SYSCONFDIR "c:"
+#endif
 
 #ifndef _tds_h_
 #error freetds/tds.h must be included before freetds/configs.h

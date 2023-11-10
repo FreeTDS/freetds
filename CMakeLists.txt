@@ -460,7 +460,7 @@ elseif(GNUTLS_FOUND)
 	set(lib_NETWORK ${lib_NETWORK} ${lib_GNUTLS})
 endif(OPENSSL_FOUND)
 
-include_directories(${CMAKE_BINARY_DIR}/include include win32 iconv/include)
+include_directories(${CMAKE_BINARY_DIR}/include include iconv/include)
 
 add_subdirectory(src/utils)
 add_subdirectory(src/replacements)
