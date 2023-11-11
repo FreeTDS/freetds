@@ -109,6 +109,8 @@ _check_last_message(ct_message_type type, CS_INT number, const char *msg, int li
 static void
 test_ct_callback(void)
 {
+	void *ptr;
+
 	/* this should fail, context or connection should be not NULL */
 	check_fail(ct_callback, (NULL, NULL, CS_SET, CS_SERVERMSG_CB, servermsg_cb));
 	check_last_message(CTMSG_NONE, 0, NULL);
@@ -132,6 +134,25 @@ test_ct_callback(void)
 	/* this should fail, invalid type */
 	check_fail(ct_callback, (NULL, conn, CS_SET, 20, servermsg_cb));
 	check_last_message(CTMSG_CLIENT2, 0x01010105, "type");
+
+	/* NULL func getting it */
+	check_fail(ct_callback, (NULL, conn, CS_GET, CS_CLIENTMSG_CB, NULL));
+	check_last_message(CTMSG_CLIENT2, 0x01010103, "The parameter func cannot be NULL");
+
+	check_fail(ct_callback, (NULL, conn, CS_GET, CS_SERVERMSG_CB, NULL));
+	check_last_message(CTMSG_CLIENT2, 0x01010103, "The parameter func cannot be NULL");
+
+	/* invalid type with action CS_GET */
+	check_fail(ct_callback, (NULL, conn, CS_GET, 20, NULL));
+	check_last_message(CTMSG_CLIENT2, 0x01010105, "An illegal value of 20 given for parameter type");
+
+	ptr = (char*)0 + 123;
+	check_fail(ct_callback, (NULL, conn, CS_GET, 20, &ptr));
+	check_last_message(CTMSG_CLIENT2, 0x01010105, "An illegal value of 20 given for parameter type");
+	if (ptr != (char*)0 + 123) {
+		fprintf(stderr, "Invalid pointer %p\n", ptr);
+		exit(1);
+	}
 }
 
 static void

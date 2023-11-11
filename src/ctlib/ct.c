@@ -138,6 +138,9 @@ _ct_get_user_api_layer_error(int error)
 	case 2:
 		return "Memory allocation failure.";
 		break;
+	case 3:
+		return "The parameter %1! cannot be NULL.";
+		break;
 	case 4:
 		return "Parameter %1! has an illegal value of %2!.";
 		break;
@@ -349,19 +352,28 @@ ct_callback(CS_CONTEXT * ctx, CS_CONNECTION * con, CS_INT action, CS_INT type, C
 	}
 
 	if (action == CS_GET) {
+		CS_VOID *out_func;
+
 		switch (type) {
 		case CS_CLIENTMSG_CB:
-			*(void **) func = (CS_VOID *) (con ? con->_clientmsg_cb : ctx->_clientmsg_cb);
-			return CS_SUCCEED;
+			out_func = (CS_VOID *) (con ? con->_clientmsg_cb : ctx->_clientmsg_cb);
+			break;
 		case CS_SERVERMSG_CB:
-			*(void **) func = (CS_VOID *) (con ? con->_servermsg_cb : ctx->_servermsg_cb);
-			return CS_SUCCEED;
+			out_func = (CS_VOID *) (con ? con->_servermsg_cb : ctx->_servermsg_cb);
+			break;
 		default:
 			_ctclient_msg(ctx, con, "ct_callback()", 1, 1, 1, 5, "%d, %s", type, "type");
-			*(void **) func = NULL;
 			return CS_FAIL;
 		}
+
+		if (!func) {
+			_ctclient_msg(ctx, con, "ct_callback()", 1, 1, 1, 3, "func");
+			return CS_FAIL;
+		}
+		*(void **) func = out_func;
+		return CS_SUCCEED;
 	}
+
 	/* CS_SET */
 	switch (type) {
 	case CS_CLIENTMSG_CB:
