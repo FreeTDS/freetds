@@ -79,6 +79,7 @@ include(CheckFunctionExists)
 include(CheckLibraryExists)
 include(CheckStructHasMember)
 include(CheckPrototypeDefinition)
+include(GNUInstallDirs)
 
 find_package(Perl)
 find_program(GPERF NAMES gperf)
@@ -501,6 +502,6 @@ set(FREETDS_CONF_FILES
 	${CMAKE_SOURCE_DIR}/locales.conf
 	${CMAKE_SOURCE_DIR}/src/pool/pool.conf)
 
-install(FILES ${FREETDS_PUBLIC_INCLUDE} DESTINATION include)
-install(FILES ${FREETDS_PUBLIC_INCLUDE_2} DESTINATION include/freetds)
-install(FILES ${FREETDS_CONF_FILES} DESTINATION etc)
+install(FILES ${FREETDS_PUBLIC_INCLUDE} TYPE INCLUDE)
+install(FILES ${FREETDS_PUBLIC_INCLUDE_2} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/freetds)
+install(FILES ${FREETDS_CONF_FILES} DESTINATION ${CMAKE_INSTALL_FULL_SYSCONFDIR})
