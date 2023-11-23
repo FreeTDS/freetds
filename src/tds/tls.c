@@ -651,6 +651,7 @@ tds_init_ssl_methods(void)
 	tds_method = meth = BIO_meth_new(BIO_TYPE_MEM, "tds");
 	BIO_meth_set_write(meth, tds_push_func);
 	BIO_meth_set_read(meth, tds_pull_func);
+	BIO_meth_set_ctrl(meth, tds_ssl_ctrl_login);
 	BIO_meth_set_destroy(meth, tds_ssl_free);
 }
 
