@@ -811,8 +811,11 @@ tds_init_login(TDSLOGIN *login, TDSLOCALE * locale)
 	char hostname[128];
 #if HAVE_NL_LANGINFO && defined(CODESET)
 	const char *charset;
-#else
+#elif !defined(_WIN32)
 	char *lc_all, *tok = NULL;
+#endif
+#ifdef _WIN32
+	char cp[128];
 #endif
 
 	/*
@@ -834,27 +837,25 @@ tds_init_login(TDSLOGIN *login, TDSLOCALE * locale)
 	if (!tds_dstr_copy(&login->client_charset, "ISO-8859-1"))
 		return NULL;
 
+#ifdef _WIN32
+	/* for Windows uses GetLocaleInfoA */
+	strcpy(cp, "CP");
+	if (GetLocaleInfoA(GetThreadLocale(), LOCALE_IDEFAULTANSICODEPAGE, cp + 2, sizeof(cp) - 2) > 0)
+		if (!tds_dstr_copy(&login->client_charset, cp))
+			return NULL;
+#else
 	if ((lc_all = strdup(setlocale(LC_ALL, NULL))) == NULL)
 		return NULL;
 
 	if (strtok_r(lc_all, ".", &tok)) {
 		char *encoding = strtok_r(NULL, "@", &tok);
-#ifdef _WIN32
-		/* windows give numeric codepage*/
-		if (encoding && atoi(encoding) > 0) {
-			char *p;
-			if (asprintf(&p, "CP%s", encoding) >= 0) {
-				free(lc_all);
-				lc_all = encoding = p;
-			}
-		}
-#endif
 		if (encoding) {
 			if (!tds_dstr_copy(&login->client_charset, encoding))
 				return NULL;
 		}
 	}
 	free(lc_all);
+#endif
 #endif
 
 	if (locale) {

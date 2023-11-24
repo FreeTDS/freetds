@@ -75,6 +75,7 @@
 	, {            "UTF-8", "UTF-8"                  }
 	, {            "UTF-8", "UTF8"                   }
 	, {            "UTF-8", "utf8"                   }
+	, {            "UTF-8", "CP65001"                }
 
  	 /* Basically alphabetical from here */
 	, {        "ARMSCII-8", "ARMSCII-8"              }
