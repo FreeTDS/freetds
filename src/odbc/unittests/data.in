@@ -96,7 +96,7 @@ if msdb
 		# nvarchar with extended characters
 		# don't test with MS which usually have a not compatible encoding
 		if freetds
-			select NVARCHAR(20) 0x830068006900f200 SQL_C_CHAR "4 \x83hi\xf2"
+			select NVARCHAR(20) 0xa20068006900f200 SQL_C_CHAR "4 \xa2hi\xf2"
 		endif
 
 		# nvarchar with extended characters
