@@ -394,8 +394,21 @@ odbc_connect(TDS_DBC * dbc, TDSLOGIN * login)
 #ifdef ENABLE_ODBC_WIDE
 	/* force utf-8 in order to support wide characters */
 	dbc->original_charset_num = tds_canonical_charset(tds_dstr_cstr(&login->client_charset));
-	if (dbc->original_charset_num < 0
-	    || !tds_dstr_copy(&login->client_charset, "UTF-8"))
+	if (dbc->original_charset_num < 0) {
+		char *msg;
+
+		tds_free_socket(dbc->tds_socket);
+		dbc->tds_socket = NULL;
+
+		if (asprintf(&msg, "Invalid \"%s\" character set specified", tds_dstr_cstr(&login->client_charset)) > 0) {
+			odbc_errs_add(&dbc->errs, "HY024", msg);
+			free(msg);
+		} else {
+			odbc_errs_add(&dbc->errs, "HY024", "Invalid character set specified");
+		}
+		ODBC_RETURN_(dbc);
+	}
+	if (!tds_dstr_copy(&login->client_charset, "UTF-8"))
 		goto memory_error;
 #endif
 
