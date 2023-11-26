@@ -137,12 +137,12 @@ parse_wacky_dsn_string(LPCSTR attribs, DSNINFO * di)
 
 
 /**
- * Update the attributes.  Return TRUE if successful, else FALSE.  The names
+ * Update the attributes.  Return true if successful, else false.  The names
  * written here correspond to the names read by odbc_get_dsn_info().
  */
-#define WRITESTR(n,s) if (!SQLWritePrivateProfileString(section, (n), (s), odbcini)) return FALSE
+#define WRITESTR(n,s) if (!SQLWritePrivateProfileString(section, (n), (s), odbcini)) return false
 #define FIELD_STRING(f) tds_dstr_cstr(&di->login->f)
-static BOOL
+static bool
 write_all_strings(DSNINFO * di)
 {
 	char odbcini[FILENAME_MAX];
@@ -167,7 +167,7 @@ write_all_strings(DSNINFO * di)
 	sprintf(tmp, "%u", di->login->block_size);
 	WRITESTR("PacketSize", tmp);
 
-	return TRUE;
+	return true;
 }
 
 
