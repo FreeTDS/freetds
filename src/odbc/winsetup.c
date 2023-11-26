@@ -437,9 +437,9 @@ DllRegisterServer(void)
 	static const WCHAR desc_fmt[] = L"FreeTDS%c"
                 L"APILevel=2%c"
                 L"ConnectFunctions=YYN%c"
-                L"DriverODBCVer=03.00%c"
+                L"DriverODBCVer=03.50%c"
                 L"FileUsage=0%c"
-                L"SQLLevel=2%c"
+                L"SQLLevel=1%c"
                 L"Setup=%s%c"
                 L"Driver=%s%c";
 	WCHAR fn[MAX_PATH], full_fn[MAX_PATH];
