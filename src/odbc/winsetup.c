@@ -56,6 +56,7 @@
 #include <freetds/utils/string.h>
 #include <freetds/convert.h>
 #include <freetds/replacements.h>
+#include <freetds/bool.h>
 
 #include <olectl.h>
 
@@ -414,6 +415,19 @@ ConfigTranslator(HWND hwndParent TDS_UNUSED, DWORD * pvOption TDS_UNUSED)
 	return TRUE;
 }
 
+/** Checks if there are pending errors from ODBC installer */
+static bool
+check_installer_errors(void)
+{
+	SQLRETURN ret;
+	WCHAR msg[512];
+	WORD len_out;
+	DWORD install_err;
+
+	ret = SQLInstallerErrorW(1, &install_err, msg, sizeof(msg), &len_out);
+	return SQL_SUCCEEDED(ret);
+}
+
 /**
  * Allow install using regsvr32
  */
@@ -444,7 +458,8 @@ DllRegisterServer(void)
 	name[-1] = 0;
 
 	b_res = SQLInstallDriverExW(desc, full_fn, fn, TDS_VECTOR_SIZE(fn), &len_out, ODBC_INSTALL_COMPLETE, &cnt);
-	if (!b_res)
+	/* SQLInstallDriverExW returns TRUE even if encountered errors */
+	if (!b_res || check_installer_errors())
 		return SELFREG_E_CLASS;
 	return S_OK;
 }
@@ -456,7 +471,8 @@ HRESULT WINAPI
 DllUnregisterServer(void)
 {
 	DWORD cnt;
-	if (!SQLRemoveDriver("FreeTDS", FALSE, &cnt))
+	/* SQLRemoveDriver returns TRUE even if encountered errors */
+	if (!SQLRemoveDriver("FreeTDS", FALSE, &cnt) || check_installer_errors())
 		return SELFREG_E_CLASS;
 	return S_OK;
 }
