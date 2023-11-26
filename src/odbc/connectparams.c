@@ -143,53 +143,53 @@ myGetPrivateProfileString(const char *DSN, const char *key, char *buf)
  * Read connection information from given DSN
  * @param DSN           DSN name
  * @param login    where to store connection info
- * @return 1 if success 0 otherwhise
+ * @return true if success false otherwhise
  */
-int
+bool
 odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSLOGIN * login)
 {
 	char tmp[FILENAME_MAX];
-	int freetds_conf_less = 1;
+	bool freetds_conf_less = true;
 
 	/* use old servername */
 	if (myGetPrivateProfileString(DSN, odbc_param_Servername, tmp) > 0) {
-		freetds_conf_less = 0;
+		freetds_conf_less = false;
 		if (!tds_dstr_copy(&login->server_name, tmp)) {
 			odbc_errs_add(errs, "HY001", NULL);
-			return 0;
+			return false;
 		}
 		tds_read_conf_file(login, tmp);
 		if (myGetPrivateProfileString(DSN, odbc_param_Server, tmp) > 0) {
 			odbc_errs_add(errs, "HY000", "You cannot specify both SERVERNAME and SERVER");
-			return 0;
+			return false;
 		}
 		if (myGetPrivateProfileString(DSN, odbc_param_Address, tmp) > 0) {
 			odbc_errs_add(errs, "HY000", "You cannot specify both SERVERNAME and ADDRESS");
-			return 0;
+			return false;
 		}
 	}
 
 	/* search for server (compatible with ms one) */
 	if (freetds_conf_less) {
-		int address_specified = 0;
+		bool address_specified = false;
 
 		if (myGetPrivateProfileString(DSN, odbc_param_Address, tmp) > 0) {
-			address_specified = 1;
+			address_specified = true;
 			/* TODO parse like MS */
 
 			if (TDS_FAILED(tds_lookup_host_set(tmp, &login->ip_addrs))) {
 				odbc_errs_add(errs, "HY000", "Error parsing ADDRESS attribute");
-				return 0;
+				return false;
 			}
 		}
 		if (myGetPrivateProfileString(DSN, odbc_param_Server, tmp) > 0) {
 			if (!tds_dstr_copy(&login->server_name, tmp)) {
 				odbc_errs_add(errs, "HY001", NULL);
-				return 0;
+				return false;
 			}
 			if (!address_specified) {
 				if (!parse_server(errs, tmp, login))
-					return 0;
+					return false;
 			}
 		}
 	}
@@ -207,7 +207,7 @@ odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSLOGIN * login)
 	    && myGetPrivateProfileString(DSN, odbc_param_Database, tmp) > 0)
 		if (!tds_dstr_copy(&login->database, tmp)) {
 			odbc_errs_add(errs, "HY001", NULL);
-			return 0;
+			return false;
 		}
 
 	if (myGetPrivateProfileString(DSN, odbc_param_TextSize, tmp) > 0)
@@ -255,7 +255,7 @@ odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSLOGIN * login)
 	if (myGetPrivateProfileString(DSN, odbc_param_Timeout, tmp) > 0)
 		tds_parse_conf_section(TDS_STR_TIMEOUT, tmp, login);
 
-	return 1;
+	return true;
 }
 
 /**

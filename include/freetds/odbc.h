@@ -552,7 +552,7 @@ typedef struct {
  * \return true if error, false otherwise
  */
 bool odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char *connect_string_end, TDSLOGIN * login, TDS_PARSED_PARAM *parsed_params);
-int odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSLOGIN * login);
+bool odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSLOGIN * login);
 #ifdef _WIN32
 int odbc_build_connect_string(TDS_ERRS *errs, TDS_PARSED_PARAM *params, char **out);
 #endif
