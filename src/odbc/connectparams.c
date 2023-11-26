@@ -390,8 +390,7 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 			}
 			if (!cfgs) {
 				dest_s = &login->server_name;
-				/* not that safe cast but works -- freddy77 */
-				if (!parse_server(errs, (char *) tds_dstr_cstr(&value), login)) {
+				if (!parse_server(errs, tds_dstr_buf(&value), login)) {
 					tds_dstr_free(&value);
 					return false;
 				}
