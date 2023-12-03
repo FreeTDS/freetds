@@ -209,7 +209,8 @@ int tds_raw_cond_timedwait(tds_condition *cond, tds_raw_mutex *mtx, int timeout_
 	if (timeout_sec <= 0)
 		return tds_raw_cond_wait(cond, mtx);
 
-#if defined(HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE_NP)
+#if defined(HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE_NP) && \
+	(!defined(__ANDROID__) || ((__ANDROID_API__ < 21) && defined(HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE)))
 	ts.tv_sec = timeout_sec;
 	ts.tv_nsec = 0;
 	return pthread_cond_timedwait_relative_np(cond, mtx, &ts);
