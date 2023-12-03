@@ -168,16 +168,23 @@ int (*tds_raw_cond_timedwait) (tds_condition * cond, tds_raw_mutex * mtx, int ti
 #include <freetds/thread.h>
 #include <freetds/time.h>
 
+/* check if we can use pthread_cond_timedwait_relative_np */
+#undef USE_COND_TIMEDWAIT_RELATIVE
+#if defined(HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE_NP) && \
+	(!defined(__ANDROID__) || ((__ANDROID_API__ < 21) && defined(HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE)))
+#define USE_COND_TIMEDWAIT_RELATIVE 1
+#endif
+
 /* check if we can use clock_gettime */
-#undef USE_CLOCK_IN_COND
-#if !defined(HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE_NP) && \
+#undef USE_CLOCK_GETTIME_IN_COND
+#if !defined(USE_COND_TIMEDWAIT_RELATIVE) && \
 	defined(HAVE_CLOCK_GETTIME) && (defined(CLOCK_REALTIME) || defined(CLOCK_MONOTONIC))
-#define USE_CLOCK_IN_COND 1
+#define USE_CLOCK_GETTIME_IN_COND 1
 #endif
 
 /* check if we can use CLOCK_MONOTONIC for conditions */
 #undef USE_MONOTONIC_CLOCK_IN_COND
-#if defined(USE_CLOCK_IN_COND) && defined(HAVE_PTHREAD_CONDATTR_SETCLOCK) && defined(CLOCK_MONOTONIC)
+#if defined(USE_CLOCK_GETTIME_IN_COND) && defined(HAVE_PTHREAD_CONDATTR_SETCLOCK) && defined(CLOCK_MONOTONIC)
 #define USE_MONOTONIC_CLOCK_IN_COND 1
 #endif
 
@@ -201,29 +208,27 @@ int tds_raw_cond_init(tds_condition *cond)
 int tds_raw_cond_timedwait(tds_condition *cond, tds_raw_mutex *mtx, int timeout_sec)
 {
 	struct timespec ts;
-#if !defined(HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE_NP) && !defined(USE_CLOCK_IN_COND)
-	struct timeval tv;
-#endif
 
 	if (timeout_sec <= 0)
 		return tds_raw_cond_wait(cond, mtx);
 
-#if defined(HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE_NP)
+#if defined(USE_COND_TIMEDWAIT_RELATIVE)
 	ts.tv_sec = timeout_sec;
 	ts.tv_nsec = 0;
 	return pthread_cond_timedwait_relative_np(cond, mtx, &ts);
 #else
 
-#  ifdef USE_CLOCK_IN_COND
-#    if defined(USE_MONOTONIC_CLOCK_IN_COND)
+#  if defined(USE_MONOTONIC_CLOCK_IN_COND)
 	clock_gettime(CLOCK_MONOTONIC, &ts);
-#    else
+#  elif defined(USE_CLOCK_GETTIME_IN_COND)
 	clock_gettime(CLOCK_REALTIME, &ts);
-#    endif
 #  elif defined(HAVE_GETTIMEOFDAY)
-	gettimeofday(&tv, NULL);
-	ts.tv_sec = tv.tv_sec;
-	ts.tv_nsec = tv.tv_usec * 1000u;
+	do {
+		struct timeval tv;
+		gettimeofday(&tv, NULL);
+		ts.tv_sec = tv.tv_sec;
+		ts.tv_nsec = tv.tv_usec * 1000u;
+	} while(0);
 #  else
 #  error No way to get a proper time!
 #  endif
