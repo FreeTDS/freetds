@@ -486,6 +486,8 @@ if(NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
 	configure_file(${CMAKE_SOURCE_DIR}/src/odbc/version.rc.in ${CMAKE_SOURCE_DIR}/src/odbc/version.rc)
 endif(NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
 
+configure_file(ctlib.pc.in ctlib.pc @ONLY) 
+configure_file(dblib.pc.in dblib.pc @ONLY) 
 
 set(FREETDS_PUBLIC_INCLUDE
 	${CMAKE_SOURCE_DIR}/include/bkpublic.h
@@ -510,3 +512,5 @@ set(FREETDS_CONF_FILES
 install(FILES ${FREETDS_PUBLIC_INCLUDE} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 install(FILES ${FREETDS_PUBLIC_INCLUDE_2} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/freetds)
 install(FILES ${FREETDS_CONF_FILES} DESTINATION ${CMAKE_INSTALL_FULL_SYSCONFDIR})
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/ctlib.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/dblib.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
