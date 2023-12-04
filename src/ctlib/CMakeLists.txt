@@ -35,7 +35,8 @@ endif(MINGW OR CYGWIN)
 #generate the .pc file
 set(prefix "${CMAKE_INSTALL_PREFIX}")
 set(version, CMAKE_PROJECT_VERSION)
-set(libs_private "${lib_NETWORK} ${lib_BASE}")
+string(REPLACE ";" " -l" CTLIBS_PRIVATE "${lib_NETWORK}")
+set(libs_private "-l${CTLIBS_PRIVATE}")
 configure_file(ctlib.pc.in ctlib.pc @ONLY) 
 
 INSTALL(TARGETS ct ct-static

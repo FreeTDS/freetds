@@ -15,7 +15,7 @@ Version: @version@
 Description: A free implementation of TDS protocol
 URL: https://github.com/FreeTDS/freetds
 Requires: 
-Requires.private: libssl, libcrypto libiconv
+Requires.private: libssl, libcrypto, libiconv
 Cflags: -I${includedir}/freetds
 Libs: -L${libdir} -lct
 Libs.private: @libs_private@

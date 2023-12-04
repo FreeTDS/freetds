@@ -30,7 +30,8 @@ endif(MINGW OR CYGWIN)
 #generate the .pc file
 set(prefix "${CMAKE_INSTALL_PREFIX}")
 set(version, CMAKE_PROJECT_VERSION)
-set(libs_private "${lib_NETWORK} ${lib_BASE}")
+string(REPLACE ";" " -l" DBLIBS_PRIVATE "${lib_NETWORK}")
+set(libs_private "-l${DBLIBS_PRIVATE}")
 configure_file(dblib.pc.in dblib.pc @ONLY) 
 
 INSTALL(TARGETS sybdb db-lib
