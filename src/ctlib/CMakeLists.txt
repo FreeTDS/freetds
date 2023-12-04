@@ -32,9 +32,16 @@ if(MINGW OR CYGWIN)
 	set_target_properties(ct PROPERTIES LINK_FLAGS "--static")
 endif(MINGW OR CYGWIN)
 
+#generate the .pc file
+set(prefix "${CMAKE_INSTALL_PREFIX}")
+set(version, CMAKE_PROJECT_VERSION)
+set(libs_private "${lib_NETWORK} ${lib_BASE}")
+configure_file(ctlib.pc.in ctlib.pc @ONLY) 
+
 INSTALL(TARGETS ct ct-static
 	PUBLIC_HEADER DESTINATION include
-		RUNTIME DESTINATION bin
-		LIBRARY DESTINATION lib
-		ARCHIVE DESTINATION lib
-	)
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/ctlib.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)

@@ -27,9 +27,16 @@ if(MINGW OR CYGWIN)
 	set_target_properties(sybdb PROPERTIES LINK_FLAGS "--static")
 endif(MINGW OR CYGWIN)
 
+#generate the .pc file
+set(prefix "${CMAKE_INSTALL_PREFIX}")
+set(version, CMAKE_PROJECT_VERSION)
+set(libs_private "${lib_NETWORK} ${lib_BASE}")
+configure_file(dblib.pc.in dblib.pc @ONLY) 
+
 INSTALL(TARGETS sybdb db-lib
 	PUBLIC_HEADER DESTINATION include
-		RUNTIME DESTINATION bin
-		LIBRARY DESTINATION lib
-		ARCHIVE DESTINATION lib
-	)
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/dblib.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
