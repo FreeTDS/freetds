@@ -1262,7 +1262,6 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 		dbclose(dbproc);
 		return NULL;
 	}
-	connection->option_flag2 &= ~TDS_ODBC_ON;	/* we're not an ODBC driver */
 	tds_fix_login(connection);		/* initialize from Environment variables */
 
 	dbproc->chkintr = NULL;
