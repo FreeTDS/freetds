@@ -1375,6 +1375,11 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 			return TDS_FAIL;
 		if (type == 1 && len >= 1) {
 			crypt_flag = p[off];
+		} else if (type == 0 && len >= 4) {// fix sql 2000 with TDS72PLUS issue
+			tdsdump_log(TDS_DBG_INFO1, "detected server version %d.%d.%d\n", p[off],p[off+1],(p[off+2]<<8)|p[off+3]);
+			if (p[off] == 8 && IS_TDS72_PLUS(tds->conn)) {
+				tds->conn->tds_version = 0x701;
+			}
 		}
 #if ENABLE_ODBC_MARS
 		if (IS_TDS72_PLUS(tds->conn) && type == 4 && len >= 1)
