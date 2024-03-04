@@ -880,7 +880,7 @@ dbsetlshort(LOGINREC * login, int value, int which)
 		tds_set_port(login->tds_login, value);
 		return SUCCEED;
 		break;
-	case DBSETHIER:
+	// case DBSETHIER:
 	default:
 		tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbsetlshort() which = %d\n", which);
 		return FAIL;
