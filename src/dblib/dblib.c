@@ -854,7 +854,6 @@ dbsetllong(LOGINREC * login, long value, int which)
 	}
 }
 
-#if defined(DBLIB_UNIMPLEMENTED)
 /** \internal
  * \ingroup dblib_internal
  * \brief Set an integer value in a \c LOGINREC structure.  
@@ -888,7 +887,6 @@ dbsetlshort(LOGINREC * login, int value, int which)
 		break;
 	}
 }
-#endif
 
 /** \internal
  * \ingroup dblib_internal
