@@ -1285,6 +1285,8 @@ RETCODE dbsetlversion (LOGINREC * login, BYTE version);
 #define DBSETDBNAME		14
 #define DBSETLDBNAME(x,y)	dbsetlname((x), (y), DBSETDBNAME)
 #define DBSETLVERSION(login, version) dbsetlversion((login), (version))
+#define DBSETPORT		15
+#define DBSETLPORT(x,y)	    dbsetlshort((x), (y), DBSETPORT)
 #define DBSETNETWORKAUTH	101
 #define DBSETLNETWORKAUTH(x, y)	dbsetlbool((x), (y), DBSETNETWORKAUTH)
 #define DBSETMUTUALAUTH		102
