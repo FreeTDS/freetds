@@ -130,6 +130,7 @@ EXPORTS
 	dbsetifile
 	dbsetinterrupt
 	dbsetlbool
+	dbsetlshort
 	dbsetllong
 	dbsetlname
 	dbsetlogintime

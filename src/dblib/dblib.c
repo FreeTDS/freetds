@@ -854,7 +854,6 @@ dbsetllong(LOGINREC * login, long value, int which)
 	}
 }
 
-#if defined(DBLIB_UNIMPLEMENTED)
 /** \internal
  * \ingroup dblib_internal
  * \brief Set an integer value in a \c LOGINREC structure.  
@@ -864,7 +863,7 @@ dbsetllong(LOGINREC * login, long value, int which)
  * \param value the value to set it to.  
  * \param which the field to set.  
  * \retval SUCCEED the value was set.
- * \retval FAIL anything other than \c DBSETHIER was passed for \a which.  
+ * \retval FAIL if invalid field in \a which or invalid \a value.  
  */
 RETCODE
 dbsetlshort(LOGINREC * login, int value, int which)
@@ -877,14 +876,16 @@ dbsetlshort(LOGINREC * login, int value, int which)
 	}
 
 	switch (which) {
-	case DBSETHIER:
+	case DBSETPORT:
+		tds_set_port(login->tds_login, value);
+		return SUCCEED;
+	/* case DBSETHIER: */
 	default:
 		tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbsetlshort() which = %d\n", which);
 		return FAIL;
 		break;
 	}
 }
-#endif
 
 /** \internal
  * \ingroup dblib_internal
