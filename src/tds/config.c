@@ -1306,10 +1306,14 @@ parse_server_name_for_port(TDSLOGIN * connection, TDSLOGIN * login, bool update_
 	/* IPv6 address can be quoted */
 	if (server[0] == '[') {
 		pSep = strstr(server, "]:");
+		if (!pSep)
+			pSep = strstr(server, "],");
 		if (pSep)
 			++pSep;
 	} else {
 		pSep = strrchr(server, ':');
+		if (!pSep) 
+			pSep = strrchr(server, ',');
 	}
 
 	if (pSep && pSep != server) {	/* yes, i found it! */
