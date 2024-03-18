@@ -1311,6 +1311,7 @@ bool tds_read_conf_file(TDSLOGIN * login, const char *server);
 bool tds_parse_conf_section(const char *option, const char *value, void *param);
 TDSLOGIN *tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale);
 void tds_fix_login(TDSLOGIN* login);
+bool tds_config_login(TDSLOGIN * connection, TDSLOGIN * login);
 TDS_USMALLINT * tds_config_verstr(const char *tdsver, TDSLOGIN* login);
 struct addrinfo *tds_lookup_host(const char *servername);
 TDSRET tds_lookup_host_set(const char *servername, struct addrinfo **addr);

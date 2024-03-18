@@ -156,6 +156,7 @@ tds_prtype
 !tds_put_string
 tds_quote_id
 tds_quote_string
+tds_config_login
 tds_read_conf_file
 tds_read_conf_section
 tds_read_config_info

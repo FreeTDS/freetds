@@ -52,6 +52,7 @@
 #include <freetds/tds.h>
 #include <freetds/thread.h>
 #include <freetds/convert.h>
+#include <freetds/configs.h>
 #include <freetds/utils/string.h>
 #include <freetds/data.h>
 #include <freetds/replacements.h>
@@ -868,6 +869,7 @@ dbsetllong(LOGINREC * login, long value, int which)
 RETCODE
 dbsetlshort(LOGINREC * login, int value, int which)
 {
+	RETCODE retval = SUCCEED;
 	tdsdump_log(TDS_DBG_FUNC, "dbsetlshort(%p, %d, %d)\n", login, value, which);
 
 	if( login == NULL ) {
@@ -878,13 +880,14 @@ dbsetlshort(LOGINREC * login, int value, int which)
 	switch (which) {
 	case DBSETPORT:
 		tds_set_port(login->tds_login, value);
-		return SUCCEED;
+		retval = SUCCEED;
 	/* case DBSETHIER: */
 	default:
 		tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbsetlshort() which = %d\n", which);
-		return FAIL;
+		retval = FAIL;
 		break;
 	}
+	return retval;
 }
 
 /** \internal
@@ -1187,25 +1190,13 @@ DBPROCESS *
 tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 {
 	DBPROCESS *dbproc = NULL;
-	TDSLOGIN *connection;
+	TDSLOGIN *connection = NULL;
 	int add_connection_res;
 
 	tds_dir_char *tdsdump = tds_dir_getenv(TDS_DIR("TDSDUMP"));
 	if (tdsdump && *tdsdump) {
 		tdsdump_open(tdsdump);
 		tdsdump_log(TDS_DBG_FUNC, "tdsdbopen(%p, %s, [%s])\n", login, server? server : "0x0", msdblib? "microsoft" : "sybase");
-	}
-
-	/*
-	 * Sybase supports the DSQUERY environment variable and falls back to "SYBASE" if server is NULL. 
-	 * Microsoft uses a NULL or "" server to indicate a local server.  
-	 * FIXME: support local server for win32.  
-	 */
-	if (!server && !msdblib) {
-		if ((server = getenv("TDSQUERY")) == NULL)
-			if ((server = getenv("DSQUERY")) == NULL)
-				server = "SYBASE";
-		tdsdump_log(TDS_DBG_FUNC, "tdsdbopen: servername set to %s\n", server);
 	}
 
 	if ((dbproc = tds_new0(DBPROCESS, 1)) == NULL) {
@@ -1225,20 +1216,12 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 	dbproc->avail_flag = TRUE;
 	dbproc->command_state = DBCMDNONE;
 
-	if (!tds_set_server(login->tds_login, server)) {
-		dbperror(NULL, SYBEMEM, 0);
-		free(dbproc);
-		return NULL;
-	}
-	tdsdump_log(TDS_DBG_FUNC, "tdsdbopen: tds_set_server(%p, \"%s\")\n", login->tds_login, server);
-
 	if ((dbproc->tds_socket = tds_alloc_socket(dblib_get_tds_ctx(), 512)) == NULL ){
 		dbperror(NULL, SYBEMEM, 0);
 		free(dbproc);
 		return NULL;
 	}
 	
-
 	tds_set_parent(dbproc->tds_socket, dbproc);
 
 	dbproc->tds_socket->env_chg_func = db_env_chg;
@@ -1258,13 +1241,63 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 		return NULL;
 	}
 
-	connection = tds_read_config_info(dbproc->tds_socket, login->tds_login, g_dblib_ctx.tds_ctx->locale);
-	if (!connection) {
-		dbclose(dbproc);
-		return NULL;
+	// Open connection direct while the server is empty
+	if (NULL == server) {
+		/*
+		* Sybase supports the DSQUERY environment variable and falls back to "SYBASE" if server is NULL. 
+		* Microsoft uses a NULL or "" server to indicate a local server.  
+		* FIXME: support local server for win32.  
+		*/
+		if (!msdblib) {
+			server = "SYBASE";
+			tdsdump_log(TDS_DBG_FUNC, "tdsdbopen: servername set to %s\n", server);
+		}
+
+		if (!tds_set_server(login->tds_login, server)) {
+			dbperror(NULL, SYBEMEM, 0);
+			free(dbproc);
+			return NULL;
+		}
+		tdsdump_log(TDS_DBG_FUNC, "tdsdbopen: tds_set_server(%p, \"%s\")\n", login->tds_login, server);
+
+		/* allocate a new structure with hard coded and build-time defaults */
+		tdsdump_log(TDS_DBG_FUNC, "tdsdbopen: alloc and init connection...\n");
+		connection = tds_alloc_login(0);
+		if (!connection || !tds_init_login(connection, g_dblib_ctx.tds_ctx->locale)) {
+			tds_free_login(connection);
+			return NULL;
+		}
+
+		tdsdump_log(TDS_DBG_FUNC, "tdsdbopen: copy login data to connection...\n");
+		if (!tds_config_login(connection, login->tds_login)) {
+			tds_free_login(connection);
+			return NULL;
+		}
+
+		tdsdump_log(TDS_DBG_FUNC, "tdsdbopen: lookup host ip address...\n");
+		if (TDS_SUCCEED(tds_lookup_host_set(tds_dstr_cstr(&connection->client_host_name), &connection->ip_addrs))) {
+			if (!tds_dstr_dup(&connection->server_host_name, &connection->client_host_name)) {
+				tds_free_login(connection);
+				return NULL;
+			}
+		}
+		connection->option_flag2 &= ~TDS_ODBC_ON;
+	} else {
+		if (!tds_set_server(login->tds_login, server)) {
+			dbperror(NULL, SYBEMEM, 0);
+			free(dbproc);
+			return NULL;
+		}
+		tdsdump_log(TDS_DBG_FUNC, "tdsdbopen: tds_set_server(%p, \"%s\")\n", login->tds_login, server);
+
+		connection = tds_read_config_info(dbproc->tds_socket, login->tds_login, g_dblib_ctx.tds_ctx->locale);
+		if (!connection) {
+			dbclose(dbproc);
+			return NULL;
+		}
+		connection->option_flag2 &= ~TDS_ODBC_ON;	/* we're not an ODBC driver */
+		tds_fix_login(connection);		/* initialize from Environment variables */
 	}
-	connection->option_flag2 &= ~TDS_ODBC_ON;	/* we're not an ODBC driver */
-	tds_fix_login(connection);		/* initialize from Environment variables */
 
 	dbproc->chkintr = NULL;
 	dbproc->hndlintr = NULL;

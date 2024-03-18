@@ -76,7 +76,6 @@
 #include <freetds/utils.h>
 #include <freetds/replacements.h>
 
-static bool tds_config_login(TDSLOGIN * connection, TDSLOGIN * login);
 static bool tds_config_env_tdsdump(TDSLOGIN * login);
 static void tds_config_env_tdsver(TDSLOGIN * login);
 static void tds_config_env_tdsport(TDSLOGIN * login);
@@ -707,7 +706,7 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 #undef parse_boolean
 }
 
-static bool
+bool
 tds_config_login(TDSLOGIN * connection, TDSLOGIN * login)
 {
 	DSTR *res = &login->server_name;
