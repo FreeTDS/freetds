@@ -15,6 +15,7 @@ add_library(tdsutils STATIC
 	threadsafe.c
 	bjoern-utf8.c
 	tdsstring.c
+	strndup.c
 	net.c
 	smp.c
 	path.c

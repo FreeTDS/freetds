@@ -44,6 +44,8 @@ int tds_getservice(const char *name);
 
 int tds_socket_set_nosigpipe(TDS_SYS_SOCKET sock, int on);
 
+char *tds_strndup(const void *s, TDS_INTPTR len);
+
 #ifdef __cplusplus
 }
 #endif

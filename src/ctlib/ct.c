@@ -36,6 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 #include <freetds/utils/string.h>
+#include <freetds/utils.h>
 #include <freetds/enum_cap.h>
 #include <freetds/data.h>
 #include <freetds/replacements.h>

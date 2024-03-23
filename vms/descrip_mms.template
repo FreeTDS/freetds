@@ -172,6 +172,7 @@ TDSOBJS = [.src.tds]bulk$(OBJ), [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ
 	[.src.utils]bjoern-utf8$(OBJ), \
 	[.src.utils]smp$(OBJ), \
 	[.src.utils]path$(OBJ), \
+	[.src.utils]strndup$(OBJ), \
 	$(ASPRINTFOBJ) $(VASPRINTFOBJ) $(SNPRINTFOBJ) $(STRTOK_ROBJ) $(LIBICONVOBJ) $(SOCKETPAIROBJ) \
 	[.vms]getpass$(OBJ)
 

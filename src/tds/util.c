@@ -388,38 +388,3 @@ tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
 	return rc;
 }
 
-/**
- * Copy a string of length len to a new allocated buffer
- * This function does not read more than len bytes.
- * Please note that some system implementations of strndup
- * do not assure they don't read past len bytes as they
- * use still strlen to check length to copy limiting
- * after strlen to size passed.
- * String returned is NUL terminated.
- *
- * \param s   string to copy from
- * \param len length to copy
- *
- * \returns string copied or NULL if errors
- */
-char *
-tds_strndup(const void *s, TDS_INTPTR len)
-{
-	char *out;
-	const char *end;
-
-	if (len < 0)
-		return NULL;
-
-	end = (const char *) memchr(s, '\0', len);
-	if (end)
-		len = end - (const char *) s;
-
-	out = tds_new(char, len + 1);
-	if (out) {
-		memcpy(out, s, len);
-		out[len] = 0;
-	}
-	return out;
-}
-
