@@ -399,21 +399,18 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 
 				/* name */
 				datlen = dbdatlen(dbproc, 1);
-				index_name = (char *) calloc(1, 1 + datlen);
+				index_name = (char *) tds_strndup(dbdata(dbproc, 1), datlen);
 				assert(index_name);
-				memcpy(index_name, dbdata(dbproc, 1), datlen);
 
 				/* kind */
 				datlen = dbdatlen(dbproc, 2);
-				index_description = (char *) calloc(1, 1 + datlen);
+				index_description = (char *) tds_strndup(dbdata(dbproc, 2), datlen);
 				assert(index_description);
-				memcpy(index_description, dbdata(dbproc, 2), datlen);
 
 				/* columns */
 				datlen = dbdatlen(dbproc, 3);
-				index_keys = (char *) calloc(1, 1 + datlen);
+				index_keys = (char *) tds_strndup(dbdata(dbproc, 3), datlen);
 				assert(index_keys);
-				memcpy(index_keys, dbdata(dbproc, 3), datlen);
 
 				/* fix up the index attributes; we're going to use the string verbatim (almost). */
 				p = strstr(index_description, "located");
@@ -511,12 +508,11 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 				}
 
 				if (type == SYBCHAR || type == SYBVARCHAR) {
-					*coldesc[i] = (char *) calloc(1, 1 + datlen); /* calloc will null terminate */
+					*coldesc[i] = (char *) tds_strndup(dbdata(dbproc, col_index), datlen);
 					if (!*coldesc[i]) {
 						perror("error: insufficient memory for row detail");
 						exit(1);
 					}
-					memcpy(*coldesc[i], dbdata(dbproc, col_index), datlen);
 				} else {
 					char buf[256];
 					DBINT len = dbconvert(dbproc, type, dbdata(dbproc, col_index), datlen,
