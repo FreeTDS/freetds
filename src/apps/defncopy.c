@@ -129,6 +129,91 @@ static void usage(const char invoked_as[]);
 static char *rtrim(char *s);
 static char *ltrim(char *s);
 
+typedef struct tmp_buf {
+	struct tmp_buf *next;
+	char buf[1];
+} tmp_buf;
+
+static tmp_buf *tmp_list = NULL;
+
+static void*
+tmp_malloc(size_t len)
+{
+	tmp_buf *tmp = malloc(sizeof(tmp_buf*) + len);
+	if (!tmp) {
+		fprintf(stderr, "Out of memory\n");
+		exit(1);
+	}
+	tmp->next = tmp_list;
+	tmp_list = tmp;
+	return tmp->buf;
+}
+
+static void
+tmp_free(void)
+{
+	while (tmp_list) {
+		tmp_buf *next = tmp_list->next;
+		free(tmp_list);
+		tmp_list = next;
+	}
+}
+
+static size_t
+count_chars(const char *s, char c)
+{
+	size_t num = 0;
+	if (c != 0) {
+		--s;
+		while ((s = strchr(s + 1, c)) != NULL)
+			++num;
+	}
+	return num;
+}
+
+static char *
+sql_quote(char *dest, const char *src, char quote_char)
+{
+	for (; *src; ++src) {
+		if (*src == quote_char)
+			*dest++ = *src;
+		*dest++ = *src;
+	}
+	return dest;
+}
+
+static const char *
+quote_id(const char *id)
+{
+	size_t n, len;
+	char *s, *p;
+
+	n = count_chars(id, ']');
+	len = 1 + strlen(id) + n + 1 + 1;
+	p = s = tmp_malloc(len);
+	*p++ = '[';
+	p = sql_quote(p, id, ']');
+	*p++ = ']';
+	*p = 0;
+	return s;
+}
+
+static const char *
+quote_str(const char *str)
+{
+	size_t n, len;
+	char *s, *p;
+
+	n = count_chars(str, '\'');
+	if (!n)
+		return str;
+	len = strlen(str) + n + 1;
+	s = tmp_malloc(len);
+	p = sql_quote(s, str, '\'');
+	*p = 0;
+	return s;
+}
+
 /* global variables */
 static OPTIONS options;
 static char use_statement[512];
@@ -229,8 +314,9 @@ main(int argc, char *argv[])
 
 		parse_argument(argv[i], &procedure);
 
-		erc = dbfcmd(dbproc, query, procedure.name, procedure.owner,
+		erc = dbfcmd(dbproc, query, quote_str(procedure.name), quote_str(procedure.owner),
 			     (DBTDS(dbproc) == DBTDS_5_0) ? "c.colid2, ":"");
+		tmp_free();
 
 		/* Send the query to the server (we could use dbsqlexec(), instead) */
 		erc = dbsqlsend(dbproc);
@@ -250,7 +336,8 @@ main(int argc, char *argv[])
 		nrows = print_results(dbproc);
 
 		if (0 == nrows) {
-			erc = dbfcmd(dbproc, query_table, procedure.owner, procedure.name);
+			erc = dbfcmd(dbproc, query_table, quote_str(procedure.owner), quote_str(procedure.name));
+			tmp_free();
 			assert(SUCCEED == erc);
 			erc = dbsqlexec(dbproc);
 			if (erc == FAIL) {
@@ -443,17 +530,18 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 					ret = asprintf(&create_index,
 						"%sALTER TABLE %s.%s ADD CONSTRAINT %s PRIMARY KEY %s (%s)\nGO\n\n",
 						create_index,
-						procedure->owner, procedure->name,
-						index_name, index_description, index_keys);
+						quote_id(procedure->owner), quote_id(procedure->name),
+						quote_id(index_name), index_description, index_keys);
 				} else {
 					ret = asprintf(&create_index,
 						"%sCREATE %s INDEX %s on %s.%s(%s)\nGO\n\n",
 						create_index,
-						index_description, index_name,
-						procedure->owner, procedure->name, index_keys);
+						index_description, quote_id(index_name),
+						quote_id(procedure->owner), quote_id(procedure->name), index_keys);
 				}
 				assert(ret >= 0);
 				free(tmp_str);
+				tmp_free();
 
 				free(index_name);
 				free(index_description);
@@ -556,7 +644,8 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 	if (nrows == 0)
 		goto cleanup;
 
-	printf("%sCREATE TABLE %s.%s\n", use_statement, procedure->owner, procedure->name);
+	printf("%sCREATE TABLE %s.%s\n", use_statement, quote_id(procedure->owner), quote_id(procedure->name));
+	tmp_free();
 	for (i=0; i < nrows; i++) {
 		static const char varytypenames[] =	"char\0"
 							"nchar\0"
@@ -592,8 +681,9 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 		is_null = is_in(ddl[i].nullable, "1\0yes\0");
 
 		/*      {(|,} name type [NOT] NULL */
-		printf("\t%c %-*s %-15s %3s NULL\n", (i==0? '(' : ','), maxnamelen, ddl[i].name,
+		printf("\t%c %-*s %-15s %3s NULL\n", (i==0? '(' : ','), maxnamelen+2, quote_id(ddl[i].name),
 						(type? type : ddl[i].type), (is_null? "" : "NOT"));
+		tmp_free();
 
 		free(type);
 	}
@@ -860,7 +950,8 @@ msg_handler(DBPROCESS * dbproc TDS_UNUSED, DBINT msgno, int msgstate TDS_UNUSED,
 		if (!endquote)
 			break;
 		*endquote = '\0';
-		sprintf(use_statement, "USE %s\nGO\n\n", dbname);
+		sprintf(use_statement, "USE %s\nGO\n\n", quote_id(dbname));
+		tmp_free();
 		return 0;
 
 	case 0:	/* Ignore print messages */
