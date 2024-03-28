@@ -364,17 +364,14 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 	};
 	int colmap[TDS_VECTOR_SIZE(colmap_names)];
 
-	FILE *create_index;
+	char *create_index = NULL;
 	RETCODE erc;
 	int row_code, iresultset, i, ret;
 	int maxnamelen = 0, nrows = 0;
 	char **p_str;
 
-	create_index = tmpfile();
-
 	assert(dbproc);
 	assert(procedure);
-	assert(create_index);
 
 	/* sp_help returns several result sets.  We want just the second one, for now */
 	for (iresultset=1; (erc = dbresults(dbproc)) != NO_MORE_RESULTS; iresultset++) {
@@ -393,6 +390,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 			/* Look for index data */
 			if (0 == strcmp("index_name", dbcolname(dbproc, 1))) {
 				char *index_name, *index_description, *index_keys, *p, fprimary=0;
+				char *tmp_str;
 				DBINT datlen;
 
 				assert(dbnumcols(dbproc) >=3 );	/* column had better be in range */
@@ -437,14 +435,24 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 						unique[0] = '\0';
 					sprintf(index_description, "%s %s", unique, pclustering);
 				}
-				/* Put it to a temporary file; we'll print it after the CREATE TABLE statement. */
+				/* Put it to a temporary variable; we'll print it after the CREATE TABLE statement. */
+				tmp_str = create_index;
+				create_index = create_index ? create_index : "";
 				if (fprimary) {
-					fprintf(create_index, "ALTER TABLE %s.%s ADD CONSTRAINT %s PRIMARY KEY %s (%s)\nGO\n\n",
-						procedure->owner, procedure->name, index_name, index_description, index_keys);
+					ret = asprintf(&create_index,
+						"%sALTER TABLE %s.%s ADD CONSTRAINT %s PRIMARY KEY %s (%s)\nGO\n\n",
+						create_index,
+						procedure->owner, procedure->name,
+						index_name, index_description, index_keys);
 				} else {
-					fprintf(create_index, "CREATE %s INDEX %s on %s.%s(%s)\nGO\n\n",
-						index_description, index_name, procedure->owner, procedure->name, index_keys);
+					ret = asprintf(&create_index,
+						"%sCREATE %s INDEX %s on %s.%s(%s)\nGO\n\n",
+						create_index,
+						index_description, index_name,
+						procedure->owner, procedure->name, index_keys);
 				}
+				assert(ret >= 0);
+				free(tmp_str);
 
 				free(index_name);
 				free(index_description);
@@ -587,17 +595,15 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 	printf("\t)\nGO\n\n");
 
 	/* print the CREATE INDEX statements */
-	rewind(create_index);
-	while ((i = fgetc(create_index)) != EOF) {
-		fputc(i, stdout);
-	}
+	if (create_index != NULL)
+		fputs(create_index, stdout);
 
 cleanup:
 	p_str = (char **) ddl;
 	for (i=0; i < nrows * (sizeof(struct DDL)/sizeof(char*)); ++i)
 		free(p_str[i]);
 	free(ddl);
-	fclose(create_index);
+	free(create_index);
 	return nrows;
 }
 
