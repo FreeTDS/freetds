@@ -36,4 +36,5 @@ will_convert
 data
 variant
 errors
+ct_command
 libcommon.a

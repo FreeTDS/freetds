@@ -37,6 +37,7 @@ TESTS = \
 	will_convert$(EXEEXT) \
 	variant$(EXEEXT) \
 	errors$(EXEEXT) \
+	ct_command$(EXEEXT) \
 	$(NULL)
 
 check_PROGRAMS	=	$(TESTS)
@@ -79,6 +80,7 @@ long_binary_SOURCES	= long_binary.c
 will_convert_SOURCES	= will_convert.c
 variant_SOURCES		= variant.c
 errors_SOURCES		= errors.c
+ct_command_SOURCES	= ct_command.c
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h
