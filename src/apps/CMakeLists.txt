@@ -1,3 +1,5 @@
+add_subdirectory(unittests)
+
 set(libs ${lib_NETWORK} ${lib_BASE})
 
 foreach(target freebcp bsqldb defncopy datacopy)
