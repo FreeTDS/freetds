@@ -369,6 +369,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 	int row_code, iresultset, i, ret;
 	int maxnamelen = 0, nrows = 0;
 	char **p_str;
+	bool is_ms = false;
 
 	assert(dbproc);
 	assert(procedure);
@@ -478,6 +479,8 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 						break;
 					}
 				}
+				if (strcasecmp(name, "Collation") == 0)
+					is_ms = true;
 			}
 			for (i = 0; i < TDS_VECTOR_SIZE(colmap); ++i) {
 				if (colmap[i] == -1) {
@@ -579,6 +582,8 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 			ltrim(rtrim(ddl[i].length));
 			if (strcmp(ddl[i].length, "-1") == 0)
 				ret = asprintf(&type, "%s(max)", ddl[i].type);
+			else if (is_ms && is_in(ddl[i].type, "nchar\0nvarchar\0"))
+				ret = asprintf(&type, "%s(%d)", ddl[i].type, atoi(ddl[i].length)/2);
 			else
 				ret = asprintf(&type, "%s(%s)", ddl[i].type, ddl[i].length);
 		}
