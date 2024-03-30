@@ -678,6 +678,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 		}
 		assert(ret >= 0);
 
+		ltrim(rtrim(ddl[i].nullable));
 		is_null = is_in(ddl[i].nullable, "1\0yes\0");
 
 		/*      {(|,} name type [NOT] NULL */
