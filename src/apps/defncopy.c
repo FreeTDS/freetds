@@ -419,6 +419,123 @@ is_in(const char *item, const char *list)
 	}
 }
 
+static void
+search_columns(DBPROCESS *dbproc, int *colmap, const char *const *colmap_names, int num_cols)
+{
+	int i;
+
+	assert(dbproc && colmap && colmap_names);
+	assert(num_cols > 0);
+
+	/* Find the columns we need */
+	for (i = 0; i < num_cols; ++i)
+		colmap[i] = -1;
+	for (i = 1; i <= dbnumcols(dbproc); ++i) {
+		const char *name = dbcolname(dbproc, i);
+		int j;
+
+		for (j = 0; j < num_cols; ++j) {
+			if (is_in(name, colmap_names[j])) {
+				colmap[j] = i;
+				break;
+			}
+		}
+	}
+	for (i = 0; i < num_cols; ++i) {
+		if (colmap[i] == -1) {
+			fprintf(stderr, "Expected column name %s not found\n", colmap_names[i]);
+			exit(1);
+		}
+	}
+}
+
+static char *
+parse_index_row(DBPROCESS *dbproc, PROCEDURE *procedure, char *create_index)
+{
+	static const char *const colmap_names[3] = {
+		"index_name\0",
+		"index_description\0",
+		"index_keys\0",
+	};
+	int colmap[TDS_VECTOR_SIZE(colmap_names)];
+	char *index_name, *index_description, *index_keys, *p, fprimary=0;
+	char *tmp_str;
+	DBINT datlen;
+	int ret, i;
+
+	assert(dbnumcols(dbproc) >=3 );	/* column had better be in range */
+
+	search_columns(dbproc, colmap, colmap_names, TDS_VECTOR_SIZE(colmap));
+
+	/* name */
+	datlen = dbdatlen(dbproc, 1);
+	index_name = (char *) tds_strndup(dbdata(dbproc, 1), datlen);
+	assert(index_name);
+
+	/* kind */
+	i = colmap[1];
+	datlen = dbdatlen(dbproc, i);
+	index_description = (char *) tds_strndup(dbdata(dbproc, i), datlen);
+	assert(index_description);
+
+	/* columns */
+	i = colmap[2];
+	datlen = dbdatlen(dbproc, i);
+	index_keys = (char *) tds_strndup(dbdata(dbproc, i), datlen);
+	assert(index_keys);
+
+	/* fix up the index attributes; we're going to use the string verbatim (almost). */
+	p = strstr(index_description, "located");
+	if (p) {
+		*p = '\0'; /* we don't care where it's located */
+	}
+	/* Microsoft version: [non]clustered[, unique][, primary key] located on PRIMARY */
+	p = strstr(index_description, "primary key");
+	if (p) {
+		fprimary = 1;
+		*p = '\0'; /* we don't care where it's located */
+		if ((p = strchr(index_description, ',')) != NULL)
+			*p = '\0'; /* we use only the first term (clustered/nonclustered) */
+	} else {
+		/* reorder "unique" and "clustered" */
+		char nonclustered[] = "nonclustered", unique[] = "unique";
+		char *pclustering = nonclustered;
+		if (NULL == strstr(index_description, pclustering)) {
+			pclustering += 3;
+			if (NULL == strstr(index_description, pclustering))
+				*pclustering = '\0';
+		}
+		if (NULL == strstr(index_description, unique))
+			unique[0] = '\0';
+		sprintf(index_description, "%s %s", unique, pclustering);
+	}
+	/* Put it to a temporary variable; we'll print it after the CREATE TABLE statement. */
+	tmp_str = create_index;
+	create_index = create_index ? create_index : "";
+	if (fprimary) {
+		ret = asprintf(&create_index,
+			"%sALTER TABLE %s.%s ADD CONSTRAINT %s PRIMARY KEY %s (%s)\nGO\n\n",
+			create_index,
+			quote_id(procedure->owner), quote_id(procedure->name),
+			quote_id(index_name), index_description, index_keys);
+	} else {
+		ret = asprintf(&create_index,
+			"%sCREATE %s INDEX %s on %s.%s(%s)\nGO\n\n",
+			create_index,
+			index_description, quote_id(index_name),
+			quote_id(procedure->owner), quote_id(procedure->name), index_keys);
+	}
+	assert(ret >= 0);
+	free(tmp_str);
+	tmp_free();
+
+	free(index_name);
+	free(index_description);
+	free(index_keys);
+
+	return create_index;
+}
+
 /*
  * Get the table information from sp_help, because it's easier to get the index information (eventually).
  * The column descriptions are in resultset #2, which is where we start.
@@ -449,11 +566,10 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 		"scale\0",
 		"nulls\0nullable\0",
 	};
-	int colmap[TDS_VECTOR_SIZE(colmap_names)];
 
 	char *create_index = NULL;
 	RETCODE erc;
-	int row_code, iresultset, i, ret;
+	int iresultset, i;
 	int maxnamelen = 0, nrows = 0;
 	char **p_str;
 	bool is_ms = false;
@@ -463,6 +579,8 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 
 	/* sp_help returns several result sets.  We want just the second one, for now */
 	for (iresultset=1; (erc = dbresults(dbproc)) != NO_MORE_RESULTS; iresultset++) {
+		int row_code;
+
 		if (erc == FAIL) {
 			fprintf(stderr, "%s:%d: dbresults(), result set %d failed\n", options.appname, __LINE__, iresultset);
 			goto cleanup;
@@ -472,81 +590,13 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 		while ((row_code = dbnextrow(dbproc)) != NO_MORE_ROWS) {
 			struct DDL *p;
 			char **coldesc[sizeof(struct DDL)/sizeof(char*)];	/* an array of pointers to the DDL elements */
+			int colmap[TDS_VECTOR_SIZE(colmap_names)];
 
 			assert(row_code == REG_ROW);
 
 			/* Look for index data */
 			if (0 == strcmp("index_name", dbcolname(dbproc, 1))) {
-				char *index_name, *index_description, *index_keys, *p, fprimary=0;
-				char *tmp_str;
-				DBINT datlen;
-
-				assert(dbnumcols(dbproc) >=3 );	/* column had better be in range */
-
-				/* name */
-				datlen = dbdatlen(dbproc, 1);
-				index_name = (char *) tds_strndup(dbdata(dbproc, 1), datlen);
-				assert(index_name);
-
-				/* kind */
-				datlen = dbdatlen(dbproc, 2);
-				index_description = (char *) tds_strndup(dbdata(dbproc, 2), datlen);
-				assert(index_description);
-
-				/* columns */
-				datlen = dbdatlen(dbproc, 3);
-				index_keys = (char *) tds_strndup(dbdata(dbproc, 3), datlen);
-				assert(index_keys);
-
-				/* fix up the index attributes; we're going to use the string verbatim (almost). */
-				p = strstr(index_description, "located");
-				if (p) {
-					*p = '\0'; /* we don't care where it's located */
-				}
-				/* Microsoft version: [non]clustered[, unique][, primary key] located on PRIMARY */
-				p = strstr(index_description, "primary key");
-				if (p) {
-					fprimary = 1;
-					*p = '\0'; /* we don't care where it's located */
-					if ((p = strchr(index_description, ',')) != NULL)
-						*p = '\0'; /* we use only the first term (clustered/nonclustered) */
-				} else {
-					/* reorder "unique" and "clustered" */
-					char nonclustered[] = "nonclustered", unique[] = "unique";
-					char *pclustering = nonclustered;
-					if (NULL == strstr(index_description, pclustering)) {
-						pclustering += 3;
-						if (NULL == strstr(index_description, pclustering))
-							*pclustering = '\0';
-					}
-					if (NULL == strstr(index_description, unique))
-						unique[0] = '\0';
-					sprintf(index_description, "%s %s", unique, pclustering);
-				}
-				/* Put it to a temporary variable; we'll print it after the CREATE TABLE statement. */
-				tmp_str = create_index;
-				create_index = create_index ? create_index : "";
-				if (fprimary) {
-					ret = asprintf(&create_index,
-						"%sALTER TABLE %s.%s ADD CONSTRAINT %s PRIMARY KEY %s (%s)\nGO\n\n",
-						create_index,
-						quote_id(procedure->owner), quote_id(procedure->name),
-						quote_id(index_name), index_description, index_keys);
-				} else {
-					ret = asprintf(&create_index,
-						"%sCREATE %s INDEX %s on %s.%s(%s)\nGO\n\n",
-						create_index,
-						index_description, quote_id(index_name),
-						quote_id(procedure->owner), quote_id(procedure->name), index_keys);
-				}
-				assert(ret >= 0);
-				free(tmp_str);
-				tmp_free();
-
-				free(index_name);
-				free(index_description);
-				free(index_keys);
-
+				create_index = parse_index_row(dbproc, procedure, create_index);
 				continue;
 			}
 
@@ -555,27 +605,14 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 				continue;
 
 			/* Find the columns we need */
-			for (i = 0; i < TDS_VECTOR_SIZE(colmap); ++i)
-				colmap[i] = -1;
-			for (i = 1; i <= dbnumcols(dbproc); ++i) {
-				const char *name = dbcolname(dbproc, i);
-				int j;
+			search_columns(dbproc, colmap, colmap_names, TDS_VECTOR_SIZE(colmap));
 
-				for (j = 0; j < TDS_VECTOR_SIZE(colmap); ++j) {
-					if (is_in(name, colmap_names[j])) {
-						colmap[j] = i;
-						break;
-					}
-				}
-				if (strcasecmp(name, "Collation") == 0)
+			/* check if server is Microsoft */
+			for (i = 1; i <= dbnumcols(dbproc); ++i)
+				if (strcasecmp(dbcolname(dbproc, i), "Collation") == 0) {
 					is_ms = true;
-			}
-			for (i = 0; i < TDS_VECTOR_SIZE(colmap); ++i) {
-				if (colmap[i] == -1) {
-					fprintf(stderr, "Expected column name %s not found\n", colmap_names[i]);
-					exit(1);
+					break;
 				}
-			}
 
 			/* Make room for the next row */
 			p = (struct DDL *) realloc(ddl, ++nrows * sizeof(struct DDL));
@@ -658,6 +695,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 							;
 		char *type = NULL;
 		bool is_null;
+		int ret;
 
 		/* get size of decimal, numeric, char, and image types */
 		ret = 0;
