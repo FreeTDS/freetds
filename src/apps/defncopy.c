@@ -121,6 +121,15 @@ typedef struct _procedure
 	char 	 name[512], owner[512];
 } PROCEDURE;
 
+typedef struct DDL {
+	char *name;
+	char *type;
+	char *length;
+	char *precision;
+	char *scale;
+	char *nullable;
+} DDL;
+
 static int print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure);
 static int print_results(DBPROCESS *dbproc);
 static LOGINREC* get_login(int argc, char *argv[], OPTIONS *poptions);
@@ -449,8 +458,80 @@ search_columns(DBPROCESS *dbproc, int *colmap, const char *const *colmap_names, 
 	}
 }
 
+static int
+find_column_name(const char *start, const DDL *columns, int num_columns)
+{
+	size_t start_len = strlen(start);
+	size_t found_len = 0;
+	int i, found = -1;
+
+	for (i = 0; i < num_columns; ++i) {
+		const char *const name = columns[i].name;
+		const size_t name_len = strlen(name);
+		if (name_len <= start_len && name_len > found_len
+		    && (start[name_len] == 0 || strncmp(start+name_len, ", ", 2) == 0)
+		    && memcmp(name, start, name_len) == 0) {
+			found_len = name_len;
+			found = i;
+		}
+	}
+	return found;
+}
+
+/* This function split and quote index keys.
+ * Index keys are separate by a command and a space (", ") however the
+ * separator (very unlikely but possible can contain that separator)
+ * so we use search for column names taking the longer we can.
+ */
 static char *
-parse_index_row(DBPROCESS *dbproc, PROCEDURE *procedure, char *create_index)
+quote_index_keys(char *index_keys, const DDL *columns, int num_columns)
+{
+	size_t num_commas = count_chars(index_keys, ',');
+	size_t num_quotes = count_chars(index_keys, ']');
+	size_t max_len = strlen(index_keys) + num_quotes + (num_commas + 1) * 2 + 1;
+	char *const new_index_keys = malloc(max_len);
+	char *dest;
+	bool first = true;
+	assert(new_index_keys);
+	dest = new_index_keys;
+	while (*index_keys) {
+		int icol = find_column_name(index_keys, columns, num_columns);
+		/* Sybase put a space at the beginning, handle it */
+		if (icol < 0 && index_keys[0] == ' ') {
+			icol = find_column_name(index_keys + 1, columns, num_columns);
+			if (icol >= 0)
+				++index_keys;
+		}
+		if (!first)
+			*dest++ = ',';
+		*dest++ = '[';
+		if (icol >= 0) {
+			/* found a column matching, use the name */
+			dest = sql_quote(dest, columns[icol].name, ']');
+			index_keys += strlen(columns[icol].name);
+		} else {
+			/* not found, fallback looking for terminator */
+			char save;
+			char *end = strstr(index_keys, ", ");
+			if (!end)
+				end = strchr(index_keys, 0);
+			save = *end;
+			*end = 0;
+			dest = sql_quote(dest, index_keys, ']');
+			*end = save;
+			index_keys = end;
+		}
+		*dest++ = ']';
+		if (strncmp(index_keys, ", ", 2) == 0)
+			index_keys += 2;
+		first = false;
+	}
+	*dest = 0;
+	return new_index_keys;
+}
+
+static char *
+parse_index_row(DBPROCESS *dbproc, PROCEDURE *procedure, char *create_index, const DDL *columns, int num_columns)
 {
 	static const char *const colmap_names[3] = {
 		"index_name\0",
@@ -486,6 +567,10 @@ parse_index_row(DBPROCESS *dbproc, PROCEDURE *procedure, char *create_index)
 	index_keys = (char *) calloc(1, 1 + datlen);
 	assert(index_keys);
 	memcpy(index_keys, dbdata(dbproc, i), datlen);
+
+	tmp_str = quote_index_keys(index_keys, columns, num_columns);
+	free(index_keys);
+	index_keys = tmp_str;
 
 	/* fix up the index attributes; we're going to use the string verbatim (almost). */
 	p = strstr(index_description, "located");
@@ -560,7 +645,6 @@ parse_index_row(DBPROCESS *dbproc, PROCEDURE *procedure, char *create_index)
 static int
 print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 {
- 	struct DDL { char *name, *type, *length, *precision, *scale, *nullable; } *ddl = NULL;
 	static const char *const colmap_names[6] = {
 		"column_name\0",
 		"type\0",
@@ -570,6 +654,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 		"nulls\0nullable\0",
 	};
 
+	DDL *ddl = NULL;
 	char *create_index = NULL;
 	RETCODE erc;
 	int iresultset, i;
@@ -591,15 +676,15 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 
 		/* Get the data */
 		while ((row_code = dbnextrow(dbproc)) != NO_MORE_ROWS) {
-			struct DDL *p;
-			char **coldesc[sizeof(struct DDL)/sizeof(char*)];	/* an array of pointers to the DDL elements */
+			DDL *p;
+			char **coldesc[sizeof(DDL)/sizeof(char*)];	/* an array of pointers to the DDL elements */
 			int colmap[TDS_VECTOR_SIZE(colmap_names)];
 
 			assert(row_code == REG_ROW);
 
 			/* Look for index data */
 			if (0 == strcmp("index_name", dbcolname(dbproc, 1))) {
-				create_index = parse_index_row(dbproc, procedure, create_index);
+				create_index = parse_index_row(dbproc, procedure, create_index, ddl, nrows);
 				continue;
 			}
 
@@ -618,7 +703,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 				}
 
 			/* Make room for the next row */
-			p = (struct DDL *) realloc(ddl, ++nrows * sizeof(struct DDL));
+			p = (DDL *) realloc(ddl, ++nrows * sizeof(DDL));
 			if (p == NULL) {
 				perror("error: insufficient memory for row DDL");
 				assert(p !=  NULL);
@@ -634,7 +719,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 			coldesc[4] = &ddl[nrows-1].scale;
 			coldesc[5] = &ddl[nrows-1].nullable;
 
-			for( i=0; i < sizeof(struct DDL)/sizeof(char*); i++) {
+			for( i=0; i < sizeof(DDL)/sizeof(char*); i++) {
 				const int col_index = colmap[i];
 				const DBINT datlen = dbdatlen(dbproc, col_index);
 				const int type = dbcoltype(dbproc, col_index);
@@ -738,7 +823,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 
 cleanup:
 	p_str = (char **) ddl;
-	for (i=0; i < nrows * (sizeof(struct DDL)/sizeof(char*)); ++i)
+	for (i=0; i < nrows * (sizeof(DDL)/sizeof(char*)); ++i)
 		free(p_str[i]);
 	free(ddl);
 	free(create_index);
