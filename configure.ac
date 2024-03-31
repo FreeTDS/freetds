@@ -11,7 +11,7 @@ dnl ------------------------------------------------------------
 # ------------------------------------------------------------
 # Initialization
 # ------------------------------------------------------------
-AC_INIT(FreeTDS, 1.4.11)
+AC_INIT(FreeTDS, 1.4.12)
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
 
@@ -1003,6 +1003,7 @@ AC_CONFIG_FILES(include/freetds/version.h \
 	src/odbc/unittests/Makefile \
 	src/apps/Makefile \
 	src/apps/fisql/Makefile \
+	src/apps/unittests/Makefile \
 	freetds.spec \
 	win32/Makefile \
 	win32/freetds.nsh \

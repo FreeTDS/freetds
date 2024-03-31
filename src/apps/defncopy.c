@@ -121,6 +121,15 @@ typedef struct _procedure
 	char 	 name[512], owner[512];
 } PROCEDURE;
 
+typedef struct DDL {
+	char *name;
+	char *type;
+	char *length;
+	char *precision;
+	char *scale;
+	char *nullable;
+} DDL;
+
 static int print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure);
 static int print_results(DBPROCESS *dbproc);
 static LOGINREC* get_login(int argc, char *argv[], OPTIONS *poptions);
@@ -128,6 +137,91 @@ static void parse_argument(const char argument[], PROCEDURE* procedure);
 static void usage(const char invoked_as[]);
 static char *rtrim(char *s);
 static char *ltrim(char *s);
+
+typedef struct tmp_buf {
+	struct tmp_buf *next;
+	char buf[1];
+} tmp_buf;
+
+static tmp_buf *tmp_list = NULL;
+
+static void*
+tmp_malloc(size_t len)
+{
+	tmp_buf *tmp = malloc(sizeof(tmp_buf*) + len);
+	if (!tmp) {
+		fprintf(stderr, "Out of memory\n");
+		exit(1);
+	}
+	tmp->next = tmp_list;
+	tmp_list = tmp;
+	return tmp->buf;
+}
+
+static void
+tmp_free(void)
+{
+	while (tmp_list) {
+		tmp_buf *next = tmp_list->next;
+		free(tmp_list);
+		tmp_list = next;
+	}
+}
+
+static size_t
+count_chars(const char *s, char c)
+{
+	size_t num = 0;
+	if (c != 0) {
+		--s;
+		while ((s = strchr(s + 1, c)) != NULL)
+			++num;
+	}
+	return num;
+}
+
+static char *
+sql_quote(char *dest, const char *src, char quote_char)
+{
+	for (; *src; ++src) {
+		if (*src == quote_char)
+			*dest++ = *src;
+		*dest++ = *src;
+	}
+	return dest;
+}
+
+static const char *
+quote_id(const char *id)
+{
+	size_t n, len;
+	char *s, *p;
+
+	n = count_chars(id, ']');
+	len = 1 + strlen(id) + n + 1 + 1;
+	p = s = tmp_malloc(len);
+	*p++ = '[';
+	p = sql_quote(p, id, ']');
+	*p++ = ']';
+	*p = 0;
+	return s;
+}
+
+static const char *
+quote_str(const char *str)
+{
+	size_t n, len;
+	char *s, *p;
+
+	n = count_chars(str, '\'');
+	if (!n)
+		return str;
+	len = strlen(str) + n + 1;
+	s = tmp_malloc(len);
+	p = sql_quote(s, str, '\'');
+	*p = 0;
+	return s;
+}
 
 /* global variables */
 static OPTIONS options;
@@ -229,8 +323,9 @@ main(int argc, char *argv[])
 
 		parse_argument(argv[i], &procedure);
 
-		erc = dbfcmd(dbproc, query, procedure.name, procedure.owner,
+		erc = dbfcmd(dbproc, query, quote_str(procedure.name), quote_str(procedure.owner),
 			     (DBTDS(dbproc) == DBTDS_5_0) ? "c.colid2, ":"");
+		tmp_free();
 
 		/* Send the query to the server (we could use dbsqlexec(), instead) */
 		erc = dbsqlsend(dbproc);
@@ -250,7 +345,8 @@ main(int argc, char *argv[])
 		nrows = print_results(dbproc);
 
 		if (0 == nrows) {
-			erc = dbfcmd(dbproc, query_table, procedure.owner, procedure.name);
+			erc = dbfcmd(dbproc, query_table, quote_str(procedure.owner), quote_str(procedure.name));
+			tmp_free();
 			assert(SUCCEED == erc);
 			erc = dbsqlexec(dbproc);
 			if (erc == FAIL) {
@@ -332,6 +428,202 @@ is_in(const char *item, const char *list)
 	}
 }
 
+static void
+search_columns(DBPROCESS *dbproc, int *colmap, const char *const *colmap_names, int num_cols)
+{
+	int i;
+
+	assert(dbproc && colmap && colmap_names);
+	assert(num_cols > 0);
+
+	/* Find the columns we need */
+	for (i = 0; i < num_cols; ++i)
+		colmap[i] = -1;
+	for (i = 1; i <= dbnumcols(dbproc); ++i) {
+		const char *name = dbcolname(dbproc, i);
+		int j;
+
+		for (j = 0; j < num_cols; ++j) {
+			if (is_in(name, colmap_names[j])) {
+				colmap[j] = i;
+				break;
+			}
+		}
+	}
+	for (i = 0; i < num_cols; ++i) {
+		if (colmap[i] == -1) {
+			fprintf(stderr, "Expected column name %s not found\n", colmap_names[i]);
+			exit(1);
+		}
+	}
+}
+
+static int
+find_column_name(const char *start, const DDL *columns, int num_columns)
+{
+	size_t start_len = strlen(start);
+	size_t found_len = 0;
+	int i, found = -1;
+
+	for (i = 0; i < num_columns; ++i) {
+		const char *const name = columns[i].name;
+		const size_t name_len = strlen(name);
+		if (name_len <= start_len && name_len > found_len
+		    && (start[name_len] == 0 || strncmp(start+name_len, ", ", 2) == 0)
+		    && memcmp(name, start, name_len) == 0) {
+			found_len = name_len;
+			found = i;
+		}
+	}
+	return found;
+}
+
+/* This function split and quote index keys.
+ * Index keys are separate by a command and a space (", ") however the
+ * separator (very unlikely but possible can contain that separator)
+ * so we use search for column names taking the longer we can.
+ */
+static char *
+quote_index_keys(char *index_keys, const DDL *columns, int num_columns)
+{
+	size_t num_commas = count_chars(index_keys, ',');
+	size_t num_quotes = count_chars(index_keys, ']');
+	size_t max_len = strlen(index_keys) + num_quotes + (num_commas + 1) * 2 + 1;
+	char *const new_index_keys = malloc(max_len);
+	char *dest;
+	bool first = true;
+	assert(new_index_keys);
+	dest = new_index_keys;
+	while (*index_keys) {
+		int icol = find_column_name(index_keys, columns, num_columns);
+		/* Sybase put a space at the beginning, handle it */
+		if (icol < 0 && index_keys[0] == ' ') {
+			icol = find_column_name(index_keys + 1, columns, num_columns);
+			if (icol >= 0)
+				++index_keys;
+		}
+		if (!first)
+			*dest++ = ',';
+		*dest++ = '[';
+		if (icol >= 0) {
+			/* found a column matching, use the name */
+			dest = sql_quote(dest, columns[icol].name, ']');
+			index_keys += strlen(columns[icol].name);
+		} else {
+			/* not found, fallback looking for terminator */
+			char save;
+			char *end = strstr(index_keys, ", ");
+			if (!end)
+				end = strchr(index_keys, 0);
+			save = *end;
+			*end = 0;
+			dest = sql_quote(dest, index_keys, ']');
+			*end = save;
+			index_keys = end;
+		}
+		*dest++ = ']';
+		if (strncmp(index_keys, ", ", 2) == 0)
+			index_keys += 2;
+		first = false;
+	}
+	*dest = 0;
+	return new_index_keys;
+}
+
+static char *
+parse_index_row(DBPROCESS *dbproc, PROCEDURE *procedure, char *create_index, const DDL *columns, int num_columns)
+{
+	static const char *const colmap_names[3] = {
+		"index_name\0",
+		"index_description\0",
+		"index_keys\0",
+	};
+	int colmap[TDS_VECTOR_SIZE(colmap_names)];
+	char *index_name, *index_description, *index_keys, *p, fprimary=0;
+	char *tmp_str;
+	DBINT datlen;
+	int ret, i;
+
+	assert(dbnumcols(dbproc) >=3 );	/* column had better be in range */
+
+	search_columns(dbproc, colmap, colmap_names, TDS_VECTOR_SIZE(colmap));
+
+	/* name */
+	datlen = dbdatlen(dbproc, 1);
+	index_name = (char *) calloc(1, 1 + datlen);
+	assert(index_name);
+	memcpy(index_name, dbdata(dbproc, 1), datlen);
+
+	/* kind */
+	i = colmap[1];
+	datlen = dbdatlen(dbproc, i);
+	index_description = (char *) calloc(1, 1 + datlen);
+	assert(index_description);
+	memcpy(index_description, dbdata(dbproc, i), datlen);
+
+	/* columns */
+	i = colmap[2];
+	datlen = dbdatlen(dbproc, i);
+	index_keys = (char *) calloc(1, 1 + datlen);
+	assert(index_keys);
+	memcpy(index_keys, dbdata(dbproc, i), datlen);
+
+	tmp_str = quote_index_keys(index_keys, columns, num_columns);
+	free(index_keys);
+	index_keys = tmp_str;
+
+	/* fix up the index attributes; we're going to use the string verbatim (almost). */
+	p = strstr(index_description, "located");
+	if (p) {
+		*p = '\0'; /* we don't care where it's located */
+	}
+	/* Microsoft version: [non]clustered[, unique][, primary key] located on PRIMARY */
+	p = strstr(index_description, "primary key");
+	if (p) {
+		fprimary = 1;
+		*p = '\0'; /* we don't care where it's located */
+		if ((p = strchr(index_description, ',')) != NULL)
+			*p = '\0'; /* we use only the first term (clustered/nonclustered) */
+	} else {
+		/* reorder "unique" and "clustered" */
+		char nonclustered[] = "nonclustered", unique[] = "unique";
+		char *pclustering = nonclustered;
+		if (NULL == strstr(index_description, pclustering)) {
+			pclustering += 3;
+			if (NULL == strstr(index_description, pclustering))
+				*pclustering = '\0';
+		}
+		if (NULL == strstr(index_description, unique))
+			unique[0] = '\0';
+		sprintf(index_description, "%s %s", unique, pclustering);
+	}
+	/* Put it to a temporary variable; we'll print it after the CREATE TABLE statement. */
+	tmp_str = create_index;
+	create_index = create_index ? create_index : "";
+	if (fprimary) {
+		ret = asprintf(&create_index,
+			"%sALTER TABLE %s.%s ADD CONSTRAINT %s PRIMARY KEY %s (%s)\nGO\n\n",
+			create_index,
+			quote_id(procedure->owner), quote_id(procedure->name),
+			quote_id(index_name), index_description, index_keys);
+	} else {
+		ret = asprintf(&create_index,
+			"%sCREATE %s INDEX %s on %s.%s(%s)\nGO\n\n",
+			create_index,
+			index_description, quote_id(index_name),
+			quote_id(procedure->owner), quote_id(procedure->name), index_keys);
+	}
+	assert(ret >= 0);
+	free(tmp_str);
+	tmp_free();
+
+	free(index_name);
+	free(index_description);
+	free(index_keys);
+
+	return create_index;
+}
+
 /*
  * Get the table information from sp_help, because it's easier to get the index information (eventually).
  * The column descriptions are in resultset #2, which is where we start.
@@ -353,7 +645,6 @@ is_in(const char *item, const char *list)
 static int
 print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 {
- 	struct DDL { char *name, *type, *length, *precision, *scale, *nullable; } *ddl = NULL;
 	static const char *const colmap_names[6] = {
 		"column_name\0",
 		"type\0",
@@ -362,22 +653,22 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 		"scale\0",
 		"nulls\0nullable\0",
 	};
-	int colmap[TDS_VECTOR_SIZE(colmap_names)];
 
-	FILE *create_index;
+	DDL *ddl = NULL;
+	char *create_index = NULL;
 	RETCODE erc;
-	int row_code, iresultset, i, ret;
+	int iresultset, i;
 	int maxnamelen = 0, nrows = 0;
 	char **p_str;
-
-	create_index = tmpfile();
+	bool is_ms = false;
 
 	assert(dbproc);
 	assert(procedure);
-	assert(create_index);
 
 	/* sp_help returns several result sets.  We want just the second one, for now */
 	for (iresultset=1; (erc = dbresults(dbproc)) != NO_MORE_RESULTS; iresultset++) {
+		int row_code;
+
 		if (erc == FAIL) {
 			fprintf(stderr, "%s:%d: dbresults(), result set %d failed\n", options.appname, __LINE__, iresultset);
 			goto cleanup;
@@ -385,74 +676,15 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 
 		/* Get the data */
 		while ((row_code = dbnextrow(dbproc)) != NO_MORE_ROWS) {
-			struct DDL *p;
-			char **coldesc[sizeof(struct DDL)/sizeof(char*)];	/* an array of pointers to the DDL elements */
+			DDL *p;
+			char **coldesc[sizeof(DDL)/sizeof(char*)];	/* an array of pointers to the DDL elements */
+			int colmap[TDS_VECTOR_SIZE(colmap_names)];
 
 			assert(row_code == REG_ROW);
 
 			/* Look for index data */
 			if (0 == strcmp("index_name", dbcolname(dbproc, 1))) {
-				char *index_name, *index_description, *index_keys, *p, fprimary=0;
-				DBINT datlen;
-
-				assert(dbnumcols(dbproc) >=3 );	/* column had better be in range */
-
-				/* name */
-				datlen = dbdatlen(dbproc, 1);
-				index_name = (char *) calloc(1, 1 + datlen);
-				assert(index_name);
-				memcpy(index_name, dbdata(dbproc, 1), datlen);
-
-				/* kind */
-				datlen = dbdatlen(dbproc, 2);
-				index_description = (char *) calloc(1, 1 + datlen);
-				assert(index_description);
-				memcpy(index_description, dbdata(dbproc, 2), datlen);
-
-				/* columns */
-				datlen = dbdatlen(dbproc, 3);
-				index_keys = (char *) calloc(1, 1 + datlen);
-				assert(index_keys);
-				memcpy(index_keys, dbdata(dbproc, 3), datlen);
-
-				/* fix up the index attributes; we're going to use the string verbatim (almost). */
-				p = strstr(index_description, "located");
-				if (p) {
-					*p = '\0'; /* we don't care where it's located */
-				}
-				/* Microsoft version: [non]clustered[, unique][, primary key] located on PRIMARY */
-				p = strstr(index_description, "primary key");
-				if (p) {
-					fprimary = 1;
-					*p = '\0'; /* we don't care where it's located */
-					if ((p = strchr(index_description, ',')) != NULL)
-						*p = '\0'; /* we use only the first term (clustered/nonclustered) */
-				} else {
-					/* reorder "unique" and "clustered" */
-					char nonclustered[] = "nonclustered", unique[] = "unique";
-					char *pclustering = nonclustered;
-					if (NULL == strstr(index_description, pclustering)) {
-						pclustering += 3;
-						if (NULL == strstr(index_description, pclustering))
-							*pclustering = '\0';
-					}
-					if (NULL == strstr(index_description, unique))
-						unique[0] = '\0';
-					sprintf(index_description, "%s %s", unique, pclustering);
-				}
-				/* Put it to a temporary file; we'll print it after the CREATE TABLE statement. */
-				if (fprimary) {
-					fprintf(create_index, "ALTER TABLE %s.%s ADD CONSTRAINT %s PRIMARY KEY %s (%s)\nGO\n\n",
-						procedure->owner, procedure->name, index_name, index_description, index_keys);
-				} else {
-					fprintf(create_index, "CREATE %s INDEX %s on %s.%s(%s)\nGO\n\n",
-						index_description, index_name, procedure->owner, procedure->name, index_keys);
-				}
-
-				free(index_name);
-				free(index_description);
-				free(index_keys);
-
+				create_index = parse_index_row(dbproc, procedure, create_index, ddl, nrows);
 				continue;
 			}
 
@@ -461,28 +693,17 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 				continue;
 
 			/* Find the columns we need */
-			for (i = 0; i < TDS_VECTOR_SIZE(colmap); ++i)
-				colmap[i] = -1;
-			for (i = 1; i <= dbnumcols(dbproc); ++i) {
-				const char *name = dbcolname(dbproc, i);
-				int j;
+			search_columns(dbproc, colmap, colmap_names, TDS_VECTOR_SIZE(colmap));
 
-				for (j = 0; j < TDS_VECTOR_SIZE(colmap); ++j) {
-					if (is_in(name, colmap_names[j])) {
-						colmap[j] = i;
-						break;
-					}
+			/* check if server is Microsoft */
+			for (i = 1; i <= dbnumcols(dbproc); ++i)
+				if (strcasecmp(dbcolname(dbproc, i), "Collation") == 0) {
+					is_ms = true;
+					break;
 				}
-			}
-			for (i = 0; i < TDS_VECTOR_SIZE(colmap); ++i) {
-				if (colmap[i] == -1) {
-					fprintf(stderr, "Expected column name %s not found\n", colmap_names[i]);
-					exit(1);
-				}
-			}
 
 			/* Make room for the next row */
-			p = (struct DDL *) realloc(ddl, ++nrows * sizeof(struct DDL));
+			p = (DDL *) realloc(ddl, ++nrows * sizeof(DDL));
 			if (p == NULL) {
 				perror("error: insufficient memory for row DDL");
 				assert(p !=  NULL);
@@ -498,7 +719,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 			coldesc[4] = &ddl[nrows-1].scale;
 			coldesc[5] = &ddl[nrows-1].nullable;
 
-			for( i=0; i < sizeof(struct DDL)/sizeof(char*); i++) {
+			for( i=0; i < sizeof(DDL)/sizeof(char*); i++) {
 				const int col_index = colmap[i];
 				const DBINT datlen = dbdatlen(dbproc, col_index);
 				const int type = dbcoltype(dbproc, col_index);
@@ -549,7 +770,8 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 	if (nrows == 0)
 		goto cleanup;
 
-	printf("%sCREATE TABLE %s.%s\n", use_statement, procedure->owner, procedure->name);
+	printf("%sCREATE TABLE %s.%s\n", use_statement, quote_id(procedure->owner), quote_id(procedure->name));
+	tmp_free();
 	for (i=0; i < nrows; i++) {
 		static const char varytypenames[] =	"char\0"
 							"nchar\0"
@@ -562,6 +784,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 							;
 		char *type = NULL;
 		bool is_null;
+		int ret;
 
 		/* get size of decimal, numeric, char, and image types */
 		ret = 0;
@@ -575,33 +798,35 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 			ltrim(rtrim(ddl[i].length));
 			if (strcmp(ddl[i].length, "-1") == 0)
 				ret = asprintf(&type, "%s(max)", ddl[i].type);
+			else if (is_ms && is_in(ddl[i].type, "nchar\0nvarchar\0"))
+				ret = asprintf(&type, "%s(%d)", ddl[i].type, atoi(ddl[i].length)/2);
 			else
 				ret = asprintf(&type, "%s(%s)", ddl[i].type, ddl[i].length);
 		}
 		assert(ret >= 0);
 
+		ltrim(rtrim(ddl[i].nullable));
 		is_null = is_in(ddl[i].nullable, "1\0yes\0");
 
 		/*      {(|,} name type [NOT] NULL */
-		printf("\t%c %-*s %-15s %3s NULL\n", (i==0? '(' : ','), maxnamelen, ddl[i].name,
+		printf("\t%c %-*s %-15s %3s NULL\n", (i==0? '(' : ','), maxnamelen+2, quote_id(ddl[i].name),
 						(type? type : ddl[i].type), (is_null? "" : "NOT"));
+		tmp_free();
 
 		free(type);
 	}
 	printf("\t)\nGO\n\n");
 
 	/* print the CREATE INDEX statements */
-	rewind(create_index);
-	while ((i = fgetc(create_index)) != EOF) {
-		fputc(i, stdout);
-	}
+	if (create_index != NULL)
+		fputs(create_index, stdout);
 
 cleanup:
 	p_str = (char **) ddl;
-	for (i=0; i < nrows * (sizeof(struct DDL)/sizeof(char*)); ++i)
+	for (i=0; i < nrows * (sizeof(DDL)/sizeof(char*)); ++i)
 		free(p_str[i]);
 	free(ddl);
-	fclose(create_index);
+	free(create_index);
 	return nrows;
 }
 
@@ -850,7 +1075,8 @@ msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, const c
 		if (!endquote)
 			break;
 		*endquote = '\0';
-		sprintf(use_statement, "USE %s\nGO\n\n", dbname);
+		sprintf(use_statement, "USE %s\nGO\n\n", quote_id(dbname));
+		tmp_free();
 		return 0;
 
 	case 0:	/* Ignore print messages */
