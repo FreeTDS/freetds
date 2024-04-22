@@ -36,6 +36,7 @@
 #endif /* HAVE_STRING_H */
 
 #include <freetds/replacements.h>
+#include <freetds/utils.h>
 
 #include "cspublic.h"
 #include "ctlib.h"

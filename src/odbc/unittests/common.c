@@ -23,6 +23,11 @@
 #include <freetds/sysdep_private.h>
 #include <freetds/replacements.h>
 
+struct odbc_buf{
+	struct odbc_buf *next;
+	void *buf;
+};
+
 HENV odbc_env;
 HDBC odbc_conn;
 HSTMT odbc_stmt;

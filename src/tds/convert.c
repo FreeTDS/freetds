@@ -48,6 +48,7 @@
 #include <freetds/convert.h>
 #include <freetds/bytes.h>
 #include <freetds/replacements.h>
+#include <freetds/utils.h>
 
 typedef unsigned short utf16_t;
 

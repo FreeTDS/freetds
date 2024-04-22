@@ -929,7 +929,7 @@ tds_vername_cmp(const void *key, const void *pelem)
  * Set TDS version from given string
  * @param tdsver tds string version
  * @param login where to store information
- * @return as encoded hex value: high nybble major, low nybble minor.
+ * @return as encoded hex value: high byte major, low byte minor.
  */
 TDS_USMALLINT *
 tds_config_verstr(const char *tdsver, TDSLOGIN * login)

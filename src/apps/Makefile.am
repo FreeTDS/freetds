@@ -1,6 +1,6 @@
 AM_CPPFLAGS	= -I$(top_srcdir)/include 
 
-SUBDIRS		= fisql
+SUBDIRS		= fisql . unittests
 
 DIST_SUBDIRS	= $(SUBDIRS)
 

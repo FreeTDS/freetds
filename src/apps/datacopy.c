@@ -566,7 +566,7 @@ check_table_structures(char *sobjname, char *dobjname, DBPROCESS * dbsrc, DBPROC
 			continue;
 		}
 
-		if (src_coltype != dest_coltype || src_collen != dest_collen) {
+		if (src_coltype != dest_coltype || src_collen > dest_collen) {
 			fprintf(stderr, "COLUMN TYPE MISMATCH: column %d\n", i);
 			fprintf(stderr, "source: type %d, length %d\n", src_coltype, src_collen);
 			fprintf(stderr, "dest  : type %d, length %d\n", dest_coltype, dest_collen);

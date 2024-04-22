@@ -36,6 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 #include <freetds/utils/string.h>
+#include <freetds/utils.h>
 #include <freetds/enum_cap.h>
 #include <freetds/data.h>
 #include <freetds/replacements.h>
@@ -880,7 +881,7 @@ ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen,
 				break;
 			case _CS_COMMAND_BUILDING:
 				current_query_len = strlen(cmd->query);
-				if (!tds_realloc((void **) cmd->query, current_query_len + query_len + 1))
+				if (!tds_realloc((void **) &cmd->query, current_query_len + query_len + 1))
 					return CS_FAIL;
 				strncat(cmd->query, (const char *) buffer, query_len);
 				cmd->query[current_query_len + query_len] = '\0';

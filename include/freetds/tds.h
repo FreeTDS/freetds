@@ -1522,7 +1522,6 @@ int tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum
 TDS_STATE tds_set_state(TDSSOCKET * tds, TDS_STATE state);
 void tds_swap_bytes(void *buf, int bytes);
 unsigned int tds_gettime_ms(void);
-char *tds_strndup(const void *s, TDS_INTPTR len);
 
 
 /* log.c */

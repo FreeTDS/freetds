@@ -55,6 +55,7 @@
 
 #include <freetds/tds.h>
 #include <freetds/utils/string.h>
+#include <freetds/utils.h>
 #include <freetds/tls.h>
 #include <freetds/alloca.h>
 #include <freetds/replacements.h>

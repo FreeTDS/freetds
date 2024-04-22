@@ -199,10 +199,7 @@ void odbc_c2string(char *out, SQLSMALLINT out_c_type, const void *in, size_t in_
 int odbc_to_sqlwchar(SQLWCHAR *dst, const char *src, int n);
 int odbc_from_sqlwchar(char *dst, const SQLWCHAR *src, int n);
 
-typedef struct odbc_buf{
-	struct odbc_buf *next;
-	void *buf;
-} ODBC_BUF;
+typedef struct odbc_buf ODBC_BUF;
 extern ODBC_BUF *odbc_buf;
 void *odbc_buf_add(ODBC_BUF** buf, void *ptr);
 void *odbc_buf_get(ODBC_BUF** buf, size_t s);

@@ -1008,6 +1008,7 @@ AC_CONFIG_FILES(include/freetds/version.h \
 	src/odbc/unittests/Makefile \
 	src/apps/Makefile \
 	src/apps/fisql/Makefile \
+	src/apps/unittests/Makefile \
 	freetds.spec \
 	win32/Makefile \
 	win32/freetds.nsh \

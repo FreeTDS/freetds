@@ -1253,6 +1253,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	TDS_CHAR crypt_flag;
 	unsigned int start_pos = 21;
 	TDSRET ret;
+	bool mars_replied = false;
 
 #define START_POS 21
 #define UI16BE(n) ((n) >> 8), ((n) & 0xffu)
@@ -1376,16 +1377,21 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 		if (type == 1 && len >= 1) {
 			crypt_flag = p[off];
 		}
+		if (IS_TDS72_PLUS(tds->conn) && type == 4 && len >= 1) {
+			mars_replied = true;
 #if ENABLE_ODBC_MARS
-		if (IS_TDS72_PLUS(tds->conn) && type == 4 && len >= 1)
 			login->mars = p[off];
 #endif
+		}
 	}
 	/* we readed all packet */
 	tds->in_pos += pkt_len;
 	/* TODO some mssql version do not set last packet, update tds according */
 
 	tdsdump_log(TDS_DBG_INFO1, "detected crypt flag %d\n", crypt_flag);
+
+	if (!mars_replied)
+		tds->conn->tds_version = 0x701;
 
 	/* if server do not has certificate do normal login */
 	if (crypt_flag == TDS7_ENCRYPT_NOT_SUP) {
