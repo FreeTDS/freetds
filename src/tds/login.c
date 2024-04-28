@@ -417,7 +417,7 @@ tds_setup_connection(TDSSOCKET *tds, TDSLOGIN *login, bool set_db, bool set_spid
 		tds_quote_id(tds, strchr(str, 0), tds_dstr_cstr(&login->database), -1);
 	}
 	if (IS_TDS50(tds->conn)) {
-		strcat(str, " SELECT CAST('abc' AS NVARCHAR(3)) AS nvc, CAST('xyz' AS UNIVARCHAR(3)) AS uvc");
+		strcat(str, " SELECT CONVERT(NVARCHAR(3), 'abc') AS nvc, CONVERT(UNIVARCHAR(3), 'xyz') AS uvc");
 		parse_results = true;
 	}
 
