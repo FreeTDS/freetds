@@ -1001,10 +1001,19 @@ get_login(int argc, char *argv[], OPTIONS *options)
 			break;
 		case 'v':
 			printf("%s\n\n%s", argv[0],
-				"Copyright (C) 2004  James K. Lowden\n"
-				"This program  is free software; you can redistribute it and/or\n"
+ 				"Copyright (C) 2004-2011  James K. Lowden\n\n"
+ 				"This program  is free software; you can redistribute it and/or\n"
 				"modify it under the terms of the GNU General Public\n"
-				"License as published by the Free Software Foundation\n");
+ 				"License as published by the Free Software Foundation; either\n"
+ 				"version 2 of the License, or (at your option) any later version.\n\n"
+ 				"This library is distributed in the hope that it will be useful,\n"
+ 				"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+ 				"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU\n"
+ 				"Library General Public License for more details.\n\n"
+ 				"You should have received a copy of the GNU General Public\n"
+ 				"License along with this library; if not, write to the\n"
+ 				"Free Software Foundation, Inc., 59 Temple Place - Suite 330,\n"
+ 				"Boston, MA 02111-1307, USA.\n");
 				exit(1);
 			break;
 		case '?':
