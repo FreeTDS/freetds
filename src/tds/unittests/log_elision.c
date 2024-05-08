@@ -29,6 +29,7 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
+#ifdef TDS_HAVE_MUTEX
 enum {
 	LOOP = 100,
 	THREADS = 3,
@@ -142,3 +143,10 @@ main(void)
 
 	return 0;
 }
+#else	/* !TDS_HAVE_MUTEX */
+int main(int argc, char *argv[])
+{
+	printf("Not possible for this platform.\n");
+	return 0; /* TODO 77 ? */
+}
+#endif
