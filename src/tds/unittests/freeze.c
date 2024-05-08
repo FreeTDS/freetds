@@ -31,6 +31,7 @@
 
 #include <freetds/replacements.h>
 
+#ifdef TDS_HAVE_MUTEX
 #ifdef _WIN32
 #define SHUT_WR SD_SEND
 #endif
@@ -483,3 +484,10 @@ main(void)
 
 	return 0;
 }
+#else	/* !TDS_HAVE_MUTEX */
+int main(int argc, char *argv[])
+{
+        printf("Not possible for this platform.\n");
+        return 0; // 77?
+}
+#endif
