@@ -154,7 +154,7 @@ cursor7_SOURCES	= cursor7.c
 utf8_SOURCES	= utf8.c common.c
 # this test cannot work using wide characters as use UTF-8 and single byte encoding
 utf8_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
-utf8_LDADD	=	$(ODBC_LDFLAGS) $(NETWORK_LIBS) $(ODBCINST_LDFLAGS)
+utf8_LDADD	=	$(ODBC_LDFLAGS) ../../replacements/libreplacements.la $(NETWORK_LIBS) $(ODBCINST_LDFLAGS)
 utf8_2_SOURCES	= utf8_2.c
 utf8_3_SOURCES	= utf8_3.c
 utf8_4_SOURCES	= utf8_4.c
