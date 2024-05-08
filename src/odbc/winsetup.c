@@ -60,6 +60,8 @@
 
 #include <olectl.h>
 
+#ifdef DLL_EXPORT
+
 typedef struct
 {
 	DSTR origdsn;		/**< original name of the data source */
@@ -476,4 +478,4 @@ DllUnregisterServer(void)
 		return SELFREG_E_CLASS;
 	return S_OK;
 }
-
+#endif /* DLL_EXPORT */

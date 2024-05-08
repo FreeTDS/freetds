@@ -58,6 +58,8 @@
 
 #include <shlobj.h>
 
+#ifdef DLL_EXPORT
+
 /* This is defined in ... */
 extern HINSTANCE hinstFreeTDS;
 
@@ -161,7 +163,7 @@ LoginDlgProc(HWND hDlg, UINT message, WPARAM wParam,	/* */
 	}
 	return FALSE;
 }
-
+#endif /* DLL_EXPORT */
 
 /**
  * Use a dialog window to prompt for user_name and password.  If the user hits
@@ -173,5 +175,9 @@ LoginDlgProc(HWND hDlg, UINT message, WPARAM wParam,	/* */
 bool
 get_login_info(HWND hwndParent, TDSLOGIN * login)
 {
+#ifdef DLL_EXPORT
 	return !!DialogBoxParam(hinstFreeTDS, MAKEINTRESOURCE(IDD_LOGIN), hwndParent, (DLGPROC) LoginDlgProc, (LPARAM) login);
+#else
+	return false;
+#endif
 }
