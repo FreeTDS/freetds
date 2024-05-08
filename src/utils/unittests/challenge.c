@@ -35,6 +35,7 @@
 #endif
 
 #include "tds_sysdep_public.h"
+#include <freetds/sysdep_private.h>
 #include <freetds/utils/md4.h>
 #include <freetds/utils/md5.h>
 #include <freetds/utils/hmac_md5.h>
