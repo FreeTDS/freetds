@@ -318,7 +318,12 @@ ConfigDSN(HWND hwndParent, WORD fRequest, LPCSTR lpszDriver, LPCSTR lpszAttribut
 	/* Maybe allow the user to edit it */
 	if (hwndParent && fRequest != ODBC_REMOVE_DSN) {
 		INT_PTR result;
+#ifdef DLL_EXPORT
 		result = DialogBoxParam(hinstFreeTDS, MAKEINTRESOURCE(IDD_DSN), hwndParent, (DLGPROC) DSNDlgProc, (LPARAM) di);
+#else
+		result = -1;
+		SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+#endif
 		if (result < 0) {
 			DWORD errorcode = GetLastError();
 			char buf[1000];
@@ -428,6 +433,7 @@ check_installer_errors(void)
 	return SQL_SUCCEEDED(ret);
 }
 
+#ifdef DLL_EXPORT
 /**
  * Allow install using regsvr32
  */
@@ -476,4 +482,4 @@ DllUnregisterServer(void)
 		return SELFREG_E_CLASS;
 	return S_OK;
 }
-
+#endif /* DLL_EXPORT */
