@@ -19,6 +19,8 @@
 #include "common.h"
 #include <freetds/replacements.h>
 
+#include <freetds/test_assert.h>
+
 static char *value_as_string(TDSSOCKET * tds, int col_idx);
 
 int

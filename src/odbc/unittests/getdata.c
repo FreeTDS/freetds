@@ -2,7 +2,8 @@
  * Test reading data with SQLGetData
  */
 #include "common.h"
-#include <assert.h>
+
+#include <freetds/test_assert.h>
 
 static void
 test_err(const char *data, int c_type, const char *state)

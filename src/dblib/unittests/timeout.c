@@ -11,6 +11,8 @@
 #include "common.h"
 #include <time.h>
 
+#include <freetds/test_assert.h>
+
 static int ntimeouts = 0, ncancels = 0;
 static const int max_timeouts = 2, timeout_seconds = 2;
 static time_t start_time;

@@ -24,11 +24,12 @@
 #include <config.h>
 
 #include <stdio.h>
-#include <assert.h>
 
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
+
+#include <freetds/test_assert.h>
 
 #include <freetds/utils/dlist.h>
 

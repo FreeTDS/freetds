@@ -21,13 +21,14 @@
  * Check log elision implementation
  */
 #include "common.h"
-#include <assert.h>
 #include <freetds/utils.h>
 
 #if HAVE_UNISTD_H
 #undef getpid
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
+
+#include <freetds/test_assert.h>
 
 #ifdef TDS_HAVE_MUTEX
 enum {

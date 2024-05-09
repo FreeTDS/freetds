@@ -1,5 +1,6 @@
 #include "common.h"
-#include <assert.h>
+
+#include <freetds/test_assert.h>
 
 /* test conversion using SQLGetData */
 

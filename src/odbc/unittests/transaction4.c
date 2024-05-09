@@ -22,6 +22,8 @@
 
 #include <freetds/utils.h>
 
+#include <freetds/test_assert.h>
+
 /* Test for SQLEndTran */
 
 static void

@@ -4,6 +4,8 @@
 #include <ctpublic.h>
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /* protos */
 int do_fetch(CS_COMMAND * cmd);
 CS_RETCODE do_results(CS_COMMAND * cmd, CS_INT * results);

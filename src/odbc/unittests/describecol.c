@@ -4,6 +4,8 @@
 #include <odbcss.h>
 #include <freetds/bool.h>
 
+#include <freetds/test_assert.h>
+
 /*
  * SQLDescribeCol test for precision
  * test what say SQLDescribeCol about precision using some type

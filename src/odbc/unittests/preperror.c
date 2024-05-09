@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /* test error on prepared statement, from Nathaniel Talbott test */
 
 int

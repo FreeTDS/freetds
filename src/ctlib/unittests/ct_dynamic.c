@@ -14,6 +14,8 @@
 #include <ctpublic.h>
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 static int verbose = 0;
 
 static CS_CONTEXT *ctx;

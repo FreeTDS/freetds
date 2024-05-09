@@ -10,6 +10,8 @@
 #include <ctpublic.h>
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 static CS_CONNECTION *conn = NULL;
 
 /* Testing: Retrieve CS_TEXT_TYPE using ct_bind() */

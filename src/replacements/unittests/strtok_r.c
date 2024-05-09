@@ -31,6 +31,8 @@
 
 #include <freetds/replacements.h>
 
+#include <freetds/test_assert.h>
+
 static void
 test(const char *s, const char *sep)
 {

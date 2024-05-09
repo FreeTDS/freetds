@@ -10,6 +10,8 @@
 #include <ctpublic.h>
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /* Testing: Client and server Messages */
 int
 main(void)

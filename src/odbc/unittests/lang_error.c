@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /* Test if SQLExecDirect return error if a error in row is returned */
 
 int

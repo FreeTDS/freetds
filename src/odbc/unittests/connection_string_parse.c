@@ -1,6 +1,7 @@
 #include "common.h"
-#include <assert.h>
 #include "freetds/odbc.h"
+
+#include <freetds/test_assert.h>
 
 
 #ifdef _WIN32

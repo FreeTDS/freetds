@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 
 static void init_connect(void);
 

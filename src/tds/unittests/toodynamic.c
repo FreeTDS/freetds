@@ -18,6 +18,8 @@
  */
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /*
  * Test creating a lot of dynamics. This can cause some problems cause
  * generated IDs are reused on a base of 2^16

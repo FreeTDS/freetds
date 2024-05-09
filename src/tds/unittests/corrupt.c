@@ -26,6 +26,8 @@
 #include "common.h"
 #include <freetds/checks.h>
 
+#include <freetds/test_assert.h>
+
 static const char select_query[] = "\nselect 'test'";
 
 static void

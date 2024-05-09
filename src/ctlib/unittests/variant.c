@@ -6,9 +6,10 @@
 #endif /* HAVE_STRING_H */
 
 #include <stdio.h>
-#include <assert.h>
 #include <ctpublic.h>
 #include "common.h"
+
+#include <freetds/test_assert.h>
 
 /* Testing: Retrieving SQL_VARIANT */
 int

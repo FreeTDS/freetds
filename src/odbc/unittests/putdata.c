@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /* Test for SQLPutData */
 
 static const char test_text[] =

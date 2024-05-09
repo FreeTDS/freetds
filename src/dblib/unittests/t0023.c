@@ -4,7 +4,8 @@
  */
 
 #include "common.h"
-#include <assert.h>
+
+#include <freetds/test_assert.h>
 
 static int got_error = 0;
 static int compute_supported = 1;

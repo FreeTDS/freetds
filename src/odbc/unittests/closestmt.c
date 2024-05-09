@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /*
  * This test attempt to test if closing a statement with prepared query
  * success if there are a pending query on the same connection from

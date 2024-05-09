@@ -24,7 +24,6 @@
 #include <config.h>
 
 #include <stdio.h>
-#include <assert.h>
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -40,6 +39,8 @@
 #include <freetds/utils/md5.h>
 #include <freetds/utils/hmac_md5.h>
 #include <freetds/utils/des.h>
+
+#include <freetds/test_assert.h>
 
 static char long_string[512];
 

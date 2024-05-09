@@ -9,6 +9,8 @@
 #include <ctpublic.h>
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 static int update_second_table(CS_COMMAND * cmd2, char *value);
 
 int

@@ -28,6 +28,8 @@
 #include <freetds/thread.h>
 #include <freetds/macros.h>
 
+#include <freetds/test_assert.h>
+
 #if !defined(TDS_NO_THREADSAFE)
 
 static tds_mutex mtx = TDS_MUTEX_INITIALIZER;

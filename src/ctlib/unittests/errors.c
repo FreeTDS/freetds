@@ -10,7 +10,9 @@
 #include <bkpublic.h>
 #include "common.h"
 
-#define ALL_TESTS \
+#include <freetds/test_assert.h>
+
+#define ALL_TESTS         \
 	TEST(ct_callback) \
 	TEST(ct_res_info) \
 	TEST(ct_send) \

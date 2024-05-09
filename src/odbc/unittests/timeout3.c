@@ -30,6 +30,8 @@
 #include <freetds/thread.h>
 #include <freetds/replacements.h>
 
+#include <freetds/test_assert.h>
+
 #if TDS_HAVE_MUTEX
 
 static void init_connect(void);

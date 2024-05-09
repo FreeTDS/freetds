@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /*
  * Try to make core dump using SQLBindParameter
  */

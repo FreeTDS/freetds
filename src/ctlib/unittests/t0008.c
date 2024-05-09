@@ -5,6 +5,8 @@
 #include <ctpublic.h>
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /*
  * ct_send SQL |select name = @@servername|
  * ct_bind variable

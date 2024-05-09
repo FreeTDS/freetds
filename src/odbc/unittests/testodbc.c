@@ -10,6 +10,8 @@
 
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 #ifdef DEBUG
 # define AB_FUNCT(x)  do { printf x; printf("\n"); } while(0)
 # define AB_PRINT(x)  do { printf x; printf("\n"); } while(0)

@@ -9,6 +9,8 @@
 #include <ctpublic.h>
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /* Testing: Retrieve CS_TEXT_TYPE using ct_bind() */
 int
 main(void)

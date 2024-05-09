@@ -5,6 +5,8 @@
 
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 int failed = 0;
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);

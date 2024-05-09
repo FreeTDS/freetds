@@ -1,6 +1,8 @@
 /* test win64 consistency */
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /*
 set ipd processed_ptr with
 SQLParamOptions/SQLSetDescField/SQL_ATTR_PARAMS_PROCESSED_PTR

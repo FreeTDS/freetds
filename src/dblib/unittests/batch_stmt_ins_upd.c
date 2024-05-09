@@ -6,6 +6,8 @@
 
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 int
 main(int argc, char **argv)
 {

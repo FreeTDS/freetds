@@ -14,6 +14,8 @@
 #include <ctpublic.h>
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 static const char *query =
 	"insert into #ctparam_lang (name,name2,age,cost,bdate,fval) values (@in1, @in2, @in3, @moneyval, @dateval, @floatval)";
 

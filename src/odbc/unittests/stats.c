@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 static SQLLEN cnamesize;
 static char output[256];
 

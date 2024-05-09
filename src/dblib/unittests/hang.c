@@ -32,6 +32,8 @@
 
 #include <freetds/utils.h>
 
+#include <freetds/test_assert.h>
+
 char *UNITTEST;
 
 #if HAVE_FSTAT && defined(S_IFSOCK)

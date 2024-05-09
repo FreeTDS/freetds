@@ -21,7 +21,8 @@
  * Purpose: test we can declare any possible column type.
  */
 #include "common.h"
-#include <assert.h>
+
+#include <freetds/test_assert.h>
 
 static void test_declaration(TDSSOCKET *tds, TDSCOLUMN *curcol)
 {

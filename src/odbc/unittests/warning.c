@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /*
  * Test originally written by John K. Hohm
  * (cfr "Warning return as copy of last result row (was: Warning: Null value

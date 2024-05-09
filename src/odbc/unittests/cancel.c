@@ -2,7 +2,6 @@
 
 #include "common.h"
 
-#include <assert.h>
 #include <signal.h>
 
 #if HAVE_UNISTD_H
@@ -13,6 +12,8 @@
 #include <freetds/utils.h>
 #include <freetds/bool.h>
 #include <freetds/replacements.h>
+
+#include <freetds/test_assert.h>
 
 #if TDS_HAVE_MUTEX
 

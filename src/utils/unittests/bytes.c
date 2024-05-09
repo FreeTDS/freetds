@@ -24,7 +24,6 @@
 #include <config.h>
 
 #include <stdio.h>
-#include <assert.h>
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -32,6 +31,8 @@
 
 #include "tds_sysdep_public.h"
 #include <freetds/bytes.h>
+
+#include <freetds/test_assert.h>
 
 #define WRITE(buf, off, bytes, endian, val) do { \
 	if ((off % bytes) == 0) TDS_PUT_A ## bytes ## endian(buf+off, val); \

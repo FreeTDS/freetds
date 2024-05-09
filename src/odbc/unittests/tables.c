@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 #ifdef _WIN32
 #undef strcasecmp
 #define strcasecmp stricmp

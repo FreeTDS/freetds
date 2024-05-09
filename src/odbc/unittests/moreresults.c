@@ -1,6 +1,8 @@
 #include "common.h"
 #include <freetds/bool.h>
 
+#include <freetds/test_assert.h>
+
 /* Test for SQLMoreResults */
 
 static void

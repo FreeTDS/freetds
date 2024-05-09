@@ -1,6 +1,8 @@
 /* Tests 2 active statements */
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 int
 main(void)
 {

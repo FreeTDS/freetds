@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 static SQLINTEGER v_int_3;
 static SQLLEN v_ind_3_1;
 

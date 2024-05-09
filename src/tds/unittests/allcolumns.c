@@ -20,9 +20,10 @@
 
 #define TDS_DONT_DEFINE_DEFAULT_FUNCTIONS
 #include "common.h"
-#include <assert.h>
 #include <freetds/convert.h>
 #include <freetds/checks.h>
+
+#include <freetds/test_assert.h>
 
 static bool
 is_convert_pointer_type(int type)

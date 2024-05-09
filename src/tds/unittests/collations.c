@@ -23,7 +23,6 @@
 
 #undef NDEBUG
 #include <ctype.h>
-#include <assert.h>
 
 #if HAVE_UNISTD_H
 #undef getpid
@@ -33,6 +32,8 @@
 # undef isatty
 # define isatty(fd) _isatty(fd)
 #endif /* HAVE_UNISTD_H */
+
+#include <freetds/test_assert.h>
 
 static TDSSOCKET *tds;
 

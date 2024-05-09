@@ -6,6 +6,8 @@
 #include "common.h"
 #include <freetds/bool.h>
 
+#include <freetds/test_assert.h>
+
 static bool proc_limit_hit = false;
 
 static int

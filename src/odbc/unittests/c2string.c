@@ -1,5 +1,6 @@
 #include "common.h"
-#include <assert.h>
+
+#include <freetds/test_assert.h>
 
 static char *
 add_char(char *s, SQLWCHAR ch)

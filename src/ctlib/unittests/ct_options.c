@@ -8,6 +8,8 @@
 #include <ctpublic.h>
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /* Testing: Set and get options with ct_options */
 int
 main(int argc, char *argv[])

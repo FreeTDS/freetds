@@ -9,6 +9,8 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
+#include <freetds/test_assert.h>
+
 #ifndef DBNTWIN32
 
 static DBPROCESS *dbproc = NULL;

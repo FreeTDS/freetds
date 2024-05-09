@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /* Test SQLFetchScroll with a non-unitary rowset, using bottom-up direction */
 
 static void

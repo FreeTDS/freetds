@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /* Test for SQL_ATTR_ROW_NUMBER */
 
 /*

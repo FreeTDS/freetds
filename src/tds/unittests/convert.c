@@ -24,11 +24,12 @@
  * $ make convert && ./convert 1 |grep iterations |grep 'varchar\.' |sort -n 
  */
 #include "common.h"
-#include <assert.h>
 #include <freetds/convert.h>
 #include <freetds/replacements.h>
 
 #include <freetds/time.h>
+
+#include <freetds/test_assert.h>
 
 static int g_result = 0;
 static TDSCONTEXT *ctx;

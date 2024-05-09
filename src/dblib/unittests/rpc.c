@@ -5,6 +5,8 @@
 
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 static RETCODE init_proc(DBPROCESS * dbproc, const char *name);
 int ignore_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 int ignore_msg_handler(DBPROCESS * dbproc, DBINT msgno, int state, int severity, char *text, char *server, char *proc, int line);

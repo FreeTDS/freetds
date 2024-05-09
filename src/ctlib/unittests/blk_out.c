@@ -9,6 +9,8 @@
 #include <bkpublic.h>
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /* Testing: array binding of result set */
 int
 main(void)

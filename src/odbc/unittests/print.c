@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 static SQLCHAR output[256];
 
 #ifdef TDS_NO_DM

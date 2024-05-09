@@ -1,9 +1,10 @@
 #include "common.h"
 
-#include <assert.h>
 #include "odbcss.h"
 #include <freetds/thread.h>
 #include <freetds/replacements.h>
+
+#include <freetds/test_assert.h>
 
 /* test query notifications */
 

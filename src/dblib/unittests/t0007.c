@@ -5,6 +5,8 @@
 
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 static void
 create_tables(DBPROCESS * dbproc, int rows_to_add)
 {

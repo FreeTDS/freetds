@@ -1,7 +1,6 @@
 /* Test binding and calling of TVPs */
 
 #include "common.h"
-#include <assert.h>
 #include <odbcss.h>
 
 #undef MEMORY_TESTS
@@ -19,6 +18,8 @@
 #endif
 
 #include <freetds/bool.h>
+
+#include <freetds/test_assert.h>
 
 #define MAX_ROWS 5
 #define MAX_STRING_LENGTH 20

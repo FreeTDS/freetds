@@ -6,6 +6,8 @@
 
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 static int
 cancel_msg_handler(DBPROCESS * dbproc, DBINT msgno TDS_UNUSED, int msgstate TDS_UNUSED, int severity TDS_UNUSED,
 		   char *msgtext TDS_UNUSED, char *srvname TDS_UNUSED, char *procname TDS_UNUSED, int line TDS_UNUSED)
