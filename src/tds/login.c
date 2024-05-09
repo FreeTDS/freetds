@@ -440,7 +440,9 @@ tds_setup_connection(TDSSOCKET *tds, TDSLOGIN *login, bool set_db, bool set_spid
 		tds_quote_id(tds, strchr(str, 0), tds_dstr_cstr(&login->database), -1);
 		strcat(str, "\n");
 	}
-	if (IS_TDS50(tds->conn)) {
+	if (IS_TDS50(tds->conn)
+	    &&	(tds->conn->product_name == NULL
+		 ||  strcasecmp(tds->conn->product_name, "OpenServer") != 0)) {
 		strcat(str, "SELECT CONVERT(NVARCHAR(3), 'abc') nvc\n"
 		       "EXECUTE ('SELECT CONVERT(UNIVARCHAR(3), ''xyz'') uvc')\n");
 		parse_results = true;
