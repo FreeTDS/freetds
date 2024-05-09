@@ -1676,6 +1676,10 @@ typedef struct tds5_colinfo
 	TDS_TINYINT status;
 	TDS_SMALLINT offset;
 	TDS_INT length;
+	TDS_TINYINT dflt;
+
+	TDS_INT dflt_size;
+	TDS_UCHAR* dflt_value;
 } TDS5COLINFO;
 
 struct tds_bcpinfo
