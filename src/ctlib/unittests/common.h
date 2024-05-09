@@ -3,9 +3,9 @@
 
 #undef NDEBUG
 
-#include <ctpublic.h>
-
 #include <config.h>
+
+#include <ctpublic.h>
 
 #include <stdio.h>
 #include <assert.h>
