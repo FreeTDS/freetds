@@ -74,6 +74,8 @@ static int tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_da
 					 int offset, TDS_UCHAR *rowbuffer, int start, int *pncols);
 static void tds_bcp_row_free(TDSRESULTINFO* result, unsigned char *row);
 static TDSRET tds5_process_insert_bulk_reply(TDSSOCKET * tds, TDSBCPINFO *bcpinfo);
+static TDSRET tds5_get_col_data_or_dflt(tds_bcp_get_col_data get_col_data,
+					TDSBCPINFO * bulk, TDSCOLUMN * bcpcol, int offset, int colnum);
 
 /**
  * Initialize BCP information.
@@ -449,7 +451,24 @@ tds5_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
 		TDSCOLUMN  *bindcol = bcpinfo->bindinfo->columns[i];
 		if (is_blob_type(bindcol->on_server.column_type)) {
-			TDS_PROPAGATE(get_col_data(bcpinfo, bindcol, offset));
+			TDSRET rc;
+			/* Elide trailing NULLs */
+			if (bindcol->bcp_column_data->is_null) {
+				int j;
+
+				for (j = i + 1; j < bcpinfo->bindinfo->num_cols; ++j) {
+					TDSCOLUMN *bindcol2 = bcpinfo->bindinfo->columns[j];
+
+					if (is_blob_type(bindcol2->column_type) && !bindcol2->bcp_column_data->is_null)
+						break;
+				}
+				if (j == bcpinfo->bindinfo->num_cols)
+					break;
+			}
+
+			rc = tds5_get_col_data_or_dflt(get_col_data, bcpinfo, bindcol, offset, i);
+			TDS_PROPAGATE(rc);
+
 			/* unknown but zero */
 			tds_put_smallint(tds, 0);
 			TDS_PUT_BYTE(tds, bindcol->on_server.column_type);
@@ -546,9 +565,10 @@ tds5_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_dat
 				continue;
 		}
 
-		tdsdump_log(TDS_DBG_FUNC, "tds5_bcp_add_fixed_columns column %d (%s) is a fixed column\n", i + 1, tds_dstr_cstr(&bcpcol->column_name));
+		tdsdump_log(TDS_DBG_FUNC, "tds5_bcp_add_fixed_columns column %d (%s) is a fixed column\n", i + 1,
+			    tds_dstr_cstr(&bcpcol->column_name));
 
-		if (TDS_FAILED(get_col_data(bcpinfo, bcpcol, offset))) {
+		if (TDS_FAILED(tds5_get_col_data_or_dflt(get_col_data, bcpinfo, bcpcol, offset, i))) {
 			tdsdump_log(TDS_DBG_INFO1, "get_col_data (column %d) failed\n", i + 1);
 			return -1;
 		}
@@ -657,7 +677,7 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 
 		tdsdump_log(TDS_DBG_FUNC, "%4d %8d %8d %8d\n", i, ncols, row_pos, cpbytes);
 
-		if (TDS_FAILED(get_col_data(bcpinfo, bcpcol, offset)))
+		if (TDS_FAILED(tds5_get_col_data_or_dflt(get_col_data, bcpinfo, bcpcol, offset, i)))
 			return -1;
 
 		/* If it's a NOT NULL column, and we have no data, throw an error.
@@ -678,12 +698,18 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 				TDS_NUMERIC *num = (TDS_NUMERIC *) bcpcol->bcp_column_data->data;
 				cpbytes = tds_numeric_bytes_per_prec[num->precision];
 				memcpy(&rowbuffer[row_pos], num->array, cpbytes);
+			} else if ((bcpcol->column_type == SYBVARCHAR || bcpcol->column_type == SYBCHAR)
+				   && bcpcol->bcp_column_data->datalen == 0) {
+				cpbytes = 1;
+				rowbuffer[row_pos] = ' ';
 			} else {
 				cpbytes = bcpcol->bcp_column_data->datalen > bcpcol->column_size ?
 				bcpcol->column_size : bcpcol->bcp_column_data->datalen;
 				memcpy(&rowbuffer[row_pos], bcpcol->bcp_column_data->data, cpbytes);
 				tds5_swap_data(bcpcol, &rowbuffer[row_pos]);
 			}
+		} else if (is_blob_type(bcpcol->column_type)) {
+			bcpcol->column_textpos = row_pos;
 		}
 
 		row_pos += cpbytes;
@@ -720,7 +746,8 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 
 		tdsdump_log(TDS_DBG_FUNC, "ncols=%u poff=%p [%u]\n", ncols, poff, offsets[ncols]);
 
-		*poff++ = ncols + 1;
+		if (offsets[ncols] / 256 == offsets[ncols - 1] / 256)
+			*poff++ = ncols + 1;
 		/* this is some kind of run-length-prefix encoding */
 		while (pfx_top) {
 			unsigned int n_pfx = 1;
@@ -922,6 +949,7 @@ enum {
 	BULKCOL_length,
 	BULKCOL_status,
 	BULKCOL_offset,
+	BULKCOL_dflt,
 
 	/* number of columns needed */
 	BULKCOL_COUNT,
@@ -943,6 +971,9 @@ tds5_bulk_insert_column(const char *name)
 		BULKCOL(colcnt);
 		BULKCOL(colid);
 		break;
+	case 'd':
+		BULKCOL(dflt);
+		break;
 	case 't':
 		BULKCOL(type);
 		break;
@@ -960,6 +991,38 @@ tds5_bulk_insert_column(const char *name)
 	return -1;
 }
 
+static void
+tds5_read_bulk_defaults(TDSRESULTINFO *res_info, TDSBCPINFO *bcpinfo)
+{
+	int i;
+	TDS5COLINFO *syb_info = bcpinfo->sybase_colinfo;
+	TDS5COLINFO *const syb_info_end = syb_info + bcpinfo->sybase_count;
+
+	for (i = 0; i < res_info->num_cols; ++i, ++syb_info) {
+		TDSCOLUMN *col = res_info->columns[i];
+		TDS_UCHAR *src = col->column_data;
+		TDS_INT len = col->column_cur_size;
+
+		if (is_blob_type(col->column_type))
+			src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
+
+		/* find next column having a default */
+		for (;;) {
+			/* avoid overflows */
+			if (syb_info >= syb_info_end)
+				return;
+
+			if (syb_info->dflt)
+				break;
+			++syb_info;
+		}
+
+		syb_info->dflt_size = len;
+		if (TDS_RESIZE(syb_info->dflt_value, len))
+			memcpy(syb_info->dflt_value, src, len);
+	}
+}
+
 static TDSRET
 tds5_process_insert_bulk_reply(TDSSOCKET * tds, TDSBCPINFO *bcpinfo)
 {
@@ -975,6 +1038,10 @@ tds5_process_insert_bulk_reply(TDSSOCKET * tds, TDSBCPINFO *bcpinfo)
 	int cols_pos[BULKCOL_COUNT];
 	int cols_values[BULKCOL_COUNT];
 	TDS5COLINFO *colinfo;
+
+#if ENABLE_EXTRA_CHECKS
+	int num_defs = 0;
+#endif
 
 	CHECK_TDS_EXTRA(tds);
 
@@ -1001,11 +1068,14 @@ tds5_process_insert_bulk_reply(TDSSOCKET * tds, TDSBCPINFO *bcpinfo)
 		case TDS_ROW_RESULT:
 			/* get the results */
 			col_flags = 0;
-			if (!row_match)
-				continue;
 			res_info = tds->current_results;
 			if (!res_info)
 				continue;
+			if (!row_match) {
+				tds_extra_assert(res_info->num_cols == num_defs);
+				tds5_read_bulk_defaults(res_info, bcpinfo);
+				continue;
+			}
 			for (icol = 0; icol < BULKCOL_COUNT; ++icol) {
 				const TDSCOLUMN *col = res_info->columns[cols_pos[icol]];
 				int ctype = tds_get_conversion_type(col->on_server.column_type, col->column_size);
@@ -1045,12 +1115,13 @@ tds5_process_insert_bulk_reply(TDSSOCKET * tds, TDSBCPINFO *bcpinfo)
 			colinfo->status = cols_values[BULKCOL_status];
 			colinfo->offset = cols_values[BULKCOL_offset];
 			colinfo->length = cols_values[BULKCOL_length];
+			colinfo->dflt = !!cols_values[BULKCOL_dflt];
+#if ENABLE_EXTRA_CHECKS
+			if (colinfo->dflt)
+				++num_defs;
+#endif
 			tdsdump_log(TDS_DBG_INFO1, "gotten row information %d type %d length %d status %d offset %d\n",
-					cols_values[BULKCOL_colid],
-					colinfo->type,
-					colinfo->length,
-					colinfo->status,
-					colinfo->offset);
+				    cols_values[BULKCOL_colid], colinfo->type, colinfo->length, colinfo->status, colinfo->offset);
 			break;
 		case TDS_DONE_RESULT:
 		case TDS_DONEPROC_RESULT:
@@ -1064,6 +1135,34 @@ tds5_process_insert_bulk_reply(TDSSOCKET * tds, TDSBCPINFO *bcpinfo)
 	if (TDS_FAILED(rc))
 		ret = rc;
 
+	return ret;
+}
+
+static TDSRET
+tds5_get_col_data_or_dflt(tds_bcp_get_col_data get_col_data, TDSBCPINFO *bulk, TDSCOLUMN *bcpcol, int offset, int colnum)
+{
+	TDSRET ret;
+	BCPCOLDATA *coldata;
+
+	ret = get_col_data(bulk, bcpcol, offset);
+	coldata = bcpcol->bcp_column_data;
+	if (coldata->is_null && bulk->sybase_colinfo != NULL && !is_blob_type(bcpcol->column_type)) {
+		const TDS5COLINFO *syb_info = &bulk->sybase_colinfo[colnum];
+
+		if (!syb_info->dflt) {
+			/* leave to NULL */
+			if (!bcpcol->column_nullable)
+				return TDS_FAIL;
+		} else {
+			if (!TDS_RESIZE(coldata->data, syb_info->dflt_size))
+				return TDS_FAIL;
+
+			memcpy(coldata->data, syb_info->dflt_value, syb_info->dflt_size);
+			coldata->datalen = syb_info->dflt_size;
+			coldata->is_null = false;
+		}
+		return TDS_SUCCESS;
+	}
 	return ret;
 }
 
