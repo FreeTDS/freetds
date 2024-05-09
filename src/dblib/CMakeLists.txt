@@ -10,12 +10,14 @@ add_library(sybdb SHARED
 	${win_SRCS}
 )
 target_compile_definitions(sybdb PUBLIC DLL_EXPORT=1)
+target_compile_definitions(sybdb PRIVATE _FREETDS_LIBRARY_SOURCE)
 add_dependencies(sybdb encodings_h)
 target_link_libraries(sybdb tds replacements tdsutils ${lib_NETWORK} ${lib_BASE})
 
 add_library(db-lib STATIC
 	dblib.c dbutil.c rpc.c bcp.c xact.c dbpivot.c buffering.h
 )
+target_compile_definitions(db-lib PRIVATE _FREETDS_LIBRARY_SOURCE)
 add_dependencies(db-lib encodings_h)
 target_link_libraries(db-lib tds replacements tdsutils ${lib_NETWORK} ${lib_BASE})
 

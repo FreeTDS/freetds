@@ -1,6 +1,7 @@
 NULL =
 SUBDIRS = . unittests
-AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/src/replacements
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/src/replacements \
+	      -D_FREETDS_LIBRARY_SOURCE
 noinst_LTLIBRARIES = libreplacements.la
 libreplacements_la_SOURCES = \
 	iconv.c \

@@ -1,5 +1,5 @@
 SUBDIRS		=	. unittests
-AM_CPPFLAGS	=	-I$(top_srcdir)/include
+AM_CPPFLAGS	=	-I$(top_srcdir)/include -D_FREETDS_LIBRARY_SOURCE
 
 lib_LTLIBRARIES	=	libct.la
 libct_la_SOURCES=	ct.c cs.c blk.c ctutil.c ct_small_checks.c ct_large_checks.c ct_checks.h
