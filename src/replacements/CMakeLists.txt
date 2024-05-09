@@ -35,6 +35,7 @@ add_library(replacements STATIC
 	getaddrinfo.c
 	${add_SRCS}
 )
+target_compile_definitions(replacements PRIVATE _FREETDS_LIBRARY_SOURCE)
 target_include_directories(replacements PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 add_dependencies(replacements iconv_charsets_h)
 if (NOT WIN32)

@@ -1,5 +1,6 @@
 SUBDIRS		=	. unittests
-AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC)
+AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC) \
+			-D_FREETDS_LIBRARY_SOURCE
 
 lib_LTLIBRARIES	=	libtdsodbc.la
 ##EXTRA_LTLIBRARIES	=	libtdsodbc.la
