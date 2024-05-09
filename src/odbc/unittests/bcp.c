@@ -1,7 +1,8 @@
 #include "common.h"
 #define TDSODBC_BCP
 #include <odbcss.h>
-#include <assert.h>
+
+#include <freetds/test_assert.h>
 
 #ifdef UNICODE
 typedef SQLWCHAR bcp_init_char_t;

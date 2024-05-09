@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 static void
 TestName(int index, const char *expected_name)
 {

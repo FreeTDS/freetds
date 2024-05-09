@@ -26,8 +26,6 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
-#include <assert.h>
-
 #include <freetds/replacements.h>
 
 /* If the system supplies these, we're going to simulate the situation
@@ -42,6 +40,8 @@ size_t tds_strlcpy(char *dest, const char *src, size_t len);
 size_t tds_strlcat(char *dest, const char *src, size_t len);
 #include "../strlcat.c"
 #endif
+
+#include <freetds/test_assert.h>
 
 int main(void)
 {

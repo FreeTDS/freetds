@@ -13,9 +13,10 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include <assert.h>
 #include <ctpublic.h>
 #include "common.h"
+
+#include <freetds/test_assert.h>
 
 static CS_CONTEXT *context;
 

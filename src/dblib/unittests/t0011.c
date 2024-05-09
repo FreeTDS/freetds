@@ -6,6 +6,8 @@
 
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 static int failed = 0;
 
 static void insert_row(DBPROCESS * dbproc);

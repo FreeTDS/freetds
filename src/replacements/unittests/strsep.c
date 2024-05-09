@@ -36,7 +36,8 @@ char *tds_strsep(char **stringp, const char *delim);
 
 #include <stdarg.h>
 #include <stdlib.h>
-#include <assert.h>
+
+#include <freetds/test_assert.h>
 
 /* test strsep with same separators */
 static void

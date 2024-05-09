@@ -5,6 +5,8 @@
 
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 static DBPROCESS *dbproc = NULL;
 static int bind_len = -1;
 static int expected_error = 0;

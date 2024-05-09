@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include <stdarg.h>
-#include <assert.h>
 #include <ctype.h>
 
 #if HAVE_SYS_SOCKET_H
@@ -27,6 +26,8 @@ struct odbc_buf{
 	struct odbc_buf *next;
 	void *buf;
 };
+
+#include <freetds/test_assert.h>
 
 HENV odbc_env;
 HDBC odbc_conn;

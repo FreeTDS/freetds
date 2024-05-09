@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 
 /*
 Demonstration of triggered assert when invoking this stored procedure

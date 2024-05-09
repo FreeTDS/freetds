@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /* Test SQLCopyDesc and SQLAllocHandle(SQL_HANDLE_DESC) */
 
 static void

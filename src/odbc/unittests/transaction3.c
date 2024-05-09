@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /* Test commit/rollback with auto commit set to on (the default) */
 
 int main(void)

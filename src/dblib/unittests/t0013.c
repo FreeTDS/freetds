@@ -5,6 +5,8 @@
 
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 #define BLOB_BLOCK_SIZE 4096
 
 int failed = 0;

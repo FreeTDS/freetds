@@ -1,6 +1,8 @@
 #include "common.h"
 #include <freetds/macros.h>
 
+#include <freetds/test_assert.h>
+
 /* test conversion of Hebrew characters (which have shift sequences) */
 
 static const char * const column_names[] = {

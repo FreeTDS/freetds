@@ -1,6 +1,8 @@
 #define MSDBLIB 1
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 static void
 dump_addr(FILE *out, const char *msg, const void *p, size_t len)
 {

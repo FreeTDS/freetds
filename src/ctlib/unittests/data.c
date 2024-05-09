@@ -9,8 +9,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctpublic.h>
-#include <assert.h>
 #include "common.h"
+
+#include <freetds/test_assert.h>
 
 int
 main(int argc, char *argv[])

@@ -1,6 +1,8 @@
 #include "common.h"
 #include <ctype.h>
 
+#include <freetds/test_assert.h>
+
 /*
  * SQLSetStmtAttr
  */

@@ -5,6 +5,8 @@
 #include <ctpublic.h>
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /*
  * ct_command with CS_MORE option
  */

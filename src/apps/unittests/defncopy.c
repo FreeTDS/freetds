@@ -26,7 +26,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 
 #if HAVE_STRING_H
 #include <string.h>
@@ -47,6 +46,8 @@
 
 #include <freetds/bool.h>
 #include <freetds/macros.h>
+
+#include <freetds/test_assert.h>
 
 static char USER[512];
 static char SERVER[512];

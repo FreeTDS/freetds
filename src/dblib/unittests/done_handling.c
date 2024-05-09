@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /*
  * This test try do discovery how dblib process token looking for state
  * at every iteration. It issue a query to server and check

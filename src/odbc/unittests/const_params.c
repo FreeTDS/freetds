@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /* Test for {?=call store(?,123,'foo')} syntax and run */
 
 int

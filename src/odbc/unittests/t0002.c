@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 #define SWAP_STMT() do { SQLHSTMT xyz = odbc_stmt; \
 	odbc_stmt = old_odbc_stmt; old_odbc_stmt = xyz; } while(0)
 

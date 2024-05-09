@@ -8,6 +8,8 @@
 #include <ctpublic.h>
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /* Testing: Server messages limit */
 int
 main(void)

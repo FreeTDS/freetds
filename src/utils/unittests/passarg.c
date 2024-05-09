@@ -33,10 +33,10 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include <assert.h>
-
 #include <freetds/sysdep_private.h>
 #include <freetds/utils.h>
+
+#include <freetds/test_assert.h>
 
 int main(void)
 {

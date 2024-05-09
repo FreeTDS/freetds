@@ -19,6 +19,8 @@
 #include "common.h"
 #include <freetds/replacements.h>
 
+#include <freetds/test_assert.h>
+
 static void
 set_interface(void)
 {

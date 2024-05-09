@@ -21,7 +21,6 @@
  * Purpose: test freeze functionality
  */
 #include "common.h"
-#include <assert.h>
 #include <freetds/bytes.h>
 
 #if HAVE_UNISTD_H
@@ -30,6 +29,8 @@
 #endif /* HAVE_UNISTD_H */
 
 #include <freetds/replacements.h>
+
+#include <freetds/test_assert.h>
 
 #ifdef TDS_HAVE_MUTEX
 #ifdef _WIN32

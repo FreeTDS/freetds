@@ -19,7 +19,8 @@
 #include "common.h"
 
 #include <ctype.h>
-#include <assert.h>
+
+#include <freetds/test_assert.h>
 
 /* try conversion from utf8 to iso8859-1 */
 

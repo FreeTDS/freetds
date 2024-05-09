@@ -16,6 +16,8 @@
 
 #include <freetds/macros.h>
 
+#include <freetds/test_assert.h>
+
 #if defined(HAVE_ALARM) && defined(HAVE_SETITIMER)
 
 /* protos */

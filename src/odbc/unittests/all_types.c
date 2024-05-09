@@ -1,9 +1,10 @@
 #undef NDEBUG
 #include "common.h"
-#include <assert.h>
 #define TDS_DONT_DEFINE_DEFAULT_FUNCTIONS
 #include "../../tds/unittests/common.h"
 #include <freetds/odbc.h>
+
+#include <freetds/test_assert.h>
 
 /* Check we support any possible types from the server */
 

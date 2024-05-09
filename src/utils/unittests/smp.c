@@ -23,13 +23,14 @@
 #undef NDEBUG
 #include <config.h>
 
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <freetds/bool.h>
 #include <freetds/utils/smp.h>
+
+#include <freetds/test_assert.h>
 
 static void
 same_smp(smp n, const char *s, int line)

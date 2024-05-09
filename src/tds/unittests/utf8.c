@@ -21,7 +21,8 @@
 #include "common.h"
 
 #include <ctype.h>
-#include <assert.h>
+
+#include <freetds/test_assert.h>
 
 int utf8_max_len = 0;
 

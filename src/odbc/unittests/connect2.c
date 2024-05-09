@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /*
  * Test setting current "catalog" before and after connection using
  * either SQLConnect and SQLDriverConnect
