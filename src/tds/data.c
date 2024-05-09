@@ -873,6 +873,8 @@ tds_generic_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 	case 0:
 		break;
 	case 1:
+		if (col->column_output && col->column_size <= 0 && is_char_type(col->column_type))
+			size = 255;
 		TDS_PUT_BYTE(tds, size);
 		break;
 	case 2:
@@ -969,6 +971,7 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, bool bcp7)
 			converted_size = colsize * curcol->char_conv->server_charset.min_bytes_per_char / curcol->char_conv->client_charset.min_bytes_per_char;
 
 		} else {
+		}
 #endif
 		/* we need to convert data before */
 		/* TODO this can be a waste of memory... */
