@@ -1871,11 +1871,30 @@ Cleanup:
 void
 tds_deinit_bcpinfo(TDSBCPINFO *bcpinfo)
 {
+	TDSRESULTINFO *bindinfo;
+
 	tds_dstr_free(&bcpinfo->hint);
+	/*
+	 * Historically done for all TDS 5.0 transfers, but the protocol
+	 * version isn't available here, or even in blk_done anymore.
+	 */
+	if (bcpinfo->direction == TDS_BCP_IN && (bindinfo = bcpinfo->bindinfo) != NULL) {
+		if (bindinfo->current_row != NULL && bindinfo->row_free != NULL) {
+			bindinfo->row_free(bindinfo, bindinfo->current_row);
+			bindinfo->current_row = NULL;
+		}
+	}
+
 	tds_dstr_free(&bcpinfo->tablename);
 	TDS_ZERO_FREE(bcpinfo->insert_stmt);
 	tds_free_results(bcpinfo->bindinfo);
 	bcpinfo->bindinfo = NULL;
+	if (bcpinfo->sybase_colinfo != NULL) {
+		int i;
+
+		for (i = 0; i < bcpinfo->sybase_count; ++i)
+			free(bcpinfo->sybase_colinfo[i].dflt_value);
+	}
 	TDS_ZERO_FREE(bcpinfo->sybase_colinfo);
 	bcpinfo->sybase_count = 0;
 }
