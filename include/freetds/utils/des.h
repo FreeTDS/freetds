@@ -1,6 +1,8 @@
 #ifndef DES_H
 #define DES_H
 
+#include <config.h>
+
 #ifdef HAVE_NETTLE
 #include <nettle/des.h>
 

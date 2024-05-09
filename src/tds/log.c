@@ -290,7 +290,7 @@ current_thread_is_excluded(void)
  * \param length     number of bytes in the buffer
  */
 void
-tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, const void *buf, size_t length)
+tdsdump_do_dump_buf(const char* file, unsigned int level_line, const char *msg, const void *buf, size_t length)
 {
 	size_t i, j;
 #define BYTES_PER_LINE 16
@@ -393,7 +393,7 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
  * \param fmt       printf-like format string
  */
 void
-tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...)
+tdsdump_do_log(const char* file, unsigned int level_line, const char *fmt, ...)
 {
 	const int debug_lvl = level_line & 15;
 	const int line = level_line >> 4;

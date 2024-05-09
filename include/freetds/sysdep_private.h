@@ -21,6 +21,8 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
+#include <config.h>
+
 #define TDS_ADDITIONAL_SPACE 16
 
 #ifdef MSG_NOSIGNAL
