@@ -21,6 +21,7 @@ add_library(tdsutils STATIC
 	path.c
 	${add_SRCS}
 )
+target_compile_definitions(tdsutils PRIVATE _FREETDS_LIBRARY_SOURCE)
 if (NOT WIN32)
 	set_target_properties(tdsutils PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()

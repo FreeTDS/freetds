@@ -60,6 +60,7 @@ add_library(tds STATIC
 	${add_SRCS}
 )
 target_include_directories(tds PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
+target_compile_definitions(tds PRIVATE _FREETDS_LIBRARY_SOURCE)
 add_dependencies(tds encodings_h)
 if (NOT WIN32)
 	set_target_properties(tds PROPERTIES POSITION_INDEPENDENT_CODE ON)

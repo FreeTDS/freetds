@@ -37,6 +37,7 @@ add_library(tdsodbc SHARED
 target_include_directories(tdsodbc PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 add_dependencies(tdsodbc odbc_exports_h encodings_h)
 target_compile_definitions(tdsodbc PUBLIC DLL_EXPORT=1)
+target_compile_definitions(tdsodbc PRIVATE _FREETDS_LIBRARY_SOURCE)
 # TODO libiconv, odbcinstlib and other dynamics
 target_link_libraries(tdsodbc tds replacements tdsutils ${libs} ${lib_NETWORK} ${lib_BASE})
 
@@ -52,6 +53,7 @@ add_library(tdsodbc_static STATIC
 )
 target_include_directories(tdsodbc_static PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 add_dependencies(tdsodbc_static odbc_exports_h encodings_h)
+target_compile_definitions(tdsodbc_static PRIVATE _FREETDS_LIBRARY_SOURCE)
 if (NOT WIN32)
 	set_target_properties(tdsodbc_static PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
