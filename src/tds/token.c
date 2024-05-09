@@ -154,7 +154,9 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	case TDS_RETURNSTATUS_TOKEN:
 		ret_status = tds_get_int(tds);
 		marker = tds_peek(tds);
-		if (marker != TDS_PARAM_TOKEN && marker != TDS_DONEPROC_TOKEN && marker != TDS_DONE_TOKEN)
+		if (marker != TDS_PARAM_TOKEN  &&  marker != TDS_DONEPROC_TOKEN
+		    &&	marker != TDS_DONE_TOKEN
+		    &&	marker != TDS5_PARAMFMT_TOKEN)
 			break;
 		tds->has_status = true;
 		tds->ret_status = ret_status;
