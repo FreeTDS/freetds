@@ -20,6 +20,8 @@
 #ifndef TDS_DLIST_H
 #define TDS_DLIST_H
 
+#include <config.h>
+
 typedef struct dlist_ring {
 	struct dlist_ring *next;
 	struct dlist_ring *prev;
