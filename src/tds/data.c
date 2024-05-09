@@ -1018,11 +1018,11 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 
 		switch (curcol->column_varint_size) {
 		case 8:
-			/* this difference for BCP operation is due to
-			 * a bug in different server version that does
-			 * not accept a length here */
-			tds_put_int8(tds, bcp7 ? (TDS_INT8) -2 : (TDS_INT8) colsize);
-			tds_put_int(tds, colsize);
+			tds_put_int8(tds, colsize);
+			/* TDS 7.x no longer expects (or accepts) a
+			 * redundant PLP chunk length here. */
+			if ( !bcp7 )
+				TDS_PUT_INT(tds, colsize);
 			break;
 		case 4:	/* It's a BLOB... */
 			colsize = MIN(colsize, size);
