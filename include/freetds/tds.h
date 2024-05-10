@@ -893,6 +893,7 @@ typedef struct tds_message
 	TDS_TINYINT severity;
 	/* for library-generated errors */
 	int oserr;
+	TDS_CHAR *osstr;
 } TDSMESSAGE;
 
 typedef struct tds_upd_col
