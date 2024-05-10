@@ -641,6 +641,7 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 	CS_INT      *datalen = NULL;
 	CS_BLKDESC *blkdesc = (CS_BLKDESC *) bulk;
 	CS_CONTEXT *ctx = CONN(blkdesc)->ctx;
+	BCPCOLDATA  *coldata = bindcol->bcp_column_data;
 
 	tdsdump_log(TDS_DBG_FUNC, "_blk_get_col_data(%p, %p, %d)\n", bulk, bindcol, offset);
 
@@ -709,6 +710,7 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 		CONV_RESULT convert_buffer;
 		CS_DATAFMT_COMMON srcfmt, destfmt;
 		CS_INT desttype;
+		TDSSOCKET * tds = CONN(blkdesc)->tds_socket;
 
 		srcfmt.datatype = srctype;
 		srcfmt.maxlength = srclen;
@@ -729,6 +731,21 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 					 &destfmt, (CS_VOID *) bindcol->bcp_column_data->data, &destlen)) != CS_SUCCEED) {
 			tdsdump_log(TDS_DBG_INFO1, "convert failed for %d \n", srctype);
 			return CS_FAIL;
+		}
+		if (destfmt.maxlength != bindcol->column_size
+		    &&	destfmt.datatype == CS_CHAR_TYPE
+		    &&	is_fixed_type(_ct_get_server_type(tds, srctype))) {
+			size_t out_len;
+			TDS_UCHAR *buf
+				= (TDS_UCHAR *) tds_convert_string
+					(tds, bindcol->char_conv,
+					 (char *) coldata->data, destlen,
+					 &out_len);
+			if (buf != NULL	 &&  buf != coldata->data) {
+				free(coldata->data);
+				coldata->data = buf;
+				destlen = (CS_INT) out_len;
+			}
 		}
 	}
 

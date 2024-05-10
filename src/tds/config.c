@@ -91,7 +91,7 @@ static tds_dir_char *interf_file = NULL;
 
 #define TDS_ISSPACE(c) isspace((unsigned char ) (c))
 
-const char STD_DATETIME_FMT[] = "%b %e %Y %I:%M%p";
+const char STD_DATETIME_FMT[] = "%Y-%m-%d %H:%M:%S.%z";
 
 #if !defined(_WIN32) && !defined(DOS32X)
 static const char pid_config_logpath[] = "/tmp/tdsconfig.log.%d";
