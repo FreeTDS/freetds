@@ -384,6 +384,24 @@ typedef struct
 } TDS71_COLLATION;
 
 /**
+ * TDS packet header
+ */
+typedef struct
+{
+	TDS_UCHAR type;
+	TDS_UCHAR status;
+	TDS_USMALLINT length;
+	TDS_USMALLINT spid;
+	TDS_UCHAR packet_id;
+	TDS_UCHAR window;
+} TDS_HEADER;
+
+enum {
+	TDS_STATUS_EOM = 1,
+	TDS_STATUS_RESETCONNECTION = 8,
+};
+
+/**
  * TDS 7.2 SMP packet header
  */
 typedef struct
