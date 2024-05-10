@@ -40,6 +40,10 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
+#if HAVE_NETDB_H
+#include <netdb.h>
+#endif /* HAVE_NETDB_H */
+
 #ifdef _WIN32
 #include <process.h>
 #endif
@@ -47,6 +51,9 @@
 #include <freetds/tds.h>
 #include <freetds/checks.h>
 #include <freetds/thread.h>
+
+#define NCBI_INCLUDE_STRERROR_C
+#include "ncbi_strerror.c"
 
 /**
  * Set state of TDS connection, with logging and checking.
@@ -354,6 +361,7 @@ tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
 		msg.sql_state = tds_alloc_client_sqlstate(msgno);
 		
 		msg.oserr = errnum;
+		msg.osstr = errnum ? (char*) s_StrError(errnum) : NULL;
 
 		/*
 		 * Call client library handler.
@@ -363,6 +371,10 @@ tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
 	 	tdsdump_log(TDS_DBG_FUNC, "tdserror: client library returned %s(%d)\n", retname(rc), rc);
 
 		TDS_ZERO_FREE(msg.sql_state);
+		if (errnum) {
+			UTIL_ReleaseBuffer(msg.osstr);
+			msg.osstr = NULL;
+		}
 	} else {
 		static const char msg[] = "tdserror: client library not called because either "
 					  "tds_ctx (%p) or tds_ctx->err_handler is NULL\n";

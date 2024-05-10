@@ -206,6 +206,7 @@ tds_save(TDSSAVECONTEXT *ctx, char type, TDSMESSAGE *msg)
 	dest_msg = &ctx->msgs[ctx->num_msg];
 	dest_msg->type = type;
 	dest_msg->msg = *msg;
+	dest_msg->msg.osstr = NULL;
 #define COPY(name) if (msg->name) dest_msg->msg.name = strdup(msg->name);
 	COPY(server);
 	COPY(message);
