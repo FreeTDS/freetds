@@ -387,7 +387,6 @@ tds_generic_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 	case 8:
 		col->column_size = 0x7ffffffflu;
 		break;
-	case 5:
 	case 4:
 		col->column_size = tds_get_int(tds);
 		if (col->column_size < 0)
@@ -730,6 +729,13 @@ tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 				colsize = -1;
 			}
 			break;
+		} else if (curcol->on_server.column_type == SYBLONGBINARY) {
+			blob = (TDSBLOB *) curcol->column_data;
+			colsize = tds_get_int(tds);
+			if (colsize == 0) {
+				colsize = -1;
+			}
+			break;
 		}
 
 		/* It's a BLOB... */
@@ -746,11 +752,6 @@ tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		} else {
 			colsize = -1;
 		}
-		break;
-	case 5:
-		colsize = tds_get_int(tds);
-		if (colsize == 0)
-			colsize = -1;
 		break;
 	case 8:
 		return tds72_get_varmax(tds, curcol);
@@ -902,7 +903,6 @@ tds_generic_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 	case 2:
 		tds_put_smallint(tds, size);
 		break;
-	case 5:
 	case 4:
 		tds_put_int(tds, size);
 		break;
@@ -947,9 +947,6 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 	if (curcol->column_cur_size < 0) {
 		tdsdump_log(TDS_DBG_INFO1, "tds_generic_put: null param\n");
 		switch (curcol->column_varint_size) {
-		case 5:
-			tds_put_int(tds, 0);
-			break;
 		case 4:
 			if ((bcp7 || !IS_TDS7_PLUS(tds->conn)) && is_blob_type(curcol->on_server.column_type))
 				tds_put_byte(tds, 0);
@@ -1024,7 +1021,13 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 			if ( !bcp7 )
 				TDS_PUT_INT(tds, colsize);
 			break;
-		case 4:	/* It's a BLOB... */
+		case 4:
+			if ( !is_blob_col(curcol) ) {
+				colsize = MAX(MIN(colsize, 0x7fffffff), 1);
+				TDS_PUT_INT(tds, colsize);
+				break;
+			}
+			/* It's a BLOB... */
 			colsize = MIN(colsize, size);
 			/* mssql require only size */
 			if (bcp7 && is_blob_type(curcol->on_server.column_type)) {
@@ -1080,11 +1083,13 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 		/* TODO ICONV handle charset conversions for data */
 		/* put size of data */
 		switch (curcol->column_varint_size) {
-		case 5:	/* It's a LONGBINARY */
-			colsize = MIN(colsize, 0x7fffffff);
-			tds_put_int(tds, colsize);
-			break;
-		case 4:	/* It's a BLOB... */
+		case 4:
+			if ( !is_blob_col(curcol) ) {
+				colsize = MAX(MIN(colsize, 0x7fffffff), 1);
+				tds_put_int(tds, colsize);
+				break;
+			}
+			/* It's a BLOB... */
 			tds_put_byte(tds, 16);
 			tds_put_n(tds, blob->textptr, 16);
 			tds_put_n(tds, blob->timestamp, 8);
