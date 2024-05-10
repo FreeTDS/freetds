@@ -2689,6 +2689,7 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 	unsigned int col, num_cols;
 	TDSCOLUMN *curcol;
 	TDSPARAMINFO *info;
+	TDSDYNAMIC *dyn = NULL;
 
 	CHECK_TDS_EXTRA(tds);
 
@@ -2699,7 +2700,7 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 	if ((info = tds_alloc_results(num_cols)) == NULL)
 		return TDS_FAIL;
 	if (tds->cur_dyn) {
-		TDSDYNAMIC *dyn = tds->cur_dyn;
+		dyn = tds->cur_dyn;
 		tds_free_param_results(dyn->res_info);
 		dyn->res_info = info;
 	} else {
@@ -2742,6 +2743,29 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 			    curcol->column_varint_size);
 		tdsdump_log(TDS_DBG_INFO1, "\tcolsize=%d prec=%d scale=%d\n",
 			    curcol->column_size, curcol->column_prec, curcol->column_scale);
+
+		/*
+		 * As of ASE 16.0, Sybase servers have started allowing
+		 * dynamic query (prepared statement) declarations with
+		 * IMAGE or (N)TEXT parameters.	 However, subsequent
+		 * attempts to instantiate these queries have been failing
+		 * with message 3805, "The token datastream length was not
+		 * correct."  In such cases, switch on dynamic query
+		 * emulation (as already needed for older Sybase versions
+		 * that immediately reject these declarations) and
+		 * explicitly discard column information to avoid
+		 * misconstruing the status of subsequent queries that
+		 * yield no row results.
+		 */
+		if (dyn != NULL	 &&  is_blob_col(curcol)) {
+			dyn->emulated = 1;
+			tds_dynamic_deallocated(tds->conn, tds->cur_dyn);
+			dyn = NULL;
+		}
+	}
+
+	if (tds->cur_dyn != NULL  &&  tds->cur_dyn->emulated) {
+		tds_set_current_results(tds, NULL);
 	}
 
 	return tds_alloc_row(info);
