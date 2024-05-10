@@ -129,8 +129,23 @@ _ct_handle_client_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAG
 	errmsg.severity = _ct_translate_severity(msg->severity);
 	strlcpy(errmsg.msgstring, msg->message, sizeof(errmsg.msgstring));
 	errmsg.msgstringlen = strlen(errmsg.msgstring);
-	errmsg.osstring[0] = '\0';
-	errmsg.osstringlen = 0;
+
+	if (msg->oserr) {
+#ifdef _WIN32
+		char *osstr = tds_prwsaerror(msg->oserr);
+#else
+		const char *osstr = strerror(msg->oserr);
+#endif
+		errmsg.osstringlen = (CS_INT) strlen(osstr);
+		strlcpy(errmsg.osstring, osstr, CS_MAX_MSG);
+#ifdef _WIN32
+		tds_prwsaerror_free(osstr);
+#endif
+	} else {
+		errmsg.osstring[0] = '\0';
+		errmsg.osstringlen = 0;
+	}
+
 	/* if there is no connection, attempt to call the context handler */
 	if (!con) {
 		ctx = (CS_CONTEXT *) ctx_tds->parent;
