@@ -778,17 +778,20 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 	}
 
 	if (!null_column  &&  !is_blob_type(bindcol->column_type)) {
-		CONV_RESULT convert_buffer;
 		CS_DATAFMT_COMMON srcfmt, destfmt;
 		CS_INT desttype;
+		TDS_SERVER_TYPE tds_desttype = TDS_INVALID_TYPE;
 		TDSSOCKET * tds = CONN(blkdesc)->tds_socket;
 
 		srcfmt.datatype = srctype;
 		srcfmt.maxlength = srclen;
 
-		desttype = _cs_convert_not_client(ctx, bindcol, &convert_buffer, &src);
-		if (desttype == CS_ILLEGAL_TYPE)
+		desttype = _cs_convert_not_client(NULL, bindcol, NULL, NULL);
+		if (desttype == CS_ILLEGAL_TYPE) {
 			desttype = _ct_get_client_type(bindcol, false);
+		} else {
+			tds_desttype = bindcol->column_type;
+		}
 		if (desttype == CS_ILLEGAL_TYPE)
 			return TDS_FAIL;
 		destfmt.datatype  = desttype;
@@ -800,7 +803,7 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 		/* if convert return FAIL mark error but process other columns */
 		if ((result = _cs_convert(ctx, &srcfmt, (CS_VOID *) src,
 					  &destfmt, (CS_VOID *) coldata->data,
-					  &destlen,
+					  &destlen, tds_desttype,
 					  (CS_VOID **) &coldata->data))
                     != CS_SUCCEED) {
 			tdsdump_log(TDS_DBG_INFO1, "convert failed for %d \n", srctype);

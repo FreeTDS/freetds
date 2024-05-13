@@ -1958,7 +1958,8 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 
 		/* if convert return FAIL mark error but process other columns */
 		if ((ret = _cs_convert(ctx, &srcfmt, src, &destfmt, dest,
-				       pdatalen, NULL) != CS_SUCCEED)) {
+				       pdatalen, TDS_INVALID_TYPE, NULL)
+		     != CS_SUCCEED)) {
 			tdsdump_log(TDS_DBG_FUNC, "cs_convert-result = %d\n", ret);
 			result = 1;
 			tdsdump_log(TDS_DBG_INFO1, "error: converted only %d bytes for type %d \n",
