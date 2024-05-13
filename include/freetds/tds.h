@@ -54,6 +54,23 @@ typedef struct tds_connection TDSCONNECTION;
 typedef struct tds_socket TDSSOCKET;
 typedef struct tds_column TDSCOLUMN;
 typedef struct tds_bcpinfo TDSBCPINFO;
+/* More, to address "declared with greater visibility" warnings. */
+struct tds5_colinfo;
+struct tds_authentication;
+struct tds_bcpcoldata;
+struct tds_capabilities;
+struct tds_capability_type;
+struct tds_column_funcs;
+struct tds_context;
+struct tds_cursor;
+struct tds_cursor_status;
+struct tds_dynamic;
+struct tds_env;
+struct tds_locale;
+struct tds_login;
+struct tds_packet;
+struct tds_poll_wakeup;
+struct tds_result_info;
 
 #include <freetds/version.h>
 #include <freetds/sysdep_private.h>
