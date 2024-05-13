@@ -89,6 +89,12 @@ str(char *buf, int n)
 	return buf;
 }
 
+static void
+set_dbname(const char *dbname)
+{
+	CHKSetConnectAttr(SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) T(dbname), strlen(dbname)*sizeof(SQLTCHAR), "SI");
+}
+
 int
 main(void)
 {
@@ -97,13 +103,10 @@ main(void)
 	odbc_use_version3 = 0;
 	odbc_connect();
 
-	/* try to create test database if not existing */
-	odbc_command("IF DB_ID('freetds_test') IS NULL "
-		"CREATE DATABASE freetds_test");
-
 	TestProc(NULL, "DATETIME", STR(SQL_TIMESTAMP));
 	TestTable(NULL, "DATETIME", STR(SQL_TIMESTAMP));
-	TestTable("freetds_test", "DATETIME", STR(SQL_TIMESTAMP));
+	set_dbname("master");
+	TestTable(odbc_database, "DATETIME", STR(SQL_TIMESTAMP));
 
 	odbc_disconnect();
 
@@ -113,7 +116,8 @@ main(void)
 
 	TestProc(NULL, "DATETIME", STR(SQL_TYPE_TIMESTAMP));
 	TestTable(NULL, "DATETIME", STR(SQL_TYPE_TIMESTAMP));
-	TestTable("freetds_test", "DATETIME", STR(SQL_TYPE_TIMESTAMP));
+	set_dbname("master");
+	TestTable(odbc_database, "DATETIME", STR(SQL_TYPE_TIMESTAMP));
 
 	odbc_disconnect();
 

@@ -131,7 +131,6 @@ test_script:
   - "powershell misc\\sql-server-activate-tcp-fixed-port.ps1"
   # Create freetds.conf
   # Create a test database
-  - sqlcmd -S localhost -U sa -P Password12! -Q "CREATE DATABASE freetds_test"
   - cd build_debug
   - echo [global]> freetds.conf.local
   - echo port = 1433>> freetds.conf.local

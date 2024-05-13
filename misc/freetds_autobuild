@@ -177,12 +177,6 @@ grab_logs() {
 	done >> logs/log.txt
 }
 
-create_test_db() {
-	# create test database, ignore failure, possibly already created
-	echo "Creating database..."
-	echo -e 'CREATE DATABASE freetds_test\ngo\nbye\n' | ./src/apps/tsql -S $tSRV -U "$tUID" -P "$tPWD" || true
-}
-
 generic_test() {
 	trap 'echo Error $? at line $LINENO' ERR
 	local dir="$1" pwd_file="$2"
@@ -190,7 +184,6 @@ generic_test() {
 	WORKDIR=$PWD
 	set_pwd_file $ROOT/$pwd_file
 	init_log
-	create_test_db
 	./misc/test-auto.sh --no-build >> logs/log.txt
 	grab_logs
 	cd logs
@@ -205,7 +198,6 @@ test1() {
 	trap 'echo Error $? at line $LINENO' ERR
 cd test1
 WORKDIR=$PWD
-create_test_db
 ./misc/test-auto.sh --no-build --no-header >> logs/log.txt
 grab_logs
 
