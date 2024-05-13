@@ -2985,8 +2985,15 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 	 */
 
 	srclen = curcol->column_cur_size;
-	if (srclen < 0)
-		srclen = 0;
+	if (srclen < 0) {
+		/* this is NULL */
+		if (outlen)
+			*outlen = srclen;
+		if (item < resinfo->num_cols)
+			return CS_END_ITEM;
+		return CS_END_DATA;
+	}
+
 	src += cmd->get_data_bytes_returned;
 	srclen -= cmd->get_data_bytes_returned;
 
