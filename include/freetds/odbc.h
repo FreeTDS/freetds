@@ -118,21 +118,31 @@ void odbc_check_struct_extra(void *p);
 static inline void odbc_check_struct_extra(void *p TDS_UNUSED) {}
 #endif
 
+#define ODBC_CHECK_CANCEL(handle) \
+	if (IS_HSTMT(handle)) { \
+		TDS_STMT * _stmt = (TDS_STMT *) handle; \
+		if (_stmt->cancel_requested) _SQLCancel(_stmt); \
+	}
+
 #define ODBC_RETURN(handle, rc) \
 	do { odbc_check_struct_extra(handle); \
+	ODBC_CHECK_CANCEL(handle) \
 	return handle->errs.lastrc = (rc); } while(0)
 #define ODBC_RETURN_(handle) \
 	do { odbc_check_struct_extra(handle); \
+	ODBC_CHECK_CANCEL(handle) \
 	return handle->errs.lastrc; } while(0)
 
 #define ODBC_EXIT(handle, rc) \
 	do { SQLRETURN _odbc_rc = handle->errs.lastrc = (rc); \
 	odbc_check_struct_extra(handle); \
+	ODBC_CHECK_CANCEL(handle) \
 	tds_mutex_unlock(&handle->mtx); \
 	return _odbc_rc; } while(0)
 #define ODBC_EXIT_(handle) \
 	do { SQLRETURN _odbc_rc = handle->errs.lastrc; \
 	odbc_check_struct_extra(handle); \
+	ODBC_CHECK_CANCEL(handle) \
 	tds_mutex_unlock(&handle->mtx); \
 	return _odbc_rc; } while(0)
 
@@ -441,6 +451,9 @@ struct _hstmt
 	TDS_ODBC_SPECIAL_ROWS special_row;
 	/* do NOT free cursor, free from socket or attach to connection */
 	TDSCURSOR *cursor;
+
+	/* unsafe to combine with prepared_query flags */
+	volatile bool cancel_requested;
 };
 
 typedef struct _henv TDS_ENV;
@@ -587,6 +600,7 @@ void tvp_free(SQLTVP *tvp);
  * odbc.c
  */
 
+SQLRETURN _SQLCancel(TDS_STMT * stmt);
 SQLRETURN _SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow);
 
 /*
@@ -681,6 +695,7 @@ SQLRETURN odbc_set_concise_c_type(SQLSMALLINT concise_type, struct _drecord *dre
 
 SQLLEN odbc_get_octet_len(int c_type, const struct _drecord *drec);
 void odbc_convert_err_set(struct _sql_errors *errs, TDS_INT err);
+int odbc_int_handler(void *handle);
 
 /*
  * prepare_query.c
