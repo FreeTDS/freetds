@@ -200,8 +200,11 @@ binary_to_result(int desttype, const void *data, size_t len, CONV_RESULT * cr)
 	return (TDS_INT)len;
 }
 
+/* "N" versions are safe to list due to iconv calls elsewhere. */
 #define CASE_ALL_CHAR \
-	SYBCHAR: case SYBVARCHAR: case SYBTEXT: case XSYBCHAR: case XSYBVARCHAR
+	SYBCHAR: case SYBVARCHAR: case SYBTEXT: case XSYBCHAR: \
+	case XSYBVARCHAR: case SYBNVARCHAR: case SYBNTEXT: case XSYBNCHAR: \
+	case XSYBNVARCHAR
 #define CASE_ALL_BINARY \
 	SYBBINARY: case SYBVARBINARY: case SYBIMAGE: case XSYBBINARY: case XSYBVARBINARY: \
 	case SYBLONGBINARY: case TDS_CONVERT_BINARY
@@ -1986,8 +1989,6 @@ tds_convert(const TDSCONTEXT *tds_ctx, int srctype, const void *src, TDS_UINT sr
 	case SYBUNIQUE:
 		length = tds_convert_unique(src, desttype, cr);
 		break;
-	case SYBNVARCHAR:
-	case SYBNTEXT:
 	case SYBMSTABLE:
 	default:
 		return TDS_CONVERT_NOAVAIL;

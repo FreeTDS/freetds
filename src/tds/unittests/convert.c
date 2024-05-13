@@ -38,6 +38,7 @@ free_convert(int type, CONV_RESULT *cr)
 {
 	switch (type) {
 	case SYBCHAR: case SYBVARCHAR: case SYBTEXT: case XSYBCHAR: case XSYBVARCHAR:
+	case SYBNVARCHAR: case SYBNTEXT: case XSYBNCHAR: case XSYBNVARCHAR:
 	case SYBBINARY: case SYBVARBINARY: case SYBIMAGE: case XSYBBINARY: case XSYBVARBINARY:
 	case SYBLONGBINARY:
 		free(cr->c);
@@ -157,10 +158,18 @@ main(int argc, char **argv)
 		case XSYBVARBINARY:
 		case XSYBCHAR:
 		case XSYBVARCHAR:
+		case SYBNTEXT:
+		case SYBNVARCHAR:
+		case XSYBNCHAR:
+		case XSYBNVARCHAR:
 			switch (desttype) {
 			case SYBCHAR:
 			case SYBVARCHAR:
 			case SYBTEXT:
+			case SYBNTEXT:
+			case SYBNVARCHAR:
+			case XSYBNCHAR:
+			case XSYBNVARCHAR:
 			case SYBDATETIME:
 			case SYBDATETIME4:
 				src = "Jan  1, 1999";

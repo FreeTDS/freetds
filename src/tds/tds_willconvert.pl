@@ -36,7 +36,8 @@ sub category($) {
 	return qw(DATETIME DATETIME4 DATE TIME MSDATE MSTIME MSDATETIME2 MSDATETIMEOFFSET 5BIGDATETIME 5BIGTIME) if $_ eq 'DATETIMEx';
 	return qw(BIT BITN) if $_ eq 'BITx';
 	return qw(BINARY VARBINARY IMAGE LONGBINARY XBINARY XVARBINARY) if $_ eq 'BINARYx';
-	return qw(CHAR VARCHAR XCHAR XVARCHAR) if $_ eq 'CHARx';
+	return qw(CHAR VARCHAR XCHAR XNCHAR XNVARCHAR XVARCHAR) if $_ eq 'CHARx';
+	return qw(TEXT NTEXT) if $_ eq 'TEXT';
 	return ($_);
 }
 
@@ -129,21 +130,23 @@ for my $catFrom (@converts) {
 }
 print "};\n";
 
+# NB: SYBSENSITIVITY (Sybase) == 103 (0x67) == SYBNVARCHAR (MS)
+
 __DATA__
           To
 From
             CHARx TEXT BINARYx INTx FLTx NUMERIC DECIMAL BITx MONEYx DATETIMEx BOUNDARY UNIQUE SENSITIVITY MSTABLE
-CHARx       T     T    T       T    T    T       T       T    T      T         T        T      t           F
-TEXT        T     T    T       T    T    T       T       T    T      T         T        T      t           F
-BINARYx     T     T    T       T    T    F       F       F    T      F         F        F      F           F
-INTx        T     T    T       T    T    T       T       T    T      F         F        F      F           F
-FLTx        T     T    T       T    T    T       T       T    T      F         F        F      F           F
-NUMERIC     T     T    T       T    T    T       T       T    T      F         F        F      F           F
-DECIMAL     T     T    T       T    T    T       T       T    T      F         F        F      F           F
-BITx        T     T    T       T    T    T       T       T    T      F         F        F      F           F
-MONEYx      T     T    T       T    T    T       T       T    T      F         F        F      F           F
-DATETIMEx   T     T    T       F    F    F       F       F    F      T         F        F      F           F
-BOUNDARY    T     T    F       F    F    F       F       F    F      F         T        F      F           F
-UNIQUE      T     T    T       F    F    F       F       F    F      F         F        T      F           F
-SENSITIVITY t     t    F       F    F    F       F       F    F      F         F        F      t           F
+CHARx       T     T    T       T    T    T       T       T    T      T         T        T      T           F
+TEXT        T     T    T       T    T    T       T       T    T      T         T        T      T           F
+BINARYx     T     T    T       T    T    F       F       F    T      F         F        F      T           F
+INTx        T     T    T       T    T    T       T       T    T      F         F        F      T           F
+FLTx        T     T    T       T    T    T       T       T    T      F         F        F      T           F
+NUMERIC     T     T    T       T    T    T       T       T    T      F         F        F      T           F
+DECIMAL     T     T    T       T    T    T       T       T    T      F         F        F      T           F
+BITx        T     T    T       T    T    T       T       T    T      F         F        F      T           F
+MONEYx      T     T    T       T    T    T       T       T    T      F         F        F      T           F
+DATETIMEx   T     T    T       F    F    F       F       F    F      T         F        F      T           F
+BOUNDARY    T     T    F       F    F    F       F       F    F      F         T        F      T           F
+UNIQUE      T     T    T       F    F    F       F       F    F      F         F        T      T           F
+SENSITIVITY T     T    T       T    T    T       T       T    T      T         T        T      T           F
 MSTABLE     F     F    F       F    F    F       F       F    F      F         F        F      F           T
