@@ -173,6 +173,9 @@ _ct_get_user_api_layer_error(int error)
 	case 29:
 		return "This type of command cannot be batched with the command already initialized on the command structure.";
 		break;
+	case 36:
+		return "The result is truncated because the"
+		       " conversion/operation resulted in overflow.";
 	case 42:
 		return "Data truncated while doing local character set conversion.  col = %1! row = %2!.";
 		break;
@@ -4515,6 +4518,11 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 		pcol->column_prec = p->precision;
 		pcol->column_scale = p->scale;
 		if (pcol->column_varint_size) {
+			if ((pcol->column_varint_size == 2 && *(p->datalen) > 8000)
+			    || (pcol->column_varint_size == 1 && *(p->datalen) > 255)) {
+				_ctclient_msg(NULL, (CS_CONNECTION*) tds_get_parent(tds),
+					      "paraminfoalloc", 1, 1, 10, 36, "");
+			}
 			if (p->maxlen < 0) {
 				tds_free_param_results(params);
 				return NULL;
