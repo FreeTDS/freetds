@@ -3168,7 +3168,7 @@ odbc_unquote(char *buf, size_t buf_len, const char *start, const char *end)
 	/* not quoted */
 	if (*start != '[' && *start != '\"') {
 		--buf_len;
-		if (end - start < buf_len)
+		if (end < start + buf_len)
 			buf_len = end - start;
 		memcpy(buf, start, buf_len);
 		buf[buf_len] = 0;
@@ -7532,7 +7532,7 @@ odbc_stat_execute(TDS_STMT * stmt _WIDE, const char *begin, int nparams, ...)
 	strcpy(p, begin);
 	p += strlen(begin);
 	tds_dstr_setlen(&stmt->query, p - proc);
-	assert(p - proc + 1 <= len);
+	assert(p + 1 <= proc + len);
 
 	/* execute it */
 	retcode = _SQLExecute(stmt);
