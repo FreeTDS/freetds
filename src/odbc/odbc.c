@@ -1997,7 +1997,9 @@ SQLCancel(SQLHSTMT hstmt)
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLCancel(%p)\n", hstmt);
 
+	tds_mutex_lock(&stmt->dbc->mtx);
 	tds = stmt->tds;
+	tds_mutex_unlock(&stmt->dbc->mtx);
 
 	/* cancelling an inactive statement ?? */
 	if (!tds) {
