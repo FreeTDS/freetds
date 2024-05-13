@@ -2182,6 +2182,7 @@ _ct_get_server_type(TDSSOCKET *tds, int datatype)
 	case CS_BIT_TYPE:		return SYBBIT;
 	case CS_CHAR_TYPE:		return SYBCHAR;
 	case CS_VARCHAR_TYPE:		return SYBVARCHAR;
+	case CS_NVARCHAR_TYPE:		return SYBNVARCHAR;
 	case CS_LONG_TYPE:
 	case CS_UBIGINT_TYPE:
 		if (!tds || tds_capability_has_req(tds->conn, TDS_REQ_DATA_UINT8))
@@ -2211,11 +2212,12 @@ _ct_get_server_type(TDSSOCKET *tds, int datatype)
 	case CS_TEXT_TYPE:		return SYBTEXT;
 	case CS_UNIQUE_TYPE:		return SYBUNIQUE;
 	case CS_LONGBINARY_TYPE:	return SYBLONGBINARY;
-	case CS_UNICHAR_TYPE:		return SYBVARCHAR;
+	case CS_UNICHAR_TYPE:		return SYBNVARCHAR;
 	case CS_LONGCHAR_TYPE:
 		if (!tds || IS_TDS7_PLUS(tds->conn))
 			return SYBVARCHAR;
 		return SYBLONGCHAR;
+	case CS_NLONGCHAR_TYPE:		return SYBNVARCHAR;
 	case CS_DATE_TYPE:
 		if (!tds || tds_capability_has_req(tds->conn, TDS_REQ_DATA_DATE))
 			return SYBDATE;
@@ -3393,6 +3395,8 @@ ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt_arg, CS_VOID * data, CS_INT data
 	CS_PARAM *param;
 	const CS_DATAFMT_LARGE *datafmt;
 	CS_DATAFMT_LARGE datafmt_buf;
+	bool promote = (datafmt_arg->datatype == CS_VARCHAR_TYPE  ||
+			datafmt_arg->datatype == CS_LONGCHAR_TYPE);
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_param(%p, %p, %p, %d, %hd)\n", cmd, datafmt_arg, data, datalen, indicator);
 
@@ -3400,6 +3404,30 @@ ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt_arg, CS_VOID * data, CS_INT data
 		return CS_FAIL;
 
 	datafmt = _ct_datafmt_conv_in(cmd->con->ctx, datafmt_arg, &datafmt_buf);
+
+	if (promote  &&	 IS_TDS7_PLUS(cmd->con->tds_socket->conn)) {
+		/* Actually promote only if non-ASCII characters are present */
+		CS_INT i;
+
+		promote = 0;
+		for (i = 0;  i < datalen;  ++i) {
+			if (((const char*)data)[i] & 0x80) {
+				promote = 1;
+				break;
+			}
+		}
+
+		if ( !promote ) {
+			/* pure ASCII, leave as is */
+		} else if (datafmt->datatype == CS_VARCHAR_TYPE) {
+			datafmt_arg->datatype = CS_NVARCHAR_TYPE;
+			datafmt_buf.datatype = CS_NVARCHAR_TYPE;
+		} else if (datafmt->datatype == CS_LONGCHAR_TYPE) {
+			datafmt_arg->datatype = CS_NLONGCHAR_TYPE;
+			datafmt_buf.datatype = CS_NLONGCHAR_TYPE;
+		}
+	}
+
 
 	switch (cmd->command_type) {
 	case CS_RPC_CMD:
@@ -4213,7 +4241,9 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 			temp_datalen = *(p->datalen);
 		}
 
-		if (temp_type == CS_VARCHAR_TYPE || temp_type == CS_VARBINARY_TYPE) {
+		if (temp_type == CS_VARCHAR_TYPE
+		    ||	temp_type == CS_NVARCHAR_TYPE
+		    ||	temp_type == CS_VARBINARY_TYPE) {
 			CS_VARCHAR *vc = (CS_VARCHAR *) temp_value;
 
 			if (vc) {
@@ -4240,6 +4270,13 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 			if (p->maxlen < 0) {
 				tds_free_param_results(params);
 				return NULL;
+			} else if (p->maxlen == 0
+				   &&  is_unicode_type(tds_type)) {
+				/*
+				 * Auto-detect; account for possible
+				 * conversion to UCS-2.
+				 */
+				p->maxlen = temp_datalen * 2;
 			}
 			pcol->on_server.column_size = pcol->column_size = p->maxlen;
 			pcol->column_cur_size = temp_value ? temp_datalen : -1;
