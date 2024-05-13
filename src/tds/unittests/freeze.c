@@ -29,6 +29,7 @@
 #endif /* HAVE_UNISTD_H */
 
 #include <freetds/replacements.h>
+#include <freetds/utils.h>
 
 #include <freetds/test_assert.h>
 
@@ -420,6 +421,7 @@ test(int mars, void (*real_test)(void))
 
 	/* provide connection to a fake remove server */
 	assert(socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) >= 0);
+	tds_socket_set_nosigpipe(sockets[0], 1);
 	was_shutdown = false;
 	tds->state = TDS_IDLE;
 	tds_set_s(tds, sockets[0]);
