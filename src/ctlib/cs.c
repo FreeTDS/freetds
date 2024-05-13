@@ -937,7 +937,7 @@ cs_dt_crack_v2(CS_CONTEXT * ctx, CS_INT datetype, CS_VOID * dateval, CS_DATEREC 
 	daterec->dateminute = dr.minute;
 	daterec->datesecond = dr.second;
 	daterec->datemsecond = dr.decimicrosecond / 10000u;
-	daterec->datetzone = 0;
+	daterec->datetzone = dr.timezone;
 	if (extended) {
 		daterec->datesecfrac = dr.decimicrosecond / 10u;
 		daterec->datesecprec = 1000000;
