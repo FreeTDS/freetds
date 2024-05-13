@@ -6634,6 +6634,7 @@ RETCODE
 dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT textptrlen, DBBINARY * timestamp, DBBOOL log,
 	    DBINT size, BYTE * text)
 {
+	DBINT len = 0;
 	char textptr_string[35];	/* 16 * 2 + 2 (0x) + 1 */
 	char timestamp_string[19];	/* 8 * 2 + 2 (0x) + 1 */
 	TDS_INT result_type;
@@ -6652,8 +6653,14 @@ dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT tex
 	if (textptrlen > DBTXPLEN)
 		return FAIL;
 
-	dbconvert(dbproc, SYBBINARY, (BYTE *) textptr, textptrlen, SYBCHAR, (BYTE *) textptr_string, -1);
-	dbconvert(dbproc, SYBBINARY, (BYTE *) timestamp, 8, SYBCHAR, (BYTE *) timestamp_string, -1);
+	len = dbconvert(dbproc, SYBBINARY, (BYTE *) textptr, textptrlen,
+			SYBCHAR, (BYTE *) textptr_string, -1);
+	if (len < 0)
+		return FAIL;
+	len = dbconvert(dbproc, SYBBINARY, (BYTE *) timestamp, 8, SYBCHAR,
+			(BYTE *) timestamp_string, -1);
+	if (len < 0)
+		return FAIL;
 
 	dbproc->dbresults_state = _DB_RES_INIT;
 
