@@ -2699,6 +2699,30 @@ ct_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 			break;
 		}
 		break;
+	case CS_NOTE_EMPTY_DATA:
+		switch (action) {
+		case CS_SUPPORTED:
+			*buf = CS_TRUE;
+			break;
+		case CS_SET:
+			if (*buf != CS_TRUE && *buf != CS_FALSE)
+				ret = CS_FAIL;
+			else
+				ctx->config.cs_note_empty_data = *buf;
+			break;
+		case CS_GET:
+			if (buf)
+				*buf = ctx->config.cs_note_empty_data;
+			else
+				ret = CS_FAIL;
+			break;
+		case CS_CLEAR:
+			ctx->config.cs_note_empty_data = CS_FALSE;
+			break;
+		default:
+			ret = CS_FAIL;
+		}
+		break;
 	default:
 		ret = CS_SUCCEED;
 		break;
@@ -2980,8 +3004,19 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 	 */
 
 	srclen = curcol->column_cur_size;
-	if (srclen < 0)
-		srclen = 0;
+	if (srclen < 0) {
+		/* this is NULL */
+		if (cmd->con->ctx->config.cs_note_empty_data == CS_FALSE) {
+			srclen = 0;
+		} else {
+			if (outlen)
+				*outlen = srclen;
+			if (item < resinfo->num_cols)
+				return CS_END_ITEM;
+			return CS_END_DATA;
+		}
+	}
+
 	src += cmd->get_data_bytes_returned;
 	srclen -= cmd->get_data_bytes_returned;
 
