@@ -1985,7 +1985,7 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 		destfmt.format = bindcol->column_bindfmt;
 
 		/* if convert return FAIL mark error but process other columns */
-		ret = _cs_convert(ctx, &srcfmt, src, &destfmt, dest, pdatalen);
+		ret = _cs_convert(ctx, &srcfmt, src, &destfmt, dest, pdatalen, TDS_INVALID_TYPE);
 		if (ret != CS_SUCCEED) {
 			tdsdump_log(TDS_DBG_FUNC, "cs_convert-result = %d\n", ret);
 			result = 1;

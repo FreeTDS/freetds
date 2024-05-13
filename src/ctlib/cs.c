@@ -505,9 +505,9 @@ cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 
 CS_RETCODE
 _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdata,
-	    const CS_DATAFMT_COMMON * destfmt, CS_VOID * destdata, CS_INT * resultlen)
+	    const CS_DATAFMT_COMMON * destfmt, CS_VOID * destdata, CS_INT * resultlen, TDS_SERVER_TYPE desttype)
 {
-	TDS_SERVER_TYPE src_type, desttype;
+	TDS_SERVER_TYPE src_type;
 	int src_len, destlen, len;
 	CONV_RESULT cres;
 	unsigned char *dest;
@@ -515,7 +515,8 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 	CS_INT dummy, datatype;
 	CS_VARCHAR *destvc = NULL;
 
-	tdsdump_log(TDS_DBG_FUNC, "cs_convert(%p, %p, %p, %p, %p, %p)\n", ctx, srcfmt, srcdata, destfmt, destdata, resultlen);
+	tdsdump_log(TDS_DBG_FUNC, "cs_convert(%p, %p, %p, %p, %p, %p, %d)\n",
+		    ctx, srcfmt, srcdata, destfmt, destdata, resultlen, desttype);
 
 	/* If destfmt is NULL we have a problem */
 	if (destfmt == NULL) {
@@ -556,10 +557,13 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 	}
 
 	datatype = destfmt->datatype;
-	desttype = _ct_get_server_type(NULL, datatype);
 	if (desttype == TDS_INVALID_TYPE) {
-		_csclient_msg(ctx, "cs_convert", 2, 1, 1, 16, "%d, %d", srcfmt->datatype, destfmt->datatype);
-		return CS_FAIL;
+		desttype = _ct_get_server_type(NULL, datatype);
+		if (desttype == TDS_INVALID_TYPE) {
+			_csclient_msg(ctx, "cs_convert", 2, 1, 1, 16, "%d, %d",
+				      srcfmt->datatype, destfmt->datatype);
+			return CS_FAIL;
+		}
 	}
 	destlen = destfmt->maxlength;
 	if (datatype == CS_VARCHAR_TYPE || datatype == CS_VARBINARY_TYPE) {
@@ -821,6 +825,14 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 		*resultlen = src_len;
 		ret = CS_SUCCEED;
 		break;
+	case SYBMSTIME:
+	case SYBMSDATE:
+	case SYBMSDATETIME2:
+	case SYBMSDATETIMEOFFSET:
+		*resultlen = sizeof(TDS_DATETIMEALL);
+		memcpy(dest, &(cres.dta), *resultlen);
+		ret = CS_SUCCEED;
+		break;
 	case SYBCHAR:
 	case SYBVARCHAR:
 	case SYBTEXT:
@@ -887,7 +899,7 @@ CS_RETCODE
 cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT * destfmt, CS_VOID * destdata, CS_INT * resultlen)
 {
 	return _cs_convert(ctx, _ct_datafmt_common(ctx, srcfmt), srcdata,
-			   _ct_datafmt_common(ctx, destfmt), destdata, resultlen);
+			   _ct_datafmt_common(ctx, destfmt), destdata, resultlen, TDS_INVALID_TYPE);
 }
 
 CS_RETCODE
