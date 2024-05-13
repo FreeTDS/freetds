@@ -515,6 +515,17 @@ blk_sendtext(CS_BLKDESC * blkdesc, CS_BLK_ROW * row, CS_BYTE * buffer, CS_INT bu
 }
 
 CS_RETCODE
+blk_sethints(CS_BLKDESC* blkdesc, CS_CHAR* hints, CS_INT hintslen)
+{
+	if (blkdesc != NULL
+	    && tds_dstr_copyn(&blkdesc->bcpinfo.hint, hints, hintslen) != NULL)
+		return CS_SUCCEED;
+	else
+		return CS_FAIL;
+
+}
+
+CS_RETCODE
 blk_srvinit(SRV_PROC * srvproc, CS_BLKDESC * blkdescp)
 {
 	tdsdump_log(TDS_DBG_FUNC, "blk_srvinit(%p, %p)\n", srvproc, blkdescp);
