@@ -1695,6 +1695,9 @@ struct tds_bcpinfo
 	TDSRESULTINFO *bindinfo;
 	TDS5COLINFO *sybase_colinfo;
 	TDS_INT sybase_count;
+	TDS_INT text_sent;
+	TDS_INT next_col;
+	TDS_INT blob_cols;
 };
 
 TDSRET tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
