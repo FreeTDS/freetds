@@ -2992,7 +2992,7 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 
 	if (item != cmd->get_data_item) {
 		TDSBLOB *blob = NULL;
-		size_t table_namelen, column_namelen;
+		size_t table_namelen, column_namelen, namelen;
 
 		/* allocate needed descriptor if needed */
 		free(cmd->iodesc);
@@ -3026,17 +3026,26 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 		/* TODO quote needed ?? */
 		/* avoid possible buffer overflow */
 		table_namelen = tds_dstr_len(&curcol->table_name);
-		if (table_namelen + 2 > sizeof(cmd->iodesc->name))
-			table_namelen = sizeof(cmd->iodesc->name) - 2;
+		table_namelen = TDS_MIN(table_namelen, sizeof(cmd->iodesc->name) - 2);
 		column_namelen = tds_dstr_len(&curcol->column_name);
-		if (table_namelen + column_namelen + 2 > sizeof(cmd->iodesc->name))
-			column_namelen = sizeof(cmd->iodesc->name) - 2 - table_namelen;
+		column_namelen = TDS_MIN(column_namelen, sizeof(cmd->iodesc->name) - 2 - table_namelen);
 
-		sprintf(cmd->iodesc->name, "%*.*s.%*.*s",
-			(int) table_namelen, (int) table_namelen, tds_dstr_cstr(&curcol->table_name),
-			(int) column_namelen, (int) column_namelen, tds_dstr_cstr(&curcol->column_name));
+		namelen = 0;
+		if (table_namelen) {
+			memcpy(cmd->iodesc->name, tds_dstr_cstr(&curcol->table_name), table_namelen);
+			namelen += table_namelen;
+		}
 
-		cmd->iodesc->namelen = strlen(cmd->iodesc->name);
+		cmd->iodesc->name[namelen] = '.';
+		++namelen;
+
+		if (column_namelen) {
+			memcpy(cmd->iodesc->name + namelen, tds_dstr_cstr(&curcol->column_name), column_namelen);
+			namelen += column_namelen;
+		}
+
+		cmd->iodesc->name[namelen] = '\0';
+		cmd->iodesc->namelen = (CS_INT) namelen;
 
 		if (blob && blob->valid_ptr) {
 			memcpy(cmd->iodesc->timestamp, blob->timestamp, CS_TS_SIZE);
