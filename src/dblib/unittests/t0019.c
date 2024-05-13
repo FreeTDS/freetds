@@ -91,8 +91,10 @@ main(void)
 	TEST((SYBCHAR, "ciao\0\0", 6, SYBCHAR, -1), "len=6 63 69 61 6F 00 00 00 2A 2A 2A");
 	TEST((SYBCHAR, "ciao  ", 6, SYBCHAR, 8), "len=6 63 69 61 6F 20 20 20 20 2A 2A");
 	TEST((SYBCHAR, "ciao\0\0", 6, SYBCHAR, 8), "len=6 63 69 61 6F 00 00 20 20 2A 2A");
-	TEST((SYBCHAR, "ciao  ", 6, SYBCHAR, 4), "error");
-	TEST((SYBCHAR, "ciao\0\0", 6, SYBCHAR, 4), "error");
+	TEST((SYBCHAR, "ciao  ", 6, SYBCHAR, 4),
+	     "len=4 63 69 61 6F 2A 2A 2A 2A 2A 2A" /* "error" */);
+	TEST((SYBCHAR, "ciao\0\0", 6, SYBCHAR, 4),
+	     "len=4 63 69 61 6F 2A 2A 2A 2A 2A 2A" /* "error" */);
 	TEST((SYBCHAR, "ciao  ", 6, SYBCHAR, 6), "len=6 63 69 61 6F 20 20 2A 2A 2A 2A");
 	TEST((SYBCHAR, "ciao\0\0", 6, SYBCHAR, 6), "len=6 63 69 61 6F 00 00 2A 2A 2A 2A");
 

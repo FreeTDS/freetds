@@ -296,11 +296,13 @@ main(void)
 	DO_TEST(CS_INT test = 1234567;
 		CS_CHAR test2[] = "1234567", CS_INT_TYPE, &test, sizeof(test), CS_CHAR_TYPE, 7, CS_SUCCEED, test2, 7);
 	DO_TEST(CS_CHAR test[] = "abc";
-		CS_CHAR test2[] = "ab", CS_CHAR_TYPE, test, 3, CS_CHAR_TYPE, 2, CS_FAIL, test2, 2);
+		CS_CHAR test2[] = "ab", CS_CHAR_TYPE, test, 3, CS_CHAR_TYPE, 2,
+		CS_SUCCEED /* CS_FAIL */, test2, 2);
 	DO_TEST(CS_CHAR test[] = "abc";
 		CS_CHAR test2[] = "616263", CS_BINARY_TYPE, test, 3, CS_CHAR_TYPE, 6, CS_SUCCEED, test2, 6);
 	DO_TEST(CS_CHAR test[] = "abcdef";
-		CS_CHAR test2[] = "616263", CS_BINARY_TYPE, test, 6, CS_CHAR_TYPE, 6, CS_FAIL, test2, 6);
+		CS_CHAR test2[] = "616263", CS_BINARY_TYPE, test, 6,
+		CS_CHAR_TYPE, 6, CS_SUCCEED /* CS_FAIL */, test2, 6);
 
 	/* conversion to various binaries */
 	DO_TEST(CS_CHAR test[] = "616263646566";
