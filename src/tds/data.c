@@ -975,7 +975,7 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 	size = tds_fix_column_size(tds, curcol);
 
 	src = curcol->column_data;
-	if (is_blob_col(curcol)) {
+	if (is_blob_col(curcol)	 &&  src != NULL) {
 		blob = (TDSBLOB *) src;
 		src = (unsigned char *) blob->textvalue;
 	}
@@ -1065,6 +1065,8 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 		/* put real data */
 		if (blob) {
 			tds_put_n(tds, s, colsize);
+		} else if (is_blob_col(curcol)) {
+			return TDS_SUCCESS; /* anticipate ctlib blk_textxfer */
 		} else {
 #ifdef WORDS_BIGENDIAN
 			unsigned char buf[64];
@@ -1130,6 +1132,9 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 		/* put real data */
 		if (blob) {
 			tds_put_n(tds, s, colsize);
+		} else if (is_blob_col(curcol)) {
+			/* accommodate ctlib blk_textxfer */
+			return TDS_SUCCESS;
 		} else {
 #ifdef WORDS_BIGENDIAN
 			unsigned char buf[64];
