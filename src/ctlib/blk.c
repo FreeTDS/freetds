@@ -694,7 +694,7 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 			default:
 				tdsdump_log(TDS_DBG_ERROR, "Not fixed length type (%d) and datalen not specified\n",
 					    bindcol->column_bindtype);
-				return CS_FAIL;
+				return TDS_FAIL;
 			}
 
 		} else {
@@ -719,7 +719,7 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 		if (desttype == CS_ILLEGAL_TYPE)
 			desttype = _ct_get_client_type(bindcol, false);
 		if (desttype == CS_ILLEGAL_TYPE)
-			return CS_FAIL;
+			return TDS_FAIL;
 		destfmt.datatype  = desttype;
 		destfmt.maxlength = bindcol->on_server.column_size;
 		destfmt.precision = bindcol->column_prec;
@@ -733,7 +733,7 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 					  (CS_VOID **) &coldata->data))
                     != CS_SUCCEED) {
 			tdsdump_log(TDS_DBG_INFO1, "convert failed for %d \n", srctype);
-			return CS_FAIL;
+			return TDS_FAIL;
 		}
 		if (destfmt.maxlength != bindcol->column_size
 		    &&	destfmt.datatype == CS_CHAR_TYPE
