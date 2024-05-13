@@ -2952,11 +2952,26 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 		if (table_namelen + column_namelen + 2 > sizeof(cmd->iodesc->name))
 			column_namelen = sizeof(cmd->iodesc->name) - 2 - table_namelen;
 
-		sprintf(cmd->iodesc->name, "%*.*s.%*.*s",
-			(int) table_namelen, (int) table_namelen, tds_dstr_cstr(&curcol->table_name),
-			(int) column_namelen, (int) column_namelen, tds_dstr_cstr(&curcol->column_name));
+		if (table_namelen) {
+			memcpy(cmd->iodesc->name,
+			       tds_dstr_cstr(&curcol->table_name),
+			       table_namelen);
+			cmd->iodesc->namelen = (CS_INT) table_namelen;
+		} else {
+			cmd->iodesc->namelen = 0;
+		}
 
-		cmd->iodesc->namelen = strlen(cmd->iodesc->name);
+		cmd->iodesc->name[cmd->iodesc->namelen] = '.';
+		++cmd->iodesc->namelen;
+
+		if (column_namelen) {
+			memcpy(cmd->iodesc->name + cmd->iodesc->namelen,
+			       tds_dstr_cstr(&curcol->column_name),
+			       column_namelen);
+			cmd->iodesc->namelen += (CS_INT) column_namelen;
+		}
+
+		cmd->iodesc->name[cmd->iodesc->namelen] = '\0';
 
 		if (blob && blob->valid_ptr) {
 			memcpy(cmd->iodesc->timestamp, blob->timestamp, CS_TS_SIZE);
