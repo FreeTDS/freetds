@@ -131,7 +131,7 @@ strip_headers(buffer *buf)
 			assert(end - p >= 8); /* to read SMP part */
 			len = TDS_GET_UA4LE(p+4);
 			assert(len >= 16);
-			assert(end - p >= len);
+			assert(p + len <= end);
 			p += 16;
 			len -= 16;
 			assert(end - p >= 4); /* to read TDS header part */
@@ -141,7 +141,7 @@ strip_headers(buffer *buf)
 			len = TDS_GET_UA2BE(p+2);
 		}
 		assert(len > 8);
-		assert(end - p >= len);
+		assert(p + len <= end);
 		final = p[1];
 		memmove(dst, p + 8, len - 8);
 		dst += len - 8;

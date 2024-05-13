@@ -128,7 +128,7 @@ odbc_iso2utf(DSTR *res, const char *s, unsigned int len)
 			*p++ = u;
 		}
 	}
-	assert(p+1-out <= o_len);
+	assert(p + 1 <= out + o_len);
 	return tds_dstr_setlen(res, p - out);
 }
 
@@ -211,7 +211,7 @@ odbc_wide2utf(DSTR *res, const SQLWCHAR *s, unsigned int len)
 		}
 		*p++ = 0x80 | (0x3f & u);
 	}
-	assert(p+1-out <= o_len);
+	assert(p + 1 <= out + o_len);
 	return tds_dstr_setlen(res, p - out);
 }
 
