@@ -734,8 +734,10 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 		bindcol->bcp_column_data->datalen = *datalen;
 		bindcol->bcp_column_data->is_null = null_column;
 
-		if (is_blob_col(bindcol)
-		    &&  bindcol->column_varaddr == NULL) {
+		if (null_column) {
+			return TDS_SUCCESS;
+		} else if (is_blob_col(bindcol)
+			   &&  bindcol->column_varaddr == NULL) {
 			/* Data will come piecemeal, via blk_textxfer. */
 			return TDS_NO_MORE_RESULTS;
 		}
