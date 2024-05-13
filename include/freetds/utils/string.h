@@ -22,8 +22,6 @@
 
 #include <freetds/macros.h>
 
-#include <freetds/pushvis.h>
-
 /** \addtogroup dstring
  * @{ 
  */
@@ -37,6 +35,8 @@ typedef struct tds_dstr {
 	size_t dstr_size;
 	char dstr_s[1];
 } *DSTR;
+
+#include <freetds/pushvis.h>
 
 /** Internal representation for an empty string */
 extern const struct tds_dstr tds_str_empty;
