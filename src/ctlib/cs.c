@@ -504,8 +504,10 @@ cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 }
 
 CS_RETCODE
-_cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdata,
-	    const CS_DATAFMT_COMMON * destfmt, CS_VOID * destdata, CS_INT * resultlen, TDS_SERVER_TYPE desttype)
+_cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt,
+	    CS_VOID * srcdata, const CS_DATAFMT_COMMON * destfmt,
+	    CS_VOID * destdata, CS_INT * resultlen, TDS_SERVER_TYPE desttype,
+	    CS_VOID ** handle)
 {
 	TDS_SERVER_TYPE src_type;
 	int src_len, destlen, len;
@@ -515,8 +517,10 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 	CS_INT dummy, datatype;
 	CS_VARCHAR *destvc = NULL;
 
-	tdsdump_log(TDS_DBG_FUNC, "cs_convert(%p, %p, %p, %p, %p, %p, %d)\n",
-		    ctx, srcfmt, srcdata, destfmt, destdata, resultlen, desttype);
+	tdsdump_log(TDS_DBG_FUNC,
+		    "cs_convert(%p, %p, %p, %p, %p, %p, %d, %p)\n",
+		    ctx, srcfmt, srcdata, destfmt, destdata, resultlen,
+		    desttype, handle);
 
 	/* If destfmt is NULL we have a problem */
 	if (destfmt == NULL) {
@@ -588,6 +592,14 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 
 	if (src_type == desttype) {
 		int minlen = src_len < destlen? src_len : destlen;
+		if (handle != NULL  &&	destvc == NULL) {
+			int type_len = tds_get_size_by_type(src_type);
+			if (type_len > minlen) {
+				minlen = type_len;
+			}
+			tds_realloc(handle, minlen + 1);
+			dest = (unsigned char *) *handle;
+		}
 
 		tdsdump_log(TDS_DBG_FUNC, "cs_convert() srctype == desttype\n");
 		switch (desttype) {
@@ -781,8 +793,14 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 			ret = CS_FAIL;
 			len = destlen;
 		}
-		memcpy(dest, cres.ib, len);
-		free(cres.ib);
+		if (handle == NULL) {
+			memcpy(dest, cres.ib, len);
+			free(cres.ib);
+		} else {
+			free(*handle);
+			*handle = cres.ib;
+			destlen = len;
+		}
 		*resultlen = len;
 		if (destvc) {
 			destvc->len = len;
@@ -851,7 +869,13 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 				tdsdump_log(TDS_DBG_FUNC, "not enough room for data + a null terminator - error\n");
 				ret = CS_FAIL;	/* not enough room for data + a null terminator - error */
 			} else {
-				memcpy(dest, cres.c, len);
+				if (handle == NULL) {
+					memcpy(dest, cres.c, len);
+				} else {
+					free(*handle);
+					*handle = cres.c;
+					dest = *handle;
+				}
 				dest[len] = 0;
 				*resultlen = len + 1;
 			}
@@ -860,7 +884,13 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 		case CS_FMT_PADBLANK:
 			tdsdump_log(TDS_DBG_FUNC, "cs_convert() FMT_PADBLANK\n");
 			/* strcpy here can lead to a small buffer overflow */
-			memcpy(dest, cres.c, len);
+			if (handle == NULL) {
+				memcpy(dest, cres.c, len);
+			} else {
+				free(*handle);
+				*handle = cres.c;
+				destlen = len;
+			}
 			memset(dest + len, ' ', destlen - len);
 			*resultlen = destlen;
 			break;
@@ -868,13 +898,24 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 		case CS_FMT_PADNULL:
 			tdsdump_log(TDS_DBG_FUNC, "cs_convert() FMT_PADNULL\n");
 			/* strcpy here can lead to a small buffer overflow */
-			memcpy(dest, cres.c, len);
+			if (handle == NULL) {
+				memcpy(dest, cres.c, len);
+			} else {
+				free(*handle);
+				*handle = cres.c;
+				destlen = len;
+			}
 			memset(dest + len, '\0', destlen - len);
 			*resultlen = destlen;
 			break;
 		case CS_FMT_UNUSED:
 			tdsdump_log(TDS_DBG_FUNC, "cs_convert() FMT_UNUSED\n");
-			memcpy(dest, cres.c, len);
+			if (handle == NULL) {
+				memcpy(dest, cres.c, len);
+			} else {
+				free(*handle);
+				*handle = cres.c;
+			}
 			*resultlen = len;
 			break;
 		default:
@@ -885,7 +926,9 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 			destvc->len = len;
 			*resultlen = sizeof(*destvc);
 		}
-		free(cres.c);
+		if (handle == NULL  ||	*handle != cres.c) {
+			free(cres.c);
+		}
 		break;
 	default:
 		ret = CS_FAIL;
@@ -899,7 +942,8 @@ CS_RETCODE
 cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT * destfmt, CS_VOID * destdata, CS_INT * resultlen)
 {
 	return _cs_convert(ctx, _ct_datafmt_common(ctx, srcfmt), srcdata,
-			   _ct_datafmt_common(ctx, destfmt), destdata, resultlen, TDS_INVALID_TYPE);
+			   _ct_datafmt_common(ctx, destfmt), destdata,
+			   resultlen, TDS_INVALID_TYPE, NULL);
 }
 
 CS_RETCODE

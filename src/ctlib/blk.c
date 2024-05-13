@@ -733,8 +733,10 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 		destfmt.format    = CS_FMT_UNUSED;
 
 		/* if convert return FAIL mark error but process other columns */
-		result = _cs_convert(ctx, &srcfmt, (CS_VOID *) src,
-				     &destfmt, (CS_VOID *) bindcol->bcp_column_data->data, &destlen, tds_desttype);
+		result = _cs_convert(ctx, &srcfmt, (CS_VOID *) src, &destfmt,
+				     (CS_VOID *) coldata->data, &destlen,
+				     tds_desttype,
+				     (CS_VOID **) &coldata->data);
 		if (result != CS_SUCCEED) {
 			tdsdump_log(TDS_DBG_ERROR, "conversion from srctype %d to desttype %d failed\n",
 				    srctype, desttype);
