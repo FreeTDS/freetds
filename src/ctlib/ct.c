@@ -3096,7 +3096,10 @@ ct_data_info(CS_COMMAND * cmd, CS_INT action, CS_INT colnum, CS_IODESC * iodesc)
 			return CS_FAIL;
 
 		cmd->iodesc->iotype = CS_IODATA;
-		cmd->iodesc->datatype = iodesc->datatype;
+
+		cmd->iodesc->datatype
+			= _ct_get_server_type(tds, iodesc->datatype);
+
 		cmd->iodesc->locale = cmd->con->locale;
 		cmd->iodesc->usertype = iodesc->usertype;
 		cmd->iodesc->total_txtlen = iodesc->total_txtlen;
@@ -3118,7 +3121,11 @@ ct_data_info(CS_COMMAND * cmd, CS_INT action, CS_INT colnum, CS_IODESC * iodesc)
 			return CS_FAIL;
 
 		iodesc->iotype = cmd->iodesc->iotype;
-		iodesc->datatype = cmd->iodesc->datatype;
+
+		iodesc->datatype
+			= _ct_get_client_type(resinfo->columns[colnum-1],
+					      true);
+
 		iodesc->locale = cmd->iodesc->locale;
 		iodesc->usertype = cmd->iodesc->usertype;
 		iodesc->total_txtlen = cmd->iodesc->total_txtlen;
