@@ -728,7 +728,10 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 
 		/* if convert return FAIL mark error but process other columns */
 		if ((result = _cs_convert(ctx, &srcfmt, (CS_VOID *) src,
-					 &destfmt, (CS_VOID *) bindcol->bcp_column_data->data, &destlen)) != CS_SUCCEED) {
+					  &destfmt, (CS_VOID *) coldata->data,
+					  &destlen,
+					  (CS_VOID **) &coldata->data))
+                    != CS_SUCCEED) {
 			tdsdump_log(TDS_DBG_INFO1, "convert failed for %d \n", srctype);
 			return CS_FAIL;
 		}
