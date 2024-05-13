@@ -2147,6 +2147,20 @@ _ct_get_client_type(const TDSCOLUMN *col, bool describe)
 	case SYBUINT8:
 		return CS_UBIGINT_TYPE;
 		break;
+	case SYBUINTN:
+		switch (col->column_size) {
+		case 8:
+			return CS_UBIGINT_TYPE;
+		case 4:
+			return CS_UINT_TYPE;
+		case 2:
+			return CS_USMALLINT_TYPE;
+		case 1:
+			return CS_TINYINT_TYPE;
+		default:
+			break;
+		}
+		break;
 	case SYBDATE:
 		return CS_DATE_TYPE;
 		break;
