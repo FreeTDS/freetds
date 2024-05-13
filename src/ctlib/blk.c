@@ -313,6 +313,15 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 
 static void _blk_clean_desc (CS_BLKDESC * blkdesc)
 {
+	if (blkdesc->bcpinfo.hint) {
+		/*
+		 * hint is formally const, so TDS_ZERO_FREE would yield
+		 * a warning.
+		 */
+		free((char*)blkdesc->bcpinfo.hint);
+		blkdesc->bcpinfo.hint = NULL;
+	}
+
 	tds_deinit_bcpinfo(&blkdesc->bcpinfo);
 
 	blkdesc->bcpinfo.direction = 0;
@@ -508,6 +517,21 @@ blk_sendtext(CS_BLKDESC * blkdesc, CS_BLK_ROW * row, CS_BYTE * buffer, CS_INT bu
 
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED blk_sendtext()\n");
 	return CS_FAIL;
+}
+
+CS_RETCODE
+blk_sethints(CS_BLKDESC* blkdesc, CS_CHAR* hints, CS_INT hintslen)
+{
+	char * h;
+
+	if (blkdesc == NULL  ||	 (h = tds_new(char, hintslen + 1)) == NULL) {
+		return CS_FAIL;
+	}
+
+	strlcpy(h, hints, hintslen + 1);
+	blkdesc->bcpinfo.hint = h;
+
+	return CS_SUCCEED;
 }
 
 CS_RETCODE

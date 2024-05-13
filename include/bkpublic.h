@@ -56,6 +56,7 @@ CS_RETCODE blk_rowxfer(CS_BLKDESC * blkdesc);
 CS_RETCODE blk_rowxfer_mult(CS_BLKDESC * blkdesc, CS_INT * row_count);
 CS_RETCODE blk_sendrow(CS_BLKDESC * blkdesc, CS_BLK_ROW * row);
 CS_RETCODE blk_sendtext(CS_BLKDESC * blkdesc, CS_BLK_ROW * row, CS_BYTE * buffer, CS_INT buflen);
+CS_RETCODE blk_sethints(CS_BLKDESC* blkdesc, CS_CHAR* hints, CS_INT hintslen);
 CS_RETCODE blk_srvinit(SRV_PROC * srvproc, CS_BLKDESC * blkdescp);
 CS_RETCODE blk_textxfer(CS_BLKDESC * blkdesc, CS_BYTE * buffer, CS_INT buflen, CS_INT * outlen);
 
