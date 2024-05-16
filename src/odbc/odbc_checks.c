@@ -74,7 +74,7 @@ odbc_check_stmt_extra(TDS_STMT * stmt)
 	odbc_check_desc_extra(stmt->apd);
 	odbc_check_desc_extra(stmt->ipd);
 	assert(!stmt->prepared_query_is_func || stmt->prepared_query_is_rpc);
-	assert(stmt->param_num <= stmt->param_count + 1);
+	assert(stmt->param_num <= (int) stmt->param_count + 1);
 	assert(stmt->num_param_rows >= 1);
 	assert(stmt->curr_param_row >= 0);
 	assert(stmt->curr_param_row <= stmt->num_param_rows);

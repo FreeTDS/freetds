@@ -417,7 +417,7 @@ tds_setup_connection(TDSSOCKET *tds, TDSLOGIN *login, bool set_db, bool set_spid
 {
 	TDSRET erc;
 	char *str;
-	int len;
+	size_t len;
 	bool parse_results = false;
 
 	len = 192 + tds_quote_id(tds, NULL, tds_dstr_cstr(&login->database),-1);
@@ -971,7 +971,7 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	TDS_INT time_zone = -120;
 	TDS_INT tds7version = tds70Version;
 
-	TDS_INT block_size = 4096;
+	unsigned int block_size = 4096;
 	
 	unsigned char option_flag1 = TDS_SET_LANG_ON | TDS_USE_DB_NOTIFY | TDS_INIT_DB_FATAL;
 	unsigned char option_flag2 = login->option_flag2;
@@ -988,9 +988,9 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	const char *user_name = tds_dstr_cstr(&login->user_name);
 	unsigned char *pwd;
 
-	/* FIXME: These are defined as size_t, but should be TDS_SMALLINT. */
+	/* FIXME: These should be TDS_SMALLINT. */
 	size_t user_name_len = strlen(user_name);
-	size_t auth_len = 0;
+	unsigned int auth_len = 0;
 
 	static const char ext_data[] =
 		"\x0a\x01\x00\x00\x00\x01"	/* Enable UTF-8 */
@@ -1014,7 +1014,7 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	};
 	struct {
 		const void *ptr;
-		unsigned pos, len, limit;
+		size_t pos, len, limit;
 	} data_fields[NUM_DATA_FIELDS], *field;
 
 	tds->out_flag = TDS7_LOGIN;
@@ -1277,7 +1277,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 {
 	int i, pkt_len;
 	const char *instance_name = tds_dstr_isempty(&login->instance_name) ? "MSSQLServer" : tds_dstr_cstr(&login->instance_name);
-	int instance_name_len = strlen(instance_name) + 1;
+	TDS_USMALLINT instance_name_len = strlen(instance_name) + 1;
 	TDS_CHAR crypt_flag;
 	unsigned int start_pos = 21;
 	TDSRET ret;

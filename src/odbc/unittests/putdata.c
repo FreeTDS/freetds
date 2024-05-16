@@ -24,7 +24,7 @@ static void
 Test(int direct)
 {
 	SQLLEN ind;
-	int len = strlen(test_text), n, i;
+	int len = sizeof(test_text) - 1, n, i;
 	const char *p;
 	char *pp;
 	SQLPOINTER ptr;
@@ -65,7 +65,7 @@ Test(int direct)
 			ODBC_REPORT_ERROR("Wrong pointer from SQLParamData");
 		}
 		while (*p) {
-			int l = strlen(p);
+			int l = (int) strlen(p);
 
 			if (l < n)
 				n = l;
@@ -119,7 +119,7 @@ Test(int direct)
 	if (ptr != (SQLPOINTER) 4567)
 		ODBC_REPORT_ERROR("Wrong pointer from SQLParamData");
 	while (pb != (buf + 254)) {
-		int l = buf + 254 - pb;
+		int l = (int) (buf + 254 - pb);
 
 		if (l < n)
 			n = l;
