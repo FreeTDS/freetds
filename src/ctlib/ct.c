@@ -2180,6 +2180,8 @@ _ct_get_client_type(const TDSCOLUMN *col, bool describe)
 	case SYBMSDATETIME2:
 	case SYBMSDATETIMEOFFSET:
 		break;
+	default: /* SYBNTEXT, etc. */
+		break;
 	}
 
 	return _cs_convert_not_client(NULL, col, NULL, NULL);
