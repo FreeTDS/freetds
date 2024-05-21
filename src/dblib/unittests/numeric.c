@@ -45,7 +45,6 @@ test(int bind_type, const char *bind_name, int override_prec, int override_scale
 	DBNUMERIC *num = NULL, *num2 = NULL;
 	RETCODE ret;
 	DBTYPEINFO ti;
-	int i;
 
 	printf("*** Starting test msdblib %d bind %s prec %d scale %d out prec %d out scale %d line %d\n",
 		msdblib, bind_name, override_prec, override_scale, out_prec, out_scale, line);
@@ -118,7 +117,7 @@ test(int bind_type, const char *bind_name, int override_prec, int override_scale
 	ret = dbconvert_ps(dbproc, SYBVARCHAR, (const BYTE *) "246.9", -1, SYBDECIMAL, (BYTE *) num2, sizeof(*num2), &ti);
 	chk(ret > 0, "dbconvert_ps");
 
-	for (i=0; (ret = dbresults(dbproc)) != NO_MORE_RESULTS; ++i) {
+	while ((ret = dbresults(dbproc)) != NO_MORE_RESULTS) {
 		RETCODE row_code;
 
 		switch (ret) {

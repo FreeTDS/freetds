@@ -190,7 +190,7 @@ TestRawODBCGuid(void)
 	SQLCHAR name[20];
 
 	SQLGUID sqlguid;
-	int count = 0;
+	/* int count = 0; */
 
 	AB_FUNCT(("TestRawODBCGuid (in)"));
 
@@ -299,7 +299,7 @@ TestRawODBCGuid(void)
 	queryString = "SELECT name, guid FROM #pet";
 	CHKExecDirect(T(queryString), SQL_NTS, "S");
 	while (SQLFetch(odbc_stmt) == SQL_SUCCESS) {
-		count++;
+		/* count++; */
 		CHKGetData(1, SQL_CHAR, name, 20, 0, "S");
 		CHKGetData(2, SQL_CHAR, guid, 37, 0, "S");
 
@@ -321,7 +321,7 @@ TestRawODBCGuid(void)
 	queryString = "SELECT name, guid FROM #pet";
 	CHKExecDirect(T(queryString), SQL_NTS, "S");
 	while (CHKFetch("SNo") == SQL_SUCCESS) {
-		count++;
+		/* count++; */
 		CHKGetData(1, SQL_CHAR, name, 20, 0, "S");
 		CHKGetData(2, SQL_GUID, &sqlguid, 16, 0, "S");
 
@@ -351,7 +351,7 @@ TestRawODBCGuid(void)
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_GUID, 0, 0, guid, 0, &lenOrInd, "S");
 	CHKExecDirect(T(queryString), SQL_NTS, "S");
 	while (SQLFetch(odbc_stmt) == SQL_SUCCESS) {
-		count++;
+		/* count++; */
 		CHKGetData(1, SQL_CHAR, name, 20, 0, "S");
 		CHKGetData(2, SQL_CHAR, guid, 37, 0, "S");
 

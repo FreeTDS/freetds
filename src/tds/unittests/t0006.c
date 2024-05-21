@@ -30,7 +30,7 @@ main(void)
 	TDSSOCKET *tds;
 	int verbose = 0;
 	int rc;
-	int row_count, i;
+	int /* row_count, */ i;
 
 	/* variables for conversions */
 	TDSCOLUMN *curcol;
@@ -102,7 +102,7 @@ main(void)
 
 	rc = tds_submit_query(tds, "SELECT * FROM #test_table");
 
-	row_count = 0;
+	/* row_count = 0; */
 	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) == TDS_SUCCESS) {
 		switch (result_type) {
 		case TDS_ROW_RESULT:
@@ -132,7 +132,7 @@ main(void)
 					}
 				}
 			}
-			row_count++;
+			/* row_count++; */
 		case TDS_COMPUTE_RESULT:
 			break;
 		default:

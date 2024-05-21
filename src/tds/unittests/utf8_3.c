@@ -32,7 +32,7 @@ test(const char *buf)
 {
 	char query[1024];
 	char tmp[129 * 3];
-	int i;
+	/* int i; */
 	int rc;
 	TDS_INT result_type;
 	int done_flags;
@@ -67,7 +67,7 @@ test(const char *buf)
 		exit(1);
 	}
 
-	i = 0;
+	/* i = 0; */
 	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_STOPAT_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) == TDS_SUCCESS) {
 
 		TDSCOLUMN *curcol;
@@ -83,7 +83,7 @@ test(const char *buf)
 				(unsigned) tds_dstr_len(&curcol->column_name), tmp, (unsigned int) strlen(tmp));
 			exit(1);
 		}
-		++i;
+		/* ++i; */
 	}
 
 	if (rc != TDS_SUCCESS || result_type == TDS_ROW_RESULT || result_type == TDS_COMPUTE_RESULT) {
