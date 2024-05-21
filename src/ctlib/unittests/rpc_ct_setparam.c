@@ -351,6 +351,7 @@ int i, j;
 				ret = ct_bind(cmd, (i + 1), &outdatafmt[i], coldata[i].value, &coldata[i].valuelen,
 					      & coldata[i].indicator);
 				if (ret != CS_SUCCEED) {
+					free(coldata[i].value);
 					fprintf(stderr, "ct_bind failed \n");
 					break;
 				}

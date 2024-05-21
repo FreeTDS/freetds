@@ -4,6 +4,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
+#include <freetds/bool.h>
 #include <freetds/test_assert.h>
 
 /* protos */
@@ -121,12 +122,17 @@ do_results(CS_COMMAND * cmd, CS_INT * results)
 {
 int result_num;
 CS_RETCODE results_ret, result_type;
+bool done = false;
 
 	result_num = 0;
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
 		printf("result_ret %d result_type %d\n", results_ret, result_type);
 		if (result_type == CS_STATUS_RESULT)
 			continue;
+		if (done) {
+			fputs("No further results were expected\n", stderr);
+			return CS_FAIL;
+		}
 		if (result_type != results[result_num]) {
 			fprintf(stderr, "ct_results() expected %d received %d\n", results[result_num], result_type);
 			return CS_FAIL;
@@ -137,8 +143,15 @@ CS_RETCODE results_ret, result_type;
 				return CS_FAIL;
 			}
 			break;
+		case CS_CMD_DONE:
+			done = true;
+			break;
 		}
 		result_num++;
+	}
+	if ( !done ) {
+		fputs("Never saw CS_CMD_DONE\n", stderr);
+		return CS_FAIL;
 	}
 	return results_ret;
 }

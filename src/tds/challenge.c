@@ -163,7 +163,7 @@ static TDSRET
 make_ntlm_v2_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_v2_hash[16])
 {
 	const char *user_name, *domain;
-	size_t domain_len, user_name_len, len, buf_usc2le_len = 0;
+	size_t domain_len, user_name_len = 0, len, buf_usc2le_len = 0;
 	const char *p;
 
 	unsigned char ntlm_hash[16];
@@ -174,13 +174,15 @@ make_ntlm_v2_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_v2_has
 	user_name = tds_dstr_cstr(&tds->login->user_name);
 
 	/* parse domain\username */
-	p = strchr(user_name, '\\');
+	p = user_name ? strchr(user_name, '\\') : NULL;
 
 	domain = user_name;
-	domain_len = p - user_name;
+	domain_len = p ? p - user_name : 0;
 
-	user_name = p + 1;
-	user_name_len = strlen(user_name);
+	if (p != NULL) {
+		user_name = p + 1;
+		user_name_len = strlen(user_name);
+	}
 
 	if (user_name_len > 128)
 		user_name_len = 128;
@@ -224,6 +226,9 @@ make_lm_v2_response(const unsigned char ntlm_v2_hash[16],
 {
 	int mac_len = 16 + client_data_len;
 	unsigned char *mac;
+
+	if (client_data == NULL	 ||  client_data_len <= 0)
+		return NULL;
 
 	mac = tds_new(unsigned char, mac_len);
 	if (!mac)
