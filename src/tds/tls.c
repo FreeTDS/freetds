@@ -18,10 +18,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <config.h>
-
 /* enabled some additional definitions for inet_pton */
 #define _WIN32_WINNT 0x600
+
+#include <config.h>
 
 #include <stdio.h>
 

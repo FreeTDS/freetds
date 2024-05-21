@@ -160,8 +160,13 @@ SQLSMALLINT odbc_alloc_handle_err_type(SQLSMALLINT type);
 	CHKR2(SQLSetPos, (odbc_stmt,a,b,c), SQL_HANDLE_STMT, odbc_stmt, res)
 #define CHKSetStmtAttr(a,b,c,res) \
 	CHKR2(SQLSetStmtAttr, (odbc_stmt,a,b,c), SQL_HANDLE_STMT, odbc_stmt, res)
+#if ODBCVER >= 0x0300
+#define CHKSetStmtOption(a,b,res) \
+	CHKSetStmtAttr(a, (SQLPOINTER) b, SQL_NTS, res)
+#else
 #define CHKSetStmtOption(a,b,res) \
 	CHKR2(SQLSetStmtOption, (odbc_stmt,a,b), SQL_HANDLE_STMT, odbc_stmt, res)
+#endif
 #define CHKTables(a,b,c,d,e,f,g,h,res) \
 	CHKR2(SQLTables, (odbc_stmt,a,b,c,d,e,f,g,h), SQL_HANDLE_STMT, odbc_stmt, res)
 #define CHKProcedureColumns(a,b,c,d,e,f,g,h,res) \

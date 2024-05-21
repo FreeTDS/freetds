@@ -825,7 +825,7 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 			unsigned int n_pfx = 1;
 
 			for (i = 0; i <= ncols ; ++i)
-				if ((offsets[i] / 256) < pfx_top)
+				if ((offsets[i] / 256u) < pfx_top)
 					++n_pfx;
 			*poff++ = n_pfx;
 			--pfx_top;
