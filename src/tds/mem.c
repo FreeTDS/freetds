@@ -550,7 +550,7 @@ tds_alloc_row(TDSRESULTINFO * res_info)
 	}
 	res_info->row_size = row_size;
 
-	ptr = tds_new0(unsigned char, res_info->row_size);
+	ptr = tds_new0(unsigned char, row_size ? row_size : 1);
 	res_info->current_row = ptr;
 	if (!ptr)
 		return TDS_FAIL;
