@@ -748,7 +748,7 @@ struct tds_column
 	/* FIXME find a best place to store these data, some are unused */
 	TDS_SMALLINT column_bindtype;
 	TDS_SMALLINT column_bindfmt;
-	TDS_UINT column_bindlen;
+	TDS_INT column_bindlen;
 	TDS_SMALLINT *column_nullbind;
 	TDS_CHAR *column_varaddr;
 	TDS_INT *column_lenbind;

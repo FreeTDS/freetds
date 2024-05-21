@@ -2230,9 +2230,9 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset TDS_UNUSED
 		if (bindcol->column_bindlen == 0)
 			goto null_data;
 		if (collen)
-			collen = (int) ((bindcol->column_bindlen < (TDS_UINT)collen) ? bindcol->column_bindlen : (TDS_UINT)collen);
+			collen = (bindcol->column_bindlen < collen) ? bindcol->column_bindlen : collen;
 		else
-			collen = (int) bindcol->column_bindlen;
+			collen = bindcol->column_bindlen;
 	}
 
 	desttype = tds_get_conversion_type(bindcol->column_type, bindcol->column_size);
