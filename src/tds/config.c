@@ -701,7 +701,8 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 	}
 
 	if (!s || got_error) {
-		login->valid_configuration = 0;
+		if (login)
+			login->valid_configuration = 0;
 		return false;
 	}
 	return true;
