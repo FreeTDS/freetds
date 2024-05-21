@@ -37,7 +37,7 @@ main(void)
 	CS_CHAR col3[32];
 
 	CS_INT compute_col1;
-	CS_CHAR compute_col3[32];
+	CS_CHAR compute_col3[32] = "";
 
 	unsigned rows[3] = { 0, 0, 0 };
 

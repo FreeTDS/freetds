@@ -704,7 +704,7 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 
 	if (ncols) {
 		TDS_UCHAR *poff = rowbuffer + row_pos;
-		unsigned int pfx_top = offsets[ncols] / 256;
+		unsigned int pfx_top = offsets[ncols] >> 8;
 
 		tdsdump_log(TDS_DBG_FUNC, "ncols=%u poff=%p [%u]\n", ncols, poff, offsets[ncols]);
 
@@ -714,7 +714,7 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 			unsigned int n_pfx = 1;
 
 			for (i = 0; i <= ncols ; ++i)
-				if ((offsets[i] / 256) < pfx_top)
+				if ((offsets[i] >> 8) < pfx_top)
 					++n_pfx;
 			*poff++ = n_pfx;
 			--pfx_top;
