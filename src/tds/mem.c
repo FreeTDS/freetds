@@ -850,8 +850,10 @@ tds_init_login(TDSLOGIN *login, TDSLOCALE * locale)
 	if (strtok_r(lc_all, ".", &tok)) {
 		char *encoding = strtok_r(NULL, "@", &tok);
 		if (encoding) {
-			if (!tds_dstr_copy(&login->client_charset, encoding))
+			if (!tds_dstr_copy(&login->client_charset, encoding)) {
+				free(lc_all);
 				return NULL;
+			}
 		}
 	}
 	free(lc_all);
