@@ -60,7 +60,7 @@ main(void)
 	}
 
 	odbc_reset_statement();
-	CHKSetStmtOption(SQL_ATTR_CURSOR_TYPE, SQL_CURSOR_DYNAMIC, "S");
+	CHKSetStmtOption_nowarning(SQL_ATTR_CURSOR_TYPE, SQL_CURSOR_DYNAMIC, "S");
 	CHKExecDirect(T("SELECT * FROM #rowset ORDER BY n"), SQL_NTS, "SI");
 
 	CHKBindCol(2, SQL_C_CHAR, buf, sizeof(buf), &len, "S");

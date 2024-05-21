@@ -62,6 +62,8 @@
 #ifdef __APPLE__
 #define KERBEROS_APPLE_DEPRECATED(x)
 #define GSSKRB_APPLE_DEPRECATED(x)
+#undef __API_DEPRECATED
+#define __API_DEPRECATED(x, y)
 #endif
 #include <gssapi/gssapi_krb5.h>
 
@@ -238,8 +240,14 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	 */
 	gss_buffer_desc send_tok;
 	OM_uint32 maj_stat, min_stat;
+#ifdef __APPLE__
+	/* some MacOS header defines gss_OID_desc with a wrong byte alignment, use external
+	 * library definition. */
+#  define nt_principal (*(gss_OID_desc *) GSS_KRB5_NT_PRINCIPAL_NAME)
+#else
 	/* same as GSS_KRB5_NT_PRINCIPAL_NAME but do not require .so library */
 	static gss_OID_desc nt_principal = { 10, (void*) "\x2a\x86\x48\x86\xf7\x12\x01\x02\x02\x01" };
+#endif
 	const char *server_name;
 	/* Storage for getaddrinfo calls */
 	struct addrinfo *addrs = NULL;

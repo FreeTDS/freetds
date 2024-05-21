@@ -1003,3 +1003,17 @@ struct odbc_lookup_int odbc_sql_c_types[] = {
 #undef TYPE
 	{ NULL, 0 }
 };
+
+#ifdef _MSC_VER
+/* See https://learn.microsoft.com/en-us/cpp/preprocessor/warning?view=msvc-170 */
+#pragma warning(push)
+#pragma warning(disable:4996)
+#endif
+SQLRETURN
+SQLSetStmtOption_nowarning(SQLHSTMT hstmt, SQLSMALLINT option, SQLULEN param)
+{
+	return SQLSetStmtOption(hstmt, option, param);
+}
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif

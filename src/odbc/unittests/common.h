@@ -162,6 +162,9 @@ SQLSMALLINT odbc_alloc_handle_err_type(SQLSMALLINT type);
 	CHKR2(SQLSetStmtAttr, (odbc_stmt,a,b,c), SQL_HANDLE_STMT, odbc_stmt, res)
 #define CHKSetStmtOption(a,b,res) \
 	CHKR2(SQLSetStmtOption, (odbc_stmt,a,b), SQL_HANDLE_STMT, odbc_stmt, res)
+SQLRETURN SQLSetStmtOption_nowarning(SQLHSTMT hstmt, SQLSMALLINT option, SQLULEN param);
+#define CHKSetStmtOption_nowarning(a,b,res) \
+	CHKR2(SQLSetStmtOption_nowarning, (odbc_stmt,a,b), SQL_HANDLE_STMT, odbc_stmt, res)
 #define CHKTables(a,b,c,d,e,f,g,h,res) \
 	CHKR2(SQLTables, (odbc_stmt,a,b,c,d,e,f,g,h), SQL_HANDLE_STMT, odbc_stmt, res)
 #define CHKProcedureColumns(a,b,c,d,e,f,g,h,res) \
