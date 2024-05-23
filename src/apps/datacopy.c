@@ -405,7 +405,7 @@ cleanup:
 static int
 create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 {
-	char ls_command[2048];
+	char ls_command[8192];
 	int i;
 	const char *sep;
 
