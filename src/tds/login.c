@@ -441,9 +441,10 @@ tds_setup_connection(TDSSOCKET *tds, TDSLOGIN *login, bool set_db, bool set_spid
 		strcat(str, "\n");
 	}
 	if (IS_TDS50(tds->conn)) {
-		strcat(str, "SELECT CONVERT(NVARCHAR(3), 'abc') nvc\n"
-		       "EXECUTE ('SELECT CONVERT(UNIVARCHAR(3), ''xyz'') uvc')\n");
+		strcat(str, "SELECT CONVERT(NVARCHAR(3), 'abc') nvc\n");
 		parse_results = true;
+		if (tds->conn->product_version >= TDS_SYB_VER(12, 0, 0))
+			strcat(str, "EXECUTE ('SELECT CONVERT(UNIVARCHAR(3), ''xyz'') uvc')\n");
 	}
 
 	/* nothing to set, just return */
