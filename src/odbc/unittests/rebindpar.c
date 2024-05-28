@@ -8,7 +8,7 @@ static void
 TestInsert(char *buf)
 {
 	SQLLEN ind;
-	int l = strlen(buf);
+	int l = (int) strlen(buf);
 	char sql[200];
 
 	/* insert some data and test success */

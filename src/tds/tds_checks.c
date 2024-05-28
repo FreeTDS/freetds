@@ -53,7 +53,7 @@ void
 tds_check_tds_extra(const TDSSOCKET * tds)
 {
 	const int invalid_state = 0;
-	int i;
+	TDS_UINT i;
 	TDSDYNAMIC *cur_dyn = NULL;
 	TDSCURSOR *cur_cursor = NULL;
 

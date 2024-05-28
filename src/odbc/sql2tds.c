@@ -136,7 +136,7 @@ odbc_wstr2str(TDS_STMT * stmt, const char *src, int* len)
 		return NULL;
 	}
 
-	*len = p - out;
+	*len = (int) (p - out);
 	return out;
 }
 
@@ -253,7 +253,7 @@ Memory_Error:
  */
 SQLRETURN
 odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _drecord *drec_axd, TDSCOLUMN *curcol,
-	bool compute_row, const TDS_DESC* axd, unsigned int n_row)
+	bool compute_row, const TDS_DESC* axd, SQLSETPOSIROW n_row)
 {
 	TDS_DBC * dbc = stmt->dbc;
 	TDSCONNECTION * conn = dbc->tds_socket->conn;
@@ -267,7 +267,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 	TDS_DATETIMEALL dta;
 	TDS_NUMERIC num;
 	SQL_NUMERIC_STRUCT *sql_num;
-	SQLINTEGER sql_len;
+	SQLLEN sql_len;
 	bool need_data = false;
 	int i;
 
@@ -308,8 +308,9 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 		}
 	}
 	if (is_numeric_type(curcol->column_type)) {
-		curcol->column_prec = drec_ixd->sql_desc_precision;
-		curcol->column_scale = drec_ixd->sql_desc_scale;
+		curcol->column_prec
+			= (TDS_TINYINT) drec_ixd->sql_desc_precision;
+		curcol->column_scale = (TDS_TINYINT) drec_ixd->sql_desc_scale;
 	}
 
 	if (drec_ixd->sql_desc_parameter_type != SQL_PARAM_INPUT)
@@ -400,9 +401,10 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 			return SQL_ERROR;
 		}
 		if (sql_src_type == SQL_C_WCHAR)
-			len = sqlwcslen((const SQLWCHAR *) src) * sizeof(SQLWCHAR);
+			len = (int) sqlwcslen((const SQLWCHAR *) src)
+				* sizeof(SQLWCHAR);
 		else
-			len = strlen(src);
+			len = (int) strlen(src);
 		break;
 	case SQL_DEFAULT_PARAM:
 		odbc_errs_add(&stmt->errs, "07S01", NULL);	/* Invalid use of default parameter */
@@ -564,8 +566,10 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
-		((TDS_NUMERIC *) dest)->precision = drec_ixd->sql_desc_precision;
-		((TDS_NUMERIC *) dest)->scale = drec_ixd->sql_desc_scale;
+		((TDS_NUMERIC *) dest)->precision
+			= (unsigned char) drec_ixd->sql_desc_precision;
+		((TDS_NUMERIC *) dest)->scale
+			= (unsigned char) drec_ixd->sql_desc_scale;
 	case SYBINTN:
 	case SYBINT1:
 	case SYBINT2:

@@ -193,8 +193,7 @@ static void
 test1(void)
 {
 	TDSFREEZE outer, inner;
-	size_t written;
-	unsigned left;
+	unsigned written, left;
 
 	/* just to not start at 0 */
 	append("test", 4);

@@ -300,10 +300,11 @@ tds_convert_binary(const TDS_UCHAR * src, TDS_INT srclen, int desttype, CONV_RES
 	return TDS_CONVERT_NOAVAIL;
 }
 
-TDS_INT
-tds_char2hex(TDS_CHAR *dest, TDS_UINT destlen, const TDS_CHAR * src, TDS_UINT srclen)
+ptrdiff_t
+tds_char2hex(TDS_CHAR *dest, size_t destlen,
+	     const TDS_CHAR * src, size_t srclen)
 {
-	unsigned int i;
+	size_t i;
 	unsigned char hex1, c = 0;
 
 	/* if srclen if odd we must add a "0" before ... */
@@ -1161,7 +1162,7 @@ tds_convert_money4(const TDSCONTEXT * tds_ctx, const TDS_MONEY4 * src, int destt
 		dollars = mny.mny4 / 10000;
 		if (!IS_UINT(dollars))
 			return TDS_CONVERT_OVERFLOW;
-		cr->ui = dollars;
+		cr->ui = (TDS_UINT) dollars;
 		return sizeof(TDS_UINT);
 		break;
 	case SYBINT8:
@@ -1558,7 +1559,7 @@ tds_convert_bigdatetime(const TDSCONTEXT * tds_ctx, const TDS_BIGDATETIME * bigd
 	dta.time = bdt % (UINT64_C(86400) * 1000000u) * 10u;
 	bdt /= UINT64_C(86400) * 1000000u;
 	dta.has_date = 1;
-	dta.date = bdt - BIGDATETIME_BIAS;
+	dta.date = (TDS_INT) (bdt - BIGDATETIME_BIAS);
 	return tds_convert_datetimeall(tds_ctx, SYBMSDATETIME2, &dta, desttype, cr);
 }
 
@@ -1940,7 +1941,7 @@ tds_convert_to_binary(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int de
 				TDS_ZERO_FREE(cr->ib);
 			return destlen;
 		}
-		return tds_char2hex(ib, cr->cb.len, src, srclen);
+		return (TDS_INT) tds_char2hex(ib, cr->cb.len, src, srclen);
 
 	default:
 		return TDS_CONVERT_NOAVAIL;
@@ -3325,7 +3326,7 @@ tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
 		secs = bigdatetime % 60u;
 		bigdatetime /= 60u;
 		dt_time = bigdatetime % (24u*60u);
-		dt_days = bigdatetime / (24u*60u) - BIGDATETIME_BIAS;
+		dt_days = (int) (bigdatetime / (24u*60u) - BIGDATETIME_BIAS);
 	} else {
 		return TDS_FAIL;
 	}

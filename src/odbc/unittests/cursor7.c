@@ -15,7 +15,7 @@ Test(void)
 	SQLUSMALLINT statuses[ROWS];
 	SQLULEN num_row;
 
-	int i;
+	SQLLEN i;
 	SQLRETURN RetCode;
 
 	odbc_reset_statement();

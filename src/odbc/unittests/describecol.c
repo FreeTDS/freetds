@@ -38,11 +38,11 @@ lookup(const char *name, const struct odbc_lookup_int *table, odbc_parser *parse
 }
 
 static const char*
-unlookup(long int value, const struct odbc_lookup_int *table)
+unlookup(SQLLEN value, const struct odbc_lookup_int *table)
 {
 	static char buf[32];
 
-	sprintf(buf, "%ld", value);
+	sprintf(buf, "%ld", (long) value);
 	if (!table)
 		return buf;
 

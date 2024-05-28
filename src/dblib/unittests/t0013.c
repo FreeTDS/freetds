@@ -37,12 +37,13 @@ test(int argc, char **argv, int over4k)
 	int i;
 	DBINT testint;
 	FILE *fp;
-	long result, isiz;
+	ptrdiff_t result;
+	long isiz;
 	char *blob, *rblob;
 	DBBINARY *textPtr = NULL, *timeStamp = NULL;
 	char objname[256];
 	char rbuf[BLOB_BLOCK_SIZE];
-	long numread;
+	size_t numread;
 	int data_ok;
 	int numtowrite, numwritten;
 	set_malloc_options();
@@ -263,7 +264,7 @@ test(int argc, char **argv, int over4k)
 		data_ok = 0;
 	}
 
-	printf("Read blob data row %d --> %s %ld byte comparison\n",
+	printf("Read blob data row %d --> %s %zu byte comparison\n",
 	       (int) testint, data_ok ? "PASSED" : "failed", numread);
 	free(rblob);
 

@@ -84,7 +84,7 @@ desc_alloc(SQLHANDLE parent, int desc_type, SQLSMALLINT alloc_type)
 	STR_OP(sql_desc_table_name)
 
 SQLRETURN
-desc_alloc_records(TDS_DESC * desc, unsigned count)
+desc_alloc_records(TDS_DESC * desc, SQLSMALLINT count)
 {
 	struct _drecord *drec;
 	int i;
@@ -101,7 +101,7 @@ desc_alloc_records(TDS_DESC * desc, unsigned count)
 		return SQL_ERROR;
 	memset(desc->records + desc->header.sql_desc_count, 0, sizeof(struct _drecord) * (count - desc->header.sql_desc_count));
 
-	for (i = desc->header.sql_desc_count; i < count; ++i) {
+	for (i = desc->header.sql_desc_count;  i < count;  ++i) {
 		drec = &desc->records[i];
 
 #define STR_OP(name) tds_dstr_init(&drec->name)

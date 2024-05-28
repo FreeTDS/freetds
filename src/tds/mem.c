@@ -884,7 +884,8 @@ tds_init_login(TDSLOGIN *login, TDSLOCALE * locale)
 }
 
 TDSCURSOR *
-tds_alloc_cursor(TDSSOCKET *tds, const char *name, TDS_INT namelen, const char *query, TDS_INT querylen)
+tds_alloc_cursor(TDSSOCKET *tds, const char *name, size_t namelen,
+		 const char *query, size_t querylen)
 {
 	TDSCURSOR *cursor;
 	TDSCURSOR *pcursor;
@@ -1347,7 +1348,7 @@ tds_alloc_socket(TDSCONTEXT * context, unsigned int bufsize)
 #endif /* !ENABLE_ODBC_MARS */
 
 TDSSOCKET *
-tds_realloc_socket(TDSSOCKET * tds, size_t bufsize)
+tds_realloc_socket(TDSSOCKET * tds, unsigned int bufsize)
 {
 	TDSPACKET *packet;
 #if ENABLE_ODBC_MARS

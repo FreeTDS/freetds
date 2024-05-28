@@ -76,7 +76,7 @@ static int
 get_utf8(const unsigned char *p, size_t len, ICONV_CHAR *out)
 {
 	uint32_t uc, state = UTF8_ACCEPT;
-	size_t l = 1;
+	unsigned int l = 1;
 
 	do {
 		switch (decode_utf8(&state, &uc, *p++)) {
@@ -94,7 +94,7 @@ static int
 put_utf8(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 {
 #define MASK(n) ((0xffffffffu << (n)) & 0xffffffffu)
-	size_t o_len;
+	int o_len;
 
 	if ((c & MASK(7)) == 0) {
 		if (buf_len < 1)
@@ -130,7 +130,7 @@ put_utf8(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 		c >>= 6;
 	} while (--buf_len);
 	*--buf = (0xff00u >> o_len) | c;
-	return o_len;
+	return (int) o_len;
 }
 
 static int

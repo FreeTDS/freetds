@@ -16,7 +16,8 @@ char_test(const char *null, int bindlen, const char *expected)
 
 	if (null) {
 		fprintf(stderr, "\tdbsetnull(CHARBIND, %u, '%s').\n", (unsigned int) strlen(null), null);
-		ret = dbsetnull(dbproc, CHARBIND, strlen(null), (BYTE *) null);
+		ret = dbsetnull(dbproc, CHARBIND, (int) strlen(null),
+				(BYTE *) null);
 		if (ret != SUCCEED) {
 			fprintf(stderr, "dbsetnull returned error %d\n", (int) ret);
 			failed = 1;

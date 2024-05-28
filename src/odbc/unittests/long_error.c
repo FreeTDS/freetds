@@ -48,7 +48,7 @@ main(void)
 static void
 extract_error(SQLHANDLE handle, SQLSMALLINT type)
 {
-	SQLINTEGER i = 0;
+	SQLSMALLINT i = 0;
 	SQLINTEGER native;
 	SQLTCHAR state[7];
 	SQLTCHAR text[256];

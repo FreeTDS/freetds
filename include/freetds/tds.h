@@ -1351,7 +1351,7 @@ tds_release_cur_dyn(TDSSOCKET * tds)
 }
 void tds_dynamic_deallocated(TDSCONNECTION *conn, TDSDYNAMIC *dyn);
 void tds_set_cur_dyn(TDSSOCKET *tds, TDSDYNAMIC *dyn);
-TDSSOCKET *tds_realloc_socket(TDSSOCKET * tds, size_t bufsize);
+TDSSOCKET *tds_realloc_socket(TDSSOCKET * tds, unsigned int bufsize);
 char *tds_alloc_client_sqlstate(int msgno);
 char *tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgno);
 TDSLOGIN *tds_alloc_login(bool use_environment);
@@ -1361,7 +1361,8 @@ TDSLOGIN *tds_init_login(TDSLOGIN * login, TDSLOCALE * locale);
 TDSLOCALE *tds_alloc_locale(void);
 void *tds_alloc_param_data(TDSCOLUMN * curparam);
 void tds_free_locale(TDSLOCALE * locale);
-TDSCURSOR * tds_alloc_cursor(TDSSOCKET * tds, const char *name, TDS_INT namelen, const char *query, TDS_INT querylen);
+TDSCURSOR * tds_alloc_cursor(TDSSOCKET * tds, const char *name, size_t namelen,
+			     const char *query, size_t querylen);
 void tds_free_row(TDSRESULTINFO * res_info, unsigned char *row);
 TDSSOCKET *tds_alloc_socket(TDSCONTEXT * context, unsigned int bufsize);
 TDSSOCKET *tds_alloc_additional_socket(TDSCONNECTION *conn);
@@ -1418,13 +1419,17 @@ TDSRET tds_submit_begin_tran(TDSSOCKET *tds);
 TDSRET tds_submit_rollback(TDSSOCKET *tds, bool cont);
 TDSRET tds_submit_commit(TDSSOCKET *tds, bool cont);
 TDSRET tds_disconnect(TDSSOCKET * tds);
-size_t tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen);
-size_t tds_quote_id_rpc(TDSSOCKET * tds, char *buffer, const char *id, int idlen);
-size_t tds_quote_string(TDSSOCKET * tds, char *buffer, const char *str, int len);
+size_t tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id,
+		    ptrdiff_t idlen);
+size_t tds_quote_id_rpc(TDSSOCKET * tds, char *buffer, const char *id,
+			ptrdiff_t idlen);
+size_t tds_quote_string(TDSSOCKET * tds, char *buffer, const char *str,
+			ptrdiff_t len);
 const char *tds_skip_comment(const char *s);
 const char *tds_skip_quoted(const char *s);
 size_t tds_fix_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol);
-const char *tds_convert_string(TDSSOCKET * tds, TDSICONV * char_conv, const char *s, int len, size_t *out_len);
+const char *tds_convert_string(TDSSOCKET * tds, TDSICONV * char_conv,
+			       const char *s, ptrdiff_t len, size_t *out_len);
 void tds_convert_string_free(const char *original, const char *converted);
 #if !ENABLE_EXTRA_CHECKS
 #define tds_convert_string_free(original, converted) \
@@ -1553,14 +1558,17 @@ int tds7_get_instance_ports(FILE *output, struct addrinfo *addr);
 int tds7_get_instance_port(struct addrinfo *addr, const char *instance);
 char *tds_prwsaerror(int erc);
 void tds_prwsaerror_free(char *s);
-int tds_connection_read(TDSSOCKET * tds, unsigned char *buf, int buflen);
-int tds_connection_write(TDSSOCKET *tds, const unsigned char *buf, int buflen, int final);
+ptrdiff_t tds_connection_read(TDSSOCKET * tds, unsigned char *buf,
+			      size_t buflen);
+ptrdiff_t tds_connection_write(TDSSOCKET *tds, const unsigned char *buf,
+			       size_t buflen, int final);
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
 int tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds);
 void tds_connection_close(TDSCONNECTION *conn);
-int tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen);
-int tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen);
+ptrdiff_t tds_goodread(TDSSOCKET * tds, unsigned char *buf, size_t buflen);
+ptrdiff_t tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer,
+			size_t buflen);
 void tds_socket_flush(TDS_SYS_SOCKET sock);
 int tds_socket_set_nonblocking(TDS_SYS_SOCKET sock);
 int tds_wakeup_init(TDSPOLLWAKEUP *wakeup);
@@ -1596,7 +1604,7 @@ typedef struct tds_freeze {
 } TDSFREEZE;
 
 void tds_freeze(TDSSOCKET *tds, TDSFREEZE *freeze, unsigned size_len);
-size_t tds_freeze_written(TDSFREEZE *freeze);
+unsigned int tds_freeze_written(TDSFREEZE *freeze);
 TDSRET tds_freeze_abort(TDSFREEZE *freeze);
 TDSRET tds_freeze_close(TDSFREEZE *freeze);
 TDSRET tds_freeze_close_string(TDSFREEZE *freeze);

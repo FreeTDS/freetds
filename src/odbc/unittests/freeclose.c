@@ -57,7 +57,7 @@ static socklen_t remote_addr_len;
 #endif
 
 static void
-write_all(TDS_SYS_SOCKET s, const void *buf, size_t len)
+write_all(TDS_SYS_SOCKET s, const void *buf, int len)
 {
 	int res, l;
 	fd_set fds_write;

@@ -1527,7 +1527,10 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 				fseeko(hostfile, row_start, SEEK_SET);
 
 				while (error_row_size > 0) {
-					size_t chunk = error_row_size > chunk_size ? chunk_size : (size_t) error_row_size;
+					size_t chunk = ((size_t) error_row_size
+							> chunk_size)
+						? chunk_size
+						: (size_t) error_row_size;
 
 					if (!row_in_error) {
 						if ((row_in_error = tds_new(char, chunk)) == NULL) {

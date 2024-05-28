@@ -621,8 +621,9 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		char *end;
 		long flags;
 		flags = strtol(value, &end, 0);
-		if (*value != '\0' && *end == '\0' && flags != LONG_MIN && flags != LONG_MAX)
-			login->debug_flags = flags;
+		if (*value != '\0' && *end == '\0' && flags > INT_MIN
+		    && flags < INT_MAX)
+		    login->debug_flags = (int) flags;
 	} else if (!strcmp(option, TDS_STR_TIMEOUT) || !strcmp(option, TDS_STR_QUERY_TIMEOUT)) {
 		if (atoi(value))
 			login->query_timeout = atoi(value);

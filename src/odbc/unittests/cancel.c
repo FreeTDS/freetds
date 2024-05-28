@@ -73,7 +73,7 @@ static HANDLE alarm_cond = NULL;
 static DWORD WINAPI
 alarm_thread_proc(LPVOID arg)
 {
-	unsigned int timeout = (uintptr_t) arg;
+	unsigned int timeout = (unsigned int) (uintptr_t) arg;
 	switch (WaitForSingleObject(alarm_cond, timeout * 1000)) {
 	case WAIT_OBJECT_0:
 		return 0;
