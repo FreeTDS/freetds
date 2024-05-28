@@ -105,7 +105,7 @@ establish_login(int argc, char **argv)
 			PWD = strdup(optarg);
 			break;
 		case 'm':
-			common_pwd.maxlength = strtol(optarg, NULL, 10);
+			common_pwd.maxlength = (CS_INT) strtol(optarg, NULL, 10);
 		case 'v':
 			common_pwd.fverbose = 1;
 			break;

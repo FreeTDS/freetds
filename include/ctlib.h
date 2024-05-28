@@ -326,9 +326,9 @@ struct _cs_locale
 
 /* internal defines for cursor processing */
 
-#define _CS_CURS_TYPE_UNACTIONED 0
-#define _CS_CURS_TYPE_REQUESTED  1
-#define _CS_CURS_TYPE_SENT       2
+#define _CS_CURS_TYPE_UNACTIONED TDS_CURSOR_STATE_UNACTIONED
+#define _CS_CURS_TYPE_REQUESTED  TDS_CURSOR_STATE_REQUESTED
+#define _CS_CURS_TYPE_SENT       TDS_CURSOR_STATE_SENT
 
 typedef struct {
 	CS_CHAR name[132];

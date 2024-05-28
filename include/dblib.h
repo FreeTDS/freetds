@@ -116,7 +116,7 @@ typedef struct dboption
 typedef struct
 {
 	const BYTE *bindval;
-	size_t len;
+	unsigned int len;
 } NULLREP;
 
 struct tds_dblib_dbprocess

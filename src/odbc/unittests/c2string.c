@@ -36,7 +36,7 @@ odbc_c2string(char *out, SQLSMALLINT out_c_type, const void *in, size_t in_len)
 	} buf_t;
 #undef IN
 #define IN (*((const buf_t*) in))
-	int i;
+	size_t i;
 	const SQL_NUMERIC_STRUCT *num;
 	char *s;
 
@@ -49,7 +49,7 @@ odbc_c2string(char *out, SQLSMALLINT out_c_type, const void *in, size_t in_len)
 		i = SQL_MAX_NUMERIC_LEN;
 		for (; i > 0 && !num->val[--i];)
 			continue;
-		for (; i >= 0; --i)
+		for (; (int) i >= 0; --i)
 			s += sprintf(s, "%02X", num->val[i]);
 		break;
 	case SQL_C_BINARY:

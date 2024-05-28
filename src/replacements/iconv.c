@@ -82,7 +82,7 @@ get_utf8(const unsigned char *p, size_t len, ICONV_CHAR *out)
 		switch (decode_utf8(&state, &uc, *p++)) {
 		case UTF8_ACCEPT:
 			*out = uc;
-			return l;
+			return (int) l;
 		case UTF8_REJECT:
 			return -EILSEQ;
 		}
@@ -130,7 +130,7 @@ put_utf8(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 		c >>= 6;
 	} while (--buf_len);
 	*--buf = (0xff00u >> o_len) | c;
-	return o_len;
+	return (int) o_len;
 }
 
 static int

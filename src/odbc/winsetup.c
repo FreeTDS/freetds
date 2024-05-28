@@ -334,7 +334,7 @@ ConfigDSN(HWND hwndParent, WORD fRequest, LPCSTR lpszDriver, LPCSTR lpszAttribut
 		result = DialogBoxParam(hinstFreeTDS, MAKEINTRESOURCE(IDD_DSN), hwndParent, (DLGPROC) DSNDlgProc, (LPARAM) di);
 		if (result < 0) {
 			DWORD errorcode = GetLastError();
-			char buf[1000];
+			TCHAR buf[1000];
 
 			FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorcode, 0, buf, 1000, NULL);
 		}

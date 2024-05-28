@@ -25,7 +25,7 @@ void tds_des_encrypt(const DES_KEY * key, des_cblock block);
 #endif
 
 void tds_des_set_odd_parity(des_cblock key);
-int tds_des_ecb_encrypt(const void *plaintext, int len, DES_KEY * akey, uint8_t *output);
+int tds_des_ecb_encrypt(const void *plaintext, size_t len, DES_KEY * akey, uint8_t *output);
 
 #include <freetds/popvis.h>
 

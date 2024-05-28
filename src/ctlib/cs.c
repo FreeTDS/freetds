@@ -1124,11 +1124,11 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 	}
 	else if (action == CS_GET)
 	{
-		int tlen;
+		CS_INT tlen;
 
 		switch (type) {
 		case CS_SYB_CHARSET:
-			tlen = (locale->charset ? strlen(locale->charset) : 0) + 1;
+			tlen = (locale->charset ? (CS_INT) strlen(locale->charset) : 0) + 1;
 			if (buflen < tlen)
 			{
 				if (outlen)
@@ -1143,7 +1143,7 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 			break;
 
 		case CS_SYB_LANG:
-			tlen = (locale->language ? strlen(locale->language) : 0) + 1;
+			tlen = (locale->language ? (CS_INT) strlen(locale->language) : 0) + 1;
 			if (buflen < tlen)
 			{
 				if (outlen)
@@ -1159,10 +1159,10 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 
 		case CS_SYB_LANG_CHARSET:
 		{
-			int clen;
+			CS_INT clen;
 
-			tlen = (locale->language ? strlen(locale->language) : 0) + 1;
-			clen = (locale->charset ? strlen(locale->charset) : 0) + 1;
+			tlen = (locale->language ? (CS_INT) strlen(locale->language) : 0) + 1;
+			clen = (locale->charset ? (CS_INT) strlen(locale->charset) : 0) + 1;
 			
 			if (buflen < (tlen + clen))
 			{
@@ -1176,7 +1176,7 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 				((char *)buffer)[0] = '\0';
 			strcat((char *)buffer, ".");
 			if (locale->charset) {
-				tlen = strlen((char *)buffer);
+				tlen = (CS_INT) strlen((char *)buffer);
 				strcpy((char *)buffer + tlen, locale->charset);
 			}
 			code = CS_SUCCEED;
@@ -1184,7 +1184,7 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 		}
 
 		case CS_SYB_SORTORDER:
-			tlen = (locale->collate ? strlen(locale->collate) : 0) + 1;
+			tlen = (locale->collate ? (CS_INT) strlen(locale->collate) : 0) + 1;
 			if (buflen < tlen)
 			{
 				if (outlen)

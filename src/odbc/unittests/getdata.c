@@ -33,7 +33,7 @@ static int
 mycmp(const char *s1, const char *s2)
 {
 	SQLWCHAR buf[128], *wp;
-	unsigned l;
+	size_t l;
 
 	if (type == SQL_C_CHAR)
 		return strcmp(s1, s2);

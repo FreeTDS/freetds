@@ -37,7 +37,7 @@ typedef struct
 	char USER[512];
 	char PASSWORD[512];
 	char fverbose;
-	int maxlength;
+	CS_INT maxlength;
 } COMMON_PWD;
 extern COMMON_PWD common_pwd;
 

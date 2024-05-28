@@ -65,7 +65,7 @@ main(int argc, char *argv[])
 			fprintf(stderr, "binding column 1 (%s)\n", datafmt.name);
 
 			/* set maxlength to something short to test truncation behavior */
-			if (common_pwd.maxlength) 
+			if (common_pwd.maxlength)
 				datafmt.maxlength = common_pwd.maxlength;
 
 			check_call(ct_bind, (cmd, 1, &datafmt, addr, &copied, &ind));

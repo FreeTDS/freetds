@@ -128,7 +128,7 @@ _ct_handle_client_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAG
 	errmsg.msgnumber = msg->msgno;
 	errmsg.severity = _ct_translate_severity(msg->severity);
 	strlcpy(errmsg.msgstring, msg->message, sizeof(errmsg.msgstring));
-	errmsg.msgstringlen = strlen(errmsg.msgstring);
+	errmsg.msgstringlen = (CS_INT) strlen(errmsg.msgstring);
 
 	if (msg->oserr) {
 		char *osstr = sock_strerror(msg->oserr);
@@ -209,18 +209,18 @@ _ct_handle_server_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAG
 	memset(&errmsg, '\0', sizeof(errmsg));
 	errmsg.common.msgnumber = msg->msgno;
 	strlcpy(errmsg.common.text, msg->message, sizeof(errmsg.common.text));
-	errmsg.common.textlen = strlen(errmsg.common.text);
+	errmsg.common.textlen = (CS_INT) strlen(errmsg.common.text);
 	errmsg.common.state = msg->state;
 	errmsg.common.severity = msg->severity;
 
 #define MIDDLE_PART(part) do { \
 	common2 = (CS_SERVERMSG_COMMON2 *) &(errmsg.part.line); \
 	if (msg->server) { \
-		errmsg.part.svrnlen = strlen(msg->server); \
+		errmsg.part.svrnlen = (CS_INT) strlen(msg->server); \
 		strlcpy(errmsg.part.svrname, msg->server, sizeof(errmsg.part.svrname)); \
 	} \
 	if (msg->proc_name) { \
-		errmsg.part.proclen = strlen(msg->proc_name); \
+		errmsg.part.proclen = (CS_INT) strlen(msg->proc_name); \
 		strlcpy(errmsg.part.proc, msg->proc_name, sizeof(errmsg.part.proc)); \
 	} \
 } while(0)
@@ -234,7 +234,7 @@ _ct_handle_server_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAG
 	common2->sqlstate[0] = 0;
 	if (msg->sql_state)
 		strlcpy((char *) common2->sqlstate, msg->sql_state, sizeof(common2->sqlstate));
-	common2->sqlstatelen = strlen((char *) common2->sqlstate);
+	common2->sqlstatelen = (CS_INT) strlen((char *) common2->sqlstate);
 	common2->line = msg->line_number;
 
 	/* if there is no connection, attempt to call the context handler */
@@ -298,7 +298,7 @@ _ct_datafmt_conv_in(CS_CONTEXT * ctx, const CS_DATAFMT * datafmt, CS_DATAFMT_LAR
 	small = (const CS_DATAFMT_SMALL *) datafmt;
 
 	strlcpy(fmtbuf->name, small->name, sizeof(fmtbuf->name));
-	fmtbuf->namelen = strlen(fmtbuf->name);
+	fmtbuf->namelen = (CS_INT) strlen(fmtbuf->name);
 	*((CS_DATAFMT_COMMON *) &fmtbuf->datatype) = *((CS_DATAFMT_COMMON *) &small->datatype);
 	return fmtbuf;
 }
@@ -342,7 +342,7 @@ _ct_datafmt_conv_back(CS_DATAFMT * datafmt, CS_DATAFMT_LARGE *fmtbuf)
 	small = (CS_DATAFMT_SMALL *) datafmt;
 
 	strlcpy(small->name, fmtbuf->name, sizeof(small->name));
-	small->namelen = strlen(small->name);
+	small->namelen = (CS_INT) strlen(small->name);
 	*((CS_DATAFMT_COMMON *) &small->datatype) = *((CS_DATAFMT_COMMON *) &fmtbuf->datatype);
 }
 

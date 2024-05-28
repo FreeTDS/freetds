@@ -84,7 +84,7 @@ desc_alloc(SQLHANDLE parent, int desc_type, SQLSMALLINT alloc_type)
 	STR_OP(sql_desc_table_name)
 
 SQLRETURN
-desc_alloc_records(TDS_DESC * desc, unsigned count)
+desc_alloc_records(TDS_DESC * desc, SQLSMALLINT count)
 {
 	struct _drecord *drec;
 	int i;

@@ -16,7 +16,7 @@ static CS_INT dest_format = CS_FMT_UNUSED;
 static int
 DoTest(
 	      /* source information */
-	      CS_INT fromtype, void *fromdata, CS_INT fromlen,
+	      CS_INT fromtype, void *fromdata, size_t fromlen,
 	      /* to information */
 	      CS_INT totype, CS_INT tomaxlen,
 	      /* expected result */
@@ -43,7 +43,7 @@ DoTest(
 
 	memset(&srcfmt, 0, sizeof(srcfmt));
 	srcfmt.datatype = fromtype;
-	srcfmt.maxlength = fromlen;
+	srcfmt.maxlength = (CS_INT) fromlen;
 
 	/*
 	 * FIXME this fix some thing but if error cs_convert should return

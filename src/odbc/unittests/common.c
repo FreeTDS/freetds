@@ -85,7 +85,7 @@ odbc_read_login_info(void)
 	char *s1, *s2;
 	const char *const *search_p;
 	char path[1024];
-	int len;
+	size_t len;
 	bool ini_override = true;
 #if defined(_WIN32) && !defined(TDS_NO_DM)
 	UWORD old_config_mode;
@@ -671,19 +671,19 @@ odbc_read_error(void)
 	printf("Message: '%s' %s\n", odbc_sqlstate, odbc_err);
 }
 
-int
-odbc_to_sqlwchar(SQLWCHAR *dst, const char *src, int n)
+SQLLEN
+odbc_to_sqlwchar(SQLWCHAR *dst, const char *src, SQLLEN n)
 {
-	int i = n;
+	SQLLEN i = n;
 	while (--i >= 0)
 		dst[i] = (unsigned char) src[i];
 	return n * sizeof(SQLWCHAR);
 }
 
-int
-odbc_from_sqlwchar(char *dst, const SQLWCHAR *src, int n)
+SQLLEN
+odbc_from_sqlwchar(char *dst, const SQLWCHAR *src, SQLLEN n)
 {
-	int i;
+	SQLLEN i;
 	if (n < 0) {
 		const SQLWCHAR *p = src;
 		for (n=1; *p++ != 0; ++n)

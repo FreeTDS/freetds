@@ -14,7 +14,7 @@ static void
 test_row(int vartype, const char *vartype_name, const char *expected, int line)
 {
 	char str[11];
-	int i;
+	size_t i;
 
 	printf("%d: row type %s bind len %d\n", line, vartype_name, bind_len);
 

@@ -19,13 +19,14 @@ test(int argc, char **argv, int over4k)
 	int i;
 	DBINT testint;
 	FILE *fp;
-	long result, isiz;
+	ptrdiff_t result;
+	long isiz;
 	char *blob, *rblob;
 	unsigned char *textPtr, *timeStamp;
 	char objname[256];
 	char sqlCmd[256];
 	char rbuf[BLOB_BLOCK_SIZE];
-	long numread;
+	size_t numread;
 	int numtowrite, numwritten;
 
 	set_malloc_options();
@@ -224,12 +225,12 @@ test(int argc, char **argv, int over4k)
 				return 3;
 			}
 
-			result = fwrite((void *) rblob, numread, 1, fp);
+			result = (long) fwrite((void *) rblob, numread, 1, fp);
 			fclose(fp);
 		}
 
-		printf("Read blob data row %d --> %s %ld byte comparison\n",
-		       (int) testint, (memcmp(blob, rblob, numread)) ? "failed" : "PASSED", numread);
+		printf("Read blob data row %d --> %s %lu byte comparison\n",
+		       (int) testint, (memcmp(blob, rblob, numread)) ? "failed" : "PASSED", (long unsigned int) numread);
 		free(rblob);
 	}
 
