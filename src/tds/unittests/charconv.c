@@ -102,9 +102,9 @@ add_odd(char *buf, int *pos, enum Odd type)
 		return 0;
 
 	case ODD_NORMAL:
-		buf[*pos] = 0xC0 + (x >> 6);
+		buf[*pos] = (char) (0xC0 + (x >> 6));
 		++*pos;
-		buf[*pos] = 0x80 + (x & 0x3f);
+		buf[*pos] = (char) (0x80 + (x & 0x3f));
 		++*pos;
 		return 0;
 

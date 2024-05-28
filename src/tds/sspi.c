@@ -279,12 +279,12 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 #else
 		identity.Flags = SEC_WINNT_AUTH_IDENTITY_ANSI;
 #endif
-		identity.Password = (void *) passwd;
+		identity.Password = (_TUCHAR *) passwd;
 		identity.PasswordLength = (unsigned long) _tcslen(passwd);
-		identity.Domain = (void *) user_name;
+		identity.Domain = (_TUCHAR *) user_name;
 		identity.DomainLength = (unsigned long) (p - user_name);
 		user_name = p + 1;
-		identity.User = (void *) user_name;
+		identity.User = (_TUCHAR *) user_name;
 		identity.UserLength = (unsigned long) _tcslen(user_name);
 	}
 

@@ -54,7 +54,7 @@ unfinished_query_test(TDSSOCKET *tds)
 	memset(strchr(buf, 0), 0, 16);
 
 	/* convert if needed */
-	len = strlen(buf);
+	len = (int) strlen(buf);
 	for (i = len; --i >= 0; ) {
 		char c = buf[i];
 		buf[i * char_len + 0] = c;

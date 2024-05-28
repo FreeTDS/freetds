@@ -43,7 +43,9 @@ test(const char *src, const char *intro, const char *cont, int prec, int scale, 
 	memset(&cr.n, 0, sizeof(cr.n));
 	cr.n.precision = prec;
 	cr.n.scale = scale;
-	if (tds_convert(&ctx, SYBVARCHAR, src, strlen(src), SYBNUMERIC, &cr) < 0)
+	if (tds_convert(&ctx, SYBVARCHAR, src, (TDS_UINT) strlen(src),
+			SYBNUMERIC, &cr)
+	    < 0)
 		strcpy(buf, "error");
 	else {
 		sprintf(buf, "prec=%d scale=%d", cr.n.precision, cr.n.scale);

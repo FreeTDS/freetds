@@ -91,7 +91,7 @@ init_fake_server(int ip_port)
 }
 
 static void
-write_all(TDS_SYS_SOCKET s, const void *buf, size_t len)
+write_all(TDS_SYS_SOCKET s, const void *buf, int len)
 {
 	int res, l;
 	fd_set fds_write;

@@ -132,7 +132,8 @@ Test(int level)
 	TestResult(result, level, "SQLExecDirect");
 
 	/* test with SQLPrepare/SQLExecute */
-	if (!SQL_SUCCEEDED(SQLPrepare(odbc_stmt, T(SP_TEXT), strlen(SP_TEXT)))) {
+	if ( !SQL_SUCCEEDED(SQLPrepare(odbc_stmt, T(SP_TEXT),
+				       (SQLINTEGER) strlen(SP_TEXT))) ) {
 		fprintf(stderr, "SQLPrepare failure!\n");
 		exit(1);
 	}

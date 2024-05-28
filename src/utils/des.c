@@ -623,9 +623,10 @@ spinit(DES_KEY * key)
 /* ECB MODE */
 
 int
-tds_des_ecb_encrypt(const void *plaintext, int len, DES_KEY * akey, unsigned char *output)
+tds_des_ecb_encrypt(const void *plaintext, size_t len, DES_KEY * akey,
+		    unsigned char *output)
 {
-	int j;
+	size_t j;
 	const unsigned char *plain = (const unsigned char *) plaintext;
 
 	for (j = 0; j < len / 8; j++) {
