@@ -37,6 +37,8 @@
 #include <freetds/tds.h>
 #include <freetds/thread.h>
 
+#include <freetds/test_assert.h>
+
 /* this crazy test tests that we do not send too much prepare ... */
 
 static tds_mutex mtx;

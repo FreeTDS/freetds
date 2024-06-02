@@ -1,8 +1,9 @@
 #undef NDEBUG
 #include "common.h"
-#include <assert.h>
 #include <freetds/utils/string.h>
 #include <freetds/odbc.h>
+
+#include <freetds/test_assert.h>
 
 /* test some internal funcions */
 

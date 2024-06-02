@@ -2,6 +2,8 @@
 #include "common.h"
 #include <freetds/replacements.h>
 
+#include <freetds/test_assert.h>
+
 char USER[512];
 char SERVER[512];
 char PASSWORD[512];

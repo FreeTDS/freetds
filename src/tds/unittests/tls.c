@@ -28,6 +28,8 @@
 
 #include <freetds/bool.h>
 
+#include <freetds/test_assert.h>
+
 /* This certificate has common name as "www.abc.com" and alternate names
    as "xyz.org", "127.0.0.1", "::2:3:4:5:6" and "192.168.127.1". */
 static const char certificate[] =

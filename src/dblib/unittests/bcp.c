@@ -5,13 +5,13 @@
 
 #include "common.h"
 
-#include <assert.h>
-
 #if HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif /* HAVE_SYS_STAT_H */
 
 #include "bcp.h"
+
+#include <freetds/test_assert.h>
 
 static char cmd[1024];
 static int init(DBPROCESS * dbproc, const char *name);

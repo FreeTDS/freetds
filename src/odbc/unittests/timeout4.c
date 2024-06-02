@@ -24,6 +24,8 @@
 
 #include <freetds/utils.h>
 
+#include <freetds/test_assert.h>
+
 /*
  * test error on connection close 
  * With a trick we simulate a connection close then we try to 

@@ -1,7 +1,6 @@
 #include <config.h>
 
 #include <stdio.h>
-#include <assert.h>
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -20,6 +19,8 @@
 #include <bkpublic.h>
 #include "common.h"
 #include "blk_in.h"
+
+#include <freetds/test_assert.h>
 
 static CS_RETCODE
 do_bind(CS_BLKDESC * blkdesc, int colnum, CS_INT host_format, CS_INT host_type, CS_INT host_maxlen, 

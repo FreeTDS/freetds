@@ -1,12 +1,14 @@
 #include "common.h"
 
-#include <assert.h>
 #include "odbcss.h"
 #include <freetds/thread.h>
 #include <freetds/replacements.h>
 
+#include <freetds/test_assert.h>
+
 /* test query notifications */
 
+#ifdef TDS_HAVE_MUTEX
 #define SWAP(t,a,b) do { t xyz = a; a = b; b = xyz; } while(0)
 #define SWAP_CONN() do { SWAP(HENV,env,odbc_env); SWAP(HDBC,dbc,odbc_conn); SWAP(HSTMT,stmt,odbc_stmt);} while(0)
 
@@ -131,4 +133,11 @@ main(void)
 
 	return 0;
 }
-
+#else
+int main(int argc, char *argv[])
+{
+	printf("Not possible for this platform.\n");
+	odbc_test_skipped();
+	return 0;
+}
+#endif

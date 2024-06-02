@@ -1,6 +1,7 @@
 #undef NDEBUG
 #include "common.h"
-#include <assert.h>
+
+#include <freetds/test_assert.h>
 
 /*
 	Test SQLNumResultCols after SQLFreeStmt

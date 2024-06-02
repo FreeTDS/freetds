@@ -21,6 +21,8 @@
 
 #include <freetds/replacements.h>
 
+#include <freetds/test_assert.h>
+
 #if !defined(PATH_MAX)
 #define PATH_MAX 256
 #endif

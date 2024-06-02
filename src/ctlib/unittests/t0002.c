@@ -5,6 +5,8 @@
 #include <ctpublic.h>
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 static int sp_who(CS_COMMAND *cmd);
 
 /*

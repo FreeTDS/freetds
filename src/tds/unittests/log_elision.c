@@ -21,7 +21,6 @@
  * Check log elision implementation
  */
 #include "common.h"
-#include <assert.h>
 #include <freetds/utils.h>
 
 #if HAVE_UNISTD_H
@@ -29,6 +28,9 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
+#include <freetds/test_assert.h>
+
+#ifdef TDS_HAVE_MUTEX
 enum {
 	LOOP = 100,
 	THREADS = 3,
@@ -142,3 +144,10 @@ main(void)
 
 	return 0;
 }
+#else	/* !TDS_HAVE_MUTEX */
+int main(int argc, char *argv[])
+{
+        printf("Not possible for this platform.\n");
+        return 0; // 77?
+}
+#endif

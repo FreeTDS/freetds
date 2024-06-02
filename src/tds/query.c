@@ -145,8 +145,10 @@ tds_convert_string(TDSSOCKET * tds, TDSICONV * char_conv, const char *s, int len
 	/* allocate needed buffer (+1 is to exclude 0 case) */
 	ol = il * char_conv->to.charset.max_bytes_per_char / char_conv->from.charset.min_bytes_per_char + 1;
 	buf = tds_new(char, ol);
-	if (!buf)
+	if (!buf) {
+		*out_len = 0;
 		return NULL;
+	}
 
 	ib = s;
 	ob = buf;

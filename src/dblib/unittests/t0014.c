@@ -5,6 +5,8 @@
 
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 #define BLOB_BLOCK_SIZE 4096
 
 char *testargs[] = { "", FREETDS_SRCDIR "/data.bin", "t0014.out" };
@@ -213,6 +215,11 @@ test(int argc, char **argv, int over4k)
 				memcpy((void *) (rblob + numread), (void *) rbuf, result);
 				numread += result;
 			}
+		}
+
+		if (rblob == NULL) {
+		    fputs("No blob data received", stderr);
+		    return 7;
 		}
 
 		if (i == 0) {

@@ -4,7 +4,8 @@
  */
 
 #include "common.h"
-#include <assert.h>
+
+#include <freetds/test_assert.h>
 
 static const char procedure_sql[] = 
 		"CREATE PROCEDURE %s \n"

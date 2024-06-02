@@ -1,6 +1,7 @@
 #include "common.h"
-#include <assert.h>
 #include <time.h>
+
+#include <freetds/test_assert.h>
 
 /* Test various type from odbc and to odbc */
 

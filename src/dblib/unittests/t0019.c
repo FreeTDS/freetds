@@ -6,6 +6,8 @@
 #include "common.h"
 #include <ctype.h>
 
+#include <freetds/test_assert.h>
+
 static int failure = 0;
 
 static const char *cur_result = "";

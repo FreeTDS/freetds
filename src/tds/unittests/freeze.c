@@ -21,7 +21,6 @@
  * Purpose: test freeze functionality
  */
 #include "common.h"
-#include <assert.h>
 #include <freetds/bytes.h>
 
 #if HAVE_UNISTD_H
@@ -32,6 +31,9 @@
 #include <freetds/replacements.h>
 #include <freetds/utils.h>
 
+#include <freetds/test_assert.h>
+
+#ifdef TDS_HAVE_MUTEX
 #ifdef _WIN32
 #define SHUT_WR SD_SEND
 #endif
@@ -485,3 +487,10 @@ main(void)
 
 	return 0;
 }
+#else	/* !TDS_HAVE_MUTEX */
+int main(int argc, char *argv[])
+{
+        printf("Not possible for this platform.\n");
+        return 0; // 77?
+}
+#endif

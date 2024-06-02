@@ -4,6 +4,8 @@
  */
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 static int test_num = 0;
 
 static void

@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /* Test for store procedure and params */
 /* Test from Tom Rogers */
 

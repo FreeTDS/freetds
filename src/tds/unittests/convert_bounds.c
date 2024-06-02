@@ -21,9 +21,10 @@
  * Purpose: test conversion bounds of integers and floating points.
  */
 #include "common.h"
-#include <assert.h>
 #include <freetds/convert.h>
 #include <freetds/utils/smp.h>
+
+#include <freetds/test_assert.h>
 
 static TDS_INT convert_and_free(int srctype, const void *src, TDS_UINT srclen, int desttype, CONV_RESULT *cr);
 static bool is_valid(const char *num, int type, CONV_RESULT *cr);

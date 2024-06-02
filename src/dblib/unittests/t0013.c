@@ -5,6 +5,8 @@
 
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 #define BLOB_BLOCK_SIZE 4096
 
 int failed = 0;
@@ -249,6 +251,10 @@ test(int argc, char **argv, int over4k)
 	}
 
 	data_ok = 1;
+	if (rblob == NULL) {
+		fputs("No blob data received", stderr);
+		return 7;
+	}
 	if (memcmp(blob, rblob, numread) != 0) {
 		printf("Saving first blob data row to file: %s\n", argv[2]);
 		if ((fp = fopen(argv[2], "wb")) == NULL) {

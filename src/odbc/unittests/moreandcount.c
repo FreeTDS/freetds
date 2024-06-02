@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /* Test for SQLMoreResults and SQLRowCount on batch */
 
 static void

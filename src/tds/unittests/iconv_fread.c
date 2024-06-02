@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
-#include <assert.h>
+#include <freetds/test_assert.h>
 
 /* test tds_bcp_fread */
 

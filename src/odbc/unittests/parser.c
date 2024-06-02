@@ -2,9 +2,10 @@
  * Test reading data with SQLBindCol
  */
 #include "common.h"
-#include <assert.h>
 #include <ctype.h>
 #include "parser.h"
+
+#include <freetds/test_assert.h>
 
 unsigned int odbc_line_num;
 

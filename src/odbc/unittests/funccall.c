@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /* Test for {?=call store(?)} syntax and run */
 
 static void test_with_conversions(void);

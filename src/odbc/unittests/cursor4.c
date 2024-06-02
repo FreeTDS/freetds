@@ -5,6 +5,8 @@
 
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 static void
 exec_direct(const char *stmt)
 {

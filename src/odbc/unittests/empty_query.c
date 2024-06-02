@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /* Check that on queries returning 0 rows and NOCOUNT active SQLExecDirect returns success.
  * Also SQLFetch should return NO_DATA for these queries. */
 

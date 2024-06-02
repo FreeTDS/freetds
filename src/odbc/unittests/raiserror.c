@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /* test RAISERROR in a store procedure, from Tom Rogers tests */
 
 /* TODO add support for Sybase */

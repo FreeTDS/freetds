@@ -22,9 +22,10 @@
  * This is a wrapper to strftime for portability and extension.
  */
 #include "common.h"
-#include <assert.h>
 #include <freetds/convert.h>
 #include <freetds/time.h>
+
+#include <freetds/test_assert.h>
 
 static void
 test(const TDSDATEREC* dr, int prec, const char *fmt, const char *expected, int line)

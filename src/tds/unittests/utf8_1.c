@@ -20,7 +20,8 @@
 #include "common.h"
 
 #include <ctype.h>
-#include <assert.h>
+
+#include <freetds/test_assert.h>
 
 static TDSSOCKET *tds;
 

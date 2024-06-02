@@ -17,6 +17,8 @@
 
 #include <freetds/macros.h>
 
+#include <freetds/test_assert.h>
+
 static const CS_INT unused = CS_UNUSED, nullterm = CS_NULLTERM;
 static CS_INT result_len = -1;
 

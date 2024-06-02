@@ -5,6 +5,8 @@
 
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 #ifndef DBNTWIN32
 
 static int failed = 0;

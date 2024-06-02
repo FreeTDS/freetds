@@ -9,6 +9,8 @@
 #include <ctpublic.h>
 #include "common.h"
 
+#include <freetds/test_assert.h>
+
 /* Testing: data truncation behavior of ct_fetch */
 int
 main(int argc, char *argv[])
@@ -69,6 +71,9 @@ main(int argc, char *argv[])
 				fprintf(stderr, "CS_CHAR_TYPE\n");
 				datafmt.format = CS_FMT_NULLTERM;
 				addr = (char *) malloc(datafmt.maxlength);
+			} else {
+				fputs("unexpected data type\n", stderr);
+				return 1;
 			}
 
 			fprintf(stderr, "binding column 1 (%s)\n", datafmt.name);

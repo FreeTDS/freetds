@@ -4,10 +4,10 @@
 #include <unistd.h>
 #endif
 
-#include <assert.h>
-
 #include <freetds/utils.h>
 #include <freetds/replacements.h>
+
+#include <freetds/test_assert.h>
 
 /*
  * Test timeout on prepare
