@@ -766,7 +766,10 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 	/* override locale settings with CS_CONNECTION settings, if any */
 	if (con->locale) {
 		if (con->locale->charset) {
-			if (!tds_dstr_copy(&login->server_charset, con->locale->charset))
+			if (!tds_dstr_copy(&login->server_charset,
+					   con->locale->charset)
+			    ||	!tds_dstr_copy(&login->client_charset,
+					       con->locale->charset))
 				goto Cleanup;
 		}
 		if (con->locale->language) {
