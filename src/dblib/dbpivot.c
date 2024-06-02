@@ -174,6 +174,9 @@ col_equal(const struct col_t *pc1, const struct col_t *pc2)
 	case SYBMSTABLE:
 		assert( false && pc1->type );
 		break;
+
+	default:
+		return false;
 	}
 	return false;
 }
@@ -218,6 +221,9 @@ col_buffer(struct col_t *pcol)
 	case SYBMSTABLE:
 		assert( false && pcol->type );
 		break;
+
+	default:
+		return NULL;
 	}
 	return NULL;
 
