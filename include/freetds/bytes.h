@@ -150,36 +150,92 @@ typedef union {
 # define TDS_HOST4BE(val) TDS_BYTE_SWAP32(val)
 #endif
 
-/* these platform support unaligned fetch/store */
-/* map unaligned macro to aligned ones */
-#if defined(__i386__) || defined(__amd64__) || defined(__CRIS__) ||\
-  defined(__powerpc__) || defined(__powerpc64__) || defined(__ppc__) || defined(__ppc64__) ||\
-  defined(__s390__) || defined(__s390x__) || defined(__m68k__) ||\
-  (defined(_MSC_VER) && (defined(_M_AMD64) || defined(_M_IX86) || defined(_M_X64))) ||\
-  defined(__ARM_FEATURE_UNALIGNED) ||\
-  defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_8__) ||\
-  (defined(_M_ARM) && (_M_ARM >= 7))
+#if defined(__GNUC__) || defined(_MSC_VER)
+# if defined(__MINGW32__)
+#  pragma pack(push,1)
+# elif defined(_MSC_VER)
+#  pragma pack(push)
+#  pragma pack(1)
+# endif
+
+# if defined(__GNUC__)
+#  define TDS_PACKED __attribute__((__packed__))
+# else
+#  define TDS_PACKED
+# endif
+
+typedef union TDS_PACKED
+{
+        uint16_t usi;
+        uint8_t uc[2];
+} TDS_MAY_ALIAS TDS_UNALIGNED_BYTE_CONVERT2;
+
+typedef union TDS_PACKED
+{
+        uint32_t ui;
+        uint8_t uc[4];
+} TDS_MAY_ALIAS TDS_UNALIGNED_BYTE_CONVERT4;
+
 # ifdef WORDS_BIGENDIAN
 #  undef TDS_GET_UA2BE
 #  undef TDS_GET_UA4BE
-#  define TDS_GET_UA2BE(ptr) TDS_GET_A2BE(ptr)
-#  define TDS_GET_UA4BE(ptr) TDS_GET_A4BE(ptr)
+#  define TDS_GET_UA2BE(ptr) (((TDS_UNALIGNED_BYTE_CONVERT2*)(ptr))->usi)
+#  define TDS_GET_UA4BE(ptr) (((TDS_UNALIGNED_BYTE_CONVERT4*)(ptr))->ui)
 
 #  undef TDS_PUT_UA2BE
 #  undef TDS_PUT_UA4BE
-#  define TDS_PUT_UA2BE(ptr,val) TDS_PUT_A2BE(ptr,val)
-#  define TDS_PUT_UA4BE(ptr,val) TDS_PUT_A4BE(ptr,val)
+#  define TDS_PUT_UA2BE(ptr,val) (((TDS_UNALIGNED_BYTE_CONVERT2*)(ptr))->usi = (val))
+#  define TDS_PUT_UA4BE(ptr,val) (((TDS_UNALIGNED_BYTE_CONVERT4*)(ptr))->ui = (val))
 # else
 #  undef TDS_GET_UA2LE
 #  undef TDS_GET_UA4LE
-#  define TDS_GET_UA2LE(ptr) TDS_GET_A2LE(ptr)
-#  define TDS_GET_UA4LE(ptr) TDS_GET_A4LE(ptr)
+#  define TDS_GET_UA2LE(ptr) (((TDS_UNALIGNED_BYTE_CONVERT2*)(ptr))->usi)
+#  define TDS_GET_UA4LE(ptr) (((TDS_UNALIGNED_BYTE_CONVERT4*)(ptr))->ui)
 
 #  undef TDS_PUT_UA2LE
 #  undef TDS_PUT_UA4LE
-#  define TDS_PUT_UA2LE(ptr,val) TDS_PUT_A2LE(ptr,val)
-#  define TDS_PUT_UA4LE(ptr,val) TDS_PUT_A4LE(ptr,val)
+#  define TDS_PUT_UA2LE(ptr,val) (((TDS_UNALIGNED_BYTE_CONVERT2*)(ptr))->usi = (val))
+#  define TDS_PUT_UA4LE(ptr,val) (((TDS_UNALIGNED_BYTE_CONVERT4*)(ptr))->ui = (val))
 # endif
+
+# if defined(__MINGW32__) || defined(_MSC_VER)
+#  pragma pack(pop)
+# endif
+
+#else
+
+/* these platform support unaligned fetch/store */
+/* map unaligned macro to aligned ones */
+# if defined(__i386__) || defined(__amd64__) || defined(__CRIS__) ||\
+   defined(__powerpc__) || defined(__powerpc64__) || defined(__ppc__) || defined(__ppc64__) ||\
+   defined(__s390__) || defined(__s390x__) || defined(__m68k__) ||\
+   (defined(_MSC_VER) && (defined(_M_AMD64) || defined(_M_IX86) || defined(_M_X64))) ||\
+   defined(__ARM_FEATURE_UNALIGNED) ||\
+   defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_8__) ||\
+   (defined(_M_ARM) && (_M_ARM >= 7))
+#  ifdef WORDS_BIGENDIAN
+#   undef TDS_GET_UA2BE
+#   undef TDS_GET_UA4BE
+#   define TDS_GET_UA2BE(ptr) TDS_GET_A2BE(ptr)
+#   define TDS_GET_UA4BE(ptr) TDS_GET_A4BE(ptr)
+
+#   undef TDS_PUT_UA2BE
+#   undef TDS_PUT_UA4BE
+#   define TDS_PUT_UA2BE(ptr,val) TDS_PUT_A2BE(ptr,val)
+#   define TDS_PUT_UA4BE(ptr,val) TDS_PUT_A4BE(ptr,val)
+#  else
+#   undef TDS_GET_UA2LE
+#   undef TDS_GET_UA4LE
+#   define TDS_GET_UA2LE(ptr) TDS_GET_A2LE(ptr)
+#   define TDS_GET_UA4LE(ptr) TDS_GET_A4LE(ptr)
+
+#   undef TDS_PUT_UA2LE
+#   undef TDS_PUT_UA4LE
+#   define TDS_PUT_UA2LE(ptr,val) TDS_PUT_A2LE(ptr,val)
+#   define TDS_PUT_UA4LE(ptr,val) TDS_PUT_A4LE(ptr,val)
+#  endif
+# endif
+
 #endif
 
 #undef TDS_BSWAP16
