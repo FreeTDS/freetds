@@ -20,6 +20,8 @@
 #ifndef freetds_bool_h_
 #define freetds_bool_h_
 
+#include <config.h>
+
 #ifndef __cplusplus
 
 #ifdef HAVE_STDBOOL_H

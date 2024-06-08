@@ -45,7 +45,7 @@ struct string_linked_list
  */
 
 static char *
-norm_fmt(const char *fmt, int fmtlen)
+norm_fmt(const char *fmt, ssize_t fmtlen)
 {
 	char *newfmt;
 	char *cp;

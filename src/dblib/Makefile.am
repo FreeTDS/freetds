@@ -1,5 +1,5 @@
 SUBDIRS		=	. unittests
-AM_CPPFLAGS	=	-I$(top_srcdir)/include
+AM_CPPFLAGS	=	-I$(top_srcdir)/include -D_FREETDS_LIBRARY_SOURCE
 
 lib_LTLIBRARIES	=	libsybdb.la
 libsybdb_la_SOURCES=	dblib.c dbutil.c rpc.c bcp.c xact.c dbpivot.c

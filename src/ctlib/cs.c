@@ -41,8 +41,6 @@
 #include "cspublic.h"
 #include "ctlib.h"
 
-#undef cs_dt_crack
-
 static CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);
 static CS_INT cs_diag_clearmsg(CS_CONTEXT *context, CS_INT type);
 static CS_INT cs_diag_getmsg(CS_CONTEXT *context, CS_INT idx, CS_CLIENTMSG *message);
@@ -1116,7 +1114,8 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 
 		switch (type) {
 		case CS_SYB_CHARSET:
-			tlen = (locale->charset ? strlen(locale->charset) : 0) + 1;
+			tlen = (locale->charset ? (int) strlen(locale->charset)
+				: 0) + 1;
 			if (buflen < tlen)
 			{
 				if (outlen)
@@ -1131,7 +1130,8 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 			break;
 
 		case CS_SYB_LANG:
-			tlen = (locale->language ? strlen(locale->language) : 0) + 1;
+			tlen = (locale->language ?
+				(int) strlen(locale->language) : 0) + 1;
 			if (buflen < tlen)
 			{
 				if (outlen)
@@ -1149,8 +1149,10 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 		{
 			int clen;
 
-			tlen = (locale->language ? strlen(locale->language) : 0) + 1;
-			clen = (locale->charset ? strlen(locale->charset) : 0) + 1;
+			tlen = (locale->language ?
+				(int) strlen(locale->language) : 0) + 1;
+			clen = (locale->charset ?
+				(int) strlen(locale->charset) : 0) + 1;
 			
 			if (buflen < (tlen + clen))
 			{
@@ -1164,7 +1166,7 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 				((char *)buffer)[0] = '\0';
 			strcat((char *)buffer, ".");
 			if (locale->charset) {
-				tlen = strlen((char *)buffer);
+				tlen = (int) strlen((char *)buffer);
 				strcpy((char *)buffer + tlen, locale->charset);
 			}
 			code = CS_SUCCEED;
@@ -1172,7 +1174,8 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 		}
 
 		case CS_SYB_SORTORDER:
-			tlen = (locale->collate ? strlen(locale->collate) : 0) + 1;
+			tlen = (locale->collate ? (int) strlen(locale->collate)
+				: 0) + 1;
 			if (buflen < tlen)
 			{
 				if (outlen)

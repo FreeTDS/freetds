@@ -23,10 +23,6 @@
 #include <sybdb.h>
 #include <dblib.h>
 
-#ifdef dbopen
-#undef dbopen
-#endif
-
 /**
  * Normally not used. 
  * The function is linked in only if the --enable-sybase-compat configure option is used.  

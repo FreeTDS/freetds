@@ -48,7 +48,7 @@
 static void
 eat_iconv_left(TDSCOLUMN * curcol, char **pbuf, size_t *plen)
 {
-	unsigned cp = ODBC_MIN(*plen, curcol->column_iconv_left);
+	unsigned cp = (unsigned) ODBC_MIN(*plen, curcol->column_iconv_left);
 	memcpy(*pbuf, curcol->column_iconv_buf, cp);
 	if (cp < curcol->column_iconv_left)
 		memmove(curcol->column_iconv_buf, curcol->column_iconv_buf + cp, curcol->column_iconv_left - cp);
@@ -113,12 +113,14 @@ odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT 
 			conv->suppress.einval = 1;
 			conv->suppress.e2big = 1;
 			tds_iconv(tds, conv, to_client, &ib, &il, &left_ob, &left_ol);
-			curcol->column_iconv_left = sizeof(curcol->column_iconv_buf) - left_ol;
+			curcol->column_iconv_left
+				= (sizeof(curcol->column_iconv_buf)
+				   - (unsigned char) left_ol);
 			/* copy part to fill buffer */
 			eat_iconv_left(curcol, &ob, &ol);
 		}
 		ol = ob - dest; /* bytes written */
-		curcol->column_text_sqlgetdatapos += ib - src;
+		curcol->column_text_sqlgetdatapos += (TDS_INT) (ib - src);
 		/* terminate string */
 		memset(ob, 0, char_size);
 	}
@@ -174,7 +176,7 @@ odbc_tds_convert_wide_iso(TDS_CHAR *src, TDS_UINT srclen, TDS_CHAR *buf, TDS_UIN
 		return -1;
 
 	*p = 0;
-	return p - buf;
+	return (int) (p - buf);
 }
 
 /* The following function is going to write in these structure not using them
@@ -205,7 +207,7 @@ TDS_COMPILE_CHECK(timestamp_struct, sizeof(TIMESTAMP_STRUCT) == 16
 static SQLLEN
 odbc_convert_datetime_to_binary(TDSCOLUMN *curcol, int srctype, TDS_DATETIMEALL * dta, TDS_CHAR * dest, SQLULEN destlen)
 {
-	size_t len, cplen;
+	TDS_INT len, cplen;
 	TDS_USMALLINT buf[10];
 	TDSDATEREC when;
 
@@ -239,7 +241,7 @@ odbc_convert_datetime_to_binary(TDSCOLUMN *curcol, int srctype, TDS_DATETIMEALL 
 	if (destlen == 0)
 		return len;
 
-	cplen = ODBC_MIN(destlen, len);
+	cplen = ODBC_MIN((TDS_INT) destlen, len);
 	memcpy(dest, buf, cplen);
 	if (curcol)
 		curcol->column_text_sqlgetdatapos += cplen;
@@ -286,7 +288,8 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 	CONV_RESULT ores;
 
 	SQLLEN ret = SQL_NULL_DATA;
-	int i, cplen;
+	int i;
+	SQLULEN cplen;
 	int binary_conversion = 0;
 	TDS_CHAR conv_buf[256];
 
@@ -320,7 +323,8 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 	} else if (is_numeric_type(nDestSybType)) {
 		/* TODO use descriptor information (APD) ?? However APD can contain SQL_C_DEFAULT... */
 		if (drec_ixd)
-			ores.n.precision = drec_ixd->sql_desc_precision;
+			ores.n.precision
+				= (unsigned char) drec_ixd->sql_desc_precision;
 		else
 			ores.n.precision = 38;
 		ores.n.scale = 0;
@@ -412,8 +416,8 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 			sprintf(buf + strlen(buf), " %c%02d:%02d", sign, off / 60, off % 60);
 		}
 
-		nRetVal = strlen(buf);
-		memcpy(dest, buf, ODBC_MIN(destlen, nRetVal));
+		nRetVal = (TDS_INT) strlen(buf);
+		memcpy(dest, buf, ODBC_MIN(destlen, (SQLULEN) nRetVal));
 	} else {
 normal_conversion:
 		nRetVal = tds_convert(context, srctype, src, srclen, nDestSybType, &ores);
@@ -431,7 +435,7 @@ normal_conversion:
 		ret = nRetVal;
 		/* TODO handle not terminated configuration */
 		if (destlen > 0) {
-			cplen = ODBC_MIN(destlen - 1, nRetVal);
+			cplen = ODBC_MIN(destlen - 1, (SQLULEN) nRetVal);
 			assert(cplen >= 0);
 			/*
 			 * odbc always terminate but do not overwrite 
@@ -455,7 +459,7 @@ normal_conversion:
 			SQLWCHAR *wp = (SQLWCHAR *) dest;
 			SQLCHAR  *p  = (SQLCHAR *)  dest;
 
-			cplen = ODBC_MIN(destlen - 1, nRetVal);
+			cplen = ODBC_MIN(destlen - 1, (SQLULEN) nRetVal);
 			assert(cplen >= 0);
 			/*
 			 * odbc always terminate but do not overwrite 

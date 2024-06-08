@@ -214,7 +214,7 @@ blk_describe(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt_arg)
 	curcol = blkdesc->bcpinfo.bindinfo->columns[item - 1];
 	/* name is always null terminated */
 	strlcpy(datafmt->name, tds_dstr_cstr(&curcol->column_name), sizeof(datafmt->name));
-	datafmt->namelen = strlen(datafmt->name);
+	datafmt->namelen = (CS_INT) strlen(datafmt->name);
 	/* need to turn the SYBxxx into a CS_xxx_TYPE */
 	datatype = _ct_get_client_type(curcol, true);
 	if (datatype == CS_ILLEGAL_TYPE)

@@ -12,11 +12,13 @@ add_library(ct SHARED
 )
 
 target_compile_definitions(ct PUBLIC DLL_EXPORT=1)
+target_compile_definitions(ct PRIVATE _FREETDS_LIBRARY_SOURCE)
 target_link_libraries(ct tds replacements tdsutils ${lib_NETWORK} ${lib_BASE})
 
 add_library(ct-static STATIC
 	ct.c cs.c blk.c ctutil.c
 )
+target_compile_definitions(ct-static PRIVATE _FREETDS_LIBRARY_SOURCE)
 # See http://www.cmake.org/Wiki/CMake_FAQ#How_do_I_make_my_shared_and_static_libraries_have_the_same_root_name.2C_but_different_suffixes.3F
 SET_TARGET_PROPERTIES(ct-static PROPERTIES OUTPUT_NAME ${static_lib_name})
 SET_TARGET_PROPERTIES(ct PROPERTIES CLEAN_DIRECT_OUTPUT 1)

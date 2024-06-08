@@ -231,7 +231,7 @@ static void create_type(TDSSOCKET *tds, int desttype, int server_type, tds_any_t
 		break;
 	}
 	assert(src);
-	srclen = strlen(src);
+	srclen = (TDS_UINT) strlen(src);
 
 	/*
 	 * Now at last do the conversion

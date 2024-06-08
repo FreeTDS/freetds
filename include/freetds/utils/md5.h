@@ -1,6 +1,8 @@
 #ifndef MD5_H
 #define MD5_H
 
+#include <config.h>
+
 #ifndef HAVE_NETTLE
 
 #include <freetds/pushvis.h>
