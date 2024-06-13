@@ -12,6 +12,20 @@ test_err(int n)
 	}
 }
 
+#ifdef _MSC_VER
+/* See https://learn.microsoft.com/en-us/cpp/preprocessor/warning?view=msvc-170 */
+#pragma warning(push)
+#pragma warning(disable:4996)
+static SQLRETURN
+_CHKSetStmtOption(SQLUSMALLINT option, SQLULEN value, const char* res)
+{
+    return CHKSetStmtOption(option, value, res);
+#pragma warning(pop)
+}
+#undef CHKSetStmtOption
+#define CHKSetStmtOption _CHKSetStmtOption
+#endif
+
 int
 main(void)
 {

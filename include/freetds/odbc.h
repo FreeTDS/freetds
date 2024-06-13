@@ -74,7 +74,9 @@ extern "C"
 #endif
 
 #include <freetds/pushvis.h>
-#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
+#ifdef __clang__
+#define ODBC_API SQL_API __attribute__((visibility("default")))
+#elif defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #define ODBC_API SQL_API __attribute__((externally_visible))
 #else
 #define ODBC_API SQL_API
