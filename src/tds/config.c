@@ -471,6 +471,8 @@ tds_config_encryption(const char * value, TDSLOGIN * login)
 		lvl = TDS_ENCRYPTION_REQUEST;
 	else if (!strcasecmp(value, TDS_STR_ENCRYPTION_REQUIRE))
 		lvl = TDS_ENCRYPTION_REQUIRE;
+	else if (!strcasecmp(value, TDS_STR_ENCRYPTION_STRICT))
+		lvl = TDS_ENCRYPTION_STRICT;
 	else {
 		tdsdump_log(TDS_DBG_ERROR, "UNRECOGNIZED option value '%s' for '%s' setting!\n",
 			    value, TDS_STR_ENCRYPTION);

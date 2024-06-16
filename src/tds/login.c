@@ -1272,6 +1272,29 @@ tds7_crypt_pass(const unsigned char *clear_pass, size_t len, unsigned char *cryp
 		crypt_pass[i] = ((clear_pass[i] << 4) | (clear_pass[i] >> 4)) ^ 0xA5;
 }
 
+#if defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL)
+static inline TDS_TINYINT
+tds7_get_encryption_byte(TDS_TINYINT encryption_level)
+{
+	switch (encryption_level) {
+	/* The observation working with Microsoft SQL Server is that
+	   OFF did not mean off, and you would end up with encryption
+	   turned on. Therefore when the freetds.conf says encrypt = off
+	   we really want no encryption, and claiming lack of support
+	   works for that. Note that the configuration default in this
+	   subroutine always been request due to code above that
+	   tests for TDS_ENCRYPTION_DEFAULT.
+	*/
+	case TDS_ENCRYPTION_OFF:
+	case TDS_ENCRYPTION_STRICT:
+		return TDS7_ENCRYPT_NOT_SUP;
+	case TDS_ENCRYPTION_REQUIRE:
+		return TDS7_ENCRYPT_ON;
+	}
+	return TDS7_ENCRYPT_OFF;
+}
+#endif
+
 static TDSRET
 tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 {
@@ -1329,6 +1352,13 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	if (encryption_level == TDS_ENCRYPTION_DEFAULT)
 		encryption_level = TDS_ENCRYPTION_REQUEST;
 
+	/* all encrypted */
+	if (encryption_level == TDS_ENCRYPTION_STRICT) {
+		ret = tds_ssl_init(tds, true);
+		if (TDS_FAILED(ret))
+			return ret;
+	}
+
 	/*
 	 * fix a problem with mssql2k which doesn't like
 	 * packet splitted during SSL handshake
@@ -1347,17 +1377,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	/* not supported */
 	tds_put_byte(tds, TDS7_ENCRYPT_NOT_SUP);
 #else
-	/* The observation working with Microsoft SQL Server is that
-	   OFF did not mean off, and you would end up with encryption
-	   turned on. Therefore when the freetds.conf says encrypt = off
-	   we really want no encryption, and claiming lack of support
-	   works for that. Note that the configuration default in this
-	   subroutine always been request due to code above that
-	   tests for TDS_ENCRYPTION_DEFAULT.
-	*/
-	tds_put_byte(tds, encryption_level == TDS_ENCRYPTION_OFF ? TDS7_ENCRYPT_NOT_SUP :
-			  encryption_level >= TDS_ENCRYPTION_REQUIRE ? TDS7_ENCRYPT_ON :
-			  TDS7_ENCRYPT_OFF);
+	tds_put_byte(tds, tds7_get_encryption_byte(encryption_level));
 #endif
 	/* instance */
 	tds_put_n(tds, instance_name, instance_name_len);
@@ -1421,10 +1441,10 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	if (!mars_replied)
 		tds->conn->tds_version = 0x701;
 
-	/* if server do not has certificate do normal login */
-	if (crypt_flag == TDS7_ENCRYPT_NOT_SUP) {
+	/* if server does not have certificate or TLS already setup do normal login */
+	if (crypt_flag == TDS7_ENCRYPT_NOT_SUP || encryption_level == TDS_ENCRYPTION_STRICT) {
 		/* unless we wanted encryption and got none, then fail */
-		if (encryption_level >= TDS_ENCRYPTION_REQUIRE)
+		if (encryption_level == TDS_ENCRYPTION_REQUIRE)
 			return TDS_FAIL;
 
 		return tds7_send_login(tds, login);
@@ -1437,7 +1457,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 
 	/* here we have to do encryption ... */
 
-	ret = tds_ssl_init(tds);
+	ret = tds_ssl_init(tds, false);
 	if (TDS_FAILED(ret))
 		return ret;
 

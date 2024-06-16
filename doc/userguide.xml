@@ -1204,9 +1204,14 @@ This is the name of the database container in the server you are connecting to.<
 							</row>
 						<row>
 							<entry><literal>encryption</literal></entry>
-							<entry>off/request/require</entry>
+							<entry>off/request/require/strict</entry>
 							<entry>request (if tds version &gt; 7.1 otherwise off)</entry>
-							<entry>Specify if encryption is desired. Supported for Microsoft servers. <symbol>off</symbol> disables encryption; <symbol>request</symbol> means use if available; <symbol>require</symbol> means create and allow encrypted connections only.</entry>
+							<entry>Specify if encryption is desired. Supported for Microsoft servers.
+								<symbol>off</symbol> disables encryption;
+								<symbol>request</symbol> means use if available;
+								<symbol>require</symbol> means create and allow encrypted connections only;
+								<symbol>strict</symbol> is like require but uses TLS 8.0 and force certificate validation.
+								</entry>
 							</row>
 						<row>
 							<entry><literal>enable gssapi delegation</literal></entry>
@@ -2022,7 +2027,7 @@ The ODBC tests all build their own <filename>odbc.ini</filename> and try to redi
 							</row>
 						<row>
 							<entry><literal>Encryption</literal></entry>
-							<entry>off/request/require</entry>
+							<entry>off/request/require/strict</entry>
 							<entry>off</entry>
 							<entry>Specify encryption. See encryption on &freetdsconf;</entry>
 							</row>

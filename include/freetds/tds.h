@@ -337,7 +337,8 @@ typedef enum tds_encryption_level {
 	TDS_ENCRYPTION_DEFAULT,
 	TDS_ENCRYPTION_OFF,
 	TDS_ENCRYPTION_REQUEST,
-	TDS_ENCRYPTION_REQUIRE
+	TDS_ENCRYPTION_REQUIRE,
+	TDS_ENCRYPTION_STRICT
 } TDS_ENCRYPTION_LEVEL;
 
 /*
@@ -467,6 +468,7 @@ is_tds_type_valid(int type)
 #define TDS_STR_ENCRYPTION_OFF	 "off"
 #define TDS_STR_ENCRYPTION_REQUEST "request"
 #define TDS_STR_ENCRYPTION_REQUIRE "require"
+#define TDS_STR_ENCRYPTION_STRICT "strict"
 /* Defines to enable optional GSSAPI delegation */
 #define TDS_GSSAPI_DELEGATION "enable gssapi delegation"
 /* Mutual authentication */

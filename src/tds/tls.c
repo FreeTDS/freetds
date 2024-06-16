@@ -195,6 +195,21 @@ tds_push_func(SSL_PUSH_ARGS)
 static int tls_initialized = 0;
 static tds_mutex tls_mutex = TDS_MUTEX_INITIALIZER;
 
+#if ENABLE_ODBC_MARS
+static void
+set_current_tds(TDSCONNECTION *conn, TDSSOCKET *tds)
+{
+	tds_mutex_lock(&conn->list_mtx);
+	conn->in_net_tds = tds;
+	tds_mutex_unlock(&conn->list_mtx);
+}
+#else
+static inline void
+set_current_tds(TDSCONNECTION *conn TDS_UNUSED, TDSSOCKET *tds TDS_UNUSED)
+{
+}
+#endif
+
 #ifdef HAVE_GNUTLS
 
 static void
@@ -443,7 +458,7 @@ tds_verify_certificate(gnutls_session_t session)
 }
 
 TDSRET
-tds_ssl_init(TDSSOCKET *tds)
+tds_ssl_init(TDSSOCKET *tds, bool full)
 {
 	gnutls_session_t session;
 	gnutls_certificate_credentials_t xcred;
@@ -504,9 +519,15 @@ tds_ssl_init(TDSSOCKET *tds)
 	if (ret != 0)
 		goto cleanup;
 
-	gnutls_transport_set_ptr(session, tds);
-	gnutls_transport_set_pull_function(session, tds_pull_func_login);
-	gnutls_transport_set_push_function(session, tds_push_func_login);
+	if (!full) {
+		gnutls_transport_set_ptr(session, tds);
+		gnutls_transport_set_pull_function(session, tds_pull_func_login);
+		gnutls_transport_set_push_function(session, tds_push_func_login);
+	} else {
+		gnutls_transport_set_ptr(session, tds->conn);
+		gnutls_transport_set_pull_function(session, tds_pull_func);
+		gnutls_transport_set_push_function(session, tds_push_func);
+	}
 
 	/* NOTE: there functions return int however they cannot fail */
 
@@ -532,6 +553,9 @@ tds_ssl_init(TDSSOCKET *tds)
 	if (ret != 0)
 		goto cleanup;
 
+	if (full)
+		set_current_tds(tds->conn, tds);
+
 	/* Perform the TLS handshake */
 	tls_msg = "handshake";
 	ret = gnutls_handshake (session);
@@ -548,12 +572,16 @@ tds_ssl_init(TDSSOCKET *tds)
 
 	tdsdump_log(TDS_DBG_INFO1, "handshake succeeded!!\n");
 
-	/* some TLS implementations send some sort of paddind at the end, remove it */
-	tds->in_pos = tds->in_len;
+	if (!full) {
+		/* some TLS implementations send some sort of paddind at the end, remove it */
+		tds->in_pos = tds->in_len;
 
-	gnutls_transport_set_ptr(session, tds->conn);
-	gnutls_transport_set_pull_function(session, tds_pull_func);
-	gnutls_transport_set_push_function(session, tds_push_func);
+		gnutls_transport_set_ptr(session, tds->conn);
+		gnutls_transport_set_pull_function(session, tds_pull_func);
+		gnutls_transport_set_push_function(session, tds_push_func);
+	}
+
+	set_current_tds(tds->conn, NULL);
 
 	tds->conn->tls_session = session;
 	tds->conn->tls_credentials = xcred;
@@ -561,6 +589,7 @@ tds_ssl_init(TDSSOCKET *tds)
 	return TDS_SUCCESS;
 
 cleanup:
+	set_current_tds(tds->conn, NULL);
 	if (session)
 		gnutls_deinit(session);
 	if (xcred)
@@ -938,7 +967,7 @@ check_hostname(X509 *cert, const char *hostname)
 }
 
 int
-tds_ssl_init(TDSSOCKET *tds)
+tds_ssl_init(TDSSOCKET *tds, bool full)
 {
 #define DEFAULT_OPENSSL_CTX_OPTIONS (SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1)
 #define DEFAULT_OPENSSL_CIPHERS "HIGH:!SSLv2:!aNULL:-DH"
@@ -999,16 +1028,18 @@ tds_ssl_init(TDSSOCKET *tds)
 		goto cleanup;
 
 	tls_msg = "creating bio";
-	b = BIO_new(tds_method_login);
+	b = BIO_new(full ? tds_method : tds_method_login);
 	if (!b)
 		goto cleanup;
 
-	b2 = BIO_new(tds_method);
-	if (!b2)
-		goto cleanup;
+	if (!full) {
+		b2 = BIO_new(tds_method);
+		if (!b2)
+			goto cleanup;
+	}
 
 	BIO_set_init(b, 1);
-	BIO_set_data(b, tds);
+	BIO_set_data(b, full ? (void *) tds->conn : (void *) tds);
 	BIO_set_conn_hostname(b, tds_dstr_cstr(&tds->login->server_host_name));
 	SSL_set_bio(con, b, b);
 	b = NULL;
@@ -1027,6 +1058,9 @@ tds_ssl_init(TDSSOCKET *tds)
 	SSL_set_options(con, SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS);
 #endif
 
+	if (full)
+		set_current_tds(tds->conn, tds);
+
 	/* Perform the TLS handshake */
 	tls_msg = "handshake";
 	ERR_clear_error();
@@ -1040,7 +1074,7 @@ tds_ssl_init(TDSSOCKET *tds)
 	}
 
 	/* flush pending data */
-	if (tds->out_pos > 8)
+	if (!full && tds->out_pos > 8)
 		tds_flush_packet(tds);
 
 	/* check certificate hostname */
@@ -1056,12 +1090,16 @@ tds_ssl_init(TDSSOCKET *tds)
 
 	tdsdump_log(TDS_DBG_INFO1, "handshake succeeded!!\n");
 
-	/* some TLS implementations send some sort of paddind at the end, remove it */
-	tds->in_pos = tds->in_len;
+	if (!full) {
+		/* some TLS implementations send some sort of paddind at the end, remove it */
+		tds->in_pos = tds->in_len;
 
-	BIO_set_init(b2, 1);
-	BIO_set_data(b2, tds->conn);
-	SSL_set_bio(con, b2, b2);
+		BIO_set_init(b2, 1);
+		BIO_set_data(b2, tds->conn);
+		SSL_set_bio(con, b2, b2);
+	}
+
+	set_current_tds(tds->conn, NULL);
 
 	tds->conn->tls_session = con;
 	tds->conn->tls_ctx = ctx;
@@ -1069,6 +1107,7 @@ tds_ssl_init(TDSSOCKET *tds)
 	return TDS_SUCCESS;
 
 cleanup:
+	set_current_tds(tds->conn, NULL);
 	if (b2)
 		BIO_free(b2);
 	if (b)

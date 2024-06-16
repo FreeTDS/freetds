@@ -42,7 +42,7 @@
 #include <freetds/pushvis.h>
 
 #if defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL)
-TDSRET tds_ssl_init(TDSSOCKET *tds);
+TDSRET tds_ssl_init(TDSSOCKET *tds, bool full);
 void tds_ssl_deinit(TDSCONNECTION *conn);
 
 #  ifdef HAVE_GNUTLS
@@ -91,7 +91,7 @@ tds_ssl_write(TDSCONNECTION *conn, const unsigned char *buf, int buflen)
 #  endif
 #else
 static inline TDSRET
-tds_ssl_init(TDSSOCKET *tds TDS_UNUSED)
+tds_ssl_init(TDSSOCKET *tds TDS_UNUSED, bool full TDS_UNUSED)
 {
 	return TDS_FAIL;
 }
