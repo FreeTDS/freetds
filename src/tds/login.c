@@ -480,7 +480,7 @@ tds_setup_connection(TDSSOCKET *tds, TDSLOGIN *login, bool set_db, bool set_spid
  * 		- TDSEFCON: connect(2) succeeded, login packet not acknowledged.  
  *		- TDS_FAIL: connect(2) succeeded, login failed.  
  */
-static int
+static TDSRET
 tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 {
 	int erc = -TDSEFCON;
@@ -750,7 +750,7 @@ reroute:
 	return TDS_SUCCESS;
 }
 
-int
+TDSRET
 tds_connect_and_login(TDSSOCKET * tds, TDSLOGIN * login)
 {
 	int oserr = 0;

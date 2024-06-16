@@ -1407,7 +1407,7 @@ bool tds_set_server(TDSLOGIN * tds_login, const char *server) TDS_WUR;
 bool tds_set_client_charset(TDSLOGIN * tds_login, const char *charset) TDS_WUR;
 bool tds_set_language(TDSLOGIN * tds_login, const char *language) TDS_WUR;
 void tds_set_version(TDSLOGIN * tds_login, TDS_TINYINT major_ver, TDS_TINYINT minor_ver);
-int tds_connect_and_login(TDSSOCKET * tds, TDSLOGIN * login);
+TDSRET tds_connect_and_login(TDSSOCKET * tds, TDSLOGIN * login);
 
 
 /* query.c */
