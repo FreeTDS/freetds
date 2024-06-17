@@ -32,13 +32,13 @@ environment:
   - PLAT: Win64
     WIDTH: 64
     VS_VERSION: "2019"
-    TDSVER: "7.3"
+    TDSVER: "7.4"
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
 
   - PLAT: Win32
     WIDTH: 32
     VS_VERSION: "2017"
-    TDSVER: "7.2"
+    TDSVER: "7.3"
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
     ODBC_MARS: "1"
 
