@@ -639,7 +639,7 @@ SQLGetPrivateProfileString(LPCSTR pszSection, LPCSTR pszEntry, LPCSTR pszDefault
 }
 
 static FILE *
-tdoGetIniFileName()
+tdoGetIniFileName(void)
 {
 	FILE *ret = NULL;
 	char *p;
