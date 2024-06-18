@@ -41,7 +41,9 @@
 #define EXIT_SUCCESS 0
 #endif
 
+#ifndef FREETDS_SRCDIR
 #define FREETDS_SRCDIR FREETDS_TOPDIR "/src/dblib/unittests"
+#endif
 
 #if defined(HAVE__SNPRINTF) && !defined(HAVE_SNPRINTF)
 #define snprintf _snprintf

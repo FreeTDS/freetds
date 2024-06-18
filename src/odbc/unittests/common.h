@@ -41,7 +41,9 @@
 #endif
 #endif
 
+#ifndef FREETDS_SRCDIR
 #define FREETDS_SRCDIR FREETDS_TOPDIR "/src/odbc/unittests"
+#endif
 
 extern HENV odbc_env;
 extern HDBC odbc_conn;
