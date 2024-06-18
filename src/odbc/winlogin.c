@@ -173,5 +173,9 @@ LoginDlgProc(HWND hDlg, UINT message, WPARAM wParam,	/* */
 bool
 get_login_info(HWND hwndParent, TDSLOGIN * login)
 {
+#ifdef DLL_EXPORT
 	return !!DialogBoxParam(hinstFreeTDS, MAKEINTRESOURCE(IDD_LOGIN), hwndParent, (DLGPROC) LoginDlgProc, (LPARAM) login);
+#else
+	return false;
+#endif
 }

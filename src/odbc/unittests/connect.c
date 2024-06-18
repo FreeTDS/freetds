@@ -12,18 +12,25 @@ init_connect(void)
 
 #ifdef _WIN32
 #include <odbcinst.h>
+#undef SQLGetPrivateProfileString
+#if !HAVE_SQLGETPRIVATEPROFILESTRING
+#  define SQLGetPrivateProfileString tds_SQLGetPrivateProfileString
+int tds_SQLGetPrivateProfileString(LPCSTR pszSection, LPCSTR pszEntry,
+                                   LPCSTR pszDefault, LPSTR pRetBuffer,
+                                   int nRetBuffer, LPCSTR pszFileName);
+#endif
 
 static char *entry = NULL;
 
 static char *
 get_entry(const char *key)
 {
-	static TCHAR buf[256];
-
+	static char buf[256];
+ 
 	entry = NULL;
-	if (SQLGetPrivateProfileString((LPCTSTR) T(odbc_server), (LPCTSTR) T(key), TEXT(""),
-				       buf, TDS_VECTOR_SIZE(buf), TEXT("odbc.ini")) > 0)
-		entry = C(buf);
+	if (SQLGetPrivateProfileString(odbc_server, key, "", buf,
+                                       TDS_VECTOR_SIZE(buf), "odbc.ini") > 0)
+		entry = buf;
 
 	return entry;
 }
