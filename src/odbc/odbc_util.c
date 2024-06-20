@@ -1208,4 +1208,20 @@ odbc_convert_err_set(struct _sql_errors *errs, TDS_INT err)
 	}
 }
 
+
+int
+odbc_int_handler(void *handle)
+{
+	TDS_STMT *stmt = (TDS_STMT*)handle;
+	if (SQL_NULL_HSTMT != handle)
+		ODBC_CHECK_CANCEL(handle);
+	/*
+	 * Alternatively, this handler could conditionally return
+	 * TDS_INT_CANCEL.  NB: Combining those approaches yields SQL
+	 * error 08S01 (Communication link failure) rather than the
+	 * desired HY008 (Operation was cancelled).
+	 */
+	return TDS_INT_CONTINUE;
+}
+
 /** @} */
