@@ -757,12 +757,17 @@ tds_connect_and_login(TDSSOCKET * tds, TDSLOGIN * login)
 	return tds_connect(tds, login, &oserr);
 }
 
-static int
+static void
 tds_put_login_string(TDSSOCKET * tds, const char *buf, int n)
 {
 	const int buf_len = buf ? (int)strlen(buf) : 0;
-	return tds_put_buf(tds, (const unsigned char *) buf, n, buf_len);
+	tds_put_buf(tds, (const unsigned char *) buf, n, buf_len);
 }
+
+#define tds_put_login_string(tds, buf, n) do { \
+	TDS_COMPILE_CHECK(range, (n) > 0 && (n) < 256); \
+	tds_put_login_string(tds, buf, (n)); \
+} while(0)
 
 static TDSRET
 tds_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
