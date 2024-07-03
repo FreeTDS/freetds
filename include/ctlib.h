@@ -374,6 +374,15 @@ typedef union
 	CS_DATAFMT user;
 } CS_DATAFMT_INTERNAL;
 
+typedef enum
+{
+	/* These values double as message numbers. */
+	BLK_CONV_OK = 0,
+	BLK_CONV_OVERFLOW = 25,
+	BLK_CONV_SYNTAX_ERROR = 26,
+	BLK_CONV_TRUNCATION = 42
+} BLK_CONV_STATUS;
+
 /*
  * internal prototypes
  */
@@ -396,7 +405,8 @@ int _cs_convert_not_client(CS_CONTEXT *ctx, const TDSCOLUMN *curcol, CONV_RESULT
 CS_RETCODE _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt,
 		       CS_VOID * srcdata, const CS_DATAFMT_COMMON * destfmt,
 		       CS_VOID * destdata, CS_INT * resultlen,
-		       TDS_SERVER_TYPE desttype, CS_VOID ** handle);
+		       TDS_SERVER_TYPE desttype, CS_VOID ** handle,
+		       BLK_CONV_STATUS * blk_status);
 bool _ct_is_large_identifiers_version(CS_INT version);
 const CS_DATAFMT_COMMON * _ct_datafmt_common(CS_CONTEXT * ctx, const CS_DATAFMT * datafmt);
 const CS_DATAFMT_LARGE *_ct_datafmt_conv_in(CS_CONTEXT * ctx, const CS_DATAFMT * datafmt, CS_DATAFMT_LARGE * fmtbuf);
