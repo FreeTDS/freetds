@@ -559,8 +559,8 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 		case SYBBINARY:
 		case SYBVARBINARY:
 		case SYBIMAGE:
-			memcpy(dest, srcdata, src_len);
-			*resultlen = src_len;
+			memcpy(dest, srcdata, minlen);
+			*resultlen = minlen;
 
 			if (src_len > destlen) {
 				tdsdump_log(TDS_DBG_FUNC, "error: src_len > destlen\n");
