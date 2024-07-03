@@ -1868,11 +1868,17 @@ tds_convert_to_binary(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int de
 
 		ib = cr->cb.ib;
 		if (desttype != TDS_CONVERT_BINARY) {
+			TDS_INT destlen;
+
 			cr->ib = tds_new(TDS_CHAR, (srclen + 2u) / 2u);
 			test_alloc(cr->ib);
 			ib = cr->ib;
+			destlen = tds_char2hex(ib, 0xffffffffu, src, srclen);
+			if (destlen < 0)
+				TDS_ZERO_FREE(cr->ib);
+			return destlen;
 		}
-		return tds_char2hex(ib, desttype == TDS_CONVERT_BINARY ? cr->cb.len : 0xffffffffu, src, srclen);
+		return tds_char2hex(ib, cr->cb.len, src, srclen);
 
 	default:
 		return TDS_CONVERT_NOAVAIL;
