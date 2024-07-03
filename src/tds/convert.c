@@ -1866,7 +1866,14 @@ tds_convert_to_binary(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int de
 			test_alloc(cr->ib);
 			ib = cr->ib;
 		}
-		return tds_char2hex(ib, desttype == TDS_CONVERT_BINARY ? cr->cb.len : 0xffffffffu, src, srclen);
+		len = tds_char2hex(ib,
+				   desttype == TDS_CONVERT_BINARY
+				   ? cr->cb.len : 0xffffffffu,
+				   src, srclen);
+		if (len == TDS_CONVERT_SYNTAX
+		    &&  desttype != TDS_CONVERT_BINARY)
+			TDS_ZERO_FREE(cr->ib);
+		return len;
 
 	default:
 		return TDS_CONVERT_NOAVAIL;
