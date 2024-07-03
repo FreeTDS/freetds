@@ -307,6 +307,16 @@ main(void)
 		CS_CHAR test2[12] = "abcdef", CS_CHAR_TYPE, test, 12, CS_IMAGE_TYPE, 12, CS_SUCCEED, test2, 6);
 	DO_TEST(CS_CHAR test[] = "616263646566";
 		CS_CHAR test2[12] = "abcdef", CS_CHAR_TYPE, test, 12, CS_BINARY_TYPE, 12, CS_SUCCEED, test2, 6);
+	DO_TEST(CS_CHAR test[] = "616263646566yyy";
+		CS_CHAR test2[] = "616263646566xxx", CS_BINARY_TYPE, test, 12, CS_BINARY_TYPE, 12, CS_SUCCEED, test2, 12);
+	DO_TEST(CS_CHAR test[] = "6162636465yyyyy";
+		CS_CHAR test2[] = "616263646566xxx", CS_BINARY_TYPE, test, 12, CS_BINARY_TYPE, 10, CS_FAIL, test2, 10);
+	DO_TEST(CS_CHAR test[] = "6162636465yyyyy";
+		CS_CHAR test2[] = "616263646566xxx", CS_IMAGE_TYPE, test, 12, CS_IMAGE_TYPE, 10, CS_FAIL, test2, 10);
+	DO_TEST(CS_CHAR test[] = "6162636465yyyyy";
+		CS_CHAR test2[] = "616263646566xxx", CS_BINARY_TYPE, test, 12, CS_IMAGE_TYPE, 10, CS_FAIL, test2, 10);
+	DO_TEST(CS_CHAR test[] = "6162636465yyyyy";
+		CS_CHAR test2[] = "616263646566xxx", CS_IMAGE_TYPE, test, 12, CS_BINARY_TYPE, 10, CS_FAIL, test2, 10);
 	DO_TEST(CS_CHAR test[] = "616263646566";
 		CS_VARBINARY test2; test2.len = 6; memset(test2.array, 23, 256); memcpy(test2.array, "abcdef", 6),
 		CS_CHAR_TYPE, test, 12, CS_VARBINARY_TYPE, 12, CS_SUCCEED, &test2, 258);
