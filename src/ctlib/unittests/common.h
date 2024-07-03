@@ -4,6 +4,17 @@
 
 #include <freetds/bool.h>
 
+#ifndef UT_CS_VERSION
+#  ifdef CS_CURRENT_VERSION
+#    define UT_CS_VERSION CS_CURRENT_VERSION
+#  else
+#    define UT_CS_VERSION CS_VERSION_160
+#  endif
+#endif
+#ifndef UT_BLK_VERSION
+#  define UT_BLK_VERSION UT_CS_VERSION
+#endif
+
 extern char SERVER[512];
 extern char DATABASE[512];
 extern char USER[512];

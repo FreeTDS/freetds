@@ -288,7 +288,7 @@ static void
 test_blk_init(void)
 {
 	CS_BLKDESC *blkdesc;
-        check_call(blk_alloc, (conn, BLK_VERSION_100, &blkdesc));
+	check_call(blk_alloc, (conn, UT_BLK_VERSION, &blkdesc));
 
 	/* invalid direction */
 	check_fail(blk_init, (blkdesc, 100, "testname", CS_NULLTERM));

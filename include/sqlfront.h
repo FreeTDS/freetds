@@ -21,7 +21,8 @@
 #ifndef SQLFRONT_h
 #define SQLFRONT_h
 
-#include "./sybfront.h"
+#include <sybfront.h>
+#include <sybdb.h>
 
 static const char rcsid_sqlfront_h[] = "$Id: sqlfront.h,v 1.10 2011-07-13 11:06:31 freddy77 Exp $";
 static const void *const no_unused_sqlfront_h_warn[] = { rcsid_sqlfront_h, no_unused_sqlfront_h_warn };
@@ -43,7 +44,7 @@ typedef const LPINT          LPCINT;
 #define _LPCBYTE_DEFINED
 typedef const BYTE *         LPCBYTE;
 #endif
-typedef       USHORT *       LPUSHORT;
+typedef       unsigned short * LPUSHORT;
 typedef const LPUSHORT       LPCUSHORT;
 typedef       DBINT *        LPDBINT;
 typedef const LPDBINT        LPCDBINT;

@@ -53,7 +53,7 @@ main(void)
 	check_call(run_command, (cmd, "insert into #ctlibarray values (8, 'DDDD', 'Jan  4 2002 10:00:00AM')"));
 	check_call(run_command, (cmd, "insert into #ctlibarray values (NULL, 'EEEE', 'Jan  5 2002 10:00:00AM')"));
 
-	check_call(blk_alloc, (conn, BLK_VERSION_100, &blkdesc));
+	check_call(blk_alloc, (conn, UT_BLK_VERSION, &blkdesc));
 
 	check_call(blk_init, (blkdesc, CS_BLK_OUT, "#ctlibarray", CS_NULLTERM));
 

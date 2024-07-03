@@ -20,7 +20,7 @@
 #ifndef SQLDB_h
 #define SQLDB_h
 
-#include "./sybdb.h"
+#include <sybdb.h>
 
 #define SQLCHAR SYBCHAR
 #define SQLVARCHAR SYBVARCHAR

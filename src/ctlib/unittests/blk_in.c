@@ -224,7 +224,7 @@ main(void)
 
 	check_call(run_command, (cmd, create_table_sql));
 
-	check_call(blk_alloc, (conn, BLK_VERSION_100, &blkdesc));
+	check_call(blk_alloc, (conn, UT_BLK_VERSION, &blkdesc));
 
 	check_call(blk_init, (blkdesc, CS_BLK_IN, (char *) table_name, CS_NULLTERM));
 
