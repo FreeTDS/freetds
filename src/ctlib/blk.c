@@ -814,7 +814,18 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 				     (CS_VOID *) coldata->data, &destlen,
 				     tds_desttype,
 				     (CS_VOID **) &coldata->data);
-		if (result != CS_SUCCEED) {
+		if (result > CS_SUCCEED) {
+			const TDSRESULTINFO * info = bulk->bindinfo;
+			TDS_USMALLINT colnum;
+			for (colnum = 0;  colnum < info->num_cols;  ++colnum) {
+				if (info->columns[colnum] == bindcol)
+					break;
+			}
+			_ctclient_msg(ctx, CONN(blkdesc), "blk_rowxfer",
+				      2, 7, 1, result, "%d,%hu",
+				      bulk->rows_sent + 1, colnum + 1);
+		}
+		if (result != CS_SUCCEED  &&  result != BLK_CONV_TRUNCATION) {
 			tdsdump_log(TDS_DBG_ERROR, "conversion from srctype %d to desttype %d failed\n",
 				    srctype, desttype);
 			return TDS_FAIL;

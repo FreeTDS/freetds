@@ -583,6 +583,7 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 		return TDS_SUCCESS;
 	tds_set_state(tds, TDS_SENDING);
 	bcpinfo->next_col = 0;
+	bcpinfo->rows_sent++;
 	return rc;
 }
 

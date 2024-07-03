@@ -377,6 +377,11 @@ typedef union
 	CS_DATAFMT user;
 } CS_DATAFMT_INTERNAL;
 
+/* Alternate _cs_convert return values, which double as message numbers */
+#define BLK_CONV_OVERFLOW     25
+#define BLK_CONV_SYNTAX_ERROR 26
+#define BLK_CONV_TRUNCATION   42
+
 /*
  * internal prototypes
  */
@@ -396,7 +401,7 @@ int _cs_locale_copy_inplace(CS_LOCALE *new_locale, CS_LOCALE *orig);
 CS_INT _ct_get_string_length(const char *buf, CS_INT buflen);
 
 int _cs_convert_not_client(CS_CONTEXT *ctx, const TDSCOLUMN *curcol, CONV_RESULT *convert_buffer, unsigned char **p_src);
-
+/* NB: only _blk_get_col_data is expected to pass a non-NULL handle */
 CS_RETCODE _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt,
 		       CS_VOID * srcdata, const CS_DATAFMT_COMMON * destfmt,
 		       CS_VOID * destdata, CS_INT * resultlen,

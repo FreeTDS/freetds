@@ -154,6 +154,15 @@ _ct_get_user_api_layer_error(int error)
 	case 15:
 		return "Use direction CS_BLK_IN or CS_BLK_OUT for a bulk copy operation.";
 		break;
+	case 25:
+		return "Failed in conversion routine - condition overflow."
+			"  col = %1! row = %2!.";
+	case 26:
+		return "Failed in conversion routine - syntax error."
+			"  col = %1! row = %2!.";
+	case 42:
+		return "Data truncated while doing local character set"
+			" conversion.  col = %1! row = %2!.";
 	case 51:
 		return "Exactly one of context and connection must be non-NULL.";
 		break;

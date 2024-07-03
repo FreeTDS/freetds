@@ -26,6 +26,7 @@
 
 #include <stdio.h>
 #include <assert.h>
+#include <ctype.h>
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -613,8 +614,16 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt,
 
 			if (src_len > destlen) {
 				tdsdump_log(TDS_DBG_FUNC, "error: src_len > destlen\n");
-				_csclient_msg(ctx, "cs_convert", 2, 4, 1, 36, "");
-				ret = CS_FAIL;
+				if (handle == NULL) {
+					_csclient_msg(ctx, "cs_convert",
+						      2, 4, 1, 36, "");
+					ret = CS_FAIL;
+				} else if (srcfmt->datatype
+					   == CS_VARBINARY_TYPE) {
+					ret = BLK_CONV_OVERFLOW;
+				} else {
+					ret = CS_SUCCEED;
+				}
 			} else {
 				switch (destfmt->format) {
 				case CS_FMT_PADNULL:
@@ -642,6 +651,12 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt,
 
 			memcpy(dest, srcdata, minlen);
 			*resultlen = minlen;
+
+			if (src_len > destlen  &&  handle != NULL) {
+				src_len = destlen;
+				if (srcfmt->datatype == CS_VARCHAR_TYPE)
+					ret = BLK_CONV_TRUNCATION;
+			}
 
 			if (src_len > destlen) {
 				tdsdump_log(TDS_DBG_FUNC, "error: src_len > destlen\n");
@@ -754,6 +769,38 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt,
 	len = tds_convert(ctx->tds_ctx, src_type, srcdata, src_len, desttype, &cres);
 
 	tdsdump_log(TDS_DBG_FUNC, "cs_convert() tds_convert returned %d\n", len);
+	if (len == TDS_CONVERT_SYNTAX  &&  handle != NULL
+	    &&  is_binary_type(desttype)) {
+		char * s = (char *) srcdata;
+		int src_len2 = destlen * 2;
+		if (src_len > 1 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X'))
+			src_len2 += 2;
+		/* Match full input's low order bit to get correct phase. */
+		if (src_len & 1)
+			--src_len2;
+		if (src_len2 < src_len) {
+			len = tds_convert(ctx->tds_ctx, src_type, srcdata,
+					  src_len2, desttype, &cres);
+		}
+		tdsdump_log(TDS_DBG_FUNC,
+			    "cs_convert(): retry returned %d\n", len);
+		/*
+		 * Check the last character to avoid interference from
+		 * space and NUL stripping.
+		 */
+		if (len == destlen  &&  isxdigit(s[src_len2 - 1])) {
+			if (srcfmt->datatype == CS_VARCHAR_TYPE) {
+				free(cres.ib);
+				return BLK_CONV_OVERFLOW;
+			} else {
+				ret = BLK_CONV_TRUNCATION;
+			}
+		} else {
+			if (len >= 0)
+				free(cres.ib);
+			return BLK_CONV_SYNTAX_ERROR;
+		}
+	}
 
 	switch (len) {
 	case TDS_CONVERT_NOAVAIL:
@@ -789,8 +836,16 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt,
 		ret = CS_SUCCEED;
 		if (len > destlen) {
 			tdsdump_log(TDS_DBG_FUNC, "error_handler: Data-conversion resulted in overflow\n");
-			_csclient_msg(ctx, "cs_convert", 2, 4, 1, 36, "");
-			ret = CS_FAIL;
+			if (handle == NULL) {
+				_csclient_msg(ctx, "cs_convert", 2, 4, 1, 36,
+					      "");
+				ret = CS_FAIL;
+			} else if (srcfmt->datatype == CS_VARBINARY_TYPE
+				   ||  srcfmt->datatype == CS_VARCHAR_TYPE) {
+				ret = BLK_CONV_OVERFLOW;
+			} else {
+				ret = BLK_CONV_TRUNCATION;
+			}
 			len = destlen;
 		}
 		if (handle == NULL) {
@@ -857,9 +912,26 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt,
 		ret = CS_SUCCEED;
 		if (len > destlen) {
 			tdsdump_log(TDS_DBG_FUNC, "Data-conversion resulted in overflow\n");
-			_csclient_msg(ctx, "cs_convert", 2, 4, 1, 36, "");
 			len = destlen;
-			ret = CS_FAIL;
+			if (handle == NULL) {
+				_csclient_msg(ctx, "cs_convert", 2, 4, 1, 36,
+					      "");
+				ret = CS_FAIL;
+			} else if (is_char_type(src_type)) {
+				if (srcfmt->datatype == CS_VARCHAR_TYPE)
+					ret = BLK_CONV_TRUNCATION;
+			} else if (is_binary_type(src_type)) {
+				if (srcfmt->datatype == CS_VARBINARY_TYPE) {
+					ret = BLK_CONV_OVERFLOW;
+				} else {
+					ret = BLK_CONV_TRUNCATION;
+					len &= ~1;
+				}
+			} else if (is_datetime_type(src_type)) {
+				ret = BLK_CONV_TRUNCATION;
+			} else {
+				ret = BLK_CONV_OVERFLOW;
+			}
 		}
 		switch (destfmt->format) {
 
