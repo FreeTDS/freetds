@@ -89,6 +89,7 @@
 
 #include <freetds/tds.h>
 #include <freetds/utils/string.h>
+#include <freetds/utils/nosigpipe.h>
 #include <freetds/tls.h>
 #include <freetds/replacements.h>
 
@@ -153,10 +154,6 @@ tds_socket_done(void)
 #elif defined(__VMS)
 #define TCP_NODELAY 1
 #define USE_NODELAY 1
-#endif
-
-#ifndef __APPLE__
-#undef SO_NOSIGPIPE
 #endif
 
 /**

@@ -50,16 +50,13 @@
 #endif
 
 #include <freetds/utils.h>
+#include <freetds/utils/nosigpipe.h>
 #include <freetds/macros.h>
 
 /**
  * \addtogroup network
  * @{
  */
-
-#ifndef __APPLE__
-#undef SO_NOSIGPIPE
-#endif
 
 /**
  * Set socket to not throw SIGPIPE.
