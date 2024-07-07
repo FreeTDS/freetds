@@ -52,22 +52,8 @@
  * ct_results returned CS_CMD_DONE type and 2 rows
  */
 
-#undef NDEBUG
-#include <config.h>
-
-#include <stdio.h>
-
-#if HAVE_STDLIB_H
-#include <stdlib.h>
-#endif /* HAVE_STDLIB_H */
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
-
-#include <assert.h>
-#include <ctpublic.h>
 #include "common.h"
+
 #include <freetds/replacements.h>
 
 static CS_CONTEXT *ctx;

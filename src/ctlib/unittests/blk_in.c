@@ -1,24 +1,10 @@
-#include <config.h>
-
-#include <stdio.h>
-#include <assert.h>
-
-#if HAVE_STDLIB_H
-#include <stdlib.h>
-#endif /* HAVE_STDLIB_H */
+#include "common.h"
 
 #if HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif /* HAVE_SYS_STAT_H */
 
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
-
-
-#include <ctpublic.h>
 #include <bkpublic.h>
-#include "common.h"
 #include "blk_in.h"
 
 static CS_RETCODE

@@ -1,7 +1,3 @@
-#include <config.h>
-
-#include <stdio.h>
-#include <ctpublic.h>
 #include "common.h"
 
 /* protos */

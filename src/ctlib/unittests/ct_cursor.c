@@ -1,12 +1,3 @@
-#include <config.h>
-
-#include <stdio.h>
-
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-
-#include <ctpublic.h>
 #include "common.h"
 
 static int update_second_table(CS_COMMAND * cmd2, char *value);

@@ -1,12 +1,3 @@
-#include <config.h>
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctpublic.h>
 #include "common.h"
 
 /* Testing: data truncation behavior of ct_fetch */

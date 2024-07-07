@@ -1,6 +1,4 @@
-#include <config.h>
-
-#include <stdio.h>
+#include "common.h"
 
 #include <freetds/time.h>
 
@@ -11,8 +9,6 @@
 #endif /* HAVE_UNISTD_H */
 
 #include <signal.h>
-#include <ctpublic.h>
-#include "common.h"
 
 #include <freetds/macros.h>
 

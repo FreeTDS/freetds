@@ -1,9 +1,6 @@
-#include <config.h>
-
-#include <stdio.h>
-#include <cspublic.h>
-#include <ctpublic.h>
 #include "common.h"
+
+#include <cspublic.h>
 
 /*
  * ct_command with CS_MORE option

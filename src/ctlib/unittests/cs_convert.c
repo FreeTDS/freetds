@@ -1,12 +1,3 @@
-#include <config.h>
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
-
-#include <stdio.h>
-#include <assert.h>
-#include <ctpublic.h>
 #include "common.h"
 
 #ifdef CS_TDS_74

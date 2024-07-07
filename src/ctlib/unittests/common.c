@@ -1,14 +1,4 @@
-#include <config.h>
-
-#include <stdio.h>
-
-#if HAVE_STDLIB_H
-#include <stdlib.h>
-#endif /* HAVE_STDLIB_H */
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
+#include "common.h"
 
 #if HAVE_UNISTD_H
 #include <unistd.h>
@@ -17,8 +7,6 @@
 #include <freetds/replacements.h>
 #include <freetds/macros.h>
 
-#include <ctpublic.h>
-#include "common.h"
 #ifdef TDS_STATIC_CAST
 #include "ctlib.h"
 #endif

@@ -1,11 +1,3 @@
-#include <config.h>
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
-
-#include <stdio.h>
-#include <ctpublic.h>
 #include "common.h"
 
 /* Testing: Retrieve CS_TEXT_TYPE using ct_bind() */

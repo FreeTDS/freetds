@@ -1,16 +1,3 @@
-#include <config.h>
-
-#include <stdio.h>
-
-#if HAVE_STDLIB_H
-#include <stdlib.h>
-#endif /* HAVE_STRING_H */
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
-
-#include <ctpublic.h>
 #include "common.h"
 
 #define MAX(X,Y)      (((X) > (Y)) ? (X) : (Y))

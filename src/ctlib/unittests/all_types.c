@@ -1,13 +1,9 @@
 /* try all types from server */
 
-#undef NDEBUG
-#include <config.h>
-
-#include <stdio.h>
-#include <ctpublic.h>
 #include "common.h"
+
 #include <ctlib.h>
-#include <assert.h>
+
 #define TDS_DONT_DEFINE_DEFAULT_FUNCTIONS
 #include "../../tds/unittests/common.h"
 #include <freetds/tds.h>

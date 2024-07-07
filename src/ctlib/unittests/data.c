@@ -1,15 +1,4 @@
 /* Test some data from server. Currently tests MS XML type */
-#undef NDEBUG
-#include <config.h>
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctpublic.h>
-#include <assert.h>
 #include "common.h"
 
 int

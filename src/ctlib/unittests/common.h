@@ -1,6 +1,23 @@
 #ifndef _tdsguard_gWMRTH1fbCWjtfhWbz8PvN_
 #define _tdsguard_gWMRTH1fbCWjtfhWbz8PvN_
 
+#undef NDEBUG
+
+#include <ctpublic.h>
+
+#include <config.h>
+
+#include <stdio.h>
+#include <assert.h>
+
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
 #include <freetds/bool.h>
 
 extern char SERVER[512];
@@ -8,7 +25,7 @@ extern char DATABASE[512];
 extern char USER[512];
 extern char PASSWORD[512];
 
-typedef struct 
+typedef struct
 {
 	int initialized;
 	char SERVER[512];
@@ -16,7 +33,7 @@ typedef struct
 	char USER[512];
 	char PASSWORD[512];
 	char fverbose;
-	int maxlength; 
+	int maxlength;
 } COMMON_PWD;
 extern COMMON_PWD common_pwd;
 
@@ -47,7 +64,7 @@ extern int servermsg_cb_invoked;
 extern bool error_to_stdout;
 
 CS_RETCODE try_ctlogin(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, int verbose);
-CS_RETCODE try_ctlogin_with_options(int argc, char **argv, CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, 
+CS_RETCODE try_ctlogin_with_options(int argc, char **argv, CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 				    int verbose);
 
 CS_RETCODE try_ctlogout(CS_CONTEXT * ctx, CS_CONNECTION * conn, CS_COMMAND * cmd, int verbose);

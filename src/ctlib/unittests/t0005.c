@@ -1,9 +1,5 @@
 /* try login and logout multiple times in a row */
 
-#include <config.h>
-
-#include <stdio.h>
-#include <ctpublic.h>
 #include "common.h"
 
 int

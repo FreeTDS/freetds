@@ -1,14 +1,9 @@
 /*
  * Try usage of callbacks to get errors and messages from library.
  */
-#include <config.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctpublic.h>
-#include <bkpublic.h>
 #include "common.h"
+
+#include <bkpublic.h>
 
 #define ALL_TESTS \
 	TEST(ct_callback) \

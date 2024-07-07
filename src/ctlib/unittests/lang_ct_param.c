@@ -1,18 +1,6 @@
-#include <config.h>
+#include "common.h"
 
 #include <stdarg.h>
-#include <stdio.h>
-
-#if HAVE_STDLIB_H
-#include <stdlib.h>
-#endif /* HAVE_STDLIB_H */
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
-
-#include <ctpublic.h>
-#include "common.h"
 
 static const char *query =
 	"insert into #ctparam_lang (name,name2,age,cost,bdate,fval) values (@in1, @in2, @in3, @moneyval, @dateval, @floatval)";

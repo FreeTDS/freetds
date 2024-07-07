@@ -1,13 +1,6 @@
-#include <config.h>
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
-
-#include <stdio.h>
-#include <ctpublic.h>
-#include <bkpublic.h>
 #include "common.h"
+
+#include <bkpublic.h>
 
 /* Testing: array binding of result set */
 int

@@ -1,18 +1,5 @@
 /* Test we can insert long binary into database.
  */
-#include <config.h>
-
-#include <stdio.h>
-
-#if HAVE_STDLIB_H
-#include <stdlib.h>
-#endif /* HAVE_STDLIB_H */
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
-
-#include <ctpublic.h>
 #include "common.h"
 
 #include <freetds/macros.h>

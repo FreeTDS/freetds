@@ -1,13 +1,3 @@
-#include <config.h>
-
-#include <stdarg.h>
-#include <stdio.h>
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
-
-#include <ctpublic.h>
 #include "common.h"
 
 /* Testing: array binding of result set */

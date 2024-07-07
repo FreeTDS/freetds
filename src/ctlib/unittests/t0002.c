@@ -1,8 +1,3 @@
-#include <config.h>
-
-#include <stdio.h>
-#include <string.h>
-#include <ctpublic.h>
 #include "common.h"
 
 static int sp_who(CS_COMMAND *cmd);
