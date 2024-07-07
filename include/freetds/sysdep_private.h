@@ -18,8 +18,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef _tds_sysdep_private_h_
-#define _tds_sysdep_private_h_
+#ifndef _tdsguard_gbdINUKdHN7rAOavGyKkWw_
+#define _tdsguard_gbdINUKdHN7rAOavGyKkWw_
 
 #define TDS_ADDITIONAL_SPACE 16
 
@@ -280,4 +280,4 @@ typedef SOCKET TDS_SYS_SOCKET;
 
 #include <freetds/sysdep_types.h>
 
-#endif /* _tds_sysdep_private_h_ */
+#endif /* _tdsguard_gbdINUKdHN7rAOavGyKkWw_ */

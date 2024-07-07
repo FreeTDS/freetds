@@ -1,5 +1,5 @@
-#ifndef COMMON_h
-#define COMMON_h
+#ifndef _tdsguard_dxzbHKJsR5HKI0Qpzu7Vnq_
+#define _tdsguard_dxzbHKJsR5HKI0Qpzu7Vnq_
 
 #undef NDEBUG
 #include <config.h>

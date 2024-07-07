@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _pool_h_
-#define _pool_h_
+#ifndef _tdsguard_clBmMDiJ1W6vO4Q4ftyzgV_
+#define _tdsguard_clBmMDiJ1W6vO4Q4ftyzgV_
 
 #include <assert.h>
 

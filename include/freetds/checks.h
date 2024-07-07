@@ -17,8 +17,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef TDS_CHECKS_H
-#define TDS_CHECKS_H
+#ifndef _tdsguard_ejjdEEiHR3F7xWi9vVKOIa_
+#define _tdsguard_ejjdEEiHR3F7xWi9vVKOIa_
 
 #include <freetds/pushvis.h>
 
@@ -67,4 +67,4 @@ void tds_extra_assert_check(const char *fn, int line, int cond, const char *cond
 
 #include <freetds/popvis.h>
 
-#endif /* TDS_CHECKS_H */
+#endif /* _tdsguard_ejjdEEiHR3F7xWi9vVKOIa_ */

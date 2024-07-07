@@ -17,10 +17,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef _freetds_tls_h_
-#define _freetds_tls_h_
+#ifndef _tdsguard_hpUeh3TzYOzN1FtT39tMHz_
+#define _tdsguard_hpUeh3TzYOzN1FtT39tMHz_
 
-#ifndef _tds_h_
+#ifndef _tdsguard_hfOrWb5znoUCWdBPoNQvqN_
 #error tds.h must be included before tls.h
 #endif
 
@@ -122,4 +122,4 @@ tds_ssl_write(TDSCONNECTION *conn TDS_UNUSED, const unsigned char *buf TDS_UNUSE
 
 #include <freetds/popvis.h>
 
-#endif /* _freetds_tls_h_ */
+#endif /* _tdsguard_hpUeh3TzYOzN1FtT39tMHz_ */

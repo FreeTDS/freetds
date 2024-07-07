@@ -17,8 +17,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef _ctlib_h_
-#define _ctlib_h_
+#ifndef _tdsguard_gH4tOYBTzynx4DgqFzOEbB_
+#define _tdsguard_gH4tOYBTzynx4DgqFzOEbB_
 
 #include <freetds/tds.h>
 #include <freetds/convert.h>

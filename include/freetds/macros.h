@@ -18,8 +18,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef _freetds_macros_h_
-#define _freetds_macros_h_
+#ifndef _tdsguard_dWrEWKe6Aqdq6AyZsaKD0V_
+#define _tdsguard_dWrEWKe6Aqdq6AyZsaKD0V_
 
 #ifndef _freetds_config_h_
 #error should include config.h before

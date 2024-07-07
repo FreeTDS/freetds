@@ -17,8 +17,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef _tds_utils_nosigpipe_h_
-#define _tds_utils_nosigpipe_h_
+#ifndef _tdsguard_bZ9Gv69gt4HKEOuxm10QzP_
+#define _tdsguard_bZ9Gv69gt4HKEOuxm10QzP_
 
 #if HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -34,4 +34,4 @@
 #undef SO_NOSIGPIPE
 #endif
 
-#endif /* _tds_utils_nosigpipe_h_ */
+#endif /* _tdsguard_bZ9Gv69gt4HKEOuxm10QzP_ */

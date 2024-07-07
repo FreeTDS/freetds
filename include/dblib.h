@@ -17,8 +17,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef _dblib_h_
-#define _dblib_h_
+#ifndef _tdsguard_aoIoAtf9UfNLxwNuH19vDb_
+#define _tdsguard_aoIoAtf9UfNLxwNuH19vDb_
 
 #include <freetds/pushvis.h>
 

@@ -17,8 +17,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef _tds_configs_h_
-#define _tds_configs_h_
+#ifndef _tdsguard_eQj9hBZh39rorFpOUns5xS_
+#define _tdsguard_eQj9hBZh39rorFpOUns5xS_
 
 #include <freetds/utils/path.h>
 
@@ -28,7 +28,7 @@
 #define FREETDS_SYSCONFDIR TDS_DIR("c:")
 #endif
 
-#ifndef _tds_h_
+#ifndef _tdsguard_hfOrWb5znoUCWdBPoNQvqN_
 #error freetds/tds.h must be included before freetds/configs.h
 #endif
 
@@ -51,4 +51,4 @@ extern "C"
 }
 #endif
 
-#endif /* _tds_configs_h_ */
+#endif /* _tdsguard_eQj9hBZh39rorFpOUns5xS_ */

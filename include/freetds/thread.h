@@ -19,8 +19,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef TDSTHREAD_H
-#define TDSTHREAD_H 1
+#ifndef _tdsguard_cIfZP7JZiHtLLfanwl7ubP_
+#define _tdsguard_cIfZP7JZiHtLLfanwl7ubP_
 
 #undef TDS_HAVE_MUTEX
 

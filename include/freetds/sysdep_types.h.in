@@ -17,10 +17,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef _tds_sysdep_types_h_
-#define _tds_sysdep_types_h_
+#ifndef _tdsguard_fhDKKbNsWAy7n0lapo2Voc_
+#define _tdsguard_fhDKKbNsWAy7n0lapo2Voc_
 
-#ifndef _tds_sysdep_private_h_
+#ifndef _tdsguard_gbdINUKdHN7rAOavGyKkWw_
 #error Do not include directly, include <freetds/sysdep_private.h>
 #endif
 
@@ -29,4 +29,4 @@ typedef unsigned @tds_sysdep_intptr_type@ TDS_UINTPTR;
 
 #else
 #error Do not include directly, include <freetds/sysdep_private.h>
-#endif /* _tds_sysdep_types_h_ */
+#endif /* _tdsguard_fhDKKbNsWAy7n0lapo2Voc_ */

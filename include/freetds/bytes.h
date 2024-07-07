@@ -17,8 +17,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef _tdsbytes_h_
-#define _tdsbytes_h_
+#ifndef _tdsguard_eO1lgptMUEXAnSnm4l3QiK_
+#define _tdsguard_eO1lgptMUEXAnSnm4l3QiK_
 
 /*
  * read a word of n bytes aligned, architecture dependent endian

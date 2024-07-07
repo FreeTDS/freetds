@@ -17,8 +17,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef freetds_bool_h_
-#define freetds_bool_h_
+#ifndef _tdsguard_hKphrpWEELXHaaZkiGPQUV_
+#define _tdsguard_hKphrpWEELXHaaZkiGPQUV_
 
 #ifndef __cplusplus
 
@@ -40,4 +40,4 @@ typedef unsigned char freetds_boolean_t;
 
 #endif
 
-#endif /* freetds_bool_h_ */
+#endif /* _tdsguard_hKphrpWEELXHaaZkiGPQUV_ */

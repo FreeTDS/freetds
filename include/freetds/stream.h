@@ -17,10 +17,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef _freetds_stream_h_
-#define _freetds_stream_h_
+#ifndef _tdsguard_a5iqP6Ed7kDGP9L1OvOL7W_
+#define _tdsguard_a5iqP6Ed7kDGP9L1OvOL7W_
 
-#ifndef _tds_h_
+#ifndef _tdsguard_hfOrWb5znoUCWdBPoNQvqN_
 #error Include tds.h first
 #endif
 

@@ -1,5 +1,5 @@
-#ifndef DES_H
-#define DES_H
+#ifndef _tdsguard_frXREepoqzIh7i5y4TSoh7_
+#define _tdsguard_frXREepoqzIh7i5y4TSoh7_
 
 #ifdef HAVE_NETTLE
 #include <nettle/des.h>
@@ -41,4 +41,4 @@ static inline int tds_des_set_key(DES_KEY * dkey, const des_cblock user_key)
 }
 #endif
 
-#endif /* !DES_H */
+#endif /* !_tdsguard_frXREepoqzIh7i5y4TSoh7_ */

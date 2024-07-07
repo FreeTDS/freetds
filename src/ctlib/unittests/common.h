@@ -1,6 +1,5 @@
-
-#ifndef _freetds_ctlib_common_h
-#define _freetds_ctlib_common_h
+#ifndef _tdsguard_gWMRTH1fbCWjtfhWbz8PvN_
+#define _tdsguard_gWMRTH1fbCWjtfhWbz8PvN_
 
 #include <freetds/bool.h>
 

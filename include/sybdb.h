@@ -149,7 +149,7 @@ typedef int BOOL;
 #endif
 #endif
 
-#ifndef _tds_h_
+#ifndef _tdsguard_hfOrWb5znoUCWdBPoNQvqN_
 /* copied from tds.h */
 /* TODO find a best way... */
 enum

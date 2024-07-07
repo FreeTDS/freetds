@@ -17,8 +17,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef freetds_utils_smp_h_
-#define freetds_utils_smp_h_
+#ifndef _tdsguard_hfFl8IZw2Vf65YyyYQLJTS_
+#define _tdsguard_hfFl8IZw2Vf65YyyYQLJTS_
 
 #include <tds_sysdep_public.h>
 #include <freetds/bool.h>
@@ -63,4 +63,4 @@ char *smp_to_string(smp a);
 /** converts a string to a number */
 smp smp_from_string(const char *s);
 
-#endif /* freetds_utils_smp_h_ */
+#endif /* _tdsguard_hfFl8IZw2Vf65YyyYQLJTS_ */

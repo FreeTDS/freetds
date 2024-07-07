@@ -17,8 +17,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef _tdsstring_h_
-#define _tdsstring_h_
+#ifndef _tdsguard_d2McTbRS3vmVcq0ls4BzwH_
+#define _tdsguard_d2McTbRS3vmVcq0ls4BzwH_
 
 #include <freetds/macros.h>
 
@@ -106,4 +106,4 @@ DSTR* tds_dstr_alloc(DSTR *s, size_t length) TDS_WUR;
 
 #include <freetds/popvis.h>
 
-#endif /* _tdsstring_h_ */
+#endif /* _tdsguard_d2McTbRS3vmVcq0ls4BzwH_ */

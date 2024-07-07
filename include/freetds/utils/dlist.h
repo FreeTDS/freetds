@@ -17,8 +17,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef TDS_DLIST_H
-#define TDS_DLIST_H
+#ifndef _tdsguard_aej6DXYKBycQe7Wyg2gHaQ_
+#define _tdsguard_aej6DXYKBycQe7Wyg2gHaQ_
 
 typedef struct dlist_ring {
 	struct dlist_ring *next;
@@ -45,4 +45,4 @@ static inline void dlist_insert_after(dlist_ring *ring_pos, dlist_ring *ring_ite
 	assert(ring_item->next && ring_item->prev);
 }
 
-#endif /* TDS_DLIST_H */
+#endif /* _tdsguard_aej6DXYKBycQe7Wyg2gHaQ_ */

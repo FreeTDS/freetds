@@ -17,8 +17,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef freetds_windows_h_
-#define freetds_windows_h_
+#ifndef _tdsguard_e9mm80mk5L6wSKLouC2UaM_
+#define _tdsguard_e9mm80mk5L6wSKLouC2UaM_
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -26,4 +26,4 @@
 #include <windows.h>
 #endif
 
-#endif /* freetds_windows_h_ */
+#endif /* _tdsguard_e9mm80mk5L6wSKLouC2UaM_ */

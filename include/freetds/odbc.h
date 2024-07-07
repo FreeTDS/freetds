@@ -18,8 +18,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef _sql_h_
-#define _sql_h_
+#ifndef _tdsguard_gQHaPEvp2dAAa45TAutROb_
+#define _tdsguard_gQHaPEvp2dAAa45TAutROb_
 
 #define TDS_DONT_DEFINE_DEFAULT_FUNCTIONS
 #include <freetds/tds.h>

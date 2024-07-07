@@ -1,5 +1,5 @@
-#ifndef MD5_H
-#define MD5_H
+#ifndef _tdsguard_d0MZPmUZs0d3gpgxVUiFES_
+#define _tdsguard_d0MZPmUZs0d3gpgxVUiFES_
 
 #ifndef HAVE_NETTLE
 
@@ -45,4 +45,4 @@ static inline void MD5Final(MD5_CTX *ctx, uint8_t *digest)
 
 #endif
 
-#endif /* !MD5_H */
+#endif /* !_tdsguard_d0MZPmUZs0d3gpgxVUiFES_ */

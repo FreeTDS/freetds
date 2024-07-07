@@ -17,8 +17,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef _replacements_h_
-#define _replacements_h_
+#ifndef _tdsguard_fELDB9J1dGrLHROMPkGfXj_
+#define _tdsguard_fELDB9J1dGrLHROMPkGfXj_
 
 #include <stdarg.h>
 #include "tds_sysdep_public.h"

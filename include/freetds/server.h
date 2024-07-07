@@ -17,8 +17,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef _tdsserver_h_
-#define _tdsserver_h_
+#ifndef _tdsguard_gt6cowOjOuyOf2Og3Ypj8u_
+#define _tdsguard_gt6cowOjOuyOf2Og3Ypj8u_
 #endif
 
 #ifdef __cplusplus

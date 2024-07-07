@@ -1,5 +1,5 @@
-#ifndef MD4_H
-#define MD4_H
+#ifndef _tdsguard_bJRBdagK4r9w58mnUbyvA0_
+#define _tdsguard_bJRBdagK4r9w58mnUbyvA0_
 
 #ifndef HAVE_NETTLE
 
@@ -44,4 +44,4 @@ static inline void MD4Final(MD4_CTX *ctx, uint8_t *digest)
 
 #endif
 
-#endif /* !MD4_H */
+#endif /* !_tdsguard_bJRBdagK4r9w58mnUbyvA0_ */

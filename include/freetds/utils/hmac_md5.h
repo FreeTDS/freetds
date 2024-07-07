@@ -17,8 +17,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef _hmac_md5_h_
-#define _hmac_md5_h_
+#ifndef _tdsguard_cKNGa1szdpreKWqKpKKcAA_
+#define _tdsguard_cKNGa1szdpreKWqKpKKcAA_
 
 #include <freetds/pushvis.h>
 void hmac_md5(const unsigned char key[16],

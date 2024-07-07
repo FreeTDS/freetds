@@ -17,8 +17,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef _tds_iconv_h_
-#define _tds_iconv_h_
+#ifndef _tdsguard_c6YssGkHHqKMDRUMOWVASl_
+#define _tdsguard_c6YssGkHHqKMDRUMOWVASl_
 
 #if HAVE_ICONV
 #include <iconv.h>
@@ -125,4 +125,4 @@ TDSICONV *tds_iconv_get_info(TDSCONNECTION * conn, int canonic_client, int canon
 
 #include <freetds/popvis.h>
 
-#endif /* _tds_iconv_h_ */
+#endif /* _tdsguard_c6YssGkHHqKMDRUMOWVASl_ */

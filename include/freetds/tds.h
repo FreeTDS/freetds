@@ -18,8 +18,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef _tds_h_
-#define _tds_h_
+#ifndef _tdsguard_hfOrWb5znoUCWdBPoNQvqN_
+#define _tdsguard_hfOrWb5znoUCWdBPoNQvqN_
 
 #ifndef _freetds_config_h_
 #error should include config.h before
@@ -1783,4 +1783,4 @@ tds_capability_enabled(const TDS_CAPABILITY_TYPE *cap, unsigned cap_num)
 #define TDS_PUT_SMALLINT(tds,v) tds_put_smallint((tds), ((TDS_SMALLINT)(v)))
 #define TDS_PUT_BYTE(tds,v) tds_put_byte((tds), ((unsigned char)(v)))
 
-#endif /* _tds_h_ */
+#endif /* _tdsguard_hfOrWb5znoUCWdBPoNQvqN_ */

@@ -2,8 +2,8 @@
  *  \brief Provide poll call where missing
  */
 
-#if !defined(_REPLACEMENTS_POLL_H) && !defined(HAVE_POLL)
-#define _REPLACEMENTS_POLL_H
+#if !defined(_tdsguard_g3Yr0q7NdWY6GI4uTB9PNx_) && !defined(HAVE_POLL)
+#define _tdsguard_g3Yr0q7NdWY6GI4uTB9PNx_
 
 #include <config.h>
 

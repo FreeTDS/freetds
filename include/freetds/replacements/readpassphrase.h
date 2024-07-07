@@ -29,8 +29,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef FREETDS_READPASSPHRASE_H_
-#define FREETDS_READPASSPHRASE_H_
+#ifndef _tdsguard_bkwzvYqnksBiqA9Zb1TtWU_
+#define _tdsguard_bkwzvYqnksBiqA9Zb1TtWU_
 
 #ifndef _freetds_config_h_
 #error should include config.h before
@@ -60,4 +60,4 @@ char * tds_readpassphrase(const char *, char *, size_t, int);
 
 #endif /* !HAVE_READPASSPHRASE */
 
-#endif /* !FREETDS_READPASSPHRASE_H_ */
+#endif /* !_tdsguard_bkwzvYqnksBiqA9Zb1TtWU_ */

@@ -17,8 +17,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef _tds_utils_path_h_
-#define _tds_utils_path_h_
+#ifndef _tdsguard_eI8iNo9FExd6aRlc3im79S_
+#define _tdsguard_eI8iNo9FExd6aRlc3im79S_
 
 #ifdef _WIN32
 #include <wchar.h>
@@ -58,4 +58,4 @@ tds_dir_char *tds_get_home_file(const tds_dir_char *file);
 
 #include <freetds/popvis.h>
 
-#endif /* _tds_utils_path_h_ */
+#endif /* _tdsguard_eI8iNo9FExd6aRlc3im79S_ */

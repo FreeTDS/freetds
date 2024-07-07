@@ -17,8 +17,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef _tdsconvert_h_
-#define _tdsconvert_h_
+#ifndef _tdsguard_cXIvgxMqCzaBT7f54eQeMp_
+#define _tdsguard_cXIvgxMqCzaBT7f54eQeMp_
 
 #include <freetds/pushvis.h>
 
@@ -100,4 +100,4 @@ size_t tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATE
 
 #include <freetds/popvis.h>
 
-#endif /* _tdsconvert_h_ */
+#endif /* _tdsguard_cXIvgxMqCzaBT7f54eQeMp_ */
