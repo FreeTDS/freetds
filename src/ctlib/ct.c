@@ -2498,8 +2498,12 @@ ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt_arg)
 	datafmt->namelen = strlen(datafmt->name);
 	/* need to turn the SYBxxx into a CS_xxx_TYPE */
 	datafmt->datatype = _ct_get_client_type(curcol, true);
-	if (datafmt->datatype == CS_ILLEGAL_TYPE)
+	if (datafmt->datatype == CS_ILLEGAL_TYPE) {
+		_ctclient_msg(NULL, cmd->con, "ct_describe", 1, 1, 1, 4,
+			      "%s, %s", "column type",
+			      tds_prtype(curcol->column_type));
 		return CS_FAIL;
+	}
 	tdsdump_log(TDS_DBG_INFO1, "ct_describe() datafmt->datatype = %d server type %d\n", datafmt->datatype,
 		    curcol->column_type);
 	if (is_numeric_type(curcol->column_type))
