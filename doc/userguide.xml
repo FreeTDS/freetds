@@ -816,7 +816,7 @@ or
 							<entry>Includes support for time, date, datetime2, datetimeoffset.</entry>
 							</row>
 						<row>
-							<entry>Microsoft SQL Server 2012 or 2014</entry>
+							<entry>Microsoft SQL Server 2012, 2014, 2016 or 2019</entry>
 							<entry>7.4</entry>
 							<entry>Includes support for session recovery.</entry>
 							</row>
