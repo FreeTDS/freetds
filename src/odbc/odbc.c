@@ -105,7 +105,15 @@ static void odbc_ird_check(TDS_STMT * stmt);
 	CHECK_##t##_EXTRA(n); \
 	odbc_errs_reset(&n->errs);
 
-#define ODBC_ENTER_HSTMT INIT_HANDLE(STMT, stmt)
+#define ODBC_ENTER_HSTMT_EX(post_cancel) \
+	INIT_HANDLE(STMT, stmt) \
+	if (stmt->cancel_requested) { \
+		_SQLCancel(stmt); \
+		post_cancel; \
+	}
+
+#define ODBC_ENTER_HSTMT ODBC_ENTER_HSTMT_EX(odbc_errs_reset(&stmt->errs))
+#define ODBC_ENTER_HSTMT_OR_BAIL ODBC_ENTER_HSTMT_EX(return SQL_ERROR)
 #define ODBC_ENTER_HDBC  INIT_HANDLE(DBC,  dbc)
 #define ODBC_ENTER_HENV  INIT_HANDLE(ENV,  env)
 #define ODBC_ENTER_HDESC INIT_HANDLE(DESC, desc)
@@ -733,7 +741,7 @@ SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLROWOFFSET irow, SQL
 	SQLULEN bookmark;
 	SQLULEN out_len = 0;
 
-	ODBC_ENTER_HSTMT;
+	ODBC_ENTER_HSTMT_OR_BAIL;
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLExtendedFetch(%p, %d, %d, %p, %p)\n", 
 			hstmt, fFetchType, (int)irow, pcrow, rgfRowStatus);
@@ -901,7 +909,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 	SQLUSMALLINT param_status;
 	int token_flags;
 
-	ODBC_ENTER_HSTMT;
+	ODBC_ENTER_HSTMT_OR_BAIL;
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLMoreResults(%p)\n", hstmt);
 
@@ -1233,7 +1241,7 @@ SQLSetPos(SQLHSTMT hstmt, SQLSETPOSIROW irow, SQLUSMALLINT fOption, SQLUSMALLINT
 	TDSSOCKET *tds;
 	TDS_CURSOR_OPERATION op;
 	TDSPARAMINFO *params = NULL;
-	ODBC_ENTER_HSTMT;
+	ODBC_ENTER_HSTMT_OR_BAIL;
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLSetPos(%p, %ld, %d, %d)\n", 
 			hstmt, (long) irow, fOption, fLock);
@@ -1748,6 +1756,7 @@ _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version)
 	env->tds_ctx = ctx;
 	ctx->msg_handler = odbc_errmsg_handler;
 	ctx->err_handler = odbc_errmsg_handler;
+	ctx->int_handler = odbc_int_handler;
 
 	/* ODBC has its own format */
 	free(ctx->locale->datetime_fmt);
@@ -1983,55 +1992,59 @@ SQLBindCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 SQLRETURN ODBC_PUBLIC ODBC_API
 SQLCancel(SQLHSTMT hstmt)
 {
-	TDSSOCKET *tds;
-
-	/*
-	 * FIXME this function can be called from other thread, do not free 
-	 * errors for this function
-	 * If function is called from another thread errors are not touched
-	 */
-	/* TODO some tests required */
 	TDS_STMT *stmt = (TDS_STMT*)hstmt;
 	if (SQL_NULL_HSTMT == hstmt || !IS_HSTMT(hstmt))
 		return SQL_INVALID_HANDLE;
+	/* tdsdump_log(TDS_DBG_FUNC, "SQLCancel(%p)\n", hstmt); */
+	stmt->cancel_requested = true;
+	return SQL_SUCCESS;
+}
 
-	tdsdump_log(TDS_DBG_FUNC, "SQLCancel(%p)\n", hstmt);
+SQLRETURN
+_SQLCancel(TDS_STMT * stmt)
+{
+	TDSSOCKET *tds;
 
+	/* TODO some tests required */
+
+	tds_mutex_lock(&stmt->dbc->mtx);
+	if (!stmt->cancel_requested) {
+		tds_mutex_unlock(&stmt->dbc->mtx);
+		return SQL_SUCCESS;
+	}
 	tds = stmt->tds;
+	tds_mutex_unlock(&stmt->dbc->mtx);
+
+	tdsdump_log(TDS_DBG_FUNC, "_SQLCancel(%p)\n", stmt);
 
 	/* cancelling an inactive statement ?? */
 	if (!tds) {
-		ODBC_SAFE_ERROR(stmt);
-		ODBC_EXIT_(stmt);
-	}
-	if (tds_mutex_trylock(&stmt->mtx) == 0) {
+		stmt->cancel_requested = false;
+		ODBC_RETURN_(stmt);
+	} else {
 		CHECK_STMT_EXTRA(stmt);
 		odbc_errs_reset(&stmt->errs);
+		odbc_errs_add(&stmt->errs, "HY008", "Operation was cancelled");
 
 		/* FIXME test current statement */
-		/* FIXME here we are unlocked */
 
 		if (TDS_FAILED(tds_send_cancel(tds))) {
-			ODBC_SAFE_ERROR(stmt);
-			ODBC_EXIT_(stmt);
+			stmt->cancel_requested = false;
+			ODBC_RETURN_(stmt);
 		}
 
 		if (TDS_FAILED(tds_process_cancel(tds))) {
-			ODBC_SAFE_ERROR(stmt);
-			ODBC_EXIT_(stmt);
+			stmt->cancel_requested = false;
+			ODBC_RETURN_(stmt);
 		}
 
 		/* only if we processed cancel reset statement */
 		if (tds->state == TDS_IDLE)
 			odbc_unlock_statement(stmt);
 
-		ODBC_EXIT_(stmt);
+		stmt->cancel_requested = false;
+		ODBC_RETURN_(stmt);
 	}
-
-	/* don't access error here, just return error */
-	if (TDS_FAILED(tds_send_cancel(tds)))
-		return SQL_ERROR;
-	return SQL_SUCCESS;
 }
 
 ODBC_FUNC(SQLConnect, (P(SQLHDBC,hdbc), PCHARIN(DSN,SQLSMALLINT), PCHARIN(UID,SQLSMALLINT),
@@ -4166,7 +4179,7 @@ SQLFetch(SQLHSTMT hstmt)
 		SQLUSMALLINT *array_status_ptr;
 	} keep;
 	
-	ODBC_ENTER_HSTMT;
+	ODBC_ENTER_HSTMT_OR_BAIL;
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLFetch(%p)\n", hstmt);
 
@@ -4195,7 +4208,7 @@ SQLFetch(SQLHSTMT hstmt)
 SQLRETURN ODBC_PUBLIC ODBC_API
 SQLFetchScroll(SQLHSTMT hstmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 {
-	ODBC_ENTER_HSTMT;
+	ODBC_ENTER_HSTMT_OR_BAIL;
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLFetchScroll(%p, %d, %d)\n", hstmt, FetchOrientation, (int)FetchOffset);
 
@@ -5060,7 +5073,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	TDSRESULTINFO *resinfo;
 	SQLLEN dummy_cb;
 
-	ODBC_ENTER_HSTMT;
+	ODBC_ENTER_HSTMT_OR_BAIL;
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLGetData(%p, %u, %d, %p, %d, %p)\n", 
 			hstmt, icol, fCType, rgbValue, (int)cbValueMax, pcbValue);
@@ -6303,7 +6316,7 @@ SQLGetTypeInfoW(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 static SQLRETURN 
 _SQLParamData(SQLHSTMT hstmt, SQLPOINTER FAR * prgbValue)
 {
-	ODBC_ENTER_HSTMT;
+	ODBC_ENTER_HSTMT_OR_BAIL;
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLParamData(%p, %p) [param_num %d, param_data_called = %d]\n", 
 					hstmt, prgbValue, stmt->param_num, stmt->param_data_called);
