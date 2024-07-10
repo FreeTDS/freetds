@@ -849,7 +849,7 @@ ODBCINSTGetProperties(HODBCINSTPROPERTY hLastProperty)
 		" 7.1 MSSQL 2000\n"
 		" 7.2 MSSQL 2005\n"
 		" 7.3 MSSQL 2008\n"
-		" 7.4 MSSQL 2012 or 2014"
+		" 7.4 MSSQL 2012, 2014, 2016 or 2019"
 		);
 
 	hLastProperty = definePropertyList(hLastProperty, odbc_param_Language, "us_english", (void*) aLanguage, sizeof(aLanguage),

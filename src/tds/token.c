@@ -337,7 +337,7 @@ tds_process_loginack(TDSSOCKET *tds, TDSRET *login_succeeded)
 		tds->conn->tds_version = 0x703;
 		break;
 	case 0x74000004:
-		ver.name = "2012-2017";
+		ver.name = "2012-2019";
 		tds->conn->tds_version = 0x704;
 		break;
 	default:
