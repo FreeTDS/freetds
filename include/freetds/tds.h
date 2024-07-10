@@ -84,7 +84,7 @@ typedef struct tds_compiletime_settings
 	const char *freetds_version;	/* release version of FreeTDS */
 	const tds_dir_char *sysconfdir;		/* location of freetds.conf */
 	const char *last_update;	/* latest software_version date among the modules */
-	const char *tdsver;	/* TDS protocol version (4.2/4.6/5.0/7.0/7.1) 5.0 */
+	const char *tdsver;	/* TDS protocol version (4.2/4.6/5.0/7.0/7.1/8.0) 5.0 */
 	bool msdblib;		/* for MS style dblib */
 	bool sybase_compat;	/* enable increased Open Client binary compatibility */
 	bool threadsafe;		/* compile for thread safety default=no */
@@ -1310,6 +1310,7 @@ TDSDYNAMIC *tds_lookup_dynamic(TDSCONNECTION * conn, const char *id);
 /*@observer@*/ const char *tds_prtype(int token);
 int tds_get_varint_size(TDSCONNECTION * conn, int datatype);
 TDS_SERVER_TYPE tds_get_cardinal_type(TDS_SERVER_TYPE datatype, int usertype);
+TDSRET tds8_adjust_login(TDSLOGIN *login);
 
 
 /* iconv.c */

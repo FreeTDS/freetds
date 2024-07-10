@@ -951,6 +951,7 @@ tds_config_verstr(const char *tdsver, TDSLOGIN * login)
 		, { "7.2", 0x702 }
 		, { "7.3", 0x703 }
 		, { "7.4", 0x704 }
+		, { "8.0", 0x800 }
 		};
 	const struct tdsvername_t *pver;
 
@@ -1442,6 +1443,27 @@ tds_get_compiletime_settings(void)
 	assert(settings.tdsver);
 
 	return &settings;
+}
+
+/**
+ * Make sure proper setting are in place for TDS 8.0
+ */
+TDSRET
+tds8_adjust_login(TDSLOGIN *login)
+{
+	if (!IS_TDS80_PLUS(login) && login->encryption_level != TDS_ENCRYPTION_STRICT)
+		return TDS_SUCCESS;
+
+	login->tds_version = 0x800;
+	login->encryption_level = TDS_ENCRYPTION_STRICT;
+
+	/* we must have certificates */
+	if (tds_dstr_isempty(&login->cafile)) {
+		if (!tds_dstr_copy(&login->cafile, "system"))
+			return -TDSEMEM;
+	}
+
+	return TDS_SUCCESS;
 }
 
 /** @} */

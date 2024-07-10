@@ -94,12 +94,13 @@ extern "C"
 #define DBTDS_4_9_5             6	/* 4.9.5 (NCR) SQL Server */
 #define DBTDS_5_0               7	/* 5.0 SQL Server */
 #define DBTDS_7_0               8	/* Microsoft SQL Server 7.0 */
-#define DBTDS_8_0               9	/* Microsoft SQL Server 2000 */
-#define DBTDS_9_0               10	/* Microsoft SQL Server 2005 */
+#define DBTDS_8_0               ("Use DBTDS_7_1 instead"*x)	/* Microsoft SQL Server 2000 */
+#define DBTDS_9_0               ("Use DBTDS_7_2 instead"*x)	/* Microsoft SQL Server 2005 */
 #define DBTDS_7_1               9	/* Microsoft SQL Server 2000 */
 #define DBTDS_7_2               10	/* Microsoft SQL Server 2005 */
 #define DBTDS_7_3               11	/* Microsoft SQL Server 2008 */
 #define DBTDS_7_4               12	/* Microsoft SQL Server 2012/2014 */
+#define DBTDS_8_0_              13	/* Microsoft SQL Server 2022 */
 
 #define DBTXPLEN 16
 

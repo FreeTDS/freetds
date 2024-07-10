@@ -6861,6 +6861,8 @@ dbtds(DBPROCESS * dbproc)
 			return DBTDS_7_3;
 		case 0x704:
 			return DBTDS_7_4;
+		case 0x800:
+			return DBTDS_8_0_;
 		default:
 			return DBTDS_UNKNOWN;
 		}

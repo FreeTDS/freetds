@@ -83,13 +83,15 @@ main(int argc, char **argv)
 		assert(erc == NO_MORE_ROWS);
 	}
 
-#if defined(DBTDS_7_0) && defined(DBTDS_7_1) && defined(DBTDS_7_2) && defined(DBTDS_7_3) && defined(DBTDS_7_4)
+#if defined(DBTDS_7_0) && defined(DBTDS_7_1) && defined(DBTDS_7_2) && defined(DBTDS_7_3) \
+	&& defined(DBTDS_7_4) && defined(DBTDS_8_0_)
 	if ((dbnumrets(dbproc) == 0)
 	    && ((DBTDS(dbproc) == DBTDS_7_0)
 		|| (DBTDS(dbproc) == DBTDS_7_1)
 		|| (DBTDS(dbproc) == DBTDS_7_2)
 		|| (DBTDS(dbproc) == DBTDS_7_3)
-		|| (DBTDS(dbproc) == DBTDS_7_4))) {
+		|| (DBTDS(dbproc) == DBTDS_7_4)
+		|| (DBTDS(dbproc) == DBTDS_8_0_))) {
 		printf("WARNING:  Received no return parameters from server!\n");
 		printf("WARNING:  This is likely due to a bug in Microsoft\n");
 		printf("WARNING:  SQL Server 7.0 SP3 and later.\n");

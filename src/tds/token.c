@@ -289,6 +289,7 @@ tds_process_loginack(TDSSOCKET *tds, TDSRET *login_succeeded)
 	unsigned char ack;
 	TDS_UINT product_version;
 	int memrc = 0;
+	TDS_USMALLINT orig_tds_version = tds->conn->tds_version;
 
 	struct 	{ unsigned char major, minor, tiny[2];
 		  unsigned int reported;
@@ -382,6 +383,10 @@ tds_process_loginack(TDSSOCKET *tds, TDSRET *login_succeeded)
 		product_version = ((product_version & 0xffff00u) | 0x800000u) << 8;
 	tds->conn->product_version = product_version;
 	tdsdump_log(TDS_DBG_FUNC, "Product version %lX\n", (unsigned long) product_version);
+
+	/* internal version is ignored for TDS 8.0+ */
+	if (orig_tds_version >= 0x800)
+		tds->conn->tds_version = orig_tds_version;
 
 	/*
 	 * TDS 5.0 reports 5 on success 6 on failure

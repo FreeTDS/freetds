@@ -774,6 +774,9 @@ TDSRET
 tds_connect_and_login(TDSSOCKET * tds, TDSLOGIN * login)
 {
 	int oserr = 0;
+
+	TDS_PROPAGATE(tds8_adjust_login(login));
+
 	return tds_connect(tds, login, &oserr);
 }
 
@@ -1165,6 +1168,9 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	case 0x703:
 		tds7version = tds73Version;
 		break;
+	case 0x800:
+		/* for TDS 8.0 version should be ignored and ALPN used,
+		 * practically clients/servers usually set this to 7.4 */
 	case 0x704:
 		tds7version = tds74Version;
 		break;
@@ -1456,7 +1462,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 
 	tdsdump_log(TDS_DBG_INFO1, "detected crypt flag %d\n", crypt_flag);
 
-	if (!mars_replied)
+	if (!mars_replied && encryption_level != TDS_ENCRYPTION_STRICT)
 		tds->conn->tds_version = 0x701;
 
 	/* if server does not have certificate or TLS already setup do normal login */

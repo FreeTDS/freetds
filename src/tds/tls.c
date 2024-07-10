@@ -383,11 +383,10 @@ tds_certificate_set_x509_system_trust(gnutls_certificate_credentials_t cred)
 #endif
 
 static int
-tds_verify_certificate(gnutls_session_t session)
+tds_verify_certificate(gnutls_session_t session, TDSSOCKET *tds)
 {
 	unsigned int status;
 	int ret;
-	TDSSOCKET *tds = (TDSSOCKET *) gnutls_transport_get_ptr(session);
 
 #ifdef ENABLE_DEVELOPING
 	unsigned int list_size;
@@ -470,6 +469,22 @@ tds_verify_certificate(gnutls_session_t session)
 	return 0;
 }
 
+static int
+tds_verify_certificate_tds(gnutls_session_t session)
+{
+	TDSSOCKET *tds = (TDSSOCKET *) gnutls_transport_get_ptr(session);
+
+	return tds_verify_certificate(session, tds);
+}
+
+static int
+tds_verify_certificate_conn(gnutls_session_t session)
+{
+	TDSCONNECTION *conn = (TDSCONNECTION*) gnutls_transport_get_ptr(session);
+
+	return tds_verify_certificate(session, CONN2TDS(conn));
+}
+
 TDSRET
 tds_ssl_init(TDSSOCKET *tds, bool full)
 {
@@ -477,6 +492,7 @@ tds_ssl_init(TDSSOCKET *tds, bool full)
 	gnutls_certificate_credentials_t xcred;
 	int ret;
 	const char *tls_msg;
+	int (*verify_func)(gnutls_session_t session);
 
 	xcred = NULL;
 	session = NULL;	
@@ -507,6 +523,24 @@ tds_ssl_init(TDSSOCKET *tds, bool full)
 	if (ret != 0)
 		goto cleanup;
 
+	/* Initialize TLS session */
+	tls_msg = "initializing session";
+	ret = gnutls_init(&session, GNUTLS_CLIENT);
+	if (ret != 0)
+		goto cleanup;
+
+	if (!full) {
+		gnutls_transport_set_ptr(session, tds);
+		gnutls_transport_set_pull_function(session, tds_pull_func_login);
+		gnutls_transport_set_push_function(session, tds_push_func_login);
+		verify_func = tds_verify_certificate_tds;
+	} else {
+		gnutls_transport_set_ptr(session, tds->conn);
+		gnutls_transport_set_pull_function(session, tds_pull_func);
+		gnutls_transport_set_push_function(session, tds_push_func);
+		verify_func = tds_verify_certificate_conn;
+	}
+
 	if (!tds_dstr_isempty(&tds->login->cafile)) {
 		tls_msg = "loading CA file";
 		if (strcasecmp(tds_dstr_cstr(&tds->login->cafile), "system") == 0)
@@ -522,24 +556,8 @@ tds_ssl_init(TDSSOCKET *tds, bool full)
 				goto cleanup;
 		}
 #ifdef HAVE_GNUTLS_CERTIFICATE_SET_VERIFY_FUNCTION
-		gnutls_certificate_set_verify_function(xcred, tds_verify_certificate);
+		gnutls_certificate_set_verify_function(xcred, verify_func);
 #endif
-	}
-
-	/* Initialize TLS session */
-	tls_msg = "initializing session";
-	ret = gnutls_init(&session, GNUTLS_CLIENT);
-	if (ret != 0)
-		goto cleanup;
-
-	if (!full) {
-		gnutls_transport_set_ptr(session, tds);
-		gnutls_transport_set_pull_function(session, tds_pull_func_login);
-		gnutls_transport_set_push_function(session, tds_push_func_login);
-	} else {
-		gnutls_transport_set_ptr(session, tds->conn);
-		gnutls_transport_set_pull_function(session, tds_pull_func);
-		gnutls_transport_set_push_function(session, tds_push_func);
 	}
 
 	/* NOTE: these functions return int however they cannot fail */
@@ -585,7 +603,7 @@ tds_ssl_init(TDSSOCKET *tds, bool full)
 
 #ifndef HAVE_GNUTLS_CERTIFICATE_SET_VERIFY_FUNCTION
 	if (!tds_dstr_isempty(&tds->login->cafile)) {
-		ret = tds_verify_certificate(session);
+		ret = tds_verify_certificate(session, tds);
 		if (ret != 0)
 			goto cleanup;
 	}
@@ -610,9 +628,9 @@ tds_ssl_init(TDSSOCKET *tds, bool full)
 	return TDS_SUCCESS;
 
 cleanup:
-	set_current_tds(tds->conn, NULL);
 	if (session)
 		gnutls_deinit(session);
+	set_current_tds(tds->conn, NULL);
 	if (xcred)
 		gnutls_certificate_free_credentials(xcred);
 	tdsdump_log(TDS_DBG_ERROR, "%s failed: %s\n", tls_msg, gnutls_strerror (ret));
@@ -1137,7 +1155,6 @@ tds_ssl_init(TDSSOCKET *tds, bool full)
 	return TDS_SUCCESS;
 
 cleanup:
-	set_current_tds(tds->conn, NULL);
 	if (b2)
 		BIO_free(b2);
 	if (b)
@@ -1146,6 +1163,7 @@ cleanup:
 		SSL_shutdown(con);
 		SSL_free(con);
 	}
+	set_current_tds(tds->conn, NULL);
 	SSL_CTX_free(ctx);
 	tdsdump_log(TDS_DBG_ERROR, "%s failed\n", tls_msg);
 	return TDS_FAIL;

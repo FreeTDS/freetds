@@ -192,6 +192,12 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 				<listitem><para>Introduced for <productname>SQL Server 2012</productname>.  Includes support for session recovery.</para></listitem>
 				</varlistentry>
 
+			<varlistentry>
+				<term>TDS 8.0 Microsoft</term>
+				<listitem><para>Introduced for <productname>SQL Server 2022</productname>.
+				Includes support for TLS 1.3.</para></listitem>
+				</varlistentry>
+
 			</variablelist>
 		</sect1>
 	
@@ -820,6 +826,11 @@ or
 							<entry>7.4</entry>
 							<entry>Includes support for session recovery.</entry>
 							</row>
+						<row>
+							<entry>Microsoft SQL Server 2022</entry>
+							<entry>8.0</entry>
+							<entry>Includes support for TLS 1.3.</entry>
+							</row>
 						</tbody>
 					</tgroup>
 				</table></para>
@@ -933,7 +944,9 @@ So the &freetds; developers adopted that version for &freetds;.
 Years later, when Microsoft started releasing official specs of the protocol, it became obvious that the TDS
 versions that &freetds; had labeled 8.0 and 9.0 were actually versions 7.1 and 7.2 respectively.</para>
 
-	<para>Version 8.0 cannot be used from &freetds; version 1.3.</para>
+	<para>Version 8.0 cannot be used from &freetds; version 1.3.
+	With &freetds; version 1.5 you can again specify protocol 8.0 but it's the protocol
+	for MSSQL 2022.</para>
 
 <para><itemizedlist>
 			<title>TDS 4.2 has limitations</title>
@@ -1066,7 +1079,7 @@ versions that &freetds; had labeled 8.0 and 9.0 were actually versions 7.1 and 7
 					<tbody>
 						<row>
 							<entry><literal>tds version</literal></entry>
-							<entry>4.2, 5.0, 7.0, 7.1, 7.2, 7.3, 7.4, <literal>auto</literal></entry>
+							<entry>4.2, 5.0, 7.0, 7.1, 7.2, 7.3, 7.4, 8.0, <literal>auto</literal></entry>
 							<entry><parameter>--with-tdsver</parameter> value (<literal>auto</literal> if unspecified)
 								Overridden by <link  linkend="TDSVER">TDSVER</link>.</entry>
 							<entry>The <acronym>TDS</acronym> protocol version to use when connecting.  <quote><literal>auto</literal></quote> tells &freetds; to use an autodetection (trial-and-error) algorithm to choose the protocol version. </entry>
@@ -1509,7 +1522,9 @@ This is supported from MSSQL 2012.
 					<term id="TDSPORT"><envar>TDSPORT</envar></term>
 					<listitem>
 
-<para>specifies a TCP port number at which the servername is listening.  It overrides the default port (1433 for TDS 4.2/7.0/7.1/7.2/7.3/7.4, 4000 for TDS 5.0) as well as any port specified in the &freetdsconf; file.</para>
+<para>specifies a TCP port number at which the servername is listening.
+It overrides the default port (1433 for TDS 4.2/7.0/7.1/7.2/7.3/7.4/8.0, 4000 for TDS 5.0)
+as well as any port specified in the &freetdsconf; file.</para>
 						</listitem>
 					</varlistentry>
 				<varlistentry>
