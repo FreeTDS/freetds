@@ -304,7 +304,7 @@ pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 				return false;
 	}
 
-	puser->login = login = tds_alloc_login(1);
+	puser->login = login = tds_alloc_login(true);
 	if (tds->in_flag == TDS_LOGIN) {
 		if (!tds->conn->tds_version)
 			tds->conn->tds_version = 0x500;

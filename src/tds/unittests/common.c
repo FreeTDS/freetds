@@ -76,7 +76,7 @@ try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verb
 	if (verbose) {
 		printf("Setting login parameters\n");
 	}
-	*login = tds_alloc_login(1);
+	*login = tds_alloc_login(true);
 	if (!*login) {
 		fprintf(stderr, "tds_alloc_login() failed.\n");
 		return TDS_FAIL;

@@ -55,7 +55,7 @@ test0(TDSCONTEXT *ctx, TDSSOCKET *tds, const char *input, const char *expected, 
 	TDSLOGIN *login, *connection;
 	char *ret = NULL;
 
-	login = tds_alloc_login(1);
+	login = tds_alloc_login(true);
 	if (!login || !tds_set_server(login, input)) {
 		fprintf(stderr, "Error setting login!\n");
 		exit(1);

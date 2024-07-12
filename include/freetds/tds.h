@@ -1370,7 +1370,7 @@ void tds_set_cur_dyn(TDSSOCKET *tds, TDSDYNAMIC *dyn);
 TDSSOCKET *tds_realloc_socket(TDSSOCKET * tds, size_t bufsize);
 char *tds_alloc_client_sqlstate(int msgno);
 char *tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgno);
-TDSLOGIN *tds_alloc_login(int use_environment);
+TDSLOGIN *tds_alloc_login(bool use_environment);
 TDSDYNAMIC *tds_alloc_dynamic(TDSCONNECTION * conn, const char *id);
 void tds_free_login(TDSLOGIN * login);
 TDSLOGIN *tds_init_login(TDSLOGIN * login, TDSLOCALE * locale);

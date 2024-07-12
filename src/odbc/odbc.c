@@ -600,7 +600,7 @@ ODBC_FUNC(SQLDriverConnect, (P(SQLHDBC,hdbc), P(SQLHWND,hwnd), PCHARIN(ConnStrIn
 		ODBC_EXIT_(dbc);
 	}
 
-	login = tds_alloc_login(0);
+	login = tds_alloc_login(false);
 	if (!login || !tds_init_login(login, dbc->env->tds_ctx->locale)) {
 		tds_free_login(login);
 		tds_dstr_free(&conn_str);
@@ -2059,7 +2059,7 @@ ODBC_FUNC(SQLConnect, (P(SQLHDBC,hdbc), PCHARIN(DSN,SQLSMALLINT), PCHARIN(UID,SQ
 	}
 #endif
 
-	login = tds_alloc_login(0);
+	login = tds_alloc_login(false);
 	if (!login || !tds_init_login(login, dbc->env->tds_ctx->locale))
 		goto memory_error;
 

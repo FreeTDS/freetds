@@ -31,7 +31,7 @@ test_common(const char *name, const char *connect_string, check_func_t *check_fu
 	TDS_PARSED_PARAM parsed_params[ODBC_PARAM_SIZE];
 
 	const char *connect_string_end = connect_string + strlen(connect_string);
-	login = tds_alloc_login(0);
+	login = tds_alloc_login(false);
 	if (!tds_set_language(login, "us_english")) {
 		fprintf(stderr, "Error setting language in test '%s'\n", name);
 		exit(1);

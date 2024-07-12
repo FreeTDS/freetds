@@ -716,7 +716,7 @@ dblogin(void)
 		dbperror(NULL, SYBEMEM, errno);
 		return NULL;
 	}
-	if ((loginrec->tds_login = tds_alloc_login(1)) == NULL) {
+	if ((loginrec->tds_login = tds_alloc_login(true)) == NULL) {
 		dbperror(NULL, SYBEMEM, errno);
 		free(loginrec);
 		return NULL;

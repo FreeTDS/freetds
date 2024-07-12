@@ -979,7 +979,7 @@ tds_release_cursor(TDSCURSOR **pcursor)
 }
 
 TDSLOGIN *
-tds_alloc_login(int use_environment)
+tds_alloc_login(bool use_environment)
 {
 	TDSLOGIN *login = NULL;
 	const char *server_name = TDS_DEF_SERVER;

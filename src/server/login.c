@@ -339,7 +339,7 @@ tds_alloc_read_login(TDSSOCKET * tds)
 	}
 
 	/* Allocate the login packet */
-	login = tds_alloc_login(1);
+	login = tds_alloc_login(true);
 	if (!login)
 		return NULL;
 

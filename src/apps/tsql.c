@@ -771,7 +771,7 @@ main(int argc, char **argv)
 	setlocale(LC_ALL, "");
 
 	/* grab a login structure */
-	login = tds_alloc_login(1);
+	login = tds_alloc_login(true);
 	if (!login) {
 		fprintf(stderr, "login cannot be null\n");
 		return 1;

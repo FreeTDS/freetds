@@ -143,7 +143,7 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 	bool found;
 
 	/* allocate a new structure with hard coded and build-time defaults */
-	connection = tds_alloc_login(0);
+	connection = tds_alloc_login(false);
 	if (!connection || !tds_init_login(connection, locale)) {
 		tds_free_login(connection);
 		return NULL;

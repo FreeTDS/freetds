@@ -82,7 +82,7 @@ pool_mbr_login(const TDS_POOL * pool, int tds_version)
 	TDSLOGIN *connection;
 	char hostname[MAXHOSTNAMELEN];
 
-	login = tds_alloc_login(1);
+	login = tds_alloc_login(true);
 	if (!login) {
 		fprintf(stderr, "out of memory");
 		return NULL;

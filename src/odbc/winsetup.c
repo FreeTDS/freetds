@@ -81,7 +81,7 @@ alloc_dsninfo(void)
 	di = (DSNINFO *) malloc(sizeof(DSNINFO));
 	tds_dstr_init(&di->origdsn);
 	tds_dstr_init(&di->dsn);
-	di->login = tds_alloc_login(0);
+	di->login = tds_alloc_login(false);
 	tds_init_login(di->login, NULL);
 
 	return di;

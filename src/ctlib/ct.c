@@ -305,7 +305,7 @@ ct_con_alloc(CS_CONTEXT * ctx, CS_CONNECTION ** con)
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_con_alloc(%p, %p)\n", ctx, con);
 
-	login = tds_alloc_login(1);
+	login = tds_alloc_login(true);
 	if (!login)
 		return CS_FAIL;
 
