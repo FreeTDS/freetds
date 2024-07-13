@@ -240,12 +240,14 @@ odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSLOGIN * login)
 	if (myGetPrivateProfileString(DSN, odbc_param_ServerSPN, tmp) > 0)
 		tds_parse_conf_section(TDS_STR_SPN, tmp, login);
 
-	if (myGetPrivateProfileString(DSN, odbc_param_Trusted_Connection, tmp) > 0 && tds_config_boolean(odbc_param_Trusted_Connection, tmp, login)) {
+	if (myGetPrivateProfileString(DSN, odbc_param_Trusted_Connection, tmp) > 0
+	    && tds_config_boolean(odbc_param_Trusted_Connection, tmp, login)) {
 		tds_dstr_empty(&login->user_name);
 		tds_dstr_empty(&login->password);
 	}
 
-	if (myGetPrivateProfileString(DSN, odbc_param_MARS_Connection, tmp) > 0 && tds_config_boolean(odbc_param_MARS_Connection, tmp, login)) {
+	if (myGetPrivateProfileString(DSN, odbc_param_MARS_Connection, tmp) > 0
+	    && tds_config_boolean(odbc_param_MARS_Connection, tmp, login)) {
 		login->mars = 1;
 	}
 
@@ -807,7 +809,8 @@ definePropertyHidden(HODBCINSTPROPERTY hLastProperty, const char *name, const ch
 }
 
 static HODBCINSTPROPERTY
-definePropertyList(HODBCINSTPROPERTY hLastProperty, const char *name, const char *value, const void *list, int size, const char *comment)
+definePropertyList(HODBCINSTPROPERTY hLastProperty, const char *name, const char *value,
+		   const void *list, int size, const char *comment)
 {
 	hLastProperty = addProperty(hLastProperty);
 	hLastProperty->nPromptType = ODBCINST_PROMPTTYPE_LISTBOX;
