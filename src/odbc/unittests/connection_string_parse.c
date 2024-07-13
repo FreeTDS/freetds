@@ -42,12 +42,18 @@ test_common(const char *name, const char *connect_string, check_func_t *check_fu
 	odbc_errs_reset(&errs);
 
 	if (!odbc_parse_connect_string(&errs, connect_string, connect_string_end, login, parsed_params)) {
-		fprintf(stderr, "Error parsing string in test '%s'\n", name);
-		exit(1);
+		assert(errs.num_errors > 0);
+		if (check_func) {
+			fprintf(stderr, "Error parsing string in test '%s'\n", name);
+			exit(1);
+		}
+	} else {
+		assert(errs.num_errors == 0);
+		assert(check_func != NULL);
+		check_func(login, parsed_params);
 	}
 
-	check_func(login, parsed_params);
-
+	odbc_errs_reset(&errs);
 	tds_free_login(login);
 	tds_free_locale(locale);
 }
@@ -59,6 +65,12 @@ test_common(const char *name, const char *connect_string, check_func_t *check_fu
 		test_common(#name, name ## _connect_string, name ## _check); \
 	} \
 	static void name ## _check(TDSLOGIN *login, TDS_PARSED_PARAM *parsed_params)
+
+#define CHECK_ERROR(name, s) \
+	static const char *name ## _connect_string = s; \
+	static void name(void) { \
+		test_common(#name, name ## _connect_string, NULL); \
+	}
 
 CHECK(simple_string,
 	"DRIVER=libtdsodbc.so;SERVER=127.0.0.1;PORT=1337;UID=test_username;PWD=test_password;DATABASE=test_db;"
@@ -125,6 +137,10 @@ CHECK(password_bug_report,
 	assert(login->port == 1433);
 }
 
+/* unfinished "pwd", the "Port" before "pwd" is to reveal a leak */
+CHECK_ERROR(unfinished,
+	"Driver=FreeTDS;Server=1.2.3.4;Port=1433;pwd={p@ssw0rd");
+
 int
 main(void)
 {
@@ -143,6 +159,8 @@ main(void)
 	password_contains_curly_braces_and_separator();
 
 	password_bug_report();
+
+	unfinished();
 
 	return 0;
 }
