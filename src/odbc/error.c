@@ -590,7 +590,7 @@ ODBC_FUNC(SQLError,  (P(SQLHENV,henv), P(SQLHDBC,hdbc), P(SQLHSTMT,hstmt), PCHAR
 	} else
 		return SQL_INVALID_HANDLE;
 
-	result = _SQLGetDiagRec(type, handle, 1, szSqlState, pfNativeError, szErrorMsg, cbErrorMsgMax, pcbErrorMsg _wide);
+	result = odbc_SQLGetDiagRec(type, handle, 1, szSqlState, pfNativeError, szErrorMsg, cbErrorMsgMax, pcbErrorMsg _wide);
 
 	if (result == SQL_SUCCESS) {
 		/* remove first error */
@@ -680,7 +680,7 @@ ODBC_FUNC(SQLGetDiagField, (P(SQLSMALLINT,handleType), P(SQLHANDLE,handle), P(SQ
 		if (handleType != SQL_HANDLE_STMT)
 			return SQL_ERROR;
 
-		return _SQLRowCount((SQLHSTMT) handle, (SQLLEN FAR *) buffer);
+		return odbc_SQLRowCount((SQLHSTMT) handle, (SQLLEN FAR *) buffer);
 	}
 
 	if (numRecord > errs->num_errors)

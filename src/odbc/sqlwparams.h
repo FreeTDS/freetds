@@ -21,5 +21,5 @@
 #define PCHAROUT(n,t) PCHAR(sz ## n), P(t, cb ## n ## Max), P(t FAR*, pcb ## n)
 
 #define ODBC_FUNC(name, params) \
-	static SQLRETURN _ ## name params
+	static SQLRETURN odbc_ ## name params
 

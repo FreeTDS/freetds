@@ -592,7 +592,7 @@ void tvp_free(SQLTVP *tvp);
  * odbc.c
  */
 
-SQLRETURN _SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow);
+SQLRETURN odbc_SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow);
 
 /*
  * odbc_checks.h

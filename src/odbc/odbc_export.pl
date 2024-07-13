@@ -113,13 +113,13 @@ while(<IN>) {
 		$log =~ s/\btdsdump_log\b/TDSDUMP_LOG_FAST/g;
 
 		print "#ifdef ENABLE_ODBC_WIDE
-static SQLRETURN _$func($params_all, int wide);
+static SQLRETURN odbc_$func($params_all, int wide);
 
 SQLRETURN ODBC_PUBLIC ODBC_API ${func}W(
     $params_w)
 {
 	$log_w
-	return _$func($pass_aw, 1);
+	return odbc_$func($pass_aw, 1);
 }
 #endif
 
@@ -128,9 +128,9 @@ SQLRETURN ODBC_PUBLIC ODBC_API $func(
 {
 	$log
 #ifdef ENABLE_ODBC_WIDE
-	return _$func($pass_aw, 0);
+	return odbc_$func($pass_aw, 0);
 #else
-	return _$func($pass_all);
+	return odbc_$func($pass_all);
 #endif
 }
 
@@ -144,12 +144,12 @@ print "#define tdsdump_log TDSDUMP_LOG_FAST\n";
 exit 0;
 
 __END__
-static SQLRETURN _SQLPrepare (SQLHSTMT hstmt, ODBC_CHAR* szSqlStr, SQLINTEGER cbSqlStr , int wide);
+static SQLRETURN odbc_SQLPrepare (SQLHSTMT hstmt, ODBC_CHAR* szSqlStr, SQLINTEGER cbSqlStr , int wide);
 SQLRETURN __attribute__((externally_visible)) SQLPrepare (SQLHSTMT hstmt, SQLCHAR* szSqlStr, SQLINTEGER cbSqlStr ) {
  return _SQLPrepare (hstmt, (ODBC_CHAR*) szSqlStr, cbSqlStr ,0);
 }
 SQLRETURN __attribute__((externally_visible)) SQLPrepareW (SQLHSTMT hstmt, SQLWCHAR * szSqlStr, SQLINTEGER cbSqlStr ) {
  return _SQLPrepare (hstmt, (ODBC_CHAR*) szSqlStr, cbSqlStr ,1);
 }
-static SQLRETURN _SQLPrepare (SQLHSTMT hstmt, ODBC_CHAR* szSqlStr, SQLINTEGER cbSqlStr , int wide)
+static SQLRETURN odbc_SQLPrepare (SQLHSTMT hstmt, ODBC_CHAR* szSqlStr, SQLINTEGER cbSqlStr , int wide)
 
