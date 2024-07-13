@@ -61,7 +61,8 @@ eat_iconv_left(TDSCOLUMN * curcol, char **pbuf, size_t *plen)
  * Handle conversions from TDS (N)CHAR to ODBC (W)CHAR
  */
 static SQLLEN
-odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen)
+odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT srclen,
+		  int desttype, TDS_CHAR * dest, SQLULEN destlen)
 {
 	const char *ib;
 	char *ob;
@@ -276,7 +277,8 @@ odbc_convert_to_binary(TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TDS_UINT 
 }
 
 static SQLLEN
-odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen,
+odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TDS_UINT srclen,
+	     int desttype, TDS_CHAR * dest, SQLULEN destlen,
 	     const struct _drecord *drec_ixd)
 {
 	TDS_INT nDestSybType;

@@ -261,7 +261,8 @@ prepare_call(struct _hstmt * stmt)
 	if (tds_dstr_isempty(&stmt->query))
 		return SQL_ERROR;
 
-	if ((!tds_dstr_isempty(&stmt->attr.qn_msgtext) || !tds_dstr_isempty(&stmt->attr.qn_options)) && !IS_TDS72_PLUS(stmt->dbc->tds_socket->conn)) {
+	if ((!tds_dstr_isempty(&stmt->attr.qn_msgtext) || !tds_dstr_isempty(&stmt->attr.qn_options))
+	    && !IS_TDS72_PLUS(stmt->dbc->tds_socket->conn)) {
 		odbc_errs_add(&stmt->errs, "HY000", "Feature is not supported by this server");
 		return SQL_SUCCESS_WITH_INFO;
 	}

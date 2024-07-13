@@ -532,7 +532,8 @@ odbc_prepare(TDS_STMT *stmt)
 				stmt->row_count = tds->rows_affected;
 				if (done_flags & TDS_DONE_ERROR && !stmt->dyn->emulated)
 					stmt->errs.lastrc = SQL_ERROR;
-				/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result changed */
+				/* FIXME this row is used only as a flag for update binding,
+				 * should be cleared if binding/result changed */
 				stmt->row = 0;
 				break;
 
@@ -722,7 +723,8 @@ SQLDescribeParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT FAR * pfSqlType,
 
 
 SQLRETURN ODBC_PUBLIC ODBC_API
-SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLROWOFFSET irow, SQLROWSETSIZE FAR * pcrow, SQLUSMALLINT FAR * rgfRowStatus)
+SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLROWOFFSET irow,
+		 SQLROWSETSIZE FAR * pcrow, SQLUSMALLINT FAR * rgfRowStatus)
 {
 	SQLRETURN ret;
 	SQLULEN * tmp_rows;
@@ -787,10 +789,13 @@ ODBC_FUNC(SQLForeignKeys, (P(SQLHSTMT,hstmt), PCHARIN(PkCatalogName,SQLSMALLINT)
 	ODBC_ENTER_HSTMT;
 
 	retcode =
-		odbc_stat_execute(stmt _wide, "sp_fkeys", 6, "O@pktable_qualifier", szPkCatalogName, cbPkCatalogName, "O@pktable_owner",
-				  szPkSchemaName, cbPkSchemaName, "O@pktable_name", szPkTableName, cbPkTableName,
-				  "O@fktable_qualifier", szFkCatalogName, cbFkCatalogName, "O@fktable_owner", szFkSchemaName,
-				  cbFkSchemaName, "O@fktable_name", szFkTableName, cbFkTableName);
+		odbc_stat_execute(stmt _wide, "sp_fkeys", 6,
+				  "O@pktable_qualifier", szPkCatalogName, cbPkCatalogName,
+				  "O@pktable_owner", szPkSchemaName, cbPkSchemaName,
+				  "O@pktable_name", szPkTableName, cbPkTableName,
+				  "O@fktable_qualifier", szFkCatalogName, cbFkCatalogName,
+				  "O@fktable_owner", szFkSchemaName, cbFkSchemaName,
+				  "O@fktable_name", szFkTableName, cbFkTableName);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "PKTABLE_CAT");
 		odbc_col_setname(stmt, 2, "PKTABLE_SCHEM");
@@ -942,7 +947,8 @@ SQLMoreResults(SQLHSTMT hstmt)
 				stmt->row_status = NOT_IN_ROW;
 				tdsdump_log(TDS_DBG_INFO1, "SQLMoreResults: row_status=%d\n", stmt->row_status);
 			}
-			tdsdump_log(TDS_DBG_INFO1, "SQLMoreResults: row_count=%" PRId64 ", lastrc=%d\n", stmt->row_count, stmt->errs.lastrc);
+			tdsdump_log(TDS_DBG_INFO1, "SQLMoreResults: row_count=%" PRId64 ", lastrc=%d\n", stmt->row_count,
+				    stmt->errs.lastrc);
 			if (stmt->row_count == TDS_NO_COUNT) {
 				if (stmt->errs.lastrc == SQL_SUCCESS || stmt->errs.lastrc == SQL_SUCCESS_WITH_INFO)
 					ODBC_EXIT(stmt, SQL_NO_DATA);
@@ -1172,8 +1178,10 @@ ODBC_FUNC(SQLProcedures, (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),
 	ODBC_ENTER_HSTMT;
 
 	retcode =
-		odbc_stat_execute(stmt _wide, "..sp_stored_procedures", 3, "P@sp_name", szProcName, cbProcName, "P@sp_owner", szSchemaName,
-				  cbSchemaName, "O@sp_qualifier", szCatalogName, cbCatalogName);
+		odbc_stat_execute(stmt _wide, "..sp_stored_procedures", 3,
+				  "P@sp_name", szProcName, cbProcName,
+				  "P@sp_owner", szSchemaName, cbSchemaName,
+				  "O@sp_qualifier", szCatalogName, cbCatalogName);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "PROCEDURE_CAT");
 		odbc_col_setname(stmt, 2, "PROCEDURE_SCHEM");
@@ -1609,7 +1617,8 @@ SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLS
 		 SQLULEN cbColDef, SQLSMALLINT ibScale, SQLPOINTER rgbValue, SQLLEN cbValueMax, SQLLEN FAR * pcbValue)
 {
 	tdsdump_log(TDS_DBG_FUNC, "SQLBindParameter(%p, %u, %d, %d, %d, %u, %d, %p, %d, %p)\n", 
-			hstmt, (unsigned)ipar, fParamType, fCType, (int)fSqlType, (unsigned)cbColDef, ibScale, rgbValue, (int)cbValueMax, pcbValue);
+		    hstmt, (unsigned)ipar, fParamType, fCType, (int)fSqlType, (unsigned)cbColDef, ibScale,
+		    rgbValue, (int)cbValueMax, pcbValue);
 	return _SQLBindParameter(hstmt, ipar, fParamType, fCType, fSqlType, cbColDef, ibScale, rgbValue, cbValueMax, pcbValue);
 }
 
@@ -2553,7 +2562,8 @@ SQLSetDescRec(SQLHDESC hdesc, SQLSMALLINT nRecordNumber, SQLSMALLINT nType, SQLS
 	ODBC_ENTER_HDESC;
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLSetDescRec(%p, %d, %d, %d, %d, %d, %d, %p, %p, %p)\n", 
-			hdesc, nRecordNumber, nType, nSubType, (int)nLength, nPrecision, nScale, pData, pnStringLength, pnIndicator);
+		    hdesc, nRecordNumber, nType, nSubType, (int)nLength, nPrecision, nScale,
+		    pData, pnStringLength, pnIndicator);
 
 	if (desc->type == DESC_IRD) {
 		odbc_errs_add(&desc->errs, "HY016", NULL);
@@ -3479,9 +3489,11 @@ _SQLExecute(TDS_STMT * stmt)
 		/* SQLExecDirect */
 		if (stmt->num_param_rows <= 1) {
 			if (!stmt->params) {
-				ret = tds_submit_query_params(tds, tds_dstr_cstr(&stmt->query), NULL, odbc_init_headers(stmt, &head));
+				ret = tds_submit_query_params(tds, tds_dstr_cstr(&stmt->query), NULL,
+							      odbc_init_headers(stmt, &head));
 			} else {
-				ret = tds_submit_execdirect(tds, tds_dstr_cstr(&stmt->query), stmt->params, odbc_init_headers(stmt, &head));
+				ret = tds_submit_execdirect(tds, tds_dstr_cstr(&stmt->query), stmt->params,
+							    odbc_init_headers(stmt, &head));
 			}
 		} else {
 			/* pack multiple submit using language */
@@ -3801,7 +3813,8 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 			if ((done_flags & (TDS_DONE_COUNT|TDS_DONE_ERROR)) != 0
 			    || (stmt->errs.lastrc == SQL_SUCCESS_WITH_INFO && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3)
 			    || (result_type == TDS_DONEPROC_RESULT && tds->current_op == TDS_OP_EXECUTE)) {
-				/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result changed */
+				/* FIXME this row is used only as a flag for update binding,
+				 * should be cleared if binding/result changed */
 				stmt->row = 0;
 #if 0
 				tds_free_all_results(tds);
@@ -4460,7 +4473,8 @@ _SQLFreeDesc(SQLHDESC hdesc)
 }
 
 static SQLRETURN
-_SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength, SQLINTEGER * StringLength WIDE)
+_SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value,
+		SQLINTEGER BufferLength, SQLINTEGER * StringLength WIDE)
 {
 	void *src;
 	size_t size;
@@ -5125,12 +5139,14 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 		if (*pcbValue == SQL_NULL_DATA)
 			ODBC_EXIT(stmt, SQL_ERROR);
 		
-		if (is_variable_type(colinfo->column_type) && (fCType == SQL_C_CHAR || fCType == SQL_C_WCHAR || fCType == SQL_C_BINARY)) {
+		if (is_variable_type(colinfo->column_type)
+		    && (fCType == SQL_C_CHAR || fCType == SQL_C_WCHAR || fCType == SQL_C_BINARY)) {
 			/* avoid infinite SQL_SUCCESS on empty strings */
 			if (colinfo->column_text_sqlgetdatapos == 0 && cbValueMax > 0)
 				++colinfo->column_text_sqlgetdatapos;
 
-			if (colinfo->column_text_sqlgetdatapos < colinfo->column_cur_size || colinfo->column_iconv_left != 0) {	/* not all read ?? */
+			if (colinfo->column_text_sqlgetdatapos < colinfo->column_cur_size || colinfo->column_iconv_left != 0) {
+				/* not all read ?? */
 				odbc_errs_add(&stmt->errs, "01004", "String data, right truncated");
 				ODBC_EXIT_(stmt);
 			}
@@ -5649,7 +5665,8 @@ _SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLS
 	case SQL_FETCH_DIRECTION:
 		if (dbc->cursor_support)
 			/* TODO cursors SQL_FD_FETCH_BOOKMARK */
-			UIVAL = SQL_FD_FETCH_ABSOLUTE|SQL_FD_FETCH_FIRST|SQL_FD_FETCH_LAST|SQL_FD_FETCH_NEXT|SQL_FD_FETCH_PRIOR|SQL_FD_FETCH_RELATIVE;
+			UIVAL = SQL_FD_FETCH_ABSOLUTE|SQL_FD_FETCH_FIRST|SQL_FD_FETCH_LAST|SQL_FD_FETCH_NEXT
+				|SQL_FD_FETCH_PRIOR|SQL_FD_FETCH_RELATIVE;
 		else
 			UIVAL = 0;
 		break;
@@ -6493,7 +6510,8 @@ ODBC_FUNC(SQLSetConnectAttr, (P(SQLHDBC,hdbc), P(SQLINTEGER,Attribute), P(SQLPOI
 		if (!ValuePtr)
 			odbc_errs_add(&dbc->errs, "HY009", NULL);
 		else {
-			const struct tdsodbc_impl_bcp_control_params *params = (const struct tdsodbc_impl_bcp_control_params*)ValuePtr;
+			const struct tdsodbc_impl_bcp_control_params *params =
+				(const struct tdsodbc_impl_bcp_control_params*)ValuePtr;
 			odbc_bcp_control(dbc, params->field, params->value);
 		}
 		break;
@@ -6501,7 +6519,8 @@ ODBC_FUNC(SQLSetConnectAttr, (P(SQLHDBC,hdbc), P(SQLINTEGER,Attribute), P(SQLPOI
 		if (!ValuePtr)
 			odbc_errs_add(&dbc->errs, "HY009", NULL);
 		else {
-			const struct tdsodbc_impl_bcp_colptr_params *params = (const struct tdsodbc_impl_bcp_colptr_params*)ValuePtr;
+			const struct tdsodbc_impl_bcp_colptr_params *params =
+				(const struct tdsodbc_impl_bcp_colptr_params*)ValuePtr;
 			odbc_bcp_colptr(dbc, params->colptr, params->table_column);
 		}
 		break;
@@ -6532,7 +6551,8 @@ ODBC_FUNC(SQLSetConnectAttr, (P(SQLHDBC,hdbc), P(SQLINTEGER,Attribute), P(SQLPOI
 			odbc_errs_add(&dbc->errs, "HY009", NULL);
 		else {
 			const struct tdsodbc_impl_bcp_bind_params *params = (const struct tdsodbc_impl_bcp_bind_params*)ValuePtr;
-			odbc_bcp_bind(dbc, params->varaddr, params->prefixlen, params->varlen, params->terminator, params->termlen, params->vartype, params->table_column);
+			odbc_bcp_bind(dbc, params->varaddr, params->prefixlen, params->varlen,
+				      params->terminator, params->termlen, params->vartype, params->table_column);
 		}
 		break;
 	default:
@@ -6923,7 +6943,8 @@ ODBC_FUNC(SQLSpecialColumns, (P(SQLHSTMT,hstmt), P(SQLUSMALLINT,fColType), PCHAR
 	ODBC_ENTER_HSTMT;
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLSpecialColumns(%p, %d, %p, %d, %p, %d, %p, %d, %d, %d)\n", 
-			hstmt, fColType, szCatalogName, cbCatalogName, szSchemaName, cbSchemaName, szTableName, cbTableName, fScope, fNullable);
+		    hstmt, fColType, szCatalogName, cbCatalogName, szSchemaName, cbSchemaName, szTableName, cbTableName,
+		    fScope, fNullable);
 
 #ifdef TDS_NO_DM
 	/* Check column type */
@@ -7000,7 +7021,8 @@ ODBC_FUNC(SQLStatistics, (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),
 	ODBC_ENTER_HSTMT;
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLStatistics(%p, %p, %d, %p, %d, %p, %d, %d, %d)\n", 
-			hstmt, szCatalogName, cbCatalogName, szSchemaName, cbSchemaName, szTableName, cbTableName, fUnique, fAccuracy);
+		    hstmt, szCatalogName, cbCatalogName, szSchemaName, cbSchemaName, szTableName, cbTableName,
+		    fUnique, fAccuracy);
 
 #ifdef TDS_NO_DM
 	/* check our buffer lengths */
@@ -7065,7 +7087,8 @@ ODBC_FUNC(SQLTables, (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),
 	ODBC_ENTER_HSTMT;
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLTables(%p, %p, %d, %p, %d, %p, %d, %p, %d)\n", 
-			hstmt, szCatalogName, cbCatalogName, szSchemaName, cbSchemaName, szTableName, cbTableName, szTableType, cbTableType);
+		    hstmt, szCatalogName, cbCatalogName, szSchemaName, cbSchemaName, szTableName, cbTableName,
+		    szTableType, cbTableType);
 
 	tds = stmt->dbc->tds_socket;
 

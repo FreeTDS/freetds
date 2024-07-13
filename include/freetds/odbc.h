@@ -551,7 +551,8 @@ typedef struct {
  * \param connection          structure where to store information
  * \return true if error, false otherwise
  */
-bool odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char *connect_string_end, TDSLOGIN * login, TDS_PARSED_PARAM *parsed_params);
+bool odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char *connect_string_end,
+			       TDSLOGIN * login, TDS_PARSED_PARAM *parsed_params);
 bool odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSLOGIN * login);
 #ifdef _WIN32
 int odbc_build_connect_string(TDS_ERRS *errs, TDS_PARSED_PARAM *params, char **out);
@@ -560,7 +561,8 @@ int odbc_build_connect_string(TDS_ERRS *errs, TDS_PARSED_PARAM *params, char **o
 /*
  * convert_tds2sql.c
  */
-SQLLEN odbc_tds2sql_col(TDS_STMT * stmt, TDSCOLUMN *curcol, int desttype, TDS_CHAR * dest, SQLULEN destlen, const struct _drecord *drec_ixd);
+SQLLEN odbc_tds2sql_col(TDS_STMT * stmt, TDSCOLUMN *curcol, int desttype,
+			TDS_CHAR * dest, SQLULEN destlen, const struct _drecord *drec_ixd);
 SQLLEN odbc_tds2sql_int4(TDS_STMT * stmt, TDS_INT *src, int desttype, TDS_CHAR * dest, SQLULEN destlen);
 
 
@@ -644,7 +646,8 @@ TDS_SERVER_TYPE odbc_c_to_server_type(int c_type);
 
 unsigned int odbc_get_string_size(int size, const ODBC_CHAR * str _WIDE);
 void odbc_rdbms_version(TDSSOCKET * tds_socket, char *pversion_string);
-SQLINTEGER odbc_get_param_len(const struct _drecord *drec_axd, const struct _drecord *drec_ixd, const TDS_DESC* axd, unsigned int n_row);
+SQLINTEGER odbc_get_param_len(const struct _drecord *drec_axd, const struct _drecord *drec_ixd,
+			      const TDS_DESC* axd, unsigned int n_row);
 
 #ifdef ENABLE_ODBC_WIDE
 DSTR* odbc_dstr_copy_flag(TDS_DBC *dbc, DSTR *s, int size, const ODBC_CHAR * str, int flag);
@@ -658,10 +661,12 @@ DSTR* odbc_dstr_copy(TDS_DBC *dbc, DSTR *s, int size, const ODBC_CHAR * str);
 #endif
 
 
-SQLRETURN odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void FAR * pcbBuffer, const char *s, int len, int flag);
+SQLRETURN odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void FAR * pcbBuffer,
+			       const char *s, int len, int flag);
 #ifdef ENABLE_ODBC_WIDE
 #define odbc_set_string(dbc, buf, buf_len, out_len, s, s_len) \
-	odbc_set_string_flag(dbc, sizeof((buf)->mb) ? (buf) : (buf), buf_len, out_len, s, s_len, (wide) | (sizeof(*(out_len)) == sizeof(SQLSMALLINT)?0:0x10))
+	odbc_set_string_flag(dbc, sizeof((buf)->mb) ? (buf) : (buf), buf_len, out_len, s, s_len, \
+			     (wide) | (sizeof(*(out_len)) == sizeof(SQLSMALLINT)?0:0x10))
 #define odbc_set_string_oct(dbc, buf, buf_len, out_len, s, s_len) \
 	odbc_set_string_flag(dbc, buf, buf_len, out_len, s, s_len, (wide) | (sizeof(*(out_len)) == sizeof(SQLSMALLINT)?0x20:0x30))
 #else
@@ -671,7 +676,8 @@ SQLRETURN odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuf
 	odbc_set_string_flag(dbc, buf, buf_len, out_len, s, s_len, (sizeof(*(out_len)) == sizeof(SQLSMALLINT)?0x20:0x30))
 #endif
 
-#define odbc_set_dstr_oct(dbc, buf, buf_len, out_len, s) odbc_set_string_oct(dbc, buf, buf_len, out_len, tds_dstr_cstr(s), tds_dstr_len(s))
+#define odbc_set_dstr_oct(dbc, buf, buf_len, out_len, s) \
+	odbc_set_string_oct(dbc, buf, buf_len, out_len, tds_dstr_cstr(s), tds_dstr_len(s))
 #define odbc_set_dstr(dbc, buf, buf_len, out_len, s) odbc_set_string(dbc, buf, buf_len, out_len, tds_dstr_cstr(s), tds_dstr_len(s))
 
 SQLSMALLINT odbc_get_concise_sql_type(SQLSMALLINT type, SQLSMALLINT interval);
@@ -696,7 +702,8 @@ const char *odbc_skip_rpc_name(const char *s);
 /*
  * sql2tds.c
  */
-SQLRETURN odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _drecord *drec_axd, TDSCOLUMN *curcol, bool compute_row, const TDS_DESC* axd, unsigned int n_row);
+SQLRETURN odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _drecord *drec_axd, TDSCOLUMN *curcol,
+		       bool compute_row, const TDS_DESC* axd, unsigned int n_row);
 TDS_INT convert_datetime2server(int bindtype, const void *src, TDS_DATETIMEALL * dta);
 
 /*
@@ -709,7 +716,8 @@ void odbc_bcp_colptr(TDS_DBC *dbc, const void * colptr, int table_column);
 void odbc_bcp_sendrow(TDS_DBC *dbc);
 int odbc_bcp_batch(TDS_DBC *dbc);
 int odbc_bcp_done(TDS_DBC *dbc);
-void odbc_bcp_bind(TDS_DBC *dbc, const void * varaddr, int prefixlen, int varlen, const void * terminator, int termlen, int vartype, int table_column);
+void odbc_bcp_bind(TDS_DBC *dbc, const void * varaddr, int prefixlen, int varlen, const void * terminator, int termlen,
+		   int vartype, int table_column);
 
 /*
  * sqlwchar.c
