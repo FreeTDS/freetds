@@ -318,11 +318,11 @@ odbc_get_msg(const char *sqlstate)
 	/* TODO set flag and use pointers (no strdup) ?? */
 	while (pmap->msg) {
 		if (!strcasecmp(sqlstate, pmap->sqlstate)) {
-			return strdup(pmap->msg);
+			return pmap->msg;
 		}
 		++pmap;
 	}
-	return strdup("");
+	return "";
 }
 
 static void
@@ -348,8 +348,8 @@ odbc_errs_reset(struct _sql_errors *errs)
 
 	if (errs->errs) {
 		for (i = 0; i < errs->num_errors; ++i) {
-			/* TODO see flags */
-			free((char *) errs->errs[i].msg);
+			if (!errs->errs[i].msg_is_static)
+				free((char *) errs->errs[i].msg);
 			free(errs->errs[i].server);
 		}
 		TDS_ZERO_FREE(errs->errs);
@@ -372,8 +372,8 @@ odbc_errs_pop(struct _sql_errors *errs)
 		return;
 	}
 
-	/* TODO see flags */
-	free((char *) errs->errs[0].msg);
+	if (!errs->errs[0].msg_is_static)
+		free((char *) errs->errs[0].msg);
 	free(errs->errs[0].server);
 
 	--errs->num_errors;
@@ -403,6 +403,7 @@ odbc_errs_add(struct _sql_errors *errs, const char *sqlstate, const char *msg)
 	/* TODO why driver ?? -- freddy77 */
 	errs->errs[n].server = strdup("DRIVER");
 	errs->errs[n].msg = msg ? strdup(msg) : odbc_get_msg(errs->errs[n].state3);
+	errs->errs[n].msg_is_static = (msg == NULL);
 	++errs->num_errors;
 
 	/* updated last error */
@@ -439,6 +440,7 @@ odbc_errs_add_rdbms(struct _sql_errors *errs, TDS_UINT native, const char *sqlst
 	/* TODO why driver ?? -- freddy77 */
 	errs->errs[n].server = (server) ? strdup(server) : strdup("DRIVER");
 	errs->errs[n].msg = msg ? strdup(msg) : odbc_get_msg(errs->errs[n].state3);
+	errs->errs[n].msg_is_static = (msg == NULL);
 	errs->errs[n].linenum = linenum;
 	errs->errs[n].msgstate = msgstate;
 	++errs->num_errors;

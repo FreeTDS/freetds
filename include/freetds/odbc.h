@@ -100,6 +100,7 @@ struct _sql_error
 	int linenum;
 	int msgstate;
 	int row;
+	bool msg_is_static;
 };
 
 struct _sql_errors
