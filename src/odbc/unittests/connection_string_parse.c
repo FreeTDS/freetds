@@ -61,7 +61,8 @@ test_common(const char *name, const char *connect_string, check_func_t *check_fu
 	static void name ## _check(TDSLOGIN *login, TDS_PARSED_PARAM *parsed_params)
 
 CHECK(simple_string,
-	"DRIVER=libtdsodbc.so;SERVER=127.0.0.1;PORT=1337;UID=test_username;PWD=test_password;DATABASE=test_db;ClientCharset=UTF-8;")
+	"DRIVER=libtdsodbc.so;SERVER=127.0.0.1;PORT=1337;UID=test_username;PWD=test_password;DATABASE=test_db;"
+	"ClientCharset=UTF-8;")
 {
 	assert_equal_str(parsed_params[ODBC_PARAM_UID], "test_username");
 	assert_equal_dstr(login->server_name, "127.0.0.1");
@@ -71,7 +72,8 @@ CHECK(simple_string,
 }
 
 CHECK(simple_escaped_string,
-	"DRIVER={libtdsodbc.so};SERVER={127.0.0.1};PORT={1337};UID={test_username};PWD={test_password};DATABASE={test_db};ClientCharset={UTF-8};")
+	"DRIVER={libtdsodbc.so};SERVER={127.0.0.1};PORT={1337};UID={test_username};PWD={test_password};DATABASE={test_db};"
+	"ClientCharset={UTF-8};")
 {
 	assert_equal_str(parsed_params[ODBC_PARAM_UID], "{test_username}");
 	assert_equal_dstr(login->server_name, "127.0.0.1");
@@ -81,7 +83,8 @@ CHECK(simple_escaped_string,
 }
 
 CHECK(test_special_symbols,
-	"DRIVER={libtdsodbc.so};SERVER={127.0.0.1};PORT={1337};UID={test_username};PWD={[]{}}(),;?*=!@};DATABASE={test_db};ClientCharset={UTF-8};")
+	"DRIVER={libtdsodbc.so};SERVER={127.0.0.1};PORT={1337};UID={test_username};PWD={[]{}}(),;?*=!@};DATABASE={test_db};"
+	"ClientCharset={UTF-8};")
 {
 	assert_equal_str(parsed_params[ODBC_PARAM_UID], "{test_username}");
 	assert_equal_dstr(login->server_name, "127.0.0.1");
@@ -91,7 +94,8 @@ CHECK(test_special_symbols,
 }
 
 CHECK(password_contains_curly_braces,
-	"DRIVER={libtdsodbc.so};SERVER={127.0.0.1};PORT={1337};UID={test_username};PWD={test{}}_password};DATABASE={test_db};ClientCharset={UTF-8};")
+	"DRIVER={libtdsodbc.so};SERVER={127.0.0.1};PORT={1337};UID={test_username};PWD={test{}}_password};DATABASE={test_db};"
+	"ClientCharset={UTF-8};")
 {
 	assert_equal_str(parsed_params[ODBC_PARAM_UID], "{test_username}");
 	assert_equal_dstr(login->server_name, "127.0.0.1");
@@ -101,7 +105,8 @@ CHECK(password_contains_curly_braces,
 }
 
 CHECK(password_contains_curly_braces_and_separator,
-	"DRIVER={libtdsodbc.so};SERVER={127.0.0.1};PORT={1337};UID={test_username};PWD={test{}};_password};DATABASE={test_db};ClientCharset={UTF-8};")
+	"DRIVER={libtdsodbc.so};SERVER={127.0.0.1};PORT={1337};UID={test_username};PWD={test{}};_password};DATABASE={test_db};"
+	"ClientCharset={UTF-8};")
 {
 	assert_equal_str(parsed_params[ODBC_PARAM_UID], "{test_username}");
 	assert_equal_dstr(login->server_name, "127.0.0.1");
