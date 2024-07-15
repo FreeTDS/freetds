@@ -377,30 +377,25 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 		p = end + 1;
 		end = parse_value(errs, p, connect_string_end, &value);
 		if (!end)
-			return false;
+			goto Cleanup;
 
 #define CHK_PARAM(p) (strcasecmp(option, odbc_param_##p) == 0 && (num_param=ODBC_PARAM_##p) >= 0)
 		if (CHK_PARAM(Server)) {
 			/* error if servername or DSN specified */
 			if ((cfgs & (CFG_DSN|CFG_SERVERNAME)) != 0) {
-				tds_dstr_free(&value);
 				odbc_errs_add(errs, "HY000", "Only one between SERVER, SERVERNAME and DSN can be specified");
-				return false;
+				goto Cleanup;
 			}
 			if (!cfgs) {
 				dest_s = &login->server_name;
-				/* not that safe cast but works -- freddy77 */
-				if (!parse_server(errs, (char *) tds_dstr_cstr(&value), login)) {
-					tds_dstr_free(&value);
-					return false;
-				}
+				if (!parse_server(errs, tds_dstr_buf(&value), login))
+					goto Cleanup;
 				cfgs = CFG_SERVER;
 			}
 		} else if (CHK_PARAM(Servername)) {
 			if ((cfgs & (CFG_DSN|CFG_SERVER)) != 0) {
-				tds_dstr_free(&value);
 				odbc_errs_add(errs, "HY000", "Only one between SERVER, SERVERNAME and DSN can be specified");
-				return false;
+				goto Cleanup;
 			}
 			if (!cfgs) {
 				odbc_dstr_swap(&login->server_name, &value);
@@ -411,15 +406,12 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 			}
 		} else if (CHK_PARAM(DSN)) {
 			if ((cfgs & (CFG_SERVER|CFG_SERVERNAME)) != 0) {
-				tds_dstr_free(&value);
 				odbc_errs_add(errs, "HY000", "Only one between SERVER, SERVERNAME and DSN can be specified");
-				return false;
+				goto Cleanup;
 			}
 			if (!cfgs) {
-				if (!odbc_get_dsn_info(errs, tds_dstr_cstr(&value), login)) {
-					tds_dstr_free(&value);
-					return false;
-				}
+				if (!odbc_get_dsn_info(errs, tds_dstr_cstr(&value), login))
+					goto Cleanup;
 				cfgs = CFG_DSN;
 				p = connect_string;
 				continue;
@@ -481,8 +473,7 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 				readonly_intent = "no";
 			} else {
 				tdsdump_log(TDS_DBG_ERROR, "Invalid ApplicationIntent %s\n", tds_dstr_cstr(&value));
-				tds_dstr_free(&value);
-				return false;
+				goto Cleanup;
 			}
 
 			tds_parse_conf_section(TDS_STR_READONLY_INTENT, readonly_intent, login);
@@ -520,6 +511,10 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 
 	tds_dstr_free(&value);
 	return true;
+
+Cleanup:
+	tds_dstr_free(&value);
+	return false;
 }
 
 #ifdef _WIN32
