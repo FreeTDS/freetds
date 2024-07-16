@@ -381,8 +381,10 @@ tds_verify_certificate(gnutls_session_t session)
 	const gnutls_datum_t *cert_list;
 #endif
 
-	if (!tds->login)
+	if (!tds->login) {
+		tdsdump_log(TDS_DBG_ERROR, "No login while checking certificate\n");
 		return GNUTLS_E_CERTIFICATE_ERROR;
+	}
 
 	ret = gnutls_certificate_verify_peers2(session, &status);
 	if (ret < 0) {
