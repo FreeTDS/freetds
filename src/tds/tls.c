@@ -109,6 +109,12 @@ BIO_get_data(const BIO *b)
 #define ASN1_STRING_get0_data(x) ASN1_STRING_data(x)
 #endif
 
+#if ENABLE_ODBC_MARS
+#define CONN2TDS(conn) (conn->in_net_tds)
+#else
+#define CONN2TDS(conn) ((TDSSOCKET *) conn)
+#endif
+
 static SSL_RET
 tds_pull_func_login(SSL_PULL_ARGS)
 {
@@ -160,12 +166,8 @@ tds_pull_func(SSL_PULL_ARGS)
 
 	tdsdump_log(TDS_DBG_FUNC, "in tds_pull_func\n");
 
-#if ENABLE_ODBC_MARS
-	tds = conn->in_net_tds;
+	tds = CONN2TDS(conn);
 	assert(tds);
-#else
-	tds = (TDSSOCKET *) conn;
-#endif
 
 	/* already initialized (crypted TDS packets) */
 
@@ -184,11 +186,7 @@ tds_push_func(SSL_PUSH_ARGS)
 	tdsdump_log(TDS_DBG_FUNC, "in tds_push_func\n");
 
 	/* write to socket directly */
-#if ENABLE_ODBC_MARS
-	tds = conn->in_net_tds;
-#else
-	tds = (TDSSOCKET *) conn;
-#endif
+	tds = CONN2TDS(conn);
 	return tds_goodwrite(tds, (const unsigned char*) data, len);
 }
 
