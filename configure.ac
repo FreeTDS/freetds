@@ -823,7 +823,7 @@ if test "$with_gnutls" = "yes"; then
 		NETWORK_LIBS="$NETWORK_LIBS `libgnutls-config --libs`"]
 	)
 	ACX_PUSH_LIBS("$NETWORK_LIBS")
-	AC_CHECK_FUNCS([gnutls_certificate_set_verify_function gnutls_record_disable_padding gnutls_rnd])
+	AC_CHECK_FUNCS([gnutls_certificate_set_verify_function gnutls_record_disable_padding gnutls_rnd gnutls_alpn_set_protocols])
 	ACX_POP_LIBS
 	if test "$gnutls_backend" = "unknown"; then
 		gnutls_backend=gcrypt

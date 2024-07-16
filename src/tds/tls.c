@@ -115,6 +115,10 @@ BIO_get_data(const BIO *b)
 #define CONN2TDS(conn) ((TDSSOCKET *) conn)
 #endif
 
+/* tds/8.0 */
+#define TDS8_ALPN_ARRAY 't', 'd', 's', '/', '8', '.', '0'
+#define TDS8_ALPN_ARRAY_LEN 7
+
 static SSL_RET
 tds_pull_func_login(SSL_PULL_ARGS)
 {
@@ -561,6 +565,14 @@ tds_ssl_init(TDSSOCKET *tds, bool full)
 	ret = gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE, xcred);
 	if (ret != 0)
 		goto cleanup;
+
+#ifdef HAVE_GNUTLS_ALPN_SET_PROTOCOLS
+	if (IS_TDS80_PLUS(tds->conn)) {
+		static const unsigned char alpn[] = { TDS8_ALPN_ARRAY };
+		static const gnutls_datum_t tds8_alpn = { (void*) alpn, sizeof(alpn) };
+		gnutls_alpn_set_protocols(session, &tds8_alpn, 1, 0);
+	}
+#endif
 
 	if (full)
 		set_current_tds(tds->conn, tds);
@@ -1065,6 +1077,15 @@ tds_ssl_init(TDSSOCKET *tds, bool full)
 #ifdef SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS
 	/* this disable a security improvement but allow connection... */
 	SSL_set_options(con, SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS);
+#endif
+
+#ifdef HAVE_SSL_SET_ALPN_PROTOS
+	if (IS_TDS80_PLUS(tds->conn)) {
+		static const unsigned char tds8_alpn[] = {
+			TDS8_ALPN_ARRAY_LEN, TDS8_ALPN_ARRAY
+		};
+		SSL_set_alpn_protos(con, tds8_alpn, sizeof(tds8_alpn));
+	}
 #endif
 
 	if (full)

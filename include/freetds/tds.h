@@ -1731,6 +1731,7 @@ tds_capability_enabled(const TDS_CAPABILITY_TYPE *cap, unsigned cap_num)
 #define IS_TDS72_PLUS(x) ((x)->tds_version>=0x702)
 #define IS_TDS73_PLUS(x) ((x)->tds_version>=0x703)
 #define IS_TDS74_PLUS(x) ((x)->tds_version>=0x704)
+#define IS_TDS80_PLUS(x) ((x)->tds_version>=0x800)
 
 #define TDS_MAJOR(x) ((x)->tds_version >> 8)
 #define TDS_MINOR(x) ((x)->tds_version & 0xff)
