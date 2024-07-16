@@ -493,7 +493,8 @@ const char *odbc_db_version(void)
 	return db_str_version;
 }
 
-unsigned int odbc_db_version_int(void)
+unsigned int
+odbc_db_version_int(void)
 {
 	unsigned int h, l;
 	if (sscanf(odbc_db_version(), "%u.%u.", &h, &l) != 2) {
