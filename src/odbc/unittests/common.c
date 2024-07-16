@@ -48,7 +48,7 @@ static char db_str_version[32];
 static bool
 check_lib(char *path, const char *file)
 {
-	int len = strlen(path);
+	size_t len = strlen(path);
 	FILE *f;
 
 	strcat(path, file);
