@@ -45,7 +45,7 @@ static int freetds_driver = -1;
 static int tds_version = -1;
 static char db_str_version[32];
 
-static int
+static bool
 check_lib(char *path, const char *file)
 {
 	int len = strlen(path);
@@ -55,10 +55,10 @@ check_lib(char *path, const char *file)
 	f = fopen(path, "rb");
 	if (f) {
 		fclose(f);
-		return 1;
+		return true;
 	}
 	path[len] = 0;
-	return 0;
+	return false;
 }
 
 /* this should be extended with all possible systems... */
