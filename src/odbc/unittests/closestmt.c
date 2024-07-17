@@ -8,8 +8,7 @@
 
 #define SWAP_STMT(b) do { SQLHSTMT xyz = odbc_stmt; odbc_stmt = b; b = xyz; } while(0)
 
-int
-main(void)
+TEST_MAIN()
 {
 	char sql[128];
 	int i;

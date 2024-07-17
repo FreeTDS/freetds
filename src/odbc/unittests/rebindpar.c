@@ -65,8 +65,7 @@ Test(int prebind)
 	ODBC_FREE();
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	odbc_connect();
 

@@ -229,8 +229,7 @@ free_tests(void)
 	}
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	SQLRETURN RetCode;
 	SQLHSTMT old_odbc_stmt = SQL_NULL_HSTMT;

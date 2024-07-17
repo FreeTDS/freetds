@@ -2,8 +2,7 @@
 
 /* Test for {?=call store(?,123,'foo')} syntax and run */
 
-int
-main(void)
+TEST_MAIN()
 {
 	SQLINTEGER input, output;
 	SQLINTEGER out1;

@@ -35,8 +35,7 @@ get_results(DBPROCESS * dbproc, int start)
 }
 
 
-int
-main(int argc, char **argv)
+TEST_MAIN()
 {
 	RETCODE rc;
 	const int rows_to_add = 50;

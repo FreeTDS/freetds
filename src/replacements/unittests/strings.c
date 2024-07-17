@@ -42,7 +42,7 @@ size_t tds_strlcat(char *dest, const char *src, size_t len);
 #include "../strlcat.c"
 #endif
 
-int main(void)
+TEST_MAIN()
 {
 	char *buf = (char *) malloc(10);
 

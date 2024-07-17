@@ -90,8 +90,7 @@ Test(int direct, int long_query)
 	return 0;
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	/* check with short queries */
 	if (Test(0, 0) || Test(1, 0))

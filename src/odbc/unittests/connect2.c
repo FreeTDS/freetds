@@ -59,8 +59,7 @@ set_dbname(const char *dbname)
 	CHKSetConnectAttr(SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) T(dbname), strlen(dbname)*sizeof(SQLTCHAR), "SI");
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	char tmp[1024*3];
 

@@ -1,8 +1,7 @@
 #include "common.h"
 
 /* Testing: data truncation behavior of ct_fetch */
-int
-main(int argc, char *argv[])
+TEST_MAIN()
 {
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;

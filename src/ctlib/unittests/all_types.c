@@ -61,8 +61,7 @@ static void test_type(TDSSOCKET *tds TDS_UNUSED, TDSCOLUMN *col)
 	tds_free_results(bindinfo);
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	TDSCONTEXT *tds_ctx;
 	TDSSOCKET *tds;

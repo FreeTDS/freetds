@@ -129,8 +129,7 @@ static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 	return TDS_THREAD_RESULT(0);
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	SQLTCHAR tmp[2048];
 	char conn[128];
@@ -217,8 +216,7 @@ main(void)
 }
 
 #else	/* !TDS_HAVE_MUTEX */
-int
-main(void)
+TEST_MAIN()
 {
 	printf("Not possible for this platform.\n");
 	odbc_test_skipped();

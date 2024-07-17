@@ -26,8 +26,7 @@ static TDS_THREAD_PROC_DECLARE(change_thread_proc, arg TDS_UNUSED)
 	return TDS_THREAD_RESULT(0);
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	char *sql = NULL;
 	tds_thread th;
@@ -133,7 +132,7 @@ main(void)
 	return 0;
 }
 #else
-int main(int argc, char *argv[])
+TEST_MAIN()
 {
 	printf("Not possible for this platform.\n");
 	odbc_test_skipped();

@@ -91,8 +91,7 @@ test(int odbc3)
 	return 0;
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	int ret;
 

@@ -15,8 +15,7 @@ EndTransaction(SQLSMALLINT type)
 	CHKEndTran(SQL_HANDLE_DBC, odbc_conn, type, "S");
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	HENV env;
 	HDBC dbc;

@@ -64,8 +64,7 @@ char_test(const char *null, int bindlen, const char *expected)
 	}
 }
 
-int
-main(int argc, char **argv)
+TEST_MAIN()
 {
 	LOGINREC *login;
 	DBINT db_i;

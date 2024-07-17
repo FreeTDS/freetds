@@ -8,8 +8,7 @@ CS_RETCODE do_results(CS_COMMAND * cmd, CS_INT * results);
 #define NUMROWS 5
 
 /* Testing: Test order of ct_results() */
-int
-main(void)
+TEST_MAIN()
 {
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;

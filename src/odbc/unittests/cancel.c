@@ -186,8 +186,7 @@ Test(bool use_threads, bool return_data)
 	odbc_command("SELECT name FROM sysobjects WHERE 0=1");
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	if (tds_mutex_init(&mtx))
 		return 1;
@@ -245,8 +244,7 @@ main(void)
 }
 
 #else
-int
-main(void)
+TEST_MAIN()
 {
 	printf("Not possible for this platform.\n");
 	return 0;

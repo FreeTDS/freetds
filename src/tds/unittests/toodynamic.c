@@ -30,8 +30,7 @@ fatal_error(const char *msg)
 	exit(1);
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	TDSLOGIN *login;
 	TDSSOCKET *tds;

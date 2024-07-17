@@ -67,8 +67,7 @@ test(const char *s, const char *sep)
 	free(c2);
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	test("a b\tc", "\t ");
 	test("    x  y \t  z", " \t");

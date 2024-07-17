@@ -81,8 +81,7 @@ test0(TDSCONTEXT *ctx, TDSSOCKET *tds, const char *input, const char *expected, 
 }
 #define test(in, out) test0(ctx, tds, in, out, __LINE__)
 
-int
-main(void)
+TEST_MAIN()
 {
 	TDSCONTEXT *ctx = tds_alloc_context(NULL);
 	TDSSOCKET *tds = tds_alloc_socket(ctx, 512);

@@ -5,8 +5,7 @@
 static void test_with_conversions(void);
 static void test_with_dbname(void);
 
-int
-main(void)
+TEST_MAIN()
 {
 	SQLINTEGER input, output;
 	SQLLEN ind, ind2, ind3, ind4;

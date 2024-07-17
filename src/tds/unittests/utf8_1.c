@@ -177,8 +177,7 @@ test(const char *type, const char *test_name)
 	 */
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	TDSLOGIN *login;
 	int ret;

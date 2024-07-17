@@ -78,8 +78,7 @@ static const char *bounds[] = {
 	NULL,
 };
 
-int
-main(void)
+TEST_MAIN()
 {
 	const char **bound;
 

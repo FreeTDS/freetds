@@ -176,8 +176,7 @@ destests(void)
 }
 
 
-int
-main(void)
+TEST_MAIN()
 {
 	int i;
 

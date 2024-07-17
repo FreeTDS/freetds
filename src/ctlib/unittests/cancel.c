@@ -36,8 +36,7 @@ catch_alrm(int sig_num TDS_UNUSED)
 }
 
 /* Testing: Test asynchronous ct_cancel() */
-int
-main(void)
+TEST_MAIN()
 {
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;
@@ -190,8 +189,7 @@ do_fetch(CS_COMMAND * cmd, int *cnt)
 
 #else
 
-int
-main(void)
+TEST_MAIN()
 {
 	return 0;
 }

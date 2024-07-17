@@ -8,8 +8,7 @@
 
 #include "common.h"
 
-int
-main(void)
+TEST_MAIN()
 {
 #define ARRAY_SIZE 10
 	SQLCHAR v_dec[ARRAY_SIZE][21];

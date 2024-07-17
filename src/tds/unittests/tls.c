@@ -74,8 +74,7 @@ test_hostname(X509 *cert, const char *hostname, bool expected)
 	}
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	BIO *bufio;
 	X509 *cert;
@@ -113,8 +112,7 @@ main(void)
 	return got_failure ? 1 : 0;
 }
 #else
-int
-main(void)
+TEST_MAIN()
 {
 	return 0;
 }

@@ -198,8 +198,7 @@ err_handler(const TDSCONTEXT * tds_ctx TDS_UNUSED, TDSSOCKET * tds TDS_UNUSED, T
 	return TDS_INT_CANCEL;
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	TDSLOGIN *login;
 	int ret;

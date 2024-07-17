@@ -1,8 +1,7 @@
 #include "common.h"
 
 /* Testing: Set and get options with ct_options */
-int
-main(int argc, char *argv[])
+TEST_MAIN()
 {
 	int verbose = 0;
 

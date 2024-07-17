@@ -1,8 +1,7 @@
 /* Test some data from server. Currently tests MS XML type */
 #include "common.h"
 
-int
-main(int argc, char *argv[])
+TEST_MAIN()
 {
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;

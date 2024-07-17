@@ -161,8 +161,7 @@ test_bind(DBPROCESS * dbproc)
 
 }
 
-int
-main(int argc, char **argv)
+TEST_MAIN()
 {
 	LOGINREC *login;
 	DBPROCESS *dbproc;

@@ -15,8 +15,7 @@ static const char *unsafestr = "This is a string with ' and \" in it.";
 /* safestr must be at least strlen(unsafestr) + 3 */
 static char safestr[100];
 
-int
-main(int argc TDS_UNUSED, char **argv)
+TEST_MAIN()
 {
 	int len;
 	RETCODE ret;
@@ -62,7 +61,7 @@ main(int argc TDS_UNUSED, char **argv)
 	return failed ? 1 : 0;
 }
 #else
-int main(void)
+TEST_MAIN()
 {
 	fprintf(stderr, "Not supported by MS DBLib\n");
 	return 0;

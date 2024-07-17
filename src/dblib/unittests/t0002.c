@@ -32,8 +32,7 @@ verify(int i, int testint, char *teststr)
 	printf("Read a row of data -> %d %s\n", testint, teststr);
 }
 
-int
-main(int argc, char **argv)
+TEST_MAIN()
 {
 	LOGINREC *login;
 	DBPROCESS *dbproc;

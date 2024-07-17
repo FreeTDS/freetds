@@ -45,8 +45,7 @@ free_convert(int type, CONV_RESULT *cr)
 	}
 }
 
-int
-main(int argc, char **argv)
+TEST_MAIN()
 {
 	int srctype;
 	int desttype;

@@ -5,8 +5,7 @@
 static CS_CONNECTION *conn = NULL;
 
 /* Testing: Retrieve CS_TEXT_TYPE using ct_bind() */
-int
-main(void)
+TEST_MAIN()
 {
 	CS_CONTEXT *ctx;
 	CS_COMMAND *cmd;

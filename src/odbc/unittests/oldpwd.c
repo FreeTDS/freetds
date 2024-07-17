@@ -9,8 +9,7 @@ my_attrs(void)
 	strcpy(odbc_password, "testpwd$");
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	odbc_use_version3 = 1;
 	odbc_set_conn_attr = my_attrs;

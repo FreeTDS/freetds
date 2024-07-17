@@ -252,8 +252,7 @@ test(int argc, char **argv, int over4k)
 	return 0;
 }
 
-int
-main(int argc, char **argv)
+TEST_MAIN()
 {
 	int res;
 

@@ -7,8 +7,7 @@
  * ct_bind variable
  * ct_fetch and print results
  */
-int
-main(void)
+TEST_MAIN()
 {
 	int verbose = 1;
 	CS_CONTEXT *ctx;

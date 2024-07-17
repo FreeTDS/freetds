@@ -72,8 +72,7 @@ TestBinding(int minimun)
 	odbc_reset_statement();
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	const char * const*p;
 	SQLINTEGER n;
@@ -131,8 +130,7 @@ main(void)
 
 #else
 
-int
-main(void)
+TEST_MAIN()
 {
 	/* on Windows SQLExecDirect is always converted to SQLExecDirectW by the DM */
 	printf("Not possible for this platform.\n");

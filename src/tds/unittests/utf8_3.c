@@ -109,8 +109,7 @@ test(const char *buf)
 	}
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	TDSLOGIN *login;
 	int ret;

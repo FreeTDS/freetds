@@ -2,8 +2,7 @@
 
 /* test SQL_C_DEFAULT with NCHAR type */
 
-int
-main(void)
+TEST_MAIN()
 {
 	char buf[102];
 	SQLLEN ind;
