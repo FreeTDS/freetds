@@ -139,6 +139,29 @@ myGetPrivateProfileString(const char *DSN, const char *key, char *buf)
 	return SQLGetPrivateProfileString(DSN, key, "", buf, FILENAME_MAX, "odbc.ini");
 }
 
+/**
+ * Converts Encrypt option to Encryption option.
+ * Encryption is FreeTDS specific and older than Encrypt.
+ */
+static const char *
+odbc_encrypt2encryption(const char *encrypt)
+{
+	if (strcasecmp(encrypt, "strict") == 0)
+		return TDS_STR_ENCRYPTION_STRICT;
+
+	if (strcasecmp(encrypt, "mandatory") == 0
+	    || strcasecmp(encrypt, "true") == 0
+	    || strcasecmp(encrypt, "yes") == 0)
+		return TDS_STR_ENCRYPTION_REQUIRE;
+
+	if (strcasecmp(encrypt, "optional") == 0
+	    || strcasecmp(encrypt, "false") == 0
+	    || strcasecmp(encrypt, "no") == 0)
+		return TDS_STR_ENCRYPTION_REQUEST;
+
+	return "invalid_encrypt";
+}
+
 /** 
  * Read connection information from given DSN
  * @param DSN           DSN name
@@ -231,6 +254,9 @@ odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSLOGIN * login)
 	if (myGetPrivateProfileString(DSN, odbc_param_Encryption, tmp) > 0)
 		tds_parse_conf_section(TDS_STR_ENCRYPTION, tmp, login);
 
+	if (myGetPrivateProfileString(DSN, odbc_param_Encrypt, tmp) > 0)
+		tds_parse_conf_section(TDS_STR_ENCRYPTION, odbc_encrypt2encryption(tmp), login);
+
 	if (myGetPrivateProfileString(DSN, odbc_param_UseNTLMv2, tmp) > 0)
 		tds_parse_conf_section(TDS_STR_USENTLMV2, tmp, login);
 
@@ -256,6 +282,14 @@ odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSLOGIN * login)
 
 	if (myGetPrivateProfileString(DSN, odbc_param_Timeout, tmp) > 0)
 		tds_parse_conf_section(TDS_STR_TIMEOUT, tmp, login);
+
+	if (myGetPrivateProfileString(DSN, odbc_param_HostNameInCertificate, tmp) > 0
+	    && (tmp[0] && strcmp(tmp, "null") != 0)) {
+		if (!tds_dstr_copy(&login->certificate_host_name, tmp)) {
+			odbc_errs_add(errs, "HY001", NULL);
+			return false;
+		}
+	}
 
 	return true;
 }
@@ -451,6 +485,8 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 			tds_parse_conf_section(TDS_STR_DEBUGFLAGS, tds_dstr_cstr(&value), login);
 		} else if (CHK_PARAM(Encryption)) {
 			tds_parse_conf_section(TDS_STR_ENCRYPTION, tds_dstr_cstr(&value), login);
+		} else if (CHK_PARAM(Encrypt)) {
+			tds_parse_conf_section(TDS_STR_ENCRYPTION, odbc_encrypt2encryption(tds_dstr_cstr(&value)), login);
 		} else if (CHK_PARAM(UseNTLMv2)) {
 			tds_parse_conf_section(TDS_STR_USENTLMV2, tds_dstr_cstr(&value), login);
 		} else if (CHK_PARAM(REALM)) {
@@ -483,6 +519,8 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 			tdsdump_log(TDS_DBG_INFO1, "Application Intent %s\n", readonly_intent);
 		} else if (CHK_PARAM(Timeout)) {
 			tds_parse_conf_section(TDS_STR_TIMEOUT, tds_dstr_cstr(&value), login);
+		} else if (CHK_PARAM(HostNameInCertificate)) {
+			dest_s = &login->certificate_host_name;
 		}
 
 		if (num_param >= 0 && parsed_params) {

@@ -2038,6 +2038,20 @@ The ODBC tests all build their own <filename>odbc.ini</filename> and try to redi
 							<entry>Specify encryption. See encryption on &freetdsconf;</entry>
 							</row>
 						<row>
+							<entry><literal>Encrypt</literal></entry>
+							<entry>yes/no/true/false/optional/mandatory/strict</entry>
+							<entry>optional</entry>
+							<entry>Specify encryption.
+							Similar to encryption on &freetdsconf; but Microsoft compatible.</entry>
+							</row>
+						<row>
+							<entry><literal>HostNameInCertificate</literal></entry>
+							<entry>Server name</entry>
+							<entry>null</entry>
+							<entry>Server name to match certificate name.
+							Microsoft compatible.</entry>
+							</row>
+						<row>
 							<entry><literal>MARS_Connection</literal></entry>
 							<entry>Yes/No</entry>
 							<entry>No</entry>
