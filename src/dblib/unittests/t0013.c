@@ -250,6 +250,10 @@ test(int argc, char **argv, int over4k)
 	}
 
 	data_ok = 1;
+	if (rblob == NULL) {
+		fputs("No blob data received", stderr);
+		return 7;
+	}
 	if (memcmp(blob, rblob, numread) != 0) {
 		printf("Saving first blob data row to file: %s\n", argv[2]);
 		if ((fp = fopen(argv[2], "wb")) == NULL) {
