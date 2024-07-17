@@ -59,8 +59,7 @@ test_type(TDSSOCKET *tds TDS_UNUSED, TDSCOLUMN *col)
 	}
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	TDS_DBC *dbc;
 	TDS_ENV *env;

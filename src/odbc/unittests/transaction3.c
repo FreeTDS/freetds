@@ -2,8 +2,7 @@
 
 /* Test commit/rollback with auto commit set to on (the default) */
 
-int
-main(void)
+TEST_MAIN()
 {
 	odbc_use_version3 = 1;
 	odbc_connect();

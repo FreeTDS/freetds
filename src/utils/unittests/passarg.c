@@ -38,7 +38,7 @@
 #include <freetds/sysdep_private.h>
 #include <freetds/utils.h>
 
-int main(void)
+TEST_MAIN()
 {
 	FILE *f;
 	char *pwd = strdup("password");

@@ -285,8 +285,7 @@ TestOtherStatement(bool some_activity)
 	SWAP_STMT(stmt);
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	if (tds_mutex_init(&mtx))
 		return 1;
@@ -353,8 +352,7 @@ main(void)
 }
 
 #else
-int
-main(void)
+TEST_MAIN()
 {
 	printf("Not possible for this platform.\n");
 	return 0;

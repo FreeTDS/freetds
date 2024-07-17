@@ -35,8 +35,7 @@
 
 static unsigned char buf[4096+80];
 
-int
-main(void)
+TEST_MAIN()
 {
 	static const char out_file[] = "iconv_fread.out";
 	int i;

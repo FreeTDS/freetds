@@ -24,8 +24,7 @@ doFetch(int dir, int pos, int expected)
 		result = 1;
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	odbc_use_version3 = 1;
 	odbc_connect();

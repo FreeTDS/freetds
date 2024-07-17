@@ -301,8 +301,7 @@ big_test(TDSSOCKET *tds)
 }
 
 
-int
-main(void)
+TEST_MAIN()
 {
 	int i;
 	TDSCONTEXT *ctx = tds_alloc_context(NULL);

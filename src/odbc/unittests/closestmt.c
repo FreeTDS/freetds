@@ -6,8 +6,7 @@
  * another statement.
  */
 
-int
-main(void)
+TEST_MAIN()
 {
 	char sql[128];
 	int i;

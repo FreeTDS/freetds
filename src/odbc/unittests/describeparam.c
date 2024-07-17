@@ -27,8 +27,7 @@ check_type(bool cond, SQLSMALLINT value, const char *msg, int line)
 #define check_type(value, cond, expected) \
 	check_type(value cond expected, value, #value " " #cond " " #expected, __LINE__)
 
-int
-main(void)
+TEST_MAIN()
 {
 	SQLSMALLINT num_params;
 	SQLSMALLINT sql_type;

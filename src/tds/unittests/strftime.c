@@ -43,8 +43,7 @@ test(const TDSDATEREC* dr, int prec, const char *fmt, const char *expected, int 
 	free(format);
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	TDSDATEREC dr;
 

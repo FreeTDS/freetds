@@ -27,8 +27,7 @@ static const column_t columns[] = {
 	{ 0, NULL, NULL },
 };
 
-int
-main(void)
+TEST_MAIN()
 {
 	char tmp[1024];
 	char out[TDS_VECTOR_SIZE(column_names)][32];

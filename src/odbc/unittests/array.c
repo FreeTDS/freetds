@@ -147,8 +147,7 @@ query_test(int flags, SQLRETURN expected, const char *expected_status)
 	odbc_command_with_result(odbc_stmt, "drop table #tmp1");
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	odbc_use_version3 = 1;
 	odbc_conn_additional_params = "ClientCharset=ISO-8859-1;";

@@ -2,8 +2,7 @@
 
 /* TODO place comment here */
 
-int
-main(void)
+TEST_MAIN()
 {
 	/* TODO remove if not neeeded */
 	odbc_use_version3 = 1;

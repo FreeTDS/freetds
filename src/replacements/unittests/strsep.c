@@ -86,8 +86,7 @@ test2(void)
 	assert(tds_strsep(&s, "") == NULL);
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	test("a b c", "", "a b c", NULL);
 	test("a b c", " ", "a", "b", "c", NULL);

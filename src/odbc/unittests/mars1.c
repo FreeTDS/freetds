@@ -29,8 +29,7 @@ my_attrs(void)
 	SQLSetConnectAttr(odbc_conn, 1224 /*SQL_COPT_SS_MARS_ENABLED*/, (SQLPOINTER) 1 /*SQL_MARS_ENABLED_YES*/, SQL_IS_UINTEGER);
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	SQLINTEGER len, out;
 	int i;

@@ -106,8 +106,7 @@ test_end(void)
 		fatal_error("tds_process_tokens() failed");
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	TDSRESULTINFO *info;
 	char mymsg[256];

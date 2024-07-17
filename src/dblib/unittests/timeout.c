@@ -274,8 +274,7 @@ test(int per_process)
 	} /* while dbresults */
 }
 
-int
-main(int argc, char **argv)
+TEST_MAIN()
 {
 	set_malloc_options();
 

@@ -51,8 +51,7 @@
 	assert(val == expected); \
 } while(0)
 
-int
-main(void)
+TEST_MAIN()
 {
 	/* this structure make sure buffer are properly aligned */
 	struct {

@@ -245,8 +245,7 @@ check_attr_none(ATTR_PARAMS)
 {
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	bool cond = true;
 #define TEST_FILE "describecol.in"

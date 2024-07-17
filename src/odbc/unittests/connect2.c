@@ -60,8 +60,7 @@ set_dbname(const char *dbname)
 			  (SQLINTEGER) strlen(dbname) * sizeof(SQLTCHAR), "SI");
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	char tmp[1024*3];
 

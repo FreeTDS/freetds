@@ -393,8 +393,7 @@ test_fetch(const char *replies, const char *expected_no_row, const char *expecte
 
 #define test_fetch(r, e1, e2) test_fetch(r, e1, e2, __LINE__)
 
-int
-main(void)
+TEST_MAIN()
 {
 	int port;
 	char connect[100];
@@ -561,8 +560,7 @@ main(void)
 }
 
 #else /* !TDS_HAVE_MUTEX */
-int
-main(void)
+TEST_MAIN()
 {
 	printf("Not possible for this platform.\n");
 	odbc_test_skipped();

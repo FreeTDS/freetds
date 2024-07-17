@@ -61,8 +61,7 @@ Test(int use_ird)
 	ODBC_FREE();
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	SQLSMALLINT count;
 

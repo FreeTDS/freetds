@@ -21,8 +21,7 @@
 
 static TDSCONTEXT ctx;
 
-int
-main(void)
+TEST_MAIN()
 {
 	TDSLOGIN *login;
 	TDSSOCKET *tds;

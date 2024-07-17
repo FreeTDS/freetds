@@ -1,7 +1,6 @@
 #include "common.h"
 
-int
-main(void)
+TEST_MAIN()
 {
 	HSTMT old_odbc_stmt = SQL_NULL_HSTMT;
 

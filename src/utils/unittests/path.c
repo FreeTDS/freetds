@@ -42,7 +42,7 @@ enum { is_windows = 1 };
 enum { is_windows = 0 };
 #endif
 
-int main(void)
+TEST_MAIN()
 {
 	tds_dir_char *path;
 	size_t len;

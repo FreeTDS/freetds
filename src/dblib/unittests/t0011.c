@@ -11,8 +11,7 @@ static int failed = 0;
 static void insert_row(DBPROCESS * dbproc);
 static int select_rows(DBPROCESS * dbproc, int bind_type);
 
-int
-main(int argc, char **argv)
+TEST_MAIN()
 {
 	LOGINREC *login;
 	DBPROCESS *dbproc;

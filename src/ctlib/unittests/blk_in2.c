@@ -36,8 +36,7 @@ hoge_blkin(CS_CONNECTION * con, CS_BLKDESC * blk, char *table, char *data)
 	check_call(blk_done, (blk, CS_BLK_ALL, &row));
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;

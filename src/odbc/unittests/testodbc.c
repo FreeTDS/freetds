@@ -408,8 +408,7 @@ RunTests(void)
 	return (fails == 0);
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	odbc_use_version3 = true;
 

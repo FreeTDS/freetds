@@ -413,7 +413,7 @@ test_weird_index_names(void)
 	tsql(clean);
 }
 
-int main(void)
+TEST_MAIN()
 {
 	FILE *f;
 

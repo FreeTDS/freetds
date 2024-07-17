@@ -18,8 +18,7 @@
  */
 #include "common.h"
 
-int
-main(void)
+TEST_MAIN()
 {
 	TDSLOGIN *login;
 	TDSSOCKET *tds;

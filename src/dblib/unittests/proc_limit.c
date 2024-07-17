@@ -25,8 +25,7 @@ err_handler(DBPROCESS * dbproc TDS_UNUSED, int severity, int dberr, int oserr, c
 	return INT_CANCEL;
 }
 
-int
-main(int argc, char *argv[])
+TEST_MAIN()
 {
 	LOGINREC *login;
 	DBPROCESS *dbproc, *dbproc2;

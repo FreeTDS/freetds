@@ -202,8 +202,7 @@ Test(const char *name)
 	}
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	const char proc_name[] = "freetds_odbc_rpc_test";
 	char drop_proc[256] = "DROP PROCEDURE ";

@@ -165,8 +165,7 @@ test0(const char *type, ...)
 	exec_query("DROP TABLE #tmp");
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	printf("%s: Testing conversion from server\n", __FILE__);
 	if (try_tds_login(&login, &tds, __FILE__, 0) != TDS_SUCCESS) {

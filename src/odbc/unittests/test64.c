@@ -253,8 +253,7 @@ test_rows(void)
 	free(id_lens);
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	/* this test is specifically testing for 64 bit platforms where SQLLEN is 64 bit */
 	if (sizeof(SQLLEN) != 8) {

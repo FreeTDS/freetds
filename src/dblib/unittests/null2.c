@@ -146,8 +146,7 @@ test(const char *type, int give_err)
 	query("drop table #null");
 }
 
-int
-main(int argc, char **argv)
+TEST_MAIN()
 {
 	LOGINREC *login;
 

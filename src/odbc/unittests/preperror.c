@@ -2,8 +2,7 @@
 
 /* test error on prepared statement, from Nathaniel Talbott test */
 
-int
-main(void)
+TEST_MAIN()
 {
 	SQLLEN cbInString = SQL_NTS;
 	char buf[256];

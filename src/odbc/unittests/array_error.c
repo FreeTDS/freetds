@@ -5,8 +5,7 @@
 	Test for a bug executing after a not successfully execute
 */
 
-int
-main(void)
+TEST_MAIN()
 {
 	SQLSMALLINT num_params;
 	SQLLEN sql_nts = SQL_NTS;

@@ -5,8 +5,7 @@
  * 2) Test cursor returns results on language RPCs
  */
 
-int
-main(void)
+TEST_MAIN()
 {
 	SQLTCHAR sqlstate[6];
 	SQLTCHAR msg[256];

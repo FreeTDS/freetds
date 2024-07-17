@@ -180,8 +180,7 @@ int_values[] = {
 	NULL
 };
 
-int
-main(void)
+TEST_MAIN()
 {
 	int *type1, *type2;
 	const char **value;

@@ -131,8 +131,7 @@ Test(int use_sql)
 	Test0(use_sql, "CREATE TABLE #test(i int, c varchar(6))", "INSERT INTO #test(c, i) VALUES('%s', %d)", "SELECT i, c, c + 'xxx' FROM #test");
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	odbc_connect();
 	odbc_check_cursor();

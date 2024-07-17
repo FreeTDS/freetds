@@ -95,8 +95,7 @@ lookup(const char *name, const struct odbc_lookup_int *table, odbc_parser *parse
 	return res == SQL_UNKNOWN_TYPE ? get_int(name, parser) : res;
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	bool cond = true;
 

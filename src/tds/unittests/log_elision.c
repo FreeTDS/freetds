@@ -68,8 +68,7 @@ static TDS_THREAD_PROC_DECLARE(log_func, idx_ptr)
 	return TDS_THREAD_RESULT(0);
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	int i, ret;
 	tds_thread threads[THREADS];
@@ -144,7 +143,7 @@ main(void)
 	return 0;
 }
 #else	/* !TDS_HAVE_MUTEX */
-int main(int argc, char *argv[])
+TEST_MAIN()
 {
 	printf("Not possible for this platform.\n");
 	return 0; /* TODO 77 ? */

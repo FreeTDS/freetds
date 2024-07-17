@@ -36,4 +36,8 @@
 
 #include <config.h>
 
+#include <freetds/macros.h>
+
+#define TEST_MAIN() int main(int argc TDS_UNUSED, char **argv TDS_UNUSED)
+
 #endif /* _tdsguard_afBM6E9n8CuIFSBHNNblq5_ */

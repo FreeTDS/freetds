@@ -76,8 +76,7 @@ test(CS_CONNECTION *con, CS_COMMAND *cmd)
 	}
 }
 
-int
-main(int argc, char **argv)
+TEST_MAIN()
 {
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *con;

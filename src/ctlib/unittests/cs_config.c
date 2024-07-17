@@ -2,8 +2,7 @@
 
 #include <cspublic.h>
 
-int
-main(void)
+TEST_MAIN()
 {
 	int verbose = 1;
 	CS_CONTEXT *ctx;

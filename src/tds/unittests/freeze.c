@@ -461,8 +461,7 @@ test(int mars, void (*real_test)(void))
 	buf_free(&thread_buf);
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	int mars;
 
@@ -486,7 +485,7 @@ main(void)
 	return 0;
 }
 #else	/* !TDS_HAVE_MUTEX */
-int main(int argc, char *argv[])
+TEST_MAIN()
 {
 	printf("Not possible for this platform.\n");
 	return 0; /* TODO 77 ? */

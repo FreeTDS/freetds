@@ -35,8 +35,7 @@ DoTest(int n)
 	CHKCloseCursor("SI");
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	odbc_connect();
 

@@ -37,8 +37,7 @@ insert_test(bool manual)
 	odbc_reset_statement();
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	odbc_connect();
 

@@ -281,8 +281,7 @@ extract_collations(void)
 	fclose(f);
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	TDSLOGIN *login;
 	int ret;

@@ -21,8 +21,7 @@
 
 static char *value_as_string(TDSSOCKET * tds, int col_idx);
 
-int
-main(void)
+TEST_MAIN()
 {
 	TDSLOGIN *login;
 	TDSSOCKET *tds;

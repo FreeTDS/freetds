@@ -137,8 +137,7 @@ CHECK(password_bug_report,
 CHECK_ERROR(unfinished,
 	"Driver=FreeTDS;Server=1.2.3.4;Port=1433;pwd={p@ssw0rd");
 
-int
-main(void)
+TEST_MAIN()
 {
 	simple_string();
 

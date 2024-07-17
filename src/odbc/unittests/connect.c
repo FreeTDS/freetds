@@ -34,8 +34,7 @@ get_entry(const char *key)
 }
 #endif
 
-int
-main(void)
+TEST_MAIN()
 {
 	char tmp[1024*4];
 	SQLSMALLINT len;
