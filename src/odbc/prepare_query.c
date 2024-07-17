@@ -443,7 +443,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 		} else {
 			memcpy(blob->textvalue + curcol->column_cur_size, DataPtr, len);
 		}
-	} else {
+	} else if (len > 0) {
 		memcpy(curcol->column_data + curcol->column_cur_size, DataPtr, len);
 	}
 

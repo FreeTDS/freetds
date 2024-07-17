@@ -59,6 +59,9 @@ TEST_MAIN()
 				fprintf(stderr, "CS_CHAR_TYPE\n");
 				datafmt.format = CS_FMT_NULLTERM;
 				addr = (char *) malloc(datafmt.maxlength);
+			} else {
+				fputs("unexpected data type\n", stderr);
+				return 1;
 			}
 
 			fprintf(stderr, "binding column 1 (%s)\n", datafmt.name);

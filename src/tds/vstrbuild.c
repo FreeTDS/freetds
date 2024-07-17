@@ -84,14 +84,14 @@ tds_vstrbuild(char *buffer, int buflen, int *resultlen, const char *text, int te
 	char *token;
 	const char *sep = "\377";
 	char *lasts;
-	int tokcount = 0;
+	unsigned int tokcount = 0;
 	struct string_linked_list *head = NULL;
 	struct string_linked_list *item = NULL;
 	struct string_linked_list **tail = &head;
-	int i;
+	unsigned int i;
 	int state;
 	char **string_array = NULL;
-	int pnum = 0;
+	unsigned int pnum = 0;
 	int pdigit;
 	char *paramp = NULL;
 	TDSRET rc = TDS_FAIL;
@@ -156,7 +156,7 @@ tds_vstrbuild(char *buffer, int buflen, int *resultlen, const char *text, int te
 		case CALCPARAM:
 			switch (*text) {
 			case '!':
-				if (pnum <= tokcount) {
+				if (pnum > 0  &&  pnum <= tokcount) {
 					paramp = string_array[pnum - 1];
 					state = OUTPARAM;
 				}
