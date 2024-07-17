@@ -21,6 +21,11 @@ TESTS += challenge$(EXEEXT)
 challenge_SOURCES= challenge.c
 endif
 
+noinst_LIBRARIES = libtds_test_base.a
+libtds_test_base_a_SOURCES = \
+	test_base.c \
+	$(NULL)
+
 AM_CPPFLAGS = -I$(top_srcdir)/include
-LDADD = ../libtdsutils.la @NETWORK_LIBS@
+LDADD = libtds_test_base.a ../libtdsutils.la @NETWORK_LIBS@
 EXTRA_DIST = CMakeLists.txt challenge.c
