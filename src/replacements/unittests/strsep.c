@@ -23,7 +23,13 @@
 #ifdef HAVE_STRSEP
 char *tds_strsep(char **stringp, const char *delim);
 #include "../strsep.c"
+
+#include <freetds/utils/test_base.h>
+
 #else
+
+#include <freetds/utils/test_base.h>
+
 #include <stdarg.h>
 #include <stdio.h>
 

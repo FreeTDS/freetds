@@ -20,8 +20,8 @@
 /*
  * Purpose: test path utilities.
  */
-#undef NDEBUG
-#include <config.h>
+
+#include <freetds/utils/test_base.h>
 
 #include <assert.h>
 #include <stdio.h>

@@ -1,11 +1,9 @@
 #ifndef _tdsguard_gWMRTH1fbCWjtfhWbz8PvN_
 #define _tdsguard_gWMRTH1fbCWjtfhWbz8PvN_
 
-#undef NDEBUG
+#include <freetds/utils/test_base.h>
 
 #include <ctpublic.h>
-
-#include <config.h>
 
 #include <stdio.h>
 #include <assert.h>

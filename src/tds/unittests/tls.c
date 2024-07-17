@@ -20,7 +20,10 @@
 /*
  * Check check_hostname function
  */
+#undef NDEBUG
 #include "../tls.c"
+
+#include "common.h"
 
 #include <freetds/data.h>
 

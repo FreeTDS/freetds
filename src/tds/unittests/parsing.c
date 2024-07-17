@@ -17,10 +17,11 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#undef NDEBUG
-
 /* allows to use some internal functions */
+#undef NDEBUG
 #include "../query.c"
+
+#include "common.h"
 
 #include <freetds/data.h>
 

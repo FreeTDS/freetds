@@ -1,8 +1,7 @@
 #ifndef _tdsguard_dxzbHKJsR5HKI0Qpzu7Vnq_
 #define _tdsguard_dxzbHKJsR5HKI0Qpzu7Vnq_
 
-#undef NDEBUG
-#include <config.h>
+#include <freetds/utils/test_base.h>
 
 #include <stdarg.h>
 #include <stdio.h>
