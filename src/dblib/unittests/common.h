@@ -2,9 +2,7 @@
 #ifndef _tdsguard_daeUPbmgBl59GOSecr8sMB_
 #define _tdsguard_daeUPbmgBl59GOSecr8sMB_
 
-#undef NDEBUG
-
-#include <config.h>
+#include <freetds/utils/test_base.h>
 
 #include <stdarg.h>
 #include <stdio.h>

@@ -19,7 +19,7 @@
 
 #define TDS_INTERNAL_TEST 1
 
-#include <config.h>
+#include <freetds/utils/test_base.h>
 
 #include <stdarg.h>
 #include <stdio.h>

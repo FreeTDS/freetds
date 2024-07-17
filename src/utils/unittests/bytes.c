@@ -20,8 +20,8 @@
 /*
  * Purpose: test bytes.h header.
  */
-#undef NDEBUG
-#include <config.h>
+
+#include <freetds/utils/test_base.h>
 
 #include <stdio.h>
 #include <assert.h>

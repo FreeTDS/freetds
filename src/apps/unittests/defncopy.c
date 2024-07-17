@@ -21,8 +21,7 @@
  * This tests execute some command using tsql and defncopy to check behaviour
  */
 
-#undef NDEBUG
-#include <config.h>
+#include <freetds/utils/test_base.h>
 
 #include <stdio.h>
 #include <stdlib.h>

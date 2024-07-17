@@ -20,6 +20,8 @@
 /*
  * Check check_hostname function
  */
+#include "common.h"
+
 #include "../tls.c"
 
 #include <freetds/data.h>

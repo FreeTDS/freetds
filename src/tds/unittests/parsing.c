@@ -17,7 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#undef NDEBUG
+#include "common.h"
 
 /* allows to use some internal functions */
 #include "../query.c"

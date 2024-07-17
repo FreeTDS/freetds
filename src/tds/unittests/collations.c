@@ -16,12 +16,10 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 02111-1307, USA.
  */
-#undef NDEBUG
 #include "common.h"
 #include <freetds/iconv.h>
 #include <freetds/utils/md5.h>
 
-#undef NDEBUG
 #include <ctype.h>
 #include <assert.h>
 
