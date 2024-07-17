@@ -686,6 +686,8 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		s = tds_dstr_copy(&login->crlfile, value);
 	} else if (!strcmp(option, TDS_STR_CHECKSSLHOSTNAME)) {
 		parse_boolean(option, value, login->check_ssl_hostname);
+	} else if (!strcmp(option, TDS_STR_SSLHOSTNAME)) {
+		s = tds_dstr_copy(&login->certificate_host_name, value);
 	} else if (!strcmp(option, TDS_STR_DBFILENAME)) {
 		s = tds_dstr_copy(&login->db_filename, value);
 	} else if (!strcmp(option, TDS_STR_DATABASE)) {

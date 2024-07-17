@@ -1282,6 +1282,13 @@ Note that is not possible to specify a directory as usually database servers doe
 </entry>
 							</row>
 						<row>
+							<entry><literal>certificate hostname</literal></entry>
+							<entry>none</entry>
+							<entry>host setting</entry>
+							<entry>Hostname that should match server certificate.
+							Only used if <literal>ca file</literal> is also specified.</entry>
+							</row>
+						<row>
 							<entry><literal>read-only intent</literal></entry>
 							<entry>yes/no</entry>
 							<entry>no</entry>

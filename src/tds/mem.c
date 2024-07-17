@@ -1009,6 +1009,7 @@ tds_alloc_login(bool use_environment)
 	tds_dstr_init(&login->server_spn);
 	tds_dstr_init(&login->cafile);
 	tds_dstr_init(&login->crlfile);
+	tds_dstr_init(&login->certificate_host_name);
 	tds_dstr_init(&login->db_filename);
 	tds_dstr_init(&login->openssl_ciphers);
 	tds_dstr_init(&login->routing_address);
@@ -1066,6 +1067,7 @@ tds_free_login(TDSLOGIN * login)
 	tds_dstr_free(&login->server_spn);
 	tds_dstr_free(&login->cafile);
 	tds_dstr_free(&login->crlfile);
+	tds_dstr_free(&login->certificate_host_name);
 	tds_dstr_free(&login->db_filename);
 	tds_dstr_free(&login->openssl_ciphers);
 	tds_dstr_free(&login->routing_address);

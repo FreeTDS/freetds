@@ -483,6 +483,8 @@ is_tds_type_valid(int type)
 #define TDS_STR_CRLFILE	"crl file"
 /* check SSL hostname */
 #define TDS_STR_CHECKSSLHOSTNAME	"check certificate hostname"
+/* SSL hostname to check certificate */
+#define TDS_STR_SSLHOSTNAME	"certificate hostname"
 /* database filename to attach on login (MSSQL) */
 #define TDS_STR_DBFILENAME	"database filename"
 /* Application Intent MSSQL 2012 support */
@@ -532,6 +534,7 @@ typedef struct tds_login
 	DSTR db_filename;		/**< database filename to attach (MSSQL) */
 	DSTR cafile;			/**< certificate authorities file */
 	DSTR crlfile;			/**< certificate revocation file */
+	DSTR certificate_host_name;	/**< certificate hostname to check, if empty use server_host_name */
 	DSTR openssl_ciphers;
 	DSTR app_name;
 	DSTR user_name;	    	/**< account for login */
