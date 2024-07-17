@@ -13,7 +13,7 @@ TEST_MAIN()
 	check_call(ct_con_alloc, (ctx, &conn));
 	check_call(ct_con_props, (conn, CS_SET, CS_USERNAME, (CS_VOID*) "sa", CS_NULLTERM, NULL));
 	check_call(ct_con_props, (conn, CS_SET, CS_PASSWORD, (CS_VOID*) "invalid", CS_NULLTERM, NULL));
-	if (ct_connect(conn, SERVER, CS_NULLTERM) != CS_FAIL) {
+	if (ct_connect(conn, common_pwd.SERVER, CS_NULLTERM) != CS_FAIL) {
 		fprintf(stderr, "Connection succeeded??\n");
 		return ret;
 	}

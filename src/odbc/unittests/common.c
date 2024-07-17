@@ -35,12 +35,6 @@ int odbc_use_version3 = 0;
 void (*odbc_set_conn_attr)(void) = NULL;
 const char *odbc_conn_additional_params = NULL;
 
-char odbc_user[512];
-char odbc_server[512];
-char odbc_password[512];
-char odbc_database[512];
-char odbc_driver[1024];
-
 static int freetds_driver = -1;
 static int tds_version = -1;
 static char db_str_version[32];
@@ -78,10 +72,9 @@ static const char *const search_driver[] = {
 int
 odbc_read_login_info(void)
 {
-	static const char *PWD = "../../../PWD";
+	const char *PWD = DEFAULT_PWD_PATH;
 	FILE *in = NULL;
-	char line[512];
-	char *s1, *s2;
+	char *s1;
 	const char *const *search_p;
 	char path[1024];
 	int len;
@@ -90,37 +83,14 @@ odbc_read_login_info(void)
 	UWORD old_config_mode;
 #endif
 
+	reset_login_info(&common_pwd);
+
 	setbuf(stdout, NULL);
 	setbuf(stderr, NULL);
 
-	s1 = getenv("TDSPWDFILE");
-	if (s1 && s1[0])
-		in = fopen(s1, "r");
-	if (!in)
-		in = fopen(PWD, "r");
-	if (!in)
-		in = fopen("PWD", "r");
-
-	if (!in) {
-		fprintf(stderr, "Can not open PWD file\n\n");
+	PWD = try_read_login_info_base(&common_pwd, PWD);
+	if ( !PWD  &&  !read_login_info_base(&common_pwd, "PWD") )
 		return 1;
-	}
-	while (fgets(line, 512, in)) {
-		s1 = strtok(line, "=");
-		s2 = strtok(NULL, "\n");
-		if (!s1 || !s2)
-			continue;
-		if (!strcmp(s1, "UID")) {
-			strcpy(odbc_user, s2);
-		} else if (!strcmp(s1, "SRV")) {
-			strcpy(odbc_server, s2);
-		} else if (!strcmp(s1, "PWD")) {
-			strcpy(odbc_password, s2);
-		} else if (!strcmp(s1, "DB")) {
-			strcpy(odbc_database, s2);
-		}
-	}
-	fclose(in);
 
 	/* find our driver */
 #ifndef _WIN32
@@ -150,7 +120,7 @@ odbc_read_login_info(void)
 	}
 	if (!*search_p)
 		return 0;
-	strcpy(odbc_driver, path);
+	strcpy(common_pwd.DRIVER, path);
 
 	s1 = getenv("TDSINIOVERRIDE");
 	if (s1 && atoi(s1) == 0)
@@ -161,7 +131,10 @@ odbc_read_login_info(void)
 	sprintf(path, "odbc.ini.%d", (int) getpid());
 	in = fopen(path, "w");
 	if (in) {
-		fprintf(in, "[%s]\nDriver = %s\nDatabase = %s\nServername = %s\n", odbc_server, odbc_driver, odbc_database, odbc_server);
+		fprintf(in,
+			"[%s]\nDriver = %s\nDatabase = %s\nServername = %s\n",
+			common_pwd.SERVER, common_pwd.DRIVER,
+			common_pwd.DATABASE, common_pwd.SERVER);
 		fclose(in);
 		if (ini_override) {
 			setenv("ODBCINI", "./odbc.ini", 1);
@@ -173,12 +146,19 @@ odbc_read_login_info(void)
 #else
 	if (ini_override && SQLGetConfigMode(&old_config_mode)) {
 		ODBC_BUF *odbc_buf = NULL;
-		LPCTSTR server = (LPCTSTR) T(odbc_server);
+		LPCTSTR server = (LPCTSTR) T(common_pwd.SERVER);
 		LPCTSTR filename = (LPCTSTR) T("odbc.ini");
 		SQLSetConfigMode(ODBC_USER_DSN);
-		SQLWritePrivateProfileString(server, (LPCTSTR) T("Driver"), (void *) T(odbc_driver), filename);
-		SQLWritePrivateProfileString(server, (LPCTSTR) T("Database"), (LPCTSTR) T(odbc_database), filename);
-		SQLWritePrivateProfileString(server, (LPCTSTR) T("Servername"), (LPCTSTR) T(odbc_server), filename);
+		SQLWritePrivateProfileString(server, (LPCTSTR) T("Driver"),
+					     (void *) T(common_pwd.DRIVER),
+					     filename);
+		SQLWritePrivateProfileString(server, (LPCTSTR) T("Database"),
+					     (LPCTSTR) T(common_pwd.DATABASE),
+					     filename);
+		SQLWritePrivateProfileString(server,
+					     (LPCTSTR) T("Servername"),
+					     (LPCTSTR) T(common_pwd.SERVER),
+					     filename);
 		SQLSetConfigMode(old_config_mode);
 		ODBC_FREE();
 	}
@@ -263,7 +243,8 @@ odbc_connect(void)
 
 	printf("odbctest\n--------\n\n");
 	printf("connection parameters:\nserver:   '%s'\nuser:     '%s'\npassword: '%s'\ndatabase: '%s'\n",
-	       odbc_server, odbc_user, "????" /* odbc_password */ , odbc_database);
+	       common_pwd.SERVER, common_pwd.USER,
+	       "????" /* common_pwd.PASSWORD */, common_pwd.DATABASE);
 
 	p = getenv("ODBC_MARS");
 	if (p && atoi(p) != 0)
@@ -272,13 +253,17 @@ odbc_connect(void)
 		(*odbc_set_conn_attr)();
 
 	if (!odbc_conn_additional_params) {
-		CHKConnect(T(odbc_server), SQL_NTS, T(odbc_user), SQL_NTS, T(odbc_password), SQL_NTS, "SI");
+		CHKConnect(T(common_pwd.SERVER), SQL_NTS, T(common_pwd.USER),
+			   SQL_NTS, T(common_pwd.PASSWORD), SQL_NTS, "SI");
 	} else {
 		char *params;
 		SQLSMALLINT len;
 
 		assert(asprintf(&params, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;%s",
-				odbc_server, odbc_user, odbc_password, odbc_database, odbc_conn_additional_params) >= 0);
+				common_pwd.SERVER, common_pwd.USER,
+				common_pwd.PASSWORD, common_pwd.DATABASE,
+				odbc_conn_additional_params)
+		       >= 0);
 		assert(params);
 		CHKDriverConnect(NULL, T(params), SQL_NTS, (SQLTCHAR *) command, sizeof(command)/sizeof(SQLTCHAR),
 				 &len, SQL_DRIVER_NOPROMPT, "SI");
@@ -287,7 +272,7 @@ odbc_connect(void)
 
 	CHKAllocStmt(&odbc_stmt, "S");
 
-	sprintf(command, "use %s", odbc_database);
+	sprintf(command, "use %s", common_pwd.DATABASE);
 	printf("%s\n", command);
 
 	CHKExecDirect(T(command), SQL_NTS, "SI");

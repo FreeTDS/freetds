@@ -105,7 +105,7 @@ TEST_MAIN()
 	TestProc(NULL, "DATETIME", STR(SQL_TIMESTAMP));
 	TestTable(NULL, "DATETIME", STR(SQL_TIMESTAMP));
 	set_dbname("master");
-	TestTable(odbc_database, "DATETIME", STR(SQL_TIMESTAMP));
+	TestTable(common_pwd.DATABASE, "DATETIME", STR(SQL_TIMESTAMP));
 
 	odbc_disconnect();
 
@@ -116,7 +116,7 @@ TEST_MAIN()
 	TestProc(NULL, "DATETIME", STR(SQL_TYPE_TIMESTAMP));
 	TestTable(NULL, "DATETIME", STR(SQL_TYPE_TIMESTAMP));
 	set_dbname("master");
-	TestTable(odbc_database, "DATETIME", STR(SQL_TYPE_TIMESTAMP));
+	TestTable(common_pwd.DATABASE, "DATETIME", STR(SQL_TYPE_TIMESTAMP));
 
 	odbc_disconnect();
 

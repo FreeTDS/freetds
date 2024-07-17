@@ -47,49 +47,14 @@
 #include <freetds/bool.h>
 #include <freetds/macros.h>
 
-static char USER[512];
-static char SERVER[512];
-static char PASSWORD[512];
-static char DATABASE[512];
-
 /* content of output file, from command executed */
 static char *output;
 
 static bool
 read_login_info(void)
 {
-	FILE *in = NULL;
-	char line[512];
-	char *s1, *s2;
-
-	s1 = getenv("TDSPWDFILE");
-	if (s1 && s1[0])
-		in = fopen(s1, "r");
-	if (!in)
-		in = fopen("../../../PWD", "r");
-	if (!in) {
-		fprintf(stderr, "Can not open PWD file\n\n");
-		return false;
-	}
-
-	while (fgets(line, sizeof(line), in)) {
-		s1 = strtok(line, "=");
-		s2 = strtok(NULL, "\n");
-		if (!s1 || !s2) {
-			continue;
-		}
-		if (!strcmp(s1, "UID")) {
-			strcpy(USER, s2);
-		} else if (!strcmp(s1, "SRV")) {
-			strcpy(SERVER, s2);
-		} else if (!strcmp(s1, "PWD")) {
-			strcpy(PASSWORD, s2);
-		} else if (!strcmp(s1, "DB")) {
-			strcpy(DATABASE, s2);
-		}
-	}
-	fclose(in);
-	return true;
+	reset_login_info(&common_pwd);
+	return read_login_info_base(&common_pwd, DEFAULT_PWD_PATH) != NULL;
 }
 
 static void
@@ -211,14 +176,14 @@ static char *
 add_server(char *dest, char *const dest_end)
 {
 	dest = add_string(dest, dest_end, " -S ");
-	dest = quote_arg(dest, dest_end, SERVER);
+	dest = quote_arg(dest, dest_end, common_pwd.SERVER);
 	dest = add_string(dest, dest_end, " -U ");
-	dest = quote_arg(dest, dest_end, USER);
+	dest = quote_arg(dest, dest_end, common_pwd.USER);
 	dest = add_string(dest, dest_end, " -P ");
-	dest = quote_arg(dest, dest_end, PASSWORD);
-	if (DATABASE[0]) {
+	dest = quote_arg(dest, dest_end, common_pwd.PASSWORD);
+	if (common_pwd.DATABASE[0]) {
 		dest = add_string(dest, dest_end, " -D ");
-		dest = quote_arg(dest, dest_end, DATABASE);
+		dest = quote_arg(dest, dest_end, common_pwd.DATABASE);
 	}
 	return dest;
 }

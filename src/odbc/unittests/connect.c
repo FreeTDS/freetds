@@ -21,7 +21,8 @@ get_entry(const char *key)
 	static TCHAR buf[256];
 
 	entry = NULL;
-	if (SQLGetPrivateProfileString((LPCTSTR) T(odbc_server), (LPCTSTR) T(key), TEXT(""),
+	if (SQLGetPrivateProfileString((LPCTSTR) T(common_pwd.SERVER),
+				       (LPCTSTR) T(key), TEXT(""),
 				       buf, TDS_VECTOR_SIZE(buf), TEXT("odbc.ini")) > 0)
 		entry = C(buf);
 
@@ -46,11 +47,12 @@ TEST_MAIN()
 	 * is better to do it before connect cause uniODBC cache INIs
 	 * the name must be odbcinst.ini cause unixODBC accept only this name
 	 */
-	if (odbc_driver[0]) {
+	if (common_pwd.DRIVER[0]) {
 		FILE *f = fopen("odbcinst.ini", "w");
 
 		if (f) {
-			fprintf(f, "[FreeTDS]\nDriver = %s\n", odbc_driver);
+			fprintf(f, "[FreeTDS]\nDriver = %s\n",
+				common_pwd.DRIVER);
 			fclose(f);
 			/* force iODBC */
 			setenv("ODBCINSTINI", "./odbcinst.ini", 1);
@@ -76,7 +78,8 @@ TEST_MAIN()
 	/* try connect string with using DSN */
 	printf("connect string DSN connect..\n");
 	init_connect();
-	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;", odbc_server, odbc_user, odbc_password, odbc_database);
+	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;", common_pwd.SERVER,
+		common_pwd.USER, common_pwd.PASSWORD, common_pwd.DATABASE);
 	CHKDriverConnect(NULL, T(tmp), SQL_NTS, (SQLTCHAR *) tmp, sizeof(tmp)/sizeof(SQLTCHAR), &len, SQL_DRIVER_NOPROMPT, "SI");
 	odbc_disconnect();
 	++succeeded;
@@ -87,7 +90,10 @@ TEST_MAIN()
 
 	/* this is expected to work with unixODBC */
 	init_connect();
-	sprintf(tmp, "DRIVER=FreeTDS;SERVERNAME=%s;UID=%s;PWD=%s;DATABASE=%s;", odbc_server, odbc_user, odbc_password, odbc_database);
+	sprintf(tmp,
+		"DRIVER=FreeTDS;SERVERNAME=%s;UID=%s;PWD=%s;DATABASE=%s;",
+		common_pwd.SERVER, common_pwd.USER, common_pwd.PASSWORD,
+		common_pwd.DATABASE);
 	rc = CHKDriverConnect(NULL, T(tmp), SQL_NTS, (SQLTCHAR *) tmp, sizeof(tmp)/sizeof(SQLTCHAR), &len, SQL_DRIVER_NOPROMPT, "SIE");
 	if (rc == SQL_ERROR) {
 		printf("Unable to open data source (ret=%d)\n", rc);
@@ -99,9 +105,12 @@ TEST_MAIN()
 	/* this is expected to work with iODBC
 	 * (passing shared object name as driver)
 	 */
-	if (odbc_driver[0]) {
+	if (common_pwd.DRIVER[0]) {
 		init_connect();
-		sprintf(tmp, "DRIVER=%s;SERVERNAME=%s;UID=%s;PWD=%s;DATABASE=%s;", odbc_driver, odbc_server, odbc_user, odbc_password, odbc_database);
+		sprintf(tmp,
+			"DRIVER=%s;SERVERNAME=%s;UID=%s;PWD=%s;DATABASE=%s;",
+			common_pwd.DRIVER, common_pwd.SERVER, common_pwd.USER,
+			common_pwd.PASSWORD, common_pwd.DATABASE);
 		rc = CHKDriverConnect(NULL, T(tmp), SQL_NTS, (SQLTCHAR *) tmp, sizeof(tmp)/sizeof(SQLTCHAR), &len, SQL_DRIVER_NOPROMPT, "SIE");
 		if (rc == SQL_ERROR) {
 			printf("Unable to open data source (ret=%d)\n", rc);
@@ -114,7 +123,10 @@ TEST_MAIN()
 #ifdef _WIN32
 	if (get_entry("SERVER")) {
 		init_connect();
-		sprintf(tmp, "DRIVER=FreeTDS;SERVER=%s;UID=%s;PWD=%s;DATABASE=%s;", entry, odbc_user, odbc_password, odbc_database);
+		sprintf(tmp,
+			"DRIVER=FreeTDS;SERVER=%s;UID=%s;PWD=%s;DATABASE=%s;",
+			entry, common_pwd.USER, common_pwd.PASSWORD,
+			common_pwd.DATABASE);
 		if (get_entry("TDS_Version"))
 			sprintf(strchr(tmp, 0), "TDS_Version=%s;", entry);
 		if (get_entry("Port"))
@@ -140,7 +152,9 @@ TEST_MAIN()
 		 */
 		printf("connect string DSN connect with a long APP..\n");
 		init_connect();
-		sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;APP=%s", odbc_server, odbc_user, odbc_password, odbc_database, app_name);
+		sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;APP=%s",
+			common_pwd.SERVER, common_pwd.USER,
+			common_pwd.PASSWORD, common_pwd.DATABASE, app_name);
 		CHKDriverConnect(NULL, T(tmp), SQL_NTS, (SQLTCHAR *) tmp, sizeof(tmp)/sizeof(SQLTCHAR), &len, SQL_DRIVER_NOPROMPT, "SI");
 		odbc_disconnect();
 	}
