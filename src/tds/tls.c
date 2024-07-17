@@ -529,7 +529,7 @@ tds_ssl_init(TDSSOCKET *tds, bool full)
 		gnutls_transport_set_push_function(session, tds_push_func);
 	}
 
-	/* NOTE: there functions return int however they cannot fail */
+	/* NOTE: these functions return int however they cannot fail */
 
 	/* use default priorities... */
 	gnutls_set_default_priority(session);
