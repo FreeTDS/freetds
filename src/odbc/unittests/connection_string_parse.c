@@ -3,10 +3,6 @@
 #include "freetds/odbc.h"
 
 
-#ifdef _WIN32
-HINSTANCE hinstFreeTDS;
-#endif
-
 static void
 assert_equal_dstr(DSTR a, const char *b)
 {
@@ -144,10 +140,6 @@ CHECK_ERROR(unfinished,
 int
 main(void)
 {
-#ifdef _WIN32
-	hinstFreeTDS = GetModuleHandle(NULL);
-#endif
-
 	simple_string();
 
 	simple_escaped_string();

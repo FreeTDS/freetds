@@ -10,9 +10,6 @@
 static int sql_c_types[100];
 static const char *sql_c_types_names[100];
 static unsigned num_c_types = 0;
-#ifdef _WIN32
-HINSTANCE hinstFreeTDS;
-#endif
 
 static TDS_STMT *stmt;
 
@@ -69,10 +66,6 @@ main(void)
 	TDS_ENV *env;
 	SQLULEN ulen;
 	int i;
-
-#ifdef _WIN32
-	hinstFreeTDS = GetModuleHandle(NULL);
-#endif
 
 	/* extract all C types we support */
 	for (i = -200; i <= 200; ++i) {

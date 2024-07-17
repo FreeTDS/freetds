@@ -6,10 +6,6 @@
 
 /* test some internal funcions */
 
-#ifdef _WIN32
-HINSTANCE hinstFreeTDS;
-#endif
-
 #ifdef ENABLE_ODBC_WIDE
 static void
 wide_test(const WCHAR* input, size_t input_len, const char *exp, int line)
@@ -41,10 +37,6 @@ main(void)
 {
 #ifdef ENABLE_ODBC_WIDE
 	DSTR s = DSTR_INITIALIZER;
-
-#ifdef _WIN32
-	hinstFreeTDS = GetModuleHandle(NULL);
-#endif
 
 	/* just allocate handles, we don't need to connect */
 	CHKAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &odbc_env, "S");
