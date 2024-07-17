@@ -153,7 +153,8 @@ cursor7_SOURCES	= cursor7.c
 utf8_SOURCES	= utf8.c common.c
 # this test cannot work using wide characters as use UTF-8 and single byte encoding
 utf8_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
-utf8_LDADD	=	$(ODBC_LDFLAGS) $(NETWORK_LIBS) $(ODBCINST_LDFLAGS)
+utf8_LDADD	=	../../utils/unittests/libtds_test_base.a \
+			$(ODBC_LDFLAGS) $(NETWORK_LIBS) $(ODBCINST_LDFLAGS)
 utf8_2_SOURCES	= utf8_2.c
 utf8_3_SOURCES	= utf8_3.c
 utf8_4_SOURCES	= utf8_4.c
@@ -196,7 +197,9 @@ AM_LDFLAGS	=	-no-fast-install
 else
 AM_LDFLAGS	=	-no-install -L../.libs -R "$(abs_builddir)/../.libs"
 endif
-LDADD		=	libcommon.a $(ODBC_LDFLAGS) ../../replacements/libreplacements.la $(GLOBAL_LD_ADD)
+LDADD		=	libcommon.a ../../utils/unittests/libtds_test_base.a \
+			$(ODBC_LDFLAGS) ../../replacements/libreplacements.la \
+			$(GLOBAL_LD_ADD)
 DISTCLEANFILES	=	odbc.ini odbcinst.ini
 EXTRA_DIST	=	CMakeLists.txt
 
