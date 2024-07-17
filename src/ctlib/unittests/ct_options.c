@@ -19,10 +19,10 @@ TEST_MAIN()
 
 	if (argc >= 5) {
 		common_pwd.initialized = argc;
-		strcpy(common_pwd.SERVER, argv[1]);
-		strcpy(common_pwd.DATABASE, argv[2]);
-		strcpy(common_pwd.USER, argv[3]);
-		strcpy(common_pwd.PASSWORD, argv[4]);
+		strcpy(common_pwd.server, argv[1]);
+		strcpy(common_pwd.database, argv[2]);
+		strcpy(common_pwd.user, argv[3]);
+		strcpy(common_pwd.password, argv[4]);
 	}
 
 	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));

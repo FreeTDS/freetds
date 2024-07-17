@@ -303,9 +303,12 @@ TEST_MAIN()
 
 		CHKAllocEnv(&odbc_env, "S");
 		CHKAllocConnect(&odbc_conn, "S");
-		sprintf(tmp, "DRIVER={SQL Server};SERVER=127.0.0.1,%d;UID=%s;PWD=%s;DATABASE=%s;Network=DBMSSOCN;", port, odbc_user, odbc_password, odbc_database);
+		sprintf(tmp,
+			"DRIVER={SQL Server};SERVER=127.0.0.1,%d;UID=%s;"
+			"PWD=%s;DATABASE=%s;Network=DBMSSOCN;", port, common_pwd.user, common_pwd.password, common_pwd.database);
 		printf("connection string: %s\n", tmp);
-		CHKDriverConnect(NULL, T(tmp), SQL_NTS, (SQLTCHAR *) tmp, sizeof(tmp)/sizeof(SQLTCHAR), &len, SQL_DRIVER_NOPROMPT, "SI");
+		CHKDriverConnect(NULL, T(tmp), SQL_NTS, (SQLTCHAR *) tmp, sizeof(tmp) / sizeof(SQLTCHAR), &len,
+				 SQL_DRIVER_NOPROMPT, "SI");
 		CHKAllocStmt(&odbc_stmt, "S");
 	}
 

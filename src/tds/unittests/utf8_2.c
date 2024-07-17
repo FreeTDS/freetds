@@ -208,7 +208,7 @@ TEST_MAIN()
 	const perr * my_err;
 
 	/* use ISO8859-1 as our coding */
-	strcpy(CHARSET, "ISO8859-1");
+	strcpy(common_pwd.charset, "ISO8859-1");
 
 	ret = try_tds_login(&login, &tds, __FILE__, verbose);
 	if (ret != TDS_SUCCESS) {

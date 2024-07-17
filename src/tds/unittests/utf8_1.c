@@ -184,7 +184,7 @@ TEST_MAIN()
 	int verbose = 0;
 
 	/* use UTF-8 as our coding */
-	strcpy(CHARSET, "UTF-8");
+	strcpy(common_pwd.charset, "UTF-8");
 
 	ret = try_tds_login(&login, &tds, __FILE__, verbose);
 	if (ret != TDS_SUCCESS) {

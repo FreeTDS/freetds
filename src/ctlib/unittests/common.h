@@ -22,23 +22,6 @@
 #define FREETDS_SRCDIR FREETDS_TOPDIR "/src/ctlib/unittests"
 #endif
 
-extern char SERVER[512];
-extern char DATABASE[512];
-extern char USER[512];
-extern char PASSWORD[512];
-
-typedef struct
-{
-	int initialized;
-	char SERVER[512];
-	char DATABASE[512];
-	char USER[512];
-	char PASSWORD[512];
-	char fverbose;
-	CS_INT maxlength;
-} COMMON_PWD;
-extern COMMON_PWD common_pwd;
-
 typedef enum ct_message_type {
 	/** no message saved */
 	CTMSG_NONE,

@@ -19,7 +19,7 @@ init_connect(void)
 static void
 normal_connect(void)
 {
-	CHKConnect(T(odbc_server), SQL_NTS, T(odbc_user), SQL_NTS, T(odbc_password), SQL_NTS, "SI");
+	CHKConnect(T(common_pwd.server), SQL_NTS, T(common_pwd.user), SQL_NTS, T(common_pwd.password), SQL_NTS, "SI");
 }
 
 static void
@@ -96,16 +96,17 @@ TEST_MAIN()
 
 	/* try connect string with using DSN */
 	printf("SQLDriverConnect before 1..\n");
-	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;", odbc_server, odbc_user, odbc_password, odbc_database);
+	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;", common_pwd.server,
+		common_pwd.user, common_pwd.password, common_pwd.database);
 	init_connect();
 	set_dbname("master");
 	driver_connect(tmp);
-	check_dbname(odbc_database);
+	check_dbname(common_pwd.database);
 	odbc_disconnect();
 
 	/* try connect string with using DSN */
 	printf("SQLDriverConnect before 2..\n");
-	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;", odbc_server, odbc_user, odbc_password);
+	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;", common_pwd.server, common_pwd.user, common_pwd.password);
 	init_connect();
 	set_dbname("tempdb");
 	driver_connect(tmp);

@@ -2,50 +2,15 @@
 #include "common.h"
 #include <freetds/replacements.h>
 
-char USER[512];
-char SERVER[512];
-char PASSWORD[512];
-char DATABASE[512];
-/* TODO use another default ?? */
-char CHARSET[512] = "ISO-8859-1";
-
 int read_login_info(void);
 
 int
 read_login_info(void)
 {
-	FILE *in = NULL;
-	char line[512];
-	char *s1, *s2;
+	const char *s;
 
-	s1 = getenv("TDSPWDFILE");
-	if (s1 && s1[0])
-		in = fopen(s1, "r");
-	if (!in)
-		in = fopen("../../../PWD", "r");
-	if (!in) {
-		fprintf(stderr, "Can not open PWD file\n\n");
-		return TDS_FAIL;
-	}
-
-	while (fgets(line, sizeof(line), in)) {
-		s1 = strtok(line, "=");
-		s2 = strtok(NULL, "\n");
-		if (!s1 || !s2) {
-			continue;
-		}
-		if (!strcmp(s1, "UID")) {
-			strcpy(USER, s2);
-		} else if (!strcmp(s1, "SRV")) {
-			strcpy(SERVER, s2);
-		} else if (!strcmp(s1, "PWD")) {
-			strcpy(PASSWORD, s2);
-		} else if (!strcmp(s1, "DB")) {
-			strcpy(DATABASE, s2);
-		}
-	}
-	fclose(in);
-	return TDS_SUCCESS;
+	s = read_login_info_base(&common_pwd, DEFAULT_PWD_PATH);
+	return s ? TDS_SUCCESS : TDS_FAIL;
 }
 
 TDSCONTEXT *test_context = NULL;
@@ -55,6 +20,7 @@ try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verb
 {
 	TDSLOGIN *connection;
 	char *appname_copy;
+	const char *charset = "ISO-8859-1";
 
 	if (verbose) {
 		printf("Entered tds_try_login()\n");
@@ -82,14 +48,16 @@ try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verb
 		return TDS_FAIL;
 	}
 	appname_copy = strdup(appname);
-	if (!tds_set_passwd(*login, PASSWORD)
-	    || !tds_set_user(*login, USER)
+	if (common_pwd.charset[0])
+		charset = common_pwd.charset;
+	if (!tds_set_passwd(*login, common_pwd.password)
+	    || !tds_set_user(*login, common_pwd.user)
 	    || !appname_copy
 	    || !tds_set_app(*login, basename(appname_copy))
 	    || !tds_set_host(*login, "myhost")
 	    || !tds_set_library(*login, "TDS-Library")
-	    || !tds_set_server(*login, SERVER)
-	    || !tds_set_client_charset(*login, CHARSET)
+	    || !tds_set_server(*login, common_pwd.server)
+	    || !tds_set_client_charset(*login, charset)
 	    || !tds_set_language(*login, "us_english")) {
 		free(appname_copy);
 		fprintf(stderr, "tds_alloc_login() failed.\n");

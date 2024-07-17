@@ -43,7 +43,7 @@ TEST_MAIN()
 		return 0;
 	}
 
-	sql = odbc_buf_asprintf(&odbc_buf, "ALTER DATABASE %s SET ENABLE_BROKER", odbc_database);
+	sql = odbc_buf_asprintf(&odbc_buf, "ALTER DATABASE %s SET ENABLE_BROKER", common_pwd.database);
 	odbc_command(sql);
 
 	odbc_command2("DROP SERVICE FTDS_Service", "SENo");
@@ -72,7 +72,7 @@ TEST_MAIN()
 	odbc_connect();
 	SWAP_CONN();
 
-	sql = odbc_buf_asprintf(&odbc_buf, "service=FTDS_Service;local database=%s", odbc_database);
+	sql = odbc_buf_asprintf(&odbc_buf, "service=FTDS_Service;local database=%s", common_pwd.database);
 	CHKSetStmtAttr(SQL_SOPT_SS_QUERYNOTIFICATION_OPTIONS, T(sql), SQL_NTS, "S");
 	CHKSetStmtAttr(SQL_SOPT_SS_QUERYNOTIFICATION_MSGTEXT, T("Table has changed"), SQL_NTS, "S");
 	CHKSetStmtAttr(SQL_SOPT_SS_QUERYNOTIFICATION_TIMEOUT, TDS_INT2PTR(60), SQL_IS_UINTEGER, "S");

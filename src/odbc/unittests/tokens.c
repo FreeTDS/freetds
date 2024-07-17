@@ -47,7 +47,7 @@ setup_override(void)
 	sprintf(buf, "tokens_pwd.%d", (int) getpid());
 	f = fopen(buf, "w");
 	assert(f);
-	fprintf(f, "UID=guest\nPWD=sybase\nSRV=%s\nDB=tempdb\n", odbc_server);
+	fprintf(f, "UID=guest\nPWD=sybase\nSRV=%s\nDB=tempdb\n", common_pwd.server);
 	fclose(f);
 	rename(buf, "tokens_pwd");
 	unlink(buf);

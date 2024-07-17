@@ -116,11 +116,11 @@ TEST_MAIN()
 	 * it is better to do it before connecting because unixODBC caches INIs
 	 * the name must be odbcinst.ini because unixODBC accepts only this name
 	 */
-	if (odbc_driver[0]) {
+	if (common_pwd.driver[0]) {
 		FILE *f = fopen("odbcinst.ini", "w");
 
 		if (f) {
-			fprintf(f, "[FreeTDS]\nDriver = %s\n", odbc_driver);
+			fprintf(f, "[FreeTDS]\nDriver = %s\n", common_pwd.driver);
 			fclose(f);
 			/* force iODBC */
 			setenv("ODBCINSTINI", "./odbcinst.ini", 1);

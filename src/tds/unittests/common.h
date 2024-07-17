@@ -21,12 +21,6 @@
 #define FREETDS_SRCDIR FREETDS_TOPDIR "/src/tds/unittests"
 #endif
 
-extern char PASSWORD[512];
-extern char USER[512];
-extern char SERVER[512];
-extern char DATABASE[512];
-extern char CHARSET[512];
-
 extern TDSCONTEXT *test_context;
 
 int try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verbose);

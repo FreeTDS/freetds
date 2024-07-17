@@ -25,11 +25,6 @@
 #define PATH_MAX 256
 #endif
 
-char USER[512];
-char SERVER[512];
-char PASSWORD[512];
-char DATABASE[512];
-
 static char sql_file[PATH_MAX];
 static FILE* input_file = NULL;
 
@@ -106,12 +101,11 @@ int
 read_login_info(int argc, char **argv)
 {
 	int len;
-	FILE *in = NULL;
 	int ch;
-	char *s1;
+	char *s1 TDS_UNUSED;
 	char filename[PATH_MAX];
-	static const char *PWD = "../../../PWD";
-	struct { char *username, *password, *servername, *database; char fverbose; } options;
+	static const char *PWD = DEFAULT_PWD_PATH;
+	const char *final_filename = NULL;
 
 #if defined(HAVE_SETRLIMIT) && defined(RLIMIT_STACK)
 #define MAX_STACK (8*1024*1024)
@@ -149,28 +143,26 @@ read_login_info(int argc, char **argv)
 #endif
 	DIRNAME = dirname(ARGV0);
 
-	memset(&options, 0, sizeof(options));
-
 	/* process command line options (handy for manual testing) */
 	while ((ch = getopt(argc, (char**)argv, "U:P:S:D:f:v")) != -1) {
 		switch (ch) {
 		case 'U':
-			options.username = strdup(optarg);
+			strlcpy(common_pwd.user, optarg, sizeof(common_pwd.user));
 			break;
 		case 'P':
-			options.password = strdup(optarg);
+			strlcpy(common_pwd.password, optarg, sizeof(common_pwd.password));
 			break;
 		case 'S':
-			options.servername = strdup(optarg);
+			strlcpy(common_pwd.server, optarg, sizeof(common_pwd.server));
 			break;
 		case 'D':
-			options.database = strdup(optarg);
+			strlcpy(common_pwd.database, optarg, sizeof(common_pwd.database));
 			break;
 		case 'f': /* override default PWD file */
 			PWD = strdup(optarg);
 			break;
-		case 'v':
-			options.fverbose = 1; /* doesn't normally do anything */
+		case 'v': /* doesn't normally do anything */
+			common_pwd.fverbose = 1;
 			break;
 		case '?':
 		default:
@@ -184,69 +176,18 @@ read_login_info(int argc, char **argv)
 		}
 	}
 	strlcpy(filename, PWD, sizeof(filename));
-
-	s1 = getenv("TDSPWDFILE");
-	if (s1 && s1[0])
-		in = fopen(s1, "r");
-	if (!in)
-		in = fopen(filename, "r");
-	if (!in)
-		in = fopen("PWD", "r");
-	if (!in) {
+	if (!(final_filename = try_read_login_info_base(&common_pwd, filename))
+	    && !(final_filename = try_read_login_info_base(&common_pwd, "PWD"))) {
 		sprintf(filename, "%s/%s", (DIRNAME) ? DIRNAME : ".", PWD);
-
-		in = fopen(filename, "r");
+		final_filename = read_login_info_base(&common_pwd, filename);
 	}
 
-	if (!in) {
-		fprintf(stderr, "Can not open %s file\n\n", filename);
-	} else {
-		char line[512];
-
-		while (fgets(line, sizeof(line), in)) {
-			const char *value;
-
-			s1 = strtok(line, "=");
-			value = strtok(NULL, "\n");
-			if (!s1 || !value)
-				continue;
-			if (!strcmp(s1, "UID")) {
-				strlcpy(USER, value, sizeof(USER));
-			} else if (!strcmp(s1, "SRV")) {
-				strlcpy(SERVER, value, sizeof(SERVER));
-			} else if (!strcmp(s1, "PWD")) {
-				strlcpy(PASSWORD, value, sizeof(PASSWORD));
-			} else if (!strcmp(s1, "DB")) {
-				strlcpy(DATABASE, value, sizeof(DATABASE));
-			}
-		}
-		fclose(in);
-	}
-
-	/* apply command-line overrides */
-	if (options.username) {
-		strlcpy(USER, options.username, sizeof(USER));
-		free(options.username);
-	}
-	if (options.password) {
-		strlcpy(PASSWORD, options.password, sizeof(PASSWORD));
-		free(options.password);
-	}
-	if (options.servername) {
-		strlcpy(SERVER, options.servername, sizeof(SERVER));
-		free(options.servername);
-	}
-	if (options.database) {
-		strlcpy(DATABASE, options.database, sizeof(DATABASE));
-		free(options.database);
-	}
-
-	if (!*SERVER) {
+	if (!*common_pwd.server) {
 		fprintf(stderr, "no servername provided, quitting.\n");
 		exit(1);
 	}
 
-	printf("found %s.%s for %s in \"%s\"\n", SERVER, DATABASE, USER, filename);
+	printf("found %s.%s for %s in \"%s\"\n", common_pwd.server, common_pwd.database, common_pwd.user, final_filename);
 
 #if 0
 	dbrecftos(BASENAME);
