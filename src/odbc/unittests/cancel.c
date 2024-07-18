@@ -184,6 +184,38 @@ Test(bool use_threads, bool return_data)
 	odbc_reset_statement();
 
 	odbc_command("SELECT name FROM sysobjects WHERE 0=1");
+	while (CHKMoreResults("SNo") == SQL_SUCCESS)
+		continue;
+}
+
+/* Check that SQLCancel sends a cancellation even if no other activities are done */
+static void
+TestSendDuringCancel(void)
+{
+	odbc_check_no_row("IF EXISTS(SELECT * FROM tab1 WHERE k=10000) SELECT 1");
+	odbc_check_no_row("IF EXISTS(SELECT * FROM tab1 WHERE k=10001) SELECT 2");
+	alarm(15);
+	/* WAITFOR + INSERT */
+	printf("Sending query...\n");
+	CHKExecDirect(T(/* this row will be inserted */
+			"INSERT INTO tab1 VALUES(10000, 'aaa') "
+			/* force server to return a packet, otherwise SQLExecDirect will stop */
+			"SELECT * FROM tab1 "
+			/* wait 2 seconds, giving us time to cancel */
+			"WAITFOR DELAY '000:00:02' "
+			/* this won't be executed */
+			"INSERT INTO tab1 VALUES(10001, 'bbb')"), SQL_NTS, "S");
+	/* Cancel, should cancel the insert  */
+	printf("Cancel...\n");
+	CHKCancel("S");
+	/* sleep */
+	printf("Sleep...\n");
+	tds_sleep_s(3);
+	alarm(6);
+	printf("Checking...\n");
+	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM tab1 WHERE k=10000) SELECT 3");
+	odbc_check_no_row("IF EXISTS(SELECT * FROM tab1 WHERE k=10001) SELECT 4");
+	alarm(0);
 }
 
 int
@@ -222,6 +254,7 @@ main(void)
 
 	printf(">> Creating tab1...\n");
 	odbc_command("DECLARE @i INT\n"
+		"SET NOCOUNT ON\n"
 		"SET @i = 1\n"
 		"WHILE @i <= 2000 BEGIN\n"
 		"INSERT INTO tab1 VALUES ( @i, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' )\n"
@@ -237,6 +270,8 @@ main(void)
 	Test(true,  false);
 	Test(false, true);
 	Test(true,  true);
+
+	TestSendDuringCancel();
 
 	odbc_command("DROP TABLE tab1");
 
