@@ -4,7 +4,7 @@ add_library(t_common STATIC common.c common.h utf8.c allcolumns.c)
 
 foreach(target t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 dynamic1
     convert dataread utf8_1 utf8_2 utf8_3 numeric iconv_fread toodynamic
-    readconf collations corrupt declarations portconf
+    readconf charconv nulls collations corrupt declarations portconf
     parsing freeze strftime log_elision convert_bounds tls)
 	add_executable(t_${target} EXCLUDE_FROM_ALL ${target}.c)
 	set_target_properties(t_${target} PROPERTIES OUTPUT_NAME ${target})
