@@ -130,7 +130,7 @@ main(void)
 
 	printf("%s: Testing conversion\n", __FILE__);
 
-	check_call(cs_ctx_alloc, (CS_VERSION_100, &ctx));
+	check_call(cs_ctx_alloc, (UT_CS_VERSION, &ctx));
 
 	/* TODO For each conversion test different values of fromlen and tolen */
 

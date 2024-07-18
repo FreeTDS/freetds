@@ -173,7 +173,7 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 	TDSCONTEXT *tds_ctx;
 #endif
 
-	ret = cs_ctx_alloc(CS_VERSION_100, ctx);
+	ret = cs_ctx_alloc(UT_CS_VERSION, ctx);
 	if (ret != CS_SUCCEED) {
 		if (verbose) {
 			fprintf(stderr, "Context Alloc failed!\n");
@@ -190,7 +190,7 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 	}
 #endif
 
-	ret = ct_init(*ctx, CS_VERSION_100);
+	ret = ct_init(*ctx, UT_CS_VERSION);
 	if (ret != CS_SUCCEED) {
 		if (verbose) {
 			fprintf(stderr, "Library Init failed!\n");

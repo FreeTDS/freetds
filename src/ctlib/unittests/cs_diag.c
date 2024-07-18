@@ -37,8 +37,8 @@ main(void)
 	if (verbose) {
 		printf("Trying clientmsg_cb with context\n");
 	}
-	check_call(cs_ctx_alloc, (CS_VERSION_100, &ctx));
-	check_call(ct_init, (ctx, CS_VERSION_100));
+	check_call(cs_ctx_alloc, (UT_CS_VERSION, &ctx));
+	check_call(ct_init, (ctx, UT_CS_VERSION));
 
 	check_call(cs_diag, (ctx, CS_INIT, CS_UNUSED, CS_UNUSED, NULL));
 

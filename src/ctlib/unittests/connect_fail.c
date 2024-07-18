@@ -9,8 +9,8 @@ main(void)
 
 	read_login_info();
 	
-	check_call(cs_ctx_alloc, (CS_VERSION_100, &ctx));
-	check_call(ct_init, (ctx, CS_VERSION_100));
+	check_call(cs_ctx_alloc, (UT_CS_VERSION, &ctx));
+	check_call(ct_init, (ctx, UT_CS_VERSION));
 	check_call(ct_con_alloc, (ctx, &conn));
 	check_call(ct_con_props, (conn, CS_SET, CS_USERNAME, (CS_VOID*) "sa", CS_NULLTERM, NULL));
 	check_call(ct_con_props, (conn, CS_SET, CS_PASSWORD, (CS_VOID*) "invalid", CS_NULLTERM, NULL));

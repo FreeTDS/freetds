@@ -16,8 +16,8 @@ main(void)
 		printf("Trying cs_config with CS_USERDATA\n\n");
 	}
 
-	check_call(cs_ctx_alloc, (CS_VERSION_100, &ctx));
-	check_call(ct_init, (ctx, CS_VERSION_100));
+	check_call(cs_ctx_alloc, (UT_CS_VERSION, &ctx));
+	check_call(ct_init, (ctx, UT_CS_VERSION));
 
 	printf("Testing CS_SET/GET USERDATA with char array\n");
 

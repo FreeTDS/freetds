@@ -69,7 +69,7 @@ main(void)
 
 	tdsdump_open(tds_dir_getenv(TDS_DIR("TDSDUMP")));
 
-	check_call(cs_ctx_alloc, (CS_VERSION_100, &ctx));
+	check_call(cs_ctx_alloc, (UT_CS_VERSION, &ctx));
 
 	tds_ctx = tds_alloc_context(NULL);
 	assert(tds_ctx);
