@@ -2,8 +2,6 @@
 
 /* Test for executing SQLExecute and rebinding parameters */
 
-#define SWAP_STMT(b) do { SQLHSTMT xyz = odbc_stmt; odbc_stmt = b; b = xyz; } while(0)
-
 static HSTMT stmt;
 
 static void

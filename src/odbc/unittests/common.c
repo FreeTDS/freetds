@@ -1018,3 +1018,11 @@ SQLSetStmtOption_nowarning(SQLHSTMT hstmt, SQLSMALLINT option, SQLULEN param)
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
+
+void
+odbc_swap_stmts(SQLHSTMT *a, SQLHSTMT *b)
+{
+	SQLHSTMT tmp = *a;
+	*a = *b;
+	*b = tmp;
+}

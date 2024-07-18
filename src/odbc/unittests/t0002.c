@@ -1,8 +1,5 @@
 #include "common.h"
 
-#define SWAP_STMT() do { SQLHSTMT xyz = odbc_stmt; \
-	odbc_stmt = old_odbc_stmt; old_odbc_stmt = xyz; } while(0)
-
 int
 main(void)
 {
@@ -20,7 +17,7 @@ main(void)
 	 * then make another query with first select and drop this statement
 	 * result should not disappear (required for DBD::ODBC)
 	 */
-	SWAP_STMT();
+	SWAP_STMT(old_odbc_stmt);
 	CHKAllocStmt(&odbc_stmt, "S");
 
 	odbc_command("select * from #odbctestdata where 0=1");
@@ -29,14 +26,14 @@ main(void)
 
 	CHKCloseCursor("SI");
 
-	SWAP_STMT();
+	SWAP_STMT(old_odbc_stmt);
 	odbc_command("select * from #odbctestdata");
-	SWAP_STMT();
+	SWAP_STMT(old_odbc_stmt);
 
 	/* drop first statement .. data should not disappear */
 	CHKFreeStmt(SQL_DROP, "S");
 	odbc_stmt = SQL_NULL_HSTMT;
-	SWAP_STMT();
+	SWAP_STMT(old_odbc_stmt);
 
 	CHKFetch("SI");
 

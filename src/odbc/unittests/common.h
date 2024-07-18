@@ -237,3 +237,6 @@ struct odbc_lookup_int
 int odbc_lookup(const char *name, const struct odbc_lookup_int *table, int def);
 const char *odbc_lookup_value(int value, const struct odbc_lookup_int *table, const char *def);
 extern struct odbc_lookup_int odbc_sql_c_types[];
+
+void odbc_swap_stmts(SQLHSTMT *a, SQLHSTMT *b);
+#define SWAP_STMT(stmt) odbc_swap_stmts(&odbc_stmt, &stmt)

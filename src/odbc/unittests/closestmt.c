@@ -6,8 +6,6 @@
  * another statement.
  */
 
-#define SWAP_STMT(b) do { SQLHSTMT xyz = odbc_stmt; odbc_stmt = b; b = xyz; } while(0)
-
 int
 main(void)
 {
