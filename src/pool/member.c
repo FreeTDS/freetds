@@ -343,7 +343,6 @@ int
 pool_process_members(TDS_POOL * pool, struct pollfd *fds, unsigned num_fds)
 {
 	TDS_POOL_MEMBER *pmbr, *next;
-	TDSSOCKET *tds;
 	time_t age;
 	time_t time_now;
 	int min_expire_left = -1;
@@ -358,8 +357,7 @@ pool_process_members(TDS_POOL * pool, struct pollfd *fds, unsigned num_fds)
 			continue;
 
 		revents = fds[pmbr->sock.poll_index].revents;
-		tds = pmbr->sock.tds;
-		assert(tds);
+		assert(pmbr->sock.tds);
 
 		time_now = time(NULL);
 		if (pmbr->sock.poll_recv && (revents & POLLIN) != 0) {
