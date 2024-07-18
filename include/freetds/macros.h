@@ -52,7 +52,7 @@
 # define TDS_EXTRA_CHECK(stmt) stmt
 #else
 # define TDS_COMPILE_CHECK(name,check) \
-    extern int disabled_check_##name
+    extern int disabled_check_##name TDS_UNUSED
 # define TDS_EXTRA_CHECK(stmt)
 #endif
 
