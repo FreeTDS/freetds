@@ -218,6 +218,64 @@ TestSendDuringCancel(void)
 	alarm(0);
 }
 
+/* Cancelling an IDLE statement should work */
+static void
+TestIdleStatement(void)
+{
+	SQLHSTMT stmt;
+	CHKAllocStmt(&stmt, "S");
+
+	SWAP_STMT(stmt);
+	CHKCancel("S");
+	CHKFreeStmt(SQL_DROP, "S");
+
+	SWAP_STMT(stmt);
+}
+
+/* Cancelling another statement should not conflict with an active one.
+ * Very similar to TestSendDuringCancel but cancelling a different statement. */
+static void
+TestOtherStatement(void)
+{
+	SQLHSTMT stmt;
+	CHKAllocStmt(&stmt, "S");
+
+	odbc_command("DELETE tab1 WHERE k >= 10000");
+	odbc_check_no_row("IF EXISTS(SELECT * FROM tab1 WHERE k=10000) SELECT 1");
+	odbc_check_no_row("IF EXISTS(SELECT * FROM tab1 WHERE k=10001) SELECT 2");
+	alarm(15);
+	/* WAITFOR + INSERT */
+	printf("Sending query...\n");
+	CHKExecDirect(T(/* this row will be inserted */
+			"INSERT INTO tab1 VALUES(10000, 'aaa') "
+			/* force server to return a packet, otherwise SQLExecDirect will stop */
+			"SELECT * FROM tab1 "
+			/* wait 2 seconds, giving us time to cancel */
+			"WAITFOR DELAY '000:00:02' "
+			/* this won't be executed */
+			"INSERT INTO tab1 VALUES(10001, 'bbb')"), SQL_NTS, "S");
+	/* Cancel, should not cancel the insert  */
+	printf("Cancel...\n");
+	SWAP_STMT(stmt);
+	CHKCancel("S");
+	SWAP_STMT(stmt);
+	/* sleep */
+	printf("Sleep...\n");
+	tds_sleep_s(3);
+	while (CHKMoreResults("SNo") == SQL_SUCCESS)
+		continue;
+	alarm(6);
+	printf("Checking...\n");
+	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM tab1 WHERE k=10000) SELECT 3");
+	odbc_check_no_row("IF NOT EXISTS(SELECT * FROM tab1 WHERE k=10001) SELECT 4");
+	alarm(0);
+
+	SWAP_STMT(stmt);
+	CHKFreeStmt(SQL_DROP, "S");
+	odbc_stmt = SQL_NULL_HSTMT;
+	SWAP_STMT(stmt);
+}
+
 int
 main(void)
 {
@@ -272,6 +330,10 @@ main(void)
 	Test(true,  true);
 
 	TestSendDuringCancel();
+
+	TestIdleStatement();
+
+	TestOtherStatement();
 
 	odbc_command("DROP TABLE tab1");
 
