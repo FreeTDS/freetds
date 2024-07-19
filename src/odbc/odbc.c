@@ -1999,11 +1999,12 @@ SQLCancel(SQLHSTMT hstmt)
 
 	tds = stmt->tds;
 
-	/* cancelling an inactive statement ?? */
-	if (!tds) {
-		ODBC_SAFE_ERROR(stmt);
-		ODBC_EXIT_(stmt);
-	}
+	/* cancelling an inactive statement */
+	if (!tds)
+		/* Just return success */
+		/* Note that we don't own locks so don't use ODBC_EXIT here. */
+		return SQL_SUCCESS;
+
 	if (tds_mutex_trylock(&stmt->mtx) == 0) {
 		CHECK_STMT_EXTRA(stmt);
 		odbc_errs_reset(&stmt->errs);
