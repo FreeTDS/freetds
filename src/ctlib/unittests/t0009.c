@@ -4,8 +4,7 @@ static CS_RETCODE ex_servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connecti
 static int compute_supported = 1;
 
 /* Testing: Retrieve compute results */
-int
-main(void)
+TEST_MAIN()
 {
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;

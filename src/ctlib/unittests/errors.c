@@ -38,8 +38,7 @@ static CS_CONTEXT *ctx;
 static CS_CONNECTION *conn;
 static CS_COMMAND *cmd;
 
-int
-main(void)
+TEST_MAIN()
 {
 	int verbose = 1;
 

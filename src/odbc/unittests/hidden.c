@@ -3,8 +3,7 @@
 
 #include "common.h"
 
-int
-main(void)
+TEST_MAIN()
 {
 	SQLSMALLINT cnt = 0;
 	int failed = 0;

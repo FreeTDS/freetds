@@ -1,4 +1,3 @@
-#undef NDEBUG
 #include "common.h"
 #include <assert.h>
 
@@ -7,8 +6,7 @@
 	This test on Sybase should not raise an error
 */
 
-int
-main(void)
+TEST_MAIN()
 {
 	SQLSMALLINT num_params, cols;
 	SQLLEN count;

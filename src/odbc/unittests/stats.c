@@ -95,8 +95,7 @@ set_dbname(const char *dbname)
 	CHKSetConnectAttr(SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) T(dbname), strlen(dbname)*sizeof(SQLTCHAR), "SI");
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	char int_buf[32];
 
@@ -106,7 +105,7 @@ main(void)
 	TestProc(NULL, "DATETIME", STR(SQL_TIMESTAMP));
 	TestTable(NULL, "DATETIME", STR(SQL_TIMESTAMP));
 	set_dbname("master");
-	TestTable(odbc_database, "DATETIME", STR(SQL_TIMESTAMP));
+	TestTable(common_pwd.DATABASE, "DATETIME", STR(SQL_TIMESTAMP));
 
 	odbc_disconnect();
 
@@ -117,7 +116,7 @@ main(void)
 	TestProc(NULL, "DATETIME", STR(SQL_TYPE_TIMESTAMP));
 	TestTable(NULL, "DATETIME", STR(SQL_TYPE_TIMESTAMP));
 	set_dbname("master");
-	TestTable(odbc_database, "DATETIME", STR(SQL_TYPE_TIMESTAMP));
+	TestTable(common_pwd.DATABASE, "DATETIME", STR(SQL_TYPE_TIMESTAMP));
 
 	odbc_disconnect();
 

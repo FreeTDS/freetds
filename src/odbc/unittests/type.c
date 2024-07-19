@@ -92,8 +92,7 @@ check_msg(int check, const char *msg)
 	result = 1;
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	const struct type *p;
 	char buf[16];

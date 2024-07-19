@@ -5,8 +5,7 @@
 /*
  * ct_command with CS_MORE option
  */
-int
-main(void)
+TEST_MAIN()
 {
 	int verbose = 0;
 	CS_CONTEXT *ctx;

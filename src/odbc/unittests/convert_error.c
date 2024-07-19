@@ -30,8 +30,7 @@ Test(const char *bind1, SQLSMALLINT type1, const char *bind2, SQLSMALLINT type2)
 	ODBC_FREE();
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	odbc_use_version3 = 1;
 	odbc_connect();

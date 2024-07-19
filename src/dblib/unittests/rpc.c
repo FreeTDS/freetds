@@ -167,8 +167,7 @@ bind_param(DBPROCESS *dbproc, struct parameters_t *pb)
 	}
 }
 
-int
-main(int argc, char **argv)
+TEST_MAIN()
 {
 	LOGINREC *login;
 	DBPROCESS *dbproc;

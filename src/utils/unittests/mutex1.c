@@ -17,7 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <config.h>
+#include <freetds/utils/test_base.h>
 
 #include <stdio.h>
 
@@ -86,7 +86,7 @@ test(tds_mutex *mtx)
 	tds_mutex_unlock(mtx);
 }
 
-int main(void)
+TEST_MAIN()
 {
 	tds_mutex local;
 
@@ -113,7 +113,7 @@ int main(void)
 
 #else
 
-int main(void)
+TEST_MAIN()
 {
 	return 0;
 }

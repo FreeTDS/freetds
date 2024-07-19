@@ -27,8 +27,7 @@ check_contains(const char *value, const char *expected)
 	fprintf(stderr, "Wrong value, got \"%s\" expected to contains \"%s\"\n", value, expected);
 }
 
-int
-main(int argc, char **argv)
+TEST_MAIN()
 {
 	LOGINREC *login;
 	DBPROCESS *dbproc;

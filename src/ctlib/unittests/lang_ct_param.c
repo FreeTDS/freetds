@@ -8,8 +8,7 @@ static const char *query =
 static int insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames);
 
 /* Testing: binding of data via ct_param */
-int
-main(int argc, char *argv[])
+TEST_MAIN()
 {
 	int errCode = 0;
 	

@@ -15,8 +15,7 @@ exec_direct(const char *stmt)
 	CHKFreeHandle(SQL_HANDLE_STMT, (SQLHANDLE) odbc_stmt, "S");
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	char buff[64];
 	SQLLEN ind;

@@ -1,8 +1,7 @@
 
 #include "common.h"
 
-int
-main(void)
+TEST_MAIN()
 {
 	LOGINREC *c = dblogin();
 	BCP_SETL(c, TRUE);

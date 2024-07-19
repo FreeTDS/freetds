@@ -14,8 +14,7 @@ end
 
 static void extract_error(SQLHANDLE handle, SQLSMALLINT type);
 
-int
-main(void)
+TEST_MAIN()
 {
 	int i;
 	char cmd[128 + 110*10];

@@ -124,8 +124,7 @@ DoTest(const char *type, int row_returned, int line)
 
 #define DoTest(a,b) DoTest(a,b,__LINE__)
 
-int
-main(void)
+TEST_MAIN()
 {
 	char type[32];
 	int mssql2005 = 0;

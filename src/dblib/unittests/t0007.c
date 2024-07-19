@@ -60,8 +60,7 @@ hex_buffer(BYTE *binarybuffer, int size, char *textbuf)
 	return textbuf;  /* convenience */
 }
 
-int
-main(int argc, char **argv)
+TEST_MAIN()
 {
 	LOGINREC *login;
 	DBPROCESS *dbproc;

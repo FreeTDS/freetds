@@ -5,8 +5,7 @@
 
 #include "common.h"
 
-int
-main(int argc, char **argv)
+TEST_MAIN()
 {
 	const int rows_to_add = 48;
 	LOGINREC *login;

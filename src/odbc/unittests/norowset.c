@@ -2,8 +2,7 @@
 
 /* Test that a select following a store procedure execution return results */
 
-int
-main(void)
+TEST_MAIN()
 {
 	char output[256];
 	SQLLEN dataSize;

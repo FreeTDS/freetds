@@ -8,8 +8,7 @@
 int failed = 0;
 
 
-int
-main(int argc, char **argv)
+TEST_MAIN()
 {
 	RETCODE rc;
 	const int rows_to_add = 50;

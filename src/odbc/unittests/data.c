@@ -95,8 +95,7 @@ lookup(const char *name, const struct odbc_lookup_int *table)
 	return res == SQL_UNKNOWN_TYPE ? get_int(name) : res;
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	int cond = 1;
 

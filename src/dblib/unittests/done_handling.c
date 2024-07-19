@@ -140,8 +140,7 @@ do_test(const char comment[])
 	check_state("more results?", print_with, ret);
 }
 
-int
-main(int argc, char *argv[])
+TEST_MAIN()
 {
 	static const int invalid_column_name = 207;
 	LOGINREC *login;	/* Our login information. */

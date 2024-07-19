@@ -75,8 +75,7 @@ Test(int bind_before)
 	return 0;
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	if (Test(0))
 		return 1;

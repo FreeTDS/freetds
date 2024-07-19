@@ -27,8 +27,7 @@ static int compare_files(const char *fn1, const char *fn2);
 static unsigned count_file_rows(FILE *f);
 static DBPROCESS *dbproc;
 
-int
-main(int argc, char *argv[])
+TEST_MAIN()
 {
 	LOGINREC *login;
 	char in_file[30];

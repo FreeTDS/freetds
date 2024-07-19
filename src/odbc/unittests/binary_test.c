@@ -100,8 +100,7 @@ test_select(void *buf, SQLINTEGER buflen, SQLLEN * bytes_returned)
 
 #define BYTE_AT(n) (((n) * 123) & 0xff)
 
-int
-main(void)
+TEST_MAIN()
 {
 	int i;
 	SQLLEN bytes_returned;

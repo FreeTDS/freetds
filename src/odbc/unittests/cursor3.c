@@ -1,8 +1,7 @@
 /* Tests 2 active statements */
 #include "common.h"
 
-int
-main(void)
+TEST_MAIN()
 {
 	SQLHSTMT stmt1 = SQL_NULL_HSTMT;
 	SQLHSTMT stmt2 = SQL_NULL_HSTMT;

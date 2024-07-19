@@ -75,8 +75,7 @@ test(int srctype, const void *srcdata, int srclen, int dsttype, int dstlen)
 #define TEST(s,out) \
 	{ cur_result = out; cur_line = __LINE__; cur_test = #s; test s; }
 
-int
-main(void)
+TEST_MAIN()
 {
 	if (dbinit() == FAIL)
 		return 1;

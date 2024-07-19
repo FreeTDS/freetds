@@ -20,8 +20,8 @@
 /*
  * Purpose: test dlist code.
  */
-#undef NDEBUG
-#include <config.h>
+
+#include <freetds/utils/test_base.h>
 
 #include <stdio.h>
 #include <assert.h>
@@ -43,8 +43,7 @@ typedef struct
 #define DLIST_ITEM_TYPE test_item
 #include <freetds/utils/dlist.tmpl.h>
 
-int
-main(void)
+TEST_MAIN()
 {
 	test_items list[1];
 	test_item items[6], *p;

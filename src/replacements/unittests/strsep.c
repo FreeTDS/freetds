@@ -17,8 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#undef NDEBUG
-#include <config.h>
+#include <freetds/utils/test_base.h>
 
 #ifdef HAVE_STRSEP
 char *tds_strsep(char **stringp, const char *delim);
@@ -80,8 +79,7 @@ test2(void)
 	assert(tds_strsep(&s, "") == NULL);
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	test("a b c", "", "a b c", NULL);
 	test("a b c", " ", "a", "b", "c", NULL);

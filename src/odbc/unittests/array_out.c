@@ -120,8 +120,7 @@ query_test(const char* expected, const char *expected_status)
 	ODBC_FREE();
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	int i;
 

@@ -1,8 +1,7 @@
 #include "common.h"
 
 /* Testing: Retrieving SQL_VARIANT */
-int
-main(void)
+TEST_MAIN()
 {
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;

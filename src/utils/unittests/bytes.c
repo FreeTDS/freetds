@@ -20,8 +20,8 @@
 /*
  * Purpose: test bytes.h header.
  */
-#undef NDEBUG
-#include <config.h>
+
+#include <freetds/utils/test_base.h>
 
 #include <stdio.h>
 #include <assert.h>
@@ -51,8 +51,7 @@
 	assert(val == expected); \
 } while(0)
 
-int
-main(void)
+TEST_MAIN()
 {
 	/* this structure make sure buffer are properly aligned */
 	struct {

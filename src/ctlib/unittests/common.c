@@ -11,16 +11,9 @@
 #include "ctlib.h"
 #endif
 
-char USER[512];
-char SERVER[512];
-char PASSWORD[512];
-char DATABASE[512];
-
-COMMON_PWD common_pwd = {0};
-
 static const char *BASENAME = NULL;
 
-static const char *PWD = "../../../PWD";
+static const char *PWD = DEFAULT_PWD_PATH;
 
 int cslibmsg_cb_invoked = 0;
 int clientmsg_cb_invoked = 0;
@@ -34,46 +27,8 @@ static CS_RETCODE continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, 
 CS_RETCODE
 read_login_info(void)
 {
-	FILE *in = NULL;
-	char line[512];
-	char *s1, *s2;
-
-	if (common_pwd.initialized) {
-		strcpy(USER, common_pwd.USER);
-		strcpy(PASSWORD, common_pwd.PASSWORD);
-		strcpy(SERVER, common_pwd.SERVER);
-		strcpy(DATABASE, common_pwd.DATABASE);
-		return CS_SUCCEED;
-	}
-
-	s1 = getenv("TDSPWDFILE");
-	if (s1 && s1[0])
-		in = fopen(s1, "r");
-	if (!in)
-		in = fopen(PWD, "r");
-	if (!in) {
-		fprintf(stderr, "Can not open PWD file \"%s\"\n\n", PWD);
-		return CS_FAIL;
-	}
-
-	while (fgets(line, sizeof(line), in)) {
-		s1 = strtok(line, "=");
-		s2 = strtok(NULL, "\n");
-		if (!s1 || !s2) {
-			continue;
-		}
-		if (!strcmp(s1, "UID")) {
-			strcpy(USER, s2);
-		} else if (!strcmp(s1, "SRV")) {
-			strcpy(SERVER, s2);
-		} else if (!strcmp(s1, "PWD")) {
-			strcpy(PASSWORD, s2);
-		} else if (!strcmp(s1, "DB")) {
-			strcpy(DATABASE, s2);
-		}
-	}
-	fclose(in);
-	return CS_SUCCEED;
+	const char * s = read_login_info_base(&common_pwd, DEFAULT_PWD_PATH);
+	return s ? CS_SUCCEED : CS_FAIL;
 }
 
 static CS_RETCODE
@@ -81,8 +36,9 @@ establish_login(int argc, char **argv)
 {
 	extern char *optarg;
 	extern int optind;
-	COMMON_PWD options = {0};
 	int ch;
+
+	reset_login_info(&common_pwd);
 
 	BASENAME = basename((char *)argv[0]);
 
@@ -90,16 +46,20 @@ establish_login(int argc, char **argv)
 	while ((ch = getopt(argc, argv, "U:P:S:D:f:m:v")) != -1) {
 		switch (ch) {
 		case 'U':
-			strcpy(options.USER, optarg);
+			strlcpy(common_pwd.USER, optarg,
+				sizeof(common_pwd.USER));
 			break;
 		case 'P':
-			strcpy(options.PASSWORD, optarg);
+			strlcpy(common_pwd.PASSWORD, optarg,
+				sizeof(common_pwd.PASSWORD));
 			break;
 		case 'S':
-			strcpy(options.SERVER, optarg);
+			strlcpy(common_pwd.SERVER, optarg,
+				sizeof(common_pwd.SERVER));
 			break;
 		case 'D':
-			strcpy(options.DATABASE, optarg);
+			strlcpy(common_pwd.DATABASE, optarg,
+				sizeof(common_pwd.DATABASE));
 			break;
 		case 'f': /* override default PWD file */
 			PWD = strdup(optarg);
@@ -120,18 +80,8 @@ establish_login(int argc, char **argv)
 	}
 	read_login_info();
 
-	/* override PWD file with command-line options */
-
-	if (*options.USER)
-		strcpy(USER, options.USER);
-	if (*options.PASSWORD)
-		strcpy(PASSWORD, options.PASSWORD);
-	if (*options.SERVER)
-		strcpy(SERVER, options.SERVER);
-	if (*options.DATABASE)
-		strcpy(DATABASE, options.DATABASE);
-
-	return (*USER && *SERVER && *DATABASE)? CS_SUCCEED : CS_FAIL;
+	return (*common_pwd.USER && *common_pwd.SERVER && *common_pwd.DATABASE)
+	    ? CS_SUCCEED : CS_FAIL;
 }
 
 CS_RETCODE
@@ -213,14 +163,16 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 		}
 		return ret;
 	}
-	ret = ct_con_props(*conn, CS_SET, CS_USERNAME, USER, CS_NULLTERM, NULL);
+	ret = ct_con_props(*conn, CS_SET, CS_USERNAME, common_pwd.USER,
+			   CS_NULLTERM, NULL);
 	if (ret != CS_SUCCEED) {
 		if (verbose) {
 			fprintf(stderr, "ct_con_props() SET USERNAME failed!\n");
 		}
 		return ret;
 	}
-	ret = ct_con_props(*conn, CS_SET, CS_PASSWORD, PASSWORD, CS_NULLTERM, NULL);
+	ret = ct_con_props(*conn, CS_SET, CS_PASSWORD, common_pwd.PASSWORD,
+			   CS_NULLTERM, NULL);
 	if (ret != CS_SUCCEED) {
 		if (verbose) {
 			fprintf(stderr, "ct_con_props() SET PASSWORD failed!\n");
@@ -235,9 +187,10 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 		return ret;
 	}
 
-	printf("connecting as %s to %s.%s\n", USER, SERVER, DATABASE);
+	printf("connecting as %s to %s.%s\n",
+	       common_pwd.USER, common_pwd.SERVER, common_pwd.DATABASE);
 
-	ret = ct_connect(*conn, SERVER, CS_NULLTERM);
+	ret = ct_connect(*conn, common_pwd.SERVER, CS_NULLTERM);
 	if (ret != CS_SUCCEED) {
 		if (verbose) {
 			fprintf(stderr, "Connection failed!\n");
@@ -262,7 +215,7 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 		return ret;
 	}
 
-	sprintf(query, "use %s", DATABASE);
+	sprintf(query, "use %s", common_pwd.DATABASE);
 
 	ret = run_command(*cmd, query);
 	if (ret != CS_SUCCEED)

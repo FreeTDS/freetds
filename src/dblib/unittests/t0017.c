@@ -6,8 +6,7 @@
 #include "common.h"
 #include <assert.h>
 
-int
-main(int argc, char *argv[])
+TEST_MAIN()
 {
 	int failed = 0;
 	LOGINREC *login;

@@ -20,8 +20,8 @@
 /*
  * Purpose: test smp library.
  */
-#undef NDEBUG
-#include <config.h>
+
+#include <freetds/utils/test_base.h>
 
 #include <assert.h>
 #include <stdio.h>
@@ -55,7 +55,7 @@ same_int(int n, int expected, int line)
 #define same_int(n, e) same_int(n, e, __LINE__)
 
 
-int main(void)
+TEST_MAIN()
 {
 	smp n;
 	smp a;

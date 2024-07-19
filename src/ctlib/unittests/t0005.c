@@ -2,8 +2,7 @@
 
 #include "common.h"
 
-int
-main(void)
+TEST_MAIN()
 {
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;

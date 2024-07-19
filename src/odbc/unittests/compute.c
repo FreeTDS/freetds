@@ -70,8 +70,7 @@ CheckFetch(const char *c1name, const char *c1, const char *c2)
 
 #define CheckFetch main_line = __LINE__; CheckFetch
 
-int
-main(void)
+TEST_MAIN()
 {
 	odbc_connect();
 

@@ -1,4 +1,3 @@
-#undef NDEBUG
 #include "common.h"
 #include <assert.h>
 #include <freetds/utils/string.h>
@@ -32,8 +31,7 @@ wide_test(const WCHAR* input, size_t input_len, const char *exp, int line)
 }
 #endif
 
-int
-main(void)
+TEST_MAIN()
 {
 #ifdef ENABLE_ODBC_WIDE
 	DSTR s = DSTR_INITIALIZER;

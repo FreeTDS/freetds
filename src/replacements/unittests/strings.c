@@ -17,8 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#undef NDEBUG
-#include <config.h>
+#include <freetds/utils/test_base.h>
 
 #include <stdio.h>
 
@@ -43,7 +42,7 @@ size_t tds_strlcat(char *dest, const char *src, size_t len);
 #include "../strlcat.c"
 #endif
 
-int main(void)
+TEST_MAIN()
 {
 	char *buf = (char *) malloc(10);
 

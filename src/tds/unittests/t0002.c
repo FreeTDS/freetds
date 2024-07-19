@@ -43,8 +43,7 @@ value_as_string(TDSSOCKET * tds, int col_idx)
 }				/* value_as_string()  */
 
 
-int
-main(void)
+TEST_MAIN()
 {
 	TDSLOGIN *login;
 	TDSSOCKET *tds;

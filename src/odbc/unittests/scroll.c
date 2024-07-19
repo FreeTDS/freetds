@@ -2,8 +2,7 @@
 
 /* Test cursors */
 
-int
-main(void)
+TEST_MAIN()
 {
 #define ROWS 3
 #define C_LEN 10

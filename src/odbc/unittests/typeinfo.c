@@ -193,8 +193,7 @@ DoTest(int version3)
 	odbc_disconnect();
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	DoTest(0);
 

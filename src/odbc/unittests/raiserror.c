@@ -277,8 +277,7 @@ Test2(int nocount, int second_select)
 	odbc_command("DROP PROC #tmp1");
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	odbc_connect();
 

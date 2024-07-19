@@ -19,7 +19,7 @@
 
 #define TDS_INTERNAL_TEST 1
 
-#include <config.h>
+#include <freetds/utils/test_base.h>
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -67,8 +67,7 @@ test(const char *s, const char *sep)
 	free(c2);
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	test("a b\tc", "\t ");
 	test("    x  y \t  z", " \t");

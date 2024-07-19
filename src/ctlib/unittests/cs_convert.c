@@ -122,8 +122,7 @@ DoTest(
   __LINE__);\
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	volatile CS_BIGINT one = 1;
 	int verbose = 1;

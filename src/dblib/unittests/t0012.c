@@ -35,8 +35,7 @@ ignore_msg_handler(DBPROCESS * dbproc TDS_UNUSED, DBINT msgno TDS_UNUSED, int st
 }
 #endif
 
-int
-main(int argc, char *argv[])
+TEST_MAIN()
 {
 	LOGINREC *login;
 	DBPROCESS *dbproc;

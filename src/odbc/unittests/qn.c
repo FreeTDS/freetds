@@ -7,6 +7,7 @@
 
 /* test query notifications */
 
+#ifdef TDS_HAVE_MUTEX
 #define SWAP(t,a,b) do { t xyz = a; a = b; b = xyz; } while(0)
 #define SWAP_CONN() do { SWAP(HENV,env,odbc_env); SWAP(HDBC,dbc,odbc_conn); SWAP(HSTMT,stmt,odbc_stmt);} while(0)
 
@@ -25,8 +26,7 @@ static TDS_THREAD_PROC_DECLARE(change_thread_proc, arg TDS_UNUSED)
 	return TDS_THREAD_RESULT(0);
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	char *sql = NULL;
 	tds_thread th;
@@ -43,7 +43,9 @@ main(void)
 		return 0;
 	}
 
-	sql = odbc_buf_asprintf(&odbc_buf, "ALTER DATABASE %s SET ENABLE_BROKER", odbc_database);
+	sql = odbc_buf_asprintf(&odbc_buf,
+				"ALTER DATABASE %s SET ENABLE_BROKER",
+				common_pwd.DATABASE);
 	odbc_command(sql);
 
 	odbc_command2("DROP SERVICE FTDS_Service", "SENo");
@@ -72,7 +74,9 @@ main(void)
 	odbc_connect();
 	SWAP_CONN();
 
-	sql = odbc_buf_asprintf(&odbc_buf, "service=FTDS_Service;local database=%s", odbc_database);
+	sql = odbc_buf_asprintf(&odbc_buf,
+				"service=FTDS_Service;local database=%s",
+				common_pwd.DATABASE);
 	CHKSetStmtAttr(SQL_SOPT_SS_QUERYNOTIFICATION_OPTIONS, T(sql), SQL_NTS, "S");
 	CHKSetStmtAttr(SQL_SOPT_SS_QUERYNOTIFICATION_MSGTEXT, T("Table has changed"), SQL_NTS, "S");
 	CHKSetStmtAttr(SQL_SOPT_SS_QUERYNOTIFICATION_TIMEOUT, TDS_INT2PTR(60), SQL_IS_UINTEGER, "S");
@@ -131,4 +135,11 @@ main(void)
 
 	return 0;
 }
-
+#else
+TEST_MAIN()
+{
+	printf("Not possible for this platform.\n");
+	odbc_test_skipped();
+	return 0;
+}
+#endif

@@ -129,8 +129,7 @@ static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 	return TDS_THREAD_RESULT(0);
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	SQLTCHAR tmp[2048];
 	char conn[128];
@@ -155,11 +154,12 @@ main(void)
 	 * it is better to do it before connecting because unixODBC caches INIs
 	 * the name must be odbcinst.ini because unixODBC accepts only this name
 	 */
-	if (odbc_driver[0]) {
+	if (common_pwd.DRIVER[0]) {
 		FILE *f = fopen("odbcinst.ini", "w");
 
 		if (f) {
-			fprintf(f, "[FreeTDS]\nDriver = %s\n", odbc_driver);
+			fprintf(f, "[FreeTDS]\nDriver = %s\n",
+				common_pwd.DRIVER);
 			fclose(f);
 			/* force iODBC */
 			setenv("ODBCINSTINI", "./odbcinst.ini", 1);
@@ -217,8 +217,7 @@ main(void)
 }
 
 #else	/* !TDS_HAVE_MUTEX */
-int
-main(void)
+TEST_MAIN()
 {
 	printf("Not possible for this platform.\n");
 	odbc_test_skipped();

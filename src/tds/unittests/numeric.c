@@ -90,8 +90,7 @@ test(const char *src, int prec, int scale, int scale2)
 	test0(src, prec, scale, prec, scale2);
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	int i;
 	memset(&ctx, 0, sizeof(ctx));

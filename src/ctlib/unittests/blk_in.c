@@ -184,8 +184,7 @@ do_bind(CS_BLKDESC * blkdesc, int colnum, CS_INT host_format, CS_INT host_type, 
 }
 
 
-int
-main(void)
+TEST_MAIN()
 {
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;

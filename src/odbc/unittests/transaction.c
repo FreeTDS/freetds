@@ -88,8 +88,7 @@ Test(bool discard_test)
 	return retcode;
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	int retcode = 0;
 

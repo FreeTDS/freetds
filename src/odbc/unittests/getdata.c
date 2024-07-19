@@ -131,8 +131,7 @@ test_split(const char *n_flag)
 	odbc_reset_statement();
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	char buf[32];
 	SQLINTEGER int_buf;

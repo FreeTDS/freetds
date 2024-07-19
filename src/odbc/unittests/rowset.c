@@ -12,8 +12,7 @@ test_err(int n)
 	}
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	int i;
 	SQLLEN len;

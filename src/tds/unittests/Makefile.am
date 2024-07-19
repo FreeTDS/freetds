@@ -80,7 +80,9 @@ AM_LDFLAGS	=	-no-fast-install
 else
 AM_LDFLAGS	=	-no-install -L../.libs -R "$(abs_builddir)/../.libs"
 endif
-LDADD		=	libcommon.a ../libtds.la ../../replacements/libreplacements.la $(LTLIBICONV) $(NETWORK_LIBS)
+LDADD		=	libcommon.a ../../utils/unittests/libtds_test_base.a \
+			../libtds.la ../../replacements/libreplacements.la \
+			$(LTLIBICONV) $(NETWORK_LIBS)
 CLEANFILES	=	tdsdump.out
 EXTRA_DIST	=	CMakeLists.txt
 

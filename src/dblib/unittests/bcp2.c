@@ -40,8 +40,7 @@ init(DBPROCESS * dbproc, const char *name)
 	return 0;
 }
 
-int
-main(int argc, char **argv)
+TEST_MAIN()
 {
 	LOGINREC *login;
 	DBPROCESS *dbproc;

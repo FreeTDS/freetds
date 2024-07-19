@@ -70,8 +70,7 @@ test_row(int vartype, const char *vartype_name, const char *expected, int line)
 
 #define row(bind, expected) test_row(bind, #bind, expected, __LINE__)
 
-int
-main(int argc, char **argv)
+TEST_MAIN()
 {
 	LOGINREC *login;
 

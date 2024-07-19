@@ -17,8 +17,7 @@
  * Test from Ou Liu, cf "Query Time Out", 2006-08-08
  */
 
-int
-main(void)
+TEST_MAIN()
 {
 	int i;
 

@@ -225,8 +225,7 @@ Test(int direct)
 	/* TODO test cancel inside SQLExecute */
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	odbc_connect();
 

@@ -2,8 +2,7 @@
 
 /* Test if SQLExecDirect return error if a error in row is returned */
 
-int
-main(void)
+TEST_MAIN()
 {
 	odbc_connect();
 

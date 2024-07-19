@@ -2,8 +2,7 @@
 
 /* some tests on error reporting */
 
-int
-main(void)
+TEST_MAIN()
 {
 	SQLRETURN RetCode;
 	HSTMT stmt;

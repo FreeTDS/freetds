@@ -66,8 +66,7 @@ test(TDSSOCKET * tds, TDSDYNAMIC * dyn, TDS_INT n, const char *s)
 		fatal_error("tds_submit_execute() output error");
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	TDSLOGIN *login;
 	TDSSOCKET *tds;

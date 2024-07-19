@@ -17,7 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <config.h>
+#include <freetds/utils/test_base.h>
 
 #include <stdio.h>
 
@@ -62,7 +62,7 @@ static void check(int cond, const char *msg)
 	}
 }
 
-int main(void)
+TEST_MAIN()
 {
 	tds_condition cond;
 	tds_thread th;
@@ -127,7 +127,7 @@ int main(void)
 
 #else
 
-int main(void)
+TEST_MAIN()
 {
 	return 0;
 }

@@ -136,8 +136,7 @@ test(const char *type, int give_err)
 	query("drop table #null");
 }
 
-int
-main(int argc, char **argv)
+TEST_MAIN()
 {
 	LOGINREC *login;
 
@@ -185,7 +184,7 @@ main(int argc, char **argv)
 	return failed ? 1 : 0;
 }
 #else
-int main(void)
+TEST_MAIN()
 {
 	fprintf(stderr, "Not supported by MS DBLib\n");
 	return 0;

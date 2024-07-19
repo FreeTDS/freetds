@@ -142,8 +142,7 @@ static TDS_THREAD_PROC_DECLARE(thread_test, arg)
 	return TDS_THREAD_RESULT(0);
 }
 
-int
-main(int argc, char **argv)
+TEST_MAIN()
 {
 	int i;
 	tds_thread th[NUM_THREAD];
@@ -235,8 +234,7 @@ main(int argc, char **argv)
 
 #else /* !TDS_HAVE_PTHREAD_MUTEX */
 
-int
-main(int argc, char **argv)
+TEST_MAIN()
 {
 	printf("Not possible for this platform.\n");
 	return 0;

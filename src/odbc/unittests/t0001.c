@@ -1,7 +1,6 @@
 #include "common.h"
 
-int
-main(void)
+TEST_MAIN()
 {
 
 	int i;

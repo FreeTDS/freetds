@@ -35,8 +35,7 @@ static void test_declaration(TDSSOCKET *tds, TDSCOLUMN *curcol)
 	assert(declaration[0] != 0);
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	int g_result = 0;
 	TDSCONTEXT *ctx;

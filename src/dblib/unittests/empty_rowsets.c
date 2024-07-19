@@ -13,8 +13,7 @@ static void set_failed(int line)
 }
 #define set_failed() set_failed(__LINE__)
 
-int
-main(int argc, char *argv[])
+TEST_MAIN()
 {
 	LOGINREC *login;
 	DBPROCESS *dbproc;

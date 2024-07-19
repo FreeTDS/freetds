@@ -198,8 +198,7 @@ err_handler(const TDSCONTEXT * tds_ctx TDS_UNUSED, TDSSOCKET * tds TDS_UNUSED, T
 	return TDS_INT_CANCEL;
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	TDSLOGIN *login;
 	int ret;
@@ -209,7 +208,7 @@ main(void)
 	const perr * my_err;
 
 	/* use ISO8859-1 as our coding */
-	strcpy(CHARSET, "ISO8859-1");
+	strcpy(common_pwd.CHARSET, "ISO8859-1");
 
 	ret = try_tds_login(&login, &tds, __FILE__, verbose);
 	if (ret != TDS_SUCCESS) {

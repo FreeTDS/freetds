@@ -273,8 +273,7 @@ static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 	return TDS_THREAD_RESULT(0);
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	SQLLEN sql_nts = SQL_NTS;
 	const char *query;
@@ -339,7 +338,11 @@ main(void)
 
 		CHKAllocEnv(&odbc_env, "S");
 		CHKAllocConnect(&odbc_conn, "S");
-		sprintf(tmp, "DRIVER={SQL Server};SERVER=127.0.0.1,%d;UID=%s;PWD=%s;DATABASE=%s;Network=DBMSSOCN;", port, odbc_user, odbc_password, odbc_database);
+		sprintf(tmp,
+			"DRIVER={SQL Server};SERVER=127.0.0.1,%d;UID=%s;"
+			"PWD=%s;DATABASE=%s;Network=DBMSSOCN;",
+			port, common_pwd.USER, common_pwd.PASSWORD,
+			common_pwd.DATABASE);
 		printf("connection string: %s\n", tmp);
 		CHKDriverConnect(NULL, T(tmp), SQL_NTS, (SQLTCHAR *) tmp, sizeof(tmp)/sizeof(SQLTCHAR), &len, SQL_DRIVER_NOPROMPT, "SI");
 		CHKAllocStmt(&odbc_stmt, "S");
@@ -434,8 +437,7 @@ main(void)
 }
 
 #else
-int
-main(void)
+TEST_MAIN()
 {
 	printf("Not possible for this platform.\n");
 	odbc_test_skipped();

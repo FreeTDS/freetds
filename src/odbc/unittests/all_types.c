@@ -1,4 +1,3 @@
-#undef NDEBUG
 #include "common.h"
 #include <assert.h>
 #define TDS_DONT_DEFINE_DEFAULT_FUNCTIONS
@@ -59,8 +58,7 @@ static void test_type(TDSSOCKET *tds TDS_UNUSED, TDSCOLUMN *col)
 	}
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	TDS_DBC *dbc;
 	TDS_ENV *env;

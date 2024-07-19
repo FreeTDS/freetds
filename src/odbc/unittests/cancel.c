@@ -218,8 +218,7 @@ TestSendDuringCancel(void)
 	alarm(0);
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	if (tds_mutex_init(&mtx))
 		return 1;
@@ -232,11 +231,12 @@ main(void)
 	 * is better to do it before connect cause unixODBC cache INIs
 	 * the name must be odbcinst.ini cause unixODBC accept only this name
 	 */
-	if (odbc_driver[0]) {
+	if (common_pwd.DRIVER[0]) {
 		FILE *f = fopen("odbcinst.ini", "w");
 
 		if (f) {
-			fprintf(f, "[FreeTDS]\nDriver = %s\nThreading = 0\n", odbc_driver);
+			fprintf(f, "[FreeTDS]\nDriver = %s\nThreading = 0\n",
+				common_pwd.DRIVER);
 			fclose(f);
 			/* force iODBC */
 			setenv("ODBCINSTINI", "./odbcinst.ini", 1);
@@ -280,8 +280,7 @@ main(void)
 }
 
 #else
-int
-main(void)
+TEST_MAIN()
 {
 	printf("Not possible for this platform.\n");
 	return 0;

@@ -331,7 +331,7 @@ static inline int tds_thread_is_current(tds_thread_id th)
 #  define tds_cond_init tds_raw_cond_init
 #  define tds_cond_destroy tds_raw_cond_destroy
 #  define tds_cond_signal tds_raw_cond_signal
-#  if !ENABLE_EXTRA_CHECKS
+#  if !ENABLE_EXTRA_CHECKS || !defined(TDS_HAVE_MUTEX)
 #    define TDS_MUTEX_INITIALIZER TDS_RAW_MUTEX_INITIALIZER
 #    define tds_mutex tds_raw_mutex
 #    define tds_mutex_lock tds_raw_mutex_lock

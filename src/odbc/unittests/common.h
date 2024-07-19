@@ -1,12 +1,10 @@
-#undef NDEBUG
+#include <freetds/utils/test_base.h>
 
 #ifdef _WIN32
 #define _CRT_SECURE_NO_WARNINGS 1
 #include <freetds/windows.h>
 #include <direct.h>
 #endif
-
-#include <config.h>
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -54,12 +52,6 @@ extern const char *odbc_conn_additional_params;
 extern char odbc_err[512];
 extern char odbc_sqlstate[6];
 
-
-extern char odbc_user[512];
-extern char odbc_server[512];
-extern char odbc_password[512];
-extern char odbc_database[512];
-extern char odbc_driver[1024];
 
 int odbc_read_login_info(void);
 void odbc_report_error(const char *msg, int line, const char *file);

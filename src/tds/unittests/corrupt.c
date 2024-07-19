@@ -93,8 +93,7 @@ unfinished_query_test(TDSSOCKET *tds)
 	free(buf);
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	TDSLOGIN *login;
 	TDSSOCKET *tds;

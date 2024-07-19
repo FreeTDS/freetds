@@ -7,8 +7,7 @@
 #define SP_TEXT "{call sp_paramcore_test(?)}"
 #define OUTSTRING_LEN 20
 
-int
-main(void)
+TEST_MAIN()
 {
 	SQLLEN cb = SQL_NTS;
 

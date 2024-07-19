@@ -14,8 +14,7 @@ cancel_msg_handler(DBPROCESS * dbproc, DBINT msgno TDS_UNUSED, int msgstate TDS_
 	return 0;
 }
 
-int
-main(int argc, char **argv)
+TEST_MAIN()
 {
 	LOGINREC *login;
 	DBPROCESS *dbproc;

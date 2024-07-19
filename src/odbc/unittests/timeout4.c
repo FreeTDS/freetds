@@ -111,8 +111,7 @@ Test(int direct)
 	return 0;
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	odbc_use_version3 = 1;
 
@@ -122,8 +121,7 @@ main(void)
 }
 
 #else
-int
-main(void)
+TEST_MAIN()
 {
 	printf("Not possible for this platform.\n");
 	odbc_test_skipped();

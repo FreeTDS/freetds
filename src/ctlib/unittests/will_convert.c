@@ -128,8 +128,7 @@ test(CS_INT from, CS_INT to, CS_BOOL expected)
 	}
 }
 
-int
-main(void)
+TEST_MAIN()
 {
 	int verbose = 0;
 	CS_COMMAND *command;

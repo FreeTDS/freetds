@@ -7,8 +7,7 @@ static int sp_who(CS_COMMAND *cmd);
  * ct_bind variable
  * ct_fetch and print results
  */
-int
-main(void)
+TEST_MAIN()
 {
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;

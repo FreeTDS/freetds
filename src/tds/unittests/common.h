@@ -1,8 +1,7 @@
 #ifndef _tdsguard_dxzbHKJsR5HKI0Qpzu7Vnq_
 #define _tdsguard_dxzbHKJsR5HKI0Qpzu7Vnq_
 
-#undef NDEBUG
-#include <config.h>
+#include <freetds/utils/test_base.h>
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -21,12 +20,6 @@
 #ifndef FREETDS_SRCDIR
 #define FREETDS_SRCDIR FREETDS_TOPDIR "/src/tds/unittests"
 #endif
-
-extern char PASSWORD[512];
-extern char USER[512];
-extern char SERVER[512];
-extern char DATABASE[512];
-extern char CHARSET[512];
 
 extern TDSCONTEXT *test_context;
 

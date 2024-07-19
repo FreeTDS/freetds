@@ -3,8 +3,7 @@
 
 /* test conversion using SQLGetData */
 
-int
-main(void)
+TEST_MAIN()
 {
 	SQLLEN len;
 	unsigned char buf[30];

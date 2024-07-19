@@ -64,8 +64,7 @@ static CS_INT ex_display_results(CS_COMMAND * cmd, char *results);
 
 static int test(int final_rows, int no_rows);
 
-int
-main(void)
+TEST_MAIN()
 {
 	printf("%s: check row count returned\n", __FILE__);
 	check_call(try_ctlogin, (&ctx, &conn, &cmd, 0));

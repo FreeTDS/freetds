@@ -38,8 +38,7 @@ chk(int check, const char *fmt, ...)
 	exit(1);
 }
 
-int
-main(int argc, char *argv[])
+TEST_MAIN()
 {
 	int errCode = 1;
 

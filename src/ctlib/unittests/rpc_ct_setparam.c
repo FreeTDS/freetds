@@ -16,8 +16,7 @@ typedef struct _ex_column_data
 EX_COLUMN_DATA;
 
 /* Testing: array binding of result set */
-int
-main(void)
+TEST_MAIN()
 {
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;
@@ -336,6 +335,7 @@ int i, j;
 				ret = ct_bind(cmd, (i + 1), &outdatafmt[i], coldata[i].value, &coldata[i].valuelen,
 					      & coldata[i].indicator);
 				if (ret != CS_SUCCEED) {
+					free(coldata[i].value);
 					fprintf(stderr, "ct_bind failed \n");
 					break;
 				}

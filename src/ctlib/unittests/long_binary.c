@@ -50,8 +50,7 @@ execute_sql(CS_COMMAND * command, const char *sql)
 	return fetch_results(command);
 }
 
-int
-main(int argc, char **argv)
+TEST_MAIN()
 {
 	int verbose = 0;
 	CS_COMMAND *command;

@@ -167,8 +167,7 @@ test(int bind_type, const char *bind_name, int override_prec, int override_scale
 
 #define test(a,b,c,d,e) test(a, #a, b, c, d, e, __LINE__)
 
-int
-main(int argc, char **argv)
+TEST_MAIN()
 {
 	read_login_info(argc, argv);
 

@@ -21,8 +21,7 @@ err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrs
 	return syb_err_handler(dbproc, severity, dberr, oserr, dberrstr, oserrstr);
 }
 
-int
-main(int argc, char **argv)
+TEST_MAIN()
 {
 	LOGINREC *login;
 	DBPROCESS *dbproc;
