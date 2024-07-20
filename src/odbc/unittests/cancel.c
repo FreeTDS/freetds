@@ -235,12 +235,19 @@ TestIdleStatement(void)
 /* Cancelling another statement should not conflict with an active one.
  * Very similar to TestSendDuringCancel but cancelling a different statement. */
 static void
-TestOtherStatement(void)
+TestOtherStatement(bool some_activity)
 {
 	SQLHSTMT stmt;
 	CHKAllocStmt(&stmt, "S");
 
+	if (some_activity)
+		SWAP_STMT(stmt);
 	odbc_command("DELETE tab1 WHERE k >= 10000");
+	while (CHKMoreResults("SNo") == SQL_SUCCESS)
+		continue;
+	if (some_activity)
+		SWAP_STMT(stmt);
+
 	odbc_check_no_row("IF EXISTS(SELECT * FROM tab1 WHERE k=10000) SELECT 1");
 	odbc_check_no_row("IF EXISTS(SELECT * FROM tab1 WHERE k=10001) SELECT 2");
 	alarm(15);
@@ -333,7 +340,9 @@ main(void)
 
 	TestIdleStatement();
 
-	TestOtherStatement();
+	TestOtherStatement(false);
+
+	TestOtherStatement(true);
 
 	odbc_command("DROP TABLE tab1");
 
