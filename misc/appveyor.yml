@@ -28,6 +28,12 @@ environment:
   matrix:
   - PLAT: Win64
     WIDTH: 64
+    VS_VERSION: "2022"
+    TDSVER: "7.4"
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+
+  - PLAT: Win64
+    WIDTH: 64
     VS_VERSION: "2019"
     TDSVER: "7.4"
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
@@ -41,12 +47,6 @@ environment:
 
   - PLAT: Win64
     WIDTH: 64
-    VS_VERSION: "2015"
-    TDSVER: "7.3"
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-
-  - PLAT: Win32
-    WIDTH: 32
     VS_VERSION: "2015"
     TDSVER: "7.2"
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
@@ -125,6 +125,7 @@ build_script:
 test_script:
   - set INSTANCENAME=SQL2017
   - if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2019" set INSTANCENAME=SQL2019
+  - if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2022" set INSTANCENAME=SQL2019
   - "powershell misc\\sql-server-activate-tcp-fixed-port.ps1"
   # Create freetds.conf
   - cd build_debug
