@@ -12,9 +12,6 @@ branches:
     - BRANCH0_82
     - Branch-0_91
 
-services:
-- mssql2017
-
 version: "{build}"
 
 shallow_clone: true
