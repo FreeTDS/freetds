@@ -45,13 +45,32 @@
 #include <netinet/in.h>
 #endif /* HAVE_NETINET_IN_H */
 
+#if HAVE_NETINET_TCP_H
+#include <netinet/tcp.h>
+#endif /* HAVE_NETINET_TCP_H */
+
 #ifdef _WIN32
 #include <winsock2.h>
+#include <ws2tcpip.h>
+#include <mstcpip.h>
 #endif
 
 #include <freetds/utils.h>
 #include <freetds/utils/nosigpipe.h>
 #include <freetds/macros.h>
+
+#if !defined(SOL_TCP) && (defined(IPPROTO_TCP) || defined(_WIN32))
+/* fix incompatibility between MS headers */
+# ifndef IPPROTO_TCP
+#  define IPPROTO_TCP IPPROTO_TCP
+# endif
+# define SOL_TCP IPPROTO_TCP
+#endif
+
+/* under VMS we have to define TCP_NODELAY */
+#if defined(__VMS) && !defined(TCP_NODELAY)
+#define TCP_NODELAY 1
+#endif
 
 /**
  * \addtogroup network
@@ -78,6 +97,16 @@ tds_socket_set_nosigpipe(TDS_SYS_SOCKET sock TDS_UNUSED, int on TDS_UNUSED)
 #else
 	return on ? ENOTSUP : 0;
 #endif
+}
+
+int
+tds_socket_set_nodelay(TDS_SYS_SOCKET sock)
+{
+	int on = 1;
+
+	if (setsockopt(sock, SOL_TCP, TCP_NODELAY, (const void *) &on, sizeof(on)))
+		return sock_errno;
+	return 0;
 }
 
 /** @} */

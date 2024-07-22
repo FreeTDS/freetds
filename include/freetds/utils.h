@@ -43,6 +43,7 @@ struct tm *tds_localtime_r(const time_t *timep, struct tm *result);
 int tds_getservice(const char *name);
 
 int tds_socket_set_nosigpipe(TDS_SYS_SOCKET sock, int on);
+int tds_socket_set_nodelay(TDS_SYS_SOCKET sock);
 
 char *tds_strndup(const void *s, TDS_INTPTR len);
 
