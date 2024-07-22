@@ -1013,6 +1013,18 @@ tds_lookup_host(const char *servername)	/* (I) name of the server               
 
 #ifdef AI_ADDRCONFIG
 	hints.ai_flags |= AI_ADDRCONFIG;
+	switch (getaddrinfo(servername, NULL, &hints, &addr)) {
+	case 0:
+		return addr;
+	case EAI_FAMILY:
+#  ifdef EAI_ADDRFAMILY
+	case EAI_ADDRFAMILY:
+#  endif
+		hints.ai_flags &= ~AI_ADDRCONFIG;
+		break;
+	default:
+		return NULL;
+	}
 #endif
 
 	if (getaddrinfo(servername, NULL, &hints, &addr))
