@@ -177,7 +177,7 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	int a;
 	unsigned host_name_len, user_name_len, app_name_len, server_name_len;
 	unsigned library_name_len, language_name_len;
-	unsigned auth_len, database_name_len;
+	unsigned auth_len, database_name_len, ext_len;
 	size_t unicode_len, password_len;
 	char *unicode_string, *psrc;
 	char *pbuf;
@@ -225,8 +225,7 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	READ_BUF(server_name_len, 2);
 
 	/* unknown */
-	tds_get_smallint(tds);
-	tds_get_smallint(tds);
+	READ_BUF(ext_len, 1);
 
 	/* library */
 	READ_BUF(library_name_len, 2);
@@ -280,6 +279,7 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 
 	res = res && tds_dstr_get(tds, &login->app_name, app_name_len);
 	res = res && tds_dstr_get(tds, &login->server_name, server_name_len);
+	tds_get_n(tds, NULL, ext_len);
 	res = res && tds_dstr_get(tds, &login->library, library_name_len);
 	res = res && tds_dstr_get(tds, &login->language, language_name_len);
 	res = res && tds_dstr_get(tds, &login->database, database_name_len);
