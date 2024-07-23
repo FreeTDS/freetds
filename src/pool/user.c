@@ -159,6 +159,8 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s)
 		return NULL;
 	}
 
+	tds_socket_set_nodelay(fd);
+
 	if (tds_socket_set_nonblocking(fd) != 0) {
 		CLOSESOCKET(fd);
 		return NULL;
