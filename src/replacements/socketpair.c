@@ -44,6 +44,7 @@
 #endif /* HAVE_ARPA_INET_H */
 
 #include <freetds/sysdep_private.h>
+#include <freetds/utils.h>
 #include <freetds/replacements.h>
 #include <freetds/macros.h>
 
@@ -67,6 +68,7 @@ tds_socketpair(int domain TDS_UNUSED, int type, int protocol TDS_UNUSED, TDS_SYS
 	sv[0] = socket(AF_INET, type, 0);
 	if (TDS_IS_SOCKET_INVALID(sv[0]))
 		goto Cleanup;
+	tds_socket_set_nodelay(sv[0]);
 
 	/* bind to a random port */
 	sa.sin_family = AF_INET;
@@ -87,6 +89,7 @@ tds_socketpair(int domain TDS_UNUSED, int type, int protocol TDS_UNUSED, TDS_SYS
 	sv[1] = tds_accept(s, (struct sockaddr*) &sa2, &addrlen);
 	if (TDS_IS_SOCKET_INVALID(sv[1]))
 		goto Cleanup;
+	tds_socket_set_nodelay(sv[1]);
 
 	/* check proper connection */
 	addrlen = sizeof(sa);
