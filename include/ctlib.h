@@ -48,6 +48,7 @@ extern "C"
 struct _cs_config
 {
 	short cs_expose_formats;
+	short cs_note_empty_data;
 };
 
 /* Code changed for error handling */
