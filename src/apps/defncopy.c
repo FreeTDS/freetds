@@ -980,6 +980,10 @@ get_login(int argc, char *argv[], OPTIONS *options)
 			break;
 		case 'P':
 			password = tds_getpassarg(optarg);
+			if (!password) {
+				fprintf(stderr, "Error getting password\n");
+				exit(1);
+			}
 			DBSETLPWD(login, password);
 			memset(password, 0, strlen(password));
 			free(password);
