@@ -1722,6 +1722,7 @@ struct tds_bcpinfo
 	TDSRESULTINFO *bindinfo;
 	TDS5COLINFO *sybase_colinfo;
 	TDS_INT sybase_count;
+	bool with_triggers;
 };
 
 TDSRET tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
