@@ -418,6 +418,12 @@ tds_setup_connection(TDSSOCKET *tds, TDSLOGIN *login, bool set_db, bool set_spid
 	char *str;
 	int len;
 	bool parse_results = false;
+	bool is_anywhere
+		= (tds->conn->product_name != NULL
+		   && strcasecmp(tds->conn->product_name, "SQL Anywhere") == 0);
+	bool is_openserver
+		= (tds->conn->product_name != NULL
+		   && strcasecmp(tds->conn->product_name, "OpenServer") == 0);
 
 	len = 192 + tds_quote_id(tds, NULL, tds_dstr_cstr(&login->database),-1);
 	if ((str = tds_new(char, len)) == NULL)
@@ -427,22 +433,19 @@ tds_setup_connection(TDSSOCKET *tds, TDSLOGIN *login, bool set_db, bool set_spid
 	if (login->text_size) {
 		sprintf(str, "SET TEXTSIZE %d\n", login->text_size);
 	}
-	if (set_spid && tds->conn->spid == -1) {
+	if (set_spid && tds->conn->spid == -1 && !is_openserver) {
 		strcat(str, "SELECT @@spid spid\n");
 		parse_results = true;
 	}
 	/* Select proper database if specified.
 	 * SQL Anywhere does not support multiple databases and USE statement
 	 * so don't send the request to avoid connection failures */
-	if (set_db && !tds_dstr_isempty(&login->database) &&
-	    (tds->conn->product_name == NULL || strcasecmp(tds->conn->product_name, "SQL Anywhere") != 0)) {
+	if (set_db && !tds_dstr_isempty(&login->database) && !is_anywhere) {
 		strcat(str, "USE ");
 		tds_quote_id(tds, strchr(str, 0), tds_dstr_cstr(&login->database), -1);
 		strcat(str, "\n");
 	}
-	if (IS_TDS50(tds->conn)
-	    &&	(tds->conn->product_name == NULL
-		 ||  strcasecmp(tds->conn->product_name, "OpenServer") != 0)) {
+	if (IS_TDS50(tds->conn) && !is_anywhere && !is_openserver) {
 		strcat(str, "SELECT CONVERT(NVARCHAR(3), 'abc') nvc\n");
 		parse_results = true;
 		if (tds->conn->product_version >= TDS_SYB_VER(12, 0, 0))
