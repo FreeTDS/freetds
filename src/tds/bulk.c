@@ -36,6 +36,8 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
+#include <ctype.h>
+
 #include <assert.h>
 
 #include <freetds/tds.h>
@@ -269,6 +271,23 @@ tds7_build_bulk_insert_stmt(TDSSOCKET * tds, TDSPBCB * clause, TDSCOLUMN * bcpco
 	return TDS_SUCCESS;
 }
 
+static const char * uc_str(const char * s)
+{
+	/* return strupper(strdup(s)); */
+	size_t n = strcspn(s, "abcdefghijklmnopqrstuvwxyz");
+	if (s[n] == '\0') {
+		return s; /* already all uppercase */
+	} else {
+		char * result = malloc(n + 1);
+		size_t i;
+		for (i = 0; i < n; i++) {
+			result[i] = toupper(s[i]);
+		}
+		result[n] = '\0';
+		return result;
+	}
+}
+
 /**
  * Prepare the query to be sent to server to request BCP information
  * \tds
@@ -285,6 +304,7 @@ tds_bcp_start_insert_stmt(TDSSOCKET * tds, TDSBCPINFO * bcpinfo)
 		TDSCOLUMN *bcpcol;
 		TDSPBCB colclause;
 		char clause_buffer[4096] = { 0 };
+		bool triggers_checked = !bcpinfo->hint; /* Done on demand */
 
 		colclause.pb = clause_buffer;
 		colclause.cb = sizeof(clause_buffer);
@@ -301,8 +321,22 @@ tds_bcp_start_insert_stmt(TDSSOCKET * tds, TDSBCPINFO * bcpinfo)
 				continue;
 			if (!bcpinfo->identity_insert_on && bcpcol->column_identity)
 				continue;
-			if (bcpcol->column_computed)
-				continue;
+			if (bcpcol->column_computed) {
+				if ( !triggers_checked ) {
+					const char * uc_hint
+						= uc_str(bcpinfo->hint);
+					if (strstr(uc_hint, "FIRE_TRIGGERS")) {
+						bcpinfo->with_triggers = true;
+					}
+					if (uc_hint != bcpinfo->hint) {
+						free((char *)uc_hint);
+					}
+					triggers_checked = true;
+				}
+				if ( !bcpinfo->with_triggers ) {
+					continue;
+				}
+                        }
 			tds7_build_bulk_insert_stmt(tds, &colclause, bcpcol, firstcol);
 			firstcol = 0;
 		}
@@ -366,7 +400,8 @@ tds7_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 
 		if ((!bcpinfo->identity_insert_on && bindcol->column_identity) ||
 			bindcol->column_timestamp ||
-			bindcol->column_computed ||
+			(bindcol->column_computed
+			 && !bcpinfo->with_triggers) ||
 			!tds_bcp_is_bound(bcpinfo, bindcol)) {
 			continue;
 		}
@@ -884,7 +919,8 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		bcpcol = bcpinfo->bindinfo->columns[i];
 		if ((!bcpinfo->identity_insert_on && bcpcol->column_identity) || 
 			bcpcol->column_timestamp ||
-			bcpcol->column_computed ||
+			(bcpcol->column_computed
+			 && !bcpinfo->with_triggers) ||
 			!tds_bcp_is_bound(bcpinfo, bcpcol)) {
 			continue;
 		}
@@ -906,7 +942,8 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 
 		if ((!bcpinfo->identity_insert_on && bcpcol->column_identity) || 
 			bcpcol->column_timestamp ||
-			bcpcol->column_computed ||
+			(bcpcol->column_computed
+			 && !bcpinfo->with_triggers) ||
 			!tds_bcp_is_bound(bcpinfo, bcpcol)) {
 			continue;
 		}
