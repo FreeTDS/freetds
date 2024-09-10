@@ -2609,16 +2609,16 @@ ct_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 			if (*buf != CS_TRUE && *buf != CS_FALSE)
 				ret = CS_FAIL;
 			else
-				ctx->config.cs_expose_formats = *buf;
+				ctx->config.cs_expose_formats = (*buf != CS_FALSE);
 			break;
 		case CS_GET:
 			if (buf)
-				*buf = ctx->config.cs_expose_formats;
+				*buf = ctx->config.cs_expose_formats ? CS_TRUE : CS_FALSE;
 			else
 				ret = CS_FAIL;
 			break;
 		case CS_CLEAR:
-			ctx->config.cs_expose_formats = CS_FALSE;
+			ctx->config.cs_expose_formats = false;
 			break;
 		default:
 			ret = CS_FAIL;
@@ -2708,16 +2708,16 @@ ct_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 			if (*buf != CS_TRUE && *buf != CS_FALSE)
 				ret = CS_FAIL;
 			else
-				ctx->config.cs_note_empty_data = *buf;
+				ctx->config.cs_note_empty_data = (*buf != CS_FALSE);
 			break;
 		case CS_GET:
 			if (buf)
-				*buf = ctx->config.cs_note_empty_data;
+				*buf = ctx->config.cs_note_empty_data ? CS_TRUE : CS_FALSE;
 			else
 				ret = CS_FAIL;
 			break;
 		case CS_CLEAR:
-			ctx->config.cs_note_empty_data = CS_FALSE;
+			ctx->config.cs_note_empty_data = false;
 			break;
 		default:
 			ret = CS_FAIL;
@@ -3006,7 +3006,7 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 	srclen = curcol->column_cur_size;
 	if (srclen < 0) {
 		/* this is NULL */
-		if (cmd->con->ctx->config.cs_note_empty_data == CS_FALSE) {
+		if (!cmd->con->ctx->config.cs_note_empty_data) {
 			srclen = 0;
 		} else {
 			if (outlen)
