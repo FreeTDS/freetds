@@ -2588,6 +2588,37 @@ ct_res_info(CS_COMMAND * cmd, CS_INT type, CS_VOID * buffer, CS_INT buflen, CS_I
 
 }
 
+static CS_RETCODE
+config_bool(CS_INT action, CS_INT *buf, bool *variable)
+{
+	switch (action) {
+	case CS_SUPPORTED:
+		if (buf) {
+			*buf = CS_TRUE;
+			return CS_SUCCEED;
+		}
+		break;
+	case CS_SET:
+		if (buf && (*buf == CS_TRUE || *buf == CS_FALSE)) {
+			*variable = (*buf != CS_FALSE);
+			return CS_SUCCEED;
+		}
+		break;
+	case CS_GET:
+		if (buf) {
+			*buf = (*variable ? CS_TRUE : CS_FALSE);
+			return CS_SUCCEED;
+		}
+		break;
+	case CS_CLEAR:
+		*variable = false;
+		return CS_SUCCEED;
+	default:
+		break;
+	}
+	return CS_FAIL;
+}
+
 CS_RETCODE
 ct_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen)
 {
@@ -2601,28 +2632,7 @@ ct_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 
 	switch (property) {
 	case CS_EXPOSE_FMTS:
-		switch (action) {
-		case CS_SUPPORTED:
-			*buf = CS_TRUE;
-			break;
-		case CS_SET:
-			if (*buf != CS_TRUE && *buf != CS_FALSE)
-				ret = CS_FAIL;
-			else
-				ctx->config.cs_expose_formats = (*buf != CS_FALSE);
-			break;
-		case CS_GET:
-			if (buf)
-				*buf = ctx->config.cs_expose_formats ? CS_TRUE : CS_FALSE;
-			else
-				ret = CS_FAIL;
-			break;
-		case CS_CLEAR:
-			ctx->config.cs_expose_formats = false;
-			break;
-		default:
-			ret = CS_FAIL;
-		}
+		ret = config_bool(action, buf, &ctx->config.cs_expose_formats);
 		break;
 	case CS_VER_STRING: {
 		ret = CS_FAIL;
@@ -2700,28 +2710,7 @@ ct_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 		}
 		break;
 	case CS_NOTE_EMPTY_DATA:
-		switch (action) {
-		case CS_SUPPORTED:
-			*buf = CS_TRUE;
-			break;
-		case CS_SET:
-			if (*buf != CS_TRUE && *buf != CS_FALSE)
-				ret = CS_FAIL;
-			else
-				ctx->config.cs_note_empty_data = (*buf != CS_FALSE);
-			break;
-		case CS_GET:
-			if (buf)
-				*buf = ctx->config.cs_note_empty_data ? CS_TRUE : CS_FALSE;
-			else
-				ret = CS_FAIL;
-			break;
-		case CS_CLEAR:
-			ctx->config.cs_note_empty_data = false;
-			break;
-		default:
-			ret = CS_FAIL;
-		}
+		ret = config_bool(action, buf, &ctx->config.cs_note_empty_data);
 		break;
 	default:
 		ret = CS_SUCCEED;
