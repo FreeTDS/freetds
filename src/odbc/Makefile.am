@@ -6,7 +6,7 @@ lib_LTLIBRARIES	=	libtdsodbc.la
 libtdsodbc_la_SOURCES =	odbc.c connectparams.c convert_tds2sql.c \
 	descriptor.c prepare_query.c odbc_util.c bcp.c \
 	native.c sql2tds.c error.c odbc_checks.c sqlwchar.c sqlwparams.h \
-	odbc_export.h error_export.h odbc_data.c
+	odbc_export.h error_export.h odbc_data.c unixodbc.c
 # -module is needed by Darwin (Mac OS X)
 libtdsodbc_la_LDFLAGS = \
 	$(ODBCINST_LDFLAGS) $(LTLIBICONV) $(FREETDS_LIBGCC) \

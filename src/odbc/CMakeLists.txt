@@ -32,7 +32,7 @@ add_library(tdsodbc SHARED
 	odbc.c connectparams.c convert_tds2sql.c
 	descriptor.c prepare_query.c odbc_util.c bcp.c
 	native.c sql2tds.c error.c odbc_checks.c sqlwchar.c sqlwparams.h
-	odbc_data.c ${win_SRCS}
+	odbc_data.c unixodbc.c ${win_SRCS}
 )
 target_include_directories(tdsodbc PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 add_dependencies(tdsodbc odbc_exports_h encodings_h)
@@ -48,7 +48,7 @@ add_library(tdsodbc_static STATIC
 	odbc.c connectparams.c convert_tds2sql.c
 	descriptor.c prepare_query.c odbc_util.c bcp.c
 	native.c sql2tds.c error.c odbc_checks.c sqlwchar.c sqlwparams.h
-	odbc_data.c ${win_SRCS}
+	odbc_data.c unixodbc.c ${win_SRCS}
 )
 target_include_directories(tdsodbc_static PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 add_dependencies(tdsodbc_static odbc_exports_h encodings_h)

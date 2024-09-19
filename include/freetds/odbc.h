@@ -539,6 +539,9 @@ enum {
 };
 #undef ODBC_PARAM
 
+#define ODBC_PARAM(p) extern const char odbc_param_##p[];
+ODBC_PARAM_LIST
+#undef ODBC_PARAM
 
 /*
  * connectparams.h
