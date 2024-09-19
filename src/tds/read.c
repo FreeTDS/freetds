@@ -240,8 +240,12 @@ tds_get_n(TDSSOCKET * tds, void *dest, size_t need)
 			dest = (char *) dest + have;
 		}
 		need -= have;
-		if (TDS_UNLIKELY(tds_read_packet(tds) < 0))
+		if (TDS_UNLIKELY(tds->recv_packet->capacity < 2
+				 ||  tds->in_buf[1] != 0
+				 ||  tds_read_packet(tds) < 0)) {
+			tds_close_socket(tds); /* evidently out of sync */
 			return false;
+		}
 	}
 	if (need > 0) {
 		/* get the remainder if there is any */
