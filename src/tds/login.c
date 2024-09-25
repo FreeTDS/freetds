@@ -365,13 +365,12 @@ tds_set_uvc(TDSSOCKET * tds, TDSRESULTINFO *res_info)
  * \tds
  */
 static TDSRET
-tds_parse_login_results(TDSSOCKET * tds)
+tds_parse_login_results(TDSSOCKET * tds, bool ignore_errors)
 {
 	TDS_INT result_type;
 	TDS_INT done_flags;
 	TDSRET rc;
 	TDSCOLUMN *curcol;
-	bool ignore_errors = false;
 	bool last_required = false;
 
 	CHECK_TDS_EXTRA(tds);
@@ -412,12 +411,38 @@ tds_parse_login_results(TDSSOCKET * tds)
 }
 
 static TDSRET
-tds_setup_connection(TDSSOCKET *tds, TDSLOGIN *login, bool set_db, bool set_spid)
+tds_process_single(TDSSOCKET *tds, char *query, bool ignore_errors)
+{
+	TDSRET erc;
+
+	if (!query[0])
+		return TDS_SUCCESS;
+
+	/* submit and parse results */
+	erc = tds_submit_query(tds, query);
+	if (TDS_SUCCEED(erc))
+		erc = tds_parse_login_results(tds, ignore_errors);
+
+	/* prepare next query */
+	query[0] = 0;
+
+	if (TDS_FAILED(erc))
+		free(query);
+
+	return erc;
+}
+
+#define process_single(ignore_errors) do { \
+	if (!single_query && TDS_FAILED(erc = tds_process_single(tds, str, ignore_errors))) \
+		return erc; \
+} while(0)
+
+static TDSRET
+tds_setup_connection(TDSSOCKET *tds, TDSLOGIN *login, bool set_db, bool single_query)
 {
 	TDSRET erc;
 	char *str;
 	int len;
-	bool parse_results = false;
 	const char *const product_name = (tds->conn->product_name != NULL ? tds->conn->product_name : "");
 	const bool is_sql_anywhere = (strcasecmp(product_name, "SQL Anywhere") == 0);
 	const bool is_openserver = (strcasecmp(product_name, "OpenServer") == 0);
@@ -427,13 +452,14 @@ tds_setup_connection(TDSSOCKET *tds, TDSLOGIN *login, bool set_db, bool set_spid
 		return TDS_FAIL;
 
 	str[0] = 0;
-	if (login->text_size) {
+	if (login->text_size)
 		sprintf(str, "SET TEXTSIZE %d\n", login->text_size);
-	}
-	if (set_spid && tds->conn->spid == -1 && !is_openserver) {
+	process_single(false);
+
+	if (tds->conn->spid == -1 && !is_openserver)
 		strcat(str, "SELECT @@spid spid\n");
-		parse_results = true;
-	}
+	process_single(true);
+
 	/* Select proper database if specified.
 	 * SQL Anywhere does not support multiple databases and USE statement
 	 * so don't send the request to avoid connection failures */
@@ -442,12 +468,14 @@ tds_setup_connection(TDSSOCKET *tds, TDSLOGIN *login, bool set_db, bool set_spid
 		tds_quote_id(tds, strchr(str, 0), tds_dstr_cstr(&login->database), -1);
 		strcat(str, "\n");
 	}
+	process_single(false);
+
 	if (IS_TDS50(tds->conn) && !is_sql_anywhere && !is_openserver) {
 		strcat(str, "SELECT CONVERT(NVARCHAR(3), 'abc') nvc\n");
-		parse_results = true;
 		if (tds->conn->product_version >= TDS_SYB_VER(12, 0, 0))
 			strcat(str, "EXECUTE ('SELECT CONVERT(UNIVARCHAR(3), ''xyz'') uvc')\n");
 	}
+	process_single(true);
 
 	/* nothing to set, just return */
 	if (str[0] == 0) {
@@ -460,12 +488,7 @@ tds_setup_connection(TDSSOCKET *tds, TDSLOGIN *login, bool set_db, bool set_spid
 	if (TDS_FAILED(erc))
 		return erc;
 
-	if (parse_results)
-		erc = tds_parse_login_results(tds);
-	else
-		erc = tds_process_simple_query(tds);
-
-	return erc;
+	return tds_parse_login_results(tds, false);
 }
 
 /**
@@ -739,8 +762,8 @@ reroute:
 #endif
 
 	erc = tds_setup_connection(tds, login, !db_selected, true);
-	/* try without asking @@spid, some servers do not support it */
-	if (TDS_FAILED(erc) && tds->conn->spid == -1)
+	/* try one query at a time, some servers do not support some queries */
+	if (TDS_FAILED(erc))
 		erc = tds_setup_connection(tds, login, !db_selected, false);
 	if (TDS_FAILED(erc))
 		return erc;
