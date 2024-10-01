@@ -78,12 +78,12 @@ find "$RPM_BUILD_ROOT" -name "*.la" -delete
 %post unixodbc
 echo "[FreeTDS]
 Description = FreeTDS unixODBC Driver
-Driver = %{_libdir}/libtdsodbc.so.0
-Setup = %{_libdir}/libtdsodbc.so.0" | odbcinst -i -d -r > /dev/null 2>&1 || true
+Driver = %{_libdir}/libtdsodbc.so
+Setup = %{_libdir}/libtdsodbc.so" | odbcinst -i -d -r > /dev/null 2>&1 || true
 echo "[SQL Server]
 Description = FreeTDS unixODBC Driver
-Driver = %{_libdir}/libtdsodbc.so.0
-Setup = %{_libdir}/libtdsodbc.so.0" | odbcinst -i -d -r > /dev/null 2>&1 || true
+Driver = %{_libdir}/libtdsodbc.so
+Setup = %{_libdir}/libtdsodbc.so" | odbcinst -i -d -r > /dev/null 2>&1 || true
 
 %preun unixodbc
 odbcinst -u -d -n 'FreeTDS' > /dev/null 2>&1 || true
@@ -109,7 +109,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files unixodbc
 %defattr(-,root,root)
-%{_libdir}/libtdsodbc.so*
+%{_libdir}/libtdsodbc.so
 
 %files doc
 %defattr (-,root,root)
