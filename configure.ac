@@ -666,6 +666,11 @@ AM_CONDITIONAL(INCODBC, test "$build_odbc" = "yes")
 if test "$build_odbc" = "yes"
 then
 	case $host_os in
+	linux*)
+		if test "$with_odbc_nodm" = ""; then
+			FREETDS_ODBC_MODULE="-avoid-version"
+		fi
+		;;
 	darwin* | rhapsody*)
 		if test "$with_odbc_nodm" = ""; then
 			FREETDS_ODBC_MODULE="-module"
