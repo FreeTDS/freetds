@@ -508,7 +508,7 @@ static SQLRETURN
 odbc_prepare(TDS_STMT *stmt)
 {
 	TDSSOCKET *tds = stmt->tds;
-	int in_row = 0;
+	bool in_row = false;
 
 	if (TDS_FAILED(tds_submit_prepare(tds, tds_dstr_cstr(&stmt->query), NULL, &stmt->dyn, stmt->params))) {
 		ODBC_SAFE_ERROR(stmt);
@@ -544,7 +544,7 @@ odbc_prepare(TDS_STMT *stmt)
 				stmt->row = 0;
 				stmt->row_count = TDS_NO_COUNT;
 				stmt->row_status = PRE_NORMAL_ROW;
-				in_row = 1;
+				in_row = true;
 				break;
 			}
 			continue;
@@ -902,7 +902,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 	TDSSOCKET *tds;
 	TDS_INT result_type;
 	TDSRET tdsret;
-	int in_row = 0;
+	bool in_row = false;
 	SQLUSMALLINT param_status;
 	int token_flags;
 
@@ -925,7 +925,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 		/* FIXME doesn't seem so fine ... - freddy77 */
 		tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_TRAILING);
 		stmt->row_status = IN_COMPUTE_ROW;
-		in_row = 1;
+		in_row = true;
 	}
 
 	param_status = SQL_PARAM_SUCCESS;
@@ -964,7 +964,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 			/* skip this recordset */
 			case IN_COMPUTE_ROW:
 				/* TODO here we should set current_results to normal results */
-				in_row = 1;
+				in_row = true;
 				/* fall through */
 			/* in normal row, put in compute status */
 			case AFTER_COMPUTE_ROW:
@@ -1060,7 +1060,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 			stmt->row_count = TDS_NO_COUNT;
 			/* we expect a row */
 			stmt->row_status = PRE_NORMAL_ROW;
-			in_row = 1;
+			in_row = true;
 			break;
 
 		case TDS_MSG_RESULT:
@@ -1068,7 +1068,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 				tds_free_all_results(tds);
 				odbc_populate_ird(stmt);
 			}
-			in_row = 1;
+			in_row = true;
 			break;
 		}
 	}
@@ -3428,7 +3428,7 @@ odbc_SQLExecute(TDS_STMT * stmt)
 	TDSSOCKET *tds;
 	TDS_INT result_type;
 	TDS_INT done = 0;
-	int in_row = 0;
+	bool in_row = false;
 	SQLUSMALLINT param_status;
 	int found_info = 0, found_error = 0;
 	TDS_INT8 total_rows = TDS_NO_COUNT;
@@ -3654,7 +3654,7 @@ odbc_SQLExecute(TDS_STMT * stmt)
 			stmt->row = 0;
 			stmt->row_count = TDS_NO_COUNT;
 			stmt->row_status = PRE_NORMAL_ROW;
-			in_row = 1;
+			in_row = true;
 			break;
 		}
 		if (done)
