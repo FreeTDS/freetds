@@ -57,11 +57,11 @@ tds_get_query(TDSSOCKET * tds)
 	return query;
 }
 
-static int
+static bool
 tds_lastpacket(TDSSOCKET * tds) 
 {
 	if (!tds || !tds->in_buf || tds->recv_packet->capacity < 2)
-		return 1;
+		return true;
 	
 	return tds->in_buf[1] != 0;
 }
