@@ -1,4 +1,3 @@
-#undef NDEBUG
 #include "common.h"
 #include <assert.h>
 #include <freetds/utils/string.h>
