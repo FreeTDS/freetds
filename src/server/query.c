@@ -123,7 +123,8 @@ tds_get_query_head(TDSSOCKET * tds, TDSHEADERS * head)
  * \return A query string if successful, or NULL if we either can't read from
  * the socket or we read something that we can't handle.
  */
-char *tds_get_generic_query(TDSSOCKET * tds)
+char *
+tds_get_generic_query(TDSSOCKET * tds)
 {
  	int token, byte;
 	int len, more, i, j;
@@ -135,9 +136,8 @@ char *tds_get_generic_query(TDSSOCKET * tds)
 		 * to read it for us, so that we can examine the packet
 		 * type via tds->in_flag.
 		 */
-		if (tds_read_packet(tds) < 0) {
+		if (tds_read_packet(tds) < 0)
 			return NULL;
-		}
 
 		/* Queries can arrive in a couple different formats. */
 		switch (tds->in_flag) {
@@ -217,8 +217,7 @@ char *tds_get_generic_query(TDSSOCKET * tds)
 				/* If buffer needs to grow, then grow */
 				more = tds->in_len - tds->in_pos;
 				src = (char *) (tds->in_buf + tds->in_pos);
-				if ((size_t)(len + more + 1) > query_buflen)
-				{
+				if ((size_t)(len + more + 1) > query_buflen) {
 					query_buflen = len + more + 1024u;
 					query_buflen -= query_buflen % 1024u;
 					query = (char *) realloc(query, query_buflen);
@@ -229,8 +228,7 @@ char *tds_get_generic_query(TDSSOCKET * tds)
 				 * Ignore NUL bytes -- this is a cheap way
 				 * to convert Unicode to Latin-1/ASCII.
 				 */
-				while (--more >= 0)
-				{
+				while (--more >= 0) {
 					query[len] = *src++;
 					if (query[len] != '\0')
 						len++;

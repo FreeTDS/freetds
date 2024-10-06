@@ -414,7 +414,8 @@ tds7_send_result(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
  * \param resinfo	Describes the table to be send, especially the number
  *			of columns and the names & data types of each column.
  */
-void tds_send_table_header(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
+void
+tds_send_table_header(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 {
 	switch (TDS_MAJOR(tds->conn)) {
 	case 4:
