@@ -262,7 +262,7 @@ Test2(int nocount, int second_select)
 	g_nocount = nocount;
 	g_second_select = second_select;
 
-	/* this test do not work with Sybase */
+	/* this test does not work with Sybase */
 	if (!odbc_db_is_microsoft())
 		return;
 
