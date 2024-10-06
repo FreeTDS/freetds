@@ -81,7 +81,8 @@ if test "$PACKAGE_VERSION" = ""; then
 fi
 test "$PACKAGE_VERSION" != "" || errore "PACKAGE_VERSION not found"
 
-if test $ONLINE = no; then
+configure=./configure
+if test $ONLINE = no && test -r Makefile; then
 	test -r "freetds-$PACKAGE_VERSION.tar.gz" -o -r "freetds-$PACKAGE_VERSION.tar.bz2" || make dist
 	test -r "freetds-$PACKAGE_VERSION.tar.gz" -o -r "freetds-$PACKAGE_VERSION.tar.bz2" || errore "package not found"
 	rm -rf "freetds-$PACKAGE_VERSION"
@@ -90,6 +91,11 @@ if test $ONLINE = no; then
 	else
 		bunzip2 -dc "freetds-$PACKAGE_VERSION.tar.bz2" | tar xvf -
 	fi
+	cd "freetds-$PACKAGE_VERSION" || errore "Directory not found"
+elif test $ONLINE = no; then
+	configure=../configure
+	rm -rf "freetds-$PACKAGE_VERSION"
+	mkdir "freetds-$PACKAGE_VERSION"
 	cd "freetds-$PACKAGE_VERSION" || errore "Directory not found"
 else
 	make clean
@@ -102,7 +108,7 @@ fi
 # build
 trap 'echo Error at line $LINENO' ERR
 set -e
-CFLAGS='-O2 -g -pipe' ./configure --host=$HOST --build=i686-pc-linux-gnu
+CFLAGS='-O2 -g -pipe' $configure --host=$HOST --build=i686-pc-linux-gnu
 cp libtool libtool.tmp
 cat libtool.tmp | sed -e 's,file format pe-i386,file format pe-(x86-64|i386),' > libtool
 make -j4 2> errors.txt
