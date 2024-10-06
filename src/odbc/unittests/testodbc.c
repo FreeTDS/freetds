@@ -3,11 +3,6 @@
  *  - David Fraser, Abelon Systems 2003.
  */
 
-/* 
- * TODO
- * remove Northwind dependency
- */
-
 #include "common.h"
 
 #ifdef DEBUG
@@ -19,13 +14,9 @@
 #endif
 #define AB_ERROR(x)   do { printf("ERROR: "); printf x; printf("\n"); } while(0)
 
-#undef TRUE
-#undef FALSE
-enum
-{ FALSE, TRUE };
-typedef int DbTestFn(void);
+typedef bool DbTestFn(void);
 
-static int RunTests(void);
+static bool RunTests(void);
 
 typedef struct
 {
@@ -36,7 +27,7 @@ typedef struct
 /*
  * Test that makes a parameterized ODBC query using SQLPrepare and SQLExecute
  */
-static int
+static bool
 TestRawODBCPreparedQuery(void)
 {
 	SQLTCHAR *queryString;
@@ -94,7 +85,7 @@ TestRawODBCPreparedQuery(void)
 		 */
 		AB_ERROR(("Expected %d rows - but got %d rows", 3, count));
 		AB_FUNCT(("TestRawODBCPreparedQuery (out): error"));
-		return FALSE;
+		return false;
 	}
 
 	/* CLOSEDOWN */
@@ -102,13 +93,13 @@ TestRawODBCPreparedQuery(void)
 	odbc_disconnect();
 
 	AB_FUNCT(("TestRawODBCPreparedQuery (out): ok"));
-	return TRUE;
+	return true;
 }
 
 /*
  * Test that makes a parameterized ODBC query using SQLExecDirect.
  */
-static int
+static bool
 TestRawODBCDirectQuery(void)
 {
 	SQLLEN lenOrInd = 0;
@@ -161,7 +152,7 @@ TestRawODBCDirectQuery(void)
 		 */
 		AB_ERROR(("Expected %d rows - but got %d rows", 3, count));
 		AB_FUNCT(("TestRawODBCDirectQuery (out): error"));
-		return FALSE;
+		return false;
 	}
 
 	/* CLOSEDOWN */
@@ -169,14 +160,14 @@ TestRawODBCDirectQuery(void)
 	odbc_disconnect();
 
 	AB_FUNCT(("TestRawODBCDirectQuery (out): ok"));
-	return TRUE;
+	return true;
 }
 
 /*
  * Test that show what works and what doesn't for the poorly
  * documented GUID.
  */
-static int
+static bool
 TestRawODBCGuid(void)
 {
 	SQLRETURN status;
@@ -196,7 +187,7 @@ TestRawODBCGuid(void)
 	
 	if (!odbc_db_is_microsoft()) {
 		odbc_disconnect();
-		return TRUE;
+		return true;
 	}
 
 	AB_PRINT(("Creating #pet table"));
@@ -370,28 +361,26 @@ TestRawODBCGuid(void)
 	odbc_disconnect();
 
 	AB_FUNCT(("TestRawODBCGuid (out): ok"));
-	return TRUE;
+	return true;
 }
 
 /**
  * Array of tests.
  */
-static DbTestEntry _dbTests[] = {
+static const DbTestEntry tests[] = {
 	/* 1 */ {TestRawODBCDirectQuery, "Raw ODBC direct query"},
 	/* 2 */ {TestRawODBCPreparedQuery, "Raw ODBC prepared query"},
 	/* 3 */ {TestRawODBCGuid, "Raw ODBC GUID"},
-	/* end */ {0, 0}
+	/* end */ {NULL, NULL}
 };
-
-static DbTestEntry *tests = _dbTests;
 
 /**
  * Code to iterate through all tests to run.
  *
  * \return
- *      TRUE if all tests pass, FALSE if any tests fail.
+ *      true if all tests pass, false if any tests fail.
  */
-static int
+static bool
 RunTests(void)
 {
 	unsigned int i;
@@ -419,14 +408,14 @@ RunTests(void)
 		printf("\nTest passes: %d, test fails: %d\n\n", passes, fails);
 	}
 
-	/* Return TRUE if there are no failures */
-	return (!fails);
+	/* Return true if there are no failures */
+	return (fails == 0);
 }
 
 int
 main(void)
 {
-	odbc_use_version3 = 1;
+	odbc_use_version3 = true;
 
 	if (RunTests())
 		return 0;	/* Success */
