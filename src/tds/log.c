@@ -55,7 +55,7 @@ int tds_debug_flags = TDS_DBGFLAG_ALL | TDS_DBGFLAG_SOURCE;
 int tds_g_append_mode = 0;
 static tds_dir_char *g_dump_filename = NULL;
 /** Tell if TDS debug logging is turned on or off */
-int tds_write_dump = 0;
+bool tds_write_dump = false;
 /** List of threads excluded from logging, used to exclude some sensitive data */
 static TDSDUMP_OFF_ITEM *off_list;
 static FILE *g_dumpfile = NULL;	/* file pointer for dump log          */
@@ -140,7 +140,7 @@ tdsdump_open(const tds_dir_char *filename)
 		return 1;
 	}
 
-	tds_write_dump = 0;
+	tds_write_dump = false;
 
 	/* free old one */
 	if (g_dumpfile != NULL && g_dumpfile != stdout && g_dumpfile != stderr)
@@ -171,7 +171,7 @@ tdsdump_open(const tds_dir_char *filename)
 	}
 
 	if (result)
-		tds_write_dump = 1;
+		tds_write_dump = true;
 	tds_mutex_unlock(&g_dump_mutex);
 
 	if (result) {
@@ -212,7 +212,7 @@ void
 tdsdump_close(void)
 {
 	tds_mutex_lock(&g_dump_mutex);
-	tds_write_dump = 0;
+	tds_write_dump = false;
 	if (g_dumpfile != NULL && g_dumpfile != stdout && g_dumpfile != stderr)
 		fclose(g_dumpfile);
 	g_dumpfile = NULL;
