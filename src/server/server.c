@@ -173,7 +173,9 @@ tds_send_login_ack(TDSSOCKET * tds, const char *progname)
 	} else {
 		tds_put_byte(tds, 1);
 		/* see src/tds/token.c */
-		if (IS_TDS73_PLUS(tds->conn)) {
+		if (IS_TDS74_PLUS(tds->conn)) {
+			version = 0x74000004u;
+		} else if (IS_TDS73_PLUS(tds->conn)) {
 			version = 0x730B0003u;
 		} else if (IS_TDS72_PLUS(tds->conn)) {
 			version = 0x72090002u;
