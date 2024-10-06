@@ -1,14 +1,8 @@
-.build_options
 *.orig
-push
-update
-commit
-t
 cscope.files
 cscope.out
-*Makefile.in
+Makefile.in
 build/
-doc/mdoc.gen
 config.log
 config.cache
 config.status
@@ -22,7 +16,6 @@ ltcf-c.sh
 aclocal.m4
 autom4te.cache
 depcomp
-so_locations
 freetds.spec
 PWD
 doxyfile

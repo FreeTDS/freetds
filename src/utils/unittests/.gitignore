@@ -1,8 +1,8 @@
-challenge
-passarg
-condition
-mutex1
-dlist
-bytes
-smp
-path
+/challenge
+/passarg
+/condition
+/mutex1
+/dlist
+/bytes
+/smp
+/path

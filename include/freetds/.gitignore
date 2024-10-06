@@ -1,5 +1,4 @@
-sybase_character_sets.h
-sysdep_types.h
-encodings.h
-charset_lookup.h
-charset_lookup.gperf
+/sysdep_types.h
+/encodings.h
+/charset_lookup.h
+/charset_lookup.gperf

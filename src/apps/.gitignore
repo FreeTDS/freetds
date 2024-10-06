@@ -1,7 +1,6 @@
-tsql
-freebcp
-bsqldb
-defncopy
-datacopy
-bsqlodbc
-
+/tsql
+/freebcp
+/bsqldb
+/defncopy
+/datacopy
+/bsqlodbc

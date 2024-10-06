@@ -1,4 +1,4 @@
-odbc_export.h
-error_export.h
-version.rc
-setup.res
+/odbc_export.h
+/error_export.h
+/version.rc
+/setup.res
