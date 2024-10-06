@@ -263,7 +263,7 @@ pool_open_logfile(void)
 {
 	int fd;
 
-	tds_g_append_mode = 0;
+	tds_append_mode = 0;
 	tdsdump_open(tds_dir_getenv(TDS_DIR("TDSDUMP")));
 
 	if (!logfile_name)

@@ -1560,7 +1560,7 @@ void tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...
 
 extern bool tds_write_dump;
 extern int tds_debug_flags;
-extern int tds_g_append_mode;
+extern int tds_append_mode;
 
 
 /* net.c */

@@ -663,7 +663,7 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 	} else if (!strcmp(option, TDS_STR_LANGUAGE)) {
 		s = tds_dstr_copy(&login->language, value);
 	} else if (!strcmp(option, TDS_STR_APPENDMODE)) {
-		parse_boolean(option, value, tds_g_append_mode);
+		parse_boolean(option, value, tds_append_mode);
 	} else if (!strcmp(option, TDS_STR_INSTANCE)) {
 		s = tds_dstr_copy(&login->instance_name, value);
 	} else if (!strcmp(option, TDS_STR_ENCRYPTION)) {
