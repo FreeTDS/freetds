@@ -1759,9 +1759,9 @@ tds_capability_enabled(const TDS_CAPABILITY_TYPE *cap, unsigned cap_num)
 
 #define IS_TDSDEAD(x) (((x) == NULL) || (x)->state == TDS_DEAD)
 
-/** Check if product is Sybase (such as Adaptive Server Enterrprice). x should be a TDSSOCKET*. */
+/** Check if product is Sybase (such as Adaptive Server Enterprise). x should be a TDSSOCKET*. */
 #define TDS_IS_SYBASE(x) (!((x)->conn->product_version & 0x80000000u))
-/** Check if product is Microsft SQL Server. x should be a TDSSOCKET*. */
+/** Check if product is Microsoft SQL Server. x should be a TDSSOCKET*. */
 #define TDS_IS_MSSQL(x) (((x)->conn->product_version & 0x80000000u)!=0)
 
 /** Calc a version number for mssql. Use with TDS_MS_VER(7,0,842).

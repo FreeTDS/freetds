@@ -694,7 +694,7 @@ reroute:
 	if (TDS_FAILED(erc) || TDS_FAILED(tds_process_login_tokens(tds))) {
 		tdsdump_log(TDS_DBG_ERROR, "login packet %s\n", TDS_SUCCEED(erc)? "accepted":"rejected");
 		tds_close_socket(tds);
-		tdserror(tds_get_ctx(tds), tds, TDSEFCON, 0); 	/* "Adaptive Server connection failed" */
+		tdserror(tds_get_ctx(tds), tds, TDSEFCON, 0); 	/* "TDS server connection failed" */
 		return -TDSEFCON;
 	}
 
