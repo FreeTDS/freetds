@@ -156,7 +156,7 @@ SYBECLPR	EXCONVERSION	Data conversion resulted in loss of precision.
 SYBECNOR	EXPROGRAM	Column number out of range.
 SYBECNOV	EXCONVERSION	Attempt to set variable to NULL resulted in overflow.
 SYBECOFL	EXCONVERSION	Data conversion resulted in overflow.
-SYBECONN	EXCOMM	Unable to connect: Adaptive Server is unavailable or does not exist.
+SYBECONN	EXCOMM	Unable to connect: TDS server is unavailable or does not exist.
 SYBECRNC	EXPROGRAM	The current row is not a result of compute clause %1!, so it is illegal to attempt to extract that data from this row.
 SYBECRSAGR	EXPROGRAM	Aggregate functions are not allowed in a cursor statement.
 SYBECRSBROL	EXPROGRAM	Backward scrolling cannot be used in a forward scrolling cursor.
@@ -207,17 +207,17 @@ SYBEETD	EXPROGRAM	Failure to send the expected amount of TEXT or IMAGE data via 
 SYBEEUNR	EXCOMM	Unsolicited event notification received.
 SYBEEVOP	EXINFO	Called dbregwatch with a bad options parameter.
 SYBEEVST	EXINFO	Must initiate a transaction before calling dbregparam.
-SYBEFCON	EXCOMM	Adaptive Server connection failed.
+SYBEFCON	EXCOMM	TDS server connection failed.
 SYBEFRES	EXFATAL	Challenge-Response function failed.
 SYBEFSHD	EXRESOURCE	Error in attempting to find the Sybase home directory.
 SYBEFUNC	EXPROGRAM	Functionality not supported at the specified version level.
 SYBEICN	EXPROGRAM	Invalid computeid or compute column number.
-SYBEIDCL	EXCONSISTENCY	Illegal datetime column length returned by Adaptive Server. Legal datetime lengths are 4 and 8 bytes.
+SYBEIDCL	EXCONSISTENCY	Illegal datetime column length returned by TDS server. Legal datetime lengths are 4 and 8 bytes.
 SYBEIDECCL	EXCONSISTENCY	Invalid decimal column length returned by the server.
-SYBEIFCL	EXCONSISTENCY	Illegal floating-point column length returned by Adaptive Server. Legal floating-point lengths are 4 and 8 bytes.
+SYBEIFCL	EXCONSISTENCY	Illegal floating-point column length returned by TDS server. Legal floating-point lengths are 4 and 8 bytes.
 SYBEIFNB	EXPROGRAM	Illegal field number passed to bcp_control.
-SYBEIICL	EXCONSISTENCY	Illegal integer column length returned by Adaptive Server. Legal integer lengths are 1, 2, and 4 bytes.
-SYBEIMCL	EXCONSISTENCY	Illegal money column length returned by Adaptive Server. Legal money lengths are 4 and 8 bytes. 396
+SYBEIICL	EXCONSISTENCY	Illegal integer column length returned by TDS server. Legal integer lengths are 1, 2, and 4 bytes.
+SYBEIMCL	EXCONSISTENCY	Illegal money column length returned by TDS server. Legal money lengths are 4 and 8 bytes. 396
 SYBEINLN	EXUSER	Interface file: unexpected end-of-line.
 SYBEINTF	EXUSER	Server name not found in interface file.
 SYBEINUMCL	EXCONSISTENCY	Invalid numeric column length returned by the server.
@@ -264,7 +264,7 @@ SYBERESP	EXPROGRAM	Response function address passed to dbresponse must be non-NU
 SYBERPCS	EXINFO	Must call dbrpcinit before dbrpcparam or dbrpcsend.
 SYBERPIL	EXPROGRAM	It is illegal to pass -1 to dbrpcparam for the datalen of parameters which are of type SYBCHAR, SYBVARCHAR, SYBBINARY, or SYBVARBINARY.
 SYBERPNA	EXNONFATAL	The RPC facility is available only when using a server whose version number is 4.0 or later.
-SYBERPND	EXPROGRAM	Attempt to initiate a new Adaptive Server operation with results pending.
+SYBERPND	EXPROGRAM	Attempt to initiate a new TDS server operation with results pending.
 SYBERPNULL	EXPROGRAM	value parameter for dbrpcparam can be NULL, only if the datalen parameter is 0.
 SYBERPTXTIM	EXPROGRAM	RPC parameters cannot be of type text or image.
 SYBERPUL	EXPROGRAM	When passing a SYBINTN, SYBDATETIMN, SYBMONEYN, or SYBFLTN parameter via dbrpcparam, it is necessary to specify the parameter's maximum or actual length so that DB-Library can recognize it as a SYINT1, SYBINT2, SYBINT4, SYBMONEY, SYBMONEY4, and so on.
@@ -275,12 +275,12 @@ SYBESECURE	EXPROGRAM	Secure SQL Server function not supported in this version.
 SYBESEFA	EXPROGRAM	DBSETNOTIFS cannot be called if connections are present.
 SYBESEOF	EXCOMM	Unexpected EOF from the server.
 SYBESFOV	EXPROGRAM	International Release: dbsafestr overflowed its destination buffer.
-SYBESMSG	EXSERVER	General Adaptive Server error: Check messages from the server.
+SYBESMSG	EXSERVER	General TDS server error: Check messages from the server.
 SYBESOCK	EXCOMM	Unable to open socket.
 SYBESPID	EXPROGRAM	Called dbspid with a NULL dbproc.
-SYBESYNC	EXCOMM	Read attempted while out of synchronization with Adaptive Server.
+SYBESYNC	EXCOMM	Read attempted while out of synchronization with TDS server.
 SYBETEXS	EXINFO	Called dbmoretext with a bad size parameter.
-SYBETIME	EXTIME	Adaptive Server connection timed out.
+SYBETIME	EXTIME	TDS server connection timed out.
 SYBETMCF	EXPROGRAM	Attempt to install too many custom formats via dbfmtinstall.
 SYBETMTD	EXPROGRAM	Attempt to send too much TEXT data via the dbmoretext call.
 SYBETPAR	EXPROGRAM	No SYBTEXT or SYBIMAGE parameters were defined.

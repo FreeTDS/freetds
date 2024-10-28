@@ -7917,7 +7917,7 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
 	, { SYBECNOR,           EXPROGRAM,	"Column number out of range\0" }
 	, { SYBECNOV,        EXCONVERSION,	"Attempt to set variable to NULL resulted in overflow\0" }
 	, { SYBECOFL,        EXCONVERSION,	"Data conversion resulted in overflow\0" }
-	, { SYBECONN,              EXCOMM,	"Unable to connect: Adaptive Server is unavailable or does not exist\0" }
+	, { SYBECONN,              EXCOMM,	"Unable to connect: TDS server is unavailable or does not exist\0" }
 	, { SYBECRNC,           EXPROGRAM,	"The current row is not a result of compute clause %1!, so it is illegal to attempt "
 						"to extract that data from this row\0%d" }
 	, { SYBECRSAGR,         EXPROGRAM,	"Aggregate functions are not allowed in a cursor statement\0" }
@@ -7975,20 +7975,20 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
 	, { SYBEEUNR,              EXCOMM,	"Unsolicited event notification received\0" }
 	, { SYBEEVOP,              EXINFO,	"Called dbregwatch with a bad options parameter\0" }
 	, { SYBEEVST,              EXINFO,	"Must initiate a transaction before calling dbregparam\0" }
-	, { SYBEFCON,              EXCOMM,	"Adaptive Server connection failed\0" }
+	, { SYBEFCON,              EXCOMM,	"TDS server connection failed\0" }
 	, { SYBEFRES,             EXFATAL,	"Challenge-Response function failed\0" }
 	, { SYBEFSHD,          EXRESOURCE,	"Error in attempting to find the Sybase home directory\0" }
 	, { SYBEFUNC,           EXPROGRAM,	"Functionality not supported at the specified version level\0" }
 	, { SYBEICN,            EXPROGRAM,	"Invalid computeid or compute column number\0" }
-	, { SYBEIDCL,       EXCONSISTENCY,	"Illegal datetime column length returned by Adaptive Server. Legal datetime lengths "
+	, { SYBEIDCL,       EXCONSISTENCY,	"Illegal datetime column length returned by TDS server. Legal datetime lengths "
 						"are 4 and 8 bytes\0" }
 	, { SYBEIDECCL,     EXCONSISTENCY,	"Invalid decimal column length returned by the server\0" }
-	, { SYBEIFCL,       EXCONSISTENCY,	"Illegal floating-point column length returned by Adaptive Server. Legal "
+	, { SYBEIFCL,       EXCONSISTENCY,	"Illegal floating-point column length returned by TDS server. Legal "
 						"floating-point lengths are 4 and 8 bytes\0" }
 	, { SYBEIFNB,           EXPROGRAM,	"Illegal field number passed to bcp_control\0" }
-	, { SYBEIICL,       EXCONSISTENCY,	"Illegal integer column length returned by Adaptive Server. Legal integer lengths "
+	, { SYBEIICL,       EXCONSISTENCY,	"Illegal integer column length returned by TDS server. Legal integer lengths "
 						"are 1, 2, and 4 bytes\0" }
-	, { SYBEIMCL,       EXCONSISTENCY,	"Illegal money column length returned by Adaptive Server. Legal money lengths are 4 "
+	, { SYBEIMCL,       EXCONSISTENCY,	"Illegal money column length returned by TDS server. Legal money lengths are 4 "
 						"and 8 bytes\0" }
 	, { SYBEINLN,              EXUSER,	"Interface file: unexpected end-of-line\0" }
 	, { SYBEINTF,              EXUSER,	"Server name not found in configuration files\0" }
@@ -8040,7 +8040,7 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
 						"type SYBCHAR, SYBVARCHAR, SYBBINARY, or SYBVARBINARY\0" }
 	, { SYBERPNA,          EXNONFATAL,	"The RPC facility is available only when using a server whose version number is 4.0 "
 						"or later\0" }
-	, { SYBERPND,           EXPROGRAM,	"Attempt to initiate a new Adaptive Server operation with results pending\0" }
+	, { SYBERPND,           EXPROGRAM,	"Attempt to initiate a new TDS server operation with results pending\0" }
 	, { SYBERPNULL,         EXPROGRAM,	"value parameter for dbrpcparam can be NULL, only if the datalen parameter is 0\0" }
 	, { SYBERPTXTIM,        EXPROGRAM,	"RPC parameters cannot be of type text or image\0" }
 	, { SYBERPUL,           EXPROGRAM,	"When passing a SYBINTN, SYBDATETIMN, SYBMONEYN, or SYBFLTN parameter via "
@@ -8056,12 +8056,12 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
 	, { SYBESEFA,           EXPROGRAM,	"DBSETNOTIFS cannot be called if connections are present\0" }
 	, { SYBESEOF,              EXCOMM,	"Unexpected EOF from the server\0" }
 	, { SYBESFOV,           EXPROGRAM,	"International Release: dbsafestr overflowed its destination buffer\0" }
-	, { SYBESMSG,            EXSERVER,	"General Adaptive Server error: Check messages from the server\0" }
+	, { SYBESMSG,            EXSERVER,	"General TDS server error: Check messages from the server\0" }
 	, { SYBESOCK,              EXCOMM,	"Unable to open socket\0" }
 	, { SYBESPID,           EXPROGRAM,	"Called dbspid with a NULL dbproc\0" }
-	, { SYBESYNC,              EXCOMM,	"Read attempted while out of synchronization with Adaptive Server\0" }
+	, { SYBESYNC,              EXCOMM,	"Read attempted while out of synchronization with TDS server\0" }
 	, { SYBETEXS,              EXINFO,	"Called dbmoretext with a bad size parameter\0" }
-	, { SYBETIME,              EXTIME,	"Adaptive Server connection timed out\0" }
+	, { SYBETIME,              EXTIME,	"TDS server connection timed out\0" }
 	, { SYBETMCF,           EXPROGRAM,	"Attempt to install too many custom formats via dbfmtinstall\0" }
 	, { SYBETMTD,           EXPROGRAM,	"Attempt to send too much TEXT data via the dbmoretext call\0" }
 	, { SYBETPAR,           EXPROGRAM,	"No SYBTEXT or SYBIMAGE parameters were defined\0" }

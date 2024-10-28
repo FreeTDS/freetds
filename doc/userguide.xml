@@ -1711,7 +1711,7 @@ The server responds with a port number.
 	<prompt>$ </prompt><userinput>tsql -S <replaceable>emforester</replaceable> -U <replaceable>sa</replaceable>   #only connect?</userinput>
 	<prompt>Password: </prompt>
 	<computeroutput>Msg 20009, Level 9, State -1, Server OpenClient, Line -1
-	Unable to connect: Adaptive Server is unavailable or does not exist
+	Unable to connect: TDS server is unavailable or does not exist
 	There was a problem connecting to the server</computeroutput></screen>
 	</example>
 	If you get message 20009, remember you haven't connected to the machine.  It's a configuration or network issue,  <emphasis>not a protocol failure</emphasis>.  Verify the server is up, has the name and IP address &freetds; is using, and is listening to the configured port.</para>
@@ -1744,7 +1744,7 @@ The server responds with a port number.
 	<computeroutput>Msg 20017, Level 9, State -1, Server OpenClient, Line -1
 	Unexpected EOF from the server
 	Msg 20002, Level 9, State -1, Server OpenClient, Line -1
-	Adaptive Server connection failed
+	TDS server connection failed
 	There was a problem connecting to the server</computeroutput></screen>
 	</example>
 	
@@ -1761,7 +1761,7 @@ The server responds with a port number.
 	<computeroutput>Msg 18456, Level 14, State 1, Server [<replaceable>servername</replaceable>], Line 0
 	Login failed for user 'notme'.
 	Msg 20002, Level 9, State -1, Server OpenClient, Line -1
-	Adaptive Server connection failed
+	TDS server connection failed
 	There was a problem connecting to the server</computeroutput></screen>
 	</example></para>
 	

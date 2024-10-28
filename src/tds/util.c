@@ -250,22 +250,22 @@ static const TDS_ERROR_MESSAGE tds_error_messages[] =
 						"Unconverted bytes were changed to question marks ('?')" }
 	, { TDSEICONV2BIG,   EXCONVERSION,	"Some character(s) could not be converted into client's character set" }
 	, { TDSEPORTINSTANCE,      EXUSER,      "Both port and instance specified" }
-	, { TDSERPND,           EXPROGRAM,	"Attempt to initiate a new Adaptive Server operation with results pending" }
+	, { TDSERPND,           EXPROGRAM,	"Attempt to initiate a new TDS server operation with results pending" }
 	, { TDSEBTOK,              EXCOMM,	"Bad token from the server: Datastream processing out of sync" }
 	, { TDSECAP,               EXCOMM,	"DB-Library capabilities not accepted by the Server" }
 	, { TDSECAPTYP,            EXCOMM,	"Unexpected capability type in CAPABILITY datastream" }
 	, { TDSECLOS,              EXCOMM,	"Error in closing network connection" }
-	, { TDSECONN,              EXCOMM,	"Unable to connect: Adaptive Server is unavailable or does not exist" }
+	, { TDSECONN,              EXCOMM,	"Unable to connect: TDS server is unavailable or does not exist" }
 	, { TDSEEUNR,              EXCOMM,	"Unsolicited event notification received" }
-	, { TDSEFCON,              EXCOMM,	"Adaptive Server connection failed" }
+	, { TDSEFCON,              EXCOMM,	"TDS server connection failed" }
 	, { TDSENEG,               EXCOMM,	"Negotiated login attempt failed" }
 	, { TDSEOOB,               EXCOMM,	"Error in sending out-of-band data to the server" }
 	, { TDSEREAD,              EXCOMM,	"Read from the server failed" }
-	, { TDSETIME,              EXTIME,	"Adaptive Server connection timed out" }
+	, { TDSETIME,              EXTIME,	"TDS server connection timed out" }
 	, { TDSESEOF,              EXCOMM,	"Unexpected EOF from the server" }
 	, { TDSEINTF,          	   EXUSER,	"Server name not found in configuration files." }
 	, { TDSESOCK,              EXCOMM,	"Unable to open socket" }
-	, { TDSESYNC,              EXCOMM,	"Read attempted while out of synchronization with Adaptive Server" }
+	, { TDSESYNC,              EXCOMM,	"Read attempted while out of synchronization with TDS server" }
 	, { TDSEUHST,	           EXUSER,	"Unknown host machine name." }
 	, { TDSEUMSG,              EXCOMM,	"Unknown message-id in MSG datastream" }
 	, { TDSEUSCT,              EXCOMM,	"Unable to set communications timer" }

@@ -65,7 +65,7 @@ it's a compatibility feature.  </p>
 	<li>update table B</li>
 </ol>
 
-using a single connection to the server.  An attempt to use one connection in this way results in the dread 20019 error: &ldquo;Attempt to initiate a new Adaptive Server operation with results pending&rdquo;.  </p>
+using a single connection to the server.  An attempt to use one connection in this way results in the dread 20019 error: &ldquo;Attempt to initiate a new TDS server operation with results pending&rdquo;.  </p>
 
 <p>  To implement the above, a TDS client uses two connections: one for selecting, the other for updating.  </p>
 
