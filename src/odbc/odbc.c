@@ -5604,8 +5604,17 @@ odbc_SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, 
 	case SQL_DRIVER_HENV:
 		ULVAL = (SQLULEN) dbc->env;
 		break;
-	case SQL_DRIVER_HSTMT:
-		ULVAL = (SQLULEN) dbc->current_statement;
+	case SQL_DRIVER_HSTMT: {
+			void *ptr = *((void**) rgbInfoValue);
+			if (SQL_NULL_HSTMT != ptr && !IS_HSTMT(ptr))
+				ULVAL = SQL_NULL_HSTMT;
+		}
+		break;
+	case SQL_DRIVER_HDESC: {
+			void *ptr = *((void**) rgbInfoValue);
+			if (SQL_NULL_HDESC != ptr && !IS_HDESC(ptr))
+				ULVAL = SQL_NULL_HDESC;
+		}
 		break;
 	case SQL_DRIVER_NAME:	/* ODBC 2.0 */
 		p = "libtdsodbc.so";
@@ -7277,10 +7286,6 @@ odbc_log_unimplemented_type(const char function_name[], int fType)
 	case SQL_DM_VER:
 		name = "SQL_DM_VER";
 		category = "Added for ODBC 3.x";
-		break;
-	case SQL_DRIVER_HDESC:
-		name = "SQL_DRIVER_HDESC";
-		category = "Driver Information";
 		break;
 	case SQL_DRIVER_HLIB:
 		name = "SQL_DRIVER_HLIB";
