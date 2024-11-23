@@ -247,6 +247,9 @@ tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE typ
 {
 	if (IS_TDS7_PLUS(conn)) {
 		switch (type) {
+		case SYBNVARCHAR:
+			type = XSYBNVARCHAR;
+			break;
 		case SYBVARCHAR:
 			type = XSYBVARCHAR;
 			break;
