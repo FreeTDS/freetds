@@ -1696,6 +1696,10 @@ typedef struct tds5_colinfo
 	TDS_TINYINT status;
 	TDS_SMALLINT offset;
 	TDS_INT length;
+	TDS_TINYINT dflt;
+
+	TDS_INT dflt_size;
+	TDS_UCHAR* dflt_value;
 } TDS5COLINFO;
 
 struct tds_bcpinfo
@@ -1711,6 +1715,11 @@ struct tds_bcpinfo
 	TDSRESULTINFO *bindinfo;
 	TDS5COLINFO *sybase_colinfo;
 	TDS_INT sybase_count;
+	TDS_INT text_sent;
+	TDS_INT next_col;
+	TDS_INT blob_cols;
+	TDS_INT rows_sent;
+	bool with_triggers;
 };
 
 TDSRET tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
