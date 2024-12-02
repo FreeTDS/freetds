@@ -102,7 +102,7 @@ main(int argc, char **argv)
 		exit(1);
 	resinfo->current_row = (TDS_UCHAR*) "pubs2";
 	resinfo->columns[0]->column_data = resinfo->current_row;
-	tds_send_result(tds, resinfo);
+	tds_send_table_header(tds, resinfo);
 	tds_send_control_token(tds, 1);
 	tds_send_row(tds, resinfo);
 	tds_send_done_token(tds, 16, 1);

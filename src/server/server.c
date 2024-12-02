@@ -269,7 +269,8 @@ tds_send_control_token(TDSSOCKET * tds, TDS_SMALLINT numcols)
 		tds_put_byte(tds, 0);
 	}
 }
-void
+
+static void
 tds_send_col_name(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 {
 	int col, hdrsize = 0;
@@ -289,7 +290,8 @@ tds_send_col_name(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 		tds_put_n(tds, tds_dstr_cstr(&curcol->column_name), tds_dstr_len(&curcol->column_name));
 	}
 }
-void
+
+static void
 tds_send_col_info(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 {
 	int col, hdrsize = 0;
@@ -316,7 +318,7 @@ tds_send_col_info(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 	}
 }
 
-void
+static void
 tds_send_result(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 {
 	TDSCOLUMN *curcol;
@@ -352,7 +354,7 @@ tds_send_result(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 	}
 }
 
-void
+static void
 tds7_send_result(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 {
 	int i, j;
@@ -436,6 +438,7 @@ tds_send_table_header(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 		break;
 
 	case 7:
+	case 8:
 		/*
 		 * TDS7+ uses a TDS7_RESULT_TOKEN to send all column
 		 * information.
