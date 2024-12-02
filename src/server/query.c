@@ -80,9 +80,13 @@ tds_get_query_head(TDSSOCKET * tds, TDSHEADERS * head)
 	size_t qn_msgtext_len = 0;
 	size_t qn_options_len = 0;
 
-	if (!IS_TDS72_PLUS(tds->conn)) {
+	if (!IS_TDS72_PLUS(tds->conn))
 		return TDS_SUCCESS;
-	}
+
+	free((void *) head->qn_options);
+	head->qn_options = NULL;
+	free((void *) head->qn_msgtext);
+	head->qn_msgtext = NULL;
 
 	qn_len = tds_get_int(tds) - 4 - 18;  /* total length */
 	tds_get_int(tds);  /* length: transaction descriptor, ignored */
