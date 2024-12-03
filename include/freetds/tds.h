@@ -242,30 +242,6 @@ enum tds_token_flags
 	TDS_TOKEN_TRAILING = TDS_STOPAT_ROWFMT|TDS_STOPAT_COMPUTEFMT|TDS_STOPAT_ROW|TDS_STOPAT_COMPUTE|TDS_STOPAT_MSG|TDS_STOPAT_OTHERS
 };
 
-/**
- * Flags returned in TDS_DONE token
- */
-enum tds_end
-{
-	  TDS_DONE_FINAL 	= 0x00	/**< final result set, command completed successfully. */
-	, TDS_DONE_MORE_RESULTS = 0x01	/**< more results follow */
-	, TDS_DONE_ERROR 	= 0x02	/**< error occurred */
-	, TDS_DONE_INXACT 	= 0x04	/**< transaction in progress */
-	, TDS_DONE_PROC 	= 0x08	/**< results are from a stored procedure */
-	, TDS_DONE_COUNT 	= 0x10	/**< count field in packet is valid */
-	, TDS_DONE_CANCELLED 	= 0x20	/**< acknowledging an attention command (usually a cancel) */
-	, TDS_DONE_EVENT 	= 0x40	/*   part of an event notification. */
-	, TDS_DONE_SRVERROR 	= 0x100	/**< SQL server server error */
-	
-	/* after the above flags, a TDS_DONE packet has a field describing the state of the transaction */
-	, TDS_DONE_NO_TRAN 	= 0	/* No transaction in effect */
-	, TDS_DONE_TRAN_SUCCEED = 1	/* Transaction completed successfully */
-	, TDS_DONE_TRAN_PROGRESS= 2	/* Transaction in progress */
-	, TDS_DONE_STMT_ABORT 	= 3	/* A statement aborted */
-	, TDS_DONE_TRAN_ABORT 	= 4	/* Transaction aborted */
-};
-
-
 /*
  * TDSERRNO is emitted by libtds to the client library's error handler
  * (which may in turn call the client's error handler).
