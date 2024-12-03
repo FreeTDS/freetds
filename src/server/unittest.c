@@ -80,7 +80,7 @@ main(int argc, char **argv)
 		tds_send_login_ack(tds, "sql server");
 		if (IS_TDS50(tds->conn))
 			tds_send_capabilities_token(tds);
-		tds_send_done_token(tds, 0, 1);
+		tds_send_done_token(tds, TDS_DONE_FINAL, 1);
 	} else {
 		/* send nack before exiting */
 		exit(1);
@@ -105,7 +105,7 @@ main(int argc, char **argv)
 	tds_send_table_header(tds, resinfo);
 	tds_send_control_token(tds, 1);
 	tds_send_row(tds, resinfo);
-	tds_send_done_token(tds, 16, 1);
+	tds_send_done_token(tds, TDS_DONE_COUNT, 1);
 	tds_flush_packet(tds);
 	tds_sleep_s(30);
 

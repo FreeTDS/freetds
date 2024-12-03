@@ -438,7 +438,7 @@ pool_user_send_login_ack(TDS_POOL * pool, TDS_POOL_USER * puser)
 	sprintf(block, "%d", tds->conn->env.block_size);
 	tds_env_change(tds, TDS_ENV_PACKSIZE, block, block);
 	/* tds_send_capabilities_token(tds); */
-	tds_send_done_token(tds, 0, 0);
+	tds_send_done_token(tds, TDS_DONE_FINAL, 0);
 
 	/* send it! */
 	tds_flush_packet(tds);
