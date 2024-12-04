@@ -36,6 +36,7 @@ extern "C"
 
 /* buld properties start with 1 i guess */
 #define BLK_IDENTITY 1
+#define BLK_HINTS    1
 
 CS_RETCODE blk_alloc(CS_CONNECTION * connection, CS_INT version, CS_BLKDESC ** blk_pointer);
 CS_RETCODE blk_bind(CS_BLKDESC * blkdesc, CS_INT colnum, CS_DATAFMT * datafmt, CS_VOID * buffer, CS_INT * datalen,
@@ -48,6 +49,7 @@ CS_RETCODE blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow);
 CS_RETCODE blk_drop(CS_BLKDESC * blkdesc);
 CS_RETCODE blk_getrow(SRV_PROC * srvproc, CS_BLKDESC * blkdescp, CS_BLK_ROW * rowp);
 CS_RETCODE blk_gettext(SRV_PROC * srvproc, CS_BLKDESC * blkdescp, CS_BLK_ROW * rowp, CS_INT bufsize, CS_INT * outlenp);
+CS_RETCODE blk_hints(CS_BLKDESC * blkdesc, const CS_CHAR * buffer);
 CS_RETCODE blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tnamelen);
 CS_RETCODE blk_props(CS_BLKDESC * blkdesc, CS_INT action, CS_INT property, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen);
 CS_RETCODE blk_rowalloc(SRV_PROC * srvproc, CS_BLK_ROW ** row);

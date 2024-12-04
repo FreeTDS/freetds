@@ -156,10 +156,10 @@ blk_bind(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt_arg, CS_VOID * 
 
 	colinfo = blkdesc->bcpinfo.bindinfo->columns[item - 1];
 
-	colinfo->column_varaddr = (char *) buffer;
+	colinfo->column_varaddr  = (char *) buffer;
 	colinfo->column_bindtype = datafmt->datatype;
-	colinfo->column_bindfmt = datafmt->format;
-	colinfo->column_bindlen = datafmt->maxlength;
+	colinfo->column_bindfmt  = datafmt->format;
+	colinfo->column_bindlen  = datafmt->maxlength;
 	if (indicator) {
 		colinfo->column_nullbind = indicator;
 	}
@@ -224,9 +224,9 @@ blk_describe(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt_arg)
 			curcol->column_type);
 	/* FIXME is ok this value for numeric/decimal? */
 	datafmt->maxlength = curcol->column_size;
-	datafmt->usertype = curcol->column_usertype;
+	datafmt->usertype  = curcol->column_usertype;
 	datafmt->precision = curcol->column_prec;
-	datafmt->scale = curcol->column_scale;
+	datafmt->scale     = curcol->column_scale;
 
 	/*
 	 * There are other options that can be returned, but these are the
@@ -323,6 +323,15 @@ blk_gettext(SRV_PROC * srvproc, CS_BLKDESC * blkdescp, CS_BLK_ROW * rowp, CS_INT
 
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED blk_gettext()\n");
 	return CS_FAIL;
+}
+
+CS_RETCODE
+blk_hints(CS_BLKDESC * blkdesc, const CS_CHAR * buffer)
+{
+	tdsdump_log(TDS_DBG_FUNC, "blk_hints(%p)\n", blkdesc);
+
+	blkdesc->bcpinfo.hint = buffer;
+	return CS_SUCCEED;
 }
 
 CS_RETCODE
@@ -710,7 +719,7 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 		CS_DATAFMT_COMMON srcfmt, destfmt;
 		CS_INT desttype;
 
-		srcfmt.datatype = srctype;
+		srcfmt.datatype  = srctype;
 		srcfmt.maxlength = srclen;
 
 		desttype = _cs_convert_not_client(ctx, bindcol, &convert_buffer, &src);
@@ -718,6 +727,7 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 			desttype = _ct_get_client_type(bindcol, false);
 		if (desttype == CS_ILLEGAL_TYPE)
 			return TDS_FAIL;
+
 		destfmt.datatype  = desttype;
 		destfmt.maxlength = bindcol->on_server.column_size;
 		destfmt.precision = bindcol->column_prec;
@@ -725,9 +735,9 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 		destfmt.format    = CS_FMT_UNUSED;
 
 		/* if convert return FAIL mark error but process other columns */
-		if ((result = _cs_convert(ctx, &srcfmt, (CS_VOID *) src,
-					 &destfmt, (CS_VOID *) bindcol->bcp_column_data->data, &destlen)) != CS_SUCCEED) {
-			tdsdump_log(TDS_DBG_INFO1, "convert failed for %d \n", srctype);
+		result = _cs_convert(ctx, &srcfmt, (CS_VOID *)src, &destfmt, (CS_VOID *)bindcol->bcp_column_data->data, &destlen);
+		if ( result != CS_SUCCEED ) {
+			tdsdump_log(TDS_DBG_INFO1, "convert failed for srctype %d -> desttype %d \n", srctype, desttype);
 			return TDS_FAIL;
 		}
 	}

@@ -408,7 +408,7 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 	if (!con)
 		return CS_FAIL;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_con_props() action = %s property = %d\n", CS_GET ? "CS_GET" : "CS_SET", property);
+	tdsdump_log(TDS_DBG_FUNC, "ct_con_props() action = %s property = %d\n", (action==CS_GET ? "CS_GET" : "CS_SET"), property);
 
 	tds = con->tds_socket;
 	tds_login = con->tds_login;
