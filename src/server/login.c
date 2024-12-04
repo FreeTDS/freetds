@@ -77,6 +77,7 @@ tds_listen(TDSCONTEXT * ctx, int ip_port)
 	TDSSOCKET *tds;
 	TDS_SYS_SOCKET fd, s;
 	socklen_t len;
+	int optval = 1;
 #ifdef AF_INET6
 	struct sockaddr_in6 sin;
 
@@ -99,6 +100,7 @@ tds_listen(TDSCONTEXT * ctx, int ip_port)
 		perror("socket");
 		return NULL;
 	}
+	setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (void*) &optval, sizeof(optval));
 	if (bind(s, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
 		CLOSESOCKET(s);
 		perror("bind");
