@@ -1,0 +1,78 @@
+name: Windows
+
+on:
+    push:
+        branches:
+            - '**'
+        paths-ignore:
+            - .github/workflows/macos.yml
+            - .github/workflows/linux.yml
+        tags:
+            - 'v[0-9]+.[0-9]+.[0-9]+'
+            - 'v[0-9]+.[0-9]+.[0-9]+rc[0-9]+'
+    pull_request:
+        branches:
+            - '**'
+        paths-ignore:
+            - .github/workflows/macos.yml
+            - .github/workflows/linux.yml
+
+    workflow_dispatch:
+
+jobs:
+
+    build:
+
+        runs-on: ${{ matrix.os }}
+
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [windows-latest]
+
+        env:
+            PREFIX: /freetds
+            ICONV_URL: https://codeload.github.com/win-iconv/win-iconv/zip
+            ICONV_VER: 0.0.8
+
+        steps:
+
+        - uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
+
+        - uses: ilammy/msvc-dev-cmd@v1
+
+        - name: Install OpenSSL & perf
+          run: |
+            choco install openssl --version=3.1.1
+            choco install gperf
+
+        - name: Install & build dependencies
+          shell:  bash
+          run: |
+            curl -sSf ${ICONV_URL}/v${ICONV_VER} -o win_iconv.zip
+            7z x win_iconv.zip
+            mv win-iconv-${ICONV_VER} iconv
+            mkdir iconv-build
+            cd iconv-build
+            cmake -G "NMake Makefiles" \
+                    -DBUILD_STATIC=on \
+                    -DBUILD_SHARED=off \
+                    -DBUILD_EXECUTABLE=off \
+                    -DBUILD_TEST=on \
+                    -DCMAKE_BUILD_TYPE=Release \
+                    ../iconv
+            nmake
+            cd ..
+            mkdir -p build/lib
+            cp iconv/iconv.h .
+            cp iconv-build/iconv.lib ./lib
+            cd build
+            cmake -G "NMake Makefiles" \
+                    -DCMAKE_BUILD_TYPE=Release \
+                    -DENABLE_MSDBLIB=on \
+                    -DWITH_OPENSSL=ON \
+                    -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX \
+                    ..
+            nmake
