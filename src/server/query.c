@@ -147,6 +147,7 @@ tds_get_generic_query(TDSSOCKET * tds)
 		switch (tds->in_flag) {
 		case TDS_RPC:
 			/* TODO */
+			return NULL;
 		case TDS_NORMAL: /* TDS5 query packet */
 			/* get the token */
 			token = tds_get_byte(tds);

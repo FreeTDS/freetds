@@ -347,11 +347,10 @@ tds_send_result(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 	}
 }
 
-static void
+static TDSRET
 tds7_send_result(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 {
-	int i, j;
-	TDSCOLUMN *curcol;
+	int i;
 
 	/* TDS7+ uses TDS7_RESULT_TOKEN to send column names and info */
 	tds_put_byte(tds, TDS7_RESULT_TOKEN);
@@ -361,42 +360,24 @@ tds7_send_result(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 
 	/* send info about each column */
 	for (i = 0; i < resinfo->num_cols; i++) {
+		TDSCOLUMN *curcol = resinfo->columns[i];
 
 		/* usertype, flags, and type */
-		curcol = resinfo->columns[i];
-		tds_put_smallint(tds, curcol->column_usertype);
+		if (IS_TDS72_PLUS(tds->conn))
+			tds_put_int(tds, curcol->column_usertype);
+		else
+			tds_put_smallint(tds, curcol->column_usertype);
 		tds_put_smallint(tds, curcol->column_flags);
-		tds_put_byte(tds, curcol->column_type); /* smallint? */
+		tds_put_byte(tds, curcol->on_server.column_type);
 
-		/* bytes in "size" field varies */
-		if (is_blob_type(curcol->column_type)) {
-			tds_put_int(tds, curcol->column_size);
-		} else if (curcol->column_type>=128) { /*is_large_type*/
-			tds_put_smallint(tds, curcol->column_size);
-		} else {
-			tds_put_tinyint(tds, curcol->column_size);
-		}
-
-		/* some types have extra info */
-		if (is_numeric_type(curcol->column_type)) {
-			tds_put_tinyint(tds, curcol->column_prec);
-			tds_put_tinyint(tds, curcol->column_scale);
-		} else if (is_blob_type(curcol->column_type)) {
-			size_t len = tds_dstr_len(&curcol->table_name);
-			const char *name = tds_dstr_cstr(&curcol->table_name);
-
-			tds_put_smallint(tds, 2 * len);
-			for (j = 0; name[j] != '\0'; j++){
-				tds_put_byte(tds, name[j]);
-				tds_put_byte(tds, 0);
-			}
-		}
+		TDS_PROPAGATE(curcol->funcs->put_info(tds, curcol));
 
 		/* finally the name, in UTF-16 format */
 		TDS_START_LEN_TINYINT(tds) {
 			tds_put_string(tds, tds_dstr_cstr(&curcol->column_name), tds_dstr_len(&curcol->column_name));
 		} TDS_END_LEN_STRING
 	}
+	return TDS_SUCCESS;
 }
 
 /**
@@ -409,7 +390,7 @@ tds7_send_result(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
  * \param resinfo	Describes the table to be send, especially the number
  *			of columns and the names & data types of each column.
  */
-void
+TDSRET
 tds_send_table_header(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 {
 	switch (TDS_MAJOR(tds->conn)) {
@@ -434,29 +415,24 @@ tds_send_table_header(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 		 * TDS7+ uses a TDS7_RESULT_TOKEN to send all column
 		 * information.
 		 */
-		tds7_send_result(tds, resinfo);
+		return tds7_send_result(tds, resinfo);
 		break;
 	}
+	return TDS_SUCCESS;
 }
 
-void
+TDSRET
 tds_send_row(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 {
-	TDSCOLUMN *curcol;
-	int colsize, i;
+	int i;
 
 	tds_put_byte(tds, TDS_ROW_TOKEN);
 	for (i = 0; i < resinfo->num_cols; i++) {
-		curcol = resinfo->columns[i];
-		if (!is_fixed_type(curcol->column_type)) {
-			/* FIX ME -- I have no way of knowing the actual length of non character variable data (eg nullable int) */
-			colsize = strlen((char *) curcol->column_data);
-			tds_put_byte(tds, colsize);
-			tds_put_n(tds, curcol->column_data, colsize);
-		} else {
-			tds_put_n(tds, curcol->column_data, tds_get_size_by_type(curcol->column_type));
-		}
+		TDSCOLUMN *curcol = resinfo->columns[i];
+
+		TDS_PROPAGATE(curcol->funcs->put_data(tds, curcol, 0));
 	}
+	return TDS_SUCCESS;
 }
 
 void

@@ -52,8 +52,8 @@ void tds_send_capabilities_token(TDSSOCKET * tds);
 void tds_send_done_token(TDSSOCKET * tds, TDS_SMALLINT flags, TDS_INT numrows);
 void tds_send_done(TDSSOCKET * tds, int token, TDS_SMALLINT flags, TDS_INT numrows);
 void tds_send_control_token(TDSSOCKET * tds, TDS_SMALLINT numcols);
-void tds_send_table_header(TDSSOCKET * tds, TDSRESULTINFO * resinfo);
-void tds_send_row(TDSSOCKET * tds, TDSRESULTINFO * resinfo);
+TDSRET tds_send_table_header(TDSSOCKET * tds, TDSRESULTINFO * resinfo);
+TDSRET tds_send_row(TDSSOCKET * tds, TDSRESULTINFO * resinfo);
 void tds71_send_prelogin(TDSSOCKET * tds);
 
 #if 0
