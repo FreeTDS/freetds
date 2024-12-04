@@ -1,0 +1,51 @@
+name: macOS
+
+on:
+    push:
+        branches:
+            - '**'
+        paths-ignore:
+            - .github/workflows/linux.yml
+        tags:
+            - 'v[0-9]+.[0-9]+.[0-9]+'
+            - 'v[0-9]+.[0-9]+.[0-9]+rc[0-9]+'
+    pull_request:
+        branches:
+            - '**'
+        paths-ignore:
+            - .github/workflows/linux.yml
+
+    workflow_dispatch:
+
+jobs:
+
+    build:
+
+        runs-on: ${{ matrix.os }}
+
+        strategy:
+            matrix:
+                os: [macos-13]
+
+        env:
+            PREFIX: /tmp/freetds
+
+        steps:
+
+        - uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
+
+        - name: Install dependencies
+          run: |
+            brew install autoconf automake libtool \
+                         libiconv gettext gperf
+
+        - name: configure
+          run: |
+            autoreconf -i
+            ./configure --with-gnutls  --enable-silent-rules \
+                        --prefix=${PREFIX}
+
+        - name: make
+          run: make
