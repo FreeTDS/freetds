@@ -1594,15 +1594,11 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 		tdsdump_log(TDS_DBG_ERROR, "tds_put_data_info putting param_name \n");
 
 		if (IS_TDS7_PLUS(tds->conn)) {
-			TDSFREEZE outer;
-			size_t written;
-
-			tds_freeze(tds, &outer, 1);
-			if ((flags & TDS_PUT_DATA_PREFIX_NAME) != 0)
-				tds_put_smallint(tds, '@');
-			tds_put_string(tds, tds_dstr_cstr(&curcol->column_name), len);
-			written = (tds_freeze_written(&outer) - 1) / 2;
-			tds_freeze_close_len(&outer, written);
+			TDS_START_LEN_TINYINT(tds) { /* param name len */
+				if ((flags & TDS_PUT_DATA_PREFIX_NAME) != 0)
+					tds_put_smallint(tds, '@');
+				tds_put_string(tds, tds_dstr_cstr(&curcol->column_name), len);
+			} TDS_END_LEN_STRING
 		} else {
 			TDS_START_LEN_TINYINT(tds) { /* param name len */
 				tds_put_string(tds, tds_dstr_cstr(&curcol->column_name), len);
@@ -1999,17 +1995,13 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params, TDS
 
 	rpc_name_len = (int)strlen(rpc_name);
 	if (IS_TDS7_PLUS(tds->conn)) {
-		TDSFREEZE outer;
-		size_t written;
-
 		if (tds_start_query_head(tds, TDS_RPC, head) != TDS_SUCCESS)
 			return TDS_FAIL;
 
 		/* procedure name */
-		tds_freeze(tds, &outer, 2);
-		tds_put_string(tds, rpc_name, rpc_name_len);
-		written = tds_freeze_written(&outer) / 2 - 1;
-		tds_freeze_close_len(&outer, written);
+		TDS_START_LEN_USMALLINT(tds) {
+			tds_put_string(tds, rpc_name, rpc_name_len);
+		} TDS_END_LEN_STRING
 
 		/*
 		 * TODO support flags

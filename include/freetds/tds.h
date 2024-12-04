@@ -1592,6 +1592,7 @@ void tds_freeze(TDSSOCKET *tds, TDSFREEZE *freeze, unsigned size_len);
 size_t tds_freeze_written(TDSFREEZE *freeze);
 TDSRET tds_freeze_abort(TDSFREEZE *freeze);
 TDSRET tds_freeze_close(TDSFREEZE *freeze);
+TDSRET tds_freeze_close_string(TDSFREEZE *freeze);
 TDSRET tds_freeze_close_len(TDSFREEZE *freeze, int32_t size);
 
 inline static void
@@ -1612,6 +1613,7 @@ tds_set_current_send_packet(TDSSOCKET *tds, TDSPACKET *pkt)
 	TDSFREEZE current_freeze[1]; \
 	tds_freeze((tds_socket), current_freeze, (len)); do { do
 #define TDS_END_LEN while(0); } while(tds_freeze_close(current_freeze), 0); } while(0);
+#define TDS_END_LEN_STRING while(0); } while(tds_freeze_close_string(current_freeze), 0); } while(0);
 
 #define TDS_START_LEN_TINYINT(tds_socket) TDS_START_LEN_GENERIC(tds_socket, 1)
 #define TDS_START_LEN_USMALLINT(tds_socket) TDS_START_LEN_GENERIC(tds_socket, 2)
