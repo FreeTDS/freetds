@@ -6,6 +6,7 @@ on:
             - '**'
         paths-ignore:
             - .github/workflows/macos.yml
+            - .github/workflows/windows.yml
         tags:
             - 'v[0-9]+.[0-9]+.[0-9]+'
             - 'v[0-9]+.[0-9]+.[0-9]+rc[0-9]+'
@@ -14,6 +15,7 @@ on:
             - '**'
         paths-ignore:
             - .github/workflows/macos.yml
+            - .github/workflows/windows.yml
 
     workflow_dispatch:
 
