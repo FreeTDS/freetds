@@ -117,40 +117,30 @@ void
 tds_send_msg(TDSSOCKET * tds, int msgno, int msgstate, int severity,
 	     const char *msgtext, const char *srvname, const char *procname, int line)
 {
-	int msgsz;
-	size_t len;
+	TDSFREEZE outer;
 
-	tds_put_byte(tds, TDS_INFO_TOKEN);
 	if (!procname)
 		procname = "";
-	len = strlen(procname);
-	msgsz = 4		/* msg no    */
-		+ 1		/* msg state */
-		+ 1		/* severity  */
-		/* FIXME ucs2 */
-		+ 4 + (IS_TDS7_PLUS(tds->conn) ? 2 : 1) * (strlen(msgtext) + strlen(srvname) + len)
-		+ (IS_TDS72_PLUS(tds->conn) ? 4 : 2);	/* line number */
-	tds_put_smallint(tds, msgsz);
+
+	tds_put_byte(tds, TDS_INFO_TOKEN);
+	tds_freeze(tds, &outer, 2);
 	tds_put_int(tds, msgno);
 	tds_put_byte(tds, msgstate);
 	tds_put_byte(tds, severity);
-	tds_put_smallint(tds, strlen(msgtext));
-	/* FIXME ucs2 */
-	tds_put_string(tds, msgtext, strlen(msgtext));
-	tds_put_byte(tds, strlen(srvname));
-	/* FIXME ucs2 */
-	tds_put_string(tds, srvname, strlen(srvname));
-	if (len) {
-		tds_put_byte(tds, len);
-		/* FIXME ucs2 */
-		tds_put_string(tds, procname, len);
-	} else {
-		tds_put_byte(tds, 0);
-	}
+	TDS_START_LEN_USMALLINT(tds) {
+		tds_put_string(tds, msgtext, strlen(msgtext));
+	} TDS_END_LEN_STRING
+	TDS_START_LEN_TINYINT(tds) {
+		tds_put_string(tds, srvname, strlen(srvname));
+	} TDS_END_LEN_STRING
+	TDS_START_LEN_TINYINT(tds) {
+		tds_put_string(tds, procname, strlen(procname));
+	} TDS_END_LEN_STRING
 	if (IS_TDS72_PLUS(tds->conn))
 		tds_put_int(tds, line);
 	else
 		tds_put_smallint(tds, line);
+	tds_freeze_close(&outer);
 }
 
 void
@@ -164,9 +154,10 @@ void
 tds_send_login_ack(TDSSOCKET * tds, const char *progname)
 {
 	TDS_UINT ui, version;
+	TDSFREEZE outer;
 
 	tds_put_byte(tds, TDS_LOGINACK_TOKEN);
-	tds_put_smallint(tds, 10 + (IS_TDS7_PLUS(tds->conn)? 2 : 1) * strlen(progname));	/* length of message */
+	tds_freeze(tds, &outer, 2); 	/* length of message */
 	if (IS_TDS50(tds->conn)) {
 		tds_put_byte(tds, 5);
 		version = 0x05000000u;
@@ -188,13 +179,15 @@ tds_send_login_ack(TDSSOCKET * tds, const char *progname)
 	TDS_PUT_A4BE(&ui, version);
 	tds_put_n(tds, &ui, 4);
 
-	tds_put_byte(tds, strlen(progname));
-	/* FIXME ucs2 */
-	tds_put_string(tds, progname, strlen(progname));
+	TDS_START_LEN_TINYINT(tds) {
+		tds_put_string(tds, progname, strlen(progname));
+	} TDS_END_LEN
 
 	/* server version, always big endian */
 	TDS_PUT_A4BE(&ui, tds->conn->product_version & 0x7fffffffu);
 	tds_put_n(tds, &ui, 4);
+
+	tds_freeze_close(&outer);
 }
 
 void
@@ -399,12 +392,10 @@ tds7_send_result(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 			}
 		}
 
-		/* finally the name, in UCS16 format */
-		tds_put_byte(tds, tds_dstr_len(&curcol->column_name));
-		for (j = 0; j < tds_dstr_len(&curcol->column_name); j++) {
-			tds_put_byte(tds, tds_dstr_cstr(&curcol->column_name)[j]);
-			tds_put_byte(tds, 0);
-		}
+		/* finally the name, in UTF-16 format */
+		TDS_START_LEN_TINYINT(tds) {
+			tds_put_string(tds, tds_dstr_cstr(&curcol->column_name), tds_dstr_len(&curcol->column_name));
+		} TDS_END_LEN_STRING
 	}
 }
 
