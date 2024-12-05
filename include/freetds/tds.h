@@ -1678,8 +1678,8 @@ typedef struct tds5_colinfo
 
 struct tds_bcpinfo
 {
-	const char *hint;
 	void *parent;
+	DSTR hint;
 	DSTR tablename;
 	TDS_CHAR *insert_stmt;
 	TDS_INT direction;
