@@ -784,7 +784,7 @@ typedef enum tds_operations
 {
 	TDS_OP_NONE		= 0,
 
-	/* mssql operations */
+	/* MSSQL operations, these matches protocol definitions */
 	TDS_OP_CURSOR		= TDS_SP_CURSOR,
 	TDS_OP_CURSOROPEN	= TDS_SP_CURSOROPEN,
 	TDS_OP_CURSORPREPARE	= TDS_SP_CURSORPREPARE,
