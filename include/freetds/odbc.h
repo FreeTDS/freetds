@@ -311,7 +311,6 @@ struct _hdbc
 	TDS_INT default_query_timeout;
 
 	TDSBCPINFO *bcpinfo;
-	char *bcphint;
 };
 
 struct _hsattr

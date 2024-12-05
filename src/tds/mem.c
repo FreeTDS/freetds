@@ -1854,6 +1854,7 @@ tds_alloc_bcpinfo(void)
 
 	TEST_MALLOC(bcpinfo, TDSBCPINFO);
 
+	tds_dstr_init(&bcpinfo->hint);
 	tds_dstr_init(&bcpinfo->tablename);
 
 	return bcpinfo;
@@ -1864,6 +1865,7 @@ Cleanup:
 void
 tds_deinit_bcpinfo(TDSBCPINFO *bcpinfo)
 {
+	tds_dstr_free(&bcpinfo->hint);
 	tds_dstr_free(&bcpinfo->tablename);
 	TDS_ZERO_FREE(bcpinfo->insert_stmt);
 	tds_free_results(bcpinfo->bindinfo);

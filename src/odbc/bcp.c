@@ -181,8 +181,8 @@ odbc_bcp_control(TDS_DBC *dbc, int field, void *value)
 	case BCPHINTS:
 		if (!value)
 			ODBCBCP_ERROR_RETURN("HY009");
-		dbc->bcphint = strdup((char*)value);
-		dbc->bcpinfo->hint = dbc->bcphint;
+		if (!tds_dstr_copy(&dbc->bcpinfo->hint, (char*)value))
+			ODBCBCP_ERROR_RETURN("HY001");
 		break;
 	default:
 		ODBCBCP_ERROR_RETURN("HY009");
@@ -675,6 +675,5 @@ odbc_bcp_free_storage(TDS_DBC *dbc)
 
 	tds_free_bcpinfo(dbc->bcpinfo);
 	dbc->bcpinfo = NULL;
-	TDS_ZERO_FREE(dbc->bcphint);
 }
 
