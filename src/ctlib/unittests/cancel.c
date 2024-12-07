@@ -53,6 +53,12 @@ main(void)
 	unsigned clock = 200000;
 
 	printf("%s: Check asynchronous called ct_cancel()\n", __FILE__);
+
+	/* disable dump for this test, there are some issues with concurrent
+	 * execution of this test if logging is enabled. */
+	unsetenv("TDSDUMP");
+	unsetenv("TDSDUMPCONFIG");
+
 	if (verbose) {
 		printf("Trying login\n");
 	}

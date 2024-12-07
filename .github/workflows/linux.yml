@@ -102,13 +102,13 @@ jobs:
 
         - name: make check
           run: |
-            make -C src/tds/unittests check VERBOSE=1
-            make -C src/dblib/unittests check VERBOSE=1
-            #make -C src/ctlib/unittests check VERBOSE=1
             make -C src/replacements/unittests check VERBOSE=1
             make -C src/utils/unittests check VERBOSE=1
-            make -C src/apps/unittests check VERBOSE=1
+            make -C src/tds/unittests check VERBOSE=1
+            make -C src/dblib/unittests check VERBOSE=1
+            make -C src/ctlib/unittests check VERBOSE=1
             make -C src/odbc/unittests check VERBOSE=1
+            make -C src/apps/unittests check VERBOSE=1
 
         - name: Archive test results on failure
           if: failure()
@@ -116,11 +116,11 @@ jobs:
           with:
             name: test-logs
             path: |
+                src/replacements/unittests/test-suite.log
+                src/utils/unittests/test-suite.log
                 src/tds/unittests/test-suite.log
                 src/dblib/unittests/test-suite.log
                 src/ctlib/unittests/test-suite.log
-                src/replacements/unittests/test-suite.log
-                src/utils/unittests/test-suite.log
                 src/odbc/unittests/test-suite.log
                 src/apps/unittests/test-suite.log
                 /tmp/freetds/*
