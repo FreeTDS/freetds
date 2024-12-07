@@ -103,24 +103,22 @@ tds_peek(TDSSOCKET * tds)
 	if (tds->in_pos > 0)
 		--tds->in_pos;
 	return result;
-}				/* tds_peek()  */
-
+}
 
 /**
- * Get an int16 from the server.
+ * Get an uint16 from the server.
  */
 TDS_USMALLINT
 tds_get_usmallint(TDSSOCKET * tds)
 {
-	TDS_USMALLINT bytes[1];
+	TDS_USMALLINT bytes;
 
 	tds_get_n(tds, &bytes, 2);
 	return (TDS_USMALLINT) TDS_GET_A2LE(&bytes);
 }
 
-
 /**
- * Get an int32 from the server.
+ * Get an uint32 from the server.
  * \tds
  */
 TDS_UINT
