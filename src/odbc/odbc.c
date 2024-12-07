@@ -6516,6 +6516,16 @@ ODBC_FUNC(SQLSetConnectAttr, (P(SQLHDBC,hdbc), P(SQLINTEGER,Attribute), P(SQLPOI
 		}
 		break;
 #endif
+	case SQL_COPT_TDSODBC_IMPL_BCP_CONTROL_OLD:
+		if (!ValuePtr)
+			odbc_errs_add(&dbc->errs, "HY009", NULL);
+		else {
+			const struct tdsodbc_impl_bcp_control_params *params =
+				(const struct tdsodbc_impl_bcp_control_params*)ValuePtr;
+			const int field = params->field == BCPHINTS_OLD ? BCPHINTSA : params->field;
+			odbc_bcp_control(dbc, field, params->value);
+		}
+		break;
 	case SQL_COPT_TDSODBC_IMPL_BCP_CONTROL:
 		if (!ValuePtr)
 			odbc_errs_add(&dbc->errs, "HY009", NULL);

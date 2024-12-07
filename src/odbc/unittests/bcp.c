@@ -343,7 +343,7 @@ static void special_inserts(void)
 		report_bcp_error("bcp_init", __LINE__, __FILE__);
 	printf("OK\n");
 
-	if (bcp_control(odbc_conn, BCPHINTS, (void *) "TABLOCK") != SUCCEED)
+	if (bcp_control(odbc_conn, BCPHINTSA, (void *) "TABLOCK") != SUCCEED)
 		report_bcp_error("bcp_init", __LINE__, __FILE__);
 
 	datetime.dtdays = 42075;

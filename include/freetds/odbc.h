@@ -751,6 +751,10 @@ void sqlwstr_free(SQLWSTRBUF *bufs);
 
 int odbc_get_wide_canonic(TDSCONNECTION *conn);
 
+/* compatibility with old BCP implementation */
+#define BCPHINTS_OLD 6
+#define SQL_COPT_TDSODBC_IMPL_BCP_CONTROL_OLD	(SQL_COPT_TDSODBC_IMPL_BASE+1)
+
 #include <freetds/popvis.h>
 
 #ifdef __cplusplus

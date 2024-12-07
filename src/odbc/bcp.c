@@ -169,6 +169,10 @@ odbc_bcp_init(TDS_DBC *dbc, const ODBC_CHAR *tblname, const ODBC_CHAR *hfile,
 void
 odbc_bcp_control(TDS_DBC *dbc, int field, void *value)
 {
+#ifdef ENABLE_ODBC_WIDE
+	int wide = 0;
+#endif
+
 	tdsdump_log(TDS_DBG_FUNC, "bcp_control(%p, %d, %p)\n", dbc, field, value);
 	if (dbc->bcpinfo == NULL)
 		ODBCBCP_ERROR_RETURN("HY010");
@@ -178,12 +182,21 @@ odbc_bcp_control(TDS_DBC *dbc, int field, void *value)
 	case BCPKEEPIDENTITY:
 		dbc->bcpinfo->identity_insert_on = (value != NULL);
 		break;
-	case BCPHINTS:
+	case BCPHINTSA:
 		if (!value)
 			ODBCBCP_ERROR_RETURN("HY009");
-		if (!tds_dstr_copy(&dbc->bcpinfo->hint, (char*)value))
+		if (!odbc_dstr_copy(dbc, &dbc->bcpinfo->hint, SQL_NTS, (ODBC_CHAR *) value))
 			ODBCBCP_ERROR_RETURN("HY001");
 		break;
+#ifdef ENABLE_ODBC_WIDE
+	case BCPHINTSW:
+		if (!value)
+			ODBCBCP_ERROR_RETURN("HY009");
+		wide = 1;
+		if (!odbc_dstr_copy(dbc, &dbc->bcpinfo->hint, SQL_NTS, (ODBC_CHAR *) value))
+			ODBCBCP_ERROR_RETURN("HY001");
+		break;
+#endif
 	default:
 		ODBCBCP_ERROR_RETURN("HY009");
 	}
