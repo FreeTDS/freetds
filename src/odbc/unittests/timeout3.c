@@ -167,6 +167,7 @@ main(void)
 
 	/* this test requires version 7.0, avoid to override externally */
 	setenv("TDSVER", "7.0", 1);
+	unsetenv("TDSPORT");
 
 	for (port = 12340; port < 12350; ++port)
 		if (!init_fake_server(port))
