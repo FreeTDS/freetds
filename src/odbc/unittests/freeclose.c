@@ -50,8 +50,6 @@ typedef union {
 static long_sockaddr remote_addr;
 static socklen_t remote_addr_len;
 
-static TDS_SYS_SOCKET fake_sock;
-
 static tds_thread fake_thread;
 #ifdef _WIN32
 #define alarm(n) do { ; } while(0)
@@ -168,6 +166,7 @@ static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 	struct sockaddr_in sin;
 	fd_set fds_read, fds_write, fds_error;
 	TDS_SYS_SOCKET max_fd = 0;
+	TDS_SYS_SOCKET fake_sock;
 
 	memset(&sin, 0, sizeof(sin));
 	sock_len = sizeof(sin);
