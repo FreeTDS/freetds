@@ -35,6 +35,9 @@ extern "C"
 /* bulk properties start with 1 */
 #define BLK_IDENTITY 1
 
+/* FreeTDS extention, set MS bulk hints */
+#define BLK_HINTS 1001
+
 CS_RETCODE blk_alloc(CS_CONNECTION * connection, CS_INT version, CS_BLKDESC ** blk_pointer);
 CS_RETCODE blk_bind(CS_BLKDESC * blkdesc, CS_INT colnum, CS_DATAFMT * datafmt, CS_VOID * buffer, CS_INT * datalen,
 		    CS_SMALLINT * indicator);

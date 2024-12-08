@@ -38,6 +38,8 @@ hoge_blkin(CS_CONNECTION * con, CS_BLKDESC * blk, char *table, char *data)
 	if (CS_SUCCEED != ct_cancel(con, NULL, CS_CANCEL_ALL))
 		return CS_FAIL;
 	if (CS_SUCCEED != blk_init(blk, CS_BLK_IN, table, CS_NULLTERM))
+
+	if (CS_SUCCEED != blk_props(blk, CS_SET, BLK_HINTS, "TABLOCK", CS_NULLTERM, NULL))
 		return CS_FAIL;
 
 	meta.count = 1;
