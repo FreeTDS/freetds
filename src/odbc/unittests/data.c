@@ -98,7 +98,7 @@ lookup(const char *name, const struct odbc_lookup_int *table)
 int
 main(void)
 {
-	int cond = 1;
+	bool cond = true;
 
 #define TEST_FILE "data.in"
 	const char *in_file = FREETDS_SRCDIR "/" TEST_FILE;

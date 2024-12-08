@@ -99,15 +99,14 @@ odbc_get_str(char **p)
 enum { MAX_BOOLS = 64 };
 typedef struct {
 	char *name;
-	int value;
+	bool value;
 } bool_t;
 static bool_t bools[MAX_BOOLS];
 
 void
-odbc_set_bool(const char *name, int value)
+odbc_set_bool(const char *name, bool value)
 {
 	unsigned n;
-	value = !!value;
 	for (n = 0; n < MAX_BOOLS && bools[n].name; ++n)
 		if (!strcmp(bools[n].name, name)) {
 			bools[n].value = value;
@@ -121,7 +120,7 @@ odbc_set_bool(const char *name, int value)
 	bools[n].value = value;
 }
 
-static int
+static bool
 get_bool(const char *name)
 {
 	unsigned n;
@@ -132,7 +131,7 @@ get_bool(const char *name)
 			return bools[n].value;
 
 	odbc_fatal(": boolean variable %s not found\n", name);
-	return 0;
+	return false;
 }
 
 /** initialize booleans, call after connection */
@@ -160,10 +159,10 @@ odbc_clear_bools(void)
 }
 
 enum { MAX_CONDITIONS = 32 };
-static char conds[MAX_CONDITIONS];
+static bool conds[MAX_CONDITIONS];
 static unsigned cond_level = 0;
 
-static int
+static bool
 pop_condition(void)
 {
 	if (cond_level == 0) odbc_fatal(": no related if\n");
@@ -171,17 +170,16 @@ pop_condition(void)
 }
 
 static void
-push_condition(int cond)
+push_condition(bool cond)
 {
-	if (cond != 0 && cond != 1) odbc_fatal(": invalid cond value %d\n", cond);
 	if (cond_level >= MAX_CONDITIONS) odbc_fatal(": too much nested conditions\n");
 	conds[cond_level++] = cond;
 }
 
-static int
+static bool
 get_not_cond(char **p)
 {
-	int cond;
+	bool cond;
 	const char *tok = odbc_get_tok(p);
 	if (!tok) odbc_fatal(": wrong condition syntax\n");
 
@@ -193,10 +191,10 @@ get_not_cond(char **p)
 	return cond;
 }
 
-static int
+static bool
 get_condition(char **p)
 {
-	int cond1 = get_not_cond(p), cond2;
+	bool cond1 = get_not_cond(p), cond2;
 	const char *tok;
 
 	while ((tok=odbc_get_tok(p)) != NULL) {
@@ -226,7 +224,7 @@ odbc_init_parser(FILE *f)
 }
 
 const char *
-odbc_get_cmd_line(char **p_s, int *cond)
+odbc_get_cmd_line(char **p_s, bool *cond)
 {
 	while (fgets(line_buf, sizeof(line_buf), parse_file)) {
 		char *p = line_buf;
@@ -242,7 +240,7 @@ odbc_get_cmd_line(char **p_s, int *cond)
 
 		/* conditional statement */
 		if (!strcmp(cmd, "else")) {
-			int c = pop_condition();
+			bool c = pop_condition();
 			push_condition(c);
 			*cond = c && !*cond;
 			continue;
@@ -264,7 +262,7 @@ odbc_get_cmd_line(char **p_s, int *cond)
 			const char *s_ver = odbc_get_tok(&p);
 			int ver = odbc_tds_version();
 			int expected;
-			int res;
+			bool res;
 			unsigned M, m;
 
 			if (!cmp || !s_ver)

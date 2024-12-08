@@ -294,7 +294,7 @@ check_attr_none(ATTR_PARAMS)
 int
 main(void)
 {
-	int cond = 1;
+	bool cond = true;
 #define TEST_FILE "describecol.in"
 	const char *in_file = FREETDS_SRCDIR "/" TEST_FILE;
 	FILE *f;
