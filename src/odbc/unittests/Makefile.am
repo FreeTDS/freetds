@@ -108,11 +108,11 @@ raiserror_SOURCES	= raiserror.c
 getdata_SOURCES	= getdata.c
 type_SOURCES	= type.c
 transaction_SOURCES = transaction.c
-genparams_SOURCES = genparams.c c2string.c
+genparams_SOURCES = genparams.c
 preperror_SOURCES = preperror.c
 prepare_results_SOURCES = prepare_results.c
 testodbc_SOURCES	= testodbc.c
-data_SOURCES	= data.c data.in c2string.c parser.c parser.h
+data_SOURCES	= data.c data.in
 error_SOURCES	= error.c
 rebindpar_SOURCES	= rebindpar.c
 rpc_SOURCES	= rpc.c
@@ -127,7 +127,7 @@ array_out_SOURCES	= array_out.c
 cursor1_SOURCES	= cursor1.c
 scroll_SOURCES	= scroll.c
 cursor2_SOURCES	= cursor2.c
-describecol_SOURCES	= describecol.c describecol.in parser.c parser.h
+describecol_SOURCES	= describecol.c describecol.in
 describecol2_SOURCES	= describecol2.c
 copydesc_SOURCES	= copydesc.c
 prepclose_SOURCES = prepclose.c
@@ -182,7 +182,7 @@ connection_string_parse_CPPFLAGS = $(GLOBAL_CPPFLAGS)
 connection_string_parse_LDFLAGS = -static ../libtdsodbc.la ../../tds/unittests/libcommon.a -shared $(GLOBAL_LD_ADD)
 
 noinst_LIBRARIES = libcommon.a
-libcommon_a_SOURCES = common.c common.h
+libcommon_a_SOURCES = common.c common.h c2string.c parser.c parser.h
 
 GLOBAL_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC) -DFREETDS_TOPDIR=\"$(top_srcdir)\"
 GLOBAL_LD_ADD =	$(NETWORK_LIBS) $(ODBCINST_LDFLAGS)
