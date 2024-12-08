@@ -41,10 +41,10 @@ tds_env_change_string(TDSSOCKET * tds, int type, const char *oldvalue, const cha
 	tds_freeze(tds, &outer, 2);
 	tds_put_byte(tds, type);
 	TDS_START_LEN_TINYINT(tds) {
-		tds_put_string(tds, newvalue, strlen(newvalue));
+		tds_put_string(tds, newvalue, -1);
 	} TDS_END_LEN_STRING
 	TDS_START_LEN_TINYINT(tds) {
-		tds_put_string(tds, oldvalue, strlen(oldvalue));
+		tds_put_string(tds, oldvalue, -1);
 	} TDS_END_LEN_STRING
 	tds_freeze_close(&outer);
 }
@@ -134,13 +134,13 @@ tds_send_msg(TDSSOCKET * tds, int msgno, int msgstate, int severity,
 	tds_put_byte(tds, msgstate);
 	tds_put_byte(tds, severity);
 	TDS_START_LEN_USMALLINT(tds) {
-		tds_put_string(tds, msgtext, strlen(msgtext));
+		tds_put_string(tds, msgtext, -1);
 	} TDS_END_LEN_STRING
 	TDS_START_LEN_TINYINT(tds) {
-		tds_put_string(tds, srvname, strlen(srvname));
+		tds_put_string(tds, srvname, -1);
 	} TDS_END_LEN_STRING
 	TDS_START_LEN_TINYINT(tds) {
-		tds_put_string(tds, procname, strlen(procname));
+		tds_put_string(tds, procname, -1);
 	} TDS_END_LEN_STRING
 	if (IS_TDS72_PLUS(tds->conn))
 		tds_put_int(tds, line);
@@ -186,7 +186,7 @@ tds_send_login_ack(TDSSOCKET * tds, const char *progname)
 	tds_put_n(tds, &ui, 4);
 
 	TDS_START_LEN_TINYINT(tds) {
-		tds_put_string(tds, progname, strlen(progname));
+		tds_put_string(tds, progname, -1);
 	} TDS_END_LEN_STRING
 
 	/* server version, always big endian */
