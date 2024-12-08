@@ -78,7 +78,7 @@ static const char *const search_driver[] = {
 int
 odbc_read_login_info(void)
 {
-	static const char *PWD = "../../../PWD";
+	static const char PWD[] = "../../../PWD";
 	FILE *in = NULL;
 	char line[512];
 	char *s1, *s2;
