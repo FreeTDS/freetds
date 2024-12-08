@@ -1977,7 +1977,7 @@ TDSRET
 tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params, TDSHEADERS * head)
 {
 	TDSCOLUMN *param;
-	int rpc_name_len, i;
+	int i;
 	int num_params = params ? params->num_cols : 0;
 
 	CHECK_TDS_EXTRA(tds);
@@ -1993,14 +1993,13 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params, TDS
 	/* distinguish from dynamic query  */
 	tds_release_cur_dyn(tds);
 
-	rpc_name_len = (int)strlen(rpc_name);
 	if (IS_TDS7_PLUS(tds->conn)) {
 		if (tds_start_query_head(tds, TDS_RPC, head) != TDS_SUCCESS)
 			return TDS_FAIL;
 
 		/* procedure name */
 		TDS_START_LEN_USMALLINT(tds) {
-			tds_put_string(tds, rpc_name, rpc_name_len);
+			tds_put_string(tds, rpc_name, -1);
 		} TDS_END_LEN_STRING
 
 		/*
@@ -2027,7 +2026,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params, TDS
 		tds_put_byte(tds, TDS_DBRPC_TOKEN);
 		TDS_START_LEN_USMALLINT(tds) {
 			TDS_START_LEN_TINYINT(tds) {
-				tds_put_string(tds, rpc_name, rpc_name_len);
+				tds_put_string(tds, rpc_name, -1);
 			} TDS_END_LEN
 			/* TODO flags */
 			tds_put_smallint(tds, num_params ? 2 : 0);
