@@ -12,16 +12,16 @@
 static int g_result = 0;
 
 static int
-get_int(const char *s)
+get_int(const char *s, odbc_parser *parser)
 {
 	char *end;
 	long l;
 
 	if (!s)
-		odbc_fatal(": NULL int\n");
+		odbc_fatal(parser, ": NULL int\n");
 	l = strtol(s, &end, 0);
 	if (end[0])
-		odbc_fatal(": Invalid int\n");
+		odbc_fatal(parser, ": Invalid int\n");
 	return (int) l;
 }
 
@@ -32,16 +32,16 @@ struct lookup_int
 };
 
 static int
-lookup(const char *name, const struct lookup_int *table)
+lookup(const char *name, const struct lookup_int *table, odbc_parser *parser)
 {
 	if (!table)
-		return get_int(name);
+		return get_int(name, parser);
 
 	for (; table->name; ++table)
 		if (strcmp(table->name, name) == 0)
 			return table->value;
 
-	return get_int(name);
+	return get_int(name, parser);
 }
 
 static const char*
@@ -141,22 +141,23 @@ static const struct attribute attributes[] = {
 };
 
 static const struct attribute *
-lookup_attr(const char *name)
+lookup_attr(const char *name, odbc_parser *parser)
 {
 	unsigned int i;
 
 	if (!name)
-		odbc_fatal(": NULL attribute\n");
+		odbc_fatal(parser, ": NULL attribute\n");
 	for (i = 0; i < TDS_VECTOR_SIZE(attributes); ++i)
 		if (strcmp(attributes[i].name, name) == 0 || strcmp(attributes[i].name + 4, name) == 0)
 			return &attributes[i];
-	odbc_fatal(": attribute %s not found\n", name);
+	odbc_fatal(parser, ": attribute %s not found\n", name);
 	return NULL;
 }
 
 #define ATTR_PARAMS \
 	const struct attribute *attr TDS_UNUSED, \
-	const char *expected_values[] TDS_UNUSED
+	const char *expected_values[] TDS_UNUSED, \
+	odbc_parser *parser TDS_UNUSED
 typedef void (*check_attr_t) (ATTR_PARAMS);
 
 static bool
@@ -170,10 +171,10 @@ is_contained(const char *s, const char *list[])
 }
 
 static bool
-is_contained_lookup(SQLLEN i, const char *list[], const struct lookup_int *table)
+is_contained_lookup(SQLLEN i, const char *list[], const struct lookup_int *table, odbc_parser *parser)
 {
 	for (;*list; ++list) {
-		if (i == lookup(*list, table))
+		if (i == lookup(*list, table, parser))
 			return true;
 	}
 	return false;
@@ -200,11 +201,11 @@ check_attr_ird(ATTR_PARAMS)
 
 		ret = SQLColAttribute(odbc_stmt, 1, attr->value, buf, sizeof(buf), &len, NULL);
 		if (!SQL_SUCCEEDED(ret))
-			odbc_fatal(": failure not expected\n");
+			odbc_fatal(parser, ": failure not expected\n");
 		buf[sizeof(buf)-1] = 0;
 		if (!is_contained(C((SQLTCHAR*) buf), expected_values)) {
 			g_result = 1;
-			fprintf(stderr, "Line %u: invalid %s got %s expected ", odbc_line_num, attr->name, buf);
+			fprintf(stderr, "Line %u: invalid %s got %s expected ", odbc_line_num(parser), attr->name, buf);
 			print_values(stderr, expected_values);
 		}
 		return;
@@ -213,25 +214,27 @@ check_attr_ird(ATTR_PARAMS)
 	i = 0xdeadbeef;
 	ret = SQLColAttribute(odbc_stmt, 1, attr->value, NULL, SQL_IS_INTEGER, NULL, &i);
 	if (!SQL_SUCCEEDED(ret))
-		odbc_fatal(": failure not expected\n");
+		odbc_fatal(parser, ": failure not expected\n");
 	/* SQL_DESC_LENGTH is the same of SQLDescribeCol len */
 	if (attr->value == SQL_DESC_LENGTH) {
 		SQLSMALLINT scale, si;
 		SQLULEN prec;
 		CHKDescribeCol(1, NULL, 0, NULL, &si, &prec, &scale, &si, "S");
 		if (i != prec)
-			odbc_fatal(": attr %s SQLDescribeCol len %ld != SQLColAttribute len %ld\n", attr->name, (long) prec, (long) i);
+			odbc_fatal(parser, ": attr %s SQLDescribeCol len %ld != SQLColAttribute len %ld\n",
+				   attr->name, (long) prec, (long) i);
 	}
 	if (attr->value == SQL_DESC_SCALE) {
 		SQLSMALLINT scale, si;
 		SQLULEN prec;
 		CHKDescribeCol(1, NULL, 0, NULL, &si, &prec, &scale, &si, "S");
 		if (i != scale)
-			odbc_fatal(": attr %s SQLDescribeCol scale %ld != SQLColAttribute len %ld\n", attr->name, (long) scale, (long) i);
+			odbc_fatal(parser, ": attr %s SQLDescribeCol scale %ld != SQLColAttribute len %ld\n",
+				   attr->name, (long) scale, (long) i);
 	}
-	if (!is_contained_lookup(i, expected_values, attr->lookup)) {
+	if (!is_contained_lookup(i, expected_values, attr->lookup, parser)) {
 		g_result = 1;
-		fprintf(stderr, "Line %u: invalid %s got %s expected ", odbc_line_num, attr->name, unlookup(i, attr->lookup));
+		fprintf(stderr, "Line %u: invalid %s got %s expected ", odbc_line_num(parser), attr->name, unlookup(i, attr->lookup));
 		print_values(stderr, expected_values);
 	}
 }
@@ -268,19 +271,20 @@ check_attr_ard(ATTR_PARAMS)
 	case type_CHARP:
 		ret = SQLGetDescField(desc, 1, attr->value, buf, sizeof(buf), &ind);
 		if (!SQL_SUCCEEDED(ret))
-			odbc_fatal(": failure not expected\n");
+			odbc_fatal(parser, ": failure not expected\n");
 		if (!is_contained(C((SQLTCHAR*) buf), expected_values)) {
 			g_result = 1;
-			fprintf(stderr, "Line %u: invalid %s got %s expected ", odbc_line_num, attr->name, buf);
+			fprintf(stderr, "Line %u: invalid %s got %s expected ", odbc_line_num(parser), attr->name, buf);
 			print_values(stderr, expected_values);
 		}
 		return;
 	}
 	if (!SQL_SUCCEEDED(ret))
-		odbc_fatal(": failure not expected\n");
-	if (!is_contained_lookup(li, expected_values, attr->lookup)) {
+		odbc_fatal(parser, ": failure not expected\n");
+	if (!is_contained_lookup(li, expected_values, attr->lookup, parser)) {
 		g_result = 1;
-		fprintf(stderr, "Line %u: invalid %s got %s expected ", odbc_line_num, attr->name, unlookup(li, attr->lookup));
+		fprintf(stderr, "Line %u: invalid %s got %s expected ", odbc_line_num(parser), attr->name,
+			unlookup(li, attr->lookup));
 		print_values(stderr, expected_values);
 	}
 }
@@ -301,9 +305,9 @@ main(void)
 	SQLINTEGER i;
 	SQLLEN len;
 	check_attr_t check_attr_p = check_attr_none;
+	odbc_parser *parser;
 
 	odbc_connect();
-	odbc_init_bools();
 	odbc_command("SET TEXTSIZE 4096");
 
 	SQLBindCol(odbc_stmt, 1, SQL_C_SLONG, &i, sizeof(i), &len);
@@ -316,19 +320,19 @@ main(void)
 		exit(1);
 	}
 
-	odbc_init_parser(f);
+	parser = odbc_init_parser(f);
 	for (;;) {
 		char *p;
 		const char *cmd;
 
-		cmd = odbc_get_cmd_line(&p, &cond);
+		cmd = odbc_get_cmd_line(parser, &p, &cond);
 		if (!cmd)
 			break;
 
 		ODBC_FREE();
 
 		if (strcmp(cmd, "odbc") == 0) {
-			int odbc3 = get_int(odbc_get_tok(&p)) == 3 ? 1 : 0;
+			int odbc3 = get_int(odbc_get_tok(&p), parser) == 3 ? 1 : 0;
 
 			if (!cond) continue;
 
@@ -343,8 +347,8 @@ main(void)
 
 		/* select type */
 		if (strcmp(cmd, "select") == 0) {
-			const char *type = odbc_get_str(&p);
-			const char *value = odbc_get_str(&p);
+			const char *type = odbc_get_str(parser, &p);
+			const char *value = odbc_get_str(parser, &p);
 			char sql[1024];
 
 			if (!cond) continue;
@@ -369,14 +373,14 @@ main(void)
 
 		/* set attribute */
 		if (strcmp(cmd, "set") == 0) {
-			const struct attribute *attr = lookup_attr(odbc_get_tok(&p));
-			const char *value = odbc_get_str(&p);
+			const struct attribute *attr = lookup_attr(odbc_get_tok(&p), parser);
+			const char *value = odbc_get_str(parser, &p);
 			SQLHDESC desc;
 			SQLRETURN ret;
 			SQLINTEGER ind;
 
 			if (!value)
-				odbc_fatal(": value not defined\n");
+				odbc_fatal(parser, ": value not defined\n");
 
 			if (!cond) continue;
 
@@ -386,15 +390,15 @@ main(void)
 			ret = SQL_ERROR;
 			switch (attr->type) {
 			case type_INTEGER:
-				ret = SQLSetDescField(desc, 1, attr->value, TDS_INT2PTR(lookup(value, attr->lookup)),
+				ret = SQLSetDescField(desc, 1, attr->value, TDS_INT2PTR(lookup(value, attr->lookup, parser)),
 						      sizeof(SQLINTEGER));
 				break;
 			case type_SMALLINT:
-				ret = SQLSetDescField(desc, 1, attr->value, TDS_INT2PTR(lookup(value, attr->lookup)),
+				ret = SQLSetDescField(desc, 1, attr->value, TDS_INT2PTR(lookup(value, attr->lookup, parser)),
 						      sizeof(SQLSMALLINT));
 				break;
 			case type_LEN:
-				ret = SQLSetDescField(desc, 1, attr->value, TDS_INT2PTR(lookup(value, attr->lookup)),
+				ret = SQLSetDescField(desc, 1, attr->value, TDS_INT2PTR(lookup(value, attr->lookup, parser)),
 						      sizeof(SQLLEN));
 				break;
 			case type_CHARP:
@@ -402,39 +406,39 @@ main(void)
 				break;
 			}
 			if (!SQL_SUCCEEDED(ret))
-				odbc_fatal(": failure not expected setting ARD attribute\n");
+				odbc_fatal(parser, ": failure not expected setting ARD attribute\n");
 			check_attr_p = check_attr_ard;
 		}
 
 		/* test attribute */
 		if (strcmp(cmd, "attr") == 0) {
-			const struct attribute *attr = lookup_attr(odbc_get_tok(&p));
+			const struct attribute *attr = lookup_attr(odbc_get_tok(&p), parser);
 			const char *expected[10];
 			int i;
 
-			expected[0] = odbc_get_str(&p);
+			expected[0] = odbc_get_str(parser, &p);
 
 			if (!expected[0])
-				odbc_fatal(": value not defined\n");
+				odbc_fatal(parser, ": value not defined\n");
 
 			if (!cond) continue;
 
 			for (i = 1; ;++i) {
 				if (i >= 10)
-					odbc_fatal("Too many values in attribute\n");
+					odbc_fatal(parser, "Too many values in attribute\n");
 				p += strspn(p, " \t");
 				if (!*p) {
 					expected[i] = NULL;
 					break;
 				}
-				expected[i] = odbc_get_str(&p);
+				expected[i] = odbc_get_str(parser, &p);
 			}
-			check_attr_p(attr, expected);
+			check_attr_p(attr, expected, parser);
 		}
 	}
 
 	fclose(f);
-	odbc_clear_bools();
+	odbc_free_parser(parser);
 	odbc_disconnect();
 
 	printf("Done.\n");

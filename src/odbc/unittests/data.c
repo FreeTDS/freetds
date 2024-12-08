@@ -69,30 +69,30 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, con
 }
 
 static int
-get_int(const char *s)
+get_int(const char *s, odbc_parser *parser)
 {
 	char *end;
 	long l;
 
 	if (!s)
-		odbc_fatal(": NULL int\n");
+		odbc_fatal(parser, ": NULL int\n");
 	l = strtol(s, &end, 0);
 	if (end[0])
-		odbc_fatal(": Invalid int\n");
+		odbc_fatal(parser, ": Invalid int\n");
 	return (int) l;
 }
 
 static int
-lookup(const char *name, const struct odbc_lookup_int *table)
+lookup(const char *name, const struct odbc_lookup_int *table, odbc_parser *parser)
 {
 	int res;
 
 	if (!table)
-		return get_int(name);
+		return get_int(name, parser);
 
 	res = odbc_lookup(name, table, SQL_UNKNOWN_TYPE);
 
-	return res == SQL_UNKNOWN_TYPE ? get_int(name) : res;
+	return res == SQL_UNKNOWN_TYPE ? get_int(name, parser) : res;
 }
 
 int
@@ -103,10 +103,9 @@ main(void)
 #define TEST_FILE "data.in"
 	const char *in_file = FREETDS_SRCDIR "/" TEST_FILE;
 	FILE *f;
+	odbc_parser *parser;
 
 	odbc_connect();
-
-	odbc_init_bools();
 
 	f = fopen(in_file, "r");
 	if (!f)
@@ -116,20 +115,20 @@ main(void)
 		exit(1);
 	}
 
-	odbc_init_parser(f);
+	parser = odbc_init_parser(f);
 	for (;;) {
 		char *p;
-		const char *cmd = odbc_get_cmd_line(&p, &cond);
+		const char *cmd = odbc_get_cmd_line(parser, &p, &cond);
 
 		if (!cmd)
 			break;
 
 		/* select type */
 		if (!strcmp(cmd, "select")) {
-			const char *type = odbc_get_str(&p);
-			const char *value = odbc_get_str(&p);
-			int c_type = lookup(odbc_get_tok(&p), odbc_sql_c_types);
-			const char *expected = odbc_get_str(&p);
+			const char *type = odbc_get_str(parser, &p);
+			const char *value = odbc_get_str(parser, &p);
+			int c_type = lookup(odbc_get_tok(&p), odbc_sql_c_types, parser);
+			const char *expected = odbc_get_str(parser, &p);
 
 			if (!cond) continue;
 
@@ -141,25 +140,25 @@ main(void)
 		if (!strcmp(cmd, "select_cond")) {
 			const char *bool_name = odbc_get_tok(&p);
 			const char *type = odbc_get_tok(&p);
-			const char *value = odbc_get_str(&p);
-			int c_type = lookup(odbc_get_tok(&p), odbc_sql_c_types);
-			const char *expected = odbc_get_str(&p);
+			const char *value = odbc_get_str(parser, &p);
+			int c_type = lookup(odbc_get_tok(&p), odbc_sql_c_types, parser);
+			const char *expected = odbc_get_str(parser, &p);
 			int save_result = result;
 
-			if (!bool_name) odbc_fatal(": no condition name\n");
+			if (!bool_name) odbc_fatal(parser, ": no condition name\n");
 			if (!cond) continue;
 
 			ignore_select_error = 1;
 			ignore_result = 1;
 			result = 0;
 			Test(type, value, c_type, expected);
-			odbc_set_bool(bool_name, result == 0);
+			odbc_set_bool(parser, bool_name, result == 0);
 			result = save_result;
 			continue;
 		}
 		/* execute a sql command */
 		if (!strcmp(cmd, "sql")) {
-			const char *sql = odbc_get_str(&p);
+			const char *sql = odbc_get_str(parser, &p);
 
 			if (!cond) continue;
 
@@ -168,16 +167,16 @@ main(void)
 		}
 		if (!strcmp(cmd, "sql_cond")) {
 			const char *bool_name = odbc_get_tok(&p);
-			const char *sql = odbc_get_str(&p);
+			const char *sql = odbc_get_str(parser, &p);
 
 			if (!cond) continue;
 
-			odbc_set_bool(bool_name, odbc_command2(sql, "SENo") != SQL_ERROR);
+			odbc_set_bool(parser, bool_name, odbc_command2(sql, "SENo") != SQL_ERROR);
 			continue;
 		}
-		odbc_fatal(": unknown command\n");
+		odbc_fatal(parser, ": unknown command\n");
 	}
-	odbc_clear_bools();
+	odbc_free_parser(parser);
 	fclose(f);
 
 	printf("\n");

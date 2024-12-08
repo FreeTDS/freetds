@@ -1,21 +1,21 @@
 #include <freetds/pushvis.h>
 
-extern unsigned int odbc_line_num;
+typedef struct odbc_parser odbc_parser;
 
-void odbc_fatal(const char *msg, ...)
+void
+odbc_fatal(odbc_parser *parser, const char *msg, ...)
 #ifdef __GNUC__
 	__attribute__((noreturn))
 #endif
-	;
+;
 
 const char *odbc_get_tok(char **p);
-const char *odbc_get_str(char **p);
+const char *odbc_get_str(odbc_parser *parser, char **p);
 
-void odbc_set_bool(const char *name, bool value);
-void odbc_init_bools(void);
-void odbc_clear_bools(void);
-
-void odbc_init_parser(FILE *f);
-const char *odbc_get_cmd_line(char **p, bool *cond);
+odbc_parser *odbc_init_parser(FILE *f);
+void odbc_free_parser(odbc_parser *parser);
+const char *odbc_get_cmd_line(odbc_parser *parser, char **p, bool *cond);
+void odbc_set_bool(odbc_parser *parser, const char *name, bool value);
+unsigned int odbc_line_num(odbc_parser *parser);
 
 #include <freetds/popvis.h>
