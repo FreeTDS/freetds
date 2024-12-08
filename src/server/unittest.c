@@ -76,9 +76,12 @@ main(int argc, char **argv)
 			tds_env_change(tds, TDS_ENV_LANG, NULL, "us_english");
 			tds_send_msg(tds, 5703, 1, 10, "Changed language setting to 'us_english'.", "JDBC", "ZZZZZ", 1);
 		}
-		tds_env_change(tds, TDS_ENV_PACKSIZE, NULL, "512");
+		if (IS_TDS50(tds->conn))
+			tds_env_change(tds, TDS_ENV_PACKSIZE, NULL, "512");
 		/* TODO set mssql if tds7+ */
 		tds_send_login_ack(tds, "sql server");
+		if (!IS_TDS50(tds->conn))
+			tds_env_change(tds, TDS_ENV_PACKSIZE, "4096", "4096");
 		if (IS_TDS50(tds->conn))
 			tds_send_capabilities_token(tds);
 		tds_send_done_token(tds, TDS_DONE_FINAL, 0);
