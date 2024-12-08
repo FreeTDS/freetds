@@ -405,6 +405,9 @@ blk_props(CS_BLKDESC * blkdesc, CS_INT action, CS_INT property, CS_VOID * buffer
 		}
 		break;
 
+	case BLK_HINTS:
+		return _ct_props_dstr(CONN(blkdesc), &blkdesc->bcpinfo.hint, action, buffer, buflen, outlen);
+
 	default:
 		_ctclient_msg(NULL, CONN(blkdesc), "blk_props", 2, 5, 1, 141, "%s, %d", "property", property);
 		break;

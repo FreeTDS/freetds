@@ -24,6 +24,8 @@ hoge_blkin(CS_CONNECTION * con, CS_BLKDESC * blk, char *table, char *data)
 	check_call(ct_cancel, (con, NULL, CS_CANCEL_ALL));
 	check_call(blk_init, (blk, CS_BLK_IN, table, CS_NULLTERM));
 
+	check_call(blk_props, (blk, CS_SET, BLK_HINTS, "TABLOCK", CS_NULLTERM, NULL));
+
 	meta.count = 1;
 	meta.datatype = CS_CHAR_TYPE;
 	meta.format = CS_FMT_PADBLANK;
