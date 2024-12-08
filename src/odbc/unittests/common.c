@@ -85,7 +85,7 @@ odbc_read_login_info(void)
 	const char *const *search_p;
 	char path[1024];
 	int len;
-	int ini_override = 1;
+	bool ini_override = true;
 #if defined(_WIN32) && !defined(TDS_NO_DM)
 	UWORD old_config_mode;
 #endif
@@ -154,7 +154,7 @@ odbc_read_login_info(void)
 
 	s1 = getenv("TDSINIOVERRIDE");
 	if (s1 && atoi(s1) == 0)
-		ini_override = 0;
+		ini_override = false;
 
 #if !defined(_WIN32) || defined(TDS_NO_DM)
 	/* craft out odbc.ini, avoid to read wrong one */
