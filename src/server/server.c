@@ -70,7 +70,7 @@ tds_env_change(TDSSOCKET * tds, int type, const char *oldvalue, const char *newv
 	case TDS_ENV_SQLCOLLATION:
 #if 1
 		tds_put_byte(tds, TDS_ENVCHANGE_TOKEN);
-		/* totsize = type + len + oldvalue + len + newvalue */
+		/* totsize = type + len + newvalue + len + oldvalue */
 		totsize = 3 + strlen(newvalue) + strlen(oldvalue);
 		tds_put_smallint(tds, totsize);
 		tds_put_byte(tds, type);
