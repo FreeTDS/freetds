@@ -81,7 +81,7 @@ main(int argc, char **argv)
 		tds_send_login_ack(tds, "sql server");
 		if (IS_TDS50(tds->conn))
 			tds_send_capabilities_token(tds);
-		tds_send_done_token(tds, TDS_DONE_FINAL, 1);
+		tds_send_done_token(tds, TDS_DONE_FINAL, 0);
 	} else {
 		/* send nack before exiting */
 		exit(1);
