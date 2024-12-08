@@ -32,6 +32,23 @@
 #include <freetds/data.h>
 #include <freetds/bytes.h>
 
+static void
+tds_env_change_string(TDSSOCKET * tds, int type, const char *oldvalue, const char *newvalue)
+{
+	TDSFREEZE outer;
+
+	tds_put_byte(tds, TDS_ENVCHANGE_TOKEN);
+	tds_freeze(tds, &outer, 2);
+	tds_put_byte(tds, type);
+	TDS_START_LEN_TINYINT(tds) {
+		tds_put_string(tds, newvalue, strlen(newvalue));
+	} TDS_END_LEN_STRING
+	TDS_START_LEN_TINYINT(tds) {
+		tds_put_string(tds, oldvalue, strlen(oldvalue));
+	} TDS_END_LEN_STRING
+	tds_freeze_close(&outer);
+}
+
 void
 tds_env_change(TDSSOCKET * tds, int type, const char *oldvalue, const char *newvalue)
 {
@@ -53,18 +70,7 @@ tds_env_change(TDSSOCKET * tds, int type, const char *oldvalue, const char *newv
 	case TDS_ENV_LANG:
 	case TDS_ENV_PACKSIZE:
 	case TDS_ENV_CHARSET:
-		tds_put_byte(tds, TDS_ENVCHANGE_TOKEN);
-		/* totsize = type + newlen + newvalue + oldlen + oldvalue  */
-		/* FIXME ucs2 */
-		totsize = (IS_TDS7_PLUS(tds->conn) ? 2 : 1) * (strlen(oldvalue) + strlen(newvalue)) + 3;
-		tds_put_smallint(tds, totsize);
-		tds_put_byte(tds, type);
-		tds_put_byte(tds, strlen(newvalue));
-		/* FIXME this assume singlebyte -> ucs2 for mssql */
-		tds_put_string(tds, newvalue, strlen(newvalue));
-		tds_put_byte(tds, strlen(oldvalue));
-		/* FIXME this assume singlebyte -> ucs2 for mssql */
-		tds_put_string(tds, oldvalue, strlen(oldvalue));
+		tds_env_change_string(tds, type, oldvalue, newvalue);
 		break;
 	case TDS_ENV_LCID:
 	case TDS_ENV_SQLCOLLATION:
