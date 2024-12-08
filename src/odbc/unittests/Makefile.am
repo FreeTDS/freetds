@@ -182,7 +182,8 @@ connection_string_parse_CPPFLAGS = $(GLOBAL_CPPFLAGS)
 connection_string_parse_LDFLAGS = -static ../libtdsodbc.la ../../tds/unittests/libcommon.a -shared $(GLOBAL_LD_ADD)
 
 noinst_LIBRARIES = libcommon.a
-libcommon_a_SOURCES = common.c common.h c2string.c parser.c parser.h
+libcommon_a_SOURCES = common.c common.h c2string.c parser.c parser.h \
+	fake_thread.c fake_thread.h
 
 GLOBAL_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC) -DFREETDS_TOPDIR=\"$(top_srcdir)\"
 GLOBAL_LD_ADD =	$(NETWORK_LIBS) $(ODBCINST_LDFLAGS)

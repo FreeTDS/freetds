@@ -35,7 +35,8 @@
 #include <ctype.h>
 
 #include <freetds/tds.h>
-#include <freetds/thread.h>
+
+#include "fake_thread.h"
 
 /* this crazy test tests that we do not send too much prepare ... */
 
@@ -50,43 +51,9 @@ typedef union {
 static long_sockaddr remote_addr;
 static socklen_t remote_addr_len;
 
-static tds_thread fake_thread;
 #ifdef _WIN32
 #define alarm(n) do { ; } while(0)
 #endif
-static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg);
-
-static int
-init_fake_server(int ip_port)
-{
-	struct sockaddr_in sin;
-	TDS_SYS_SOCKET s;
-
-	memset(&sin, 0, sizeof(sin));
-	sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-	sin.sin_port = htons((short) ip_port);
-	sin.sin_family = AF_INET;
-
-	if (TDS_IS_SOCKET_INVALID(s = socket(AF_INET, SOCK_STREAM, 0))) {
-		perror("socket");
-		exit(1);
-	}
-	if (bind(s, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
-		perror("bind");
-		CLOSESOCKET(s);
-		return 1;
-	}
-	if (listen(s, 5) < 0) {
-		perror("listen");
-		CLOSESOCKET(s);
-		return 1;
-	}
-	if (tds_thread_create(&fake_thread, fake_thread_proc, TDS_INT2PTR(s)) != 0) {
-		perror("tds_thread_create");
-		exit(1);
-	}
-	return 0;
-}
 
 static void
 write_all(TDS_SYS_SOCKET s, const void *buf, size_t len)
@@ -157,7 +124,7 @@ count_insert(const char* buf, size_t len)
 static unsigned int round_trips = 0;
 static enum { sending, receiving } flow = sending;
 
-static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
+TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 {
 	TDS_SYS_SOCKET s = TDS_PTR2INT(arg), server_sock;
 	socklen_t sock_len;
@@ -314,7 +281,7 @@ main(void)
 
 	/* init fake server, behave like a proxy */
 	for (port = 12340; port < 12350; ++port)
-		if (!init_fake_server(port))
+		if (init_fake_server(port))
 			break;
 	if (port == 12350) {
 		fprintf(stderr, "Cannot bind to a port\n");
