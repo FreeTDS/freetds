@@ -181,7 +181,7 @@ tds_send_login_ack(TDSSOCKET * tds, const char *progname)
 
 	TDS_START_LEN_TINYINT(tds) {
 		tds_put_string(tds, progname, strlen(progname));
-	} TDS_END_LEN
+	} TDS_END_LEN_STRING
 
 	/* server version, always big endian */
 	TDS_PUT_A4BE(&ui, tds->conn->product_version & 0x7fffffffu);
