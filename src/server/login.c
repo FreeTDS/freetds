@@ -102,16 +102,16 @@ tds_listen(TDSCONTEXT * ctx, int ip_port)
 	}
 	setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (void*) &optval, sizeof(optval));
 	if (bind(s, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
-		CLOSESOCKET(s);
 		perror("bind");
+		CLOSESOCKET(s);
 		return NULL;
 	}
 	listen(s, 5);
 	len = sizeof(sin);
 	fd = tds_accept(s, (struct sockaddr *) &sin, &len);
 	if (TDS_IS_SOCKET_INVALID(fd)) {
-		CLOSESOCKET(s);
 		perror("accept");
+		CLOSESOCKET(s);
 		return NULL;
 	}
 	CLOSESOCKET(s);
