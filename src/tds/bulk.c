@@ -295,8 +295,8 @@ tds_bcp_start_insert_stmt(TDSSOCKET * tds, TDSBCPINFO * bcpinfo)
 			firstcol = 0;
 		}
 
-		if (bcpinfo->hint) {
-			if (asprintf(&hint, " with (%s)", bcpinfo->hint) < 0)
+		if (!tds_dstr_isempty(&bcpinfo->hint)) {
+			if (asprintf(&hint, " with (%s)", tds_dstr_cstr(&bcpinfo->hint)) < 0)
 				hint = NULL;
 		} else {
 			hint = strdup("");

@@ -616,7 +616,7 @@ bcp_getbatchsize(DBPROCESS * dbproc)
  * \return SUCCEED or FAIL.
  * \sa 	bcp_control(), 
  * 	bcp_exec(), 
- * \todo Simplify.  Remove \a valuelen, and dbproc->bcpinfo->hint = strdup(hints[i])
+ * \todo Simplify.  Remove \a valuelen.
  */
 RETCODE
 bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen)
@@ -642,7 +642,8 @@ bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen)
 
 		for (i = 0; hints[i]; i++) {	/* look up hint */
 			if (strncasecmp((char *) value, hints[i], strlen(hints[i])) == 0) {
-				dbproc->bcpinfo->hint = hints[i];	/* safe: hints[i] is static constant, above */
+				if (!tds_dstr_copy(&dbproc->bcpinfo->hint, hints[i]))
+					return FAIL;
 				return SUCCEED;
 			}
 		}

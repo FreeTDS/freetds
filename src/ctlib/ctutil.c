@@ -317,3 +317,44 @@ _ct_datafmt_conv_back(CS_DATAFMT * datafmt, CS_DATAFMT_LARGE *fmtbuf)
 	small->namelen = strlen(small->name);
 	*((CS_DATAFMT_COMMON *) &small->datatype) = *((CS_DATAFMT_COMMON *) &fmtbuf->datatype);
 }
+
+/**
+ * Get length of a string buffer
+ *
+ * @return length of string or original negative value if error.
+ */
+static CS_INT
+_ct_get_string_length(const char *buf, CS_INT buflen)
+{
+	if (buflen >= 0)
+		return buflen;
+
+	if (buflen == CS_NULLTERM)
+		return (CS_INT) strlen(buf);
+
+	return buflen;
+}
+
+CS_RETCODE
+_ct_props_dstr(CS_CONNECTION * con, DSTR *s, CS_INT action, CS_VOID * buffer, CS_INT buflen, CS_INT * out_len)
+{
+	if (action == CS_SET) {
+		buflen = _ct_get_string_length(buffer, buflen);
+		if (buflen < 0) {
+			/* TODO what error ?? */
+			/* _ctclient_msg(NULL, con, "ct_con_props(SET,APPNAME)", 1, 1, 1, 5, "%d, %s", buflen, "buflen"); */
+			return CS_FAIL;
+		}
+		if (tds_dstr_copyn(s, buffer, buflen) != NULL)
+			return CS_SUCCEED;
+	} else if (action == CS_GET) {
+		if (out_len)
+			*out_len = tds_dstr_len(s);
+		strlcpy((char *) buffer, tds_dstr_cstr(s), buflen);
+		return CS_SUCCEED;
+	} else if (action == CS_CLEAR) {
+		tds_dstr_empty(s);
+		return CS_SUCCEED;
+	}
+	return CS_FAIL;
+}

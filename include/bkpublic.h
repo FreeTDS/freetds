@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998-1999  Brian Bruns
+ * Copyright (C) 2024  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -20,9 +21,6 @@
 #ifndef _bkpublic_h_
 #define _bkpublic_h_
 
-static const char rcsid_bkpublic_h[] = "$Id: bkpublic.h,v 1.5 2004-10-28 12:42:11 freddy77 Exp $";
-static const void *const no_unused_bkpublic_h_warn[] = { rcsid_bkpublic_h, no_unused_bkpublic_h_warn };
-
 /* seperate this stuff out later */
 #include <cspublic.h>
 
@@ -34,8 +32,11 @@ extern "C"
 #endif
 #endif
 
-/* buld properties start with 1 i guess */
+/* bulk properties start with 1 */
 #define BLK_IDENTITY 1
+
+/* FreeTDS extention, set MS bulk hints */
+#define BLK_HINTS 1001
 
 CS_RETCODE blk_alloc(CS_CONNECTION * connection, CS_INT version, CS_BLKDESC ** blk_pointer);
 CS_RETCODE blk_bind(CS_BLKDESC * blkdesc, CS_INT colnum, CS_DATAFMT * datafmt, CS_VOID * buffer, CS_INT * datalen,
