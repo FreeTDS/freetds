@@ -29,7 +29,7 @@ jobs:
             matrix:
                 os: [ubuntu-latest]
                 tds-version: [7.1, 7.2, 7.3, 7.4]
-                mssql-version: [2017, 2019, 2022]
+                mssql-version: [2019, 2022]
 
         #continue-on-error: true
 
