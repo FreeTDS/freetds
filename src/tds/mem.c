@@ -678,9 +678,9 @@ tds_free_all_results(TDSSOCKET * tds)
 }
 
 /*
- * Return 1 if winsock is initialized, else 0.
+ * Return true if winsock is initialized, else false.
  */
-static int
+static bool
 winsock_initialized(void)
 {
 #ifdef _WIN32
@@ -691,13 +691,13 @@ winsock_initialized(void)
 	int erc;
 
 	if (initialized)
-		return 1;
+		return true;
 
 	tds_mutex_lock(&mtx);
 	/* same check inside the mutex */
 	if (initialized) {
 		tds_mutex_unlock(&mtx);
-		return 1;
+		return true;
 	}
 
 	/* initialize the socket layer */
@@ -709,10 +709,10 @@ winsock_initialized(void)
 		char *errstr = sock_strerror(erc);
 		tdsdump_log(TDS_DBG_ERROR, "tds_init_winsock: WSAStartup failed with %d (%s)\n", erc, errstr);
 		sock_strerror_free(errstr);
-		return 0;
+		return false;
 	}
 #endif
-	return 1;
+	return true;
 }
 
 TDSCONTEXT *
