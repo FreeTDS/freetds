@@ -377,7 +377,7 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 {
 	const char *p, *end;
 	DSTR *dest_s, value = DSTR_INITIALIZER;
-	enum { CFG_DSN = 1, CFG_SERVER = 2, CFG_SERVERNAME = 4 };
+	enum { CFG_DSN = 1, CFG_SERVERNAME = 2 };
 	unsigned int cfgs = 0;	/* flags for indicate second parse of string */
 	char option[24];
 	int trusted = 0;
@@ -418,20 +418,12 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 
 #define CHK_PARAM(p) (strcasecmp(option, odbc_param_##p) == 0 && (num_param=ODBC_PARAM_##p) >= 0)
 		if (CHK_PARAM(Server)) {
-			/* error if servername or DSN specified */
-			if ((cfgs & (CFG_DSN|CFG_SERVERNAME)) != 0) {
-				odbc_errs_add(errs, "HY000", "Only one between SERVER, SERVERNAME and DSN can be specified");
+			dest_s = &login->server_name;
+			if (!parse_server(errs, tds_dstr_buf(&value), login))
 				goto Cleanup;
-			}
-			if (!cfgs) {
-				dest_s = &login->server_name;
-				if (!parse_server(errs, tds_dstr_buf(&value), login))
-					goto Cleanup;
-				cfgs = CFG_SERVER;
-			}
 		} else if (CHK_PARAM(Servername)) {
-			if ((cfgs & (CFG_DSN|CFG_SERVER)) != 0) {
-				odbc_errs_add(errs, "HY000", "Only one between SERVER, SERVERNAME and DSN can be specified");
+			if ((cfgs & CFG_DSN) != 0) {
+				odbc_errs_add(errs, "HY000", "Only one between SERVERNAME and DSN can be specified");
 				goto Cleanup;
 			}
 			if (!cfgs) {
@@ -442,8 +434,8 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 				continue;
 			}
 		} else if (CHK_PARAM(DSN)) {
-			if ((cfgs & (CFG_SERVER|CFG_SERVERNAME)) != 0) {
-				odbc_errs_add(errs, "HY000", "Only one between SERVER, SERVERNAME and DSN can be specified");
+			if ((cfgs & CFG_SERVERNAME) != 0) {
+				odbc_errs_add(errs, "HY000", "Only one between SERVERNAME and DSN can be specified");
 				goto Cleanup;
 			}
 			if (!cfgs) {
