@@ -763,7 +763,7 @@ main(int argc, char **argv)
 
 	istty = isatty(0);
 
-	if (INITSOCKET()) {
+	if (tds_socket_init()) {
 		fprintf(stderr, "Unable to initialize sockets\n");
 		return 1;
 	}
@@ -957,7 +957,7 @@ main(int argc, char **argv)
 	tds_free_socket(tds);
 	tds_free_login(login);
 	tds_free_context(context);
-	DONESOCKET();
+	tds_socket_done();
 
 	return 0;
 }

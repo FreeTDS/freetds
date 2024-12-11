@@ -106,22 +106,6 @@ static void tds_check_cancel(TDSCONNECTION *conn);
  * @{ 
  */
 
-#ifdef _WIN32
-int
-tds_socket_init(void)
-{
-	WSADATA wsadata;
-
-	return WSAStartup(MAKEWORD(2, 2), &wsadata);
-}
-
-void
-tds_socket_done(void)
-{
-	WSACleanup();
-}
-#endif
-
 #if !defined(SOL_TCP) && (defined(IPPROTO_TCP) || defined(_WIN32))
 /* fix incompatibility between MS headers */
 # ifndef IPPROTO_TCP

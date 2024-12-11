@@ -135,10 +135,7 @@ main(void)
 	int port;
 	time_t start_time, end_time;
 
-#ifdef _WIN32
-	WSADATA wsaData;
-	WSAStartup(MAKEWORD(2, 2), &wsaData);
-#endif
+	tds_socket_init();
 
 	if (tds_mutex_init(&mtx))
 		return 1;

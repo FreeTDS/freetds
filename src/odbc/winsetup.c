@@ -306,7 +306,7 @@ ConfigDSN(HWND hwndParent, WORD fRequest, LPCSTR lpszDriver, LPCSTR lpszAttribut
 	 * ConfigDSN() only looks up addresses and names, and never actually
 	 * uses any sockets.
 	 */
-	INITSOCKET();
+	tds_socket_init();
 
 	/* Create a blank login struct */
 	di = alloc_dsninfo();
@@ -378,12 +378,12 @@ ConfigDSN(HWND hwndParent, WORD fRequest, LPCSTR lpszDriver, LPCSTR lpszAttribut
 
 	/* Clean up and return TRUE, indicating that the change took place */
 	free_dsninfo(di);
-	DONESOCKET();
+	tds_socket_done();
 	return TRUE;
 
       Fail:
 	free_dsninfo(di);
-	DONESOCKET();
+	tds_socket_done();
 	return FALSE;
 }
 

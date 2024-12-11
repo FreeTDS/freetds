@@ -284,10 +284,7 @@ main(void)
 	const int num_inserts = 20;
 	int is_freetds;
 
-#ifdef _WIN32
-	WSADATA wsaData;
-	WSAStartup(MAKEWORD(2, 2), &wsaData);
-#endif
+	tds_socket_init();
 
 	if (tds_mutex_init(&mtx))
 		return 1;

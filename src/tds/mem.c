@@ -687,7 +687,6 @@ winsock_initialized(void)
 	static bool initialized = false;
 	static tds_mutex mtx = TDS_MUTEX_INITIALIZER;
 
-	WSADATA wsa_data;
 	int erc;
 
 	if (initialized)
@@ -701,7 +700,7 @@ winsock_initialized(void)
 	}
 
 	/* initialize the socket layer */
-	erc = WSAStartup(MAKEWORD(2, 2), &wsa_data);
+	erc = tds_socket_init();
 	initialized = (erc == 0);
 	tds_mutex_unlock(&mtx);
 
