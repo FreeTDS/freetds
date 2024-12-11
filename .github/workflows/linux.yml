@@ -29,7 +29,7 @@ jobs:
             matrix:
                 os: [ubuntu-latest]
                 tds-version: [7.1, 7.2, 7.3, 7.4]
-                mssql-version: [2019, 2022]
+                mssql-version: [2017, 2019, 2022]
 
         #continue-on-error: true
 
@@ -151,7 +151,7 @@ jobs:
         - name: Archive archives
           uses: actions/upload-artifact@v4
           with:
-            name: freetds-${{ github.ref_name }}-${{ github.sha }}
+            name: freetds-${{ github.sha }}
             path: freetds-*.tar.*
             overwrite: true
 
@@ -165,7 +165,7 @@ jobs:
 
         - uses: actions/download-artifact@v4
           with:
-            name: freetds-${{ github.ref_name }}-${{ github.sha }}
+            name: freetds-${{ github.sha }}
 
         - name: Release
           uses: softprops/action-gh-release@v2
