@@ -683,7 +683,7 @@ tds_free_all_results(TDSSOCKET * tds)
 static int
 winsock_initialized(void)
 {
-#if defined(_WIN32) || defined(_WIN64)
+#ifdef _WIN32
 	static bool initialized = false;
 	static tds_mutex mtx = TDS_MUTEX_INITIALIZER;
 

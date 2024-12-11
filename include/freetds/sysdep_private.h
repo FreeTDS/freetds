@@ -53,7 +53,7 @@ typedef int pid_t;
 #define getpid() _gethostid()
 #endif	/* defined(DOS32X) */
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(_WIN64)
+#ifdef _WIN32
 #include <freetds/windows.h>
 #define READSOCKET(a,b,c)	recv((a), (char *) (b), (c), TDS_NOSIGNAL)
 #define WRITESOCKET(a,b,c)	send((a), (const char *) (b), (c), TDS_NOSIGNAL)
@@ -114,7 +114,7 @@ typedef DWORD pid_t;
 #define strnicmp(s1,s2,n)  _strnicmp(s1,s2,n)
 #endif
 
-#endif /* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) */
+#endif /* defined(_WIN32) */
 
 #ifndef sock_errno
 #define sock_errno errno
@@ -189,7 +189,7 @@ typedef DWORD pid_t;
 # define SOCKLEN_T socklen_t
 #endif
 
-#if !defined(__WIN32__) && !defined(_WIN32) && !defined(WIN32)
+#ifndef _WIN32
 typedef int TDS_SYS_SOCKET;
 #define INVALID_SOCKET -1
 #define TDS_IS_SOCKET_INVALID(s) ((s) < 0)
