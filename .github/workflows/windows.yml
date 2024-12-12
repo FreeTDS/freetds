@@ -19,6 +19,9 @@ on:
 
     workflow_dispatch:
 
+# Declare default permissions as read only.
+permissions: read-all
+
 jobs:
 
     build:
@@ -37,11 +40,11 @@ jobs:
 
         steps:
 
-        - uses: actions/checkout@v4
+        - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
           with:
             fetch-depth: 0
 
-        - uses: ilammy/msvc-dev-cmd@v1
+        - uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
 
         - name: Install OpenSSL & perf
           run: |
