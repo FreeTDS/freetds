@@ -227,11 +227,8 @@ tds_flush_packet(TDSSOCKET * tds)
 
 	/* GW added check for tds->s */
 	if (!IS_TDSDEAD(tds)) {
-		if (tds->out_pos > tds->out_buf_max) {
-			result = tds_write_packet(tds, 0x00);
-			if (TDS_FAILED(result))
-				return result;
-		}
+		if (tds->out_pos > tds->out_buf_max)
+			TDS_PROPAGATE(tds_write_packet(tds, 0x00));
 		result = tds_write_packet(tds, 0x01);
 	}
 	return result;

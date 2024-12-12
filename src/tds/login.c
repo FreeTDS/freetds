@@ -390,8 +390,7 @@ tds_parse_login_results(TDSSOCKET * tds, bool ignore_errors)
 			}
 			if (tds->res_info->num_cols == 1 && strcmp(tds_dstr_cstr(&curcol->column_name), "uvc") == 0)
 				rc = tds_set_uvc(tds, tds->res_info);
-			if (TDS_FAILED(rc))
-				return rc;
+			TDS_PROPAGATE(rc);
 			break;
 
 		case TDS_DONE_RESULT:
@@ -485,8 +484,7 @@ tds_setup_connection(TDSSOCKET *tds, TDSLOGIN *login, bool set_db, bool single_q
 
 	erc = tds_submit_query(tds, str);
 	free(str);
-	if (TDS_FAILED(erc))
-		return erc;
+	TDS_PROPAGATE(erc);
 
 	return tds_parse_login_results(tds, false);
 }
@@ -765,8 +763,7 @@ reroute:
 	/* try one query at a time, some servers do not support some queries */
 	if (TDS_FAILED(erc))
 		erc = tds_setup_connection(tds, login, !db_selected, false);
-	if (TDS_FAILED(erc))
-		return erc;
+	TDS_PROPAGATE(erc);
 
 	tds->query_timeout = login->query_timeout;
 	tds->login = NULL;
@@ -1084,9 +1081,7 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 
 
 	/* initialize ouput buffer for strings */
-	rc = tds_dynamic_stream_init(&data_stream, &data, 0);
-	if (TDS_FAILED(rc))
-		return rc;
+	TDS_PROPAGATE(tds_dynamic_stream_init(&data_stream, &data, 0));
 
 #define SET_FIELD_DSTR(field, dstr, len_limit) do { \
 	data_fields[field].ptr = tds_dstr_cstr(&(dstr)); \
@@ -1381,11 +1376,8 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 		encryption_level = TDS_ENCRYPTION_REQUEST;
 
 	/* all encrypted */
-	if (encryption_level == TDS_ENCRYPTION_STRICT) {
-		ret = tds_ssl_init(tds, true);
-		if (TDS_FAILED(ret))
-			return ret;
-	}
+	if (encryption_level == TDS_ENCRYPTION_STRICT)
+		TDS_PROPAGATE(tds_ssl_init(tds, true));
 
 	/*
 	 * fix a problem with mssql2k which doesn't like
@@ -1419,9 +1411,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 #else
 		tds_put_byte(tds, 0);
 #endif
-	ret = tds_flush_packet(tds);
-	if (TDS_FAILED(ret))
-		return ret;
+	TDS_PROPAGATE(tds_flush_packet(tds));
 
 	/* now process reply from server */
 	ret = tds_read_packet(tds);
@@ -1485,9 +1475,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 
 	/* here we have to do encryption ... */
 
-	ret = tds_ssl_init(tds, false);
-	if (TDS_FAILED(ret))
-		return ret;
+	TDS_PROPAGATE(tds_ssl_init(tds, false));
 
 	/* server just encrypt the first packet */
 	if (crypt_flag == TDS7_ENCRYPT_OFF)

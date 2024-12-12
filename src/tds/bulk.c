@@ -111,8 +111,7 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS))
 		   == TDS_SUCCESS)
 		continue;
-	if (TDS_FAILED(rc))
-		return rc;
+	TDS_PROPAGATE(rc);
 
 	/* copy the results info from the TDS socket */
 	if (!tds->res_info)
@@ -380,8 +379,7 @@ tds7_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_c
 		bindcol->column_cur_size = save_size;
 		bindcol->column_data = save_data;
 
-		if (TDS_FAILED(rc))
-			return rc;
+		TDS_PROPAGATE(rc);
 	}
 	return TDS_SUCCESS;
 }
@@ -435,9 +433,7 @@ tds5_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
 		TDSCOLUMN  *bindcol = bcpinfo->bindinfo->columns[i];
 		if (is_blob_type(bindcol->on_server.column_type)) {
-			TDSRET rc = get_col_data(bcpinfo, bindcol, offset);
-			if (TDS_FAILED(rc))
-				return rc;
+			TDS_PROPAGATE(get_col_data(bcpinfo, bindcol, offset));
 			/* unknown but zero */
 			tds_put_smallint(tds, 0);
 			tds_put_byte(tds, bindcol->on_server.column_type);
@@ -845,8 +841,6 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 TDSRET
 tds_bcp_done(TDSSOCKET *tds, int *rows_copied)
 {
-	TDSRET rc;
-
 	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_done(%p, %p)\n", tds, rows_copied);
 
 	if (tds->out_flag != TDS_BULK || tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
@@ -856,9 +850,7 @@ tds_bcp_done(TDSSOCKET *tds, int *rows_copied)
 
 	tds_set_state(tds, TDS_PENDING);
 
-	rc = tds_process_simple_query(tds);
-	if (TDS_FAILED(rc))
-		return rc;
+	TDS_PROPAGATE(tds_process_simple_query(tds));
 
 	if (rows_copied)
 		*rows_copied = tds->rows_affected;
@@ -882,9 +874,7 @@ tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	if (!IS_TDS50_PLUS(tds->conn))
 		return TDS_FAIL;
 
-	rc = tds_submit_query(tds, bcpinfo->insert_stmt);
-	if (TDS_FAILED(rc))
-		return rc;
+	TDS_PROPAGATE(tds_submit_query(tds, bcpinfo->insert_stmt));
 
 	/* set we want to switch to bulk state */
 	tds->bulk_query = true;
@@ -896,8 +886,7 @@ tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		rc = tds5_process_insert_bulk_reply(tds, bcpinfo);
 	else
 		rc = tds_process_simple_query(tds);
-	if (TDS_FAILED(rc))
-		return rc;
+	TDS_PROPAGATE(rc);
 
 	tds->out_flag = TDS_BULK;
 	if (tds_set_state(tds, TDS_SENDING) != TDS_SENDING)
@@ -1091,9 +1080,7 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	
 	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_start_copy_in(%p, %p)\n", tds, bcpinfo);
 
-	rc = tds_bcp_start_insert_stmt(tds, bcpinfo);
-	if (TDS_FAILED(rc))
-		return rc;
+	TDS_PROPAGATE(tds_bcp_start_insert_stmt(tds, bcpinfo));
 
 	rc = tds_bcp_start(tds, bcpinfo);
 	if (TDS_FAILED(rc)) {
@@ -1283,8 +1270,7 @@ tds_bcp_fread(TDSSOCKET * tds, TDSICONV * char_conv, FILE * stream, const char *
 	funlockfile(stream);
 	free(r.left);
 
-	if (TDS_FAILED(res))
-		return res;
+	TDS_PROPAGATE(res);
 
 	*outbytes = w.size;
 
@@ -1317,16 +1303,13 @@ tds_writetext_start(TDSSOCKET *tds, const char *objname, const char *textptr, co
 	rc = tds_submit_queryf(tds,
 			      "writetext bulk %s 0x%s timestamp = 0x%s%s",
 			      objname, textptr, timestamp, with_log ? " with log" : "");
-	if (TDS_FAILED(rc))
-		return rc;
+	TDS_PROPAGATE(rc);
 
 	/* set we want to switch to bulk state */
 	tds->bulk_query = true;
 
 	/* read the end token */
-	rc = tds_process_simple_query(tds);
-	if (TDS_FAILED(rc))
-		return rc;
+	TDS_PROPAGATE(tds_process_simple_query(tds));
 
 	tds->out_flag = TDS_BULK;
 	if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)

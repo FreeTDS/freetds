@@ -475,9 +475,7 @@ tds_get_char_dynamic(TDSSOCKET *tds, TDSCOLUMN *curcol, void **pp, size_t alloca
 	 * Blobs don't use a column's fixed buffer because the official maximum size is 2 GB.
 	 * Instead, they're reallocated as necessary, based on the data's size.
 	 */
-	res = tds_dynamic_stream_init(&w, pp, allocated);
-	if (TDS_FAILED(res))
-		return res;
+	TDS_PROPAGATE(tds_dynamic_stream_init(&w, pp, allocated));
 
 	if (USE_ICONV && curcol->char_conv)
 		res = tds_convert_stream(tds, curcol->char_conv, to_client, r_stream, &w.stream);
@@ -678,16 +676,13 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	if (v->data)
 		TDS_ZERO_FREE(v->data);
 	if (colsize) {
-		TDSRET res;
 		TDSDATAINSTREAM r;
 
 		if (USE_ICONV && curcol->char_conv)
 			v->type = tds_get_cardinal_type(type, 0);
 
 		tds_datain_stream_init(&r, tds, colsize);
-		res = tds_get_char_dynamic(tds, curcol, (void **) &v->data, colsize, &r.stream);
-		if (TDS_FAILED(res))
-			return res;
+		TDS_PROPAGATE(tds_get_char_dynamic(tds, curcol, (void **) &v->data, colsize, &r.stream));
 		colsize = curcol->column_cur_size;
 #ifdef WORDS_BIGENDIAN
 		tds_swap_datatype(tds_get_conversion_type(type, colsize), v->data);
@@ -816,8 +811,7 @@ tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	/* non-numeric and non-blob */
 
 	if (USE_ICONV && curcol->char_conv) {
-		if (TDS_FAILED(tds_get_char_data(tds, (char *) dest, colsize, curcol)))
-			return TDS_FAIL;
+		TDS_PROPAGATE(tds_get_char_data(tds, (char *) dest, colsize, curcol));
 	} else {
 		/*
 		 * special case, some servers seem to return more data in some conditions
@@ -1526,7 +1520,6 @@ tds_mstabletype_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7 TDS_UNUSED)
 	TDSPARAMINFO *params;
 	TDSCOLUMN *tds_col;
 	TDS_TVP_ROW *row;
-	TDSRET ret;
 	int i;
 	TDS_USMALLINT num_cols = table->metadata ? table->metadata->num_cols : 0;
 
@@ -1546,9 +1539,7 @@ tds_mstabletype_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7 TDS_UNUSED)
 			tds_put_smallint(tds, tds_col->column_flags);
 			/* TYPE_INFO */
 			tds_put_byte(tds, tds_col->on_server.column_type);
-			ret = tds_col->funcs->put_info(tds, tds_col);
-			if (TDS_FAILED(ret))
-				return ret;
+			TDS_PROPAGATE(tds_col->funcs->put_info(tds, tds_col));
 
 			/* ColName - Empty string */
 			tds_put_byte(tds, 0x00);
@@ -1565,9 +1556,7 @@ tds_mstabletype_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7 TDS_UNUSED)
 		params = row->params;
 		for (i = 0; i < num_cols; i++) {
 			tds_col = params->columns[i];
-			ret = tds_col->funcs->put_data(tds, tds_col, 0);
-			if (TDS_FAILED(ret))
-				return ret;
+			TDS_PROPAGATE(tds_col->funcs->put_data(tds, tds_col, 0));
 		}
 	}
 

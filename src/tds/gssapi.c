@@ -143,8 +143,7 @@ tds7_gss_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 
 	res = tds_gss_continue(tds, (struct tds_gss_auth *) auth, &recv_tok);
 	free(recv_tok.value);
-	if (TDS_FAILED(res))
-		return res;
+	TDS_PROPAGATE(res);
 
 	if (auth->packet_len) {
 		tds->out_flag = TDS7_AUTH;
@@ -157,7 +156,6 @@ tds7_gss_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 static TDSRET
 tds5_gss_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t len TDS_UNUSED)
 {
-	TDSRET res;
 	gss_buffer_desc recv_tok;
 	TDSPARAMINFO *info;
 	TDSCOLUMN *col;
@@ -204,14 +202,10 @@ tds5_gss_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 	recv_tok.value = ((TDSBLOB*) col->column_data)->textvalue;
 	recv_tok.length = col->column_size;
 
-	res = tds_gss_continue(tds, (struct tds_gss_auth *) auth, &recv_tok);
-	if (TDS_FAILED(res))
-		return res;
+	TDS_PROPAGATE(tds_gss_continue(tds, (struct tds_gss_auth *) auth, &recv_tok));
 
 	tds->out_flag = TDS_NORMAL;
-	res = tds5_gss_send(tds);
-	if (TDS_FAILED(res))
-		return res;
+	TDS_PROPAGATE(tds5_gss_send(tds));
 
 	return tds_flush_packet(tds);
 
