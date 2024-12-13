@@ -320,6 +320,9 @@ main(void)
 		exit(1);
 	}
 
+	/* cache version */
+	odbc_tds_version();
+
 	parser = odbc_init_parser(f);
 	for (;;) {
 		char *p;

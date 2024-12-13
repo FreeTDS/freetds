@@ -252,7 +252,6 @@ odbc_init_parser(FILE *f)
 		exit(1);
 	}
 	parser->parse_file = f;
-	odbc_tds_version();
 	init_bools(parser);
 
 	return parser;
