@@ -77,7 +77,7 @@ odbc_c2string(char *out, SQLSMALLINT out_c_type, const void *in, size_t in_len)
 		break;
 	case SQL_C_SBIGINT:
 		assert(in_len == sizeof(SQLBIGINT));
-		sprintf(s, "%" PRId64, IN.bi);
+		sprintf(s, "%" PRId64, (int64_t) IN.bi);
 		break;
 	case SQL_C_SHORT:
 		assert(in_len == sizeof(SQLSMALLINT));
