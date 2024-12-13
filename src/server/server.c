@@ -92,43 +92,48 @@ tds_env_change(TDSSOCKET * tds, int type, const char *oldvalue, const char *newv
 }
 
 void
-tds_send_eed(TDSSOCKET * tds, int msgno, int msgstate, int severity, char *msgtext, char *srvname,
-	     char *procname, int line TDS_UNUSED)
-{
-	int totsize;
-
-	tds_put_byte(tds, TDS_EED_TOKEN);
-	totsize = 7 + strlen(procname) + 5 + strlen(msgtext) + 2 + strlen(srvname) + 3;
-	tds_put_smallint(tds, totsize);
-	tds_put_smallint(tds, msgno);
-	tds_put_smallint(tds, 0);	/* unknown */
-	tds_put_byte(tds, msgstate);
-	tds_put_byte(tds, severity);
-	tds_put_byte(tds, strlen(procname));
-	tds_put_n(tds, procname, strlen(procname));
-	tds_put_byte(tds, 0);	/* unknown */
-	tds_put_byte(tds, 1);	/* unknown */
-	tds_put_byte(tds, 0);	/* unknown */
-	tds_put_smallint(tds, strlen(msgtext) + 1);
-	tds_put_n(tds, msgtext, strlen(msgtext));
-	tds_put_byte(tds, severity);
-	tds_put_byte(tds, strlen(srvname));
-	tds_put_n(tds, srvname, strlen(srvname));
-	tds_put_byte(tds, 0);	/* unknown */
-	tds_put_byte(tds, 1);	/* unknown */
-	tds_put_byte(tds, 0);	/* unknown */
-}
-
-void
-tds_send_msg(TDSSOCKET * tds, int msgno, int msgstate, int severity,
-	     const char *msgtext, const char *srvname, const char *procname, int line)
+tds_send_eed(TDSSOCKET * tds, int msgno, int msgstate, int severity, const char *msgtext, const char *srvname,
+	     const char *procname, int line, const char *sqlstate)
 {
 	TDSFREEZE outer;
 
 	if (!procname)
 		procname = "";
 
-	tds_put_byte(tds, TDS_INFO_TOKEN);
+	tds_put_byte(tds, TDS_EED_TOKEN);
+	tds_freeze(tds, &outer, 2);
+	tds_put_int(tds, msgno);
+	tds_put_byte(tds, msgstate);
+	tds_put_byte(tds, severity);
+	TDS_START_LEN_TINYINT(tds) {
+		tds_put_string(tds, sqlstate, -1);
+	} TDS_END_LEN_STRING
+	tds_put_byte(tds, 0);	/* has EED */
+	tds_put_byte(tds, 1);	/* status */
+	tds_put_byte(tds, 0);	/* transaction state */
+	TDS_START_LEN_USMALLINT(tds) {
+		tds_put_string(tds, msgtext, -1);
+	} TDS_END_LEN_STRING
+	TDS_START_LEN_TINYINT(tds) {
+		tds_put_string(tds, srvname, -1);
+	} TDS_END_LEN_STRING
+	TDS_START_LEN_TINYINT(tds) {
+		tds_put_string(tds, procname, -1);
+	} TDS_END_LEN_STRING
+	tds_put_smallint(tds, line);	/* line */
+	tds_freeze_close(&outer);
+}
+
+static void
+tds_send_info(TDSSOCKET * tds, TDS_TINYINT token, int msgno, int msgstate, int severity,
+	      const char *msgtext, const char *srvname, const char *procname, int line)
+{
+	TDSFREEZE outer;
+
+	if (!procname)
+		procname = "";
+
+	tds_put_byte(tds, token);
 	tds_freeze(tds, &outer, 2);
 	tds_put_int(tds, msgno);
 	tds_put_byte(tds, msgstate);
@@ -150,10 +155,17 @@ tds_send_msg(TDSSOCKET * tds, int msgno, int msgstate, int severity,
 }
 
 void
-tds_send_err(TDSSOCKET * tds, int severity TDS_UNUSED, int dberr TDS_UNUSED, int oserr TDS_UNUSED,
-	     char *dberrstr TDS_UNUSED, char *oserrstr TDS_UNUSED)
+tds_send_msg(TDSSOCKET * tds, int msgno, int msgstate, int severity,
+	     const char *msgtext, const char *srvname, const char *procname, int line)
 {
-	tds_put_byte(tds, TDS_ERROR_TOKEN);
+	tds_send_info(tds, TDS_INFO_TOKEN, msgno, msgstate, severity, msgtext, srvname, procname, line);
+}
+
+void
+tds_send_err(TDSSOCKET * tds, int msgno, int msgstate, int severity,
+	     const char *msgtext, const char *srvname, const char *procname, int line)
+{
+	tds_send_info(tds, TDS_ERROR_TOKEN, msgno, msgstate, severity, msgtext, srvname, procname, line);
 }
 
 void

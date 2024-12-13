@@ -45,8 +45,10 @@ void tds_env_change(TDSSOCKET * tds, int type, const char *oldvalue, const char 
 void tds_send_msg(TDSSOCKET * tds, int msgno, int msgstate, int severity, const char *msgtext, const char *srvname,
 		  const char *procname, int line);
 void tds_send_login_ack(TDSSOCKET * tds, const char *progname);
-void tds_send_eed(TDSSOCKET * tds, int msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line);
-void tds_send_err(TDSSOCKET * tds, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
+void tds_send_eed(TDSSOCKET * tds, int msgno, int msgstate, int severity, const char *msgtext, const char *srvname,
+		  const char *procname, int line, const char *sqlstate);
+void tds_send_err(TDSSOCKET * tds, int msgno, int msgstate, int severity, const char *msgtext, const char *srvname,
+		  const char *procname, int line);
 void tds_send_capabilities_token(TDSSOCKET * tds);
 /* TODO remove, use tds_send_done */
 void tds_send_done_token(TDSSOCKET * tds, TDS_SMALLINT flags, TDS_INT numrows);
