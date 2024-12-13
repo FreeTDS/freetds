@@ -65,7 +65,7 @@ set_term_noecho(void)
 }
 
 int
-reset_term()
+reset_term(void)
 {
 	int r;
 
