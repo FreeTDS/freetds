@@ -27,7 +27,9 @@ struct odbc_parser
 	bool conds[MAX_CONDITIONS];
 	unsigned cond_level;
 
-	FILE *parse_file;
+	void *read_param;
+	odbc_read_line_p read_func;
+
 	char line_buf[1024];
 };
 
@@ -244,17 +246,37 @@ get_condition(odbc_parser *parser, char **p)
 }
 
 odbc_parser *
-odbc_init_parser(FILE *f)
+odbc_init_parser_func(odbc_read_line_p read_func, void *param)
 {
-	odbc_parser *parser = tds_new0(odbc_parser, 1);
+	odbc_parser *parser;
+
+	if (!read_func) {
+		fprintf(stderr, "Missing reading function\n");
+		exit(1);
+	}
+
+	parser = tds_new0(odbc_parser, 1);
 	if (!parser) {
 		fprintf(stderr, "out of memory\n");
 		exit(1);
 	}
-	parser->parse_file = f;
+	parser->read_param = param;
+	parser->read_func = read_func;
 	init_bools(parser);
 
 	return parser;
+}
+
+static char *
+read_file(void *param, char *s, size_t size)
+{
+	return fgets(s, size, (FILE *) param);
+}
+
+odbc_parser *
+odbc_init_parser(FILE *f)
+{
+	return odbc_init_parser_func(read_file, f);
 }
 
 void
@@ -267,7 +289,7 @@ odbc_free_parser(odbc_parser *parser)
 const char *
 odbc_get_cmd_line(odbc_parser *parser, char **p_s, bool *cond)
 {
-	while (fgets(parser->line_buf, sizeof(parser->line_buf), parser->parse_file)) {
+	while (parser->read_func(parser->read_param, parser->line_buf, sizeof(parser->line_buf))) {
 		char *p = parser->line_buf;
 		const char *cmd;
 
