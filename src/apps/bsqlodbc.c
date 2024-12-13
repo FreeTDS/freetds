@@ -354,7 +354,7 @@ main(int argc, char *argv[])
 }
 
 static char *
-next_query()
+next_query(void)
 {
 	char query_line[4096];
 	static char *sql = NULL;

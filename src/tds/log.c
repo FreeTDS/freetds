@@ -113,7 +113,7 @@ tdsdump_on(TDSDUMP_OFF_ITEM *off_item)
 }
 
 int
-tdsdump_isopen()
+tdsdump_isopen(void)
 {
 	return g_dumpfile || g_dump_filename;
 }

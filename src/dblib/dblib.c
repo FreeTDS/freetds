@@ -1563,7 +1563,7 @@ dbclose(DBPROCESS * dbproc)
  * \todo breaks if ctlib/dblib used in same process.
  */
 void
-dbexit()
+dbexit(void)
 {
 	TDSSOCKET *tds;
 	DBPROCESS *dbproc;
@@ -6877,7 +6877,7 @@ dbtds(DBPROCESS * dbproc)
  * \sa 
  */
 const char *
-dbversion()
+dbversion(void)
 {
 	tdsdump_log(TDS_DBG_FUNC, "dbversion(void)\n");
 	return TDS_VERSION_NO;

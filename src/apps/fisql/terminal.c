@@ -26,7 +26,7 @@ static struct termios oterm;
 static int term_init = 0;
 
 int
-save_term()
+save_term(void)
 {
 	int r;
 
@@ -44,7 +44,7 @@ save_term()
 }
 
 int
-set_term_noecho()
+set_term_noecho(void)
 {
 	int r;
 
