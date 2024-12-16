@@ -2141,10 +2141,7 @@ tds_process_end(TDSSOCKET * tds, int marker TDS_UNUSED, int *flags_parm)
 	 * have no result set.
 	 */
 
-	if (done_count_valid)
-		tds->rows_affected = rows_affected;
-	else
-		tds->rows_affected = TDS_NO_COUNT;
+	tds->rows_affected = rows_affected;
 
 	if (IS_TDSDEAD(tds))
 		return TDS_FAIL;
