@@ -612,6 +612,14 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 				*out_len = tds_dstr_len(s);
 			strlcpy((char *) buffer, tds_dstr_cstr(s), buflen);
 			break;
+		case CS_PRODUCT_NAME:
+			if (IS_TDSDEAD(tds) || tds->conn->product_name == NULL)
+				/* TODO return proper error */
+				return CS_FAIL;
+			if (out_len)
+				*out_len = (CS_INT) strlen(tds->conn->product_name);
+			strlcpy((char *) buffer, tds->conn->product_name, buflen);
+			break;
 		case CS_LOC_PROP:
 			if (buflen != CS_UNUSED || !con->locale || !buffer)
 				return CS_FAIL;
