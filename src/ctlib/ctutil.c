@@ -54,6 +54,9 @@ TEST_EQUAL(t12,CS_COMPUTEFMT_RESULT,TDS_COMPUTEFMT_RESULT);
 TEST_EQUAL(t13,CS_ROWFMT_RESULT,TDS_ROWFMT_RESULT);
 TEST_EQUAL(t14,CS_MSG_RESULT,TDS_MSG_RESULT);
 TEST_EQUAL(t15,CS_DESCRIBE_RESULT,TDS_DESCRIBE_RESULT);
+TEST_EQUAL(t16,CS_INT_CONTINUE,TDS_INT_CONTINUE);
+TEST_EQUAL(t17,CS_INT_CANCEL,TDS_INT_CANCEL);
+TEST_EQUAL(t18,CS_INT_TIMEOUT,TDS_INT_TIMEOUT);
 
 #define TEST_ATTRIBUTE(t,sa,fa,sb,fb) \
 	TDS_COMPILE_CHECK(t,sizeof(((sa*)0)->fa) == sizeof(((sb*)0)->fb) && TDS_OFFSET(sa,fa) == TDS_OFFSET(sb,fb))
@@ -159,6 +162,21 @@ _ct_handle_client_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAG
 		}
 	}
 	return TDS_INT_CANCEL;
+}
+
+/*
+ * interrupt handler, installed on demand to avoid gratuitously interfering
+ * with tds_select's optimization for the no-handler case */
+int
+_ct_handle_interrupt(void * ptr)
+{
+	CS_CONNECTION *con = (CS_CONNECTION *) ptr;
+	if (con->_interrupt_cb)
+		return (*con->_interrupt_cb)(con);
+	else if (con->ctx->_interrupt_cb)
+		return (*con->ctx->_interrupt_cb)(con);
+	else
+		return TDS_INT_CONTINUE;
 }
 
 /* message handler */
