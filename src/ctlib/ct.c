@@ -701,6 +701,9 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			if (tds_login->connect_timeout == 0)
 				*(CS_INT *) buffer = CS_NO_LIMIT;
 			break;
+		case CS_ENDPOINT:
+			*(CS_INT *) buffer = tds_get_s(con->tds_socket);
+			break;
 		default:
 			tdsdump_log(TDS_DBG_ERROR, "Unknown property %d\n", property);
 			break;
