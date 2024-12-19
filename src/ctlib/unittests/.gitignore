@@ -37,4 +37,5 @@
 /variant
 /errors
 /ct_command
+/timeout
 /libcommon.a
