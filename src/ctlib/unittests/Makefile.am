@@ -38,6 +38,7 @@ TESTS = \
 	variant$(EXEEXT) \
 	errors$(EXEEXT) \
 	ct_command$(EXEEXT) \
+	timeout$(EXEEXT) \
 	$(NULL)
 
 check_PROGRAMS	=	$(TESTS)
@@ -81,6 +82,7 @@ will_convert_SOURCES	= will_convert.c
 variant_SOURCES		= variant.c
 errors_SOURCES		= errors.c
 ct_command_SOURCES	= ct_command.c
+timeout_SOURCES         = timeout.c
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h

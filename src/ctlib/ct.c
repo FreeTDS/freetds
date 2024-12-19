@@ -362,6 +362,9 @@ ct_callback(CS_CONTEXT * ctx, CS_CONNECTION * con, CS_INT action, CS_INT type, C
 		case CS_SERVERMSG_CB:
 			out_func = (CS_VOID *) (con ? con->_servermsg_cb : ctx->_servermsg_cb);
 			break;
+		case CS_INTERRUPT_CB:
+			out_func = (CS_VOID *) (con ? con->_interrupt_cb : ctx->_interrupt_cb);
+			break;
 		default:
 			_ctclient_msg(ctx, con, "ct_callback()", 1, 1, 1, 5, "%d, %s", type, "type");
 			return CS_FAIL;
@@ -388,6 +391,18 @@ ct_callback(CS_CONTEXT * ctx, CS_CONNECTION * con, CS_INT action, CS_INT type, C
 			con->_servermsg_cb = (CS_SERVERMSG_FUNC) funcptr;
 		else
 			ctx->_servermsg_cb = (CS_SERVERMSG_FUNC) funcptr;
+		break;
+	case CS_INTERRUPT_CB:
+		if (funcptr) {
+			if (con)
+				ctx = con->ctx;
+			/* install shim on demand */
+			ctx->tds_ctx->int_handler = _ct_handle_interrupt;
+		}
+		if (con)
+			con->_interrupt_cb = (CS_INTERRUPT_FUNC) funcptr;
+		else
+			ctx->_interrupt_cb = (CS_INTERRUPT_FUNC) funcptr;
 		break;
 	default:
 		_ctclient_msg(ctx, con, "ct_callback()", 1, 1, 1, 5, "%d, %s", type, "type");
