@@ -2715,6 +2715,22 @@ ct_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 	case CS_NOTE_EMPTY_DATA:
 		ret = config_bool(action, buf, &ctx->config.cs_note_empty_data);
 		break;
+        case CS_INTERRUPT_CB:
+                switch (action) {
+                case CS_SET:
+                        ctx->tds_ctx->int_handler = *((int_handler_t*)buf);
+                        break;
+                case CS_GET:
+                        *((int_handler_t*)buf) = ctx->tds_ctx->int_handler;
+                        break;
+                case CS_CLEAR:
+                        ctx->tds_ctx->int_handler = NULL;
+                        break;
+                default:
+                        ret = CS_FAIL;
+                        break;
+                }
+                break;
 	default:
 		ret = CS_SUCCEED;
 		break;
