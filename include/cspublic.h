@@ -433,6 +433,7 @@ enum
 #define CS_SECSESSION_CB	8
 #define CS_SIGNAL_CB		100
 #define CS_MESSAGE_CB		9119
+#define CS_INTERRUPT_CB		9400
 
 /* string types */
 #define CS_NULLTERM	-9
@@ -768,6 +769,11 @@ enum
 #define CS_CLIENTMSG_TYPE 4700
 #define CS_SERVERMSG_TYPE 4701
 #define CS_ALLMSG_TYPE 4702
+
+/* CS_INTERRUPT_CB return values (for CS_CONNECTION *) */
+#define CS_INT_CONTINUE 1
+#define CS_INT_CANCEL 2
+#define CS_INT_TIMEOUT 3
 
 CS_RETCODE cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT * destfmt, CS_VOID * destdata,
 		      CS_INT * resultlen);
