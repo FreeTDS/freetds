@@ -284,13 +284,18 @@ enum
 
 enum
 {
-#define CS_TDS_AUTO CS_TDS_AUTO
 	CS_TDS_AUTO = 0,
+#define CS_TDS_AUTO CS_TDS_AUTO
 	CS_TDS_40 = 7360,
+#define CS_TDS_40 CS_TDS_40
 	CS_TDS_42,
+#define CS_TDS_42 CS_TDS_42
 	CS_TDS_46,
+#define CS_TDS_46 CS_TDS_46
 	CS_TDS_495,
+#define CS_TDS_495 CS_TDS_495
 	CS_TDS_50,
+#define CS_TDS_50 CS_TDS_50
 	CS_TDS_70,
 	CS_TDS_71,
 #define CS_TDS_71 CS_TDS_71
