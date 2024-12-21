@@ -300,6 +300,8 @@ enum
 #define CS_TDS_73 CS_TDS_73
 	CS_TDS_74,
 #define CS_TDS_74 CS_TDS_74
+	CS_TDS_80,
+#define CS_TDS_80 CS_TDS_80
 };
 
 /* bit mask values used by CS_DATAFMT.status */
