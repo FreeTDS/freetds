@@ -220,7 +220,7 @@ DSNDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	const char *pstr;
 	int major, minor, i;
 	static const char *protocols[] = {
-		"AUDIO", "TDS 4.2", "TDS 4.6", "TDS 5.0", "TDS 7.0", "TDS 7.1", "TDS 7.2", "TDS 7.3", "TDS 7.4",
+		"AUTO", "TDS 4.2", "TDS 4.6", "TDS 5.0", "TDS 7.0", "TDS 7.1", "TDS 7.2", "TDS 7.3", "TDS 7.4",
 		"TDS 8.0", NULL
 	};
 
