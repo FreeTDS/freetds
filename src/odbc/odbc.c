@@ -3902,26 +3902,21 @@ odbc_SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 {
 	TDSSOCKET *tds;
 	TDSRESULTINFO *resinfo;
-	TDSCOLUMN *colinfo;
 	int i;
 	SQLULEN curr_row, num_rows;
-	SQLINTEGER len = 0;
-	struct _drecord *drec_ard;
-	TDS_DESC *ard;
+	const TDS_DESC *const ard = stmt->ard;
 	SQLULEN dummy, *fetched_ptr;
 	SQLUSMALLINT *status_ptr, row_status;
 	TDS_INT result_type;
-	int truncated = 0;
+	bool truncated = false;
 
 #define AT_ROW(ptr, type) (row_offset ? (type*)(((char*)(ptr)) + row_offset) : &ptr[curr_row])
 	SQLLEN row_offset = 0;
 
 	tdsdump_log(TDS_DBG_FUNC, "odbc_SQLFetch(%p, %d, %d)\n", stmt, (int)FetchOrientation, (int)FetchOffset);
 
-	if (stmt->ard->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN && stmt->ard->header.sql_desc_bind_offset_ptr)
-		row_offset = *stmt->ard->header.sql_desc_bind_offset_ptr;
-
-	ard = stmt->ard;
+	if (ard->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN && ard->header.sql_desc_bind_offset_ptr)
+		row_offset = *ard->header.sql_desc_bind_offset_ptr;
 
 	tds = stmt->tds;
 	num_rows = ard->header.sql_desc_array_size;
@@ -4091,6 +4086,10 @@ odbc_SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 		/* we got a row, return a row readed even if error (for ODBC specifications) */
 		++(*fetched_ptr);
 		for (i = 0; i < resinfo->num_cols; i++) {
+			TDSCOLUMN *colinfo;
+			struct _drecord *drec_ard;
+			SQLLEN len;
+
 			colinfo = resinfo->columns[i];
 			colinfo->column_text_sqlgetdatapos = 0;
 			colinfo->column_iconv_left = 0;
@@ -4134,7 +4133,7 @@ odbc_SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 				}
 				if ((c_type == SQL_C_CHAR && len >= drec_ard->sql_desc_octet_length)
 				    || (c_type == SQL_C_BINARY && len > drec_ard->sql_desc_octet_length)) {
-					truncated = 1;
+					truncated = true;
 					stmt->errs.lastrc = SQL_SUCCESS_WITH_INFO;
 				}
 			}
@@ -4149,9 +4148,9 @@ odbc_SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 			break;
 		}
 #if SQL_BIND_BY_COLUMN != 0
-		if (stmt->ard->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN)
+		if (ard->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN)
 #endif
-			row_offset += stmt->ard->header.sql_desc_bind_type;
+			row_offset += ard->header.sql_desc_bind_type;
 	} while (++curr_row < num_rows);
 
 	if (truncated)
