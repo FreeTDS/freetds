@@ -3891,6 +3891,74 @@ odbc_fix_data_type_col(TDS_STMT *stmt, int idx)
 	}
 }
 
+static SQLUSMALLINT
+copy_row(TDS_STMT * const stmt, const SQLLEN row_offset, const SQLULEN curr_row)
+{
+	const TDS_DESC *const ard = stmt->ard;
+	TDSRESULTINFO *const resinfo = stmt->tds->current_results;
+	int i;
+	bool truncated = false;
+
+#define AT_ROW(ptr, type) (row_offset ? (type*)(((char*)(ptr)) + row_offset) : &ptr[curr_row])
+
+	for (i = 0; i < resinfo->num_cols; i++) {
+		TDSCOLUMN *colinfo;
+		struct _drecord *drec_ard;
+		SQLLEN len;
+
+		colinfo = resinfo->columns[i];
+		colinfo->column_text_sqlgetdatapos = 0;
+		colinfo->column_iconv_left = 0;
+		drec_ard = (i < ard->header.sql_desc_count) ? &ard->records[i] : NULL;
+		if (!drec_ard)
+			continue;
+		if (colinfo->column_cur_size < 0) {
+			if (drec_ard->sql_desc_indicator_ptr) {
+				*AT_ROW(drec_ard->sql_desc_indicator_ptr, SQLLEN) = SQL_NULL_DATA;
+			} else if (drec_ard->sql_desc_data_ptr) {
+				odbc_errs_add(&stmt->errs, "22002", NULL);
+				return SQL_ROW_ERROR;
+			}
+			continue;
+		}
+		/* set indicator to 0 if data is not null */
+		if (drec_ard->sql_desc_indicator_ptr)
+			*AT_ROW(drec_ard->sql_desc_indicator_ptr, SQLLEN) = 0;
+
+		/* TODO what happen to length if no data is returned (drec->sql_desc_data_ptr == NULL) ?? */
+		len = 0;
+		if (drec_ard->sql_desc_data_ptr) {
+			int c_type;
+			TDS_CHAR *data_ptr = (TDS_CHAR *) drec_ard->sql_desc_data_ptr;
+
+			colinfo->column_text_sqlgetdatapos = 0;
+			colinfo->column_iconv_left = 0;
+			c_type = drec_ard->sql_desc_concise_type;
+			if (c_type == SQL_C_DEFAULT)
+				c_type = odbc_sql_to_c_type_default(stmt->ird->records[i].sql_desc_concise_type);
+			if (row_offset || curr_row == 0) {
+				data_ptr += row_offset;
+			} else {
+				data_ptr += odbc_get_octet_len(c_type, drec_ard) * curr_row;
+			}
+			len = odbc_tds2sql_col(stmt, colinfo, c_type, data_ptr, drec_ard->sql_desc_octet_length, drec_ard);
+			if (len == SQL_NULL_DATA)
+				return SQL_ROW_ERROR;
+
+			if ((c_type == SQL_C_CHAR && len >= drec_ard->sql_desc_octet_length)
+			    || (c_type == SQL_C_BINARY && len > drec_ard->sql_desc_octet_length)) {
+				truncated = true;
+				stmt->errs.lastrc = SQL_SUCCESS_WITH_INFO;
+			}
+		}
+		if (drec_ard->sql_desc_octet_length_ptr)
+			*AT_ROW(drec_ard->sql_desc_octet_length_ptr, SQLLEN) = len;
+	}
+
+	return truncated ? SQL_ROW_SUCCESS_WITH_INFO : SQL_ROW_SUCCESS;
+#undef AT_ROW
+}
+
 /*
  * - handle correctly SQLGetData (for forward cursors accept only row_size == 1
  *   for other types application must use SQLSetPos)
@@ -3906,11 +3974,10 @@ odbc_SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 	SQLULEN curr_row, num_rows;
 	const TDS_DESC *const ard = stmt->ard;
 	SQLULEN dummy, *fetched_ptr;
-	SQLUSMALLINT *status_ptr, row_status;
+	SQLUSMALLINT *status_ptr, row_status = SQL_ROW_SUCCESS;
 	TDS_INT result_type;
 	bool truncated = false;
 
-#define AT_ROW(ptr, type) (row_offset ? (type*)(((char*)(ptr)) + row_offset) : &ptr[curr_row])
 	SQLLEN row_offset = 0;
 
 	tdsdump_log(TDS_DBG_FUNC, "odbc_SQLFetch(%p, %d, %d)\n", stmt, (int)FetchOrientation, (int)FetchOffset);
@@ -4085,61 +4152,9 @@ odbc_SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 
 		/* we got a row, return a row readed even if error (for ODBC specifications) */
 		++(*fetched_ptr);
-		for (i = 0; i < resinfo->num_cols; i++) {
-			TDSCOLUMN *colinfo;
-			struct _drecord *drec_ard;
-			SQLLEN len;
-
-			colinfo = resinfo->columns[i];
-			colinfo->column_text_sqlgetdatapos = 0;
-			colinfo->column_iconv_left = 0;
-			drec_ard = (i < ard->header.sql_desc_count) ? &ard->records[i] : NULL;
-			if (!drec_ard)
-				continue;
-			if (colinfo->column_cur_size < 0) {
-				if (drec_ard->sql_desc_indicator_ptr) {
-					*AT_ROW(drec_ard->sql_desc_indicator_ptr, SQLLEN) = SQL_NULL_DATA;
-				} else if (drec_ard->sql_desc_data_ptr) {
-					odbc_errs_add(&stmt->errs, "22002", NULL);
-					row_status = SQL_ROW_ERROR;
-					break;
-				}
-				continue;
-			}
-			/* set indicator to 0 if data is not null */
-			if (drec_ard->sql_desc_indicator_ptr)
-				*AT_ROW(drec_ard->sql_desc_indicator_ptr, SQLLEN) = 0;
-
-			/* TODO what happen to length if no data is returned (drec->sql_desc_data_ptr == NULL) ?? */
-			len = 0;
-			if (drec_ard->sql_desc_data_ptr) {
-				int c_type;
-				TDS_CHAR *data_ptr = (TDS_CHAR *) drec_ard->sql_desc_data_ptr;
-
-				colinfo->column_text_sqlgetdatapos = 0;
-				colinfo->column_iconv_left = 0;
-				c_type = drec_ard->sql_desc_concise_type;
-				if (c_type == SQL_C_DEFAULT)
-					c_type = odbc_sql_to_c_type_default(stmt->ird->records[i].sql_desc_concise_type);
-				if (row_offset || curr_row == 0) {
-					data_ptr += row_offset;
-				} else {
-					data_ptr += odbc_get_octet_len(c_type, drec_ard) * curr_row;
-				}
-				len = odbc_tds2sql_col(stmt, colinfo, c_type, data_ptr, drec_ard->sql_desc_octet_length, drec_ard);
-				if (len == SQL_NULL_DATA) {
-					row_status = SQL_ROW_ERROR;
-					break;
-				}
-				if ((c_type == SQL_C_CHAR && len >= drec_ard->sql_desc_octet_length)
-				    || (c_type == SQL_C_BINARY && len > drec_ard->sql_desc_octet_length)) {
-					truncated = true;
-					stmt->errs.lastrc = SQL_SUCCESS_WITH_INFO;
-				}
-			}
-			if (drec_ard->sql_desc_octet_length_ptr)
-				*AT_ROW(drec_ard->sql_desc_octet_length_ptr, SQLLEN) = len;
-		}
+		row_status = copy_row(stmt, row_offset, curr_row);
+		if (row_status == SQL_ROW_SUCCESS_WITH_INFO)
+			truncated = true;
 
 		if (status_ptr)
 			*status_ptr++ = truncated ? SQL_ROW_ERROR : row_status;
