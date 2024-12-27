@@ -30,7 +30,7 @@ set(tests
 	all_types utf8_3 empty_query
 	transaction3 transaction4
 	utf8_4 qn connection_string_parse
-	tvp
+	tvp tokens
 )
 
 if(WIN32)
@@ -54,6 +54,9 @@ foreach(target ${tests})
 	endif()
 	if (ENABLE_ODBC_WIDE AND NOT target IN_LIST unicode_tests)
 		set_property(TARGET o_${target} APPEND PROPERTY COMPILE_DEFINITIONS UNICODE=1 _UNICODE=1_)
+	endif()
+	if (target STREQUAL "tokens")
+		set_property(TARGET o_${target} APPEND PROPERTY LINK_LIBRARIES tdssrv tds)
 	endif()
 	add_test(NAME o_${target} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND o_${target})
 	add_dependencies(check o_${target})

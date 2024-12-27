@@ -39,6 +39,7 @@ TDSLOGIN *tds_alloc_read_login(TDSSOCKET * tds);
 /* query.c */
 char *tds_get_query(TDSSOCKET * tds);
 char *tds_get_generic_query(TDSSOCKET * tds);
+void tds_free_query(void);
 
 /* server.c */
 void tds_env_change(TDSSOCKET * tds, int type, const char *oldvalue, const char *newvalue);

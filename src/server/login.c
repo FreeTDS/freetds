@@ -201,7 +201,7 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	/* sql type (byte) + flag3 (byte) + timezone (int) + collation (4 byte) */
 	tds_get_n(tds, NULL, 10);
 
-	packet_start = IS_TDS72_PLUS(tds->conn) ? 86 + 8 : 86;	/* ? */
+	packet_start = IS_TDS72_PLUS(login) ? 86 + 8 : 86;	/* ? */
 	if (packet_len < packet_start)
 		return 0;
 
@@ -292,6 +292,8 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	tds_dstr_empty(&login->server_charset);	/*empty char_set for TDS 7.0 */
 	login->block_size = 0;	/*0 block size for TDS 7.0 */
 	login->encryption_level = TDS_ENCRYPTION_OFF;
+
+	tds->conn->tds_version = login->tds_version;
 
 	return res;
 }

@@ -456,7 +456,7 @@ tds_send_row(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 void
 tds71_send_prelogin(TDSSOCKET * tds)
 {
-	static const unsigned char prelogin[] = {
+	static const unsigned char prelogin_default[] = {
 		0x00, 0x00, 0x1a, 0x00, 0x06,
 		0x01, 0x00, 0x20, 0x00, 0x01,
 		0x02, 0x00, 0x21, 0x00, 0x01,
@@ -468,7 +468,10 @@ tds71_send_prelogin(TDSSOCKET * tds)
 		0x00,
 		0x00
 	};
+	unsigned char prelogin[sizeof(prelogin_default)];
 
+	memcpy(prelogin, prelogin_default, sizeof(prelogin));
+	TDS_PUT_A4BE(&prelogin[0x1a], tds->conn->product_version & 0x7fffffffu);
 	tds_put_n(tds, prelogin, sizeof(prelogin));
 }
 

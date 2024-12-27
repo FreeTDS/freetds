@@ -257,11 +257,26 @@ tds_get_generic_query(TDSSOCKET * tds)
 			 * late to cancel the previous query.
 			 */
 			/* TODO it's not too late -- freddy77 */
-			break;
+			return NULL;
 
 		default:
 			/* not a query packet */
 			return NULL;
 		}
 	}
+}
+
+/**
+ * Free query buffer returned by tds_get_generic_query.
+ */
+void
+tds_free_query(void)
+{
+	TDS_ZERO_FREE(query);
+	query_buflen = 0;
+
+	free((void *) head.qn_options);
+	head.qn_options = NULL;
+	free((void *) head.qn_msgtext);
+	head.qn_msgtext = NULL;
 }
