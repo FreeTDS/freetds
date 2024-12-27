@@ -904,7 +904,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 	TDSRET tdsret;
 	bool in_row = false;
 	SQLUSMALLINT param_status;
-	int token_flags;
+	unsigned int token_flags;
 
 	ODBC_ENTER_HSTMT;
 
