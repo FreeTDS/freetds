@@ -424,12 +424,12 @@ main(void)
 	test_fetch("info\ndone 1\ndone final 2", "No 1", "");
 
 	/* info + done with row */
-#ifdef ENABLE_DEVELOPING
-	test_fetch("info\ndone error 1\ndone final 2", "No 1", "");
+	if (!odbc_driver_is_freetds())
+		test_fetch("info\ndone error 1\ndone final 2", "No 1", "");
 
 	/* info + done with row */
-	test_fetch("info\ndone error\ndone final 2", "No 0", "");
-#endif
+	if (!odbc_driver_is_freetds())
+		test_fetch("info\ndone error\ndone final 2", "No 0", "");
 
 	/* error + done with row */
 	test_fetch("error\ndone 1\ndone final", "E 1", "");
@@ -438,44 +438,51 @@ main(void)
 	test_fetch("error\ndone error 1\ndone final", "E 1", "");
 
 	/* error + done with row */
-#ifdef ENABLE_DEVELOPING
-	test_fetch("error\ndone error\ndone final 3", "E 0", "");
-#endif
+	if (!odbc_driver_is_freetds())
+		test_fetch("error\ndone error\ndone final 3", "E 0", "");
 
 	/* info + doneinproc with row */
 	test_fetch("info\ndoneinproc 1\ndone final", "No 1", "");
 
 	/* info + doneinproc with row */
-#ifdef ENABLE_DEVELOPING
-	test_fetch("info\ndoneinproc error 1\ndone final", "No 1", "");
+	if (!odbc_driver_is_freetds())
+		test_fetch("info\ndoneinproc error 1\ndone final", "No 1", "");
 
 	/* info + doneinproc with row */
-	test_fetch("info\ndoneinproc error\ndone final 3", "No 0", "");
+	if (!odbc_driver_is_freetds())
+		test_fetch("info\ndoneinproc error\ndone final 3", "No 0", "");
 
 	/* error + doneinproc with row */
-	test_fetch("error\ndoneinproc 1\ndoneinproc 2\ndone final", "E 1", "");
+	if (!odbc_driver_is_freetds())
+		test_fetch("error\ndoneinproc 1\ndoneinproc 2\ndone final", "E 1", "");
 
 	/* error + doneinproc with row */
-	test_fetch("error\ndoneinproc error 1\ndoneinproc 2\ndone final", "E 1", "");
+	if (!odbc_driver_is_freetds())
+		test_fetch("error\ndoneinproc error 1\ndoneinproc 2\ndone final", "E 1", "");
 
 	/* error + doneinproc with row */
-	test_fetch("error\ndoneinproc error\ndoneinproc 2\ndone final", "E 0", "");
+	if (!odbc_driver_is_freetds())
+		test_fetch("error\ndoneinproc error\ndoneinproc 2\ndone final", "E 0", "");
 
 	/* doneinproc with row + doneinproc with different row */
-	test_fetch("doneinproc 1\ndoneinproc 2\ndone final", "No 1", "S 1");
+	if (!odbc_driver_is_freetds())
+		test_fetch("doneinproc 1\ndoneinproc 2\ndone final", "No 1", "S 1");
 
 	/* doneinproc with row + done with different row */
-	test_fetch("doneinproc 1\ndone 2\ndone final", "No 1", "S 1");
+	if (!odbc_driver_is_freetds())
+		test_fetch("doneinproc 1\ndone 2\ndone final", "No 1", "S 1");
 
 	/* done with row + done with different row */
-	test_fetch("done 1\ndone 2\ndone final", "No 1", "S 1");
+	if (!odbc_driver_is_freetds())
+		test_fetch("done 1\ndone 2\ndone final", "No 1", "S 1");
 
 	/* doneinproc without row + doneinproc with rows */
-	test_fetch("doneinproc\ndoneinproc 2\ndone final 3", "No 0", "S 0");
+	if (!odbc_driver_is_freetds())
+		test_fetch("doneinproc\ndoneinproc 2\ndone final 3", "No 0", "S 0");
 
 	/* doneinproc with row but not count flag + doneinproc with rows */
-	test_fetch("doneinproc nocount 5\ndoneinproc 2\ndone final 3", "No 5", "S 5");
-#endif
+	if (!odbc_driver_is_freetds())
+		test_fetch("doneinproc nocount 5\ndoneinproc 2\ndone final 3", "No 5", "S 5");
 
 	odbc_disconnect();
 
@@ -490,12 +497,12 @@ main(void)
 	test_fetch("info\ndone 1\ndone final 2", "No 1", "");
 
 	/* info + done with row */
-#ifdef ENABLE_DEVELOPING
-	test_fetch("info\ndone error 1\ndone final 2", "No 1", "");
+	if (!odbc_driver_is_freetds())
+		test_fetch("info\ndone error 1\ndone final 2", "No 1", "");
 
 	/* info + done with row */
-	test_fetch("info\ndone error\ndone final 2", "No 0", "");
-#endif
+	if (!odbc_driver_is_freetds())
+		test_fetch("info\ndone error\ndone final 2", "No 0", "");
 
 	/* error + done with row */
 	test_fetch("error\ndone 1\ndone final", "E 1", "");
@@ -504,20 +511,19 @@ main(void)
 	test_fetch("error\ndone error 1\ndone final", "E 1", "");
 
 	/* error + done with row */
-#ifdef ENABLE_DEVELOPING
-	test_fetch("error\ndone error\ndone final 3", "E 0", "");
-#endif
+	if (!odbc_driver_is_freetds())
+		test_fetch("error\ndone error\ndone final 3", "E 0", "");
 
 	/* info + doneinproc with row */
 	test_fetch("info\ndoneinproc 1\ndone final", "No 1", "");
 
 	/* info + doneinproc with row */
-#ifdef ENABLE_DEVELOPING
-	test_fetch("info\ndoneinproc error 1\ndone final", "No 1", "");
+	if (!odbc_driver_is_freetds())
+		test_fetch("info\ndoneinproc error 1\ndone final", "No 1", "");
 
 	/* info + doneinproc with row */
-	test_fetch("info\ndoneinproc error\ndone final 3", "No 0", "");
-#endif
+	if (!odbc_driver_is_freetds())
+		test_fetch("info\ndoneinproc error\ndone final 3", "No 0", "");
 
 	/* error + doneinproc with row */
 	test_fetch("error\ndoneinproc 1\ndoneinproc 2\ndone final", "E 2", "");
@@ -529,18 +535,20 @@ main(void)
 	test_fetch("error\ndoneinproc error\ndoneinproc 2\ndone final", "E 2", "");
 
 	/* doneinproc with row + doneinproc with different row */
-#ifdef ENABLE_DEVELOPING
-	test_fetch("doneinproc 1\ndoneinproc 2\ndone final", "No 2", "S 2");
+	if (!odbc_driver_is_freetds())
+		test_fetch("doneinproc 1\ndoneinproc 2\ndone final", "No 2", "S 2");
 
 	/* doneinproc with row + done with different row */
-	test_fetch("doneinproc 1\ndone 2\ndone final", "No 1", "S 1");
+	if (!odbc_driver_is_freetds())
+		test_fetch("doneinproc 1\ndone 2\ndone final", "No 1", "S 1");
 
 	/* done with row + done with different row */
-	test_fetch("done 1\ndone 2\ndone final", "No 1", "S 1");
+	if (!odbc_driver_is_freetds())
+		test_fetch("done 1\ndone 2\ndone final", "No 1", "S 1");
 
 	/* doneinproc without row + doneinproc with rows */
-	test_fetch("doneinproc\ndoneinproc 2\ndone final 3", "No 2", "S 2");
-#endif
+	if (!odbc_driver_is_freetds())
+		test_fetch("doneinproc\ndoneinproc 2\ndone final 3", "No 2", "S 2");
 
 	odbc_disconnect();
 
