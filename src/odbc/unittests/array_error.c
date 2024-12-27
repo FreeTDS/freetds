@@ -24,7 +24,7 @@ main(void)
 
 	CHKPrepare(T("insert into #tester(id, name) values(?,?)"), SQL_NTS, "S");
 
-	CHKR(SQLNumParams, (odbc_stmt, &num_params), "S");
+	CHKNumParams(&num_params, "S");
 	assert(num_params == 2);
 
 	/* now this is going to fail as id is duplicated, causing statement to not be prepared */

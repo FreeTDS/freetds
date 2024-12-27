@@ -22,7 +22,7 @@ main(void)
 
 	CHKPrepare(T("SELECT * FROM #tester WHERE id = ?"), SQL_NTS, "S");
 
-	CHKR(SQLNumParams, (odbc_stmt, &num_params), "S");
+	CHKNumParams(&num_params, "S");
 	assert(num_params == 1);
 
 	id = 1;
