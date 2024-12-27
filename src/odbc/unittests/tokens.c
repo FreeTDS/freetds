@@ -92,7 +92,7 @@ TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 	socklen_t len;
 	struct sockaddr_in sin;
 	struct pollfd fds[2];
-        TDS_SYS_SOCKET sockets[2];
+	TDS_SYS_SOCKET sockets[2];
 
 	assert(socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) >= 0);
 	stop_socket = sockets[1];
@@ -328,7 +328,7 @@ parse_sql(TDSSOCKET *tds, const char *sql)
 				continue;
 
 			if (rows >= 0)
-				flags |= nocount ? 0: TDS_DONE_COUNT;
+				flags |= nocount ? 0 : TDS_DONE_COUNT;
 			else
 				rows = 0;
 			tds_send_done(tds, done_token, flags, rows);
@@ -388,6 +388,7 @@ test_fetch(const char *replies, const char *expected_no_row, const char *expecte
 	odbc_reset_statement();
 	ODBC_FREE();
 }
+
 #define test_fetch(r, e1, e2) test_fetch(r, e1, e2, __LINE__)
 
 int
