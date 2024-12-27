@@ -35,6 +35,7 @@
 #include <ctype.h>
 
 #include <freetds/tds.h>
+#include <freetds/utils.h>
 
 #include "fake_thread.h"
 
@@ -143,6 +144,7 @@ TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 		perror("accept");
 		exit(1);
 	}
+	tds_socket_set_nodelay(fake_sock);
 	CLOSESOCKET(s);
 
 	if (TDS_IS_SOCKET_INVALID(server_sock = socket(remote_addr.sa.sa_family, SOCK_STREAM, 0))) {

@@ -54,7 +54,7 @@
 #include <freetds/tds.h>
 #include <freetds/iconv.h>
 #include <freetds/server.h>
-#include <freetds/utils/string.h>
+#include <freetds/utils.h>
 
 unsigned char *
 tds7_decrypt_pass(const unsigned char *crypt_pass, int len, unsigned char *clear_pass)
@@ -114,6 +114,7 @@ tds_listen(TDSCONTEXT * ctx, int ip_port)
 		CLOSESOCKET(s);
 		return NULL;
 	}
+	tds_socket_set_nodelay(fd);
 	CLOSESOCKET(s);
 	tds = tds_alloc_socket(ctx, 4096);
 	if (!tds) {

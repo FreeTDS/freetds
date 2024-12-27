@@ -24,6 +24,7 @@
 
 #include <freetds/tds.h>
 #include <freetds/replacements.h>
+#include <freetds/utils.h>
 
 #include "fake_thread.h"
 
@@ -66,6 +67,7 @@ TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 		perror("accept");
 		exit(1);
 	}
+	tds_socket_set_nodelay(sock);
 	tds_mutex_lock(&mtx);
 	fake_sock = sock;
 	tds_mutex_unlock(&mtx);

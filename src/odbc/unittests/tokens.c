@@ -25,6 +25,7 @@
 #include <freetds/tds.h>
 #include <freetds/replacements.h>
 #include <freetds/server.h>
+#include <freetds/utils.h>
 
 #include "fake_thread.h"
 #include "parser.h"
@@ -117,6 +118,7 @@ TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 			perror("accept");
 			exit(1);
 		}
+		tds_socket_set_nodelay(sock);
 		handle_one(sock);
 	}
 	CLOSESOCKET(s);
