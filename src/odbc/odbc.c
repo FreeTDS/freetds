@@ -2533,7 +2533,7 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 			odbc_errs_add_rdbms(errs, msg->msgno, state, msg->message, msg->line_number, msg->severity,
 					    msg->server, stmt ? stmt->curr_param_row + 1 : 0);
 
-		/* set lastc according */
+		/* set lastrc according */
 		if (severity <= 10) {
 			if (errs->lastrc == SQL_SUCCESS)
 				errs->lastrc = SQL_SUCCESS_WITH_INFO;
