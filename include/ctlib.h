@@ -152,6 +152,7 @@ struct _cs_context
 	CS_CSLIBMSG_FUNC _cslibmsg_cb;
 	CS_CLIENTMSG_FUNC _clientmsg_cb;
 	CS_SERVERMSG_FUNC _servermsg_cb;
+	CS_INTERRUPT_FUNC _interrupt_cb;
 	/* code changes start here - CS_CONFIG - 01*/
 	void *userdata;
 	int userdata_len;
@@ -190,6 +191,7 @@ struct _cs_connection
 	TDSSOCKET *tds_socket;
 	CS_CLIENTMSG_FUNC _clientmsg_cb;
 	CS_SERVERMSG_FUNC _servermsg_cb;
+	CS_INTERRUPT_FUNC _interrupt_cb;
 	void *userdata;
 	int userdata_len;
 	CS_LOCALE *locale;
@@ -380,6 +382,7 @@ typedef union
  */
 TDSRET _ct_handle_server_message(const TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE * msgptr);
 int _ct_handle_client_message(const TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE * msgptr);
+int _ct_handle_interrupt(void * ptr);
 TDS_SERVER_TYPE _ct_get_server_type(TDSSOCKET *tds, int datatype);
 int _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo, CS_INT offset);
 int _ct_get_client_type(const TDSCOLUMN *col, bool describe);
