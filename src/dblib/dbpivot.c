@@ -144,10 +144,14 @@ col_equal(const struct col_t *pc1, const struct col_t *pc2)
 			return false;
 		return strncmp(pc1->s, pc2->s, pc1->len) == 0;
 	case SYBINT1:
+	case SYBUINT1:
+	case SYBSINT1:
 		return pc1->data.ti == pc2->data.ti;
 	case SYBINT2:
+	case SYBUINT2:
 		return pc1->data.si == pc2->data.si;
 	case SYBINT4:
+	case SYBUINT4:
 		return pc1->data.i == pc2->data.i;
 	case SYBFLT8:
 		return pc1->data.f == pc2->data.f;
@@ -173,11 +177,38 @@ col_equal(const struct col_t *pc1, const struct col_t *pc2)
 	case SYBMONEYN:
 	case SYBDATETIMN:
 	case SYBMSTABLE:
+	case SYBNVARCHAR:
+	case SYBINT8:
+	case XSYBCHAR:
+	case XSYBVARCHAR:
+	case XSYBNVARCHAR:
+	case XSYBNCHAR:
+	case XSYBVARBINARY:
+	case XSYBBINARY:
+	case SYBUNIQUE:
+	case SYBVARIANT:
+	case SYBMSUDT:
+	case SYBMSXML:
+	case SYBMSDATE:
+	case SYBMSTIME:
+	case SYBMSDATETIME2:
+	case SYBMSDATETIMEOFFSET:
+	case SYBLONGBINARY:
+	case SYBUINT8:
+	case SYBDATE:
+	case SYBDATEN:
+	case SYB5INT8:
+	case SYBINTERVAL:
+	case SYBTIME:
+	case SYBTIMEN:
+	case SYBUINTN:
+	case SYBUNITEXT:
+	case SYBXML:
+	case SYB5BIGDATETIME:
+	case SYB5BIGTIME:
+
 		assert( false && pc1->type );
 		break;
-
-	default:
-		return false;
 	}
 	return false;
 }
@@ -191,10 +222,14 @@ col_buffer(struct col_t *pcol)
 	case SYBVARCHAR:
 		return pcol->s;
 	case SYBINT1:
+	case SYBUINT1:
+	case SYBSINT1:
 		return &pcol->data.ti;
 	case SYBINT2:
+	case SYBUINT2:
 		return &pcol->data.si;
 	case SYBINT4:
+	case SYBUINT4:
 		return &pcol->data.i;
 	case SYBFLT8:
 		return &pcol->data.f;
@@ -220,11 +255,37 @@ col_buffer(struct col_t *pcol)
 	case SYBMONEYN:
 	case SYBDATETIMN:
 	case SYBMSTABLE:
+	case SYBNVARCHAR:
+	case SYBINT8:
+	case XSYBCHAR:
+	case XSYBVARCHAR:
+	case XSYBNVARCHAR:
+	case XSYBNCHAR:
+	case XSYBVARBINARY:
+	case XSYBBINARY:
+	case SYBUNIQUE:
+	case SYBVARIANT:
+	case SYBMSUDT:
+	case SYBMSXML:
+	case SYBMSDATE:
+	case SYBMSTIME:
+	case SYBMSDATETIME2:
+	case SYBMSDATETIMEOFFSET:
+	case SYBLONGBINARY:
+	case SYBUINT8:
+	case SYBDATE:
+	case SYBDATEN:
+	case SYB5INT8:
+	case SYBINTERVAL:
+	case SYBTIME:
+	case SYBTIMEN:
+	case SYBUINTN:
+	case SYBUNITEXT:
+	case SYBXML:
+	case SYB5BIGDATETIME:
+	case SYB5BIGTIME:
 		assert( false && pcol->type );
 		break;
-
-	default:
-		return NULL;
 	}
 	return NULL;
 

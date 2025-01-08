@@ -2180,7 +2180,37 @@ _ct_get_client_type(const TDSCOLUMN *col, bool describe)
 	case SYBMSDATETIME2:
 	case SYBMSDATETIMEOFFSET:
 		break;
-	default: /* SYBNTEXT, etc. */
+
+	/* nullable types should not occur here... */
+	case SYBBITN:
+	case SYBINTN:
+	case SYBDATETIMN:
+	case SYBFLTN:
+	case SYBMONEYN:
+	case SYBUINTN:
+	case SYBTIMEN:
+	case SYBDATEN:
+
+	/* handled by tds_get_conversion_type */
+	case SYB5INT8:
+		assert(0);
+
+	/* TODO... */
+	case SYBVOID:
+	case SYBNVARCHAR:
+	case XSYBVARCHAR:
+	case XSYBNVARCHAR:
+	case XSYBNCHAR:
+	case XSYBVARBINARY:
+	case XSYBBINARY:
+	case SYBMSUDT:
+	case SYBMSXML:
+	case SYBMSTABLE:
+	case SYBINTERVAL:
+	case SYBSINT1:
+	case SYBUNITEXT:
+	case SYBXML:
+	case SYBNTEXT:
 		break;
 	}
 
