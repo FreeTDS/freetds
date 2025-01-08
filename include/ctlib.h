@@ -149,10 +149,10 @@ struct _cs_context
 	/* code changes ends here - CT_DIAG - 02 */
 
 	struct cs_diag_msg *msgstore;
-	CS_CSLIBMSG_FUNC _cslibmsg_cb;
-	CS_CLIENTMSG_FUNC _clientmsg_cb;
-	CS_SERVERMSG_FUNC _servermsg_cb;
-	CS_INTERRUPT_FUNC _interrupt_cb;
+	CS_CSLIBMSG_FUNC cslibmsg_cb;
+	CS_CLIENTMSG_FUNC clientmsg_cb;
+	CS_SERVERMSG_FUNC servermsg_cb;
+	CS_INTERRUPT_FUNC interrupt_cb;
 	/* code changes start here - CS_CONFIG - 01*/
 	void *userdata;
 	int userdata_len;
@@ -189,9 +189,9 @@ struct _cs_connection
 	CS_CONTEXT *ctx;
 	TDSLOGIN *tds_login;
 	TDSSOCKET *tds_socket;
-	CS_CLIENTMSG_FUNC _clientmsg_cb;
-	CS_SERVERMSG_FUNC _servermsg_cb;
-	CS_INTERRUPT_FUNC _interrupt_cb;
+	CS_CLIENTMSG_FUNC clientmsg_cb;
+	CS_SERVERMSG_FUNC servermsg_cb;
+	CS_INTERRUPT_FUNC interrupt_cb;
 	void *userdata;
 	int userdata_len;
 	CS_LOCALE *locale;

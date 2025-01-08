@@ -187,7 +187,7 @@ _csclient_msg(CS_CONTEXT * ctx, const char *funcname, int layer, int origin, int
 
 	va_start(ap, fmt);
 
-	if (ctx->_cslibmsg_cb) {
+	if (ctx->cslibmsg_cb) {
 		cm.severity = severity;
 		cm.msgnumber = (((layer << 24) & 0xFF000000)
 				| ((origin << 16) & 0x00FF0000)
@@ -203,7 +203,7 @@ _csclient_msg(CS_CONTEXT * ctx, const char *funcname, int layer, int origin, int
 		cm.status = 0;
 		/* cm.sqlstate */
 		cm.sqlstatelen = 0;
-		ctx->_cslibmsg_cb(ctx, &cm);
+		ctx->cslibmsg_cb(ctx, &cm);
 	}
 
 	va_end(ap);
@@ -406,7 +406,7 @@ cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 		}
 		switch (property) {
 		case CS_MESSAGE_CB:
-			*(CS_CSLIBMSG_FUNC*) buffer = ctx->_cslibmsg_cb;
+			*(CS_CSLIBMSG_FUNC*) buffer = ctx->cslibmsg_cb;
 			return CS_SUCCEED;
 		case CS_USERDATA:
 			if (buflen < 0) {
@@ -440,7 +440,7 @@ cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 			if ( ctx->cs_errhandletype == _CS_ERRHAND_INLINE) {
 				cs_diag_clearmsg(ctx, CS_UNUSED);
 			}
-			ctx->_cslibmsg_cb = (CS_CSLIBMSG_FUNC) buffer;
+			ctx->cslibmsg_cb = (CS_CSLIBMSG_FUNC) buffer;
 			ctx->cs_errhandletype = _CS_ERRHAND_CB;
 			return CS_SUCCEED;
 		case CS_USERDATA:
@@ -479,7 +479,7 @@ cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 			if ( ctx->cs_errhandletype == _CS_ERRHAND_INLINE) {
 				cs_diag_clearmsg(ctx, CS_UNUSED);
 			}
-			ctx->_cslibmsg_cb = NULL;
+			ctx->cslibmsg_cb = NULL;
 			ctx->cs_errhandletype = 0;
 			return CS_SUCCEED;
 		case CS_USERDATA:
@@ -1277,7 +1277,7 @@ cs_diag(CS_CONTEXT * ctx, CS_INT operation, CS_INT type, CS_INT idx, CS_VOID * b
 			}
 			ctx->cs_errhandletype = _CS_ERRHAND_INLINE;
 			ctx->cs_diag_msglimit = CS_NO_LIMIT;
-			ctx->_cslibmsg_cb = (CS_CSLIBMSG_FUNC) cs_diag_storemsg; 
+			ctx->cslibmsg_cb = (CS_CSLIBMSG_FUNC) cs_diag_storemsg;
 			break;
 		case CS_MSGLIMIT:
 			if ( ctx->cs_errhandletype != _CS_ERRHAND_INLINE) {

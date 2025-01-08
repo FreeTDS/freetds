@@ -134,12 +134,12 @@ _ct_handle_client_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAG
 	/* if there is no connection, attempt to call the context handler */
 	if (!con) {
 		ctx = (CS_CONTEXT *) ctx_tds->parent;
-		if (ctx->_clientmsg_cb)
-			ret = ctx->_clientmsg_cb(ctx, con, &errmsg);
-	} else if (con->_clientmsg_cb)
-		ret = con->_clientmsg_cb(con->ctx, con, &errmsg);
-	else if (con->ctx->_clientmsg_cb)
-		ret = con->ctx->_clientmsg_cb(con->ctx, con, &errmsg);
+		if (ctx->clientmsg_cb)
+			ret = ctx->clientmsg_cb(ctx, con, &errmsg);
+	} else if (con->clientmsg_cb)
+		ret = con->clientmsg_cb(con->ctx, con, &errmsg);
+	else if (con->ctx->clientmsg_cb)
+		ret = con->ctx->clientmsg_cb(con->ctx, con, &errmsg);
 		
 	/*
 	 * The return code from the error handler is either CS_SUCCEED or CS_FAIL.
@@ -171,10 +171,10 @@ int
 _ct_handle_interrupt(void * ptr)
 {
 	CS_CONNECTION *con = (CS_CONNECTION *) ptr;
-	if (con->_interrupt_cb)
-		return (*con->_interrupt_cb)(con);
-	else if (con->ctx->_interrupt_cb)
-		return (*con->ctx->_interrupt_cb)(con);
+	if (con->interrupt_cb)
+		return (*con->interrupt_cb)(con);
+	else if (con->ctx->interrupt_cb)
+		return (*con->ctx->interrupt_cb)(con);
 	else
 		return TDS_INT_CONTINUE;
 }
@@ -229,12 +229,12 @@ _ct_handle_server_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAG
 
 	/* if there is no connection, attempt to call the context handler */
 	if (!con) {
-		if (ctx->_servermsg_cb)
-			ret = ctx->_servermsg_cb(ctx, con, &errmsg.user);
-	} else if (con->_servermsg_cb) {
-		ret = con->_servermsg_cb(ctx, con, &errmsg.user);
-	} else if (ctx->_servermsg_cb) {
-		ret = ctx->_servermsg_cb(ctx, con, &errmsg.user);
+		if (ctx->servermsg_cb)
+			ret = ctx->servermsg_cb(ctx, con, &errmsg.user);
+	} else if (con->servermsg_cb) {
+		ret = con->servermsg_cb(ctx, con, &errmsg.user);
+	} else if (ctx->servermsg_cb) {
+		ret = ctx->servermsg_cb(ctx, con, &errmsg.user);
 	}
 	return ret == CS_SUCCEED ? TDS_SUCCESS : TDS_FAIL;
 }

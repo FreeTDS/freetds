@@ -217,10 +217,10 @@ _ctclient_msg(CS_CONTEXT *ctx, CS_CONNECTION * con, const char *funcname,
 
 	if (con) {
 		ctx = con->ctx;
-		clientmsg_cb = con->_clientmsg_cb;
+		clientmsg_cb = con->clientmsg_cb;
 	}
 	if (!clientmsg_cb)
-		clientmsg_cb = ctx->_clientmsg_cb;
+		clientmsg_cb = ctx->clientmsg_cb;
 
 	va_start(ap, fmt);
 
@@ -357,13 +357,13 @@ ct_callback(CS_CONTEXT * ctx, CS_CONNECTION * con, CS_INT action, CS_INT type, C
 
 		switch (type) {
 		case CS_CLIENTMSG_CB:
-			out_func = (CS_VOID *) (con ? con->_clientmsg_cb : ctx->_clientmsg_cb);
+			out_func = (CS_VOID *) (con ? con->clientmsg_cb : ctx->clientmsg_cb);
 			break;
 		case CS_SERVERMSG_CB:
-			out_func = (CS_VOID *) (con ? con->_servermsg_cb : ctx->_servermsg_cb);
+			out_func = (CS_VOID *) (con ? con->servermsg_cb : ctx->servermsg_cb);
 			break;
 		case CS_INTERRUPT_CB:
-			out_func = (CS_VOID *) (con ? con->_interrupt_cb : ctx->_interrupt_cb);
+			out_func = (CS_VOID *) (con ? con->interrupt_cb : ctx->interrupt_cb);
 			break;
 		default:
 			_ctclient_msg(ctx, con, "ct_callback()", 1, 1, 1, 5, "%d, %s", type, "type");
@@ -382,15 +382,15 @@ ct_callback(CS_CONTEXT * ctx, CS_CONNECTION * con, CS_INT action, CS_INT type, C
 	switch (type) {
 	case CS_CLIENTMSG_CB:
 		if (con)
-			con->_clientmsg_cb = (CS_CLIENTMSG_FUNC) funcptr;
+			con->clientmsg_cb = (CS_CLIENTMSG_FUNC) funcptr;
 		else
-			ctx->_clientmsg_cb = (CS_CLIENTMSG_FUNC) funcptr;
+			ctx->clientmsg_cb = (CS_CLIENTMSG_FUNC) funcptr;
 		break;
 	case CS_SERVERMSG_CB:
 		if (con)
-			con->_servermsg_cb = (CS_SERVERMSG_FUNC) funcptr;
+			con->servermsg_cb = (CS_SERVERMSG_FUNC) funcptr;
 		else
-			ctx->_servermsg_cb = (CS_SERVERMSG_FUNC) funcptr;
+			ctx->servermsg_cb = (CS_SERVERMSG_FUNC) funcptr;
 		break;
 	case CS_INTERRUPT_CB:
 		if (funcptr) {
@@ -400,9 +400,9 @@ ct_callback(CS_CONTEXT * ctx, CS_CONNECTION * con, CS_INT action, CS_INT type, C
 			ctx->tds_ctx->int_handler = _ct_handle_interrupt;
 		}
 		if (con)
-			con->_interrupt_cb = (CS_INTERRUPT_FUNC) funcptr;
+			con->interrupt_cb = (CS_INTERRUPT_FUNC) funcptr;
 		else
-			ctx->_interrupt_cb = (CS_INTERRUPT_FUNC) funcptr;
+			ctx->interrupt_cb = (CS_INTERRUPT_FUNC) funcptr;
 		break;
 	default:
 		_ctclient_msg(ctx, con, "ct_callback()", 1, 1, 1, 5, "%d, %s", type, "type");
@@ -4540,8 +4540,8 @@ ct_diag(CS_CONNECTION * conn, CS_INT operation, CS_INT type, CS_INT idx, CS_VOID
 		if (conn->ctx->cs_diag_msglimit_total == 0)
 			conn->ctx->cs_diag_msglimit_total = CS_NO_LIMIT;
 
-		conn->ctx->_clientmsg_cb = (CS_CLIENTMSG_FUNC) ct_diag_storeclientmsg;
-		conn->ctx->_servermsg_cb = (CS_SERVERMSG_FUNC) ct_diag_storeservermsg;
+		conn->ctx->clientmsg_cb = (CS_CLIENTMSG_FUNC) ct_diag_storeclientmsg;
+		conn->ctx->servermsg_cb = (CS_SERVERMSG_FUNC) ct_diag_storeservermsg;
 
 		break;
 
