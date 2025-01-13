@@ -35,9 +35,7 @@ on_client_msg(CS_CONTEXT *ctx, CS_CONNECTION *con, CS_CLIENTMSG *errmsg)
 			}
 			fputs("lost patience;"
 			      " cancelling (allowing 10 seconds)\n", stderr);
-			if (CS_FAIL == ct_con_props(con, CS_SET, CS_TIMEOUT, &cancel_timeout, CS_UNUSED, NULL))
-				fputs("... but ct_con_props() failed"
-				      " in error handler.\n", stderr);
+			check_call(ct_con_props, (con, CS_SET, CS_TIMEOUT, &cancel_timeout, CS_UNUSED, NULL));
 			return CS_FAIL;
 		}
 		fputs("continuing to wait.\n", stderr);
@@ -57,30 +55,18 @@ test(CS_CONNECTION *con, CS_COMMAND *cmd)
 
 	printf("Using %d-second query timeouts.\n", timeout_seconds);
 
-	if (CS_FAIL == ct_con_props(con, CS_SET, CS_TIMEOUT, &timeout_seconds, CS_UNUSED, NULL)) {
-		fputs("Failed: ct_con_props(..., CS_SET, CS_TIMEOUT, ...).", stderr);
-		exit(1);
-	}
+	check_call(ct_con_props, (con, CS_SET, CS_TIMEOUT, &timeout_seconds, CS_UNUSED, NULL));
 
 	/* Send something that will take a while to execute. */
 	printf("Issuing a query that will take 30 seconds.\n");
-	if (CS_SUCCEED != ct_command(cmd, CS_LANG_CMD, (void *) sql, sizeof(sql) - 1, CS_UNUSED)) {
-		fputs("Failed: ct_command.\n", stderr);
-		exit(1);
-	}
+	check_call(ct_command, (cmd, CS_LANG_CMD, (void *) sql, sizeof(sql) - 1, CS_UNUSED));
 
 	start_time = time(NULL);	/* Track for reporting purposes. */
 	ntimeouts = 0;
-	if (CS_FAIL == ct_callback(NULL, con, CS_SET, CS_CLIENTMSG_CB, &on_client_msg)
-	    || CS_FAIL == ct_callback(NULL, con, CS_SET, CS_INTERRUPT_CB, &on_interrupt)) {
-		fputs("Failed: ct_callback.\n", stderr);
-		exit(1);
-	}
+	check_call(ct_callback, (NULL, con, CS_SET, CS_CLIENTMSG_CB, &on_client_msg));
+	check_call(ct_callback, (NULL, con, CS_SET, CS_INTERRUPT_CB, &on_interrupt));
 
-	if (CS_SUCCEED != ct_send(cmd)) {
-		fputs("Failed: ct_send.\n", stderr);
-		exit(1);
-	}
+	check_call(ct_send,(cmd));
 
 	ret = ct_results(cmd, &result_type);
 	if (ret == CS_SUCCEED) {
