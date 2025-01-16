@@ -42,6 +42,7 @@ typedef struct {
 /* list of integer and floating point types */
 static const type_desc number_types[] = {
 	{ SYBINT1, true },
+	{ SYBSINT1, true },
 	{ SYBUINT1, true },
 	{ SYBINT2, true },
 	{ SYBUINT2, true },
