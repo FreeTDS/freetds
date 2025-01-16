@@ -30,7 +30,7 @@ my %yn = 	( T => 1
 
 sub category($) {
 	$_ = shift;
-	return qw(INT1 UINT1 INT2 UINT2 INT4 UINT4 INT8 UINT8) if $_ eq 'INTx';
+	return qw(INT1 UINT1 INT2 UINT2 INT4 UINT4 INT8 UINT8 SINT1) if $_ eq 'INTx';
 	return qw(MONEY MONEY4) if $_ eq 'MONEYx';
 	return qw(FLT8 REAL) if $_ eq 'FLTx';
 	return qw(DATETIME DATETIME4 DATE TIME MSDATE MSTIME MSDATETIME2 MSDATETIMEOFFSET 5BIGDATETIME 5BIGTIME) if $_ eq 'DATETIMEx';

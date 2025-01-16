@@ -86,6 +86,7 @@ static const char *parse_numeric(const char *buf, const char *pend,
 #define IS_TINYINT(x) ( -1 < (x) && (x) < 0x100 )
 #define IS_SMALLINT(x) ( -32769 < (x) && (x) < 32768 )
 #define IS_USMALLINT(x) ( -1 < (x) && (x) < 65536 )
+#define IS_SINT1(x) ( -129 < (x) && (x) < 128 )
 
 /*
  * Macros for integer number checks.
@@ -267,6 +268,7 @@ tds_convert_binary(const TDS_UCHAR * src, TDS_INT srclen, int desttype, CONV_RES
 		return (srclen * 2);
 		break;
 	case SYBINT1:
+	case SYBSINT1:
 	case SYBUINT1:
 	case SYBINT2:
 	case SYBUINT2:
@@ -373,6 +375,14 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 		return srclen;
 		break;
 
+	case SYBSINT1:
+		if ((rc = string_to_int(src, src + srclen, &tds_i)) < 0)
+			return rc;
+		if (!IS_SINT1(tds_i))
+			return TDS_CONVERT_OVERFLOW;
+		cr->ti = tds_i;
+		return sizeof(TDS_TINYINT);
+		break;
 	case SYBINT1:
 	case SYBUINT1:
 		if ((rc = string_to_int(src, src + srclen, &tds_i)) < 0)
@@ -571,7 +581,13 @@ tds_convert_bit(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 }
 
 static TDS_INT
-tds_convert_int1(const TDS_TINYINT * src, int desttype, CONV_RESULT * cr)
+tds_convert_int1(const int8_t * src, int desttype, CONV_RESULT * cr)
+{
+	return tds_convert_int(*src, desttype, cr);
+}
+
+static TDS_INT
+tds_convert_uint1(const TDS_TINYINT * src, int desttype, CONV_RESULT * cr)
 {
 	return tds_convert_int(*src, desttype, cr);
 }
@@ -640,6 +656,12 @@ tds_convert_int(TDS_INT num, int desttype, CONV_RESULT * cr)
 	case CASE_ALL_CHAR:
 		sprintf(tmp_str, "%d", num);
 		return string_to_result(desttype, tmp_str, cr);
+		break;
+	case SYBSINT1:
+		if (!IS_SINT1(num))
+			return TDS_CONVERT_OVERFLOW;
+		cr->ti = (TDS_TINYINT) num;
+		return sizeof(TDS_TINYINT);
 		break;
 	case SYBINT1:
 	case SYBUINT1:
@@ -740,6 +762,7 @@ tds_convert_int8(const TDS_INT8 *src, int desttype, CONV_RESULT * cr)
 		return string_to_result(desttype, tmp_str, cr);
 		break;
 	case SYBINT1:
+	case SYBSINT1:
 	case SYBUINT1:
 	case SYBINT2:
 	case SYBUINT2:
@@ -818,6 +841,7 @@ tds_convert_uint8(const TDS_UINT8 *src, int desttype, CONV_RESULT * cr)
 		return string_to_result(desttype, tmp_str, cr);
 		break;
 	case SYBINT1:
+	case SYBSINT1:
 	case SYBUINT1:
 	case SYBINT2:
 	case SYBUINT2:
@@ -889,6 +913,21 @@ tds_convert_numeric(const TDS_NUMERIC * src, int desttype, CONV_RESULT * cr)
 		if (tds_numeric_to_string(src, tmpstr) < 0)
 			return TDS_CONVERT_FAIL;
 		return string_to_result(desttype, tmpstr, cr);
+		break;
+	case SYBSINT1:
+		cr->n = *src;
+		ret = tds_numeric_change_prec_scale(&(cr->n), 3, 0);
+		if (ret < 0)
+			return ret;
+		if (cr->n.array[1])
+			return TDS_CONVERT_OVERFLOW;
+		i = cr->n.array[2];
+		if (cr->n.array[0])
+			i = -i;
+		if (i != 0 && ((i >> 7) ^ cr->n.array[0]) & 1)
+			return TDS_CONVERT_OVERFLOW;
+		cr->ti = (TDS_TINYINT) i;
+		return sizeof(TDS_TINYINT);
 		break;
 	case SYBINT1:
 	case SYBUINT1:
@@ -1091,6 +1130,13 @@ tds_convert_money4(const TDSCONTEXT * tds_ctx, const TDS_MONEY4 * src, int destt
 		}
 		return string_to_result(desttype, tmp_str, cr);
 		} break;
+	case SYBSINT1:
+		dollars = mny.mny4 / 10000;
+		if (!IS_SINT1(dollars))
+			return TDS_CONVERT_OVERFLOW;
+		cr->ti = (TDS_TINYINT) dollars;
+		return sizeof(TDS_TINYINT);
+		break;
 	case SYBINT1:
 	case SYBUINT1:
 		dollars = mny.mny4 / 10000;
@@ -1189,6 +1235,12 @@ tds_convert_money(const TDSCONTEXT * tds_ctx, const TDS_MONEY * src, int desttyp
 	case CASE_ALL_CHAR:
 		s = tds_money_to_string((const TDS_MONEY *) src, tmpstr, tds_ctx->money_use_2_digits);
 		return string_to_result(desttype, s, cr);
+		break;
+	case SYBSINT1:
+		if (mymoney <= -129 * 10000 || mymoney >= 128 * 10000)
+			return TDS_CONVERT_OVERFLOW;
+		cr->ti = (int8_t) (((TDS_INT) mymoney) / 10000);
+		return sizeof(TDS_TINYINT);
 		break;
 	case SYBINT1:
 	case SYBUINT1:
@@ -1329,6 +1381,7 @@ tds_convert_datetimeall(const TDSCONTEXT * tds_ctx, int srctype, const TDS_DATET
 	case SYBBIT:
 	case SYBBITN:
 	case SYBINT1:
+	case SYBSINT1:
 	case SYBUINT1:
 	case SYBINT2:
 	case SYBUINT2:
@@ -1404,6 +1457,7 @@ tds_convert_datetime(const TDSCONTEXT * tds_ctx, const TDS_DATETIME * dt, int de
 	case SYBBIT:
 	case SYBBITN:
 	case SYBINT1:
+	case SYBSINT1:
 	case SYBUINT1:
 	case SYBINT2:
 	case SYBUINT2:
@@ -1533,6 +1587,12 @@ tds_convert_real(const TDS_REAL* src, int desttype, CONV_RESULT * cr)
 		sprintf(tmp_str, "%.9g", the_value);
 		return string_to_result(desttype, tmp_str, cr);
 		break;
+	case SYBSINT1:
+		if (!IS_SINT1(the_value))
+			return TDS_CONVERT_OVERFLOW;
+		cr->ti = (TDS_TINYINT) the_value;
+		return sizeof(TDS_TINYINT);
+		break;
 	case SYBINT1:
 	case SYBUINT1:
 		if (!IS_TINYINT(the_value))
@@ -1641,6 +1701,12 @@ tds_convert_flt8(const TDS_FLOAT* src, int desttype, CONV_RESULT * cr)
 	case CASE_ALL_CHAR:
 		sprintf(tmp_str, "%.17g", the_value);
 		return string_to_result(desttype, tmp_str, cr);
+		break;
+	case SYBSINT1:
+		if (!IS_SINT1(the_value))
+			return TDS_CONVERT_OVERFLOW;
+		cr->ti = (TDS_TINYINT) the_value;
+		return sizeof(TDS_TINYINT);
 		break;
 	case SYBINT1:
 	case SYBUINT1:
@@ -1759,6 +1825,7 @@ tds_convert_unique(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 	case SYBBIT:
 	case SYBBITN:
 	case SYBINT1:
+	case SYBSINT1:
 	case SYBUINT1:
 	case SYBINT2:
 	case SYBUINT2:
@@ -1792,6 +1859,7 @@ tds_convert_to_binary(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int de
 	case SYBBIT:
 	case SYBBITN:
 	case SYBINT1:
+	case SYBSINT1:
 	case SYBUINT1:
 		len = 1;
 		break;
@@ -1940,9 +2008,12 @@ tds_convert(const TDSCONTEXT *tds_ctx, int srctype, const void *src, TDS_UINT sr
 	case SYBBITN:
 		length = tds_convert_bit(src, desttype, cr);
 		break;
+	case SYBSINT1:
+		length = tds_convert_int1((const int8_t *) src, desttype, cr);
+		break;
 	case SYBINT1:
 	case SYBUINT1:
-		length = tds_convert_int1((const TDS_TINYINT *) src, desttype, cr);
+		length = tds_convert_uint1((const TDS_TINYINT *) src, desttype, cr);
 		break;
 	case SYBINT2:
 		length = tds_convert_int2((const TDS_SMALLINT *) src, desttype, cr);
@@ -2948,6 +3019,7 @@ tds_get_null_type(TDS_SERVER_TYPE srctype)
 		return SYBVARCHAR;
 		break;
 	case SYBINT1:
+	case SYBSINT1:
 	case SYBUINT1:
 	case SYBINT2:
 	case SYBINT4:

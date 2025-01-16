@@ -3053,6 +3053,7 @@ tds_prtype(int type)
 		TYPE(SYBFLT8, "float");
 		TYPE(SYBFLTN, "float-null");
 		TYPE(SYBIMAGE, "image");
+		TYPE(SYBSINT1, "signed tinyint");
 		TYPE(SYBINT1, "tinyint");
 		TYPE(SYBINT2, "smallint");
 		TYPE(SYBINT4, "int");
