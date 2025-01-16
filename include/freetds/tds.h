@@ -138,7 +138,7 @@ typedef tds_sysdep_real64_type TDS_FLOAT;	/* 64-bit real     */
 #define TDS_INVALID_TYPE ((TDS_SERVER_TYPE) 0)
 
 /**
- * this structure is not directed connected to a TDS protocol but
+ * This structure is not directly connected to TDS protocol but
  * keeps any DATE/TIME information.
  */
 typedef struct
