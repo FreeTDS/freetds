@@ -8,118 +8,112 @@
 #include "blk_in.h"
 
 static CS_RETCODE
-do_bind(CS_BLKDESC * blkdesc, int colnum, CS_INT host_format, CS_INT host_type, CS_INT host_maxlen, 
+do_bind(CS_BLKDESC * blkdesc, int colnum, CS_INT host_format, CS_INT host_type, CS_INT host_maxlen,
 	void        *var_addr,
 	CS_INT      *var_len_addr,
 	CS_SMALLINT *var_ind_addr );
 
-static char command[512];
-
 /*
  * Static data for insertion
  */
-int  not_null_bit = 1;
-CS_INT      l_not_null_bit = 4;
-CS_SMALLINT i_not_null_bit = 0;
+static int  not_null_bit = 1;
+static CS_INT      l_not_null_bit = 4;
+static CS_SMALLINT i_not_null_bit = 0;
 
-char not_null_char[] = "a char";
-CS_INT      l_not_null_char = 6;
-CS_SMALLINT i_not_null_char = 0;
+static char not_null_char[] = "a char";
+static CS_INT      l_not_null_char = 6;
+static CS_SMALLINT i_not_null_char = 0;
 
-char not_null_varchar[] = "a varchar";
-CS_INT      l_not_null_varchar = 9;
-CS_SMALLINT i_not_null_varchar = 0;
+static char not_null_varchar[] = "a varchar";
+static CS_INT      l_not_null_varchar = 9;
+static CS_SMALLINT i_not_null_varchar = 0;
 
-char not_null_datetime[] 		= "Dec 17 2003  3:44PM";
-CS_INT      l_not_null_datetime = 19; 
-CS_SMALLINT i_not_null_datetime = 0;
+static char not_null_datetime[] = "Dec 17 2003  3:44PM";
+static CS_INT      l_not_null_datetime = 19;
+static CS_SMALLINT i_not_null_datetime = 0;
 
-char not_null_smalldatetime[] 	= "Dec 17 2003  3:44PM";
-CS_INT      l_not_null_smalldatetime = 19;
-CS_SMALLINT i_not_null_smalldatetime = 0;
+static char not_null_smalldatetime[] = "Dec 17 2003  3:44PM";
+static CS_INT      l_not_null_smalldatetime = 19;
+static CS_SMALLINT i_not_null_smalldatetime = 0;
 
-char not_null_money[] = "12.34";
-CS_INT      l_not_null_money = 5;
-CS_SMALLINT i_not_null_money = 0;
+static char not_null_money[] = "12.34";
+static CS_INT      l_not_null_money = 5;
+static CS_SMALLINT i_not_null_money = 0;
 
-char not_null_smallmoney[] = "12.34";
-CS_INT      l_not_null_smallmoney = 5;
-CS_SMALLINT i_not_null_smallmoney = 0;
+static char not_null_smallmoney[] = "12.34";
+static CS_INT      l_not_null_smallmoney = 5;
+static CS_SMALLINT i_not_null_smallmoney = 0;
 
-char not_null_float[] = "12.34";
-CS_INT      l_not_null_float = 5;
-CS_SMALLINT i_not_null_float = 0;
+static char not_null_float[] = "12.34";
+static CS_INT      l_not_null_float = 5;
+static CS_SMALLINT i_not_null_float = 0;
 
-char not_null_real[] = "12.34";
-CS_INT      l_not_null_real = 5;
-CS_SMALLINT i_not_null_real = 0;
+static char not_null_real[] = "12.34";
+static CS_INT      l_not_null_real = 5;
+static CS_SMALLINT i_not_null_real = 0;
 
-char not_null_decimal[] = "12.34";
-CS_INT      l_not_null_decimal = 5;
-CS_SMALLINT i_not_null_decimal = 0;
+static char not_null_decimal[] = "12.34";
+static CS_INT      l_not_null_decimal = 5;
+static CS_SMALLINT i_not_null_decimal = 0;
 
-char not_null_numeric[] = "12.34";
-CS_INT      l_not_null_numeric = 5;
-CS_SMALLINT i_not_null_numeric = 0;
+static char not_null_numeric[] = "12.34";
+static CS_INT      l_not_null_numeric = 5;
+static CS_SMALLINT i_not_null_numeric = 0;
 
-int  not_null_int        = 1234;
-CS_INT      l_not_null_int = 4;
-CS_SMALLINT i_not_null_int = 0;
+static int  not_null_int        = 1234;
+static CS_INT      l_not_null_int = 4;
+static CS_SMALLINT i_not_null_int = 0;
 
-int  not_null_smallint   = 1234;
-CS_INT      l_not_null_smallint = 4;
-CS_SMALLINT i_not_null_smallint = 0;
+static int  not_null_smallint   = 1234;
+static CS_INT      l_not_null_smallint = 4;
+static CS_SMALLINT i_not_null_smallint = 0;
 
-int  not_null_tinyint    = 123;
-CS_INT      l_not_null_tinyint = 4;
-CS_SMALLINT i_not_null_tinyint = 0;
+static int  not_null_tinyint    = 123;
+static CS_INT      l_not_null_tinyint = 4;
+static CS_SMALLINT i_not_null_tinyint = 0;
 
-CS_INT      l_null_char = 0;
-CS_SMALLINT i_null_char = -1;
+static CS_INT      l_null_char = 0;
+static CS_SMALLINT i_null_char = -1;
 
-CS_INT      l_null_varchar = 0;
-CS_SMALLINT i_null_varchar = -1;
+static CS_INT      l_null_varchar = 0;
+static CS_SMALLINT i_null_varchar = -1;
 
-CS_INT      l_null_datetime = 0;
-CS_SMALLINT i_null_datetime = -1;
+static CS_INT      l_null_datetime = 0;
+static CS_SMALLINT i_null_datetime = -1;
 
-CS_INT      l_null_smalldatetime = 0;
-CS_SMALLINT i_null_smalldatetime = -1;
+static CS_INT      l_null_smalldatetime = 0;
+static CS_SMALLINT i_null_smalldatetime = -1;
 
-CS_INT      l_null_money = 0;
-CS_SMALLINT i_null_money = -1;
+static CS_INT      l_null_money = 0;
+static CS_SMALLINT i_null_money = -1;
 
-CS_INT      l_null_smallmoney = 0;
-CS_SMALLINT i_null_smallmoney = -1;
+static CS_INT      l_null_smallmoney = 0;
+static CS_SMALLINT i_null_smallmoney = -1;
 
-CS_INT      l_null_float = 0;
-CS_SMALLINT i_null_float = -1;
+static CS_INT      l_null_float = 0;
+static CS_SMALLINT i_null_float = -1;
 
-CS_INT      l_null_real = 0;
-CS_SMALLINT i_null_real = -1;
+static CS_INT      l_null_real = 0;
+static CS_SMALLINT i_null_real = -1;
 
-CS_INT      l_null_decimal = 0;
-CS_SMALLINT i_null_decimal = -1;
+static CS_INT      l_null_decimal = 0;
+static CS_SMALLINT i_null_decimal = -1;
 
-CS_INT      l_null_numeric = 0;
-CS_SMALLINT i_null_numeric = -1;
+static CS_INT      l_null_numeric = 0;
+static CS_SMALLINT i_null_numeric = -1;
 
-CS_INT      l_null_int = 0;
-CS_SMALLINT i_null_int = -1;
+static CS_INT      l_null_int = 0;
+static CS_SMALLINT i_null_int = -1;
 
-CS_INT      l_null_smallint = 0;
-CS_SMALLINT i_null_smallint = -1;
+static CS_INT      l_null_smallint = 0;
+static CS_SMALLINT i_null_smallint = -1;
 
-CS_INT      l_null_tinyint = 0;
-CS_SMALLINT i_null_tinyint = -1;
+static CS_INT      l_null_tinyint = 0;
+static CS_SMALLINT i_null_tinyint = -1;
 
 static void
 do_binds(CS_BLKDESC * blkdesc)
 {
-	enum { prefixlen = 0 };
-	enum { termlen = 0 };
-	enum NullValue { IsNull, IsNotNull };
-
 	/* non nulls */
 
 	do_bind(blkdesc, 1, CS_FMT_UNUSED,   CS_INT_TYPE,   4,  &not_null_bit, &l_not_null_bit, &i_not_null_bit);
@@ -152,7 +146,6 @@ do_binds(CS_BLKDESC * blkdesc)
 	do_bind(blkdesc, 25, CS_FMT_UNUSED,   CS_INT_TYPE,  4,  &not_null_int, &l_null_int, &i_null_int);
 	do_bind(blkdesc, 26, CS_FMT_UNUSED,   CS_INT_TYPE,  4,  &not_null_smallint, &l_null_smallint, &i_null_smallint);
 	do_bind(blkdesc, 27, CS_FMT_UNUSED,   CS_INT_TYPE,  4,  &not_null_tinyint, &l_null_tinyint, &i_null_tinyint);
-
 }
 
 static CS_RETCODE
@@ -194,8 +187,9 @@ main(void)
 	int verbose = 0;
 	int count = 0;
 	int i;
+	char command[512];
 
-	const char *table_name = "all_types_bcp_unittest";
+	static const char table_name[] = "all_types_bcp_unittest";
 
 	printf("%s: Retrieve data using array binding \n", __FILE__);
 	if (verbose) {
@@ -203,7 +197,7 @@ main(void)
 	}
 	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));
 
-	sprintf(command,"if exists (select 1 from sysobjects where type = 'U' and name = '%s') drop table %s", 
+	sprintf(command,"if exists (select 1 from sysobjects where type = 'U' and name = '%s') drop table %s",
                     table_name, table_name);
 
 	check_call(run_command, (cmd, command));
