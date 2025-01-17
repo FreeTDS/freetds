@@ -1504,18 +1504,25 @@ cs_diag_countmsg(CS_CONTEXT *context, CS_INT *count)
 }
 
 /**
- * Try to convert to a type we can handle
+ * Try to convert to a type we can handle.
+ * Used before calling _cs_convert to handle TDS types that do not have a
+ * corresponding CS_xxx_TYPE.
+ * @param ctx             Library context, used for conversion, can be NULL.
+ * @param curcol          Column with data to convert.
+ * @param convert_buffer  Buffer to store conversion, can be NULL.
+ * @param p_src           Pointer to pointer to source data, can be NULL.
+ * @return Converted type or CS_ILLEGAL_TYPE.
  */
 int
 _cs_convert_not_client(CS_CONTEXT *ctx, const TDSCOLUMN *curcol, CONV_RESULT *convert_buffer, unsigned char **p_src)
 {
 	int ct_type;
-	TDS_SERVER_TYPE desttype, type = curcol->column_type;
+	TDS_SERVER_TYPE desttype, srctype = curcol->column_type;
 
-	if (type == SYBVARIANT)
-		type = ((const TDSVARIANT *) curcol->column_data)->type;
+	if (srctype == SYBVARIANT)
+		srctype = ((const TDSVARIANT *) curcol->column_data)->type;
 
-	switch (type) {
+	switch (srctype) {
 	case SYBMSDATE:
 		desttype = SYBDATE;
 		ct_type = CS_DATE_TYPE;
@@ -1534,7 +1541,7 @@ _cs_convert_not_client(CS_CONTEXT *ctx, const TDSCOLUMN *curcol, CONV_RESULT *co
 	}
 
 	if (convert_buffer) {
-		int len = tds_convert(ctx->tds_ctx, type, *p_src,
+		int len = tds_convert(ctx->tds_ctx, srctype, *p_src,
 				      curcol->column_cur_size, desttype, convert_buffer);
 		if (len < 0)
 			return CS_ILLEGAL_TYPE; /* TODO _csclient_msg ?? */
