@@ -630,6 +630,8 @@ _blk_null_error(TDSBCPINFO *bcpinfo, int index, int offset)
 	_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 2, 7, 1, 142, "%d, %d",  index + 1, offset + 1);
 }
 
+static TDS_INT _blk_to_not_client(CS_CONTEXT *ctx, TDSCOLUMN *col, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdata);
+
 static TDSRET
 _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 {
@@ -709,16 +711,18 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 	}
 
 	if (!null_column) {
-		CONV_RESULT convert_buffer;
 		CS_DATAFMT_COMMON srcfmt, destfmt;
 		CS_INT desttype;
+		TDS_INT outlen;
 
 		srcfmt.datatype = srctype;
 		srcfmt.maxlength = srclen;
 
-		desttype = _cs_convert_not_client(ctx, bindcol, &convert_buffer, &src);
-		if (desttype == CS_ILLEGAL_TYPE)
-			desttype = _ct_get_client_type(bindcol, false);
+		outlen = _blk_to_not_client(ctx, bindcol, &srcfmt, src);
+		if (outlen != TDS_CONVERT_NOAVAIL)
+			return outlen > 0 ? TDS_SUCCESS : TDS_FAIL;
+
+		desttype = _ct_get_client_type(bindcol, false);
 		if (desttype == CS_ILLEGAL_TYPE)
 			return TDS_FAIL;
 		destfmt.datatype  = desttype;
@@ -740,4 +744,44 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 	bindcol->bcp_column_data->is_null = null_column;
 
 	return TDS_SUCCESS;
+}
+
+static TDS_INT
+_blk_to_not_client(CS_CONTEXT *ctx, TDSCOLUMN *col, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdata)
+{
+	TDS_SERVER_TYPE desttype = col->on_server.column_type, srctype;
+	CS_INT datatype, src_len;
+	TDS_INT out_len;
+
+	switch (desttype) {
+	case SYBMSDATE:
+	case SYBMSTIME:
+	case SYBMSDATETIME2:
+	case SYBMSDATETIMEOFFSET:
+		break;
+	default:
+		return TDS_CONVERT_NOAVAIL;
+	}
+
+	datatype = srcfmt->datatype;
+	srctype = _ct_get_server_type(NULL, datatype);
+	if (srctype == TDS_INVALID_TYPE)
+		return TDS_CONVERT_FAIL;
+
+	src_len = srcfmt->maxlength;
+	if (datatype == CS_VARCHAR_TYPE || datatype == CS_VARBINARY_TYPE) {
+		CS_VARCHAR *vc = (CS_VARCHAR *) srcdata;
+		src_len = vc->len;
+		srcdata = vc->str;
+	}
+
+	out_len = tds_convert(ctx->tds_ctx, srctype, srcdata,
+			      src_len, desttype, (CONV_RESULT *) col->bcp_column_data->data);
+	if (out_len < 0)
+		return out_len;
+
+	col->bcp_column_data->datalen = out_len;
+	col->bcp_column_data->is_null = false;
+
+	return out_len;
 }
