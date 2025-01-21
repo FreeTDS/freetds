@@ -63,7 +63,7 @@ typedef struct tds_pbcb
 	/** buffer length */
 	unsigned int cb;
 	/** true is buffer came from malloc */
-	unsigned int from_malloc;
+	bool from_malloc;
 } TDSPBCB;
 
 static TDSRET tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
@@ -242,7 +242,7 @@ tds7_build_bulk_insert_stmt(TDSSOCKET * tds, TDSPBCB * clause, TDSCOLUMN * bcpco
 		strcpy(temp, clause->pb);
 		if (clause->from_malloc)
 			free(clause->pb);
-		clause->from_malloc = 1;
+		clause->from_malloc = true;
 		clause->pb = temp;
 		clause->cb *= 2;
 	}
@@ -276,7 +276,7 @@ tds_bcp_start_insert_stmt(TDSSOCKET * tds, TDSBCPINFO * bcpinfo)
 
 		colclause.pb = clause_buffer;
 		colclause.cb = sizeof(clause_buffer);
-		colclause.from_malloc = 0;
+		colclause.from_malloc = false;
 
 		/* TODO avoid asprintf, use always malloc-ed buffer */
 		firstcol = 1;
