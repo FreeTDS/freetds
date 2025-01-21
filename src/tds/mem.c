@@ -1901,7 +1901,7 @@ tds_realloc(void **pp, size_t new_size)
 	if (!new_size)
 		new_size = 1;
 
-	/* use malloc if not allocated before, some implementation require it */
+	/* use malloc if not allocated before, some implementations require it */
 	if (*pp)
 		p = realloc(*pp, new_size);
 	else
