@@ -20,6 +20,10 @@
 
 #include <freetds/bool.h>
 
+#ifndef FREETDS_SRCDIR
+#define FREETDS_SRCDIR FREETDS_TOPDIR "/src/ctlib/unittests"
+#endif
+
 extern char SERVER[512];
 extern char DATABASE[512];
 extern char USER[512];

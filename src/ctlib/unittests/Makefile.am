@@ -65,7 +65,7 @@ ct_diagserver_SOURCES	= ct_diagserver.c
 ct_diagall_SOURCES	= ct_diagall.c
 cs_config_SOURCES	= cs_config.c
 cancel_SOURCES		= cancel.c
-blk_in_SOURCES		= blk_in.h blk_in.c
+blk_in_SOURCES		= blk_in.c blk_in.in
 blk_out_SOURCES		= blk_out.c
 ct_cursor_SOURCES	= ct_cursor.c
 ct_cursors_SOURCES	= ct_cursors.c
@@ -87,7 +87,7 @@ timeout_SOURCES         = timeout.c
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h
 
-AM_CPPFLAGS	=	-I$(top_srcdir)/include
+AM_CPPFLAGS	= 	-DFREETDS_TOPDIR=\"$(top_srcdir)\" -I$(top_srcdir)/include
 if MINGW32
 AM_LDFLAGS	=	-no-fast-install
 else
