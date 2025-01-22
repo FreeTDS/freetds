@@ -6,6 +6,7 @@
 #include "common.h"
 
 #include <freetds/bool.h>
+#include <freetds/replacements.h>
 
 static bool failed = false;
 

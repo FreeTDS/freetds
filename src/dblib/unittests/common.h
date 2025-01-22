@@ -45,10 +45,6 @@
 #define FREETDS_SRCDIR FREETDS_TOPDIR "/src/dblib/unittests"
 #endif
 
-#if defined(HAVE__SNPRINTF) && !defined(HAVE_SNPRINTF)
-#define snprintf _snprintf
-#endif
-
 #ifdef DBNTWIN32
 /*
  * Define Sybase's symbols in terms of Microsoft's. 
