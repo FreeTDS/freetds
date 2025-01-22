@@ -65,7 +65,7 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 	}
 
 	for (i = 1; CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, i, state, NULL, err, sizeof(odbc_err), NULL, "SINo") != SQL_NO_DATA; ++i) {
-		SQLINTEGER row;
+		SQLINTEGER row = 0;
 
 		strcpy(odbc_err, C(err));
 		strcpy(odbc_sqlstate, C(state));
