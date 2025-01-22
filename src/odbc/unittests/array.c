@@ -9,8 +9,12 @@ static int failure = 0;
 
 #define XMALLOC_N(t, n) (t*) ODBC_GET(n*sizeof(t))
 
+enum {
+	FLAG_PREPARE = 1
+};
+
 static void
-query_test(int prepare, SQLRETURN expected, const char *expected_status)
+query_test(int flags, SQLRETURN expected, const char *expected_status)
 {
 #define DESC_LEN 51
 #define ARRAY_SIZE 10
@@ -50,7 +54,7 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 	}
 	multiply = 90;
 
-	if (!prepare) {
+	if (!(flags & FLAG_PREPARE)) {
 		ret = SQLExecDirect(odbc_stmt, test_query, SQL_NTS);
 	} else {
 		SQLPrepare(odbc_stmt, test_query, SQL_NTS);
@@ -147,33 +151,33 @@ main(void)
 		multiply = 1;
 		query_test(0, SQL_SUCCESS, "VVVVVVVVVV");
 		multiply = 1;
-		query_test(1, SQL_SUCCESS, "VVVVVVVVVV");
+		query_test(FLAG_PREPARE, SQL_SUCCESS, "VVVVVVVVVV");
 
 		/* all errors */
 		test_query = T("INSERT INTO #tmp1 (id, value) VALUES (?, ?)");
 		multiply = 257;
 		query_test(0, odbc_driver_is_freetds() ? SQL_ERROR : SQL_SUCCESS_WITH_INFO, "!!!!!!!!!!");
 		multiply = 257;
-		query_test(1, SQL_SUCCESS_WITH_INFO, "!!!!!!!!!!");
+		query_test(FLAG_PREPARE, SQL_SUCCESS_WITH_INFO, "!!!!!!!!!!");
 
 		test_query = T("INSERT INTO #tmp1 (id, value) VALUES (?, ?)");
 		query_test(0, odbc_driver_is_freetds() ? SQL_ERROR : SQL_SUCCESS_WITH_INFO, "VV!!!!!!!!");
-		query_test(1, SQL_SUCCESS_WITH_INFO, "VV!!!!!!!!");
+		query_test(FLAG_PREPARE, SQL_SUCCESS_WITH_INFO, "VV!!!!!!!!");
 
 		test_query = T("INSERT INTO #tmp1 (id, value) VALUES (900-?, ?)");
 		query_test(0, SQL_SUCCESS_WITH_INFO, "!!!!!!!VVV");
-		query_test(1, SQL_SUCCESS_WITH_INFO, "!!!!!!!VVV");
+		query_test(FLAG_PREPARE, SQL_SUCCESS_WITH_INFO, "!!!!!!!VVV");
 
 		test_query = T("INSERT INTO #tmp1 (id) VALUES (?) UPDATE #tmp1 SET value = ?");
 		query_test(0, SQL_SUCCESS_WITH_INFO, odbc_driver_is_freetds() ? "VVVV!V!V!V" : "VV!!!!!!!!");
-		query_test(1, SQL_SUCCESS_WITH_INFO, "VV!!!!!!!!");
+		query_test(FLAG_PREPARE, SQL_SUCCESS_WITH_INFO, "VV!!!!!!!!");
 
 #ifdef ENABLE_DEVELOPING
 		/* with result, see how SQLMoreResult work */
 		test_query = T("INSERT INTO #tmp1 (id) VALUES (?) SELECT * FROM #tmp1 UPDATE #tmp1 SET value = ?");
 		/* IMHO our driver is better here -- freddy77 */
 		query_test(0, SQL_SUCCESS, odbc_driver_is_freetds() ? "VVVVV!V!V!" : "VVVVVV!VVV");
-		query_test(1, SQL_SUCCESS, "VVVVVVVVVV");
+		query_test(FLAG_PREPARE, SQL_SUCCESS, "VVVVVVVVVV");
 #endif
 	} else {
 		/* Sybase test for conversions before executing */
