@@ -10,7 +10,8 @@ static int failure = 0;
 #define XMALLOC_N(t, n) (t*) ODBC_GET(n*sizeof(t))
 
 enum {
-	FLAG_PREPARE = 1
+	FLAG_PREPARE = 1,
+	FLAG_NO_STAT = 2
 };
 
 static void
@@ -38,7 +39,9 @@ query_test(int flags, SQLRETURN expected, const char *expected_status)
 
 	SQLSetStmtAttr(odbc_stmt, SQL_ATTR_PARAM_BIND_TYPE, SQL_PARAM_BIND_BY_COLUMN, 0);
 	SQLSetStmtAttr(odbc_stmt, SQL_ATTR_PARAMSET_SIZE, (void *) ARRAY_SIZE, 0);
-	SQLSetStmtAttr(odbc_stmt, SQL_ATTR_PARAM_STATUS_PTR, statuses, 0);
+	if (!(flags & FLAG_NO_STAT)) {
+		SQLSetStmtAttr(odbc_stmt, SQL_ATTR_PARAM_STATUS_PTR, statuses, 0);
+	}
 	SQLSetStmtAttr(odbc_stmt, SQL_ATTR_PARAMS_PROCESSED_PTR, &processed, 0);
 	SQLBindParameter(odbc_stmt, 1, SQL_PARAM_INPUT, SQL_C_ULONG, SQL_INTEGER, 5, 0, ids, 0, id_lens);
 	SQLBindParameter(odbc_stmt, 2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, DESC_LEN - 1, 0, descs, DESC_LEN, desc_lens);
@@ -68,20 +71,22 @@ query_test(int flags, SQLRETURN expected, const char *expected_status)
 		ODBC_REPORT_ERROR(buf);
 	}
 
-	for (i = 1; CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, i, state, NULL, err, sizeof(odbc_err), NULL, "SINo") != SQL_NO_DATA; ++i) {
-		SQLINTEGER row = 0;
+	if (!(flags & FLAG_NO_STAT)) {
+		for (i = 1; CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, i, state, NULL, err, sizeof(odbc_err), NULL, "SINo") != SQL_NO_DATA; ++i) {
+			SQLINTEGER row = 0;
 
-		strcpy(odbc_err, C(err));
-		strcpy(odbc_sqlstate, C(state));
-		CHKGetDiagField(SQL_HANDLE_STMT, odbc_stmt, i, SQL_DIAG_ROW_NUMBER, &row, sizeof(row), NULL, "S");
+			strcpy(odbc_err, C(err));
+			strcpy(odbc_sqlstate, C(state));
+			CHKGetDiagField(SQL_HANDLE_STMT, odbc_stmt, i, SQL_DIAG_ROW_NUMBER, &row, sizeof(row), NULL, "S");
 
-		if (row == SQL_ROW_NUMBER_UNKNOWN) continue;
-		if (row < 1 || row > ARRAY_SIZE) {
-			fprintf(stderr, "invalid row %d returned reading error number %d\n", (int) row, i);
-			exit(1);
+			if (row == SQL_ROW_NUMBER_UNKNOWN) continue;
+			if (row < 1 || row > ARRAY_SIZE) {
+				fprintf(stderr, "invalid row %d returned reading error number %d\n", (int) row, i);
+				exit(1);
+			}
+			++num_errors[row-1];
+			printf("for row %2d returned '%s' %s\n", (int) row, odbc_sqlstate, odbc_err);
 		}
-		++num_errors[row-1];
-		printf("for row %2d returned '%s' %s\n", (int) row, odbc_sqlstate, odbc_err);
 	}
 
 	for (i = 0; i < processed; ++i) {
@@ -110,6 +115,10 @@ query_test(int flags, SQLRETURN expected, const char *expected_status)
 			fprintf(stderr, "Invalid status returned %d\n", statuses[i]);
 			exit(1);
 		}
+
+		/* can't check status values if we hadn't asked for them */
+		if (flags & FLAG_NO_STAT)
+			continue;
 
 		if (has_diag) {
 			if (!num_errors[i]) {
@@ -171,6 +180,16 @@ main(void)
 		test_query = T("INSERT INTO #tmp1 (id) VALUES (?) UPDATE #tmp1 SET value = ?");
 		query_test(0, SQL_SUCCESS_WITH_INFO, odbc_driver_is_freetds() ? "VVVV!V!V!V" : "VV!!!!!!!!");
 		query_test(FLAG_PREPARE, SQL_SUCCESS_WITH_INFO, "VV!!!!!!!!");
+
+		/* test what happens when not using status array */
+		test_query = T("INSERT INTO #tmp1 (id, value) VALUES (?, ?)");
+		multiply = 1;
+		query_test(FLAG_NO_STAT, SQL_SUCCESS, "??????????");
+		multiply = 1;
+		query_test(FLAG_NO_STAT | FLAG_PREPARE, SQL_SUCCESS, "??????????");
+
+		query_test(FLAG_NO_STAT, SQL_ERROR, "??????????");
+		query_test(FLAG_NO_STAT | FLAG_PREPARE, SQL_ERROR, "??????????");
 
 #ifdef ENABLE_DEVELOPING
 		/* with result, see how SQLMoreResult work */
