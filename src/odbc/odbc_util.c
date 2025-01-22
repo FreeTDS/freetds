@@ -638,6 +638,7 @@ odbc_c_to_server_type(int c_type)
 	case SQL_C_SSHORT:
 		return SYBINT2;
 	case SQL_C_STINYINT:
+		return SYBSINT1;
 	case SQL_C_TINYINT:
 	case SQL_C_UTINYINT:
 		return SYBINT1;
