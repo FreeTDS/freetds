@@ -127,16 +127,8 @@ sp_who(CS_COMMAND *cmd)
 	int i;
 	int is_status_result=0;
 
-	ret = ct_command(cmd, CS_LANG_CMD, "exec sp_who", CS_NULLTERM, CS_UNUSED);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_command: \"exec sp_who\" failed with %d\n", ret);
-		return 1;
-	}
-	ret = ct_send(cmd);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_send: \"exec sp_who\" failed with %d\n", ret);
-		return 1;
-	}
+	check_call(ct_command, (cmd, CS_LANG_CMD, "exec sp_who", CS_NULLTERM, CS_UNUSED));
+	check_call(ct_send, (cmd));
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
 		is_status_result = 0;
 		switch ((int) result_type) {
@@ -152,8 +144,8 @@ sp_who(CS_COMMAND *cmd)
 			is_status_result = 1;
 			/* fall through */
 		case CS_ROW_RESULT:
-			ret = ct_res_info(cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
-			if (ret != CS_SUCCEED || num_cols > maxcol) {
+			check_call(ct_res_info, (cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL));
+			if (num_cols > maxcol) {
 				fprintf(stderr, "ct_res_info() failed\n");
 				return 1;
 			}
@@ -171,13 +163,8 @@ sp_who(CS_COMMAND *cmd)
 			for (i=0; i < num_cols; i++) {
 
 				/* here we can finally test for the return status column */
-				ret = ct_describe(cmd, i+1, &col[i].datafmt);
+				check_call(ct_describe, (cmd, i+1, &col[i].datafmt));
 				
-				if (ret != CS_SUCCEED) {
-					fprintf(stderr, "ct_describe() failed for column %d\n", i);
-					return 1;
-				}
-
 				if (col[i].datafmt.status & CS_RETURN) {
 					printf("ct_describe() indicates a return code in column %d for sp_who\n", i);
 					
@@ -200,12 +187,7 @@ sp_who(CS_COMMAND *cmd)
 				col[i].datafmt.count = 1;
 				col[i].datafmt.locale = NULL;
 
-				ret = ct_bind(cmd, i+1, &col[i].datafmt, &col[i].data, &col[i].datalength, &col[i].ind);
-				if (ret != CS_SUCCEED) {
-					fprintf(stderr, "ct_bind() failed\n");
-					return 1;
-				}
-				
+				check_call(ct_bind, (cmd, i+1, &col[i].datafmt, &col[i].data, &col[i].datalength, &col[i].ind));
 			}
 
 			row_count = 0;
