@@ -217,6 +217,7 @@ main(int argc, char **argv)
 			srclen = strlen(src);
 			break;
 		case SYBINT1:
+		case SYBSINT1:
 		case SYBUINT1:
 			src = (char *) &tds_tinyint;
 			srclen = sizeof(tds_tinyint);
