@@ -92,7 +92,6 @@ main(int argc, char *argv[])
 		ret = ct_results(cmd, &result_type);
 	} while (ret == CS_SUCCEED);
 
-	ret = ct_results(cmd, &result_type);
 	assert(ret == CS_END_RESULTS);
 
 	if (verbose) {
