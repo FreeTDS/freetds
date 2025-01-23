@@ -41,8 +41,6 @@ chk(int check, const char *fmt, ...)
 int
 main(int argc, char *argv[])
 {
-	int errCode = 1;
-
 	CS_RETCODE ret;
 	CS_RETCODE results_ret;
 	CS_CHAR cmdbuf[4096];
@@ -71,42 +69,36 @@ main(int argc, char *argv[])
 	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));
 	error_to_stdout = true;
 
-	ret = ct_cmd_alloc(conn, &cmd2);
-	chk(ret == CS_SUCCEED, "cmd2_alloc failed\n");
+	check_call(ct_cmd_alloc, (conn, &cmd2));
 
 	/* do not test error */
-	ret = run_command(cmd, "IF OBJECT_ID('tempdb..#ct_dynamic') IS NOT NULL DROP table #ct_dynamic");
+	run_command(cmd, "IF OBJECT_ID('tempdb..#ct_dynamic') IS NOT NULL DROP table #ct_dynamic");
 
 	strcpy(cmdbuf, "create table #ct_dynamic (id numeric identity not null, \
         name varchar(30), age int, cost money, bdate datetime, fval float) ");
 
-	ret = run_command(cmd, cmdbuf);
-	chk(ret == CS_SUCCEED, "create table failed\n");
+	check_call(run_command, (cmd, cmdbuf));
 
 	strcpy(cmdbuf, "insert into #ct_dynamic ( name , age , cost , bdate , fval ) ");
 	strcat(cmdbuf, "values ('Bill', 44, 2000.00, 'May 21 1960', 60.97 ) ");
 
-	ret = run_command(cmd, cmdbuf);
-	chk(ret == CS_SUCCEED, "insert table failed\n");
+	check_call(run_command, (cmd, cmdbuf));
 
 	strcpy(cmdbuf, "insert into #ct_dynamic ( name , age , cost , bdate , fval ) ");
 	strcat(cmdbuf, "values ('Freddy', 32, 1000.00, 'Jan 21 1972', 70.97 ) ");
 
-	ret = run_command(cmd, cmdbuf);
-	chk(ret == CS_SUCCEED, "insert table failed\n");
+	check_call(run_command, (cmd, cmdbuf));
 
 	strcpy(cmdbuf, "insert into #ct_dynamic ( name , age , cost , bdate , fval ) ");
 	strcat(cmdbuf, "values ('James', 42, 5000.00, 'May 21 1962', 80.97 ) ");
 
-	ret = run_command(cmd, cmdbuf);
-	chk(ret == CS_SUCCEED, "insert table failed\n");
+	check_call(run_command, (cmd, cmdbuf));
 
 	strcpy(cmdbuf, "select name from #ct_dynamic where age = ?");
 
-	ret = ct_dynamic(cmd, CS_PREPARE, "age", CS_NULLTERM, cmdbuf, CS_NULLTERM);
-	chk(ret == CS_SUCCEED, "ct_dynamic failed\n");
+	check_call(ct_dynamic, (cmd, CS_PREPARE, "age", CS_NULLTERM, cmdbuf, CS_NULLTERM));
 
-	chk(ct_send(cmd) == CS_SUCCEED, "ct_send(CS_PREPARE) failed\n");
+	check_call(ct_send, (cmd));
 
 	while ((ret = ct_results(cmd, &res_type)) == CS_SUCCEED) {
 		switch ((int) res_type) {
@@ -119,26 +111,23 @@ main(int argc, char *argv[])
 			break;
 
 		default:
-			goto ERR;
+			chk(0, "invalid ct_results result type: %d\n", res_type);
 		}
 	}
 	chk(ret == CS_END_RESULTS, "ct_results() unexpected return.\n", (int) ret);
 
-	ret = ct_dynamic(cmd, CS_DESCRIBE_INPUT, "age", CS_NULLTERM, NULL, CS_UNUSED);
-	chk(ret == CS_SUCCEED, "ct_dynamic failed\n");
+	check_call(ct_dynamic, (cmd, CS_DESCRIBE_INPUT, "age", CS_NULLTERM, NULL, CS_UNUSED));
 
-	chk(ct_send(cmd) == CS_SUCCEED, "ct_send(CS_DESCRIBE_INPUT) failed\n");
+	check_call(ct_send, (cmd));
 
 	while ((ret = ct_results(cmd, &res_type)) == CS_SUCCEED) {
 		switch ((int) res_type) {
 
 		case CS_DESCRIBE_RESULT:
-			ret = ct_res_info(cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
-			chk(ret == CS_SUCCEED, "ct_res_info() failed");
+			check_call(ct_res_info, (cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL));
 
 			for (i = 1; i <= num_cols; i++) {
-				ret = ct_describe(cmd, i, &descfmt);
-				chk(ret == CS_SUCCEED, "ct_describe() failed");
+				check_call(ct_describe, (cmd, i, &descfmt));
 				fprintf(stderr, "CS_DESCRIBE_INPUT parameter %d :\n", i);
 				if (descfmt.namelen == 0)
 					fprintf(stderr, "\t\tNo name...\n");
@@ -157,26 +146,23 @@ main(int argc, char *argv[])
 			break;
 
 		default:
-			goto ERR;
+			chk(0, "invalid ct_results result type: %d\n", res_type);
 		}
 	}
 
-	ret = ct_dynamic(cmd, CS_DESCRIBE_OUTPUT, "age", CS_NULLTERM, NULL, CS_UNUSED);
-	chk(ret == CS_SUCCEED, "ct_dynamic failed\n");
+	check_call(ct_dynamic, (cmd, CS_DESCRIBE_OUTPUT, "age", CS_NULLTERM, NULL, CS_UNUSED));
 
-	chk(ct_send(cmd) == CS_SUCCEED, "ct_send(CS_DESCRIBE_OUTPUT) failed\n");
+	check_call(ct_send, (cmd));
 
 	while ((ret = ct_results(cmd, &res_type)) == CS_SUCCEED) {
 		switch ((int) res_type) {
 
 		case CS_DESCRIBE_RESULT:
-			ret = ct_res_info(cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
-			chk(ret == CS_SUCCEED, "ct_res_info() failed");
+			check_call(ct_res_info, (cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL));
 			chk(num_cols == 1, "CS_DESCRIBE_OUTPUT showed %d columns , expected 1\n", num_cols);
 
 			for (i = 1; i <= num_cols; i++) {
-				ret = ct_describe(cmd, i, &descfmt);
-				chk(ret == CS_SUCCEED, "ct_describe() failed");
+				check_call(ct_describe, (cmd, i, &descfmt));
 
 				if (descfmt.namelen == 0)
 					fprintf(stderr, "\t\tNo name...\n");
@@ -195,13 +181,12 @@ main(int argc, char *argv[])
 			break;
 
 		default:
-			goto ERR;
+			chk(0, "invalid ct_results result type: %d\n", res_type);
 		}
 	}
 
 	/* execute dynamic on a second command to check it still works */
-	ret = ct_dynamic(cmd2, CS_EXECUTE, "age", CS_NULLTERM, NULL, CS_UNUSED);
-	chk(ret == CS_SUCCEED, "ct_dynamic failed\n");
+	check_call(ct_dynamic, (cmd2, CS_EXECUTE, "age", CS_NULLTERM, NULL, CS_UNUSED));
 
 	intvar = 44;
 	intvarsize = 4;
@@ -212,10 +197,9 @@ main(int argc, char *argv[])
 	datafmt.datatype = CS_INT_TYPE;
 	datafmt.status = CS_INPUTVALUE;
 
-	ret = ct_setparam(cmd2, &datafmt, (CS_VOID *) & intvar, &intvarsize, &intvarind);
-	chk(ret == CS_SUCCEED, "ct_setparam(int) failed\n");
+	check_call(ct_setparam, (cmd2, &datafmt, (CS_VOID *) & intvar, &intvarsize, &intvarind));
 
-	chk(ct_send(cmd2) == CS_SUCCEED, "ct_send(CS_EXECUTE) failed\n");
+	check_call(ct_send, (cmd2));
 
 	while ((results_ret = ct_results(cmd2, &res_type)) == CS_SUCCEED) {
 		chk(res_type != CS_CMD_FAIL, "1: ct_results() result_type CS_CMD_FAIL.\n");
@@ -232,8 +216,7 @@ main(int argc, char *argv[])
 			datafmt.maxlength = 256;
 			datafmt.count = 1;
 			datafmt.locale = NULL;
-			ret = ct_bind(cmd2, 1, &datafmt, name, &datalength, &ind);
-			chk(ret == CS_SUCCEED, "ct_bind() failed\n");
+			check_call(ct_bind, (cmd2, 1, &datafmt, name, &datalength, &ind));
 
 			while (((ret = ct_fetch(cmd2, CS_UNUSED, CS_UNUSED, CS_UNUSED, &count)) == CS_SUCCEED)
 			       || (ret == CS_ROW_FAIL)) {
@@ -256,7 +239,7 @@ main(int argc, char *argv[])
 
 	intvar = 32;
 
-	chk(ct_send(cmd2) == CS_SUCCEED, "ct_send(CS_EXECUTE) failed\n");
+	check_call(ct_send, (cmd2));
 
 	while ((results_ret = ct_results(cmd2, &res_type)) == CS_SUCCEED) {
 		chk(res_type != CS_CMD_FAIL, "2: ct_results() result_type CS_CMD_FAIL.\n");
@@ -273,8 +256,7 @@ main(int argc, char *argv[])
 			datafmt.maxlength = 256;
 			datafmt.count = 1;
 			datafmt.locale = NULL;
-			ret = ct_bind(cmd2, 1, &datafmt, name, &datalength, &ind);
-			chk(ret == CS_SUCCEED, "ct_bind() failed\n");
+			check_call(ct_bind, (cmd2, 1, &datafmt, name, &datalength, &ind));
 
 			while (((ret = ct_fetch(cmd2, CS_UNUSED, CS_UNUSED, CS_UNUSED, &count)) == CS_SUCCEED)
 			       || (ret == CS_ROW_FAIL)) {
@@ -296,10 +278,9 @@ main(int argc, char *argv[])
 	}
 	chk(results_ret == CS_END_RESULTS, "ct_results() unexpected return.\n", (int) results_ret);
 
-	ret = ct_dynamic(cmd, CS_DEALLOC, "age", CS_NULLTERM, NULL, CS_UNUSED);
-	chk(ret == CS_SUCCEED, "ct_dynamic failed\n");
+	check_call(ct_dynamic, (cmd, CS_DEALLOC, "age", CS_NULLTERM, NULL, CS_UNUSED));
 
-	chk(ct_send(cmd) == CS_SUCCEED, "ct_send(CS_DEALLOC) failed\n");
+	check_call(ct_send, (cmd));
 
 	while ((ret = ct_results(cmd, &res_type)) == CS_SUCCEED) {
 		switch ((int) res_type) {
@@ -312,7 +293,7 @@ main(int argc, char *argv[])
 			break;
 
 		default:
-			goto ERR;
+			chk(0, "invalid ct_results result type: %d\n", res_type);
 		}
 	}
 	chk(ret == CS_END_RESULTS, "ct_results() unexpected return.\n", (int) ret);
@@ -321,10 +302,9 @@ main(int argc, char *argv[])
 	 * check we can prepare again dynamic with same name after deallocation
 	 */
 	strcpy(cmdbuf, "select name from #ct_dynamic where age = ?");
-	ret = ct_dynamic(cmd, CS_PREPARE, "age", CS_NULLTERM, cmdbuf, CS_NULLTERM);
-	chk(ret == CS_SUCCEED, "ct_dynamic failed\n");
+	check_call(ct_dynamic, (cmd, CS_PREPARE, "age", CS_NULLTERM, cmdbuf, CS_NULLTERM));
 
-	chk(ct_send(cmd) == CS_SUCCEED, "ct_send(CS_PREPARE) failed\n");
+	check_call(ct_send, (cmd));
 
 	while ((ret = ct_results(cmd, &res_type)) == CS_SUCCEED) {
 		switch ((int) res_type) {
@@ -337,7 +317,7 @@ main(int argc, char *argv[])
 			break;
 
 		default:
-			goto ERR;
+			chk(0, "invalid ct_results result type: %d\n", res_type);
 		}
 	}
 	chk(ret == CS_END_RESULTS, "ct_results() unexpected return.\n", (int) ret);
@@ -348,8 +328,7 @@ main(int argc, char *argv[])
 		chk(res_type != CS_ROW_RESULT, "Rows not expected\n");
 	chk(ret == CS_END_RESULTS, "ct_results() unexpected return.\n", (int) ret);
 
-	ret = ct_dynamic(cmd2, CS_EXECUTE, "age", CS_NULLTERM, NULL, CS_UNUSED);
-	chk(ret == CS_SUCCEED, "ct_dynamic failed\n");
+	check_call(ct_dynamic, (cmd2, CS_EXECUTE, "age", CS_NULLTERM, NULL, CS_UNUSED));
 
 	intvar = 32;
 	intvarsize = 4;
@@ -360,13 +339,11 @@ main(int argc, char *argv[])
 	datafmt.datatype = CS_INT_TYPE;
 	datafmt.status = CS_INPUTVALUE;
 
-	ret = ct_setparam(cmd2, &datafmt, (CS_VOID *) & intvar, &intvarsize, &intvarind);
-	chk(ct_send(cmd2) == CS_SUCCEED, "ct_send(CS_EXECUTE) failed\n");
+	check_call(ct_setparam, (cmd2, &datafmt, (CS_VOID *) & intvar, &intvarsize, &intvarind));
+	check_call(ct_send, (cmd2));
 
 	/* all tests succeeded */
-	errCode = 0;
 
-      ERR:
 	cleanup();
-	return errCode;
+	return 0;
 }
