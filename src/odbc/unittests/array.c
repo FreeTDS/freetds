@@ -156,12 +156,12 @@ main(void)
 		/* all errors */
 		test_query = T("INSERT INTO #tmp1 (id, value) VALUES (?, ?)");
 		multiply = 257;
-		query_test(0, odbc_driver_is_freetds() ? SQL_ERROR : SQL_SUCCESS_WITH_INFO, "!!!!!!!!!!");
+		query_test(0, SQL_SUCCESS_WITH_INFO, "!!!!!!!!!!");
 		multiply = 257;
 		query_test(FLAG_PREPARE, SQL_SUCCESS_WITH_INFO, "!!!!!!!!!!");
 
 		test_query = T("INSERT INTO #tmp1 (id, value) VALUES (?, ?)");
-		query_test(0, odbc_driver_is_freetds() ? SQL_ERROR : SQL_SUCCESS_WITH_INFO, "VV!!!!!!!!");
+		query_test(0, SQL_SUCCESS_WITH_INFO, "VV!!!!!!!!");
 		query_test(FLAG_PREPARE, SQL_SUCCESS_WITH_INFO, "VV!!!!!!!!");
 
 		test_query = T("INSERT INTO #tmp1 (id, value) VALUES (900-?, ?)");

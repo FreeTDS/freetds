@@ -3660,8 +3660,17 @@ odbc_SQLExecute(TDS_STMT * stmt)
 		if (done)
 			break;
 	}
-	if ((found_info || found_error) && stmt->errs.lastrc != SQL_ERROR)
+	if (found_error) {
+		/* if the application uses status array it can examine it to determine
+		   which rows resulted in errors, but if it doesn't, it has no way to
+		   do it and we must return an error and not success with info to it */
+		if (stmt->ipd->header.sql_desc_array_status_ptr)
+			stmt->errs.lastrc = SQL_SUCCESS_WITH_INFO;
+		else
+			stmt->errs.lastrc = SQL_ERROR;
+	} else if (found_info && stmt->errs.lastrc != SQL_ERROR)
 		stmt->errs.lastrc = SQL_SUCCESS_WITH_INFO;
+
 	if (tds_dstr_isempty(&stmt->attr.qn_msgtext) != tds_dstr_isempty(&stmt->attr.qn_options)) {
 		odbc_errs_add(&stmt->errs, "HY000", "Attribute ignored");
 		stmt->errs.lastrc = SQL_SUCCESS_WITH_INFO;
