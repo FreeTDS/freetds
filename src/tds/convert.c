@@ -63,7 +63,8 @@ struct tds_time
 };
 
 static TDS_INT tds_convert_int(TDS_INT num, int desttype, CONV_RESULT * cr);
-static TDS_INT tds_convert_int1(const TDS_TINYINT * src, int desttype, CONV_RESULT * cr);
+static TDS_INT tds_convert_int1(const int8_t *src, int desttype, CONV_RESULT *cr);
+static TDS_INT tds_convert_uint1(const TDS_TINYINT *src, int desttype, CONV_RESULT *cr);
 static TDS_INT tds_convert_int2(const TDS_SMALLINT * src, int desttype, CONV_RESULT * cr);
 static TDS_INT tds_convert_uint2(const TDS_USMALLINT * src, int desttype, CONV_RESULT * cr);
 static TDS_INT tds_convert_int4(const TDS_INT* src, int desttype, CONV_RESULT * cr);
