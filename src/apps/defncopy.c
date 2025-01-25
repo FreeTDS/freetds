@@ -1057,9 +1057,7 @@ err_handler(DBPROCESS * dbproc TDS_UNUSED, int severity, int dberr, int oserr TD
 	if (dberr) {
 		fprintf(stderr, "%s: Msg %d, Level %d\n", options.appname, dberr, severity);
 		fprintf(stderr, "%s\n\n", dberrstr);
-	}
-
-	else {
+	} else {
 		fprintf(stderr, "%s: DB-LIBRARY error:\n\t", options.appname);
 		fprintf(stderr, "%s\n", dberrstr);
 	}

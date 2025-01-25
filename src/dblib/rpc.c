@@ -349,8 +349,7 @@ param_row_alloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *
 				return NULL;
 			memcpy(blob->textvalue, value, size);
 		}
-	}
-	else {
+	} else {
 		tdsdump_log(TDS_DBG_FUNC, "setting parameter #%d to NULL\n", param_num);
 		curcol->column_cur_size = -1;
 	}

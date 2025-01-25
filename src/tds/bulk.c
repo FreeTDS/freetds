@@ -1120,8 +1120,7 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 			if (is_nullable_type(bcpcol->on_server.column_type) || bcpcol->column_nullable) {
 				var_cols++;
 				variable_col_len_tot += column_bcp_data_size;
-			}
-			else {
+			} else {
 				fixed_col_len_tot += column_bcp_data_size;
 			}
 		}

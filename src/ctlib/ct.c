@@ -4055,8 +4055,7 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 
 			ct_set_command_state(cmd, _CS_COMMAND_READY);
 			return CS_SUCCEED;
-		}
-		else {
+		} else {
 			cursor->status.cursor_row  = TDS_CURSOR_STATE_UNACTIONED;
 			tdsdump_log(TDS_DBG_FUNC, "ct_cursor() : cursor not declared\n");
 			return CS_FAIL;
@@ -4078,8 +4077,7 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 
 			return CS_SUCCEED;
 			ct_set_command_state(cmd, _CS_COMMAND_READY);
-		}
-		else {
+		} else {
 			cursor->status.open = TDS_CURSOR_STATE_UNACTIONED;
 			tdsdump_log(TDS_DBG_FUNC, "ct_cursor() : cursor not declared\n");
 			return CS_FAIL;

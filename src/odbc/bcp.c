@@ -487,8 +487,7 @@ _tdsodbc_dbconvert(TDS_DBC *dbc, int srctype, const TDS_CHAR * src, SQLLEN src_l
 	if ((srctype == desttype || is_similar_type(srctype, desttype)) && !always_convert) {
 		if (is_char_type(desttype)) {
 			ret = _bcp_iconv_helper(dbc, bindcol, src, src_len, (char *)dest, destlen);
-		}
-		else {
+		} else {
 			ret = destlen < src_len ? destlen : src_len;
 			memcpy(dest, src, ret);
 		}

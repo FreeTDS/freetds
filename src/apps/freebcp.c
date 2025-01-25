@@ -793,9 +793,7 @@ err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr TDS_UNUSED, c
 	if (dberr) {
 		fprintf(stderr, "Msg %d, Level %d\n", dberr, severity);
 		fprintf(stderr, "%s\n\n", dberrstr);
-	}
-
-	else {
+	} else {
 		fprintf(stderr, "DB-LIBRARY error:\n\t");
 		fprintf(stderr, "%s\n", dberrstr);
 	}
