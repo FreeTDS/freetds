@@ -44,6 +44,7 @@ main(int argc, char *argv[])
 
 	read_login_info(argc, argv);
 	printf("Starting %s\n", argv[0]);
+	dbsetversion(DBVERSION_100);
 	dbinit();
 
 	dberrhandle(syb_err_handler);
@@ -56,7 +57,7 @@ main(int argc, char *argv[])
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
 	DBSETLAPP(login, "t0016");
-	DBSETLCHARSET(login, "UTF-8");
+	DBSETLCHARSET(login, "utf8");
 
 	dbproc = dbopen(login, SERVER);
 	if (strlen(DATABASE)) {
@@ -145,15 +146,6 @@ test_file(const char *fn)
 	if (got_error)
 		return;
 
-	/* BCP in */
-
-	printf("bcp_init with in_file as '%s'\n", in_file);
-	ret = bcp_init(dbproc, TABLE_NAME, in_file, err_file, DB_IN);
-	if (ret != SUCCEED)
-		failure("bcp_init failed\n");
-
-	printf("return from bcp_init = %d\n", ret);
-
 	ret = sql_cmd(dbproc);
 	printf("return from dbcmd = %d\n", ret);
 
@@ -168,17 +160,26 @@ test_file(const char *fn)
 		}
 	}
 
+	/* BCP in */
+
+	printf("bcp_init with in_file as '%s'\n", in_file);
+	ret = bcp_init(dbproc, TABLE_NAME, in_file, (char*) err_file, DB_IN);
+	if (ret != SUCCEED)
+		failure("bcp_init failed\n");
+
+	printf("return from bcp_init = %d\n", ret);
+
 	ret = bcp_columns(dbproc, num_cols);
 	if (ret != SUCCEED)
 		failure("bcp_columns failed\n");
 	printf("return from bcp_columns = %d\n", ret);
 
 	for (i = 1; i < num_cols; i++) {
-		if ((ret = bcp_colfmt(dbproc, i, SYBCHAR, 0, -1, (const BYTE *) "\t", sizeof(char), i)) == FAIL)
+		if ((ret = bcp_colfmt(dbproc, i, SYBCHAR, 0, -1, (BYTE *) "\t", sizeof(char), i)) == FAIL)
 			failure("return from bcp_colfmt = %d\n", ret);
 	}
 
-	if ((ret = bcp_colfmt(dbproc, num_cols, SYBCHAR, 0, -1, (const BYTE *) "\n", sizeof(char), num_cols)) == FAIL)
+	if ((ret = bcp_colfmt(dbproc, num_cols, SYBCHAR, 0, -1, (BYTE *) "\n", sizeof(char), num_cols)) == FAIL)
 		failure("return from bcp_colfmt = %d\n", ret);
 
 
@@ -191,7 +192,7 @@ test_file(const char *fn)
 	/* BCP out */
 
 	rows_copied = 0;
-	ret = bcp_init(dbproc, TABLE_NAME, out_file, err_file, DB_OUT);
+	ret = bcp_init(dbproc, TABLE_NAME, (char *) out_file, (char *) err_file, DB_OUT);
 	if (ret != SUCCEED)
 		failure("bcp_int failed\n");
 
@@ -208,11 +209,11 @@ test_file(const char *fn)
 	ret = bcp_columns(dbproc, num_cols);
 
 	for (i = 1; i < num_cols; i++) {
-		if ((ret = bcp_colfmt(dbproc, i, SYBCHAR, 0, -1, (const BYTE *) "\t", sizeof(char), i)) == FAIL)
+		if ((ret = bcp_colfmt(dbproc, i, SYBCHAR, 0, -1, (BYTE *) "\t", sizeof(char), i)) == FAIL)
 			failure("return from bcp_colfmt = %d\n", ret);
 	}
 
-	if ((ret = bcp_colfmt(dbproc, num_cols, SYBCHAR, 0, -1, (const BYTE *) "\n", sizeof(char), num_cols)) == FAIL)
+	if ((ret = bcp_colfmt(dbproc, num_cols, SYBCHAR, 0, -1, (BYTE *) "\n", sizeof(char), num_cols)) == FAIL)
 		failure("return from bcp_colfmt = %d\n", ret);
 
 	ret = bcp_exec(dbproc, &rows_copied);
