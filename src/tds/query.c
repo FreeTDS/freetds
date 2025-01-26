@@ -1205,7 +1205,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 	}
 
 	if (!IS_TDS50(tds->conn) && !IS_TDS7_PLUS(tds->conn)) {
-		dyn->emulated = 1;
+		dyn->emulated = true;
 		tds_dynamic_deallocated(tds->conn, dyn);
 		tds_set_state(tds, TDS_IDLE);
 		return TDS_SUCCESS;
@@ -1388,7 +1388,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params,
 		if (!params) {
 			ret = tds_submit_query(tds, query);
 		} else {
-			dyn->emulated = 1;
+			dyn->emulated = true;
 			dyn->params = params;
 			dyn->query = strdup(query);
 			if (!dyn->query)

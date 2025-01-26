@@ -975,7 +975,7 @@ typedef struct tds_dynamic
 	 * This can happen for instance is tds protocol doesn't support dynamics or trying
 	 * to prepare query under Sybase that have BLOBs as parameters.
 	 */
-	TDS_TINYINT emulated;
+	bool emulated;
 	/**
 	 * true if dynamic was marker to be closed when connection is idle
 	 */

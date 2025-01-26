@@ -2491,7 +2491,7 @@ tds_process_info(TDSSOCKET * tds, int marker)
 	/* special case, */
 	if (marker == TDS_EED_TOKEN && tds->cur_dyn && !TDS_IS_MSSQL(tds) && msg.msgno == 2782) {
 		/* we must emulate prepare */
-		tds->cur_dyn->emulated = 1;
+		tds->cur_dyn->emulated = true;
 		tds_dynamic_deallocated(tds->conn, tds->cur_dyn);
 	} else if (marker == TDS_INFO_TOKEN && msg.msgno == 16954 && TDS_IS_MSSQL(tds)
 		   && tds->current_op == TDS_OP_CURSOROPEN && tds->cur_cursor) {
