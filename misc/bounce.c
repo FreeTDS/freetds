@@ -475,7 +475,7 @@ handle_int_term(int sig)
 static void
 usage(void)
 {
-	fprintf(stderr, "bounce [-v] [-d] <listen_port> <server> <server_port>\n");
+	fprintf(stderr, "bounce [-v] [-d] [-D dump_file] <listen_port> <server> <server_port>\n");
 	exit(1);
 }
 
