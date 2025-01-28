@@ -138,7 +138,7 @@ odbc_bcp_init(TDS_DBC *dbc, const ODBC_CHAR *tblname, const ODBC_CHAR *hfile,
 
 	dbc->bcpinfo->direction = direction;
 
-	dbc->bcpinfo->xfer_init  = 0;
+	dbc->bcpinfo->xfer_init = false;
 	dbc->bcpinfo->bind_count = 0;
 
 	if (TDS_FAILED(tds_bcp_init(dbc->tds_socket, dbc->bcpinfo))) {
@@ -263,13 +263,13 @@ odbc_bcp_sendrow(TDS_DBC *dbc)
 	 * The first time sendrow is called after bcp_init,
 	 * there is a certain amount of initialisation to be done.
 	 */
-	if (dbc->bcpinfo->xfer_init == 0) {
+	if (!dbc->bcpinfo->xfer_init) {
 
 		/* The start_copy function retrieves details of the table's columns */
 		if (TDS_FAILED(tds_bcp_start_copy_in(tds, dbc->bcpinfo)))
 			ODBCBCP_ERROR_RETURN("HY000");
 
-		dbc->bcpinfo->xfer_init = 1;
+		dbc->bcpinfo->xfer_init = true;
 	}
 
 	dbc->bcpinfo->parent = dbc;

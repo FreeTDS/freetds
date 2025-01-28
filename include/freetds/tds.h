@@ -1685,8 +1685,8 @@ struct tds_bcpinfo
 	DSTR tablename;
 	TDS_CHAR *insert_stmt;
 	TDS_INT direction;
-	TDS_INT identity_insert_on;
-	TDS_INT xfer_init;
+	bool identity_insert_on;
+	bool xfer_init;
 	TDS_INT bind_count;
 	TDSRESULTINFO *bindinfo;
 	TDS5COLINFO *sybase_colinfo;

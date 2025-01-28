@@ -207,7 +207,7 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 
 	dbproc->bcpinfo->direction = direction;
 
-	dbproc->bcpinfo->xfer_init  = 0;
+	dbproc->bcpinfo->xfer_init = false;
 	dbproc->bcpinfo->bind_count = 0;
 
 	if (TDS_FAILED(tds_bcp_init(dbproc->tds_socket, dbproc->bcpinfo))) {
@@ -1405,7 +1405,7 @@ bcp_sendrow(DBPROCESS * dbproc)
 	 * The first time sendrow is called after bcp_init,
 	 * there is a certain amount of initialisation to be done.
 	 */
-	if (dbproc->bcpinfo->xfer_init == 0) {
+	if (!dbproc->bcpinfo->xfer_init) {
 
 		/* The start_copy function retrieves details of the table's columns */
 		if (TDS_FAILED(tds_bcp_start_copy_in(tds, dbproc->bcpinfo))) {
@@ -1413,7 +1413,7 @@ bcp_sendrow(DBPROCESS * dbproc)
 			return FAIL;
 		}
 
-		dbproc->bcpinfo->xfer_init = 1;
+		dbproc->bcpinfo->xfer_init = true;
 
 	}
 
