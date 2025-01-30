@@ -64,11 +64,7 @@
  * @{
  */
 
-#ifdef UNICODE
-#  define PRIsSTR "S"
-#else
-#  define PRIsSTR "s"
-#endif
+#define PRIsSTR "S"
 
 typedef struct tds_sspi_auth
 {
@@ -100,11 +96,7 @@ tds_init_secdll(void)
 		if (!sec_fn) {
 			INIT_SECURITY_INTERFACE pInitSecurityInterface;
 
-#ifdef UNICODE
 			pInitSecurityInterface = (INIT_SECURITY_INTERFACE_W) GetProcAddress(secdll, "InitSecurityInterfaceW");
-#else
-			pInitSecurityInterface = (INIT_SECURITY_INTERFACE_A) GetProcAddress(secdll, "InitSecurityInterfaceA");
-#endif
 			if (!pInitSecurityInterface)
 				break;
 
@@ -241,12 +233,10 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 	TimeStamp ts;
 	SEC_WINNT_AUTH_IDENTITY identity;
 	const char *server_name;
-	const TCHAR *p, *user_name, *passwd;
+	WCHAR *p, *user_name, *passwd;
 	struct addrinfo *addrs = NULL;
-	static TCHAR sec_package[] = TEXT("Negotiate");
-#ifdef UNICODE
+	static WCHAR sec_package[] = L"Negotiate";
 	WCHAR user_ucs2[512], password_ucs2[256];
-#endif
 
 	TDSSSPIAUTH *auth;
 	TDSLOGIN *login = tds->login;
@@ -260,7 +250,6 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 
 	/* parse username/password information */
 	memset(&identity, 0, sizeof(identity));
-#ifdef UNICODE
 	if (convert_to_ucs2le_string(tds, tds_dstr_cstr(&login->user_name), tds_dstr_len(&login->user_name)+1,
 				     user_ucs2, TDS_VECTOR_SIZE(user_ucs2)) == (size_t) -1)
 		return NULL;
@@ -269,23 +258,15 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 				     password_ucs2, TDS_VECTOR_SIZE(password_ucs2)) == (size_t) -1)
 		return NULL;
 	passwd = password_ucs2;
-#else
-	user_name = tds_dstr_cstr(&login->user_name);
-	passwd = tds_dstr_cstr(&login->password);
-#endif
-	if ((p = _tcschr(user_name, TEXT('\\'))) != NULL) {
-#ifdef UNICODE
+	if ((p = wcschr(user_name, L'\\')) != NULL) {
 		identity.Flags = SEC_WINNT_AUTH_IDENTITY_UNICODE;
-#else
-		identity.Flags = SEC_WINNT_AUTH_IDENTITY_ANSI;
-#endif
-		identity.Password = (void *) passwd;
-		identity.PasswordLength = (unsigned long) _tcslen(passwd);
-		identity.Domain = (void *) user_name;
+		identity.Password = passwd;
+		identity.PasswordLength = (unsigned long) wcslen(passwd);
+		identity.Domain = user_name;
 		identity.DomainLength = (unsigned long) (p - user_name);
 		user_name = p + 1;
-		identity.User = (void *) user_name;
-		identity.UserLength = (unsigned long) _tcslen(user_name);
+		identity.User = user_name;
+		identity.UserLength = (unsigned long) wcslen(user_name);
 	}
 
 	auth = tds_new0(TDSSSPIAUTH, 1);
