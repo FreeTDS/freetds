@@ -190,7 +190,10 @@ TDSPOOLOBJS = [.src.pool]config$(OBJ), [.src.pool]main$(OBJ), [.src.pool]member$
 TDSODBCOBJS = [.src.odbc]connectparams$(OBJ), \
 	[.src.odbc]convert_tds2sql$(OBJ), [.src.odbc]descriptor$(OBJ), [.src.odbc]error$(OBJ), \
 	[.src.odbc]native$(OBJ), [.src.odbc]odbc$(OBJ), [.src.odbc]odbc_checks$(OBJ), \
-	[.src.odbc]odbc_util$(OBJ) [.src.odbc]prepare_query$(OBJ), [.src.odbc]sql2tds$(OBJ)
+	[.src.odbc]odbc_util$(OBJ), \
+	[.src.odbc]prepare_query$(OBJ), \
+	[.src.odbc]sql2tds$(OBJ), \
+	[.src.odbc]unixodbc$(OBJ)
 
 # This is the top-level target
 
