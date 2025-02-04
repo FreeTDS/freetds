@@ -84,6 +84,7 @@ TESTS =	\
 	connection_string_parse$(EXEEXT) \
 	tvp$(EXEEXT) \
 	tokens$(EXEEXT) \
+	describeparam$(EXEEXT) \
 	$(NULL)
 
 check_PROGRAMS	=	$(TESTS) oldpwd$(EXEEXT)

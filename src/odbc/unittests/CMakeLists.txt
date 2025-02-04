@@ -31,6 +31,7 @@ set(tests
 	transaction3 transaction4
 	utf8_4 qn connection_string_parse
 	tvp tokens
+	describeparam
 )
 
 if(WIN32)

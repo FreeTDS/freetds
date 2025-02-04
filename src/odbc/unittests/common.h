@@ -181,6 +181,8 @@ SQLRETURN SQLSetStmtOption_nowarning(SQLHSTMT hstmt, SQLSMALLINT option, SQLULEN
 	CHKR2(SQLGetInfo, (odbc_conn,a,b,c,d), SQL_HANDLE_DBC, odbc_conn, res)
 #define CHKNumParams(a,res) \
 	CHKR2(SQLNumParams, (odbc_stmt,a), SQL_HANDLE_STMT, odbc_stmt, res)
+#define CHKDescribeParam(a,b,c,d,e,res) \
+	CHKR2(SQLDescribeParam, (odbc_stmt,a,b,c,d,e), SQL_HANDLE_STMT, odbc_stmt, res)
 
 int odbc_connect(void);
 int odbc_disconnect(void);
