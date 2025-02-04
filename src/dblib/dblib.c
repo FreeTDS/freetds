@@ -744,7 +744,7 @@ dbloginfree(LOGINREC * login)
 
 	if (login) {
 		tds_free_login(login->tds_login);
-		TDS_ZERO_FREE(login);
+		free(login);
 	}
 }
 
