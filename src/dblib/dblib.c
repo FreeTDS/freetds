@@ -725,6 +725,7 @@ dblogin(void)
 	/* set default values for loginrec */
 	if (!tds_set_library(loginrec->tds_login, "DB-Library")) {
 		dbperror(NULL, SYBEMEM, errno);
+		tds_free_login(loginrec->tds_login);
 		free(loginrec);
 		return NULL;
 	}
