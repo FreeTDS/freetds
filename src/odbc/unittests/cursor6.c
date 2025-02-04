@@ -6,7 +6,8 @@ static int bind_all = 0;
 static int normal_fetch = 0;
 static int use_cursors = 1;
 
-static void Test(void)
+static void
+Test(void)
 {
 #define ROWS 5
 	struct data_t {
@@ -71,7 +72,8 @@ static void Test(void)
 		CHKFetchScroll(SQL_FETCH_NEXT, 0, "S");
 }
 
-static void Init(void)
+static void
+Init(void)
 {
 	int i;
 	char sql[128];

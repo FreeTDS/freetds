@@ -478,7 +478,8 @@ odbc_tds_version(void)
 	return tds_version;
 }
 
-const char *odbc_db_version(void)
+const char *
+odbc_db_version(void)
 {
 	if (!db_str_version[0]) {
 		ODBC_BUF *odbc_buf = NULL;

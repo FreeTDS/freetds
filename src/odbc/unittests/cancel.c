@@ -70,7 +70,8 @@ sigalrm_handler(int s TDS_UNUSED)
 
 static HANDLE alarm_cond = NULL;
 
-static DWORD WINAPI alarm_thread_proc(LPVOID arg)
+static DWORD WINAPI
+alarm_thread_proc(LPVOID arg)
 {
 	unsigned int timeout = (uintptr_t) arg;
 	switch (WaitForSingleObject(alarm_cond, timeout * 1000)) {
@@ -83,7 +84,8 @@ static DWORD WINAPI alarm_thread_proc(LPVOID arg)
 
 #undef alarm
 #define alarm tds_alarm
-static void alarm(unsigned int timeout)
+static void
+alarm(unsigned int timeout)
 {
 	static HANDLE thread = NULL;
 
