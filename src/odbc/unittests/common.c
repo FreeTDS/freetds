@@ -314,6 +314,7 @@ odbc_disconnect(void)
 		odbc_conn = SQL_NULL_HDBC;
 	}
 
+	ODBC_FREE();
 	if (odbc_env) {
 		SQLFreeEnv(odbc_env);
 		odbc_env = SQL_NULL_HENV;
