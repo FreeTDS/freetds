@@ -1,7 +1,6 @@
 #include "common.h"
 #include <ctype.h>
 #include "parser.h"
-#include <odbcss.h>
 #include <freetds/bool.h>
 
 /*
@@ -25,14 +24,8 @@ get_int(const char *s, odbc_parser *parser)
 	return (int) l;
 }
 
-struct lookup_int
-{
-	const char *name;
-	int value;
-};
-
 static int
-lookup(const char *name, const struct lookup_int *table, odbc_parser *parser)
+lookup(const char *name, const struct odbc_lookup_int *table, odbc_parser *parser)
 {
 	if (!table)
 		return get_int(name, parser);
@@ -45,7 +38,7 @@ lookup(const char *name, const struct lookup_int *table, odbc_parser *parser)
 }
 
 static const char*
-unlookup(long int value, const struct lookup_int *table)
+unlookup(long int value, const struct odbc_lookup_int *table)
 {
 	static char buf[32];
 
@@ -60,46 +53,7 @@ unlookup(long int value, const struct lookup_int *table)
 	return buf;
 }
 
-
-static struct lookup_int sql_types[] = {
-#define TYPE(s) { #s, s }
-	TYPE(SQL_CHAR),
-	TYPE(SQL_VARCHAR),
-	TYPE(SQL_LONGVARCHAR),
-	TYPE(SQL_WCHAR),
-	TYPE(SQL_WVARCHAR),
-	TYPE(SQL_WLONGVARCHAR),
-	TYPE(SQL_DECIMAL),
-	TYPE(SQL_NUMERIC),
-	TYPE(SQL_SMALLINT),
-	TYPE(SQL_INTEGER),
-	TYPE(SQL_REAL),
-	TYPE(SQL_FLOAT),
-	TYPE(SQL_DOUBLE),
-	TYPE(SQL_BIT),
-	TYPE(SQL_TINYINT),
-	TYPE(SQL_BIGINT),
-	TYPE(SQL_BINARY),
-	TYPE(SQL_VARBINARY),
-	TYPE(SQL_LONGVARBINARY),
-	TYPE(SQL_DATE),
-	TYPE(SQL_TIME),
-	TYPE(SQL_TIMESTAMP),
-	TYPE(SQL_TYPE_DATE),
-	TYPE(SQL_TYPE_TIME),
-	TYPE(SQL_TYPE_TIMESTAMP),
-	TYPE(SQL_DATETIME),
-	TYPE(SQL_SS_VARIANT),
-	TYPE(SQL_SS_UDT),
-	TYPE(SQL_SS_XML),
-	TYPE(SQL_SS_TABLE),
-	TYPE(SQL_SS_TIME2),
-	TYPE(SQL_SS_TIMESTAMPOFFSET),
-#undef TYPE
-	{ NULL, 0 }
-};
-
-static struct lookup_int sql_bools[] = {
+static struct odbc_lookup_int sql_bools[] = {
 	{ "SQL_TRUE",  SQL_TRUE  },
 	{ "SQL_FALSE", SQL_FALSE },
 	{ NULL, 0 }
@@ -118,7 +72,7 @@ struct attribute
 	const char *name;
 	int value;
 	test_type_t type;
-	const struct lookup_int *lookup;
+	const struct odbc_lookup_int *lookup;
 };
 
 static const struct attribute attributes[] = {
@@ -133,8 +87,8 @@ static const struct attribute attributes[] = {
 	ATTR(SQL_DESC_SCALE, SMALLINT),
 	ATTR(SQL_DESC_DISPLAY_SIZE, INTEGER),
 	ATTR(SQL_DESC_TYPE_NAME, CHARP),
-	ATTR2(SQL_DESC_CONCISE_TYPE, SMALLINT, sql_types),
-	ATTR2(SQL_DESC_TYPE, SMALLINT, sql_types),
+	ATTR2(SQL_DESC_CONCISE_TYPE, SMALLINT, odbc_sql_types),
+	ATTR2(SQL_DESC_TYPE, SMALLINT, odbc_sql_types),
 	ATTR2(SQL_DESC_UNSIGNED, SMALLINT, sql_bools)
 #undef ATTR2
 #undef ATTR
@@ -171,7 +125,7 @@ is_contained(const char *s, const char *list[])
 }
 
 static bool
-is_contained_lookup(SQLLEN i, const char *list[], const struct lookup_int *table, odbc_parser *parser)
+is_contained_lookup(SQLLEN i, const char *list[], const struct odbc_lookup_int *table, odbc_parser *parser)
 {
 	for (;*list; ++list) {
 		if (i == lookup(*list, table, parser))

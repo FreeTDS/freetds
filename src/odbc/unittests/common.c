@@ -20,6 +20,7 @@
 #include <odbcinst.h>
 #endif
 
+#include <odbcss.h>
 #include <freetds/sysdep_private.h>
 #include <freetds/replacements.h>
 
@@ -1003,6 +1004,44 @@ struct odbc_lookup_int odbc_sql_c_types[] = {
 	TYPE(SQL_C_USHORT),
 	TYPE(SQL_C_UTINYINT),
 	TYPE(SQL_C_GUID),
+#undef TYPE
+	{ NULL, 0 }
+};
+
+struct odbc_lookup_int odbc_sql_types[] = {
+#define TYPE(s) { #s, s }
+	TYPE(SQL_CHAR),
+	TYPE(SQL_VARCHAR),
+	TYPE(SQL_LONGVARCHAR),
+	TYPE(SQL_WCHAR),
+	TYPE(SQL_WVARCHAR),
+	TYPE(SQL_WLONGVARCHAR),
+	TYPE(SQL_DECIMAL),
+	TYPE(SQL_NUMERIC),
+	TYPE(SQL_SMALLINT),
+	TYPE(SQL_INTEGER),
+	TYPE(SQL_REAL),
+	TYPE(SQL_FLOAT),
+	TYPE(SQL_DOUBLE),
+	TYPE(SQL_BIT),
+	TYPE(SQL_TINYINT),
+	TYPE(SQL_BIGINT),
+	TYPE(SQL_BINARY),
+	TYPE(SQL_VARBINARY),
+	TYPE(SQL_LONGVARBINARY),
+	TYPE(SQL_DATE),
+	TYPE(SQL_TIME),
+	TYPE(SQL_TIMESTAMP),
+	TYPE(SQL_TYPE_DATE),
+	TYPE(SQL_TYPE_TIME),
+	TYPE(SQL_TYPE_TIMESTAMP),
+	TYPE(SQL_DATETIME),
+	TYPE(SQL_SS_VARIANT),
+	TYPE(SQL_SS_UDT),
+	TYPE(SQL_SS_XML),
+	TYPE(SQL_SS_TABLE),
+	TYPE(SQL_SS_TIME2),
+	TYPE(SQL_SS_TIMESTAMPOFFSET),
 #undef TYPE
 	{ NULL, 0 }
 };
