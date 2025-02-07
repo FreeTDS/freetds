@@ -415,6 +415,8 @@ struct _hstmt
 	 */
 	unsigned need_reprepare:1;
 	unsigned param_data_called:1;
+	unsigned params_queried:1;
+	unsigned params_set:1;
 	/* end prepared query stuff */
 
 	/** parameters saved */

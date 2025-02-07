@@ -79,6 +79,7 @@ odbc_set_stmt_query(TDS_STMT * stmt, const ODBC_CHAR *sql, int sql_len _WIDE)
 	stmt->curr_param_row = 0;
 	stmt->num_param_rows = 1;
 	stmt->need_reprepare = 0;
+	stmt->params_queried = 0;
 
 	if (!odbc_dstr_copy(stmt->dbc, &stmt->query, sql_len, sql))
 		return SQL_ERROR;

@@ -82,6 +82,7 @@ static SQLSMALLINT odbc_swap_datetime_sql_type(SQLSMALLINT sql_type, int version
 static int odbc_process_tokens(TDS_STMT * stmt, unsigned flag);
 static bool odbc_lock_statement(TDS_STMT* stmt);
 static void odbc_unlock_statement(TDS_STMT* stmt);
+static bool read_params(TDS_STMT *stmt);
 
 #if ENABLE_EXTRA_CHECKS
 static void odbc_ird_check(TDS_STMT * stmt);
@@ -708,19 +709,52 @@ ODBC_FUNC(SQLColumnPrivileges, (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLI
 	ODBC_EXIT_(stmt);
 }
 
-#if 0
-SQLRETURN ODBC_API
-SQLDescribeParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT FAR * pfSqlType, SQLUINTEGER FAR * pcbParamDef,
+SQLRETURN ODBC_PUBLIC ODBC_API
+SQLDescribeParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT FAR * pfSqlType, SQLULEN FAR * pcbParamDef,
 		 SQLSMALLINT FAR * pibScale, SQLSMALLINT FAR * pfNullable)
 {
+	TDS_DESC *ipd;
+	struct _drecord *drec;
+
+	ODBC_ENTER_HSTMT;
+
 	tdsdump_log(TDS_DBG_FUNC, "SQLDescribeParam(%p, %d, %p, %p, %p, %p)\n",
 			hstmt, ipar, pfSqlType, pcbParamDef, pibScale, pfNullable);
-	ODBC_ENTER_HSTMT;
-	odbc_errs_add(&stmt->errs, "HYC00", "SQLDescribeParam: function not implemented");
+
+	/* Check if we need to ask server (not set params, we not asked before). */
+	/* We need to reset set params resetting them. */
+	if (!stmt->params_queried && !stmt->params_set && stmt->param_count > 0)
+		read_params(stmt);
+
+	/* return information from IPD */
+	ipd = stmt->ipd;
+	if (ipar < 1 || ipar > ipd->header.sql_desc_count) {
+		odbc_errs_add(&stmt->errs, "07009", NULL);
+		ODBC_EXIT_(stmt);
+	}
+	drec = &ipd->records[ipar - 1];
+
+	if (pfSqlType)
+		*pfSqlType = drec->sql_desc_type;
+	if (pfNullable)
+		*pfNullable = drec->sql_desc_nullable;
+	switch (drec->sql_desc_type) {
+	case SQL_DECIMAL:
+	case SQL_NUMERIC:
+		if (pcbParamDef)
+			*pcbParamDef = drec->sql_desc_precision;
+		if (pibScale)
+			*pibScale = drec->sql_desc_scale;
+		break;
+	default:
+		if (pcbParamDef)
+			*pcbParamDef = drec->sql_desc_length;
+		if (pibScale)
+			*pibScale = 0;
+		break;
+	}
 	ODBC_EXIT_(stmt);
 }
-#endif
-
 
 SQLRETURN ODBC_PUBLIC ODBC_API
 SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLROWOFFSET irow,
@@ -1609,6 +1643,7 @@ odbc_SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType,
 		drec->sql_desc_length = 0;
 	}
 
+	stmt->params_set = 1;
 	ODBC_EXIT_(stmt);
 }
 
@@ -4368,6 +4403,7 @@ odbc_SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 	if (fOption == SQL_DROP || fOption == SQL_RESET_PARAMS) {
 		desc_free_records(stmt->apd);
 		desc_free_records(stmt->ipd);
+		stmt->params_set = 0;
 	}
 
 	/* close statement */
@@ -4751,6 +4787,12 @@ ODBC_FUNC(SQLPrepare, (P(SQLHSTMT,hstmt), PCHARIN(SqlStr,SQLINTEGER) WIDE))
 
 	/* count parameters */
 	stmt->param_count = tds_count_placeholders(tds_dstr_cstr(&stmt->query));
+
+	/* reset IPD and APD */
+	if (!stmt->params_set) {
+		desc_alloc_records(stmt->ipd, 0);
+		desc_alloc_records(stmt->apd, 0);
+	}
 
 	/* trasform to native (one time, not for every SQLExecute) */
 	if (SQL_SUCCESS != prepare_call(stmt))
@@ -5239,7 +5281,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 	API_X(SQL_API_SQLCONNECT)\
 	API3X(SQL_API_SQLCOPYDESC)\
 	API_X(SQL_API_SQLDESCRIBECOL)\
-	API__(SQL_API_SQLDESCRIBEPARAM)\
+	API_X(SQL_API_SQLDESCRIBEPARAM)\
 	API_X(SQL_API_SQLDISCONNECT)\
 	API_X(SQL_API_SQLDRIVERCONNECT)\
 	API3X(SQL_API_SQLENDTRAN)\
@@ -7760,6 +7802,298 @@ SQLSetScrollOptions(SQLHSTMT hstmt, SQLUSMALLINT fConcurrency, SQLLEN crowKeyset
 	odbc_SQLSetStmtAttr(hstmt, SQL_ROWSET_SIZE, (SQLPOINTER) (TDS_INTPTR) crowRowset, 0 _wide0);
 
 	ODBC_EXIT_(stmt);
+}
+
+static TDS_INT
+get_int_col(TDSSOCKET *tds, TDSCOLUMN *col, TDS_INT default_value)
+{
+	int srctype = tds_get_conversion_type(col->on_server.column_type, col->on_server.column_size);
+	TDS_CHAR *src = (TDS_CHAR *) col->column_data;
+	TDS_INT srclen = col->column_cur_size;
+	CONV_RESULT res;
+
+	if (srclen < 0)
+		return default_value;
+
+	if (is_blob_col(col))
+		src = ((TDSBLOB *) src)->textvalue;
+
+	if (tds_convert(tds_get_ctx(tds), srctype, src, (TDS_UINT) srclen, SYBINT4, &res) < 0)
+		return default_value;
+
+	return res.i;
+}
+
+/**
+ * Replace placeholders ('?') inside query with @PRMxxx name.
+ * @param is_func Tell if query is a ODBC function call.
+ * @returns Converted string, NULL on memory error.
+ */
+static char *
+prepare_query_describing_params(const char *query, size_t *query_len, bool is_func)
+{
+#define PRM_FMT "@PRM%04d"
+	int i = 0;
+	size_t len, pos;
+	const char *e, *s;
+	size_t size = *query_len + 30;
+	char *out;
+
+	if (is_func)
+		size += 10;
+
+	out = tds_new(char, size);
+	if (!out)
+		goto memory_error;
+	pos = 0;
+	if (is_func)
+		pos += sprintf(out + pos, "exec " PRM_FMT "=", ++i);
+
+	s = query;
+	for (;; ++i) {
+		e = tds_next_placeholder(s);
+		len = e ? e - s : strlen(s);
+		if (pos + len + 12 >= size) {
+			size = pos + len + 30;
+			if (!TDS_RESIZE(out, size))
+				goto memory_error;
+		}
+		memcpy(out + pos, s, len);
+		pos += len;
+		if (!e)
+			break;
+		pos += sprintf(out + pos, PRM_FMT, i + 1);
+
+		s = e + 1;
+	}
+	out[pos] = 0;
+	*query_len = pos;
+	return out;
+
+memory_error:
+	free(out);
+	return NULL;
+#undef PRM_FMT
+}
+
+/**
+ * Parse UTF-16 name for parameter name in the form @PRMxxxx.
+ * @returns xxxx number or -1 if error.
+ */
+static int
+param_index_from_name(const TDSCOLUMN *const col)
+{
+	const unsigned char *data = col->column_data;
+	int i;
+	unsigned n;
+	char name[9];
+
+	/* should be in format @PRMxxxx */
+	if (col->column_cur_size != 8 * 2)
+		return -1;
+
+	/* convert to ASCII and lower the case */
+	for (i = 0; i < 8; ++i) {
+		name[i] = data[i * 2];
+		if (data[i * 2 + 1])
+			return -1;
+	}
+	name[1] |= 0x20;
+	name[2] |= 0x20;
+	name[3] |= 0x20;
+	name[8] = 0;
+
+	/* parse name */
+	i = -1;
+	if (sscanf(name, "@prm%u%n", &n, &i) < 1 || n < 1 || i != 8)
+		return -1;
+
+	return (int) (n - 1);
+}
+
+static bool
+read_params(TDS_STMT *stmt)
+{
+	bool ret = false;
+	TDSSOCKET *tds;
+	TDSPARAMINFO *params;
+	bool in_row = false;
+	enum {
+		COL_NAME,
+		COL_PRECISION,
+		COL_SCALE,
+		COL_TYPE,
+		COL_LENGTH,
+		NUM_COLUMNS
+	};
+	static const char *const column_names[NUM_COLUMNS] = {
+		"NAME",
+		"SUGGESTED_PRECISION",
+		"SUGGESTED_SCALE",
+		"SUGGESTED_TDS_TYPE_ID",
+		"SUGGESTED_TDS_LENGTH",
+	};
+	unsigned column_idx[NUM_COLUMNS];
+	const char *query = tds_dstr_cstr(&stmt->query);
+	size_t query_len = tds_dstr_len(&stmt->query);
+	unsigned num_params = tds_count_placeholders(query);
+	char *new_query = NULL;
+	TDSCOLUMN col[1];
+
+	/* there should be not so many parameters, avoid client to mess around */
+	if (num_params >= 998) {
+		stmt->params_queried = 1;
+		return false;
+	}
+
+	/* allocate tds */
+	if (!odbc_lock_statement(stmt)) {
+		odbc_errs_reset(&stmt->errs);
+		return false;
+	}
+
+	tds = stmt->tds;
+	stmt->params_queried = 1;
+
+	/* currently supported only by MSSQL 2012 */
+	if (!TDS_IS_MSSQL(tds) || tds->conn->product_version < TDS_MS_VER(11,0,0)) {
+		odbc_unlock_statement(stmt);
+		return false;
+	}
+
+	/* replace parameters with names */
+	if (stmt->prepared_query_is_func)
+		++num_params;
+	if (num_params) {
+		new_query = prepare_query_describing_params(query, &query_len, stmt->prepared_query_is_func);
+		if (!new_query)
+			goto memory_error;
+		query = new_query;
+	}
+
+	/* send query */
+	params = odbc_add_char_param(tds, NULL, "", query, query_len);
+	if (!params)
+		goto memory_error;
+
+	if (TDS_FAILED(tds_submit_rpc(tds, "sp_describe_undeclared_parameters", params, NULL)))
+		goto error;
+	tds_free_param_results(params);
+	params = NULL;
+
+	/* clear IPD and APD */
+	desc_alloc_records(stmt->apd, 0);
+	desc_alloc_records(stmt->ipd, 0);
+	/* set IPD size */
+	desc_alloc_records(stmt->ipd, num_params);
+
+	ret = true;
+	for (;;) {
+		TDS_INT result_type;
+		int done_flags;
+		TDSRESULTINFO *res_info;
+		ptrdiff_t i, j, num_cols;
+		struct _drecord *drec;
+		int idx, scale, precision, len, tds_type;
+
+		switch (tds_process_tokens(tds, &result_type, &done_flags, TDS_RETURN_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW)) {
+		case TDS_SUCCESS:
+			switch (result_type) {
+			case TDS_DONE_RESULT:
+			case TDS_DONEPROC_RESULT:
+			case TDS_DONEINPROC_RESULT:
+				in_row = false;
+				break;
+
+			case TDS_ROWFMT_RESULT:
+				/* parse results, scan all columns to find needed ones */
+				/* extract all column indexes */
+				res_info = tds->current_results;
+				num_cols = res_info->num_cols;
+
+				for (i = 0; i < NUM_COLUMNS; i++)
+					column_idx[i] = ~0u;
+				for (i = 0; i < num_cols; i++) {
+					char *name;
+					TDSCOLUMN *col;
+
+					col = res_info->columns[i];
+					name = tds_dstr_buf(&col->column_name);
+					tds_ascii_strupr(name);
+					for (j = 0; j < NUM_COLUMNS; j++)
+						if (strcmp(name, column_names[j]) == 0)
+							column_idx[j] = i;
+				}
+				in_row = true;
+				for (i = 0; i < NUM_COLUMNS; i++)
+					if (column_idx[i] == ~0u)
+						in_row = false;
+				break;
+			case TDS_ROW_RESULT:
+				if (!in_row)
+					break;
+				/*
+				 * convert type to SQL.
+				 * Set precision (fixed on some types) and scale.
+				 * Set length (based on type and fields).
+				 */
+				res_info = tds->current_results;
+
+				idx = param_index_from_name(res_info->columns[column_idx[COL_NAME]]);
+				if (idx < 0 || idx >= num_params)
+					break;
+				drec = &stmt->ipd->records[idx];
+				memset(col, 0, sizeof(col));
+				tds_type = get_int_col(tds, res_info->columns[column_idx[COL_TYPE]], -2);
+				len = get_int_col(tds, res_info->columns[column_idx[COL_LENGTH]], -2);
+				precision = get_int_col(tds, res_info->columns[column_idx[COL_PRECISION]], -2);
+				scale = get_int_col(tds, res_info->columns[column_idx[COL_SCALE]], -2);
+				if (tds_type < -1 || len < -1 || precision < -1 || scale < -1)
+					break;
+				tds_set_column_type(tds->conn, col, tds_type);
+				col->on_server.column_size = col->column_size = len;
+				col->column_prec = precision;
+				col->column_scale = scale;
+				drec->sql_desc_nullable = SQL_TRUE;
+				odbc_set_sql_type_info(col, drec, stmt->dbc->env->attr.odbc_version);
+				break;
+			}
+			continue;
+		case TDS_NO_MORE_RESULTS:
+			break;
+		case TDS_CANCELLED:
+			odbc_errs_add(&stmt->errs, "HY008", NULL);
+		default:
+			stmt->errs.lastrc = SQL_ERROR;
+			ret = false;
+			break;
+		}
+		break;
+	}
+	odbc_unlock_statement(stmt);
+	free(new_query);
+	new_query = NULL;
+
+	/* clear IPD on error */
+	if (!ret)
+		desc_alloc_records(stmt->ipd, 0);
+
+	/* mark we have the information (we need to reset changing query) */
+	stmt->params_queried = 1;
+	return ret;
+
+memory_error:
+	free(new_query);
+	tds_free_param_results(params);
+	odbc_unlock_statement(stmt);
+	odbc_errs_add(&stmt->errs, "HY001", NULL);
+	return false;
+
+error:
+	free(new_query);
+	tds_free_param_results(params);
+	odbc_unlock_statement(stmt);
+	return false;
 }
 
 #include "odbc_export.h"

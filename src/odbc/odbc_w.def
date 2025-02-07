@@ -16,7 +16,7 @@ EXPORTS
 	SQLConnect
 	SQLCopyDesc
 	SQLDescribeCol
-;	SQLDescribeParam
+	SQLDescribeParam
 	SQLDisconnect
 	SQLDriverConnect
 	SQLEndTran
