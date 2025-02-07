@@ -38,14 +38,8 @@ get_int(const char *s)
 	return (int) l;
 }
 
-struct lookup_int
-{
-	const char *name;
-	int value;
-};
-
 static int
-lookup(const char *name, const struct lookup_int *table)
+lookup(const char *name, const struct odbc_lookup_int *table)
 {
 	if (!table)
 		return get_int(name);
@@ -58,19 +52,15 @@ lookup(const char *name, const struct lookup_int *table)
 }
 
 static const char *
-unlookup(int value, const struct lookup_int *table)
+unlookup(int value, const struct odbc_lookup_int *table)
 {
 	if (!table)
 		return "??";
 
-	for (; table->name; ++table)
-		if (table->value == value)
-			return table->name;
-
-	return "??";
+	return odbc_lookup_value(value, table, "??");
 }
 
-static struct lookup_int concurrency[] = {
+static struct odbc_lookup_int concurrency[] = {
 #define TYPE(s) { #s, s }
 	TYPE(SQL_CONCUR_READ_ONLY),
 	TYPE(SQL_CONCUR_LOCK),
@@ -80,7 +70,7 @@ static struct lookup_int concurrency[] = {
 	{ NULL, 0 }
 };
 
-static struct lookup_int scrollable[] = {
+static struct odbc_lookup_int scrollable[] = {
 #define TYPE(s) { #s, s }
 	TYPE(SQL_NONSCROLLABLE),
 	TYPE(SQL_SCROLLABLE),
@@ -88,7 +78,7 @@ static struct lookup_int scrollable[] = {
 	{ NULL, 0 }
 };
 
-static struct lookup_int sensitivity[] = {
+static struct odbc_lookup_int sensitivity[] = {
 #define TYPE(s) { #s, s }
 	TYPE(SQL_UNSPECIFIED),
 	TYPE(SQL_INSENSITIVE),
@@ -97,7 +87,7 @@ static struct lookup_int sensitivity[] = {
 	{ NULL, 0 }
 };
 
-static struct lookup_int cursor_type[] = {
+static struct odbc_lookup_int cursor_type[] = {
 #define TYPE(s) { #s, s }
 	TYPE(SQL_CURSOR_FORWARD_ONLY),
 	TYPE(SQL_CURSOR_STATIC),
@@ -107,7 +97,7 @@ static struct lookup_int cursor_type[] = {
 	{ NULL, 0 }
 };
 
-static struct lookup_int noscan[] = {
+static struct odbc_lookup_int noscan[] = {
 #define TYPE(s) { #s, s }
 	TYPE(SQL_NOSCAN_OFF),
 	TYPE(SQL_NOSCAN_ON),
@@ -115,7 +105,7 @@ static struct lookup_int noscan[] = {
 	{ NULL, 0 }
 };
 
-static struct lookup_int retrieve_data[] = {
+static struct odbc_lookup_int retrieve_data[] = {
 #define TYPE(s) { #s, s }
 	TYPE(SQL_RD_ON),
 	TYPE(SQL_RD_OFF),
@@ -123,7 +113,7 @@ static struct lookup_int retrieve_data[] = {
 	{ NULL, 0 }
 };
 
-static struct lookup_int simulate_cursor[] = {
+static struct odbc_lookup_int simulate_cursor[] = {
 #define TYPE(s) { #s, s }
 	TYPE(SQL_SC_NON_UNIQUE),
 	TYPE(SQL_SC_TRY_UNIQUE),
@@ -132,7 +122,7 @@ static struct lookup_int simulate_cursor[] = {
 	{ NULL, 0 }
 };
 
-static struct lookup_int use_bookmarks[] = {
+static struct odbc_lookup_int use_bookmarks[] = {
 #define TYPE(s) { #s, s }
 	TYPE(SQL_UB_OFF),
 	TYPE(SQL_UB_VARIABLE),
@@ -157,7 +147,7 @@ struct attribute
 	const char *name;
 	int value;
 	test_type_t type;
-	const struct lookup_int *lookup;
+	const struct odbc_lookup_int *lookup;
 };
 
 static const struct attribute attributes[] = {

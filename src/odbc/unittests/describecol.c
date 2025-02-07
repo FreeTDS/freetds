@@ -46,11 +46,7 @@ unlookup(long int value, const struct odbc_lookup_int *table)
 	if (!table)
 		return buf;
 
-	for (; table->name; ++table)
-		if (table->value == value)
-			return table->name;
-
-	return buf;
+	return odbc_lookup_value(value, table, buf);
 }
 
 static struct odbc_lookup_int sql_bools[] = {
