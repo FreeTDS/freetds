@@ -210,7 +210,6 @@ typedef enum
 /*
  * MS only types
  */
-	SYBNVARCHAR = 103,	/* 0x67 */
 	SYBINT8 = 127,		/* 0x7F */
 	XSYBCHAR = 175,		/* 0xAF */
 	XSYBVARCHAR = 167,	/* 0xA7 */
@@ -231,6 +230,7 @@ typedef enum
 /*
  * Sybase only types
  */
+	SYBNVARCHAR = 103,	/* 0x67 */
 	SYBLONGBINARY = 225,	/* 0xE1 */
 	SYBUINT1 = 64,		/* 0x40 */
 	SYBUINT2 = 65,		/* 0x41 */
