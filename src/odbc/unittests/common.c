@@ -1042,6 +1042,9 @@ struct odbc_lookup_int odbc_sql_types[] = {
 	TYPE(SQL_SS_TABLE),
 	TYPE(SQL_SS_TIME2),
 	TYPE(SQL_SS_TIMESTAMPOFFSET),
+#ifdef SQL_GUID
+	TYPE(SQL_GUID),
+#endif
 #undef TYPE
 	{ NULL, 0 }
 };
