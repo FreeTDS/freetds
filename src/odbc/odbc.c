@@ -80,7 +80,7 @@ static SQLRETURN odbc_update_ird(TDS_STMT *stmt, TDS_ERRS *errs);
 static SQLRETURN odbc_prepare(TDS_STMT *stmt);
 static SQLSMALLINT odbc_swap_datetime_sql_type(SQLSMALLINT sql_type, int version);
 static int odbc_process_tokens(TDS_STMT * stmt, unsigned flag);
-static int odbc_lock_statement(TDS_STMT* stmt);
+static bool odbc_lock_statement(TDS_STMT* stmt);
 static void odbc_unlock_statement(TDS_STMT* stmt);
 
 #if ENABLE_EXTRA_CHECKS
@@ -805,7 +805,7 @@ ODBC_FUNC(SQLForeignKeys, (P(SQLHSTMT,hstmt), PCHARIN(PkCatalogName,SQLSMALLINT)
 	ODBC_EXIT_(stmt);
 }
 
-static int
+static bool
 odbc_lock_statement(TDS_STMT* stmt)
 {
 #if ENABLE_ODBC_MARS
@@ -841,10 +841,10 @@ odbc_lock_statement(TDS_STMT* stmt)
 			stmt->attr.query_timeout : stmt->dbc->default_query_timeout;
 		tds_set_parent(tds, stmt);
 		stmt->tds = tds;
-		return 1;
+		return true;
 	}
 	odbc_errs_add(&stmt->errs, "24000", NULL);
-	return 0;
+	return false;
 #else
 	TDSSOCKET *tds = stmt->dbc->tds_socket;
 
@@ -854,7 +854,7 @@ odbc_lock_statement(TDS_STMT* stmt)
 		if (!tds || tds->state != TDS_IDLE) {
 			tds_mutex_unlock(&stmt->dbc->mtx);
 			odbc_errs_add(&stmt->errs, "24000", NULL);
-			return 0;
+			return false;
 		}
 		stmt->dbc->current_statement->tds = NULL;
 	}
@@ -866,7 +866,7 @@ odbc_lock_statement(TDS_STMT* stmt)
 		stmt->tds = tds;
 	}
 	tds_mutex_unlock(&stmt->dbc->mtx);
-	return 1;
+	return true;
 #endif
 }
 
