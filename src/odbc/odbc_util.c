@@ -55,7 +55,7 @@ static DSTR *odbc_mb2utf(TDS_DBC *dbc, DSTR *res, const char *s, unsigned int le
 static DSTR *odbc_wide2utf(DSTR *res, const SQLWCHAR *s, unsigned int len);
 #endif
 
-int
+SQLRETURN
 odbc_set_stmt_query(TDS_STMT * stmt, const ODBC_CHAR *sql, int sql_len _WIDE)
 {
 	if (sql_len == SQL_NTS)
