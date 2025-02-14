@@ -216,7 +216,8 @@ is_valid(const char *num, int type, CONV_RESULT *cr)
 	if (!cr)
 		cr = &dummy_cr;
 
-	return convert_and_free(SYBVARCHAR, num, strlen(num), type, cr) >= 0;
+	return convert_and_free(SYBVARCHAR, num, (TDS_UINT) strlen(num), type,
+				cr) >= 0;
 }
 
 /* convert multiple precision to a floating number of a specific type */

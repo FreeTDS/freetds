@@ -361,7 +361,10 @@ extern const char *const tds_type_names[256];
 
 
 #define is_blob_type(x)       ((x)==SYBTEXT || (x)==SYBIMAGE || (x)==SYBNTEXT)
-#define is_blob_col(x)        ((x)->column_varint_size > 2)
+#define is_blob_col(x) (is_blob_type((x)->column_type) \
+			||  ((x)->column_varint_size == 8) \
+			||  ((x)->column_type == SYBVARIANT \
+			     &&  (x)->column_varint_size == 4))
 /* large type means it has a two byte size field */
 /* define is_large_type(x) (x>128) */
 #define is_numeric_type(x)    ((x)==SYBNUMERIC || (x)==SYBDECIMAL)
@@ -1348,7 +1351,7 @@ tds_release_cur_dyn(TDSSOCKET * tds)
 }
 void tds_dynamic_deallocated(TDSCONNECTION *conn, TDSDYNAMIC *dyn);
 void tds_set_cur_dyn(TDSSOCKET *tds, TDSDYNAMIC *dyn);
-TDSSOCKET *tds_realloc_socket(TDSSOCKET * tds, size_t bufsize);
+TDSSOCKET *tds_realloc_socket(TDSSOCKET * tds, unsigned int bufsize);
 char *tds_alloc_client_sqlstate(int msgno);
 char *tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgno);
 TDSLOGIN *tds_alloc_login(bool use_environment);
@@ -1358,7 +1361,8 @@ TDSLOGIN *tds_init_login(TDSLOGIN * login, TDSLOCALE * locale);
 TDSLOCALE *tds_alloc_locale(void);
 void *tds_alloc_param_data(TDSCOLUMN * curparam);
 void tds_free_locale(TDSLOCALE * locale);
-TDSCURSOR * tds_alloc_cursor(TDSSOCKET * tds, const char *name, TDS_INT namelen, const char *query, TDS_INT querylen);
+TDSCURSOR * tds_alloc_cursor(TDSSOCKET * tds, const char *name, size_t namelen,
+			     const char *query, size_t querylen);
 void tds_free_row(TDSRESULTINFO * res_info, unsigned char *row);
 TDSSOCKET *tds_alloc_socket(TDSCONTEXT * context, unsigned int bufsize);
 TDSSOCKET *tds_alloc_additional_socket(TDSCONNECTION *conn);
@@ -1415,13 +1419,17 @@ TDSRET tds_submit_begin_tran(TDSSOCKET *tds);
 TDSRET tds_submit_rollback(TDSSOCKET *tds, bool cont);
 TDSRET tds_submit_commit(TDSSOCKET *tds, bool cont);
 TDSRET tds_disconnect(TDSSOCKET * tds);
-size_t tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen);
-size_t tds_quote_id_rpc(TDSSOCKET * tds, char *buffer, const char *id, int idlen);
-size_t tds_quote_string(TDSSOCKET * tds, char *buffer, const char *str, int len);
+size_t tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id,
+		    ptrdiff_t idlen);
+size_t tds_quote_id_rpc(TDSSOCKET * tds, char *buffer, const char *id,
+			ptrdiff_t idlen);
+size_t tds_quote_string(TDSSOCKET * tds, char *buffer, const char *str,
+			ptrdiff_t len);
 const char *tds_skip_comment(const char *s);
 const char *tds_skip_quoted(const char *s);
 size_t tds_fix_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol);
-const char *tds_convert_string(TDSSOCKET * tds, TDSICONV * char_conv, const char *s, int len, size_t *out_len);
+const char *tds_convert_string(TDSSOCKET * tds, TDSICONV * char_conv,
+			       const char *s, ptrdiff_t len, size_t *out_len);
 void tds_convert_string_free(const char *original, const char *converted);
 #if !ENABLE_EXTRA_CHECKS
 #define tds_convert_string_free(original, converted) \
@@ -1519,10 +1527,12 @@ int tdsdump_isopen(void);
 int tdsdump_open(const tds_dir_char *filename);
 #include <freetds/pushvis.h>
 void tdsdump_close(void);
-void tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, const void *buf, size_t length);
+void tdsdump_do_dump_buf(const char* file, unsigned int level_line,
+			 const char *msg, const void *buf, size_t length);
 void tdsdump_col(const TDSCOLUMN *col);
 #undef tdsdump_log
-void tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...)
+void tdsdump_do_log(const char* file, unsigned int level_line,
+		    const char *fmt, ...)
 #if defined(__GNUC__) && __GNUC__ >= 2
 #if defined(__MINGW32__)
 	__attribute__ ((__format__ (ms_printf, 3, 4)))
@@ -1531,9 +1541,9 @@ void tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...
 #endif
 #endif
 ;
-#define TDSDUMP_LOG_FAST if (TDS_UNLIKELY(tds_write_dump)) tdsdump_log
+#define TDSDUMP_LOG_FAST if (TDS_UNLIKELY(tds_write_dump)) tdsdump_do_log
 #define tdsdump_log TDSDUMP_LOG_FAST
-#define TDSDUMP_BUF_FAST if (TDS_UNLIKELY(tds_write_dump)) tdsdump_dump_buf
+#define TDSDUMP_BUF_FAST if (TDS_UNLIKELY(tds_write_dump)) tdsdump_do_dump_buf
 #define tdsdump_dump_buf TDSDUMP_BUF_FAST
 
 extern bool tds_write_dump;
@@ -1548,14 +1558,17 @@ int tds7_get_instance_ports(FILE *output, struct addrinfo *addr);
 int tds7_get_instance_port(struct addrinfo *addr, const char *instance);
 char *tds_prwsaerror(int erc);
 void tds_prwsaerror_free(char *s);
-int tds_connection_read(TDSSOCKET * tds, unsigned char *buf, int buflen);
-int tds_connection_write(TDSSOCKET *tds, const unsigned char *buf, int buflen, int final);
+ptrdiff_t tds_connection_read(TDSSOCKET * tds, unsigned char *buf,
+			      size_t buflen);
+ptrdiff_t tds_connection_write(TDSSOCKET *tds, const unsigned char *buf,
+			       size_t buflen, int final);
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
 int tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds);
 void tds_connection_close(TDSCONNECTION *conn);
-int tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen);
-int tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen);
+ptrdiff_t tds_goodread(TDSSOCKET * tds, unsigned char *buf, size_t buflen);
+ptrdiff_t tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer,
+			size_t buflen);
 void tds_socket_flush(TDS_SYS_SOCKET sock);
 int tds_socket_set_nonblocking(TDS_SYS_SOCKET sock);
 int tds_wakeup_init(TDSPOLLWAKEUP *wakeup);
@@ -1591,7 +1604,7 @@ typedef struct tds_freeze {
 } TDSFREEZE;
 
 void tds_freeze(TDSSOCKET *tds, TDSFREEZE *freeze, unsigned size_len);
-size_t tds_freeze_written(TDSFREEZE *freeze);
+unsigned int tds_freeze_written(TDSFREEZE *freeze);
 TDSRET tds_freeze_abort(TDSFREEZE *freeze);
 TDSRET tds_freeze_close(TDSFREEZE *freeze);
 TDSRET tds_freeze_close_string(TDSFREEZE *freeze);

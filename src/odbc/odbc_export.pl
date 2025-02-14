@@ -35,7 +35,7 @@ while(<IN>) {
 		my $params_all = '';
 		my $pass_aw = '';
 		my $sep = '';
-		my $log = "tdsdump_log(TDS_DBG_FUNC, \"$func(";
+		my $log = "tdsdump_do_log(TDS_DBG_FUNC, \"$func(";
 		my $log_p = '';
 		$wide = 1 if $args =~ / WIDE ?$/;
 		$args =~ s/ WIDE ?$//;
@@ -104,13 +104,13 @@ while(<IN>) {
 		SQLWSTR_FREE();
 	}";
 		} else {
-			$log_w =~ s/\btdsdump_log\b/TDSDUMP_LOG_FAST/g;
+			$log_w =~ s/\btdsdump_do_log\b/TDSDUMP_LOG_FAST/g;
 		}
 
 		$log =~ s/%ls/%s/g;
 		$log =~ s/STRING\((.*?),(.*?)\)/(const char*) $1/g;
 
-		$log =~ s/\btdsdump_log\b/TDSDUMP_LOG_FAST/g;
+		$log =~ s/\btdsdump_do_log\b/TDSDUMP_LOG_FAST/g;
 
 		print "#ifdef ENABLE_ODBC_WIDE
 static SQLRETURN odbc_$func($params_all, int wide);

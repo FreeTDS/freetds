@@ -138,7 +138,7 @@ Test(int level)
 
 	/* test with SQLPrepare/SQLExecute */
 	printf("Preparing: %s\n", SP_TEXT);
-	CHKPrepare(T(SP_TEXT), strlen(SP_TEXT), "SI");
+	CHKPrepare(T(SP_TEXT), (SQLINTEGER) strlen(SP_TEXT), "SI");
 
 	SQLBindParameter(odbc_stmt, 1, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &ReturnCode, 0, &cbReturnCode);
 	SQLBindParameter(odbc_stmt, 2, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &InParam, 0, &cbInParam);

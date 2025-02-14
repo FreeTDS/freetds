@@ -2632,7 +2632,8 @@ tds_process_dynamic(TDSSOCKET * tds)
 		drain = id_len - TDS_MAX_DYNID_LEN;
 		id_len = TDS_MAX_DYNID_LEN;
 	}
-	id_len = tds_get_string(tds, id_len, id, TDS_MAX_DYNID_LEN);
+	id_len = (TDS_TINYINT) tds_get_string(tds, id_len, id,
+					      TDS_MAX_DYNID_LEN);
 	id[id_len] = '\0';
 	if (drain) {
 		tds_get_n(tds, NULL, drain);

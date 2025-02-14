@@ -196,7 +196,7 @@ main(void)
 	if (IS_TDS7_PLUS(tds->conn)) {
 		char type[32];
 		char buf[1024];
-		int len;
+		size_t len;
 
 		strcpy(buf, "aaa");
 		len = 0;

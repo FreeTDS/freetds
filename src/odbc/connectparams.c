@@ -609,7 +609,7 @@ tdoParseProfile(const char *option, const char *value, void *param)
 	if (strcasecmp(p->entry, option) == 0) {
 		strlcpy(p->buffer, value, p->buffer_len);
 
-		p->ret_val = strlen(p->buffer);
+		p->ret_val = (int) strlen(p->buffer);
 		p->found = 1;
 	}
 	return true;
@@ -665,7 +665,7 @@ SQLGetPrivateProfileString(LPCSTR pszSection, LPCSTR pszEntry, LPCSTR pszDefault
 	if (pszDefault && !param.found) {
 		strlcpy(pRetBuffer, pszDefault, nRetBuffer);
 
-		param.ret_val = strlen(pRetBuffer);
+		param.ret_val = (int) strlen(pRetBuffer);
 	}
 
 	fclose(hFile);

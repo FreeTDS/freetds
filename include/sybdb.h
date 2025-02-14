@@ -846,10 +846,13 @@ RETCODE dbpivot(DBPROCESS *dbproc, int nkeys, int *keys, int ncols, int *cols, D
 
 DBPIVOT_FUNC dbpivot_lookup_name( const char name[] );
 
+#ifndef _FREETDS_LIBRARY_SOURCE
+#undef dbopen
 #ifdef MSDBLIB
 #define   dbopen(x,y) tdsdbopen((x),(y), 1)
 #else
 #define   dbopen(x,y) tdsdbopen((x),(y), 0)
+#endif
 #endif
 
 /* fix PHP problem */

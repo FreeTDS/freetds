@@ -804,10 +804,15 @@ CS_RETCODE cs_ctx_drop(CS_CONTEXT * ctx);
 CS_RETCODE cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen);
 CS_RETCODE cs_strbuild(CS_CONTEXT * ctx, CS_CHAR * buffer, CS_INT buflen, CS_INT * resultlen, CS_CHAR * text, CS_INT textlen,
 		       CS_CHAR * formats, CS_INT formatlen, ...);
-#undef cs_dt_crack
+#ifndef cs_dt_crack_v2
+#  undef cs_dt_crack
+#endif
 CS_RETCODE cs_dt_crack(CS_CONTEXT * ctx, CS_INT datetype, CS_VOID * dateval, CS_DATEREC * daterec);
 CS_RETCODE cs_dt_crack_v2(CS_CONTEXT * ctx, CS_INT datetype, CS_VOID * dateval, CS_DATEREC * daterec);
-#define cs_dt_crack cs_dt_crack_v2
+#ifndef _FREETDS_LIBRARY_SOURCE
+#  undef cs_dt_crack
+#  define cs_dt_crack cs_dt_crack_v2
+#endif
 CS_RETCODE cs_loc_alloc(CS_CONTEXT * ctx, CS_LOCALE ** locptr);
 CS_RETCODE cs_loc_drop(CS_CONTEXT * ctx, CS_LOCALE * locale);
 CS_RETCODE cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_VOID * buffer, CS_INT buflen,

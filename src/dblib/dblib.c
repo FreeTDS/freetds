@@ -842,7 +842,7 @@ dbsetllong(LOGINREC * login, long value, int which)
 	switch (which) {
 	case DBSETPACKET:
 		if (0 <= value && value <= 999999) { 
-			tds_set_packet(login->tds_login, value);
+			tds_set_packet(login->tds_login, (int) value);
 			return SUCCEED;
 		}
 		dbperror(0, SYBEBADPK, 0, (int) value, (int) login->tds_login->block_size);
@@ -1062,7 +1062,7 @@ dbstring_length(DBSTRING * dbstr)
 }
 
 static int
-dbstring_getchar(DBSTRING * dbstr, int i)
+dbstring_getchar(DBSTRING * dbstr, ptrdiff_t i)
 {
 
 	/* tdsdump_log(TDS_DBG_FUNC, "dbstring_getchar(%p, %d)\n", dbstr, i); */
@@ -3448,7 +3448,7 @@ dbspr1rowlen(DBPROCESS * dbproc)
 	for (col = 0; col < tds->res_info->num_cols; col++) {
 		TDSCOLUMN *colinfo = tds->res_info->columns[col];
 		int collen = _get_printable_size(colinfo);
-		int namlen = tds_dstr_len(&colinfo->column_name);
+		int namlen = (int) tds_dstr_len(&colinfo->column_name);
 		
 		len += collen > namlen ? collen : namlen;
 		
@@ -3489,7 +3489,7 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 	tds = dbproc->tds_socket;
 
 	for (col = 0; col < tds->res_info->num_cols; col++) {
-		int padlen, collen, namlen;
+		size_t padlen, collen, namlen;
 		TDSCOLUMN *colinfo = tds->res_info->columns[col];
 		if (colinfo->column_cur_size < 0) {
 			len = 4;
@@ -3560,17 +3560,18 @@ dbprrow(DBPROCESS * dbproc)
 	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
-	int i, col, collen, namlen, len;
+	int i, col;
+	size_t collen, namlen, len;
 	char dest[8192];
 	int desttype, srctype;
 	TDSDATEREC when;
 	STATUS status;
-	int padlen;
+	ptrdiff_t padlen;
 	int c;
 	int selcol;
 	int linechar;
 	int op;
-	const char *opname;
+	const char *opname, *p;
 
 	/* these are for compute rows */
 	DBINT computeid, num_cols, colid;
@@ -3616,7 +3617,9 @@ dbprrow(DBPROCESS * dbproc)
 					}
 				}
 
-				printf("%.*s", len, dest);
+				p = memchr(dest, '\0', len);
+				fwrite(dest, 1, p == NULL ? len : (p - dest),
+				       stdout);
 				collen = _get_printable_size(colinfo);
 				namlen = tds_dstr_len(&colinfo->column_name);
 				padlen = (collen > namlen ? collen : namlen) - len;
@@ -3646,7 +3649,7 @@ dbprrow(DBPROCESS * dbproc)
 			computeid = status;
 
 			for (i = 0;; ++i) {
-				if (i >= tds->num_comp_info) {
+				if ((TDS_UINT) i >= tds->num_comp_info) {
 					free(col_printlens);
 					return FAIL;
 				}
@@ -3683,7 +3686,10 @@ dbprrow(DBPROCESS * dbproc)
 				op = dbaltop(dbproc, computeid, col);
 				opname = dbprtype(op);
 				printf("%s", opname);
-				for (i = 0; i < ((long) col_printlens[selcol - 1] - (long) strlen(opname)); i++) {
+				for (i = 0;
+				     i < (col_printlens[selcol - 1]
+					  - (int) strlen(opname));
+				     i++) {
 					if ((c = dbstring_getchar(dbproc->dbopts[DBPRPAD].param, 0)) >= 0)
 						putchar(c); 
 				}
@@ -3761,7 +3767,9 @@ dbprrow(DBPROCESS * dbproc)
 						putchar(c);
 					}
 				}
-				printf("%.*s", len, dest);
+				p = memchr(dest, '\0', len);
+				fwrite(dest, 1, p == NULL ? len : (p - dest),
+				       stdout);
 				collen = _get_printable_size(colinfo);
 				namlen = tds_dstr_len(&colinfo->column_name);
 				padlen = (collen > namlen ? collen : namlen) - len;
@@ -3880,7 +3888,7 @@ dbsprline(DBPROCESS * dbproc, char *buffer, DBINT buf_len, DBCHAR line_char)
 	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
-	int i, col, len, collen, namlen;
+	size_t i, col, len, collen, namlen;
 	int c;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbsprline(%p, %s, %d, '%c')\n", dbproc, buffer, buf_len, line_char);
@@ -3938,7 +3946,8 @@ dbsprhead(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
-	int i, col, collen, namlen;
+	int i, collen, namlen;
+	TDS_USMALLINT col;
 	int padlen;
 	int c;
 
@@ -3952,7 +3961,7 @@ dbsprhead(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 	for (col = 0; col < resinfo->num_cols; col++) {
 		colinfo = resinfo->columns[col];
 		collen = _get_printable_size(colinfo);
-		namlen = tds_dstr_len(&colinfo->column_name);
+		namlen = (int) tds_dstr_len(&colinfo->column_name);
 		padlen = (collen > namlen ? collen : namlen) - namlen;
 		if (buf_len < namlen) {
 			return FAIL;
@@ -4002,8 +4011,8 @@ dbprhead(DBPROCESS * dbproc)
 	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
-	int i, col, len, collen, namlen;
-	int padlen;
+	size_t i, col, len, collen, namlen;
+	size_t padlen;
 	int c;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbprhead(%p)\n", dbproc);
@@ -4983,7 +4992,7 @@ dbnumalts(DBPROCESS * dbproc, int computeid)
 	TDSSOCKET *tds;
 	TDSCOMPUTEINFO *info;
 	TDS_SMALLINT compute_id;
-	int i;
+	TDS_UINT i;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbnumalts(%p, %d)\n", dbproc, computeid);
 	CHECK_PARAMETER(dbproc, SYBENULL, -1);
@@ -5041,7 +5050,7 @@ dbbylist(DBPROCESS * dbproc, int computeid, int *size)
 {
 	TDSSOCKET *tds;
 	TDSCOMPUTEINFO *info;
-	int i;
+	TDS_UINT i;
 	const TDS_SMALLINT byte_flag = -0x8000;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbbylist(%p, %d, %p)\n", dbproc, computeid, size);
@@ -8178,7 +8187,8 @@ dbperror(DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 	const DBLIB_ERROR_MESSAGE *msg = &default_message;
 	
 	int i, rc = INT_CANCEL;
-	const char *os_msgtext = strerror(errnum), *rc_name = "logic error";
+	const char *os_msgtext = strerror((int) errnum),
+		   *rc_name = "logic error";
 	char rc_buf[16];
 
 	tdsdump_log(TDS_DBG_FUNC, "dbperror(%p, %d, %ld)\n", dbproc, msgno, errnum);	/* dbproc can be NULL */
@@ -8253,7 +8263,8 @@ dbperror(DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 		msgno, msg->msgtext);
 
 	/* call the error handler */
-	rc = (*_dblib_err_handler)(dbproc, msg->severity, msgno, errnum, (char*) msg->msgtext, (char*) os_msgtext);
+	rc = (*_dblib_err_handler)(dbproc, msg->severity, msgno, (int) errnum,
+				   (char*) msg->msgtext, (char*) os_msgtext);
 	switch (rc) {
 	case INT_EXIT:
 		rc_name = "INT_EXIT";	

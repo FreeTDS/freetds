@@ -1527,7 +1527,10 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 				fseeko(hostfile, row_start, SEEK_SET);
 
 				while (error_row_size > 0) {
-					size_t chunk = error_row_size > chunk_size ? chunk_size : (size_t) error_row_size;
+					size_t chunk = ((size_t) error_row_size
+							> chunk_size)
+						? chunk_size
+						: (size_t) error_row_size;
 
 					if (!row_in_error) {
 						if ((row_in_error = tds_new(char, chunk)) == NULL) {
@@ -1684,7 +1687,6 @@ bcp_readfmt(DBPROCESS * dbproc, const char filename[])
 	BCP_HOSTCOLINFO hostcol[1];
 	FILE *ffile;
 	char buffer[1024];
-	float lf_version = 0.0;
 	int li_numcols = 0;
 	int colinfo_count = 0;
 
@@ -1701,7 +1703,7 @@ bcp_readfmt(DBPROCESS * dbproc, const char filename[])
 	}
 
 	if ((_bcp_fgets(buffer, sizeof(buffer), ffile)) != NULL) {
-		lf_version = (float)atof(buffer);
+		/* version (float), ignored */
 	} else if (ferror(ffile)) {
 		dbperror(dbproc, SYBEBRFF, errno);
 		goto Cleanup;

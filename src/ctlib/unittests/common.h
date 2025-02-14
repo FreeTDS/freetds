@@ -3,9 +3,9 @@
 
 #undef NDEBUG
 
-#include <ctpublic.h>
-
 #include <config.h>
+
+#include <ctpublic.h>
 
 #include <stdio.h>
 #include <assert.h>
@@ -37,7 +37,7 @@ typedef struct
 	char USER[512];
 	char PASSWORD[512];
 	char fverbose;
-	int maxlength;
+	long maxlength;
 } COMMON_PWD;
 extern COMMON_PWD common_pwd;
 

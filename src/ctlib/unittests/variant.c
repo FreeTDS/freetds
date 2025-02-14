@@ -22,7 +22,7 @@ main(void)
 	CS_CHAR select[1024];
 
 	CS_CHAR col1[128];
-	const char *expected[10];
+	char *expected[10];
 	unsigned num_expected = 0;
 
 	unsigned rows = 0;

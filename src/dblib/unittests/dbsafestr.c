@@ -10,7 +10,7 @@
 static int failed = 0;
 
 /* unsafestr must contain one quote of each type */
-static const char *unsafestr = "This is a string with ' and \" in it.";
+static const char unsafestr[] = "This is a string with ' and \" in it.";
 
 /* safestr must be at least strlen(unsafestr) + 3 */
 static char safestr[100];
@@ -28,7 +28,7 @@ main(int argc TDS_UNUSED, char **argv)
 	dbinit();
 
 
-	len = strlen(unsafestr);
+	len = sizeof(unsafestr) - 1;
 	ret = dbsafestr(NULL, unsafestr, -1, safestr, len, DBSINGLE);
 	if (ret != FAIL)
 		failed++;

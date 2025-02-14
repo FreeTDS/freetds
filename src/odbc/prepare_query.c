@@ -151,7 +151,7 @@ prepared_rpc(struct _hstmt *stmt, bool compute_row)
 						curcol->column_cur_size = len;
 					break;
 				case SYBINT4:
-					*((TDS_INT *) dest) = strtol(start, NULL, 10);
+					*((TDS_INT *) dest) = atoi(start);
 					break;
 				case SYBINT8:
 					*((TDS_INT8 *) dest) = tds_strtoll(start, NULL, 10);
@@ -207,7 +207,8 @@ parse_prepared_query(struct _hstmt *stmt, bool compute_row)
 
 	tdsdump_log(TDS_DBG_FUNC, "parsing %d parameters\n", nparam);
 
-	for (; stmt->param_num <= stmt->param_count; ++nparam, ++stmt->param_num) {
+	for (; stmt->param_num <= (int) stmt->param_count;
+	     ++nparam, ++stmt->param_num) {
 		/* find bound parameter */
 		if (stmt->param_num > stmt->apd->header.sql_desc_count || stmt->param_num > stmt->ipd->header.sql_desc_count) {
 			tdsdump_log(TDS_DBG_FUNC, "parse_prepared_query: logic_error: parameter out of bounds: "
@@ -247,10 +248,11 @@ start_parse_prepared_query(struct _hstmt *stmt, bool compute_row)
 	return parse_prepared_query(stmt, compute_row);
 }
 
-static TDS_INT
-odbc_wchar2hex(TDS_CHAR *dest, TDS_UINT destlen, const SQLWCHAR * src, TDS_UINT srclen)
+static ptrdiff_t
+odbc_wchar2hex(TDS_CHAR *dest, size_t destlen, const SQLWCHAR * src,
+	       size_t srclen)
 {
-	unsigned int i;
+	size_t i;
 	SQLWCHAR hex1, c = 0;
 
 	/* if srclen if odd we must add a "0" before ... */
@@ -403,7 +405,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 
 		p += curcol->column_cur_size;
 		if (binary_convert) {
-			int res;
+			ptrdiff_t res;
 
 			len = orig_len;
 
@@ -415,7 +417,8 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 
 				res = odbc_wchar2hex(p, 1, data, 2);
 				if (res < 0) {
-					odbc_convert_err_set(&stmt->errs, res);
+					odbc_convert_err_set(&stmt->errs,
+							     (TDS_INT) res);
 					return SQL_ERROR;
 				}
 				p += res;
@@ -434,7 +437,8 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 				tds_char2hex(p, len / 2u, (const TDS_CHAR*) DataPtr, len):
 				odbc_wchar2hex(p, len / 2u, (const SQLWCHAR*) DataPtr, len);
 			if (res < 0) {
-				odbc_convert_err_set(&stmt->errs, res);
+				odbc_convert_err_set(&stmt->errs,
+						     (TDS_INT) res);
 				return SQL_ERROR;
 			}
 			p += res;

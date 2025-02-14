@@ -397,9 +397,13 @@ main(void)
 
 		/* try conversion from char (already tested above) */
 		cr_src.n.precision = 20; cr_src.n.scale = 0;
-		len_src = tds_convert(&ctx, SYBVARCHAR, *value, strlen(*value), *type1, &cr_src);
+		len_src = tds_convert(&ctx, SYBVARCHAR, *value,
+				      (TDS_UINT) strlen(*value), *type1,
+				      &cr_src);
 		cr_dst.n.precision = 20; cr_dst.n.scale = 0;
-		len_dst = tds_convert(&ctx, SYBVARCHAR, *value, strlen(*value), *type2, &cr_dst);
+		len_dst = tds_convert(&ctx, SYBVARCHAR, *value,
+				      (TDS_UINT) strlen(*value), *type2,
+				      &cr_dst);
 		if (len_src <= 0 || len_dst <= 0)
 			continue;
 		cr_dst.n.precision = 20; cr_dst.n.scale = 0;

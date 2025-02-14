@@ -53,7 +53,7 @@ void
 tds_check_tds_extra(const TDSSOCKET * tds)
 {
 	const int invalid_state = 0;
-	int i;
+	TDS_UINT i;
 	TDSDYNAMIC *cur_dyn = NULL;
 	TDSCURSOR *cur_cursor = NULL;
 
@@ -192,7 +192,8 @@ tds_check_column_extra(const TDSCOLUMN * column)
 	column_varint_size = column->column_varint_size;
 
 	/* 8 is for varchar(max) or similar */
-	assert(column_varint_size == 8 || (column_varint_size <= 5 && column_varint_size != 3));
+	assert(column_varint_size == 8  ||
+	       (column_varint_size < 5  &&  column_varint_size != 3));
 
 	assert(column->column_scale <= column->column_prec);
 	assert(column->column_prec <= MAXPRECISION);
