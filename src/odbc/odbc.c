@@ -1518,7 +1518,7 @@ odbc_SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType,
 
 		drec = &ipd->records[stmt->attr.param_focus - 1];
 
-		/* check idp type */
+		/* check ipd type */
 		if (drec->sql_desc_concise_type != SQL_SS_TABLE) {
 			odbc_errs_add(&stmt->errs, "IM020", NULL);
 			ODBC_EXIT_(stmt);
