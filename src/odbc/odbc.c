@@ -6174,14 +6174,9 @@ odbc_upper_column_names(TDS_STMT * stmt)
 	resinfo = tds->current_results;
 	for (icol = 0; icol < resinfo->num_cols; ++icol) {
 		TDSCOLUMN *colinfo = resinfo->columns[icol];
-		char *p = tds_dstr_buf(&colinfo->column_name);
-		unsigned n, len = tds_dstr_len(&colinfo->column_name);
 
 		/* upper case */
-		/* TODO procedure */
-		for (n = 0; n < len; ++n, ++p)
-			if ('a' <= *p && *p <= 'z')
-				*p = *p & (~0x20);
+		tds_ascii_strupr(tds_dstr_buf(&colinfo->column_name));
 	}
 #endif
 
