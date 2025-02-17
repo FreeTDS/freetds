@@ -6158,7 +6158,6 @@ static void
 odbc_upper_column_names(TDS_STMT * stmt)
 {
 #if ENABLE_EXTRA_CHECKS
-	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 #endif
 	int icol;
@@ -6168,15 +6167,15 @@ odbc_upper_column_names(TDS_STMT * stmt)
 
 #if ENABLE_EXTRA_CHECKS
 	tds = stmt->dbc->tds_socket;
-	if (!tds || !tds->current_results)
-		return;
+	if (tds && tds->current_results) {
+		TDSRESULTINFO *const resinfo = tds->current_results;
 
-	resinfo = tds->current_results;
-	for (icol = 0; icol < resinfo->num_cols; ++icol) {
-		TDSCOLUMN *colinfo = resinfo->columns[icol];
+		for (icol = 0; icol < resinfo->num_cols; ++icol) {
+			TDSCOLUMN *colinfo = resinfo->columns[icol];
 
-		/* upper case */
-		tds_ascii_strupr(tds_dstr_buf(&colinfo->column_name));
+			/* upper case */
+			tds_ascii_strupr(tds_dstr_buf(&colinfo->column_name));
+		}
 	}
 #endif
 
