@@ -2951,7 +2951,7 @@ ODBC_FUNC(SQLSetDescField, (P(SQLHDESC,hdesc), P(SQLSMALLINT,icol), P(SQLSMALLIN
 		{
 			int n = (int) (TDS_INTPTR) Value;
 
-			if (n <= 0 || n > 4000) {
+			if (n < 0 || n > 4000) {
 				odbc_errs_add(&desc->errs, "07009", NULL);
 				ODBC_EXIT_(desc);
 			}
