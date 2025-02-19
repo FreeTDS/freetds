@@ -678,13 +678,14 @@ ODBC_FUNC(SQLDriverConnect, (P(SQLHDBC,hdbc), P(SQLHWND,hwnd), PCHARIN(ConnStrIn
 }
 
 #if 0
-SQLRETURN ODBC_API
+SQLRETURN ODBC_PUBLIC ODBC_API
 SQLBrowseConnect(SQLHDBC hdbc, SQLCHAR FAR * szConnStrIn, SQLSMALLINT cbConnStrIn, SQLCHAR FAR * szConnStrOut,
 		 SQLSMALLINT cbConnStrOutMax, SQLSMALLINT FAR * pcbConnStrOut)
 {
+	ODBC_ENTER_HDBC;
+
 	tdsdump_log(TDS_DBG_FUNC, "SQLBrowseConnect(%p, %s, %d, %p, %d, %p)\n",
 			hdbc, szConnStrIn, cbConnStrIn, szConnStrOut, cbConnStrOutMax, pcbConnStrOut);
-	ODBC_ENTER_HDBC;
 	odbc_errs_add(&dbc->errs, "HYC00", "SQLBrowseConnect: function not implemented");
 	ODBC_EXIT_(dbc);
 }
