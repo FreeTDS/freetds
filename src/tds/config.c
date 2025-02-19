@@ -353,6 +353,16 @@ tds_read_conf_file(TDSLOGIN * login, const char *server)
 		}
 	}
 
+#if !defined(_WIN32) && !defined(DOS32X)
+	if (!found) {
+		path = tds_get_home_file(TDS_DIR(".config/freetds.conf"));
+		if (path) {
+			found = tds_try_conf_file(path, "(.config/freetds.conf)", server, login);
+			free(path);
+		}
+	}
+#endif
+
 	if (!found) {
 		path = tds_get_home_file(TDS_DIR(".freetds.conf"));
 		if (path) {
