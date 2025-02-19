@@ -95,11 +95,6 @@ ct-lib
 odbc
 ----
 
-* SQLDescribeParam (Sybase seems to require it)
-  A 100% success for DBD::ODBC require this.
-  Require parsing of the string to extract placeholders ("?") type,
-  something like "INSERT INTO test_table(field_a) VALUES(?)" ->
-  "SELECT field_a FROM test_table(NOLOCK) WHERE 0=1"
 * Star Office complains that these TypeInfo constants are not implemented in SQLGetInfo:
 	47      SQL_USER_NAME
   (handle environment callbacks)

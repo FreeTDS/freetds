@@ -137,7 +137,7 @@ odbc	(all)	SQLColumns	OK
 odbc	(all)	SQLConnect	OK
 odbc	(all)	SQLCopyDesc	OK
 odbc	(all)	SQLDescribeCol	OK
-odbc	(all)	SQLDescribeParam	unimplemented
+odbc	(all)	SQLDescribeParam	OK
 odbc	(all)	SQLDisconnect	OK
 odbc	(all)	SQLDriverConnect	OK
 odbc	(all)	SQLEndTran	OK

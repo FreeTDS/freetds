@@ -34,6 +34,7 @@ SYMBOL_VECTOR = (SQLAllocConnect=PROCEDURE,-
 		SQLConnect=PROCEDURE,-
 		SQLCopyDesc=PROCEDURE,-
 		SQLDescribeCol=PROCEDURE,-
+		SQLDescribeParam=PROCEDURE,-
 		SQLDisconnect=PROCEDURE,-
 		SQLDriverConnect=PROCEDURE,-
 		SQLEndTran=PROCEDURE,-
@@ -126,4 +127,3 @@ SYMBOL_VECTOR = (SQLAllocConnect=PROCEDURE,-
 )
 !
 !		SQLBrowseConnect=PROCEDURE,-
-!		SQLDescribeParam=PROCEDURE,-
