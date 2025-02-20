@@ -327,9 +327,14 @@ test_mssql2000() {
 	wait $pid_grab
 }
 
-left=(test1 test_mssql2008 test_mssql2000 test_sybase15)
+test_mssql2022() {
+	# do tests with mssql 2022
+	generic_test test5 PWD.mssql2022
+}
 
-limit=4
+left=(test1 test_mssql2008 test_mssql2000 test_sybase15 test_mssql2022)
+
+limit=5
 while true; do
 	# get job pids
 	running=($(jobs -rp))
