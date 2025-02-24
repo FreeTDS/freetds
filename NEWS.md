@@ -1,5 +1,139 @@
 $Id$
 
+Summary of Changes in release 1.5
+--------------------------------------------
+User visible (not in a particular order):
+- Generic:
+  - Update Autoconf to version 2.71;
+  - (\*) Fix certificate hostname check for OpenSSL;
+  - Use replacement getopt in tests for more compatibility; ??
+  - Don't log directly to stdout or stderr;
+  - (\*) Fix conversion from NUMERIC -0 number to integers;
+  - Include stdint.h in Visual Studio if available; ??
+  - Fix possible issue with 32 bit machines using BCP;
+  - Optimise numeric precision change;
+  - Distribute OpenSSL libraries with Appveyour artifacts;
+  - Improve GNU compatibility in CMake using GNUInstallDirs;
+  - Use Unicode and wide characters for file paths for Windows;
+  - (\*) Set control method for final OpenSSL BIO to avoid some errors;
+  - (\*) Get Windows code page using Windows API for compatibility;
+  - (\*) Do not try to use pthread_cond_timedwait_relative_np on newer Android;
+  - Fix compatibility connecting to some old MSSQL 2000 server;
+  - (\*) Support Sybase server not configured with UTF-8 charset;
+  - (\*) Change some file license from GPL to LGPL;
+  - (\*) Support very old Sybase ASE versions;
+  - (\*) Skip nvc/uvc check under OpenServer for compatibility;
+  - (\*) Ignore query errors during connection initial setup
+  - Support "strict" encryption for naked TLS (TDS 8.0);
+  - (\*) Don't leak allocations on syntax errors converting to binary;
+  - Remove various minor leaks;
+  - Remove some potential NULL dereference;
+  - Accommodate FreeBSD/Citrus iconv;
+  - Fall back on unsupported address families locking for host address;
+  - Avoid potential hangs on short replies reading TDS packets;
+  - Add support for TDS 8.0;
+  - (\*) Add support for SYBSINT1 type conversion;
+  - Reject invalid NULL data in tds7_send_record (bulk transfer);
+  - Remove ANSI encoding code from SSPI code, always full Unicode;
+  - Allows freetds.conf to be stored in ~/.config (Unix);
+- ODBC:
+  - (\*) Fix leak int odbc_parse_connect_string;
+  - (\*) Fix setting type in descriptors;
+  - Fix an issue compiling bcp test on 32 systems with unixODBC;
+  - (\*) Fix getting SQL_ATTR_METADATA_ID attribute;
+  - Check for maximum value for SQL_ATTR_QUERY_TIMEOUT;
+  - (\*) Return better error for invalid character set;
+  - Check errors from SQLInstallDriverExW and SQLRemoveDriver;
+  - Update some driver registration field for Windows;
+  - (\*) Remove minor leak parsing connection string;
+  - Add Encrypt and HostNameInCertificate settings;
+  - (\*) Fix bug cancelling not active statements;
+  - Fix SQLGetInfo SQL_DRIVER_HSTMT and SQL_DRIVER_HDESC;
+  - Avoid shared object version for ODBC driver;
+  - Allows SERVER to override DSN or SERVERNAME settings;
+  - Allows to set version to "AUTO" from Windows dialog;
+  - (\*) Fix handling of SQL_C_STINYINT;
+  - Fix return value when bulk operation not using status array fails;
+  - Implement SQLDescribeParam using sp_describe_undeclared_parameters;
+- Applications:
+  - datacopy:
+    - Allows copy when dest_collen > src_collen;
+    - Increase CREATE TABLE command buffer to accommodate larger queries;
+  - defncopy:
+    - (\*) Use memory instead of temporary file;
+    - (\*) Fix MS column length for N(VAR)CHAR types;
+    - (\*) Quote strings and identifiers;
+    - (\*) Handle correctly order of index recordset;
+    - (\*) Quote key index names;
+- CT-Library:
+  - Make many errors similar to proprietary library;
+  - Fix \*resultlen for conversions to SYBIMAGE from cs_convert;
+  - Populate datafmt->format per Valgrind in ct_describe;
+  - More debugging on not implemented bcp_colfmt_ps;
+  - Makes sure we don't use a negative number as string length;
+  - Use client type, not propagate TDS one;
+  - (\*) Fix crash using ct_command with CS_MORE option;
+  - (\*) \_blk_get_col_data: Consistently return TDS_FAIL on failure;
+  - (\*) Formally define BLK_VERSION_{155,157,160};
+  - (\*) Cap binary/image copying to the destination length;
+  - (\*) Conditionally distinguish NULL and empty results;
+  - (\*) Issue an error for unsupported server types from ct_describe;
+  - Add support for setting hints for bulk copy using blk_props;
+  - Support getting CS_ENDPOINT (socket file descriptor) using ct_con_props;
+  - Support getting CS_PRODUCT_NAME using ct_con_props;
+  - Introduce CS_INTERRUPT_CB and corresponding return values: CS_INT_\*;
+  - Better support new date/time types (DATETIME2, etc.) in bulk copy;
+  - Report system errors' descriptions;
+- DB-library:
+  - Allows encryption option;
+  - Allows to set port number with DBSETLPORT;
+- pool:
+  - Disable Nagle algorithm on user socket for performance;
+  - (\*) Ignore extension in login packet for compatibility;
+- server:
+  - Reply correct version for TDS 7.4;
+  - Avoid leaks in tds_get_query_head;
+  - Set SO_REUSEADDR option;
+  - Better support for string conversion and UTF-8;
+  - Improve sending data, fix sending metadata;
+  - Update prelogin reply allowing TDS 7.2;
+  - Fix tds_send_login_ack product name length;
+  - Support no-ASCII characters in environment names;
+  - Return 0 rows during login;
+  - Pass correct packet size environment in test server;
+  - Do not overwrite error before displaying it;
+  - Improve message writing functions;
+  - Set TCP_NODELAY after accepting connected sockets;
+
+(\*) Feature backported in stable 1.4 branch.
+
+Implementation:
+- Use more bool type for boolean instead of integer;
+- Remove some conversion warnings;
+- Minor compatibility with tests and Sybase/SAP libraries;
+- Avoid some warnings from CMake;
+- Various improvements to bounce utility:
+  - Allows multiple connections;
+  - Allows to specify a server name;
+  - Allows to write dumps;
+- Use 64 bit constants, add (U)INT64_C macros;
+- Move tds_new macros to include/freetds/macros.h;
+- Move tds_strndup to utils;
+- Add GitHub actions to CI;
+- Allows FREETDS_SRCDIR overrides for tests;
+- Avoid potential zero-byte allocations (whose behavior is undefined)
+  in libTDS;
+- Unify header guards definitions;
+- Unify tests includes in ctlib;
+- Accommodate Windows static builds;
+- Inform CMake of some accidentally Autotools-only tests;
+- Add Visual Studio 2022 to Appveyor test matrix;
+- Add tds_socket_set_nodelay utility;
+- Change TDSCOLUMN::column_bindlen field to signed type;
+- Use "TDS server" instead of "Adaptive Server" in error messages;
+- Add and reuse TDS_END_LEN_STRING utility;
+- Acknowledge non-exhaustive TDS_SERVER_TYPE switch statements;
+
 Summary of Changes in release 1.4
 --------------------------------------------
 User visible (not in a particular order):
