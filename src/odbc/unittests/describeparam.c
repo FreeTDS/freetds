@@ -76,7 +76,7 @@ main(void)
 	check_type(sql_type, ==, SQL_INTEGER);
 	check_int(size, ==, 10);
 	check_int(digits, ==, 0);
-	check_int(nullable, ==, SQL_TRUE);
+	check_int(nullable, ==, SQL_NULLABLE);
 	CHKGetDescField(ipd, 1, SQL_DESC_TYPE, &sql_type, sizeof(SQLSMALLINT), &ind, "S");
 	check_type(sql_type, ==, SQL_INTEGER);
 	CHKGetDescField(ipd, 1, SQL_DESC_CONCISE_TYPE, &sql_type, sizeof(SQLSMALLINT), &ind, "S");
@@ -94,7 +94,7 @@ main(void)
 	check_type(sql_type, ==, SQL_VARCHAR);
 	check_int(size, ==, 100);
 	check_int(digits, ==, 0);
-	check_int(nullable, ==, SQL_TRUE);
+	check_int(nullable, ==, SQL_NULLABLE);
 	CHKGetDescField(ipd, 2, SQL_DESC_TYPE, &sql_type, sizeof(SQLSMALLINT), &ind, "S");
 	check_type(sql_type, ==, SQL_VARCHAR);
 	CHKGetDescField(ipd, 2, SQL_DESC_CONCISE_TYPE, &sql_type, sizeof(SQLSMALLINT), &ind, "S");
@@ -111,7 +111,7 @@ main(void)
 	check_type(sql_type, ==, SQL_NUMERIC);
 	check_int(size, ==, 17);
 	check_int(digits, ==, 5);
-	check_int(nullable, ==, SQL_TRUE);
+	check_int(nullable, ==, SQL_NULLABLE);
 	CHKGetDescField(ipd, 3, SQL_DESC_TYPE, &sql_type, sizeof(SQLSMALLINT), &ind, "S");
 	check_type(sql_type, ==, SQL_NUMERIC);
 	CHKGetDescField(ipd, 3, SQL_DESC_CONCISE_TYPE, &sql_type, sizeof(SQLSMALLINT), &ind, "S");
@@ -267,12 +267,12 @@ main(void)
 	check_type(sql_type, ==, SQL_INTEGER);
 	check_int(size, ==, 10);
 	check_int(digits, ==, 0);
-	check_int(nullable, ==, SQL_TRUE);
+	check_int(nullable, ==, SQL_NULLABLE);
 	CHKDescribeParam(2, &sql_type, &size, &digits, &nullable, "S");
 	check_type(sql_type, ==, SQL_WVARCHAR);
 	check_int(size, ==, 384);
 	check_int(digits, ==, 0);
-	check_int(nullable, ==, SQL_TRUE);
+	check_int(nullable, ==, SQL_NULLABLE);
 
 	/*****************************************************************/
 

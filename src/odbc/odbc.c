@@ -8055,7 +8055,7 @@ read_params(TDS_STMT *stmt)
 				col->on_server.column_size = col->column_size = len;
 				col->column_prec = precision;
 				col->column_scale = scale;
-				drec->sql_desc_nullable = SQL_TRUE;
+				drec->sql_desc_nullable = SQL_NULLABLE;
 				odbc_set_sql_type_info(col, drec, stmt->dbc->env->attr.odbc_version);
 				break;
 			}
