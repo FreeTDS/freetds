@@ -248,7 +248,7 @@ put_utf16be(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 }
 
 static int
-get_iso1(const unsigned char *p, size_t len, ICONV_CHAR *out)
+get_iso1(const unsigned char *p, size_t len TDS_UNUSED, ICONV_CHAR *out)
 {
 	*out = p[0];
 	return 1;
@@ -266,7 +266,7 @@ put_iso1(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 }
 
 static int
-get_ascii(const unsigned char *p, size_t len, ICONV_CHAR *out)
+get_ascii(const unsigned char *p, size_t len TDS_UNUSED, ICONV_CHAR *out)
 {
 	if (p[0] >= 0x80)
 		return -EILSEQ;
@@ -286,7 +286,7 @@ put_ascii(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 }
 
 static int
-get_cp1252(const unsigned char *p, size_t len, ICONV_CHAR *out)
+get_cp1252(const unsigned char *p, size_t len TDS_UNUSED, ICONV_CHAR *out)
 {
 	if (*p >= 0x80 && *p < 0xa0)
 		*out = cp1252_0080_00a0[*p - 0x80];
@@ -315,13 +315,13 @@ put_cp1252(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 }
 
 static int
-get_err(const unsigned char *p, size_t len, ICONV_CHAR *out)
+get_err(const unsigned char *p TDS_UNUSED, size_t len TDS_UNUSED, ICONV_CHAR *out TDS_UNUSED)
 {
 	return -EILSEQ;
 }
 
 static int
-put_err(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
+put_err(unsigned char *buf TDS_UNUSED, size_t buf_len TDS_UNUSED, ICONV_CHAR c TDS_UNUSED)
 {
 	return -EILSEQ;
 }
@@ -397,7 +397,7 @@ tds_sys_iconv_open (const char* tocode, const char* fromcode)
 } 
 
 int 
-tds_sys_iconv_close (iconv_t cd)
+tds_sys_iconv_close (iconv_t cd TDS_UNUSED)
 {
 	return 0;
 }
