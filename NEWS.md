@@ -33,7 +33,7 @@ User visible (not in a particular order):
   - Fixed some attribute size for 64 bit platforms (now more compatible
     with MS driver);
   - (\*) Prevent setting some wrong type in internal decriptors;
-  - (\*) Fix leak in `odbc_parse_connect`_string`;
+  - (\*) Fix leak in `odbc_parse_connect_string`;
   - Fix an issue compiling bcp test on 32 systems with unixODBC;
   - (\*) Fix getting `SQL_ATTR_METADATA_ID` attribute;
   - Check for maximum value for `SQL_ATTR_QUERY_TIMEOUT`;
@@ -65,7 +65,7 @@ User visible (not in a particular order):
   - Return CT-Library type values, not TDS ones;
   - Fix `*resultlen` for conversions to SYBIMAGE from `cs_convert`;
   - Populate `datafmt->format` to avoid not initialized values;
-  - More debugging on not implemented `bcp_colfmt`_ps`;
+  - More debugging on not implemented `bcp_colfmt_ps`;
   - Makes sure we don't use a negative number as string length;
   - Use client type, not propagate TDS one;
   - (\*) Fix crash using `ct_command` with `CS_MORE` option;
