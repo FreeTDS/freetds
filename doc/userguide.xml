@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding='UTF-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
   "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd" [
 	<!ENTITY dblibapixml SYSTEM "dblib.api.xml">
@@ -72,7 +72,7 @@
 		</legalnotice>
 	</bookinfo>
 
-<toc></toc>
+<toc/>
 <!-- nettiquette quoting: https://www.netmeister.org/news/learn2quote.html -->
 <!-- ////////////////// CHAPTER /////////////////////// -->
 <preface id="about"><title>About this User Guide</title>
@@ -84,7 +84,7 @@
 <para>This guide is here for you, and we hope that you will be here for it, that others might benefit from your experience or inexperience.  The most recent version <footnote>
 
 <para>The version you're reading is:</para>
-			<simplelist type='vert'>
+			<simplelist type="vert">
 				<member>&ug.date;</member>
 				<member>&ug.id;</member>
 				</simplelist>
@@ -707,7 +707,7 @@ and register the driver as a standard component.</para>
 <para>If you install it they will stay?</para>
 		</epigraph>
 
-<para></para>
+<para/>
 	<note><title>Confusing terminology</title>
 
 <para><quote>Configuring</quote> and <quote>installing</quote>
@@ -977,7 +977,7 @@ versions that &freetds; had labeled 8.0 and 9.0 were actually versions 7.1 and 7
 </para></listitem>
 					</itemizedlist>				</para>
 
-<para></para>
+<para/>
 
 <para><note><para>	&freetds; also supports an older configuration file format, known as the <filename>interfaces</filename> file.  Use &freetdsconf; unless <filename>interfaces</filename> is needed for your situation.  It is easier to read, and it is where all the new options are being added.  &freetds; looks for &freetdsconf; first, falling back on <filename>interfaces</filename> only if &freetdsconf; is not found.</para>
 
@@ -1064,9 +1064,9 @@ versions that &freetds; had labeled 8.0 and 9.0 were actually versions 7.1 and 7
 							<entry>any valid port</entry>
 							<entrytbl cols="3">
 								<thead>
-									<colspec colname= 'prd' colsep='0' rowsep='0'/>
-									<colspec colname= 'ver' colsep='0' rowsep='0'/>
-									<colspec colname= 'def' colsep='0' rowsep='0'/>
+									<colspec colname="prd" colsep="0" rowsep="0"/>
+									<colspec colname="ver" colsep="0" rowsep="0"/>
+									<colspec colname="def" colsep="0" rowsep="0"/>
 									<row>
 										<entry>Product</entry>
 										<entry>Version</entry>
@@ -1752,15 +1752,15 @@ The server responds with a port number.
 	There was a problem connecting to the server</computeroutput></screen>
 	</example></para>
 	
-				<bridgehead renderas='sect3'>Bypassing &freetdsconf;:</bridgehead>
+				<bridgehead renderas="sect3">Bypassing &freetdsconf;:</bridgehead>
 
 <para><cmdsynopsis label="Syntax synopsis for tsql">
 						<command>tsql</command>
-						<arg choice='req'>-H <replaceable>hostname</replaceable></arg>
-						<arg choice='req'>-p <replaceable>port</replaceable></arg>
-						<arg choice='req'>-U <replaceable>username</replaceable></arg>
-						<arg choice='opt'>-P<replaceable>password</replaceable></arg>
-						<arg choice='opt'>-C</arg>
+						<arg choice="req">-H <replaceable>hostname</replaceable></arg>
+						<arg choice="req">-p <replaceable>port</replaceable></arg>
+						<arg choice="req">-U <replaceable>username</replaceable></arg>
+						<arg choice="opt">-P<replaceable>password</replaceable></arg>
+						<arg choice="opt">-C</arg>
 						</cmdsynopsis>
 					
 					Keep in mind that the TDS protocol version normally comes from &freetdsconf;.  When using <command>tsql</command> this way, the library uses the compiled-in default (set by the <filename>configure</filename> script).  If that's not what you want, override it using the <envar>TDSVER</envar> environment variable.</para>
@@ -2072,19 +2072,19 @@ This setting allow to do it. You should specify <literal>Database</literal> attr
 						<row>
 							<entry><literal>DumpFile</literal></entry>
 							<entry>Any</entry>
-							<entry></entry>
+							<entry/>
 							<entry>File name where to dump logs.</entry>
 							</row>
 						<row>
 							<entry><literal>DumpFileAppend</literal></entry>
 							<entry>Yes/No</entry>
 							<entry>No</entry>
-							<entry></entry>
+							<entry/>
 							</row>
 						<row>
 							<entry><literal>DumpFlags</literal></entry>
 							<entry>Any</entry>
-							<entry></entry>
+							<entry/>
 							<entry>Debug flags. See freetds.conf entries.</entry>
 							</row>
 						<row>
@@ -2096,7 +2096,7 @@ This setting allow to do it. You should specify <literal>Database</literal> attr
 						<row>
 							<entry><literal>Timeout</literal></entry>
 							<entry>Integer number</entry>
-							<entry></entry>
+							<entry/>
 							<entry>Query timeout in seconds.</entry>
 							</row>
 						</tbody>
@@ -2410,7 +2410,7 @@ If no <function>iconv</function> library is found, or if it is explicitly disabl
 				
 <informalexample><screen>
 	INSERT INTO tablename (greeting) VALUES (N'Hall&aring;')</screen></informalexample>				</para>
-	<bridgehead renderas='sect3'>Commentary</bridgehead>
+	<bridgehead renderas="sect3">Commentary</bridgehead>
 
 <para>What's surprising about this?  Versions 7.0 and later of the TDS protocol use UCS-2 to send SQL text.  No matter how your local client is configured &mdash; with <acronym>UCS-2</acronym> or <acronym>ISO 8859-1</acronym> or anything else &mdash; it's converted to <acronym>UCS-2</acronym> before it's sent to the server.  And obviously arrives at the server as <acronym>UCS-2</acronym>.  If the column into which it's being inserted is also <acronym>UCS-2</acronym>, there's no need of <emphasis>any</emphasis> conversion, much less two, and <emphasis>certainly</emphasis> no need to lose information.</para>
 
@@ -3327,7 +3327,7 @@ This applies only to Microsoft <productname>SQL Server</productname> and you'll 
 
 <para>&freetds; is <emphasis>not</emphasis> slow.  We know this because we've tested it.  It's measurably slower than the vendors' products for some operations, but it's not noticeably slower and it's certainly no laggard.  If your experience is different, if you're waiting 30 seconds for simple operations or minutes instead of seconds for for query results, something is up with your setup.  There are two likely culprits.</para>
 		
-		<itemizedlist mark='bullet'>
+		<itemizedlist mark="bullet">
 			<listitem><para>Logging.  If everything seems a bit sluggish, check to make sure logging is turned off. <envar>TDSDUMP</envar> should not be defined, and there should be no <literal>dump file</literal>  mentioned in &freetdsconf;.  You can double-check by setting <envar>TDSDUMPCONFIG</envar> temporarily, which will log only the startup process.</para>
 				</listitem>
 			<listitem><para>DNS.  If connecting to the server takes 30 seconds or 1 minute, you could do worse than to check your <filename>resolv.conf</filename>.  Use <command>host</command> or <command>nslookup</command> to confirm that &freetds; can actually resolve the name/address you provided in &freetdsconf;.</para>
@@ -3440,7 +3440,7 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 			
 
 <para>It's important to convey your setup and configuration.
-				<simplelist type='vert' columns='1'>
+				<simplelist type="vert" columns="1">
 					<member><productname>SQL Server</productname> version</member>
 					<member>&freetds; version (or snapshot date, if not a release)</member>
 					<member>any options used with <command>configure</command></member>
@@ -3587,7 +3587,7 @@ Please send it to the <ulink url="mailto:freetds@lists.ibiblio.org">&freetds; ma
 <chapter id="programming">
 	<title>Programming</title>
 
-<para></para>
+<para/>
 	<sect1 id="TDSprotocolref">
 		<title>TDS protocol reference</title>
 
@@ -3932,7 +3932,7 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 
 	<para><firstterm>Results</firstterm> is a special term: it means more than rows or no rows.  To <emphasis>process the results</emphasis> means to gather the data returned by the server into the application's variables.
 					<table id="tab.kinds.of.results"><title>Kinds of Results</title>
-						<tgroup cols='6' align='left' colsep='1' rowsep='1'>
+						<tgroup cols="6" align="left" colsep="1" rowsep="1">
 							<colspec colname="type"/>
 							<colspec colname="meta"/>
 							<colspec colname="reg"/>
@@ -3999,7 +3999,7 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 
 
 	<para> <table id="tab.result.fetching.functions"><title>Result-fetching functions</title>
-						<tgroup cols='4' align='left' colsep='1' rowsep='1'>
+						<tgroup cols="4" align="left" colsep="1" rowsep="1">
 							<colspec colname="func"/>
 							<colspec colname="type"/>
 							<colspec colname="ret"/>
@@ -4076,7 +4076,7 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 
 
 	<para> <table id="tab.data.fetching.functions"><title>Data-fetching functions</title>
-						<tgroup cols='5' align='left' colsep='1' rowsep='1'>
+						<tgroup cols="5" align="left" colsep="1" rowsep="1">
 							<colspec colname="type"/>
 							<colspec colname="reg"/>
 							<colspec colname="comp"/>
@@ -4130,7 +4130,7 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 
 
 	<para> <table id="tab.putting.it.all.together"><title>Putting it all together </title>
-						<tgroup cols='4' align='left' colsep='1' rowsep='1'>
+						<tgroup cols="4" align="left" colsep="1" rowsep="1">
 							<colspec colname="step"/>
 							<colspec colname="func"/>
 							<colspec colname="once"/>
@@ -4487,7 +4487,7 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 			<member>Extended the ODBC library, and added many, many fixes and enhancements to libtds.  </member>
 			</simplelist>
 
-<para></para>
+<para/>
 		</sect1>
 	
 	<sect1 id="Contributors">
@@ -4503,7 +4503,7 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 			<member>Frediano Ziglio</member>
 			</simplelist>
 
-<para></para>
+<para/>
 		</sect1>
 	
 	</chapter>
@@ -4704,7 +4704,7 @@ Although these examples refer to static libraries, <command>nm</command> works j
 
 			<section>
 				<title>Specifying libraries</title>
-<para></para>
+<para/>
 <para>An application programmer using &freetds; will need to mention the name fo the &freetds; library being used.  Failure to do so will provoke the dread <firstterm>undefined reference</firstterm> linker error: 
 
 <example><title>Missing library name</title>
