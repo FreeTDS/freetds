@@ -58,6 +58,8 @@
 		<year>2021</year>
 		<year>2022</year>
 		<year>2023</year>
+		<year>2024</year>
+		<year>2025</year>
 		<holder>Frediano Ziglio</holder>
 		</copyright>
 	<legalnotice><para>Permission is granted to copy, distribute and/or modify this document
@@ -88,10 +90,10 @@
 				</simplelist>
 			</footnote>
 		can be found on the &freetds;
-		<ulink url="https://www.freetds.org/userguide/">web site</ulink>, where you will also find the most up to date
-		<ulink url="https://www.freetds.org/faq.html">FAQ</ulink>, as well as links to the anonymous and browseable git repository.
+		<ulink url="https://www.freetds.org/userguide/">web site</ulink>, where you will also find
+		links to the anonymous and browseable git repository.
 		If you find something wrong, unclear, badly put, misleading, or incorrigible, I hope you will let us know.
-		Post your musings or rants to the mailing list (see <link linkend="contrib">Helping</link>).
+		Post your musings or rants to the GitHub project (see <link linkend="contrib">Helping</link>).
 		Patches to <filename>doc/userguide.xml</filename> are especially welcome, of course.
 		By taking the time let us know what you think, perhaps the path to enlightenment will be made a little smoother for the fellow behind you.</para>
 
@@ -140,7 +142,13 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 
 <para>&ctlib;, &dblib;, and &odbc; are <acronym>API</acronym>s that &mdash; however different their programming style may be &mdash; all communicate with the server in the same way.  The language they use is <acronym>TDS</acronym>.</para>
 
-<para>The <acronym>TDS</acronym> protocol comes in several flavors, most of which were not openly documented.  If anything, it was considered to be something like a trade secret, or at least proprietary technology.  The exception is <acronym>TDS</acronym> 5.0, used exclusively by Sybase, for which documentation is available <ulink url="http://crm.sybase.com/sybase/www/ESD/tds_spec_download.jsp">from Sybase</ulink>.</para>
+<para>The <acronym>TDS</acronym> protocol comes in several flavors.
+The <acronym>TDS</acronym> protocol was considered to be something like a trade secret, or at least proprietary technology.
+<acronym>TDS</acronym> 5.0 protocol, used exclusively by Sybase, is available
+<ulink url="http://crm.sybase.com/sybase/www/ESD/tds_spec_download.jsp">from Sybase</ulink>.
+You can find Microsoft <acronym>TDS</acronym> protocol specification at
+<ulink url="https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-tds/b46a581a-39de-4745-b076-ec4dbb7d13ec">Microsoft Learn website</ulink>.
+</para>
 		</sect1>
 	
 	<sect1 id="tdshistory">
@@ -179,7 +187,8 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 			<varlistentry>
 				<term>TDS 7.2 Microsoft</term>
 				<term><emphasis>was</emphasis> 9.0</term>
-				<listitem><para>Introduced for <productname>SQL Server 2005</productname>.  Includes support for varchar(max), varbinary(max), xml datatypes and MARS.</para></listitem>
+				<listitem><para>Introduced for <productname>SQL Server 2005</productname>.
+				Includes support for varchar(max), varbinary(max), XML datatypes and MARS.</para></listitem>
 				</varlistentry>
 
 			<varlistentry>
@@ -216,7 +225,7 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 Please see the <filename>AUTHORS.md</filename> in the distribution for a (we hope) complete list.</para>
 		</sect1>
 	<sect1 id="projects">
-		<title>Current Projects, Language Bindings, and Alternatives</title>
+		<title>Current Projects, Language Bindings</title>
 		<sect2 id="Current">
 			<title>Current Projects</title>
 
@@ -244,56 +253,21 @@ Please see the <filename>AUTHORS.md</filename> in the distribution for a (we hop
 
 <para>How big is it?  &freetds; has over 100,000 lines of C code, maintained by a handful of developers.
 	Patches arrive irregularly, varying in size from one-liners to thousand-line monsters.
-	Almost all are applied or used in some way.  The mailing list has some 600 or so subscribers at this writing.
+	Almost all are applied or used in some way.
 	Safe to say, &freetds;'s success so far lies somewhere between the Beetle and the Edsel.</para>
 
 <para>Who uses it?  Oh, pretty much everyone.  &freetds; users number in the tens of thousands.
 	It's used by large corporations, by the U.S. federal government
 	(e.g. <ulink url="https://ncbi.github.io/cxx-toolkit/pages/ch_dbapi">Database Access Library</ulink> at the
-	National Center for Biotechnology Information) and, judging by the mailing list, by many webservers running Apache and PHP.
+	National Center for Biotechnology Information) and by many webservers running Apache and PHP.
 	Sybase recommends &freetds; for their EAServer product.
-	Microsoft recommends &freetds; to their customers who want access to Microsoft SQL Server from non-Win32 clients.  So do we.</para>
+	Microsoft recommended &freetds; to their customers who want access to Microsoft SQL Server from non-Win32 clients.
+	So do we.</para>
 			</sect2>
 		<sect2 id="Languages">
 			<title>Languages besides C</title>
 
 <para>You may be wondering how these libraries fit with Perl, PHP, TCL, Python, or other popular scripting languages.  Most of these languages have bindings to Sybase that use either the &dblib; or &ctlib; <acronym>API</acronym>, for which &freetds; is intended as a drop-in replacement.  For instance, Michael Peppler's <systemitem class="library">DBD::Sybase</systemitem> works very well using &freetds; to access Sybase or Microsoft <productname>SQL Server</productname>s.  <productname>PHP</productname> has options for <filename>sybase</filename> (&dblib;) and <filename>sybase-ct</filename> (&ctlib;) <acronym>API</acronym>s.</para>
-			</sect2>
-		<sect2 id="alternatives">
-			<title>Alternatives</title>
-			<variablelist id="tab.alternatives">
-				<title>Should &freetds; not suit your needs, some alternatives</title>
-				<varlistentry>
-					<term>jTDS</term>
-					<listitem><para>If Java is your game, we refer you to the
-						<ulink url="https://sourceforge.net/projects/jtds/">jTDS</ulink>
-						project on SourceForge.  It is a fork of the
-						<productname>FreeTDS/JDBC</productname> project, by Craig Spannring, and is a free, native 100% Java implementation of a Type 4  <acronym>JDBC</acronym> driver.</para>
-						</listitem>
-					</varlistentry>
-				<varlistentry>
-					<term>Sybase OpenClient</term>
-					<listitem>
-
-<para>In the time since &freetds; was started, Sybase (as well as most major <acronym>DBMS</acronym> vendors) has released its database for the Intel <productname><acronym>GNU</acronym>/Linux</productname> platform.  The good: it is a solid product and supports <acronym>TDS</acronym> 4.2 and <acronym>TDS</acronym> 5.0.  The bad: it doesn't support <acronym>TDS 7.0</acronym> or Linux/*BSD on non-Intel platforms.  The ugly: Microsoft broke date handling for big endian Sybase clients.</para>
-
-<para>Depending on platform, it may cost something.</para>
-						</listitem>
-					</varlistentry>
-				<varlistentry>
-					<term>&odbc; bridge products</term>
-					<listitem><para>They use the &odbc; driver on the NT box where your <productname>SQL Server</productname> runs so you'll never have trouble with new protocols and the like.  On the downside, they can be costly and may be inefficient.
-					We know of <productname>EasySoft ODBC-ODBC Bridge</productname> from <ulink url="https://www.easysoft.com">EasySoft</ulink>,
-					<productname>Universal Data Access Driver</productname> from <ulink url="https://www.openlinksw.com">OpenLink Software</ulink>,
-					and <application>&odbc; Router</application> from <ulink url="https://www.augsoft.com/">August Software</ulink> Corporation.</para>
-						</listitem>
-					</varlistentry>
-				<varlistentry>
-					<term>DBD::Proxy</term>
-					<listitem><para>We have no direct experience with this Perl-only option.  It has the same caveats as an &odbc; bridge except it's free.</para>
-						</listitem>
-					</varlistentry>
-				</variablelist>
 			</sect2>
 		</sect1>
 	</chapter>
@@ -311,9 +285,9 @@ Please see the <filename>AUTHORS.md</filename> in the distribution for a (we hop
 <para>&freetds; uses <acronym>GNU</acronym> <application>Autoconf</application>, <application>Automake</application>, and <application>libtool</application><footnote>
 		<itemizedlist spacing="compact">
 			<title>Versions used for this release</title>
-			<listitem><para>autoconf (GNU Autoconf) 2.69</para></listitem>
+			<listitem><para>autoconf (GNU Autoconf) 2.71</para></listitem>
 			<listitem><para>automake (GNU automake) 1.16.1</para></listitem>
-			<listitem><para>ltmain.sh (GNU libtool) 2.4.6</para></listitem>
+			<listitem><para>ltmain.sh (GNU libtool) 2.4.7</para></listitem>
 			</itemizedlist>
 	</footnote> to increase portability.</para>
 
@@ -321,7 +295,9 @@ Please see the <filename>AUTHORS.md</filename> in the distribution for a (we hop
 If you're familiar with the <acronym>GNU</acronym> system, you can probably just download the tarball and get away with scanning the <filename>README.md</filename> impatiently and then following your instincts.
 Because everyone is a beginner once and no one is an expert at everything, we'll try to explain things in plain English where possible, and to define our terms as we go along.</para>
 
-<para>If the following nevertheless reads like gibberish, you might very well want to use something prepackaged (see <link linkend="alternatives">Alternatives</link>).  If it reads like a vaguely intelligible alien script that might yield to intensive research, we've included links to some of the usual suspects at the end of this chapter.  If it reads like a bad explanation of something you could explain better, please send us your version!</para>
+<para>If it reads like a vaguely intelligible alien script that might yield to intensive research, we've included links to some
+of the usual suspects at the end of this chapter.
+If it reads like a bad explanation of something you could explain better, please send us your version!</para>
 		</sect1>
 	<sect1 id="packages">
 		<title>What to build: Packages, Tarballs, and the <productname>git</productname> repository</title>
@@ -341,14 +317,17 @@ Because everyone is a beginner once and no one is an expert at everything, we'll
 			<ulink url="https://www.freetds.org/files/current/freetds-current.tgz">www.freetds.org</ulink>.</para>
 
 <para>In general, the <productname>git</productname> master branch (the basis of the current nightly snapshot) works better and has more functionality than the release version.  Bugs sometimes persist in the release version but are usually fixed in short order (once identified) in <productname>git</productname> master.</para>
-		<tip><para>As with any project of this sort, if you want to use the <productname>git</productname> master branch, it's a good idea to join the mailing list.
-</para></tip>
 		</sect1>
 	<sect1 id="config">
 		<title>How to build: Configure and make</title>
 
 <para>If you've built other <acronym>GNU</acronym> projects, building &freetds; is a fairly straightforward process. We have a terse and verbose description.</para>
-		<note><para>&freetds;  is known to build with <acronym>GNU</acronym> and <acronym>BSD</acronym> <application>make</application>.  If you encounter a large number of build errors, and your operating system's <application>make</application> is not <acronym>GNU</acronym> <application>make</application> (as is the case on most non-<acronym>GNU</acronym>/Linux systems), you may wish to install <acronym>GNU</acronym> <application>make</application> from <ulink url="ftp://ftp.gnu.org/gnu/make/">ftp.gnu.org</ulink>.
+		<note><para>&freetds;  is known to build with <acronym>GNU</acronym> and <acronym>BSD</acronym>
+		<application>make</application>.
+		If you encounter a large number of build errors, and your operating system's <application>make</application>
+		is not <acronym>GNU</acronym> <application>make</application> (as is the case on most
+		non-<acronym>GNU</acronym>/Linux systems), you may wish to install <acronym>GNU</acronym>
+		<application>make</application> from <ulink url="https://ftp.gnu.org/gnu/make/">ftp.gnu.org</ulink>.
 </para></note>
 		<sect2 id="Experts"><title>For Experts</title>
 <screen>
@@ -410,7 +389,9 @@ Cf. <link linkend="withOdbcNoDM"><option>--with-odbc-nodm</option></link>.</para
 						<term><option>--with-libiconv-prefix=<replaceable>DIR</replaceable>
 							</option></term>
 						<listitem><para>Specifies the location of the iconv library to use.  <command>configure</command> will search for libiconv in the usual places; use <option>--with-libiconv-prefix</option>  if it's unsuccessful (assuming you want to use iconv, of course).  Overridden by <option>--disable-libiconv</option>, below.</para>
-<para>Version 0.95 removed support for iconv which cannot convert from any encoding to any encoding. This affect potentially systems like Tru64 and HP-UX were iconv mainly convert from/to ucs2. It's recommended to use GNU libiconv in this case.</para>
+<para>Version 0.95 removed support for iconv which cannot convert from any encoding to any encoding.
+This affect potentially systems like Tru64, HP-UX or Solaris were iconv mainly convert from/to UCS2.
+It's recommended to use GNU libiconv in this case.</para>
 							</listitem>
 						</varlistentry>
 					<varlistentry>
@@ -489,12 +470,17 @@ Cf. <link linkend="withOdbcNoDM"><option>--with-odbc-nodm</option></link>.</para
 						<term><option>--disable-threadsafe</option></term>
 						<listitem><para>Force &freetds; not to use threadsafe versions of functions such as <function>gethostbyname_r()</function> where available.  Rely instead on the older and non-threadsafe ones such as <function>gethostbyname()</function>. <command>configure</command> tests some of these functions.  If the tests are successful, &freetds; will use threadsafe functions throughout.</para>
 
-<para>Threadsafe operation has been tested on Linux, FreeBSD, HP-UX and Windows.  It should work on Solaris, Tru64, and (reportedly) IRIX.  Not expected to work on non-unixy systems.  Should not be used if your system supports threads. Pool server and MARS won't work if disabled.</para>
+<para>Threadsafe operation has been tested on Linux, FreeBSD, HP-UX and Windows.
+It should work on Solaris, Tru64, and (reportedly) IRIX.
+Not expected to work on non-unixy systems beside Windows.
+Should not be used if your system supports threads.
+Pool server and MARS won't work if disabled.</para>
 							</listitem>
 						</varlistentry>
 					<varlistentry>
 						<term><option>--disable-debug</option></term>
-						<listitem><para>Debug-mode compiles are enabled by default, and will remain so at least until version 1.0.  You can speed things up ever so slightly by disabling it.
+						<listitem><para>Debug-mode compiles are enabled by default.
+You can speed things up ever so slightly by disabling it.
 </para></listitem>
 						</varlistentry>
 					<varlistentry>
@@ -637,8 +623,8 @@ Once project files are created you can open them with your environment.</para>
 The list of builds is at
 <ulink url="https://ci.appveyor.com/project/FreeTDS/freetds/history">https://ci.appveyor.com/project/FreeTDS/freetds/history</ulink>.
 
-You can find there builds of code in the master banch and (from time to
-time) builds from the post-1.4 release fixes-only Branch-1_4 branch.
+You can find there builds of code in the master branch and (from time to
+time) builds from the post-1.5 release fixes-only Branch-1_5 branch.
 Every build matrix element generates its artifact.</para>
 				</sect3>
 
@@ -689,39 +675,6 @@ and register the driver as a standard component.</para>
 				
 				</sect3>
 			</sect2>
-		<sect2 id="osx"><title>OS X&reg;</title>
-
-<para>The regular distribution compiles on OS X.</para>
-			
-			<sect3 id="OSX.Build.LinkIssues">
-				<title>Possible linker problems</title>
-<para>On 18 April 2016, a problem was reported causing linker issues.
-<screen>
-	Undefined symbols for architecture x86_64:
-
-	  "___strlcpy_chk", referenced from:
-	      _tdsdbopen in libsybdb_64.a(dblib.o)
-	      _db_env_chg in libsybdb_64.a(dblib.o)
-	      _dbcolinfo in libsybdb_64.a(dblib.o)
-	      _dbtablecolinfo in libsybdb_64.a(dblib.o)
-	      _tds_alloc_dynamic in libsybdb_64.a(mem.o)
-	      _tds7_get_instance_port in libsybdb_64.a(net.o)
-	      _tds_get_locale in libsybdb_64.a(locale.o)
-	      ...
-</screen>
-</para>
-<para>
-This is due to some mismatch on different project releases. To solve these issue set the target release like
-<screen>	<userinput>CFLAGS="-mmacosx-version-min=10.8" ./configure
-	make</userinput></screen>
-or
-<screen>	<userinput>export MACOSX_DEPLOYMENT_TARGET=10.8
-	./configure
-	make</userinput></screen>
-</para>
-
-				</sect3>
-			</sect2>
 		
 		<sect2 id="AIX"><title>AIX&reg;</title>
 
@@ -739,7 +692,7 @@ or
 				know it is easily done:
 				
 <screen>
-	<prompt>$ </prompt><userinput>rpmbuild -ta freetds-1.4.tar.bz2</userinput></screen></para>
+	<prompt>$ </prompt><userinput>rpmbuild -ta freetds-1.5.tar.bz2</userinput></screen></para>
 			</sect2>
 	
 		</sect1>
@@ -758,7 +711,14 @@ or
 	<note><title>Confusing terminology</title>
 
 <para><quote>Configuring</quote> and <quote>installing</quote>
-			don't have absolute, context-free definitions.  In some circles, we install a product and then configure it.  In the <acronym>GNU</acronym> world, we <command>configure</command> the package (generate the <filename>Makefile</filename>s), then we <command>make install</command> the package.  In the case of a library package such as &freetds; To  <emphasis>install the package</emphasis> is to copy the files the application developer will use to their canonical locations: header files to <filename>include</filename>, libraries to the <filename>lib</filename>, documentation and man pages <filename>share</filename>.  Install targets were specified during the <phrase>build process</phrase> as arguments to <command>configure</command>, covered in the last chapter.</para>
+	don't have absolute, context-free definitions.  In some circles, we install a product and then configure it.
+	In the <acronym>GNU</acronym> world, we <command>configure</command> the package (generate the
+	<filename>Makefile</filename>s), then we <command>make install</command> the package.
+	In the case of a library package such as &freetds; to  <emphasis>install the package</emphasis> is to copy the files
+	the application developer will use to their canonical locations: header files to <filename>include</filename>,
+	libraries to the <filename>lib</filename>, documentation and man pages <filename>share</filename>.
+	Install targets were specified during the <phrase>build process</phrase> as arguments to <command>configure</command>,
+	covered in the last chapter.</para>
 
 <para>For lack of a better term, this chapter describes installing the <emphasis>product</emphasis>.  Put more specifically, once we're done with the package manager, we still have to tell &freetds; about your database servers, and we still have to tell your client programs about &freetds;.</para>
 		</note>
@@ -809,7 +769,8 @@ or
 						<row>
 							<entry>Microsoft SQL Server 2000</entry>
 							<entry>7.1</entry>
-							<entry>Include support for <symbol>bigint</symbol> (64 bit integers), <symbol>variant</symbol> and collation on all fields. Collation is not widely used. </entry>
+							<entry>Include support for <symbol>bigint</symbol> (64 bit integers),
+								<symbol>variant</symbol> and collation on all fields.</entry>
 							</row>
 						<row>
 							<entry>Microsoft SQL Server 2005</entry>
@@ -929,7 +890,9 @@ Years ago, Microsoft didn't officially create a TDS version number until after F
 	</itemizedlist>
 </para>
 
-<para>For best results, use the highest version of the protocol supported by your server.  If you encounter problems, try a lower version.  If that works, though, please report it to the mailing list!
+<para>For best results, use the highest version of the protocol supported by your server.
+	If you encounter problems, try a lower version.
+	If that works, though, please report it!
 	</para>
 
 </sect2>
@@ -982,7 +945,8 @@ versions that &freetds; had labeled 8.0 and 9.0 were actually versions 7.1 and 7
 					<footnote><para>This description applies to &dblib; and &ctlib;.  ODBC lookup is different.</para></footnote>
 					</title>
 				<listitem><para>Find <replaceable>servername</replaceable> in &freetdsconf;.  If a section with that name exists, use the hostname, port, and TDS version specified therein.</para></listitem>
-				<listitem><para>Attempt to convert <replaceable>servername</replaceable> to an IP address with <function>inet_addr(3)</function>.</para></listitem>
+				<listitem><para>Attempt to convert <replaceable>servername</replaceable> to an IP address with
+					<function>inet_addr(3)</function> or similar.</para></listitem>
 				<listitem><para>Request name-lookup from the operating system via <function>gethostbyname(3)</function> or similar.</para></listitem>
 				</orderedlist>
 			
@@ -1025,16 +989,21 @@ versions that &freetds; had labeled 8.0 and 9.0 were actually versions 7.1 and 7
 
 <para>The default location of &freetdsconf; is determined by the  <literal>--sysconfdir</literal> option of <command>configure</command>.  If you don't specify anything, <command>configure</command>'s default <literal>sysconfdir</literal> is <filename>/usr/local/etc</filename>.  <command>tsql -C</command> reports the <literal>sysconfdir</literal> to let you confirm it.</para>
 
-<para>In addition, &freetds; will look for a file <filename>.freetds.conf</filename> in the user's home directory (<envar>${HOME}</envar><filename>/.freetds.conf</filename>).</para>
+<para>In addition, &freetds; will look for a file <filename>.freetds.conf</filename> in the user's home directory
+	(<envar>${HOME}</envar><filename>/.freetds.conf</filename>) or under <filename>~/.config</filename> directory
+	(Unix).</para>
 
 <para>The actual name and location of &freetdsconf; may be specified by the environment variable <envar>FREETDS</envar> (or <envar>FREETDSCONF</envar>, same effect).  See <link linkend="envvar">Environment Variables</link>, below.</para>
 
-<para>&freetds; reads the user's <replaceable>${HOME}/</replaceable><filename>.freetds.conf</filename> before resorting to the system-wide <replaceable>sysconfdir/</replaceable>&freetdsconf;.  The file used is the first one that is readable and contains a section for the server.</para>
+<para>&freetds; reads the user's <filename>.freetds.conf</filename> before resorting to the system-wide
+	<replaceable>sysconfdir/</replaceable>&freetdsconf;.
+	The file used is the first one that is readable and contains a section for the server.</para>
 			</sect2>
 		<sect2 id="freetdsconfformat">
 			<title>What it looks like</title>
 
-<para><tip><para> The following information is also provided in the &freetdsconf; manual page, cf. <command>man freetds.conf</command>.</para></tip></para>
+<para><tip><para>The following information is also provided in the &freetdsconf; manual page, cf.
+	<command>man freetds.conf</command>.</para></tip></para>
 
 <para>The &freetdsconf; file format is similar to that of Samba's modified <quote><filename>win.ini</filename></quote>.  It
 				is composed of two types of sections: one <literal>[global]</literal> section,  and a <literal>[<replaceable>servername</replaceable>]</literal> section for each servername.  Settings in the <literal>[global]</literal> section affect all servernames, but can be overridden in a <literal>[<replaceable>servername</replaceable>]</literal> section.  For example</para>
@@ -1200,7 +1169,7 @@ This is the name of the database container in the server you are connecting to.<
 							<entry id="clientcharset"><literal>client charset</literal></entry>
 							<entry>any valid iconv character set</entry>
 							<entry>ISO-8859-1<footnote><para>Valid for ISO 8859-1 character set.  See <link linkend="Localization">Localization and <acronym>TDS</acronym> 7.0</link> for more information.</para></footnote></entry>
-							<entry>Makes &freetds; use iconv to convert to and from the specified character set from UCS-2 in <acronym>TDS</acronym> 7.0 or above.
+							<entry>Makes &freetds; use iconv to convert to and from the specified character set.
 								&freetds; uses iconv to convert all character data, so there's no need to match the server's charset to insert any characters the server supports.</entry>
 							</row>
 						<row>
@@ -1313,7 +1282,9 @@ This is supported from MSSQL 2012.
 							<entry><literal>enable tls v1</literal></entry>
 							<entry>yes/no</entry>
 							<entry>no</entry>
-							<entry>Enable or disable TLS version 1.0. Useful to increase security. Not too recent Windows version (like Windows 2008) does not enable higher versions by default so be aware.</entry>
+							<entry>Enable or disable TLS version 1.0.
+Old Windows versions (like Windows 2008) does not enable higher versions by default so be aware.
+Useful to connection to some old servers.</entry>
 							</row>
 						</tbody>
 					</tgroup>
@@ -1328,7 +1299,8 @@ This is supported from MSSQL 2012.
 				<abstract><para>The logging capability has helped solve innumerable cases, some trivial and some very low-level bugs.  Sometimes a developer needs very detailed information about one function, whereas someone else may interested only in whether or not a particular function is called, or even want to see only the SQL that was transmitted to the server.</para> </abstract>
 				
 
-<para>The log's granularity can be controlled with the <literal>debug flags</literal> entry. The default value (<literal>4FFF</literal> hex) gives a level of detail that is useful for resolving problems via the mailing list.</para>
+<para>The log's granularity can be controlled with the <literal>debug flags</literal> entry.
+	The default value (<literal>4FFF</literal> hex) gives a level of detail that is useful for resolving problems.</para>
 				
 				<table id="tab.freetds.conf.debugflags">
 					<title>Valid bitmask values for <literal>debug flags</literal> entry in &freetdsconf;</title>
@@ -3241,9 +3213,12 @@ This applies only to Microsoft <productname>SQL Server</productname> and you'll 
 				<emphasis>includes login packets which can contain clear text or clear text
 					equivalent passwords.</emphasis> So, if this is a concern (most likely
 				is) make sure that the files are not world readable, and avoid posting
-				them to mailing lists.</para>
+				them publicly.</para>
 
-<para>Once in a while, someone writes to the mailing list, asking why &freetds; is so <emphasis>slow</emphasis>.  It sometimes turns out that logging was left turned on.  Don't you be the next victim!  &freetds; logs are meant for development and debugging, not as a system monitoring tool.</para>
+<para>Once in a while, someone writes asking why &freetds; is so <emphasis>slow</emphasis>.
+	It sometimes turns out that logging was left turned on.
+	Don't you be the next victim!
+	&freetds; logs are meant for development and debugging, not as a system monitoring tool.</para>
 			</sect2>
 		
 		<sect2 id="Logging.freetds.conf">
@@ -3404,7 +3379,8 @@ Compile-time settings (established with the "configure" script)
                              GnuTLS: no
                                MARS: yes </computeroutput></screen>
       
-For &odbc; setup issues, the <command>osql</command> script is intended to confirm the configuration files are all sane.  If it fails to report a problem, please post a message describing the problem to the mailing list.  Thanks.  </para>
+For &odbc; setup issues, the <command>osql</command> script is intended to confirm the configuration files are all sane.
+If it fails to report a problem, please post a message describing the problem.  Thanks.  </para>
 
 		</sect1>
 	
@@ -3504,7 +3480,8 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 <para>The time you enjoy wasting is not wasted time.</para>
 		</epigraph>
 
-<para>&freetds; is a cooperative, volunteer effort.  Flame wars on the list are unknown and the signal to noise ratio is pretty high for its venue.  Many people have contributed patches, and few have been turned away.</para>
+<para>&freetds; is a cooperative, volunteer effort.
+	Many people have contributed patches, and few have been turned away.</para>
 	<sect1 id="Pickweakspot">
 		<title>Pick a weak spot and fix it.</title>
 
@@ -3526,12 +3503,13 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 			<title>Send a patch</title>
 
 <para>Good patches are nearly always applied in short order.
-	Patches uploaded to <ulink url="https://sourceforge.net/p/freetds/patches/">SourceForge</ulink> trigger automatic notification to the &freetds;  mailing list.</para>
+	Pull requests can be opened at <ulink url="https://github.com/FreeTDS/freetds/pulls">GitHub</ulink>.</para>
 			</sect2>
 		<sect2 id="Correct">
 			<title>Correct this User Guide</title>
 
-<para>Any corrections or suggestions, be they typographical, grammatical, structural, factual, or mineral are most  welcome.  Please send it to the <ulink url="mailto:freetds@lists.ibiblio.org">&freetds; mailing list</ulink>.</para>
+<para>Any corrections or suggestions, be they typographical, grammatical, structural, factual, or mineral are most  welcome.
+Please send it to the <ulink url="mailto:freetds@lists.ibiblio.org">&freetds; mailing list</ulink>.</para>
 
 <para>The User Guide is maintained in <acronym>XML</acronym> DocBook format; the file in your distibution is  <filename>doc/userguide.xml</filename>.  It is a flat ASCII file that you can edit with any text editor.  You don't have to know <acronym>XML</acronym> to correct or add to the User Guide, however.  Just open it up, find the place you're interested in, and type away.  Do a <command>diff -u <replaceable>old_version</replaceable> <replaceable>your_version</replaceable></command> and post your patch to the SourceForge site.  Any errors or lackings in your markup will be graciously emended by yours truly.</para>
 			</sect2>
