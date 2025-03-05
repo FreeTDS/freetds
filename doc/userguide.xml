@@ -682,8 +682,17 @@ and register the driver as a standard component.</para>
 				can be a shared library.  One solution is to build only static libraries with the <option>--disable-shared</option>
 				configure option.</para>
 
-<para>Another problem seems to be that the linker isn't asked to pull in all the requisite libraries.  Cf. this helpful
-				<ulink url="https://lists.ibiblio.org/pipermail/freetds/2004q3/016748.html">mailing list message</ulink>.</para>
+<para>Another problem seems to be that the linker isn't asked to pull in all the requisite libraries.
+Cf. this helpful <ulink url="https://lists.ibiblio.org/sympa/arc/freetds/2004-09/thrd4.html">mailing list message</ulink>.</para>
+			</sect2>
+
+			<sect2 id="Solaris"><title>Solaris and related</title>
+
+<para>It looks like system iconv has some issue on Solaris.
+Try to use GNU iconv.</para>
+
+<para>For more information looks at <ulink url="https://github.com/FreeTDS/freetds/discussions/496">this discussion</ulink>.</para>
+
 			</sect2>
 		
 		<sect2 id="RPM"><title>GNU/Linux distributions that use RPMs</title>
@@ -1372,10 +1381,10 @@ Useful to connection to some old servers.</entry>
 				<itemizedlist id="lst.freetds.conf.deprecated" spacing="compact">
 					<title>Deprecated &freetdsconf; settings</title>
 					<listitem><para><symbol>try server login</symbol></para></listitem>
-					<listitem><para><symbol>try domain login </symbol></para></listitem>
-					<listitem><para><symbol>nt domain </symbol></para></listitem>
-					<listitem><para><symbol>cross domain login </symbol></para></listitem>
-					<listitem><para><symbol>debug level </symbol></para></listitem>
+					<listitem><para><symbol>try domain login</symbol></para></listitem>
+					<listitem><para><symbol>nt domain</symbol></para></listitem>
+					<listitem><para><symbol>cross domain login</symbol></para></listitem>
+					<listitem><para><symbol>debug level</symbol></para></listitem>
 					</itemizedlist>
 				</sect3>
 			
@@ -1783,8 +1792,10 @@ The server responds with a port number.
 Although the directories are named <filename>unittests</filename> they are not unit tests, most of them require a configured database to work.
 				
 <screen>
+
 	<prompt>$ </prompt><userinput>ls -d -1 src/*/unittests</userinput>
-	<computeroutput>src/ctlib/unittests
+	<computeroutput>src/apps/unittests
+	src/ctlib/unittests
 	src/dblib/unittests
 	src/odbc/unittests
 	src/replacements/unittests
@@ -1826,7 +1837,9 @@ The ODBC tests all build their own <filename>odbc.ini</filename> and try to redi
 
 <para>But &freetds; did not start out as an ODBC driver (remember &dblib; and &ctlib;), and has always had its own way to store server properties: &freetdsconf;.  When Brian added the &freetds; ODBC driver, he began by supporting the old <function>SQLConnect</function>, using <filename>odbc.ini</filename> to describe the DSN.  That choice complied with the expectations of the Driver Managers, and minimized the amount of duplicated information in the configuration files.  But it can be a little confusing, too, because <filename>odbc.ini</filename> in effect points to &freetdsconf;.  We call this configuration <firstterm>ODBC-combined</firstterm>, because it supports all three &freetds; libraries.</para>
 
-<para>As progress on the the &freetds; ODBC library progressed, the driver was made able to read the connection attributes directly from <filename>odbc.ini</filename>, rather than leaning on &freetdsconf;.  For installations that don't need &dblib; and &ctlib;, this <firstterm>ODBC-only</firstterm> setup is simpler.</para>
+<para>As progress on the &freetds; ODBC library progressed, the driver was made able to read the connection attributes directly
+	from <filename>odbc.ini</filename>, rather than leaning on &freetdsconf;.
+	For installations that don't need &dblib; and &ctlib;, this <firstterm>ODBC-only</firstterm> setup is simpler.</para>
 
 <para>More recently, <function>SQLDriverConnect</function> was added to &freetds;.  As described above, this function allows the application to specify connection attributes with reference to either, or neither, configuration file.  It's your choice.  In making that choice, keep the following terms clear in your mind:</para>
 		
@@ -1967,7 +1980,7 @@ The ODBC tests all build their own <filename>odbc.ini</filename> and try to redi
 							<entry><literal>TDS_Version</literal></entry>
 							<entry>Any valid protocol version</entry>
 							<entry>Depends on the TDS version specified with <command>configure</command></entry>
-							<entry>TDS protocol version to use (e.g., 5.0, 7.0).</entry>
+							<entry>TDS protocol version to use (e.g., 5.0, 7.4).</entry>
 							</row>
 						<row>
 							<entry><literal>ClientCharset</literal> or <literal>Client_Charset</literal></entry>
@@ -2048,7 +2061,8 @@ The ODBC tests all build their own <filename>odbc.ini</filename> and try to redi
 							<entry><literal>UseNTLMv2</literal></entry>
 							<entry>Yes/No</entry>
 							<entry>Yes</entry>
-							<entry>Use NTLMv2 instead of normal NTLM. Use this option if your Windows domain have this setting.</entry>
+							<entry>Use NTLMv2 instead of normal NTLM.
+								Disable this option if your Windows domain have this setting.</entry>
 							</row>
 						<row>
 							<entry><literal>REALM</literal></entry>
@@ -2143,7 +2157,7 @@ This setting allow to do it. You should specify <literal>Database</literal> attr
 	res = SQLDriverConnect(Connection, NULL, (SQLCHAR *) tmp, SQL_NTS,
 				(SQLCHAR *) tmp, sizeof(tmp), &amp;len, SQL_DRIVER_NOPROMPT);
 	if (!SQL_SUCCEEDED(res)) {
-		printf("Unable to open data source (ret=%d)\n", res);
+		fprintf(stderr, "Unable to open data source (ret=%d)\n", res);
 		exit(1);
 	}
 	</programlisting>
@@ -2163,7 +2177,7 @@ You can even establish a connection without reference to either <filename>odbc.i
 	res = SQLDriverConnect(Connection, NULL, (SQLCHAR *) tmp, SQL_NTS,
 				(SQLCHAR *) tmp, sizeof(tmp), &amp;len, SQL_DRIVER_NOPROMPT);
 	if (!SQL_SUCCEEDED(res)) {
-		printf("Unable to open data source (ret=%d)\n", res);
+		fprintf(stderr, "Unable to open data source (ret=%d)\n", res);
 		exit(1);
 	}
 	</programlisting>
@@ -2394,7 +2408,8 @@ If no <function>iconv</function> library is found, or if it is explicitly disabl
 	</programlisting>
 			</example>
 
-<para>It is also worth clarifying that <acronym>TDS 7.0</acronym> and above do not accept any specified character set during login, as 4.2 does.  A <acronym>TDS 7.0</acronym> login packet uses <acronym>UCS-2</acronym>.</para>
+<para>It is also worth clarifying that <acronym>TDS 7.0</acronym> and above do not accept any specified character set during login, as 4.2 does.
+	A <acronym>TDS 7.0</acronym> login packet uses <acronym>UTF-16</acronym>.</para>
 		<sect2 id="localization.servernote"><title>Microsoft Server Note</title>
 
 <para>String literals in SQL must be prefixed with 'N' unless the enclosed string can be represented in the server's <emphasis>single-byte</emphasis> character set, irrespective of the column's datatype.  For example, in the SQL statement
@@ -2404,7 +2419,13 @@ If no <function>iconv</function> library is found, or if it is explicitly disabl
 	
 				the string is subject to somewhat surprising treatment by the server.</para>
 
-<para>When the server parses the SQL, it extracts the data values for insertion (or update, or comparison, etc.)  Unprefixed strings are converted to the single-byte character set of the server/database.<footnote><para>The precise rules are unknown to the author.</para></footnote>   Inserted data are then of course stored in the column.  In the case of UCS-2 columns &mdash; <literal>nchar</literal>, <literal>nvarchar</literal>, and <literal>ntext</literal> &mdash; the value stored is that which results from a <emphasis>second</emphasis> conversion: from the single-byte form to the <acronym>UCS-2</acronym> form.</para>
+<para>When the server parses the SQL, it extracts the data values for insertion (or update, or comparison, etc.)
+	Unprefixed strings are converted to the single-byte character set of the server/database.<footnote><para>The precise
+	rules are unknown to the author.</para></footnote>
+	Inserted data are then of course stored in the column.
+	In the case of UTF-16 columns &mdash; <literal>nchar</literal>, <literal>nvarchar</literal>, and <literal>ntext</literal>
+	&mdash; the value stored is that which results from a <emphasis>second</emphasis> conversion: from the single-byte
+	form to the <acronym>UTF-16</acronym> form.</para>
 
 <para>The <emphasis>only</emphasis> safe way to enclose strings in SQL text is with an 'N' prefix:
 				
@@ -2412,7 +2433,14 @@ If no <function>iconv</function> library is found, or if it is explicitly disabl
 	INSERT INTO tablename (greeting) VALUES (N'Hall&aring;')</screen></informalexample>				</para>
 	<bridgehead renderas="sect3">Commentary</bridgehead>
 
-<para>What's surprising about this?  Versions 7.0 and later of the TDS protocol use UCS-2 to send SQL text.  No matter how your local client is configured &mdash; with <acronym>UCS-2</acronym> or <acronym>ISO 8859-1</acronym> or anything else &mdash; it's converted to <acronym>UCS-2</acronym> before it's sent to the server.  And obviously arrives at the server as <acronym>UCS-2</acronym>.  If the column into which it's being inserted is also <acronym>UCS-2</acronym>, there's no need of <emphasis>any</emphasis> conversion, much less two, and <emphasis>certainly</emphasis> no need to lose information.</para>
+<para>What's surprising about this?  Versions 7.0 and later of the TDS protocol use UTF-16 to send SQL text.
+	No matter how your local client is configured &mdash; with <acronym>UTF-16</acronym> or
+	<acronym>ISO 8859-1</acronym> or anything else &mdash; it's converted to <acronym>UTF-16</acronym> before
+	it's sent to the server.
+	And obviously arrives at the server as <acronym>UTF-16</acronym>.
+	If the column into which it's being inserted is also <acronym>UTF-16</acronym>, there's no need
+	of <emphasis>any</emphasis> conversion, much less two, and <emphasis>certainly</emphasis> no need to
+	lose information.</para>
 
 <para>Why this happens is anyone's guess.  Here's one: it makes the datatype of the column unimportant.  Regardless of whether you use char/varchar/text or nchar/nvarchar/ntext or a mixture of the two, the arriving SQL (if na&iuml;vely written) will store exactly the same characters.</para>
 			</sect2>
@@ -2515,7 +2543,7 @@ To avoid this problem, choose a threading model in <filename>odbcinst.ini</filen
 </para></important>
 
 <para>As an alternative to &freetds; logging, you might also consider using <command>tcpdump</command> or
-	<ulink url="https://www.wireshark.org/">wireshark</ulink> to log network packets.
+	<ulink url="https://www.wireshark.org/">Wireshark</ulink> to log network packets.
 	While not as useful as a <acronym>TDS</acronym> log, it can also help to identify problems.</para>
 				
 		</sect1>
@@ -2526,7 +2554,8 @@ To avoid this problem, choose a threading model in <filename>odbcinst.ini</filen
 
 <para>The &freetds; connection pool is a server process; it emulates a <productname>SQL Server</productname>.  Any program that can attach to a real <productname>SQL Server</productname> may instead elect to attach to the pool server.  The pool in turn connects to the <productname>SQL Server</productname> and database you specify, and attempts to share these connections.  See the <filename>src/pool/README</filename> for a more detailed description of its inner workings.</para>
 
-<para>To configure the pool server, first make sure &freetds; has a working entry for the real <productname>SQL Server</productname> by connecting to it with <application>SQSH</application> or another program.</para>
+<para>To configure the pool server, first make sure &freetds; has a working entry for the real
+	<productname>SQL Server</productname> by connecting to it with <application>tsql</application> or another program.</para>
 		
 <note><para>The &freetds; connection pool currently does not supports <acronym>TDS</acronym> version 5.0 (Sybase) and encrypted connections.
 <emphasis>This restriction applies to both the client-to-pool and pool-to-server connections!</emphasis>
@@ -2822,7 +2851,7 @@ To avoid this problem, choose a threading model in <filename>odbcinst.ini</filen
 <para><example id="e.g.DBD.ODBC.connect">
 	<title>Connect to a server with <systemitem class="library">DBD::ODBC</systemitem></title>
 <programlisting>
-	#!/usr/local/bin/perl
+	#!/usr/bin/env perl
 	#
 	use DBI;
 	
@@ -2859,7 +2888,7 @@ To avoid this problem, choose a threading model in <filename>odbcinst.ini</filen
 
 				<example id="e.g.DBD.Sybase.Connect"><title>Connect to a server with <systemitem class="library">DBD::Sybase</systemitem></title>
 <programlisting>
-	#!/usr/local/bin/perl
+	#!/usr/bin/env perl
 	#
 	use DBI;
 	
@@ -3005,7 +3034,7 @@ For instance, some parameters are defined as SQLINTEGER but are used for pointer
 But SQLINTEGER was (and remains) 32-bit, while pointer offsets must be 64-bit.
 Also row numbers and some other formerly 32-bit quantities are now 64-bit.</para>
 
-<para>If you use &unixODBC; Frediano would recommend at least version 2.2.14. Earlier versions have issues if used on 64-bit environments.</para>
+<para>If you use &unixODBC; we recommend at least version 2.2.14. Earlier versions have issues if used on 64-bit environments.</para>
 			</sect2>
 		<sect2 id="uodbc.wchar">
 			<title>sizeof(SQLWCHAR)</title>
@@ -3062,7 +3091,10 @@ If you compile the &freetds; ODBC driver using &iODBC; take care to ensure all d
 
 <para>Questions sometimes arise over large <type>varchar</type> types (anything larger than <type>varchar(255)</type>) that became available with Microsoft <productname>SQL Server 7.0</productname>.  When accessing long <type>varchar</type>s with <acronym>TDS</acronym> protocol version 4.2 or 5.0, these fields will be truncated to 255 characters, due to limitations inherent in the protocol definition.  Your best bet in that case is to convert them to <type>text</type> types.</para>
 
-<para>In Microsoft <productname>SQL Server</productname> 7.0 and later, <structname>varchar</structname> types can hold up to 8000 bytes (8000 <acronym>ASCII</acronym> characters or 4000 Unicode characters).  To move these large <structname>varchar</structname>s through <acronym>TDS</acronym> 4.2, convert them with either a <command>CONVERT</command> as in,
+<para>In Microsoft <productname>SQL Server</productname> 7.0 and later, <structname>varchar</structname> types can hold up to 8000
+	bytes (8000 <acronym>ASCII</acronym> characters or 4000 Unicode units).
+	To move these large <structname>varchar</structname>s through <acronym>TDS</acronym> 4.2, convert them with either
+	a <command>CONVERT</command> as in,
 	<screen>
 	<userinput>SELECT mycol = convert(mycol, text) FROM mytable</userinput> </screen>
 	or with the newer SQL92 <command>CAST</command> syntax e.g.,
@@ -3313,7 +3345,7 @@ This applies only to Microsoft <productname>SQL Server</productname> and you'll 
 					skills.</para>
 
 					<para>If you cannot determine the cause yourself, send the backtrace
-					to the <link linkend="mailinglist">mailing list</link>, along with the
+					to the <link linkend="webproject">project page</link>, along with the
 					PHP script.  It helps to make the script as small as possible, but
 					still fail.  It also helps to report the version numbers of PHP, and
 					&freetds;.</para>
@@ -3391,9 +3423,15 @@ If it fails to report a problem, please post a message describing the problem.  
 
 <para>If you can demonstrate the problem with <command>tsql</command> or <command>sqsh</command>, you can expect a quick answer to your question, possibly even a fairly quick fix.  (It has happened several times in the last few years that bug reports to small problems were fixed the same day.  On a few occasions, new functions were added in a few days.  Making &freetds; useful and bugless is the goal of the project, after all.)</para>
 
-<para>&freetds; being what it is, problems frequently arise amidst complex environments.  It can be hard for both you and the list participants &mdash; who are your allies and best resource &mdash; to determine what's going wrong.  If you can submit a script that they can use to try to reproduce your results, you have a much better chance of happy resolution.</para>
+<para>&freetds; being what it is, problems frequently arise amidst complex environments.
+It can be hard for both you and &freetds; members &mdash; who are your allies and best resource &mdash;
+to determine what's going wrong.
+If you can submit a script that they can use to try to reproduce your results,
+you have a much better chance of happy resolution.</para>
 
-<para>On the plus side, the list includes people with a variety of backgrounds, who frequently answer questions that aren't really about &freetds; <foreignphrase>per se</foreignphrase>.  Clear questions have sometimes even led to submitting patches to other projects.</para>
+<para>On the plus side, the project includes people with a variety of backgrounds, who frequently answer
+questions that aren't really about &freetds; <foreignphrase>per se</foreignphrase>.
+Clear questions have sometimes even led to submitting patches to other projects.</para>
 		<sect2 id="help.otherclient"><title>Try a different client</title>
 
 <para>&freetds; comes with its own utilities that use the various libraries.  It's a good idea to run your query through one of them &mdash; the one that uses the same API you're using &mdash; to see if it produces the same behavior you're seeing.  That helps eliminate your application (and the rest of the calling hierarchy) as a source of the problem.</para>
@@ -3407,7 +3445,9 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 			</sect2>
 		
 		</sect1>
-	<sect1 id="mailinglist"><title>The Mailing List</title>
+
+	<sect1 id="webproject"><title>GitHub project page</title>
+
 		<epigraph>
 			<attribution>3 Henry VI, I, ii, approximately</attribution>
 
@@ -3417,22 +3457,32 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 				</literallayout></para>
 			</epigraph>
 				
-		<sect2 id="Archive"><title>The Archive</title>
-			
+<para>Currently most of the activities run on the <ulink url="https://github.com/FreeTDS/freetds/">project
+page</ulink>.</para>
 
-<para>The &freetds; mailing list <ulink url="https://lists.ibiblio.org/pipermail/freetds/">archive</ulink> is a good place to start.
-	It is searchable.  It should be considered the most up to date (and least edited) source of information.</para>
+<para>The project has various sections:
 
-<para>New developments between releases tend <emphasis>not</emphasis> to be announced on the website.  The website is updated only intermittently, when we post a new release or &freetds; is somehow in the news, say.  If you found a bug or need a feature, you may find it was announced/discussed/fixed by perusing the archive.</para>
-			</sect2>
-		<sect2 id="Asklist">
-			<title>Ask the list</title>
+<itemizedlist>
+	<listitem><para>Pull Requests: Submit proposed changes;</para></listitem>
+	<listitem><para>Issues: Report any problems encountered;</para></listitem>
+	<listitem><para>Discussions: For all other topics.</para></listitem>
+</itemizedlist>
 
-<para>Many of the original authors and anyone maintaining or extending the code reads the list.  The traffic tends to be bursty.  It usually focuses on build problems and troubleshooting.  Again, the more specific your question, the sooner you'll get a useful reply (if it comes).</para>
-			
+</para>
 
-<para>Please, do not email the authors directly. You may well be ignored because they're they type that gets a ton of mail.  Anyone willing to address your question reads the list, and you don't want to offend anyone willing to help you by going about it the wrong way.</para>
-			</sect2>
+<para>New developments between releases tend <emphasis>not</emphasis> to be announced on the main website.
+The website is updated only intermittently, when we post a new release or &freetds; is somehow in the news, say.</para>
+
+		</sect1>
+
+	<sect1 id="mailinglist"><title>The Mailing List</title>
+
+<para>In the past every discussion happened on the mailing list.
+However during the years everything moved to the GitHub project.</para>
+
+<para>You can find old list discussions in the
+<ulink url="https://lists.ibiblio.org/pipermail/freetds/">archive</ulink>.</para>
+
 		</sect1>
 	
 	<sect1 id="askingforhelp"><title>What to include when asking for help</title>
@@ -3453,7 +3503,11 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 		<sect2 id="help.log"><title>Attach a logfile</title>
 			
 
-<para>If you're puzzled by some interaction with the server (often the case), it's a very good idea to set <envar>TDSDUMP</envar> and attach the log to your message.  Messages are currently limited to 75 KB attachments, and the logs are quite detailed, so make your query as short as possible.  If necessary, trim the log; <command>gzip</command> is also your friend here.  It's always a good idea to post it on a website where people can fetch it if they're so inclined.</para>
+<para>If you're puzzled by some interaction with the server (often the case), it's a very good idea to set <envar>TDSDUMP</envar>
+and attach the log to your message.
+The logs are quite detailed, so make your query as short as possible.
+If necessary, trim the log; <command>gzip</command> is also your friend here.
+It's always a good idea to post it on a website where people can fetch it if they're so inclined.</para>
 
 <para>Log files are especially important if you're not programming at the C level.  Sometimes there are problems &mdash; an impedance mismatch, to coin a phrase &mdash; between &freetds; and the calling framework/language.  But if you write to the list and say <quote>Why does my <literal>PHP foo()</literal> returns an empty string?</quote>, please keep in mind that your question might as well be in Urdu to someone familiar with the C library.  Without knowing which C function was called, and with what data, it's impossible to even begin to try to answer the question.  </para>
 
@@ -3503,37 +3557,52 @@ Also consider security settings like firewalls, SELinux/AppArmor or similars.</p
 			<title>Send a patch</title>
 
 <para>Good patches are nearly always applied in short order.
-	Pull requests can be opened at <ulink url="https://github.com/FreeTDS/freetds/pulls">GitHub</ulink>.</para>
+Pull requests can be opened at <ulink url="https://github.com/FreeTDS/freetds/pulls">GitHub</ulink>.</para>
+
 			</sect2>
 		<sect2 id="Correct">
 			<title>Correct this User Guide</title>
 
 <para>Any corrections or suggestions, be they typographical, grammatical, structural, factual, or mineral are most  welcome.
-Please send it to the <ulink url="mailto:freetds@lists.ibiblio.org">&freetds; mailing list</ulink>.</para>
+Please send it to the <link linkend="webproject">project page</link>.</para>
 
-<para>The User Guide is maintained in <acronym>XML</acronym> DocBook format; the file in your distibution is  <filename>doc/userguide.xml</filename>.  It is a flat ASCII file that you can edit with any text editor.  You don't have to know <acronym>XML</acronym> to correct or add to the User Guide, however.  Just open it up, find the place you're interested in, and type away.  Do a <command>diff -u <replaceable>old_version</replaceable> <replaceable>your_version</replaceable></command> and post your patch to the SourceForge site.  Any errors or lackings in your markup will be graciously emended by yours truly.</para>
+<para>The User Guide is maintained in <acronym>XML</acronym> DocBook format; the file in your distibution is <filename>doc/userguide.xml</filename>.
+It is a flat ASCII file that you can edit with any text editor.
+You don't have to know <acronym>XML</acronym> to correct or add to the User Guide, however.
+Just open it up, find the place you're interested in, and type away.
+Do a <command>diff -u <replaceable>old_version</replaceable> <replaceable>your_version</replaceable></command> and post your
+patch to the <link linkend="webproject">GitHub project page</link>.
+Any errors or lackings in your markup will be graciously emended by yours truly.</para>
 			</sect2>
 		<sect2 id="Documentapi">
 			<title>Document an <acronym>API</acronym></title>
 
 <para>We have just begun an independent reference manual to &freetds;; the main <acronym>API</acronym> documents are the work of the server vendors.
-	We're using <ulink url="https://www.doxygen.nl">Doxygen</ulink>, which extracts documentation directly from comments in the source code, and we're maybe 25% done.</para>
+	We're using <ulink url="https://www.doxygen.nl">Doxygen</ulink>, which extracts documentation directly from comments in the source code.</para>
 
 <para>The <acronym>TDS</acronym> protocol is partly documented, as are the <acronym>API</acronym>s to <filename>libtds</filename> and &dblib;, but much remains.</para>
 			</sect2>
 		<sect2 id="webmaster">
 			<title>Be the Webmaster</title>
 
-<para>The FAQ and in particular the news don't get updated often enough.  If that's your thing, drop a line to the <ulink url="mailto:freetds@lists.ibiblio.org">&freetds; mailing list</ulink>.</para>
+<para>The FAQ and in particular the news don't get updated often enough.
+If that's your thing, drop a line to the <link linkend="webproject">project page</link>.</para>
 			</sect2>
 		</sect1>
 
 	<sect1 id="Light.taper">
 		<title>Light another's taper</title>
 
-<para>Every question you answer on the mailing list will save someone time and, if done well, will actually improve your own knowledge.  The project's developers will often answer technical questions that require substantial understanding of the code or suggest a possible bug.  Setup issues, though &mdash; connecting and logging in to the server, getting Apache going &mdash; are questions many experienced users can and do answer, thereby fostering the community on which the project depends.  </para>
+<para>Every question you answer will save someone time and, if done well, will actually improve your own knowledge.
+The project's developers will often answer technical questions that require substantial understanding of the code or suggest a possible bug.
+Setup issues, though &mdash; connecting and logging in to the server, getting Apache going &mdash; are questions many
+experienced users can and do answer, thereby fostering the community on which the project depends.</para>
 
-<para>Your experience may well be more closely aligned with the question posed than that of anyone else reading the list that day.  You may use that framework or language or OS, or have that particular server.  No one, no matter how expert in the code, has used every configuration, version, OS, compiler, etc.  Whether you simply confirm there's a problem in some particular arrangement, or say, <quote>dunno, works for me</quote>, you're adding information.  </para>
+<para>Your experience may well be more closely aligned with the question posed than that of anyone else.
+You may use that framework or language or OS, or have that particular server.
+No one, no matter how expert in the code, has used every configuration, version, OS, compiler, etc.
+Whether you simply confirm there's a problem in some particular arrangement, or say, <quote>dunno, works for me</quote>,
+you're adding information.</para>
 
 		</sect1>
 
@@ -3542,20 +3611,6 @@ Please send it to the <ulink url="mailto:freetds@lists.ibiblio.org">&freetds; ma
 
 <para>If you want to get your hands really dirty, here are some big ideas to contemplate.  </para>
 		
-		<sect2>
-			<title><literal>libtds2</literal></title>			
-
-<para>After many years developing &freetds;, we've learned quite a bit about the protocol and how to write database libraries.  Unfortunately, though, one of the things holding us back &mdash; and, obviously hampering the project &mdash; is the underlying utility library.</para>
-
-<para>This wouldn't be a from-scratch effort; most of the code is already written.  What's needed is a more uniform API that better reflects the TDS protocol, and that does <emphasis>not</emphasis> attempt character set conversions immediately on receipt of the data.  </para>   
-			</sect2>
-
-		<sect2>
-			<title><literal>libstddb</literal></title>			
-
-<para>This would be a new client library modelled after <literal>stdio</literal>, a project to demonstrate what database programming should be like.  </para>
-			</sect2>
-
 		<sect2>
 			<title>Server code </title>			
 
@@ -3567,7 +3622,8 @@ Please send it to the <ulink url="mailto:freetds@lists.ibiblio.org">&freetds; ma
 	<sect1 id="Advocacy">
 		<title>Advocacy</title>
 
-<para>Out of ten people you know, it's a fair bet 10 never heard of &freetds; and nine don't understand the problem it solves.  Lots of places have begun to use Microsoft <productname>SQL Server</productname>s in all sorts of ways, and if you adhere to the Microsoft line, there's only one way to connect to them: from a Microsoft OS.</para>
+<para>Out of ten people you know, it's a fair bet 10 never heard of &freetds;
+and nine don't understand the problem it solves.</para>
 
 <para>What can &freetds; do that can't be done any other way?  Glad you asked.  &freetds; can</para>
 		<itemizedlist>
@@ -3591,7 +3647,12 @@ Please send it to the <ulink url="mailto:freetds@lists.ibiblio.org">&freetds; ma
 	<sect1 id="TDSprotocolref">
 		<title>TDS protocol reference</title>
 
-<para>Can be found on <ulink url="https://www.freetds.org/tds.html">www.freetds.org</ulink></para>
+<para>Microsoft today publishes their documentation, you can easily find looking for
+<ulink url="https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-tds/b46a581a-39de-4745-b076-ec4dbb7d13ec">TDS
+protocol specification</ulink>.</para>
+
+<para>Some of our old discoveries can be found on <ulink url="https://www.freetds.org/tds.html">www.freetds.org</ulink>.</para>
+
 		</sect1>
 	<sect1 id="apireference"><title>API Reference Manual</title>
 
@@ -3644,9 +3705,7 @@ Please send it to the <ulink url="mailto:freetds@lists.ibiblio.org">&freetds; ma
 	<sect1 id="dblib.api.summary">
 		<title>&dblib; API Implementation Summary</title>
 
-<para>Microsoft's version of &dblib; is
-			<ulink url="http://msdn.microsoft.com/en-us/library/aa936988(SQL.80).aspx">online</ulink>.
-			Sybase's is both
+<para>Sybase's version of of &dblib; is
 			<ulink url="https://help.sap.com/doc/4091f120b0c9429d8503322daeeff2be/16.0.3.8/en-US/DB-Library_C_Reference_Manual_en.pdf">online</ulink>.
 			
 			<footnote><para>Links such as these are quite perishable.  Should you find them broken, please check
@@ -4829,7 +4888,8 @@ and <literal>Application Configuration Files</literal>.</para>
 	</appendix>
 
 <appendix id="interfacesfile"><title>The <filename>interfaces</filename> File</title>
-	<abstract><para>The <filename>interfaces</filename> file is retained for compatibility with Sybase environments.  It is recommended that new users use the <link linkend="freetdsconf">freetds.conf</link> format instead.</para></abstract>
+	<abstract><para>The <filename>interfaces</filename> file is retained for compatibility with Sybase environments.
+	It is recommended that new users use the <link linkend="freetdsconf">&freetdsconf;</link> format instead.</para></abstract>
 	<sect1 id="interfacesorigin">
 		<title>Where it came from</title>
 
@@ -4931,7 +4991,7 @@ By the way before looking for <filename>$SYBASE/interfaces</filename> file FreeT
 
 <para>The world we are all familiar with, programmingwise, is <acronym>ASCII</acronym>.
 	Our email (mostly), our <quote>text</quote> files, our web pages (mostly), all use <acronym>ASCII</acronym> to represent English (or English-like) text.
-	Perhaps because <ulink url="http://czyborra.com/charsets/iso646.html"><acronym>ASCII</acronym></ulink> was standardized back in 1972 by the ISO,
+	Perhaps because <ulink url="https://czyborra.com/charsets/iso646.html"><acronym>ASCII</acronym></ulink> was standardized back in 1972 by the ISO,
 	it seems like the <quote>natural</quote> way to store information.
 	But let's look under the hood a little bit, and examine our assumptions.</para>
 
@@ -4947,11 +5007,20 @@ By the way before looking for <filename>$SYBASE/interfaces</filename> file FreeT
 
 <para><acronym>ASCII</acronym> won, it would seem, but the race goes not to the swift.  <acronym>ASCII</acronym> has many limitations, the most egregious of which is, it's not much good for anything besides English.  It encodes all the letters and punctuation (almost) of the English alphabet, but is useless for German, Russian, and Greek, to say nothing of Chinese.</para>
 
-<para><acronym>ASCII</acronym> assigns one byte to every character, but deals with only 7 of the 8 available bits, the range 0-127 (with the <quote>high bit</quote> always zero).  Demand for computers that could display and print languages besides English &mdash; even English with em dashes and cent (&cent;) signs &mdash; arrived soon enough, with the Marketing Department way out in front of the propeller heads.  The predictable result was an array of <quote>8-bit <acronym>ASCII</acronym></quote> encoding standards for a wide variety of alphabets.  Eventually, they were standardized (or at least enumerated and documented) by the ISO.  These are what our friendly database vendors are referring to when they talk about <emphasis>character sets</emphasis>.  More information on this subject can be found at <ulink url="http://www.webreference.com/dlab/books/html/39-1.html">webreference.com</ulink>.			</para>
+<para><acronym>ASCII</acronym> assigns one byte to every character, but deals with only 7 of the 8 available bits,
+the range 0-127 (with the <quote>high bit</quote> always zero).
+Demand for computers that could display and print languages besides English &mdash; even English with em dashes
+and cent (&cent;) signs &mdash; arrived soon enough, with the Marketing Department way out in front of the propeller heads.
+The predictable result was an array of <quote>8-bit <acronym>ASCII</acronym></quote> encoding standards for a wide
+variety of alphabets.
+Eventually, they were standardized (or at least enumerated and documented) by the ISO.
+These are what our friendly database vendors are referring to when they talk about <emphasis>character sets</emphasis>.
+</para>
 
 <para>The upshot is, there is no uniform standard, no agreement on the meaning of a byte, particularly if that byte's value is greater than 127.  Let's say your client machine sends <literal>HELLO</literal> and your database stores it as  <literal>72 69 76 76 79</literal>.  When another client retrieves that value, it will convert it into human-readable form by applying an encoding standard.  If everything's tightly wrapped, it will use the very same encoding that your database used (and the same one you had in mind when you sent it), and that client will also see <literal>HELLO</literal>.  If things are not so tightly wrapped but that client is fortunate enough to be using a similar standard to what you were using, say, ISO 8859-1, he'll still see <literal>HELLO</literal>.  Most languages based on the Roman alphabet can be represented by ISO 8859-1, and are thus interchangeable.  Beyond that, things get quickly messy.  Greek clients, for one, are not so lucky: there are three ISO 8859 standards for Greek, all mutually incompatible.
 			
-			For more information, see <ulink url="http://czyborra.com/charsets/iso8859.html">ISO 8859 Alphabet Soup</ulink>.  Roman Czyborra's site is very informative; take your time there if you don't want your head to spin.</para>
+	For more information, see <ulink url="https://czyborra.com/charsets/iso8859.html">ISO 8859 Alphabet Soup</ulink>.
+	Roman Czyborra's site is very informative; take your time there if you don't want your head to spin.</para>
 
 <para>Database servers need to know what encoding standard to employ, too.  It's not obvious at first, but notions like <quote>uppercase</quote> and <quote>lowercase</quote>, trailing blanks, and collation rules all depend on what letter is meant by what number.  (Collation even depends on what culture is interpreting the letters.)</para>
 		</section>
@@ -5012,18 +5081,20 @@ Microsoft also designed version 7.0 (and up) of the <acronym>TDS</acronym> proto
 		</section>
 	<section id="UnicodeFreeTDS"><title>Unicode and &freetds;</title>
 
-<para>Microsoft servers using TDS 7.0 and above (anything since Microsoft SQL Server 6.5) transmit their data in UCS-2 format (16-bit integers).
-Because most applications linked to &freetds; are not prepared to deal with UCS-2 data, &freetds; can convert the data to something more acceptable, including <acronym>ASCII</acronym>.
+<para>Microsoft servers using TDS 7.0 and above (anything since Microsoft SQL Server 6.5) transmit their data in UTF-16 format (16-bit integers).
+Because most applications linked to &freetds; are not prepared to deal with UTF-16 data, &freetds; can convert the data to something more acceptable, including <acronym>ASCII</acronym>.
 To do so, it employs an  <productname>iconv</productname>  library.
 &freetds; determines the server's encoding from the TDS protocol and information reported by the server (generally per connection, but in the case of TDS 7.1, per result set column).
 It discovers the client's encoding in &freetdsconf;.
 &freetds; will happily convert and convey your data in any <emphasis>single-byte</emphasis> format that <productname>iconv</productname> can provide.
 In practice, this normally means some form of ISO 8859-x or UTF-8.</para>
 
+<para>&freetds; attempts to convert server character sets to and from client-specified character set,
+even for single-byte encodings or Sybase servers regardless if the server encoding is Unicode or not.</para>
+
 <para>At some future time, &freetds; aims to support Unicode and other multi-byte character sets.
 It does not do so at the current time, beside using wide functions in ODBC.</para>
 
-<para>Sybase servers, by the way, adhere to a <quote>server makes right</quote> policy: they transmit their data in whatever character set the client requested at login time.  The list of available character sets is fairly short, but includes UTF-8.  While  &freetds; <emphasis>could</emphasis> convert Sybase data streams as easily as it does Microsoft data streams, to our knowledge no one is doing so.  The Sybase server can perform the conversion itself, making &freetds;'s capability in this regard largely redundant and irrelevant.</para>
 		<section id="moreinfo"><title>For further information</title>
 			<simplelist type="vert" columns="1">
 				<member><ulink url="https://www.cl.cam.ac.uk/~mgk25/unicode.html">UTF-8 and Unicode FAQ for Unix/Linux</ulink>, by Markus Kuhn.
