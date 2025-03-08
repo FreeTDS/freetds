@@ -79,8 +79,3 @@ The code is split into several pieces.
 
 Please look at doc/getting_started.txt for a description of what is
 going on in the code.
-
-Side note: Brian, as many free software authors, appreciates postcards
-from all over. So if you live someplace neat (read: not Michigan) and
-want to send one, email him (brian@bruns.org) for his current snail mail
-address.
