@@ -48,14 +48,14 @@
 
 /* test tds_bcp_fread */
 
-static char buf[4096+80];
-static char buf_out[4096+80];
+static unsigned char buf[4096+80];
+static unsigned char buf_out[4096+80];
 
 static int last_errno = 0;
 
 static TDSRET
 convert(TDSSOCKET *tds, TDSICONV *conv, TDS_ICONV_DIRECTION direction,
-	const char *from, size_t from_len, char *dest, size_t *dest_len)
+	const unsigned char *from, size_t from_len, unsigned char *dest, size_t *dest_len)
 {
 	/* copy to make valgrind test fail on memory problems */
 	char *in = tds_new(char, from_len ? from_len : 1);
@@ -93,7 +93,7 @@ static const char *odd_names[] = {
 };
 
 static int
-add_odd(char *buf, int *pos, enum Odd type)
+add_odd(unsigned char *buf, int *pos, enum Odd type)
 {
 	const unsigned char x = 0xa0;
 
@@ -125,7 +125,7 @@ add_odd(char *buf, int *pos, enum Odd type)
 }
 
 static void
-add_odd2(char *buf, int *pos, enum Odd type)
+add_odd2(unsigned char *buf, int *pos, enum Odd type)
 {
 	const unsigned char x = 0xa0;
 

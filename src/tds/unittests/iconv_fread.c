@@ -33,7 +33,7 @@
 
 /* test tds_bcp_fread */
 
-static char buf[4096+80];
+static unsigned char buf[4096+80];
 
 int
 main(void)
@@ -101,7 +101,7 @@ main(void)
 
 		/* test */
 		memset(buf, 'a', i);
-		buf[i] = (char) x;
+		buf[i] = x;
 		assert(TDS_SUCCEED(res));
 		if (out_len != i+1) {
 			fprintf(stderr, "out %u bytes expected %d\n",
