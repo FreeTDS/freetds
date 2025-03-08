@@ -117,7 +117,5 @@ Files details (not exaustive):
 Misc
 ----
 
-Please send fixes and updates to this document to the mailing list (you can find
+Please send fixes and updates to this document to the project page (you can find
 the link on www.freetds.org).
-I (Brian Bruns) realize it's a little rough right now but I wanted to at least
-put something out.

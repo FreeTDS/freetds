@@ -2,11 +2,11 @@ It's pretty simple, basically:
 
 0) Form a branch in git:
 
-	$ git tag branch-0_xx
-	$ git branch Branch-0_xx
-	$ git push origin branch-0_xx Branch-0_xx
+	$ git tag branch-1_xx
+	$ git branch Branch-1_xx
+	$ git push origin branch-1_xx Branch-1_xx
 
-   Use the form Branch-0_xx, where xx is the release number.
+   Use the form Branch-1_xx, where xx is the release number.
 
 1) Change the version number in configure.ac, user guide and README.md.
 2) Update web pages regarding purpose and status of rc.
