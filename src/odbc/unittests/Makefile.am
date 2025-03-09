@@ -190,7 +190,7 @@ libcommon_a_SOURCES = common.c common.h c2string.c parser.c parser.h \
 	fake_thread.c fake_thread.h
 
 GLOBAL_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC) -DFREETDS_TOPDIR=\"$(top_srcdir)\"
-GLOBAL_LD_ADD =	$(NETWORK_LIBS) $(ODBCINST_LDFLAGS)
+GLOBAL_LD_ADD =	$(NETWORK_LIBS) $(ODBCINST_LDFLAGS) $(LTLIBICONV)
 AM_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
 if ODBC_WIDE_TESTS
 AM_CPPFLAGS	+=	-DUNICODE -D_UNICODE
