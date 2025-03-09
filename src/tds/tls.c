@@ -738,7 +738,7 @@ tds_deinit_openssl_methods(void)
 static tds_mutex *openssl_locks;
 
 static void
-openssl_locking_callback(int mode, int type, const char *file, int line)
+openssl_locking_callback(int mode, int type, const char *file TDS_UNUSED, int line TDS_UNUSED)
 {
 	if (mode & CRYPTO_LOCK)
 		tds_mutex_lock(&openssl_locks[type]);
