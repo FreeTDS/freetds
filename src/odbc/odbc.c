@@ -1404,8 +1404,10 @@ SQLSetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER S
 SQLRETURN ODBC_PUBLIC ODBC_API
 SQLGetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength, SQLINTEGER * StringLength)
 {
+	static const SQLINTEGER unicode_type =
+		sizeof(SQLWCHAR) == 4 ? SQL_DM_CP_UCS4 : SQL_DM_CP_UTF16;
 	size_t size;
-	void *src;
+	const void *src;
 
 	ODBC_ENTER_HENV;
 
@@ -1430,6 +1432,10 @@ SQLGetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER B
 		env->attr.output_nts = SQL_TRUE;
 		src = &env->attr.output_nts;
 		size = sizeof(env->attr.output_nts);
+		break;
+	case SQL_ATTR_DRIVER_UNICODE_TYPE:
+		src = &unicode_type;
+		size = sizeof(unicode_type);
 		break;
 	default:
 		odbc_errs_add(&env->errs, "HY092", NULL);
