@@ -6645,8 +6645,8 @@ ODBC_FUNC(SQLSetConnectAttr, (P(SQLHDBC,hdbc), P(SQLINTEGER,Attribute), P(SQLPOI
 SQLRETURN ODBC_PUBLIC ODBC_API
 SQLSetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLULEN vParam)
 {
-	tdsdump_log(TDS_DBG_FUNC, "SQLSetConnectOption(%p, %d, %u)\n", hdbc, fOption, (unsigned)vParam);
-	/* XXX: Lost precision */
+	tdsdump_log(TDS_DBG_FUNC, "SQLSetConnectOption(%p, %d, %p)\n", hdbc, fOption, (SQLPOINTER) (TDS_INTPTR) vParam);
+
 	return odbc_SQLSetConnectAttr(hdbc, (SQLINTEGER) fOption, (SQLPOINTER) (TDS_INTPTR) vParam, SQL_NTS _wide0);
 }
 
@@ -6654,8 +6654,8 @@ SQLSetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLULEN vParam)
 SQLRETURN ODBC_PUBLIC ODBC_API
 SQLSetConnectOptionW(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLULEN vParam)
 {
-	tdsdump_log(TDS_DBG_FUNC, "SQLSetConnectOptionW(%p, %d, %u)\n", hdbc, fOption, (unsigned)vParam);
-	/* XXX: Lost precision */
+	tdsdump_log(TDS_DBG_FUNC, "SQLSetConnectOptionW(%p, %d, %p)\n", hdbc, fOption, (SQLPOINTER) (TDS_INTPTR) vParam);
+
 	return odbc_SQLSetConnectAttr(hdbc, (SQLINTEGER) fOption, (SQLPOINTER) (TDS_INTPTR) vParam, SQL_NTS, 1);
 }
 #endif
