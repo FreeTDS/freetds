@@ -757,6 +757,21 @@ int odbc_get_wide_canonic(TDSCONNECTION *conn);
 #define BCPHINTS_OLD 6
 #define SQL_COPT_TDSODBC_IMPL_BCP_CONTROL_OLD	(SQL_COPT_TDSODBC_IMPL_BASE+1)
 
+/* iODBC extensions used by our driver */
+#ifndef SQL_ATTR_DRIVER_UNICODE_TYPE
+#define SQL_ATTR_DRIVER_UNICODE_TYPE 1065
+#endif
+
+#ifndef SQL_DM_CP_UTF16
+#define SQL_DM_CP_UTF16 1
+#endif
+#ifndef SQL_DM_CP_UTF8
+#define SQL_DM_CP_UTF8 2
+#endif
+#ifndef SQL_DM_CP_UCS4
+#define SQL_DM_CP_UCS4 3
+#endif
+
 #include <freetds/popvis.h>
 
 #ifdef __cplusplus
