@@ -7917,7 +7917,7 @@ read_params(TDS_STMT *stmt)
 {
 	bool ret = false;
 	TDSSOCKET *tds;
-	TDSPARAMINFO *params;
+	TDSPARAMINFO *params = NULL;
 	bool in_row = false;
 	enum {
 		COL_NAME,
