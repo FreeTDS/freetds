@@ -1434,6 +1434,7 @@ SQLGetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER B
 		size = sizeof(env->attr.output_nts);
 		break;
 	case SQL_ATTR_DRIVER_UNICODE_TYPE:
+		/* iODBC extension, tell which Unicode encoding we support */
 		src = &unicode_type;
 		size = sizeof(unicode_type);
 		break;
