@@ -10,15 +10,20 @@
 
 #ifdef ENABLE_ODBC_WIDE
 #  define WIDE , int wide
-#  define PCHAR(a) ODBC_CHAR* a
+#  define PCHAR(name) ODBC_CHAR* name
 #else
 #  define WIDE
-#  define PCHAR(a) SQLCHAR* a
+#  define PCHAR(name) SQLCHAR* name
 #endif
 
-#define P(a,b) a b
-#define PCHARIN(n,t) PCHAR(sz ## n), P(t, cb ## n)
-#define PCHAROUT(n,t) PCHAR(sz ## n), P(t, cb ## n ## Max), P(t FAR*, pcb ## n)
+/** Generic parameter */
+#define P(type, name) type name
+/** Input character parameter */
+#define PCHARIN(name, len_type) \
+	PCHAR(sz ## name), P(len_type, cb ## name)
+/** Output character parameter */
+#define PCHAROUT(name, len_type) \
+	PCHAR(sz ## name), P(len_type, cb ## name ## Max), P(len_type FAR*, pcb ## name)
 
 #define ODBC_FUNC(name, params) \
 	static SQLRETURN odbc_ ## name params
