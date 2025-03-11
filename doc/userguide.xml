@@ -285,9 +285,9 @@ Please see the <filename>AUTHORS.md</filename> in the distribution for a (we hop
 <para>&freetds; uses <acronym>GNU</acronym> <application>Autoconf</application>, <application>Automake</application>, and <application>libtool</application><footnote>
 		<itemizedlist spacing="compact">
 			<title>Versions used for this release</title>
-			<listitem><para>autoconf (GNU Autoconf) 2.71</para></listitem>
-			<listitem><para>automake (GNU automake) 1.16.1</para></listitem>
-			<listitem><para>ltmain.sh (GNU libtool) 2.4.7</para></listitem>
+			<listitem><para>autoconf (GNU Autoconf) 2.72</para></listitem>
+			<listitem><para>automake (GNU automake) 1.17</para></listitem>
+			<listitem><para>ltmain.sh (GNU libtool) 2.5.4</para></listitem>
 			</itemizedlist>
 	</footnote> to increase portability.</para>
 
