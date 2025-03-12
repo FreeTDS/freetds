@@ -167,7 +167,7 @@ smp_to_string(smp a)
 
 	*--p = 0;
 	do
-		*--p = div_small(&n, 10) + '0';
+		*--p = (char) div_small(&n, 10) + '0';
 	while (!smp_is_zero(n));
 	if (negative)
 		*--p = '-';

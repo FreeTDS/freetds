@@ -260,7 +260,7 @@ static const char pbox[32] = {
 /* Lookup tables initialized once only at startup by des_init() */
 
 /* bit 0 is left-most in byte */
-static const int bytebit[] = {
+static const uint8_t bytebit[] = {
 	0200, 0100, 040, 020, 010, 04, 02, 01
 };
 

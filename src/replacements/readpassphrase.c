@@ -169,9 +169,9 @@ restart:
 				ch &= 0x7f;
 			if (isalpha((unsigned char) ch)) {
 				if ((flags & RPP_FORCELOWER))
-					ch = tolower((unsigned char) ch);
+					ch = (char) tolower((unsigned char) ch);
 				if ((flags & RPP_FORCEUPPER))
-					ch = toupper((unsigned char) ch);
+					ch = (char) toupper((unsigned char) ch);
 			}
 			*p++ = ch;
 		}

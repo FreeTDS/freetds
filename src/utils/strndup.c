@@ -51,18 +51,20 @@ tds_strndup(const void *s, TDS_INTPTR len)
 {
 	char *out;
 	const char *end;
+	TDS_UINTPTR ulen;
 
 	if (len < 0)
 		return NULL;
 
-	end = (const char *) memchr(s, '\0', len);
+	ulen = (TDS_UINTPTR) len;
+	end = (const char *) memchr(s, '\0', ulen);
 	if (end)
-		len = end - (const char *) s;
+		ulen = (size_t) (end - (const char *) s);
 
-	out = tds_new(char, len + 1);
+	out = tds_new(char, ulen + 1);
 	if (out) {
-		memcpy(out, s, len);
-		out[len] = 0;
+		memcpy(out, s, ulen);
+		out[ulen] = 0;
 	}
 	return out;
 }
