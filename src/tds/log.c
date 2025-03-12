@@ -229,7 +229,7 @@ tdsdump_start(FILE *file, const char *fname, int line)
 
 	/* write always time before log */
 	if (tds_debug_flags & TDS_DBGFLAG_TIME) {
-		fputs(tds_timestamp_str(buf, 127), file);
+		fputs(tds_timestamp_str(buf, sizeof(buf) - 1), file);
 		started = 1;
 	}
 
