@@ -38,7 +38,7 @@ void tds_sleep_ms(unsigned ms);
 
 char *tds_getpassarg(char *arg);
 
-char *tds_timestamp_str(char *str, int maxlen);
+char *tds_timestamp_str(char *str, size_t maxlen);
 struct tm *tds_localtime_r(const time_t *timep, struct tm *result);
 int tds_getservice(const char *name);
 

@@ -100,7 +100,7 @@ tds_localtime_r(const time_t *timep, struct tm *result)
 }
 
 char *
-tds_timestamp_str(char *str, int maxlen)
+tds_timestamp_str(char *str, size_t maxlen)
 {
 #if !defined(_WIN32) && !defined(_WIN64)
 	struct tm *tm;
