@@ -11,21 +11,12 @@ It's pretty simple, basically:
 1) Change the version number in configure.ac, user guide and README.md.
 2) Update web pages regarding purpose and status of rc.
 3) Put out a release candidates until everyone's happy.
-   jkl has a "make dist" script on /etc/nightly.freetds that works well.
-4) ftp tarball to
-	ftp://login.ibiblio.org/pub/linux/ALPHA/freetds/current
-5) ftp user guide to www.freetds.org/userguide/.
+4) upload tarball to
+	ftp://ftp.freetds.org/pub/freetds/
+5) upload user guide to www.freetds.org/userguide/.
    repeat 3-4 as necessary.
-6) Log into ibiblio.  Trim rc# from tarball.  Update web site.
-7) Create rpm with 'rpmbuild -ta freetds-0.61.tar.gz', post these as well.
-
-Announcements to:
-
-	freshmeat.net
-	comp.os.linux.announce
-	comp.databases.sybase
-	comp.databases.ms-sqlserver
-	linuxpr.com
+6) Trim rc# from tarball.  Update web site.
+7) Create rpm with 'rpmbuild -ta freetds-0.XX.tar.gz', post these as well.
 
 
 We received this bit of advice on the mailing list on
