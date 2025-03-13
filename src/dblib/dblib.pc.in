@@ -1,0 +1,21 @@
+# 
+#  pkg_config.pc.in
+#
+#  pkg_config configuration file 
+#  For a detailed description of options, please visit
+#  Dan Nicholson’s Guide to pkg-config (https://www.freedesktop.org/wiki/Software/pkg-config/)
+#
+
+prefix="@prefix@"
+includedir=${prefix}/include
+libdir=${prefix}/lib/
+
+Name: DB-library
+Version: @version@
+Description: A free implementation of TDS protocol
+URL: https://github.com/FreeTDS/freetds
+Requires: 
+Requires.private: libssl, libcrypto, iconv
+Cflags: -I${includedir}/freetds
+Libs: -L${libdir} -lsybdb
+Libs.private: @libs_private@
