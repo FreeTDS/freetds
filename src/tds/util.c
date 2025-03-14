@@ -236,7 +236,7 @@ tds_gettime_ms(void)
 typedef struct tds_error_message
 {
 	TDSERRNO msgno;
-	int severity;
+	TDS_TINYINT severity;
 	const char *msgtext;
 } TDS_ERROR_MESSAGE;
 

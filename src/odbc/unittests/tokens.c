@@ -221,7 +221,7 @@ read_line(void *param, char *s, size_t size)
 		return NULL;
 	end = strchr(start, '\n');
 	end = end ? end + 1 : strchr(start, 0);
-	len = end - start;
+	len = (size_t) (end - start);
 	if (len >= size) {
 		fprintf(stderr, "Line too long\n");
 		exit(1);

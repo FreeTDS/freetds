@@ -1480,7 +1480,7 @@ int tds_put_smallint(TDSSOCKET * tds, TDS_SMALLINT si);
 #define tds_put_tinyint(tds, ti) tds_put_byte(tds,ti)
 int tds_put_byte(TDSSOCKET * tds, unsigned char c);
 TDSRET tds_flush_packet(TDSSOCKET * tds);
-int tds_put_buf(TDSSOCKET * tds, const unsigned char *buf, int dsize, int ssize);
+void tds_put_buf(TDSSOCKET * tds, const unsigned char *buf, size_t dsize, size_t ssize);
 
 
 /* read.c */
@@ -1653,7 +1653,7 @@ void tds_random_buffer(unsigned char *out, int len);
 /* sec_negotiate.c */
 TDSAUTHENTICATION * tds5_negotiate_get_auth(TDSSOCKET * tds);
 inline static void
-tds5_negotiate_set_msg_type(TDSAUTHENTICATION * tds_auth, unsigned msg_type)
+tds5_negotiate_set_msg_type(TDSAUTHENTICATION * tds_auth, uint16_t msg_type)
 {
 	if (tds_auth)
 		tds_auth->msg_type = msg_type;

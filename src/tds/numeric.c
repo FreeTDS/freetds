@@ -74,10 +74,10 @@ tds_money_to_string(const TDS_MONEY * money, char *s, bool use_2_digits)
 	p = s;
 	if (mymoney < 0) {
 		*p++ = '-';
-		/* we use unsigned cause this cause arithmetic problem for -2^63*/
-		n = -mymoney;
+		/* we use unsigned because this causes arithmetic problem for -2^63*/
+		n = (TDS_UINT8) -mymoney;
 	} else {
-		n = mymoney;
+		n = (TDS_UINT8) mymoney;
 	}
 	/* if machine is 64 bit you do not need to split n */
 	if (use_2_digits) {

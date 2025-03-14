@@ -249,7 +249,7 @@ tds_get_n(TDSSOCKET * tds, void *dest, size_t need)
 		if (dest != NULL) {
 			memcpy((char *) dest, tds->in_buf + tds->in_pos, need);
 		}
-		tds->in_pos += need;
+		tds->in_pos += (unsigned) need;
 	}
 	return true;
 }

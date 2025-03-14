@@ -140,18 +140,19 @@ read_file(const char *fn)
 {
 	long pos;
 	char *buf;
-	size_t readed;
+	size_t readed, size;
 
 	FILE *f = fopen(fn, "r");
 	assert(f);
 	assert(fseek(f, 0, SEEK_END) == 0);
 	pos = ftell(f);
-	assert(pos >= 0);
+	assert(pos >= 0 && pos <= 0x1000000);
+	size = (size_t) pos;
 	assert(fseek(f, 0, SEEK_SET) == 0);
-	buf = malloc(pos + 10); /* allocate some more space */
+	buf = malloc(size + 10); /* allocate some more space */
 	assert(buf);
-	readed = fread(buf, 1, pos+1, f);
-	assert(readed <= pos);
+	readed = fread(buf, 1, size + 1ul, f);
+	assert(readed <= size);
 	assert(feof(f));
 	fclose(f);
 	buf[readed] = 0;

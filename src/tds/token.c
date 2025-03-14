@@ -88,7 +88,7 @@ static TDSRET tds_process_params_result_token(TDSSOCKET * tds);
 static TDSRET tds_process_dyn_result(TDSSOCKET * tds);
 static TDSRET tds5_process_result2(TDSSOCKET * tds);
 static TDSRET tds5_process_dyn_result2(TDSSOCKET * tds);
-static TDSRET tds_process_default_tokens(TDSSOCKET * tds, int marker);
+static TDSRET tds_process_default_tokens(TDSSOCKET * tds, uint8_t marker);
 static TDSRET tds5_process_optioncmd(TDSSOCKET * tds);
 static TDSRET tds_process_end(TDSSOCKET * tds, int marker, /*@out@*/ int *flags_parm);
 
@@ -119,9 +119,9 @@ static int tds_alloc_get_string(TDSSOCKET * tds, /*@special@*/ char **string, si
  * @param marker Token type
  */
 static TDSRET
-tds_process_default_tokens(TDSSOCKET * tds, int marker)
+tds_process_default_tokens(TDSSOCKET * tds, uint8_t marker)
 {
-	int tok_size;
+	unsigned int tok_size;
 	int done_flags;
 	TDS_INT ret_status;
 	TDS_CAPABILITY_TYPE *cap;
@@ -416,7 +416,7 @@ TDSRET
 tds_process_login_tokens(TDSSOCKET * tds)
 {
 	TDSRET succeed = TDS_FAIL;
-	int marker;
+	uint8_t marker;
 
 	CHECK_TDS_EXTRA(tds);
 
@@ -535,7 +535,7 @@ tds_process_auth(TDSSOCKET * tds)
 TDSRET
 tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsigned flag)
 {
-	int marker;
+	uint8_t marker;
 	TDSPARAMINFO *pinfo = NULL;
 	TDSCOLUMN   *curcol;
 	TDSRET rc;
@@ -1075,7 +1075,7 @@ tds_process_col_fmt(TDSSOCKET * tds)
 		if (TDS_IS_MSSQL(tds)) {
 			curcol->column_usertype = tds_get_smallint(tds);
 			flags = tds_get_usmallint(tds);
-			curcol->column_nullable = flags & 0x01;
+			curcol->column_nullable = (flags & 0x01) > 0;
 			curcol->column_writeable = (flags & 0x08) > 0;
 			curcol->column_identity = (flags & 0x10) > 0;
 		} else {
@@ -2462,7 +2462,7 @@ tds_process_info(TDSSOCKET * tds, int marker)
 
 	/* In case extended error data is sent, we just try to discard it */
 	if (has_eed == 1) {
-		int next_marker;
+		uint8_t next_marker;
 		for (;;) {
 			switch (next_marker = tds_get_byte(tds)) {
 			case TDS5_PARAMFMT_TOKEN:

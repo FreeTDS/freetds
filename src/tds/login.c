@@ -441,7 +441,7 @@ tds_setup_connection(TDSSOCKET *tds, TDSLOGIN *login, bool set_db, bool single_q
 {
 	TDSRET erc;
 	char *str;
-	int len;
+	size_t len;
 	const char *const product_name = (tds->conn->product_name != NULL ? tds->conn->product_name : "");
 	const bool is_sql_anywhere = (strcasecmp(product_name, "SQL Anywhere") == 0);
 	const bool is_openserver = (strcasecmp(product_name, "OpenServer") == 0);
@@ -781,9 +781,9 @@ tds_connect_and_login(TDSSOCKET * tds, TDSLOGIN * login)
 }
 
 static void
-tds_put_login_string(TDSSOCKET * tds, const char *buf, int n)
+tds_put_login_string(TDSSOCKET * tds, const char *buf, size_t n)
 {
-	const int buf_len = buf ? (int)strlen(buf) : 0;
+	const size_t buf_len = buf ? strlen(buf) : 0;
 	tds_put_buf(tds, (const unsigned char *) buf, n, buf_len);
 }
 
@@ -818,7 +818,6 @@ tds_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	unsigned char sec_flags = 0;
 	bool use_kerberos = false;
 
-	int len;
 	char blockstr[16];
 
 	TDS_TINYINT encryption_level = login->encryption_level;
@@ -905,14 +904,14 @@ tds_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	} else if (encryption_level != TDS_ENCRYPTION_OFF) {
 		tds_put_n(tds, NULL, 256);
 	} else {
-		len = (int)tds_dstr_len(&login->password);
+		size_t len = tds_dstr_len(&login->password);
 		if (len > 253)
 			len = 0;
 		tds_put_byte(tds, 0);
-		tds_put_byte(tds, len);
+		TDS_PUT_BYTE(tds, len);
 		tds_put_n(tds, tds_dstr_cstr(&login->password), len);
 		tds_put_n(tds, NULL, 253 - len);
-		tds_put_byte(tds, len + 2);
+		TDS_PUT_BYTE(tds, len + 2);
 	}
 
 	tds_put_n(tds, protocol_version, 4);	/* TDS version; { 0x04,0x02,0x00,0x00 } */
@@ -1042,7 +1041,7 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	};
 	struct {
 		const void *ptr;
-		unsigned pos, len, limit;
+		size_t pos, len, limit;
 	} data_fields[NUM_DATA_FIELDS], *field;
 
 	tds->out_flag = TDS7_LOGIN;
@@ -1452,7 +1451,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 		if (IS_TDS72_PLUS(tds->conn) && type == 4 && len >= 1) {
 			mars_replied = true;
 #if ENABLE_ODBC_MARS
-			login->mars = p[off];
+			login->mars = !!p[off];
 #endif
 		}
 	}
