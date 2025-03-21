@@ -209,11 +209,6 @@
 static const TDSCOLUMNFUNCS *tds_get_column_funcs(TDSCONNECTION *conn, int type);
 static void tds_swap_numeric(TDS_NUMERIC *num);
 
-#undef MIN
-#define MIN(a,b) (((a) < (b)) ? (a) : (b))
-#undef MAX
-#define MAX(a,b) (((a) > (b)) ? (a) : (b))
-
 /**
  * Set type of column initializing all dependency.
  * column_usertype should already be set.
@@ -791,7 +786,7 @@ tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			return TDS_SUCCESS;
 		}
 
-		allocated = MAX(curcol->column_cur_size, 0);
+		allocated = TDS_MAX(curcol->column_cur_size, 0);
 		if (colsize > allocated) {
 			TDS_ZERO_FREE(blob->textvalue);
 			allocated = colsize;
@@ -989,7 +984,7 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 	}
 
 	/*
-	 * TODO here we limit data sent with MIN, should mark somewhere
+	 * TODO here we limit data sent with TDS_MIN, should mark somewhere
 	 * and inform client ??
 	 * Test proprietary behavior
 	 */
@@ -1006,7 +1001,7 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 			tds_put_int(tds, colsize);
 			break;
 		case 4:	/* It's a BLOB... */
-			colsize = MIN(colsize, size);
+			colsize = TDS_MIN(colsize, size);
 			/* mssql require only size */
 			if (bcp7 && is_blob_type(curcol->on_server.column_type)) {
 				static const unsigned char textptr[] = {
@@ -1020,11 +1015,11 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 			TDS_PUT_INT(tds, colsize);
 			break;
 		case 2:
-			colsize = MIN(colsize, size);
+			colsize = TDS_MIN(colsize, size);
 			TDS_PUT_SMALLINT(tds, colsize);
 			break;
 		case 1:
-			colsize = MIN(colsize, size);
+			colsize = TDS_MIN(colsize, size);
 			TDS_PUT_BYTE(tds, colsize);
 			break;
 		case 0:
@@ -1062,18 +1057,18 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 		/* put size of data */
 		switch (curcol->column_varint_size) {
 		case 5:	/* It's a LONGBINARY */
-			colsize = MIN(colsize, 0x7fffffff);
+			colsize = TDS_MIN(colsize, 0x7fffffff);
 			TDS_PUT_INT(tds, colsize);
 			break;
 		case 4:	/* It's a BLOB... */
 			tds_put_byte(tds, 16);
 			tds_put_n(tds, blob->textptr, 16);
 			tds_put_n(tds, blob->timestamp, 8);
-			colsize = MIN(colsize, 0x7fffffff);
+			colsize = TDS_MIN(colsize, 0x7fffffff);
 			TDS_PUT_INT(tds, colsize);
 			break;
 		case 2:
-			colsize = MIN(colsize, 8000);
+			colsize = TDS_MIN(colsize, 8000);
 			TDS_PUT_SMALLINT(tds, colsize);
 			break;
 		case 1:
@@ -1087,7 +1082,7 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 					tds_convert_string_free((char*)src, s);
 				return TDS_SUCCESS;
 			}
-			colsize = MIN(colsize, 255);
+			colsize = TDS_MIN(colsize, 255);
 			TDS_PUT_BYTE(tds, colsize);
 			break;
 		case 0:

@@ -48,7 +48,7 @@
 static void
 eat_iconv_left(TDSCOLUMN * curcol, char **pbuf, size_t *plen)
 {
-	unsigned cp = (unsigned) ODBC_MIN(*plen, curcol->column_iconv_left);
+	unsigned cp = (unsigned) TDS_MIN(*plen, curcol->column_iconv_left);
 	memcpy(*pbuf, curcol->column_iconv_buf, cp);
 	if (cp < curcol->column_iconv_left)
 		memmove(curcol->column_iconv_buf, curcol->column_iconv_buf + cp, curcol->column_iconv_left - cp);
@@ -240,7 +240,7 @@ odbc_convert_datetime_to_binary(TDSCOLUMN *curcol, int srctype, TDS_DATETIMEALL 
 	if (destlen == 0)
 		return len;
 
-	cplen = ODBC_MIN((TDS_INT) destlen, len);
+	cplen = TDS_MIN((TDS_INT) destlen, len);
 	memcpy(dest, buf, cplen);
 	if (curcol)
 		curcol->column_text_sqlgetdatapos += cplen;
@@ -267,7 +267,7 @@ odbc_convert_to_binary(TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TDS_UINT 
 
 	/* if destlen == 0 we return only length */
 	if (destlen > 0) {
-		size_t cplen = ODBC_MIN(destlen, srclen);
+		size_t cplen = TDS_MIN(destlen, srclen);
 		/* do not NUL terminate binary buffer */
 		memcpy(dest, src, cplen);
 		if (curcol)
@@ -416,7 +416,7 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 		}
 
 		nRetVal = (TDS_INT) strlen(buf);
-		memcpy(dest, buf, ODBC_MIN(destlen, (SQLULEN) nRetVal));
+		memcpy(dest, buf, TDS_MIN(destlen, (SQLULEN) nRetVal));
 	} else {
 normal_conversion:
 		nRetVal = tds_convert(context, srctype, src, srclen, nDestSybType, &ores);
@@ -434,7 +434,7 @@ normal_conversion:
 		ret = nRetVal;
 		/* TODO handle not terminated configuration */
 		if (destlen > 0) {
-			cplen = ODBC_MIN(destlen - 1, (SQLULEN) nRetVal);
+			cplen = TDS_MIN(destlen - 1, (SQLULEN) nRetVal);
 			assert(cplen >= 0);
 			/*
 			 * odbc always terminate but do not overwrite 
@@ -458,7 +458,7 @@ normal_conversion:
 			SQLWCHAR *wp = (SQLWCHAR *) dest;
 			SQLCHAR  *p  = (SQLCHAR *)  dest;
 
-			cplen = ODBC_MIN(destlen - 1, (SQLULEN) nRetVal);
+			cplen = TDS_MIN(destlen - 1, (SQLULEN) nRetVal);
 			assert(cplen >= 0);
 			/*
 			 * odbc always terminate but do not overwrite 
@@ -594,7 +594,7 @@ normal_conversion:
 			 * seeing Sybase manual wire support bigger numeric but currently
 			 * DBs so not support such precision
 			 */
-			i = ODBC_MIN(tds_numeric_bytes_per_prec[ores.n.precision] - 1, SQL_MAX_NUMERIC_LEN);
+			i = TDS_MIN(tds_numeric_bytes_per_prec[ores.n.precision] - 1, SQL_MAX_NUMERIC_LEN);
 			memcpy(num->val, ores.n.array + 1, i);
 			tds_swap_bytes(num->val, i);
 			if (i < SQL_MAX_NUMERIC_LEN)

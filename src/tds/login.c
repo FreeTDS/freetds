@@ -60,9 +60,6 @@ static TDSRET tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login);
 static void tds7_crypt_pass(const unsigned char *clear_pass,
 			    size_t len, unsigned char *crypt_pass);
 
-#undef MIN
-#define MIN(a,b) (((a) < (b)) ? (a) : (b))
-
 void
 tds_set_version(TDSLOGIN * tds_login, TDS_TINYINT major_ver, TDS_TINYINT minor_ver)
 {
@@ -1133,7 +1130,7 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 			field->len = 4;
 			continue;
 		}
-		data_stream.size = MIN(data_stream.size, data_pos + field->limit);
+		data_stream.size = TDS_MIN(data_stream.size, data_pos + field->limit);
 		data_stream.stream.write(&data_stream.stream, 0);
 		field->len = data_stream.size - data_pos;
 	}
@@ -1254,7 +1251,7 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 
 	/* authentication stuff */
 	TDS_PUT_SMALLINT(tds, current_pos + data_stream.size);
-	TDS_PUT_SMALLINT(tds, MIN(auth_len, 0xffffu));
+	TDS_PUT_SMALLINT(tds, TDS_MIN(auth_len, 0xffffu));
 
 	/* db file */
 	PUT_STRING_FIELD_PTR(DB_FILENAME);

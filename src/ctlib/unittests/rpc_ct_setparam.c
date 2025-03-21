@@ -1,7 +1,6 @@
 #include "common.h"
 
-#define MAX(X,Y)      (((X) > (Y)) ? (X) : (Y))
-#define MIN(X,Y)      (((X) < (Y)) ? (X) : (Y))
+#include <freetds/macros.h>
 
 static CS_RETCODE ex_display_header(CS_INT numcols, CS_DATAFMT columns[]);
 static CS_INT ex_display_dlen(CS_DATAFMT *column);
@@ -512,12 +511,12 @@ CS_INT len;
 	case CS_VARCHAR_TYPE:
 	case CS_TEXT_TYPE:
 	case CS_IMAGE_TYPE:
-		len = MIN(column->maxlength, 1024);
+		len = TDS_MIN(column->maxlength, 1024);
 		break;
 
 	case CS_BINARY_TYPE:
 	case CS_VARBINARY_TYPE:
-		len = MIN((2 * column->maxlength) + 2, 1024);
+		len = TDS_MIN((2 * column->maxlength) + 2, 1024);
 		break;
 
 	case CS_BIT_TYPE:
@@ -558,7 +557,7 @@ CS_INT len;
 		break;
 	}
 
-	return MAX((CS_INT) (strlen(column->name) + 1), len);
+	return TDS_MAX((CS_INT) (strlen(column->name) + 1), len);
 }
 
 static CS_RETCODE

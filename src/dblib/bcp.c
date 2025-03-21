@@ -55,13 +55,6 @@
 #define HOST_COL_CONV_ERROR 1
 #define HOST_COL_NULL_ERROR 2
 
-#ifndef MAX
-#define MAX(a,b) ( (a) > (b) ? (a) : (b) )
-#endif
-#ifndef MIN
-#define MIN(a,b) ( (a) < (b) ? (a) : (b) )
-#endif
-
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
 #elif defined(_WIN32) || defined(_WIN64)
@@ -958,7 +951,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 
 		/* skip rows outside of the firstrow/lastrow range, if specified */
 		if (dbproc->hostfileinfo->firstrow > row_of_query ||
-						      row_of_query > MAX(dbproc->hostfileinfo->lastrow, 0x7FFFFFFF))
+						      row_of_query > TDS_MAX(dbproc->hostfileinfo->lastrow, 0x7FFFFFFF))
 			continue;
 
 		/* Go through the hostfile columns, finding those that relate to database columns. */
@@ -1481,7 +1474,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 
 		row_of_hostfile++;
 
-		if (row_of_hostfile > MAX(dbproc->hostfileinfo->lastrow, 0x7FFFFFFF))
+		if (row_of_hostfile > TDS_MAX(dbproc->hostfileinfo->lastrow, 0x7FFFFFFF))
 			break;
 
 		skip = dbproc->hostfileinfo->firstrow > row_of_hostfile;
@@ -1530,7 +1523,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 				fseeko(hostfile, row_start, SEEK_SET);
 
 				while (error_row_size > 0) {
-					size_t chunk = MIN((size_t) error_row_size, chunk_size);
+					size_t chunk = TDS_MIN((size_t) error_row_size, chunk_size);
 
 					if (!row_in_error) {
 						if ((row_in_error = tds_new(char, chunk)) == NULL) {

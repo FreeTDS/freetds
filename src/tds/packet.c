@@ -46,9 +46,6 @@
 #include <freetds/checks.h>
 #include <freetds/tls.h>
 
-#undef MAX
-#define MAX(a,b) (((a) > (b)) ? (a) : (b))
-
 /**
  * \addtogroup network
  * @{ 
@@ -135,7 +132,8 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 
 	/* allocate some space to read data */
 	if (!packet) {
-		conn->recv_packet = packet = tds_get_packet(conn, MAX(conn->env.block_size + sizeof(TDS72_SMP_HEADER), 512));
+		conn->recv_packet = packet =
+			tds_get_packet(conn, TDS_MAX(conn->env.block_size + sizeof(TDS72_SMP_HEADER), 512));
 		if (!packet) goto Memory_Error;
 		TDS_MARK_UNDEFINED(packet->buf, packet->capacity);
 		conn->recv_pos = 0;

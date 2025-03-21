@@ -3506,7 +3506,7 @@ odbc_SQLExecute(TDS_STMT * stmt)
 	}
 
 	stmt->curr_param_row = 0;
-	stmt->num_param_rows = ODBC_MAX(1, stmt->apd->header.sql_desc_array_size);
+	stmt->num_param_rows = TDS_MAX(1, stmt->apd->header.sql_desc_array_size);
 
 	stmt->row_count = TDS_NO_COUNT;
 
@@ -3731,7 +3731,7 @@ odbc_SQLExecute(TDS_STMT * stmt)
 		stmt->row_count = TDS_NO_COUNT;
 	}
 	if (stmt->ipd->header.sql_desc_rows_processed_ptr)
-		*stmt->ipd->header.sql_desc_rows_processed_ptr = ODBC_MIN(stmt->curr_param_row, stmt->num_param_rows);
+		*stmt->ipd->header.sql_desc_rows_processed_ptr = TDS_MIN(stmt->curr_param_row, stmt->num_param_rows);
 
 	if (total_rows != TDS_NO_COUNT)
 		stmt->row_count = total_rows;
@@ -3845,10 +3845,10 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 
 		switch (result_type) {
 		case TDS_STATUS_RESULT:
-			odbc_set_return_status(stmt, ODBC_MIN(stmt->curr_param_row, stmt->num_param_rows - 1));
+			odbc_set_return_status(stmt, TDS_MIN(stmt->curr_param_row, stmt->num_param_rows - 1));
 			break;
 		case TDS_PARAM_RESULT:
-			odbc_set_return_params(stmt, ODBC_MIN(stmt->curr_param_row, stmt->num_param_rows - 1));
+			odbc_set_return_params(stmt, TDS_MIN(stmt->curr_param_row, stmt->num_param_rows - 1));
 			break;
 
 		case TDS_DONE_RESULT:

@@ -62,11 +62,6 @@ static int tds_count_placeholders_ucs2le(const char *query, const char *query_en
 #define TDS_PUT_DATA_PREFIX_NAME 2
 #define TDS_PUT_DATA_LONG_STATUS 4
 
-#undef MIN
-#define MIN(a,b) (((a) < (b)) ? (a) : (b))
-#undef MAX
-#define MAX(a,b) (((a) > (b)) ? (a) : (b))
-
 /* All manner of client to server submittal functions */
 
 /**
@@ -935,7 +930,7 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 
 	if (fmt) {
 		/* fill out */
-		sprintf(out, fmt, size > 0 ? MIN(size, max_len) : 1u);
+		sprintf(out, fmt, size > 0 ? TDS_MIN(size, max_len) : 1u);
 		return TDS_SUCCESS;
 	}
 
@@ -1554,7 +1549,7 @@ tds_fix_column_size(TDSSOCKET * tds TDS_UNUSED, TDSCOLUMN * curcol)
 
 	switch (curcol->column_varint_size) {
 	case 1:
-		size = MAX(MIN(size, 255), 1);
+		size = TDS_CLAMP(size, 1, 255);
 		break;
 	case 2:
 		/* note that varchar(max)/varbinary(max) have a varint of 8 */
@@ -1562,7 +1557,7 @@ tds_fix_column_size(TDSSOCKET * tds TDS_UNUSED, TDSCOLUMN * curcol)
 			min = 2;
 		else
 			min = 1;
-		size = MAX(MIN(size, 8000u), min);
+		size = TDS_CLAMP(size, min, 8000u);
 		break;
 	case 4:
 		if (curcol->on_server.column_type == SYBNTEXT)

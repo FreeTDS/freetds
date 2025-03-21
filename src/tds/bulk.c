@@ -47,12 +47,6 @@
 #include <freetds/utils/string.h>
 #include <freetds/replacements.h>
 
-/** \cond HIDDEN_SYMBOLS */
-#ifndef MAX
-#define MAX(a,b) ( (a) > (b) ? (a) : (b) )
-#endif
-/** \endcond */
-
 /**
  * Holds clause buffer
  */
@@ -169,7 +163,7 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 			((TDS_NUMERIC *) curcol->bcp_column_data->data)->scale = curcol->column_scale;
 		} else {
 			curcol->bcp_column_data = 
-				tds_alloc_bcp_column_data(MAX(curcol->column_size,curcol->on_server.column_size));
+				tds_alloc_bcp_column_data(TDS_MAX(curcol->column_size,curcol->on_server.column_size));
 		}
 		if (!curcol->bcp_column_data)
 			goto cleanup;

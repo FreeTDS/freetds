@@ -88,10 +88,6 @@ extern "C"
 #  define ODBC_PUBLIC
 #endif
 
-#define ODBC_MAX(a,b) ( (a) > (b) ? (a) : (b) )
-#define ODBC_MIN(a,b) ( (a) < (b) ? (a) : (b) )
-#define ODBC_CLAMP(x,a,b) ( (x) < (a) ? (a) : (x) > (b) ? (b) : (x) )
-
 struct _sql_error
 {
 	const char *msg;
