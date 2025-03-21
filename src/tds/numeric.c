@@ -130,8 +130,10 @@ tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s)
 		*--pnum = TDS_GET_UA2BE(&number[n - 1]);
 	if (n == 1)
 		*--pnum = number[n];
+	/* remove leading zeroes */
 	while (!*pnum) {
 		++pnum;
+		/* we consumed all numbers, it's a zero */
 		if (pnum == packet_end) {
 			*s++ = '0';
 			if (numeric->scale) {
