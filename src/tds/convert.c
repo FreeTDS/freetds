@@ -180,7 +180,7 @@ string_to_result(int desttype, const char *s, CONV_RESULT * cr)
 		test_alloc(cr->c);
 		memcpy(cr->c, s, len + 1);
 	} else {
-		memcpy(cr->cc.c, s, len < cr->cc.len ? len : cr->cc.len);
+		memcpy(cr->cc.c, s, TDS_MIN(len, cr->cc.len));
 	}
 	return (TDS_INT)len;
 }
@@ -196,7 +196,7 @@ binary_to_result(int desttype, const void *data, size_t len, CONV_RESULT * cr)
 		test_alloc(cr->ib);
 		memcpy(cr->ib, data, len);
 	} else {
-		memcpy(cr->cb.ib, data, len < cr->cb.len ? len : cr->cb.len);
+		memcpy(cr->cb.ib, data, TDS_MIN(len, cr->cb.len));
 	}
 	return (TDS_INT)len;
 }
@@ -359,7 +359,7 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 
 	switch (desttype) {
 	case TDS_CONVERT_CHAR:
-		memcpy(cr->cc.c, src, srclen < cr->cc.len ? srclen : cr->cc.len);
+		memcpy(cr->cc.c, src, TDS_MIN(srclen, cr->cc.len));
 		return srclen;
 
 	case CASE_ALL_CHAR:

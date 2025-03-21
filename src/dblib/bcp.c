@@ -978,7 +978,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 
 			/* The data */
 			if (hostcol->column_len != -1) {
-				buflen = buflen > hostcol->column_len ? hostcol->column_len : buflen;
+				buflen = TDS_MIN(buflen, hostcol->column_len);
 			}
 
 			if (buflen > 0) {
@@ -1226,7 +1226,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool sk
 			if (hostcol->column_len == 0)
 				data_is_null = true;
 			else if (collen)
-				collen = (hostcol->column_len < collen) ? hostcol->column_len : collen;
+				collen = TDS_MIN(hostcol->column_len, collen);
 			else
 				collen = hostcol->column_len;
 		}
@@ -2227,7 +2227,7 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset TDS_UNUSED
 		if (bindcol->column_bindlen == 0)
 			goto null_data;
 		if (collen)
-			collen = (bindcol->column_bindlen < collen) ? bindcol->column_bindlen : collen;
+			collen = TDS_MIN(bindcol->column_bindlen, collen);
 		else
 			collen = bindcol->column_bindlen;
 	}

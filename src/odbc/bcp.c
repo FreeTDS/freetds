@@ -512,7 +512,7 @@ _tdsodbc_dbconvert(TDS_DBC *dbc, int srctype, const TDS_CHAR * src, SQLLEN src_l
 	case SYBBINARY:
 	case SYBVARBINARY:
 	case SYBIMAGE:
-		ret = destlen < len ? destlen : len;
+		ret = TDS_MIN(destlen, len);
 		memcpy(dest, dres.ib, ret);
 		free(dres.ib);
 		break;
@@ -632,7 +632,7 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset TDS_UNUSED
 		bytes_read = _bcp_get_term_var(dataptr, bindcol->bcp_terminator, bindcol->bcp_term_len);
 
 		if (col_len != SQL_NULL_DATA)
-			col_len = (bytes_read < col_len) ? bytes_read : col_len;
+			col_len = TDS_MIN(bytes_read, col_len);
 		else
 			col_len = bytes_read;
 	}

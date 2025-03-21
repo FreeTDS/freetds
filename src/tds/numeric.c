@@ -363,7 +363,7 @@ tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, uns
 		/* multiply */
 		do {
 			/* multiply by at maximun TDS_WORD_DDIGIT */
-			unsigned int n = scale_diff > TDS_WORD_DDIGIT ? TDS_WORD_DDIGIT : scale_diff;
+			unsigned int n = TDS_MIN(scale_diff, TDS_WORD_DDIGIT);
 			TDS_WORD factor = factors[n];
 			TDS_WORD carry = 0;
 			scale_diff -= n; 
@@ -385,7 +385,7 @@ tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, uns
 		/* divide */
 		scale_diff = -scale_diff;
 		do {
-			unsigned int n = scale_diff > TDS_WORD_DDIGIT ? TDS_WORD_DDIGIT : scale_diff;
+			unsigned int n = TDS_MIN(scale_diff, TDS_WORD_DDIGIT);
 			TDS_WORD factor = factors[n];
 			TDS_WORD borrow = 0;
 #if defined(USE_128_MULTIPLY)

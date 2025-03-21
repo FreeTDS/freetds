@@ -3350,7 +3350,7 @@ dbdatlen(DBPROCESS * dbproc, int column)
 	if (!colinfo)
 		return -1;	
 
-	len = (colinfo->column_cur_size < 0)? 0 : colinfo->column_cur_size;
+	len = TDS_MAX(colinfo->column_cur_size, 0);
 
 	tdsdump_log(TDS_DBG_FUNC, "dbdatlen() type = %d, len= %d\n", colinfo->column_type, len);
 
@@ -3449,9 +3449,9 @@ dbspr1rowlen(DBPROCESS * dbproc)
 		TDSCOLUMN *colinfo = tds->res_info->columns[col];
 		int collen = _get_printable_size(colinfo);
 		int namlen = (int) tds_dstr_len(&colinfo->column_name);
-		
-		len += collen > namlen ? collen : namlen;
-		
+
+		len += TDS_MAX(collen, namlen);
+
 		if (col > 0) 	/* allow for the space between columns */
 			len += dbstring_length(dbproc->dbopts[DBPRCOLSEP].param);
 	}
@@ -3517,7 +3517,7 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 		buf_len -= len;
 		collen = _get_printable_size(colinfo);
 		namlen = tds_dstr_len(&colinfo->column_name);
-		padlen = (collen > namlen ? collen : namlen) - len;
+		padlen = TDS_MAX(collen, namlen) - len;
 		if ((c = dbstring_getchar(dbproc->dbopts[DBPRPAD].param, 0)) == -1) {
 			c = ' ';
 		}
@@ -3621,7 +3621,7 @@ dbprrow(DBPROCESS * dbproc)
 				fwrite(dest, 1, p == NULL ? len : (p - dest), stdout);
 				collen = _get_printable_size(colinfo);
 				namlen = tds_dstr_len(&colinfo->column_name);
-				padlen = (collen > namlen ? collen : namlen) - len;
+				padlen = TDS_MAX(collen, namlen) - len;
 
 				c = dbstring_getchar(dbproc->dbopts[DBPRPAD].param, 0);
 				for (; c > -1 && padlen > 0; padlen--) {
@@ -3767,7 +3767,7 @@ dbprrow(DBPROCESS * dbproc)
 				fwrite(dest, 1, p == NULL ? len : (p - dest), stdout);
 				collen = _get_printable_size(colinfo);
 				namlen = tds_dstr_len(&colinfo->column_name);
-				padlen = (collen > namlen ? collen : namlen) - len;
+				padlen = TDS_MAX(collen, namlen) - len;
 				if ((c = dbstring_getchar(dbproc->dbopts[DBPRPAD].param, 0)) == -1) {
 					c = ' ';
 				}
@@ -3897,7 +3897,7 @@ dbsprline(DBPROCESS * dbproc, char *buffer, DBINT buf_len, DBCHAR line_char)
 		colinfo = resinfo->columns[col];
 		collen = _get_printable_size(colinfo);
 		namlen = tds_dstr_len(&colinfo->column_name);
-		len = collen > namlen ? collen : namlen;
+		len = TDS_MAX(collen, namlen);
 		for (i = 0; i < len; i++) {
 			if (buf_len < 1) {
 				return FAIL;
@@ -3957,7 +3957,7 @@ dbsprhead(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 		colinfo = resinfo->columns[col];
 		collen = _get_printable_size(colinfo);
 		namlen = (int) tds_dstr_len(&colinfo->column_name);
-		padlen = (collen > namlen ? collen : namlen) - namlen;
+		padlen = TDS_MAX(collen, namlen) - namlen;
 		if (buf_len < namlen) {
 			return FAIL;
 		}
@@ -4022,7 +4022,7 @@ dbprhead(DBPROCESS * dbproc)
 		colinfo = resinfo->columns[col];
 		collen = _get_printable_size(colinfo);
 		namlen = tds_dstr_len(&colinfo->column_name);
-		padlen = (collen > namlen ? collen : namlen) - namlen;
+		padlen = TDS_MAX(collen, namlen) - namlen;
 		printf("%s", tds_dstr_cstr(&colinfo->column_name));
 
 		c = dbstring_getchar(dbproc->dbopts[DBPRPAD].param, 0);
@@ -4050,7 +4050,7 @@ dbprhead(DBPROCESS * dbproc)
 		colinfo = resinfo->columns[col];
 		collen = _get_printable_size(colinfo);
 		namlen = tds_dstr_len(&colinfo->column_name);
-		len = collen > namlen ? collen : namlen;
+		len = TDS_MAX(collen, namlen);
 		for (i = 0; i < len; i++)
 			putchar('-');
 		if ((col + 1) < resinfo->num_cols) {
@@ -4363,7 +4363,7 @@ dbadlen(DBPROCESS * dbproc, int computeid, int column)
 	if (!colinfo)
 		return -1;
 
-	len = colinfo->column_cur_size < 0? 0 : colinfo->column_cur_size;
+	len = TDS_MAX(colinfo->column_cur_size, 0);
 
 	tdsdump_log(TDS_DBG_FUNC, "leaving dbadlen() type = %d, returning %d\n", colinfo->column_type, len);
 
@@ -5080,7 +5080,7 @@ dbbylist(DBPROCESS * dbproc, int computeid, int *size)
 			return NULL;
 		}
 		for (n = 0; n < info->by_cols; ++n)
-			p[sizeof(info->bycolumns[0]) + n] = info->bycolumns[n] > 255 ? 255 : info->bycolumns[n];
+			p[sizeof(info->bycolumns[0]) + n] = TDS_MIN(info->bycolumns[n], 255);
 		*((TDS_SMALLINT *)p) = byte_flag;
 		free(info->bycolumns);
 		info->bycolumns = (TDS_SMALLINT *) p;

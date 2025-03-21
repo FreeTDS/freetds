@@ -432,7 +432,7 @@ tds_sys_iconv (iconv_t cd, const char* * inbuf, size_t *inbytesleft, char* * out
 	ob = (unsigned char*) *outbuf;
 
 	if (CD == Like_to_Like) {
-		size_t copybytes = (il < ol)? il : ol;
+		size_t copybytes = TDS_MIN(il, ol);
 
 		memcpy(ob, ib, copybytes);
 		ob += copybytes;

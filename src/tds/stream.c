@@ -268,7 +268,7 @@ static int
 tds_staticin_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
 {
 	TDSSTATICINSTREAM *s = (TDSSTATICINSTREAM *) stream;
-	size_t cp = (len <= s->buf_left) ? len : s->buf_left;
+	size_t cp = TDS_MIN(len, s->buf_left);
 
 	memcpy(ptr, s->buffer, cp);
 	s->buffer += cp;
