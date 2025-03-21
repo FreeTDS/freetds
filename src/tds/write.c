@@ -144,18 +144,6 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 	return (int) w.written;
 }
 
-void
-tds_put_buf(TDSSOCKET * tds, const unsigned char *buf, size_t dsize, size_t ssize)
-{
-	size_t cpsize;
-
-	cpsize = ssize > dsize ? dsize : ssize;
-	tds_put_n(tds, buf, cpsize);
-	dsize -= cpsize;
-	tds_put_n(tds, NULL, dsize);
-	tds_put_byte(tds, cpsize);
-}
-
 int
 tds_put_int8(TDSSOCKET * tds, TDS_INT8 i)
 {

@@ -778,6 +778,18 @@ tds_connect_and_login(TDSSOCKET * tds, TDSLOGIN * login)
 }
 
 static void
+tds_put_buf(TDSSOCKET * tds, const unsigned char *buf, size_t dsize, size_t ssize)
+{
+	size_t cpsize;
+
+	cpsize = TDS_MIN(ssize, dsize);
+	tds_put_n(tds, buf, cpsize);
+	dsize -= cpsize;
+	tds_put_n(tds, NULL, dsize);
+	TDS_PUT_BYTE(tds, cpsize);
+}
+
+static void
 tds_put_login_string(TDSSOCKET * tds, const char *buf, size_t n)
 {
 	const size_t buf_len = buf ? strlen(buf) : 0;

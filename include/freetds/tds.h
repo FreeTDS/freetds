@@ -1480,7 +1480,6 @@ int tds_put_smallint(TDSSOCKET * tds, TDS_SMALLINT si);
 #define tds_put_tinyint(tds, ti) tds_put_byte(tds,ti)
 int tds_put_byte(TDSSOCKET * tds, unsigned char c);
 TDSRET tds_flush_packet(TDSSOCKET * tds);
-void tds_put_buf(TDSSOCKET * tds, const unsigned char *buf, size_t dsize, size_t ssize);
 
 
 /* read.c */
