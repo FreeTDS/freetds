@@ -173,6 +173,7 @@ TDSOBJS = [.src.tds]bulk$(OBJ), [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ
 	[.src.utils]smp$(OBJ), \
 	[.src.utils]path$(OBJ), \
 	[.src.utils]strndup$(OBJ), \
+	[.src.utils]util_net$(OBJ), \
 	$(ASPRINTFOBJ) $(VASPRINTFOBJ) $(SNPRINTFOBJ) $(STRTOK_ROBJ) $(LIBICONVOBJ) $(SOCKETPAIROBJ) \
 	[.vms]getpass$(OBJ)
 
@@ -364,6 +365,10 @@ $(STDINT_H) :
 [.src.tds]query$(OBJ) : [.src.tds]query.c
 
 [.src.server]query$(OBJ) : [.src.server]query.c
+
+# Hack to avoid having two modules named net in the same library
+[.src.utils]util_net.c : [.src.utils]net.c
+	COPY $(MMS$SOURCE) $(MMS$TARGET)
 
 # Build the libraries
 
@@ -934,7 +939,7 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 [.src.ctlib.unittests]t0005$(OBJ) : [.src.ctlib.unittests]t0005.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]cs_convert$(E) : [.src.ctlib.unittests]cs_convert$(OBJ)
+[.src.ctlib.unittests]cs_convert$(E) : [.src.ctlib.unittests]cs_convert$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]cs_convert$(OBJ) : [.src.ctlib.unittests]cs_convert.c
