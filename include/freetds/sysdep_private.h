@@ -39,6 +39,13 @@
 #include <ioLib.h>		/* for FIONBIO */
 #endif				/* __INCvxWorksh */
 
+#ifdef __MINGW32__
+/* getpid() is defined as a function in MingW but this conflict with our definition as
+ * macro later in this file, so include unistd.h to get function definition earlier and
+ * avoid errors including unistd.h header later in the code */
+#include <unistd.h>
+#endif
+
 #if defined(DOS32X)
 #define READSOCKET(a,b,c)	recv((a), (b), (c), TDS_NOSIGNAL)
 #define WRITESOCKET(a,b,c)	send((a), (b), (c), TDS_NOSIGNAL)
