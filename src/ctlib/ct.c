@@ -154,6 +154,10 @@ _ct_get_user_api_layer_error(int error)
 	case 15:
 		return "Use direction CS_BLK_IN or CS_BLK_OUT for a bulk copy operation.";
 		break;
+	case 36:
+		return "The result is truncated because the"
+		       " conversion/operation resulted in overflow.";
+		break;
 	case 51:
 		return "Exactly one of context and connection must be non-NULL.";
 		break;
@@ -3032,12 +3036,26 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 		if (table_namelen + column_namelen + 2 > sizeof(cmd->iodesc->name))
 			column_namelen = sizeof(cmd->iodesc->name) - 2 - table_namelen;
 
-		sprintf(cmd->iodesc->name, "%*.*s.%*.*s",
-			(int) table_namelen, (int) table_namelen, tds_dstr_cstr(&curcol->table_name),
-			(int) column_namelen, (int) column_namelen, tds_dstr_cstr(&curcol->column_name));
+		if (table_namelen) {
+			memcpy(cmd->iodesc->name,
+			       tds_dstr_cstr(&curcol->table_name),
+			       table_namelen);
+			cmd->iodesc->namelen = (CS_INT) table_namelen;
+		} else {
+			cmd->iodesc->namelen = 0;
+		}
 
-		cmd->iodesc->namelen = strlen(cmd->iodesc->name);
+		cmd->iodesc->name[cmd->iodesc->namelen] = '.';
+		++cmd->iodesc->namelen;
 
+		if (column_namelen) {
+			memcpy(cmd->iodesc->name + cmd->iodesc->namelen,
+			       tds_dstr_cstr(&curcol->column_name),
+			       column_namelen);
+			cmd->iodesc->namelen += (CS_INT) column_namelen;
+		}
+
+		cmd->iodesc->name[cmd->iodesc->namelen] = '\0';
 		if (blob && blob->valid_ptr) {
 			memcpy(cmd->iodesc->timestamp, blob->timestamp, CS_TS_SIZE);
 			cmd->iodesc->timestamplen = CS_TS_SIZE;
@@ -4316,6 +4334,14 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 		pcol->column_prec = p->precision;
 		pcol->column_scale = p->scale;
 		if (pcol->column_varint_size) {
+			if ((pcol->column_varint_size == 2
+			     &&	 *(p->datalen) > 8000)
+			    ||	(pcol->column_varint_size == 1
+				 &&  *(p->datalen) > 255)) {
+			    _ctclient_msg(NULL,
+					  (CS_CONNECTION*) tds_get_parent(tds),
+					  "paraminfoalloc", 1, 1, 10, 36, "");
+			}
 			if (p->maxlen < 0) {
 				tds_free_param_results(params);
 				return NULL;
