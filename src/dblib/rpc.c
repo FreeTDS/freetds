@@ -39,8 +39,6 @@
 # include <errno.h>
 #endif /* HAVE_ERRNO_H */
 
-#include <assert.h>
-
 #include <freetds/tds.h>
 #include <freetds/convert.h>
 #include <freetds/utils/string.h>

@@ -44,9 +44,7 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include <assert.h>
 #include <ctype.h>
-#include <assert.h>
 
 #include "resource.h"
 

@@ -32,8 +32,6 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
-#include <assert.h>
-
 #if HAVE_MALLOC_H
 #include <malloc.h>
 #endif /* HAVE_MALLOC_H */
