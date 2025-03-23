@@ -11,7 +11,6 @@ libtdsutils_la_SOURCES = \
 	getpassarg.c \
 	sleep.c \
 	tds_cond.c \
-	win_mutex.c \
 	threadsafe.c \
 	bjoern-utf8.c \
 	tdsstring.c \
@@ -20,6 +19,9 @@ libtdsutils_la_SOURCES = \
 	smp.c \
 	path.c \
 	$(NULL)
+if WIN32
+libtdsutils_la_SOURCES += win_mutex.c
+endif
 EXTRA_DIST = \
 	CMakeLists.txt \
 	ptw32_MCS_lock.c \

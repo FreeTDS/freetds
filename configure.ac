@@ -531,7 +531,8 @@ AC_DEFINE(HAVE_GETADDRINFO, 1, [Define if you have getaddrinfo function]))
 ACX_POP_LIBS
 
 AC_REPLACE_FUNCS([asprintf vasprintf strtok_r readpassphrase \
-strlcpy strlcat basename getopt strsep daemon setenv])
+strlcpy strlcat basename getopt strsep daemon setenv \
+poll socketpair getaddrinfo])
 AC_FUNC_FSEEKO
 TDS_GETTIMEMILLI
 AC_FUNC_ALLOCA
@@ -968,6 +969,15 @@ if test "$enable_distcheck_build" = "yes" ; then
 else
 	AM_CONDITIONAL(DISTCHECK_BUILD, false)
 fi
+
+# ------------------------------------------------------------
+# Check for Windows
+# ------------------------------------------------------------
+
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#if !defined(_WIN32) && !defined(__MINGW32__)
+#error Not Windows
+#endif]], [[return 0]])], [win32=yes], [win32=no])
+AM_CONDITIONAL(WIN32, [test "$win32" = "yes"])
 
 # ------------------------------------------------------------
 # LTLIBOBJS hack (for autoconf-2.53)

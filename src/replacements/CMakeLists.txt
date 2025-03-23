@@ -15,7 +15,8 @@ endif(PERL_FOUND AND NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/iconv_charsets.h")
 include(CheckFunctionExists)
 
 set(FUNCS asprintf vasprintf strtok_r readpassphrase
-strlcpy strlcat basename getopt strsep setenv)
+strlcpy strlcat basename getopt strsep setenv
+poll socketpair getaddrinfo)
 
 set(add_SRCS)
 
@@ -27,12 +28,12 @@ foreach(func ${FUNCS})
 	endif()
 endforeach(func)
 
+if (WIN32)
+	set(add_SRCS ${add_SRCS} gettimeofday.c)
+endif()
+
 add_library(replacements STATIC
 	iconv.c
-	gettimeofday.c
-	poll.c
-	socketpair.c
-	getaddrinfo.c
 	${add_SRCS}
 )
 target_include_directories(replacements PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")

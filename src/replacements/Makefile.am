@@ -4,11 +4,10 @@ AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/src/replacements
 noinst_LTLIBRARIES = libreplacements.la
 libreplacements_la_SOURCES = \
 	iconv.c \
-	gettimeofday.c \
-	poll.c \
-	socketpair.c \
-	getaddrinfo.c \
 	$(NULL)
+if WIN32
+libreplacements_la_SOURCES += gettimeofday.c
+endif
 
 libreplacements_la_LDFLAGS =
 libreplacements_la_LIBADD = @LTLIBOBJS@ ../utils/libtdsutils.la
@@ -19,6 +18,7 @@ EXTRA_DIST = \
 	readpassphrase.c \
 	strlcat.c \
 	getaddrinfo.c \
+	poll.c \
 	strlcpy.c \
 	strtok_r.c \
 	strsep.c \
