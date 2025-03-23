@@ -95,14 +95,6 @@ typedef DWORD pid_t;
 #define snprintf _snprintf
 #endif
 
-#ifndef WIN32
-#define WIN32 1
-#endif
-
-#if defined(_WIN64) && !defined(WIN64)
-#define WIN64 1
-#endif
-
 /* use macros to use new style names */
 #if defined(__MSVCRT__) || defined(_MSC_VER)
 /* Use API as always present and not causing problems */

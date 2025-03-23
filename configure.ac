@@ -730,13 +730,13 @@ then
 	# test for SQLLEN (iODBC do not define but typedef it)
 	save_cppflags="$CPPFLAGS"
 	CPPFLAGS="$CPPFLAGS $ODBC_INC"
-	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#if defined(_WIN32) || defined(__MINGW32__)
 #include <windows.h>
 #endif
 #include <sql.h>]], [[SQLLEN len = 123;]])],
 		AC_DEFINE(HAVE_SQLLEN, 1, [Define if sqltypes.h define SQLLEN])
 		# check SQLColAttribute definition
-		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#if defined(_WIN32) || defined(__MINGW32__)
 #include <windows.h>
 #endif
 #include <sql.h>
@@ -750,7 +750,7 @@ SQLRETURN  SQL_API SQLColAttribute (SQLHSTMT StatementHandle,
 		AC_DEFINE(TDS_SQLCOLATTRIBUTE_SQLLEN, 1, [Define to 1 if last argument of SQLColAttribute it's SQLLEN *]))
 
 		# check is SQLParamOptions accept SQLULEN
-		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#if defined(_WIN32) || defined(__MINGW32__)
 #include <windows.h>
 #endif
 #include <sql.h>
@@ -763,14 +763,14 @@ SQLRETURN SQL_API SQLParamOptions(SQLHSTMT       hstmt,
 		AC_DEFINE(TDS_SQLPARAMOPTIONS_SQLLEN, 1, [Define to 1 if SQLParamOptions accept SQLULEN as arguments]))
 	)
 
-	AC_CHECK_TYPES([SQLSETPOSIROW, SQLROWSETSIZE, SQLROWOFFSET],,, [#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+	AC_CHECK_TYPES([SQLSETPOSIROW, SQLROWSETSIZE, SQLROWOFFSET],,, [#if defined(_WIN32) || defined(__MINGW32__)
 #include <windows.h>
 #endif
 #include <sql.h>
 #include <sqlext.h>])
 
 	# test for sizeof(SQLWCHAR)
-	AC_CHECK_SIZEOF(SQLWCHAR,,[#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+	AC_CHECK_SIZEOF(SQLWCHAR,,[#if defined(_WIN32) || defined(__MINGW32__)
 #include <windows.h>
 #endif
 #include <sql.h>])

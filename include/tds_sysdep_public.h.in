@@ -37,7 +37,7 @@ typedef unsigned char     uint8_t;	/* 8-bit int */
 /*
  * This is where platform-specific changes need to be made.
  */
-#  if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
+#  if defined(_WIN32)
 #    include <winsock2.h>
 #    include <ws2tcpip.h>
 #    include <windows.h>
@@ -47,7 +47,7 @@ typedef unsigned char     uint8_t;	/* 8-bit int */
   typedef unsigned int     uint32_t;	/* 32-bit int */
   typedef   signed __int64  int64_t;	/* 64-bit int */
   typedef unsigned __int64 uint64_t;	/* 64-bit int */
-#  else				/* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) */
+#  else				/* defined(_WIN32) */
   typedef   signed  @tds_sysdep_int16_type@   int16_t;	/* 16-bit int */
   typedef unsigned  @tds_sysdep_int16_type@  uint16_t;	/* 16-bit int */
   typedef   signed  @tds_sysdep_int32_type@   int32_t;	/* 32-bit int */
