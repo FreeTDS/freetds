@@ -4020,7 +4020,7 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 			_ctclient_msg(NULL, cmd->con, "ct_cursor(DECLARE)", 1, 1, 1, 5, "%d, %s", tlen, "tlen");
 			return CS_FAIL;
 		}
-		cursor = tds_alloc_cursor(tds, name, namelen, text, tlen);
+		cursor = tds_alloc_cursor(tds, name, (CS_UINT) namelen, text, (CS_UINT) tlen);
 		if (!cursor)
 			return CS_FAIL;
 

@@ -280,9 +280,9 @@ static void create_type(TDSSOCKET *tds, int desttype, int server_type, tds_any_t
 		((TDSBLOB *) curcol->column_data)->textvalue = cr.c;
 		cr.c = NULL;
 	} else if (is_convert_pointer_type(desttype)) {
-		memcpy(curcol->column_data, cr.c, result);
+		memcpy(curcol->column_data, cr.c, (size_t) result);
 	} else {
-		memcpy(curcol->column_data, &cr.i, result);
+		memcpy(curcol->column_data, &cr.i, (size_t) result);
 	}
 
 	func(tds, curcol);
@@ -309,13 +309,14 @@ static void create_type(TDSSOCKET *tds, int desttype, int server_type, tds_any_t
 		memcpy(v->collation, basecol->column_collation, sizeof(v->collation));
 
 		assert(basecol->column_cur_size > 0);
-		v->data = tds_new(TDS_CHAR, basecol->column_cur_size);
+		v->data = tds_new(TDS_CHAR, (size_t) basecol->column_cur_size);
 		assert(v->data);
 		v->data_len = basecol->column_cur_size;
 		curcol->column_cur_size = v->data_len;
 		curcol->column_size = curcol->on_server.column_size = 8009;
 		assert(!is_blob_col(basecol));
-		memcpy(v->data, basecol->column_data, v->data_len);
+		assert(v->data_len >= 0);
+		memcpy(v->data, basecol->column_data, (size_t) v->data_len);
 		CHECK_COLUMN_EXTRA(curcol);
 
 		func(tds, curcol);

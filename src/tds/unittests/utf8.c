@@ -41,7 +41,7 @@ get_unichar(const char **psrc)
 			radix = 16;
 			++src;
 		}
-		n = strtol(src+2, &end, radix);
+		n = (int) strtol(src+2, &end, radix);
 		assert(*end == ';' && n > 0 && n < 0x10000);
 		src = end + 1;
 	} else {
@@ -59,11 +59,11 @@ to_utf8(const char *src, char *dest)
 
 	while ((n=get_unichar(&src)) > 0) {
 		if (n >= 0x2000) {
-			*p++ = 0xe0 | (n >> 12);
+			*p++ = 0xe0 | ((n >> 12) & 0xf);
 			*p++ = 0x80 | ((n >> 6) & 0x3f);
 			*p++ = 0x80 | (n & 0x3f);
 		} else if (n >= 0x80) {
-			*p++ = 0xc0 | (n >> 6);
+			*p++ = 0xc0 | ((n >> 6) & 0x1f);
 			*p++ = 0x80 | (n & 0x3f);
 		} else {
 			*p++ = (unsigned char) n;

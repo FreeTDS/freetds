@@ -26,6 +26,8 @@
 #include "common.h"
 #include <freetds/convert.h>
 
+#define TO32(n) ((unsigned int)((unsigned int)(n) & 0xfffffffflu))
+
 static TDSCONTEXT ctx;
 
 static void
@@ -37,8 +39,8 @@ test0(const char *src, int len, int midtype, int dsttype, const char *result, in
 	int srctype = SYBVARCHAR;
 	char *copy;
 
-	copy = tds_new(char, len);
-	memcpy(copy, src, len);
+	copy = tds_new(char, (size_t) len);
+	memcpy(copy, src, (size_t) len);
 	src = copy;
 
 	if (midtype) {
@@ -46,7 +48,7 @@ test0(const char *src, int len, int midtype, int dsttype, const char *result, in
 			cr_mid.n.precision = 20;
 			cr_mid.n.scale = 8;
 		}
-		res = tds_convert(&ctx, SYBVARCHAR, src, len, midtype, &cr_mid);
+		res = tds_convert(&ctx, SYBVARCHAR, src, (TDS_UINT) len, midtype, &cr_mid);
 		if (res < 0) {
 			fprintf(stderr, "Unexpected failure converting %*.*s\n", len, len, src);
 			exit(1);
@@ -59,7 +61,7 @@ test0(const char *src, int len, int midtype, int dsttype, const char *result, in
 		cr.n.precision = 20;
 		cr.n.scale = 8;
 	}
-	res = tds_convert(&ctx, srctype, src, len, dsttype, &cr);
+	res = tds_convert(&ctx, srctype, src, (TDS_UINT) len, dsttype, &cr);
 	if (res < 0)
 		strcpy(buf, "error");
 	else {
@@ -82,12 +84,12 @@ test0(const char *src, int len, int midtype, int dsttype, const char *result, in
 			sprintf(buf, "%u", cr.ui);
 			break;
 		case SYBINT8:
-			sprintf(buf, "0x%08x%08x", (unsigned int) ((cr.bi >> 32) & 0xfffffffflu), (unsigned int) (cr.bi & 0xfffffffflu));
+			sprintf(buf, "0x%08x%08x", TO32(cr.bi >> 32), TO32(cr.bi));
 			break;
 		case SYB5BIGTIME:
 		case SYB5BIGDATETIME:
 		case SYBUINT8:
-			sprintf(buf, "0x%08x%08x", (unsigned int) ((cr.ubi >> 32) & 0xfffffffflu), (unsigned int) (cr.ubi & 0xfffffffflu));
+			sprintf(buf, "0x%08x%08x", TO32(cr.ubi >> 32), TO32(cr.ubi));
 			break;
 		case SYBUNIQUE:
 			sprintf(buf, "%08X-%04X-%04X-%02X%02X%02X%02X"
@@ -403,7 +405,7 @@ main(void)
 		if (len_src <= 0 || len_dst <= 0)
 			continue;
 		cr_dst.n.precision = 20; cr_dst.n.scale = 0;
-		if (tds_convert(&ctx, *type1, &cr_src.i, len_src, *type2, &cr_dst) <= 0) {
+		if (tds_convert(&ctx, *type1, &cr_src.i, (TDS_UINT) len_src, *type2, &cr_dst) <= 0) {
 			fprintf(stderr, "conversion from %s to %s of %s should succeed\n",
 				tds_prtype(*type1), tds_prtype(*type2), *value);
 			return 1;
@@ -411,7 +413,7 @@ main(void)
 		memcpy(&cr_src, &cr_dst, sizeof(cr_dst));
 		cr_dst.cc.c = buf;
 		cr_dst.cc.len = sizeof(buf)-4;
-		len_dst = tds_convert(&ctx, *type2, &cr_src.i, len_dst, TDS_CONVERT_CHAR, &cr_dst);
+		len_dst = tds_convert(&ctx, *type2, &cr_src.i, (TDS_UINT) len_dst, TDS_CONVERT_CHAR, &cr_dst);
 		if (len_dst <= 0) {
 			fprintf(stderr, "conversion from %s to string should succeed\n",
 				tds_prtype(*type1));
