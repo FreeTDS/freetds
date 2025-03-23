@@ -37,6 +37,7 @@
 #include <freetds/odbc.h>
 #include <freetds/convert.h>
 #include <freetds/utils/string.h>
+#include <freetds/checks.h>
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -266,16 +267,16 @@ odbc_wchar2hex(TDS_CHAR *dest, size_t destlen, const SQLWCHAR * src, size_t srcl
 		if ('0' <= hex1 && hex1 <= '9')
 			hex1 &= 0x0f;
 		else {
-			hex1 &= (SQLWCHAR) ~0x20u;	/* mask off 0x20 to ensure upper case */
-			if ('A' <= hex1 && hex1 <= 'F') {
-				hex1 -= ('A' - 10);
+			hex1 |= 0x20;	/* ensure lower case */
+			if ('a' <= hex1 && hex1 <= 'f') {
+				hex1 -= ('a' - 10);
 			} else {
 				tdsdump_log(TDS_DBG_INFO1,
 					    "error_handler:  attempt to convert data stopped by syntax error in source field \n");
 				return TDS_CONVERT_SYNTAX;
 			}
 		}
-		assert(hex1 < 0x10);
+		tds_extra_assert(hex1 < 0x10);
 
 		if ((i/2u) >= destlen)
 			continue;
