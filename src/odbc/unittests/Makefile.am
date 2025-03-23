@@ -94,7 +94,11 @@ t0002_SOURCES	=	t0002.c
 t0003_SOURCES	=	t0003.c
 moreresults_SOURCES	=	moreresults.c
 connect_SOURCES	=	connect.c
+if FAST_INSTALL
+connect_LDFLAGS = $(GLOBAL_LD_ADD) -no-fast-install
+else
 connect_LDFLAGS = $(GLOBAL_LD_ADD) -no-install
+endif
 print_SOURCES	=	print.c
 date_SOURCES	=	date.c
 norowset_SOURCES	= norowset.c
@@ -196,7 +200,7 @@ if ODBC_WIDE_TESTS
 AM_CPPFLAGS	+=	-DUNICODE -D_UNICODE
 endif
 
-if MINGW32
+if FAST_INSTALL
 AM_LDFLAGS	=	-no-fast-install
 else
 AM_LDFLAGS	=	-no-install -L../.libs -R "$(abs_builddir)/../.libs"

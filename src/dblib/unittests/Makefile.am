@@ -105,7 +105,7 @@ noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h
 
 AM_CPPFLAGS	= 	-DFREETDS_TOPDIR=\"$(top_srcdir)\" -I$(top_srcdir)/include
-if MINGW32
+if FAST_INSTALL
 AM_LDFLAGS	=	-no-fast-install
 else
 AM_LDFLAGS	=	-no-install -L../.libs -R "$(abs_builddir)/../.libs"

@@ -82,14 +82,13 @@ case $host in
     ;;
 esac
 
+tds_macosx=no
 case $host_os in
   darwin* | rhapsody*)
-    AM_CONDITIONAL(MACOSX, true)
-    ;;
-  *)
-    AM_CONDITIONAL(MACOSX, false)
+    tds_macosx=yes
     ;;
 esac
+AM_CONDITIONAL(MACOSX, [test $tds_macosx = yes])
 
 if test $netdb_reentrant = yes; then
 	AC_DEFINE(NETDB_REENTRANT, 1, [Define to 1 if the BSD-style netdb interface is reentrant.])
@@ -183,7 +182,6 @@ case $host in
 	fi
 	LIBS="$LIBS -lcrypt32"
 	krb5_libs=
-	AM_CONDITIONAL(MINGW32, true)
 	;;
 *-*-hpux*)
 	# these lines are needed to fix a problem for HP-UX
@@ -201,15 +199,15 @@ case $host in
 	# check for _xpg_ functions
 	AC_CHECK_FUNCS([_xpg_accept _xpg_getpeername _xpg_getsockname _xpg_getsockopt _xpg_recvfrom \
 	__accept __getpeername __getsockname __getsockopt __recvfrom])
-	AM_CONDITIONAL(MINGW32, false)
 	;;
 *)
 	AC_SEARCH_LIBS(socket, socket)
 	AC_SEARCH_LIBS(gethostbyname, nsl)
-
-	AM_CONDITIONAL(MINGW32, false)
 	;;
 esac
+AM_CONDITIONAL(MINGW32, [test $tds_mingw = yes])
+
+AM_CONDITIONAL(FAST_INSTALL, [test $tds_mingw = yes || test $tds_macosx = yes])
 
 case "$krb5_libs" in
 "" ) ;;
