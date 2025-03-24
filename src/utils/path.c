@@ -88,11 +88,16 @@ tds_dir_from_cstr(const char *path)
 	size_t len = strlen(path) + 1;
 	tds_dir_char *res = tds_new(tds_dir_char, len);
 	if (res) {
+		/* first try UTF-8 */
 		int out_len = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, path, len, res, len);
+		/* if it fails try current CP setting */
 		if (!out_len)
 			out_len = MultiByteToWideChar(CP_ACP, 0, path, len, res, len);
-		if (!out_len)
+		if (out_len <= 0 || out_len > res)
 			TDS_ZERO_FREE(res);
+		else
+			/* ensure NUL terminated (pretty paranoid) */
+			res[out_len - 1] = 0;
 	}
 	return res;
 }
