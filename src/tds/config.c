@@ -988,17 +988,21 @@ tds_config_verstr(const char *tdsver, TDSLOGIN * login)
 TDSRET
 tds_set_interfaces_file_loc(const char *interf)
 {
+	tds_dir_char *copy = NULL;
+
+	/* If filename passed, copy filename */
+	if (interf != NULL && interf[0] != '\0') {
+		copy = tds_dir_from_cstr(interf);
+		if (copy == NULL)
+			return -TDSEMEM;
+	}
+
 	/* Free it if already set */
-	if (interf_file != NULL)
-		TDS_ZERO_FREE(interf_file);
-	/* If no filename passed, leave it NULL */
-	if ((interf == NULL) || (interf[0] == '\0')) {
-		return TDS_SUCCESS;
-	}
-	/* Set to new value */
-	if ((interf_file = tds_dir_from_cstr(interf)) == NULL) {
-		return TDS_FAIL;
-	}
+	free(interf_file);
+
+	/* Set */
+	interf_file = copy;
+
 	return TDS_SUCCESS;
 }
 
