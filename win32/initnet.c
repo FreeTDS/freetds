@@ -8,6 +8,7 @@
 
 #include <freetds/windows.h>
 #include <freetds/macros.h>
+#include <freetds/sysdep_private.h>
 
 #ifdef DLL_EXPORT
 

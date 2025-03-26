@@ -33,6 +33,7 @@
 #endif /* HAVE_UNISTD_H */
 
 #include <freetds/macros.h>
+#include <freetds/sysdep_private.h>
 #include <freetds/utils/path.h>
 
 #ifdef _WIN32
