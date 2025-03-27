@@ -83,10 +83,10 @@ extern int optreset;
  * Historical names for widely used values -- common code initializes
  * them but then leaves the rest to tests.
  */
-static char *const PASSWORD TDS_UNUSED = common_pwd.password;
-static char *const USER TDS_UNUSED = common_pwd.user;
-static char *const SERVER TDS_UNUSED = common_pwd.server;
-static char *const DATABASE TDS_UNUSED = common_pwd.database;
+static const char *const PASSWORD TDS_UNUSED = common_pwd.password;
+static const char *const USER TDS_UNUSED = common_pwd.user;
+static const char *const SERVER TDS_UNUSED = common_pwd.server;
+static const char *const DATABASE TDS_UNUSED = common_pwd.database;
 
 void set_malloc_options(void);
 int read_login_info(int argc, char **argv);

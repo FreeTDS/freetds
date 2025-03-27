@@ -10,7 +10,6 @@ TEST_MAIN()
 {
 	LOGINREC *login;
 	DBPROCESS *dbproc;
-	int i;
 	DBINT erc;
 
 	RETCODE ret;
@@ -20,10 +19,6 @@ TEST_MAIN()
 	set_malloc_options();
 
 	read_login_info(argc, argv);
-	if (argc > 1) {
-		argc -= optind;
-		argv += optind;
-	}
 
 	printf("Starting %s\n", argv[0]);
 
@@ -39,16 +34,6 @@ TEST_MAIN()
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
 	DBSETLAPP(login, "batch_stmt_ins_upd");
-
-	if (argc > 1) {
-		printf("server and login timeout overrides (%s and %s) detected\n", argv[0], argv[1]);
-		strcpy(SERVER, argv[0]);
-		i = atoi(argv[1]);
-		if (i) {
-			i = dbsetlogintime(i);
-			printf("dbsetlogintime returned %s.\n", (i == SUCCEED) ? "SUCCEED" : "FAIL");
-		}
-	}
 
 	printf("About to open \"%s\"\n", SERVER);
 
