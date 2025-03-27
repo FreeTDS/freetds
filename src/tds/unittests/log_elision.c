@@ -35,6 +35,8 @@ enum {
 	THREADS = 3,
 };
 
+#define CONCAT(a, b) a##b
+
 static TDS_THREAD_PROC_DECLARE(log_func, idx_ptr)
 {
 	const int idx = TDS_PTR2INT(idx_ptr);
@@ -117,7 +119,7 @@ TEST_MAIN()
 			continue;
 		}
 
-		ret = sscanf(line, "log_elision.c:%d:Some log from %c number %d\n",
+		ret = sscanf(line, CONCAT(__FILE__, ":%d:Some log from %c number %d\n"),
 			     &num_line, &thread_letter, &num);
 		assert(ret == 3);
 
