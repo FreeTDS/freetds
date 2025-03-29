@@ -46,6 +46,7 @@
 
 #include <freetds/bool.h>
 #include <freetds/macros.h>
+#include <freetds/sysdep_private.h>
 
 /* content of output file, from command executed */
 static char *output;
