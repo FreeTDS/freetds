@@ -14,7 +14,7 @@ do_bind(CS_BLKDESC * blkdesc, int colnum, CS_INT host_format, CS_INT host_type, 
 	CS_INT      *var_len_addr,
 	CS_SMALLINT *var_ind_addr );
 static void do_one_bind(CS_BLKDESC * blkdesc, int col, const char *name);
-static FILE *open_test_file(void);
+static FILE *open_test_file(const char *filename);
 typedef enum
 {
 	PART_END,
@@ -229,7 +229,7 @@ TEST_MAIN()
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	in = open_test_file();
+	in = open_test_file(argc > 1 ? argv[1] : NULL);
 	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));
 
 	for (;;) {
@@ -402,20 +402,25 @@ get_output(CS_COMMAND *cmd)
 
 
 static FILE *
-open_test_file(void)
+open_test_file(const char *filename)
 {
-	FILE *input_file;
+	FILE *input_file = NULL;
 	char in_file[256];
 
-	snprintf(in_file, sizeof(in_file), "%s/blk_in.in", FREETDS_SRCDIR);
-
-	input_file = fopen(in_file, "r");
-	if (!input_file) {
-		strcpy(in_file, "blk_in.in");
-		input_file = fopen(in_file, "r");
+	/* If no filename requested, try blk_in.in in both the expected location and the current directory. */
+	if (filename)
+		input_file = fopen(filename, "r");
+	else {
+		snprintf(in_file, sizeof(in_file), "%s/blk_in.in", FREETDS_SRCDIR);
+		filename = in_file;
+		input_file = fopen(filename, "r");
+		if (!input_file) {
+			filename = "blk_in.in";
+			input_file = fopen(filename, "r");
+		}
 	}
 	if (!input_file) {
-		fprintf(stderr, "could not open %s\n", in_file);
+		fprintf(stderr, "could not open %s\n", filename);
 		exit(1);
 	}
 	return input_file;
