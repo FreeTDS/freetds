@@ -221,9 +221,18 @@ probe_sap_locking(TDSSOCKET* tds, TDSBCPINFO *bcpinfo)
 	if (!(TDS_IS_SYBASE(tds) && tds->conn->product_version >= TDS_SYB_VER(12, 5, 1)))
 		return TDS_SUCCESS;
 
-	TDSRET rc = tds_submit_queryf(tds, 
-		"select sysstat2 from sysobjects where type='U' and name='%s'",
-		tds_dstr_cstr(&bcpinfo->tablename));
+	// A request to probe database.owner.tablename needs to check database.owner.sysobjects for tablename
+	// (it doesn't work to check sysobjects for database.owner.tablename)
+	char const* full_tablename = tds_dstr_cstr(&bcpinfo->tablename);
+	char const* tablename;
+	char const* rdot = strrchr(full_tablename, '.');
+	if (rdot != NULL)
+		tablename = rdot + 1;
+	else
+		tablename = full_tablename;
+
+	TDSRET rc = tds_submit_queryf(tds,
+		"select sysstat2 from %.*ssysobjects where type='U' and name='%s'", (int)(rdot ? (rdot - full_tablename + 1) : 0), full_tablename, tablename);
 
 	if (TDS_FAILED(rc))
 		return TDS_FAIL;
@@ -269,7 +278,7 @@ probe_sap_locking(TDSSOCKET* tds, TDSBCPINFO *bcpinfo)
 	}
 
 	// Log and analyze result
-	tdsdump_log(TDS_DBG_FUNC, "%x = sysstat2 for '%s'", value, bcpinfo->tablename);
+	tdsdump_log(TDS_DBG_FUNC, "%x = sysstat2 for '%s'", value, full_tablename);
 
 	if (0x8000 & value)
 	{
