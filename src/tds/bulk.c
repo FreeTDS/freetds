@@ -68,6 +68,7 @@ static int tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_da
 					 int offset, TDS_UCHAR *rowbuffer, int start, int *pncols);
 static void tds_bcp_row_free(TDSRESULTINFO* result, unsigned char *row);
 static TDSRET tds5_process_insert_bulk_reply(TDSSOCKET * tds, TDSBCPINFO *bcpinfo);
+static int probe_sap_locking(TDSSOCKET* tds, TDSBCPINFO* bcpinfo);
 
 /**
  * Initialize BCP information.
@@ -467,9 +468,10 @@ static TDSRET
 tds5_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 		 tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error, int offset)
 {
-	int row_pos;
+	int row_pos = 0;
 	int row_sz_pos;
 	int blob_cols = 0;
+	int var_cols_pos;
 	int var_cols_written = 0;
 	TDS_INT	 old_record_size = bcpinfo->bindinfo->row_size;
 	unsigned char *record = bcpinfo->bindinfo->current_row;
@@ -477,11 +479,16 @@ tds5_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 
 	memset(record, '\0', old_record_size);	/* zero the rowbuffer */
 
+	/* SAP ASE Datarows-locked tables expect additional 4 blank bytes before everything else */
+	if (bcpinfo->datarows_locking)
+		row_pos += 4;
+
 	/*
 	 * offset 0 = number of var columns
 	 * offset 1 = row number.  zeroed (datasever assigns)
 	 */
-	row_pos = 2;
+	var_cols_pos = row_pos;
+	row_pos += 2;
 
 	if ((row_pos = tds5_bcp_add_fixed_columns(bcpinfo, get_col_data, null_error, offset, record, row_pos)) < 0)
 		return TDS_FAIL;
@@ -497,7 +504,7 @@ tds5_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 
 	if (var_cols_written) {
 		TDS_PUT_UA2LE(&record[row_sz_pos], row_pos);
-		record[0] = var_cols_written;
+		record[var_cols_pos] = var_cols_written;
 	}
 
 	tdsdump_log(TDS_DBG_INFO1, "old_record_size = %d new size = %d \n", old_record_size, row_pos);
@@ -777,7 +784,7 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 	while (ncols && offsets[ncols] == offsets[ncols-1])
 		ncols--;	/* trailing NULL columns are not sent and are not included in the offset table */
 
-	if (ncols) {
+	if (ncols && !bcpinfo->datarows_locking) {
 		TDS_UCHAR *poff = rowbuffer + row_pos;
 		unsigned int pfx_top = offsets[ncols] >> 8;
 
@@ -800,6 +807,18 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 		for (i=0; i <= ncols; i++)
 			*poff++ = offsets[ncols-i] & 0xFF;
 		row_pos = (unsigned int)(poff - rowbuffer);
+	}
+	else /* Datarows-locking */
+	{
+		for (unsigned int col = ncols; col-- > 0; )
+		{
+			// The DOL BULK format has a much simpler row table -- it's just a 2-byte length for every
+			// non-fixed column (does not have the extra "offset after the end" that the basic format has)
+			rowbuffer[row_pos++] = offsets[col] % 256;
+			rowbuffer[row_pos++] = offsets[col] / 256;
+
+			tdsdump_log(TDS_DBG_FUNC, "[DOL BULK offset table] col=%u offset=%u\n", col, offsets[col]);
+		}
 	}
 
 	tdsdump_log(TDS_DBG_FUNC, "%4d %8d %8d\n", i, ncols, row_pos);
