@@ -90,6 +90,12 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 
 	/* FIXME don't leave state in processing state */
 
+	/* Check table locking type. Do this first, because the code in bcp_init() which
+	 * calls us seems to depend on the information from the columns query still being
+	 * active in the context.
+	 */
+	probe_sap_locking(tds, bcpinfo);
+
 	/* TODO quote tablename if needed */
 	if (bcpinfo->direction != TDS_BCP_QUERYOUT)
 		fmt = "SET FMTONLY ON select * from %s SET FMTONLY OFF";
@@ -193,8 +199,6 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 
 	bcpinfo->bindinfo = bindinfo;
 	bcpinfo->bind_count = 0;
-
-	probe_sap_locking(tds, bcpinfo);
 
 	return TDS_SUCCESS;
 
