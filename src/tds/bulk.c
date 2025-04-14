@@ -216,6 +216,7 @@ probe_sap_locking(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	unsigned int value;
 	bool value_found;
 	TDS_INT resulttype;
+	const char *full_tablename, *rdot, *tablename;
 
 	/* Only needed for inward data */
 	if (bcpinfo->direction != TDS_BCP_IN)
@@ -225,8 +226,18 @@ probe_sap_locking(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	if (!TDS_IS_SYBASE(tds) || tds->conn->product_version < TDS_SYB_VER(12, 5, 1))
 		return TDS_SUCCESS;
 
-	TDS_PROPAGATE(tds_submit_queryf(tds, "select sysstat2 from sysobjects where type='U' and name='%s'",
-					tds_dstr_cstr(&bcpinfo->tablename)));
+	/* A request to probe database.owner.tablename needs to check database.owner.sysobjects for tablename
+	 * (it doesn't work to check sysobjects for database.owner.tablename) */
+	full_tablename = tds_dstr_cstr(&bcpinfo->tablename);
+	rdot = strrchr(full_tablename, '.');
+
+	if (rdot != NULL)
+		tablename = rdot + 1;
+	else
+		tablename = full_tablename;
+
+	TDS_PROPAGATE(tds_submit_queryf(tds, "select sysstat2 from %.*ssysobjects where type='U' and name='%s'",
+					(int) (rdot ? (rdot - full_tablename + 1) : 0), full_tablename, tablename));
 
 	value = 0;
 	value_found = false;
@@ -274,7 +285,7 @@ probe_sap_locking(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	}
 
 	/* Log and analyze result */
-	tdsdump_log(TDS_DBG_INFO1, "%x = sysstat2 for '%s'", value, tds_dstr_cstr(&bcpinfo->tablename));
+	tdsdump_log(TDS_DBG_INFO1, "%x = sysstat2 for '%s'", value, full_tablename);
 
 	if (0x8000 & value) {
 		bcpinfo->datarows_locking = true;
