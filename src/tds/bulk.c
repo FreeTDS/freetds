@@ -288,12 +288,19 @@ probe_sap_locking(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		return TDS_SUCCESS;
 	}
 
-	/* Log and analyze result */
+	/* Log and analyze result.
+	 * Sysstat2 flag values:
+	 *    https://infocenter.sybase.com/help/index.jsp?topic=/com.sybase.infocenter.help.ase.16.0/doc/html/title.html
+	 * 0x08000 - datarows locked
+	 * 0x20000 - clustered index present. (Not recommended for performance reasons to datarows-lock with clustered index) */
 	tdsdump_log(TDS_DBG_INFO1, "%x = sysstat2 for '%s'", value, full_tablename);
 
 	if (0x8000 & value) {
 		bcpinfo->datarows_locking = true;
 		tdsdump_log(TDS_DBG_INFO1, "Table has datarows-locking; enabling DOL BULK format.\n");
+
+		if (0x20000 & value)
+			tdsdump_log(TDS_DBG_WARN, "Table also has clustered index: bulk insert performance may be degraded.\n");
 	}
 	return TDS_SUCCESS;
 }
