@@ -1687,6 +1687,7 @@ struct tds_bcpinfo
 	TDS_INT direction;
 	bool identity_insert_on;
 	bool xfer_init;
+	bool datarows_locking;
 	TDS_INT bind_count;
 	TDSRESULTINFO *bindinfo;
 	TDS5COLINFO *sybase_colinfo;

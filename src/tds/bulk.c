@@ -192,11 +192,90 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 
 	bcpinfo->bindinfo = bindinfo;
 	bcpinfo->bind_count = 0;
+
+	probe_sap_locking(tds, bcpinfo);
+
 	return TDS_SUCCESS;
 
 cleanup:
 	tds_free_results(bindinfo);
 	return rc;
+}
+
+/**
+ * Detect if table we're writing to uses 'datarows' lockmode.
+ * \tds
+ * \param tds The open socket
+ * \param bcpinfo BCP information already prepared
+ * \return TDS_SUCCESS or TDS_FAIL.
+ */
+static int
+probe_sap_locking(TDSSOCKET* tds, TDSBCPINFO *bcpinfo)
+{
+	// Only needed for inward data
+	if (bcpinfo->direction != TDS_BCP_IN)
+		return TDS_SUCCESS;
+
+	// Only needed for SAP ASE versions which support datarows-locking; sseems to have been added in 12.5.1
+	if (!(TDS_IS_SYBASE(tds) && tds->conn->product_version >= TDS_SYB_VER(12, 5, 1)))
+		return TDS_SUCCESS;
+
+	TDSRET rc = tds_submit_queryf(tds, 
+		"select sysstat2 from sysobjects where type='U' and name='%s'",
+		tds_dstr_cstr(&bcpinfo->tablename));
+
+	if (TDS_FAILED(rc))
+		return TDS_FAIL;
+
+	unsigned int value = 0;
+	int value_found = 0;
+	TDS_INT resulttype;
+
+	while ((rc = tds_process_tokens(tds, &resulttype, NULL, TDS_TOKEN_RESULTS)) == TDS_SUCCESS) {
+		const int stop_mask = TDS_RETURN_DONE | TDS_RETURN_ROW;
+
+		if ( resulttype == TDS_ROW_RESULT )
+		{
+			// We must keep processing result tokens (even if we've found what we're looking for) so that the
+			// stream is ready for subsequent queries.
+			while ((rc = tds_process_tokens(tds, &resulttype, NULL, stop_mask)) == TDS_SUCCESS) 
+			{
+				if (resulttype != TDS_ROW_RESULT)
+					break;
+
+				// Get INT4 from column 0
+				if (!tds->current_results || tds->current_results->num_cols < 1)
+					continue;
+
+				TDSCOLUMN *col = tds->current_results->columns[0];
+				TDS_SERVER_TYPE ctype = tds_get_conversion_type(col->column_type, col->column_size);
+				CONV_RESULT dres;
+
+				if (tds_convert(tds_get_ctx(tds), ctype, col->column_data, col->column_cur_size, SYBINT4, &dres) < 0)
+					continue;
+
+				value = dres.i;
+				value_found = 1;
+			}
+		}
+	}
+
+	// No valid result - Treat this as meaning the feature is lacking; it could be an old Sybase version for example
+	if (!value_found)
+	{
+		tdsdump_log(TDS_DBG_FUNC, "[DOL BULK] No valid result returned by probe.\n");
+		return TDS_SUCCESS;
+	}
+
+	// Log and analyze result
+	tdsdump_log(TDS_DBG_FUNC, "%x = sysstat2 for '%s'", value, bcpinfo->tablename);
+
+	if (0x8000 & value)
+	{
+		bcpinfo->datarows_locking = 1;
+		printf("Table has datarows-locking; enabling DOL BULK format.\n");
+	}
+	return TDS_SUCCESS;
 }
 
 /**
