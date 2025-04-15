@@ -244,8 +244,10 @@ test(int argc, char **argv, bool over4k)
 	numread = 0;
 	rblob = NULL;
 	while ((result = dbreadtext(dbproc, rbuf, BLOB_BLOCK_SIZE)) != NO_MORE_ROWS) {
+		assert(result >= 0);
 		if (result != 0) {	/* this indicates not end of row */
 			rblob = (char*) realloc(rblob, result + numread);
+			assert(rblob);
 			memcpy((void *) (rblob + numread), (void *) rbuf, result);
 			numread += result;
 		}

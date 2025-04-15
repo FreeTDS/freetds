@@ -78,6 +78,7 @@ test(int argc, char **argv, bool over4k)
 	result = fseek(fp, 0, SEEK_SET);
 
 	blob = (char *) malloc(isiz);
+	assert(blob);
 	result = fread((void *) blob, isiz, 1, fp);
 	assert(result == 1);
 	fclose(fp);
@@ -211,8 +212,10 @@ test(int argc, char **argv, bool over4k)
 		numread = 0;
 		rblob = NULL;
 		while ((result = dbreadtext(blobproc, rbuf, BLOB_BLOCK_SIZE)) != NO_MORE_ROWS) {
+			assert(result >= 0);
 			if (result != 0) {	/* this indicates not end of row */
 				rblob = (char*) realloc(rblob, result + numread);
+				assert(rblob);
 				memcpy((void *) (rblob + numread), (void *) rbuf, result);
 				numread += result;
 			}
