@@ -6755,7 +6755,7 @@ dbreadtext(DBPROCESS * dbproc, void *buf, DBINT bufsize)
 	}
 
 	/* find the number of bytes to return */
-	bytes_avail = curcol->column_cur_size - curcol->column_textpos;
+	bytes_avail = TDS_MAX(curcol->column_cur_size, 0) - curcol->column_textpos;
 	cpbytes = bytes_avail > bufsize ? bufsize : bytes_avail;
 	memcpy(buf, &((TDSBLOB *) curcol->column_data)->textvalue[curcol->column_textpos], cpbytes);
 	curcol->column_textpos += cpbytes;
