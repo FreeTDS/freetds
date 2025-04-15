@@ -1,8 +1,8 @@
 if object_id('dblib0014') is not null drop table dblib0014
 go
-create table dblib0014 (i int not null, PigTure image not null)
+create table dblib0014 (i int not null, PigTure image null)
 go
-insert into dblib0014 values (0, '')
+insert into dblib0014(i) values (0)
 go
 insert into dblib0014 values (1, '')
 go

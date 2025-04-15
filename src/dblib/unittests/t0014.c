@@ -132,6 +132,10 @@ test(int argc, char **argv, bool over4k)
 			}
 #endif
 
+			/* leave NULL on first row */
+			if (i == 0)
+				continue;
+
 			/*
 			 * Use #ifdef if you want to test dbmoretext mode (needed for 16-bit apps)
 			 * Use #ifndef for big buffer version (32-bit)
@@ -180,7 +184,7 @@ test(int argc, char **argv, bool over4k)
 	}
 
 	for (i = 0; i < rows_to_add; i++) {
-	char expected[1024];
+		char expected[1024];
 
 		sprintf(expected, "row %03d", i);
 
@@ -223,13 +227,18 @@ test(int argc, char **argv, bool over4k)
 			}
 		}
 
-		if (rblob == NULL) {
-			fputs("No blob data received", stderr);
+		/* first row is NULL */
+		if (rblob != NULL && i == 0) {
+			fputs("Blob data received\n", stderr);
+			return 7;
+		}
+		if (rblob == NULL && i > 0) {
+			fputs("No blob data received\n", stderr);
 			return 7;
 		}
 
-		if (i == 0) {
-			printf("Saving first blob data row to file: %s\n", argv[2]);
+		if (i == 1) {
+			printf("Saving send blob data row to file: %s\n", argv[2]);
 			if ((fp = fopen(argv[2], "wb")) == NULL) {
 				free(blob);
 				free(rblob);
