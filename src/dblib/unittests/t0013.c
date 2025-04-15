@@ -13,9 +13,9 @@ static bool failed = false;
 
 #define TABLE_NAME "freetds_dblib_t0013"
 
-char *testargs[] = { "", FREETDS_SRCDIR "/data.bin", "t0013.out" };
+static char *testargs[] = { "", FREETDS_SRCDIR "/data.bin", "t0013.out" };
 
-DBPROCESS *dbproc, *dbprocw;
+static DBPROCESS *dbproc, *dbprocw;
 
 static void
 drop_table(void)

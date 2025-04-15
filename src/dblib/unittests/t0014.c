@@ -9,7 +9,7 @@
 
 #define BLOB_BLOCK_SIZE 4096
 
-char *testargs[] = { "", FREETDS_SRCDIR "/data.bin", "t0014.out" };
+static char *testargs[] = { "", FREETDS_SRCDIR "/data.bin", "t0014.out" };
 
 static int
 test(int argc, char **argv, bool over4k)
