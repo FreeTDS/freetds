@@ -131,6 +131,7 @@ test(int argc, char **argv, bool over4k)
 	}
 	assert(REG_ROW == result || 0 < i);
 
+#ifdef DBTDS_7_2
 	if (!textPtr && !timeStamp && dbtds(dbproc) >= DBTDS_7_2) {
 		printf("Protocol 7.2+ detected, test not supported\n");
 		free(blob);
@@ -139,6 +140,7 @@ test(int argc, char **argv, bool over4k)
 		dbexit();
 		exit(0);
 	}
+#endif
 
 	if (!textPtr) {
 		fprintf(stderr, "Error getting textPtr\n");
