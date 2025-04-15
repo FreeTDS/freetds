@@ -5,9 +5,11 @@
 
 #include "common.h"
 
+#include <freetds/bool.h>
+
 #define BLOB_BLOCK_SIZE 4096
 
-int failed = 0;
+static bool failed = false;
 
 #define TABLE_NAME "freetds_dblib_t0013"
 
@@ -31,7 +33,7 @@ drop_table(void)
 }
 
 static int
-test(int argc, char **argv, int over4k)
+test(int argc, char **argv, bool over4k)
 {
 	LOGINREC *login;
 	int i;
@@ -195,7 +197,7 @@ test(int argc, char **argv, int over4k)
 	dbsqlexec(dbproc);
 
 	if (dbresults(dbproc) != SUCCEED) {
-		failed = 1;
+		failed = true;
 		printf("Was expecting a result set.");
 		exit(1);
 	}
@@ -219,7 +221,7 @@ test(int argc, char **argv, int over4k)
 		exit(1);
 	}
 	if (testint != 1) {
-		failed = 1;
+		failed = true;
 		fprintf(stderr, "Failed.  Expected i to be %d, was %d\n", 1, (int) testint);
 		exit(1);
 	}
@@ -264,7 +266,7 @@ test(int argc, char **argv, int over4k)
 		}
 		fwrite((void *) rblob, numread, 1, fp);
 		fclose(fp);
-		failed = 1;
+		failed = true;
 		data_ok = 0;
 	}
 
@@ -273,7 +275,7 @@ test(int argc, char **argv, int over4k)
 	free(rblob);
 
 	if (dbnextrow(dbproc) != NO_MORE_ROWS) {
-		failed = 1;
+		failed = true;
 		fprintf(stderr, "Was expecting no more rows\n");
 		exit(1);
 	}
@@ -290,9 +292,9 @@ test(int argc, char **argv, int over4k)
 
 TEST_MAIN()
 {
-	int res = test(argc, argv, 0);
+	int res = test(argc, argv, false);
 	if (!res)
-		res = test(argc, argv, 1);
+		res = test(argc, argv, true);
 	if (res)
 		return res;
 

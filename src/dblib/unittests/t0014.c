@@ -5,12 +5,14 @@
 
 #include "common.h"
 
+#include <freetds/bool.h>
+
 #define BLOB_BLOCK_SIZE 4096
 
 char *testargs[] = { "", FREETDS_SRCDIR "/data.bin", "t0014.out" };
 
 static int
-test(int argc, char **argv, int over4k)
+test(int argc, char **argv, bool over4k)
 {
 	const int rows_to_add = 3;
 	LOGINREC *login;
@@ -260,11 +262,9 @@ test(int argc, char **argv, int over4k)
 
 TEST_MAIN()
 {
-	int res;
-
-	res = test(argc, argv, 0);
+	int res = test(argc, argv, false);
 	if (!res)
-		res = test(argc, argv, 1);
+		res = test(argc, argv, true);
 	if (res)
 		return res;
 
