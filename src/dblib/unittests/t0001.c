@@ -5,11 +5,11 @@
 
 #include "common.h"
 
-int failed = 0;
-
+#include <freetds/bool.h>
 
 TEST_MAIN()
 {
+	bool failed = false;
 	const int rows_to_add = 50;
 	LOGINREC *login;
 	DBPROCESS *dbproc;
@@ -71,7 +71,7 @@ TEST_MAIN()
 	dbsqlexec(dbproc);
 
 	if (dbresults(dbproc) != SUCCEED) {
-		failed = 1;
+		failed = true;
 		fprintf(stderr, "error: expected a result set, none returned.\n");
 		exit(1);
 	}
@@ -80,12 +80,12 @@ TEST_MAIN()
 		printf("col %d is %s\n", i, dbcolname(dbproc, i));
 
 	if (SUCCEED != dbbind(dbproc, 1, INTBIND, -1, (BYTE *) & testint)) {
-		failed = 1;
+		failed = true;
 		fprintf(stderr, "Had problem with bind\n");
 		abort();
 	}
 	if (SUCCEED != dbbind(dbproc, 2, STRINGBIND, 0, (BYTE *) teststr)) {
-		failed = 1;
+		failed = true;
 		fprintf(stderr, "Had problem with bind\n");
 		abort();
 	}
@@ -99,17 +99,17 @@ TEST_MAIN()
 		teststr[0] = 0;
 		teststr[sizeof(teststr) - 1] = 0;
 		if (REG_ROW != dbnextrow(dbproc)) {
-			failed = 1;
+			failed = true;
 			fprintf(stderr, "Failed.  Expected a row\n");
 			exit(1);
 		}
 		if (testint != i) {
-			failed = 1;
+			failed = true;
 			fprintf(stderr, "Failed.  Expected i to be %d, was %d\n", i, (int) testint);
 			abort();
 		}
 		if (0 != strncmp(teststr, expected, strlen(expected))) {
-			failed = 1;
+			failed = true;
 			printf("Failed.  Expected s to be |%s|, was |%s|\n", expected, teststr);
 			abort();
 		}
@@ -117,7 +117,7 @@ TEST_MAIN()
 	}
 
 	if (dbnextrow(dbproc) != NO_MORE_ROWS) {
-		failed = 1;
+		failed = true;
 		fprintf(stderr, "Was expecting no more rows\n");
 		exit(1);
 	}

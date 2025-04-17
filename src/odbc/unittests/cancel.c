@@ -113,7 +113,7 @@ alarm(unsigned int timeout)
 }
 #endif
 
-volatile bool exit_thread;
+static volatile bool exit_thread;
 
 static TDS_THREAD_PROC_DECLARE(wait_thread_proc, arg TDS_UNUSED)
 {

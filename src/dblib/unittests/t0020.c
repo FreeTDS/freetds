@@ -5,15 +5,13 @@
 
 #include "common.h"
 
-int failed = 0;
-
-int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
+#include <freetds/bool.h>
 
 /*
  * The bad column name message has severity 16, causing db-lib to call the error handler after calling the message handler.
  * This wrapper anticipates that behavior, and again sets the userdata, telling the handler this error is expected. 
  */
-int
+static int
 err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
 {	
 	int expected_error = 207;
@@ -23,6 +21,7 @@ err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrs
 
 TEST_MAIN()
 {
+	bool failed = false;
 	LOGINREC *login;
 	DBPROCESS *dbproc;
 	RETCODE ret;
@@ -62,7 +61,7 @@ TEST_MAIN()
 
 	ret = dbsqlexec(dbproc);
 	if (ret != FAIL) {
-		failed = 1;
+		failed = true;
 		fprintf(stderr, "Failed.  Expected FAIL to be returned.\n");
 		exit(1);
 	}
@@ -70,7 +69,7 @@ TEST_MAIN()
 	sql_cmd(dbproc);
 	ret = dbsqlexec(dbproc);
 	if (ret != SUCCEED) {
-		failed = 1;
+		failed = true;
 		fprintf(stderr, "Failed.  Expected SUCCEED to be returned.\n");
 		exit(1);
 	}

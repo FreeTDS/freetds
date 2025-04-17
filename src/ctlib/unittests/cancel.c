@@ -15,13 +15,12 @@
 #if defined(HAVE_ALARM) && defined(HAVE_SETITIMER)
 
 /* protos */
-int do_fetch(CS_COMMAND * cmd, int *cnt);
-void catch_alrm(int);
+static int do_fetch(CS_COMMAND * cmd, int *cnt);
 
 /* Globals */
 static volatile CS_COMMAND *g_cmd = NULL;
 
-void
+static void
 catch_alrm(int sig_num TDS_UNUSED)
 {
 	signal(SIGALRM, catch_alrm);
@@ -166,7 +165,7 @@ TEST_MAIN()
 	return 0;
 }
 
-int
+static int
 do_fetch(CS_COMMAND * cmd, int *cnt)
 {
 	CS_INT count, row_count = 0;

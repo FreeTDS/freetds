@@ -10,7 +10,9 @@
 #include "common.h"
 #include <assert.h>
 
-int failed = 0;
+#include <freetds/bool.h>
+
+static bool failed = false;
 
 static void
 verify(int i, int testint, char *teststr)
@@ -20,12 +22,12 @@ verify(int i, int testint, char *teststr)
 	sprintf(expected, "row %03d", i);
 
 	if (testint != i) {
-		failed = 1;
+		failed = true;
 		fprintf(stderr, "Failed.  Expected i to be %d, was %d\n", i, testint);
 		abort();
 	}
 	if (0 != strncmp(teststr, expected, strlen(expected))) {
-		failed = 1;
+		failed = true;
 		fprintf(stderr, "Failed.  Expected s to be |%s|, was |%s|\n", expected, teststr);
 		abort();
 	}
@@ -85,7 +87,7 @@ TEST_MAIN()
 	}
 	if (dbresults(dbproc) != NO_MORE_RESULTS) {
 		printf("Failed: dbresults call after NO_MORE_RESULTS should return NO_MORE_RESULTS.\n");
-		failed = 1;
+		failed = true;
 	}
 
 	sql_cmd(dbproc); /* create table */
@@ -143,7 +145,7 @@ TEST_MAIN()
 
 				i++;
 				if (REG_ROW != (rc = dbnextrow(dbproc))) {
-					failed = 1;
+					failed = true;
 					fprintf(stderr, "Failed: Expected a row (%s:%d)\n", __FILE__, __LINE__);
 					if (rc == BUF_FULL)
 						fprintf(stderr, "Failed: dbnextrow returned BUF_FULL (%d).  Fix dbclrbuf.\n", rc);

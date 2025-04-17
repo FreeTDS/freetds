@@ -1,8 +1,8 @@
 #include "common.h"
 
 /* protos */
-int do_fetch(CS_COMMAND * cmd);
-CS_RETCODE do_results(CS_COMMAND * cmd, CS_INT * results);
+static int do_fetch(CS_COMMAND * cmd);
+static CS_RETCODE do_results(CS_COMMAND * cmd, CS_INT * results);
 
 /* defines */
 #define NUMROWS 5
@@ -89,11 +89,11 @@ TEST_MAIN()
 	return 0;
 }
 
-int
+static int
 do_fetch(CS_COMMAND * cmd)
 {
-CS_INT count, row_count = 0;
-CS_RETCODE ret;
+	CS_INT count, row_count = 0;
+	CS_RETCODE ret;
 
 	while ((ret = ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, &count)) == CS_SUCCEED) {
 		row_count += count;
@@ -109,12 +109,12 @@ CS_RETCODE ret;
 	}
 }
 
-CS_RETCODE
+static CS_RETCODE
 do_results(CS_COMMAND * cmd, CS_INT * results)
 {
-int result_num;
-CS_RETCODE results_ret, result_type;
-bool done = false;
+	int result_num;
+	CS_RETCODE results_ret, result_type;
+	bool done = false;
 
 	result_num = 0;
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {

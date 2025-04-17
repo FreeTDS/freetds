@@ -32,7 +32,7 @@
 
 #include <freetds/utils.h>
 
-char *UNITTEST;
+static char *UNITTEST;
 
 #if HAVE_FSTAT && defined(S_IFSOCK)
 

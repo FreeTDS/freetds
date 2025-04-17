@@ -6,16 +6,15 @@
 #include "common.h"
 #include <ctype.h>
 
-static int failure = 0;
+#include <freetds/bool.h>
+
+static bool failed = false;
 
 static const char *cur_result = "";
 static const char *cur_test = "";
 static int cur_line = 0;
 
-int test(int srctype, const void *srcdata, int srclen, int dsttype, int dstlen);
-int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
-
-int
+static int
 err_handler(DBPROCESS * dbproc TDS_UNUSED, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
 {
 	/*
@@ -37,7 +36,7 @@ err_handler(DBPROCESS * dbproc TDS_UNUSED, int severity, int dberr, int oserr, c
 	return INT_CANCEL;
 }
 
-int
+static int
 test(int srctype, const void *srcdata, int srclen, int dsttype, int dstlen)
 {
 	DBCHAR buf[10];
@@ -66,7 +65,7 @@ test(int srctype, const void *srcdata, int srclen, int dsttype, int dstlen)
 			correct = 1;
 	}
 	if (!correct) {
-		failure = 1;
+		failed = true;
 		printf("\nline: %d test: %s\n" "%s\n%s\n" "failed :( should be '%s'\n", cur_line, cur_test, s, out, cur_result);
 	}
 	return 0;
@@ -109,7 +108,7 @@ TEST_MAIN()
 	TEST((SYBBINARY, "", 0, SYBBINARY, -1), "len=0 2A 2A 2A 2A 2A 2A 2A 2A 2A 2A");
 
 	dbexit();
-	if (!failure)
+	if (!failed)
 		printf("All tests passed!\n");
-	return failure;
+	return failed ? 1 : 0;
 }

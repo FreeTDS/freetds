@@ -5,9 +5,9 @@
 
 #include "common.h"
 
+#include <freetds/bool.h>
+
 static RETCODE init_proc(DBPROCESS * dbproc, const char *name);
-int ignore_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
-int ignore_msg_handler(DBPROCESS * dbproc, DBINT msgno, int state, int severity, char *text, char *server, char *proc, int line);
 
 typedef struct {
 	char *name, *value;
@@ -67,9 +67,9 @@ free_retparam(RETPARAM *param)
 	param->name = param->value = NULL;
 }
 
-static int failed = 0;
+static bool failed = false;
 
-int
+static int
 ignore_msg_handler(DBPROCESS * dbproc, DBINT msgno, int state, int severity, char *text, char *server, char *proc, int line)
 {
 	int ret;
@@ -84,7 +84,7 @@ ignore_msg_handler(DBPROCESS * dbproc, DBINT msgno, int state, int severity, cha
  * The bad procedure name message has severity 15, causing db-lib to call the error handler after calling the message handler.
  * This wrapper anticipates that behavior, and again sets the userdata, telling the handler this error is expected. 
  */
-int
+static int
 ignore_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
 {	
 	int erc;
@@ -115,8 +115,8 @@ colwidth( DBPROCESS * dbproc, int icol )
 	return 255 == width? dbcollen(dbproc, icol) : width;
 }
 
-char param_data1[64], param_data3[8000+1], param_data4[2 * 4000 + 1];
-int param_data2, param_data5;
+static char param_data1[64], param_data3[8000+1], param_data4[2 * 4000 + 1];
+static int param_data2, param_data5;
 
 struct parameters_t {
 	const char   *name;
@@ -163,7 +163,7 @@ bind_param(DBPROCESS *dbproc, struct parameters_t *pb)
 
 	if ((erc = dbrpcparam(dbproc, name, pb->status, pb->type, pb->maxlen, pb->datalen, pb->value)) == FAIL) {
 		fprintf(stderr, "Failed line %d: dbrpcparam\n", __LINE__);
-		failed++;
+		failed = true;
 	}
 }
 
@@ -260,7 +260,7 @@ TEST_MAIN()
 	erc = dbrpcinit(dbproc, proc_name, 0);	/* no options */
 	if (erc == FAIL) {
 		fprintf(stderr, "Failed line %d: dbrpcinit\n", __LINE__);
-		failed = 1;
+		failed = true;
 	}
 
 	for (pb = bindings, i = 0; pb->name != NULL; pb++, i++) {
@@ -322,7 +322,7 @@ TEST_MAIN()
 					printf("\n");
 				} else {
 					/* not supporting computed rows in this unit test */
-					failed = 1;
+					failed = true;
 					fprintf(stderr, "Failed.  Expected a row\n");
 					exit(1);
 				}
@@ -478,7 +478,7 @@ TEST_MAIN()
 		erc = dbrpcinit(dbproc, "sp_executesql", 0);	/* no options */
 		if (erc == FAIL) {
 			fprintf(stderr, "Failed line %d: dbrpcinit\n", __LINE__);
-			failed = 1;
+			failed = true;
 		}
 		for (pb = bindings_mssql1; pb->name != NULL; pb++)
 			bind_param(dbproc, pb);
@@ -506,7 +506,7 @@ TEST_MAIN()
 		erc = dbrpcinit(dbproc, "sp_executesql", 0);	/* no options */
 		if (erc == FAIL) {
 			fprintf(stderr, "Failed line %d: dbrpcinit\n", __LINE__);
-			failed = 1;
+			failed = true;
 		}
 		for (pb = bindings_mssql2; pb->name != NULL; pb++)
 			bind_param(dbproc, pb);
