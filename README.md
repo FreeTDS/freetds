@@ -1,7 +1,7 @@
 README for FreeTDS 1.5
 ====
 
-*Release date TBD*
+*Release date 17th April 2025*
 
 **To build FreeTDS read the file [INSTALL](./INSTALL.md) or
 the [FreeTDS Users Guide](http://www.freetds.org/userguide/)**
