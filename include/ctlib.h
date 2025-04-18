@@ -377,6 +377,10 @@ typedef union
 	CS_DATAFMT user;
 } CS_DATAFMT_INTERNAL;
 
+#if ENABLE_EXTRA_CHECKS
+#define CS_QUERY_HAS_FOR_UPDATE 9500
+#endif
+
 /*
  * internal prototypes
  */

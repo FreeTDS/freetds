@@ -39,6 +39,7 @@ TESTS = \
 	errors$(EXEEXT) \
 	ct_command$(EXEEXT) \
 	timeout$(EXEEXT) \
+	has_for_update$(EXEEXT) \
 	$(NULL)
 
 check_PROGRAMS	=	$(TESTS)
@@ -83,6 +84,7 @@ variant_SOURCES		= variant.c
 errors_SOURCES		= errors.c
 ct_command_SOURCES	= ct_command.c
 timeout_SOURCES         = timeout.c
+has_for_update_SOURCES  = has_for_update.c
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h
