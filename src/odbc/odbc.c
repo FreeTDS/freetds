@@ -1623,7 +1623,7 @@ odbc_SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType,
 
 	if (fSqlType == SQL_SS_TABLE) {
 		SQLTVP *tvp;
-		int wide = 1;
+		int wide TDS_UNUSED = 1;
 
 		tvp = tvp_alloc(stmt);
 		if (tvp == NULL) {
@@ -7544,7 +7544,7 @@ odbc_stat_execute(TDS_STMT * stmt _WIDE, const char *begin, int nparams, ...)
 		goto mem_error;
 	for (i = 0; i < nparams; ++i) {
 		int param_len;
-		bool convert = true;
+		bool convert TDS_UNUSED = true;
 		bool add_always = false;
 		DSTR *out;
 		const char *name;

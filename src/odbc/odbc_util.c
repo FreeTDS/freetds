@@ -281,7 +281,7 @@ odbc_dstr_copy_flag(TDS_DBC *dbc, DSTR *s, ptrdiff_t size, const ODBC_CHAR * str
 }
 #else
 DSTR*
-odbc_dstr_copy(TDS_DBC *dbc, DSTR *s, ptrdiff_t size, const ODBC_CHAR * str)
+odbc_dstr_copy(TDS_DBC *dbc TDS_UNUSED, DSTR *s, ptrdiff_t size, const ODBC_CHAR * str)
 {
 	return tds_dstr_copyn(s, (const char *) str, odbc_get_string_size(size, str));
 }
@@ -301,7 +301,7 @@ odbc_dstr_copy(TDS_DBC *dbc, DSTR *s, ptrdiff_t size, const ODBC_CHAR * str)
  *                  0x20 size is in bytes, not characters
  */
 SQLRETURN
-odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer,
+odbc_set_string_flag(TDS_DBC *dbc TDS_UNUSED, SQLPOINTER buffer, SQLINTEGER cbBuffer,
 		     void FAR * pcbBuffer, const char *s, ptrdiff_t len, int flag)
 {
 	SQLRETURN result = SQL_SUCCESS;
