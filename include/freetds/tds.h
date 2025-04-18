@@ -938,7 +938,8 @@ typedef struct tds_cursor
 	TDS_CURSOR_STATUS status;
 	TDS_USMALLINT srv_status;
 	TDSRESULTINFO *res_info;	/** row fetched from this cursor */
-	TDS_INT type, concurrency;
+	TDS_INT type;
+	TDS_INT concurrency;
 } TDSCURSOR;
 
 /**

@@ -3422,7 +3422,7 @@ odbc_cursor_execute(TDS_STMT * stmt)
 		i = TDS_CUR_CONCUR_OPTIMISTIC_VALUES;
 		break;
 	}
-	cursor->concurrency = 0x2000 | i;
+	cursor->concurrency = TDS_CUR_CONCUR_ALLOW_DIRECT | i;
 
 	ret = tds_cursor_declare(tds, cursor, &send);
 	if (TDS_FAILED(ret))
