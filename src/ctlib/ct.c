@@ -4043,8 +4043,8 @@ _ct_cursor_no_name_text(CS_COMMAND * cmd, const char *funcname, CS_CHAR * name, 
 	return CS_SUCCEED;
 }
 
-static
-char* get_next_tok(char* str, char* delimiter, char **endptr)
+static char*
+get_next_tok(char* str, const char* delimiter, char **endptr)
 {
 	char* result = NULL;
 	*endptr = NULL;
@@ -4110,16 +4110,16 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 		cursor->status.close      = TDS_CURSOR_STATE_UNACTIONED;
 		cursor->status.dealloc    = TDS_CURSOR_STATE_UNACTIONED;
 
-		if (option == CS_UNUSED	 ||  (option & CS_END) != 0) {
+		if (option == CS_UNUSED || (option & CS_END) != 0) {
 			/* Try to figure out type of the cursor. */
-			char delimiter[] = "\n\t,.[]() ";
+			static const char delimiter[] = "\n\t,.[]() ";
 			enum {
 				eBaseline,
 				eFor,
 				eForUpdate
 			} state = eBaseline;
 			char* savept = NULL;
-			char* s = text;
+			char* s = cursor->query;
 
 			char* tok = get_next_tok(s, delimiter, &savept);
 			while (tok != NULL) {
@@ -4140,20 +4140,21 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 			}
 
 			if (state == eForUpdate) {
-				cursor->type = 0x4; /* Forward-only cursor. */
+				cursor->type = TDS_CUR_TYPE_FORWARD; /* Forward-only cursor. */
 			} else {
 				/* readonly */
-				cursor->type = 0x1;
+				cursor->type = TDS_CUR_TYPE_KEYSET;
 				/* Keyset-driven cursor. Default value. */
 			}
 		} else if ((option & CS_FOR_UPDATE) != 0) {
-			cursor->type = 0x4; /* Forward-only cursor. */
+			cursor->type = TDS_CUR_TYPE_FORWARD; /* Forward-only cursor. */
 		} else {
-			cursor->type = 0x1;
+			cursor->type = TDS_CUR_TYPE_KEYSET;
 			/* Keyset-driven cursor. Default value. */
 		}
 
-		cursor->concurrency = 0x2004;
+		cursor->concurrency =
+			TDS_CUR_CONCUR_ALLOW_DIRECT | TDS_CUR_CONCUR_OPTIMISTIC;
 		/* Optimistic.	Checks timestamps if available, else values. */
 
 		tds_release_cursor(&cmd->cursor);
