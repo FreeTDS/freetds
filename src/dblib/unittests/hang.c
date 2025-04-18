@@ -32,10 +32,9 @@
 
 #include <freetds/utils.h>
 
-static char *UNITTEST;
-
 #if HAVE_FSTAT && defined(S_IFSOCK)
 
+static char *UNITTEST;
 static int end_socket = -1;
 
 static int
