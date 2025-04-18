@@ -24,7 +24,12 @@ else(PERL_FOUND AND NOT EXISTS "${CMAKE_SOURCE_DIR}/src/odbc/odbc_export.h")
 endif(PERL_FOUND AND NOT EXISTS "${CMAKE_SOURCE_DIR}/src/odbc/odbc_export.h")
 
 if(WIN32)
-	set(win_SRCS winlogin.c winsetup.c winmain.c odbc_w.def setup.rc)
+	set(win_SRCS winlogin.c winsetup.c winmain.c setup.rc)
+	if (ENABLE_ODBC_WIDE)
+		set(win_SRCS ${win_SRCS} odbc_w.def)
+	else()
+		set(win_SRCS ${win_SRCS} odbc.def)
+	endif()
 endif()
 set(libs ${lib_ODBCINST})
 

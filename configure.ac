@@ -959,6 +959,7 @@ if test "$enable_odbc_wide" != "no" ; then
 else
 	AM_CONDITIONAL(ODBC_WIDE_TESTS, false)
 fi
+AM_CONDITIONAL(ODBC_WIDE, test "$enable_odbc_wide" != "no")
 
 AC_ARG_ENABLE(distcheck_build,
 	AS_HELP_STRING([--enable-distcheck-build], [used internally for testing]))
