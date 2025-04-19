@@ -93,7 +93,7 @@ tds_dir_from_cstr(const char *path)
 		/* if it fails try current CP setting */
 		if (!out_len)
 			out_len = MultiByteToWideChar(CP_ACP, 0, path, len, res, len);
-		if (out_len <= 0 || out_len > res)
+		if (out_len <= 0 || out_len > len)
 			TDS_ZERO_FREE(res);
 		else
 			/* ensure NUL terminated (pretty paranoid) */
