@@ -963,6 +963,8 @@ cs_dt_crack(CS_CONTEXT * ctx, CS_INT datetype, CS_VOID * dateval, CS_DATEREC * d
 {
 	tdsdump_log(TDS_DBG_FUNC, "cs_dt_crack(%p, %d, %p, %p)\n", ctx, datetype, dateval, daterec);
 
+	/* Avoid handling CS_BIGDATETIME_TYPE and CS_BIGTIME_TYPE as these
+	 * types requires a larger structure that would cause a buffer overflow. */
 	if (datetype != CS_BIGDATETIME_TYPE && datetype != CS_BIGTIME_TYPE)
 		return cs_dt_crack_v2(ctx, datetype, dateval, daterec);
 	return CS_FAIL;
