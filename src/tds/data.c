@@ -712,7 +712,7 @@ tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 
 	tdsdump_log(TDS_DBG_INFO1, "tds_get_data: type %d, varint size %d\n", curcol->column_type, curcol->column_varint_size);
 	switch (curcol->column_varint_size) {
-	case 4:
+	case 5:
 		/* It's a BLOB... */
 		len = tds_get_byte(tds);
 		blob = (TDSBLOB *) curcol->column_data;
@@ -728,7 +728,7 @@ tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			colsize = -1;
 		}
 		break;
-	case 5:
+	case 4:
 		colsize = tds_get_int(tds);
 		if (colsize == 0)
 			colsize = -1;
@@ -924,13 +924,13 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 		tdsdump_log(TDS_DBG_INFO1, "tds_generic_put: null param\n");
 		switch (curcol->column_varint_size) {
 		case 5:
-			tds_put_int(tds, 0);
-			break;
-		case 4:
 			if ((bcp7 || !IS_TDS7_PLUS(tds->conn)) && is_blob_type(curcol->on_server.column_type))
 				tds_put_byte(tds, 0);
 			else
 				tds_put_int(tds, -1);
+			break;
+		case 4:
+			tds_put_int(tds, 0);
 			break;
 		case 2:
 			tds_put_smallint(tds, -1);
@@ -1000,7 +1000,7 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 			tds_put_int8(tds, bcp7 ? (TDS_INT8) -2 : (TDS_INT8) colsize);
 			tds_put_int(tds, colsize);
 			break;
-		case 4:	/* It's a BLOB... */
+		case 5:	/* It's a BLOB... */
 			colsize = TDS_MIN(colsize, size);
 			/* mssql require only size */
 			if (bcp7 && is_blob_type(curcol->on_server.column_type)) {
@@ -1056,14 +1056,14 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 		/* TODO ICONV handle charset conversions for data */
 		/* put size of data */
 		switch (curcol->column_varint_size) {
-		case 5:	/* It's a LONGBINARY */
-			colsize = TDS_MIN(colsize, 0x7fffffff);
-			TDS_PUT_INT(tds, colsize);
-			break;
-		case 4:	/* It's a BLOB... */
+		case 5:	/* It's a BLOB... */
 			tds_put_byte(tds, 16);
 			tds_put_n(tds, blob->textptr, 16);
 			tds_put_n(tds, blob->timestamp, 8);
+			colsize = TDS_MIN(colsize, 0x7fffffff);
+			TDS_PUT_INT(tds, colsize);
+			break;
+		case 4:	/* It's a LONGBINARY */
 			colsize = TDS_MIN(colsize, 0x7fffffff);
 			TDS_PUT_INT(tds, colsize);
 			break;

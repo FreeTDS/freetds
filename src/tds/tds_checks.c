@@ -226,7 +226,7 @@ tds_check_column_extra(const TDSCOLUMN * column)
 	} else if (is_blob_type(column->column_type)) {
 		assert(column_varint_size >= 4);
 	} else if (column->column_type == SYBVARIANT) {
-		assert(column_varint_size == 4);
+		assert(column_varint_size == 5);
 	}
 	conn.tds_version = 0x500;
 	varint_ok = varint_ok || tds_get_varint_size(&conn, column->on_server.column_type) == column_varint_size;
