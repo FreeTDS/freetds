@@ -36,6 +36,7 @@ noinst_HEADERS = \
 	utils/smp.h \
 	utils/path.h \
 	utils/nosigpipe.h \
+	utils/test_base.h \
 	replacements.h \
 	replacements/poll.h \
 	replacements/readpassphrase.h \
