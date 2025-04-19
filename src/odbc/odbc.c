@@ -421,6 +421,9 @@ odbc_connect(TDS_DBC * dbc, TDSLOGIN * login)
 		login->use_new_password = 1;
 	}
 
+	if (!tds_dstr_dup(&login->db_filename, &dbc->db_filename))
+		goto memory_error;
+
 	if (TDS_FAILED(tds_connect_and_login(dbc->tds_socket, login))) {
 		tds_free_socket(dbc->tds_socket);
 		dbc->tds_socket = NULL;
@@ -1755,6 +1758,7 @@ odbc_SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 	dbc->original_charset_num = TDS_CHARSET_UTF_8;
 #endif
 	tds_dstr_init(&dbc->oldpwd);
+	tds_dstr_init(&dbc->db_filename);
 	dbc->attr.translate_option = 0;
 	dbc->attr.txn_isolation = SQL_TXN_READ_COMMITTED;
 	dbc->attr.mars_enabled = SQL_MARS_ENABLED_NO;
@@ -4336,6 +4340,7 @@ odbc_SQLFreeConnect(SQLHDBC hdbc)
 	tds_dstr_free(&dbc->attr.translate_lib);
 	tds_dstr_zero(&dbc->oldpwd);
 	tds_dstr_free(&dbc->oldpwd);
+	tds_dstr_free(&dbc->db_filename);
 
 	tds_dstr_free(&dbc->dsn);
 
@@ -6559,6 +6564,14 @@ ODBC_FUNC(SQLSetConnectAttr, (P(SQLHDBC,hdbc), P(SQLINTEGER,Attribute), P(SQLPOI
 			odbc_errs_add(&dbc->errs, "HY001", NULL);
 		else
 			dbc->use_oldpwd = 1;
+		break;
+	case SQL_COPT_SS_ATTACHDBFILENAME:
+		if (!IS_VALID_LEN(StringLength)) {
+			odbc_errs_add(&dbc->errs, "HY090", NULL);
+			break;
+		}
+		if (!odbc_dstr_copy(dbc, &dbc->db_filename, StringLength, (ODBC_CHAR *) ValuePtr))
+			odbc_errs_add(&dbc->errs, "HY001", NULL);
 		break;
 	case SQL_COPT_SS_BCP:
 		dbc->attr.bulk_enabled = (SQLUINTEGER) u_value;

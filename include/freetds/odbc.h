@@ -288,6 +288,7 @@ struct _hdbc
 	TDSSOCKET *tds_socket;
 	DSTR dsn;
 	DSTR oldpwd;
+	DSTR db_filename;
 #ifdef ENABLE_ODBC_WIDE
 	int original_charset_num;
 	TDSICONV *mb_conv;
