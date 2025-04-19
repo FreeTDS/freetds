@@ -305,7 +305,6 @@ ascii_isprint(int ch)
 	return ch >= ' ' && ch < 127;
 }
 
-#undef tdsdump_dump_buf
 /**
  * Dump the contents of data into the log file in a human readable format.
  * \param file       source file name
@@ -316,7 +315,7 @@ ascii_isprint(int ch)
  * \param length     number of bytes in the buffer
  */
 void
-tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, const void *buf, size_t length)
+tdsdump_dump_buf_impl(const char* file, unsigned int level_line, const char *msg, const void *buf, size_t length)
 {
 	size_t i, j;
 #define BYTES_PER_LINE 16
@@ -413,10 +412,8 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
 	tds_mutex_unlock(&g_dump_mutex);
 
 }				/* tdsdump_dump_buf()  */
-#define tdsdump_dump_buf TDSDUMP_BUF_FAST
 
 
-#undef tdsdump_log
 /**
  * Write a message to the debug log.  
  * \param file name of the log file
@@ -424,7 +421,7 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
  * \param fmt       printf-like format string
  */
 void
-tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...)
+tdsdump_log_impl(const char* file, unsigned int level_line, const char *fmt, ...)
 {
 	const int debug_lvl = level_line & 15;
 	const int line = level_line >> 4;
@@ -475,7 +472,6 @@ tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...)
 #endif
 	tds_mutex_unlock(&g_dump_mutex);
 }				/* tdsdump_log()  */
-#define tdsdump_log TDSDUMP_LOG_FAST
 
 
 /**
