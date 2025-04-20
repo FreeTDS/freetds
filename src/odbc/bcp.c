@@ -462,8 +462,7 @@ _tdsodbc_dbconvert(TDS_DBC *dbc, int srctype, const TDS_CHAR * src, SQLLEN src_l
 		break;
 	case SYBDECIMAL:
 	case SYBNUMERIC:
-		if (convert_numeric2server(src, &convert_buf.num) <= 0)
-			/* TODO add proper error */
+		if (convert_numeric2server(&dbc->errs, src, &convert_buf.num) <= 0)
 			return -1;
 		src = (char *) &convert_buf.num;
 		always_convert = convert_buf.num.scale != bindcol->column_scale;

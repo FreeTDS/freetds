@@ -112,7 +112,7 @@ convert_datetime2server(int bindtype, const void *src, TDS_DATETIMEALL * dta)
 }
 
 TDS_INT
-convert_numeric2server(const void *src, TDS_NUMERIC *num)
+convert_numeric2server(struct _sql_errors *errs, const void *src, TDS_NUMERIC *num)
 {
 	const SQL_NUMERIC_STRUCT *sql_num;
 	int i;
@@ -122,8 +122,10 @@ convert_numeric2server(const void *src, TDS_NUMERIC *num)
 	num->scale = sql_num->scale;
 	num->array[0] = sql_num->sign ^ 1;
 	/* test precision so client do not crash our library */
-	if (num->precision <= 0 || num->precision > 38 || num->scale > num->precision)
+	if (num->precision <= 0 || num->precision > 38 || num->scale > num->precision) {
+		odbc_convert_err_set(errs, TDS_CONVERT_FAIL);
 		return TDS_CONVERT_FAIL;
+	}
 	i = tds_numeric_bytes_per_prec[num->precision];
 	memcpy(num->array + 1, sql_num->val, i - 1);
 	tds_swap_bytes(num->array + 1, i - 1);
@@ -513,8 +515,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 		break;
 	case SYBDECIMAL:
 	case SYBNUMERIC:
-		if (convert_numeric2server(src, &convert_buf.num) <= 0)
-			/* TODO add proper error */
+		if (convert_numeric2server(&stmt->errs, src, &convert_buf.num) <= 0)
 			return SQL_ERROR;
 		src = (char *) &convert_buf.num;
 		break;

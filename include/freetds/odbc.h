@@ -716,7 +716,7 @@ typedef union {
 SQLRETURN odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _drecord *drec_axd, TDSCOLUMN *curcol,
 		       bool compute_row, const TDS_DESC* axd, SQLSETPOSIROW n_row);
 TDS_INT convert_datetime2server(int bindtype, const void *src, TDS_DATETIMEALL * dta);
-TDS_INT convert_numeric2server(const void *src, TDS_NUMERIC *num);
+TDS_INT convert_numeric2server(struct _sql_errors *errs, const void *src, TDS_NUMERIC *num);
 
 /*
  * bcp.c
