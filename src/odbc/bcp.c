@@ -443,9 +443,7 @@ _tdsodbc_dbconvert(TDS_DBC *dbc, int srctype, const TDS_CHAR * src, SQLLEN src_l
 	TDS_INT ret;
 	TDS_INT len;
 	TDS_INT destlen = bindcol->column_size;
-	TDS_DATETIMEALL dta;
-	TDS_NUMERIC num;
-	SQL_NUMERIC_STRUCT * sql_num;
+	ODBC_CONVERT_BUF convert_buf;
 	bool always_convert = false;
 
 	assert(src_len >= 0);
@@ -458,27 +456,17 @@ _tdsodbc_dbconvert(TDS_DBC *dbc, int srctype, const TDS_CHAR * src, SQLLEN src_l
 
 	switch (srctype) {
 	case SYBMSDATETIME2:
-		convert_datetime2server(SQL_C_TYPE_TIMESTAMP, src, &dta);
-		dta.time_prec = (destlen - 40) / 2;
-		src = (char *) &dta;
+		convert_datetime2server(SQL_C_TYPE_TIMESTAMP, src, &convert_buf.dta);
+		convert_buf.dta.time_prec = (destlen - 40) / 2;
+		src = (char *) &convert_buf.dta;
 		break;
 	case SYBDECIMAL:
 	case SYBNUMERIC:
-		sql_num = (SQL_NUMERIC_STRUCT *) src;
-		num.precision = sql_num->precision;
-		num.scale = sql_num->scale;
-		num.array[0] = sql_num->sign ^ 1;
-		/* test precision so client do not crash our library */
-		if (num.precision <= 0 || num.precision > 38 || num.scale > num.precision)
+		if (convert_numeric2server(src, &convert_buf.num) <= 0)
 			/* TODO add proper error */
 			return -1;
-		len = tds_numeric_bytes_per_prec[num.precision];
-		memcpy(num.array + 1, sql_num->val, len - 1);
-		tds_swap_bytes(num.array + 1, len - 1);
-		if (len < sizeof(num.array))
-			memset(num.array + len, 0, sizeof(num.array) - len);
-		src = (char *) &num;
-		always_convert = num.scale != bindcol->column_scale;
+		src = (char *) &convert_buf.num;
+		always_convert = convert_buf.num.scale != bindcol->column_scale;
 		break;
 		/* TODO intervals */
 	}
