@@ -39,7 +39,7 @@
  * precision (with the sign).
  * Support precision up to 77 digits
  */
-const int tds_numeric_bytes_per_prec[] = {
+const uint8_t tds_numeric_bytes_per_prec[] = {
 	/*
 	 * precision can't be 0 but using a value > 0 assure no
 	 * core if for some bug it's 0...

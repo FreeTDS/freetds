@@ -184,7 +184,7 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 
 
 void
-tds_swap_bytes(void *buf, int bytes)
+tds_swap_bytes(void *buf, size_t bytes)
 {
 	unsigned char tmp, *begin, *last;
 

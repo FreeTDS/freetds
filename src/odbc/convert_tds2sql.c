@@ -586,19 +586,19 @@ normal_conversion:
 		{
 			/* ODBC numeric is quite different from TDS one ... */
 			SQL_NUMERIC_STRUCT *num = (SQL_NUMERIC_STRUCT *) dest;
+			size_t len;
 			num->precision = ores.n.precision;
 			num->scale = ores.n.scale;
 			num->sign = ores.n.array[0] ^ 1;
 			/*
 			 * TODO can be greater than SQL_MAX_NUMERIC_LEN ?? 
-			 * seeing Sybase manual wire support bigger numeric but currently
-			 * DBs so not support such precision
+			 * Seeing Sybase manual wire supports bigger numeric but current
+			 * DBs do not support such precisions.
 			 */
-			i = TDS_MIN(tds_numeric_bytes_per_prec[ores.n.precision] - 1, SQL_MAX_NUMERIC_LEN);
-			memcpy(num->val, ores.n.array + 1, i);
-			tds_swap_bytes(num->val, i);
-			if (i < SQL_MAX_NUMERIC_LEN)
-				memset(num->val + i, 0, SQL_MAX_NUMERIC_LEN - i);
+			len = TDS_MIN(tds_numeric_bytes_per_prec[ores.n.precision] - 1, SQL_MAX_NUMERIC_LEN);
+			memset(num->val, 0, SQL_MAX_NUMERIC_LEN);
+			memcpy(num->val, ores.n.array + 1, len);
+			tds_swap_bytes(num->val, len);
 			ret = sizeof(SQL_NUMERIC_STRUCT);
 		}
 		break;

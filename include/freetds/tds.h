@@ -174,7 +174,7 @@ typedef struct tdsdaterec
  * tell us the number of bytes required to store the specified
  * precision.
  */
-extern const int tds_numeric_bytes_per_prec[];
+extern const uint8_t tds_numeric_bytes_per_prec[];
 
 typedef int TDSRET;
 #define TDS_NO_MORE_RESULTS  ((TDSRET)1)
@@ -1503,7 +1503,7 @@ DSTR* tds_dstr_get(TDSSOCKET * tds, DSTR * s, size_t len);
 /* util.c */
 int tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum);
 TDS_STATE tds_set_state(TDSSOCKET * tds, TDS_STATE state);
-void tds_swap_bytes(void *buf, int bytes);
+void tds_swap_bytes(void *buf, size_t bytes);
 unsigned int tds_gettime_ms(void);
 
 

@@ -115,7 +115,7 @@ TDS_INT
 convert_numeric2server(struct _sql_errors *errs, const void *src, TDS_NUMERIC *num)
 {
 	const SQL_NUMERIC_STRUCT *sql_num;
-	int i;
+	size_t i;
 
 	sql_num = (const SQL_NUMERIC_STRUCT *) src;
 	num->precision = sql_num->precision;
@@ -127,10 +127,9 @@ convert_numeric2server(struct _sql_errors *errs, const void *src, TDS_NUMERIC *n
 		return TDS_CONVERT_FAIL;
 	}
 	i = tds_numeric_bytes_per_prec[num->precision];
+	memset(num->array + 1, 0, sizeof(num->array) - 1);
 	memcpy(num->array + 1, sql_num->val, i - 1);
 	tds_swap_bytes(num->array + 1, i - 1);
-	if (i < sizeof(num->array))
-		memset(num->array + i, 0, sizeof(num->array) - i);
 	return sizeof(TDS_NUMERIC);
 }
 
