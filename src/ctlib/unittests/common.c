@@ -112,7 +112,7 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 	CS_INT bulk_enabled = CS_TRUE;
 	CS_INT convfmt = CS_DATES_SHORT;
 
-	ret = cs_ctx_alloc(CS_VERSION_100, ctx);
+	ret = cs_ctx_alloc(CS_VERSION_150, ctx);
 	if (ret != CS_SUCCEED) {
 		if (verbose) {
 			fprintf(stderr, "Context Alloc failed!\n");
@@ -128,7 +128,7 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 		return ret;
 	}
 
-	ret = ct_init(*ctx, CS_VERSION_100);
+	ret = ct_init(*ctx, CS_VERSION_150);
 	if (ret != CS_SUCCEED) {
 		if (verbose) {
 			fprintf(stderr, "Library Init failed!\n");

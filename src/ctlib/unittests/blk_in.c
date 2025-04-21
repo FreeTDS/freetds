@@ -284,7 +284,7 @@ single_test(CS_CONNECTION *conn, CS_COMMAND *cmd, FILE *in)
 	sprintf(command, "delete from %s", table_name);
 	check_call(run_command, (cmd, command));
 
-	check_call(blk_alloc, (conn, BLK_VERSION_100, &blkdesc));
+	check_call(blk_alloc, (conn, BLK_VERSION_150, &blkdesc));
 
 	check_call(blk_init, (blkdesc, CS_BLK_IN, (char *) table_name, CS_NULLTERM));
 

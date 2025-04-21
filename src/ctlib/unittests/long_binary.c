@@ -45,7 +45,7 @@ static int
 execute_sql(CS_COMMAND * command, const char *sql)
 {
 	printf("executing sql: %s\n", sql);
-	check_call(ct_command, (command, CS_LANG_CMD, sql, nullterm, unused));
+	check_call(ct_command, (command, CS_LANG_CMD, (CS_CHAR *) sql, nullterm, unused));
 	check_call(ct_send, (command));
 	return fetch_results(command);
 }

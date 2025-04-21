@@ -215,7 +215,7 @@ TEST_MAIN()
 	datafmt.namelen = CS_NULLTERM;
 	datafmt.datatype = CS_BIT_TYPE;
 	datafmt.maxlength = 1;
-	datafmt.status = 0;
+	datafmt.status = CS_INPUTVALUE;
 	datafmt.locale = NULL;
 
 	check_call(ct_param, (cmd, &datafmt, (CS_VOID *) & bitvar, CS_SIZEOF(CS_BIT), 0));

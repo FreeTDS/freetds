@@ -32,6 +32,7 @@ TEST_MAIN()
 
 	ret = ct_con_props(conn, CS_GET, CS_TDS_VERSION, &tds_version, CS_UNUSED, NULL);
 	if (ret == CS_SUCCEED) {
+#ifdef CS_TDS_71
 		switch (tds_version) {
 		case CS_TDS_70:
 		case CS_TDS_71:
@@ -39,12 +40,13 @@ TEST_MAIN()
 			try_ctlogout(ctx, conn, cmd, verbose);
 			return 0;
 		}
+#endif
 	}
 
 	select = "select cast('<a b=\"aaa\"><b>ciao</b>hi</a>' as xml) as name";
 	printf("%s\n", select);
 
-	check_call(ct_command, (cmd, CS_LANG_CMD, select, CS_NULLTERM, CS_UNUSED));
+	check_call(ct_command, (cmd, CS_LANG_CMD, (CS_CHAR *) select, CS_NULLTERM, CS_UNUSED));
 
 	check_call(ct_send, (cmd));
 
