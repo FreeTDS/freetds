@@ -413,20 +413,10 @@ update_second_table(CS_COMMAND * cmd2, char *value)
 	CS_CHAR text[128];
 
 	sprintf(text, "update #test_table2 set col1 = '%s' ", value);
-	ret = run_command(cmd2, text);
-	if (ret != CS_SUCCEED)
-		return 1;
+	check_call(run_command, (cmd2, text));
 
-	ret = ct_command(cmd2, CS_LANG_CMD, "select col1 from #test_table2", CS_NULLTERM, CS_UNUSED);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_command() failed\n");
-		return 1;
-	}
-	ret = ct_send(cmd2);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_send() failed\n");
-		return 1;
-	}
+	check_call(ct_command, (cmd2, CS_LANG_CMD, "select col1 from #test_table2", CS_NULLTERM, CS_UNUSED));
+	check_call(ct_send, (cmd2));
 	while ((results_ret = ct_results(cmd2, &result_type)) == CS_SUCCEED) {
 		switch ((int) result_type) {
 		case CS_CMD_SUCCEED:
@@ -442,11 +432,7 @@ update_second_table(CS_COMMAND * cmd2, char *value)
 			datafmt.maxlength = 6;
 			datafmt.count = 1;
 			datafmt.locale = NULL;
-			ret = ct_bind(cmd2, 1, &datafmt, col1, &datalength, &ind);
-			if (ret != CS_SUCCEED) {
-				fprintf(stderr, "ct_bind() failed\n");
-				return 1;
-			}
+			check_call(ct_bind, (cmd2, 1, &datafmt, col1, &datalength, &ind));
 
 			while (((ret = ct_fetch(cmd2, CS_UNUSED, CS_UNUSED, CS_UNUSED, &count)) == CS_SUCCEED)
 			       || (ret == CS_ROW_FAIL)) {

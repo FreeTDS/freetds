@@ -8,7 +8,7 @@
 
 #include <freetds/replacements.h>
 
-static CS_RETCODE
+static void
 do_bind(CS_BLKDESC * blkdesc, int colnum, CS_INT host_format, CS_INT host_type, CS_INT host_maxlen,
 	void        *var_addr,
 	CS_INT      *var_len_addr,
@@ -196,32 +196,22 @@ do_one_bind(CS_BLKDESC *blkdesc, int col, const char *name)
 	exit(1);
 }
 
-static CS_RETCODE
+static void
 do_bind(CS_BLKDESC * blkdesc, int colnum, CS_INT host_format, CS_INT host_type, CS_INT host_maxlen,
 	void        *var_addr,
 	CS_INT      *var_len_addr,
 	CS_SMALLINT *var_ind_addr )
 {
 	CS_DATAFMT datafmt;
-	CS_RETCODE ret;
 
-	ret = blk_describe(blkdesc, colnum, &datafmt);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "blk_describe(%d) failed", colnum);
-		return ret;
-	}
+	check_call(blk_describe, (blkdesc, colnum, &datafmt));
 
 	datafmt.format = host_format;
 	datafmt.datatype = host_type;
 	datafmt.maxlength = host_maxlen;
 	datafmt.count = 1;
 
-	ret = blk_bind(blkdesc, colnum, &datafmt, var_addr, var_len_addr, var_ind_addr );
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "blk_bind() failed\n");
-		return ret;
-	}
-	return ret;
+	check_call(blk_bind, (blkdesc, colnum, &datafmt, var_addr, var_len_addr, var_ind_addr ));
 }
 
 static const char table_name[] = "all_types_bcp_unittest";

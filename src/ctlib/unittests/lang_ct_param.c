@@ -112,29 +112,14 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames)
 	 * to a CS_MONEY variable. Since this routine does not have the
 	 * context handle, we use the property functions to get it.
 	 */
-	if ((ret = ct_cmd_props(cmd, CS_GET, CS_PARENT_HANDLE, &conn, CS_UNUSED, NULL)) != CS_SUCCEED) {
-		fprintf(stderr, "ct_cmd_props() failed\n");
-		return 1;
-	}
-	if ((ret = ct_con_props(conn, CS_GET, CS_PARENT_HANDLE, &ctx, CS_UNUSED, NULL)) != CS_SUCCEED) {
-		fprintf(stderr, "ct_con_props() failed\n");
-		return 1;
-	}
-	ret = cs_convert(ctx, &srcfmt, (CS_VOID *) moneystring, &destfmt, &moneyvar, &destlen);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "cs_convert() failed\n");
-		return 1;
-	}
+	check_call(ct_cmd_props, (cmd, CS_GET, CS_PARENT_HANDLE, &conn, CS_UNUSED, NULL));
+	check_call(ct_con_props, (conn, CS_GET, CS_PARENT_HANDLE, &ctx, CS_UNUSED, NULL));
+	check_call(cs_convert, (ctx, &srcfmt, (CS_VOID *) moneystring, &destfmt, &moneyvar, &destlen));
 
 	/*
 	 * create the command
 	 */
-	if ((ret = ct_command(cmd, CS_LANG_CMD, query, (CS_INT) strlen(query),
-		CS_UNUSED)) != CS_SUCCEED) 
-	{
-		fprintf(stderr, "ct_command(CS_LANG_CMD) failed\n");
-		return 1;
-	}
+	check_call(ct_command, (cmd, CS_LANG_CMD, (CS_CHAR *) query, (CS_INT) strlen(query), CS_UNUSED));
 
 	/*
 	 * Clear and setup the CS_DATAFMT structure, then pass
@@ -154,11 +139,7 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames)
 	 * The character string variable is filled in by the RPC so pass NULL
 	 * for the data 0 for data length, and -1 for the indicator arguments.
 	 */
-	ret = ct_param(cmd, &datafmt, dummy_name, (CS_INT) strlen(dummy_name), 0);
-	if (CS_SUCCEED != ret) {
-		fprintf(stderr, "ct_param(char) failed\n");
-		return 1;
-	}
+	check_call(ct_param, (cmd, &datafmt, dummy_name, (CS_INT) strlen(dummy_name), 0));
 
 	if (useNames)
 		strcpy(datafmt.name, "@in2");
@@ -169,11 +150,7 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames)
 	datafmt.datatype = CS_CHAR_TYPE;
 	datafmt.status = CS_INPUTVALUE;
 
-	ret = ct_param(cmd, &datafmt, dummy_name2, (CS_INT) strlen(dummy_name2), 0);
-	if (CS_SUCCEED != ret) {
-		fprintf(stderr, "ct_param(char) failed\n");
-		return 1;
-	}
+	check_call(ct_param, (cmd, &datafmt, dummy_name2, (CS_INT) strlen(dummy_name2), 0));
 
 	if (useNames)
 		strcpy(datafmt.name, "@in3");
@@ -183,11 +160,7 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames)
 	datafmt.datatype = CS_INT_TYPE;
 	datafmt.status = CS_INPUTVALUE;
 
-	ret = ct_param(cmd, &datafmt, (CS_VOID *) & intvar, CS_SIZEOF(CS_INT), 0);
-	if (CS_SUCCEED != ret) {
-		fprintf(stderr, "ct_param(int) failed\n");
-		return 1;
-	}
+	check_call(ct_param, (cmd, &datafmt, (CS_VOID *) & intvar, CS_SIZEOF(CS_INT), 0));
 
 	if (useNames)
 		strcpy(datafmt.name, "@moneyval");
@@ -197,11 +170,7 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames)
 	datafmt.datatype = CS_MONEY_TYPE;
 	datafmt.status = CS_INPUTVALUE;
 
-	ret = ct_param(cmd, &datafmt, (CS_VOID *) & moneyvar, CS_SIZEOF(CS_MONEY), 0);
-	if (CS_SUCCEED != ret) {
-		fprintf(stderr, "ct_param(money) failed\n");
-		return 1;
-	}
+	check_call(ct_param, (cmd, &datafmt, (CS_VOID *) & moneyvar, CS_SIZEOF(CS_MONEY), 0));
 
 	if (useNames)
 		strcpy(datafmt.name, "@dateval");
@@ -215,11 +184,7 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames)
 	datevar.datemonth = 2;
 	datevar.datedmonth = 1;
 
-	ret = ct_param(cmd, &datafmt, &datevar, 0, 0);
-	if (CS_SUCCEED != ret) {
-		fprintf(stderr, "ct_param(datetime) failed");
-		return 1;
-	}
+	check_call(ct_param, (cmd, &datafmt, &datevar, 0, 0));
 
 	if (useNames)
 		strcpy(datafmt.name, "@floatval");
@@ -229,19 +194,12 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames)
 	datafmt.datatype = CS_FLOAT_TYPE;
 	datafmt.status = CS_INPUTVALUE;
 
-	ret = ct_param(cmd, &datafmt, &floatvar, 0, 0);
-	if (CS_SUCCEED != ret) {
-		fprintf(stderr, "ct_param(float) failed");
-		return 1;
-	}
+	check_call(ct_param, (cmd, &datafmt, &floatvar, 0, 0));
 
 	/*
 	 * Send the command to the server
 	 */
-	if (ct_send(cmd) != CS_SUCCEED) {
-		fprintf(stderr, "ct_send(CS_LANG_CMD) failed\n");
-		return 1;
-	}
+	check_call(ct_send, (cmd));
 
 	/*
 	 * Process the results.
@@ -296,11 +254,9 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames)
 	}
 
 	/* test row inserted */
-	ret = run_command(cmd, "if not exists(select * from #ctparam_lang where name = 'joe blow' and name2 is not null and age = 2) select 1");
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "check row inserted failed\n");
-		exit(1);
-	}
+	check_call(run_command, (cmd, "if not exists("
+		   "select * from #ctparam_lang where name = 'joe blow' and name2 is not null and age = 2"
+		   ") select 1"));
 
 	return 0;
 }

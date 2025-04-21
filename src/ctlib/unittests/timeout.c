@@ -82,10 +82,7 @@ TEST_MAIN()
 	CS_CONNECTION *con;
 	CS_COMMAND *cmd;
 
-	if (CS_SUCCEED != try_ctlogin_with_options(argc, argv, &ctx, &con, &cmd, false)) {
-		fputs("Customary setup failed.\n", stderr);
-		return 1;
-	}
+	check_call(try_ctlogin_with_options, (argc, argv, &ctx, &con, &cmd, false));
 	test(con, cmd);
 	try_ctlogout(ctx, con, cmd, false);
 	return 0;
