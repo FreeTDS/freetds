@@ -2035,6 +2035,7 @@ ct_cmd_drop(CS_COMMAND * cmd)
 			cmd->next = NULL;
 		}
 
+		tds_release_cursor(&cmd->cursor);
 		free(cmd);
 	}
 	return CS_SUCCEED;
