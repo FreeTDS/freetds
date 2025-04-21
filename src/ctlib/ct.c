@@ -2841,6 +2841,11 @@ ct_cmd_props(CS_COMMAND * cmd, CS_INT action, CS_INT property, CS_VOID * buffer,
 		case CS_CUR_NAME:
 		case CS_CUR_ROWCOUNT:
 
+			if (property == CS_CUR_STATUS && buflen != CS_UNUSED) {
+				_ctclient_msg(NULL, cmd->con, "ct_cmd_props(GET,CUR_STATUS)", 1, 1, 1, 9, "%s", "buflen");
+				return CS_FAIL;
+			}
+
 			cursor = cmd->cursor;
 
 			if (!cursor) {

@@ -19,6 +19,7 @@
 	TEST(ct_command) \
 	TEST(ct_cursor) \
 	TEST(ct_con_props) \
+	TEST(ct_cmd_props) \
 	TEST(cs_convert)
 
 /* forward declare all tests */
@@ -528,6 +529,16 @@ test_ct_con_props(void)
 
 	check_fail(ct_con_props, (NULL, CS_SET, CS_APPNAME, "app", 3, NULL));
 	check_last_message(CTMSG_NONE, 0, NULL);
+}
+
+static void
+test_ct_cmd_props(void)
+{
+	CS_INT props_value;
+
+	/* wrong buffer length */
+	check_fail(ct_cmd_props, (cmd, CS_GET, CS_CUR_STATUS, &props_value, sizeof(CS_INT), NULL));
+	check_last_message(CTMSG_CLIENT2, 0x01010109, "The buflen parameter must be set to CS_UNUSED");
 }
 
 static void

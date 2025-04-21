@@ -15,7 +15,7 @@ TEST_MAIN()
 	CS_DATAFMT datafmt;
 	CS_SMALLINT ind;
 	int verbose = 1;
-	CS_CHAR name[3]; 
+	CS_CHAR name[3];
 	CS_CHAR col1[6];
 	CS_INT datalength;
 	CS_CHAR text[128];
@@ -65,7 +65,7 @@ TEST_MAIN()
 
 		case CS_CURSOR_RESULT:
 
-			check_call(ct_cmd_props, (cmd, CS_GET, CS_CUR_STATUS, &props_value, sizeof(CS_INT), NULL)); 
+			check_call(ct_cmd_props, (cmd, CS_GET, CS_CUR_STATUS, &props_value, CS_UNUSED, NULL));
 			if (props_value & CS_CURSTAT_DECLARED) {
 				fprintf(stderr, "ct_cmd_props claims cursor is in DECLARED state when it should be OPEN\n");
 				return 1;
@@ -163,7 +163,7 @@ TEST_MAIN()
 		return 1;
 	}
 
-	check_call(ct_cmd_props, (cmd, CS_GET, CS_CUR_STATUS, &props_value, sizeof(CS_INT), NULL)); 
+	check_call(ct_cmd_props, (cmd, CS_GET, CS_CUR_STATUS, &props_value, CS_UNUSED, NULL));
 
 	if (props_value != CS_CURSTAT_NONE) {
 		fprintf(stderr, "ct_cmd_props() CS_CUR_STATUS != CS_CURSTAT_NONE \n");
