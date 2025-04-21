@@ -48,9 +48,9 @@ TEST_MAIN()
 
 	check_call(ct_cursor, (cmd, CS_CURSOR_DECLARE, name, CS_NULLTERM, text, CS_NULLTERM, CS_UNUSED));
 
-	check_call(ct_cursor, (cmd, CS_CURSOR_ROWS, name, CS_NULLTERM, NULL, CS_UNUSED, (CS_INT) 1));
+	check_call(ct_cursor, (cmd, CS_CURSOR_ROWS, NULL, CS_UNUSED, NULL, CS_UNUSED, (CS_INT) 1));
 
-	check_call(ct_cursor, (cmd, CS_CURSOR_OPEN, name, CS_NULLTERM, text, CS_NULLTERM, CS_UNUSED));
+	check_call(ct_cursor, (cmd, CS_CURSOR_OPEN, NULL, CS_UNUSED, NULL, CS_UNUSED, CS_UNUSED));
 
 	check_call(ct_send, (cmd));
 
@@ -148,7 +148,7 @@ TEST_MAIN()
 	}
 
 
-	check_call(ct_cursor, (cmd, CS_CURSOR_CLOSE, name, CS_NULLTERM, NULL, CS_UNUSED, CS_DEALLOC));
+	check_call(ct_cursor, (cmd, CS_CURSOR_CLOSE, NULL, CS_UNUSED, NULL, CS_UNUSED, CS_DEALLOC));
 
 	check_call(ct_send, (cmd));
 
@@ -191,7 +191,7 @@ TEST_MAIN()
 		return 1;
 	}
 
-	check_call(ct_cursor, (cmd, CS_CURSOR_ROWS, name, 3, NULL, CS_UNUSED, (CS_INT) 1));
+	check_call(ct_cursor, (cmd, CS_CURSOR_ROWS, NULL, CS_UNUSED, NULL, CS_UNUSED, (CS_INT) 1));
 
 	check_call(ct_send, (cmd));
 
@@ -206,7 +206,7 @@ TEST_MAIN()
 		return 1;
 	}
 
-	check_call(ct_cursor, (cmd, CS_CURSOR_OPEN, name, 3, text, 26, CS_UNUSED));
+	check_call(ct_cursor, (cmd, CS_CURSOR_OPEN, NULL, CS_UNUSED, NULL, CS_UNUSED, CS_UNUSED));
 
 	check_call(ct_send, (cmd));
 
@@ -290,7 +290,7 @@ TEST_MAIN()
 	}
 
 
-	check_call(ct_cursor, (cmd, CS_CURSOR_CLOSE, name, 3, NULL, CS_UNUSED, CS_UNUSED));
+	check_call(ct_cursor, (cmd, CS_CURSOR_CLOSE, NULL, CS_UNUSED, NULL, CS_UNUSED, CS_UNUSED));
 
 	check_call(ct_send, (cmd));
 
@@ -304,7 +304,7 @@ TEST_MAIN()
 		fprintf(stderr, "ct_results() returned BAD.\n");
 		return 1;
 	}
-	check_call(ct_cursor, (cmd, CS_CURSOR_DEALLOC, name, 3, NULL, CS_UNUSED, CS_UNUSED));
+	check_call(ct_cursor, (cmd, CS_CURSOR_DEALLOC, NULL, CS_UNUSED, NULL, CS_UNUSED, CS_UNUSED));
 
 	check_call(ct_send, (cmd));
 
