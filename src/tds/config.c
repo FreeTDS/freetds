@@ -1465,16 +1465,20 @@ tds_get_compiletime_settings(void)
 TDSRET
 tds8_adjust_login(TDSLOGIN *login)
 {
-	if (!IS_TDS80_PLUS(login) && login->encryption_level != TDS_ENCRYPTION_STRICT)
-		return TDS_SUCCESS;
+	/* TDS 8.0 requires TDS_ENCRYPTION_STRICT (entire-connection encryption) */
+	if (IS_TDS80_PLUS(login))
+		login->encryption_level = TDS_ENCRYPTION_STRICT;
 
-	login->tds_version = 0x800;
-	login->encryption_level = TDS_ENCRYPTION_STRICT;
+	if (login->encryption_level == TDS_ENCRYPTION_STRICT) {
+		/* TDS 5.0 (Sybase/SAP ASE) it is optional; but TDS 7.x does not allow it.
+		 * So, try 8.0 unless they specifically requested 5.0 */
+		if (!IS_TDS50(login) && !IS_TDS80_PLUS(login))
+			login->tds_version = 0x800;
 
-	/* we must have certificates */
-	if (tds_dstr_isempty(&login->cafile)) {
-		if (!tds_dstr_copy(&login->cafile, "system"))
-			return -TDSEMEM;
+		/* Validate server certificate signature to reduce risk of MITM attacks */
+		if (tds_dstr_isempty(&login->cafile))
+			if (!tds_dstr_copy(&login->cafile, "system"))
+				return -TDSEMEM;
 	}
 
 	return TDS_SUCCESS;
