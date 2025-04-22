@@ -684,6 +684,11 @@ reroute:
 		db_selected = true;
 	} else {
 		tds->out_flag = TDS_LOGIN;
+
+		/* SAP ASE 15.0+ SSL mode encrypts entire connection (like stunnel) */
+		if (login->encryption_level == TDS_ENCRYPTION_STRICT)
+			TDS_PROPAGATE(tds_ssl_init(tds, true));
+
 		erc = tds_send_login(tds, login);
 	}
 	if (TDS_FAILED(erc) || TDS_FAILED(tds_process_login_tokens(tds))) {
