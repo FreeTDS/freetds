@@ -58,7 +58,7 @@ TEST_MAIN()
 	error_to_stdout = true;
 
 	/* do not test error */
-	ret = run_command(cmd, "IF OBJECT_ID('sample_rpc') IS NOT NULL DROP PROCEDURE sample_rpc");
+	run_command(cmd, "IF OBJECT_ID('sample_rpc') IS NOT NULL DROP PROCEDURE sample_rpc");
 
 	strcpy(cmdbuf, "create proc sample_rpc (@intparam int, \
         @sintparam smallint output, @floatparam float output, \
