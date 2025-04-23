@@ -74,7 +74,7 @@ TEST_MAIN()
 	}
 	check_call(ct_callback, (NULL, conn, CS_SET, CS_CLIENTMSG_CB, (CS_VOID *) clientmsg_cb));
 	clientmsg_cb_invoked = 0;
-	check_call(run_command, (cmd, "."));
+	run_command(cmd, ".");
 	if (clientmsg_cb_invoked) {
 		fprintf(stderr, "clientmsg_cb was invoked!\n");
 		return 1;

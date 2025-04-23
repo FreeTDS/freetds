@@ -259,22 +259,23 @@ run_command(CS_COMMAND * cmd, const char *sql)
 		fprintf(stderr, "ct_send() failed\n");
 		return ret;
 	}
+	ret = CS_SUCCEED;
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
-		switch ((int) result_type) {
+		switch (result_type) {
 		case CS_CMD_SUCCEED:
 			break;
 		case CS_CMD_DONE:
 			break;
 		case CS_CMD_FAIL:
 			fprintf(stderr, "ct_results() result_type CS_CMD_FAIL.\n");
-			/* return CS_FAIL; */
+			ret = CS_FAIL;
 			break;
 		default:
 			fprintf(stderr, "ct_results() unexpected result_type.\n");
 			return CS_FAIL;
 		}
 	}
-	switch ((int) results_ret) {
+	switch (results_ret) {
 	case CS_END_RESULTS:
 		break;
 	case CS_FAIL:
@@ -286,7 +287,7 @@ run_command(CS_COMMAND * cmd, const char *sql)
 		return CS_FAIL;
 	}
 
-	return CS_SUCCEED;
+	return ret;
 }
 
 CS_INT
