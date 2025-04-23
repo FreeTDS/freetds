@@ -380,7 +380,7 @@ tds_process_loginack(TDSSOCKET *tds, TDSRET *login_succeeded)
 	if (ver.major == 4 && ver.minor == 2 && (product_version & 0xff0000ffu) == 0x5f0000ffu)
 		product_version = ((product_version & 0xffff00u) | 0x800000u) << 8;
 	tds->conn->product_version = product_version;
-	tdsdump_log(TDS_DBG_FUNC, "Product version %lX\n", (unsigned long) product_version);
+	tdsdump_log(TDS_DBG_FUNC, "Product version %#lx\n", (unsigned long) product_version);
 
 	/* internal version is ignored for TDS 8.0+ */
 	if (orig_tds_version >= 0x800)
