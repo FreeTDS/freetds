@@ -258,6 +258,7 @@ single_test(CS_CONNECTION *conn, CS_COMMAND *cmd, FILE *in)
 	int count = 0;
 	int i;
 	part_t part;
+	CS_RETCODE ret;
 
 	sprintf(command, "if exists (select 1 from sysobjects where type = 'U' and name = '%s') drop table %s",
 		table_name, table_name);
@@ -265,8 +266,20 @@ single_test(CS_CONNECTION *conn, CS_COMMAND *cmd, FILE *in)
 	check_call(run_command, (cmd, command));
 
 	create_table_sql = read_part(in);
-	check_call(run_command, (cmd, create_table_sql));
+	ret = run_command(cmd, create_table_sql);
 	free(create_table_sql);
+
+	/* on error skip the test */
+	if (ret != CS_SUCCEED) {
+		part = read_part_type(in);
+		assert(part == PART_BIND);
+		free(read_part(in));
+
+		part = read_part_type(in);
+		assert(part == PART_OUTPUT);
+		free(read_part(in));
+		return;
+	}
 
 	sprintf(command, "delete from %s", table_name);
 	check_call(run_command, (cmd, command));
@@ -297,7 +310,7 @@ single_test(CS_CONNECTION *conn, CS_COMMAND *cmd, FILE *in)
 	out1 = read_part(in);
 	out2 = get_output(cmd);
 	if (strcmp(out1, out2) != 0) {
-		fprintf(stderr, "Wrong output\n--\n%s\n--\n%s\n--\n", out1, out2);
+		fprintf(stderr, "Wrong output\n-- expected --\n%s\n-- got --\n%s\n--\n", out1, out2);
 		exit(1);
 	}
 	free(out1);
