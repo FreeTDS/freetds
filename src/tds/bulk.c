@@ -46,6 +46,7 @@
 #include <freetds/convert.h>
 #include <freetds/utils/string.h>
 #include <freetds/replacements.h>
+#include <freetds/enum_cap.h>
 
 /**
  * Holds clause buffer
@@ -226,8 +227,8 @@ probe_sap_locking(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	if (bcpinfo->direction != TDS_BCP_IN)
 		return TDS_SUCCESS;
 
-	/* Only needed for SAP ASE versions which support datarows-locking; sseems to have been added in 12.5.1 */
-	if (!TDS_IS_SYBASE(tds) || tds->conn->product_version < TDS_SYB_VER(12, 5, 1))
+	/* Only needed for SAP ASE versions which support datarows-locking. */
+	if (!TDS_IS_SYBASE(tds) || !tds_capability_has_req(tds->conn, TDS_REQ_DOL_BULK))
 		return TDS_SUCCESS;
 
 	/* A request to probe database.owner.tablename needs to check database.owner.sysobjects for tablename
