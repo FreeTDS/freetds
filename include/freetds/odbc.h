@@ -505,6 +505,7 @@ bool get_login_info(HWND hwndParent, TDSLOGIN * login);
 	ODBC_PARAM(ApplicationIntent) \
 	ODBC_PARAM(AttachDbFilename) \
 	ODBC_PARAM(ClientCharset) \
+	ODBC_PARAM(ConnectionTimeout) \
 	ODBC_PARAM(Database) \
 	ODBC_PARAM(DebugFlags) \
 	ODBC_PARAM(DSN) \

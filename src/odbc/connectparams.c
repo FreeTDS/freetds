@@ -303,6 +303,9 @@ odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSLOGIN * login)
 	if (myGetPrivateProfileString(DSN, odbc_param_Timeout, tmp) > 0)
 		tds_parse_conf_section(TDS_STR_TIMEOUT, tmp, login);
 
+	if (myGetPrivateProfileString(DSN, odbc_param_ConnectionTimeout, tmp) > 0)
+		tds_parse_conf_section(TDS_STR_CONNTIMEOUT, tmp, login);
+
 	if (myGetPrivateProfileString(DSN, odbc_param_HostNameInCertificate, tmp) > 0
 	    && (tmp[0] && strcmp(tmp, "null") != 0)) {
 		if (!tds_dstr_copy(&login->certificate_host_name, tmp)) {
@@ -524,6 +527,8 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 			tdsdump_log(TDS_DBG_INFO1, "Application Intent %s\n", readonly_intent);
 		} else if (CHK_PARAM(Timeout)) {
 			tds_parse_conf_section(TDS_STR_TIMEOUT, tds_dstr_cstr(&value), login);
+		} else if (CHK_PARAM(ConnectionTimeout)) {
+			tds_parse_conf_section(TDS_STR_CONNTIMEOUT, tds_dstr_cstr(&value), login);
 		} else if (CHK_PARAM(HostNameInCertificate)) {
 			dest_s = &login->certificate_host_name;
 		}

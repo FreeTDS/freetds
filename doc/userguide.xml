@@ -2124,6 +2124,12 @@ This setting allow to do it. You should specify <literal>Database</literal> attr
 							<entry/>
 							<entry>Query timeout in seconds.</entry>
 							</row>
+						<row>
+							<entry><literal>ConnectionTimeout</literal></entry>
+							<entry>Integer number</entry>
+							<entry/>
+							<entry>Connection timeout in seconds.</entry>
+							</row>
 						</tbody>
 					</tgroup>
 				</table></para>
