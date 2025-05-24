@@ -618,7 +618,7 @@ Once project files are created you can open them with your environment.</para>
 
 <para>You can  download FreeTDS binaries for Windows from AppVeyor (the hosted CI platform used).</para>
 
-<para>There is a .zip file available as artifact of every sucessful build.
+<para>There is a .zip file available as artifact of every successful build.
 
 The list of builds is at
 <ulink url="https://ci.appveyor.com/project/FreeTDS/freetds/history">https://ci.appveyor.com/project/FreeTDS/freetds/history</ulink>.
@@ -1254,7 +1254,7 @@ This is the name of the database container in the server you are connecting to.<
 							<entry>File that holds root certificates (in PEM format) to verify server certificate, used during an encrypted connection.
 If not specify or empty any certificate will be accepted from server.
 If you specify <literal>system</literal> &freetds; will use system wide certificate list.
-If a certiticate is not installed server can generate a self signed certificate, in this case is useful to disable certificate validation (which is the default).
+If a certificate is not installed server can generate a self signed certificate, in this case is useful to disable certificate validation (which is the default).
 Note that is not possible to specify a directory as usually database servers does not use a certificate signed by a public global certification authority.
 </entry>
 							</row>
@@ -2043,6 +2043,17 @@ The ODBC tests all build their own <filename>odbc.ini</filename> and try to redi
 							<entry>optional</entry>
 							<entry>Specify encryption.
 							Similar to encryption on &freetdsconf; but Microsoft compatible.</entry>
+							</row>
+						<row>
+							<entry><literal>ServerCertificate</literal></entry>
+							<entry>Any</entry>
+							<entry>none</entry>
+							<entry>File that holds root certificates (in PEM format) to verify server certificate, used during an encrypted connection.
+If not specify or empty any certificate will be accepted from server.
+If you specify <literal>system</literal> &freetds; will use system wide certificate list.
+If a certificate is not installed server can generate a self signed certificate, in this case is useful to disable certificate validation (which is the default).
+Note that is not possible to specify a directory as usually database servers does not use a certificate signed by a public global certification authority.
+							Microsoft compatible.</entry>
 							</row>
 						<row>
 							<entry><literal>HostNameInCertificate</literal></entry>

@@ -528,7 +528,8 @@ bool get_login_info(HWND hwndParent, TDSLOGIN * login);
 	ODBC_PARAM(ApplicationIntent) \
 	ODBC_PARAM(Timeout) \
 	ODBC_PARAM(Encrypt) \
-	ODBC_PARAM(HostNameInCertificate)
+	ODBC_PARAM(HostNameInCertificate) \
+	ODBC_PARAM(ServerCertificate)
 
 #define ODBC_PARAM(p) ODBC_PARAM_##p,
 enum {
