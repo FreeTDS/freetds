@@ -518,17 +518,8 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 		} else if (CHK_PARAM(AttachDbFilename)) {
 			dest_s = &login->db_filename;
 		} else if (CHK_PARAM(ApplicationIntent)) {
-			const char *readonly_intent;
-
-			if (strcasecmp(tds_dstr_cstr(&value), "ReadOnly") == 0) {
-				readonly_intent = "yes";
-			} else if (strcasecmp(tds_dstr_cstr(&value), "ReadWrite") == 0) {
-				readonly_intent = "no";
-			} else {
-				tdsdump_log(TDS_DBG_ERROR, "Invalid ApplicationIntent %s\n", tds_dstr_cstr(&value));
-				goto Cleanup;
-			}
-
+			const char *readonly_intent =
+				odbc_appintent2readonly(tds_dstr_cstr(&value));
 			tds_parse_conf_section(TDS_STR_READONLY_INTENT, readonly_intent, login);
 			tdsdump_log(TDS_DBG_INFO1, "Application Intent %s\n", readonly_intent);
 		} else if (CHK_PARAM(Timeout)) {
