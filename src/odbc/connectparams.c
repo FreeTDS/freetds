@@ -165,6 +165,17 @@ odbc_encrypt2encryption(const char *encrypt)
 	return "invalid_encrypt";
 }
 
+static const char *
+odbc_appintent2readonly(const char *appintent)
+{
+	if (strcasecmp(appintent,"ReadOnly") == 0)
+		return "yes";
+	if (strcasecmp(appintent,"ReadWrite") == 0)
+		return "no";
+
+	return "Invalid_application_intent";
+}
+
 /** 
  * Read connection information from given DSN
  * @param DSN           DSN name
@@ -262,6 +273,9 @@ odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSLOGIN * login)
 
 	if (myGetPrivateProfileString(DSN, odbc_param_ServerCertificate, tmp) > 0)
 		tds_parse_conf_section(TDS_STR_CAFILE, tmp, login);
+
+	if (myGetPrivateProfileString(DSN, odbc_param_ApplicationIntent, tmp) > 0)
+		tds_parse_conf_section(TDS_STR_READONLY_INTENT, odbc_appintent2readonly(tmp), login);
 
 	if (myGetPrivateProfileString(DSN, odbc_param_UseNTLMv2, tmp) > 0)
 		tds_parse_conf_section(TDS_STR_USENTLMV2, tmp, login);
