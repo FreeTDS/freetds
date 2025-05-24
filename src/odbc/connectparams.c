@@ -260,6 +260,9 @@ odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSLOGIN * login)
 	if (myGetPrivateProfileString(DSN, odbc_param_Encrypt, tmp) > 0)
 		tds_parse_conf_section(TDS_STR_ENCRYPTION, odbc_encrypt2encryption(tmp), login);
 
+	if (myGetPrivateProfileString(DSN, odbc_param_ServerCertificate, tmp) > 0)
+		tds_parse_conf_section(TDS_STR_CAFILE, tmp, login);
+
 	if (myGetPrivateProfileString(DSN, odbc_param_UseNTLMv2, tmp) > 0)
 		tds_parse_conf_section(TDS_STR_USENTLMV2, tmp, login);
 
@@ -482,6 +485,8 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 			tds_parse_conf_section(TDS_STR_ENCRYPTION, tds_dstr_cstr(&value), login);
 		} else if (CHK_PARAM(Encrypt)) {
 			tds_parse_conf_section(TDS_STR_ENCRYPTION, odbc_encrypt2encryption(tds_dstr_cstr(&value)), login);
+		} else if (CHK_PARAM(ServerCertificate)) {
+			tds_parse_conf_section(TDS_STR_CAFILE, tds_dstr_cstr(&value), login);
 		} else if (CHK_PARAM(UseNTLMv2)) {
 			tds_parse_conf_section(TDS_STR_USENTLMV2, tds_dstr_cstr(&value), login);
 		} else if (CHK_PARAM(REALM)) {
