@@ -500,36 +500,36 @@ bool get_login_info(HWND hwndParent, TDSLOGIN * login);
 #endif
 
 #define ODBC_PARAM_LIST \
-	ODBC_PARAM(Servername) \
-	ODBC_PARAM(Server) \
-	ODBC_PARAM(DSN) \
-	ODBC_PARAM(UID) \
-	ODBC_PARAM(PWD) \
 	ODBC_PARAM(Address) \
-	ODBC_PARAM(Port) \
-	ODBC_PARAM(TDS_Version) \
-	ODBC_PARAM(Language) \
-	ODBC_PARAM(Database) \
-	ODBC_PARAM(TextSize) \
-	ODBC_PARAM(PacketSize) \
+	ODBC_PARAM(APP) \
+	ODBC_PARAM(ApplicationIntent) \
+	ODBC_PARAM(AttachDbFilename) \
 	ODBC_PARAM(ClientCharset) \
+	ODBC_PARAM(Database) \
+	ODBC_PARAM(DebugFlags) \
+	ODBC_PARAM(DSN) \
 	ODBC_PARAM(DumpFile) \
 	ODBC_PARAM(DumpFileAppend) \
-	ODBC_PARAM(DebugFlags) \
-	ODBC_PARAM(Encryption) \
-	ODBC_PARAM(Trusted_Connection) \
-	ODBC_PARAM(APP) \
-	ODBC_PARAM(WSID) \
-	ODBC_PARAM(UseNTLMv2) \
-	ODBC_PARAM(MARS_Connection) \
-	ODBC_PARAM(REALM) \
-	ODBC_PARAM(ServerSPN) \
-	ODBC_PARAM(AttachDbFilename) \
-	ODBC_PARAM(ApplicationIntent) \
-	ODBC_PARAM(Timeout) \
 	ODBC_PARAM(Encrypt) \
+	ODBC_PARAM(Encryption) \
 	ODBC_PARAM(HostNameInCertificate) \
-	ODBC_PARAM(ServerCertificate)
+	ODBC_PARAM(Language) \
+	ODBC_PARAM(MARS_Connection) \
+	ODBC_PARAM(PacketSize) \
+	ODBC_PARAM(Port) \
+	ODBC_PARAM(PWD) \
+	ODBC_PARAM(REALM) \
+	ODBC_PARAM(Server) \
+	ODBC_PARAM(ServerCertificate) \
+	ODBC_PARAM(Servername) \
+	ODBC_PARAM(ServerSPN) \
+	ODBC_PARAM(TDS_Version) \
+	ODBC_PARAM(TextSize) \
+	ODBC_PARAM(Timeout) \
+	ODBC_PARAM(Trusted_Connection) \
+	ODBC_PARAM(UID) \
+	ODBC_PARAM(UseNTLMv2) \
+	ODBC_PARAM(WSID)
 
 #define ODBC_PARAM(p) ODBC_PARAM_##p,
 enum {
