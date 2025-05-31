@@ -85,7 +85,6 @@ static const char *parse_numeric(const char *buf, const char *pend,
 
 /*
  * Macros for integer number checks.
- * IS_UINT works for both integers and floating point values.
  *
  * f77: I don't write -2147483648, some compiler seem to have some problem 
  * with this constant although is a valid 32bit value
@@ -94,7 +93,7 @@ static const char *parse_numeric(const char *buf, const char *pend,
 #define TDS_INT_MAX 2147483647
 #define INT_IS_INT(x) (TDS_INT_MIN <= (x) && (x) <= TDS_INT_MAX)
 #define TDS_UINT_MAX 4294967295u
-#define IS_UINT(x) (-1 < (TDS_INT8)(x) && (x) < (TDS_INT8) TDS_UINT_MAX + 1)
+#define INT_IS_UINT(x) (0 <= (x) && (x) <= (TDS_INT8) TDS_UINT_MAX)
 #define TDS_INT8_MIN (-INT64_C(9223372036854775807)-1)
 #define TDS_INT8_MAX INT64_C(9223372036854775807)
 
@@ -106,6 +105,8 @@ static const char *parse_numeric(const char *buf, const char *pend,
  */
 #define TDS_INT_UPPER_FLOAT 2147483648.0f
 #define FLOAT_IS_INT(x) (TDS_INT_MIN - (x) < 1.0f && (x) < TDS_INT_UPPER_FLOAT)
+#define TDS_UINT_UPPER_FLOAT 4294967296.0f
+#define FLOAT_IS_UINT(x) (-1.0f < (x) && (x) < TDS_UINT_UPPER_FLOAT)
 #define TDS_INT8_MIN_FLOAT (-9223372036854775808.0f)
 #define TDS_INT8_UPPER_FLOAT 9223372036854775808.0f
 #define FLOAT_IS_INT8(x) (TDS_INT8_MIN_FLOAT - (x) < 1.0f && (x) < TDS_INT8_UPPER_FLOAT)
@@ -412,7 +413,7 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 	case SYBUINT4:
 		if ((rc = string_to_int8(src, src + srclen, &tds_i8)) < 0)
 			return rc;
-		if (!IS_UINT(tds_i8))
+		if (!INT_IS_UINT(tds_i8))
 			return TDS_CONVERT_OVERFLOW;
 		cr->ui = (TDS_UINT) tds_i8;
 		return sizeof(TDS_UINT);
@@ -766,7 +767,7 @@ tds_convert_int8(const TDS_INT8 *src, int desttype, CONV_RESULT * cr)
 		return TDS_CONVERT_OVERFLOW;
 		break;
 	case SYBUINT4:
-		if (!IS_UINT(buf))
+		if (!INT_IS_UINT(buf))
 			return TDS_CONVERT_OVERFLOW;
 		cr->ui = (TDS_UINT) buf;
 		return sizeof(TDS_UINT);
@@ -845,7 +846,7 @@ tds_convert_uint8(const TDS_UINT8 *src, int desttype, CONV_RESULT * cr)
 		return TDS_CONVERT_OVERFLOW;
 		break;
 	case SYBUINT4:
-		if (!IS_UINT(buf))
+		if (!INT_IS_UINT(buf))
 			return TDS_CONVERT_OVERFLOW;
 		cr->ui = (TDS_UINT) buf;
 		return sizeof(TDS_UINT);
@@ -1159,7 +1160,7 @@ tds_convert_money4(const TDSCONTEXT * tds_ctx, const TDS_MONEY4 * src, int destt
 		break;
 	case SYBUINT4:
 		dollars = mny.mny4 / 10000;
-		if (!IS_UINT(dollars))
+		if (!INT_IS_UINT(dollars))
 			return TDS_CONVERT_OVERFLOW;
 		cr->ui = dollars;
 		return sizeof(TDS_UINT);
@@ -1265,7 +1266,7 @@ tds_convert_money(const TDSCONTEXT * tds_ctx, const TDS_MONEY * src, int desttyp
 		break;
 	case SYBUINT4:
 		dollars = mymoney / 10000;
-		if (!IS_UINT(dollars))
+		if (!INT_IS_UINT(dollars))
 			return TDS_CONVERT_OVERFLOW;
 		cr->ui = (TDS_UINT) dollars;
 		return sizeof(TDS_UINT);
@@ -1613,7 +1614,7 @@ tds_convert_real(const TDS_REAL* src, int desttype, CONV_RESULT * cr)
 		return sizeof(TDS_INT);
 		break;
 	case SYBUINT4:
-		if (!IS_UINT(the_value))
+		if (!FLOAT_IS_UINT(the_value))
 			return TDS_CONVERT_OVERFLOW;
 		cr->ui = (TDS_UINT) the_value;
 		return sizeof(TDS_UINT);
@@ -1728,7 +1729,7 @@ tds_convert_flt8(const TDS_FLOAT* src, int desttype, CONV_RESULT * cr)
 		return sizeof(TDS_INT);
 		break;
 	case SYBUINT4:
-		if (!IS_UINT(the_value))
+		if (!FLOAT_IS_UINT(the_value))
 			return TDS_CONVERT_OVERFLOW;
 		cr->ui = (TDS_UINT) the_value;
 		return sizeof(TDS_UINT);
