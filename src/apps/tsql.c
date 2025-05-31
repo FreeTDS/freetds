@@ -290,7 +290,7 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 			TDSMESSAGE msg;
 			gettimeofday(&stop, NULL);
 			sprintf(message, "Total time for processing %d rows: %ld msecs\n",
-				rows, (long) ((stop.tv_sec - start.tv_sec) * 1000) + ((stop.tv_usec - start.tv_usec) / 1000));
+				rows, (long) ((stop.tv_sec - start.tv_sec) * 1000 + (stop.tv_usec - start.tv_usec) / 1000));
 
 			memset(&msg, 0, sizeof(TDSMESSAGE));
 			msg.server = "tsql";
