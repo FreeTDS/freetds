@@ -256,6 +256,9 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 #ifdef HAVE_OPENSSL
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "openssl_ciphers", tds_dstr_cstr(&connection->openssl_ciphers));
 #endif
+#ifdef HAVE_GNUTLS
+		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "gnutls_ciphers", tds_dstr_cstr(&connection->gnutls_ciphers));
+#endif
 
 		tdsdump_close();
 	}
@@ -707,6 +710,8 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		tdsdump_log(TDS_DBG_FUNC, "Setting ReadOnly Intent to '%s'.\n", value);
 	} else if (!strcmp(option, TLS_STR_OPENSSL_CIPHERS)) {
 		s = tds_dstr_copy(&login->openssl_ciphers, value);
+	} else if (!strcmp(option, TLS_STR_GNUTLS_CIPHERS)) {
+		s = tds_dstr_copy(&login->gnutls_ciphers, value);
 	} else if (!strcmp(option, TDS_STR_ENABLE_TLS_V1)) {
 		parse_boolean(option, value, login->enable_tls_v1);
 		login->enable_tls_v1_specified = 1;
@@ -812,6 +817,9 @@ tds_config_login(TDSLOGIN * connection, TDSLOGIN * login)
 
 	if (res && !tds_dstr_isempty(&login->openssl_ciphers))
 		res = tds_dstr_dup(&connection->openssl_ciphers, &login->openssl_ciphers);
+
+	if (res && !tds_dstr_isempty(&login->gnutls_ciphers))
+		res = tds_dstr_dup(&connection->gnutls_ciphers, &login->gnutls_ciphers);
 
 	if (res && !tds_dstr_isempty(&login->server_spn))
 		res = tds_dstr_dup(&connection->server_spn, &login->server_spn);
