@@ -560,18 +560,24 @@ tds_ssl_init(TDSSOCKET *tds, bool full)
 #endif
 	}
 
-	/* NOTE: these functions return int however they cannot fail */
+	/* use default priorities unless overridden by gnutls ciphers setting in freetds.conf file... */
+	if (!tds_dstr_isempty(&tds->login->gnutls_ciphers)) {
+		tdsdump_log(TDS_DBG_INFO1, "setting custom gnutls ciphers to:%s\n", tds_dstr_cstr(&tds->login->gnutls_ciphers));
+		gnutls_priority_set_direct(session, tds_dstr_cstr(&tds->login->gnutls_ciphers), NULL);
+	} else {
+		/* NOTE: these functions return int however they cannot fail */
 
-	/* use default priorities... */
-	gnutls_set_default_priority(session);
+		/* use default priorities... */
+		gnutls_set_default_priority(session);
 
-	/* ... but overwrite some */
-	if (tds->login && tds->login->enable_tls_v1)
-		ret = gnutls_priority_set_direct(session, "NORMAL:%COMPAT:-VERS-SSL3.0", NULL);
-	else
-		ret = gnutls_priority_set_direct(session, "NORMAL:%COMPAT:-VERS-SSL3.0:-VERS-TLS1.0", NULL);
-	if (ret != 0)
-		goto cleanup;
+		/* ... but overwrite some */
+		if (tds->login && tds->login->enable_tls_v1)
+			ret = gnutls_priority_set_direct(session, "NORMAL:%COMPAT:-VERS-SSL3.0", NULL);
+		else
+			ret = gnutls_priority_set_direct(session, "NORMAL:%COMPAT:-VERS-SSL3.0:-VERS-TLS1.0", NULL);
+		if (ret != 0)
+			goto cleanup;
+	}
 
 	/* mssql does not like padding too much */
 #ifdef HAVE_GNUTLS_RECORD_DISABLE_PADDING

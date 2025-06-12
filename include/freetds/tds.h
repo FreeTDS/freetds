@@ -469,6 +469,8 @@ is_tds_type_valid(int type)
 #define TLS_STR_OPENSSL_CIPHERS "openssl ciphers"
 /* enable old TLS v1, required for instance if you are using a really old Windows XP */
 #define TDS_STR_ENABLE_TLS_V1 "enable tls v1"
+/* configurable cipher suite to send to gnutls's gnutls_priority_set_direct() function */
+#define TLS_STR_GNUTLS_CIPHERS "gnutls ciphers"
 
 
 /* TODO do a better check for alignment than this */
@@ -512,6 +514,7 @@ typedef struct tds_login
 	DSTR crlfile;			/**< certificate revocation file */
 	DSTR certificate_host_name;	/**< certificate hostname to check, if empty use server_host_name */
 	DSTR openssl_ciphers;
+	DSTR gnutls_ciphers;        /**< gnutls ciphers to use */
 	DSTR app_name;
 	DSTR user_name;	    	/**< account for login */
 	DSTR password;	    	/**< password of account login */
