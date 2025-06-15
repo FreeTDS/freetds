@@ -565,8 +565,14 @@ tds_ssl_init(TDSSOCKET *tds, bool full)
 	/* use default priorities... */
 	gnutls_set_default_priority(session);
 
+#ifdef HAVE_GNUTLS_SET_DEFAULT_PRIORITY_APPEND
+	gnutls_session_enable_compatibility_mode(session);
+#define set_ciphers(session, ciphers) \
+	gnutls_set_default_priority_append(session, "" ciphers, NULL, 0)
+#else
 #define set_ciphers(session, ciphers) \
 	gnutls_priority_set_direct(session, "NORMAL:%COMPAT:" ciphers, NULL)
+#endif
 
 	/* ... but overwrite some */
 	if (tds->login && tds->login->enable_tls_v1)
