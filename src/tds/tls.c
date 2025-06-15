@@ -577,8 +577,10 @@ tds_ssl_init(TDSSOCKET *tds, bool full)
 	/* ... but overwrite some */
 	if (tds->login && tds->login->enable_tls_v1)
 		ret = set_ciphers(session, "-VERS-SSL3.0:+VERS-TLS1.0:+VERS-TLS1.1");
-	else
+	else if (tds->login && tds->login->enable_tls_v1_1)
 		ret = set_ciphers(session, "-VERS-SSL3.0:-VERS-TLS1.0:+VERS-TLS1.1");
+	else
+		ret = set_ciphers(session, "-VERS-SSL3.0:-VERS-TLS1.0:-VERS-TLS1.1");
 	if (ret != 0)
 		goto cleanup;
 
@@ -1017,7 +1019,8 @@ check_hostname(X509 *cert, const char *hostname)
 int
 tds_ssl_init(TDSSOCKET *tds, bool full)
 {
-#define DEFAULT_OPENSSL_CTX_OPTIONS (SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1)
+#define DEFAULT_OPENSSL_CTX_OPTIONS \
+	(SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1)
 #define DEFAULT_OPENSSL_CIPHERS "HIGH:!SSLv2:!aNULL:-DH"
 
 	SSL *con;
@@ -1045,6 +1048,8 @@ tds_ssl_init(TDSSOCKET *tds, bool full)
 
 	if (tds->login && tds->login->enable_tls_v1)
 		ctx_options &= ~SSL_OP_NO_TLSv1;
+	if (tds->login && tds->login->enable_tls_v1_1)
+		ctx_options &= ~SSL_OP_NO_TLSv1_1;
 	SSL_CTX_set_options(ctx, ctx_options);
 
 	if (!tds_dstr_isempty(&tds->login->cafile)) {

@@ -710,6 +710,9 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 	} else if (!strcmp(option, TDS_STR_ENABLE_TLS_V1)) {
 		parse_boolean(option, value, login->enable_tls_v1);
 		login->enable_tls_v1_specified = 1;
+	} else if (!strcmp(option, TDS_STR_ENABLE_TLS_V1_1)) {
+		parse_boolean(option, value, login->enable_tls_v1_1);
+		login->enable_tls_v1_1_specified = 1;
 	} else {
 		tdsdump_log(TDS_DBG_INFO1, "UNRECOGNIZED option '%s' ... ignoring.\n", option);
 	}
@@ -829,6 +832,11 @@ tds_config_login(TDSLOGIN * connection, TDSLOGIN * login)
 	if (login->enable_tls_v1_specified) {
 		connection->enable_tls_v1_specified = login->enable_tls_v1_specified;
 		connection->enable_tls_v1 = login->enable_tls_v1;
+	}
+
+	if (login->enable_tls_v1_1_specified) {
+		connection->enable_tls_v1_1_specified = login->enable_tls_v1_1_specified;
+		connection->enable_tls_v1_1 = login->enable_tls_v1_1;
 	}
 
 	if (res)

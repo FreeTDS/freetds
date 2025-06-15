@@ -1295,6 +1295,13 @@ This is supported from MSSQL 2012.
 Old Windows versions (like Windows 2008) does not enable higher versions by default so be aware.
 Useful to connection to some old servers.</entry>
 							</row>
+						<row>
+							<entry><literal>enable tls v1.1</literal></entry>
+							<entry>yes/no</entry>
+							<entry>no</entry>
+							<entry>Enable or disable TLS version 1.1.
+Useful to connection to some old servers.</entry>
+							</row>
 						</tbody>
 					</tgroup>
 				</table>
