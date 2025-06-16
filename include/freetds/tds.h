@@ -1322,7 +1322,7 @@ void tds_srv_charset_changed(TDSCONNECTION * conn, const char *charset);
 void tds7_srv_charset_changed(TDSCONNECTION * conn, TDS_UCHAR collate[5]);
 int tds_iconv_alloc(TDSCONNECTION * conn);
 void tds_iconv_free(TDSCONNECTION * conn);
-TDSICONV *tds_iconv_from_collate(TDSCONNECTION * conn, TDS_UCHAR collate[5]);
+TDSICONV *tds_iconv_from_collate(TDSCONNECTION * conn, const TDS_UCHAR collate[5]);
 
 
 /* mem.c */
