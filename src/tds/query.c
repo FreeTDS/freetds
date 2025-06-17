@@ -782,6 +782,7 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 		fmt = "INT";
 		break;
 	case SYBINT8:
+	case SYB5INT8:
 		/* TODO even for Sybase ?? */
 		fmt = "BIGINT";
 		break;
@@ -915,17 +916,33 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 	case SYBUINT8:
 		fmt = "UNSIGNED BIGINT";
 		break;
+	case SYBXML:
+	case SYBMSXML:
+		fmt = "XML";
+		break;
+	case SYBUNITEXT:
+		fmt = "UNITEXT";
+		break;
 		/* nullable types should not occur here... */
 	case SYBFLTN:
 	case SYBMONEYN:
 	case SYBDATETIMN:
 	case SYBBITN:
 	case SYBINTN:
+	case SYBUINTN:
+	case SYBDATEN:
+	case SYBTIMEN:
 		assert(0);
 		/* TODO... */
+#if ENABLE_EXTRA_CHECKS
 	case SYBVOID:
 	case SYBSINT1:
+	case SYBMSUDT:
+	case SYBMSTABLE:
+	case SYBINTERVAL:
+#else
 	default:
+#endif
 		tdsdump_log(TDS_DBG_ERROR, "Unknown type %d\n", conversion_type);
 		break;
 	}
