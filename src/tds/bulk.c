@@ -162,7 +162,17 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		curcol->column_computed = resinfo->columns[i]->column_computed;
 		
 		memcpy(curcol->column_collation, resinfo->columns[i]->column_collation, 5);
-		
+
+		/* From MS documentation:
+		 * Note that for INSERT BULK operations, XMLTYPE is to be sent as NVARCHAR(N) or NVARCHAR(MAX)
+		 * data type. An error is produced if XMLTYPE is specified.
+		 */
+		if (curcol->on_server.column_type == SYBMSXML) {
+			curcol->on_server.column_type = XSYBNVARCHAR;
+			curcol->column_type = SYBVARCHAR;
+			memcpy(curcol->column_collation, tds->conn->collation, 5);
+		}
+
 		if (is_numeric_type(curcol->column_type)) {
 			curcol->bcp_column_data = tds_alloc_bcp_column_data(sizeof(TDS_NUMERIC));
 			((TDS_NUMERIC *) curcol->bcp_column_data->data)->precision = curcol->column_prec;
