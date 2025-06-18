@@ -4043,10 +4043,10 @@ _ct_cursor_no_name_text(CS_COMMAND * cmd, const char *funcname, CS_CHAR * name, 
 	return CS_SUCCEED;
 }
 
-static char*
-get_next_tok(char* str, const char* delimiter, char **endptr)
+static const char*
+get_next_tok(const char* str, const char* delimiter, const char **endptr)
 {
-	char* result = NULL;
+	const char* result = NULL;
 	*endptr = NULL;
 
 	if (str && delimiter) {
@@ -4118,18 +4118,16 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 				eFor,
 				eForUpdate
 			} state = eBaseline;
-			char* savept = NULL;
-			char* s = cursor->query;
+			const char* savept = NULL;
+			const char* s = cursor->query;
 
-			char* tok = get_next_tok(s, delimiter, &savept);
+			const char* tok = get_next_tok(s, delimiter, &savept);
 			while (tok != NULL) {
 				s = savept;
 
 				if (strcasecmp(tok, "FOR") == 0) {
 					state = eFor;
-				} else if (state == eFor
-					   &&  strcasecmp(tok, "UPDATE") == 0)
-				{
+				} else if (state == eFor && strcasecmp(tok, "UPDATE") == 0) {
 					state = eForUpdate;
 					break;
 				} else {
