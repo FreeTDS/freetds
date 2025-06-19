@@ -40,6 +40,9 @@ TEST_MAIN()
 	test("SELECT * FROM table FOR--xxx\nUPDATE", true);
 	test("SELECT * FROM table /* FOR UPDATE */", false);
 
+	check_call(ct_exit, (ctx, CS_UNUSED));
+	check_call(cs_ctx_drop,(ctx));
+
 	return 0;
 }
 
