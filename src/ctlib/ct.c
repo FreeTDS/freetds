@@ -4090,19 +4090,19 @@ static bool
 query_has_for_update(const char *query)
 {
 	enum {
-		eBaseline,
-		eFor,
-	} state = eBaseline;
+		tok_baseline,
+		tok_for,
+	} state = tok_baseline;
 	size_t tok_len;
 
 	const char* tok = get_next_tok(query, &tok_len);
 	while (tok != NULL) {
 		if (tok_len == 3 && strncasecmp(tok, "FOR", 3) == 0) {
-			state = eFor;
-		} else if (state == eFor && tok_len == 6 && strncasecmp(tok, "UPDATE", 6) == 0) {
+			state = tok_for;
+		} else if (state == tok_for && tok_len == 6 && strncasecmp(tok, "UPDATE", 6) == 0) {
 			return true;
 		} else {
-			state = eBaseline;
+			state = tok_baseline;
 		}
 
 		tok = get_next_tok(tok + tok_len, &tok_len);
