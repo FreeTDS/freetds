@@ -267,14 +267,23 @@ $!
 $! Check for vasprintf
 $!
 $ OS
-$ WS "#include <stdarg.h>"
 $ WS "#include <stdio.h>"
 $ WS "#include <stdlib.h>"
-$ WS "int main()"
+$ WS "#include <stdarg.h>"
+$ WS "void try_vasprintf(const char *fmt, ...)"
 $ WS "{"
-$ WS "char *ptr;
-$ WS "vasprintf(&ptr,""%d,%d"",1,2);"
-$ WS "exit(0);"
+$ WS "    char* dyn_buf;"
+$ WS "    va_list args;"
+$ WS "    va_start(args, fmt);"
+$ WS "    const int written = vasprintf(&dyn_buf, fmt, args);"
+$ WS "    va_end(args);"
+$ WS "    free(dyn_buf);"
+$ WS "    if (written == 18) exit(0);"
+$ WS "    exit(1);"
+$ WS "}"
+$ WS "int main(void)"
+$ WS "{"
+$ WS "    try_vasprintf(""Testing... %d, %d, %d"", 1, 2, 3);"
 $ WS "}"
 $ CS
 $ tmp = "vasprintf"
