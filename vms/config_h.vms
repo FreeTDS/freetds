@@ -237,7 +237,9 @@
 #define HAVE_SNPRINTF @D_SNPRINTF@
 
 /* Define to 1 if you have the `vsnprintf' function. */
-#define HAVE_VSNPRINTF 0
+#if __CRTL_VER >= 70302000
+#define HAVE_VSNPRINTF 1
+#endif
 
 /* Define as const if the declaration of iconv() needs const. */
 #if HAVE_ICONV
