@@ -4549,7 +4549,8 @@ static SQLRETURN
 odbc_SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value,
 		    SQLINTEGER BufferLength, SQLINTEGER * StringLength WIDE)
 {
-	void *src;
+	static const SQLUINTEGER zero_ui = 0;
+	const void *src;
 	SQLINTEGER size;
 
 	ODBC_ENTER_HSTMT;
@@ -4630,7 +4631,7 @@ odbc_SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value,
 		break;
 	case SQL_ATTR_QUERY_TIMEOUT:
 		size = sizeof(stmt->attr.query_timeout);
-		src = &stmt->attr.query_timeout;
+		src = (stmt->attr.query_timeout != DEFAULT_QUERY_TIMEOUT) ? &stmt->attr.query_timeout : &zero_ui;
 		break;
 	case SQL_ATTR_RETRIEVE_DATA:
 		size = sizeof(stmt->attr.retrieve_data);
