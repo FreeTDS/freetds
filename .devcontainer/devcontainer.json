@@ -1,0 +1,16 @@
+
+{
+	"name": "FreeTDS/freetds",
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "freetds-dev",
+	"workspaceFolder": "/workspace",
+
+	"extensions": [
+		"ms-vscode.cpptools",
+		"foxundermoon.shell-format",
+        "mhutchie.git-graph",
+        "eamodio.gitlens"
+	],
+
+    "shutdownAction": "stopCompose"
+}
