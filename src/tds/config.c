@@ -634,10 +634,10 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		if (*value != '\0' && *end == '\0' && flags > INT_MIN && flags < INT_MAX)
 		    login->debug_flags = (int) flags;
 	} else if (!strcmp(option, TDS_STR_TIMEOUT) || !strcmp(option, TDS_STR_QUERY_TIMEOUT)) {
-		if (atoi(value))
+		if (atoi(value) > 0)
 			login->query_timeout = atoi(value);
 	} else if (!strcmp(option, TDS_STR_CONNTIMEOUT)) {
-		if (atoi(value))
+		if (atoi(value) > 0)
 			login->connect_timeout = atoi(value);
 	} else if (!strcmp(option, TDS_STR_HOST)) {
 		char tmp[128];
@@ -654,13 +654,13 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 			tdsdump_log(TDS_DBG_INFO1, "IP addr is %s.\n", tds_addrinfo2str(addrs, tmp, sizeof(tmp)));
 
 	} else if (!strcmp(option, TDS_STR_PORT)) {
-		if (atoi(value))
+		if (atoi(value) > 0)
 			login->port = atoi(value);
 	} else if (!strcmp(option, TDS_STR_EMUL_LE)) {
 		/* obsolete, ignore */
 		tds_config_boolean(option, value, login);
 	} else if (!strcmp(option, TDS_STR_TEXTSZ)) {
-		if (atoi(value))
+		if (atoi(value) > 0)
 			login->text_size = atoi(value);
 	} else if (!strcmp(option, TDS_STR_CHARSET)) {
 		s = tds_dstr_copy(&login->server_charset, value);
