@@ -739,69 +739,73 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 	[.src.odbc.unittests]transaction2$(E)
 	@ continue
 
+# Used by all the unit tests
+[.src.utils.unittests]test_base$(OBJ) : [.src.utils.unittests]test_base.c
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
 # libtds test detailed dependencies
 
-[.src.tds.unittests]dynamic1$(E) : [.src.tds.unittests]dynamic1$(OBJ) [.src.tds.unittests]common$(OBJ)
+[.src.tds.unittests]dynamic1$(E) : [.src.tds.unittests]dynamic1$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.tds.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]dynamic1$(OBJ) : [.src.tds.unittests]dynamic1.c [.src.tds.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.tds.unittests]iconv_fread$(E) : [.src.tds.unittests]iconv_fread$(OBJ) [.src.tds.unittests]common$(OBJ)
+[.src.tds.unittests]iconv_fread$(E) : [.src.tds.unittests]iconv_fread$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.tds.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]iconv_fread$(OBJ) : [.src.tds.unittests]iconv_fread.c [.src.tds.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.tds.unittests]numeric$(E) : [.src.tds.unittests]numeric$(OBJ) [.src.tds.unittests]common$(OBJ)
+[.src.tds.unittests]numeric$(E) : [.src.tds.unittests]numeric$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.tds.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]numeric$(OBJ) : [.src.tds.unittests]numeric.c [.src.tds.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.tds.unittests]t0001$(E) : [.src.tds.unittests]t0001$(OBJ) [.src.tds.unittests]common$(OBJ)
+[.src.tds.unittests]t0001$(E) : [.src.tds.unittests]t0001$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.tds.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]t0001$(OBJ) : [.src.tds.unittests]t0001.c [.src.tds.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.tds.unittests]t0002$(E) : [.src.tds.unittests]t0002$(OBJ) [.src.tds.unittests]common$(OBJ)
+[.src.tds.unittests]t0002$(E) : [.src.tds.unittests]t0002$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.tds.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]t0002$(OBJ) : [.src.tds.unittests]t0002.c [.src.tds.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.tds.unittests]t0003$(E) : [.src.tds.unittests]t0003$(OBJ) [.src.tds.unittests]common$(OBJ)
+[.src.tds.unittests]t0003$(E) : [.src.tds.unittests]t0003$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.tds.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]t0003$(OBJ) : [.src.tds.unittests]t0003.c [.src.tds.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.tds.unittests]t0004$(E) : [.src.tds.unittests]t0004$(OBJ) [.src.tds.unittests]common$(OBJ)
+[.src.tds.unittests]t0004$(E) : [.src.tds.unittests]t0004$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.tds.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]t0004$(OBJ) : [.src.tds.unittests]t0004.c [.src.tds.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.tds.unittests]t0005$(E) : [.src.tds.unittests]t0005$(OBJ) [.src.tds.unittests]common$(OBJ)
+[.src.tds.unittests]t0005$(E) : [.src.tds.unittests]t0005$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.tds.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]t0005$(OBJ) : [.src.tds.unittests]t0005.c [.src.tds.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.tds.unittests]t0006$(E) : [.src.tds.unittests]t0006$(OBJ) [.src.tds.unittests]common$(OBJ)
+[.src.tds.unittests]t0006$(E) : [.src.tds.unittests]t0006$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.tds.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]t0006$(OBJ) : [.src.tds.unittests]t0006.c [.src.tds.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.tds.unittests]t0007$(E) : [.src.tds.unittests]t0007$(OBJ)
+[.src.tds.unittests]t0007$(E) : [.src.tds.unittests]t0007$(OBJ) [.src.utils.unittests]test_base$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]t0007$(OBJ) : [.src.tds.unittests]t0007.c
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.tds.unittests]t0008$(E) : [.src.tds.unittests]t0008$(OBJ)
+[.src.tds.unittests]t0008$(E) : [.src.tds.unittests]t0008$(OBJ) [.src.utils.unittests]test_base$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]t0008$(OBJ) : [.src.tds.unittests]t0008.c
@@ -810,13 +814,13 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 [.src.tds.unittests]common$(OBJ) : [.src.tds.unittests]common.c [.src.tds.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.tds.unittests]convert$(E) : [.src.tds.unittests]convert$(OBJ)
+[.src.tds.unittests]convert$(E) : [.src.tds.unittests]convert$(OBJ) [.src.utils.unittests]test_base$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]convert$(OBJ) : [.src.tds.unittests]convert.c
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE),[.src.tds]) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.tds.unittests]dataread$(E) : [.src.tds.unittests]dataread$(OBJ) [.src.tds.unittests]common$(OBJ)
+[.src.tds.unittests]dataread$(E) : [.src.tds.unittests]dataread$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.tds.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]dataread$(OBJ) : [.src.tds.unittests]dataread.c
@@ -825,49 +829,49 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 [.src.tds.unittests]utf8$(OBJ) : [.src.tds.unittests]utf8.c
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.tds.unittests]utf8_1$(E) : [.src.tds.unittests]utf8_1$(OBJ) [.src.tds.unittests]common$(OBJ) [.src.tds.unittests]utf8$(OBJ)
+[.src.tds.unittests]utf8_1$(E) : [.src.tds.unittests]utf8_1$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.tds.unittests]common$(OBJ) [.src.tds.unittests]utf8$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]utf8_1$(OBJ) : [.src.tds.unittests]utf8_1.c
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.tds.unittests]utf8_2$(E) : [.src.tds.unittests]utf8_2$(OBJ) [.src.tds.unittests]common$(OBJ) [.src.tds.unittests]utf8$(OBJ)
+[.src.tds.unittests]utf8_2$(E) : [.src.tds.unittests]utf8_2$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.tds.unittests]common$(OBJ) [.src.tds.unittests]utf8$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]utf8_2$(OBJ) : [.src.tds.unittests]utf8_2.c
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.tds.unittests]utf8_3$(E) : [.src.tds.unittests]utf8_3$(OBJ) [.src.tds.unittests]common$(OBJ) [.src.tds.unittests]utf8$(OBJ)
+[.src.tds.unittests]utf8_3$(E) : [.src.tds.unittests]utf8_3$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.tds.unittests]common$(OBJ) [.src.tds.unittests]utf8$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]utf8_3$(OBJ) : [.src.tds.unittests]utf8_3.c
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.tds.unittests]toodynamic$(E) : [.src.tds.unittests]toodynamic$(OBJ) [.src.tds.unittests]common$(OBJ)
+[.src.tds.unittests]toodynamic$(E) : [.src.tds.unittests]toodynamic$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.tds.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]toodynamic$(OBJ) : [.src.tds.unittests]toodynamic.c
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.tds.unittests]readconf$(E) : [.src.tds.unittests]readconf$(OBJ) [.src.tds.unittests]common$(OBJ)
+[.src.tds.unittests]readconf$(E) : [.src.tds.unittests]readconf$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.tds.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]readconf$(OBJ) : [.src.tds.unittests]readconf.c
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.tds.unittests]charconv$(E) : [.src.tds.unittests]charconv$(OBJ) [.src.tds.unittests]common$(OBJ)
+[.src.tds.unittests]charconv$(E) : [.src.tds.unittests]charconv$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.tds.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]charconv$(OBJ) : [.src.tds.unittests]charconv.c
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.tds.unittests]nulls$(E) : [.src.tds.unittests]nulls$(OBJ) [.src.tds.unittests]common$(OBJ)
+[.src.tds.unittests]nulls$(E) : [.src.tds.unittests]nulls$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.tds.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]nulls$(OBJ) : [.src.tds.unittests]nulls.c
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.tds.unittests]corrupt$(E) : [.src.tds.unittests]corrupt$(OBJ) [.src.tds.unittests]common$(OBJ)
+[.src.tds.unittests]corrupt$(E) : [.src.tds.unittests]corrupt$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.tds.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]corrupt$(OBJ) : [.src.tds.unittests]corrupt.c
@@ -876,31 +880,31 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 [.src.tds.unittests]allcolumns$(OBJ) : [.src.tds.unittests]allcolumns.c
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.tds.unittests]declarations$(E) : [.src.tds.unittests]declarations$(OBJ) [.src.tds.unittests]common$(OBJ) [.src.tds.unittests]allcolumns$(OBJ)
+[.src.tds.unittests]declarations$(E) : [.src.tds.unittests]declarations$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.tds.unittests]common$(OBJ) [.src.tds.unittests]allcolumns$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]declarations$(OBJ) : [.src.tds.unittests]declarations.c
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.tds.unittests]portconf$(E) : [.src.tds.unittests]portconf$(OBJ) [.src.tds.unittests]common$(OBJ)
+[.src.tds.unittests]portconf$(E) : [.src.tds.unittests]portconf$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.tds.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]portconf$(OBJ) : [.src.tds.unittests]portconf.c
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.tds.unittests]freeze$(E) : [.src.tds.unittests]freeze$(OBJ) [.src.tds.unittests]common$(OBJ)
+[.src.tds.unittests]freeze$(E) : [.src.tds.unittests]freeze$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.tds.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]freeze$(OBJ) : [.src.tds.unittests]freeze.c
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.tds.unittests]strftime$(E) : [.src.tds.unittests]strftime$(OBJ)
+[.src.tds.unittests]strftime$(E) : [.src.tds.unittests]strftime$(OBJ) [.src.utils.unittests]test_base$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]strftime$(OBJ) : [.src.tds.unittests]strftime.c
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE),[.src.tds]) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.tds.unittests]log_elision$(E) : [.src.tds.unittests]log_elision$(OBJ) [.src.tds.unittests]common$(OBJ)
+[.src.tds.unittests]log_elision$(E) : [.src.tds.unittests]log_elision$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.tds.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.tds.unittests]log_elision$(OBJ) : [.src.tds.unittests]log_elision.c [.src.tds.unittests]common.h
@@ -909,205 +913,205 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 
 # ctlib test detailed dependencies
 
-[.src.ctlib.unittests]t0001$(E) : [.src.ctlib.unittests]t0001$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]t0001$(E) : [.src.ctlib.unittests]t0001$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]t0001$(OBJ) : [.src.ctlib.unittests]t0001.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]t0002$(E) : [.src.ctlib.unittests]t0002$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]t0002$(E) : [.src.ctlib.unittests]t0002$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]t0002$(OBJ) : [.src.ctlib.unittests]t0002.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]t0003$(E) : [.src.ctlib.unittests]t0003$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]t0003$(E) : [.src.ctlib.unittests]t0003$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]t0003$(OBJ) : [.src.ctlib.unittests]t0003.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]t0004$(E) : [.src.ctlib.unittests]t0004$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]t0004$(E) : [.src.ctlib.unittests]t0004$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]t0004$(OBJ) : [.src.ctlib.unittests]t0004.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]t0005$(E) : [.src.ctlib.unittests]t0005$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]t0005$(E) : [.src.ctlib.unittests]t0005$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]t0005$(OBJ) : [.src.ctlib.unittests]t0005.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]cs_convert$(E) : [.src.ctlib.unittests]cs_convert$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]cs_convert$(E) : [.src.ctlib.unittests]cs_convert$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]cs_convert$(OBJ) : [.src.ctlib.unittests]cs_convert.c
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]t0007$(E) : [.src.ctlib.unittests]t0007$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]t0007$(E) : [.src.ctlib.unittests]t0007$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]t0007$(OBJ) : [.src.ctlib.unittests]t0007.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]t0008$(E) : [.src.ctlib.unittests]t0008$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]t0008$(E) : [.src.ctlib.unittests]t0008$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]t0008$(OBJ) : [.src.ctlib.unittests]t0008.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]t0009$(E) : [.src.ctlib.unittests]t0009$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]t0009$(E) : [.src.ctlib.unittests]t0009$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]t0009$(OBJ) : [.src.ctlib.unittests]t0009.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]connect_fail$(E) : [.src.ctlib.unittests]connect_fail$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]connect_fail$(E) : [.src.ctlib.unittests]connect_fail$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]connect_fail$(OBJ) : [.src.ctlib.unittests]connect_fail.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]ct_options$(E) : [.src.ctlib.unittests]ct_options$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]ct_options$(E) : [.src.ctlib.unittests]ct_options$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]ct_options$(OBJ) : [.src.ctlib.unittests]ct_options.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]lang_ct_param$(E) : [.src.ctlib.unittests]lang_ct_param$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]lang_ct_param$(E) : [.src.ctlib.unittests]lang_ct_param$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]lang_ct_param$(OBJ) : [.src.ctlib.unittests]lang_ct_param.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]array_bind$(E) : [.src.ctlib.unittests]array_bind$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]array_bind$(E) : [.src.ctlib.unittests]array_bind$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]array_bind$(OBJ) : [.src.ctlib.unittests]array_bind.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]cs_diag$(E) : [.src.ctlib.unittests]cs_diag$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]cs_diag$(E) : [.src.ctlib.unittests]cs_diag$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]cs_diag$(OBJ) : [.src.ctlib.unittests]cs_diag.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]get_send_data$(E) : [.src.ctlib.unittests]get_send_data$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]get_send_data$(E) : [.src.ctlib.unittests]get_send_data$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]get_send_data$(OBJ) : [.src.ctlib.unittests]get_send_data.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]rpc_ct_param$(E) : [.src.ctlib.unittests]rpc_ct_param$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]rpc_ct_param$(E) : [.src.ctlib.unittests]rpc_ct_param$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]rpc_ct_param$(OBJ) : [.src.ctlib.unittests]rpc_ct_param.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]rpc_ct_setparam$(E) : [.src.ctlib.unittests]rpc_ct_setparam$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]rpc_ct_setparam$(E) : [.src.ctlib.unittests]rpc_ct_setparam$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]rpc_ct_setparam$(OBJ) : [.src.ctlib.unittests]rpc_ct_setparam.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]ct_diagclient$(E) : [.src.ctlib.unittests]ct_diagclient$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]ct_diagclient$(E) : [.src.ctlib.unittests]ct_diagclient$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]ct_diagclient$(OBJ) : [.src.ctlib.unittests]ct_diagclient.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]ct_diagserver$(E) : [.src.ctlib.unittests]ct_diagserver$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]ct_diagserver$(E) : [.src.ctlib.unittests]ct_diagserver$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]ct_diagserver$(OBJ) : [.src.ctlib.unittests]ct_diagserver.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]ct_diagall$(E) : [.src.ctlib.unittests]ct_diagall$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]ct_diagall$(E) : [.src.ctlib.unittests]ct_diagall$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]ct_diagall$(OBJ) : [.src.ctlib.unittests]ct_diagall.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]cs_config$(E) : [.src.ctlib.unittests]cs_config$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]cs_config$(E) : [.src.ctlib.unittests]cs_config$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]cs_config$(OBJ) : [.src.ctlib.unittests]cs_config.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]cancel$(E) : [.src.ctlib.unittests]cancel$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]cancel$(E) : [.src.ctlib.unittests]cancel$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]cancel$(OBJ) : [.src.ctlib.unittests]cancel.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]blk_in$(E) : [.src.ctlib.unittests]blk_in$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]blk_in$(E) : [.src.ctlib.unittests]blk_in$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]blk_in$(OBJ) : [.src.ctlib.unittests]blk_in.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]blk_out$(E) : [.src.ctlib.unittests]blk_out$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]blk_out$(E) : [.src.ctlib.unittests]blk_out$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]blk_out$(OBJ) : [.src.ctlib.unittests]blk_out.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]ct_cursor$(E) : [.src.ctlib.unittests]ct_cursor$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]ct_cursor$(E) : [.src.ctlib.unittests]ct_cursor$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]ct_cursor$(OBJ) : [.src.ctlib.unittests]ct_cursor.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]ct_cursors$(E) : [.src.ctlib.unittests]ct_cursors$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]ct_cursors$(E) : [.src.ctlib.unittests]ct_cursors$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]ct_cursors$(OBJ) : [.src.ctlib.unittests]ct_cursors.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]ct_dynamic$(E) : [.src.ctlib.unittests]ct_dynamic$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]ct_dynamic$(E) : [.src.ctlib.unittests]ct_dynamic$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]ct_dynamic$(OBJ) : [.src.ctlib.unittests]ct_dynamic.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]blk_in2$(E) : [.src.ctlib.unittests]blk_in2$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]blk_in2$(E) : [.src.ctlib.unittests]blk_in2$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]blk_in2$(OBJ) : [.src.ctlib.unittests]blk_in2.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]datafmt$(E) : [.src.ctlib.unittests]datafmt$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]datafmt$(E) : [.src.ctlib.unittests]datafmt$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]datafmt$(OBJ) : [.src.ctlib.unittests]datafmt.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]rpc_fail$(E) : [.src.ctlib.unittests]rpc_fail$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]rpc_fail$(E) : [.src.ctlib.unittests]rpc_fail$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]rpc_fail$(OBJ) : [.src.ctlib.unittests]rpc_fail.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]row_count$(E) : [.src.ctlib.unittests]row_count$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]row_count$(E) : [.src.ctlib.unittests]row_count$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]row_count$(OBJ) : [.src.ctlib.unittests]row_count.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]all_types$(E) : [.src.ctlib.unittests]all_types$(OBJ) [.src.ctlib.unittests]common$(OBJ) [.src.tds.unittests]allcolumns$(OBJ)
+[.src.ctlib.unittests]all_types$(E) : [.src.ctlib.unittests]all_types$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ) [.src.tds.unittests]allcolumns$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]all_types$(OBJ) : [.src.ctlib.unittests]all_types.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=("./src/ctlib/unittests/",$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]long_binary$(E) : [.src.ctlib.unittests]long_binary$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]long_binary$(E) : [.src.ctlib.unittests]long_binary$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]long_binary$(OBJ) : [.src.ctlib.unittests]long_binary.c [.src.ctlib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.ctlib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.ctlib.unittests]will_convert$(E) : [.src.ctlib.unittests]will_convert$(OBJ) [.src.ctlib.unittests]common$(OBJ)
+[.src.ctlib.unittests]will_convert$(E) : [.src.ctlib.unittests]will_convert$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.ctlib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.ctlib.unittests]will_convert$(OBJ) : [.src.ctlib.unittests]will_convert.c [.src.ctlib.unittests]common.h
@@ -1118,205 +1122,205 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 
 # dblib test detailed dependencies
 
-[.src.dblib.unittests]t0001$(E) : [.src.dblib.unittests]t0001$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]t0001$(E) : [.src.dblib.unittests]t0001$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]t0001$(OBJ) : [.src.dblib.unittests]t0001.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]t0002$(E) : [.src.dblib.unittests]t0002$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]t0002$(E) : [.src.dblib.unittests]t0002$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]t0002$(OBJ) : [.src.dblib.unittests]t0002.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]t0003$(E) : [.src.dblib.unittests]t0003$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]t0003$(E) : [.src.dblib.unittests]t0003$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]t0003$(OBJ) : [.src.dblib.unittests]t0003.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]t0004$(E) : [.src.dblib.unittests]t0004$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]t0004$(E) : [.src.dblib.unittests]t0004$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]t0004$(OBJ) : [.src.dblib.unittests]t0004.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]t0005$(E) : [.src.dblib.unittests]t0005$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]t0005$(E) : [.src.dblib.unittests]t0005$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]t0005$(OBJ) : [.src.dblib.unittests]t0005.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]t0006$(E) : [.src.dblib.unittests]t0006$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]t0006$(E) : [.src.dblib.unittests]t0006$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]t0006$(OBJ) : [.src.dblib.unittests]t0006.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]t0007$(E) : [.src.dblib.unittests]t0007$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]t0007$(E) : [.src.dblib.unittests]t0007$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]t0007$(OBJ) : [.src.dblib.unittests]t0007.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]t0008$(E) : [.src.dblib.unittests]t0008$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]t0008$(E) : [.src.dblib.unittests]t0008$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]t0008$(OBJ) : [.src.dblib.unittests]t0008.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]t0009$(E) : [.src.dblib.unittests]t0009$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]t0009$(E) : [.src.dblib.unittests]t0009$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]t0009$(OBJ) : [.src.dblib.unittests]t0009.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]t0011$(E) : [.src.dblib.unittests]t0011$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]t0011$(E) : [.src.dblib.unittests]t0011$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]t0011$(OBJ) : [.src.dblib.unittests]t0011.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]t0012$(E) : [.src.dblib.unittests]t0012$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]t0012$(E) : [.src.dblib.unittests]t0012$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]t0012$(OBJ) : [.src.dblib.unittests]t0012.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]t0013$(E) : [.src.dblib.unittests]t0013$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]t0013$(E) : [.src.dblib.unittests]t0013$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]t0013$(OBJ) : [.src.dblib.unittests]t0013.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]t0014$(E) : [.src.dblib.unittests]t0014$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]t0014$(E) : [.src.dblib.unittests]t0014$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]t0014$(OBJ) : [.src.dblib.unittests]t0014.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]t0015$(E) : [.src.dblib.unittests]t0015$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]t0015$(E) : [.src.dblib.unittests]t0015$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]t0015$(OBJ) : [.src.dblib.unittests]t0015.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]t0016$(E) : [.src.dblib.unittests]t0016$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]t0016$(E) : [.src.dblib.unittests]t0016$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]t0016$(OBJ) : [.src.dblib.unittests]t0016.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]t0017$(E) : [.src.dblib.unittests]t0017$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]t0017$(E) : [.src.dblib.unittests]t0017$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]t0017$(OBJ) : [.src.dblib.unittests]t0017.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]t0018$(E) : [.src.dblib.unittests]t0018$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]t0018$(E) : [.src.dblib.unittests]t0018$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]t0018$(OBJ) : [.src.dblib.unittests]t0018.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]t0019$(E) : [.src.dblib.unittests]t0019$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]t0019$(E) : [.src.dblib.unittests]t0019$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]t0019$(OBJ) : [.src.dblib.unittests]t0019.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]t0020$(E) : [.src.dblib.unittests]t0020$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]t0020$(E) : [.src.dblib.unittests]t0020$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]t0020$(OBJ) : [.src.dblib.unittests]t0020.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]dbsafestr$(E) : [.src.dblib.unittests]dbsafestr$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]dbsafestr$(E) : [.src.dblib.unittests]dbsafestr$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]dbsafestr$(OBJ) : [.src.dblib.unittests]dbsafestr.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]t0022$(E) : [.src.dblib.unittests]t0022$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]t0022$(E) : [.src.dblib.unittests]t0022$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]t0022$(OBJ) : [.src.dblib.unittests]t0022.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]t0023$(E) : [.src.dblib.unittests]t0023$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]t0023$(E) : [.src.dblib.unittests]t0023$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]t0023$(OBJ) : [.src.dblib.unittests]t0023.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]rpc$(E) : [.src.dblib.unittests]rpc$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]rpc$(E) : [.src.dblib.unittests]rpc$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]rpc$(OBJ) : [.src.dblib.unittests]rpc.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]dbmorecmds$(E) : [.src.dblib.unittests]dbmorecmds$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]dbmorecmds$(E) : [.src.dblib.unittests]dbmorecmds$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]dbmorecmds$(OBJ) : [.src.dblib.unittests]dbmorecmds.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]bcp$(E) : [.src.dblib.unittests]bcp$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]bcp$(E) : [.src.dblib.unittests]bcp$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]bcp$(OBJ) : [.src.dblib.unittests]bcp.c [.src.dblib.unittests]bcp.h [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]thread$(E) : [.src.dblib.unittests]thread$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]thread$(E) : [.src.dblib.unittests]thread$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]thread$(OBJ) : [.src.dblib.unittests]thread.c [.src.dblib.unittests]bcp.h [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]text_buffer$(E) : [.src.dblib.unittests]text_buffer$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]text_buffer$(E) : [.src.dblib.unittests]text_buffer$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]text_buffer$(OBJ) : [.src.dblib.unittests]text_buffer.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]done_handling$(E) : [.src.dblib.unittests]done_handling$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]done_handling$(E) : [.src.dblib.unittests]done_handling$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]done_handling$(OBJ) : [.src.dblib.unittests]done_handling.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]timeout$(E) : [.src.dblib.unittests]timeout$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]timeout$(E) : [.src.dblib.unittests]timeout$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]timeout$(OBJ) : [.src.dblib.unittests]timeout.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]hang$(E) : [.src.dblib.unittests]hang$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]hang$(E) : [.src.dblib.unittests]hang$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]hang$(OBJ) : [.src.dblib.unittests]hang.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]null$(E) : [.src.dblib.unittests]null$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]null$(E) : [.src.dblib.unittests]null$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]null$(OBJ) : [.src.dblib.unittests]null.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]null2$(E) : [.src.dblib.unittests]null2$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]null2$(E) : [.src.dblib.unittests]null2$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]null2$(OBJ) : [.src.dblib.unittests]null2.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]setnull$(E) : [.src.dblib.unittests]setnull$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]setnull$(E) : [.src.dblib.unittests]setnull$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]setnull$(OBJ) : [.src.dblib.unittests]setnull.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]numeric$(E) : [.src.dblib.unittests]numeric$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]numeric$(E) : [.src.dblib.unittests]numeric$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]numeric$(OBJ) : [.src.dblib.unittests]numeric.c [.src.dblib.unittests]common.h
@@ -1325,68 +1329,68 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 [.src.dblib.unittests]common$(OBJ) : [.src.dblib.unittests]common.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]pending$(E) : [.src.dblib.unittests]pending$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]pending$(E) : [.src.dblib.unittests]pending$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]pending$(OBJ) : [.src.dblib.unittests]pending.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]cancel$(E) : [.src.dblib.unittests]cancel$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]cancel$(E) : [.src.dblib.unittests]cancel$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]cancel$(OBJ) : [.src.dblib.unittests]cancel.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]spid$(E) : [.src.dblib.unittests]spid$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]spid$(E) : [.src.dblib.unittests]spid$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]spid$(OBJ) : [.src.dblib.unittests]spid.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]canquery$(E) : [.src.dblib.unittests]canquery$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]canquery$(E) : [.src.dblib.unittests]canquery$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]canquery$(OBJ) : [.src.dblib.unittests]canquery.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]batch_stmt_ins_sel$(E) : [.src.dblib.unittests]batch_stmt_ins_sel$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]batch_stmt_ins_sel$(E) : [.src.dblib.unittests]batch_stmt_ins_sel$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]batch_stmt_ins_sel$(OBJ) : [.src.dblib.unittests]batch_stmt_ins_sel.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
 
-[.src.dblib.unittests]batch_stmt_ins_upd$(E) : [.src.dblib.unittests]batch_stmt_ins_upd$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]batch_stmt_ins_upd$(E) : [.src.dblib.unittests]batch_stmt_ins_upd$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]batch_stmt_ins_upd$(OBJ) : [.src.dblib.unittests]batch_stmt_ins_upd.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]bcp_getl$(E) : [.src.dblib.unittests]bcp_getl$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]bcp_getl$(E) : [.src.dblib.unittests]bcp_getl$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]bcp_getl$(OBJ) : [.src.dblib.unittests]bcp_getl.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]empty_rowsets$(E) : [.src.dblib.unittests]empty_rowsets$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]empty_rowsets$(E) : [.src.dblib.unittests]empty_rowsets$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]empty_rowsets$(OBJ) : [.src.dblib.unittests]empty_rowsets.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]string_bind$(E) : [.src.dblib.unittests]string_bind$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]string_bind$(E) : [.src.dblib.unittests]string_bind$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]string_bind$(OBJ) : [.src.dblib.unittests]string_bind.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]colinfo$(E) : [.src.dblib.unittests]colinfo$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]colinfo$(E) : [.src.dblib.unittests]colinfo$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]colinfo$(OBJ) : [.src.dblib.unittests]colinfo.c [.src.dblib.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.dblib.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.dblib.unittests]bcp2$(E) : [.src.dblib.unittests]bcp2$(OBJ) [.src.dblib.unittests]common$(OBJ)
+[.src.dblib.unittests]bcp2$(E) : [.src.dblib.unittests]bcp2$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.dblib.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.dblib.unittests]bcp2$(OBJ) : [.src.dblib.unittests]bcp2.c [.src.dblib.unittests]common.h
@@ -1394,121 +1398,121 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 
 # tdsodbc test detailed dependencies
 
-[.src.odbc.unittests]t0001$(E) : [.src.odbc.unittests]t0001$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]t0001$(E) : [.src.odbc.unittests]t0001$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]t0001$(OBJ) : [.src.odbc.unittests]t0001.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]t0002$(E) : [.src.odbc.unittests]t0002$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]t0002$(E) : [.src.odbc.unittests]t0002$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]t0002$(OBJ) : [.src.odbc.unittests]t0002.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]t0003$(E) : [.src.odbc.unittests]t0003$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]t0003$(E) : [.src.odbc.unittests]t0003$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]t0003$(OBJ) : [.src.odbc.unittests]t0003.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]moreresults$(E) : [.src.odbc.unittests]moreresults$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]moreresults$(E) : [.src.odbc.unittests]moreresults$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]moreresults$(OBJ) : [.src.odbc.unittests]moreresults.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]connect$(E) : [.src.odbc.unittests]connect$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]connect$(E) : [.src.odbc.unittests]connect$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]connect$(OBJ) : [.src.odbc.unittests]connect.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]print$(E) : [.src.odbc.unittests]print$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]print$(E) : [.src.odbc.unittests]print$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]print$(OBJ) : [.src.odbc.unittests]print.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]date$(E) : [.src.odbc.unittests]date$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]date$(E) : [.src.odbc.unittests]date$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]date$(OBJ) : [.src.odbc.unittests]date.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]norowset$(E) : [.src.odbc.unittests]norowset$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]norowset$(E) : [.src.odbc.unittests]norowset$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]norowset$(OBJ) : [.src.odbc.unittests]norowset.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]funccall$(E) : [.src.odbc.unittests]funccall$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]funccall$(E) : [.src.odbc.unittests]funccall$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]funccall$(OBJ) : [.src.odbc.unittests]funccall.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]lang_error$(E) : [.src.odbc.unittests]lang_error$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]lang_error$(E) : [.src.odbc.unittests]lang_error$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]lang_error$(OBJ) : [.src.odbc.unittests]lang_error.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]tables$(E) : [.src.odbc.unittests]tables$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]tables$(E) : [.src.odbc.unittests]tables$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]tables$(OBJ) : [.src.odbc.unittests]tables.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]binary_test$(E) : [.src.odbc.unittests]binary_test$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]binary_test$(E) : [.src.odbc.unittests]binary_test$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]binary_test$(OBJ) : [.src.odbc.unittests]binary_test.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]moreandcount$(E) : [.src.odbc.unittests]moreandcount$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]moreandcount$(E) : [.src.odbc.unittests]moreandcount$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]moreandcount$(OBJ) : [.src.odbc.unittests]moreandcount.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]earlybind$(E) : [.src.odbc.unittests]earlybind$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]earlybind$(E) : [.src.odbc.unittests]earlybind$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]earlybind$(OBJ) : [.src.odbc.unittests]earlybind.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]putdata$(E) : [.src.odbc.unittests]putdata$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]putdata$(E) : [.src.odbc.unittests]putdata$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]putdata$(OBJ) : [.src.odbc.unittests]putdata.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]params$(E) : [.src.odbc.unittests]params$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]params$(E) : [.src.odbc.unittests]params$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]params$(OBJ) : [.src.odbc.unittests]params.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]raiserror$(E) : [.src.odbc.unittests]raiserror$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]raiserror$(E) : [.src.odbc.unittests]raiserror$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]raiserror$(OBJ) : [.src.odbc.unittests]raiserror.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]getdata$(E) : [.src.odbc.unittests]getdata$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]getdata$(E) : [.src.odbc.unittests]getdata$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]getdata$(OBJ) : [.src.odbc.unittests]getdata.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]type$(E) : [.src.odbc.unittests]type$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]type$(E) : [.src.odbc.unittests]type$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]type$(OBJ) : [.src.odbc.unittests]type.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]transaction$(E) : [.src.odbc.unittests]transaction$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]transaction$(E) : [.src.odbc.unittests]transaction$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]transaction$(OBJ) : [.src.odbc.unittests]transaction.c [.src.odbc.unittests]common.h
@@ -1517,235 +1521,235 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 [.src.odbc.unittests]common$(OBJ) : [.src.odbc.unittests]common.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]genparams$(E) : [.src.odbc.unittests]genparams$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]genparams$(E) : [.src.odbc.unittests]genparams$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]genparams$(OBJ) : [.src.odbc.unittests]genparams.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]preperror$(E) : [.src.odbc.unittests]preperror$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]preperror$(E) : [.src.odbc.unittests]preperror$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]preperror$(OBJ) : [.src.odbc.unittests]preperror.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]prepare_results$(E) : [.src.odbc.unittests]prepare_results$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]prepare_results$(E) : [.src.odbc.unittests]prepare_results$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]prepare_results$(OBJ) : [.src.odbc.unittests]prepare_results.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]testodbc$(E) : [.src.odbc.unittests]testodbc$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]testodbc$(E) : [.src.odbc.unittests]testodbc$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]testodbc$(OBJ) : [.src.odbc.unittests]testodbc.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]data$(E) : [.src.odbc.unittests]data$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]data$(E) : [.src.odbc.unittests]data$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]data$(OBJ) : [.src.odbc.unittests]data.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]error$(E) : [.src.odbc.unittests]error$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]error$(E) : [.src.odbc.unittests]error$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]error$(OBJ) : [.src.odbc.unittests]error.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]rebindpar$(E) : [.src.odbc.unittests]rebindpar$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]rebindpar$(E) : [.src.odbc.unittests]rebindpar$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]rebindpar$(OBJ) : [.src.odbc.unittests]rebindpar.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]rpc$(E) : [.src.odbc.unittests]rpc$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]rpc$(E) : [.src.odbc.unittests]rpc$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]rpc$(OBJ) : [.src.odbc.unittests]rpc.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]convert_error$(E) : [.src.odbc.unittests]convert_error$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]convert_error$(E) : [.src.odbc.unittests]convert_error$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]convert_error$(OBJ) : [.src.odbc.unittests]convert_error.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]typeinfo$(E) : [.src.odbc.unittests]typeinfo$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]typeinfo$(E) : [.src.odbc.unittests]typeinfo$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]typeinfo$(OBJ) : [.src.odbc.unittests]typeinfo.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]const_params$(E) : [.src.odbc.unittests]const_params$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]const_params$(E) : [.src.odbc.unittests]const_params$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]const_params$(OBJ) : [.src.odbc.unittests]const_params.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]insert_speed$(E) : [.src.odbc.unittests]insert_speed$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]insert_speed$(E) : [.src.odbc.unittests]insert_speed$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]insert_speed$(OBJ) : [.src.odbc.unittests]insert_speed.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]compute$(E) : [.src.odbc.unittests]compute$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]compute$(E) : [.src.odbc.unittests]compute$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]compute$(OBJ) : [.src.odbc.unittests]compute.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]timeout$(E) : [.src.odbc.unittests]timeout$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]timeout$(E) : [.src.odbc.unittests]timeout$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]timeout$(OBJ) : [.src.odbc.unittests]timeout.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]array$(E) : [.src.odbc.unittests]array$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]array$(E) : [.src.odbc.unittests]array$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]array$(OBJ) : [.src.odbc.unittests]array.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]array_out$(E) : [.src.odbc.unittests]array_out$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]array_out$(E) : [.src.odbc.unittests]array_out$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]array_out$(OBJ) : [.src.odbc.unittests]array_out.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]cursor1$(E) : [.src.odbc.unittests]cursor1$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]cursor1$(E) : [.src.odbc.unittests]cursor1$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]cursor1$(OBJ) : [.src.odbc.unittests]cursor1.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]scroll$(E) : [.src.odbc.unittests]scroll$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]scroll$(E) : [.src.odbc.unittests]scroll$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]scroll$(OBJ) : [.src.odbc.unittests]scroll.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]cursor2$(E) : [.src.odbc.unittests]cursor2$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]cursor2$(E) : [.src.odbc.unittests]cursor2$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]cursor2$(OBJ) : [.src.odbc.unittests]cursor2.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]describecol$(E) : [.src.odbc.unittests]describecol$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]describecol$(E) : [.src.odbc.unittests]describecol$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]describecol$(OBJ) : [.src.odbc.unittests]describecol.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]copydesc$(E) : [.src.odbc.unittests]copydesc$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]copydesc$(E) : [.src.odbc.unittests]copydesc$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]copydesc$(OBJ) : [.src.odbc.unittests]copydesc.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]prepclose$(E) : [.src.odbc.unittests]prepclose$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]prepclose$(E) : [.src.odbc.unittests]prepclose$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]prepclose$(OBJ) : [.src.odbc.unittests]prepclose.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]warning$(E) : [.src.odbc.unittests]warning$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]warning$(E) : [.src.odbc.unittests]warning$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]warning$(OBJ) : [.src.odbc.unittests]warning.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]paramcore$(E) : [.src.odbc.unittests]paramcore$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]paramcore$(E) : [.src.odbc.unittests]paramcore$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]paramcore$(OBJ) : [.src.odbc.unittests]paramcore.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]timeout2$(E) : [.src.odbc.unittests]timeout2$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]timeout2$(E) : [.src.odbc.unittests]timeout2$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]timeout2$(OBJ) : [.src.odbc.unittests]timeout2.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]timeout3$(E) : [.src.odbc.unittests]timeout3$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]timeout3$(E) : [.src.odbc.unittests]timeout3$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]timeout3$(OBJ) : [.src.odbc.unittests]timeout3.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]connect2$(E) : [.src.odbc.unittests]connect2$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]connect2$(E) : [.src.odbc.unittests]connect2$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]connect2$(OBJ) : [.src.odbc.unittests]connect2.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]timeout4$(E) : [.src.odbc.unittests]timeout4$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]timeout4$(E) : [.src.odbc.unittests]timeout4$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]timeout4$(OBJ) : [.src.odbc.unittests]timeout4.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]freeclose$(E) : [.src.odbc.unittests]freeclose$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]freeclose$(E) : [.src.odbc.unittests]freeclose$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]freeclose$(OBJ) : [.src.odbc.unittests]freeclose.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]cursor3$(E) : [.src.odbc.unittests]cursor3$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]cursor3$(E) : [.src.odbc.unittests]cursor3$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]cursor3$(OBJ) : [.src.odbc.unittests]cursor3.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]cursor4$(E) : [.src.odbc.unittests]cursor4$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]cursor4$(E) : [.src.odbc.unittests]cursor4$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]cursor4$(OBJ) : [.src.odbc.unittests]cursor4.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]cursor5$(E) : [.src.odbc.unittests]cursor5$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]cursor5$(E) : [.src.odbc.unittests]cursor5$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]cursor5$(OBJ) : [.src.odbc.unittests]cursor5.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]attributes$(E) : [.src.odbc.unittests]attributes$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]attributes$(E) : [.src.odbc.unittests]attributes$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]attributes$(OBJ) : [.src.odbc.unittests]attributes.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]hidden$(E) : [.src.odbc.unittests]hidden$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]hidden$(E) : [.src.odbc.unittests]hidden$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]hidden$(OBJ) : [.src.odbc.unittests]hidden.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]blob1$(E) : [.src.odbc.unittests]blob1$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]blob1$(E) : [.src.odbc.unittests]blob1$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]blob1$(OBJ) : [.src.odbc.unittests]blob1.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]rowset$(E) : [.src.odbc.unittests]rowset$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]rowset$(E) : [.src.odbc.unittests]rowset$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]rowset$(OBJ) : [.src.odbc.unittests]rowset.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]cancel$(E) : [.src.odbc.unittests]cancel$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]cancel$(E) : [.src.odbc.unittests]cancel$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]cancel$(OBJ) : [.src.odbc.unittests]cancel.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]wchar$(E) : [.src.odbc.unittests]wchar$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]wchar$(E) : [.src.odbc.unittests]wchar$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]wchar$(OBJ) : [.src.odbc.unittests]wchar.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]transaction2$(E) : [.src.odbc.unittests]transaction2$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]transaction2$(E) : [.src.odbc.unittests]transaction2$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]transaction2$(OBJ) : [.src.odbc.unittests]transaction2.c [.src.odbc.unittests]common.h
