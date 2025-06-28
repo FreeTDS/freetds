@@ -1,14 +1,9 @@
 README.vms -- VMS-specific notes on building and running FreeTDS
 
-FreeTDS has successfully built and passed all expected tests in the
-following environments:
-
-OpenVMS Alpha 7.2-1, Compaq C 6.4, OpenVMS Sybase 11.0.2, TDS 5.0
-OpenVMS Alpha 7.3-1, Compaq C 6.5, MS SQL Server 7.0, TDS 7.0
-OpenVMS Alpha 7.1, Compaq C 6.5, MS SQL Server 2000, TDS 8.0
-
-It will probably build and run on most versions of OpenVMS Alpha 7.0 and
-later with DEC/Compaq C 6.0 or later.
+FreeTDS has successfully built and passed all expected tests on all supported
+versions of OpenVMS, which as of this writing are OpenVMS Alpha (8.4+), OpenVMS
+I64 (8.4+), and OpenVMS x86 (9.2+). In not too distant memory it has built and
+run on most versions of OpenVMS 7.0 and later with DEC/Compaq C 6.0 or later.
 
 Other prerequisites:
 
@@ -18,30 +13,30 @@ Other prerequisites:
 
 Build Instructions
 
-Decompress and unpack the source archive using gunzip and vmstar (You
-probably have already or you wouldn't be reading this).  If you are
-untarring on an ODS-5 disk, you should use the /ODS2 or -o option to create
-universally VMS-friendly filenames; the build will fail to locate some files
-otherwise.
-
-Set default to the top-level source directory and run the configuration
-script like so:
+Decompress and unpack the source archive onto an ODS-5 disk using gunzip and
+vmstar or other tar utility. Make sure extended parse is enabled in your
+process (SET PROCESS/PARSE=EXTENDED) and that the feature logical name
+DECC$EFS_CHARSET is enabled; these settings (and the ODS-5 disk) are not
+required to run FreeTDS, but they are necessary for the build and test suite to
+find there requisite parts.  Set default to the top-level source directory and
+run the configuration script like so:
 
     $ @[.vms]configure
 
 This creates a descrip.mms in the top-level source directory which you may
 execute by simply running MMS (if you have the Module Management System that
 is part of DECset) or MMK (a freeware MMS alternative available from
-http://www.madgoat.com).  By default the build uses version 5.0 of the TDS
-protocol and does not include ODBC support.  You may change these defaults
-by sypplying the following macros to the make utility:
+https://github.com/endlesssoftware/mmk).  You may change some default behaviors
+by sypplying one or more of the following macros to the make utility:
 
 TDSVER
 
-This macro expects a value that will be passed directly to the C compiler. 
-Valid values are TDS50, TDS71, TDS72, TDS73 and TDS74.  Consult the
-[.doc] directory for more information about the TDS protocol, what servers
-use which versions, and the history of the versions.
+FreeTDS usuually negotiates with the server to find a reasonable version of the
+TDS protocol, but you may optionally give it a default using this macro, which
+expects a value that will be passed directly to the C compiler.  Valid values
+are TDS50, TDS71, TDS72, TDS73 and TDS74.  Consult the [.doc] directory for more
+information about the TDS protocol, what servers use which versions, and the
+history of the versions.
 
 Example:
 
@@ -60,9 +55,9 @@ Example:
 
 ODBC
 
-This macro instructs the build to include ODBC support.  At
-the moment, the unixODBC driver manager is assumed (see
-http://www.unixodbc.org), but others may work as well.
+By default the build does not include ODBC support; this macro instructs the
+build to include it.  At the moment, the unixODBC driver manager is assumed
+(see http://www.unixodbc.org), but others may work as well.
 
 The following logical names must be defined in order to build with ODBC
 support:
@@ -80,7 +75,14 @@ Examples:
     $ MMS/MACRO="ODBC"=1
     $ MMK/MACRO=("ODBC"=1,"TDSVER"="TDS71")
 
+__DEBUG__
 
+Instructs the build to target the OpenVMS debugger and produce compiler listings
+and linker maps.
+
+Example:
+
+    $ MMK/MACRO=__DEBUG__=1
 
 Caveats and To-do:
 
@@ -110,5 +112,5 @@ are a variety of approaches that could be taken to work around this but for
 now you'll have to roll your own.
 
 
-Last updated: 	6-NOV-2004	Craig A. Berry	<craigberry@mac.com>
+Last updated: 	28-JUN-2025	Craig A. Berry	<craigberry@mac.com>
 $Id: README.vms,v 1.4 2009-09-04 07:12:18 freddy77 Exp $
