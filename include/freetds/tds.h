@@ -467,10 +467,12 @@ is_tds_type_valid(int type)
 #define TDS_STR_READONLY_INTENT "read-only intent"
 /* configurable cipher suite to send to openssl's SSL_set_cipher_list() function */
 #define TLS_STR_OPENSSL_CIPHERS "openssl ciphers"
-/* enable old TLS v1, required for instance if you are using a really old Windows XP */
-#define TDS_STR_ENABLE_TLS_V1 "enable tls v1"
 /* configurable cipher suite to send to gnutls's gnutls_priority_set_direct() function */
 #define TLS_STR_GNUTLS_CIPHERS "gnutls ciphers"
+/* enable old TLS v1, required for instance if you are using a really old Windows XP */
+#define TDS_STR_ENABLE_TLS_V1 "enable tls v1"
+/* enable old TLS v1.1 */
+#define TDS_STR_ENABLE_TLS_V1_1 "enable tls v1.1"
 
 
 /* TODO do a better check for alignment than this */
@@ -553,6 +555,8 @@ typedef struct tds_login
 	unsigned int readonly_intent:1;
 	unsigned int enable_tls_v1:1;
 	unsigned int enable_tls_v1_specified:1;
+	unsigned int enable_tls_v1_1:1;
+	unsigned int enable_tls_v1_1_specified:1;
 	unsigned int server_is_valid:1;
 } TDSLOGIN;
 
@@ -1325,7 +1329,7 @@ void tds_srv_charset_changed(TDSCONNECTION * conn, const char *charset);
 void tds7_srv_charset_changed(TDSCONNECTION * conn, TDS_UCHAR collate[5]);
 int tds_iconv_alloc(TDSCONNECTION * conn);
 void tds_iconv_free(TDSCONNECTION * conn);
-TDSICONV *tds_iconv_from_collate(TDSCONNECTION * conn, TDS_UCHAR collate[5]);
+TDSICONV *tds_iconv_from_collate(TDSCONNECTION * conn, const TDS_UCHAR collate[5]);
 
 
 /* mem.c */

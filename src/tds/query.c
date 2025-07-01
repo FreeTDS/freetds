@@ -740,13 +740,15 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 	/* unsigned int is required by printf format, don't use size_t */
 	unsigned int max_len = IS_TDS7_PLUS(tds->conn) ? 8000 : 255;
 	unsigned int size;
+	TDS_SERVER_TYPE conversion_type;
 
 	CHECK_TDS_EXTRA(tds);
 	CHECK_COLUMN_EXTRA(curcol);
 
 	size = (unsigned int) tds_fix_column_size(tds, curcol);
 
-	switch (tds_get_conversion_type(curcol->on_server.column_type, curcol->on_server.column_size)) {
+	conversion_type = tds_get_conversion_type(curcol->on_server.column_type, curcol->on_server.column_size);
+	switch (conversion_type) {
 	case XSYBCHAR:
 		if (IS_TDS50(tds->conn)) {
 			max_len = 32767;
@@ -780,6 +782,7 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 		fmt = "INT";
 		break;
 	case SYBINT8:
+	case SYB5INT8:
 		/* TODO even for Sybase ?? */
 		fmt = "BIGINT";
 		break;
@@ -913,18 +916,34 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 	case SYBUINT8:
 		fmt = "UNSIGNED BIGINT";
 		break;
+	case SYBXML:
+	case SYBMSXML:
+		fmt = "XML";
+		break;
+	case SYBUNITEXT:
+		fmt = "UNITEXT";
+		break;
 		/* nullable types should not occur here... */
 	case SYBFLTN:
 	case SYBMONEYN:
 	case SYBDATETIMN:
 	case SYBBITN:
 	case SYBINTN:
+	case SYBUINTN:
+	case SYBDATEN:
+	case SYBTIMEN:
 		assert(0);
 		/* TODO... */
+#if ENABLE_EXTRA_CHECKS
 	case SYBVOID:
 	case SYBSINT1:
+	case SYBMSUDT:
+	case SYBMSTABLE:
+	case SYBINTERVAL:
+#else
 	default:
-		tdsdump_log(TDS_DBG_ERROR, "Unknown type %d\n", tds_get_conversion_type(curcol->on_server.column_type, curcol->on_server.column_size));
+#endif
+		tdsdump_log(TDS_DBG_ERROR, "Unknown type %d\n", conversion_type);
 		break;
 	}
 

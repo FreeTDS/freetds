@@ -48,7 +48,7 @@
 				(charset)->min_bytes_per_char : 0 )
 
 
-static int collate2charset(TDSCONNECTION * conn, TDS_UCHAR collate[5]);
+static int collate2charset(TDSCONNECTION * conn, const TDS_UCHAR collate[5]);
 static size_t skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, const char **input, size_t * input_size);
 static int tds_iconv_info_init(TDSICONV * char_conv, int client_canonic, int server_canonic);
 static bool tds_iconv_init(void);
@@ -996,7 +996,7 @@ tds_canonical_charset_name(const char *charset_name)
 }
 
 static int
-collate2charset(TDSCONNECTION * conn, TDS_UCHAR collate[5])
+collate2charset(TDSCONNECTION * conn, const TDS_UCHAR collate[5])
 {
 	int cp = 0;
 	const int sql_collate = collate[4];
@@ -1246,7 +1246,7 @@ collate2charset(TDSCONNECTION * conn, TDS_UCHAR collate[5])
  * Get iconv information from a LCID (to support different column encoding under MSSQL2K)
  */
 TDSICONV *
-tds_iconv_from_collate(TDSCONNECTION * conn, TDS_UCHAR collate[5])
+tds_iconv_from_collate(TDSCONNECTION * conn, const TDS_UCHAR collate[5])
 {
 	int canonic_charset = collate2charset(conn, collate);
 

@@ -56,6 +56,7 @@ static int _ct_fill_param(CS_INT cmd_type, CS_PARAM * param, const CS_DATAFMT_LA
 static void _ct_initialise_cmd(CS_COMMAND *cmd);
 static CS_RETCODE _ct_cancel_cleanup(CS_COMMAND * cmd);
 static CS_INT _ct_map_compute_op(CS_INT comp_op);
+static bool query_has_for_update(const char *query);
 
 /* Added for CT_DIAG */
 /* Code changes starts here - CT_DIAG - 01 */
@@ -380,6 +381,11 @@ ct_callback(CS_CONTEXT * ctx, CS_CONNECTION * con, CS_INT action, CS_INT type, C
 		case CS_INTERRUPT_CB:
 			out_func = (CS_VOID *) (con ? con->interrupt_cb : ctx->interrupt_cb);
 			break;
+#if ENABLE_EXTRA_CHECKS
+		case CS_QUERY_HAS_FOR_UPDATE:
+			out_func = (CS_VOID *) query_has_for_update;
+			break;
+#endif
 		default:
 			_ctclient_msg(ctx, con, "ct_callback()", 1, 1, 1, 5, "%d, %s", type, "type");
 			return CS_FAIL;
@@ -4043,6 +4049,67 @@ _ct_cursor_no_name_text(CS_COMMAND * cmd, const char *funcname, CS_CHAR * name, 
 	return CS_SUCCEED;
 }
 
+static const char*
+get_next_tok(const char* str, size_t *tok_len)
+{
+	static const char delimiter[] = "\n\t,.[]() /-";
+
+	while (*str) {
+		switch (str[0]) {
+		/* handle quoted strings/identifiers */
+		case '\'':
+		case '\"':
+		case '[':
+			*tok_len = tds_skip_quoted(str) - str;
+			return str;
+		/* skip comments */
+		case '-':
+		case '/':
+			str = tds_skip_comment(str);
+			continue;
+		/* skip delimiters */
+		case '\n':
+		case '\t':
+		case ' ':
+		case ',':
+		case '.':
+		case '(':
+		case ')':
+			++str;
+			continue;
+		}
+
+		if ((*tok_len = strcspn(str, delimiter)) == 0)
+			return NULL;
+		return str;
+	}
+	return NULL;
+}
+
+static bool
+query_has_for_update(const char *query)
+{
+	enum {
+		tok_baseline,
+		tok_for,
+	} state = tok_baseline;
+	size_t tok_len;
+
+	const char* tok = get_next_tok(query, &tok_len);
+	while (tok != NULL) {
+		if (tok_len == 3 && strncasecmp(tok, "FOR", 3) == 0) {
+			state = tok_for;
+		} else if (state == tok_for && tok_len == 6 && strncasecmp(tok, "UPDATE", 6) == 0) {
+			return true;
+		} else {
+			state = tok_baseline;
+		}
+
+		tok = get_next_tok(tok + tok_len, &tok_len);
+	}
+	return false;
+}
+
 CS_RETCODE
 ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR * text, CS_INT tlen, CS_INT option)
 {
@@ -4087,6 +4154,26 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 		cursor->status.fetch      = TDS_CURSOR_STATE_UNACTIONED;
 		cursor->status.close      = TDS_CURSOR_STATE_UNACTIONED;
 		cursor->status.dealloc    = TDS_CURSOR_STATE_UNACTIONED;
+
+		if (option == CS_UNUSED || (option & CS_END) != 0) {
+			/* Try to figure out type of the cursor. */
+			if (query_has_for_update(cursor->query)) {
+				cursor->type = TDS_CUR_TYPE_FORWARD; /* Forward-only cursor. */
+			} else {
+				/* readonly */
+				cursor->type = TDS_CUR_TYPE_KEYSET;
+				/* Keyset-driven cursor. Default value. */
+			}
+		} else if ((option & CS_FOR_UPDATE) != 0) {
+			cursor->type = TDS_CUR_TYPE_FORWARD; /* Forward-only cursor. */
+		} else {
+			cursor->type = TDS_CUR_TYPE_KEYSET;
+			/* Keyset-driven cursor. Default value. */
+		}
+
+		cursor->concurrency =
+			TDS_CUR_CONCUR_ALLOW_DIRECT | TDS_CUR_CONCUR_OPTIMISTIC;
+		/* Optimistic.	Checks timestamps if available, else values. */
 
 		tds_release_cursor(&cmd->cursor);
 		cmd->cursor = cursor;

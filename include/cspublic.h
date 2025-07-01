@@ -454,6 +454,7 @@ enum
 #define CS_SECSESSION_CB	8
 #define CS_SIGNAL_CB		100
 #define CS_MESSAGE_CB		9119
+/* FreeTDS extension */
 #define CS_INTERRUPT_CB		9400
 
 /* string types */
