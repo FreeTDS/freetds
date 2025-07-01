@@ -1011,6 +1011,7 @@ tds_alloc_login(bool use_environment)
 	tds_dstr_init(&login->certificate_host_name);
 	tds_dstr_init(&login->db_filename);
 	tds_dstr_init(&login->openssl_ciphers);
+	tds_dstr_init(&login->gnutls_ciphers);
 	tds_dstr_init(&login->routing_address);
 
 	if (use_environment) {
@@ -1069,6 +1070,7 @@ tds_free_login(TDSLOGIN * login)
 	tds_dstr_free(&login->certificate_host_name);
 	tds_dstr_free(&login->db_filename);
 	tds_dstr_free(&login->openssl_ciphers);
+	tds_dstr_free(&login->gnutls_ciphers);
 	tds_dstr_free(&login->routing_address);
 	free(login);
 }
