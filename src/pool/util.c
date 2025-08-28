@@ -182,6 +182,7 @@ pool_write_data(TDS_POOL_SOCKET *from, TDS_POOL_SOCKET *to)
 
 	tds = from->tds;
 	tdsdump_log(TDS_DBG_INFO1, "sending %d bytes\n", tds->in_len);
+	tds_connection_coalesce(to->tds);
 	/* cf. net.c for better technique.  */
 	ret = pool_write(tds_get_s(to->tds), tds->in_buf + tds->in_pos, tds->in_len - tds->in_pos);
 	/* write failed, cleanup member */

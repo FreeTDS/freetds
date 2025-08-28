@@ -1076,6 +1076,7 @@ typedef struct tds_poll_wakeup
 struct tds_connection
 {
 	TDS_USMALLINT tds_version;
+	bool corked;
 	TDS_UINT product_version;	/**< version of product (Sybase/MS and full version) */
 	char *product_name;
 
@@ -1550,13 +1551,14 @@ char *tds_prwsaerror(int erc);
 void tds_prwsaerror_free(char *s);
 int tds_connection_read(TDSSOCKET * tds, unsigned char *buf, int buflen);
 int tds_connection_write(TDSSOCKET *tds, const unsigned char *buf, int buflen, int final);
+void tds_connection_coalesce(TDSSOCKET *tds);
+void tds_connection_flush(TDSSOCKET *tds);
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
 int tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds);
 void tds_connection_close(TDSCONNECTION *conn);
 int tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen);
 int tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen);
-void tds_socket_flush(TDS_SYS_SOCKET sock);
 int tds_socket_set_nonblocking(TDS_SYS_SOCKET sock);
 int tds_wakeup_init(TDSPOLLWAKEUP *wakeup);
 void tds_wakeup_close(TDSPOLLWAKEUP *wakeup);
