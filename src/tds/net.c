@@ -759,6 +759,14 @@ tds_socket_write(TDSCONNECTION *conn, TDSSOCKET *tds, const unsigned char *buf, 
 	}
 #endif
 
+#ifdef USE_CORK
+	if (!conn->corked) {
+		int opt = 1;
+		setsockopt(conn->s, SOL_TCP, TCP_CORK, (const void *) &opt, sizeof(opt));
+		conn->corked = true;
+	}
+#endif
+
 #if defined(SO_NOSIGPIPE)
 	len = send(conn->s, buf, buflen, 0);
 #else
@@ -1022,14 +1030,30 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen)
 }
 
 void
-tds_socket_flush(TDS_SYS_SOCKET sock TDS_UNUSED)
+tds_connection_coalesce(TDSSOCKET *tds TDS_UNUSED)
 {
 #ifdef USE_CORK
-	int opt;
-	opt = 0;
-	setsockopt(sock, SOL_TCP, TCP_CORK, (const void *) &opt, sizeof(opt));
-	opt = 1;
-	setsockopt(sock, SOL_TCP, TCP_CORK, (const void *) &opt, sizeof(opt));
+	TDSCONNECTION *conn = tds->conn;
+
+	if (!conn->corked) {
+		int opt = 1;
+		setsockopt(conn->s, SOL_TCP, TCP_CORK, (const void *) &opt, sizeof(opt));
+		conn->corked = true;
+	}
+#endif
+}
+
+void
+tds_connection_flush(TDSSOCKET *tds TDS_UNUSED)
+{
+#ifdef USE_CORK
+	TDSCONNECTION *conn = tds->conn;
+
+	if (conn->corked) {
+		int opt = 0;
+		setsockopt(conn->s, SOL_TCP, TCP_CORK, (const void *) &opt, sizeof(opt));
+		conn->corked = false;
+	}
 #endif
 }
 
@@ -1059,7 +1083,7 @@ tds_connection_write(TDSSOCKET *tds, const unsigned char *buf, size_t buflen, in
 
 	/* force packet flush */
 	if (final && sent >= buflen)
-		tds_socket_flush(tds_get_s(tds));
+		tds_connection_flush(tds);
 
 #if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X) && !defined(SO_NOSIGPIPE)
 	if (signal(SIGPIPE, oldsig) == SIG_ERR) {

@@ -497,7 +497,7 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 			break;
 	}
 	if (pmbr && !pmbr->sock.poll_send)
-		tds_socket_flush(tds_get_s(pmbr->sock.tds));
+		tds_connection_flush(pmbr->sock.tds);
 	return true;
 }
 

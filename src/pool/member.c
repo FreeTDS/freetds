@@ -338,7 +338,7 @@ pool_process_data(TDS_POOL *pool, TDS_POOL_MEMBER *pmbr)
 			break;
 	}
 	if (puser && !puser->sock.poll_send)
-		tds_socket_flush(tds_get_s(puser->sock.tds));
+		tds_connection_flush(puser->sock.tds);
 	return true;
 }
 
