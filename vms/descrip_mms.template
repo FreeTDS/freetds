@@ -75,7 +75,7 @@ PTHREAD_LINK_FLAGS =
 .ENDIF
 
 .IF @D_OPENSSL@ .EQ 1
-OPENSSL_OPTIONS = ,openssl.opt/OPTIONS
+OPENSSL_OPTIONS = ,[]openssl.opt/OPTIONS
 .ELSE
 OPENSSL_OPTIONS =
 .ENDIF
@@ -93,7 +93,7 @@ CDEFINE = $(TDSVER)
 .ENDIF
 
 .IFDEF ODBC
-ODBC_CDEFINE = "UNIXODBC"
+ODBC_CDEFINE = "UNIXODBC","ENABLE_ODBC_WIDE"
 CODBCFLAGS = /NAMES=(AS_IS,SHORTENED)
 .ELSE
 ODBC_CDEFINE =
@@ -188,13 +188,21 @@ TDSSRVOBJS = [.src.server]query$(OBJ), [.src.server]server$(OBJ), [.src.server]l
 TDSPOOLOBJS = [.src.pool]config$(OBJ), [.src.pool]main$(OBJ), [.src.pool]member$(OBJ), \
 	[.src.pool]user$(OBJ), [.src.pool]util$(OBJ)
 
-TDSODBCOBJS = [.src.odbc]connectparams$(OBJ), \
-	[.src.odbc]convert_tds2sql$(OBJ), [.src.odbc]descriptor$(OBJ), [.src.odbc]error$(OBJ), \
-	[.src.odbc]native$(OBJ), [.src.odbc]odbc$(OBJ), [.src.odbc]odbc_checks$(OBJ), \
-	[.src.odbc]odbc_util$(OBJ), \
-	[.src.odbc]prepare_query$(OBJ), \
-	[.src.odbc]sql2tds$(OBJ), \
-	[.src.odbc]unixodbc$(OBJ)
+TDSODBCOBJS = \
+    [.src.odbc]bcp$(OBJ), \
+    [.src.odbc]connectparams$(OBJ), \
+    [.src.odbc]convert_tds2sql$(OBJ), \
+    [.src.odbc]descriptor$(OBJ), \
+    [.src.odbc]error$(OBJ), \
+    [.src.odbc]native$(OBJ), \
+    [.src.odbc]odbc$(OBJ), \
+    [.src.odbc]odbc_checks$(OBJ), \
+    [.src.odbc]odbc_data$(OBJ), \
+    [.src.odbc]odbc_util$(OBJ), \
+    [.src.odbc]prepare_query$(OBJ), \
+    [.src.odbc]sql2tds$(OBJ), \
+    [.src.odbc]sqlwchar$(OBJ), \
+    [.src.odbc]unixodbc$(OBJ)
 
 # This is the top-level target
 
@@ -388,7 +396,10 @@ $(STDINT_H) :
 	LIBRARY /COMPRESS $(MMS$TARGET) /OUTPUT=$(MMS$TARGET)
 
 $(TDSODBCSHR) : []libtdsodbc$(OLB)
-	link$(LINKFLAGS) $(MMS$SOURCE)/include=odbc/library,[.vms]odbc_driver_axp.opt/options/share=$(MMS$TARGET) 
+	link$(LINKFLAGS) $(MMS$SOURCE)/include="odbc"/library -
+    ,[.vms]odbc_driver_axp.opt/options -
+    $(OPENSSL_OPTIONS) -
+    /share=$(MMS$TARGET)
 
 
 # Build the utility programs and the pool server
@@ -464,7 +475,7 @@ fisql$(E) : [.src.apps.fisql]fisql$(OBJ) [.src.apps.fisql]interrupt$(OBJ) [.src.
 
 check : buildchecks PWD libtdscheck ctlibcheck dblibcheck $(tdsodbccheck)
 	@ write sys$output ""
-	@ write sys$output "Test run complete.
+	@ write sys$output "Test run complete."
 
 PWD : PWD.in
 	copy $(MMS$SOURCE) $(MMS$TARGET).
@@ -1588,7 +1599,7 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 [.src.odbc.unittests]common$(OBJ) : [.src.odbc.unittests]common.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]genparams$(E) : [.src.odbc.unittests]genparams$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]genparams$(E) : [.src.odbc.unittests]genparams$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ) [.src.odbc.unittests]c2string$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]genparams$(OBJ) : [.src.odbc.unittests]genparams.c [.src.odbc.unittests]common.h
@@ -1612,7 +1623,7 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 [.src.odbc.unittests]testodbc$(OBJ) : [.src.odbc.unittests]testodbc.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]data$(E) : [.src.odbc.unittests]data$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]data$(E) : [.src.odbc.unittests]data$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ) [.src.odbc.unittests]c2string$(OBJ) [.src.odbc.unittests]parser$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]data$(OBJ) : [.src.odbc.unittests]data.c [.src.odbc.unittests]common.h
@@ -1702,7 +1713,7 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 [.src.odbc.unittests]cursor2$(OBJ) : [.src.odbc.unittests]cursor2.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]describecol$(E) : [.src.odbc.unittests]describecol$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
+[.src.odbc.unittests]describecol$(E) : [.src.odbc.unittests]describecol$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ) [.src.odbc.unittests]parser$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]describecol$(OBJ) : [.src.odbc.unittests]describecol.c [.src.odbc.unittests]common.h
@@ -1733,13 +1744,13 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
 [.src.odbc.unittests]timeout2$(E) : [.src.odbc.unittests]timeout2$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
-	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options,[]libtdsodbc$(OLB)/lib $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]timeout2$(OBJ) : [.src.odbc.unittests]timeout2.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.odbc.unittests]timeout3$(E) : [.src.odbc.unittests]timeout3$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
-	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
+[.src.odbc.unittests]timeout3$(E) : [.src.odbc.unittests]timeout3$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ) [.src.odbc.unittests]fake_thread$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options,[]libtdsodbc$(OLB)/lib $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]timeout3$(OBJ) : [.src.odbc.unittests]timeout3.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
@@ -1805,7 +1816,7 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
 [.src.odbc.unittests]cancel$(E) : [.src.odbc.unittests]cancel$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
-	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options,[]libtdsodbc$(OLB)/lib $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]cancel$(OBJ) : [.src.odbc.unittests]cancel.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
