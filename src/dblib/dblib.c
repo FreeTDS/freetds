@@ -3825,9 +3825,10 @@ _get_printable_size(TDSCOLUMN * colinfo)
 	case SYBLONGBINARY:
 	case SYBVARBINARY:
 		return colinfo->column_size * 2u;
-	case SYBFLT8:
 	case SYBREAL:
-		return 11;	/* FIX ME -- we do not track precision */
+		return 14;	/* FIX ME -- we do not track precision */
+	case SYBFLT8:
+		return 24;	/* FIX ME -- we do not track precision */
 	case SYBMONEY4:
 		return 12;
 	case SYBMONEY:
