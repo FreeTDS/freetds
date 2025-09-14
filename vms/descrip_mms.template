@@ -473,17 +473,20 @@ fisql$(E) : [.src.apps.fisql]fisql$(OBJ) [.src.apps.fisql]interrupt$(OBJ) [.src.
 
 # Run the test suite
 
-check : buildchecks PWD libtdscheck ctlibcheck dblibcheck $(tdsodbccheck)
+check : buildchecks libtdscheck ctlibcheck dblibcheck $(tdsodbccheck)
 	@ write sys$output ""
 	@ write sys$output "Test run complete."
 
 PWD : PWD.in
 	copy $(MMS$SOURCE) $(MMS$TARGET).
 
-libtdscheck : 
+FREETDSCONF :
+    @ if f$trnlnm("FREETDSCONF") .EQS. "" THEN WRITE SYS$OUTPUT "Point logical FREETDSCONF to freetds.conf for testing."
+    @ if f$trnlnm("FREETDSCONF") .EQS. "" THEN RETURN 44
+
+libtdscheck : PWD FREETDSCONF
 	@ write sys$output "Starting $(MMS$TARGET)..."
 	@ set default [.src.tds.unittests]
-	@ define/nolog FREETDSCONF [---]freetds.conf
 	-@ @[---.vms]full-test.com []t0001$(E)
 	-@ @[---.vms]full-test.com []t0002$(E)
 	-@ @[---.vms]full-test.com []t0003$(E)
@@ -514,10 +517,9 @@ libtdscheck :
 	-@ @[---.vms]full-test.com []tls$(E)
 	@ set default [---]
 
-ctlibcheck : 
+ctlibcheck : PWD FREETDSCONF
 	@ write sys$output "Starting $(MMS$TARGET)..."
 	@ set default [.src.ctlib.unittests]
-	@ define/nolog FREETDSCONF [---]freetds.conf
 	-@ @[---.vms]full-test.com []t0001$(E)
 	-@ @[---.vms]full-test.com []t0002$(E)
 	-@ @[---.vms]full-test.com []t0003$(E)
@@ -560,10 +562,9 @@ ctlibcheck :
 	-@ @[---.vms]full-test.com []has_for_update$(E)
 	@ set default [---]
 
-dblibcheck : 
+dblibcheck : PWD FREETDSCONF
 	@ write sys$output "Starting $(MMS$TARGET)..."
 	@ set default [.src.dblib.unittests]
-	@ define/nolog FREETDSCONF [---]freetds.conf
 	-@ @[---.vms]full-test.com []t0001$(E)
 	-@ @[---.vms]full-test.com []t0002$(E)
 	-@ @[---.vms]full-test.com []t0003$(E)
@@ -612,12 +613,11 @@ dblibcheck :
 	-@ @[---.vms]full-test.com []proc_limit$(E)
 	@ set default [---]
 
-tdsodbccheck : 
+tdsodbccheck : PWD FREETDSCONF
 	@ write sys$output "Starting $(MMS$TARGET)..."
 	@ set default [.src.odbc.unittests]
-	@ define/nolog FREETDSCONF [---]freetds.conf
-	@ define/nolog ODBCINI SYS$DISK:[]ODBC.INI
-	@ define/nolog ODBCSYSINI SYS$DISK:[]
+    $! Configure odbc.ini & odbcinst.ini as required for the LIBODBC build you are using.
+    $! Make sure odbc.ini and odbcinst.ini are world-readable, since the tests run under minimal privileges.
 	@ create/directory [-._libs]
 	@ copy [---]libtdsodbc$(E) [-._libs]
 	-@ @[---.vms]full-test.com []t0001$(E)
