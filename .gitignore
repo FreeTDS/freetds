@@ -37,3 +37,17 @@ Makefile.in
 /missing
 /test-dist.log
 /test-driver
+# VMS intermediate files
+*.OLB
+/descrip.mms
+/openssl.opt
+/src/utils/UTIL_NET.C
+/src/replacements/libiconv.c
+/include/HISTORY.H
+/include/READLINE.H
+/include/TDS_SYSDEP_PUBLIC.H
+/include/TDS_SYSDEP_PUBLIC.H_IN
+/include/freetds/SYSDEP_TYPES.H
+/include/freetds/SYSDEP_TYPES.H_IN
+# Files created by unit tests
+/src/tds/unittests/empty.conf
