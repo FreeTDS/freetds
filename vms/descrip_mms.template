@@ -19,9 +19,6 @@
 
 # OpenVMS description file for FreeTDS
 
-# To override default TDS version of "auto" specify /MACRO="TDSVER=TDSxx=1"
-# where xx is one of 50, 71, 72, 73, or 74.
-
 # To build with ODBC support do MM(K|S)/MACRO="ODBC"=1
 # This presupposes the existence of an ODBC library in the location pointed to
 # by the logical name ODBC_LIBDIR and ODBC include files in the location pointed
@@ -87,10 +84,6 @@ STDINT_H = [.include]stdint.h
 .ENDIF
 
 CDEFINE =
-
-.IFDEF TDSVER
-CDEFINE = $(TDSVER)
-.ENDIF
 
 .IFDEF ODBC_WIDE
 ODBC_WIDE_DEFINE = ,"ENABLE_ODBC_WIDE"
