@@ -314,8 +314,7 @@ AllTests(void)
 	char buf[80];
 	time_t curr_time;
 
-	SQLINTEGER y, m, d;
-	char date[128];
+	int y, m, d;
 
 	printf("use_cursors %d exec_direct %d prepare_before %d\n", use_cursors, exec_direct, prepare_before);
 
@@ -372,27 +371,13 @@ AllTests(void)
 	/* FIXME on ms driver first SQLFetch return SUCCESS_WITH_INFO for truncation error */
 	TestInput(SQL_C_TYPE_DATE, "DATETIME", SQL_TYPE_TIMESTAMP, "DATETIME", "2005-07-22 13:02:03 -> 2005-07-22 00:00:00");
 
-	/* replace date information with current date */
+	/* Supplying a TIME to a TIMESTAMP input parameter should fill in the date with current client date */
 	time(&curr_time);
 	ltime = localtime(&curr_time);
 	y = ltime->tm_year + 1900;
 	m = ltime->tm_mon + 1;
 	d = ltime->tm_mday;
-	/* server concept of data can be different so try ask to server */
-	odbc_command("SELECT GETDATE()");
-	SQLBindCol(odbc_stmt, 1, SQL_C_CHAR, date, sizeof(date), NULL);
-	if (SQLFetch(odbc_stmt) == SQL_SUCCESS) {
-		int a, b, c;
-		if (sscanf(date, "%d-%d-%d", &a, &b, &c) == 3) {
-			y = a;
-			m = b;
-			d = c;
-		}
-	}
-	SQLFetch(odbc_stmt);
-	SQLMoreResults(odbc_stmt);
-	SQLFreeStmt(odbc_stmt, SQL_UNBIND);
-	sprintf(buf, "2003-07-22 13:02:03 -> %04d-%02d-%02d 13:02:03", (int) y, (int) m, (int) d);
+	sprintf(buf, "2003-07-22 13:02:03 -> %04d-%02d-%02d 13:02:03", y, m, d);
 	TestInput(SQL_C_TYPE_TIME, "DATETIME", SQL_TYPE_TIMESTAMP, "DATETIME", buf);
 
 	TestInput(SQL_C_FLOAT,  "FLOAT", SQL_REAL, "FLOAT", "1234.25");
