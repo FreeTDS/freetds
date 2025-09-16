@@ -22,7 +22,7 @@ add_char(char *s, SQLWCHAR ch)
 }
 
 void
-odbc_c2string(char *out, SQLSMALLINT out_c_type, const void *in, size_t in_len)
+odbc_c2string(char *out, SQLSMALLINT out_c_type, const void *in, SQLLEN in_len)
 {
 	typedef union {
 		unsigned char bin[256];
