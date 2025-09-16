@@ -200,7 +200,7 @@ TDS_SYS_SOCKET odbc_find_last_socket(void);
  * Converts an ODBC result into a string.
  * There is no check on destination length, use a buffer big enough.
  */
-void odbc_c2string(char *out, SQLSMALLINT out_c_type, const void *in, size_t in_len);
+void odbc_c2string(char *out, SQLSMALLINT out_c_type, const void *in, SQLLEN in_len);
 
 SQLLEN odbc_to_sqlwchar(SQLWCHAR *dst, const char *src, SQLLEN n);
 SQLLEN odbc_from_sqlwchar(char *dst, const SQLWCHAR *src, SQLLEN n);
