@@ -41,17 +41,11 @@ static void parse_sql(TDSSOCKET * tds, const char *sql);
 static void
 setup_override(void)
 {
-	char buf[128];
-	FILE *f;
+	assert(common_pwd.initialized);
+	strcpy(common_pwd.user, "guest");
+	strcpy(common_pwd.password, "sybase");
+	strcpy(common_pwd.database, "tempdb");
 
-	sprintf(buf, "tokens_pwd.%d", (int) getpid());
-	f = fopen(buf, "w");
-	assert(f);
-	fprintf(f, "UID=guest\nPWD=sybase\nSRV=%s\nDB=tempdb\n", common_pwd.server);
-	fclose(f);
-	rename(buf, "tokens_pwd");
-	unlink(buf);
-	setenv("TDSPWDFILE", "tokens_pwd", 1);
 	unsetenv("TDSINIOVERRIDE");
 
 	unsetenv("TDSHOST");
@@ -409,11 +403,12 @@ TEST_MAIN()
 	}
 	printf("Fake server bound at port %d\n", port);
 
+	/* Get SRV from user's PWD config then override UID/PWD/DB */
 	odbc_read_login_info();
 	setup_override();
 
 	odbc_use_version3 = true;
-	sprintf(connect, "SERVER=127.0.0.1,%d;TDS_Version=7.3;UID=guest;PWD=sybase;DATABASE=tempdb;Encrypt=No;", port);
+	sprintf(connect, "SERVER=127.0.0.1,%d;TDS_Version=7.3;Encrypt=No;", port);
 	odbc_conn_additional_params = connect;
 	odbc_connect();
 
