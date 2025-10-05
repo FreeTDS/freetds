@@ -49,7 +49,10 @@ setup_override(void)
 	assert(f);
 	fprintf(f, "UID=guest\nPWD=sybase\nSRV=%s\nDB=tempdb\n", common_pwd.server);
 	fclose(f);
-	rename(buf, "tokens_pwd");
+	/* Windows rename() will not overwrite existing file */
+	unlink("tokens_pwd");
+	if (rename(buf, "tokens_pwd"))
+		perror("Renaming to tokens_pwd failed.");
 	unlink(buf);
 	setenv("TDSPWDFILE", "tokens_pwd", 1);
 	unsetenv("TDSINIOVERRIDE");
@@ -409,11 +412,16 @@ TEST_MAIN()
 	}
 	printf("Fake server bound at port %d\n", port);
 
+	/* Get SRV from user's PWD config then generate tokens_pwd with UID/PWD/DB overridden */
 	odbc_read_login_info();
 	setup_override();
 
+	/* Re-read login info with overridden setup */
+	memset(&common_pwd, 0, sizeof common_pwd);
+	odbc_read_login_info();
+
 	odbc_use_version3 = true;
-	sprintf(connect, "SERVER=127.0.0.1,%d;TDS_Version=7.3;UID=guest;PWD=sybase;DATABASE=tempdb;Encrypt=No;", port);
+	sprintf(connect, "SERVER=127.0.0.1,%d;TDS_Version=7.3;Encrypt=No;", port);
 	odbc_conn_additional_params = connect;
 	odbc_connect();
 
