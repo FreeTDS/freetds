@@ -27,6 +27,17 @@ static const column_t columns[] = {
 	{ 0, NULL, NULL },
 };
 
+static void
+hexdump(FILE* fp, const char* prefix, const void* p, size_t n)
+{
+	const unsigned char* cp = p;
+
+	fprintf(fp, "%s", prefix);
+	while (n--)
+		fprintf(fp, "%02X", *cp++);
+	fprintf(fp, "\n");
+}
+
 TEST_MAIN()
 {
 	char tmp[1024];
@@ -71,9 +82,22 @@ TEST_MAIN()
 		odbc_command(tmp);
 	}
 
-	/* test conversions in libTDS */
+	/* test conversions in libTDS
+	 *
+	 * Because column type is VARCHAR with collation defined, SQL Server
+	 * returns the data as CP1255 (hebrew) or GB18030 (CN), and FreeTDS's
+	 * built-in iconv doesn't support those. So you need iconv installed
+	 * in Windows to pass this test.
+	 *
+	 * Using NVARCHAR makes this test work with FreeTDS's built-in iconv
+	 * as it causes the server to return the data in wide characters.
+	*/
+#if HAVE_ICONV
 	odbc_command("SELECT hebrew, cn FROM #tmp ORDER BY i");
-
+#else
+	fprintf(stderr, "Bypassing Hebrew MBCS test since iconv not installed (Forcing server to send UTF-16).\n");
+	odbc_command("SELECT CAST(hebrew AS NVARCHAR(20)), CAST(cn AS NVARCHAR(20)) FROM #tmp ORDER BY i");
+#endif
 	/* insert with SQLPrepare/SQLBindParameter/SQLExecute */
 	for (n = 0; n < TDS_VECTOR_SIZE(column_names); ++n)
 		CHKBindCol(n+1, SQL_C_CHAR, out[n], sizeof(out[0]), &n_len[n], "S");
@@ -81,7 +105,11 @@ TEST_MAIN()
 		memset(out, 0, sizeof(out));
 		CHKFetch("S");
 		if (n_len[p[n].num] != strlen(p[n].out) || strcmp(p[n].out, out[p[n].num]) != 0) {
+			size_t len = strlen(p[n].out);
+
 			fprintf(stderr, "Wrong row %d %s\n", n+1, out[p[n].num]);
+			hexdump(stderr, "Expect: ", p[n].out, len);
+			hexdump(stderr, "Got   : ", out[p[n].num], strlen(out[p[n].num]));
 			odbc_disconnect();
 			return 1;
 		}
