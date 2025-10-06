@@ -43,13 +43,20 @@ TEST_MAIN()
 	bool is_ms;
 	SQLRETURN rc;
 
+	/* NOTE: In Windows, this function will copy the data from PWD into
+	 * a registry entry HKCU\Software\ODBC\ODBC.INI\{servername}
+	 */
 	if (odbc_read_login_info())
 		exit(1);
 
+#ifndef _WIN32
 	/*
 	 * prepare our odbcinst.ini 
 	 * is better to do it before connect cause uniODBC cache INIs
 	 * the name must be odbcinst.ini cause unixODBC accept only this name
+	 *
+	 * In Windows, odbcinst.ini text file is not used - you will need to
+	 * configure FreeTDS via the Odbcinst.ini registry key.
 	 */
 	if (common_pwd.driver[0]) {
 		FILE *f = fopen("odbcinst.ini", "w");
@@ -64,8 +71,11 @@ TEST_MAIN()
 			setenv("ODBCSYSINI", ".", 1);
 		}
 	}
-
-	printf("SQLConnect connect..\n");
+#endif
+	/* Connect using SQLConnect() with Server, User and Password from PWD file
+	 * NOTE: In Windows this looks up DSN in HKCU\Software\ODBC\ODBC.INI, with fallback to HKLM
+     */
+	printf("SQLConnect(server=%s, ...) connect..\n", common_pwd.server);
 	odbc_connect();
 	is_freetds = odbc_driver_is_freetds();
 	is_ms = odbc_db_is_microsoft();
@@ -78,8 +88,9 @@ TEST_MAIN()
 		return 0;
 	}
 
-	/* try connect string with using DSN */
-	printf("connect string DSN connect..\n");
+	/* try connect string with using DSN= (should behave the same as SQLConnect)
+	 */
+	printf("SQLDriverConnect(DSN=%s;...)\n", common_pwd.server);
 	init_connect();
 	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;", common_pwd.server,
 		common_pwd.user, common_pwd.password, common_pwd.database);
@@ -87,28 +98,35 @@ TEST_MAIN()
 	odbc_disconnect();
 	++succeeded;
 
-	/* try connect string using old SERVERNAME specification */
-	printf("connect string SERVERNAME connect..\n");
-	printf("odbcinst.ini must be configured with FreeTDS driver..\n");
-
-	/* this is expected to work with unixODBC */
+	/* try connect string using DRIVER=  (this means to look up DRIVER name in ODBCINST.INI) */
+	printf("SQLDriverConnect(DRIVER=FreeTDS;SERVERNAME=%s;...)\n", common_pwd.server);
+#ifndef _WIN32
+	printf("odbcinst.ini must exist and contain an entry [FreeTDS].\n");
+#endif
+	/* this is expected to work with unixODBC, and Windows.
+	 */
 	init_connect();
 	sprintf(tmp,
 		"DRIVER=FreeTDS;SERVERNAME=%s;UID=%s;PWD=%s;DATABASE=%s;",
 		common_pwd.server, common_pwd.user, common_pwd.password, common_pwd.database);
+	/* note: final argument "SIE" means result SQL_ERROR is returned instead of exit() being called. */
 	rc = CHKDriverConnect(NULL, T(tmp), SQL_NTS, (SQLTCHAR *) tmp, sizeof(tmp) / sizeof(SQLTCHAR), &len,
 			      SQL_DRIVER_NOPROMPT, "SIE");
 	if (rc == SQL_ERROR) {
 		printf("Unable to open data source (ret=%d)\n", rc);
+#ifdef _WIN32
+		printf("Try from admin command prompt:\n\todbcconf /A {INSTALLDRIVER \"FreeTDS | Driver = C:\\Program Files(x86)\\FreeTDS\\bin\\tdsodbc.dll\"}"
+			"\n(replace path with your installation path for tdsodbc.dll if necessary)\n");
+#endif
 	} else {
 		++succeeded;
 	}
 	odbc_disconnect();
 
-	/* this is expected to work with iODBC
-	 * (passing shared object name as driver)
+	/* this is expected to work with iODBC (passing full path to driver)
 	 */
 	if (common_pwd.driver[0]) {
+		printf("SQLDriverConnect(DRIVER=%s;...)\n", common_pwd.driver);
 		init_connect();
 		sprintf(tmp,
 			"DRIVER=%s;SERVERNAME=%s;UID=%s;PWD=%s;DATABASE=%s;",
@@ -116,32 +134,12 @@ TEST_MAIN()
 		rc = CHKDriverConnect(NULL, T(tmp), SQL_NTS, (SQLTCHAR *) tmp, sizeof(tmp) / sizeof(SQLTCHAR), &len,
 				      SQL_DRIVER_NOPROMPT, "SIE");
 		if (rc == SQL_ERROR) {
-			printf("Unable to open data source (ret=%d)\n", rc);
+			printf("Unable to open data source via iODBC syntax (ret=%d)\n", rc);
 		} else {
 			++succeeded;
 		}
 		odbc_disconnect();
 	}
-#ifdef _WIN32
-	if (get_entry("SERVER")) {
-		init_connect();
-		sprintf(tmp,
-			"DRIVER=FreeTDS;SERVER=%s;UID=%s;PWD=%s;DATABASE=%s;",
-			entry, common_pwd.user, common_pwd.password, common_pwd.database);
-		if (get_entry("TDS_Version"))
-			sprintf(strchr(tmp, 0), "TDS_Version=%s;", entry);
-		if (get_entry("Port"))
-			sprintf(strchr(tmp, 0), "Port=%s;", entry);
-		rc = CHKDriverConnect(NULL, T(tmp), SQL_NTS, (SQLTCHAR *) tmp, sizeof(tmp) / sizeof(SQLTCHAR), &len,
-				      SQL_DRIVER_NOPROMPT, "SIE");
-		if (rc == SQL_ERROR) {
-			printf("Unable to open data source (ret=%d)\n", rc);
-		} else {
-			++succeeded;
-		}
-		odbc_disconnect();
-	}
-#endif
 
 	if (is_ms) {
 		char app_name[130];
