@@ -132,13 +132,14 @@ TEST_MAIN()
 
 			concise_type = type = code = 0;
 
-			fprintf(stderr, "Error setting type %d (%s)\n", (int) p->type, p->name);
+			fprintf(stderr, "Error setting type %d (%s) ", (int) p->type, p->name);
 
 			concise_type = p->type;
 			SQLGetStmtAttr(odbc_stmt, SQL_ATTR_APP_PARAM_DESC, &desc, sizeof(desc), &ind);
 			if (SQL_SUCCEEDED
 			    (SQLSetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, TDS_INT2PTR(concise_type), sizeof(SQLSMALLINT))))
 			{
+				printf(" [%sExpected]\n", (p->flags & FLAG_C) ? "" : "Not ");
 				CHKGetDescField(desc, 1, SQL_DESC_TYPE, &type, sizeof(SQLSMALLINT), &ind, "S");
 				CHKGetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, &concise_type, sizeof(SQLSMALLINT), &ind, "S");
 				CHKGetDescField(desc, 1, SQL_DESC_DATETIME_INTERVAL_CODE, &code, sizeof(SQLSMALLINT), &ind, "S");
@@ -147,6 +148,7 @@ TEST_MAIN()
 				       (int) concise_type, get_type_name(concise_type), (int) type, get_type_name(type), code);
 				check_msg(p->flags & FLAG_C, "Type not C successed to be set in APD");
 			} else {
+				printf(" [%sExpected]\n", !(p->flags & FLAG_C) ? "" : "Not ");
 				check_msg(!(p->flags & FLAG_C), "Type C failed to be set in APD");
 			}
 		}
@@ -172,7 +174,8 @@ TEST_MAIN()
 			       p->name, (int) concise_type, get_type_name(concise_type), (int) type, get_type_name(type), code);
 			check_msg(p->flags & FLAG_SQL, "Type not SQL successed to be set in IPD");
 		} else {
-			fprintf(stderr, "Error setting type %d (%s)\n", (int) p->type, p->name);
+			fprintf(stderr, "Error setting type %d (%s) ", (int) p->type, p->name);
+			printf(" [%sExpected]\n", !(p->flags & FLAG_SQL) ? "" : "Not ");
 			check_msg(!(p->flags & FLAG_SQL), "Type SQL failed to be set in IPD");
 		}
 	}
