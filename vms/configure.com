@@ -62,29 +62,33 @@ $   SAY "Using replacement socketpair()"
 $ ENDIF
 $!
 $!
-$! Enable OpenSSL if we have it. Don't bother looking for pre-1.1.1 versions
+$! Detect OpenSSL version - Logical OPENSSL must be defined in order
+$! for headers to be found (#include <openssl/...> works by logical
+$! substitution).
 $!
-$ IF F$SEARCH("SSL3$INCLUDE:SSL.H") .NES. ""
+$ sslval = F$ELEMENT(0,"$",F$TRNLNM("OPENSSL"))
+$ IF sslval .NES. ""
 $ THEN
+$!  The version number; could be blank string if they are just using
+$!  SSL$ROOT without version number
+$   sslver = F$EXTRACT(3,F$LENGTH(sslval)-3,sslval)
 $   d_openssl = "1"
-$   SAY "Found OpenSSL 3.x and creating linker options file..."
+$   SAY "Found OpenSSL ''sslver' and creating linker options file..."
 $   OPEN/WRITE sslopt openssl.opt
-$   WRITE sslopt "SYS$SHARE:SSL3$LIBSSL_SHR32.EXE/SHARE"
-$   WRITE sslopt "SYS$SHARE:SSL3$LIBCRYPTO_SHR32.EXE/SHARE"
+$   IF F$TRNLNM("FREETDS_OPENSSL_STATIC") .NE. 0
+$   THEN
+$     SAY "OpenSSL static linking."
+$     WRITE sslopt "SSL''sslver'$LIB:SSL''sslver'$LIBSSL32.OLB/LIB"
+$     WRITE sslopt "SSL''sslver'$LIB:SSL''sslver'$LIBCRYPTO32.OLB/LIB"
+$   ELSE
+$     SAY "OpenSSL linking to shared image."
+$     WRITE sslopt "SYS$SHARE:SSL''sslver'$LIBSSL_SHR32.EXE/SHARE"
+$     WRITE sslopt "SYS$SHARE:SSL''sslver'$LIBCRYPTO_SHR32.EXE/SHARE"
+$   ENDIF
 $   CLOSE sslopt
 $ ELSE
-$   IF F$SEARCH("SSL111$INCLUDE:SSL.H") .NES. ""
-$   THEN
-$     d_openssl = "1"
-$     SAY "Found OpenSSL 1.1.x and creating linker options file..."
-$     OPEN/WRITE sslopt openssl.opt
-$     WRITE sslopt "SYS$SHARE:SSL111$LIBSSL_SHR32.EXE/SHARE"
-$     WRITE sslopt "SYS$SHARE:SSL111$LIBCRYPTO_SHR32.EXE/SHARE"
-$     CLOSE sslopt
-$   ELSE
-$     d_openssl = "0"
-$     SAY "Did not find OpenSSL"
-$   ENDIF
+$   d_openssl = "0"
+$   SAY "Did not find OpenSSL"
 $ ENDIF
 $!
 $! Generate config.h

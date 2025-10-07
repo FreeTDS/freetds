@@ -18,7 +18,13 @@ vmstar or other tar utility. Make sure extended parse is enabled in your
 process (SET PROCESS/PARSE=EXTENDED) and that the feature logical name
 DECC$EFS_CHARSET is enabled; these settings (and the ODS-5 disk) are not
 required to run FreeTDS, but they are necessary for the build and test suite to
-find there requisite parts.  Set default to the top-level source directory and
+find their requisite parts.
+
+Optionally define build-time configuration logical(s):
+
+    $ define FREETDS_OPENSSL_STATIC 1
+
+Set default to the top-level source directory and
 run the configuration script like so:
 
     $ @[.vms]configure
