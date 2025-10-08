@@ -444,10 +444,16 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 			len = SQL_LEN_DATA_AT_EXEC(sql_len);
 			need_data = true;
 
-			/* dynamic length allowed only for BLOB fields */
+			/* dynamic length allowed only for variable fields */
 			switch (drec_ixd->sql_desc_concise_type) {
+			case SQL_CHAR:
+			case SQL_VARCHAR:
 			case SQL_LONGVARCHAR:
+			case SQL_WCHAR:
+			case SQL_WVARCHAR:
 			case SQL_WLONGVARCHAR:
+			case SQL_BINARY:
+			case SQL_VARBINARY:
 			case SQL_LONGVARBINARY:
 				break;
 			default:
