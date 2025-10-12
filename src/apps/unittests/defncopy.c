@@ -198,18 +198,6 @@ cleanup(void)
 	TDS_ZERO_FREE(output);
 }
 
-/* (MM) This test tries to invoke "defncopy" and "tsql" executables we just
-* built. However, "../" is only correct on Linux but not in other OS's
-* such as Windows CMake, where the location is ../../Debug or ../../Release
-* depending on the build type.
-*
-* Instead - let's have this test invoke the executable from PATH, because
-* on both operating systems, running the full test suite requires the build
-* to be staged anyway (that is, Installed to some location on the PATH).
-*/
-// #define EXE_LOCATION ".." SDIR_SEPERATOR
-#define EXE_LOCATION ""
-
 static void
 tsql(const char *input_data)
 {
@@ -223,7 +211,7 @@ tsql(const char *input_data)
 	fputs(input_data, f);
 	fclose(f);
 
-	strcpy(cmd, EXE_LOCATION "tsql" EXE_SUFFIX " -o q");
+	strcpy(cmd, ".." SDIR_SEPARATOR "tsql" EXE_SUFFIX " -o q");
 	p = strchr(cmd, 0);
 	p = add_server(p, end);
 	p = add_string(p, end, "<input >output");
@@ -252,7 +240,7 @@ defncopy(const char *object_name)
 	assert(f);
 	fclose(f);
 
-	strcpy(cmd, EXE_LOCATION "defncopy" EXE_SUFFIX);
+	strcpy(cmd, ".." SDIR_SEPARATOR "defncopy" EXE_SUFFIX);
 	p = strchr(cmd, 0);
 	p = add_server(p, end);
 	p = add_string(p, end, " ");
