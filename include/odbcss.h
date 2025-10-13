@@ -264,7 +264,9 @@ typedef struct
 	int dttime;
 } DBDATETIME;
 
-#ifdef _MSC_VER
+#if defined(__cplusplus) || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L)
+#define TDSODBC_INLINE inline
+#elif defined(_MSC_VER)
 #define TDSODBC_INLINE __inline
 #else
 #define TDSODBC_INLINE __inline__
