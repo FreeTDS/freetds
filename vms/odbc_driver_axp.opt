@@ -124,6 +124,5 @@ SYMBOL_VECTOR = (SQLAllocConnect=PROCEDURE,-
 		SQLStatisticsW=PROCEDURE,-
 		SQLTablePrivilegesW=PROCEDURE,-
 		SQLTablesW=PROCEDURE)
-)
 !
 !		SQLBrowseConnect=PROCEDURE,-

@@ -266,6 +266,8 @@ typedef struct
 
 #ifdef _MSC_VER
 #define TDSODBC_INLINE __inline
+#elif(defined __VMS)
+#define TDSODBC_INLINE inline
 #else
 #define TDSODBC_INLINE __inline__
 #endif
