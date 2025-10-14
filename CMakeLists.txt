@@ -459,8 +459,10 @@ endif()
 if(WIN32)
 	set(lib_NETWORK ws2_32 crypt32)
 else(WIN32)
-	# TODO check libraries
-	set(lib_NETWORK gssapi_krb5)
+	if(ENABLE_KRB5)
+		# TODO check libraries
+		set(lib_NETWORK gssapi_krb5)
+	endif()
 endif(WIN32)
 
 if(OPENSSL_FOUND)
