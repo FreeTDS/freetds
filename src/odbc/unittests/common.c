@@ -63,6 +63,7 @@ static const char *const search_driver[] = {
 	".libs/libtdsodbc.dylib",
 	".libs/libtdsodbc.dll",
 	"_libs/libtdsodbc.dll",
+	"_libs/libtdsodbc.exe", /* VMS */
 	"debug/tdsodbc.dll",
 	"release/tdsodbc.dll",
 	"libtdsodbc.so",
@@ -93,7 +94,18 @@ odbc_read_login_info(void)
 	if (!PWD && !read_login_info_base(&common_pwd, "PWD"))
 		return 1;
 
-	/* find our driver */
+	/* 
+     * Some of the ODBC tests "go in the front door", i.e. call
+     * SQLDriverConnect() which will look up an entry in ODBCINST.INI .
+     * In CONNECT and TIMEOUT3 they look up the entry FreeTDS.
+     * However your system ODBCINST.INI probably doesn't point to
+     * the driver we just built and are trying to test.
+     *
+     * So here we are finding the ODBC driver we just built and saving it
+     * into a custom field common_pwd.driver, and those tests have code to
+     * build a dummy ODBCINST.INI with an entry called FreeTDS and using
+     * common_pwd.driver sa the driver.
+     */
 #ifndef _WIN32
 	if (!getcwd(path, sizeof(path)))
 #else

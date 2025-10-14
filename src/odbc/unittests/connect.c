@@ -80,6 +80,9 @@ TEST_MAIN()
 	printf("odbcinst.ini must exist and contain an entry [FreeTDS].\n");
 #endif
 	/* this is expected to work with unixODBC, and Windows.
+     * NOTE: This will connect to whatever driver you have configured in ODBCINST.INI,
+     * not the actual driver we just built and are testing. However for this test CONNECT,
+     * that's OK as here we are testing connecting to a driver, not testing that driver.
 	 */
 	init_connect();
 	sprintf(tmp,

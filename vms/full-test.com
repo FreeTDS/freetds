@@ -9,6 +9,11 @@ $!
 $ SET MESSAGE /NOFACILITY/NOSEVERITY/NOIDENTIFICATION/NOTEXT
 $ DEFINE/NOLOG/USER_MODE SYS$OUTPUT "''file'.log"
 $ DEFINE/NOLOG/USER_MODE SYS$ERROR "''file'_error.log"
+$! Set tds_full_test_dump == 1 , to generate dump logs for each test.
+$! This makes the tests slow.
+$! ODBC tests that use SQLDriverConnect will only dump-log from the connected
+$! driver, not from the test code itself; this can be confusing if it connects
+$! to an old version rather than the one you're trying to test.
 $ IF tds_full_test_dump .GT. 0 THEN DEFINE/USER TDSDUMP "''file'_dump.log"
 $ starttime = F$TIME()
 $ RUN/NODEBUG 'P1'
