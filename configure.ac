@@ -702,18 +702,28 @@ then
 	fi
 
 	if test "$odbc" = "true"; then
-		saved_LDFLAGS="$LDFLAGS"
+		odbcinst_LDFLAGS=
 		ODBCINST_LDFLAGS=
-		LDFLAGS="$LDFLAGS $ODBC_LDFLAGS"
+		for flag in $ODBC_LDFLAGS; do
+			case "$flag" in
+			-l*)
+				;;
+			*)
+				odbcinst_LDFLAGS="$odbcinst_LDFLAGS $flag"
+				;;
+			esac
+		done
+		saved_LDFLAGS="$LDFLAGS"
+		LDFLAGS="$LDFLAGS $odbcinst_LDFLAGS"
 		if test $tds_mingw = yes; then
 			ODBCINST_LDFLAGS="-lodbccp32"
 		elif test "$unixodbc" = "true"; then
 			if test -n "$ODBC_CONFIG"; then
 				CPPFLAGS="$CPPFLAGS `$ODBC_CONFIG --cflags`"
 			fi
-			AC_CHECK_LIB(odbcinst, SQLGetPrivateProfileString, [ODBCINST_LDFLAGS="$ODBC_LDFLAGS -lodbcinst"])
+			AC_CHECK_LIB(odbcinst, SQLGetPrivateProfileString, [ODBCINST_LDFLAGS="$odbcinst_LDFLAGS -lodbcinst"])
 		elif test "$iodbc" = "true"; then
-			AC_CHECK_LIB(iodbcinst, SQLGetPrivateProfileString, [ODBCINST_LDFLAGS="$ODBC_LDFLAGS -liodbcinst"])
+			AC_CHECK_LIB(iodbcinst, SQLGetPrivateProfileString, [ODBCINST_LDFLAGS="$odbcinst_LDFLAGS -liodbcinst"])
 		fi
 		if test "$ODBCINST_LDFLAGS" != ""; then
 			AC_DEFINE_UNQUOTED(HAVE_SQLGETPRIVATEPROFILESTRING, 1, [Define to 1 if you have the SQLGetPrivateProfileString function.])
