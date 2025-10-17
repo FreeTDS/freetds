@@ -197,7 +197,7 @@ add_header(HAVE_WCHAR_H wchar.h)
 add_header(HAVE_WINDOWS_H windows.h)
 add_header(HAVE_SQL_H sql.h)
 add_header(HAVE_SQLEXT_H sqlext.h)
-foreach(fn char double float int short long "long double" "long long" "SQLWCHAR" "void *" wchar_t __int64 __int128
+foreach(fn char double float int short long "long int" "long double" "long long" "SQLWCHAR" "void *" wchar_t __int64 __int128
 	  SQLLEN SQLROWOFFSET SQLROWSETSIZE SQLSETPOSIROW)
 	string(REGEX REPLACE "[/. ]" "_" var "${fn}")
 	string(REPLACE "*" "P" var "${var}")
@@ -212,8 +212,11 @@ foreach(fn char double float int short long "long double" "long long" "SQLWCHAR"
 	config_write("#define ${var} \\@${var}\\@\n\n")
 endforeach(fn)
 
-foreach(fn SQLLEN SQLROWOFFSET SQLROWSETSIZE SQLSETPOSIROW)
-	config_write("/* Define to 1 if you have type <${fn}>. */\n#cmakedefine HAVE_${fn} 1\n\n")
+foreach(fn "long long" SQLLEN SQLROWOFFSET SQLROWSETSIZE SQLSETPOSIROW)
+	string(REGEX REPLACE "[/. ]" "_" var "${fn}")
+	string(REPLACE "*" "P" var "${var}")
+	string(TOUPPER "${var}" var)
+	config_write("/* Define to 1 if you have type <${fn}>. */\n#cmakedefine HAVE_${var} 1\n\n")
 endforeach(fn)
 
 check_prototype_definition(SQLColAttribute
