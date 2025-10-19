@@ -93,7 +93,7 @@ CDEFINE = $(TDSVER)
 .ENDIF
 
 .IFDEF ODBC
-ODBC_CDEFINE = "UNIXODBC","ENABLE_ODBC_WIDE"
+ODBC_CDEFINE = "UNIXODBC","ENABLE_ODBC_WIDE","ENABLE_ODBC_MARS"
 CODBCFLAGS = /NAMES=(AS_IS,SHORTENED)
 .ELSE
 ODBC_CDEFINE =
@@ -173,6 +173,7 @@ TDSOBJS = [.src.tds]bulk$(OBJ), [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ
 	[.src.utils]smp$(OBJ), \
 	[.src.utils]path$(OBJ), \
 	[.src.utils]strndup$(OBJ), \
+	[.src.utils]tds_cond$(OBJ), \
 	[.src.utils]util_net$(OBJ), \
 	$(ASPRINTFOBJ) $(VASPRINTFOBJ) $(SNPRINTFOBJ) $(STRTOK_ROBJ) $(LIBICONVOBJ) $(SOCKETPAIROBJ) \
 	[.vms]getpass$(OBJ)
