@@ -681,6 +681,7 @@ tdsodbccheck : PWD FREETDSCONF
 	-@ @[---.vms]full-test.com []rowset$(E)
 	-@ @[---.vms]full-test.com []transaction2$(E)
 	-@ @[---.vms]full-test.com []reexec$(E)
+	-@ @[---.vms]full-test.com []mars1$(E)
 	@ set default [---]
 
 buildchecks : libtdstests ctlibtests dblibtests $(ODBCTESTS)
@@ -762,7 +763,8 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 	[.src.odbc.unittests]cursor3$(E) [.src.odbc.unittests]cursor4$(E) [.src.odbc.unittests]cursor5$(E) \
 	[.src.odbc.unittests]attributes$(E) [.src.odbc.unittests]hidden$(E) [.src.odbc.unittests]blob1$(E) \
 	[.src.odbc.unittests]cancel$(E) [.src.odbc.unittests]wchar$(E) [.src.odbc.unittests]rowset$(E) \
-	[.src.odbc.unittests]transaction2$(E) [.src.odbc.unittests]reexec$(E)
+	[.src.odbc.unittests]transaction2$(E) [.src.odbc.unittests]reexec$(E) \
+	[.src.odbc.unittests]mars1$(E)
 	@ continue
 
 # Used by all the unit tests
@@ -1838,6 +1840,12 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
 
 [.src.odbc.unittests]reexec$(OBJ) : [.src.odbc.unittests]reexec.c [.src.odbc.unittests]common.h
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[.src.odbc.unittests]mars1$(E) : [.src.odbc.unittests]mars1$(OBJ) [.src.utils.unittests]test_base$(OBJ) [.src.odbc.unittests]common$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options $(OPENSSL_OPTIONS)
+
+[.src.odbc.unittests]mars1$(OBJ) : [.src.odbc.unittests]mars1.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
 # Clean up
