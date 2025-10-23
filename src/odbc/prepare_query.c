@@ -365,8 +365,10 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 		break;
 	}
 
-	if (!blob && len > need_bytes)
-		len = need_bytes;
+	if (!blob && len > need_bytes) {
+		odbc_errs_add(&stmt->errs, "22001", NULL);
+		return SQL_ERROR;
+	}
 
 	/* copy to destination */
 	if (blob) {
