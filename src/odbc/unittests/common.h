@@ -187,6 +187,11 @@ const char *odbc_db_version(void);
 unsigned int odbc_db_version_int(void);
 bool odbc_driver_is_freetds(void);
 int odbc_tds_version(void);
+#ifdef TDS_NO_DM
+enum { tds_no_dm = 1 };
+#else
+enum { tds_no_dm = 0 };
+#endif
 
 void odbc_mark_sockets_opened(void);
 TDS_SYS_SOCKET odbc_find_last_socket(void);

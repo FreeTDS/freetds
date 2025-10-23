@@ -26,12 +26,6 @@ static SQLSMALLINT ReturnCode;
 static char OutString[OUTSTRING_LEN];
 static int g_nocount, g_second_select;
 
-#ifdef TDS_NO_DM
-static const int tds_no_dm = 1;
-#else
-static const int tds_no_dm = 0;
-#endif
-
 static void
 TestResult(SQLRETURN result0, int level, const char *func)
 {

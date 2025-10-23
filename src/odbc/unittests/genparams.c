@@ -18,12 +18,6 @@
  * Also we have to check normal char and wide char
  */
 
-#ifdef TDS_NO_DM
-static const char tds_no_dm = 1;
-#else
-static const char tds_no_dm = 0;
-#endif
-
 static char precision = 18;
 static char exec_direct = 0;
 static char prepare_before = 0;

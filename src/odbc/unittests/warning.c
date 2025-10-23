@@ -14,16 +14,7 @@
  * inside recordset
  * Sybase do not return warning but test works the same
  */
-static char software_version[] = "$Id: warning.c,v 1.11 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static const char one_null_with_warning[] = "select max(a) as foo from (select convert(int, null) as a) as test";
-
-#ifdef TDS_NO_DM
-static const int tds_no_dm = 1;
-#else
-static const int tds_no_dm = 0;
-#endif
 
 static void
 Test(const char *query)

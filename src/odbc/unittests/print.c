@@ -2,12 +2,6 @@
 
 static SQLCHAR output[256];
 
-#ifdef TDS_NO_DM
-static const int tds_no_dm = 1;
-#else
-static const int tds_no_dm = 0;
-#endif
-
 static int
 test(int odbc3)
 {
