@@ -409,8 +409,8 @@ TEST_MAIN()
 	}
 	printf("Fake server bound at port %d\n", port);
 
+	setup_override();		/* Forces odbc_read_login_info() to find login details for our fake server instead */
 	odbc_read_login_info();
-	setup_override();
 
 	odbc_use_version3 = 1;
 	sprintf(connect, "SERVER=127.0.0.1,%d;TDS_Version=7.3;UID=guest;PWD=sybase;DATABASE=tempdb;Encrypt=No;", port);

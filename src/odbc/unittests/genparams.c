@@ -378,6 +378,12 @@ AllTests(void)
 	y = ltime->tm_year + 1900;
 	m = ltime->tm_mon + 1;
 	d = ltime->tm_mday;
+/* (MM) ODBC specification says that the date should be filled in with the
+ * CLIENT's current date; the below code gets the server's date and this will
+ * fail if server date differs (e.g. server in different timezone)
+ * (Note: this test might fail if build setting "msdblib" not matching)
+ */
+#if 0
 	/* server concept of data can be different so try ask to server */
 	odbc_command("SELECT GETDATE()");
 	SQLBindCol(odbc_stmt, 1, SQL_C_CHAR, date, sizeof(date), NULL);
@@ -389,6 +395,7 @@ AllTests(void)
 			d = c;
 		}
 	}
+#endif
 	SQLFetch(odbc_stmt);
 	SQLMoreResults(odbc_stmt);
 	SQLFreeStmt(odbc_stmt, SQL_UNBIND);
