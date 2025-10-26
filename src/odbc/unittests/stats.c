@@ -99,7 +99,7 @@ TEST_MAIN()
 {
 	char int_buf[32];
 
-	odbc_use_version3 = 0;
+	odbc_use_version3 = false;
 	odbc_connect();
 
 	TestProc(NULL, "DATETIME", STR(SQL_TIMESTAMP));
@@ -110,7 +110,7 @@ TEST_MAIN()
 	odbc_disconnect();
 
 
-	odbc_use_version3 = 1;
+	odbc_use_version3 = true;
 	odbc_connect();
 
 	TestProc(NULL, "DATETIME", STR(SQL_TYPE_TIMESTAMP));

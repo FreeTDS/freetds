@@ -3,7 +3,7 @@
 static SQLCHAR output[256];
 
 static int
-test(int odbc3)
+test(bool odbc3)
 {
 	SQLLEN cnamesize;
 	const char *query;
@@ -90,12 +90,12 @@ TEST_MAIN()
 	int ret;
 
 	/* ODBC 2 */
-	ret = test(0);
+	ret = test(false);
 	if (ret != 0)
 		return ret;
 
 	/* ODBC 3 */
-	ret = test(1);
+	ret = test(true);
 	if (ret != 0)
 		return ret;
 

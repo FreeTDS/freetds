@@ -129,7 +129,7 @@ TEST_MAIN()
 	char type[32];
 	int mssql2005 = 0;
 
-	odbc_use_version3 = 0;
+	odbc_use_version3 = false;
 	odbc_connect();
 
 	if (odbc_db_is_microsoft() && odbc_db_version_int() >= 0x09000000u) {
@@ -152,7 +152,7 @@ TEST_MAIN()
 	odbc_disconnect();
 
 
-	odbc_use_version3 = 1;
+	odbc_use_version3 = true;
 	odbc_connect();
 
 	if (mssql2005)

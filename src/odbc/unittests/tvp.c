@@ -576,7 +576,7 @@ TestInitializeLeak(void)
 
 TEST_MAIN()
 {
-	odbc_use_version3 = 1;
+	odbc_use_version3 = true;
 
 	setup();
 

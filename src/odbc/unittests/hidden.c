@@ -8,7 +8,7 @@ TEST_MAIN()
 	SQLSMALLINT cnt = 0;
 	int failed = 0;
 
-	odbc_use_version3 = 1;
+	odbc_use_version3 = true;
 	odbc_connect();
 
 	odbc_command("CREATE TABLE #t1 ( k INT, c CHAR(10), vc VARCHAR(10) )");

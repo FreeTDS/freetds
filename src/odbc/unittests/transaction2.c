@@ -198,7 +198,7 @@ Test(int txn, const char *expected)
 
 TEST_MAIN()
 {
-	odbc_use_version3 = 1;
+	odbc_use_version3 = true;
 	odbc_connect();
 
 	/* Invalid argument value */

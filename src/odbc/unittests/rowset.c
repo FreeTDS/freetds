@@ -24,7 +24,7 @@ TEST_MAIN()
 	SQLUSMALLINT statuses[10];
 	char buf[32];
 
-	odbc_use_version3 = 1;
+	odbc_use_version3 = true;
 	odbc_connect();
 
 	/* initial value should be 1 */

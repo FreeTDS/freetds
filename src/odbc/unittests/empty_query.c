@@ -5,7 +5,7 @@
 
 TEST_MAIN()
 {
-	odbc_use_version3 = 1;
+	odbc_use_version3 = true;
 	odbc_connect();
 
 	odbc_command2("SET NOCOUNT ON\nSELECT 123 AS foo WHERE 0=1", "S");

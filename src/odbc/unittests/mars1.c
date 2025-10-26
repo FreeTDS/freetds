@@ -36,7 +36,7 @@ TEST_MAIN()
 	SQLHSTMT stmt1, stmt2;
 	SQLHSTMT *pcur_stmt = NULL;
 
-	odbc_use_version3 = 1;
+	odbc_use_version3 = true;
 	odbc_set_conn_attr = my_attrs;
 	odbc_connect();
 

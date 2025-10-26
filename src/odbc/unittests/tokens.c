@@ -412,7 +412,7 @@ TEST_MAIN()
 	odbc_read_login_info();
 	setup_override();
 
-	odbc_use_version3 = 1;
+	odbc_use_version3 = true;
 	sprintf(connect, "SERVER=127.0.0.1,%d;TDS_Version=7.3;UID=guest;PWD=sybase;DATABASE=tempdb;Encrypt=No;", port);
 	odbc_conn_additional_params = connect;
 	odbc_connect();
@@ -487,7 +487,7 @@ TEST_MAIN()
 
 	odbc_disconnect();
 
-	odbc_use_version3 = 0;
+	odbc_use_version3 = false;
 	odbc_connect();
 
 	/*

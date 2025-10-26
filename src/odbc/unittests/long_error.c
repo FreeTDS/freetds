@@ -21,7 +21,7 @@ TEST_MAIN()
 
 	printf("SQLWCHAR size is: %d\n", (int) sizeof(SQLWCHAR));
 
-	odbc_use_version3 = 1;
+	odbc_use_version3 = true;
 	odbc_connect();
 
 	/* this test do not work with Sybase */

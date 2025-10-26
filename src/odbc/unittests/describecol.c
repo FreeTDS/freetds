@@ -284,7 +284,7 @@ TEST_MAIN()
 		ODBC_FREE();
 
 		if (strcmp(cmd, "odbc") == 0) {
-			int odbc3 = get_int(odbc_get_tok(&p), parser) == 3 ? 1 : 0;
+			bool odbc3 = get_int(odbc_get_tok(&p), parser) == 3;
 
 			if (!cond) continue;
 

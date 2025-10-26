@@ -13,7 +13,7 @@ TEST_MAIN()
 	SQLHSTMT stmt;
 	SQLINTEGER num;
 
-	odbc_use_version3 = 1;
+	odbc_use_version3 = true;
 	odbc_connect();
 
 	/* create a table with some rows */

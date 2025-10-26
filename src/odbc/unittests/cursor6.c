@@ -88,7 +88,7 @@ Init(void)
 
 TEST_MAIN()
 {
-	odbc_use_version3 = 1;
+	odbc_use_version3 = true;
 	odbc_connect();
 
 	odbc_check_cursor();
@@ -103,7 +103,7 @@ TEST_MAIN()
 
 	odbc_disconnect();
 
-	odbc_use_version3 = 0;
+	odbc_use_version3 = false;
 
 	odbc_connect();
 	Init();

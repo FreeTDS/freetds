@@ -124,7 +124,7 @@ TEST_MAIN()
 {
 	int i;
 
-	odbc_use_version3 = 1;
+	odbc_use_version3 = true;
 	odbc_connect();
 
 	odbc_command("CREATE TABLE #odbc_test(i INT, t TEXT)");

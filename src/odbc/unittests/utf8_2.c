@@ -35,7 +35,7 @@ TEST_MAIN()
 	const column_t *p;
 	int n;
 
-	odbc_use_version3 = 1;
+	odbc_use_version3 = true;
 	odbc_conn_additional_params = "ClientCharset=UTF-8;";
 
 	odbc_connect();

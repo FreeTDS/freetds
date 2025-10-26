@@ -80,14 +80,14 @@ CheckType(SQLSMALLINT type, SQLSMALLINT expected, const char *string_type, int l
 }
 
 static void
-DoTest(int version3)
+DoTest(bool version3)
 {
 	char name[128], params[128];
 	SQLSMALLINT type, is_unsigned;
 	SQLINTEGER col_size, min_scale;
 	SQLLEN ind1, ind2, ind3, ind4, ind5, ind6;
-	int date_time_supported = 0;
-	int name_version3;
+	bool date_time_supported = false;
+	bool name_version3;
 	int tdsver;
 
 	odbc_use_version3 = version3;
@@ -102,7 +102,7 @@ DoTest(int version3)
 	/* test column name */
 	/* MS ODBC use always ODBC 3 names even in ODBC 2 mode */
 	if (!odbc_driver_is_freetds())
-		name_version3 = 1;
+		name_version3 = true;
 	CHKGetTypeInfo(SQL_ALL_TYPES, "SI");
 	TestName(1, "TYPE_NAME");
 	TestName(2, "DATA_TYPE");
@@ -131,9 +131,9 @@ DoTest(int version3)
 
 	/* test for date/time support */
 	if (odbc_command_with_result(odbc_stmt, "select cast(getdate() as date)") == SQL_SUCCESS)
-		date_time_supported = 1;
+		date_time_supported = true;
 	if (odbc_db_is_microsoft() && tdsver < 0x703)
-		date_time_supported = 0;
+		date_time_supported = false;
 	SQLCloseCursor(odbc_stmt);
 
 #define CHECK_TYPE(in,out) CheckType(in, out, #in, __LINE__)
@@ -195,9 +195,9 @@ DoTest(int version3)
 
 TEST_MAIN()
 {
-	DoTest(0);
+	DoTest(false);
 
-	DoTest(1);
+	DoTest(true);
 
 	printf("Done.\n");
 	return 0;

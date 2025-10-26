@@ -113,7 +113,7 @@ Test(int direct)
 
 TEST_MAIN()
 {
-	odbc_use_version3 = 1;
+	odbc_use_version3 = true;
 
 	if (Test(0) || Test(1))
 		return 1;

@@ -46,7 +46,7 @@
 extern HENV odbc_env;
 extern HDBC odbc_conn;
 extern HSTMT odbc_stmt;
-extern int odbc_use_version3;
+extern bool odbc_use_version3;
 extern void (*odbc_set_conn_attr)(void);
 extern const char *odbc_conn_additional_params;
 extern char odbc_err[512];

@@ -33,7 +33,7 @@ TEST_MAIN()
 	SQLSMALLINT cols, col;
 	char message[1024];
 
-	odbc_use_version3 = 1;
+	odbc_use_version3 = true;
 	odbc_connect();
 
 	if (!odbc_db_is_microsoft() || odbc_tds_version() < 0x702) {

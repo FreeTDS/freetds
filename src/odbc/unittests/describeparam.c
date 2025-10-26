@@ -39,7 +39,7 @@ TEST_MAIN()
 	SQLINTEGER id;
 	const char *env;
 
-	odbc_use_version3 = 1;
+	odbc_use_version3 = true;
 	odbc_connect();
 
 	if (!odbc_db_is_microsoft() || odbc_db_version_int() < 0x0b000000u) {

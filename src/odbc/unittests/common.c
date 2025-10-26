@@ -32,7 +32,7 @@ struct odbc_buf{
 HENV odbc_env;
 HDBC odbc_conn;
 HSTMT odbc_stmt;
-int odbc_use_version3 = 0;
+bool odbc_use_version3 = false;
 void (*odbc_set_conn_attr)(void) = NULL;
 const char *odbc_conn_additional_params = NULL;
 

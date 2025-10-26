@@ -297,7 +297,7 @@ TEST_MAIN()
 			continue;
 
 		if (strcmp(cmd, "odbc") == 0) {
-			int odbc3 = get_int(strtok(NULL, SEP)) == 3 ? 1 : 0;
+			bool odbc3 = get_int(strtok(NULL, SEP)) == 3;
 
 			if (odbc_use_version3 != odbc3) {
 				odbc_use_version3 = odbc3;

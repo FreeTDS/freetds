@@ -6,9 +6,9 @@ TEST_MAIN()
 {
 	char buf[102];
 	SQLLEN ind;
-	int failed = 0;
+	bool failed = false;
 
-	odbc_use_version3 = 1;
+	odbc_use_version3 = true;
 	odbc_connect();
 
 	CHKBindCol(1, SQL_C_DEFAULT, buf, 100, &ind, "S");
@@ -27,7 +27,7 @@ TEST_MAIN()
 	if (strcmp(buf, "Pippo 123 ") != 0
 	    && (odbc_db_is_microsoft() || strcmp(buf, "Pippo 123                     ") != 0)) {
 		fprintf(stderr, "Wrong results '%s'\n", buf);
-		failed = 1;
+		failed = true;
 	}
 
 	return failed ? 1 : 0;
