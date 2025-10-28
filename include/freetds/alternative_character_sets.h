@@ -23,10 +23,6 @@
 #ifndef _tdsguard_dSqwdpsY9xZg6QfH2TD2D0_
 #define _tdsguard_dSqwdpsY9xZg6QfH2TD2D0_
 
-/*
- * $Id: alternative_character_sets.h,v 1.10 2005-02-26 13:08:32 freddy77 Exp $
- */
- 
 /* 
  * This list is sorted alphabetically, except that the most
  * commonly used character sets are first.

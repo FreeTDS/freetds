@@ -29,11 +29,6 @@
 #include <sys/signal.h>
 #include <sys/wait.h>
 
-static char  software_version[]   = "$Id: debug.c,v 1.2 2001-10-13 00:02:54 brianb Exp $";
-static void *no_unused_var_warn[] = {software_version,
-                                     no_unused_var_warn};
-
-
 extern errno;
 
 get_incoming (int fd)
