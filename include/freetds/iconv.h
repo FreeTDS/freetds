@@ -22,6 +22,12 @@
 
 #if HAVE_ICONV
 #include <iconv.h>
+/* avoid conflict with win-iconv library */
+#if defined(_LIBICONV_H) && defined(WINICONV_CONST)
+#undef libiconv_open
+#undef libiconv_close
+#undef libiconv
+#endif
 #else
 /* Define iconv_t for src/replacements/iconv.c. */
 #undef iconv_t

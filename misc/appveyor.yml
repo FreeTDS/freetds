@@ -23,7 +23,7 @@ environment:
     # /E:ON and /V:ON options are not enabled in the batch script intepreter
     # See: http://stackoverflow.com/a/13751649/163740
     WITH_COMPILER: "cmd /E:ON /V:ON /C ..\\misc\\run_with_compiler.cmd"
-    WIN_ICONV_VER: fixed
+    WIN_ICONV_VER: master
 
   matrix:
   - PLAT: Win64
@@ -80,14 +80,14 @@ install:
   - ren win-iconv-%WIN_ICONV_VER% iconv
   - mkdir iconv-build
   - cd iconv-build
-  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DBUILD_STATIC=on -D BUILD_SHARED=off -DBUILD_EXECUTABLE=off -DBUILD_TEST=on -DCMAKE_BUILD_TYPE=Release ..\\iconv"
+  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DWIN_ICONV_BUILD_STATIC=on -DWIN_ICONV_BUILD_SHARED=off -DWIN_ICONV_BUILD_EXECUTABLE=off -DWIN_ICONV_BUILD_TEST=on -DDISABLE_LOCALE_CHARSET=on -DCMAKE_BUILD_TYPE=Release ..\\iconv"
   - "%WITH_COMPILER% nmake"
   - win_iconv_test.exe
   - cd ..\iconv
   - mkdir include
   - mkdir lib
   - copy iconv.h include
-  - copy ..\iconv-build\iconv.lib lib
+  - copy ..\iconv-build\libiconv.lib lib\iconv.lib
   - cd ..
   # if cache doesn't have it, download it
   - >
