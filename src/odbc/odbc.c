@@ -3561,13 +3561,15 @@ odbc_SQLExecute(TDS_STMT * stmt)
 			if (TDS_SUCCEED(ret))
 				ret = tds_multiple_done(tds, &multiple);
 		}
-	} else if (stmt->num_param_rows <= 1 && IS_TDS71_PLUS(tds->conn) && (!stmt->dyn || stmt->need_reprepare)) {
-			if (stmt->dyn) {
-				if (odbc_free_dynamic(stmt) != SQL_SUCCESS)
-					ODBC_RETURN(stmt, SQL_ERROR);
-			}
-			stmt->need_reprepare = 0;
-			ret = tds71_submit_prepexec(tds, tds_dstr_cstr(&stmt->query), NULL, &stmt->dyn, stmt->params);
+	} else if (stmt->num_param_rows <= 1 && IS_TDS71_PLUS(tds->conn)
+		   && (!stmt->dyn || stmt->need_reprepare || !stmt->dyn->num_id)) {
+		if (stmt->dyn) {
+			tdsdump_log(TDS_DBG_INFO1, "Re-prepare dynamic statement (num_id was %d)\n", stmt->dyn->num_id);
+			if (odbc_free_dynamic(stmt) != SQL_SUCCESS)
+				ODBC_RETURN(stmt, SQL_ERROR);
+		}
+		stmt->need_reprepare = 0;
+		ret = tds71_submit_prepexec(tds, tds_dstr_cstr(&stmt->query), NULL, &stmt->dyn, stmt->params);
 	} else {
 		/* TODO cursor change way of calling */
 		/* SQLPrepare */
