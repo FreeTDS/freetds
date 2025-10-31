@@ -85,6 +85,7 @@ TESTS =	\
 	tvp$(EXEEXT) \
 	tokens$(EXEEXT) \
 	describeparam$(EXEEXT) \
+	reexec$(EXEEXT) \
 	$(NULL)
 
 check_PROGRAMS	=	$(TESTS) oldpwd$(EXEEXT)
@@ -191,6 +192,7 @@ tokens_SOURCES	= tokens.c
 tokens_LDADD = ../../utils/unittests/libtds_test_base.a \
 		libcommon.a $(ODBC_LDFLAGS) ../../replacements/libreplacements.la \
 		../../server/libtdssrv.la $(GLOBAL_LD_ADD)
+reexec_SOURCES = reexec.c
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h c2string.c parser.c parser.h \

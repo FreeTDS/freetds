@@ -32,6 +32,7 @@ set(tests
 	utf8_4 qn connection_string_parse
 	tvp tokens
 	describeparam
+	reexec
 )
 
 if(WIN32)
