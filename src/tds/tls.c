@@ -668,6 +668,30 @@ tds_ssl_deinit(TDSCONNECTION *conn)
 	conn->encrypt_single_packet = 0;
 }
 
+size_t
+tds_ssl_get_cb(TDSCONNECTION *conn, void *cb, size_t cblen)
+{
+	int rc;
+	gnutls_datum_t unique;
+
+	/* No CBT, skip channel binding */
+	if (!conn->tls_session)
+		return 0;
+
+	rc = gnutls_session_channel_binding((gnutls_session_t) conn->tls_session, GNUTLS_CB_TLS_UNIQUE, &unique);
+	if (rc) {
+		tdsdump_log(TDS_DBG_ERROR, "tds_ssl_get_cb: failed to get tls-unique: %s\n", gnutls_strerror(rc));
+		return 0;
+	}
+	if (unique.size > cblen) {
+		tdsdump_log(TDS_DBG_ERROR, "tds_ssl_get_cb: buffer overflow getting get tls-unique\n");
+		return 0;
+	}
+	memcpy(cb, unique.data, unique.size);
+	gnutls_free(unique.data);
+	return unique.size;
+}
+
 #else /* !HAVE_GNUTLS */
 static long
 tds_ssl_ctrl_login(BIO *b TDS_UNUSED, int cmd, long num TDS_UNUSED, void *ptr TDS_UNUSED)
@@ -1202,6 +1226,32 @@ tds_ssl_deinit(TDSCONNECTION *conn)
 		conn->tls_ctx = NULL;
 	}
 	conn->encrypt_single_packet = 0;
+}
+
+size_t
+tds_ssl_get_cb(TDSCONNECTION *conn, void *cb, size_t cblen)
+{
+	SSL *ssl;
+	size_t tls_unique_len;
+
+	/* No CBT, skip channel binding */
+	if (!conn->tls_session)
+		return 0;
+
+	ssl = (SSL *) conn->tls_session;
+
+	/* Get tls-unique from OpenSSL */
+	tls_unique_len = SSL_get_finished(ssl, cb, cblen);
+	if (tls_unique_len == 0) {
+		/* Try peer finished as fallback */
+		tls_unique_len = SSL_get_peer_finished(ssl, cb, cblen);
+		if (tls_unique_len == 0) {
+			tdsdump_log(TDS_DBG_ERROR, "tds_ssl_get_cb: failed to get tls-unique from OpenSSL\n");
+			/* No tls-unique available, skip channel binding */
+			return 0;
+		}
+	}
+	return tls_unique_len;
 }
 #endif
 

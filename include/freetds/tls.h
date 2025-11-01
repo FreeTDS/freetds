@@ -42,11 +42,18 @@
 #include <freetds/pushvis.h>
 
 #if defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL)
+
+/*
+ * Common definitions
+ */
 TDSRET tds_ssl_init(TDSSOCKET *tds, bool full);
 void tds_ssl_deinit(TDSCONNECTION *conn);
+size_t tds_ssl_get_cb(TDSCONNECTION * conn, void *cb, size_t cblen);
 
 #  ifdef HAVE_GNUTLS
-
+/*
+ * GnuTLS definitions
+ */
 static inline int
 tds_ssl_pending(TDSCONNECTION *conn)
 {
@@ -64,7 +71,11 @@ tds_ssl_write(TDSCONNECTION *conn, const unsigned char *buf, int buflen)
 {
 	return gnutls_record_send((gnutls_session_t) conn->tls_session, buf, buflen);
 }
+
 #  else
+/*
+ * OpenSSL definitions
+ */
 
 /* compatibility for LibreSSL 2.7  */
 #ifdef LIBRESSL_VERSION_NUMBER
@@ -89,7 +100,11 @@ tds_ssl_write(TDSCONNECTION *conn, const unsigned char *buf, int buflen)
 	return SSL_write((SSL *) conn->tls_session, buf, buflen);
 }
 #  endif
+
 #else
+/*
+ * Definitions if TLS is not enabled
+ */
 static inline TDSRET
 tds_ssl_init(TDSSOCKET *tds TDS_UNUSED, bool full TDS_UNUSED)
 {
@@ -117,6 +132,12 @@ static inline int
 tds_ssl_write(TDSCONNECTION *conn TDS_UNUSED, const unsigned char *buf TDS_UNUSED, int buflen TDS_UNUSED)
 {
 	return -1;
+}
+
+static inline size_t
+tds_ssl_get_cb(TDSCONNECTION *conn TDS_UNUSED, void *cb TDS_UNUSED, size_t cblen TDS_UNUSED)
+{
+	return 0;
 }
 #endif
 

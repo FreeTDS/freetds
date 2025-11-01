@@ -45,6 +45,7 @@
 #include <freetds/utils/hmac_md5.h>
 #include <freetds/utils/des.h>
 #include <freetds/replacements.h>
+#include <freetds/tls.h>
 
 /**
  * \ingroup libtds
@@ -560,9 +561,13 @@ tds7_send_auth(TDSSOCKET * tds,
 	return tds_flush_packet(tds);
 }
 
+#define AV_PAIR_CBT_BYTES 20
+
 typedef struct tds_ntlm_auth
 {
 	TDSAUTHENTICATION tds_auth;
+	uint8_t cbt[16];
+	bool has_cbt;
 } TDSNTLMAUTH;
 
 static TDSRET
@@ -599,6 +604,90 @@ unix_to_nt_time(uint64_t * nt, struct timeval *tv)
 }
 
 static void
+tds_calc_cbt_from_tls_unique(const void *tls_unique_buf, size_t tls_unique_len, unsigned char cbt[16])
+{
+	MD5_CTX md5_ctx;
+	unsigned char channel_binding_struct[20 + 11];
+	size_t struct_len;
+	size_t application_data_raw_len;
+
+	/* Build channel binding structure */
+	/* initiator_address: 8 bytes of zeros */
+	/* acceptor_address: 8 bytes of zeros */
+	/* application_data: 4 bytes length (little endian) + "tls-unique:" + tls_unique */
+	application_data_raw_len = 11 + tls_unique_len;
+	struct_len = 8 + 8 + 4 + 11;
+
+	memset(channel_binding_struct, 0, sizeof(channel_binding_struct));
+
+	/* initiator_address: 8 bytes of zeros (already zeroed by memset) */
+	/* acceptor_address: 8 bytes of zeros (already zeroed by memset) */
+	/* Offset is 16 at this point */
+
+	/* Build application_data: length + "tls-unique:" + tls_unique */
+	TDS_PUT_UA4LE(channel_binding_struct + 16, application_data_raw_len);	/* length (4 bytes) */
+	memcpy(channel_binding_struct + 20, "tls-unique:", 11);	/* "tls-unique:" prefix */
+
+	/* Calculate MD5 hash */
+	MD5Init(&md5_ctx);
+	MD5Update(&md5_ctx, channel_binding_struct, struct_len);
+	MD5Update(&md5_ctx, tls_unique_buf, tls_unique_len);	/* tls_unique data */
+	MD5Final(&md5_ctx, cbt);
+}
+
+static void
+get_cbt(TDSSOCKET *tds, TDSNTLMAUTH *auth)
+{
+	unsigned char tls_unique_buf[256];
+	size_t tls_unique_len;
+
+	tls_unique_len = tds_ssl_get_cb(tds->conn, tls_unique_buf, sizeof(tls_unique_buf));
+	if (tls_unique_len == 0)
+		return;
+
+	tds_calc_cbt_from_tls_unique(tls_unique_buf, tls_unique_len, auth->cbt);
+	auth->has_cbt = true;
+	tdsdump_dump_buf(TDS_DBG_INFO1, "Channel Binding Token", auth->cbt, 16);
+}
+
+/**
+ * Add channel binding token (CBT) AV_PAIR to target_info in names_blob
+ * @param tds TDSSOCKET structure
+ * @param names_blob pointer to names_blob buffer
+ * @param names_blob_len pointer to current length (will be updated)
+ * @return TDS_SUCCESS or TDS_FAIL
+ */
+static void
+add_cbt_data(TDSNTLMAUTH *auth, unsigned char *names_blob, int *names_blob_len, int target_info_len)
+{
+	int new_blob_len;
+	int target_info_offset;
+	unsigned char *cbt_av_pair;
+
+	/* No CBT, skip channel binding */
+	if (!auth->has_cbt)
+		return;
+
+	target_info_offset = TDS_OFFSET(names_blob_prefix_t, target_info);
+
+	/* Add CBT AV_PAIR (4 bytes header + 16 bytes CBT) */
+	new_blob_len = *names_blob_len + 4 + 16;	/* +20 for CBT AV_PAIR */
+
+	/* Insert CBT AV_PAIR */
+	/* The -4 is to override the old terminator */
+	cbt_av_pair = names_blob + target_info_offset + target_info_len - 4;
+
+	TDS_PUT_UA2LE(cbt_av_pair, 0x000A);	/* AvId = 0xA (little endian) */
+	TDS_PUT_UA2LE(cbt_av_pair + 2, 16);	/* AvLen = 16 (little endian) */
+	memcpy(cbt_av_pair + 4, auth->cbt, 16);	/* CBT (16 bytes) */
+	memset(cbt_av_pair + 20, 0, 4);	/* Terminator */
+
+	tdsdump_dump_buf(TDS_DBG_INFO1, "New names_blob\n", names_blob, new_blob_len);
+	/* Update names_blob_len */
+	*names_blob_len = new_blob_len;
+}
+
+static void
 fill_names_blob_prefix(names_blob_prefix_t * prefix)
 {
 	struct timeval tv;
@@ -621,8 +710,10 @@ fill_names_blob_prefix(names_blob_prefix_t * prefix)
 }
 
 static TDSRET
-tds_ntlm_handle_next(TDSSOCKET *tds, TDSAUTHENTICATION *auth TDS_UNUSED, size_t len)
+tds_ntlm_handle_next(TDSSOCKET *tds, TDSAUTHENTICATION *tds_auth TDS_UNUSED, size_t len)
 {
+	TDSNTLMAUTH *auth = (TDSNTLMAUTH *) tds_auth;
+
 	const int length = (int)len;
 	unsigned char nonce[8];
 	uint32_t flags;
@@ -680,25 +771,33 @@ tds_ntlm_handle_next(TDSSOCKET *tds, TDSAUTHENTICATION *auth TDS_UNUSED, size_t 
 
 		/* read Target Info if possible */
 		if (target_info_len > 0 && target_info_offset >= where && target_info_offset + target_info_len <= length) {
+			uint32_t terminator;
+
 			tds_get_n(tds, NULL, target_info_offset - where);
 			where = target_info_offset;
 
-			/*
-			 * the + 4 came from blob structure, after Target Info 4
-			 * additional reserved bytes must be present
-			 * Search "davenport port"
-			 * (currently http://davenport.sourceforge.net/ntlm.html)
-			 */
-			names_blob_len = TDS_OFFSET(names_blob_prefix_t, target_info) + target_info_len + 4;
+			/* target info must include terminator */
+			if (target_info_len < 4)
+				return TDS_FAIL;
+
+			names_blob_len = TDS_OFFSET(names_blob_prefix_t, target_info) + target_info_len;
 
 			/* read Target Info */
-			names_blob = tds_new0(unsigned char, names_blob_len);
+			names_blob = tds_new0(unsigned char, names_blob_len + AV_PAIR_CBT_BYTES);
 			if (!names_blob)
 				return TDS_FAIL;
 
 			fill_names_blob_prefix((names_blob_prefix_t *) names_blob);
 			tds_get_n(tds, names_blob + TDS_OFFSET(names_blob_prefix_t, target_info), target_info_len);
+			terminator = TDS_GET_UA4(names_blob + TDS_OFFSET(names_blob_prefix_t, target_info) + target_info_len - 4);
+			if (terminator != 0) {
+				free(names_blob);
+				return TDS_FAIL;
+			}
 			where += target_info_len;
+
+			/* Add channel binding token (CBT) AV_PAIR to target_info in names_blob */
+			add_cbt_data(auth, names_blob, &names_blob_len, target_info_len);
 		}
 	}
 	/* discard anything left */
@@ -785,6 +884,8 @@ tds_ntlm_get_auth(TDSSOCKET * tds)
 	/* hostname and domain */
 	memcpy(packet + 40, tds_dstr_cstr(&tds->login->client_host_name), host_name_len);
 	memcpy(packet + 40 + host_name_len, domain, domain_len);
+
+	get_cbt(tds, auth);
 
 	return (TDSAUTHENTICATION *) auth;
 }

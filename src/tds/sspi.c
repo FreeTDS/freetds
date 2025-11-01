@@ -52,6 +52,7 @@
 #include <freetds/bool.h>
 #include <freetds/replacements.h>
 #include <freetds/iconv.h>
+#include <freetds/tls.h>
 
 /**
  * \ingroup libtds
@@ -65,6 +66,13 @@
  */
 
 #define PRIsSTR "S"
+#define TDS_CALC_CB_SIZE(cb) \
+    ((cb) == NULL ? \
+        0 : \
+        ( sizeof(SEC_CHANNEL_BINDINGS) + \
+          (cb)->cbInitiatorLength + \
+          (cb)->cbAcceptorLength + \
+          (cb)->cbApplicationDataLength ))
 
 typedef struct tds_sspi_auth
 {
@@ -72,6 +80,7 @@ typedef struct tds_sspi_auth
 	CredHandle cred;
 	CtxtHandle cred_ctx;
 	TCHAR *sname;
+	PSEC_CHANNEL_BINDINGS cb;
 } TDSSSPIAUTH;
 
 static HMODULE secdll = NULL;
@@ -122,6 +131,7 @@ tds_sspi_free(TDSCONNECTION *conn TDS_UNUSED, TDSAUTHENTICATION *tds_auth)
 		sec_fn->FreeCredentialsHandle(&auth->cred);
 	if (auth->tds_auth.packet)
 		sec_fn->FreeContextBuffer(auth->tds_auth.packet);
+	free(auth->cb);
 	free(auth->sname);
 	free(auth);
 	return TDS_SUCCESS;
@@ -130,12 +140,15 @@ tds_sspi_free(TDSCONNECTION *conn TDS_UNUSED, TDSAUTHENTICATION *tds_auth)
 static int
 tds_sspi_handle_next(TDSSOCKET *tds, TDSAUTHENTICATION *tds_auth, size_t len)
 {
-	SecBuffer in_buf, out_buf;
+	SecBuffer out_buf;
 	SecBufferDesc in_desc, out_desc;
 	SECURITY_STATUS status;
 	ULONG attrs;
 	TimeStamp ts;
 	uint8_t *auth_buf;
+	SecBuffer in_buffers[2];
+	unsigned long in_buffers_len = 1;
+	unsigned long cb_len;
 
 	TDSSSPIAUTH *auth = (TDSSSPIAUTH *) tds_auth;
 
@@ -152,14 +165,23 @@ tds_sspi_handle_next(TDSSOCKET *tds, TDSAUTHENTICATION *tds_auth, size_t len)
 		sec_fn->FreeContextBuffer(auth->tds_auth.packet);
 		auth->tds_auth.packet = NULL;
 	}
-	in_desc.ulVersion  = out_desc.ulVersion  = SECBUFFER_VERSION;
-	in_desc.cBuffers   = out_desc.cBuffers   = 1;
-	in_desc.pBuffers   = &in_buf;
-	out_desc.pBuffers   = &out_buf;
+	in_desc.ulVersion = out_desc.ulVersion = SECBUFFER_VERSION;
+	in_desc.cBuffers = in_buffers_len;
+	in_desc.pBuffers = in_buffers;
+	out_desc.pBuffers = &out_buf;
+	out_desc.cBuffers = 1;
 
-	in_buf.BufferType = SECBUFFER_TOKEN;
-	in_buf.pvBuffer   = auth_buf;
-	in_buf.cbBuffer   = (ULONG)len;
+	in_buffers[0].BufferType = SECBUFFER_TOKEN;
+	in_buffers[0].pvBuffer = auth_buf;
+	in_buffers[0].cbBuffer = (ULONG) len;
+
+	cb_len = TDS_CALC_CB_SIZE(auth->cb);
+	if (cb_len > 0) {
+		in_buffers_len++;
+		in_buffers[1].BufferType = SECBUFFER_CHANNEL_BINDINGS;
+		in_buffers[1].cbBuffer = cb_len;
+		in_buffers[1].pvBuffer = auth->cb;
+	}
 
 	out_buf.BufferType = SECBUFFER_TOKEN;
 	out_buf.pvBuffer   = NULL;
@@ -217,6 +239,45 @@ convert_to_ucs2le_string(TDSSOCKET * tds, const char *s, size_t len, WCHAR *out,
 		return (size_t) -1;
 
 	return ob - (char *) out;
+}
+
+static PSEC_CHANNEL_BINDINGS
+tds_sspi_get_channel_binding(TDSSOCKET *tds)
+{
+	unsigned char tls_unique_buf[256];
+	size_t tls_unique_len;
+	const size_t struct_offset = sizeof(SEC_CHANNEL_BINDINGS);
+	size_t app_data_len;
+	PSEC_CHANNEL_BINDINGS cb;
+
+	/* Get tls-unique */
+	tls_unique_len = tds_ssl_get_cb(tds->conn, tls_unique_buf, sizeof(tls_unique_buf));
+	if (tls_unique_len == 0)
+		return NULL;
+
+	app_data_len = 11 + tls_unique_len;
+
+	cb = (SEC_CHANNEL_BINDINGS *) calloc(1, struct_offset + app_data_len);
+	if (!cb) {
+		tdsdump_log(TDS_DBG_NETWORK, "tds_sspi_get_channel_binding: failed to allocate channel bindings\n");
+		return NULL;
+	}
+	cb->dwInitiatorAddrType = 0;
+	cb->cbInitiatorLength = 0;
+	cb->dwInitiatorOffset = 0;
+	cb->dwAcceptorAddrType = 0;
+	cb->cbAcceptorLength = 0;
+	cb->dwAcceptorOffset = 0;
+	cb->cbApplicationDataLength = app_data_len;
+	cb->dwApplicationDataOffset = struct_offset;
+
+	memcpy((char *) cb + struct_offset, "tls-unique:", 11);
+	memcpy((char *) cb + struct_offset + 11, tls_unique_buf, tls_unique_len);
+
+	tdsdump_dump_buf(TDS_DBG_NETWORK, "SEC_CHANNEL_BINDINGS", cb, struct_offset + app_data_len);
+	tdsdump_dump_buf(TDS_DBG_NETWORK, "SEC_CHANNEL_BINDINGS application_data",
+			 ((char *) cb) + cb->dwApplicationDataOffset, cb->cbApplicationDataLength);
+	return cb;
 }
 
 /**
@@ -352,6 +413,8 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 
 	auth->tds_auth.packet_len = buf.cbBuffer;
 	auth->tds_auth.packet     = buf.pvBuffer;
+
+	auth->cb = tds_sspi_get_channel_binding(tds);
 
 	return &auth->tds_auth;
 }
