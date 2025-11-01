@@ -474,6 +474,8 @@ is_tds_type_valid(int type)
 /* enable old TLS v1.1 */
 #define TDS_STR_ENABLE_TLS_V1_1 "enable tls v1.1"
 
+#define TDS_STR_ENABLE_CHANNEL_BINDING "enable channel binding"
+
 
 /* TODO do a better check for alignment than this */
 typedef union
@@ -558,6 +560,7 @@ typedef struct tds_login
 	unsigned int enable_tls_v1_1:1;
 	unsigned int enable_tls_v1_1_specified:1;
 	unsigned int server_is_valid:1;
+	unsigned int enable_channel_binding:1;
 } TDSLOGIN;
 
 typedef struct tds_headers
