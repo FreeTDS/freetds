@@ -39,19 +39,18 @@
 #endif
 
 #if ENABLE_EXTRA_CHECKS
+# define TDS_EXTRA_CHECK(stmt) stmt
+#else
+# define TDS_EXTRA_CHECK(stmt)
+#endif
+
 # if defined(__llvm__) || (defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)))
 # define TDS_COMPILE_CHECK(name,check) \
     _Static_assert(check,#name)
 # else
 # define TDS_COMPILE_CHECK(name,check) \
-    extern int name[(check)?1:-1] TDS_UNUSED
+    typedef char _tds_check_##name[(check)?1:-1] TDS_UNUSED
 # endif
-# define TDS_EXTRA_CHECK(stmt) stmt
-#else
-# define TDS_COMPILE_CHECK(name,check) \
-    extern int disabled_check_##name TDS_UNUSED
-# define TDS_EXTRA_CHECK(stmt)
-#endif
 
 #if defined(__GNUC__) && __GNUC__ >= 3
 # define TDS_LIKELY(x)	__builtin_expect(!!(x), 1)
