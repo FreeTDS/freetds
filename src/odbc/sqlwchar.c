@@ -31,7 +31,12 @@
 #include <freetds/iconv.h>
 #include <freetds/encodings.h>
 
-#if SIZEOF_SQLWCHAR != SIZEOF_WCHAR_T
+/* Compile-time check that sizes are defined correctly
+ * (otherwise the #if in odbc.h can malfunction)
+ */
+TDS_COMPILE_CHECK(sizecheck_sqlwchar, SIZEOF_SQLWCHAR == sizeof(SQLWCHAR));
+TDS_COMPILE_CHECK(sizecheck_wchar_t, SIZEOF_WCHAR_T == sizeof(wchar_t));
+
 size_t sqlwcslen(const SQLWCHAR * s)
 {
 	const SQLWCHAR *p = s;
@@ -42,6 +47,7 @@ size_t sqlwcslen(const SQLWCHAR * s)
 }
 
 #ifdef ENABLE_ODBC_WIDE
+#if SIZEOF_SQLWCHAR != SIZEOF_WCHAR_T
 /**
  * Convert a SQLWCHAR string into a wchar_t
  * Used only for debugging purpose
