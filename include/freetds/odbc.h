@@ -738,7 +738,12 @@ void odbc_bcp_bind(TDS_DBC *dbc, const void * varaddr, int prefixlen, int varlen
  */
 #if SIZEOF_SQLWCHAR != SIZEOF_WCHAR_T
 size_t sqlwcslen(const SQLWCHAR * s);
+#else
+#define sqlwcslen(s) wcslen(s)
+#endif
 
+#ifdef ENABLE_ODBC_WIDE
+#if SIZEOF_SQLWCHAR != SIZEOF_WCHAR_T
 typedef struct sqlwstr_buf {
 	struct sqlwstr_buf *next;
 	wchar_t buf[256];
@@ -749,11 +754,10 @@ void sqlwstr_free(SQLWSTRBUF *bufs);
 #define SQLWSTR(s) sqlwstr(s, &bufs)
 #define SQLWSTR_FREE() sqlwstr_free(bufs)
 #else
-#define sqlwcslen(s) wcslen(s)
-
 #define SQLWSTR_BUFS(n) do {} while(0)
 #define SQLWSTR(s) ((const wchar_t*)(s))
 #define SQLWSTR_FREE() do {} while(0)
+#endif
 #endif
 
 int odbc_get_wide_canonic(TDSCONNECTION *conn);
