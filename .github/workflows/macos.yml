@@ -30,7 +30,7 @@ jobs:
 
         strategy:
             matrix:
-                os: [macos-13]
+                os: [macos-14]
 
         env:
             PREFIX: /tmp/freetds
@@ -44,12 +44,12 @@ jobs:
         - name: Install dependencies
           run: |
             brew install autoconf automake libtool \
-                         libiconv gettext gperf
+                         gettext gperf openssl@3
 
         - name: configure
           run: |
             autoreconf -i
-            ./configure --with-gnutls  --enable-silent-rules \
+            ./configure --with-openssl --enable-silent-rules \
                         --prefix=${PREFIX}
 
         - name: make
