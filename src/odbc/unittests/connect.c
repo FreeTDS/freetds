@@ -151,7 +151,7 @@ TEST_MAIN()
 
 		/* Try passing very long APP string.
 		 * The server is supposed to fail the connection if
-		 * this string is too long, make sure we trucate it.
+		 * this string is too long, make sure we truncate it.
 		 */
 		printf("connect string DSN connect with a long APP..\n");
 		init_connect();
