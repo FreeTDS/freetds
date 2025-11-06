@@ -71,6 +71,10 @@
 #include <freetds/utils/string.h>
 #include <freetds/replacements.h>
 
+#if defined(HAVE_OPENSSL)
+#include <openssl/ssl.h>
+#endif
+
 /**
  * \ingroup libtds
  * \defgroup auth Authentication
@@ -350,6 +354,45 @@ tds_error_message(OM_uint32 e)
 #define error_message tds_error_message
 #endif
 
+static gss_channel_bindings_t
+tds_gss_get_channel_binding(TDSSOCKET *tds)
+{
+	/* Get tls-unique from OpenSSL */
+	unsigned char tls_unique_buf[256];
+	size_t tls_unique_len = 0;
+#if defined(HAVE_OPENSSL)
+	SSL *ssl = (SSL *) tds->conn->tls_session;
+	tls_unique_len = SSL_get_finished(ssl, tls_unique_buf, sizeof(tls_unique_buf));
+	if (tls_unique_len == 0) {
+		tls_unique_len = SSL_get_peer_finished(ssl, tls_unique_buf, sizeof(tls_unique_buf));
+	}
+#endif
+	if (tls_unique_len == 0) {
+		tdsdump_log(TDS_DBG_NETWORK, "tds_gss_get_channel_binding: failed to get tls-unique\n");
+		return GSS_C_NO_CHANNEL_BINDINGS;
+	}
+
+	gss_channel_bindings_t cb = NULL;
+	cb = tds_new0(struct gss_channel_bindings_struct, 1);
+	if (!cb) {
+		tdsdump_log(TDS_DBG_NETWORK, "tds_gss_get_channel_binding: failed to allocate channel bindings\n");
+		return GSS_C_NO_CHANNEL_BINDINGS;
+	}
+	cb->initiator_addrtype = GSS_C_AF_UNSPEC;
+	cb->initiator_address.length = 0;
+	cb->acceptor_addrtype = GSS_C_AF_UNSPEC;
+	cb->acceptor_address.length = 0;
+	cb->application_data.value = tds_new(char, tls_unique_len + 11);
+	cb->application_data.length = tls_unique_len + 11;
+	
+	memcpy(cb->application_data.value, "tls-unique:", 11);
+	memcpy(cb->application_data.value + 11, tls_unique_buf, tls_unique_len);
+	
+	tdsdump_dump_buf(TDS_DBG_NETWORK, "gss_channel_bindings_struct", (const unsigned char *)cb, sizeof(struct gss_channel_bindings_struct));
+	tdsdump_dump_buf(TDS_DBG_NETWORK, "gss_channel_bindings_struct.application_data", (const unsigned char *)cb->application_data.value, cb->application_data.length);
+	return cb;
+}
+
 static TDSRET
 tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *token_ptr)
 {
@@ -392,10 +435,12 @@ tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *to
 	if (tds->login->mutual_authentication || IS_TDS7_PLUS(tds->conn))
 		gssapi_flags |= GSS_C_MUTUAL_FLAG;
 
+	gss_channel_bindings_t cb = tds_gss_get_channel_binding(tds);
+	
 	maj_stat = gss_init_sec_context(&min_stat, GSS_C_NO_CREDENTIAL, &auth->gss_context, auth->target_name, 
 					GSS_C_NULL_OID,
 					gssapi_flags,
-					0, NULL,	/* no channel bindings */
+					0, cb,
 					token_ptr, 
 					&pmech,	
 					&send_tok, &ret_flags, NULL);	/* ignore time_rec */
