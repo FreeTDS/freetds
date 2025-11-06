@@ -101,7 +101,8 @@ build_script:
   - mkdir build
   - cd build
   - if exist c:\openssl-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-win%WIDTH%
-  - if exist c:\openssl-v30-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-v30-win%WIDTH%
+  - if exist c:\openssl-v33-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-v33-win%WIDTH%
+  - if exist c:\openssl-v35-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-v35-win%WIDTH%
   - set DEST_DIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
   - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Release -DENABLE_MSDBLIB=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" \"-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%\" .."
   - "%WITH_COMPILER% nmake"
@@ -156,7 +157,8 @@ after_test:
   - type %CD%\build_debug\confdump
   - type %CD%\build_debug\conndump
   - if exist c:\openssl-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-win%WIDTH%
-  - if exist c:\openssl-v30-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-v30-win%WIDTH%
+  - if exist c:\openssl-v33-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-v33-win%WIDTH%
+  - if exist c:\openssl-v35-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-v35-win%WIDTH%
   # Create zipball artifact
   - cd build
   - "%WITH_COMPILER% nmake install"
