@@ -69,6 +69,9 @@ enable_testing()
 set(CMAKE_CTEST_COMMAND ctest)
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
 
+add_custom_target(build_tests)
+add_dependencies(check build_tests)
+
 # TODO depends on configure
 add_definitions(-D_REENTRANT -D_THREAD_SAFE)
 

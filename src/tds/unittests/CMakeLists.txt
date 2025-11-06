@@ -13,5 +13,5 @@ foreach(target t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 dynamic1
 	if(NOT ${target} STREQUAL "collations")
 		add_test(NAME t_${target} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND t_${target})
 	endif()
-	add_dependencies(check t_${target})
+	add_dependencies(build_tests t_${target})
 endforeach(target)

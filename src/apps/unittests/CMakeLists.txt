@@ -6,5 +6,5 @@ foreach(target defncopy)
 	target_link_libraries(a_${target} tds_test_base replacements tdsutils
 			      ${lib_NETWORK} ${lib_BASE})
 	add_test(NAME a_${target} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND a_${target})
-	add_dependencies(check a_${target})
+	add_dependencies(build_tests a_${target})
 endforeach(target)

@@ -14,5 +14,5 @@ foreach(target passarg condition mutex1 dlist bytes smp path ${unix_TESTS})
 	target_link_libraries(u_${target} tds_test_base tdsutils ${lib_NETWORK}
 			      ${lib_BASE})
 	add_test(NAME u_${target} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND u_${target})
-	add_dependencies(check u_${target})
+	add_dependencies(build_tests u_${target})
 endforeach(target)
