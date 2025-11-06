@@ -68,9 +68,10 @@
  * The following code is based on some psuedo-C code from ronald@innovation.ch
  */
 
-typedef struct tds_answer {
-  unsigned char lm_resp[24];
-  unsigned char nt_resp[24];
+typedef struct tds_answer
+{
+	unsigned char lm_resp[24];
+	unsigned char nt_resp[24];
 } TDSANSWER;
 
 
@@ -87,133 +88,132 @@ typedef struct
 	uint8_t  target_info[4];
 } names_blob_prefix_t;
 
-static TDSRET tds_answer_challenge(TDSSOCKET *tds, TDSLOGIN *login,
-                                   const unsigned char *challenge,
-                                   uint32_t *flags,
-                                   const unsigned char *names_blob,
-                                   int names_blob_len, TDSANSWER *answer,
-                                   unsigned char **ntlm_v2_response);
-static void tds_encrypt_answer(const unsigned char *hash,
-                               const unsigned char *challenge,
-                               unsigned char *answer);
-static void tds_convert_key(const unsigned char *key_56, DES_KEY *ks);
+static TDSRET tds_answer_challenge(TDSSOCKET * tds, TDSLOGIN * login,
+				   const unsigned char *challenge,
+				   uint32_t * flags,
+				   const unsigned char *names_blob,
+				   int names_blob_len, TDSANSWER * answer, unsigned char **ntlm_v2_response);
+static void tds_encrypt_answer(const unsigned char *hash, const unsigned char *challenge, unsigned char *answer);
+static void tds_convert_key(const unsigned char *key_56, DES_KEY * ks);
 
-static void convert_to_upper(char *buf, size_t len) {
-  size_t i;
+static void
+convert_to_upper(char *buf, size_t len)
+{
+	size_t i;
 
-  for (i = 0; i < len; i++)
-    buf[i] = toupper((unsigned char)buf[i]);
+	for (i = 0; i < len; i++)
+		buf[i] = toupper((unsigned char) buf[i]);
 }
 
-static size_t convert_to_usc2le_string(TDSSOCKET *tds, const char *s,
-                                       size_t len, char *out) {
-  const char *ib;
-  char *ob;
-  size_t il, ol;
+static size_t
+convert_to_usc2le_string(TDSSOCKET *tds, const char *s, size_t len, char *out)
+{
+	const char *ib;
+	char *ob;
+	size_t il, ol;
 
-  TDSICONV *char_conv = tds->conn->char_convs[client2ucs2];
+	TDSICONV *char_conv = tds->conn->char_convs[client2ucs2];
 
-  /* char_conv is only mostly const */
-  TDS_ERRNO_MESSAGE_FLAGS *suppress =
-      (TDS_ERRNO_MESSAGE_FLAGS *)&char_conv->suppress;
+	/* char_conv is only mostly const */
+	TDS_ERRNO_MESSAGE_FLAGS *suppress = (TDS_ERRNO_MESSAGE_FLAGS *) & char_conv->suppress;
 
-  if (char_conv->flags == TDS_ENCODING_MEMCPY) {
-    memcpy(out, s, len);
-    return len;
-  }
+	if (char_conv->flags == TDS_ENCODING_MEMCPY) {
+		memcpy(out, s, len);
+		return len;
+	}
 
-  /* convert */
-  ib = s;
-  il = len;
-  ob = out;
-  ol = len * 2;
-  memset(suppress, 0, sizeof(char_conv->suppress));
-  if (tds_iconv(tds, char_conv, to_server, &ib, &il, &ob, &ol) == (size_t)-1)
-    return (size_t)-1;
+	/* convert */
+	ib = s;
+	il = len;
+	ob = out;
+	ol = len * 2;
+	memset(suppress, 0, sizeof(char_conv->suppress));
+	if (tds_iconv(tds, char_conv, to_server, &ib, &il, &ob, &ol) == (size_t) -1)
+		return (size_t) -1;
 
-  return ob - out;
+	return ob - out;
 }
 
-static TDSRET make_ntlm_hash(TDSSOCKET *tds, const char *passwd,
-                             unsigned char ntlm_hash[16]) {
-  MD4_CTX context;
-  size_t passwd_len = 0;
-  char passwd_usc2le[256];
-  size_t passwd_usc2le_len = 0;
+static TDSRET
+make_ntlm_hash(TDSSOCKET *tds, const char *passwd, unsigned char ntlm_hash[16])
+{
+	MD4_CTX context;
+	size_t passwd_len = 0;
+	char passwd_usc2le[256];
+	size_t passwd_usc2le_len = 0;
 
-  passwd_len = strlen(passwd);
+	passwd_len = strlen(passwd);
 
-  if (passwd_len > 128)
-    passwd_len = 128;
+	if (passwd_len > 128)
+		passwd_len = 128;
 
-  passwd_usc2le_len =
-      convert_to_usc2le_string(tds, passwd, passwd_len, passwd_usc2le);
-  if (passwd_usc2le_len == (size_t)-1) {
-    memset((char *)passwd_usc2le, 0, sizeof(passwd_usc2le));
-    return TDS_FAIL;
-  }
+	passwd_usc2le_len = convert_to_usc2le_string(tds, passwd, passwd_len, passwd_usc2le);
+	if (passwd_usc2le_len == (size_t) -1) {
+		memset((char *) passwd_usc2le, 0, sizeof(passwd_usc2le));
+		return TDS_FAIL;
+	}
 
-  /* compute NTLM hash */
-  MD4Init(&context);
-  MD4Update(&context, (unsigned char *)passwd_usc2le, passwd_usc2le_len);
-  MD4Final(&context, ntlm_hash);
+	/* compute NTLM hash */
+	MD4Init(&context);
+	MD4Update(&context, (unsigned char *) passwd_usc2le, passwd_usc2le_len);
+	MD4Final(&context, ntlm_hash);
 
-  /* with security is best be pedantic */
-  memset((char *)passwd_usc2le, 0, passwd_usc2le_len);
-  memset(&context, 0, sizeof(context));
-  return TDS_SUCCESS;
+	/* with security is best be pedantic */
+	memset((char *) passwd_usc2le, 0, passwd_usc2le_len);
+	memset(&context, 0, sizeof(context));
+	return TDS_SUCCESS;
 }
 
-static TDSRET make_ntlm_v2_hash(TDSSOCKET *tds, const char *passwd,
-                                unsigned char ntlm_v2_hash[16]) {
-  const char *user_name, *domain;
-  size_t domain_len, user_name_len, len, buf_usc2le_len = 0;
-  const char *p;
+static TDSRET
+make_ntlm_v2_hash(TDSSOCKET *tds, const char *passwd, unsigned char ntlm_v2_hash[16])
+{
+	const char *user_name, *domain;
+	size_t domain_len, user_name_len, len, buf_usc2le_len = 0;
+	const char *p;
 
-  unsigned char ntlm_hash[16];
-  char buf[128];
-  char buf_usc2le[512];
-  TDSRET res;
+	unsigned char ntlm_hash[16];
+	char buf[128];
+	char buf_usc2le[512];
+	TDSRET res;
 
-  user_name = tds_dstr_cstr(&tds->login->user_name);
+	user_name = tds_dstr_cstr(&tds->login->user_name);
 
-  /* parse domain\username */
-  p = strchr(user_name, '\\');
+	/* parse domain\username */
+	p = strchr(user_name, '\\');
 
-  domain = user_name;
-  domain_len = p - user_name;
+	domain = user_name;
+	domain_len = p - user_name;
 
-  user_name = p + 1;
-  user_name_len = strlen(user_name);
+	user_name = p + 1;
+	user_name_len = strlen(user_name);
 
-  if (user_name_len > 128)
-    user_name_len = 128;
-  memcpy(buf, user_name, user_name_len);
-  convert_to_upper(buf, user_name_len);
+	if (user_name_len > 128)
+		user_name_len = 128;
+	memcpy(buf, user_name, user_name_len);
+	convert_to_upper(buf, user_name_len);
 
-  len = convert_to_usc2le_string(tds, buf, user_name_len, buf_usc2le);
-  if (len == (size_t)-1)
-    return TDS_FAIL;
-  buf_usc2le_len = len;
+	len = convert_to_usc2le_string(tds, buf, user_name_len, buf_usc2le);
+	if (len == (size_t) -1)
+		return TDS_FAIL;
+	buf_usc2le_len = len;
 
-  if (domain_len > 128)
-    domain_len = 128;
-  /* Target is supposed to be case-sensitive */
+	if (domain_len > 128)
+		domain_len = 128;
+	/* Target is supposed to be case-sensitive */
 
-  len = convert_to_usc2le_string(tds, domain, domain_len, buf_usc2le + len);
-  if (len == (size_t)-1)
-    return TDS_FAIL;
-  buf_usc2le_len += len;
+	len = convert_to_usc2le_string(tds, domain, domain_len, buf_usc2le + len);
+	if (len == (size_t) -1)
+		return TDS_FAIL;
+	buf_usc2le_len += len;
 
-  res = make_ntlm_hash(tds, passwd, ntlm_hash);
-  hmac_md5(ntlm_hash, (const unsigned char *)buf_usc2le, buf_usc2le_len,
-           ntlm_v2_hash);
+	res = make_ntlm_hash(tds, passwd, ntlm_hash);
+	hmac_md5(ntlm_hash, (const unsigned char *) buf_usc2le, buf_usc2le_len, ntlm_v2_hash);
 
-  /* with security is best be pedantic */
-  memset(&ntlm_hash, 0, sizeof(ntlm_hash));
-  memset(buf, 0, sizeof(buf));
-  memset((char *)buf_usc2le, 0, buf_usc2le_len);
-  return res;
+	/* with security is best be pedantic */
+	memset(&ntlm_hash, 0, sizeof(ntlm_hash));
+	memset(buf, 0, sizeof(buf));
+	memset((char *) buf_usc2le, 0, buf_usc2le_len);
+	return res;
 }
 
 /*
@@ -221,67 +221,67 @@ static TDSRET make_ntlm_v2_hash(TDSSOCKET *tds, const char *passwd,
  * client_data - The client data (blob or client nonce).
  * challenge - The server challenge from the Type 2 message.
  */
-static unsigned char *make_lm_v2_response(const unsigned char ntlm_v2_hash[16],
-                                          const unsigned char *client_data,
-                                          int client_data_len,
-                                          const unsigned char challenge[8]) {
-  int mac_len = 16 + client_data_len;
-  unsigned char *mac;
+static unsigned char *
+make_lm_v2_response(const unsigned char ntlm_v2_hash[16],
+		    const unsigned char *client_data, int client_data_len, const unsigned char challenge[8])
+{
+	int mac_len = 16 + client_data_len;
+	unsigned char *mac;
 
-  mac = tds_new(unsigned char, mac_len);
-  if (!mac)
-    return NULL;
+	mac = tds_new(unsigned char, mac_len);
 
-  memcpy(mac + 8, challenge, 8);
-  memcpy(mac + 16, client_data, client_data_len);
-  hmac_md5(ntlm_v2_hash, mac + 8, client_data_len + 8, mac);
+	if (!mac)
+		return NULL;
 
-  return mac;
+	memcpy(mac + 8, challenge, 8);
+	memcpy(mac + 16, client_data, client_data_len);
+	hmac_md5(ntlm_v2_hash, mac + 8, client_data_len + 8, mac);
+
+	return mac;
 }
 
-static TDSRET tds_answer_challenge_ntlmv2(TDSSOCKET *tds, TDSLOGIN *login,
-                                          const unsigned char *challenge,
-                                          uint32_t *flags,
-                                          const unsigned char *names_blob,
-                                          int names_blob_len, TDSANSWER *answer,
-                                          unsigned char **ntlm_v2_response) {
-  TDSRET res;
-  const char *passwd = tds_dstr_cstr(&login->password);
+static TDSRET
+tds_answer_challenge_ntlmv2(TDSSOCKET *tds, TDSLOGIN *login,
+			    const unsigned char *challenge,
+			    uint32_t *flags,
+			    const unsigned char *names_blob,
+			    int names_blob_len, TDSANSWER *answer, unsigned char **ntlm_v2_response)
+{
+	TDSRET res;
+	const char *passwd = tds_dstr_cstr(&login->password);
 
-  /* NTLMv2 */
-  unsigned char *lm_v2_response;
-  unsigned char ntlm_v2_hash[16];
-  const names_blob_prefix_t *names_blob_prefix;
+	/* NTLMv2 */
+	unsigned char *lm_v2_response;
+	unsigned char ntlm_v2_hash[16];
+	const names_blob_prefix_t *names_blob_prefix;
 
-  if (!names_blob)
-    return TDS_FAIL;
+	if (!names_blob)
+		return TDS_FAIL;
 
-  res = make_ntlm_v2_hash(tds, passwd, ntlm_v2_hash);
-  if (TDS_FAILED(res))
-    return res;
+	res = make_ntlm_v2_hash(tds, passwd, ntlm_v2_hash);
+	if (TDS_FAILED(res))
+		return res;
 
-  /* LMv2 response */
-  /* Take client's challenge from names_blob */
-  names_blob_prefix = (const names_blob_prefix_t *)names_blob;
-  lm_v2_response = make_lm_v2_response(
-      ntlm_v2_hash, names_blob_prefix->challenge, 8, challenge);
-  if (!lm_v2_response)
-    return TDS_FAIL;
-  memcpy(answer->lm_resp, lm_v2_response, 24);
-  free(lm_v2_response);
+	/* LMv2 response */
+	/* Take client's challenge from names_blob */
+	names_blob_prefix = (const names_blob_prefix_t *) names_blob;
+	lm_v2_response = make_lm_v2_response(ntlm_v2_hash, names_blob_prefix->challenge, 8, challenge);
+	if (!lm_v2_response)
+		return TDS_FAIL;
+	memcpy(answer->lm_resp, lm_v2_response, 24);
+	free(lm_v2_response);
 
-  /* NTLMv2 response */
-  /* Size of lm_v2_response is 16 + names_blob_len */
-  *ntlm_v2_response =
-      make_lm_v2_response(ntlm_v2_hash, names_blob, names_blob_len, challenge);
-  if (!*ntlm_v2_response)
-    return TDS_FAIL;
+	/* NTLMv2 response */
+	/* Size of lm_v2_response is 16 + names_blob_len */
+	*ntlm_v2_response = make_lm_v2_response(ntlm_v2_hash, names_blob, names_blob_len, challenge);
+	if (!*ntlm_v2_response)
+		return TDS_FAIL;
 
-  memset(ntlm_v2_hash, 0, sizeof(ntlm_v2_hash));
+	memset(ntlm_v2_hash, 0, sizeof(ntlm_v2_hash));
 
-  /* local not supported */
-  *flags &= ~0x4000;
-  return TDS_SUCCESS;
+	/* local not supported */
+	*flags &= ~0x4000;
+	return TDS_SUCCESS;
 }
 
 /**
@@ -292,81 +292,82 @@ static TDSRET tds_answer_challenge_ntlmv2(TDSSOCKET *tds, TDSLOGIN *login,
  * @param flags NTLM flags from server side
  * @param answer buffer where to store crypted password
  */
-static TDSRET tds_answer_challenge(TDSSOCKET *tds, TDSLOGIN *login,
-                                   const unsigned char *challenge,
-                                   uint32_t *flags,
-                                   const unsigned char *names_blob,
-                                   int names_blob_len, TDSANSWER *answer,
-                                   unsigned char **ntlm_v2_response) {
+static TDSRET
+tds_answer_challenge(TDSSOCKET *tds, TDSLOGIN *login,
+		     const unsigned char *challenge,
+		     uint32_t *flags,
+		     const unsigned char *names_blob, int names_blob_len, TDSANSWER *answer, unsigned char **ntlm_v2_response)
+{
 #define MAX_PW_SZ 14
-  const char *passwd = tds_dstr_cstr(&login->password);
-  DES_KEY ks;
-  unsigned char hash[24], ntlm2_challenge[16];
-  TDSRET res;
+	const char *passwd = tds_dstr_cstr(&login->password);
+	DES_KEY ks;
+	unsigned char hash[24], ntlm2_challenge[16];
+	TDSRET res;
 
-  memset(answer, 0, sizeof(TDSANSWER));
+	memset(answer, 0, sizeof(TDSANSWER));
 
-  if (login->use_ntlmv2) {
-    return tds_answer_challenge_ntlmv2(tds, login, challenge, flags, names_blob,
-                                       names_blob_len, answer,
-                                       ntlm_v2_response);
-  } else if ((*flags & 0x80000) != 0) {
-    /* NTLM2 */
-    MD5_CTX md5_ctx;
+	if (login->use_ntlmv2) {
+		return tds_answer_challenge_ntlmv2(tds, login, challenge, flags, names_blob,
+						   names_blob_len, answer, ntlm_v2_response);
+	} else if ((*flags & 0x80000) != 0) {
+		/* NTLM2 */
+		MD5_CTX md5_ctx;
 
-    tds_random_buffer(hash, 8);
-    memset(hash + 8, 0, 16);
-    memcpy(answer->lm_resp, hash, 24);
+		tds_random_buffer(hash, 8);
+		memset(hash + 8, 0, 16);
+		memcpy(answer->lm_resp, hash, 24);
 
-    MD5Init(&md5_ctx);
-    MD5Update(&md5_ctx, challenge, 8);
-    MD5Update(&md5_ctx, hash, 8);
-    MD5Final(&md5_ctx, ntlm2_challenge);
-    challenge = ntlm2_challenge;
-    memset(&md5_ctx, 0, sizeof(md5_ctx));
-  } else if (login->use_lanman) {
-    /* LM */
-    size_t len, i;
-    unsigned char passwd_buf[MAX_PW_SZ];
-    static const des_cblock magic = {0x4B, 0x47, 0x53, 0x21,
-                                     0x40, 0x23, 0x24, 0x25};
+		MD5Init(&md5_ctx);
+		MD5Update(&md5_ctx, challenge, 8);
+		MD5Update(&md5_ctx, hash, 8);
+		MD5Final(&md5_ctx, ntlm2_challenge);
+		challenge = ntlm2_challenge;
+		memset(&md5_ctx, 0, sizeof(md5_ctx));
+	} else if (login->use_lanman) {
+		/* LM */
+		size_t len, i;
+		unsigned char passwd_buf[MAX_PW_SZ];
 
-    /* convert password to upper and pad to 14 chars */
-    memset(passwd_buf, 0, MAX_PW_SZ);
-    len = strlen(passwd);
-    if (len > MAX_PW_SZ)
-      len = MAX_PW_SZ;
-    for (i = 0; i < len; i++)
-      passwd_buf[i] = toupper((unsigned char)passwd[i]);
+		static const des_cblock magic = { 0x4B, 0x47, 0x53, 0x21,
+			0x40, 0x23, 0x24, 0x25
+		};
 
-    /* hash the first 7 characters */
-    tds_convert_key(passwd_buf, &ks);
-    tds_des_ecb_encrypt(&magic, sizeof(magic), &ks, (hash + 0));
+		/* convert password to upper and pad to 14 chars */
+		memset(passwd_buf, 0, MAX_PW_SZ);
+		len = strlen(passwd);
+		if (len > MAX_PW_SZ)
+			len = MAX_PW_SZ;
+		for (i = 0; i < len; i++)
+			passwd_buf[i] = toupper((unsigned char) passwd[i]);
 
-    /* hash the second 7 characters */
-    tds_convert_key(passwd_buf + 7, &ks);
-    tds_des_ecb_encrypt(&magic, sizeof(magic), &ks, (hash + 8));
+		/* hash the first 7 characters */
+		tds_convert_key(passwd_buf, &ks);
+		tds_des_ecb_encrypt(&magic, sizeof(magic), &ks, (hash + 0));
 
-    memset(hash + 16, 0, 5);
+		/* hash the second 7 characters */
+		tds_convert_key(passwd_buf + 7, &ks);
+		tds_des_ecb_encrypt(&magic, sizeof(magic), &ks, (hash + 8));
 
-    tds_encrypt_answer(hash, challenge, answer->lm_resp);
-    memset(passwd_buf, 0, sizeof(passwd_buf));
-  } else {
-    memset(answer->lm_resp, 0, sizeof(answer->lm_resp));
-  }
-  *flags = 0x8201;
+		memset(hash + 16, 0, 5);
 
-  /* NTLM/NTLM2 response */
-  res = make_ntlm_hash(tds, passwd, hash);
-  memset(hash + 16, 0, 5);
+		tds_encrypt_answer(hash, challenge, answer->lm_resp);
+		memset(passwd_buf, 0, sizeof(passwd_buf));
+	} else {
+		memset(answer->lm_resp, 0, sizeof(answer->lm_resp));
+	}
+	*flags = 0x8201;
 
-  tds_encrypt_answer(hash, challenge, answer->nt_resp);
+	/* NTLM/NTLM2 response */
+	res = make_ntlm_hash(tds, passwd, hash);
+	memset(hash + 16, 0, 5);
 
-  /* with security is best be pedantic */
-  memset(&ks, 0, sizeof(ks));
-  memset(hash, 0, sizeof(hash));
-  memset(ntlm2_challenge, 0, sizeof(ntlm2_challenge));
-  return res;
+	tds_encrypt_answer(hash, challenge, answer->nt_resp);
+
+	/* with security is best be pedantic */
+	memset(&ks, 0, sizeof(ks));
+	memset(hash, 0, sizeof(hash));
+	memset(ntlm2_challenge, 0, sizeof(ntlm2_challenge));
+	return res;
 }
 
 /*
@@ -374,209 +375,211 @@ static TDSRET tds_answer_challenge(TDSSOCKET *tds, TDSLOGIN *login,
  * 8 byte plaintext is encrypted with each key and the resulting 24
  * bytes are stored in the results array.
  */
-static void tds_encrypt_answer(const unsigned char *hash,
-                               const unsigned char *challenge,
-                               unsigned char *answer) {
-  DES_KEY ks;
+static void
+tds_encrypt_answer(const unsigned char *hash, const unsigned char *challenge, unsigned char *answer)
+{
+	DES_KEY ks;
 
-  tds_convert_key(hash, &ks);
-  tds_des_ecb_encrypt(challenge, 8, &ks, answer);
+	tds_convert_key(hash, &ks);
+	tds_des_ecb_encrypt(challenge, 8, &ks, answer);
 
-  tds_convert_key(&hash[7], &ks);
-  tds_des_ecb_encrypt(challenge, 8, &ks, &answer[8]);
+	tds_convert_key(&hash[7], &ks);
+	tds_des_ecb_encrypt(challenge, 8, &ks, &answer[8]);
 
-  tds_convert_key(&hash[14], &ks);
-  tds_des_ecb_encrypt(challenge, 8, &ks, &answer[16]);
+	tds_convert_key(&hash[14], &ks);
+	tds_des_ecb_encrypt(challenge, 8, &ks, &answer[16]);
 
-  memset(&ks, 0, sizeof(ks));
+	memset(&ks, 0, sizeof(ks));
 }
 
 /*
  * turns a 56 bit key into the 64 bit, odd parity key and sets the key.
  * The key schedule ks is also set.
  */
-static void tds_convert_key(const unsigned char *key_56, DES_KEY *ks) {
-  des_cblock key;
+static void
+tds_convert_key(const unsigned char *key_56, DES_KEY *ks)
+{
+	des_cblock key;
 
-  key[0] = key_56[0];
-  key[1] = ((key_56[0] << 7) & 0xFF) | (key_56[1] >> 1);
-  key[2] = ((key_56[1] << 6) & 0xFF) | (key_56[2] >> 2);
-  key[3] = ((key_56[2] << 5) & 0xFF) | (key_56[3] >> 3);
-  key[4] = ((key_56[3] << 4) & 0xFF) | (key_56[4] >> 4);
-  key[5] = ((key_56[4] << 3) & 0xFF) | (key_56[5] >> 5);
-  key[6] = ((key_56[5] << 2) & 0xFF) | (key_56[6] >> 6);
-  key[7] = (key_56[6] << 1) & 0xFF;
+	key[0] = key_56[0];
+	key[1] = ((key_56[0] << 7) & 0xFF) | (key_56[1] >> 1);
+	key[2] = ((key_56[1] << 6) & 0xFF) | (key_56[2] >> 2);
+	key[3] = ((key_56[2] << 5) & 0xFF) | (key_56[3] >> 3);
+	key[4] = ((key_56[3] << 4) & 0xFF) | (key_56[4] >> 4);
+	key[5] = ((key_56[4] << 3) & 0xFF) | (key_56[5] >> 5);
+	key[6] = ((key_56[5] << 2) & 0xFF) | (key_56[6] >> 6);
+	key[7] = (key_56[6] << 1) & 0xFF;
 
-  tds_des_set_odd_parity(key);
-  tds_des_set_key(ks, key);
+	tds_des_set_odd_parity(key);
+	tds_des_set_key(ks, key);
 
-  memset(&key, 0, sizeof(key));
+	memset(&key, 0, sizeof(key));
 }
 
-static TDSRET tds7_send_auth(TDSSOCKET *tds, const unsigned char *challenge,
-                             uint32_t flags, const unsigned char *names_blob,
-                             int names_blob_len) {
-  size_t current_pos;
-  TDSANSWER answer;
+static TDSRET
+tds7_send_auth(TDSSOCKET *tds, const unsigned char *challenge, uint32_t flags, const unsigned char *names_blob, int names_blob_len)
+{
+	size_t current_pos;
+	TDSANSWER answer;
 
-  /* FIXME: stuff duplicate in tds7_send_login */
-  const char *domain;
-  const char *user_name;
-  const char *host_name;
-  const char *p;
-  char *convert_buffer;
-  size_t user_name_len, host_name_len, domain_len;
-  TDSRET rc;
+	/* FIXME: stuff duplicate in tds7_send_login */
+	const char *domain;
+	const char *user_name;
+	const char *host_name;
+	const char *p;
+	char *convert_buffer;
+	size_t user_name_len, host_name_len, domain_len;
+	TDSRET rc;
 
-  unsigned char *ntlm_v2_response = NULL;
-  unsigned int ntlm_response_len = 24;
-  const unsigned int lm_response_len = 24;
+	unsigned char *ntlm_v2_response = NULL;
+	unsigned int ntlm_response_len = 24;
+	const unsigned int lm_response_len = 24;
 
-  TDSLOGIN *login = tds->login;
+	TDSLOGIN *login = tds->login;
 
-  /* check connection */
-  if (!login)
-    return TDS_FAIL;
+	/* check connection */
+	if (!login)
+		return TDS_FAIL;
 
-  /* parse a bit of config */
-  user_name = tds_dstr_cstr(&login->user_name);
-  user_name_len = tds_dstr_len(&login->user_name);
-  host_name = tds_dstr_cstr(&login->client_host_name);
-  host_name_len = tds_dstr_len(&login->client_host_name);
+	/* parse a bit of config */
+	user_name = tds_dstr_cstr(&login->user_name);
+	user_name_len = tds_dstr_len(&login->user_name);
+	host_name = tds_dstr_cstr(&login->client_host_name);
+	host_name_len = tds_dstr_len(&login->client_host_name);
 
-  /* convert strings */
-  convert_buffer = tds_new(char, (user_name_len + host_name_len) * 2);
-  if (!convert_buffer)
-    return TDS_FAIL;
+	/* convert strings */
+	convert_buffer = tds_new(char, (user_name_len + host_name_len) * 2);
 
-  user_name_len =
-      convert_to_usc2le_string(tds, user_name, user_name_len, convert_buffer);
-  user_name = convert_buffer;
-  if (user_name_len != (size_t)-1) {
-    host_name_len = convert_to_usc2le_string(tds, host_name, host_name_len,
-                                             convert_buffer + user_name_len);
-    host_name = convert_buffer + user_name_len;
-  }
-  if (user_name_len == (size_t)-1 || host_name_len == (size_t)-1) {
-    free(convert_buffer);
-    return TDS_FAIL;
-  }
+	if (!convert_buffer)
+		return TDS_FAIL;
 
-  /* parse domain\username */
-  p = user_name;
-  for (;;) {
-    if (p >= user_name + user_name_len) {
-      free(convert_buffer);
-      return TDS_FAIL;
-    }
-    if (p[0] == '\\' && p[1] == 0)
-      break;
-    p += 2;
-  }
+	user_name_len = convert_to_usc2le_string(tds, user_name, user_name_len, convert_buffer);
+	user_name = convert_buffer;
+	if (user_name_len != (size_t) -1) {
+		host_name_len = convert_to_usc2le_string(tds, host_name, host_name_len, convert_buffer + user_name_len);
+		host_name = convert_buffer + user_name_len;
+	}
+	if (user_name_len == (size_t) -1 || host_name_len == (size_t) -1) {
+		free(convert_buffer);
+		return TDS_FAIL;
+	}
 
-  domain = user_name;
-  domain_len = p - user_name;
+	/* parse domain\username */
+	p = user_name;
+	for (;;) {
+		if (p >= user_name + user_name_len) {
+			free(convert_buffer);
+			return TDS_FAIL;
+		}
+		if (p[0] == '\\' && p[1] == 0)
+			break;
+		p += 2;
+	}
 
-  user_name = p + 2;
-  user_name_len = domain + user_name_len - user_name;
+	domain = user_name;
+	domain_len = p - user_name;
 
-  rc = tds_answer_challenge(tds, login, challenge, &flags, names_blob,
-                            names_blob_len, &answer, &ntlm_v2_response);
-  if (TDS_FAILED(rc)) {
-    free(convert_buffer);
-    return rc;
-  }
+	user_name = p + 2;
+	user_name_len = domain + user_name_len - user_name;
 
-  ntlm_response_len = ntlm_v2_response ? 16 + names_blob_len : 24;
-  /* ntlm_response_len = 0; */
+	rc = tds_answer_challenge(tds, login, challenge, &flags, names_blob, names_blob_len, &answer, &ntlm_v2_response);
+	if (TDS_FAILED(rc)) {
+		free(convert_buffer);
+		return rc;
+	}
 
-  tds->out_flag = TDS7_AUTH;
-  tds_put_n(tds, "NTLMSSP", 8);
-  tds_put_int(tds, 3); /* sequence 3 */
+	ntlm_response_len = ntlm_v2_response ? 16 + names_blob_len : 24;
+	/* ntlm_response_len = 0; */
 
-  current_pos = 64u + domain_len + user_name_len + host_name_len;
+	tds->out_flag = TDS7_AUTH;
+	tds_put_n(tds, "NTLMSSP", 8);
+	tds_put_int(tds, 3);	/* sequence 3 */
 
-  /* LM/LMv2 Response */
-  tds_put_smallint(tds, lm_response_len); /* lan man resp length */
-  tds_put_smallint(tds, lm_response_len); /* lan man resp length */
-  TDS_PUT_INT(tds, current_pos);          /* resp offset */
-  current_pos += lm_response_len;
+	current_pos = 64u + domain_len + user_name_len + host_name_len;
 
-  /* NTLM/NTLMv2 Response */
-  tds_put_smallint(tds, ntlm_response_len); /* nt resp length */
-  tds_put_smallint(tds, ntlm_response_len); /* nt resp length */
-  TDS_PUT_INT(tds, current_pos);            /* nt resp offset */
+	/* LM/LMv2 Response */
+	tds_put_smallint(tds, lm_response_len);	/* lan man resp length */
+	tds_put_smallint(tds, lm_response_len);	/* lan man resp length */
+	TDS_PUT_INT(tds, current_pos);	/* resp offset */
+	current_pos += lm_response_len;
 
-  current_pos = 64;
+	/* NTLM/NTLMv2 Response */
+	tds_put_smallint(tds, ntlm_response_len);	/* nt resp length */
+	tds_put_smallint(tds, ntlm_response_len);	/* nt resp length */
+	TDS_PUT_INT(tds, current_pos);	/* nt resp offset */
 
-  /* Target Name - domain or server name */
-  TDS_PUT_SMALLINT(tds, domain_len);
-  TDS_PUT_SMALLINT(tds, domain_len);
-  TDS_PUT_INT(tds, current_pos);
-  current_pos += domain_len;
+	current_pos = 64;
 
-  /* username */
-  TDS_PUT_SMALLINT(tds, user_name_len);
-  TDS_PUT_SMALLINT(tds, user_name_len);
-  TDS_PUT_INT(tds, current_pos);
-  current_pos += user_name_len;
+	/* Target Name - domain or server name */
+	TDS_PUT_SMALLINT(tds, domain_len);
+	TDS_PUT_SMALLINT(tds, domain_len);
+	TDS_PUT_INT(tds, current_pos);
+	current_pos += domain_len;
 
-  /* Workstation Name */
-  TDS_PUT_SMALLINT(tds, host_name_len);
-  TDS_PUT_SMALLINT(tds, host_name_len);
-  TDS_PUT_INT(tds, current_pos);
-  current_pos += host_name_len;
+	/* username */
+	TDS_PUT_SMALLINT(tds, user_name_len);
+	TDS_PUT_SMALLINT(tds, user_name_len);
+	TDS_PUT_INT(tds, current_pos);
+	current_pos += user_name_len;
 
-  /* Session Key (optional) */
-  tds_put_smallint(tds, 0);
-  tds_put_smallint(tds, 0);
-  TDS_PUT_INT(tds, current_pos + lm_response_len + ntlm_response_len);
+	/* Workstation Name */
+	TDS_PUT_SMALLINT(tds, host_name_len);
+	TDS_PUT_SMALLINT(tds, host_name_len);
+	TDS_PUT_INT(tds, current_pos);
+	current_pos += host_name_len;
 
-  /* flags */
-  /* "challenge" is 8 bytes long */
-  /* tds_answer_challenge(tds_dstr_cstr(&login->password), challenge, &flags,
-   * &answer); */
-  tds_put_int(tds, flags);
+	/* Session Key (optional) */
+	tds_put_smallint(tds, 0);
+	tds_put_smallint(tds, 0);
+	TDS_PUT_INT(tds, current_pos + lm_response_len + ntlm_response_len);
 
-  /* OS Version Structure (Optional) */
+	/* flags */
+	/* "challenge" is 8 bytes long */
+	/* tds_answer_challenge(tds_dstr_cstr(&login->password), challenge, &flags,
+	 * &answer); */
+	tds_put_int(tds, flags);
 
-  /* Data itself */
-  tds_put_n(tds, domain, domain_len);
-  tds_put_n(tds, user_name, user_name_len);
-  tds_put_n(tds, host_name, host_name_len);
+	/* OS Version Structure (Optional) */
 
-  /* data block */
-  tds_put_n(tds, answer.lm_resp, lm_response_len);
+	/* Data itself */
+	tds_put_n(tds, domain, domain_len);
+	tds_put_n(tds, user_name, user_name_len);
+	tds_put_n(tds, host_name, host_name_len);
 
-  if (ntlm_v2_response == NULL) {
-    /* NTLMv1 */
-    tds_put_n(tds, answer.nt_resp, ntlm_response_len);
-  } else {
-    /* NTLMv2 */
-    tds_put_n(tds, ntlm_v2_response, ntlm_response_len);
-    memset(ntlm_v2_response, 0, ntlm_response_len);
-    free(ntlm_v2_response);
-  }
+	/* data block */
+	tds_put_n(tds, answer.lm_resp, lm_response_len);
 
-  /* for security reason clear structure */
-  memset(&answer, 0, sizeof(TDSANSWER));
+	if (ntlm_v2_response == NULL) {
+		/* NTLMv1 */
+		tds_put_n(tds, answer.nt_resp, ntlm_response_len);
+	} else {
+		/* NTLMv2 */
+		tds_put_n(tds, ntlm_v2_response, ntlm_response_len);
+		memset(ntlm_v2_response, 0, ntlm_response_len);
+		free(ntlm_v2_response);
+	}
 
-  free(convert_buffer);
-  return tds_flush_packet(tds);
+	/* for security reason clear structure */
+	memset(&answer, 0, sizeof(TDSANSWER));
+
+	free(convert_buffer);
+	return tds_flush_packet(tds);
 }
 
-typedef struct tds_ntlm_auth {
-  TDSAUTHENTICATION tds_auth;
+typedef struct tds_ntlm_auth
+{
+	TDSAUTHENTICATION tds_auth;
 } TDSNTLMAUTH;
 
-static TDSRET tds_ntlm_free(TDSCONNECTION *conn TDS_UNUSED,
-                            TDSAUTHENTICATION *tds_auth) {
-  TDSNTLMAUTH *auth = (TDSNTLMAUTH *)tds_auth;
+static TDSRET
+tds_ntlm_free(TDSCONNECTION *conn TDS_UNUSED, TDSAUTHENTICATION *tds_auth)
+{
+	TDSNTLMAUTH *auth = (TDSNTLMAUTH *) tds_auth;
 
-  free(auth->tds_auth.packet);
-  free(auth);
+	free(auth->tds_auth.packet);
+	free(auth);
 
-  return TDS_SUCCESS;
+	return TDS_SUCCESS;
 }
 
 static const unsigned char ntlm_id[] = "NTLMSSP";
@@ -585,18 +588,20 @@ static const unsigned char ntlm_id[] = "NTLMSSP";
  * put a 8 byte filetime from a time_t
  * This takes GMT as input
  */
-static void unix_to_nt_time(uint64_t *nt, struct timeval *tv) {
-  /* C time start on 1970, nt time on 1600 */
+static void
+unix_to_nt_time(uint64_t *nt, struct timeval *tv)
+{
+	/* C time start on 1970, nt time on 1600 */
 #define TIME_FIXUP_CONSTANT (((uint64_t)134774U) * 86400U)
 
-  uint64_t t2;
+	uint64_t t2;
 
-  t2 = tv->tv_sec;
-  t2 += TIME_FIXUP_CONSTANT;
-  t2 *= 1000u * 1000u * 10u;
-  t2 += tv->tv_usec * 10u;
+	t2 = tv->tv_sec;
+	t2 += TIME_FIXUP_CONSTANT;
+	t2 *= 1000u * 1000u * 10u;
+	t2 += tv->tv_usec * 10u;
 
-  *nt = t2;
+	*nt = t2;
 }
 
 /**
@@ -606,248 +611,243 @@ static void unix_to_nt_time(uint64_t *nt, struct timeval *tv) {
  * @param names_blob_len pointer to current length (will be updated)
  * @return TDS_SUCCESS or TDS_FAIL
  */
-static TDSRET add_cbt_data(TDSSOCKET *tds, unsigned char **names_blob,
-                           int *names_blob_len, int target_info_len) {
+static TDSRET
+add_cbt_data(TDSSOCKET *tds, unsigned char **names_blob, int *names_blob_len, int target_info_len)
+{
 #if defined(HAVE_OPENSSL)
-  SSL *ssl;
-  unsigned char tls_unique_buf[256];
-  size_t tls_unique_len = 0;
-  unsigned char cbt[16];
-  unsigned char *channel_binding_struct;
-  size_t struct_len;
-  size_t application_data_raw_len;
-  unsigned char *new_names_blob;
-  int new_blob_len;
-  int target_info_offset;
-  MD5_CTX md5_ctx;
-  unsigned char *cbt_av_pair;
+	SSL *ssl;
+	unsigned char tls_unique_buf[256];
+	size_t tls_unique_len = 0;
+	unsigned char cbt[16];
+	unsigned char *channel_binding_struct;
+	size_t struct_len;
+	size_t application_data_raw_len;
+	unsigned char *new_names_blob;
+	int new_blob_len;
+	int target_info_offset;
+	MD5_CTX md5_ctx;
+	unsigned char *cbt_av_pair;
 
-  /* Check if TLS is available */
-  if (!tds->conn || !tds->conn->tls_session) {
-    /* No TLS session, skip channel binding */
-    return TDS_SUCCESS;
-  }
+	/* Check if TLS is available */
+	if (!tds->conn || !tds->conn->tls_session) {
+		/* No TLS session, skip channel binding */
+		return TDS_SUCCESS;
+	}
 
-  ssl = (SSL *)tds->conn->tls_session;
+	ssl = (SSL *) tds->conn->tls_session;
 
-  /* Get tls-unique from OpenSSL */
-  tls_unique_len =
-      SSL_get_finished(ssl, tls_unique_buf, sizeof(tls_unique_buf));
-  if (tls_unique_len == 0) {
-    /* Try peer finished as fallback */
-    tls_unique_len =
-        SSL_get_peer_finished(ssl, tls_unique_buf, sizeof(tls_unique_buf));
-    if (tls_unique_len == 0) {
-      /* No tls-unique available, skip channel binding */
-      return TDS_SUCCESS;
-    }
-  }
+	/* Get tls-unique from OpenSSL */
+	tls_unique_len = SSL_get_finished(ssl, tls_unique_buf, sizeof(tls_unique_buf));
+	if (tls_unique_len == 0) {
+		/* Try peer finished as fallback */
+		tls_unique_len = SSL_get_peer_finished(ssl, tls_unique_buf, sizeof(tls_unique_buf));
+		if (tls_unique_len == 0) {
+			/* No tls-unique available, skip channel binding */
+			return TDS_SUCCESS;
+		}
+	}
 
-  /* Build channel binding structure */
-  /* initiator_address: 8 bytes of zeros */
-  /* acceptor_address: 8 bytes of zeros */
-  /* application_data: 4 bytes length (little endian) + "tls-unique:" +
-   * tls_unique */
-  application_data_raw_len =
-      11 + tls_unique_len; /* "tls-unique:" is 11 bytes */
-  struct_len = 8 + 8 + 4 +
-               application_data_raw_len; /* initiator + acceptor + len + data */
+	/* Build channel binding structure */
+	/* initiator_address: 8 bytes of zeros */
+	/* acceptor_address: 8 bytes of zeros */
+	/* application_data: 4 bytes length (little endian) + "tls-unique:" +
+	 * tls_unique */
+	application_data_raw_len = 11 + tls_unique_len;	/* "tls-unique:" is 11 bytes */
+	struct_len = 8 + 8 + 4 + application_data_raw_len;	/* initiator + acceptor + len + data */
 
-  channel_binding_struct = tds_new0(unsigned char, struct_len);
-  if (!channel_binding_struct)
-    return TDS_FAIL;
+	channel_binding_struct = tds_new0(unsigned char, struct_len);
 
-  /* initiator_address: 8 bytes of zeros (already zeroed by tds_new0) */
-  /* acceptor_address: 8 bytes of zeros (already zeroed by tds_new0) */
-  /* Offset is 16 at this point */
+	if (!channel_binding_struct)
+		return TDS_FAIL;
 
-  /* Build application_data: length + "tls-unique:" + tls_unique */
-  TDS_PUT_A4LE(channel_binding_struct + 16,
-               application_data_raw_len); /* length (4 bytes) */
-  memcpy(channel_binding_struct + 20,
-         "tls-unique:", 11); /* "tls-unique:" prefix */
-  memcpy(channel_binding_struct + 20 + 11, tls_unique_buf,
-         tls_unique_len); /* tls_unique data */
+	/* initiator_address: 8 bytes of zeros (already zeroed by tds_new0) */
+	/* acceptor_address: 8 bytes of zeros (already zeroed by tds_new0) */
+	/* Offset is 16 at this point */
 
-  /* Calculate MD5 hash */
-  MD5Init(&md5_ctx);
-  MD5Update(&md5_ctx, channel_binding_struct, struct_len);
-  MD5Final(&md5_ctx, cbt);
-  memset(&md5_ctx, 0, sizeof(md5_ctx));
+	/* Build application_data: length + "tls-unique:" + tls_unique */
+	TDS_PUT_A4LE(channel_binding_struct + 16, application_data_raw_len);	/* length (4 bytes) */
+	memcpy(channel_binding_struct + 20, "tls-unique:", 11);	/* "tls-unique:" prefix */
+	memcpy(channel_binding_struct + 20 + 11, tls_unique_buf, tls_unique_len);	/* tls_unique data */
 
-  tdsdump_dump_buf(TDS_DBG_INFO1, "CBT", cbt, 16);
+	/* Calculate MD5 hash */
+	MD5Init(&md5_ctx);
+	MD5Update(&md5_ctx, channel_binding_struct, struct_len);
+	MD5Final(&md5_ctx, cbt);
+	memset(&md5_ctx, 0, sizeof(md5_ctx));
+
+	tdsdump_dump_buf(TDS_DBG_INFO1, "CBT", cbt, 16);
 
 	free(channel_binding_struct);
 
-  /* Calculate target_info offset and length */
-  target_info_offset = TDS_OFFSET(names_blob_prefix_t, target_info);
-  // target_info_len =
-  //     *names_blob_len - target_info_offset - 4;
+	/* Calculate target_info offset and length */
+	target_info_offset = TDS_OFFSET(names_blob_prefix_t, target_info);
+	// target_info_len =
+	//     *names_blob_len - target_info_offset - 4;
 
 	tdsdump_dump_buf(TDS_DBG_INFO1, "Old names_blob before reallocation\n", *names_blob, *names_blob_len);
 
-  /* Reallocate names_blob to add CBT AV_PAIR (4 bytes header + 16 bytes CBT) */
-  new_blob_len = *names_blob_len + 4 + 16; /* +20 for CBT AV_PAIR */
+	/* Reallocate names_blob to add CBT AV_PAIR (4 bytes header + 16 bytes CBT) */
+	new_blob_len = *names_blob_len + 4 + 16;	/* +20 for CBT AV_PAIR */
 
 	// FIXME: Some strange behaviout, we have redundant 4 bytes at the end of the names_blob
 	new_blob_len -= 4;
 	target_info_len -= 4;
 
-  new_names_blob = realloc(*names_blob, new_blob_len);
-  if (!new_names_blob) {
-    memset(cbt, 0, sizeof(cbt));
-    return TDS_FAIL;
-  }
+	new_names_blob = realloc(*names_blob, new_blob_len);
+	if (!new_names_blob) {
+		memset(cbt, 0, sizeof(cbt));
+		return TDS_FAIL;
+	}
 	tdsdump_log(TDS_DBG_INFO1, "Reallocating names_blob from %d bytes to %d bytes\n", *names_blob_len, new_blob_len);
-	
-  /* Insert CBT AV_PAIR */
-  cbt_av_pair = new_names_blob + target_info_offset + target_info_len;
-	
-  TDS_PUT_A2LE(cbt_av_pair, 0x000A); /* AvId = 0xA (little endian) */
-  TDS_PUT_A2LE(cbt_av_pair + 2, 16); /* AvLen = 16 (little endian) */
-  memcpy(cbt_av_pair + 4, cbt, 16);  /* CBT (16 bytes) */
 
-  memset(cbt, 0, sizeof(cbt));
-	memset(cbt_av_pair + 20, 0, 4); // Terminator
+	/* Insert CBT AV_PAIR */
+	cbt_av_pair = new_names_blob + target_info_offset + target_info_len;
+
+	TDS_PUT_A2LE(cbt_av_pair, 0x000A);	/* AvId = 0xA (little endian) */
+	TDS_PUT_A2LE(cbt_av_pair + 2, 16);	/* AvLen = 16 (little endian) */
+	memcpy(cbt_av_pair + 4, cbt, 16);	/* CBT (16 bytes) */
+
+	memset(cbt, 0, sizeof(cbt));
+	memset(cbt_av_pair + 20, 0, 4);	// Terminator
 
 	tdsdump_dump_buf(TDS_DBG_INFO1, "New names_blob\n", new_names_blob, new_blob_len);
-  /* Update names_blob and length */
-  *names_blob = new_names_blob;
-  *names_blob_len = new_blob_len;
+	/* Update names_blob and length */
+	*names_blob = new_names_blob;
+	*names_blob_len = new_blob_len;
 
-  return TDS_SUCCESS;
+	return TDS_SUCCESS;
 #else
-  /* OpenSSL not available, skip channel binding */
-  (void)tds;
-  (void)names_blob;
-  (void)names_blob_len;
-  return TDS_SUCCESS;
+	/* OpenSSL not available, skip channel binding */
+	(void) tds;
+	(void) names_blob;
+	(void) names_blob_len;
+	return TDS_SUCCESS;
 #endif
 }
 
-static void fill_names_blob_prefix(names_blob_prefix_t *prefix) {
-  struct timeval tv;
-  uint64_t nttime = 0;
+static void
+fill_names_blob_prefix(names_blob_prefix_t *prefix)
+{
+	struct timeval tv;
+	uint64_t nttime = 0;
 
-  gettimeofday(&tv, NULL);
-  unix_to_nt_time(&nttime, &tv);
+	gettimeofday(&tv, NULL);
+	unix_to_nt_time(&nttime, &tv);
 
-  prefix->response_type = 0x01;
-  prefix->max_response_type = 0x01;
-  prefix->reserved1 = 0x0000;
-  prefix->reserved2 = 0x00000000;
+	prefix->response_type = 0x01;
+	prefix->max_response_type = 0x01;
+	prefix->reserved1 = 0x0000;
+	prefix->reserved2 = 0x00000000;
 #ifdef WORDS_BIGENDIAN
-  tds_swap_bytes(&nttime, 8);
+	tds_swap_bytes(&nttime, 8);
 #endif
-  prefix->timestamp = nttime;
-  tds_random_buffer(prefix->challenge, sizeof(prefix->challenge));
+	prefix->timestamp = nttime;
+	tds_random_buffer(prefix->challenge, sizeof(prefix->challenge));
 
 	prefix->reserved3 = 0x00000000;
 }
 
-static TDSRET tds_ntlm_handle_next(TDSSOCKET *tds,
-                                   struct tds_authentication *auth TDS_UNUSED,
-                                   size_t len) {
-  const int length = (int)len;
-  unsigned char nonce[8];
-  uint32_t flags;
-  int where;
+static TDSRET
+tds_ntlm_handle_next(TDSSOCKET *tds, struct tds_authentication *auth TDS_UNUSED, size_t len)
+{
+	const int length = (int) len;
+	unsigned char nonce[8];
+	uint32_t flags;
+	int where;
 
-  int data_block_offset;
+	int data_block_offset;
 
-  int names_blob_len = 0;
-  unsigned char *names_blob = NULL;
+	int names_blob_len = 0;
+	unsigned char *names_blob = NULL;
 
-  TDSRET rc;
+	TDSRET rc;
 
-  /* at least 32 bytes (till context) */
-  if (len < 32)
-    return TDS_FAIL;
+	/* at least 32 bytes (till context) */
+	if (len < 32)
+		return TDS_FAIL;
 
-  tds_get_n(tds, nonce, 8); /* NTLMSSP\0 */
-  if (memcmp(nonce, ntlm_id, 8) != 0)
-    return TDS_FAIL;
-  if (tds_get_int(tds) != 2) /* sequence -> 2 */
-    return TDS_FAIL;
-  tds_get_smallint(tds);                /* domain len */
-  tds_get_smallint(tds);                /* domain len */
-  data_block_offset = tds_get_int(tds); /* domain offset */
-  flags = tds_get_int(tds);             /* flags */
-  tds_get_n(tds, nonce, 8);
-  tdsdump_dump_buf(TDS_DBG_INFO1, "TDS_AUTH_TOKEN nonce", nonce, 8);
-  where = 32;
+	tds_get_n(tds, nonce, 8);	/* NTLMSSP\0 */
+	if (memcmp(nonce, ntlm_id, 8) != 0)
+		return TDS_FAIL;
+	if (tds_get_int(tds) != 2)	/* sequence -> 2 */
+		return TDS_FAIL;
+	tds_get_smallint(tds);	/* domain len */
+	tds_get_smallint(tds);	/* domain len */
+	data_block_offset = tds_get_int(tds);	/* domain offset */
+	flags = tds_get_int(tds);	/* flags */
+	tds_get_n(tds, nonce, 8);
+	tdsdump_dump_buf(TDS_DBG_INFO1, "TDS_AUTH_TOKEN nonce", nonce, 8);
+	where = 32;
 
-  /*data_block_offset == 32 */
-  /* Version 1 -- The Context, Target Information, and OS Version structure are
-   * all omitted */
+	/*data_block_offset == 32 */
+	/* Version 1 -- The Context, Target Information, and OS Version structure are
+	 * all omitted */
 
-  if (data_block_offset >= 48 && where + 16 <= length) {
-    int target_info_len, target_info_offset;
+	if (data_block_offset >= 48 && where + 16 <= length) {
+		int target_info_len, target_info_offset;
 
-    /* Version 2 -- The Context and Target Information fields are present, but
-     * the OS Version structure is not. */
-    tds_get_n(tds, NULL, 8); /* Context (two consecutive longs) */
+		/* Version 2 -- The Context and Target Information fields are present, but
+		 * the OS Version structure is not. */
+		tds_get_n(tds, NULL, 8);	/* Context (two consecutive longs) */
 
-    target_info_len = tds_get_smallint(tds); /* Target Information len */
-    target_info_len = tds_get_smallint(tds); /* Target Information len */
-    target_info_offset = tds_get_int(tds);   /* Target Information offset */
+		target_info_len = tds_get_smallint(tds);	/* Target Information len */
+		target_info_len = tds_get_smallint(tds);	/* Target Information len */
+		target_info_offset = tds_get_int(tds);	/* Target Information offset */
 
-    where += 16;
+		where += 16;
 
-    if (data_block_offset >= 56 && where + 8 <= length) {
-      /* Version 3 -- The Context, Target Information, and OS Version structure
-       * are all present. */
-      tds_get_n(tds, NULL, 8); /* OS Version Structure */
+		if (data_block_offset >= 56 && where + 8 <= length) {
+			/* Version 3 -- The Context, Target Information, and OS Version structure
+			 * are all present. */
+			tds_get_n(tds, NULL, 8);	/* OS Version Structure */
 #if 0
 			/* if we have a version server handle NTLMv2 */
 			if (target_info_len > 0)
 				flags &= ~0x80000;
 #endif
-      where += 8;
-    }
+			where += 8;
+		}
 
-    /* read Target Info if possible */
-    if (target_info_len > 0 && target_info_offset >= where &&
-        target_info_offset + target_info_len <= length) {
-      tds_get_n(tds, NULL, target_info_offset - where);
-      where = target_info_offset;
+		/* read Target Info if possible */
+		if (target_info_len > 0 && target_info_offset >= where && target_info_offset + target_info_len <= length) {
+			tds_get_n(tds, NULL, target_info_offset - where);
+			where = target_info_offset;
 
-      /*
-       * the + 4 came from blob structure, after Target Info 4
-       * additional reserved bytes must be present
-       * Search "davenport port"
-       * (currently http://davenport.sourceforge.net/ntlm.html)
-       */
-      names_blob_len =
-          TDS_OFFSET(names_blob_prefix_t, target_info) + target_info_len + 4;
+			/*
+			 * the + 4 came from blob structure, after Target Info 4
+			 * additional reserved bytes must be present
+			 * Search "davenport port"
+			 * (currently http://davenport.sourceforge.net/ntlm.html)
+			 */
+			names_blob_len = TDS_OFFSET(names_blob_prefix_t, target_info) + target_info_len + 4;
 
-      /* read Target Info */
-      names_blob = tds_new0(unsigned char, names_blob_len);
-      if (!names_blob)
-        return TDS_FAIL;
+			/* read Target Info */
+			names_blob = tds_new0(unsigned char, names_blob_len);
 
-      fill_names_blob_prefix((names_blob_prefix_t *)names_blob);
-      tds_get_n(tds, names_blob + TDS_OFFSET(names_blob_prefix_t, target_info),
-                target_info_len);
-      where += target_info_len;
-		
+			if (!names_blob)
+				return TDS_FAIL;
+
+			fill_names_blob_prefix((names_blob_prefix_t *) names_blob);
+			tds_get_n(tds, names_blob + TDS_OFFSET(names_blob_prefix_t, target_info), target_info_len);
+			where += target_info_len;
+
 			/* Add channel binding token (CBT) AV_PAIR to target_info in names_blob */
 			rc = add_cbt_data(tds, &names_blob, &names_blob_len, target_info_len);
 			if (TDS_FAILED(rc)) {
 				free(names_blob);
 				return rc;
 			}
-    }
-  }
-  /* discard anything left */
-  tds_get_n(tds, NULL, length - where);
-  tdsdump_log(TDS_DBG_INFO1, "Draining %d bytes\n", (int)(len - where));
+		}
+	}
+	/* discard anything left */
+	tds_get_n(tds, NULL, length - where);
+	tdsdump_log(TDS_DBG_INFO1, "Draining %d bytes\n", (int) (len - where));
 
-  rc = tds7_send_auth(tds, nonce, flags, names_blob, names_blob_len);
+	rc = tds7_send_auth(tds, nonce, flags, names_blob, names_blob_len);
 
-  free(names_blob);
+	free(names_blob);
 
-  return rc;
+	return rc;
 }
 
 /**
@@ -856,75 +856,76 @@ static TDSRET tds_ntlm_handle_next(TDSSOCKET *tds,
  * operation.
  * @return authentication info
  */
-TDSAUTHENTICATION *tds_ntlm_get_auth(TDSSOCKET *tds) {
-  const char *domain;
-  const char *user_name;
-  const char *p;
-  uint8_t *packet;
-  int host_name_len;
-  int domain_len;
-  int auth_len;
-  struct tds_ntlm_auth *auth;
+TDSAUTHENTICATION *
+tds_ntlm_get_auth(TDSSOCKET *tds)
+{
+	const char *domain;
+	const char *user_name;
+	const char *p;
+	uint8_t *packet;
+	int host_name_len;
+	int domain_len;
+	int auth_len;
+	struct tds_ntlm_auth *auth;
 
-  if (!tds->login)
-    return NULL;
+	if (!tds->login)
+		return NULL;
 
-  user_name = tds_dstr_cstr(&tds->login->user_name);
-  host_name_len = (int)tds_dstr_len(&tds->login->client_host_name);
+	user_name = tds_dstr_cstr(&tds->login->user_name);
+	host_name_len = (int) tds_dstr_len(&tds->login->client_host_name);
 
-  /* check override of domain */
-  if ((p = strchr(user_name, '\\')) == NULL)
-    return NULL;
+	/* check override of domain */
+	if ((p = strchr(user_name, '\\')) == NULL)
+		return NULL;
 
-  domain = user_name;
-  domain_len = (int)(p - user_name);
+	domain = user_name;
+	domain_len = (int) (p - user_name);
 
-  auth = tds_new0(struct tds_ntlm_auth, 1);
+	auth = tds_new0(struct tds_ntlm_auth, 1);
 
-  if (!auth)
-    return NULL;
+	if (!auth)
+		return NULL;
 
-  auth->tds_auth.free = tds_ntlm_free;
-  auth->tds_auth.handle_next = tds_ntlm_handle_next;
+	auth->tds_auth.free = tds_ntlm_free;
+	auth->tds_auth.handle_next = tds_ntlm_handle_next;
 
-  auth->tds_auth.packet_len = auth_len = 40 + host_name_len + domain_len;
-  auth->tds_auth.packet = packet = tds_new(uint8_t, auth_len);
-  if (!packet) {
-    free(auth);
-    return NULL;
-  }
+	auth->tds_auth.packet_len = auth_len = 40 + host_name_len + domain_len;
+	auth->tds_auth.packet = packet = tds_new(uint8_t, auth_len);
+	if (!packet) {
+		free(auth);
+		return NULL;
+	}
 
-  /* built NTLMSSP authentication packet */
-  memcpy(packet, ntlm_id, 8);
-  /* sequence 1 client -> server */
-  TDS_PUT_A4(packet + 8, TDS_HOST4LE(1));
-  /* flags */
-  TDS_PUT_A4(packet + 12, TDS_HOST4LE(0x08b201));
+	/* built NTLMSSP authentication packet */
+	memcpy(packet, ntlm_id, 8);
+	/* sequence 1 client -> server */
+	TDS_PUT_A4(packet + 8, TDS_HOST4LE(1));
+	/* flags */
+	TDS_PUT_A4(packet + 12, TDS_HOST4LE(0x08b201));
 
-  /* domain info */
-  TDS_PUT_A2LE(packet + 16, domain_len);
-  TDS_PUT_A2LE(packet + 18, domain_len);
-  TDS_PUT_A4LE(packet + 20, 40 + host_name_len);
+	/* domain info */
+	TDS_PUT_A2LE(packet + 16, domain_len);
+	TDS_PUT_A2LE(packet + 18, domain_len);
+	TDS_PUT_A4LE(packet + 20, 40 + host_name_len);
 
-  /* hostname info */
-  TDS_PUT_A2LE(packet + 24, host_name_len);
-  TDS_PUT_A2LE(packet + 26, host_name_len);
-  TDS_PUT_A4(packet + 28, TDS_HOST4LE(40));
+	/* hostname info */
+	TDS_PUT_A2LE(packet + 24, host_name_len);
+	TDS_PUT_A2LE(packet + 26, host_name_len);
+	TDS_PUT_A4(packet + 28, TDS_HOST4LE(40));
 
-  /*
-   * here XP put version like 05 01 28 0a (5.1.2600),
-   * similar to GetVersion result
-   * and some unknown bytes like 00 00 00 0f
-   */
-  TDS_PUT_A4(packet + 32, TDS_HOST4LE(0x0a280105));
-  TDS_PUT_A4(packet + 36, TDS_HOST4LE(0x0f000000));
+	/*
+	 * here XP put version like 05 01 28 0a (5.1.2600),
+	 * similar to GetVersion result
+	 * and some unknown bytes like 00 00 00 0f
+	 */
+	TDS_PUT_A4(packet + 32, TDS_HOST4LE(0x0a280105));
+	TDS_PUT_A4(packet + 36, TDS_HOST4LE(0x0f000000));
 
-  /* hostname and domain */
-  memcpy(packet + 40, tds_dstr_cstr(&tds->login->client_host_name),
-         host_name_len);
-  memcpy(packet + 40 + host_name_len, domain, domain_len);
+	/* hostname and domain */
+	memcpy(packet + 40, tds_dstr_cstr(&tds->login->client_host_name), host_name_len);
+	memcpy(packet + 40 + host_name_len, domain, domain_len);
 
-  return (TDSAUTHENTICATION *)auth;
+	return (TDSAUTHENTICATION *) auth;
 }
 
 /** @} */
