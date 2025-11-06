@@ -849,11 +849,6 @@ tds_config_login(TDSLOGIN * connection, TDSLOGIN * login)
 		connection->enable_tls_v1_1 = login->enable_tls_v1_1;
 	}
 
-	if (login->enable_tls_v1_1_specified) {
-		connection->enable_tls_v1_1_specified = login->enable_tls_v1_1_specified;
-		connection->enable_tls_v1_1 = login->enable_tls_v1_1;
-	}
-
 	if (login->enable_channel_binding)
 		connection->enable_channel_binding = login->enable_channel_binding;
 
