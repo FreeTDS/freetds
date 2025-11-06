@@ -90,8 +90,9 @@ TEST_MAIN()
 	if (rc == SQL_ERROR) {
 		printf("Unable to open data source (ret=%d)\n", rc);
 #ifdef _WIN32
-		printf("Try from admin command prompt:\n\todbcconf /A {INSTALLDRIVER \"FreeTDS | Driver = C:\\Program Files(x86)\\FreeTDS\\bin\\tdsodbc.dll\"}"
-			"\n(replace path with your installation path for tdsodbc.dll if necessary)\n");
+		printf("Try from admin command prompt:\n"
+		       "\todbcconf /A {INSTALLDRIVER \"FreeTDS|Driver=C:\\Program Files(x86)\\FreeTDS\\bin\\tdsodbc.dll\"}\n"
+		       "(replace path with your installation path for tdsodbc.dll if necessary)\n");
 #endif
 	} else {
 		++succeeded;
