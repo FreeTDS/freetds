@@ -81,7 +81,7 @@ install:
   - mkdir iconv-build
   - cd iconv-build
   - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DWIN_ICONV_BUILD_STATIC=on -DWIN_ICONV_BUILD_SHARED=off -DWIN_ICONV_BUILD_EXECUTABLE=off -DWIN_ICONV_BUILD_TEST=on -DDISABLE_LOCALE_CHARSET=on -DCMAKE_BUILD_TYPE=Release ..\\iconv"
-  - "%WITH_COMPILER% nmake"
+  - "%WITH_COMPILER% cmake --build ."
   - win_iconv_test.exe
   - cd ..\iconv
   - mkdir include
@@ -105,21 +105,21 @@ build_script:
   - if exist c:\openssl-v35-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-v35-win%WIDTH%
   - set DEST_DIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
   - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Release -DENABLE_MSDBLIB=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" \"-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%\" .."
-  - "%WITH_COMPILER% nmake"
+  - "%WITH_COMPILER% cmake --build ."
   - set PATH=%OPENSSL_ROOT_DIR%\bin;%PATH%
   - src\apps\tsql.exe -C
   - cd ..
   - mkdir build_debug
   - cd build_debug
   - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Debug -DENABLE_EXTRA_CHECKS=on -DENABLE_MSDBLIB=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" \"-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%\" .."
-  - "%WITH_COMPILER% nmake"
+  - "%WITH_COMPILER% cmake --build ."
   - src\apps\tsql.exe -C
   - cd ..
   - mkdir build_withoutssl
   - cd build_withoutssl
   - set OPENSSL_ROOT_DIR=
   - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Release -DWITH_OPENSSL=off -DENABLE_MSDBLIB=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" .."
-  - "%WITH_COMPILER% nmake"
+  - "%WITH_COMPILER% cmake --build ."
   - src\apps\tsql.exe -C
   - cd ..
 
@@ -150,7 +150,7 @@ test_script:
   - "%WINDIR%\\SysWOW64\\regsvr32 /s src\\odbc\\tdsodbc.dll || %WINDIR%\\system32\\regsvr32 /s src\\odbc\\tdsodbc.dll"
   # Build and run tests
   - set CTEST_OUTPUT_ON_FAILURE=1
-  - "%WITH_COMPILER% nmake check"
+  - "%WITH_COMPILER% cmake --build . --target check"
   - cd ..
 
 after_test:
@@ -161,7 +161,7 @@ after_test:
   - if exist c:\openssl-v35-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-v35-win%WIDTH%
   # Create zipball artifact
   - cd build
-  - "%WITH_COMPILER% nmake install"
+  - "%WITH_COMPILER% cmake --install ."
   - set DEST_DIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
   - if exist %OPENSSL_ROOT_DIR%\libssl-3-x64.dll copy %OPENSSL_ROOT_DIR%\libssl-3-x64.dll %DEST_DIR%\bin\
   - if exist %OPENSSL_ROOT_DIR%\libcrypto-3-x64.dll copy %OPENSSL_ROOT_DIR%\libcrypto-3-x64.dll %DEST_DIR%\bin\
@@ -172,7 +172,7 @@ after_test:
   - cd ..
   # Create zipball artifact for nossl
   - cd build_withoutssl
-  - "%WITH_COMPILER% nmake install"
+  - "%WITH_COMPILER% cmake --install ."
   - set DEST_DIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
   - 7z a ..\%DEST_DIR%_withoutssl.zip %DEST_DIR%
   # END of non-test code specifically related to creation of artifacts published via GitHub  - 7z a ..\%DEST_DIR%.zip %DEST_DIR%
