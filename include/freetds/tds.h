@@ -474,8 +474,6 @@ is_tds_type_valid(int type)
 /* enable old TLS v1.1 */
 #define TDS_STR_ENABLE_TLS_V1_1 "enable tls v1.1"
 
-#define TDS_STR_ENABLE_CHANNEL_BINDING "enable channel binding"
-
 
 /* TODO do a better check for alignment than this */
 typedef union
@@ -560,7 +558,6 @@ typedef struct tds_login
 	unsigned int enable_tls_v1_1:1;
 	unsigned int enable_tls_v1_1_specified:1;
 	unsigned int server_is_valid:1;
-	unsigned int enable_channel_binding:1;
 } TDSLOGIN;
 
 typedef struct tds_headers
@@ -1728,6 +1725,7 @@ TDSRET tds_writetext_start(TDSSOCKET *tds, const char *objname, const char *text
 TDSRET tds_writetext_continue(TDSSOCKET *tds, const TDS_UCHAR *text, TDS_UINT size);
 TDSRET tds_writetext_end(TDSSOCKET *tds);
 
+TDSRET tds_calc_cbt_from_tls_unique(unsigned char *tls_unique_buf, size_t tls_unique_len, unsigned char cbt[16]);
 
 inline static bool
 tds_capability_enabled(const TDS_CAPABILITY_TYPE *cap, unsigned cap_num)

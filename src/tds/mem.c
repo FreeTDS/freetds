@@ -987,7 +987,6 @@ tds_alloc_login(bool use_environment)
 	login->check_ssl_hostname = 1;
 	login->use_utf16 = 1;
 	login->bulk_copy = 1;
-	login->enable_channel_binding = 1;  /* Enable channel binding by default */
 	tds_dstr_init(&login->server_name);
 	tds_dstr_init(&login->language);
 	tds_dstr_init(&login->server_charset);

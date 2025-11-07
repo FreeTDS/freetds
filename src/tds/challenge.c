@@ -53,6 +53,10 @@
 #include <openssl/ssl.h>
 #endif
 
+#if defined(HAVE_GNUTLS)
+#include <gnutls/gnutls.h>
+#endif
+
 /**
  * \ingroup libtds
  * \defgroup auth Authentication
@@ -604,62 +608,28 @@ unix_to_nt_time(uint64_t *nt, struct timeval *tv)
 	*nt = t2;
 }
 
-/**
- * Add channel binding token (CBT) AV_PAIR to target_info in names_blob
- * @param tds TDSSOCKET structure
- * @param names_blob pointer to names_blob buffer (may be reallocated)
- * @param names_blob_len pointer to current length (will be updated)
- * @return TDS_SUCCESS or TDS_FAIL
- */
-static TDSRET
-add_cbt_data(TDSSOCKET *tds, unsigned char **names_blob, int *names_blob_len, int target_info_len)
+TDSRET
+tds_calc_cbt_from_tls_unique(unsigned char *tls_unique_buf, size_t tls_unique_len, unsigned char cbt[16])
 {
-#if defined(HAVE_OPENSSL)
-	SSL *ssl;
-	unsigned char tls_unique_buf[256];
-	size_t tls_unique_len = 0;
-	unsigned char cbt[16];
+	MD5_CTX md5_ctx;
 	unsigned char *channel_binding_struct;
 	size_t struct_len;
 	size_t application_data_raw_len;
-	unsigned char *new_names_blob;
-	int new_blob_len;
-	int target_info_offset;
-	MD5_CTX md5_ctx;
-	unsigned char *cbt_av_pair;
-
-	/* Check if TLS is available */
-	if (!tds->conn || !tds->conn->tls_session) {
-		/* No TLS session, skip channel binding */
-		return TDS_SUCCESS;
-	}
-
-	ssl = (SSL *) tds->conn->tls_session;
-
-	/* Get tls-unique from OpenSSL */
-	tls_unique_len = SSL_get_finished(ssl, tls_unique_buf, sizeof(tls_unique_buf));
-	if (tls_unique_len == 0) {
-		/* Try peer finished as fallback */
-		tls_unique_len = SSL_get_peer_finished(ssl, tls_unique_buf, sizeof(tls_unique_buf));
-		if (tls_unique_len == 0) {
-			/* No tls-unique available, skip channel binding */
-			return TDS_SUCCESS;
-		}
-	}
 
 	/* Build channel binding structure */
 	/* initiator_address: 8 bytes of zeros */
 	/* acceptor_address: 8 bytes of zeros */
-	/* application_data: 4 bytes length (little endian) + "tls-unique:" +
-	 * tls_unique */
-	application_data_raw_len = 11 + tls_unique_len;	/* "tls-unique:" is 11 bytes */
-	struct_len = 8 + 8 + 4 + application_data_raw_len;	/* initiator + acceptor + len + data */
-
-	channel_binding_struct = tds_new0(unsigned char, struct_len);
-
-	if (!channel_binding_struct)
+	/* application_data: 4 bytes length (little endian) + "tls-unique:" + tls_unique */
+	 application_data_raw_len = 11 + tls_unique_len;
+	 struct_len = 8 + 8 + 4 + application_data_raw_len;
+ 
+	 channel_binding_struct = tds_new0(unsigned char, struct_len);
+ 
+	 if (!channel_binding_struct) {
+		tdsdump_log(TDS_DBG_NETWORK, "tds_gss_get_channel_binding: failed to allocate channel binding structure\n");
 		return TDS_FAIL;
-
+	 }
+	
 	/* initiator_address: 8 bytes of zeros (already zeroed by tds_new0) */
 	/* acceptor_address: 8 bytes of zeros (already zeroed by tds_new0) */
 	/* Offset is 16 at this point */
@@ -673,17 +643,78 @@ add_cbt_data(TDSSOCKET *tds, unsigned char **names_blob, int *names_blob_len, in
 	MD5Init(&md5_ctx);
 	MD5Update(&md5_ctx, channel_binding_struct, struct_len);
 	MD5Final(&md5_ctx, cbt);
-	memset(&md5_ctx, 0, sizeof(md5_ctx));
-
-	tdsdump_dump_buf(TDS_DBG_INFO1, "CBT", cbt, 16);
 
 	free(channel_binding_struct);
+	
+	return TDS_SUCCESS;
+}
+/**
+ * Add channel binding token (CBT) AV_PAIR to target_info in names_blob
+ * @param tds TDSSOCKET structure
+ * @param names_blob pointer to names_blob buffer (may be reallocated)
+ * @param names_blob_len pointer to current length (will be updated)
+ * @return TDS_SUCCESS or TDS_FAIL
+ */
+static TDSRET
+add_cbt_data(TDSSOCKET *tds, unsigned char **names_blob, int *names_blob_len, int target_info_len)
+{
+	unsigned char tls_unique_buf[256];
+	size_t tls_unique_len = 0;
+	unsigned char *new_names_blob;
+	int new_blob_len;
+	int target_info_offset;
+	unsigned char *cbt_av_pair;
+	unsigned char cbt[16];
 
-	/* Calculate target_info offset and length */
+	if (!tds->conn || !tds->conn->tls_session) {
+		/* No TLS session, skip channel binding */
+		return TDS_SUCCESS;
+	}
+
+#if defined(HAVE_OPENSSL)
+	SSL *ssl;
+	ssl = (SSL *) tds->conn->tls_session;
+
+	/* Get tls-unique from OpenSSL */
+	tls_unique_len = SSL_get_finished(ssl, tls_unique_buf, sizeof(tls_unique_buf));
+	if (tls_unique_len == 0) {
+		/* Try peer finished as fallback */
+		tls_unique_len = SSL_get_peer_finished(ssl, tls_unique_buf, sizeof(tls_unique_buf));
+		if (tls_unique_len == 0) {
+			tdsdump_log(TDS_DBG_NETWORK, "tds_gss_get_channel_binding: failed to get tls-unique from OpenSSL\n");
+			/* No tls-unique available, skip channel binding */
+			return TDS_SUCCESS;
+		}
+	}
+#elif defined(HAVE_GNUTLS)
+	gnutls_datum_t unique;
+	int rc;
+
+	rc = gnutls_session_channel_binding((gnutls_session_t) tds->conn->tls_session, GNUTLS_CB_TLS_UNIQUE, &unique);
+	if (rc) {
+		tdsdump_log(TDS_DBG_NETWORK, "tds_gss_get_channel_binding: failed to get tls-unique: %s\n", gnutls_strerror(rc));
+		return TDS_SUCCESS;
+	}
+	tls_unique_len = unique.size;
+	memcpy(tls_unique_buf, unique.data, unique.size);
+#else
+	tdsdump_log(TDS_DBG_NETWORK, "tds_gss_get_channel_binding: available only with OpenSSL or GnuTLS\n");
+	return TDS_SUCCESS;
+#endif
+
+	if (tls_unique_len == 0) {
+		tdsdump_log(TDS_DBG_NETWORK, "tds_gss_get_channel_binding: failed to get tls-unique\n");
+		return TDS_SUCCESS;
+	}
+
+	rc = tds_calc_cbt_from_tls_unique(tls_unique_buf, tls_unique_len, cbt);
+	if (TDS_FAILED(rc)) {
+		tdsdump_log(TDS_DBG_NETWORK, "tds_gss_get_channel_binding: failed to calculate CBT\n");
+		return rc;
+	}
+	tdsdump_dump_buf(TDS_DBG_INFO1, "Channel Binding Token", cbt, 16);
+	
 	target_info_offset = TDS_OFFSET(names_blob_prefix_t, target_info);
-	// target_info_len =
-	//     *names_blob_len - target_info_offset - 4;
-
 	tdsdump_dump_buf(TDS_DBG_INFO1, "Old names_blob before reallocation\n", *names_blob, *names_blob_len);
 
 	/* Reallocate names_blob to add CBT AV_PAIR (4 bytes header + 16 bytes CBT) */
@@ -695,7 +726,6 @@ add_cbt_data(TDSSOCKET *tds, unsigned char **names_blob, int *names_blob_len, in
 
 	new_names_blob = realloc(*names_blob, new_blob_len);
 	if (!new_names_blob) {
-		memset(cbt, 0, sizeof(cbt));
 		return TDS_FAIL;
 	}
 	tdsdump_log(TDS_DBG_INFO1, "Reallocating names_blob from %d bytes to %d bytes\n", *names_blob_len, new_blob_len);
@@ -706,8 +736,6 @@ add_cbt_data(TDSSOCKET *tds, unsigned char **names_blob, int *names_blob_len, in
 	TDS_PUT_A2LE(cbt_av_pair, 0x000A);	/* AvId = 0xA (little endian) */
 	TDS_PUT_A2LE(cbt_av_pair + 2, 16);	/* AvLen = 16 (little endian) */
 	memcpy(cbt_av_pair + 4, cbt, 16);	/* CBT (16 bytes) */
-
-	memset(cbt, 0, sizeof(cbt));
 	memset(cbt_av_pair + 20, 0, 4);	// Terminator
 
 	tdsdump_dump_buf(TDS_DBG_INFO1, "New names_blob\n", new_names_blob, new_blob_len);
@@ -716,13 +744,6 @@ add_cbt_data(TDSSOCKET *tds, unsigned char **names_blob, int *names_blob_len, in
 	*names_blob_len = new_blob_len;
 
 	return TDS_SUCCESS;
-#else
-	/* OpenSSL not available, skip channel binding */
-	(void) tds;
-	(void) names_blob;
-	(void) names_blob_len;
-	return TDS_SUCCESS;
-#endif
 }
 
 static void
@@ -834,8 +855,8 @@ tds_ntlm_handle_next(TDSSOCKET *tds, struct tds_authentication *auth TDS_UNUSED,
 			/* Add channel binding token (CBT) AV_PAIR to target_info in names_blob */
 			rc = add_cbt_data(tds, &names_blob, &names_blob_len, target_info_len);
 			if (TDS_FAILED(rc)) {
-				free(names_blob);
-				return rc;
+				tdsdump_log(TDS_DBG_NETWORK, "tds_ntlm_handle_next: failed to add CBT AV_PAIR, skipping CBT\n");
+				rc = TDS_SUCCESS;
 			}
 		}
 	}
