@@ -66,8 +66,11 @@ math(EXPR BUILD_NUMBER "${BUILD_NUMBER}")
 set(FREETDS_TOPDIR ${CMAKE_CURRENT_LIST_DIR})
 
 enable_testing()
-set(CMAKE_CTEST_COMMAND ctest)
-add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
+if(CMAKE_GENERATOR MATCHES "^Visual Studio")
+	add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} -C $(Configuration))
+else()
+	add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
+endif()
 
 add_custom_target(build_tests)
 add_dependencies(check build_tests)
