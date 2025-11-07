@@ -68,19 +68,19 @@
 
 int tdsdump_open(const char *filename);
 
-void pusage(void);
-int process_parameters(int, char **, struct pd *);
+static void pusage(void);
+static int process_parameters(int, char **, BCPPARAMDATA *);
 static int unescape(char arg[]);
-int login_to_database(struct pd *, DBPROCESS **);
+static int login_to_database(BCPPARAMDATA * pdata, DBPROCESS ** pdbproc);
 
-int file_character(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir);
-int file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir);
-int file_formatted(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir);
-int setoptions (DBPROCESS * dbproc, BCPPARAMDATA * params);
+static int file_character(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir);
+static int file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir);
+static int file_formatted(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir);
+static int setoptions(DBPROCESS * dbproc, BCPPARAMDATA * params);
 
-int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
-int msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname,
-		int line);
+static int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
+static int msg_handler(DBPROCESS * dbproc TDS_UNUSED, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname,
+		       char *procname, int line);
 static int set_bcp_hints(BCPPARAMDATA *pdata, DBPROCESS *pdbproc);
 
 int
@@ -168,7 +168,7 @@ static int unescape(char arg[])
 	return strchr(p, 0) - arg;
 }
 
-int
+static int
 process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 {
 	extern char *optarg;
@@ -409,8 +409,8 @@ process_Eflag(BCPPARAMDATA *pdata, DBPROCESS *dbproc)
 	return TRUE;
 }
 
-int
-login_to_database(BCPPARAMDATA * pdata, DBPROCESS ** pdbproc)
+static int
+login_to_database(BCPPARAMDATA *pdata, DBPROCESS **pdbproc)
 {
 	LOGINREC *login;
 
@@ -478,8 +478,8 @@ login_to_database(BCPPARAMDATA * pdata, DBPROCESS ** pdbproc)
 
 }
 
-int
-file_character(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
+static int
+file_character(BCPPARAMDATA *pdata, DBPROCESS *dbproc, DBINT dir)
 {
 	DBINT li_rowsread = 0;
 	int i;
@@ -527,8 +527,8 @@ file_character(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	return TRUE;
 }
 
-int
-file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
+static int
+file_native(BCPPARAMDATA *pdata, DBPROCESS *dbproc, DBINT dir)
 {
 	DBINT li_rowsread = 0;
 	int i;
@@ -575,8 +575,8 @@ file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	return TRUE;
 }
 
-int
-file_formatted(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
+static int
+file_formatted(BCPPARAMDATA *pdata, DBPROCESS *dbproc, DBINT dir)
 {
 
 	int li_rowsread;
@@ -610,9 +610,8 @@ file_formatted(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	return TRUE;
 }
 
-
-int
-setoptions(DBPROCESS * dbproc, BCPPARAMDATA * params)
+static int
+setoptions(DBPROCESS *dbproc, BCPPARAMDATA *params)
 {
 	RETCODE fOK;
 
@@ -686,7 +685,7 @@ set_bcp_hints(BCPPARAMDATA *pdata, DBPROCESS *pdbproc)
 	return TRUE;
 }
 
-void
+static void
 pusage(void)
 {
 	fprintf(stderr, "usage:  freebcp [[database_name.]owner.]table_name|query {in | out | queryout } datafile\n");
@@ -701,8 +700,8 @@ pusage(void)
 	fprintf(stderr, "example: freebcp testdb.dbo.inserttest in inserttest.txt -S mssql -U guest -P password -c\n");
 }
 
-int
-err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr TDS_UNUSED, char *dberrstr, char *oserrstr TDS_UNUSED)
+static int
+err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr TDS_UNUSED, char *dberrstr, char *oserrstr TDS_UNUSED)
 {
 	static int sent = 0;
 
@@ -723,9 +722,9 @@ err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr TDS_UNUSED, c
 	return INT_CANCEL;
 }
 
-int
-msg_handler(DBPROCESS * dbproc TDS_UNUSED, DBINT msgno, int msgstate, int severity,
-	    char *msgtext, char *srvname, char *procname, int line)
+static int
+msg_handler(DBPROCESS *dbproc TDS_UNUSED, DBINT msgno, int msgstate, int severity,
+ 	    char *msgtext, char *srvname, char *procname, int line)
 {
 	/*
 	 * If it's a database change message, we'll ignore it.
