@@ -66,6 +66,12 @@
 
 #include "freebcp.h"
 
+enum
+{
+	BCPFORMAT_NONE, BCPFORMAT_CHARACTER, BCPFORMAT_NATIVE, BCPFORMAT_FORMATTED
+};
+typedef int BCPFORMAT;
+
 int tdsdump_open(const char *filename);
 
 static void pusage(void);
@@ -73,11 +79,9 @@ static int process_parameters(int, char **, BCPPARAMDATA *);
 static int unescape(char arg[]);
 static int login_to_database(BCPPARAMDATA * pdata, DBPROCESS ** pdbproc);
 
-static int file_character(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir);
-static int file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir);
-static int file_formatted(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir);
 static int setoptions(DBPROCESS * dbproc, BCPPARAMDATA * params);
-
+static BCPFORMAT get_format(BCPPARAMDATA * params);
+static int file_process(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir);
 static int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 static int msg_handler(DBPROCESS * dbproc TDS_UNUSED, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname,
 		       char *procname, int line);
@@ -116,21 +120,27 @@ main(int argc, char **argv)
 	if (!setoptions(dbproc, &params))
 		return FALSE;
 
-	if (params.cflag) {	/* character format file */
-		ok = file_character(&params, dbproc, params.direction);
-	} else if (params.nflag) {	/* native format file    */
-		ok = file_native(&params, dbproc, params.direction);
-	} else if (params.fflag) {	/* formatted file        */
-		ok = file_formatted(&params, dbproc, params.direction);
-	} else {
-		ok = FALSE;
-	}
+	ok = file_process(&params, dbproc, params.direction);
 
 	exit((ok == TRUE) ? EXIT_SUCCESS : EXIT_FAILURE);
 
 	return 0;
 }
 
+static BCPFORMAT
+get_format(BCPPARAMDATA *params)
+{
+	if (params->cflag)
+		return BCPFORMAT_CHARACTER;
+
+	if (params->nflag)
+		return BCPFORMAT_NATIVE;
+
+	if (params->fflag)
+		return BCPFORMAT_FORMATTED;
+
+	return BCPFORMAT_NONE;
+}
 
 static int unescape(char arg[])
 {
@@ -478,108 +488,39 @@ login_to_database(BCPPARAMDATA *pdata, DBPROCESS **pdbproc)
 
 }
 
-static int
-file_character(BCPPARAMDATA *pdata, DBPROCESS *dbproc, DBINT dir)
+static RETCODE
+format_column(BCPPARAMDATA *pdata, DBPROCESS *dbproc, BCPFORMAT file_format, int i, int is_last_column)
 {
-	DBINT li_rowsread = 0;
-	int i;
-	int li_numcols = 0;
+	int li_coltype = SYBCHAR;
+	int host_prefixlen = 0;
+	char *host_term = NULL;
+	int host_termlen = -1;
 
-	if (FAIL == bcp_init(dbproc, pdata->dbobject, pdata->hostfilename, pdata->errorfile, dir))
-		return FALSE;
-
-	if (!set_bcp_hints(pdata, dbproc))
-		return FALSE;
-
-	bcp_control(dbproc, BCPFIRST, pdata->firstrow);
-	bcp_control(dbproc, BCPLAST, pdata->lastrow);
-	bcp_control(dbproc, BCPMAXERRS, pdata->maxerrors);
-
-	/* Reformat columns to SYBCHAR instead of native type, and add column and row terminator strings */
-	li_numcols = bcp_gethostcolcount(dbproc);
-	for (i = 1; i < li_numcols; ++i) {
-		if (bcp_colfmt(dbproc, i, SYBCHAR, 0, -1, (const BYTE *) pdata->fieldterm,
-			       pdata->fieldtermlen, i) == FAIL) {
-			fprintf(stderr, "Error in bcp_colfmt col %d\n", i);
-			return FALSE;
-		}
-	}
-
-	if (bcp_colfmt(dbproc, li_numcols, SYBCHAR, 0, -1, (const BYTE *) pdata->rowterm,
-		       pdata->rowtermlen, li_numcols) == FAIL) {
-		fprintf(stderr, "Error in bcp_colfmt col %d\n", li_numcols);
-		return FALSE;
-	}
-
-	bcp_control(dbproc, BCPBATCH, pdata->batchsize);
-	if (!process_Eflag(pdata, dbproc))
-		return FALSE;
-
-	printf("\nStarting copy...\n");
-
-	if (FAIL == bcp_exec(dbproc, &li_rowsread)) {
-		fprintf(stderr, "bcp copy %s failed\n", (dir == DB_IN) ? "in" : "out");
-		return FALSE;
-	}
-
-	printf("%d rows copied.\n", li_rowsread);
-
-	return TRUE;
-}
-
-static int
-file_native(BCPPARAMDATA *pdata, DBPROCESS *dbproc, DBINT dir)
-{
-	DBINT li_rowsread = 0;
-	int i;
-	int li_numcols = 0;
-	int li_coltype;
-
-	if (FAIL == bcp_init(dbproc, pdata->dbobject, pdata->hostfilename, pdata->errorfile, dir))
-		return FALSE;
-
-	if (!set_bcp_hints(pdata, dbproc))
-		return FALSE;
-
-	bcp_control(dbproc, BCPFIRST, pdata->firstrow);
-	bcp_control(dbproc, BCPLAST, pdata->lastrow);
-	bcp_control(dbproc, BCPMAXERRS, pdata->maxerrors);
-
-	li_numcols = bcp_gethostcolcount(dbproc);
-
-	/* The data file does not use TDS nullable types. It uses non-nullable
-	 * representations, and a Length prefix if the target column was nullable.
-	 * The length prefix typically takes value 0 or -1 to indicate a null.
-	 */
-	for (i = 1; i <= li_numcols; i++) {
+	if (file_format == BCPFORMAT_NATIVE) {
 		li_coltype = dbcoltype(dbproc, i);
-
-		if (bcp_colfmt(dbproc, i, li_coltype, -1, -1, NULL, -1, i) == FAIL) {
-			fprintf(stderr, "Error in bcp_colfmt col %d\n", i);
-			return FALSE;
-		}
+		host_prefixlen = -1;
+	} else if (is_last_column) {
+		host_term = pdata->rowterm;
+		host_termlen = pdata->rowtermlen;
+	} else {
+		host_term = pdata->fieldterm;
+		host_termlen = pdata->fieldtermlen;
 	}
 
-	if (!process_Eflag(pdata, dbproc))
-		return FALSE;
-
-	printf("\nStarting copy...\n\n");
-
-	if (FAIL == bcp_exec(dbproc, &li_rowsread)) {
-		fprintf(stderr, "bcp copy %s failed\n", (dir == DB_IN) ? "in" : "out");
-		return FALSE;
-	}
-
-	printf("%d rows copied.\n", li_rowsread);
-
-	return TRUE;
+	return bcp_colfmt(dbproc, i, li_coltype, host_prefixlen, -1, (const BYTE *) host_term, host_termlen, i);
 }
 
 static int
-file_formatted(BCPPARAMDATA *pdata, DBPROCESS *dbproc, DBINT dir)
+file_process(BCPPARAMDATA *pdata, DBPROCESS *dbproc, DBINT dir)
 {
+	DBINT li_rowsread = 0;
+	int i;
+	int li_numcols;
 
-	int li_rowsread;
+	BCPFORMAT file_format = get_format(pdata);
+
+	if (file_format == BCPFORMAT_NONE)
+		return FALSE;
 
 	if (FAIL == bcp_init(dbproc, pdata->dbobject, pdata->hostfilename, pdata->errorfile, dir))
 		return FALSE;
@@ -587,18 +528,42 @@ file_formatted(BCPPARAMDATA *pdata, DBPROCESS *dbproc, DBINT dir)
 	if (!set_bcp_hints(pdata, dbproc))
 		return FALSE;
 
-	if (!process_Eflag(pdata, dbproc))
-		return FALSE;
-
 	bcp_control(dbproc, BCPFIRST, pdata->firstrow);
 	bcp_control(dbproc, BCPLAST, pdata->lastrow);
 	bcp_control(dbproc, BCPMAXERRS, pdata->maxerrors);
 
-	if (FAIL == bcp_readfmt(dbproc, pdata->formatfile))
+	switch (file_format) {
+	case BCPFORMAT_FORMATTED:
+		if (FAIL == bcp_readfmt(dbproc, pdata->formatfile))
+			return FALSE;
+		break;
+
+		/* The data file does not use TDS nullable types. It uses non-nullable
+		 * representations, and a Length prefix if the target column was nullable.
+		 * The length prefix typically takes value 0 or -1 to indicate a null.
+		 * So, we need to check format of all columns.
+		 */
+	case BCPFORMAT_NATIVE:
+	case BCPFORMAT_CHARACTER:
+		li_numcols = bcp_gethostcolcount(dbproc);
+		for (i = 1; i <= li_numcols; ++i) {
+			if (format_column(pdata, dbproc, file_format, i, i == li_numcols) == FAIL) {
+				fprintf(stderr, "Error in bcp_colfmt col %d\n", i);
+				return FALSE;
+			}
+		}
+		break;
+	}
+
+	if (file_format == BCPFORMAT_CHARACTER)
+		bcp_control(dbproc, BCPBATCH, pdata->batchsize);
+
+	/* note: process_Eflag frees data needed by format_column() for NATIVE type,
+	 * so call this after the column loop. */
+	if (!process_Eflag(pdata, dbproc))
 		return FALSE;
 
 	printf("\nStarting copy...\n\n");
-
 
 	if (FAIL == bcp_exec(dbproc, &li_rowsread)) {
 		fprintf(stderr, "bcp copy %s failed\n", (dir == DB_IN) ? "in" : "out");
