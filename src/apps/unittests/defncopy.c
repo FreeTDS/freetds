@@ -38,15 +38,15 @@
 #ifdef _WIN32
 #include <process.h>
 #define EXE_SUFFIX ".exe"
-#define SDIR_SEPARATOR "\\"
 #else
 #define EXE_SUFFIX ""
-#define SDIR_SEPARATOR "/"
 #endif
 
 #include <freetds/bool.h>
 #include <freetds/macros.h>
 #include <freetds/sysdep_private.h>
+#include <freetds/replacements.h>
+#include <freetds/utils/path.h>
 
 /* content of output file, from command executed */
 static char *output;
@@ -211,7 +211,7 @@ tsql(const char *input_data)
 	fputs(input_data, f);
 	fclose(f);
 
-	strcpy(cmd, ".." SDIR_SEPARATOR "tsql" EXE_SUFFIX " -o q");
+	strcpy(cmd, "tsql" EXE_SUFFIX " -o q");
 	p = strchr(cmd, 0);
 	p = add_server(p, end);
 	p = add_string(p, end, "<input >output");
@@ -240,7 +240,7 @@ defncopy(const char *object_name)
 	assert(f);
 	fclose(f);
 
-	strcpy(cmd, ".." SDIR_SEPARATOR "defncopy" EXE_SUFFIX);
+	strcpy(cmd, "defncopy" EXE_SUFFIX);
 	p = strchr(cmd, 0);
 	p = add_server(p, end);
 	p = add_string(p, end, " ");
@@ -378,11 +378,48 @@ test_weird_index_names(void)
 	tsql(clean);
 }
 
+/* Add ".." to the environment PATH */
+static void
+update_path(void)
+{
+	static const tds_dir_char name[] = TDS_DIR("PATH");
+	tds_dir_char *path = tds_dir_getenv(name);
+#ifndef _WIN32
+	int len;
+
+	if (!path) {
+		setenv(name, "..", 1);
+		return;
+	}
+
+	len = asprintf(&path, "..:%s", path);
+	assert(len > 0);
+	setenv(name, path, 1);
+#else
+	tds_dir_char *p;
+	size_t len;
+
+	if (!path) {
+		_wputenv(L"PATH=..");
+		return;
+	}
+
+	len = tds_dir_len(path) + 10;
+	p = tds_new(tds_dir_char, len);
+	assert(p);
+	tds_dir_snprintf(p, len, TDS_DIR("PATH=..;%s"), path);
+	path = p;
+	_wputenv(path);
+#endif
+	free(path);
+}
+
 TEST_MAIN()
 {
 	FILE *f;
 
 	cleanup();
+	update_path();
 
 	if (!read_login_info())
 		return 1;

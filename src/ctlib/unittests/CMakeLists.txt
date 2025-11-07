@@ -23,5 +23,6 @@ foreach(target t0001 t0002 t0003 t0004
 				      ${lib_BASE})
 	endif()
 	add_test(NAME c_${target} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND c_${target})
+	set_tests_properties(c_${target} PROPERTIES ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:ct>")
 	add_dependencies(build_tests c_${target})
 endforeach(target)

@@ -11,5 +11,6 @@ foreach(target t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 t0009
 	target_link_libraries(d_${target} d_common tds_test_base sybdb
 			      replacements tdsutils ${lib_NETWORK} ${lib_BASE})
 	add_test(NAME d_${target} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND d_${target})
+	set_tests_properties(d_${target} PROPERTIES ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:sybdb>")
 	add_dependencies(build_tests d_${target})
 endforeach(target)
