@@ -60,6 +60,7 @@
 #include <freetds/replacements.h>
 #include <sybfront.h>
 #include <sybdb.h>
+#include <dblib.h>
 #include "freebcp.h"
 
 void pusage(void);
@@ -485,39 +486,8 @@ file_character(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	bcp_control(dbproc, BCPLAST, pdata->lastrow);
 	bcp_control(dbproc, BCPMAXERRS, pdata->maxerrors);
 
-	if (dir == DB_QUERYOUT) {
-		if (dbfcmd(dbproc, "SET FMTONLY ON %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
-			fprintf(stderr, "dbfcmd failed\n");
-			return FALSE;
-		}
-	} else {
-		if (dbfcmd(dbproc, "SET FMTONLY ON select * from %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
-			fprintf(stderr, "dbfcmd failed\n");
-			return FALSE;
-		}
-	}
-
-	if (dbsqlexec(dbproc) == FAIL) {
-		fprintf(stderr, "dbsqlexec failed\n");
-		return FALSE;
-	}
-
-	while (NO_MORE_RESULTS != (ret_code = dbresults(dbproc))) {
-		if (ret_code == SUCCEED && li_numcols == 0) {
-			li_numcols = dbnumcols(dbproc);
-		}
-	}
-
-	if (0 == li_numcols) {
-		fprintf(stderr, "Error in dbnumcols\n");
-		return FALSE;
-	}
-
-	if (bcp_columns(dbproc, li_numcols) == FAIL) {
-		fprintf(stderr, "Error in bcp_columns.\n");
-		return FALSE;
-	}
-
+	/* Reformat columns to SYBCHAR instead of native type, and add column and row terminator strings */
+	li_numcols = dbproc->hostfileinfo->host_colcount;
 	for (i = 1; i < li_numcols; ++i) {
 		if (bcp_colfmt(dbproc, i, SYBCHAR, 0, -1, (const BYTE *) pdata->fieldterm,
 			       pdata->fieldtermlen, i) == FAIL) {
@@ -583,39 +553,9 @@ file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	bcp_control(dbproc, BCPLAST, pdata->lastrow);
 	bcp_control(dbproc, BCPMAXERRS, pdata->maxerrors);
 
-	if (dir == DB_QUERYOUT) {
-		if (dbfcmd(dbproc, "SET FMTONLY ON %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
-			fprintf(stderr, "dbfcmd failed\n");
-			return FALSE;
-		}
-	} else {
-		if (dbfcmd(dbproc, "SET FMTONLY ON select * from %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
-			fprintf(stderr, "dbfcmd failed\n");
-			return FALSE;
-		}
-	}
-
-	if (dbsqlexec(dbproc) == FAIL) {
-		fprintf(stderr, "dbsqlexec failed\n");
-		return FALSE;
-	}
-
-	while (NO_MORE_RESULTS != (ret_code = dbresults(dbproc))) {
-		if (ret_code == SUCCEED && li_numcols == 0) {
-			li_numcols = dbnumcols(dbproc);
-		}
-	}
-
-	if (0 == li_numcols) {
-		fprintf(stderr, "Error in dbnumcols\n");
-		return FALSE;
-	}
-
-	if (bcp_columns(dbproc, li_numcols) == FAIL) {
-		fprintf(stderr, "Error in bcp_columns.\n");
-		return FALSE;
-	}
-
+	li_numcols = dbproc->hostfileinfo->host_colcount;
+	
+	/* Update column formats to concrete types for file I/O */
 	for (i = 1; i <= li_numcols; i++) {
 		li_coltype = dbcoltype(dbproc, i);
 
@@ -624,7 +564,6 @@ file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 			return FALSE;
 		}
 	}
-
 	printf("\nStarting copy...\n\n");
 
 
