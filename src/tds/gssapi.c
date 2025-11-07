@@ -67,14 +67,17 @@
 #endif
 #include <gssapi/gssapi_krb5.h>
 
+#include <freetds/replacements.h>
 #include <freetds/tds.h>
 #include <freetds/utils/string.h>
-#include <freetds/replacements.h>
 
 #if defined(HAVE_OPENSSL)
 #include <openssl/ssl.h>
 #endif
 
+#if defined(HAVE_GNUTLS)
+#include <gnutls/gnutls.h>
+#endif
 /**
  * \ingroup libtds
  * \defgroup auth Authentication
@@ -83,7 +86,7 @@
 
 /**
  * \addtogroup auth
- * @{ 
+ * @{
  */
 
 typedef struct tds_gss_auth
@@ -96,7 +99,7 @@ typedef struct tds_gss_auth
 } TDSGSSAUTH;
 
 static TDSRET
-tds_gss_free(TDSCONNECTION * conn TDS_UNUSED, struct tds_authentication * tds_auth)
+tds_gss_free(TDSCONNECTION *conn TDS_UNUSED, struct tds_authentication *tds_auth)
 {
 	TDSGSSAUTH *auth = (TDSGSSAUTH *) tds_auth;
 	OM_uint32 min_stat;
@@ -118,10 +121,10 @@ tds_gss_free(TDSCONNECTION * conn TDS_UNUSED, struct tds_authentication * tds_au
 	return TDS_SUCCESS;
 }
 
-static TDSRET tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *token_ptr);
+static TDSRET tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc * token_ptr);
 
 static TDSRET
-tds7_gss_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t len)
+tds7_gss_handle_next(TDSSOCKET *tds, struct tds_authentication *auth, size_t len)
 {
 	TDSRET res;
 	gss_buffer_desc recv_tok;
@@ -141,6 +144,7 @@ tds7_gss_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 
 	recv_tok.length = len;
 	recv_tok.value = tds_new(char, len);
+
 	if (!recv_tok.value)
 		return TDS_FAIL;
 	tds_get_n(tds, recv_tok.value, len);
@@ -158,7 +162,7 @@ tds7_gss_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 }
 
 static TDSRET
-tds5_gss_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t len TDS_UNUSED)
+tds5_gss_handle_next(TDSSOCKET *tds, struct tds_authentication *auth, size_t len TDS_UNUSED)
 {
 	gss_buffer_desc recv_tok;
 	TDSPARAMINFO *info;
@@ -203,7 +207,7 @@ tds5_gss_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 	col = info->columns[3];
 	if (col->column_type != SYBLONGBINARY)
 		goto error;
-	recv_tok.value = ((TDSBLOB*) col->column_data)->textvalue;
+	recv_tok.value = ((TDSBLOB *) col->column_data)->textvalue;
 	recv_tok.length = col->column_size;
 
 	TDS_PROPAGATE(tds_gss_continue(tds, (struct tds_gss_auth *) auth, &recv_tok));
@@ -213,17 +217,18 @@ tds5_gss_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 
 	return tds_flush_packet(tds);
 
-error:
+      error:
 	return TDS_FAIL;
 }
 
 /**
  * Build a GSSAPI packet to send to server
- * @param tds     A pointer to the TDSSOCKET structure managing a client/server operation.
+ * @param tds     A pointer to the TDSSOCKET structure managing a client/server
+ * operation.
  * @return size of packet
  */
-TDSAUTHENTICATION * 
-tds_gss_get_auth(TDSSOCKET * tds)
+TDSAUTHENTICATION *
+tds_gss_get_auth(TDSSOCKET *tds)
 {
 	/*
 	 * TODO
@@ -238,15 +243,19 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	 */
 	gss_buffer_desc send_tok;
 	OM_uint32 maj_stat, min_stat;
+
 #ifdef __APPLE__
-	/* some MacOS header defines gss_OID_desc with a wrong byte alignment, use external
-	 * library definition. */
-#  define nt_principal (*(gss_OID_desc *) GSS_KRB5_NT_PRINCIPAL_NAME)
+	/* some MacOS header defines gss_OID_desc with a wrong byte alignment, use
+	 * external library definition. */
+#define nt_principal (*(gss_OID_desc *)GSS_KRB5_NT_PRINCIPAL_NAME)
 #else
 	/* same as GSS_KRB5_NT_PRINCIPAL_NAME but do not require .so library */
-	static gss_OID_desc nt_principal = { 10, (void*) "\x2a\x86\x48\x86\xf7\x12\x01\x02\x02\x01" };
+	static gss_OID_desc nt_principal = {
+		10, (void *) "\x2a\x86\x48\x86\xf7\x12\x01\x02\x02\x01"
+	};
 #endif
 	const char *server_name;
+
 	/* Storage for getaddrinfo calls */
 	struct addrinfo *addrs = NULL;
 	int len = 0;
@@ -257,6 +266,7 @@ tds_gss_get_auth(TDSSOCKET * tds)
 		return NULL;
 
 	auth = tds_new0(struct tds_gss_auth, 1);
+
 	if (!auth)
 		return NULL;
 
@@ -268,12 +278,13 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	server_name = tds_dstr_cstr(&tds->login->server_host_name);
 	if (IS_TDS7_PLUS(tds->conn) && strchr(server_name, '.') == NULL) {
 		struct addrinfo hints;
+
 		memset(&hints, 0, sizeof(hints));
 		hints.ai_family = AF_UNSPEC;
 		hints.ai_socktype = SOCK_STREAM;
-		hints.ai_flags = AI_V4MAPPED|AI_ADDRCONFIG|AI_CANONNAME|AI_FQDN;
-		if (!getaddrinfo(server_name, NULL, &hints, &addrs) && addrs->ai_canonname
-		    && strchr(addrs->ai_canonname, '.') != NULL)
+		hints.ai_flags = AI_V4MAPPED | AI_ADDRCONFIG | AI_CANONNAME | AI_FQDN;
+		if (!getaddrinfo(server_name, NULL, &hints, &addrs) &&
+		    addrs->ai_canonname && strchr(addrs->ai_canonname, '.') != NULL)
 			server_name = addrs->ai_canonname;
 	}
 
@@ -283,8 +294,8 @@ tds_gss_get_auth(TDSSOCKET * tds)
 		if (tds_dstr_isempty(&tds->login->server_realm_name)) {
 			len = asprintf(&auth->sname, "MSSQLSvc/%s:%d", server_name, tds->login->port);
 		} else {
-			len = asprintf(&auth->sname, "MSSQLSvc/%s:%d@%s", server_name, tds->login->port,
-				       tds_dstr_cstr(&tds->login->server_realm_name));
+			len = asprintf(&auth->sname, "MSSQLSvc/%s:%d@%s", server_name,
+				       tds->login->port, tds_dstr_cstr(&tds->login->server_realm_name));
 		}
 	} else {
 		/* TDS 5.0, Sybase */
@@ -292,8 +303,7 @@ tds_gss_get_auth(TDSSOCKET * tds)
 		if (tds_dstr_isempty(&tds->login->server_realm_name)) {
 			len = asprintf(&auth->sname, "%s", server_name);
 		} else {
-			len = asprintf(&auth->sname, "%s@%s", server_name,
-				       tds_dstr_cstr(&tds->login->server_realm_name));
+			len = asprintf(&auth->sname, "%s@%s", server_name, tds_dstr_cstr(&tds->login->server_realm_name));
 		}
 	}
 	if (addrs)
@@ -313,21 +323,25 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	maj_stat = gss_import_name(&min_stat, &send_tok, &nt_principal, &auth->target_name);
 
 	switch (maj_stat) {
-	case GSS_S_COMPLETE: 
-		tdsdump_log(TDS_DBG_NETWORK, "gss_import_name: GSS_S_COMPLETE: gss_import_name completed successfully.\n");
+	case GSS_S_COMPLETE:
+		tdsdump_log(TDS_DBG_NETWORK, "gss_import_name: GSS_S_COMPLETE: " "gss_import_name completed successfully.\n");
 		if (TDS_FAILED(tds_gss_continue(tds, auth, GSS_C_NO_BUFFER))) {
 			tds_gss_free(tds->conn, (TDSAUTHENTICATION *) auth);
 			return NULL;
 		}
 		break;
-	case GSS_S_BAD_NAMETYPE: 
-		tdsdump_log(TDS_DBG_NETWORK, "gss_import_name: GSS_S_BAD_NAMETYPE: The input_name_type was unrecognized.\n");
+	case GSS_S_BAD_NAMETYPE:
+		tdsdump_log(TDS_DBG_NETWORK, "gss_import_name: GSS_S_BAD_NAMETYPE: The " "input_name_type was unrecognized.\n");
 		break;
-	case GSS_S_BAD_NAME: 
-		tdsdump_log(TDS_DBG_NETWORK, "gss_import_name: GSS_S_BAD_NAME: The input_name parameter could not be interpreted as a name of the specified type.\n");
+	case GSS_S_BAD_NAME:
+		tdsdump_log(TDS_DBG_NETWORK,
+			    "gss_import_name: GSS_S_BAD_NAME: The input_name parameter "
+			    "could not be interpreted as a name of the specified type.\n");
 		break;
 	case GSS_S_BAD_MECH:
-		tdsdump_log(TDS_DBG_NETWORK, "gss_import_name: GSS_S_BAD_MECH: The input name-type was GSS_C_NT_EXPORT_NAME, but the mechanism contained within the input-name is not supported.\n");
+		tdsdump_log(TDS_DBG_NETWORK,
+			    "gss_import_name: GSS_S_BAD_MECH: The input name-type was "
+			    "GSS_C_NT_EXPORT_NAME, but the mechanism contained within the " "input-name is not supported.\n");
 		break;
 	default:
 		tdsdump_log(TDS_DBG_NETWORK, "gss_import_name: unexpected error %d.\n", maj_stat);
@@ -347,26 +361,50 @@ static const char *
 tds_error_message(OM_uint32 e)
 {
 	const char *m = strerror(e);
+
 	if (m == NULL)
 		return "";
 	return m;
 }
+
 #define error_message tds_error_message
 #endif
 
 static gss_channel_bindings_t
 tds_gss_get_channel_binding(TDSSOCKET *tds)
 {
+	/* Check that we use tls session */
+	if (!tds->conn->tls_session) {
+		tdsdump_log(TDS_DBG_NETWORK, "tds_gss_get_channel_binding: no tls session\n");
+		return GSS_C_NO_CHANNEL_BINDINGS;
+	}
+
 	/* Get tls-unique from OpenSSL */
 	unsigned char tls_unique_buf[256];
 	size_t tls_unique_len = 0;
+
 #if defined(HAVE_OPENSSL)
 	SSL *ssl = (SSL *) tds->conn->tls_session;
+
 	tls_unique_len = SSL_get_finished(ssl, tls_unique_buf, sizeof(tls_unique_buf));
 	if (tls_unique_len == 0) {
 		tls_unique_len = SSL_get_peer_finished(ssl, tls_unique_buf, sizeof(tls_unique_buf));
 	}
 #endif
+
+#if defined(HAVE_GNUTLS)
+	gnutls_datum_t unique;
+	int rc;
+
+	rc = gnutls_session_channel_binding((gnutls_session_t) tds->conn->tls_session, GNUTLS_CB_TLS_UNIQUE, &unique);
+	if (rc) {
+		tdsdump_log(TDS_DBG_NETWORK, "tds_gss_get_channel_binding: failed to get tls-unique: %s\n", gnutls_strerror(rc));
+		return GSS_C_NO_CHANNEL_BINDINGS;
+	}
+	tls_unique_len = unique.size;
+	memcpy(tls_unique_buf, unique.data, unique.size);
+#endif
+
 	if (tls_unique_len == 0) {
 		tdsdump_log(TDS_DBG_NETWORK, "tds_gss_get_channel_binding: failed to get tls-unique\n");
 		return GSS_C_NO_CHANNEL_BINDINGS;
@@ -374,6 +412,7 @@ tds_gss_get_channel_binding(TDSSOCKET *tds)
 
 	gss_channel_bindings_t cb = NULL;
 	cb = tds_new0(struct gss_channel_bindings_struct, 1);
+
 	if (!cb) {
 		tdsdump_log(TDS_DBG_NETWORK, "tds_gss_get_channel_binding: failed to allocate channel bindings\n");
 		return GSS_C_NO_CHANNEL_BINDINGS;
@@ -383,18 +422,22 @@ tds_gss_get_channel_binding(TDSSOCKET *tds)
 	cb->acceptor_addrtype = GSS_C_AF_UNSPEC;
 	cb->acceptor_address.length = 0;
 	cb->application_data.value = tds_new(char, tls_unique_len + 11);
+
 	cb->application_data.length = tls_unique_len + 11;
-	
+
 	memcpy(cb->application_data.value, "tls-unique:", 11);
 	memcpy(cb->application_data.value + 11, tls_unique_buf, tls_unique_len);
-	
-	tdsdump_dump_buf(TDS_DBG_NETWORK, "gss_channel_bindings_struct", (const unsigned char *)cb, sizeof(struct gss_channel_bindings_struct));
-	tdsdump_dump_buf(TDS_DBG_NETWORK, "gss_channel_bindings_struct.application_data", (const unsigned char *)cb->application_data.value, cb->application_data.length);
+
+	tdsdump_dump_buf(TDS_DBG_NETWORK, "gss_channel_bindings_struct",
+			 (const unsigned char *) cb, sizeof(struct gss_channel_bindings_struct));
+	tdsdump_dump_buf(TDS_DBG_NETWORK,
+			 "gss_channel_bindings_struct.application_data",
+			 (const unsigned char *) cb->application_data.value, cb->application_data.length);
 	return cb;
 }
 
 static TDSRET
-tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *token_ptr)
+tds_gss_continue(TDSSOCKET *tds, struct tds_gss_auth *auth, gss_buffer_desc *token_ptr)
 {
 	gss_buffer_desc send_tok;
 	OM_uint32 maj_stat, min_stat = 0;
@@ -417,7 +460,7 @@ tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *to
 	 * transmitted to the server; every received token is stored in
 	 * recv_tok, which token_ptr is then set to, to be processed by
 	 * the next call to gss_init_sec_context.
-	 * 
+	 *
 	 * GSS-API guarantees that send_tok's length will be non-zero
 	 * if and only if the server is expecting another token from us,
 	 * and that gss_init_sec_context returns GSS_S_CONTINUE_NEEDED if
@@ -426,7 +469,8 @@ tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *to
 
 	/*
 	 * We always want to ask for the replay, and integ flags.
-	 * We may ask for delegation based on config in the tds.conf and other conf files.
+	 * We may ask for delegation based on config in the tds.conf and other conf
+	 * files.
 	 */
 	gssapi_flags = GSS_C_REPLAY_FLAG | GSS_C_INTEG_FLAG;
 
@@ -436,69 +480,65 @@ tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *to
 		gssapi_flags |= GSS_C_MUTUAL_FLAG;
 
 	gss_channel_bindings_t cb = tds_gss_get_channel_binding(tds);
-	
-	maj_stat = gss_init_sec_context(&min_stat, GSS_C_NO_CREDENTIAL, &auth->gss_context, auth->target_name, 
-					GSS_C_NULL_OID,
-					gssapi_flags,
-					0, cb,
-					token_ptr, 
-					&pmech,	
-					&send_tok, &ret_flags, NULL);	/* ignore time_rec */
+
+	maj_stat = gss_init_sec_context(&min_stat, GSS_C_NO_CREDENTIAL, &auth->gss_context, auth->target_name, GSS_C_NULL_OID, gssapi_flags, 0, cb, token_ptr, &pmech, &send_tok, &ret_flags, NULL);	/* ignore time_rec */
 
 	tdsdump_log(TDS_DBG_NETWORK, "gss_init_sec_context: actual mechanism at %p\n", pmech);
 	if (pmech && pmech->elements) {
 		tdsdump_dump_buf(TDS_DBG_NETWORK, "actual mechanism", pmech->elements, pmech->length);
 	}
-	
+
 	auth->last_stat = maj_stat;
-	
+
 	switch (maj_stat) {
-	case GSS_S_COMPLETE: 
+	case GSS_S_COMPLETE:
 		msg = "GSS_S_COMPLETE: gss_init_sec_context completed successfully.";
 		break;
-	case GSS_S_CONTINUE_NEEDED: 
-		msg = "GSS_S_CONTINUE_NEEDED: gss_init_sec_context() routine must be called again.";
+	case GSS_S_CONTINUE_NEEDED:
+		msg = "GSS_S_CONTINUE_NEEDED: gss_init_sec_context() routine must be " "called again.";
 		break;
-	case GSS_S_FAILURE: 
-		msg = "GSS_S_FAILURE: The routine failed for reasons that are not defined at the GSS level.";
-		tdsdump_log(TDS_DBG_NETWORK, "gss_init_sec_context: min_stat %ld \"%s\"\n", 
-						(long) min_stat, error_message(min_stat));
+	case GSS_S_FAILURE:
+		msg = "GSS_S_FAILURE: The routine failed for reasons that are not defined " "at the GSS level.";
+		tdsdump_log(TDS_DBG_NETWORK, "gss_init_sec_context: min_stat %ld \"%s\"\n",
+			    (long) min_stat, error_message(min_stat));
 		break;
-	case GSS_S_BAD_BINDINGS: 
+	case GSS_S_BAD_BINDINGS:
 		msg = "GSS_S_BAD_BINDINGS: The channel bindings are not valid.";
 		break;
-	case GSS_S_BAD_MECH: 
+	case GSS_S_BAD_MECH:
 		msg = "GSS_S_BAD_MECH: The request security mechanism is not supported.";
 		break;
-	case GSS_S_BAD_NAME: 
+	case GSS_S_BAD_NAME:
 		msg = "GSS_S_BAD_NAME: The target_name parameter is not valid.";
 		break;
-	case GSS_S_BAD_SIG: 
-		msg = "GSS_S_BAD_SIG: The input token contains an incorrect integrity check value.";
+	case GSS_S_BAD_SIG:
+		msg = "GSS_S_BAD_SIG: The input token contains an incorrect integrity " "check value.";
 		break;
-	case GSS_S_CREDENTIALS_EXPIRED: 
-		msg = "GSS_S_CREDENTIALS_EXPIRED: The supplied credentials are no longer valid.";
+	case GSS_S_CREDENTIALS_EXPIRED:
+		msg = "GSS_S_CREDENTIALS_EXPIRED: The supplied credentials are no longer " "valid.";
 		break;
-	case GSS_S_DEFECTIVE_CREDENTIAL: 
-		msg = "GSS_S_DEFECTIVE_CREDENTIAL: Consistency checks performed on the credential failed.";
+	case GSS_S_DEFECTIVE_CREDENTIAL:
+		msg = "GSS_S_DEFECTIVE_CREDENTIAL: Consistency checks performed on the " "credential failed.";
 		break;
-	case GSS_S_DEFECTIVE_TOKEN: 
-		msg = "GSS_S_DEFECTIVE_TOKEN: Consistency checks performed on the input token failed.";
+	case GSS_S_DEFECTIVE_TOKEN:
+		msg = "GSS_S_DEFECTIVE_TOKEN: Consistency checks performed on the input " "token failed.";
 		break;
-	case GSS_S_DUPLICATE_TOKEN: 
-		msg = "GSS_S_DUPLICATE_TOKEN: The token is a duplicate of a token that has already been processed.";
+	case GSS_S_DUPLICATE_TOKEN:
+		msg = "GSS_S_DUPLICATE_TOKEN: The token is a duplicate of a token that has " "already been processed.";
 		break;
-	case GSS_S_NO_CONTEXT: 
-		msg = "GSS_S_NO_CONTEXT: The context handle provided by the caller does not refer to a valid security context.";
+	case GSS_S_NO_CONTEXT:
+		msg = "GSS_S_NO_CONTEXT: The context handle provided by the caller does " "not refer to a valid security context.";
 		break;
-	case GSS_S_NO_CRED: 
-		msg = "GSS_S_NO_CRED: The supplied credential handle does not refer to a valid credential, the supplied credential is not";
+	case GSS_S_NO_CRED:
+		msg = "GSS_S_NO_CRED: The supplied credential handle does not refer to a "
+			"valid credential, the supplied credential is not";
 		break;
-	case GSS_S_OLD_TOKEN: 
-		msg = "GSS_S_OLD_TOKEN: The token is too old to be checked for duplication against previous tokens which have already been processed.";
+	case GSS_S_OLD_TOKEN:
+		msg = "GSS_S_OLD_TOKEN: The token is too old to be checked for duplication "
+			"against previous tokens which have already been processed.";
 		break;
 	}
-	
+
 	if (GSS_ERROR(maj_stat)) {
 		gss_release_buffer(&min_stat, &send_tok);
 		tdsdump_log(TDS_DBG_NETWORK, "gss_init_sec_context: %s\n", msg);
@@ -515,8 +555,8 @@ static void
 tds5_send_msg(TDSSOCKET *tds, uint16_t msg_type)
 {
 	tds_put_tinyint(tds, TDS_MSG_TOKEN);
-	tds_put_tinyint(tds, 3); /* length */
-	tds_put_tinyint(tds, 1); /* status, 1=has params */
+	tds_put_tinyint(tds, 3);	/* length */
+	tds_put_tinyint(tds, 1);	/* status, 1=has params */
 	tds_put_smallint(tds, msg_type);
 }
 
@@ -539,35 +579,34 @@ tds5_gss_send(TDSSOCKET *tds)
 
 	tds_put_byte(tds, TDS5_PARAMFMT_TOKEN);
 	TDS_START_LEN_USMALLINT(tds) {
-		tds_put_smallint(tds, 5); /* # parameters */
+		tds_put_smallint(tds, 5);	/* # parameters */
 
-		tds_put_n(tds, NULL, 6); /* name len + output + usertype */
+		tds_put_n(tds, NULL, 6);	/* name len + output + usertype */
 		tds_put_tinyint(tds, SYBINTN);
 		tds_put_tinyint(tds, 4);
-		tds_put_tinyint(tds, 0); /* locale len */
+		tds_put_tinyint(tds, 0);	/* locale len */
 
-		tds_put_n(tds, NULL, 6); /* name len + output + usertype */
+		tds_put_n(tds, NULL, 6);	/* name len + output + usertype */
 		tds_put_tinyint(tds, SYBINTN);
 		tds_put_tinyint(tds, 4);
-		tds_put_tinyint(tds, 0); /* locale len */
+		tds_put_tinyint(tds, 0);	/* locale len */
 
-		tds_put_n(tds, NULL, 6); /* name len + output + usertype */
+		tds_put_n(tds, NULL, 6);	/* name len + output + usertype */
 		tds_put_tinyint(tds, SYBVARBINARY);
 		tds_put_tinyint(tds, 255);
-		tds_put_tinyint(tds, 0); /* locale len */
+		tds_put_tinyint(tds, 0);	/* locale len */
 
-		tds_put_n(tds, NULL, 6); /* name len + output + usertype */
+		tds_put_n(tds, NULL, 6);	/* name len + output + usertype */
 		tds_put_tinyint(tds, SYBLONGBINARY);
 		tds_put_int(tds, 0x7fffffff);
-		tds_put_tinyint(tds, 0); /* locale len */
+		tds_put_tinyint(tds, 0);	/* locale len */
 
-		tds_put_n(tds, NULL, 6); /* name len + output + usertype */
+		tds_put_n(tds, NULL, 6);	/* name len + output + usertype */
 		tds_put_tinyint(tds, SYBINTN);
 		tds_put_tinyint(tds, 4);
-		tds_put_tinyint(tds, 0); /* locale len */
-	} TDS_END_LEN
-
-	tds_put_byte(tds, TDS5_PARAMS_TOKEN);
+		tds_put_tinyint(tds, 0);	/* locale len */
+	}
+	TDS_END_LEN tds_put_byte(tds, TDS5_PARAMS_TOKEN);
 
 	tds_put_tinyint(tds, 4);
 	tds_put_int(tds, TDS5_SEC_VERSION);
@@ -576,7 +615,7 @@ tds5_gss_send(TDSSOCKET *tds)
 	tds_put_int(tds, TDS5_SEC_SECSESS);
 
 	tds_put_tinyint(tds, 12);
-	tds_put_n(tds, "\x06\x0a\x2b\x06\x01\x04\x01\x87\x01\x04\x06\x06", 12); /* KRB5 Sybase OID */
+	tds_put_n(tds, "\x06\x0a\x2b\x06\x01\x04\x01\x87\x01\x04\x06\x06", 12);	/* KRB5 Sybase OID */
 
 	tds_put_int(tds, tds->conn->authentication->packet_len);
 	tds_put_n(tds, tds->conn->authentication->packet, tds->conn->authentication->packet_len);
