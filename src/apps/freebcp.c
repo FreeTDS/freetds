@@ -386,6 +386,29 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 
 }
 
+static int
+process_Eflag(BCPPARAMDATA* pdata, DBPROCESS* dbproc)
+{
+	if (pdata->Eflag) {
+
+		bcp_control(dbproc, BCPKEEPIDENTITY, 1);
+
+		if (dbfcmd(dbproc, "set identity_insert %s on", pdata->dbobject) == FAIL) {
+			fprintf(stderr, "dbfcmd failed\n");
+			return FALSE;
+		}
+
+		if (dbsqlexec(dbproc) == FAIL) {
+			fprintf(stderr, "dbsqlexec failed\n");
+			return FALSE;
+		}
+
+		while (NO_MORE_RESULTS != dbresults(dbproc))
+			continue;
+	}
+	return TRUE;
+}
+
 int
 login_to_database(BCPPARAMDATA * pdata, DBPROCESS ** pdbproc)
 {
@@ -469,24 +492,6 @@ file_character(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	if (!set_bcp_hints(pdata, dbproc))
 		return FALSE;
 
-	if (pdata->Eflag) {
-
-		bcp_control(dbproc, BCPKEEPIDENTITY, 1);
-
-		if (dbfcmd(dbproc, "set identity_insert %s on", pdata->dbobject) == FAIL) {
-			fprintf(stderr, "dbfcmd failed\n");
-			return FALSE;
-		}
-
-		if (dbsqlexec(dbproc) == FAIL) {
-			fprintf(stderr, "dbsqlexec failed\n");
-			return FALSE;
-		}
-
-		while (NO_MORE_RESULTS != dbresults(dbproc))
-			continue;
-	}
-
 	bcp_control(dbproc, BCPFIRST, pdata->firstrow);
 	bcp_control(dbproc, BCPLAST, pdata->lastrow);
 	bcp_control(dbproc, BCPMAXERRS, pdata->maxerrors);
@@ -508,6 +513,7 @@ file_character(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	}
 
 	bcp_control(dbproc, BCPBATCH, pdata->batchsize);
+	process_Eflag(pdata, dbproc);
 
 	printf("\nStarting copy...\n");
 
@@ -536,24 +542,6 @@ file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	if (!set_bcp_hints(pdata, dbproc))
 		return FALSE;
 
-	if (pdata->Eflag) {
-
-		bcp_control(dbproc, BCPKEEPIDENTITY, 1);
-
-		if (dbfcmd(dbproc, "set identity_insert %s on", pdata->dbobject) == FAIL) {
-			fprintf(stderr, "dbfcmd failed\n");
-			return FALSE;
-		}
-
-		if (dbsqlexec(dbproc) == FAIL) {
-			fprintf(stderr, "dbsqlexec failed\n");
-			return FALSE;
-		}
-
-		while (NO_MORE_RESULTS != dbresults(dbproc))
-			continue;
-	}
-
 	bcp_control(dbproc, BCPFIRST, pdata->firstrow);
 	bcp_control(dbproc, BCPLAST, pdata->lastrow);
 	bcp_control(dbproc, BCPMAXERRS, pdata->maxerrors);
@@ -572,6 +560,8 @@ file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 			return FALSE;
 		}
 	}
+
+	process_Eflag(pdata, dbproc);
 	printf("\nStarting copy...\n\n");
 
 	if (FAIL == bcp_exec(dbproc, &li_rowsread)) {
@@ -596,23 +586,7 @@ file_formatted(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	if (!set_bcp_hints(pdata, dbproc))
 		return FALSE;
 
-	if (pdata->Eflag) {
-
-		bcp_control(dbproc, BCPKEEPIDENTITY, 1);
-
-		if (dbfcmd(dbproc, "set identity_insert %s on", pdata->dbobject) == FAIL) {
-			fprintf(stderr, "dbfcmd failed\n");
-			return FALSE;
-		}
-
-		if (dbsqlexec(dbproc) == FAIL) {
-			fprintf(stderr, "dbsqlexec failed\n");
-			return FALSE;
-		}
-
-		while (NO_MORE_RESULTS != dbresults(dbproc))
-			continue;
-	}
+	process_Eflag(pdata, dbproc);
 
 	bcp_control(dbproc, BCPFIRST, pdata->firstrow);
 	bcp_control(dbproc, BCPLAST, pdata->lastrow);
