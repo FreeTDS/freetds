@@ -150,6 +150,7 @@ test_script:
   - "%WINDIR%\\SysWOW64\\regsvr32 /s src\\odbc\\tdsodbc.dll || %WINDIR%\\system32\\regsvr32 /s src\\odbc\\tdsodbc.dll"
   # Build and run tests
   - set CTEST_OUTPUT_ON_FAILURE=1
+  - set DIAG_SILENT_ABORT=Y
   - "%WITH_COMPILER% cmake --build . --target check"
   - cd ..
 
