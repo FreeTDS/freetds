@@ -269,9 +269,9 @@ SELECT_TYPE(tds_sysdep_intptr_type ${SIZEOF_VOID_P} "short;int;long;__int64" "No
 
 # find functions
 set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
-set(FUNCS asprintf vasprintf strtok_r strtok_s readpassphrase
+set(FUNCS strtok_r strtok_s readpassphrase
 	strlcpy strlcat basename getopt strsep
-	vsnprintf _vsnprintf snprintf _snprintf _vscprintf gettimeofday
+	gettimeofday
 	nl_langinfo locale_charset setenv putenv
 	getuid getpwuid getpwuid_r fstat alarm fork
 	gethrtime localtime_r setitimer
@@ -291,8 +291,10 @@ endforeach(func)
 
 macro(CHECK_STDIO_FUNCTION_EXISTS FUNCTION)
 	string(TOUPPER "HAVE_${FUNCTION}" VARIABLE)
-	string(TOUPPER "CHECK_${FUNCTION}" CHECK)
-	if (NOT ${VARIABLE})
+	config_write("/* Define to 1 if you have function <${FUNCTION}>. */\n")
+	config_write("#cmakedefine ${VARIABLE} 1\n\n")
+	if (NOT DEFINED ${VARIABLE})
+		string(TOUPPER "CHECK_${FUNCTION}" CHECK)
 		set(MACRO_CHECK_FUNCTION_DEFINITIONS
 			"-D${CHECK}=1 ${CMAKE_REQUIRED_FLAGS}")
 		message(STATUS "Looking for ${FUNCTION}")
