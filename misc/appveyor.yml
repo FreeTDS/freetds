@@ -98,21 +98,25 @@ install:
 
 build_script:
   # build FreeTDS
+  - set CMAKE_BUILD_PARALLEL_LEVEL=4
   - mkdir build
   - cd build
   - if exist c:\openssl-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-win%WIDTH%
   - if exist c:\openssl-v33-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-v33-win%WIDTH%
   - if exist c:\openssl-v35-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-v35-win%WIDTH%
   - set DEST_DIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
-  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Release -DENABLE_MSDBLIB=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" \"-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%\" .."
+  - set GENERATOR=Ninja
+  - if %VS_VERSION% lss 2015 set GENERATOR=NMake Makefiles
+  - "%WITH_COMPILER% cmake -G \"%GENERATOR%\" -DCMAKE_BUILD_TYPE=Release -DENABLE_MSDBLIB=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" \"-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%\" .."
   - "%WITH_COMPILER% cmake --build ."
   - set PATH=%OPENSSL_ROOT_DIR%\bin;%PATH%
   - src\apps\tsql.exe -C
   - cd ..
   - mkdir build_debug
   - cd build_debug
-  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DCMAKE_BUILD_TYPE=Debug -DENABLE_EXTRA_CHECKS=on -DENABLE_MSDBLIB=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" \"-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%\" .."
+  - "%WITH_COMPILER% cmake -G \"%GENERATOR%\" -DCMAKE_BUILD_TYPE=Debug -DENABLE_EXTRA_CHECKS=on -DENABLE_MSDBLIB=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" \"-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%\" .."
   - "%WITH_COMPILER% cmake --build ."
+  - "%WITH_COMPILER% cmake --build . --target build_tests"
   - src\apps\tsql.exe -C
   - cd ..
 
