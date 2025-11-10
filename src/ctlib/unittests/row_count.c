@@ -71,7 +71,7 @@ TEST_MAIN()
 	error_to_stdout = true;
 
 	/* do not test error */
-	run_command(cmd, "DROP PROCEDURE sample_rpc");
+	run_command(cmd, "DROP PROCEDURE row_count_rpc");
 	run_command(cmd, "drop table #tmp1");
 
 	/* test with rows from select */
@@ -95,7 +95,7 @@ test(int final_rows, int no_rows)
 
 	run_command(cmd, "create table #tmp1 (i int not null)");
 
-	strlcpy(cmdbuf, "create proc sample_rpc as ", sizeof(cmdbuf));
+	strlcpy(cmdbuf, "create proc row_count_rpc as ", sizeof(cmdbuf));
 
 	strlcpy(results, "CS_ROW_RESULT -1\n", sizeof(results));
 	strlcat(cmdbuf, "insert into #tmp1 values(1) "
@@ -131,13 +131,13 @@ test(int final_rows, int no_rows)
 	check_call(run_command, (cmd, cmdbuf));
 
 	printf("----------\n");
-	check_call(ct_command, (cmd, CS_RPC_CMD, "sample_rpc", CS_NULLTERM, CS_NO_RECOMPILE));
+	check_call(ct_command, (cmd, CS_RPC_CMD, "row_count_rpc", CS_NULLTERM, CS_NO_RECOMPILE));
 
 	check_call(ct_send, (cmd));
 	ex_display_results(cmd, results);
 
 	/* cleanup */
-	run_command(cmd, "DROP PROCEDURE sample_rpc");
+	run_command(cmd, "DROP PROCEDURE row_count_rpc");
 	run_command(cmd, "drop table #tmp1");
 
 	return 0;

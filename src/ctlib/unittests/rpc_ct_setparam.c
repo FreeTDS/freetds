@@ -37,7 +37,7 @@ TEST_MAIN()
 	CS_MONEY moneyvar;
 	CS_BINARY binaryvar;
 	char moneystring[10];
-	char rpc_name[15];
+	char rpc_name[20];
 	CS_INT destlen;
 
 
@@ -50,9 +50,9 @@ TEST_MAIN()
 	error_to_stdout = true;
 
 	/* do not test error */
-	run_command(cmd, "IF OBJECT_ID('sample_rpc') IS NOT NULL DROP PROCEDURE sample_rpc");
+	run_command(cmd, "IF OBJECT_ID('ct_setparam_rpc') IS NOT NULL DROP PROCEDURE ct_setparam_rpc");
 
-	strcpy(cmdbuf, "create proc sample_rpc (@intparam int, \
+	strcpy(cmdbuf, "create proc ct_setparam_rpc (@intparam int, \
         @sintparam smallint output, @floatparam float output, \
         @moneyparam money output,  \
         @dateparam datetime output, @charparam char(20) output, \
@@ -67,7 +67,7 @@ TEST_MAIN()
         select @dateparam = getdate() \
         select @charparam = \'The char parameters\' \
         select @binaryparam = @binaryparam \
-        print \'This is the message printed out by sample_rpc.\'");
+        print \'This is the message printed out by ct_setparam_rpc.\'");
 
 	check_call(run_command, (cmd, cmdbuf));
 
@@ -79,7 +79,7 @@ TEST_MAIN()
 	smallintvar = 234;
 	floatvar = 0.12;
 	binaryvar = (CS_BINARY) 0xff;
-	strcpy(rpc_name, "sample_rpc");
+	strcpy(rpc_name, "ct_setparam_rpc");
 	strcpy(moneystring, "300.90");
 
 	/*
@@ -221,7 +221,7 @@ TEST_MAIN()
 
 	check_call(ex_display_results, (cmd));
 
-	run_command(cmd, "DROP PROCEDURE sample_rpc");
+	run_command(cmd, "DROP PROCEDURE ct_setparam_rpc");
 
 	if (verbose) {
 		printf("Trying logout\n");
