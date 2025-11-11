@@ -138,8 +138,6 @@ test_script:
   - echo SRV=local>> PWD
   - echo DB=tempdb>> PWD
   - set FREETDSCONF=%CD%\freetds.conf.local
-  - set TDSDUMP=%CD%\conndump
-  - set TDSDUMPCONFIG=%CD%\confdump
   - set TDS_SKIP_SUCCESS=1
   # Add dirs of our just built DLLs to PATH envvar so everything works with older cmake
   - if %VS_VERSION% lss 2019 set PATH=%CD%\src\ctlib;%CD%\src\dblib;%PATH%
@@ -149,6 +147,9 @@ test_script:
   - set CTEST_OUTPUT_ON_FAILURE=1
   - set DIAG_SILENT_ABORT=Y
   - "%WITH_COMPILER% cmake --build . --target check"
+  - set TDSDUMP=%CD%\conndump
+  - set TDSDUMPCONFIG=%CD%\confdump
+  - echo select @@version | src\apps\tsql.exe -S local -U sa -P Password12! -D tempdb
   - cd ..
 
 after_test:
