@@ -279,6 +279,12 @@ current_thread_is_excluded(void)
 	return false;
 }
 
+static inline bool
+ascii_isprint(int ch)
+{
+	return ch >= ' ' && ch < 127;
+}
+
 #undef tdsdump_dump_buf
 /**
  * Dump the contents of data into the log file in a human readable format.
@@ -363,7 +369,7 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
 		for (j = i; j < length && (j - i) < BYTES_PER_LINE; j++) {
 			if (j - i == BYTES_PER_LINE / 2)
 				*p++ = ' ';
-			p += sprintf(p, "%c", (isprint(data[j])) ? data[j] : '.');
+			p += sprintf(p, "%c", (ascii_isprint(data[j])) ? data[j] : '.');
 		}
 		strcpy(p, "|\n");
 		fputs(line_buf, dumpfile);
