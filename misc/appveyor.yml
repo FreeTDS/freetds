@@ -121,6 +121,7 @@ build_script:
   - cd ..
 
 test_script:
+  - set CTEST_PARALLEL_LEVEL=4
   - set INSTANCENAME=SQL2017
   - if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2019" set INSTANCENAME=SQL2019
   - if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2022" set INSTANCENAME=SQL2019
