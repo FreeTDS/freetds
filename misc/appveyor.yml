@@ -32,44 +32,6 @@ environment:
     TDSVER: "7.4"
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
 
-  - PLAT: Win64
-    WIDTH: 64
-    VS_VERSION: "2019"
-    TDSVER: "7.4"
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-
-  - PLAT: Win32
-    WIDTH: 32
-    VS_VERSION: "2017"
-    TDSVER: "7.3"
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-    ODBC_MARS: "1"
-
-  - PLAT: Win64
-    WIDTH: 64
-    VS_VERSION: "2015"
-    TDSVER: "7.2"
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-
-  - PLAT: Win64
-    WIDTH: 64
-    VS_VERSION: "2013"
-    TDSVER: "auto"
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-    ODBC_MARS: "1"
-
-  - PLAT: Win32
-    WIDTH: 32
-    VS_VERSION: "2010"
-    TDSVER: "7.1"
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-
-  - PLAT: Win32
-    WIDTH: 32
-    VS_VERSION: "2008"
-    TDSVER: "7.0"
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-
 configuration:
   - release
 
@@ -80,14 +42,14 @@ install:
   - ren win-iconv-%WIN_ICONV_VER% iconv
   - mkdir iconv-build
   - cd iconv-build
-  - "%WITH_COMPILER% cmake -G \"NMake Makefiles\" -DWIN_ICONV_BUILD_STATIC=on -DWIN_ICONV_BUILD_SHARED=off -DWIN_ICONV_BUILD_EXECUTABLE=off -DWIN_ICONV_BUILD_TEST=on -DDISABLE_LOCALE_CHARSET=on -DCMAKE_BUILD_TYPE=Release ..\\iconv"
-  - "%WITH_COMPILER% cmake --build ."
-  - win_iconv_test.exe
+  - "%WITH_COMPILER% cmake -G \"Visual Studio 17 2022\" -DWIN_ICONV_BUILD_STATIC=on -DWIN_ICONV_BUILD_SHARED=off -DWIN_ICONV_BUILD_EXECUTABLE=off -DWIN_ICONV_BUILD_TEST=on -DDISABLE_LOCALE_CHARSET=on ..\\iconv"
+  - "%WITH_COMPILER% cmake --build . --config Release"
+  - Release\win_iconv_test.exe
   - cd ..\iconv
   - mkdir include
   - mkdir lib
   - copy iconv.h include
-  - copy ..\iconv-build\libiconv.lib lib\iconv.lib
+  - copy ..\iconv-build\Release\libiconv.lib lib\iconv.lib
   - cd ..
   # if cache doesn't have it, download it
   - >
@@ -105,19 +67,19 @@ build_script:
   - if exist c:\openssl-v33-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-v33-win%WIDTH%
   - if exist c:\openssl-v35-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-v35-win%WIDTH%
   - set DEST_DIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
-  - set GENERATOR=Ninja
+  - set GENERATOR=Visual Studio 17 2022
   - if %VS_VERSION% lss 2015 set GENERATOR=NMake Makefiles
-  - "%WITH_COMPILER% cmake -G \"%GENERATOR%\" -DCMAKE_BUILD_TYPE=Release -DENABLE_MSDBLIB=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" \"-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%\" .."
-  - "%WITH_COMPILER% cmake --build ."
+  - "%WITH_COMPILER% cmake -G \"%GENERATOR%\" -DENABLE_MSDBLIB=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" \"-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%\" .."
+  - "%WITH_COMPILER% cmake --build . --config Release"
   - set PATH=%OPENSSL_ROOT_DIR%\bin;%PATH%
-  - src\apps\tsql.exe -C
+  - src\apps\Release\tsql.exe -C
   - cd ..
   - mkdir build_debug
   - cd build_debug
-  - "%WITH_COMPILER% cmake -G \"%GENERATOR%\" -DCMAKE_BUILD_TYPE=Debug -DENABLE_EXTRA_CHECKS=on -DENABLE_MSDBLIB=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" \"-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%\" .."
-  - "%WITH_COMPILER% cmake --build ."
-  - "%WITH_COMPILER% cmake --build . --target build_tests"
-  - src\apps\tsql.exe -C
+  - "%WITH_COMPILER% cmake -G \"%GENERATOR%\" -DENABLE_EXTRA_CHECKS=on -DENABLE_MSDBLIB=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" \"-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%\" .."
+  - "%WITH_COMPILER% cmake --build . --config Debug"
+  - "%WITH_COMPILER% cmake --build . --config Debug --target build_tests"
+  - src\apps\Debug\tsql.exe -C
   - cd ..
 
 test_script:
@@ -143,14 +105,14 @@ test_script:
   # Add dirs of our just built DLLs to PATH envvar so everything works with older cmake
   - if %VS_VERSION% lss 2019 set PATH=%CD%\src\ctlib;%CD%\src\dblib;%PATH%
   # register ODBC driver
-  - "%WINDIR%\\SysWOW64\\regsvr32 /s src\\odbc\\tdsodbc.dll || %WINDIR%\\system32\\regsvr32 /s src\\odbc\\tdsodbc.dll"
+  - "%WINDIR%\\SysWOW64\\regsvr32 /s src\\odbc\\Debug\\tdsodbc.dll || %WINDIR%\\system32\\regsvr32 /s src\\odbc\\Debug\\tdsodbc.dll"
   # Build and run tests
   - set CTEST_OUTPUT_ON_FAILURE=1
   - set DIAG_SILENT_ABORT=Y
-  - "%WITH_COMPILER% cmake --build . --target check"
+  - "%WITH_COMPILER% cmake --build . --config Debug --target check"
   - set TDSDUMP=%CD%\conndump
   - set TDSDUMPCONFIG=%CD%\confdump
-  - echo select @@version | src\apps\tsql.exe -S local -U sa -P Password12! -D tempdb
+  - echo select @@version | src\apps\Debug\tsql.exe -S local -U sa -P Password12! -D tempdb
   - cd ..
 
 after_test:
@@ -161,7 +123,7 @@ after_test:
   - if exist c:\openssl-v35-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-v35-win%WIDTH%
   # Create zipball artifact
   - cd build
-  - "%WITH_COMPILER% cmake --install ."
+  - "%WITH_COMPILER% cmake --install . --config Release"
   - set DEST_DIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
   - if exist %OPENSSL_ROOT_DIR%\libssl-3-x64.dll copy %OPENSSL_ROOT_DIR%\libssl-3-x64.dll %DEST_DIR%\bin\
   - if exist %OPENSSL_ROOT_DIR%\libcrypto-3-x64.dll copy %OPENSSL_ROOT_DIR%\libcrypto-3-x64.dll %DEST_DIR%\bin\
