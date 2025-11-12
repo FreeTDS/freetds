@@ -107,7 +107,9 @@ typedef DWORD pid_t;
 /* Use API as always present and not causing problems */
 #undef getpid
 #define getpid()           GetCurrentProcessId()
+#ifndef strdup
 #define strdup(s)          _strdup(s)
+#endif
 #define unlink(f)          _unlink(f)
 #define putenv(s)          _putenv(s)
 #undef fileno
