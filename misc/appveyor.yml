@@ -53,6 +53,7 @@ install:
        echo c
        echo d
      }
+  - sh: echo try
   - sh: |
      set -ex
      echo hello
