@@ -37,13 +37,13 @@ configuration:
 
 install:
   # win-iconv
-  - |
+  - >
     if a == a (
-       echo a
-       echo b
+    (echo a)
+    && (echo b)
     ) else (
-       echo c
-       echo d
+    (echo c)
+    && (echo d)
     )
   - |
     if NOT a == b (
