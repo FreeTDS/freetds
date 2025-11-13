@@ -37,6 +37,23 @@ configuration:
 
 install:
   # win-iconv
+  - |
+    if a == a (
+       echo a
+       echo b
+    ) else (
+       echo c
+       echo d
+    )
+  - |
+    if NOT a == b (
+       echo a
+       echo b
+    ) else (
+       echo c
+       echo d
+    )
+  - exit 1
   - appveyor DownloadFile https://github.com/FreeTDS/win-iconv/archive/%WIN_ICONV_VER%.zip
   - 7z x %WIN_ICONV_VER%.zip
   - ren win-iconv-%WIN_ICONV_VER% iconv
