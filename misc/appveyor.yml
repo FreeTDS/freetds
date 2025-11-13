@@ -37,6 +37,8 @@ configuration:
 
 install:
   # win-iconv
+  - echo %CMDCMDLINE%
+  - set
   - >
     if a == a (
     (echo a)
