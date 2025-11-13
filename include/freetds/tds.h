@@ -1718,6 +1718,7 @@ TDSRET tds_writetext_start(TDSSOCKET *tds, const char *objname, const char *text
 TDSRET tds_writetext_continue(TDSSOCKET *tds, const TDS_UCHAR *text, TDS_UINT size);
 TDSRET tds_writetext_end(TDSSOCKET *tds);
 
+TDSRET tds_calc_cbt_from_tls_unique(unsigned char *tls_unique_buf, size_t tls_unique_len, unsigned char cbt[16]);
 
 inline static bool
 tds_capability_enabled(const TDS_CAPABILITY_TYPE *cap, unsigned cap_num)

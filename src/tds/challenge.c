@@ -39,12 +39,23 @@
 #include <freetds/bytes.h>
 #include <freetds/utils/string.h>
 #include <freetds/iconv.h>
+#include <freetds/replacements.h>
+#include <freetds/tds.h>
+#include <freetds/time.h>
 #include <freetds/utils.h>
+#include <freetds/utils/des.h>
+#include <freetds/utils/hmac_md5.h>
 #include <freetds/utils/md4.h>
 #include <freetds/utils/md5.h>
-#include <freetds/utils/hmac_md5.h>
-#include <freetds/utils/des.h>
-#include <freetds/replacements.h>
+#include <freetds/utils/string.h>
+
+#if defined(HAVE_OPENSSL)
+#include <openssl/ssl.h>
+#endif
+
+#if defined(HAVE_GNUTLS)
+#include <gnutls/gnutls.h>
+#endif
 
 /**
  * \ingroup libtds
@@ -54,7 +65,7 @@
 
 /**
  * \addtogroup auth
- * @{ 
+ * @{
  */
 
 /*
@@ -67,26 +78,24 @@ typedef struct tds_answer
 	unsigned char nt_resp[24];
 } TDSANSWER;
 
-
 typedef struct
 {
-	uint8_t  response_type;
-	uint8_t  max_response_type;
+	uint8_t response_type;
+	uint8_t max_response_type;
 	uint16_t reserved1;
 	uint32_t reserved2;
 	uint64_t timestamp;
-	uint8_t  challenge[8];
+	uint8_t challenge[8];
 	uint32_t unknown;
 	/* target info block - variable length */
-	uint8_t  target_info[4];
+	uint8_t target_info[4];
 } names_blob_prefix_t;
 
-static TDSRET
-tds_answer_challenge(TDSSOCKET * tds,
-		     TDSLOGIN * login,
-		     const unsigned char *challenge,
-		     uint32_t * flags,
-		     const unsigned char *names_blob, int names_blob_len, TDSANSWER * answer, unsigned char **ntlm_v2_response);
+static TDSRET tds_answer_challenge(TDSSOCKET * tds, TDSLOGIN * login,
+				   const unsigned char *challenge,
+				   uint32_t * flags,
+				   const unsigned char *names_blob,
+				   int names_blob_len, TDSANSWER * answer, unsigned char **ntlm_v2_response);
 static void tds_encrypt_answer(const unsigned char *hash, const unsigned char *challenge, unsigned char *answer);
 static void tds_convert_key(const unsigned char *key_56, DES_KEY * ks);
 
@@ -100,13 +109,13 @@ convert_to_upper(char *buf, size_t len)
 }
 
 static size_t
-convert_to_usc2le_string(TDSSOCKET * tds, const char *s, size_t len, char *out)
+convert_to_usc2le_string(TDSSOCKET *tds, const char *s, size_t len, char *out)
 {
 	const char *ib;
 	char *ob;
 	size_t il, ol;
 
-	TDSICONV * char_conv = tds->conn->char_convs[client2ucs2];
+	TDSICONV *char_conv = tds->conn->char_convs[client2ucs2];
 
 	/* char_conv is only mostly const */
 	TDS_ERRNO_MESSAGE_FLAGS *suppress = (TDS_ERRNO_MESSAGE_FLAGS *) & char_conv->suppress;
@@ -122,14 +131,14 @@ convert_to_usc2le_string(TDSSOCKET * tds, const char *s, size_t len, char *out)
 	ob = out;
 	ol = len * 2;
 	memset(suppress, 0, sizeof(char_conv->suppress));
-	if (tds_iconv(tds, char_conv, to_server, &ib, &il, &ob, &ol) == (size_t) - 1)
+	if (tds_iconv(tds, char_conv, to_server, &ib, &il, &ob, &ol) == (size_t) -1)
 		return (size_t) -1;
 
 	return ob - out;
 }
 
 static TDSRET
-make_ntlm_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_hash[16])
+make_ntlm_hash(TDSSOCKET *tds, const char *passwd, unsigned char ntlm_hash[16])
 {
 	MD4_CTX context;
 	size_t passwd_len = 0;
@@ -158,9 +167,8 @@ make_ntlm_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_hash[16])
 	return TDS_SUCCESS;
 }
 
-
 static TDSRET
-make_ntlm_v2_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_v2_hash[16])
+make_ntlm_v2_hash(TDSSOCKET *tds, const char *passwd, unsigned char ntlm_v2_hash[16])
 {
 	const char *user_name, *domain;
 	size_t domain_len, user_name_len, len, buf_usc2le_len = 0;
@@ -201,7 +209,6 @@ make_ntlm_v2_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_v2_has
 		return TDS_FAIL;
 	buf_usc2le_len += len;
 
-
 	res = make_ntlm_hash(tds, passwd, ntlm_hash);
 	hmac_md5(ntlm_hash, (const unsigned char *) buf_usc2le, buf_usc2le_len, ntlm_v2_hash);
 
@@ -211,7 +218,6 @@ make_ntlm_v2_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_v2_has
 	memset((char *) buf_usc2le, 0, buf_usc2le_len);
 	return res;
 }
-
 
 /*
  * hash - The NTLMv2 Hash.
@@ -226,6 +232,7 @@ make_lm_v2_response(const unsigned char ntlm_v2_hash[16],
 	unsigned char *mac;
 
 	mac = tds_new(unsigned char, mac_len);
+
 	if (!mac)
 		return NULL;
 
@@ -237,11 +244,11 @@ make_lm_v2_response(const unsigned char ntlm_v2_hash[16],
 }
 
 static TDSRET
-tds_answer_challenge_ntlmv2(TDSSOCKET * tds,
-		     TDSLOGIN * login,
-		     const unsigned char *challenge,
-		     uint32_t * flags,
-		     const unsigned char *names_blob, int names_blob_len, TDSANSWER * answer, unsigned char **ntlm_v2_response)
+tds_answer_challenge_ntlmv2(TDSSOCKET *tds, TDSLOGIN *login,
+			    const unsigned char *challenge,
+			    uint32_t *flags,
+			    const unsigned char *names_blob,
+			    int names_blob_len, TDSANSWER *answer, unsigned char **ntlm_v2_response)
 {
 	TDSRET res;
 	const char *passwd = tds_dstr_cstr(&login->password);
@@ -281,18 +288,18 @@ tds_answer_challenge_ntlmv2(TDSSOCKET * tds,
 }
 
 /**
- * Crypt a given password using schema required for NTLMv1 or NTLM2 authentication
+ * Crypt a given password using schema required for NTLMv1 or NTLM2
+ * authentication
  * @param passwd clear text domain password
  * @param challenge challenge data given by server
  * @param flags NTLM flags from server side
  * @param answer buffer where to store crypted password
  */
 static TDSRET
-tds_answer_challenge(TDSSOCKET * tds,
-		     TDSLOGIN * login,
+tds_answer_challenge(TDSSOCKET *tds, TDSLOGIN *login,
 		     const unsigned char *challenge,
-		     uint32_t * flags,
-		     const unsigned char *names_blob, int names_blob_len, TDSANSWER * answer, unsigned char **ntlm_v2_response)
+		     uint32_t *flags,
+		     const unsigned char *names_blob, int names_blob_len, TDSANSWER *answer, unsigned char **ntlm_v2_response)
 {
 #define MAX_PW_SZ 14
 	const char *passwd = tds_dstr_cstr(&login->password);
@@ -303,8 +310,8 @@ tds_answer_challenge(TDSSOCKET * tds,
 	memset(answer, 0, sizeof(TDSANSWER));
 
 	if (login->use_ntlmv2) {
-		return tds_answer_challenge_ntlmv2(tds, login, challenge, flags,
-						   names_blob, names_blob_len, answer, ntlm_v2_response);
+		return tds_answer_challenge_ntlmv2(tds, login, challenge, flags, names_blob,
+						   names_blob_len, answer, ntlm_v2_response);
 	} else if ((*flags & 0x80000) != 0) {
 		/* NTLM2 */
 		MD5_CTX md5_ctx;
@@ -323,7 +330,10 @@ tds_answer_challenge(TDSSOCKET * tds,
 		/* LM */
 		size_t len, i;
 		unsigned char passwd_buf[MAX_PW_SZ];
-		static const des_cblock magic = { 0x4B, 0x47, 0x53, 0x21, 0x40, 0x23, 0x24, 0x25 };
+
+		static const des_cblock magic = { 0x4B, 0x47, 0x53, 0x21,
+			0x40, 0x23, 0x24, 0x25
+		};
 
 		/* convert password to upper and pad to 14 chars */
 		memset(passwd_buf, 0, MAX_PW_SZ);
@@ -363,12 +373,11 @@ tds_answer_challenge(TDSSOCKET * tds,
 	return res;
 }
 
-
 /*
-* takes a 21 byte array and treats it as 3 56-bit DES keys. The
-* 8 byte plaintext is encrypted with each key and the resulting 24
-* bytes are stored in the results array.
-*/
+ * takes a 21 byte array and treats it as 3 56-bit DES keys. The
+ * 8 byte plaintext is encrypted with each key and the resulting 24
+ * bytes are stored in the results array.
+ */
 static void
 tds_encrypt_answer(const unsigned char *hash, const unsigned char *challenge, unsigned char *answer)
 {
@@ -386,13 +395,12 @@ tds_encrypt_answer(const unsigned char *hash, const unsigned char *challenge, un
 	memset(&ks, 0, sizeof(ks));
 }
 
-
 /*
-* turns a 56 bit key into the 64 bit, odd parity key and sets the key.
-* The key schedule ks is also set.
-*/
+ * turns a 56 bit key into the 64 bit, odd parity key and sets the key.
+ * The key schedule ks is also set.
+ */
 static void
-tds_convert_key(const unsigned char *key_56, DES_KEY * ks)
+tds_convert_key(const unsigned char *key_56, DES_KEY *ks)
 {
 	des_cblock key;
 
@@ -412,8 +420,7 @@ tds_convert_key(const unsigned char *key_56, DES_KEY * ks)
 }
 
 static TDSRET
-tds7_send_auth(TDSSOCKET * tds,
-	       const unsigned char *challenge, uint32_t flags, const unsigned char *names_blob, int names_blob_len)
+tds7_send_auth(TDSSOCKET *tds, const unsigned char *challenge, uint32_t flags, const unsigned char *names_blob, int names_blob_len)
 {
 	size_t current_pos;
 	TDSANSWER answer;
@@ -445,6 +452,7 @@ tds7_send_auth(TDSSOCKET * tds,
 
 	/* convert strings */
 	convert_buffer = tds_new(char, (user_name_len + host_name_len) * 2);
+
 	if (!convert_buffer)
 		return TDS_FAIL;
 
@@ -530,7 +538,8 @@ tds7_send_auth(TDSSOCKET * tds,
 
 	/* flags */
 	/* "challenge" is 8 bytes long */
-	/* tds_answer_challenge(tds_dstr_cstr(&login->password), challenge, &flags, &answer); */
+	/* tds_answer_challenge(tds_dstr_cstr(&login->password), challenge, &flags,
+	 * &answer); */
 	tds_put_int(tds, flags);
 
 	/* OS Version Structure (Optional) */
@@ -566,7 +575,7 @@ typedef struct tds_ntlm_auth
 } TDSNTLMAUTH;
 
 static TDSRET
-tds_ntlm_free(TDSCONNECTION * conn TDS_UNUSED, TDSAUTHENTICATION * tds_auth)
+tds_ntlm_free(TDSCONNECTION *conn TDS_UNUSED, TDSAUTHENTICATION *tds_auth)
 {
 	TDSNTLMAUTH *auth = (TDSNTLMAUTH *) tds_auth;
 
@@ -583,10 +592,10 @@ static const unsigned char ntlm_id[] = "NTLMSSP";
  * This takes GMT as input
  */
 static void
-unix_to_nt_time(uint64_t * nt, struct timeval *tv)
+unix_to_nt_time(uint64_t *nt, struct timeval *tv)
 {
 	/* C time start on 1970, nt time on 1600 */
-#define TIME_FIXUP_CONSTANT (((uint64_t) 134774U) * 86400U)
+#define TIME_FIXUP_CONSTANT (((uint64_t)134774U) * 86400U)
 
 	uint64_t t2;
 
@@ -598,8 +607,146 @@ unix_to_nt_time(uint64_t * nt, struct timeval *tv)
 	*nt = t2;
 }
 
+TDSRET
+tds_calc_cbt_from_tls_unique(unsigned char *tls_unique_buf, size_t tls_unique_len, unsigned char cbt[16])
+{
+	MD5_CTX md5_ctx;
+	unsigned char *channel_binding_struct;
+	size_t struct_len;
+	size_t application_data_raw_len;
+
+	/* Build channel binding structure */
+	/* initiator_address: 8 bytes of zeros */
+	/* acceptor_address: 8 bytes of zeros */
+	/* application_data: 4 bytes length (little endian) + "tls-unique:" + tls_unique */
+	 application_data_raw_len = 11 + tls_unique_len;
+	 struct_len = 8 + 8 + 4 + application_data_raw_len;
+ 
+	 channel_binding_struct = tds_new0(unsigned char, struct_len);
+ 
+	 if (!channel_binding_struct) {
+		tdsdump_log(TDS_DBG_NETWORK, "tds_gss_get_channel_binding: failed to allocate channel binding structure\n");
+		return TDS_FAIL;
+	 }
+	
+	/* initiator_address: 8 bytes of zeros (already zeroed by tds_new0) */
+	/* acceptor_address: 8 bytes of zeros (already zeroed by tds_new0) */
+	/* Offset is 16 at this point */
+
+	/* Build application_data: length + "tls-unique:" + tls_unique */
+	TDS_PUT_A4LE(channel_binding_struct + 16, application_data_raw_len);	/* length (4 bytes) */
+	memcpy(channel_binding_struct + 20, "tls-unique:", 11);	/* "tls-unique:" prefix */
+	memcpy(channel_binding_struct + 20 + 11, tls_unique_buf, tls_unique_len);	/* tls_unique data */
+
+	/* Calculate MD5 hash */
+	MD5Init(&md5_ctx);
+	MD5Update(&md5_ctx, channel_binding_struct, struct_len);
+	MD5Final(&md5_ctx, cbt);
+
+	free(channel_binding_struct);
+	
+	return TDS_SUCCESS;
+}
+/**
+ * Add channel binding token (CBT) AV_PAIR to target_info in names_blob
+ * @param tds TDSSOCKET structure
+ * @param names_blob pointer to names_blob buffer (may be reallocated)
+ * @param names_blob_len pointer to current length (will be updated)
+ * @return TDS_SUCCESS or TDS_FAIL
+ */
+static TDSRET
+add_cbt_data(TDSSOCKET *tds, unsigned char **names_blob, int *names_blob_len, int target_info_len)
+{
+	unsigned char tls_unique_buf[256];
+	size_t tls_unique_len = 0;
+	unsigned char *new_names_blob;
+	int new_blob_len;
+	int target_info_offset;
+	unsigned char *cbt_av_pair;
+	unsigned char cbt[16];
+
+	if (!tds->conn || !tds->conn->tls_session) {
+		/* No TLS session, skip channel binding */
+		return TDS_SUCCESS;
+	}
+
+#if defined(HAVE_OPENSSL)
+	SSL *ssl;
+	ssl = (SSL *) tds->conn->tls_session;
+
+	/* Get tls-unique from OpenSSL */
+	tls_unique_len = SSL_get_finished(ssl, tls_unique_buf, sizeof(tls_unique_buf));
+	if (tls_unique_len == 0) {
+		/* Try peer finished as fallback */
+		tls_unique_len = SSL_get_peer_finished(ssl, tls_unique_buf, sizeof(tls_unique_buf));
+		if (tls_unique_len == 0) {
+			tdsdump_log(TDS_DBG_NETWORK, "tds_gss_get_channel_binding: failed to get tls-unique from OpenSSL\n");
+			/* No tls-unique available, skip channel binding */
+			return TDS_SUCCESS;
+		}
+	}
+#elif defined(HAVE_GNUTLS)
+	gnutls_datum_t unique;
+	int rc;
+
+	rc = gnutls_session_channel_binding((gnutls_session_t) tds->conn->tls_session, GNUTLS_CB_TLS_UNIQUE, &unique);
+	if (rc) {
+		tdsdump_log(TDS_DBG_NETWORK, "tds_gss_get_channel_binding: failed to get tls-unique: %s\n", gnutls_strerror(rc));
+		return TDS_SUCCESS;
+	}
+	tls_unique_len = unique.size;
+	memcpy(tls_unique_buf, unique.data, unique.size);
+#else
+	tdsdump_log(TDS_DBG_NETWORK, "tds_gss_get_channel_binding: available only with OpenSSL or GnuTLS\n");
+	return TDS_SUCCESS;
+#endif
+
+	if (tls_unique_len == 0) {
+		tdsdump_log(TDS_DBG_NETWORK, "tds_gss_get_channel_binding: failed to get tls-unique\n");
+		return TDS_SUCCESS;
+	}
+
+	rc = tds_calc_cbt_from_tls_unique(tls_unique_buf, tls_unique_len, cbt);
+	if (TDS_FAILED(rc)) {
+		tdsdump_log(TDS_DBG_NETWORK, "tds_gss_get_channel_binding: failed to calculate CBT\n");
+		return rc;
+	}
+	tdsdump_dump_buf(TDS_DBG_INFO1, "Channel Binding Token", cbt, 16);
+	
+	target_info_offset = TDS_OFFSET(names_blob_prefix_t, target_info);
+	tdsdump_dump_buf(TDS_DBG_INFO1, "Old names_blob before reallocation\n", *names_blob, *names_blob_len);
+
+	/* Reallocate names_blob to add CBT AV_PAIR (4 bytes header + 16 bytes CBT) */
+	new_blob_len = *names_blob_len + 4 + 16;	/* +20 for CBT AV_PAIR */
+
+	// FIXME: Some strange behaviout, we have redundant 4 bytes at the end of the names_blob
+	new_blob_len -= 4;
+	target_info_len -= 4;
+
+	new_names_blob = realloc(*names_blob, new_blob_len);
+	if (!new_names_blob) {
+		return TDS_FAIL;
+	}
+	tdsdump_log(TDS_DBG_INFO1, "Reallocating names_blob from %d bytes to %d bytes\n", *names_blob_len, new_blob_len);
+
+	/* Insert CBT AV_PAIR */
+	cbt_av_pair = new_names_blob + target_info_offset + target_info_len;
+
+	TDS_PUT_A2LE(cbt_av_pair, 0x000A);	/* AvId = 0xA (little endian) */
+	TDS_PUT_A2LE(cbt_av_pair + 2, 16);	/* AvLen = 16 (little endian) */
+	memcpy(cbt_av_pair + 4, cbt, 16);	/* CBT (16 bytes) */
+	memset(cbt_av_pair + 20, 0, 4);	// Terminator
+
+	tdsdump_dump_buf(TDS_DBG_INFO1, "New names_blob\n", new_names_blob, new_blob_len);
+	/* Update names_blob and length */
+	*names_blob = new_names_blob;
+	*names_blob_len = new_blob_len;
+
+	return TDS_SUCCESS;
+}
+
 static void
-fill_names_blob_prefix(names_blob_prefix_t * prefix)
+fill_names_blob_prefix(names_blob_prefix_t *prefix)
 {
 	struct timeval tv;
 	uint64_t nttime = 0;
@@ -621,9 +768,9 @@ fill_names_blob_prefix(names_blob_prefix_t * prefix)
 }
 
 static TDSRET
-tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth TDS_UNUSED, size_t len)
+tds_ntlm_handle_next(TDSSOCKET *tds, struct tds_authentication *auth TDS_UNUSED, size_t len)
 {
-	const int length = (int)len;
+	const int length = (int) len;
 	unsigned char nonce[8];
 	uint32_t flags;
 	int where;
@@ -653,12 +800,14 @@ tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth TDS_UNUSE
 	where = 32;
 
 	/*data_block_offset == 32 */
-	/* Version 1 -- The Context, Target Information, and OS Version structure are all omitted */
+	/* Version 1 -- The Context, Target Information, and OS Version structure are
+	 * all omitted */
 
 	if (data_block_offset >= 48 && where + 16 <= length) {
 		int target_info_len, target_info_offset;
 
-		/* Version 2 -- The Context and Target Information fields are present, but the OS Version structure is not. */
+		/* Version 2 -- The Context and Target Information fields are present, but
+		 * the OS Version structure is not. */
 		tds_get_n(tds, NULL, 8);	/* Context (two consecutive longs) */
 
 		target_info_len = tds_get_smallint(tds);	/* Target Information len */
@@ -668,7 +817,8 @@ tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth TDS_UNUSE
 		where += 16;
 
 		if (data_block_offset >= 56 && where + 8 <= length) {
-			/* Version 3 -- The Context, Target Information, and OS Version structure are all present. */
+			/* Version 3 -- The Context, Target Information, and OS Version structure
+			 * are all present. */
 			tds_get_n(tds, NULL, 8);	/* OS Version Structure */
 #if 0
 			/* if we have a version server handle NTLMv2 */
@@ -693,12 +843,20 @@ tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth TDS_UNUSE
 
 			/* read Target Info */
 			names_blob = tds_new0(unsigned char, names_blob_len);
+
 			if (!names_blob)
 				return TDS_FAIL;
 
 			fill_names_blob_prefix((names_blob_prefix_t *) names_blob);
 			tds_get_n(tds, names_blob + TDS_OFFSET(names_blob_prefix_t, target_info), target_info_len);
 			where += target_info_len;
+
+			/* Add channel binding token (CBT) AV_PAIR to target_info in names_blob */
+			rc = add_cbt_data(tds, &names_blob, &names_blob_len, target_info_len);
+			if (TDS_FAILED(rc)) {
+				tdsdump_log(TDS_DBG_NETWORK, "tds_ntlm_handle_next: failed to add CBT AV_PAIR, skipping CBT\n");
+				rc = TDS_SUCCESS;
+			}
 		}
 	}
 	/* discard anything left */
@@ -714,11 +872,12 @@ tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth TDS_UNUSE
 
 /**
  * Build a NTLMSPP packet to send to server
- * @param tds     A pointer to the TDSSOCKET structure managing a client/server operation.
+ * @param tds     A pointer to the TDSSOCKET structure managing a client/server
+ * operation.
  * @return authentication info
  */
-TDSAUTHENTICATION * 
-tds_ntlm_get_auth(TDSSOCKET * tds)
+TDSAUTHENTICATION *
+tds_ntlm_get_auth(TDSSOCKET *tds)
 {
 	const char *domain;
 	const char *user_name;
@@ -733,14 +892,14 @@ tds_ntlm_get_auth(TDSSOCKET * tds)
 		return NULL;
 
 	user_name = tds_dstr_cstr(&tds->login->user_name);
-	host_name_len = (int)tds_dstr_len(&tds->login->client_host_name);
+	host_name_len = (int) tds_dstr_len(&tds->login->client_host_name);
 
 	/* check override of domain */
 	if ((p = strchr(user_name, '\\')) == NULL)
 		return NULL;
 
 	domain = user_name;
-	domain_len = (int)(p - user_name);
+	domain_len = (int) (p - user_name);
 
 	auth = tds_new0(struct tds_ntlm_auth, 1);
 
@@ -772,7 +931,7 @@ tds_ntlm_get_auth(TDSSOCKET * tds)
 	/* hostname info */
 	TDS_PUT_A2LE(packet + 24, host_name_len);
 	TDS_PUT_A2LE(packet + 26, host_name_len);
-	TDS_PUT_A4  (packet + 28, TDS_HOST4LE(40));
+	TDS_PUT_A4(packet + 28, TDS_HOST4LE(40));
 
 	/*
 	 * here XP put version like 05 01 28 0a (5.1.2600),
@@ -790,4 +949,3 @@ tds_ntlm_get_auth(TDSSOCKET * tds)
 }
 
 /** @} */
-
