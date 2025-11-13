@@ -27,7 +27,6 @@ environment:
 
   matrix:
   - PLAT: Win64
-    WIDTH: 64
     VS_VERSION: "2022"
     TDSVER: "7.4"
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
@@ -37,48 +36,41 @@ configuration:
 
 install:
   # win-iconv
-  - echo %CMDCMDLINE%
-  - echo %CMDCMDLINE%
-  - echo %CMDCMDLINE%
-  - set
-  - echo %CMDCMDLINE%
-  - type %CMDCMDLINE:* /c =%
-  - >
-    if a == a (
-    (echo a)
-    && (echo b)
-    ) else (
-    (echo c)
-    && (echo d)
-    )
-  - ps: |
-     if (1 -eq 2) {
-       echo a
-       echo b
+  - ps: &setup |
+     $ENV:WIDTH = $ENV:PLAT.Substring($ENV:PLAT.length - 2)
+     if ($ENV:VS_VERSION -eq 2022) {
+       $ENV:GENERATOR = "Visual Studio 17 2022"
+       $ENV:BUILD_TYPE = "-DCMAKE_BUILD_TYPE="
+       $ENV:CONFIG_OPT = "--config"
+       $ENV:CONFIG_DEBUG = ".\Debug\"
+       $ENV:CONFIG_RELEASE = ".\Release\"
      } else {
-       echo c
-       echo d
+       $ENV:GENERATOR = "NMake Makefiles"
+       $ENV:BUILD_TYPE = " "
+       $ENV:CONFIG_OPT = " "
+       $ENV:CONFIG_DEBUG = "."
+       $ENV:CONFIG_RELEASE = "."
      }
-  - sh: echo try
-  - sh: |
-     set -ex
-     echo hello
-     false
-     echo mao
-  - exit 1
+     if (Test-Path "c:\openssl-v35-win$ENV:WIDTH") {
+       $ENV:OPENSSL_ROOT_DIR = "c:\openssl-v35-win$ENV:WIDTH"
+     } elseif (Test-Path "c:\openssl-v33-win$ENV:WIDTH") {
+       $ENV:OPENSSL_ROOT_DIR = "c:\openssl-v33-win$ENV:WIDTH"
+     } elseif (Test-Path "c:\openssl-win$ENV:WIDTH") {
+       $ENV:OPENSSL_ROOT_DIR = "c:\openssl-win$ENV:WIDTH"
+     }
   - appveyor DownloadFile https://github.com/FreeTDS/win-iconv/archive/%WIN_ICONV_VER%.zip
   - 7z x %WIN_ICONV_VER%.zip
   - ren win-iconv-%WIN_ICONV_VER% iconv
   - mkdir iconv-build
   - cd iconv-build
   - "%WITH_COMPILER% cmake -G \"Visual Studio 17 2022\" -DWIN_ICONV_BUILD_STATIC=on -DWIN_ICONV_BUILD_SHARED=off -DWIN_ICONV_BUILD_EXECUTABLE=off -DWIN_ICONV_BUILD_TEST=on -DDISABLE_LOCALE_CHARSET=on ..\\iconv"
-  - "%WITH_COMPILER% cmake --build . --config Release"
-  - Release\win_iconv_test.exe
+  - "%WITH_COMPILER% cmake --build . %CONFIG_OPT% %CONFIG_RELEASE:~2,-1%"
+  - "%CONFIG_RELEASE:~2%win_iconv_test.exe"
   - cd ..\iconv
   - mkdir include
   - mkdir lib
   - copy iconv.h include
-  - copy ..\iconv-build\Release\libiconv.lib lib\iconv.lib
+  - "copy ..\\iconv-build\\%CONFIG_RELEASE:~2%libiconv.lib lib\\iconv.lib"
   - cd ..
   # if cache doesn't have it, download it
   - >
@@ -89,29 +81,28 @@ install:
 
 build_script:
   # build FreeTDS
+  - ps: *setup
   - set CMAKE_BUILD_PARALLEL_LEVEL=4
   - mkdir build
   - cd build
-  - if exist c:\openssl-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-win%WIDTH%
-  - if exist c:\openssl-v33-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-v33-win%WIDTH%
-  - if exist c:\openssl-v35-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-v35-win%WIDTH%
   - set DEST_DIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
   - set GENERATOR=Visual Studio 17 2022
   - if %VS_VERSION% lss 2015 set GENERATOR=NMake Makefiles
   - "%WITH_COMPILER% cmake -G \"%GENERATOR%\" -DENABLE_MSDBLIB=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" \"-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%\" .."
-  - "%WITH_COMPILER% cmake --build . --config Release"
+  - "%WITH_COMPILER% cmake --build . %CONFIG_OPT% %CONFIG_RELEASE:~2,-1%"
   - set PATH=%OPENSSL_ROOT_DIR%\bin;%PATH%
-  - src\apps\Release\tsql.exe -C
+  - "src\\apps\\%CONFIG_RELEASE:~2%tsql.exe -C"
   - cd ..
   - mkdir build_debug
   - cd build_debug
   - "%WITH_COMPILER% cmake -G \"%GENERATOR%\" -DENABLE_EXTRA_CHECKS=on -DENABLE_MSDBLIB=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" \"-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%\" .."
-  - "%WITH_COMPILER% cmake --build . --config Debug"
-  - "%WITH_COMPILER% cmake --build . --config Debug --target build_tests"
-  - src\apps\Debug\tsql.exe -C
+  - "%WITH_COMPILER% cmake --build . %CONFIG_OPT% %CONFIG_DEBUG:~2,-1%"
+  - "%WITH_COMPILER% cmake --build . %CONFIG_OPT% %CONFIG_DEBUG:~2,-1% --target build_tests"
+  - "src\\apps\\%CONFIG_DEBUG:~2%tsql.exe -C"
   - cd ..
 
 test_script:
+  - ps: *setup
   - set CTEST_PARALLEL_LEVEL=4
   - set INSTANCENAME=SQL2017
   - if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2019" set INSTANCENAME=SQL2019
@@ -134,25 +125,23 @@ test_script:
   # Add dirs of our just built DLLs to PATH envvar so everything works with older cmake
   - if %VS_VERSION% lss 2019 set PATH=%CD%\src\ctlib;%CD%\src\dblib;%PATH%
   # register ODBC driver
-  - "%WINDIR%\\SysWOW64\\regsvr32 /s src\\odbc\\Debug\\tdsodbc.dll || %WINDIR%\\system32\\regsvr32 /s src\\odbc\\Debug\\tdsodbc.dll"
+  - "%WINDIR%\\SysWOW64\\regsvr32 /s src\\odbc\\%CONFIG_DEBUG:~2%tdsodbc.dll || %WINDIR%\\system32\\regsvr32 /s src\\odbc\\%CONFIG_DEBUG:~2%tdsodbc.dll"
   # Build and run tests
   - set CTEST_OUTPUT_ON_FAILURE=1
   - set DIAG_SILENT_ABORT=Y
-  - "%WITH_COMPILER% cmake --build . --config Debug --target check"
+  - "%WITH_COMPILER% cmake --build . %CONFIG_OPT% %CONFIG_DEBUG:~2,-1% --target check"
   - set TDSDUMP=%CD%\conndump
   - set TDSDUMPCONFIG=%CD%\confdump
-  - echo select @@version | src\apps\Debug\tsql.exe -S local -U sa -P Password12! -D tempdb
+  - echo select @@version | src\apps\%CONFIG_DEBUG:~2%tsql.exe -S local -U sa -P Password12! -D tempdb
   - cd ..
 
 after_test:
+  - ps: *setup
   - type %CD%\build_debug\confdump
   - type %CD%\build_debug\conndump
-  - if exist c:\openssl-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-win%WIDTH%
-  - if exist c:\openssl-v33-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-v33-win%WIDTH%
-  - if exist c:\openssl-v35-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-v35-win%WIDTH%
   # Create zipball artifact
   - cd build
-  - "%WITH_COMPILER% cmake --install . --config Release"
+  - "%WITH_COMPILER% cmake --install . %CONFIG_OPT% %CONFIG_RELEASE:~2,-1%"
   - set DEST_DIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
   - if exist %OPENSSL_ROOT_DIR%\libssl-3-x64.dll copy %OPENSSL_ROOT_DIR%\libssl-3-x64.dll %DEST_DIR%\bin\
   - if exist %OPENSSL_ROOT_DIR%\libcrypto-3-x64.dll copy %OPENSSL_ROOT_DIR%\libcrypto-3-x64.dll %DEST_DIR%\bin\
