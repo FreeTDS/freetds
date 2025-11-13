@@ -53,6 +53,11 @@ install:
        echo c
        echo d
      }
+  - sh: |
+    set -ex
+    echo hello
+    false
+    echo mao
   - exit 1
   - appveyor DownloadFile https://github.com/FreeTDS/win-iconv/archive/%WIN_ICONV_VER%.zip
   - 7z x %WIN_ICONV_VER%.zip
