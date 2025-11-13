@@ -42,6 +42,7 @@ install:
   - echo %CMDCMDLINE%
   - set
   - echo %CMDCMDLINE%
+  - type %CMDCMDLINE:* /c =%
   - >
     if a == a (
     (echo a)
