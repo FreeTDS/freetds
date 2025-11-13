@@ -27,11 +27,6 @@ environment:
 
   matrix:
   - PLAT: Win64
-    VS_VERSION: "2022"
-    TDSVER: "7.4"
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-
-  - PLAT: Win64
     VS_VERSION: "2019"
     TDSVER: "7.4"
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
@@ -40,6 +35,11 @@ environment:
     VS_VERSION: "2008"
     TDSVER: "7.0"
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+
+  - PLAT: Win64
+    VS_VERSION: "2022"
+    TDSVER: "7.4"
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
 
 configuration:
   - release
@@ -78,7 +78,7 @@ install:
   - ren win-iconv-%WIN_ICONV_VER% iconv
   - mkdir iconv-build
   - cd iconv-build
-  - "%WITH_COMPILER% cmake -G \"Visual Studio 17 2022\" -DWIN_ICONV_BUILD_STATIC=on -DWIN_ICONV_BUILD_SHARED=off -DWIN_ICONV_BUILD_EXECUTABLE=off -DWIN_ICONV_BUILD_TEST=on -DDISABLE_LOCALE_CHARSET=on %BUILD_TYPE_RELEASE% ..\\iconv"
+  - "%WITH_COMPILER% cmake -G \"%GENERATOR%\" -DWIN_ICONV_BUILD_STATIC=on -DWIN_ICONV_BUILD_SHARED=off -DWIN_ICONV_BUILD_EXECUTABLE=off -DWIN_ICONV_BUILD_TEST=on -DDISABLE_LOCALE_CHARSET=on %BUILD_TYPE_RELEASE% ..\\iconv"
   - "%WITH_COMPILER% cmake --build . %CONFIG_OPT% %CONFIG_RELEASE:~2,-1%"
   - "%CONFIG_RELEASE:~2%win_iconv_test.exe"
   - cd ..\iconv
