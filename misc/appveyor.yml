@@ -31,6 +31,16 @@ environment:
     TDSVER: "7.4"
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
 
+  - PLAT: Win64
+    VS_VERSION: "2019"
+    TDSVER: "7.4"
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+
+  - PLAT: Win32
+    VS_VERSION: "2008"
+    TDSVER: "7.0"
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+
 configuration:
   - release
 
@@ -40,30 +50,35 @@ install:
      $ENV:WIDTH = $ENV:PLAT.Substring($ENV:PLAT.length - 2)
      if ($ENV:VS_VERSION -eq 2022) {
        $ENV:GENERATOR = "Visual Studio 17 2022"
-       $ENV:BUILD_TYPE = "-DCMAKE_BUILD_TYPE="
+       $ENV:BUILD_TYPE_DEBUG = " "
+       $ENV:BUILD_TYPE_RELEASE = " "
        $ENV:CONFIG_OPT = "--config"
        $ENV:CONFIG_DEBUG = ".\Debug\"
        $ENV:CONFIG_RELEASE = ".\Release\"
      } else {
-       $ENV:GENERATOR = "NMake Makefiles"
-       $ENV:BUILD_TYPE = " "
+       $ENV:GENERATOR = "Ninja"
+       $ENV:BUILD_TYPE_DEBUG = "-DCMAKE_BUILD_TYPE=Debug"
+       $ENV:BUILD_TYPE_RELEASE = "-DCMAKE_BUILD_TYPE=Release"
        $ENV:CONFIG_OPT = " "
        $ENV:CONFIG_DEBUG = "."
        $ENV:CONFIG_RELEASE = "."
      }
-     if (Test-Path "c:\openssl-v35-win$ENV:WIDTH") {
-       $ENV:OPENSSL_ROOT_DIR = "c:\openssl-v35-win$ENV:WIDTH"
-     } elseif (Test-Path "c:\openssl-v33-win$ENV:WIDTH") {
-       $ENV:OPENSSL_ROOT_DIR = "c:\openssl-v33-win$ENV:WIDTH"
-     } elseif (Test-Path "c:\openssl-win$ENV:WIDTH") {
-       $ENV:OPENSSL_ROOT_DIR = "c:\openssl-win$ENV:WIDTH"
+     if ($ENV:VS_VERSION -lt 2015) {
+       $ENV:GENERATOR = "NMake Makefiles"
+     }
+     ForEach ($v in @('v35-', 'v33-', '')) {
+       $d = "c:\openssl-${v}win$ENV:WIDTH"
+       if (Test-Path $d) {
+         $ENV:OPENSSL_ROOT_DIR = $d
+         break
+       }
      }
   - appveyor DownloadFile https://github.com/FreeTDS/win-iconv/archive/%WIN_ICONV_VER%.zip
   - 7z x %WIN_ICONV_VER%.zip
   - ren win-iconv-%WIN_ICONV_VER% iconv
   - mkdir iconv-build
   - cd iconv-build
-  - "%WITH_COMPILER% cmake -G \"Visual Studio 17 2022\" -DWIN_ICONV_BUILD_STATIC=on -DWIN_ICONV_BUILD_SHARED=off -DWIN_ICONV_BUILD_EXECUTABLE=off -DWIN_ICONV_BUILD_TEST=on -DDISABLE_LOCALE_CHARSET=on ..\\iconv"
+  - "%WITH_COMPILER% cmake -G \"Visual Studio 17 2022\" -DWIN_ICONV_BUILD_STATIC=on -DWIN_ICONV_BUILD_SHARED=off -DWIN_ICONV_BUILD_EXECUTABLE=off -DWIN_ICONV_BUILD_TEST=on -DDISABLE_LOCALE_CHARSET=on %BUILD_TYPE_RELEASE% ..\\iconv"
   - "%WITH_COMPILER% cmake --build . %CONFIG_OPT% %CONFIG_RELEASE:~2,-1%"
   - "%CONFIG_RELEASE:~2%win_iconv_test.exe"
   - cd ..\iconv
@@ -86,16 +101,14 @@ build_script:
   - mkdir build
   - cd build
   - set DEST_DIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
-  - set GENERATOR=Visual Studio 17 2022
-  - if %VS_VERSION% lss 2015 set GENERATOR=NMake Makefiles
-  - "%WITH_COMPILER% cmake -G \"%GENERATOR%\" -DENABLE_MSDBLIB=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" \"-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%\" .."
+  - "%WITH_COMPILER% cmake -G \"%GENERATOR%\" %BUILD_TYPE_RELEASE% -DENABLE_MSDBLIB=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" \"-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%\" .."
   - "%WITH_COMPILER% cmake --build . %CONFIG_OPT% %CONFIG_RELEASE:~2,-1%"
   - set PATH=%OPENSSL_ROOT_DIR%\bin;%PATH%
   - "src\\apps\\%CONFIG_RELEASE:~2%tsql.exe -C"
   - cd ..
   - mkdir build_debug
   - cd build_debug
-  - "%WITH_COMPILER% cmake -G \"%GENERATOR%\" -DENABLE_EXTRA_CHECKS=on -DENABLE_MSDBLIB=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" \"-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%\" .."
+  - "%WITH_COMPILER% cmake -G \"%GENERATOR%\" %BUILD_TYPE_DEBUG% -DENABLE_EXTRA_CHECKS=on -DENABLE_MSDBLIB=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" \"-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%\" .."
   - "%WITH_COMPILER% cmake --build . %CONFIG_OPT% %CONFIG_DEBUG:~2,-1%"
   - "%WITH_COMPILER% cmake --build . %CONFIG_OPT% %CONFIG_DEBUG:~2,-1% --target build_tests"
   - "src\\apps\\%CONFIG_DEBUG:~2%tsql.exe -C"
