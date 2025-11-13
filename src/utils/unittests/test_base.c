@@ -23,12 +23,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #ifdef _WIN32
-#  include <freetds/windows.h>
 #  include <crtdbg.h>
-#  include <wchar.h>
+#  include <windows.h>
 
 static LONG WINAPI
 seh_handler(EXCEPTION_POINTERS* ep TDS_UNUSED)
@@ -62,103 +60,6 @@ suppress_diag_popup_messages(void)
 		SetUnhandledExceptionFilter(seh_handler);
 	}
 }
-
-static WCHAR*
-tds_wcsrstr(const WCHAR *haystack, const WCHAR *needle)
-{
-	WCHAR *res, *p;
-
-	res = wcsstr(haystack, needle);
-	while (res && (p = wcsstr(res + 1, needle)) != NULL)
-		res = p;
-	return res;
-}
-
-/**
- * Get path of executable and update PATH to include library
- */
-static void
-update_path(void)
-{
-	static const struct {
-		const WCHAR *dir;
-		const char *dll;
-	} *dir, dirs[] = {
-		{ L"replacements", "replacements.lib" },
-		{ L"utils", "tdsutils.lib" },
-		{ L"tds", "tds.lib" },
-		{ L"ctlib", "ct.dll" },
-		{ L"dblib", "sybdb.dll" },
-		{ L"odbc", "tdsodbc.dll" },
-		{ L"apps", "tsql.exe" },
-		{ NULL, NULL }
-	};
-
-	WCHAR fn[MAX_PATH], copy[MAX_PATH], *p;
-	WCHAR *name, *unit, *src, *env;
-	DWORD attributes;
-
-	/* GetModuleFileHandle for process */
-	assert(GetModuleFileNameW(NULL, fn, TDS_VECTOR_SIZE(fn)));
-
-	for (p = fn; *p; ++p)
-		if (*p == L'/')
-			*p = L'\\';
-
-	/* split directory */
-	name = wcsrchr(fn, L'\\');
-	assert(name);
-	*name = 0;
-
-	/* test existence (a bit of paranoia here) */
-	attributes = GetFileAttributesW(fn);
-	assert(attributes != INVALID_FILE_ATTRIBUTES);
-	assert((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0);
-
-	/* terminate with \ */
-	wcscpy(name, L"\\");
-
-	/* copy and convert to lower */
-	wcscpy(copy, fn);
-	for (p = copy; *p; ++p)
-		if (*p >= L'A' && *p <= L'Z')
-			*p += (L'a' - L'A');
-
-	unit = tds_wcsrstr(copy, L"\\unittests\\");
-	assert(unit && unit > copy);
-	*unit = 0;
-	src = tds_wcsrstr(copy, L"\\src\\");
-	assert(src && src > copy);
-	assert(wcschr(src + 5, L'\\') == NULL);
-	*name = 0;
-	memmove(fn + (unit - copy), fn + (unit -copy) + 10, wcslen(unit + 9) * sizeof(WCHAR));
-	memmove(unit, unit + 10, wcslen(unit + 9) * sizeof(WCHAR));
-	*unit = 0;
-
-	for (dir = dirs; dir->dir; ++dir) {
-		if (wcscmp(src + 5, dir->dir) != 0)
-			continue;
-		break;
-	}
-	assert(dir->dir);
-	*unit = L'\\';
-
-/*
- * find \src\ctlib\, \src\dblib\ and so on
- * understand where the DLL is
- */
-
-	/* set PATH accordingly */
-	env = _wgetenv(L"PATH");
-	assert(env);
-	p = tds_new(WCHAR, wcslen(fn) + wcslen(env) + 2);
-	assert(p);
-	_swprintf(p, L"%s;%s", fn, env);
-	env = p;
-
-	SetEnvironmentVariableW(L"PATH", env);
-	free(env);
-}
 #endif
 
 int
@@ -166,7 +67,6 @@ main(int argc, char ** argv)
 {
 #ifdef _WIN32
 	suppress_diag_popup_messages();
-	update_path();
 #endif
 	return test_main(argc, argv);
 }
