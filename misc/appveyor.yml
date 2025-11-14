@@ -70,8 +70,8 @@ install:
   # win-iconv
   - ps: &setup |
      $ENV:WIDTH = $ENV:PLAT.Substring($ENV:PLAT.length - 2)
-     if ($ENV:VS_VERSION -eq 2022) {
-       $ENV:GENERATOR = "Visual Studio 17 2022"
+     if ($ENV:VS_VERSION -eq 2013) {
+       $ENV:GENERATOR = "Visual Studio 12 2013"
        $ENV:BUILD_TYPE_DEBUG = " "
        $ENV:BUILD_TYPE_RELEASE = " "
        $ENV:CONFIG_OPT = "--config"
@@ -84,9 +84,9 @@ install:
        $ENV:CONFIG_OPT = " "
        $ENV:CONFIG_DEBUG = "."
        $ENV:CONFIG_RELEASE = "."
-     }
-     if ($ENV:VS_VERSION -lt 2015) {
-       $ENV:GENERATOR = "NMake Makefiles"
+       if ($ENV:VS_VERSION -lt 2015) {
+         $ENV:GENERATOR = "NMake Makefiles"
+       }
      }
      ForEach ($v in @('v35-', 'v33-', '')) {
        $d = "c:\openssl-${v}win$ENV:WIDTH"
