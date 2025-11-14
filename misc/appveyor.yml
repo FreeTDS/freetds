@@ -27,6 +27,12 @@ environment:
 
   matrix:
   - PLAT: Win64
+    VS_VERSION: "2013"
+    TDSVER: "auto"
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+    ODBC_MARS: "1"
+
+  - PLAT: Win64
     VS_VERSION: "2022"
     TDSVER: "7.4"
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
@@ -46,12 +52,6 @@ environment:
     VS_VERSION: "2015"
     TDSVER: "7.2"
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-
-  - PLAT: Win64
-    VS_VERSION: "2013"
-    TDSVER: "auto"
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-    ODBC_MARS: "1"
 
   - PLAT: Win32
     VS_VERSION: "2010"
