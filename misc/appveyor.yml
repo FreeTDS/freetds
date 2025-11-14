@@ -124,7 +124,7 @@ build_script:
   - cd build
   - set DEST_DIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
   - "%WITH_COMPILER% cmake -G \"%GENERATOR%\" %BUILD_TYPE_RELEASE% -DENABLE_MSDBLIB=on \"-DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR%\" \"-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%\" .."
-  - "%WITH_COMPILER% cmake --build . %CONFIG_OPT% %CONFIG_RELEASE:~2,-1%"
+  - "%WITH_COMPILER% cmake --build . --verbose %CONFIG_OPT% %CONFIG_RELEASE:~2,-1%"
   - set PATH=%OPENSSL_ROOT_DIR%\bin;%PATH%
   - "src\\apps\\%CONFIG_RELEASE:~2%tsql.exe -C"
   - cd ..
