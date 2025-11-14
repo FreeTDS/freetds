@@ -88,7 +88,7 @@ install:
          $ENV:GENERATOR = "NMake Makefiles"
        }
      }
-     ForEach ($v in @('v35-', 'v33-', '')) {
+     ForEach ($v in @('v35-', 'v33-', 'v111-', '')) {
        $d = "c:\openssl-${v}win$ENV:WIDTH"
        if (Test-Path $d) {
          $ENV:OPENSSL_ROOT_DIR = $d
