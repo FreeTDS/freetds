@@ -438,6 +438,7 @@ tds_bcp_start_insert_stmt(TDSSOCKET * tds, TDSBCPINFO * bcpinfo)
 		if (erc < 0)
 			return TDS_FAIL;
 	} else {
+		/* NOTE: Current ASE docs do not mention "insert bulk", it might be deprecated? */
 		/* NOTE: if we use "with nodescribe" for following inserts server do not send describe */
 		if (asprintf(&query, "insert bulk %s", tds_dstr_cstr(&bcpinfo->tablename)) < 0)
 			return TDS_FAIL;
