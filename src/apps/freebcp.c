@@ -542,7 +542,10 @@ file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 
 	li_numcols = bcp_gethostcolcount(dbproc);
 
-	/* Update column formats to concrete types for file I/O */
+	/* The data file does not use TDS nullable types. It uses non-nullable
+	 * representations, and a Length prefix if the target column was nullable.
+	 * The length prefix typically takes value 0 or -1 to indicate a null.
+	 */
 	for (i = 1; i <= li_numcols; i++) {
 		li_coltype = dbcoltype(dbproc, i);
 
@@ -554,7 +557,6 @@ file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 
 	process_Eflag(pdata, dbproc);
 	printf("\nStarting copy...\n\n");
-
 
 	if (FAIL == bcp_exec(dbproc, &li_rowsread)) {
 		fprintf(stderr, "bcp copy %s failed\n", (dir == DB_IN) ? "in" : "out");
