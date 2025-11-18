@@ -1245,8 +1245,13 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool sk
 			}
 		}
 
-		/* if (Max) column length specified take that into consideration. (Meaning what, exactly?) */
+		/* Or if data file does not use a length prefix for this column, work out the
+		 * length to read based on the size of a fixed data type.
+		 */
+		else if (is_fixed_type(hostcol->datatype))
+			collen = tds_get_size_by_type(hostcol->datatype);
 
+		/* if (Max) column length specified take that into consideration. (Meaning what, exactly?) */
 		if (!data_is_null && hostcol->column_len >= 0) {
 			if (hostcol->column_len == 0)
 				data_is_null = true;
@@ -1257,11 +1262,6 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool sk
 		}
 
 		tdsdump_log(TDS_DBG_FUNC, "prefix_len = %d collen = %d \n", hostcol->prefix_len, collen);
-
-		/* Fixed Length data - this overrides anything else specified */
-
-		if (is_fixed_type(hostcol->datatype))
-			collen = tds_get_size_by_type(hostcol->datatype);
 
 		col_start = ftello(hostfile);
 
