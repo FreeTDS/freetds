@@ -151,11 +151,15 @@ test_script:
   - set TDSDUMP=%CD%\conndump
   - set TDSDUMPCONFIG=%CD%\confdump
   - echo select @@version | src\apps\tsql.exe -S local -U sa -P Password12! -D tempdb
+  - set TDS_DEBUG_CRT_FILENAME=%CD%\crtdump
+  - set PATH=%CD%\src\ctlib;%CD%\src\dblib;%PATH%
+  - echo select @@version | src\apps\bsqldb.exe -S local -U sa -P Password12! -D tempdb
   - cd ..
 
 after_test:
   - type %CD%\build_debug\confdump
   - type %CD%\build_debug\conndump
+  - type %CD%\build_debug\crtdump
   - if exist c:\openssl-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-win%WIDTH%
   - if exist c:\openssl-v33-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-v33-win%WIDTH%
   - if exist c:\openssl-v35-win%WIDTH% set OPENSSL_ROOT_DIR=c:\openssl-v35-win%WIDTH%
