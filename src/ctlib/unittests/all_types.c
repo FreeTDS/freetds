@@ -66,7 +66,7 @@ TEST_MAIN()
 	TDSCONTEXT *tds_ctx;
 	TDSSOCKET *tds;
 
-	tdsdump_open(tds_dir_getenv(TDS_DIR("TDSDUMP")));
+	tdsdump_topen(tds_dir_getenv(TDS_DIR("TDSDUMP")));
 
 	check_call(cs_ctx_alloc, (CS_VERSION_100, &ctx));
 

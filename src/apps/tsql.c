@@ -546,7 +546,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 			if (!path)
 				exit(1);
 			tds_dir_snprintf(path, len, TDS_DIR("%s.instances"), filename);
-			tdsdump_open(path);
+			tdsdump_topen(path);
 			free(path);
 		}
 		if ((addr = tds_lookup_host(hostname)) != NULL) {

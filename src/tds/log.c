@@ -128,7 +128,11 @@ tdsdump_isopen(void)
  * \return  true if the file was opened, false if it couldn't be opened.
  */
 int
+#ifdef _WIN32
+tdsdump_wopen(const tds_dir_char *filename)
+#else
 tdsdump_open(const tds_dir_char *filename)
+#endif
 {
 	int result;		/* really should be a boolean, not an int */
 
@@ -189,6 +193,22 @@ tdsdump_open(const tds_dir_char *filename)
 	}
 	return result;
 }				/* tdsdump_open()  */
+
+#ifdef _WIN32
+int
+tdsdump_open(const char *filename)
+{
+	int ret;
+	tds_dir_char *fn = tds_dir_from_cstr(filename);
+
+	if (!fn)
+		return 0;
+
+	ret = tdsdump_wopen(fn);
+	free(fn);
+	return ret;
+}
+#endif
 
 static FILE*
 tdsdump_append(void)

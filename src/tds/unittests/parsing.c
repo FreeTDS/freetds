@@ -67,7 +67,7 @@ test_generic(const char *s, int expected_pos, bool comment, int line)
 
 TEST_MAIN()
 {
-	tdsdump_open(tds_dir_getenv(TDS_DIR("TDSDUMP")));
+	tdsdump_topen(tds_dir_getenv(TDS_DIR("TDSDUMP")));
 
 	/* test comment skipping */
 	test_comment("--", 2);

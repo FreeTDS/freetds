@@ -164,3 +164,4 @@ EXPORTS
 	dbwritetext
 	tdsdbopen
 	tdsdump_open
+	tdsdump_wopen
