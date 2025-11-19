@@ -60,7 +60,6 @@
 #include <freetds/replacements.h>
 #include <sybfront.h>
 #include <sybdb.h>
-#include <dblib.h>
 #include "freebcp.h"
 
 void pusage(void);
@@ -492,7 +491,7 @@ file_character(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	bcp_control(dbproc, BCPMAXERRS, pdata->maxerrors);
 
 	/* Reformat columns to SYBCHAR instead of native type, and add column and row terminator strings */
-	li_numcols = dbproc->hostfileinfo->host_colcount;
+	li_numcols = bcp_gethostcolcount(dbproc);
 	for (i = 1; i < li_numcols; ++i) {
 		if (bcp_colfmt(dbproc, i, SYBCHAR, 0, -1, (const BYTE *) pdata->fieldterm,
 			       pdata->fieldtermlen, i) == FAIL) {
@@ -541,8 +540,8 @@ file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	bcp_control(dbproc, BCPLAST, pdata->lastrow);
 	bcp_control(dbproc, BCPMAXERRS, pdata->maxerrors);
 
-	li_numcols = dbproc->hostfileinfo->host_colcount;
-	
+	li_numcols = bcp_gethostcolcount(dbproc);
+
 	/* Update column formats to concrete types for file I/O */
 	for (i = 1; i <= li_numcols; i++) {
 		li_coltype = dbcoltype(dbproc, i);

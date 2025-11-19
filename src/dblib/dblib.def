@@ -10,6 +10,7 @@ EXPORTS
 	bcp_done
 	bcp_exec
 	bcp_getbatchsize
+	bcp_gethostcolcount
 	bcp_getl
 	bcp_init
 	bcp_options
