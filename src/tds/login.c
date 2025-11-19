@@ -574,7 +574,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 	if (login->dump_file != NULL && !tdsdump_isopen()) {
 		if (login->debug_flags)
 			tds_debug_flags = login->debug_flags;
-		tdsdump_open(login->dump_file);
+		tdsdump_topen(login->dump_file);
 	}
 
 	tds->login = login;

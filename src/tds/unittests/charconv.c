@@ -317,7 +317,7 @@ main(void)
 	/* allow dumps, we don't have a connection here */
 	tdsdump = tds_dir_getenv(TDS_DIR("TDSDUMP"));
 	if (tdsdump)
-		tdsdump_open(tdsdump);
+		tdsdump_topen(tdsdump);
 
 	if (!ctx || !tds) {
 		fprintf(stderr, "Error creating socket!\n");

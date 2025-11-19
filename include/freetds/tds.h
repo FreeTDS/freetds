@@ -1517,7 +1517,14 @@ void tdsdump_off(TDSDUMP_OFF_ITEM *off_item);
 void tdsdump_on(TDSDUMP_OFF_ITEM *off_item);
 int tdsdump_isopen(void);
 #include <freetds/popvis.h>
-int tdsdump_open(const tds_dir_char *filename);
+/* This function is exported by DB-Library, do not change its ABI */
+int tdsdump_open(const char *filename);
+#ifdef _WIN32
+int tdsdump_wopen(const wchar_t *filename);
+#define tdsdump_topen tdsdump_wopen
+#else
+#define tdsdump_topen tdsdump_open
+#endif
 #include <freetds/pushvis.h>
 void tdsdump_close(void);
 void tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, const void *buf, size_t length);

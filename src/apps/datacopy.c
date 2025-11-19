@@ -89,7 +89,7 @@ static RETCODE set_textsize(DBPROCESS *dbproc, int textsize);
 static int err_handler(DBPROCESS *, int, int, int, char *, char *);
 static int msg_handler(DBPROCESS *, DBINT, int, int, char *, char *, char *, int);
 
-int tdsdump_open(const tds_dir_char *filename);
+int tdsdump_open(const char *filename);
 
 int
 main(int argc, char **argv)
@@ -239,7 +239,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 			pdata->owner = strdup(optarg);
 			break;
 		case 'd':
-			tdsdump_open(TDS_DIR("stderr"));
+			tdsdump_open("stderr");
 			break;
 		case 'S':
 			pdata->Sflag++;

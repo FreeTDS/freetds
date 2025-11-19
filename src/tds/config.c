@@ -152,12 +152,12 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 	s = tds_dir_getenv(TDS_DIR("TDSDUMPCONFIG"));
 	if (s) {
 		if (*s) {
-			opened = tdsdump_open(s);
+			opened = tdsdump_topen(s);
 		} else {
 			tds_dir_char path[TDS_VECTOR_SIZE(pid_config_logpath) + 22];
 			pid_t pid = getpid();
 			tds_dir_snprintf(path, TDS_VECTOR_SIZE(path), pid_config_logpath, (int) pid);
-			opened = tdsdump_open(path);
+			opened = tdsdump_topen(path);
 		}
 	}
 
@@ -266,7 +266,7 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 	if (connection->dump_file != NULL && !tdsdump_isopen()) {
 		if (connection->debug_flags)
 			tds_debug_flags = connection->debug_flags;
-		tdsdump_open(connection->dump_file);
+		tdsdump_topen(connection->dump_file);
 	}
 
 	return connection;
