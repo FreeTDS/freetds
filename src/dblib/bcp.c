@@ -591,6 +591,8 @@ bcp_control(DBPROCESS * dbproc, int field, DBINT value)
 int
 bcp_getbatchsize(DBPROCESS * dbproc)
 {
+	CHECK_CONN(-1);
+	CHECK_PARAMETER(dbproc->hostfileinfo, SYBEBCPI, -1);
 	return dbproc->hostfileinfo->batch;
 }
 
