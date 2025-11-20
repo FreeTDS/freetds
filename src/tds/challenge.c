@@ -76,7 +76,7 @@ typedef struct
 	uint32_t reserved2;
 	uint64_t timestamp;
 	uint8_t  challenge[8];
-	uint32_t unknown;
+	uint32_t reserved3;
 	/* target info block - variable length */
 	uint8_t  target_info[4];
 } names_blob_prefix_t;
@@ -617,7 +617,7 @@ fill_names_blob_prefix(names_blob_prefix_t * prefix)
 	prefix->timestamp = nttime;
 	tds_random_buffer(prefix->challenge, sizeof(prefix->challenge));
 
-	prefix->unknown = 0x00000000;
+	prefix->reserved3 = 0x00000000;
 }
 
 static TDSRET
