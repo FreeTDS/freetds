@@ -55,12 +55,18 @@
 #include <locale.h>
 #endif
 
-#include <freetds/tds.h>
-#include <freetds/utils.h>
-#include <freetds/replacements.h>
 #include <sybfront.h>
 #include <sybdb.h>
+
+#include <freetds/macros.h>
+#include <freetds/version.h>
+#include <freetds/utils.h>
+#include <freetds/utils/path.h>
+#include <freetds/replacements.h>
+
 #include "freebcp.h"
+
+int tdsdump_open(const char *filename);
 
 void pusage(void);
 int process_parameters(int, char **, struct pd *);
