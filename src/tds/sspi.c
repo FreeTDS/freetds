@@ -112,7 +112,7 @@ tds_init_secdll(void)
 }
 
 static int
-tds_sspi_free(TDSCONNECTION * conn TDS_UNUSED, struct tds_authentication * tds_auth)
+tds_sspi_free(TDSCONNECTION *conn TDS_UNUSED, TDSAUTHENTICATION *tds_auth)
 {
 	TDSSSPIAUTH *auth = (TDSSSPIAUTH *) tds_auth;
 
@@ -128,7 +128,7 @@ tds_sspi_free(TDSCONNECTION * conn TDS_UNUSED, struct tds_authentication * tds_a
 }
 
 static int
-tds_sspi_handle_next(TDSSOCKET * tds, struct tds_authentication * tds_auth, size_t len)
+tds_sspi_handle_next(TDSSOCKET *tds, TDSAUTHENTICATION *tds_auth, size_t len)
 {
 	SecBuffer in_buf, out_buf;
 	SecBufferDesc in_desc, out_desc;

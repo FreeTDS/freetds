@@ -621,7 +621,7 @@ fill_names_blob_prefix(names_blob_prefix_t * prefix)
 }
 
 static TDSRET
-tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth TDS_UNUSED, size_t len)
+tds_ntlm_handle_next(TDSSOCKET *tds, TDSAUTHENTICATION *auth TDS_UNUSED, size_t len)
 {
 	const int length = (int)len;
 	unsigned char nonce[8];
