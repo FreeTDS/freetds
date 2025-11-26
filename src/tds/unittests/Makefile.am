@@ -72,6 +72,10 @@ log_elision_SOURCES	=	log_elision.c
 convert_bounds_SOURCES	=	convert_bounds.c
 tls_SOURCES	=	tls.c
 sec_negotiate_SOURCES	= sec_negotiate.c
+if !HAVE_SSPI
+TESTS += cbt$(EXEEXT)
+cbt_SOURCES = cbt.c
+endif
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h utf8.c allcolumns.c
