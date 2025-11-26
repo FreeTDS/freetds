@@ -29,6 +29,7 @@ TESTS =	\
 	log_elision$(EXEEXT) \
 	convert_bounds$(EXEEXT) \
 	tls$(EXEEXT) \
+	sec_negotiate$(EXEEXT) \
 	$(NULL)
 
 # flags test commented, not necessary for 0.62
@@ -70,6 +71,7 @@ strftime_SOURCES	=	strftime.c
 log_elision_SOURCES	=	log_elision.c
 convert_bounds_SOURCES	=	convert_bounds.c
 tls_SOURCES	=	tls.c
+sec_negotiate_SOURCES	= sec_negotiate.c
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h utf8.c allcolumns.c
