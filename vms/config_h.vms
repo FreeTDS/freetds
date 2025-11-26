@@ -153,11 +153,6 @@
 #define HAVE_BIO_GET_DATA 1
 #endif
 
-/* Define to 1 if you have the `RSA_get0_key' function. */
-#if @D_RSA_GET0_KEY@
-#define HAVE_RSA_GET0_KEY 1
-#endif
-
 /* Define to 1 if you have the <paths.h> header file. */
 #undef HAVE_PATHS_H
 

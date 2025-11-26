@@ -64,11 +64,9 @@ $!
 $!
 $! Enable OpenSSL if we have it. Don't bother looking for pre-1.1.1 versions
 $!
-$ d_rsa_get0_key = "0"
 $ IF F$SEARCH("SSL3$INCLUDE:SSL.H") .NES. ""
 $ THEN
 $   d_openssl = "1"
-$   d_rsa_get0_key = "1"
 $   SAY "Found OpenSSL 3.x and creating linker options file..."
 $   OPEN/WRITE sslopt openssl.opt
 $   WRITE sslopt "SYS$SHARE:SSL3$LIBSSL_SHR32.EXE/SHARE"
@@ -78,7 +76,6 @@ $ ELSE
 $   IF F$SEARCH("SSL111$INCLUDE:SSL.H") .NES. ""
 $   THEN
 $     d_openssl = "1"
-$     d_rsa_get0_key = "1"
 $     SAY "Found OpenSSL 1.1.x and creating linker options file..."
 $     OPEN/WRITE sslopt openssl.opt
 $     WRITE sslopt "SYS$SHARE:SSL111$LIBSSL_SHR32.EXE/SHARE"
@@ -117,8 +114,6 @@ $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@D_OPENSSL@"",""''d_openssl'"");"
 $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@D_STDINT@"",""''d_stdint'"");"
-$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
-$ write vmsconfigtmp "eve_global_replace(""@D_RSA_GET0_KEY@"",""''d_rsa_get0_key'"");"
 $ write vmsconfigtmp "out_file := GET_INFO (COMMAND_LINE, ""output_file"");"
 $ write vmsconfigtmp "WRITE_FILE (main_buffer, out_file);"
 $ write vmsconfigtmp "quit;"
