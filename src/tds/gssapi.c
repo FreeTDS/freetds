@@ -114,7 +114,7 @@ tds_gss_free(TDSCONNECTION *conn TDS_UNUSED, TDSAUTHENTICATION *tds_auth)
 	return TDS_SUCCESS;
 }
 
-static TDSRET tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *token_ptr);
+static TDSRET tds_gss_continue(TDSSOCKET * tds, TDSGSSAUTH * auth, gss_buffer_desc * token_ptr);
 
 static TDSRET
 tds7_gss_handle_next(TDSSOCKET *tds, TDSAUTHENTICATION *auth, size_t len)
@@ -122,7 +122,7 @@ tds7_gss_handle_next(TDSSOCKET *tds, TDSAUTHENTICATION *auth, size_t len)
 	TDSRET res;
 	gss_buffer_desc recv_tok;
 
-	if (((struct tds_gss_auth *) auth)->last_stat != GSS_S_CONTINUE_NEEDED)
+	if (((TDSGSSAUTH *) auth)->last_stat != GSS_S_CONTINUE_NEEDED)
 		return TDS_FAIL;
 
 	if (auth->packet) {
@@ -141,7 +141,7 @@ tds7_gss_handle_next(TDSSOCKET *tds, TDSAUTHENTICATION *auth, size_t len)
 		return TDS_FAIL;
 	tds_get_n(tds, recv_tok.value, len);
 
-	res = tds_gss_continue(tds, (struct tds_gss_auth *) auth, &recv_tok);
+	res = tds_gss_continue(tds, (TDSGSSAUTH *) auth, &recv_tok);
 	free(recv_tok.value);
 	TDS_PROPAGATE(res);
 
@@ -160,7 +160,7 @@ tds5_gss_handle_next(TDSSOCKET *tds, TDSAUTHENTICATION *auth, size_t len TDS_UNU
 	TDSPARAMINFO *info;
 	TDSCOLUMN *col;
 
-	if (((struct tds_gss_auth *) auth)->last_stat != GSS_S_CONTINUE_NEEDED)
+	if (((TDSGSSAUTH *) auth)->last_stat != GSS_S_CONTINUE_NEEDED)
 		return TDS_FAIL;
 
 	if (auth->packet) {
@@ -202,7 +202,7 @@ tds5_gss_handle_next(TDSSOCKET *tds, TDSAUTHENTICATION *auth, size_t len TDS_UNU
 	recv_tok.value = ((TDSBLOB*) col->column_data)->textvalue;
 	recv_tok.length = col->column_size;
 
-	TDS_PROPAGATE(tds_gss_continue(tds, (struct tds_gss_auth *) auth, &recv_tok));
+	TDS_PROPAGATE(tds_gss_continue(tds, (TDSGSSAUTH *) auth, &recv_tok));
 
 	tds->out_flag = TDS_NORMAL;
 	TDS_PROPAGATE(tds5_gss_send(tds));
@@ -248,12 +248,12 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	struct addrinfo *addrs = NULL;
 	int len = 0;
 
-	struct tds_gss_auth *auth;
+	TDSGSSAUTH *auth;
 
 	if (!tds->login)
 		return NULL;
 
-	auth = tds_new0(struct tds_gss_auth, 1);
+	auth = tds_new0(TDSGSSAUTH, 1);
 	if (!auth)
 		return NULL;
 
@@ -354,7 +354,7 @@ tds_error_message(OM_uint32 e)
 #endif
 
 static TDSRET
-tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *token_ptr)
+tds_gss_continue(TDSSOCKET *tds, TDSGSSAUTH *auth, gss_buffer_desc *token_ptr)
 {
 	gss_buffer_desc send_tok;
 	OM_uint32 maj_stat, min_stat = 0;
