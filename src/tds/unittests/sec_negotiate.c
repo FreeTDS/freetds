@@ -20,6 +20,10 @@
 /*
  * Check sec_negotiate_openssl.h code
  */
+
+/* With this macro we force OpenSSL to trigger errors using deprecated functions */
+#define OPENSSL_NO_DEPRECATED
+
 #include "common.h"
 
 #if defined(HAVE_OPENSSL)
@@ -104,7 +108,8 @@ TEST_MAIN()
 		fprintf(stderr, "error creating context\n");
 		return 1;
 	}
-	if (EVP_PKEY_decrypt_init(ctx) <= 0 || EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING) <= 0) {
+	if (EVP_PKEY_decrypt_init(ctx) <= 0
+	    || EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_RSA, -1, EVP_PKEY_CTRL_RSA_PADDING, RSA_PKCS1_OAEP_PADDING, NULL) <= 0) {
 		fprintf(stderr, "error setting context\n");
 		return 1;
 	}
