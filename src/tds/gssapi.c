@@ -366,7 +366,7 @@ tds_gss_get_channel_binding(TDSSOCKET *tds)
 	if (tls_unique_len == 0)
 		return GSS_C_NO_CHANNEL_BINDINGS;
 
-	cb = tds_new0(struct gss_channel_bindings_struct, 1);
+	cb = calloc(sizeof(struct gss_channel_bindings_struct) + 11 + tls_unique_len, sizeof(char));
 
 	if (!cb) {
 		tdsdump_log(TDS_DBG_NETWORK, "tds_gss_get_channel_binding: failed to allocate channel bindings\n");
@@ -377,7 +377,7 @@ tds_gss_get_channel_binding(TDSSOCKET *tds)
 	cb->initiator_address.length = 0;
 	cb->acceptor_addrtype = GSS_C_AF_UNSPEC;
 	cb->acceptor_address.length = 0;
-	cb->application_data.value = tds_new(char, tls_unique_len + 11);
+	cb->application_data.value = (void *) (cb + 1);
 
 	cb->application_data.length = tls_unique_len + 11;
 
@@ -438,6 +438,8 @@ tds_gss_continue(TDSSOCKET *tds, TDSGSSAUTH *auth, gss_buffer_desc *token_ptr)
 	maj_stat =
 		gss_init_sec_context(&min_stat, GSS_C_NO_CREDENTIAL, &auth->gss_context, auth->target_name, GSS_C_NULL_OID,
 				     gssapi_flags, 0, cb, token_ptr, &pmech, &send_tok, &ret_flags, NULL /* ignore time_rec */ );
+
+	free(cb);
 
 	tdsdump_log(TDS_DBG_NETWORK, "gss_init_sec_context: actual mechanism at %p\n", pmech);
 	if (pmech && pmech->elements) {
