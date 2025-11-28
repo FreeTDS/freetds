@@ -65,7 +65,6 @@
  * @{
  */
 
-#define PRIsSTR "S"
 #define TDS_CALC_CB_SIZE(cb) \
     ((cb) == NULL ? \
         0 : \
@@ -384,8 +383,8 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 			tds_sspi_free(tds->conn, &auth->tds_auth);
 			return NULL;
 		}
-		wsprintf(auth->sname, TEXT("MSSQLSvc/%") TEXT(PRIsSTR) TEXT(":%d"), server_name, login->port);
-		tdsdump_log(TDS_DBG_NETWORK, "kerberos name %" PRIsSTR "\n", auth->sname);
+		wsprintf(auth->sname, TEXT("MSSQLSvc/%S:%d"), server_name, login->port);
+		tdsdump_log(TDS_DBG_NETWORK, "kerberos name %S\n", auth->sname);
 	}
 	if (addrs)
 		freeaddrinfo(addrs);
