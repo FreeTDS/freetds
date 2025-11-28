@@ -52,10 +52,9 @@ tds_vasprintf(char **ret, const char *fmt, va_list ap)
 
 	if (len >= 0) {
 		*ret = malloc(len + 1);
-		if (*ret) {
-			vsprintf(*ret, fmt, ap);
-			return len;
-		}
+		if (*ret)
+			return vsprintf_s(*ret, len + 1, fmt, ap);
+
 		errno = ENOMEM;
 	}
 	*ret = NULL;
