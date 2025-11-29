@@ -18,7 +18,6 @@ autom4te.cache
 depcomp
 freetds.spec
 PWD
-doxyfile
 test-dist.log
 compile
 install-sh
