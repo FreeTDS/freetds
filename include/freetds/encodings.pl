@@ -183,6 +183,8 @@ foreach $n (sort { $index{$a} <=> $index{$b} } keys %charsets)
 }
 printf "\t%30s =%4d\n};\n\n", "TDS_NUM_CHARSETS", $i++;
 
+unlink("charset_lookup.gperf");
+
 exit 0;
 __DATA__
 #http://www.sybase.com/detail/1,6904,1016214,00.html
