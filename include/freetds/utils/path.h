@@ -35,7 +35,8 @@ typedef wchar_t tds_dir_char;
 #define tds_dir_len wcslen
 #define tds_dir_cmp wcscmp
 #define tds_dir_snprintf _snwprintf
-#define TDS_DIR(s) L ## s
+#define TDS_DIR_(s) L ## s
+#define TDS_DIR(s) TDS_DIR_(s)
 #define tdsPRIdir "ls"
 tds_dir_char *tds_dir_from_cstr(const char *path);
 #else

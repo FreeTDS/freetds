@@ -174,7 +174,7 @@ test_script:
   # Add dirs of our just built DLLs to PATH envvar so everything works with older cmake
   - >-
     if %VS_VERSION% lss 2019 set
-    PATH=%CD%\src\ctlib%CONFIG_DEBUG:~1,-1%;%CD%\src\dblib%CONFIG_DEBUG:~1,-1%;%CD%\src\apps%CONFIG_DEBUG:~1,-1%;%PATH%
+    PATH=%CD%\src\ctlib%CONFIG_DEBUG:~1,-1%;%CD%\src\dblib%CONFIG_DEBUG:~1,-1%;%PATH%
   # register ODBC driver
   - >-
     %WINDIR%\SysWOW64\regsvr32 /s src\odbc\%CONFIG_DEBUG:~2%tdsodbc.dll ||

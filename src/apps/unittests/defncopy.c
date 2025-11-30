@@ -396,18 +396,27 @@ update_path(void)
 	assert(len > 0);
 	setenv(name, path, 1);
 #else
+	const tds_dir_char *only = L"PATH=..";
+	const tds_dir_char *start = L"PATH=..;%s";
 	tds_dir_char *p;
 	size_t len;
 
+#ifdef CMAKE_INTDIR
+	if (CMAKE_INTDIR[0]) {
+		only = L"PATH=..\\" TDS_DIR(CMAKE_INTDIR);
+		start = L"PATH=..\\" TDS_DIR(CMAKE_INTDIR) L";%s";
+	}
+#endif
+
 	if (!path) {
-		_wputenv(L"PATH=..");
+		_wputenv(only);
 		return;
 	}
 
-	len = tds_dir_len(path) + 10;
+	len = tds_dir_len(path) + 100;
 	p = tds_new(tds_dir_char, len);
 	assert(p);
-	tds_dir_snprintf(p, len, TDS_DIR("PATH=..;%s"), path);
+	tds_dir_snprintf(p, len, start, path);
 	path = p;
 	_wputenv(path);
 #endif
