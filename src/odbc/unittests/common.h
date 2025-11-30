@@ -242,3 +242,6 @@ extern struct odbc_lookup_int odbc_sql_types[];
 
 void odbc_swap_stmts(SQLHSTMT *a, SQLHSTMT *b);
 #define SWAP_STMT(stmt) odbc_swap_stmts(&odbc_stmt, &stmt)
+#define ODBC_SWAP(type, a, b) do { \
+	type tmp = (a); (a) = (b); (b) = tmp; \
+} while(0)

@@ -638,7 +638,10 @@ odbc_read_error(void)
 
 	memset(odbc_err, 0, sizeof(odbc_err));
 	memset(odbc_sqlstate, 0, sizeof(odbc_sqlstate));
-	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, state, NULL, err, sizeof(odbc_err), NULL, "SI");
+	if (odbc_stmt != SQL_NULL_HSTMT)
+		CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, state, NULL, err, sizeof(odbc_err), NULL, "SI");
+	else
+		CHKGetDiagRec(SQL_HANDLE_DBC, odbc_conn, 1, state, NULL, err, sizeof(odbc_err), NULL, "SI");
 	strcpy(odbc_err, C(err));
 	strcpy(odbc_sqlstate, C(state));
 	ODBC_FREE();

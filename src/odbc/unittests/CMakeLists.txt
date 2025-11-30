@@ -33,6 +33,7 @@ set(tests
 	tvp tokens
 	describeparam
 	reexec
+	oldpwd
 )
 
 if(WIN32)
@@ -45,7 +46,7 @@ add_library(o_common STATIC common.c common.h c2string.c parser.c parser.h
 	fake_thread.c fake_thread.h)
 
 set(static_tests all_types utf8_4 connection_string_parse)
-set(unicode_tests utf8 oldpwd)
+set(unicode_tests utf8)
 foreach(target ${tests})
 	add_executable(o_${target} EXCLUDE_FROM_ALL ${target}.c)
 	set_target_properties(o_${target} PROPERTIES OUTPUT_NAME ${target})
