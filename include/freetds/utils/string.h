@@ -21,6 +21,7 @@
 #define _tdsguard_d2McTbRS3vmVcq0ls4BzwH_
 
 #include <freetds/macros.h>
+#include <freetds/bool.h>
 
 #include <freetds/pushvis.h>
 
@@ -56,7 +57,7 @@ tds_dstr_init(DSTR * s)
 }
 
 /** test if string is empty */
-static inline int
+static inline bool
 tds_dstr_isempty(const DSTR * s)
 {
 	return (*s)->dstr_size == 0;
