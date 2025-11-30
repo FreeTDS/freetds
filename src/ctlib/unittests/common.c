@@ -384,7 +384,9 @@ servermsg_cb(CS_CONTEXT * context TDS_UNUSED, CS_CONNECTION * connection TDS_UNU
 const char *
 res_type_str(CS_RETCODE ret)
 {
-	static char str[64];
+	static char str[4][32];
+	static uint8_t last_used;
+	uint8_t n;
 
 #define S(s) case s: return #s;
 	switch ((int) ret) {
@@ -399,8 +401,9 @@ res_type_str(CS_RETCODE ret)
 #undef S
 	}
 
-	sprintf(str, "?? (%d)", (int) ret);
-	return str;
+	n = (last_used++) & 3;
+	snprintf(str[n], sizeof(str[0]), "?? (%d)", (int) ret);
+	return str[n];
 }
 
 void
