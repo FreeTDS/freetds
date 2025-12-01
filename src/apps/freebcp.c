@@ -461,7 +461,6 @@ file_character(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	DBINT li_rowsread = 0;
 	int i;
 	int li_numcols = 0;
-	RETCODE ret_code = 0;
 
 	if (FAIL == bcp_init(dbproc, pdata->dbobject, pdata->hostfilename, pdata->errorfile, dir))
 		return FALSE;
@@ -491,39 +490,8 @@ file_character(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	bcp_control(dbproc, BCPLAST, pdata->lastrow);
 	bcp_control(dbproc, BCPMAXERRS, pdata->maxerrors);
 
-	if (dir == DB_QUERYOUT) {
-		if (dbfcmd(dbproc, "SET FMTONLY ON %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
-			fprintf(stderr, "dbfcmd failed\n");
-			return FALSE;
-		}
-	} else {
-		if (dbfcmd(dbproc, "SET FMTONLY ON select * from %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
-			fprintf(stderr, "dbfcmd failed\n");
-			return FALSE;
-		}
-	}
-
-	if (dbsqlexec(dbproc) == FAIL) {
-		fprintf(stderr, "dbsqlexec failed\n");
-		return FALSE;
-	}
-
-	while (NO_MORE_RESULTS != (ret_code = dbresults(dbproc))) {
-		if (ret_code == SUCCEED && li_numcols == 0) {
-			li_numcols = dbnumcols(dbproc);
-		}
-	}
-
-	if (0 == li_numcols) {
-		fprintf(stderr, "Error in dbnumcols\n");
-		return FALSE;
-	}
-
-	if (bcp_columns(dbproc, li_numcols) == FAIL) {
-		fprintf(stderr, "Error in bcp_columns.\n");
-		return FALSE;
-	}
-
+	/* Reformat columns to SYBCHAR instead of native type, and add column and row terminator strings */
+	li_numcols = bcp_gethostcolcount(dbproc);
 	for (i = 1; i < li_numcols; ++i) {
 		if (bcp_colfmt(dbproc, i, SYBCHAR, 0, -1, (const BYTE *) pdata->fieldterm,
 			       pdata->fieldtermlen, i) == FAIL) {
@@ -559,7 +527,6 @@ file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	int i;
 	int li_numcols = 0;
 	int li_coltype;
-	RETCODE ret_code = 0;
 
 	if (FAIL == bcp_init(dbproc, pdata->dbobject, pdata->hostfilename, pdata->errorfile, dir))
 		return FALSE;
@@ -589,39 +556,12 @@ file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	bcp_control(dbproc, BCPLAST, pdata->lastrow);
 	bcp_control(dbproc, BCPMAXERRS, pdata->maxerrors);
 
-	if (dir == DB_QUERYOUT) {
-		if (dbfcmd(dbproc, "SET FMTONLY ON %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
-			fprintf(stderr, "dbfcmd failed\n");
-			return FALSE;
-		}
-	} else {
-		if (dbfcmd(dbproc, "SET FMTONLY ON select * from %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
-			fprintf(stderr, "dbfcmd failed\n");
-			return FALSE;
-		}
-	}
+	li_numcols = bcp_gethostcolcount(dbproc);
 
-	if (dbsqlexec(dbproc) == FAIL) {
-		fprintf(stderr, "dbsqlexec failed\n");
-		return FALSE;
-	}
-
-	while (NO_MORE_RESULTS != (ret_code = dbresults(dbproc))) {
-		if (ret_code == SUCCEED && li_numcols == 0) {
-			li_numcols = dbnumcols(dbproc);
-		}
-	}
-
-	if (0 == li_numcols) {
-		fprintf(stderr, "Error in dbnumcols\n");
-		return FALSE;
-	}
-
-	if (bcp_columns(dbproc, li_numcols) == FAIL) {
-		fprintf(stderr, "Error in bcp_columns.\n");
-		return FALSE;
-	}
-
+	/* The data file does not use TDS nullable types. It uses non-nullable
+	 * representations, and a Length prefix if the target column was nullable.
+	 * The length prefix typically takes value 0 or -1 to indicate a null.
+	 */
 	for (i = 1; i <= li_numcols; i++) {
 		li_coltype = dbcoltype(dbproc, i);
 
@@ -630,9 +570,7 @@ file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 			return FALSE;
 		}
 	}
-
 	printf("\nStarting copy...\n\n");
-
 
 	if (FAIL == bcp_exec(dbproc, &li_rowsread)) {
 		fprintf(stderr, "bcp copy %s failed\n", (dir == DB_IN) ? "in" : "out");

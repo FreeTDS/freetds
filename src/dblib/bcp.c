@@ -581,10 +581,10 @@ bcp_control(DBPROCESS * dbproc, int field, DBINT value)
 /*
  * \ingroup dblib_bcp
  * \brief Get BCP batch option
- * 
+ *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \remarks This function is specific to FreeTDS.  
- * 
+ * \remarks This function is specific to FreeTDS.
+ *
  * \return the value that was set by bcp_control.
  * \sa 	bcp_batch(), bcp_control()
  */
@@ -594,6 +594,28 @@ bcp_getbatchsize(DBPROCESS * dbproc)
 	CHECK_CONN(-1);
 	CHECK_PARAMETER(dbproc->hostfileinfo, SYBEBCPI, -1);
 	return dbproc->hostfileinfo->batch;
+}
+
+/*
+ * \ingroup dblib_bcp
+ * \brief Get number of columns in the BCP data file
+ *
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \remarks This function is specific to FreeTDS.
+ *
+ * \return the value that was set by bcp_columns(). This represents the number
+ *     of columns of data in the saved data file. Usually the same as the number
+ *     of columns in the database table, but could be fewer if a Format File is
+ *     in use which only selects a subset of the table columns.
+ *
+ * \sa bcp_columns()
+ */
+int
+bcp_gethostcolcount(DBPROCESS *dbproc)
+{
+	CHECK_CONN(-1);
+	CHECK_PARAMETER(dbproc->hostfileinfo, SYBEBCPI, -1);
+	return dbproc->hostfileinfo->host_colcount;
 }
 
 /** 
