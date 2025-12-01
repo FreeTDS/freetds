@@ -6563,7 +6563,7 @@ ODBC_FUNC(SQLSetConnectAttr, (P(SQLHDBC,hdbc), P(SQLINTEGER,Attribute), P(SQLPOI
 			odbc_errs_add(&dbc->errs, "HY090", NULL);
 			break;
 		}
-		if (!odbc_dstr_copy(dbc, &dbc->oldpwd, StringLength, (ODBC_CHAR *) ValuePtr))
+		if (!odbc_dstr_copy_oct(dbc, &dbc->oldpwd, StringLength, (ODBC_CHAR *) ValuePtr))
 			odbc_errs_add(&dbc->errs, "HY001", NULL);
 		else
 			dbc->use_oldpwd = 1;
