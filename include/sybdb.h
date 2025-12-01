@@ -1321,6 +1321,7 @@ RETCODE bcp_colfmt_ps(DBPROCESS * dbproc, int host_column, int host_type, int ho
 RETCODE bcp_colptr(DBPROCESS * dbproc, BYTE * colptr, int table_column);
 RETCODE bcp_control(DBPROCESS * dbproc, int field, DBINT value);
 int bcp_getbatchsize(DBPROCESS * dbproc); /* FreeTDS only */
+int bcp_gethostcolcount(DBPROCESS * dbproc); /* FreeTDS only */
 RETCODE bcp_exec(DBPROCESS * dbproc, DBINT * rows_copied);
 DBBOOL bcp_getl(LOGINREC * login);
 RETCODE bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen);
