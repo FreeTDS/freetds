@@ -1,4 +1,5 @@
 /* Cfr https://www.gnu.org/savannah-checkouts/gnu/autoconf/manual/autoconf-2.71/html_node/Particular-Functions.html */
+#ifndef __VMS
 #include <stdlib.h>
 #include <stddef.h>
 #ifdef HAVE_ALLOCA_H
@@ -15,4 +16,9 @@ extern "C"
 #  endif
 void *alloca (size_t);
 # endif
+#endif
+#else /* __VMS */
+/* alloca is a built-in */
+#include <builtins.h>
+#define alloca(__x) __ALLOCA(__x)
 #endif

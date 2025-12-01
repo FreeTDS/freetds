@@ -382,8 +382,4 @@ char * readpassphrase(const char *, char *, size_t, int);
 /* Prototype for routine to convert VMS-style arguments to Unix-style. */
 int parse_vms_args(int *argc, char **argv[]);
 
-/* alloca is a built-in */
-#include <builtins.h>
-#define alloca(__x) __ALLOCA(__x)
-
 #endif /* CONFIG_H_LOADED */
