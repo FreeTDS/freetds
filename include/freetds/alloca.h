@@ -18,7 +18,9 @@ void *alloca (size_t);
 # endif
 #endif
 #else /* __VMS */
+#ifndef alloca
 /* alloca is a built-in */
 #include <builtins.h>
 #define alloca(__x) __ALLOCA(__x)
+#endif
 #endif
