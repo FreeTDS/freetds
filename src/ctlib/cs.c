@@ -1213,13 +1213,118 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 	return code;
 }
 
+typedef struct
+{
+	CS_INT convfmt;
+	const char datetime[26];
+	uint8_t date_len;
+	uint8_t time_start;
+} CONV_FORMAT;
+
+#define ONLY_DATE(convfmt, datetime) \
+	{ convfmt, datetime, sizeof(datetime)-1, sizeof(datetime)-1 }
+#define DATE_TIME(convfmt, date, time) \
+	{ convfmt, date " " time, sizeof(date)-1, sizeof(date) }
+#define ALL__SAME(convfmt, datetime) \
+	{ convfmt, datetime, sizeof(datetime)-1, 0 }
+static const CONV_FORMAT formats[] = {
+	DATE_TIME(CS_DATES_SHORT, "%b %e %Y", "%l:%M%p"),
+	ONLY_DATE(CS_DATES_MDY1, "%m/%d/%y"),
+	ONLY_DATE(CS_DATES_YMD1, "%y.%m.%d"),
+	ONLY_DATE(CS_DATES_DMY1, "%d/%m/%y"),
+	ONLY_DATE(CS_DATES_DMY2, "%d.%m.%y"),
+	ONLY_DATE(CS_DATES_DMY3, "%d-%m-%y"),
+	ONLY_DATE(CS_DATES_DMY4, "%d %b %y"),
+	ONLY_DATE(CS_DATES_MDY2, "%b %d, %y"),
+	ALL__SAME(CS_DATES_HMS, "%H:%M:%S"),
+	DATE_TIME(CS_DATES_LONG, "%b %e %Y", "%l:%M:%S:%z%p"),
+	ONLY_DATE(CS_DATES_MDY3, "%m-%d-%y"),
+	ONLY_DATE(CS_DATES_YMD2, "%y/%m/%d"),
+	ONLY_DATE(CS_DATES_YMD3, "%y%m%d"),
+	ONLY_DATE(CS_DATES_YDM1, "%y/%d/%m"),
+	ONLY_DATE(CS_DATES_MYD1, "%m/%y/%d"),
+	ONLY_DATE(CS_DATES_DYM1, "%d/%y/%m"),
+	ALL__SAME(CS_DATES_MDYHMS, "%b %e %Y %H:%M:%S"),
+	ALL__SAME(CS_DATES_HMA, "%l:%M%p"),
+	ALL__SAME(CS_DATES_HM, "%H:%M"),
+	ALL__SAME(CS_DATES_HMSZA, "%l:%M:%S:%3z%p"),
+	ALL__SAME(CS_DATES_HMSZ, "%H:%M:%S:%3z"),
+	ALL__SAME(CS_DATES_YMDHMS, "%y/%m/%d %H:%M:%S"),
+	ALL__SAME(CS_DATES_YMDHMA, "%y/%m/%d %l:%M%p"),
+	ALL__SAME(CS_DATES_YMDTHMS, "%Y-%m-%dT%H:%M:%S"),
+	ALL__SAME(CS_DATES_HMSUSA, "%l:%M:%S.%6z%p"),
+	ALL__SAME(CS_DATES_HMSUS, "%H:%M:%S.%6z"),
+	ALL__SAME(CS_DATES_LONGUSA, "%b %e %y %l:%M:%S.%6z%p"),
+	ALL__SAME(CS_DATES_LONGUS, "%b %e %y %H:%M:%S.%6z"),
+	ALL__SAME(CS_DATES_YMDHMSUS, "%y-%m-%d %H:%M:%S.%6z"),
+	ALL__SAME(CS_DATES_SHORT_ALT, "%b %e %Y %l:%M%p"),
+	ONLY_DATE(CS_DATES_MDY1_YYYY, "%m/%d/%Y"),
+	ONLY_DATE(CS_DATES_YMD1_YYYY, "%Y.%m.%d"),
+	ONLY_DATE(CS_DATES_DMY1_YYYY, "%d/%m/%Y"),
+	ONLY_DATE(CS_DATES_DMY2_YYYY, "%d.%m.%Y"),
+	ONLY_DATE(CS_DATES_DMY3_YYYY, "%d-%m-%Y"),
+	ONLY_DATE(CS_DATES_DMY4_YYYY, "%d %b %Y"),
+	ONLY_DATE(CS_DATES_MDY2_YYYY, "%b %d, %Y"),
+	ALL__SAME(CS_DATES_HMS_ALT, "%H:%M:%S"),
+	ALL__SAME(CS_DATES_LONG_ALT, "%b %e %Y %l:%M:%S:%3z%p"),
+	ONLY_DATE(CS_DATES_MDY3_YYYY, "%m-%d-%Y"),
+	ONLY_DATE(CS_DATES_YMD2_YYYY, "%Y/%m/%d"),
+	ONLY_DATE(CS_DATES_YMD3_YYYY, "%Y%m%d"),
+	ONLY_DATE(CS_DATES_YDM1_YYYY, "%Y/%d/%m"),
+	ONLY_DATE(CS_DATES_MYD1_YYYY, "%m/%Y/%d"),
+	ONLY_DATE(CS_DATES_DYM1_YYYY, "%d/%Y/%m"),
+	ALL__SAME(CS_DATES_MDYHMS_ALT, "%b %e %Y %H:%M:%S"),
+	ALL__SAME(CS_DATES_HMA_ALT, "%l:%M%p"),
+	ALL__SAME(CS_DATES_HM_ALT, "%H:%M"),
+	ALL__SAME(CS_DATES_YMDHMS_YYYY, "%Y/%m/%d %H:%M:%S"),
+	ALL__SAME(CS_DATES_YMDHMA_YYYY, "%Y/%m/%d %l:%M%p"),
+	ALL__SAME(CS_DATES_HMSUSA_YYYY, "%l:%M:%S.%6z%p"),
+	ALL__SAME(CS_DATES_HMSUS_YYYY, "%H:%M:%S.%6z"),
+	ALL__SAME(CS_DATES_LONGUSA_YYYY, "%b %e %Y %l:%M:%S.%6z%p"),
+	ALL__SAME(CS_DATES_LONGUS_YYYY, "%b %e %Y %H:%M:%S.%6z"),
+	ALL__SAME(CS_DATES_YMDHMSUS_YYYY, "%Y-%m-%d %H:%M:%S.%6z"),
+	{-1, "", 0, 0}
+};
+
+static CS_RETCODE
+_cs_set_locale_convfmt(CS_CONTEXT *ctx, TDSLOCALE *loc, CS_INT convfmt)
+{
+	const CONV_FORMAT *fmt;
+
+	for (fmt = formats; fmt->convfmt >= 0; ++fmt) {
+		char *datetime, *date, *time;
+
+		if (fmt->convfmt != convfmt)
+			continue;
+		datetime = strdup(fmt->datetime);
+		date = tds_strndup(fmt->datetime, fmt->date_len);
+		time = strdup(fmt->datetime + fmt->time_start);
+		if (!datetime || !date || !time) {
+			free(datetime);
+			free(date);
+			free(time);
+			_csclient_msg(ctx, "cs_dt_info", 2, 4, 1, 3, "");
+			return CS_FAIL;
+		}
+		free(loc->datetime_fmt);
+		loc->datetime_fmt = datetime;
+		free(loc->date_fmt);
+		loc->date_fmt = date;
+		free(loc->time_fmt);
+		loc->time_fmt = time;
+		break;
+	}
+	return CS_SUCCEED;
+}
+
 CS_RETCODE
-cs_dt_info(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_INT item, CS_VOID * buffer, CS_INT buflen,
-	   CS_INT * outlen)
+cs_dt_info(CS_CONTEXT *ctx, CS_INT action, CS_LOCALE *locale, CS_INT type, CS_INT item, CS_VOID *buffer, CS_INT buflen,
+	   CS_INT *outlen)
 {
 	static const char func[] = "cs_dt_info";
-	tdsdump_log(TDS_DBG_FUNC, "cs_dt_info(%p, %d, %p, %d, %d, %p, %d, %p)\n", 
-				ctx, action, locale, type, item, buffer, buflen, outlen);
+
+	tdsdump_log(TDS_DBG_FUNC, "cs_dt_info(%p, %d, %p, %d, %d, %p, %d, %p)\n",
+		    ctx, action, locale, type, item, buffer, buflen, outlen);
 
 	if (!ctx)
 		return CS_FAIL;
@@ -1230,6 +1335,12 @@ cs_dt_info(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_
 			if (buflen < 0) {
 				_csclient_msg(ctx, func, 2, 1, 1, 6, "%d, buflen", buflen);
 				return CS_FAIL;
+			}
+			if (!locale && buffer) {
+				CS_INT convfmt = *(CS_INT *) buffer;
+				TDSLOCALE *loc = ctx->tds_ctx->locale;
+
+				return _cs_set_locale_convfmt(ctx, loc, convfmt);
 			}
 			break;
 		default:
