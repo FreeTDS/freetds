@@ -29,10 +29,14 @@ run the configuration script like so:
 
     $ @[.vms]configure
 
+or if you are building from a github checkout (as opposed to a release tarball)
+
+    $ @[.vms]configure_trunk
+
 This creates a descrip.mms in the top-level source directory which you may
 execute by simply running MMK (a freeware MMS alternative available from
 https://github.com/endlesssoftware/mmk).  You may change some default behaviors
-by sypplying one or more of the following macros to the make utility:
+by supplying one or more of the following macros to the make utility:
 
 TDSVER
 

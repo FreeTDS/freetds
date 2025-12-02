@@ -24,12 +24,19 @@ $! from Perl's configure.com, largely the work of Peter Prymmer.
 $!
 $ SAY := "write sys$output"
 $!
-$ SEARCH/KEY=(POS:2,SIZE:8) SYS$DISK:[]Configure. "VERSION="/EXACT/OUTPUT=version.tmp
+$! Extract the version string from version.h
+$ SEARCH [.include.freetds]version.h "#define TDS_VERSION_NO"/EXACT/OUTPUT=version.tmp
 $ open/read version version.tmp
 $ read version versionline
 $ close version
 $ delete/noconfirm/nolog version.tmp;*
-$ versionstring = f$element(1, "=", f$edit(versionline, "COLLAPSE"))
+$ quote = """"
+$ vers1 = f$element(1, quote, versionline)
+$! Expect "FreeTDS v1.6.dev" etc. - want to put the 1.6.dev bit into config.h
+$ offset = f$locate("v", vers1)
+$ versionstring = f$extract(offset+1, 99, vers1)
+$ write sys$output "Version: ''versionstring'"
+$ if versionstring .EQS. "" THEN EXIT 44
 $ gosub check_crtl
 $!
 $! The system-supplied iconv() is fine, but unless the internationalization
@@ -212,7 +219,9 @@ $ @vmsconfigtmp.com
 $ delete/noconfirm/nolog vmsconfigtmp.com;
 $!
 $ Say ""
-$ Say "Configuration complete; run MMK or MMS to build."
+$ Say "Configuration complete; run MMK to build."
+$ Say "Sample build command: mmk/MACRO=(""MSDBLIB""=1,""ODBC""=1,""ODBC_MARS""=1,""ODBC_WIDE""=1)"
+$ Say "  append 'check' to run tests"
 $ EXIT
 $!
 $ CHECK_CRTL:
