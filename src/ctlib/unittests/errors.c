@@ -20,7 +20,8 @@
 	TEST(ct_cursor) \
 	TEST(ct_con_props) \
 	TEST(ct_cmd_props) \
-	TEST(cs_convert)
+	TEST(cs_convert) \
+	TEST(cs_dt_info)
 
 /* forward declare all tests */
 #undef TEST
@@ -584,4 +585,52 @@ test_cs_convert(void)
 	check_last_message(CTMSG_CSLIB, 0x2010112,
 			   "An illegal value of -1 was placed in the maxlength field of the CS_DATAFMT structure");
 	destfmt.maxlength = 0;
+}
+
+static void
+test_cs_dt_info(void)
+{
+	CS_LOCALE *locale;
+	CS_INT i_value = CS_DATES_SHORT;
+	CS_INT len;
+
+	check_call(cs_loc_alloc, (ctx, &locale));
+
+	check_call(cs_dt_info, (ctx, CS_SET, locale, CS_DT_CONVFMT, CS_UNUSED, &i_value, sizeof(i_value), NULL));
+
+	/* no context  */
+	check_fail(cs_dt_info, (NULL, CS_SET, locale, CS_DT_CONVFMT, CS_UNUSED, &i_value, sizeof(i_value), NULL));
+	check_last_message(CTMSG_NONE, 0, NULL);
+
+	/* wrong action */
+	check_fail(cs_dt_info, (ctx, 1000, locale, CS_DT_CONVFMT, CS_UNUSED, &i_value, sizeof(i_value), NULL));
+	check_last_message(CTMSG_CSLIB, 0x02010106, " 1000 was given for parameter action");
+
+	/* wrong type, set */
+	check_fail(cs_dt_info, (ctx, CS_SET, locale, 1000, CS_UNUSED, &i_value, sizeof(i_value), NULL));
+	check_last_message(CTMSG_CSLIB, 0x02010106, " 1000 was given for parameter type");
+
+	/* wrong type, get */
+	len = sizeof(i_value);
+	check_fail(cs_dt_info, (ctx, CS_GET, locale, 1000, CS_UNUSED, &i_value, sizeof(i_value), &len));
+	check_last_message(CTMSG_CSLIB, 0x02010106, " 1000 was given for parameter type");
+
+	/* wrong length  */
+	check_fail(cs_dt_info, (ctx, CS_SET, locale, CS_DT_CONVFMT, CS_UNUSED, &i_value, -4, NULL));
+	check_last_message(CTMSG_CSLIB, 0x02010106, " -4 was given for parameter buflen");
+
+	/* CS_NULLTERM as length is not accepted */
+	check_fail(cs_dt_info, (ctx, CS_SET, locale, CS_DT_CONVFMT, CS_UNUSED, &i_value, CS_NULLTERM, NULL));
+	check_last_message(CTMSG_CSLIB, 0x02010106, " -9 was given for parameter buflen");
+
+	/* any other length seems accepted */
+	check_call(cs_dt_info, (ctx, CS_SET, locale, CS_DT_CONVFMT, CS_UNUSED, &i_value, 0, NULL));
+	check_call(cs_dt_info, (ctx, CS_SET, locale, CS_DT_CONVFMT, CS_UNUSED, &i_value, 1, NULL));
+	check_call(cs_dt_info, (ctx, CS_SET, locale, CS_DT_CONVFMT, CS_UNUSED, &i_value, 100, NULL));
+
+	/* invalid values are also accepted */
+	i_value = -10000;
+	check_call(cs_dt_info, (ctx, CS_SET, locale, CS_DT_CONVFMT, CS_UNUSED, &i_value, sizeof(i_value), NULL));
+
+	check_call(cs_loc_drop, (ctx, locale));
 }

@@ -1217,14 +1217,36 @@ CS_RETCODE
 cs_dt_info(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_INT item, CS_VOID * buffer, CS_INT buflen,
 	   CS_INT * outlen)
 {
+	static const char func[] = "cs_dt_info";
 	tdsdump_log(TDS_DBG_FUNC, "cs_dt_info(%p, %d, %p, %d, %d, %p, %d, %p)\n", 
 				ctx, action, locale, type, item, buffer, buflen, outlen);
+
+	if (!ctx)
+		return CS_FAIL;
 
 	if (action == CS_SET) {
 		switch (type) {
 		case CS_DT_CONVFMT:
+			if (buflen < 0) {
+				_csclient_msg(ctx, func, 2, 1, 1, 6, "%d, buflen", buflen);
+				return CS_FAIL;
+			}
+			break;
+		default:
+			_csclient_msg(ctx, func, 2, 1, 1, 6, "%d, type", type);
+			return CS_FAIL;
 			break;
 		}
+	} else if (action == CS_GET) {
+		switch (type) {
+		default:
+			_csclient_msg(ctx, func, 2, 1, 1, 6, "%d, type", type);
+			return CS_FAIL;
+			break;
+		}
+	} else {
+		_csclient_msg(ctx, func, 2, 1, 1, 6, "%d, action", action);
+		return CS_FAIL;
 	}
 	return CS_SUCCEED;
 }
