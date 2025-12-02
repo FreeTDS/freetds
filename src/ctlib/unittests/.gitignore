@@ -39,4 +39,5 @@
 /ct_command
 /timeout
 /has_for_update
+/cs_convert_date
 /libcommon.a

@@ -40,6 +40,7 @@ TESTS = \
 	ct_command$(EXEEXT) \
 	timeout$(EXEEXT) \
 	has_for_update$(EXEEXT) \
+	cs_convert_date$(EXEEXT) \
 	$(NULL)
 
 check_PROGRAMS	=	$(TESTS)
@@ -85,6 +86,7 @@ errors_SOURCES		= errors.c
 ct_command_SOURCES	= ct_command.c
 timeout_SOURCES         = timeout.c
 has_for_update_SOURCES  = has_for_update.c
+cs_convert_date_SOURCES	= cs_convert_date.c
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h
