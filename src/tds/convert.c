@@ -3088,7 +3088,6 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 	assert(buf);
 	assert(format);
 	assert(dr);
-	assert(0 <= dr->decimicrosecond && dr->decimicrosecond < 10000000);
 	if (prec < 0 || prec > 7)
 		prec = 3;
 
@@ -3151,8 +3150,9 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 			--pz;
 			if (prec || pz <= our_format || pz[-1] != '.') {
 				char buf[12];
-				sprintf(buf, "%07d", dr->decimicrosecond);
-				memcpy(pz, buf, prec);
+
+				sprintf(buf, "%010d", dr->decimicrosecond & 0x7fffffff);
+				memcpy(pz, buf + 3, prec);
 				strcpy(pz + prec, format + (pz - our_format) + 2);
 				pz += prec;
 			} else {
