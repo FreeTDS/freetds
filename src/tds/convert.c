@@ -3084,6 +3084,7 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 	char *our_format;
 	char *pz;
 	bool z_found = false;
+	size_t z_opt_len = 2;
 	
 	assert(buf);
 	assert(format);
@@ -3136,6 +3137,19 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 			 * supported on: *BSD, MacOS, Linux, Solaris */
 			two_digit(pz-1, (dr->hour + 11u) % 12u + 1);
 			break;
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+		case '8':
+		case '9':
+			if (pz[1] != 'z')
+				break;
+			prec = pz[0] - '0';
+			z_opt_len = 3;
 		case 'z':
 			/*
 			 * Look for "%z" in the format string.  If found, replace it with dr->milliseconds.
@@ -3153,7 +3167,7 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 
 				sprintf(buf, "%010d", dr->decimicrosecond & 0x7fffffff);
 				memcpy(pz, buf + 3, prec);
-				strcpy(pz + prec, format + (pz - our_format) + 2);
+				strcpy(pz + prec, format + (pz - our_format) + z_opt_len);
 				pz += prec;
 			} else {
 				strcpy(pz - 1, format + (pz - our_format) + 2);
