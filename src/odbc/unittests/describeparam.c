@@ -236,7 +236,7 @@ TEST_MAIN()
 		CHKAllocStmt(&stmt, "S");
 
 		SWAP_STMT(stmt);
-		CHKExecDirect(T("SELECT * FROM sysobjects"), SQL_NTS, "S");
+		CHKExecDirect(T("SELECT * FROM sysobjects(NOLOCK)"), SQL_NTS, "S");
 
 		SWAP_STMT(stmt);
 		CHKPrepare(T("INSERT INTO describe(vc) VALUES(?)"), SQL_NTS, "S");
