@@ -1013,6 +1013,7 @@ cs_loc_drop(CS_CONTEXT * ctx, CS_LOCALE * locale)
 CS_RETCODE
 cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen)
 {
+	static const char func[] = "cs_locale";
 	CS_RETCODE code = CS_FAIL;
 
 	tdsdump_log(TDS_DBG_FUNC, "cs_locale(%p, %d, %p, %d, %p, %d, %p)\n", ctx, action, locale, type, buffer, buflen, outlen);
@@ -1021,7 +1022,7 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 		return CS_FAIL;
 
 	if (!locale) {
-		_csclient_msg(ctx, "cs_locale", 2, 1, 1, 4, "locale");
+		_csclient_msg(ctx, func, 2, 1, 1, 4, "locale");
 		return CS_FAIL;
 	}
 
@@ -1037,7 +1038,7 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 		case CS_SYB_CHARSET:
 			buflen = _ct_get_string_length(buffer, buflen);
 			if (buflen < 0) {
-				_csclient_msg(ctx, "cs_locale", 2, 1, 1, 6, "%d, buflen", buflen);
+				_csclient_msg(ctx, func, 2, 1, 1, 6, "%d, buflen", buflen);
 				return CS_FAIL;
 			}
 			
@@ -1052,7 +1053,7 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 		case CS_SYB_LANG:
 			buflen = _ct_get_string_length(buffer, buflen);
 			if (buflen < 0) {
-				_csclient_msg(ctx, "cs_locale", 2, 1, 1, 6, "%d, buflen", buflen);
+				_csclient_msg(ctx, func, 2, 1, 1, 6, "%d, buflen", buflen);
 				return CS_FAIL;
 			}
 			
@@ -1071,7 +1072,7 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 
 			buflen = _ct_get_string_length(buffer, buflen);
 			if (buflen < 0) {
-				_csclient_msg(ctx, "cs_locale", 2, 1, 1, 6, "%d, buflen", buflen);
+				_csclient_msg(ctx, func, 2, 1, 1, 6, "%d, buflen", buflen);
 				return CS_FAIL;
 			}
 
@@ -1105,7 +1106,7 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 		case CS_SYB_SORTORDER:
 			buflen = _ct_get_string_length(buffer, buflen);
 			if (buflen < 0) {
-				_csclient_msg(ctx, "cs_locale", 2, 1, 1, 6, "%d, buflen", buflen);
+				_csclient_msg(ctx, func, 2, 1, 1, 6, "%d, buflen", buflen);
 				return CS_FAIL;
 			}
 			
@@ -1119,7 +1120,7 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 		*/
 
 		default:
-			_csclient_msg(ctx, "cs_locale", 2, 1, 1, 6, "%d, type", type);
+			_csclient_msg(ctx, func, 2, 1, 1, 6, "%d, type", type);
 			code = CS_FAIL;
 			break;
 		}
@@ -1201,12 +1202,12 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 			break;
 
 		default:
-			_csclient_msg(ctx, "cs_locale", 2, 1, 1, 6, "%d, type", type);
+			_csclient_msg(ctx, func, 2, 1, 1, 6, "%d, type", type);
 			code = CS_FAIL;
 			break;
 		}
 	} else {
-		_csclient_msg(ctx, "cs_locale", 2, 1, 1, 6, "%d, action", action);
+		_csclient_msg(ctx, func, 2, 1, 1, 6, "%d, action", action);
 		code = CS_FAIL;
 	}
 	return code;
