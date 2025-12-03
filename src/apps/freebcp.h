@@ -68,6 +68,7 @@ typedef struct pd
 	int Tflag;
 	int Aflag;
 	int Eflag;
+	int ignoreDefaults;	/* Really insert a NULL even if default value defined */
 	char *inputfile;
 	char *outputfile;
 }
