@@ -1157,6 +1157,14 @@ tds5_read_bulk_defaults(TDSRESULTINFO *res_info, TDSBCPINFO *bcpinfo)
 	TDS5COLINFO *syb_info = bcpinfo->sybase_colinfo;
 	TDS5COLINFO *const syb_info_end = syb_info + bcpinfo->sybase_count;
 
+	/* testing of behaviour of --ignoredefaults in ASE BCP client appears
+	 * to show it behaves exactly as if defaults did not exist. For example
+	 * a null value or omitted value for a default non-null column will
+	 * give an error, instead of using the default. */
+	if ( !tds_dstr_isempty(&bcpinfo->hint)
+				&& strstr(tds_dstr_cstr(&bcpinfo->hint), "KEEP_NULLS") )
+		return;
+
 	tdsdump_log(TDS_DBG_INFO1, "Reading default value row.\n");
 
 	for (i = 0; i < res_info->num_cols; ++i, ++syb_info) {

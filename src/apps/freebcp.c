@@ -229,7 +229,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 	 * Get the rest of the arguments
 	 */
 	optind = 4; /* start processing options after table, direction, & filename */
-	while ((ch = getopt(argc, argv, "m:f:e:F:L:b:t:r:U:P:i:I:S:h:T:A:o:O:0:C:ncEdvVD:")) != -1) {
+	while ((ch = getopt(argc, argv, "m:f:e:F:L:b:t:r:U:P:i:I:S:h:T:A:o:O:0:C:ncEdvVD:k")) != -1) {
 		switch (ch) {
 		case 'v':
 		case 'V':
@@ -329,6 +329,9 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 		case 'C':
 			pdata->charset = strdup(optarg);
 			break;
+		case 'k':
+			pdata->ignoreDefaults = 1;
+			break;
 		case '?':
 		default:
 			pusage();
@@ -368,6 +371,26 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 		if (!pdata->rflag || !pdata->rowterm) {		/* row terminator not specified */
 			pdata->rowterm =  "\n";
 			pdata->rowtermlen = 1;
+		}
+	}
+
+	/* -k will be implemented on MSSQL by -hKEEP_NULLS */
+	if (pdata->ignoreDefaults)
+	{
+		if (!pdata->hint)
+			pdata->hint = strdup("KEEP_NULLS");
+		else if ( strstr(pdata->hint, "KEEP_NULLS") == NULL )
+		{
+			/* Append to existing hints if not already present*/
+			char* hints;
+			int ret = asprintf(&hints, "%s,KEEP_NULLS", pdata->hint);
+			if (ret < 0)
+			{
+				fprintf(stderr, "Failed to apply -k flag to hints");
+				return FALSE;
+			}
+			free(pdata->hint);
+			pdata->hint = hints;
 		}
 	}
 
@@ -660,7 +683,7 @@ pusage(void)
 	fprintf(stderr, "        [-U username] [-P password] [-I interfaces_file] [-S server] [-D database]\n");
 	fprintf(stderr, "        [-v] [-d] [-h \"hint [,...]\" [-O \"set connection_option on|off, ...]\"\n");
 	fprintf(stderr, "        [-A packet size] [-T text or image size] [-E]\n");
-	fprintf(stderr, "        [-i input_file] [-o output_file]\n");
+	fprintf(stderr, "        [-i input_file] [-o output_file] [-k]\n");
 	fprintf(stderr, "        \n");
 	fprintf(stderr, "example: freebcp testdb.dbo.inserttest in inserttest.txt -S mssql -U guest -P password -c\n");
 }
