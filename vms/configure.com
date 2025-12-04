@@ -293,7 +293,7 @@ $ WS "#include <stdlib.h>"
 $ WS "int main()"
 $ WS "{"
 $ WS "char ptr[15];"
-$ WS "snprintf((char*)&ptr,sizeof(ptr),""%d,%d"",1,2);"
+$ WS "snprintf(ptr,sizeof(ptr),""%d,%d"",1,2);"
 $ WS "exit(0);"
 $ WS "}"
 $ CS
