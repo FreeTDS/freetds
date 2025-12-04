@@ -226,7 +226,7 @@ $!
 $ OS
 $ WS "#include <stdio.h>"
 $ WS "#include <stdlib.h>"
-$ WS "int main()"
+$ WS "int main(void)"
 $ WS "{"
 $ WS "char *ptr;
 $ WS "asprintf(&ptr,""%d"",1);"
@@ -271,7 +271,7 @@ $!
 $ OS
 $ WS "#include <stdlib.h>"
 $ WS "#include <string.h>"
-$ WS "int main()"
+$ WS "int main(void)"
 $ WS "{"
 $ WS "char *word, *brkt, mystr[4];"
 $ WS "strcpy(mystr,""1^2"");"
@@ -290,7 +290,7 @@ $ OS
 $ WS "#include <stdarg.h>"
 $ WS "#include <stdio.h>"
 $ WS "#include <stdlib.h>"
-$ WS "int main()"
+$ WS "int main(void)"
 $ WS "{"
 $ WS "char ptr[15];"
 $ WS "snprintf(ptr,sizeof(ptr),""%d,%d"",1,2);"
@@ -307,7 +307,7 @@ $!
 $ OS
 $ WS "#include <stdlib.h>"
 $ WS "#include <stdint.h>"
-$ WS "int main()"
+$ WS "int main(void)"
 $ WS "{"
 $ WS "exit(0);"
 $ WS "}"
