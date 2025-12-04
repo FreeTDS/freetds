@@ -905,7 +905,7 @@ tds_generic_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
  * \return TDS_FAIL on error or TDS_SUCCESS
  */
 TDSRET
-tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
+tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, bool bcp7)
 {
 	unsigned char *src;
 	TDSBLOB *blob = NULL;
@@ -1203,7 +1203,7 @@ tds_numeric_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 }
 
 TDSRET
-tds_numeric_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7 TDS_UNUSED)
+tds_numeric_put(TDSSOCKET *tds, TDSCOLUMN *col, bool bcp7 TDS_UNUSED)
 {
 	TDS_NUMERIC *num = (TDS_NUMERIC *) col->column_data, buf;
 	unsigned char colsize;
@@ -1230,7 +1230,7 @@ tds_variant_put_info(TDSSOCKET * tds TDS_UNUSED, TDSCOLUMN * col TDS_UNUSED)
 }
 
 TDSRET
-tds_variant_put(TDSSOCKET *tds TDS_UNUSED, TDSCOLUMN *col TDS_UNUSED, int bcp7 TDS_UNUSED)
+tds_variant_put(TDSSOCKET *tds TDS_UNUSED, TDSCOLUMN *col TDS_UNUSED, bool bcp7 TDS_UNUSED)
 {
 	/* TODO */
 	return TDS_FAIL;
@@ -1330,7 +1330,7 @@ tds_msdatetime_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 }
 
 TDSRET
-tds_msdatetime_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7 TDS_UNUSED)
+tds_msdatetime_put(TDSSOCKET *tds, TDSCOLUMN *col, bool bcp7 TDS_UNUSED)
 {
 	const TDS_DATETIMEALL *dta = (const TDS_DATETIMEALL *) col->column_data;
 	unsigned char buf[12], *p;
@@ -1450,7 +1450,7 @@ tds_sybbigtime_put_info(TDSSOCKET * tds, TDSCOLUMN * col TDS_UNUSED)
 }
 
 TDSRET
-tds_sybbigtime_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7 TDS_UNUSED)
+tds_sybbigtime_put(TDSSOCKET *tds, TDSCOLUMN *col, bool bcp7 TDS_UNUSED)
 {
 	const TDS_UINT8 *dt = (const TDS_UINT8 *) col->column_data;
 
@@ -1509,7 +1509,7 @@ tds_mstabletype_put_info(TDSSOCKET *tds, TDSCOLUMN *col)
 }
 
 TDSRET
-tds_mstabletype_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7 TDS_UNUSED)
+tds_mstabletype_put(TDSSOCKET *tds, TDSCOLUMN *col, bool bcp7 TDS_UNUSED)
 {
 	TDS_TVP *table = (TDS_TVP *) col->column_data;
 	TDSPARAMINFO *params;
@@ -1551,7 +1551,7 @@ tds_mstabletype_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7 TDS_UNUSED)
 		params = row->params;
 		for (i = 0; i < num_cols; i++) {
 			tds_col = params->columns[i];
-			TDS_PROPAGATE(tds_col->funcs->put_data(tds, tds_col, 0));
+			TDS_PROPAGATE(tds_col->funcs->put_data(tds, tds_col, false));
 		}
 	}
 
@@ -1586,7 +1586,7 @@ tds_invalid_put_info(TDSSOCKET * tds TDS_UNUSED, TDSCOLUMN * col TDS_UNUSED)
 }
 
 TDSRET
-tds_invalid_put(TDSSOCKET *tds TDS_UNUSED, TDSCOLUMN *col TDS_UNUSED, int bcp7 TDS_UNUSED)
+tds_invalid_put(TDSSOCKET *tds TDS_UNUSED, TDSCOLUMN *col TDS_UNUSED, bool bcp7 TDS_UNUSED)
 {
 	return TDS_FAIL;
 }

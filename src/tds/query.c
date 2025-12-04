@@ -275,7 +275,7 @@ memory_error:
 static inline TDSRET
 tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
-	return curcol->funcs->put_data(tds, curcol, 0);
+	return curcol->funcs->put_data(tds, curcol, false);
 }
 
 /**

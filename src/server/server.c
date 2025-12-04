@@ -448,7 +448,7 @@ tds_send_row(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 	for (i = 0; i < resinfo->num_cols; i++) {
 		TDSCOLUMN *curcol = resinfo->columns[i];
 
-		TDS_PROPAGATE(curcol->funcs->put_data(tds, curcol, 0));
+		TDS_PROPAGATE(curcol->funcs->put_data(tds, curcol, false));
 	}
 	return TDS_SUCCESS;
 }

@@ -500,7 +500,7 @@ tds7_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 			bindcol->column_cur_size = bindcol->bcp_column_data->datalen;
 			bindcol->column_data = bindcol->bcp_column_data->data;
 		}
-		rc = bindcol->funcs->put_data(tds, bindcol, 1);
+		rc = bindcol->funcs->put_data(tds, bindcol, true);
 		bindcol->column_cur_size = save_size;
 		bindcol->column_data = save_data;
 
