@@ -2272,7 +2272,7 @@ null_data:
 }
 
 /**
- * Function to read data from file. I this case is empty as data
+ * Function to read data from file. In this case is empty as data
  * are already on bcp_column_data
  */
 static TDSRET
