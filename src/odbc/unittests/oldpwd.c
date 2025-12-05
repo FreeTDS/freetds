@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <assert.h>
+#include <freetds/utils.h>
 
 /* change password on server */
 
@@ -99,6 +100,7 @@ TEST_MAIN()
 	odbc_disconnect();
 
 	/* drop created login */
+	tds_sleep_ms(500);	/* give time for logoff */
 	swap_conn();
 	odbc_command("DROP LOGIN " USER);
 	odbc_disconnect();
