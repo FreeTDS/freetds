@@ -1336,8 +1336,10 @@ tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
 		return TDS_FAIL;
 
 	token = curparam->funcs->get_data(tds, curparam);
+#if 0	/* Enable to log all column values */
 	if (TDS_UNLIKELY(tds_write_dump))
 		tdsdump_col(curparam);
+#endif
 
 	/*
 	 * Real output parameters will either be unnamed or will have a valid
@@ -1959,6 +1961,8 @@ tds_process_row(TDSSOCKET * tds)
 		tdsdump_log(TDS_DBG_INFO1, "tds_process_row(): reading column %d\n", i);
 		curcol = info->columns[i];
 		TDS_PROPAGATE(curcol->funcs->get_data(tds, curcol));
+	    if (TDS_UNLIKELY(tds_write_dump))
+		    tdsdump_col(curcol);
 	}
 	return TDS_SUCCESS;
 }
