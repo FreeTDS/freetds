@@ -653,7 +653,7 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 			return false;
 		}
 
-		tdsdump_log(TDS_DBG_INFO1, "Found host entry %s \n", value);
+		tdsdump_log(TDS_DBG_INFO1, "Found host entry %s\n", value);
 		for (addrs = login->ip_addrs; addrs != NULL; addrs = addrs->ai_next)
 			tdsdump_log(TDS_DBG_INFO1, "IP addr is %s.\n", tds_addrinfo2str(addrs, tmp, sizeof(tmp)));
 		dstr_to_set = &login->server_host_name;
