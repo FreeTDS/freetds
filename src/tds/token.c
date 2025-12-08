@@ -1654,6 +1654,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 	tdsdump_log(TDS_DBG_INFO1, "tds_get_data_info(%p, %p, %d)%s\n", tds, curcol, is_param, is_param? " [for parameter]" : "");
 
 	tds_dstr_get(tds, &curcol->column_name, tds_get_byte(tds));
+	tdsdump_log(TDS_DBG_INFO1, "processing result. name=\"%s\"\n", tds_dstr_cstr(&curcol->column_name));
 
 	curcol->column_flags = tds_get_byte(tds);	/*  Flags */
 	if (!is_param) {
