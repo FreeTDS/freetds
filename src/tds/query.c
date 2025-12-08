@@ -3811,7 +3811,7 @@ tds_disconnect(TDSSOCKET * tds)
 
 	CHECK_TDS_EXTRA(tds);
  
-	tdsdump_log(TDS_DBG_FUNC, "tds_disconnect() \n");
+	tdsdump_log(TDS_DBG_FUNC, "tds_disconnect()\n");
  
 	if (!IS_TDS50(tds->conn))
 		return TDS_SUCCESS;
