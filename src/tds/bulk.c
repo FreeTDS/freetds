@@ -71,6 +71,12 @@ static void tds_bcp_row_free(TDSRESULTINFO* result, unsigned char *row);
 static TDSRET tds5_process_insert_bulk_reply(TDSSOCKET * tds, TDSBCPINFO *bcpinfo);
 static TDSRET probe_sap_locking(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
 
+/* Sybase bulk column data */
+static TDS5COLINFO* sybase_colinfo_alloc(int n_cols)
+{
+	return calloc(n_cols, sizeof(TDS5COLINFO));
+}
+
 /**
  * Initialize BCP information.
  * Query structure of the table to server.
@@ -1157,7 +1163,7 @@ tds5_process_insert_bulk_reply(TDSSOCKET * tds, TDSBCPINFO *bcpinfo)
 				break;
 			}
 			if (bcpinfo->sybase_colinfo == NULL) {
-				bcpinfo->sybase_colinfo = calloc(cols_values[BULKCOL_colcnt], sizeof(*bcpinfo->sybase_colinfo));
+				bcpinfo->sybase_colinfo = sybase_colinfo_alloc(cols_values[BULKCOL_colcnt]);
 				if (bcpinfo->sybase_colinfo == NULL) {
 					rc = TDS_FAIL;
 					break;
