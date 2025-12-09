@@ -1868,6 +1868,19 @@ Cleanup:
 	return NULL;
 }
 
+static void sybase_colinfo_free(TDS5COLINFO** colinfo, int n_cols)
+{
+	if (!*colinfo)
+		return;
+
+	for (int i = 0; i < n_cols; ++i)
+		if ((*colinfo)[i].default_value.data)
+			free((*colinfo)[i].default_value.data);
+
+	free(*colinfo);
+	*colinfo = NULL;
+}
+
 void
 tds_deinit_bcpinfo(TDSBCPINFO *bcpinfo)
 {
@@ -1876,7 +1889,7 @@ tds_deinit_bcpinfo(TDSBCPINFO *bcpinfo)
 	TDS_ZERO_FREE(bcpinfo->insert_stmt);
 	tds_free_results(bcpinfo->bindinfo);
 	bcpinfo->bindinfo = NULL;
-	TDS_ZERO_FREE(bcpinfo->sybase_colinfo);
+	sybase_colinfo_free(&bcpinfo->sybase_colinfo, bcpinfo->sybase_count);
 	bcpinfo->sybase_count = 0;
 }
 

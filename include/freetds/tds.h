@@ -1695,6 +1695,10 @@ typedef struct tds5_colinfo
 	TDS_TINYINT status;
 	TDS_SMALLINT offset;
 	TDS_INT length;
+	/* These fields pertain to a Default Value for bulk uploads */
+	TDS_TINYINT has_default;
+	TDS_SERVER_TYPE default_type;
+	BCPCOLDATA default_value;
 } TDS5COLINFO;
 
 struct tds_bcpinfo
@@ -1708,8 +1712,8 @@ struct tds_bcpinfo
 	bool xfer_init;
 	bool datarows_locking;
 	TDS_INT bind_count;
-	TDSRESULTINFO *bindinfo;
-	TDS5COLINFO *sybase_colinfo;
+	TDSRESULTINFO *bindinfo;      /* Array - length is bind_count */
+	TDS5COLINFO *sybase_colinfo;  /* Array - length is sybase_count */
 	TDS_INT sybase_count;
 };
 
