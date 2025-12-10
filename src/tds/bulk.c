@@ -1202,6 +1202,156 @@ static TDSRET process_bulkcol_row(TDSCONTEXT const *ctx, TDSRESULTINFO* res_info
 	return TDS_SUCCESS;
 }
 
+static bool is_defaults_formats(TDSRESULTINFO* res_info, TDSBCPINFO* bcpinfo)
+{
+	int i;
+	int n_defaults = 0;
+	int rcolnum;
+
+	/* TODO: figure out a more reliable way to detect this. It's not covered in the
+	 * TDS 5.0 spec Version 3.4 (1999), so must have been added by ASE subsequent to that.
+	 * In testing, this is the only row result we've seen after the TDS_DONE_RESULT tag.
+	 *
+	 * This code is based on reverse engineering the response from the test bcp_defaultdate.
+	 */
+
+	 /* Check there are the right number of defaults offered as specified */
+	for (i = 0; i < bcpinfo->sybase_count; ++i)
+		if (bcpinfo->sybase_colinfo[i].has_default)
+			++n_defaults;
+
+	if (n_defaults != res_info->num_cols)
+		return false;
+
+	for (i = 0, rcolnum = 0; i < bcpinfo->sybase_count && rcolnum < res_info->num_cols; ++i)
+	{
+		TDS5COLINFO* scol = &bcpinfo->sybase_colinfo[i];
+		TDSCOLUMN* curcol = res_info->columns[rcolnum];
+
+		if (!scol->has_default)
+			continue;
+
+		++rcolnum;
+
+		/* Assume in correct order. In testing the res_info had column_name and
+		 * table_column_name both defined to a string like "2" meaning corresponding
+		 * to column 2 in the database table, we could try to validate that. */
+		tdsdump_log(TDS_DBG_INFO1, "Result column \"%s\" is default value for col %d of %d\n",
+			tds_dstr_cstr(&curcol->column_name), i + 1, bcpinfo->sybase_count);
+
+		scol->default_type = curcol->column_type;
+
+		/* Note: the actual default values will arrive in a subsequent Row,
+		 * this is just the header telling us the data type for the row. */
+	}
+
+	return true;
+}
+
+static TDSRET process_defaults_row(TDSRESULTINFO* res_info, TDSBCPINFO* bcpinfo)
+{
+	int i, rcolnum;
+
+	/* note: we checked in is_defaults_formats() that res_info->num_cols matches
+	 * the number of columns that have "has_default" true */
+	for (i = 0, rcolnum = 0; i < bcpinfo->sybase_count && rcolnum < res_info->num_cols; ++i)
+	{
+		TDS5COLINFO* scol = &bcpinfo->sybase_colinfo[i];
+		TDSCOLUMN* curcol = res_info->columns[rcolnum];
+		TDS_INT cur_size;
+
+		if (!scol->has_default)
+			continue;
+
+		++rcolnum;
+
+		/* The actual length of data (e.g. for VARCHAR(30) holding string len 19, this is 19) */
+		cur_size = curcol->column_cur_size;
+
+		/* Does not make sense for a default value to be NULL - we don't expect
+		 * this to happen, but if it does, then treat it like no default present.
+		 */
+		if (!curcol->column_data || cur_size <= 0)
+		{
+			tdsdump_log(TDS_DBG_INFO1, "Default value had no data; skipping");
+			scol->has_default = false;
+			continue;
+		}
+
+		/* Testing shows that the default value can have a nullable type,
+		 * even if the column is defined as NOT NULL and therefore must
+		 * be packed for upload as a non-nullable type.
+		 *
+		 * The following defaults were observed in the "d_bcp" test:
+		 *  - SYBVARCHAR (39)  various sizes
+		 *  - SYBDATETIMN(111) size 4 or 8
+		 *  - SYBMONEYN  (110) sizef 4 or 8
+		 *  - SYBFLTN    (109) size 4 or 8
+		 *  - SYBDECIMAL (106) various sizes
+		 *  - SYBNUMERIC (108) various sizes
+		 *  - SYBINTN    (38)  sizes 1, 2, or 4.
+		 *
+		 * In TDS all nullable types have the same binary format as their
+		 * non-nullable equivalents (well - the other BCP code appears to make
+		 * that assumption); so we can just change the type ID.
+		 *
+		 * See comments in tds5_process_insert_bulk_reply() regarding
+		 * unpacking of DECIMAL/NUMERIC (by default the FreeTDS row unpacker
+		 * actually expands these types into curcol).
+		 *
+		 * So, here we validate that the type of the default value either
+		 * matches the server column, or is a Nullable version of the
+		 * server column's type.
+		 */
+		if (scol->type != curcol->column_type )
+		{
+			TDS_SERVER_TYPE nntype = tds_get_conversion_type(curcol->column_type, cur_size);
+			if (nntype != scol->type)
+			{
+				tdsdump_log(TDS_DBG_ERROR,
+					"Default value has unexpected type %d (need type %d)\n",
+					curcol->column_type, scol->type);
+				continue;
+			}
+			scol->default_type = nntype;
+		}
+
+		/* If the server column is non-nullable
+		 * we have to validate that the default is the right size for it.
+		 * (nullable types have a length prefix so don't need to match length).
+		 */
+		if ( !is_nullable_type(scol->default_type) && cur_size != scol->length )
+		{
+			tdsdump_log(TDS_DBG_ERROR,
+				"Default value type %d has unexpected size %d (need type %d size %d)\n",
+				curcol->column_type, cur_size, scol->type, scol->length);
+			/* We could "continue" to ignore this, but it's probably best to fail */
+			return TDS_FAIL;
+		}
+
+		scol->default_value.data = (void *)tds_new(char, cur_size);
+		if (!scol->default_value.data)
+		{
+			tdsdump_log(TDS_DBG_ERROR, "Failed to allocate memory for column %s default value\n",
+				tds_dstr_cstr(&curcol->column_name));
+			return TDS_FAIL;
+		}
+		memcpy(scol->default_value.data, curcol->column_data, cur_size);
+		scol->default_value.datalen = cur_size;
+		scol->default_value.is_null = false;
+
+		/* Log what happened. "curcol" is the information about the default value;
+		 * "scol" is the information about the server column.
+		 */
+		tdsdump_log(TDS_DBG_INFO1, "Default value for column %s has type %d size %d (server type %d size %d)\n",
+			tds_dstr_cstr(&curcol->column_name), curcol->column_type, cur_size,	scol->type, scol->length);
+
+		// tdsdump_dump_buf(__FILE__, __LINE__, "Default value:", curcol->column_data, curcol->column_cur_size);
+	}
+
+	return TDS_SUCCESS;
+}
+
 static TDSRET
 tds5_process_insert_bulk_reply(TDSSOCKET * tds, TDSBCPINFO *bcpinfo)
 {
@@ -1228,12 +1378,24 @@ tds5_process_insert_bulk_reply(TDSSOCKET * tds, TDSBCPINFO *bcpinfo)
 		case TDS_ROWFMT_RESULT:
 			if (is_bulkcol_formats(tds->current_results, &cols))
 				bulkcol_formats_found = true;
+			/* In testing, Defaults only come after the TDS_DONE token */
+			else if (done_seen && is_defaults_formats(tds->current_results, bcpinfo))
+				 defaults_found = true;
 			break;
 
 		case TDS_ROW_RESULT:
+			/* Defaults values will follow defaults formats */
+			if (defaults_found && !defaults_processed)
+			{
+				rc = process_defaults_row(tds->current_results, bcpinfo);
+				/* The defaults all arrive as a single row, one column per default value */
+				defaults_processed = true;
+			}
+
 			/* One row per column format definition */
 			if (bulkcol_formats_found && !bulkcol_formats_processed)
 				rc = process_bulkcol_row(tds_get_ctx(tds), tds->current_results, &cols, bcpinfo);
+
 			break;
 
 		case TDS_DONE_RESULT:
