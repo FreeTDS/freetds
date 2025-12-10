@@ -1095,6 +1095,113 @@ tds5_bulk_insert_column(const char *name)
 	return -1;
 }
 
+typedef struct
+{
+	unsigned flags;
+	int pos[BULKCOL_COUNT];
+	int value[BULKCOL_COUNT];
+} BULKCOL_DEFINITION;
+
+/* Detect if a ROWFMT (and subsequent ROWS) in the response is the column information
+ * (i.e. avoid misinterpreting some other row received in the response stream)
+ *
+ * Return the data from the column response that we will need; but don't overwrite
+ * that data if this is not actually the right ROWFMT.
+ */
+static bool is_bulkcol_formats(TDSRESULTINFO* res_info, BULKCOL_DEFINITION *out)
+{
+	int icol;
+	BULKCOL_DEFINITION cols = { 0 };
+
+	if (!res_info)
+		return false;
+
+	for (icol = 0; icol < res_info->num_cols; ++icol) {
+		const TDSCOLUMN* col = res_info->columns[icol];
+		int scol = tds5_bulk_insert_column(tds_dstr_cstr(&col->column_name));
+		if (scol < 0)
+			continue;
+		cols.pos[scol] = icol;
+		cols.flags |= 1 << scol;
+	}
+
+	if (cols.flags != BULKCOL_ALL)
+		return false;
+
+	*out = cols;
+	return true;
+}
+
+static TDSRET process_bulkcol_row(TDSCONTEXT const *ctx, TDSRESULTINFO* res_info, BULKCOL_DEFINITION* pcols, TDSBCPINFO *bcpinfo)
+{
+	int icol;
+	TDS5COLINFO* colinfo;
+
+	if (!res_info)
+		return TDS_SUCCESS;
+
+	/* Reset column flags - we now use them to indicate if successfully converted */
+	pcols->flags = 0;
+
+	/* Extract an integer value for each column (the subset of BULKCOL
+	 * columns we are interested in, are all integer types) */
+	for (icol = 0; icol < BULKCOL_COUNT; ++icol) {
+		const TDSCOLUMN* curcol = res_info->columns[pcols->pos[icol]];
+		int ctype = tds_get_conversion_type(curcol->on_server.column_type, curcol->column_size);
+		unsigned char* src = curcol->column_data;
+		int srclen = curcol->column_cur_size;
+		CONV_RESULT dres;
+
+		if (tds_convert(ctx, ctype, src, srclen, SYBINT4, &dres) < 0)
+			break;
+
+		pcols->flags |= 1 << icol;
+		pcols->value[icol] = dres.i;
+	}
+
+	/* Sanity checks on the column information as a whole */
+	if (pcols->flags != BULKCOL_ALL ||
+		pcols->value[BULKCOL_colcnt] < 1 ||
+		pcols->value[BULKCOL_colcnt] > 4096 || /* limit of columns accepted */
+		pcols->value[BULKCOL_colid] < 1 ||
+		pcols->value[BULKCOL_colid] > pcols->value[BULKCOL_colcnt])
+	{
+		tdsdump_log(TDS_DBG_INFO1, "Failed sanity checks for row information");
+		return TDS_FAIL;
+	}
+
+	/* Save column information for later use */
+	if (bcpinfo->sybase_colinfo == NULL) {
+		bcpinfo->sybase_colinfo = sybase_colinfo_alloc(pcols->value[BULKCOL_colcnt]);
+		if (bcpinfo->sybase_colinfo == NULL) {
+			tdsdump_log(TDS_DBG_INFO1, "Failed to allocate memory for row information");
+			return TDS_FAIL;
+		}
+		bcpinfo->sybase_count = pcols->value[BULKCOL_colcnt];
+	}
+
+	/* bound check, colcnt could have changed from row to row */
+	if (pcols->value[BULKCOL_colid] > bcpinfo->sybase_count) {
+		tdsdump_log(TDS_DBG_INFO1, "colcnt changed from row to row");
+		return TDS_FAIL;
+	}
+
+	colinfo = &bcpinfo->sybase_colinfo[pcols->value[BULKCOL_colid] - 1];
+	colinfo->type = pcols->value[BULKCOL_type];
+	colinfo->status = pcols->value[BULKCOL_status];
+	colinfo->offset = pcols->value[BULKCOL_offset];
+	colinfo->length = pcols->value[BULKCOL_length];
+	colinfo->has_default = pcols->value[BULKCOL_dflt];
+	tdsdump_log(TDS_DBG_INFO1, "gotten row information %d type %d length %d status %d offset %d\n",
+		pcols->value[BULKCOL_colid],
+		colinfo->type,
+		colinfo->length,
+		colinfo->status,
+		colinfo->offset);
+
+	return TDS_SUCCESS;
+}
+
 static TDSRET
 tds5_process_insert_bulk_reply(TDSSOCKET * tds, TDSBCPINFO *bcpinfo)
 {
@@ -1102,94 +1209,37 @@ tds5_process_insert_bulk_reply(TDSSOCKET * tds, TDSBCPINFO *bcpinfo)
 	TDS_INT done_flags;
 	TDSRET  rc;
 	TDSRET  ret = TDS_SUCCESS;
-	bool row_match = false;
-	TDSRESULTINFO *res_info;
-	int icol;
-	unsigned col_flags;
-	/* position of the columns in the row */
-	int cols_pos[BULKCOL_COUNT];
-	int cols_values[BULKCOL_COUNT];
-	TDS5COLINFO *colinfo;
+	bool bulkcol_formats_found = false;
+	bool bulkcol_formats_processed = false;
+	bool done_seen = false;
+	bool defaults_found = false;
+	bool defaults_processed = false;
+	BULKCOL_DEFINITION cols = { 0 };
 
 	CHECK_TDS_EXTRA(tds);
 
 	while ((rc = tds_process_tokens(tds, &res_type, &done_flags, TDS_RETURN_DONE|TDS_RETURN_ROWFMT|TDS_RETURN_ROW)) == TDS_SUCCESS) {
+		if (res_type != TDS_ROW_RESULT)
+		{
+			if (bulkcol_formats_found)
+				bulkcol_formats_processed = true;
+		}
 		switch (res_type) {
 		case TDS_ROWFMT_RESULT:
-			/* check if it's the resultset with column information and save column positions */
-			row_match = false;
-			col_flags = 0;
-			res_info = tds->current_results;
-			if (!res_info)
-				continue;
-			for (icol = 0; icol < res_info->num_cols; ++icol) {
-				const TDSCOLUMN *col = res_info->columns[icol];
-				int scol = tds5_bulk_insert_column(tds_dstr_cstr(&col->column_name));
-				if (scol < 0)
-					continue;
-				cols_pos[scol] = icol;
-				col_flags |= 1 << scol;
-			}
-			if (col_flags == BULKCOL_ALL)
-				row_match = true;
+			if (is_bulkcol_formats(tds->current_results, &cols))
+				bulkcol_formats_found = true;
 			break;
-		case TDS_ROW_RESULT:
-			/* get the results */
-			col_flags = 0;
-			if (!row_match)
-				continue;
-			res_info = tds->current_results;
-			if (!res_info)
-				continue;
-			for (icol = 0; icol < BULKCOL_COUNT; ++icol) {
-				const TDSCOLUMN *col = res_info->columns[cols_pos[icol]];
-				int ctype = tds_get_conversion_type(col->on_server.column_type, col->column_size);
-				unsigned char *src = col->column_data;
-				int srclen = col->column_cur_size;
-				CONV_RESULT dres;
 
-				if (tds_convert(tds_get_ctx(tds), ctype, src, srclen, SYBINT4, &dres) < 0)
-					break;
-				col_flags |= 1 << icol;
-				cols_values[icol] = dres.i;
-			}
-			/* save information */
-			if (col_flags != BULKCOL_ALL ||
-				cols_values[BULKCOL_colcnt] < 1 ||
-				cols_values[BULKCOL_colcnt] > 4096 || /* limit of columns accepted */
-				cols_values[BULKCOL_colid] < 1 ||
-				cols_values[BULKCOL_colid] > cols_values[BULKCOL_colcnt]) {
-				rc = TDS_FAIL;
-				break;
-			}
-			if (bcpinfo->sybase_colinfo == NULL) {
-				bcpinfo->sybase_colinfo = sybase_colinfo_alloc(cols_values[BULKCOL_colcnt]);
-				if (bcpinfo->sybase_colinfo == NULL) {
-					rc = TDS_FAIL;
-					break;
-				}
-				bcpinfo->sybase_count = cols_values[BULKCOL_colcnt];
-			}
-			/* bound check, colcnt could have changed from row to row */
-			if (cols_values[BULKCOL_colid] > bcpinfo->sybase_count) {
-				rc = TDS_FAIL;
-				break;
-			}
-			colinfo = &bcpinfo->sybase_colinfo[cols_values[BULKCOL_colid] - 1];
-			colinfo->type = cols_values[BULKCOL_type];
-			colinfo->status = cols_values[BULKCOL_status];
-			colinfo->offset = cols_values[BULKCOL_offset];
-			colinfo->length = cols_values[BULKCOL_length];
-			tdsdump_log(TDS_DBG_INFO1, "gotten row information %d type %d length %d status %d offset %d\n",
-					cols_values[BULKCOL_colid],
-					colinfo->type,
-					colinfo->length,
-					colinfo->status,
-					colinfo->offset);
+		case TDS_ROW_RESULT:
+			/* One row per column format definition */
+			if (bulkcol_formats_found && !bulkcol_formats_processed)
+				rc = process_bulkcol_row(tds_get_ctx(tds), tds->current_results, &cols, bcpinfo);
 			break;
+
 		case TDS_DONE_RESULT:
 		case TDS_DONEPROC_RESULT:
 		case TDS_DONEINPROC_RESULT:
+			done_seen = TRUE;
 			if ((done_flags & TDS_DONE_ERROR) != 0)
 				ret = TDS_FAIL;
 		default:
