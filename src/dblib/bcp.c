@@ -641,7 +641,7 @@ bcp_gethostcolcount(DBPROCESS *dbproc)
  * \todo Simplify.  Remove \a valuelen.
  */
 RETCODE
-bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen)
+bcp_options(DBPROCESS * dbproc, int option, BYTE * value, size_t valuelen)
 {
 	int i;
 	static const char *const hints[] = {
@@ -649,7 +649,7 @@ bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen)
 		"FIRE_TRIGGERS", "KEEP_NULLS", NULL
 	};
 
-	tdsdump_log(TDS_DBG_FUNC, "bcp_options(%p, %d, %p, %d)\n", dbproc, option, value, valuelen);
+	tdsdump_log(TDS_DBG_FUNC, "bcp_options(%p, %d, %p, %d)\n", dbproc, option, value, (int)valuelen);
 	CHECK_CONN(FAIL);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI, FAIL);
 	CHECK_NULP(value, "bcp_options", 3, FAIL);
