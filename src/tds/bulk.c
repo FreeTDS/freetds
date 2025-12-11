@@ -888,18 +888,18 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 
 	if (ncols && !bcpinfo->datarows_locking) {
 		TDS_UCHAR *poff = rowbuffer + row_pos;
-		unsigned int pfx_top = offsets[ncols] >> 8;
+		unsigned int pfx_top = offsets[ncols] / 256u;
 
 		tdsdump_log(TDS_DBG_FUNC, "ncols=%u poff=%p [%u]\n", ncols, poff, offsets[ncols]);
 
-		if (offsets[ncols] / 256 == offsets[ncols - 1] / 256)
+		if (offsets[ncols] / 256u == offsets[ncols - 1] / 256u)
 			*poff++ = ncols + 1;
 		/* this is some kind of run-length-prefix encoding */
 		while (pfx_top) {
 			unsigned int n_pfx = 1;
 
-			for (i = 0; i <= ncols ; ++i)
-				if ((offsets[i] >> 8) < pfx_top)
+			for (i = 0; i <= ncols; ++i)
+				if (offsets[i] / 256u < pfx_top)
 					++n_pfx;
 			*poff++ = n_pfx;
 			--pfx_top;
@@ -916,8 +916,8 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 		for (col = ncols; col-- > 0;) {
 			/* The DOL BULK format has a much simpler row table -- it's just a 2-byte length for every
 			 * non-fixed column (does not have the extra "offset after the end" that the basic format has) */
-			rowbuffer[row_pos++] = offsets[col] % 256;
-			rowbuffer[row_pos++] = offsets[col] / 256;
+			rowbuffer[row_pos++] = offsets[col] % 256u;
+			rowbuffer[row_pos++] = offsets[col] / 256u;
 
 			tdsdump_log(TDS_DBG_FUNC, "[DOL BULK offset table] col=%u offset=%u\n", col, offsets[col]);
 		}
