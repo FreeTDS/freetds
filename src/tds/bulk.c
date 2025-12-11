@@ -829,7 +829,7 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 
 	if (ncols && !bcpinfo->datarows_locking) {
 		TDS_UCHAR *poff = rowbuffer + row_pos;
-		unsigned int pfx_top = offsets[ncols] >> 8;
+		TDS_INT pfx_top = offsets[ncols] >> 8;
 
 		tdsdump_log(TDS_DBG_FUNC, "ncols=%u poff=%p [%u]\n", ncols, poff, offsets[ncols]);
 
