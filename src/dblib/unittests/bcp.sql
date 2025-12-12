@@ -22,24 +22,24 @@ CREATE TABLE all_types_bcp_unittest (
 	, not_null_smallint		smallint NOT NULL
 	, not_null_tinyint		tinyint NOT NULL
 
-	, nullable_char			char(10)  NULL
-	, nullable_varchar		varchar(10)  NULL
+	, nullable_char			char(10)  	DEFAULT("abcdefghij") NULL
+	, nullable_varchar		varchar(10) DEFAULT("abcde") NULL
 
-	, nullable_datetime		datetime  NULL
-	, nullable_smalldatetime	smalldatetime  NULL
+	, nullable_datetime		datetime  DEFAULT(GETDATE()) NULL
+	, nullable_smalldatetime	smalldatetime  DEFAULT(GETDATE()) NULL
 
-	, nullable_money		money  NULL
-	, nullable_smallmoney		smallmoney  NULL
+	, nullable_money		money  		DEFAULT(1.23) NULL
+	, nullable_smallmoney	smallmoney  DEFAULT(2.13) NULL
 
-	, nullable_float		float  NULL
-	, nullable_real			real  NULL
+	, nullable_float		float  		DEFAULT(3.14159) NULL
+	, nullable_real			real  		DEFAULT(2.71828) NULL
 
-	, nullable_decimal		decimal(5,2)  NULL
-	, nullable_numeric		numeric(5,2)  NULL
+	, nullable_decimal		decimal(5,2)  DEFAULT(123.45) NULL
+	, nullable_numeric		numeric(5,2)  DEFAULT(123.45) NULL
 
-	, nullable_int			int  NULL
-	, nullable_smallint		smallint  NULL
-	, nullable_tinyint		tinyint  NULL
+	, nullable_int			int  		DEFAULT(210987654) NULL
+	, nullable_smallint		smallint  	DEFAULT(413) NULL
+	, nullable_tinyint		tinyint  	DEFAULT(125) NULL
 
 	/* Excludes: 
 	 * binary
@@ -197,7 +197,7 @@ select   'nullable_char' as col, count(*) nrows, datalength(nullable_char) as le
 UNION
 select   'nullable_varchar' as col, count(*) nrows, datalength(nullable_varchar) as len, nullable_varchar as value from all_types_bcp_unittest group by nullable_varchar
 UNION
-select   'nullable_int' as col, count(*) nrows, datalength(nullable_int) as len, cast(nullable_int as varchar(6))as value from all_types_bcp_unittest group by nullable_int
+select   'nullable_int' as col, count(*) nrows, datalength(nullable_int) as len, cast(nullable_int as varchar(10))as value from all_types_bcp_unittest group by nullable_int
 order by col, len, nrows
 
 go

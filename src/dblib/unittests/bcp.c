@@ -202,7 +202,7 @@ TEST_MAIN()
 
 	/* set up and send the bcp */
 	sprintf(cmd, "%s..%s", DATABASE, table_name);
-	printf("preparing to insert into %s ... ", cmd);
+	printf("preparing to BCP upload into %s ... ", cmd);
 	if (bcp_init(dbproc, cmd, NULL, NULL, DB_IN) == FAIL) {
 		fprintf(stderr, "failed\n");
     		exit(1);
