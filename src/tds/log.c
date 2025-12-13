@@ -386,10 +386,10 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
 		/*
 		 * print each byte in ascii
 		 */
-		for (j = i; j < length && (j - i) < BYTES_PER_LINE; j++) {
-			if (j - i == BYTES_PER_LINE / 2)
+		for (j = 0; j + i < length && j < BYTES_PER_LINE; j++) {
+			if (j == BYTES_PER_LINE / 2)
 				*p++ = ' ';
-			p += sprintf(p, "%c", (ascii_isprint(data[j])) ? data[j] : '.');
+			*p++ = ascii_isprint(data[j + i]) ? (char) data[j + i] : '.';
 		}
 		strcpy(p, "|\n");
 		fputs(line_buf, dumpfile);
