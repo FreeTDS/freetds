@@ -372,10 +372,15 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
 				*p++ = '-';
 			else
 				*p++ = ' ';
-			if (j + i >= length)
-				p += sprintf(p, "  ");
-			else
-				p += sprintf(p, "%02x", data[i + j]);
+			if (j + i >= length) {
+				*p++ = ' ';
+				*p++ = ' ';
+			} else {
+				const unsigned char c = data[i + j];
+
+				*p++ = tds_hex_digits[c >> 4];
+				*p++ = tds_hex_digits[c & 15];
+			}
 		}
 
 		/*
