@@ -1710,6 +1710,7 @@ struct tds_bcpinfo
 	bool identity_insert_on;
 	bool xfer_init;
 	bool datarows_locking;
+	bool ignore_defaults;
 	TDS_INT bind_count;
 	TDSRESULTINFO *bindinfo;      /* Array - length is bind_count */
 	TDS5COLINFO *sybase_colinfo;  /* Array - length is sybase_count */
