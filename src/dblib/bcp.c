@@ -657,9 +657,13 @@ bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen)
 			break;
 
 		// Hint documentation: https://learn.microsoft.com/en-us/sql/t-sql/statements/bulk-insert-transact-sql
-		if (tds_dstr_copyn(&dbproc->bcpinfo->hint, value, valuelen))
-			return SUCCEED;
-		break;
+		if (!tds_dstr_copyn(&dbproc->bcpinfo->hint, (char *)value, valuelen))
+			return FAIL;
+
+		if (strstr(tds_dstr_cstr(&dbproc->bcpinfo->hint), "KEEP_NULLS"))
+			dbproc->bcpinfo->ignore_defaults = true;
+
+		return SUCCEED;
 
 	default:
 		tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED bcp option: %u\n", option);

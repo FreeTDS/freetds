@@ -1238,7 +1238,7 @@ static TDSRET process_bulkcol_row(TDSCONTEXT const *ctx, TDSRESULTINFO* res_info
 	colinfo->status = pcols->value[BULKCOL_status];
 	colinfo->offset = pcols->value[BULKCOL_offset];
 	colinfo->length = pcols->value[BULKCOL_length];
-	colinfo->has_default = pcols->value[BULKCOL_dflt];
+	colinfo->has_default = pcols->value[BULKCOL_dflt] && !bcpinfo->ignore_defaults;
 	tdsdump_log(TDS_DBG_INFO1, "gotten row information %d type %d length %d status %d offset %d\n",
 		pcols->value[BULKCOL_colid],
 		colinfo->type,
@@ -1262,7 +1262,10 @@ static bool is_defaults_formats(TDSRESULTINFO* res_info, TDSBCPINFO* bcpinfo)
 	 * This code is based on reverse engineering the response from the test bcp_defaultdate.
 	 */
 
-	 /* Check there are the right number of defaults offered as specified */
+	 /* Check there are the right number of defaults offered as specified.
+	  * NOTE: if ignore_defaults is set, the columns will have has_default==false
+	  * so this (intentionally) fails to detect and process the row.
+	  */
 	for (i = 0; i < bcpinfo->sybase_count; ++i)
 		if (bcpinfo->sybase_colinfo[i].has_default)
 			++n_defaults;
@@ -1452,6 +1455,7 @@ tds5_process_insert_bulk_reply(TDSSOCKET * tds, TDSBCPINFO *bcpinfo)
 			if (defaults_found && !defaults_processed)
 			{
 				rc = process_defaults_row(tds->current_results, bcpinfo);
+
 				/* The defaults all arrive as a single row, one column per default value */
 				defaults_processed = true;
 			}
