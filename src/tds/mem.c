@@ -1833,6 +1833,13 @@ tds_alloc_bcp_column_data(unsigned int column_size)
 
 	TEST_MALLOC(coldata, BCPCOLDATA);
 
+	/* Initialize fields to NULL, otherwise any field with value not
+	 * explicitly set will behave as a non-null value of length 0,
+	 * which is not really what we ever want.
+	 * ASE BCP treats uninitialized fields as null.
+	 */
+	coldata->is_null = true;
+
 	if (column_size > 4 * 1024)
 		column_size = 4 * 1024;
 	TEST_CALLOC(coldata->data, unsigned char, column_size);
