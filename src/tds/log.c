@@ -245,12 +245,12 @@ static void
 tdsdump_start(FILE *file, const char *fname, int line)
 {
 	char buf[128], *pbuf;
-	int started = 0;
+	bool started = false;
 
 	/* write always time before log */
 	if (tds_debug_flags & TDS_DBGFLAG_TIME) {
 		fputs(tds_timestamp_str(buf, sizeof(buf) - 1), file);
-		started = 1;
+		started = true;
 	}
 
 	pbuf = buf;
@@ -258,7 +258,7 @@ tdsdump_start(FILE *file, const char *fname, int line)
 		if (started)
 			*pbuf++ = ' ';
 		pbuf += sprintf(pbuf, "%d", (int) getpid());
-		started = 1;
+		started = true;
 	}
 
 	if ((tds_debug_flags & TDS_DBGFLAG_SOURCE) && fname && line) {
@@ -273,7 +273,7 @@ tdsdump_start(FILE *file, const char *fname, int line)
 			pbuf += sprintf(pbuf, " (%s:%d)", fname, line);
 		else
 			pbuf += sprintf(pbuf, "%s:%d", fname, line);
-		started = 1;
+		started = true;
 	}
 	if (started)
 		*pbuf++ = ':';
