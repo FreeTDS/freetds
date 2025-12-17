@@ -204,7 +204,7 @@
 #include <freetds/stream.h>
 #include <freetds/data.h>
 
-#define USE_ICONV (tds->conn->use_iconv)
+#define USE_ICONV_IN (tds->conn->use_iconv_in)
 
 static const TDSCOLUMNFUNCS *tds_get_column_funcs(TDSCONNECTION *conn, int type);
 static void tds_swap_numeric(TDS_NUMERIC *num);
@@ -472,7 +472,7 @@ tds_get_char_dynamic(TDSSOCKET *tds, TDSCOLUMN *curcol, void **pp, size_t alloca
 	 */
 	TDS_PROPAGATE(tds_dynamic_stream_init(&w, pp, allocated));
 
-	if (USE_ICONV && curcol->char_conv)
+	if (USE_ICONV_IN && curcol->char_conv)
 		res = tds_convert_stream(tds, curcol->char_conv, to_client, r_stream, &w.stream);
 	else
 		res = tds_copy_stream(r_stream, &w.stream);
@@ -673,7 +673,7 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	if (colsize) {
 		TDSDATAINSTREAM r;
 
-		if (USE_ICONV && curcol->char_conv)
+		if (USE_ICONV_IN && curcol->char_conv)
 			v->type = tds_get_cardinal_type(type, 0);
 
 		tds_datain_stream_init(&r, tds, colsize);
@@ -805,7 +805,7 @@ tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 
 	/* non-numeric and non-blob */
 
-	if (USE_ICONV && curcol->char_conv) {
+	if (USE_ICONV_IN && curcol->char_conv) {
 		TDS_PROPAGATE(tds_get_char_data(tds, (char *) dest, colsize, curcol));
 	} else {
 		/*

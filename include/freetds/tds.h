@@ -1113,7 +1113,7 @@ struct tds_connection
 	TDS_UCHAR tds72_transaction[8];
 
 	TDS_CAPABILITIES capabilities;
-	unsigned int use_iconv:1;
+	unsigned int use_iconv_in:1;
 	unsigned int tds71rev1:1;
 	unsigned int pending_close:1;	/**< true is connection has pending closing (cursors or dynamic) */
 	unsigned int encrypt_single_packet:1;

@@ -48,7 +48,7 @@
 #include <freetds/replacements.h>
 
 /** \cond HIDDEN_SYMBOLS */
-#define USE_ICONV (tds->conn->use_iconv)
+#define USE_ICONV_IN (tds->conn->use_iconv_in)
 
 #define TDS_GET_COLUMN_TYPE(col) do { \
 	TDS_TINYINT _tds_type = tds_get_byte(tds); \
@@ -3244,7 +3244,7 @@ adjust_character_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	}
 
 compute:
-	if (!USE_ICONV || !curcol->char_conv)
+	if (!USE_ICONV_IN || !curcol->char_conv)
 		return;
 
 	curcol->on_server.column_size = curcol->column_size;

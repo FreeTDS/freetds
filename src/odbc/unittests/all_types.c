@@ -96,7 +96,7 @@ TEST_MAIN()
 	assert(!dbc->tds_socket);
 	dbc->tds_socket = tds_alloc_socket(env->tds_ctx, 512);
 	assert(dbc->tds_socket);
-	dbc->tds_socket->conn->use_iconv = 0;
+	dbc->tds_socket->conn->use_iconv_in = 0;
 	tds_set_parent(dbc->tds_socket, dbc);
 	if (TDS_FAILED(tds_iconv_open(dbc->tds_socket->conn, "UTF-8", 1))) {
 		fprintf(stderr, "Failed to initialize iconv\n");

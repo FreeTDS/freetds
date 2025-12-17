@@ -1147,7 +1147,7 @@ tds_init_connection(TDSCONNECTION *conn, TDSCONTEXT *context, unsigned int bufsi
 {
 	conn->env.block_size = bufsize;
 	conn->s = INVALID_SOCKET;
-	conn->use_iconv = 1;
+	conn->use_iconv_in = 1;
 	conn->tds_ctx = context;
 	conn->ncharsize = 1;
 	conn->unicharsize = 1;

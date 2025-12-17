@@ -371,7 +371,7 @@ odbc_connect(TDS_DBC * dbc, TDSLOGIN * login)
 	if (!dbc->tds_socket)
 		goto memory_error;
 
-	dbc->tds_socket->conn->use_iconv = 0;
+	dbc->tds_socket->conn->use_iconv_in = 0;
 	tds_set_parent(dbc->tds_socket, (void *) dbc);
 
 	/* Set up our environment change hook */

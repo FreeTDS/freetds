@@ -74,7 +74,7 @@ TEST_MAIN()
 	assert(tds_ctx);
 	tds = tds_alloc_socket(tds_ctx, 512);
 	assert(tds);
-	tds->conn->use_iconv = 0;
+	tds->conn->use_iconv_in = 0;
 	if (TDS_FAILED(tds_iconv_open(tds->conn, "UTF-8", 1))) {
 		fprintf(stderr, "Failed to initialize iconv\n");
 		return 1;
