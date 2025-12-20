@@ -330,7 +330,7 @@ probe_sap_locking(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 static TDSRET
 tds7_build_bulk_insert_stmt(TDSSOCKET * tds, TDSPBCB * clause, TDSCOLUMN * bcpcol, int first)
 {
-	char column_type[40];
+	char column_type[128];
 
 	tdsdump_log(TDS_DBG_FUNC, "tds7_build_bulk_insert_stmt(%p, %p, %p, %d)\n", tds, clause, bcpcol, first);
 
@@ -339,6 +339,11 @@ tds7_build_bulk_insert_stmt(TDSSOCKET * tds, TDSPBCB * clause, TDSCOLUMN * bcpco
 		tdsdump_log(TDS_DBG_FUNC, "error: cannot build bulk insert statement. unrecognized server datatype %d\n",
 			    bcpcol->on_server.column_type);
 		return TDS_FAIL;
+	}
+
+	if (IS_TDS71_PLUS(tds->conn) && bcpcol->char_conv) {
+		strcat(column_type, " COLLATE ");
+		strcat(column_type, tds_canonical_collate_name(bcpcol->char_conv->to.charset.canonic));
 	}
 
 	if (clause->cb < strlen(clause->pb)
