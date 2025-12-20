@@ -60,8 +60,8 @@ static int tds_version;
 static void
 cleanup(void)
 {
-	odbc_command("if exists (select 1 from sysobjects where type = 'U' and name = 'all_types_bcp_unittest') drop table all_types_bcp_unittest");
-	odbc_command("if exists (select 1 from sysobjects where type = 'U' and name = 'special_types_bcp_unittest') drop table special_types_bcp_unittest");
+	odbc_command("if object_id('all_types_bcp_unittest') is not null drop table all_types_bcp_unittest");
+	odbc_command("if object_id('special_types_bcp_unittest') is not null drop table special_types_bcp_unittest");
 }
 
 static void
@@ -238,7 +238,7 @@ test_bind(int prefixlen)
 static void
 set_attr(void)
 {
-	SQLSetConnectAttr(odbc_conn, SQL_COPT_SS_BCP, (SQLPOINTER)SQL_BCP_ON, 0);
+	CHKSetConnectAttr(SQL_COPT_SS_BCP, (SQLPOINTER)SQL_BCP_ON, 0, "S");
 }
 
 static void
@@ -357,7 +357,7 @@ special_inserts(void)
 	timestamp.hour = 15;
 	timestamp.minute = 26;
 	timestamp.second = 53;
-	timestamp.fraction = 589793238;
+	timestamp.fraction = 589793000;
 	memset(&numeric, 0, sizeof(numeric));
 	numeric.precision = 19;
 	numeric.scale = 6;
