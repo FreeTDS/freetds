@@ -52,7 +52,9 @@ static const char *expected_special[] = {
 	"2015-03-14 15:26:53.589793",
 	"3.141593000",
 	"3.141593",		/* MS driver has "3141593" here. Bug? Should we be bug-compatible? */
+	"hello",
 	"",
+	"\xd3\xd4"
 };
 
 static int tds_version;
@@ -132,7 +134,9 @@ init(void)
 		"dt2 datetime2(6) not null,"
 		"num decimal(19,9) not null,"
 		"numstr varchar(64) not null,"
+		"str nvarchar(6) not null,"
 		"empty varchar(64) not null,"
+		"cp varchar(64) collate SQL_Latin1_General_CP850_CI_AS not null,"
 		"bitnull bit null"
 		")");
 }
@@ -260,6 +264,7 @@ TEST_MAIN()
 	const char *s;
 
 	odbc_set_conn_attr = set_attr;
+	odbc_conn_additional_params = "ClientCharset=ISO-8859-1;";
 	odbc_connect();
 
 	tds_version = odbc_tds_version();
@@ -334,6 +339,7 @@ special_inserts(void)
 	SQL_TIMESTAMP_STRUCT timestamp;
 	DBDATETIME datetime;
 	SQL_NUMERIC_STRUCT numeric;
+	SQLWCHAR hello[6], oo[3];
 
 	printf("sending special types\n");
 	rows_sent = 0;
@@ -361,12 +367,16 @@ special_inserts(void)
 	numeric.val[0] = 0xd9;
 	numeric.val[1] = 0xef;
 	numeric.val[2] = 0x2f;
+	odbc_to_sqlwchar(hello, "hello", 6);
+	odbc_to_sqlwchar(oo, "\xd3\xd4", 3);
 	bcp_bind(odbc_conn, (unsigned char *) &datetime, 0, sizeof(datetime), NULL, 0, BCP_TYPE_SQLDATETIME, 1);
 	bcp_bind(odbc_conn, (unsigned char *) &timestamp, 0, sizeof(timestamp), NULL, 0, BCP_TYPE_SQLDATETIME2, 2);
 	bcp_bind(odbc_conn, (unsigned char *) &numeric, 0, sizeof(numeric), NULL, 0, BCP_TYPE_SQLDECIMAL, 3);
 	bcp_bind(odbc_conn, (unsigned char *) &numeric, 0, sizeof(numeric), NULL, 0, BCP_TYPE_SQLDECIMAL, 4);
-	bcp_bind(odbc_conn, (unsigned char *) "", 0, 0, NULL, 0, BCP_TYPE_SQLVARCHAR, 5);
-	bcp_bind(odbc_conn, (unsigned char *) &not_null_bit, 0, SQL_NULL_DATA, NULL, 0, BCP_TYPE_SQLINT4, 6);
+	bcp_bind(odbc_conn, (unsigned char *) hello, 0, 10, NULL, 0, BCP_TYPE_SQLNVARCHAR, 5);
+	bcp_bind(odbc_conn, (unsigned char *) "", 0, 0, NULL, 0, BCP_TYPE_SQLVARCHAR, 6);
+	bcp_bind(odbc_conn, (unsigned char *) oo, 0, 4, NULL, 0, BCP_TYPE_SQLNVARCHAR, 7);
+	bcp_bind(odbc_conn, (unsigned char *) &not_null_bit, 0, SQL_NULL_DATA, NULL, 0, BCP_TYPE_SQLINT4, 8);
 
 	if (bcp_sendrow(odbc_conn) == FAIL)
 		report_bcp_error("bcp_sendrow", __LINE__, __FILE__);
