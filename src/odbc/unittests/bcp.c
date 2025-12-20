@@ -60,8 +60,8 @@ static int tds_version;
 static void
 cleanup(void)
 {
-	odbc_command("if object_id('all_types_bcp_unittest') is not null drop table all_types_bcp_unittest");
-	odbc_command("if object_id('special_types_bcp_unittest') is not null drop table special_types_bcp_unittest");
+	odbc_command("if object_id('all_types_bcp_unittest') is not null drop table all_types_bcp_unittest\n"
+		     "if object_id('special_types_bcp_unittest') is not null drop table special_types_bcp_unittest");
 }
 
 static void
