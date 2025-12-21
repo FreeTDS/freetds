@@ -69,8 +69,9 @@ convert_datetime2server(int bindtype, const void *src, TDS_DATETIMEALL * dta)
 #if HAVE_GETTIMEOFDAY
 		{
 			struct timeval tv;
-		        gettimeofday(&tv, NULL);
-		        curr_time = tv.tv_sec;
+
+			gettimeofday(&tv, NULL);
+			curr_time = tv.tv_sec;
 		}
 #else
 		curr_time = time(NULL);
@@ -145,8 +146,8 @@ odbc_wstr2str(TDS_STMT * stmt, const char *src, int* len)
 		return NULL;
 	}
 
-        /* convert */
-        p = out;
+	/* convert */
+	p = out;
 	for (; srclen && *wp < 256; --srclen)
 		*p++ = (char) *wp++;
 
@@ -165,10 +166,10 @@ odbc_wstr2str(TDS_STMT * stmt, const char *src, int* len)
 static void
 _odbc_blob_free(TDSCOLUMN *col)
 {
-        if (!col->column_data)
-                return;
+	if (!col->column_data)
+		return;
 
-        TDS_ZERO_FREE(col->column_data);
+	TDS_ZERO_FREE(col->column_data);
 }
 
 static SQLRETURN
