@@ -521,6 +521,7 @@ int
 tds_read_packet(TDSSOCKET * tds)
 {
 #if ENABLE_ODBC_MARS
+	TDS_UINT this_seq;
 	TDSCONNECTION *conn = tds->conn;
 
 	tds_mutex_lock(&conn->list_mtx);
@@ -554,9 +555,10 @@ tds_read_packet(TDSSOCKET * tds)
 			tds->in_pos  = 8;
 			tds->in_flag = tds->in_buf[0];
 
-			/* send acknowledge if needed */
-			if ((int32_t) (tds->recv_seq + 2 - tds->recv_wnd) >= 0)
-				tds_update_recv_wnd(tds, tds->recv_seq + 4);
+			/* Look ahead by up to 4 packets */
+			memcpy(&this_seq, ((char const *)packet->buf) + offsetof(TDS72_SMP_HEADER, seq), sizeof this_seq);
+			if (this_seq + 2 >= tds->recv_wnd)
+				tds_update_recv_wnd(tds, this_seq + 4);
 
 			return tds->in_len;
 		}
