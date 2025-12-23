@@ -98,7 +98,7 @@ TEST_MAIN()
 	fprintf(stderr, "Bypassing Hebrew MBCS test since iconv not installed (Forcing server to send UTF-16).\n");
 	odbc_command("SELECT CAST(hebrew AS NVARCHAR(20)), CAST(cn AS NVARCHAR(20)) FROM #tmp ORDER BY i");
 #endif
-	/* insert with SQLPrepare/SQLBindParameter/SQLExecute */
+	/* select with SQLBindCol/SQLFetch */
 	for (n = 0; n < TDS_VECTOR_SIZE(column_names); ++n)
 		CHKBindCol(n+1, SQL_C_CHAR, out[n], sizeof(out[0]), &n_len[n], "S");
 	for (n = 0, p = columns; p[n].hex; ++n) {
