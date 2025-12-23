@@ -212,7 +212,6 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 			/* TODO is possible to put 2 TDS packet inside a single DATA ?? */
 			if (conn->recv_pos >= 20 && TDS_GET_A2BE(&packet->buf[18]) != size - 16)
 				goto Severe_Error;
-			tds->recv_seq = TDS_GET_A4LE(&mars_header.seq);
 			/*
 			 * do not sent ACK here because this would lead to memory waste
 			 * if session is not able to handle all that packets
@@ -553,9 +552,12 @@ tds_read_packet(TDSSOCKET * tds)
 			tds->in_pos  = 8;
 			tds->in_flag = tds->in_buf[0];
 
-			/* send acknowledge if needed */
-			if ((int32_t) (tds->recv_seq + 2 - tds->recv_wnd) >= 0)
-				tds_update_recv_wnd(tds, tds->recv_seq + 4);
+			if (packet->data_start) {
+				/* Look ahead by up to 4 packets */
+				tds->recv_seq = TDS_GET_A4LE(&((const TDS72_SMP_HEADER *) packet->buf)->seq);
+				if ((int32_t) (tds->recv_seq + 2 - tds->recv_wnd) >= 0)
+					tds_update_recv_wnd(tds, tds->recv_seq + 4);
+			}
 
 			return tds->in_len;
 		}
