@@ -1029,6 +1029,12 @@ collate2charset(TDSCONNECTION * conn, const TDS_UCHAR collate[5])
 	case 43:		/* SQL_Latin1_General_Pref_CP850_CI_AS */
 	case 44:		/* SQL_Latin1_General_CP850_CI_AI */
 	case 49:		/* SQL_1xCompat_CP850_CI_AS */
+		return TDS_CHARSET_CP850;
+	case 51:		/* SQL_Latin1_General_Cp1_CS_AS_KI_WI */
+	case 52:		/* SQL_Latin1_General_Cp1_CI_AS_KI_WI */
+	case 53:		/* SQL_Latin1_General_Pref_Cp1_CI_AS_KI_WI */
+	case 54:		/* SQL_Latin1_General_Cp1_CI_AI_KI_WI */
+		return TDS_CHARSET_CP1252;
 	case 55:		/* SQL_AltDiction_CP850_CS_AS */
 	case 56:		/* SQL_AltDiction_Pref_CP850_CI_AS */
 	case 57:		/* SQL_AltDiction_CP850_CI_AI */
@@ -1040,10 +1046,28 @@ collate2charset(TDSCONNECTION * conn, const TDS_UCHAR collate[5])
 	case 80:		/* SQL_Latin1_General_1250_BIN */
 	case 81:		/* SQL_Latin1_General_CP1250_CS_AS */
 	case 82:		/* SQL_Latin1_General_CP1250_CI_AS */
+	case 83:		/* SQL_Czech_Cp1250_CS_AS_KI_WI */
+	case 84:		/* SQL_Czech_Cp1250_CI_AS_KI_WI */
+	case 85:		/* SQL_Hungarian_Cp1250_CS_AS_KI_WI */
+	case 86:		/* SQL_Hungarian_Cp1250_CI_AS_KI_WI */
+	case 87:		/* SQL_Polish_Cp1250_CS_AS_KI_WI */
+	case 88:		/* SQL_Polish_Cp1250_CI_AS_KI_WI */
+	case 89:		/* SQL_Romanian_Cp1250_CS_AS_KI_WI */
+	case 90:		/* SQL_Romanian_Cp1250_CI_AS_KI_WI */
+	case 91:		/* SQL_Croatian_Cp1250_CS_AS_KI_WI */
+	case 92:		/* SQL_Croatian_Cp1250_CI_AS_KI_WI */
+	case 93:		/* SQL_Slovak_Cp1250_CS_AS_KI_WI */
+	case 94:		/* SQL_Slovak_Cp1250_CI_AS_KI_WI */
+	case 95:		/* SQL_Slovenian_Cp1250_CS_AS_KI_WI */
+	case 96:		/* SQL_Slovenian_Cp1250_CI_AS_KI_WI */
 		return TDS_CHARSET_CP1250;
+	case 104:		/* SQL_Latin1_General_1251_BIN */
 	case 105:		/* SQL_Latin1_General_CP1251_CS_AS */
 	case 106:		/* SQL_Latin1_General_CP1251_CI_AS */
+	case 107:		/* SQL_Ukrainian_Cp1251_CS_AS_KI_WI */
+	case 108:		/* SQL_Ukrainian_Cp1251_CI_AS_KI_WI */
 		return TDS_CHARSET_CP1251;
+	case 112:		/* SQL_Latin1_General_1253_BIN */
 	case 113:		/* SQL_Latin1_General_CP1253_CS_AS */
 	case 114:		/* SQL_Latin1_General_CP1253_CI_AS */
 	case 120:		/* SQL_MixDiction_CP1253_CS_AS */
@@ -1051,15 +1075,33 @@ collate2charset(TDSCONNECTION * conn, const TDS_UCHAR collate[5])
 	case 122:		/* SQL_AltDiction2_CP1253_CS_AS */
 	case 124:		/* SQL_Latin1_General_CP1253_CI_AI */
 		return TDS_CHARSET_CP1253;
+	case 128:		/* SQL_Latin1_General_1254_BIN */
+	case 129:		/* SQL_Latin1_General_Cp1254_CS_AS_KI_WI */
+	case 130:		/* SQL_Latin1_General_Cp1254_CI_AS_KI_WI */
+		return TDS_CHARSET_CP1254;
+	case 136:		/* SQL_Latin1_General_1255_BIN */
 	case 137:		/* SQL_Latin1_General_CP1255_CS_AS */
 	case 138:		/* SQL_Latin1_General_CP1255_CI_AS */
 		return TDS_CHARSET_CP1255;
+	case 144:		/* SQL_Latin1_General_1256_BIN */
 	case 145:		/* SQL_Latin1_General_CP1256_CS_AS */
 	case 146:		/* SQL_Latin1_General_CP1256_CI_AS */
 		return TDS_CHARSET_CP1256;
+	case 152:		/* SQL_Latin1_General_1257_BIN */
 	case 153:		/* SQL_Latin1_General_CP1257_CS_AS */
 	case 154:		/* SQL_Latin1_General_CP1257_CI_AS */
+	case 155:		/* SQL_Estonian_Cp1257_CS_AS_KI_WI */
+	case 156:		/* SQL_Estonian_Cp1257_CI_AS_KI_WI */
+	case 157:		/* SQL_Latvian_Cp1257_CS_AS_KI_WI */
+	case 158:		/* SQL_Latvian_Cp1257_CI_AS_KI_WI */
+	case 159:		/* SQL_Lithuanian_Cp1257_CS_AS_KI_WI */
+	case 160:		/* SQL_Lithuanian_Cp1257_CI_AS_KI_WI */
 		return TDS_CHARSET_CP1257;
+	case 183:		/* SQL_Danish_Pref_CP1_CI_AS */
+	case 184:		/* SQL_SwedishPhone_Pref_CP1_CI_AS */
+	case 185:		/* SQL_SwedishStd_Pref_CP1_CI_AS */
+	case 186:		/* SQL_Icelandic_Pref_CP1_CI_AS */
+		return TDS_CHARSET_CP1252;
 	}
 
 	switch (lcid) {
