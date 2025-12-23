@@ -872,7 +872,13 @@ odbc_lock_statement(TDS_STMT* stmt)
 
 		/* try with MARS */
 		if (!tds)
+		{
 			tds = tds_alloc_additional_socket(dbc_tds->conn);
+			if (tds)
+			{
+				tdsdump_log(TDS_DBG_INFO1, "MARS SID %d allocated new TDSSOCKET\n", tds->sid);
+			}
+		}
 	}
 	if (tds) {
 		tds->query_timeout = (stmt->attr.query_timeout != DEFAULT_QUERY_TIMEOUT) ?

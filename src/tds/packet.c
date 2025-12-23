@@ -563,6 +563,13 @@ tds_read_packet(TDSSOCKET * tds)
 			return tds->in_len;
 		}
 
+#if ENABLE_EXTRA_CHECKS
+		{
+			TDS_UINT np = 0;
+			for (p_packet = &conn->packets; *p_packet; p_packet = &(*p_packet)->next) ++np;
+			tdsdump_log(TDS_DBG_NETWORK, "MARS SID %d queued packets %u\n", tds->sid, np);
+		}
+#endif
 		/* network ok ? process network */
 		if (!conn->in_net_tds) {
 			tds_connection_network(conn, tds, 0);
