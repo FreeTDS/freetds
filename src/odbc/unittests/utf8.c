@@ -30,7 +30,7 @@ static const char * const strings_hex[] = {
 static char tmp[1024*3];
 
 static void
-TestBinding(int minimun)
+TestBinding(bool minimun)
 {
 	const char * const*p;
 	SQLINTEGER n;
@@ -115,9 +115,9 @@ TEST_MAIN()
 		odbc_check_no_row(tmp);
 	}
 
-	TestBinding(0);
+	TestBinding(false);
 
-	TestBinding(1);
+	TestBinding(true);
 
 	/* cleanup */
 	sprintf(tmp, "IF OBJECT_ID(N'%s') IS NOT NULL DROP TABLE %s", table_name, table_name);
