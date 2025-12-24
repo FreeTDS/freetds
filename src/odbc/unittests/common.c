@@ -632,7 +632,11 @@ odbc_command_proc(HSTMT stmt, const char *command, const char *file, int line, c
 	SQLRETURN ret;
 	ODBC_BUF *odbc_buf = NULL;
 
-	printf("%s\n", command);
+	if (command[0] == '!')
+		++command;
+	else
+		printf("%s\n", command);
+
 	ret = odbc_check_res(file, line, SQLExecDirect(stmt, T(command), SQL_NTS), SQL_HANDLE_STMT, stmt, "odbc_command", res);
 	ODBC_FREE();
 	return ret;
