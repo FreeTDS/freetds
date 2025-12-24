@@ -163,9 +163,11 @@ static void
 test_column_encoding(void)
 {
 	FILE *f = fopen("collations.txt", "r");
+	FILE *out = fopen("collations2.txt", "w");
 	char line[1024];
 
 	assert(f);
+	assert(out);
 	while (fgets(line, sizeof(line), f)) {
 		TDS71_COLLATION coll;
 		char cp[128], digest[33];
@@ -180,8 +182,10 @@ test_column_encoding(void)
 
 		get_encoding_coll(&coll, digest, cp, s);
 		printf("%s %04x %04x %d %s %s\n", s, coll.locale_id, coll.flags, coll.charset_id, cp, digest);
+		fprintf(out, "%s %04x %04x %d %s %s\n", s, coll.locale_id, coll.flags, coll.charset_id, cp, digest);
 	}
 	fclose(f);
+	fclose(out);
 }
 
 static void
