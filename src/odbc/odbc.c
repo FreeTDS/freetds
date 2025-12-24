@@ -925,15 +925,8 @@ odbc_unlock_statement(TDS_STMT* stmt)
 			tds_set_parent(tds, stmt->dbc);
 			stmt->tds = NULL;
 		}
-#if ENABLE_ODBC_MARS
-	} else if (tds) {
-		if (tds->state == TDS_IDLE || tds->state == TDS_DEAD) {
-			assert(tds != stmt->dbc->tds_socket);
-			tds_free_socket(tds);
-			stmt->tds = NULL;
-		}
-#endif
 	}
+	/* NOTE: MARS socket now released when statement freed. */
 	tds_mutex_unlock(&stmt->dbc->mtx);
 }
 
@@ -4399,8 +4392,6 @@ SQLFreeEnv(SQLHENV henv)
 static SQLRETURN
 odbc_SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 {
-	TDSSOCKET *tds;
-
 	ODBC_ENTER_HSTMT;
 
 	tdsdump_log(TDS_DBG_FUNC, "odbc_SQLFreeStmt(%p, %d, %d)\n", hstmt, fOption, force);
@@ -4427,6 +4418,7 @@ odbc_SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 	/* close statement */
 	if (fOption == SQL_DROP || fOption == SQL_CLOSE) {
 		SQLRETURN retcode;
+		TDSSOCKET *tds;
 
 		tds = stmt->tds;
 		/*
@@ -4446,6 +4438,9 @@ odbc_SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 
 	/* free it */
 	if (fOption == SQL_DROP) {
+#if ENABLE_ODBC_MARS
+		TDSSOCKET *tds;
+#endif
 		SQLRETURN retcode;
 
 		/* close prepared statement or add to connection */
@@ -4467,6 +4462,17 @@ odbc_SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 		tds_free_param_results(stmt->params);
 		odbc_errs_reset(&stmt->errs);
 		odbc_unlock_statement(stmt);
+#if ENABLE_ODBC_MARS
+		tds = stmt->tds;
+		if (tds && tds != stmt->dbc->tds_socket) {
+			if (tds->state != TDS_IDLE && tds->state != TDS_DEAD)
+				tdsdump_log(TDS_DBG_WARN, "MARS SID %d was not idle/dead\n", tds->sid);
+
+			tdsdump_log(TDS_DBG_INFO1, "MARS SID %d socket freeing\n", tds->sid);
+			tds_free_socket(tds);
+			stmt->tds = NULL;
+		}
+#endif
 		tds_dstr_free(&stmt->cursor_name);
 		tds_dstr_free(&stmt->attr.qn_msgtext);
 		tds_dstr_free(&stmt->attr.qn_options);
