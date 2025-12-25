@@ -278,15 +278,11 @@ TEST_MAIN()
 	normal_select();
 
 	if ((s = getenv("BCP")) != NULL && 0 == strcmp(s, "nodrop")) {
-		printf("BCP=nodrop: '%s' kept\n", table_name);
+		printf("BCP=nodrop: tables kept\n");
 	} else {
-		printf("Dropping table %s\n", table_name);
-		odbc_command("drop table all_types_bcp_unittest");
-		if (tds_version >= 0x703)
-			odbc_command("drop table special_types_bcp_unittest");
+		printf("Dropping tables\n");
+		cleanup();
 	}
-
-	cleanup();
 
 	odbc_disconnect();
 
