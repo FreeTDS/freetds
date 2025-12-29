@@ -959,7 +959,7 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 	s = (char *) src;
 
 	/* convert string if needed */
-	if (!bcp7 && curcol->char_conv && curcol->char_conv->flags != TDS_ENCODING_MEMCPY && colsize) {
+	if (curcol->use_iconv_out && curcol->char_conv && curcol->char_conv->flags != TDS_ENCODING_MEMCPY && colsize) {
 		size_t output_size;
 #if 0
 		/* TODO this case should be optimized */

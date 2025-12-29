@@ -164,6 +164,7 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		curcol->column_computed = resinfo->columns[i]->column_computed;
 		
 		memcpy(curcol->column_collation, resinfo->columns[i]->column_collation, 5);
+		curcol->use_iconv_out = 0;
 
 		/* From MS documentation:
 		 * Note that for INSERT BULK operations, XMLTYPE is to be sent as NVARCHAR(N) or NVARCHAR(MAX)

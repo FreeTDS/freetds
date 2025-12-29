@@ -719,6 +719,8 @@ struct tds_column
 	unsigned char column_computed:1;
 	TDS_UCHAR column_collation[5];
 
+	unsigned char use_iconv_out:1;
+
 	/* additional fields flags for compute results */
 	TDS_SMALLINT column_operand;
 	TDS_TINYINT column_operator;

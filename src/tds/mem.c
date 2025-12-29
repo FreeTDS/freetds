@@ -132,6 +132,7 @@ tds_alloc_column(void)
 	tds_dstr_init(&col->column_name);
 	tds_dstr_init(&col->table_column_name);
 	col->funcs = &tds_invalid_funcs;
+	col->use_iconv_out = 1;
 
       Cleanup:
 	return col;
