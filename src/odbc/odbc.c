@@ -4466,12 +4466,12 @@ odbc_SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 #if ENABLE_ODBC_MARS
 		if ( stmt->tds && stmt->tds != stmt->dbc->tds_socket )
 		{
-			tds_free_socket(tds);
-			stmt->tds = NULL;
-			tdsdump_log(TDS_DBG_INFO1, "MARS SID %d socket freed\n", tds->sid);
 			if (!(tds->state == TDS_IDLE || tds->state == TDS_DEAD)) {
 				tdsdump_log(TDS_DBG_WARN, "MARS SID %d was not idle/dead\n", tds->sid);
 			}
+			tdsdump_log(TDS_DBG_INFO1, "MARS SID %d socket freeing\n", tds->sid);
+			tds_free_socket(tds);
+			stmt->tds = NULL;
 		}
 #endif
 		tds_dstr_free(&stmt->cursor_name);
