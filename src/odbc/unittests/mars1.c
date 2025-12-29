@@ -1,7 +1,55 @@
+
 #include "common.h"
 
-/* first MARS test, test 2 concurrent recordset */
+/*
+ * Memory leak tracking apparatus
+ */
+#include <malloc.h>
+#include <assert.h>
+#ifdef __VMS
+#define __NEW_STARLET
+#include <starlet.h>
+#include <iledef.h>
+#include <jpidef.h>
+#include <stsdef.h>
+#endif
 
+static size_t
+memory_usage(void)
+{
+	size_t ret = 0;
+#if defined(HAVE__HEAPWALK)
+	_HEAPINFO hinfo;
+	int heapstatus;
+
+	hinfo._pentry = NULL;
+	while ((heapstatus = _heapwalk(&hinfo)) == _HEAPOK) {
+		if (hinfo._useflag == _USEDENTRY)
+			ret += hinfo._size;
+	}
+	assert(heapstatus == _HEAPEMPTY || heapstatus == _HEAPEND);
+
+#elif defined(HAVE_MALLINFO2)
+	ret = mallinfo2().uordblks;
+
+#elif defined(__VMS)
+	ILE3 jpi_items[2] = { 0 };
+	unsigned long ppgcnt;
+	unsigned short ppgcnt_len;
+	jpi_items[0].ile3$w_length = sizeof(ppgcnt);
+	jpi_items[0].ile3$w_code = JPI$_PPGCNT;
+	jpi_items[0].ile3$ps_bufaddr = &ppgcnt;
+	jpi_items[0].ile3$ps_retlen_addr = &ppgcnt_len;
+	int status = SYS$GETJPIW(0, 0, 0, &jpi_items, 0, 0, 0);
+	ret = $VMS_STATUS_SUCCESS(status) ? ppgcnt : SIZE_MAX;
+#else
+	ret = (size_t)(mallinfo().uordblks);
+
+#endif
+	return ret;
+}
+
+/* first MARS test, test 2 concurrent recordset */
 #define SET_STMT(n) do { \
 	if (pcur_stmt != &n) { \
 		if (pcur_stmt) *pcur_stmt = odbc_stmt; \
@@ -21,7 +69,6 @@ EndTransaction(SQLSMALLINT type)
 {
 	CHKEndTran(SQL_HANDLE_DBC, odbc_conn, type, "S");
 }
-
 
 static void
 my_attrs(void)
@@ -98,12 +145,14 @@ TEST_MAIN()
 
 	/* adjust these parameters for memory leak testing */
 	/* TODO a way for this test to detect memory leak here. */
-	const int n_iterations = 20;		/* E.g. 200000 */
+	const int n_iterations = 20000;		/* E.g. 200000 */
 	const int freq_parameterized = 2;	/* set 1 to parameterize all, INT_MAX for none */
+
+	size_t memory_usage_watermark = 0;
 
 	for (i= 1; i <= n_iterations; ++i)
 	{
-		SET_STMT(stmt2);
+		SET_STMT(stmt2); 
 
 		// Test option - force reallocation of socket
 		// odbc_reset_statement();
@@ -116,6 +165,12 @@ TEST_MAIN()
 		else
 			odbc_command("!insert into #mars2 values(1, 'foo')");
 
+		size_t newmu = memory_usage();
+		if (newmu > memory_usage_watermark)
+		{
+			printf("Memory usage increased to %lu on iteration %d\n", (unsigned long)newmu, i);
+			memory_usage_watermark = newmu;
+		}
 		// Perform several fetches for each insert, so we also test continuing to draw
 		// further packets of the fetch
 		SET_STMT(stmt1);
