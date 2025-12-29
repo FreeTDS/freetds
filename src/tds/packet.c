@@ -556,10 +556,9 @@ tds_read_packet(TDSSOCKET * tds)
 			tds->in_flag = tds->in_buf[0];
 
 			/* Look ahead by up to 4 packets */
-			memcpy(&this_seq, ((char const *)packet->buf) + offsetof(TDS72_SMP_HEADER, seq), sizeof this_seq);
-			if (this_seq + 2 >= tds->recv_wnd)
+			this_seq = TDS_GET_A4LE(&((const TDS72_SMP_HEADER*)packet->buf)->seq);
+			if ((int32_t)(this_seq + 2 - tds->recv_wnd) >= 0)
 				tds_update_recv_wnd(tds, this_seq + 4);
-
 			return tds->in_len;
 		}
 
