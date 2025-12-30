@@ -1299,4 +1299,55 @@ tds_iconv_from_collate(TDSCONNECTION * conn, const TDS_UCHAR collate[5])
 	return tds_iconv_get_info(conn, conn->char_convs[client2ucs2]->from.charset.canonic, canonic_charset);
 }
 
+/**
+ * Returns a collation name for the given charset.
+ * It's used more to specify the encoding, the collation is usually case
+ * insensitive and accent sensitive.
+ */
+const char *
+tds_canonical_collate_name(int canonic_charset)
+{
+	/*
+	 * The name returned is chosen for maximum compatibility,
+	 * most are supported by MSSQL 2000.
+	 */
+	switch (canonic_charset) {
+	case TDS_CHARSET_CP437:
+		return "SQL_Latin1_General_CP437_CI_AS";
+	case TDS_CHARSET_CP850:
+		return "SQL_Latin1_General_CP850_CI_AS";
+	case TDS_CHARSET_CP874:
+		return "Thai_CI_AS";
+	case TDS_CHARSET_CP932:
+		return "Japanese_CI_AS";
+	case TDS_CHARSET_CP949:
+		return "Korean_Wansung_CI_AS";
+	case TDS_CHARSET_CP950:
+		return "Chinese_Taiwan_Bopomofo_CI_AS";
+	case TDS_CHARSET_CP1250:
+		return "SQL_Latin1_General_CP1250_CI_AS";
+	case TDS_CHARSET_CP1251:
+		return "SQL_Latin1_General_CP1251_CI_AS";
+	case TDS_CHARSET_CP1252:
+		break;
+	case TDS_CHARSET_CP1253:
+		return "SQL_Latin1_General_CP1253_CI_AS";
+	case TDS_CHARSET_CP1254:
+		return "SQL_Latin1_General_CP1254_CI_AS";
+	case TDS_CHARSET_CP1255:
+		return "SQL_Latin1_General_CP1255_CI_AS";
+	case TDS_CHARSET_CP1256:
+		return "SQL_Latin1_General_CP1256_CI_AS";
+	case TDS_CHARSET_CP1257:
+		return "SQL_Latin1_General_CP1257_CI_AS";
+	case TDS_CHARSET_CP1258:
+		return "Vietnamese_CI_AS";
+	case TDS_CHARSET_GB18030:
+		return "Chinese_PRC_CI_AS";
+	case TDS_CHARSET_UTF_8:
+		return "Chinese_PRC_90_CI_AS_SC_UTF8";
+	}
+	return "SQL_Latin1_General_CP1_CI_AS";
+}
+
 /** @} */
