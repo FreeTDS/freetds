@@ -131,7 +131,7 @@ TEST_MAIN()
 	odbc_reset_statement();
 	SET_STMT(stmt2);
 	odbc_reset_statement();
-	goto done;
+
 	/* now to 2 select with prepare/execute */
 	CHKPrepare(T("select a.n, b.n, a.v from #mars1 a, #mars1 b order by a.n, b.n"), SQL_NTS, "S");
 	SET_STMT(stmt1);
@@ -150,7 +150,7 @@ TEST_MAIN()
 	SET_STMT(stmt1);
 	CHKFetch("S");
 	odbc_reset_statement();
-	done:
+
 	EndTransaction(SQL_COMMIT);
 
 	odbc_disconnect();
