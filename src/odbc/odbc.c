@@ -872,7 +872,13 @@ odbc_lock_statement(TDS_STMT* stmt)
 
 		/* try with MARS */
 		if (!tds)
+		{
 			tds = tds_alloc_additional_socket(dbc_tds->conn);
+			if (tds)
+			{
+				tdsdump_log(TDS_DBG_INFO1, "MARS SID %d allocated new TDSSOCKET\n", tds->sid);
+			}
+		}
 	}
 	if (tds) {
 		tds->query_timeout = (stmt->attr.query_timeout != DEFAULT_QUERY_TIMEOUT) ?
@@ -922,15 +928,8 @@ odbc_unlock_statement(TDS_STMT* stmt)
 			tds_set_parent(tds, stmt->dbc);
 			stmt->tds = NULL;
 		}
-#if ENABLE_ODBC_MARS
-	} else if (tds) {
-		if (tds->state == TDS_IDLE || tds->state == TDS_DEAD) {
-			assert(tds != stmt->dbc->tds_socket);
-			tds_free_socket(tds);
-			stmt->tds = NULL;
-		}
-#endif
 	}
+	/* NOTE: MARS socket now released when statement freed. */
 	tds_mutex_unlock(&stmt->dbc->mtx);
 }
 
@@ -4464,6 +4463,17 @@ odbc_SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 		tds_free_param_results(stmt->params);
 		odbc_errs_reset(&stmt->errs);
 		odbc_unlock_statement(stmt);
+#if ENABLE_ODBC_MARS
+		if ( stmt->tds && stmt->tds != stmt->dbc->tds_socket )
+		{
+			if (!(tds->state == TDS_IDLE || tds->state == TDS_DEAD)) {
+				tdsdump_log(TDS_DBG_WARN, "MARS SID %d was not idle/dead\n", tds->sid);
+			}
+			tdsdump_log(TDS_DBG_INFO1, "MARS SID %d socket freeing\n", tds->sid);
+			tds_free_socket(tds);
+			stmt->tds = NULL;
+		}
+#endif
 		tds_dstr_free(&stmt->cursor_name);
 		tds_dstr_free(&stmt->attr.qn_msgtext);
 		tds_dstr_free(&stmt->attr.qn_options);

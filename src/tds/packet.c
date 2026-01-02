@@ -521,6 +521,7 @@ int
 tds_read_packet(TDSSOCKET * tds)
 {
 #if ENABLE_ODBC_MARS
+	TDS_UINT this_seq;
 	TDSCONNECTION *conn = tds->conn;
 
 	tds_mutex_lock(&conn->list_mtx);
@@ -554,13 +555,20 @@ tds_read_packet(TDSSOCKET * tds)
 			tds->in_pos  = 8;
 			tds->in_flag = tds->in_buf[0];
 
-			/* send acknowledge if needed */
-			if ((int32_t) (tds->recv_seq + 2 - tds->recv_wnd) >= 0)
-				tds_update_recv_wnd(tds, tds->recv_seq + 4);
-
+			/* Look ahead by up to 4 packets */
+			this_seq = TDS_GET_A4LE(&((const TDS72_SMP_HEADER*)packet->buf)->seq);
+			if ((int32_t)(this_seq + 2 - tds->recv_wnd) >= 0)
+				tds_update_recv_wnd(tds, this_seq + 4);
 			return tds->in_len;
 		}
 
+#if ENABLE_EXTRA_CHECKS
+		{
+			TDS_UINT np = 0;
+			for (p_packet = &conn->packets; *p_packet; p_packet = &(*p_packet)->next) ++np;
+			tdsdump_log(TDS_DBG_NETWORK, "MARS SID %d queued packets %u\n", tds->sid, np);
+		}
+#endif
 		/* network ok ? process network */
 		if (!conn->in_net_tds) {
 			tds_connection_network(conn, tds, 0);
