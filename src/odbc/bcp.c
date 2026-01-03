@@ -510,6 +510,9 @@ _tdsodbc_dbconvert(TDS_DBC *dbc, int srctype, const TDS_CHAR * src, SQLLEN src_l
 	case SYBBINARY:
 	case SYBVARBINARY:
 	case SYBIMAGE:
+	case XSYBBINARY:
+	case XSYBVARBINARY:
+	case SYBLONGBINARY:
 		ret = TDS_MIN(destlen, len);
 		memcpy(dest, dres.ib, ret);
 		free(dres.ib);
@@ -518,6 +521,12 @@ _tdsodbc_dbconvert(TDS_DBC *dbc, int srctype, const TDS_CHAR * src, SQLLEN src_l
 	case SYBINT2:
 	case SYBINT4:
 	case SYBINT8:
+	case SYBSINT1:
+	case SYBUINT1:
+	case SYBUINT2:
+	case SYBUINT4:
+	case SYBUINT8:
+	case SYB5INT8:
 	case SYBFLT8:
 	case SYBREAL:
 	case SYBBIT:
@@ -533,11 +542,19 @@ _tdsodbc_dbconvert(TDS_DBC *dbc, int srctype, const TDS_CHAR * src, SQLLEN src_l
 	case SYBMSTIME:
 	case SYBMSDATETIME2:
 	case SYBMSDATETIMEOFFSET:
+	case SYB5BIGDATETIME:
+	case SYB5BIGTIME:
+	case SYBTIME:
+	case SYBTIMEN:
+	case SYBDATE:
+	case SYBDATEN:
 		memcpy(dest, &dres, len);
 		ret = len;
 		break;
 	case SYBCHAR:
 	case SYBVARCHAR:
+	case XSYBCHAR:
+	case XSYBVARCHAR:
 	case SYBTEXT:
 		ret = (TDS_INT) _bcp_iconv_helper(dbc, bindcol, dres.c, len, (char *) dest, destlen);
 		free(dres.c);
