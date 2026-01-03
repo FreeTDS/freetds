@@ -50,7 +50,7 @@
 
 static int collate2charset(TDSCONNECTION * conn, const TDS_UCHAR collate[5]);
 static size_t skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, const char **input, size_t * input_size);
-static int tds_iconv_info_init(TDSICONV * char_conv, int client_canonic, int server_canonic);
+static bool tds_iconv_info_init(TDSICONV * char_conv, int client_canonic, int server_canonic);
 static bool tds_iconv_init(void);
 static void _iconv_close(iconv_t * cd);
 static void tds_iconv_info_close(TDSICONV * char_conv);
@@ -363,7 +363,7 @@ tds_iconv_open(TDSCONNECTION * conn, const char *charset, int use_utf16)
 	int canonic;
 	int canonic_charset = tds_canonical_charset(charset);
 	int canonic_env_charset = conn->env.charset ? tds_canonical_charset(conn->env.charset) : -1;
-	int fOK;
+	bool ok;
 
 	TDS_ENCODING *client = &conn->char_convs[client2ucs2]->from.charset;
 	TDS_ENCODING *server = &conn->char_convs[client2ucs2]->to.charset;
@@ -391,16 +391,16 @@ tds_iconv_open(TDSCONNECTION * conn, const char *charset, int use_utf16)
 
 	tdsdump_log(TDS_DBG_FUNC, "preparing iconv for \"%s\" <-> \"%s\" conversion\n", charset, UCS_2LE);
 
-	fOK = 0;
+	ok = false;
 	if (use_utf16) {
 		canonic = TDS_CHARSET_UTF_16LE;
-		fOK = tds_iconv_info_init(conn->char_convs[client2ucs2], canonic_charset, canonic);
+		ok = tds_iconv_info_init(conn->char_convs[client2ucs2], canonic_charset, canonic);
 	}
-	if (!fOK) {
+	if (!ok) {
 		canonic = TDS_CHARSET_UCS_2LE;
-		fOK = tds_iconv_info_init(conn->char_convs[client2ucs2], canonic_charset, canonic);
+		ok = tds_iconv_info_init(conn->char_convs[client2ucs2], canonic_charset, canonic);
 	}
-	if (!fOK)
+	if (!ok)
 		return TDS_FAIL;
 
 	/* 
@@ -420,8 +420,8 @@ tds_iconv_open(TDSCONNECTION * conn, const char *charset, int use_utf16)
 	conn->char_convs[client2server_chardata]->flags = TDS_ENCODING_MEMCPY;
 	if (canonic_env_charset >= 0) {
 		tdsdump_log(TDS_DBG_FUNC, "preparing iconv for \"%s\" <-> \"%s\" conversion\n", charset, conn->env.charset);
-		fOK = tds_iconv_info_init(conn->char_convs[client2server_chardata], canonic_charset, canonic_env_charset);
-		if (!fOK)
+		ok = tds_iconv_info_init(conn->char_convs[client2server_chardata], canonic_charset, canonic_env_charset);
+		if (!ok)
 			return TDS_FAIL;
 	} else {
 		conn->char_convs[client2server_chardata]->from.charset = canonic_charsets[canonic_charset];
@@ -441,7 +441,7 @@ tds_iconv_open(TDSCONNECTION * conn, const char *charset, int use_utf16)
  * \remarks The charset names written to \a iconv will be the canonical names, 
  *          not necessarily the names passed in. 
  */
-static int
+static bool
 tds_iconv_info_init(TDSICONV * char_conv, int client_canonical, int server_canonical)
 {
 	TDS_ENCODING *client = &char_conv->from.charset;
@@ -452,12 +452,12 @@ tds_iconv_info_init(TDSICONV * char_conv, int client_canonical, int server_canon
 
 	if (client_canonical < 0) {
 		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: client charset name \"%d\" invalid\n", client_canonical);
-		return 0;
+		return false;
 	}
 
 	if (server_canonical < 0) {
 		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: server charset name \"%d\" invalid\n", server_canonical);
-		return 0;
+		return false;
 	}
 
 	*client = canonic_charsets[client_canonical];
@@ -468,7 +468,7 @@ tds_iconv_info_init(TDSICONV * char_conv, int client_canonical, int server_canon
 		char_conv->to.cd = (iconv_t) -1;
 		char_conv->from.cd = (iconv_t) -1;
 		char_conv->flags = TDS_ENCODING_MEMCPY;
-		return 1;
+		return true;
 	}
 
 	char_conv->flags = 0;
@@ -502,7 +502,7 @@ tds_iconv_info_init(TDSICONV * char_conv, int client_canonical, int server_canon
 
 	/* tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: converting \"%s\"->\"%s\"\n", client->name, server->name); */
 
-	return 1;
+	return true;
 }
 
 
