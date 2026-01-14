@@ -2541,7 +2541,7 @@ tds_alloc_get_string(TDSSOCKET * tds, char **string, size_t len)
 		*string = NULL;
 		return -1;
 	}
-	s = (char*) realloc(s, out_len + 1);
+	TDS_RESIZE(s, out_len + 1);
 	s[out_len] = '\0';
 	*string = s;
 	return 0;
