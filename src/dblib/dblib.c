@@ -1228,6 +1228,7 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 
 	if (!tds_set_server(login->tds_login, server)) {
 		dbperror(NULL, SYBEMEM, 0);
+		free(dbproc->dbopts);
 		free(dbproc);
 		return NULL;
 	}
@@ -1235,6 +1236,7 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 
 	if ((dbproc->tds_socket = tds_alloc_socket(dblib_get_tds_ctx(), 512)) == NULL ){
 		dbperror(NULL, SYBEMEM, 0);
+		free(dbproc->dbopts);
 		free(dbproc);
 		return NULL;
 	}
