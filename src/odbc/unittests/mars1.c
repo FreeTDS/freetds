@@ -82,6 +82,8 @@ TEST_MAIN()
 	int i, j;
 	SQLHSTMT stmt1, stmt2;
 	SQLHSTMT *pcur_stmt = NULL;
+	long bind1;
+	char bind2[20] = "parameters";
 
 	odbc_use_version3 = true;
 	odbc_set_conn_attr = my_attrs;
@@ -138,8 +140,6 @@ TEST_MAIN()
 	 * iteration of the insert if and only if it was a parameterized insert. So we need
 	 * to test both parameterized and non-parameterized inserts.
 	 */
-	long bind1;
-	char bind2[20] = "parameters";
 	SQLBindParameter(stmt2, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &bind1, 0, NULL);
 	SQLBindParameter(stmt2, 2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, 0, 0, &bind2, 20, NULL);
 
