@@ -254,6 +254,11 @@ dblib_get_tds_ctx(void)
 	if (g_dblib_ctx.tds_ctx == NULL) {
 		g_dblib_ctx.tds_ctx = tds_alloc_context(&g_dblib_ctx);
 
+		if (g_dblib_ctx.tds_ctx == NULL) {
+			tds_mutex_unlock(&dblib_mutex);
+			return NULL;
+		}
+
 		/*
 		 * Set the functions in the TDS layer to point to the correct handler functions
 		 */
