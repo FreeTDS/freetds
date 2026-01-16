@@ -1207,8 +1207,18 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool sk
 		if (bcpcol && hostcol->prefix_len == -1)
 			bcp_cache_prefix_len(hostcol, bcpcol);
 
+		/*
+		 * Work out how many bytes to read from the data file for this column.
+		 *
+		 * Firstly, hostcol->column_len == 0 is supposed to indicate that
+		 * the value for this column is always NULL and
+		 * so the data file contains no data for it.
+		 */
+		if (hostcol->column_len == 0)
+			data_is_null = true;
+
 		/* a prefix length, if extant, specifies how many bytes to read */
-		if (hostcol->prefix_len > 0) {
+		else if (hostcol->prefix_len > 0) {
 			union {
 				TDS_TINYINT ti;
 				TDS_SMALLINT si;
@@ -1237,31 +1247,41 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool sk
 				break;
 			}
 
-			/* TODO test all NULL types */
-			/* TODO for < -1 error */
-			if (collen <= -1) {
+			/* Length prefix of -1 is used by MSSQL to encode null data in variable fields */
+			if (collen <= -1)
 				data_is_null = true;
-				collen = 0;
-			}
 		}
 
-		/* Or if data file does not use a length prefix for this column, work out the
-		 * length to read based on the size of a fixed data type.
-		 */
+		/* Fixed-width types have the size determined by the type */
 		else if (is_fixed_type(hostcol->datatype))
 			collen = tds_get_size_by_type(hostcol->datatype);
 
-		/* if (Max) column length specified take that into consideration. (Meaning what, exactly?) */
-		if (!data_is_null && hostcol->column_len >= 0) {
-			if (hostcol->column_len == 0)
-				data_is_null = true;
-			else if (collen)
-				collen = TDS_MIN(hostcol->column_len, collen);
-			else
-				collen = hostcol->column_len;
-		}
+		/* Failing all else, the Maximum Column Length field might help */
+		else
+			collen = hostcol->column_len;
 
-		tdsdump_log(TDS_DBG_FUNC, "prefix_len = %d collen = %d \n", hostcol->prefix_len, collen);
+		/* Note: it's still possible collen = -1 at this stage, the
+		 * field might for example be a VARCHAR with no maximum size
+		 * but the data file uses a delimited format.
+		 */
+
+		/* Don't read data for null values */
+		if (data_is_null)
+			collen = 0;
+
+		tdsdump_log(TDS_DBG_FUNC, "prefix_len = %d collen = %d column_len(max) = %d\n", hostcol->prefix_len, collen, hostcol->column_len);
+
+		/* I don't think it makes sense to use the maximum field width to truncate
+		 * data whose length is known; that should indicate the data file is erroneous.
+		 */
+		if (collen > 0 && hostcol->column_len > 0 && collen > hostcol->column_len) {
+			tdsdump_log(TDS_DBG_FUNC, "col %d: length %d exceeds field maximum %d\n",
+				(i + 1), collen, (int)hostcol->column_len);
+			*row_error = true;
+			free(coldata);
+			dbperror(dbproc, SYBEBCOR, 0);
+			return FAIL;
+		}
 
 		col_start = ftello(hostfile);
 
