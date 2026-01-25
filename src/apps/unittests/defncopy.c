@@ -235,7 +235,7 @@ defncopy(const char *object_name)
 	char *p;
 	FILE *f;
 
-	// empty input
+	/* empty input */
 	f = fopen("input", "w");
 	assert(f);
 	fclose(f);

@@ -143,7 +143,7 @@ smp_cmp(smp a, smp b)
 	return 1;
 }
 
-// divide and return remainder
+/* divide and return remainder */
 static uint16_t
 div_small(smp *n, uint16_t div)
 {
@@ -174,7 +174,7 @@ smp_to_string(smp a)
 	return strdup(p);
 }
 
-// multiple a number
+/* multiply a number */
 static void
 mul_small(smp *n, uint16_t factor)
 {
