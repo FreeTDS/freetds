@@ -216,12 +216,13 @@ smp_from_string(const char *s)
 		mul_small(&n, base);
 		if (*s >= '0' && *s <= '9')
 			digit = *s - '0';
-		else if (*s >= 'a' && *s <= 'z')
+		else if (*s >= 'a' && *s <= 'f')
 			digit = *s - 'a' + 10;
-		else if (*s >= 'A' && *s <= 'Z')
+		else if (*s >= 'A' && *s <= 'F')
 			digit = *s - 'A' + 10;
 		else
 			assert(!!"Invalid digit entered");
+		assert(digit >= 0 && (uint16_t) digit < base);
 		n = smp_add(n, smp_from_int(digit));
 	}
 	if (negative)
