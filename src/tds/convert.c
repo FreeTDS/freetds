@@ -49,6 +49,7 @@
 #include <freetds/bytes.h>
 #include <freetds/replacements.h>
 #include <freetds/utils.h>
+#include <freetds/checks.h>
 
 typedef unsigned short utf16_t;
 
@@ -329,7 +330,7 @@ tds_char2hex(TDS_CHAR *dest, size_t destlen, const TDS_CHAR * src, size_t srclen
 				return TDS_CONVERT_SYNTAX;
 			}
 		}
-		assert(hex1 < 0x10);
+		tds_extra_assert(hex1 < 0x10);
 
 		if ((i/2u) >= destlen)
 			continue;
