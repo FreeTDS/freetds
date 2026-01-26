@@ -127,11 +127,11 @@ test0(const char *type, ...)
 		}
 
 		if (tds_convert(test_context, conv_type, src, curcol->column_cur_size, SYBVARCHAR, &cr) < 0) {
-			fprintf(stderr, "Error converting\n");
+			fprintf(stderr, "%s: Error converting\n", type);
 			g_result = 1;
 		} else {
 			if (strcmp(data[i_row].result, cr.c) != 0) {
-				fprintf(stderr, "Failed! Is \n%s\nShould be\n%s\n", cr.c, data[i_row].result);
+				fprintf(stderr, "%s: Failed! Is \n%s\nShould be\n%s\n", type, cr.c, data[i_row].result);
 				g_result = 1;
 			}
 			free(cr.c);
@@ -226,12 +226,19 @@ TEST_MAIN()
 	test("DATETIME", "2003-04-21 17:50:03", NULL);
 	test("SMALLDATETIME", "2003-04-21 17:50:03", "2003-04-21 17:50:00");
 
+	/* CHAR/NVARCHAR supported in ASE 12.5? */
+	test("NVARCHAR(20)", "Excellent test", NULL);
+	test("NCHAR(20)", "Excellent test", "Excellent test      ");
+
 	if (IS_TDS7_PLUS(tds->conn)) {
+		/* MS only */
 		test("UNIQUEIDENTIFIER", "12345678-1234-A234-9876-543298765432", NULL);
-		test("NVARCHAR(20)", "Excellent test", NULL);
-		test("NCHAR(20)", "Excellent test", "Excellent test      ");
 		test("NTEXT", "Excellent test", NULL);
 	}
+	/* note: ASE added UNITEXT for unicode CLOB in 15.0, however it will return
+	 * UTF-16 unless we install charset 101 on server
+	 * and configure FreeTDS to use client charset utf-8.
+	 */
 
 	if (IS_TDS71_PLUS(tds->conn)) {
 		test("SQL_VARIANT", "test123", NULL);
