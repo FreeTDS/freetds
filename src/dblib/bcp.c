@@ -765,9 +765,11 @@ _bcp_convert_out(DBPROCESS * dbproc, TDSCOLUMN *curcol, BCP_HOSTCOLINFO *hostcol
 	if (is_datetime_type(srctype) && is_ascii_type(hostcol->datatype)) {
 		TDSDATEREC when;
 
+		int prec = srctype == SYBMSDATETIME2 ? 7 : 3;
+
 		tds_datecrack(srctype, src, &when);
 		buflen = (int)tds_strftime((TDS_CHAR *)(*p_data), 256,
-					 bcpdatefmt, &when, 3);
+					 bcpdatefmt, &when, prec);
 	} else if (srclen == 0 && is_variable_type(curcol->column_type)
 		   && is_ascii_type(hostcol->datatype)) {
 		/*
