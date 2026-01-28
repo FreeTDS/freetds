@@ -754,7 +754,7 @@ tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	if (IS_TDSDEAD(tds))
 		return TDS_FAIL;
 
-	tdsdump_log(TDS_DBG_INFO1, "tds_get_data(): wire column size is %d \n", colsize);
+	tdsdump_log(TDS_DBG_INFO1, "tds_get_data(): wire column size is %d\n", colsize);
 	/* set NULL flag in the row buffer */
 	if (colsize < 0) {
 		curcol->column_cur_size = -1;

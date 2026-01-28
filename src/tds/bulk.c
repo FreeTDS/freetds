@@ -71,6 +71,12 @@ static void tds_bcp_row_free(TDSRESULTINFO* result, unsigned char *row);
 static TDSRET tds5_process_insert_bulk_reply(TDSSOCKET * tds, TDSBCPINFO *bcpinfo);
 static TDSRET probe_sap_locking(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
 
+/* Sybase bulk column data */
+static TDS5COLINFO* sybase_colinfo_alloc(int n_cols)
+{
+	return calloc(n_cols, sizeof(TDS5COLINFO));
+}
+
 /**
  * Initialize BCP information.
  * Query structure of the table to server.
@@ -432,6 +438,7 @@ tds_bcp_start_insert_stmt(TDSSOCKET * tds, TDSBCPINFO * bcpinfo)
 		if (erc < 0)
 			return TDS_FAIL;
 	} else {
+		/* NOTE: Current ASE docs do not mention "insert bulk", it might be deprecated? */
 		/* NOTE: if we use "with nodescribe" for following inserts server do not send describe */
 		if (asprintf(&query, "insert bulk %s", tds_dstr_cstr(&bcpinfo->tablename)) < 0)
 			return TDS_FAIL;
@@ -636,7 +643,7 @@ tds5_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_dat
 	TDS_NUMERIC *num;
 	int row_pos = start;
 	int cpbytes;
-	int i;
+	TDS_INT i;
 	int bitleft = 0, bitpos = 0;
 
 	assert(bcpinfo);
@@ -646,13 +653,13 @@ tds5_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_dat
 		    bcpinfo, get_col_data, null_error, offset, rowbuffer, start);
 
 	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
-
 		TDSCOLUMN *const bcpcol = bcpinfo->bindinfo->columns[i];
+		TDS5COLINFO* const sycol = i < bcpinfo->sybase_count ? &bcpinfo->sybase_colinfo[i] : NULL;
 		const TDS_INT column_size = bcpcol->on_server.column_size;
 
 		/* if possible check information from server */
-		if (bcpinfo->sybase_count > i) {
-			if (bcpinfo->sybase_colinfo[i].offset < 0)
+		if (sycol) {
+			if (sycol->offset < 0)
 				continue;
 		} else {
 			if (is_nullable_type(bcpcol->on_server.column_type) || bcpcol->column_nullable)
@@ -664,6 +671,28 @@ tds5_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_dat
 		if (TDS_FAILED(get_col_data(bcpinfo, bcpcol, offset))) {
 			tdsdump_log(TDS_DBG_INFO1, "get_col_data (column %d) failed\n", i + 1);
 			return -1;
+		}
+
+		/* If data was null and we have a default value, apply it */
+		if (bcpcol->bcp_column_data->is_null && sycol && sycol->has_default )
+		{
+			tdsdump_log(TDS_DBG_INFO1, "tds5_bcp_add_fixed_columns column %d applying default value\n", i + 1);
+#ifdef ENABLE_EXTRA_CHECKS
+			/* Sanity checks - Should not be possible due to the checks
+			 * in process_defaults_row(). */
+			if (!sycol->default_value.data || sycol->default_type != bcpcol->column_type
+				|| column_size != sycol->default_value.datalen )
+			{
+				tdsdump_log(TDS_DBG_ERROR, "column %d default (%p) type %d size %d not match server type %d size %d\n",
+					i + 1, (void*)sycol->default_value.data,
+					sycol->default_type, (int)sycol->default_value.datalen,
+					bcpcol->column_type, column_size);
+				return -1;
+			}
+#endif
+			memcpy(&rowbuffer[row_pos], sycol->default_value.data, column_size);
+			row_pos += column_size;
+			continue;
 		}
 
 		/* We have no way to send a NULL at this point, return error to client */
@@ -725,8 +754,8 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 			      int offset, TDS_UCHAR* rowbuffer, int start, int *pncols)
 {
 	TDS_USMALLINT offsets[256];
-	unsigned int i, row_pos;
-	unsigned int ncols = 0;
+	TDS_INT i, ncols = 0;
+	unsigned int row_pos;
 
 	assert(bcpinfo);
 	assert(rowbuffer);
@@ -755,13 +784,13 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
 		unsigned int cpbytes = 0;
 		TDSCOLUMN *bcpcol = bcpinfo->bindinfo->columns[i];
-
+		TDS5COLINFO* const sycol = i < bcpinfo->sybase_count ? &bcpinfo->sybase_colinfo[i] : NULL;
 		/*
 		 * Is this column of "variable" type, i.e. NULLable
 		 * or naturally variable length e.g. VARCHAR
 		 */
-		if (bcpinfo->sybase_count > (TDS_INT) i) {
-			if (bcpinfo->sybase_colinfo[i].offset >= 0)
+		if (sycol) {
+			if (sycol->offset >= 0)
 				continue;
 		} else {
 			if (!is_nullable_type(bcpcol->on_server.column_type) && !bcpcol->column_nullable)
@@ -773,29 +802,53 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 		if (TDS_FAILED(get_col_data(bcpinfo, bcpcol, offset)))
 			return -1;
 
-		/* If it's a NOT NULL column, and we have no data, throw an error.
-		 * This is the behavior for Sybase, this function is only used for Sybase */
-		if (!bcpcol->column_nullable && bcpcol->bcp_column_data->is_null) {
-			/* No value or default value available and NULL not allowed. */
-			if (null_error)
-				null_error(bcpinfo, i, offset);
-			return -1;
+		/* If data was null and we have a default value, apply it */
+		if (bcpcol->bcp_column_data->is_null && sycol && sycol->has_default )
+		{
+			tdsdump_log(TDS_DBG_INFO1, "tds5_bcp_add_variable_columns column %d applying default value\n", i + 1);
+#ifdef ENABLE_EXTRA_CHECKS
+			/* Sanity checks - we do not expect these to be triggered */
+			if (!sycol->default_value.data || sycol->default_type != bcpcol->on_server.column_type
+				|| sycol->default_value.datalen > bcpcol->on_server.column_size)
+			{
+				tdsdump_log(TDS_DBG_ERROR, "column %d default (%p) type %d size %d not match server type %d size %d\n",
+					i + 1, (void*)sycol->default_value.data,
+					sycol->default_type, (int)sycol->default_value.datalen,
+					bcpcol->on_server.column_type, bcpcol->on_server.column_size);
+				return -1;
+			}
+#endif
+			cpbytes = sycol->default_value.datalen;
+			memcpy(&rowbuffer[row_pos], sycol->default_value.data, cpbytes);
 		}
+		else
+		{
+			/* If it's a NOT NULL column, and we have no data, throw an error.
+			 * This is the behavior for Sybase, this function is only used for Sybase */
+			if (!bcpcol->column_nullable && bcpcol->bcp_column_data->is_null) {
+				/* No value or default value available and NULL not allowed. */
+				if (null_error)
+					null_error(bcpinfo, i, offset);
+				return -1;
+			}
 
-		/* move the column buffer into the rowbuffer */
-		if (!bcpcol->bcp_column_data->is_null) {
-			if (is_blob_type(bcpcol->on_server.column_type)) {
-				cpbytes = 16;
-				bcpcol->column_textpos = row_pos;               /* save for data write */
-			} else if (is_numeric_type(bcpcol->on_server.column_type)) {
-				TDS_NUMERIC *num = (TDS_NUMERIC *) bcpcol->bcp_column_data->data;
-				cpbytes = tds_numeric_bytes_per_prec[num->precision];
-				memcpy(&rowbuffer[row_pos], num->array, cpbytes);
-			} else {
-				cpbytes = bcpcol->bcp_column_data->datalen > bcpcol->column_size ?
-				bcpcol->column_size : bcpcol->bcp_column_data->datalen;
-				memcpy(&rowbuffer[row_pos], bcpcol->bcp_column_data->data, cpbytes);
-				tds5_swap_data(bcpcol, &rowbuffer[row_pos]);
+			/* move the column buffer into the rowbuffer */
+			if (!bcpcol->bcp_column_data->is_null) {
+				if (is_blob_type(bcpcol->on_server.column_type)) {
+					cpbytes = 16;
+					bcpcol->column_textpos = row_pos;               /* save for data write */
+				} else if (is_numeric_type(bcpcol->on_server.column_type)) {
+					TDS_NUMERIC* num = (TDS_NUMERIC*)bcpcol->bcp_column_data->data;
+					cpbytes = tds_numeric_bytes_per_prec[num->precision];
+					memcpy(&rowbuffer[row_pos], num->array, cpbytes);
+				} else {
+					/* TODO: I'm not sure we should be truncating if data is unexpected size,
+					 * should log an error instead? */
+					cpbytes = bcpcol->bcp_column_data->datalen > bcpcol->column_size ?
+						bcpcol->column_size : bcpcol->bcp_column_data->datalen;
+					memcpy(&rowbuffer[row_pos], bcpcol->bcp_column_data->data, cpbytes);
+					tds5_swap_data(bcpcol, &rowbuffer[row_pos]);
+				}
 			}
 		}
 
@@ -829,7 +882,7 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 
 	if (ncols && !bcpinfo->datarows_locking) {
 		TDS_UCHAR *poff = rowbuffer + row_pos;
-		unsigned int pfx_top = offsets[ncols] >> 8;
+		TDS_INT pfx_top = offsets[ncols] >> 8;
 
 		tdsdump_log(TDS_DBG_FUNC, "ncols=%u poff=%p [%u]\n", ncols, poff, offsets[ncols]);
 
@@ -1046,6 +1099,7 @@ enum {
 	BULKCOL_length,
 	BULKCOL_status,
 	BULKCOL_offset,
+	BULKCOL_dflt,
 
 	/* number of columns needed */
 	BULKCOL_COUNT,
@@ -1062,10 +1116,14 @@ tds5_bulk_insert_column(const char *name)
 		return BULKCOL_ ## n; \
 } while(0)
 
+	/* An impromptu hash table */
 	switch (name[0]) {
 	case 'c':
 		BULKCOL(colcnt);
 		BULKCOL(colid);
+		break;
+	case 'd':
+		BULKCOL(dflt);
 		break;
 	case 't':
 		BULKCOL(type);
@@ -1084,6 +1142,261 @@ tds5_bulk_insert_column(const char *name)
 	return -1;
 }
 
+typedef struct
+{
+	unsigned flags;
+	int pos[BULKCOL_COUNT];
+	int value[BULKCOL_COUNT];
+} BULKCOL_DEFINITION;
+
+/* Detect if a ROWFMT (and subsequent ROWS) in the response is the column information
+ * (i.e. avoid misinterpreting some other row received in the response stream)
+ *
+ * Return the data from the column response that we will need; but don't overwrite
+ * that data if this is not actually the right ROWFMT.
+ */
+static bool is_bulkcol_formats(TDSRESULTINFO* res_info, BULKCOL_DEFINITION *out)
+{
+	int icol;
+	BULKCOL_DEFINITION cols = { 0 };
+
+	if (!res_info)
+		return false;
+
+	for (icol = 0; icol < res_info->num_cols; ++icol) {
+		const TDSCOLUMN* col = res_info->columns[icol];
+		int scol = tds5_bulk_insert_column(tds_dstr_cstr(&col->column_name));
+		if (scol < 0)
+			continue;
+		cols.pos[scol] = icol;
+		cols.flags |= 1 << scol;
+	}
+
+	if (cols.flags != BULKCOL_ALL)
+		return false;
+
+	*out = cols;
+	return true;
+}
+
+static TDSRET process_bulkcol_row(TDSCONTEXT const *ctx, TDSRESULTINFO* res_info, BULKCOL_DEFINITION* pcols, TDSBCPINFO *bcpinfo)
+{
+	int icol;
+	TDS5COLINFO* colinfo;
+
+	if (!res_info)
+		return TDS_SUCCESS;
+
+	/* Reset column flags - we now use them to indicate if successfully converted */
+	pcols->flags = 0;
+
+	/* Extract an integer value for each column (the subset of BULKCOL
+	 * columns we are interested in, are all integer types) */
+	for (icol = 0; icol < BULKCOL_COUNT; ++icol) {
+		const TDSCOLUMN* curcol = res_info->columns[pcols->pos[icol]];
+		int ctype = tds_get_conversion_type(curcol->on_server.column_type, curcol->column_size);
+		unsigned char* src = curcol->column_data;
+		int srclen = curcol->column_cur_size;
+		CONV_RESULT dres;
+
+		if (tds_convert(ctx, ctype, src, srclen, SYBINT4, &dres) < 0)
+			break;
+
+		pcols->flags |= 1 << icol;
+		pcols->value[icol] = dres.i;
+	}
+
+	/* Sanity checks on the column information as a whole */
+	if (pcols->flags != BULKCOL_ALL ||
+		pcols->value[BULKCOL_colcnt] < 1 ||
+		pcols->value[BULKCOL_colcnt] > 4096 || /* limit of columns accepted */
+		pcols->value[BULKCOL_colid] < 1 ||
+		pcols->value[BULKCOL_colid] > pcols->value[BULKCOL_colcnt])
+	{
+		tdsdump_log(TDS_DBG_INFO1, "Failed sanity checks for row information");
+		return TDS_FAIL;
+	}
+
+	/* Save column information for later use */
+	if (bcpinfo->sybase_colinfo == NULL) {
+		bcpinfo->sybase_colinfo = sybase_colinfo_alloc(pcols->value[BULKCOL_colcnt]);
+		if (bcpinfo->sybase_colinfo == NULL) {
+			tdsdump_log(TDS_DBG_INFO1, "Failed to allocate memory for row information");
+			return TDS_FAIL;
+		}
+		bcpinfo->sybase_count = pcols->value[BULKCOL_colcnt];
+	}
+
+	/* bound check, colcnt could have changed from row to row */
+	if (pcols->value[BULKCOL_colid] > bcpinfo->sybase_count) {
+		tdsdump_log(TDS_DBG_INFO1, "colcnt changed from row to row");
+		return TDS_FAIL;
+	}
+
+	colinfo = &bcpinfo->sybase_colinfo[pcols->value[BULKCOL_colid] - 1];
+	colinfo->type = pcols->value[BULKCOL_type];
+	colinfo->status = pcols->value[BULKCOL_status];
+	colinfo->offset = pcols->value[BULKCOL_offset];
+	colinfo->length = pcols->value[BULKCOL_length];
+	colinfo->has_default = pcols->value[BULKCOL_dflt] && !bcpinfo->ignore_defaults;
+	tdsdump_log(TDS_DBG_INFO1, "gotten row information %d type %d length %d status %d offset %d\n",
+		pcols->value[BULKCOL_colid],
+		colinfo->type,
+		colinfo->length,
+		colinfo->status,
+		colinfo->offset);
+
+	return TDS_SUCCESS;
+}
+
+static bool is_defaults_formats(TDSRESULTINFO* res_info, TDSBCPINFO* bcpinfo)
+{
+	int i;
+	int n_defaults = 0;
+	int rcolnum;
+
+	/* TODO: figure out a more reliable way to detect this. It's not covered in the
+	 * TDS 5.0 spec Version 3.4 (1999), so must have been added by ASE subsequent to that.
+	 * In testing, this is the only row result we've seen after the TDS_DONE_RESULT tag.
+	 *
+	 * This code is based on reverse engineering the response from the test bcp_defaultdate.
+	 */
+
+	 /* Check there are the right number of defaults offered as specified.
+	  * NOTE: if ignore_defaults is set, the columns will have has_default==false
+	  * so this (intentionally) fails to detect and process the row.
+	  */
+	for (i = 0; i < bcpinfo->sybase_count; ++i)
+		if (bcpinfo->sybase_colinfo[i].has_default)
+			++n_defaults;
+
+	if (n_defaults != res_info->num_cols)
+		return false;
+
+	for (i = 0, rcolnum = 0; i < bcpinfo->sybase_count; ++i)
+	{
+		TDS5COLINFO* scol = &bcpinfo->sybase_colinfo[i];
+		TDSCOLUMN* curcol = res_info->columns[rcolnum];
+
+		if (!scol->has_default)
+			continue;
+		++rcolnum;
+
+		/* Assume in correct order. In testing the res_info had column_name and
+		 * table_column_name both defined to a string like "2" meaning corresponding
+		 * to column 2 in the database table, we could try to validate that. */
+		tdsdump_log(TDS_DBG_INFO1, "Result column \"%s\" is default value for col %d of %d\n",
+			tds_dstr_cstr(&curcol->column_name), i + 1, bcpinfo->sybase_count);
+
+		scol->default_type = curcol->column_type;
+
+		/* Note: the actual default values will arrive in a subsequent Row,
+		 * this is just the header telling us the data type for the row. */
+	}
+
+	return true;
+}
+
+static TDSRET process_defaults_row(TDSRESULTINFO* res_info, TDSBCPINFO* bcpinfo)
+{
+	int i, rcolnum;
+
+	for (i = 0, rcolnum = 0; i < bcpinfo->sybase_count; ++i)
+	{
+		TDS5COLINFO* scol = &bcpinfo->sybase_colinfo[i];
+		TDSCOLUMN* curcol = res_info->columns[rcolnum];
+
+		/* The actual length of data (e.g. for VARCHAR(30) holding string len 19, this is 19) */
+		TDS_INT cur_size = curcol->column_cur_size;
+
+		if (!scol->has_default)
+			continue;
+		++rcolnum;
+
+		/* Does not make sense for a default value to be NULL - we don't expect
+		 * this to happen, but if it does, then treat it like no default present.
+		 */
+		if (!curcol->column_data || cur_size <= 0)
+		{
+			tdsdump_log(TDS_DBG_INFO1, "Default value had no data; skipping");
+			scol->has_default = false;
+			continue;
+		}
+
+		/* Testing shows that the default value can have a nullable type,
+		 * even if the column is defined as NOT NULL and therefore must
+		 * be packed for upload as a non-nullable type.
+		 *
+		 * The following defaults were observed in the "d_bcp" test:
+		 *  - SYBVARCHAR (39)  various sizes
+		 *  - SYBDATETIMN(111) size 4 or 8
+		 *  - SYBMONEYN  (110) sizef 4 or 8
+		 *  - SYBFLTN    (109) size 4 or 8
+		 *  - SYBDECIMAL (106) various sizes
+		 *  - SYBNUMERIC (108) various sizes
+		 *  - SYBINTN    (38)  sizes 1, 2, or 4.
+		 *
+		 * In TDS all nullable types have the same binary format as their
+		 * non-nullable equivalents (well - the other BCP code appears to make
+		 * that assumption); so we can just change the type ID.
+		 *
+		 * See comments in tds5_process_insert_bulk_reply() regarding
+		 * unpacking of DECIMAL/NUMERIC (by default the FreeTDS row unpacker
+		 * actually expands these types into curcol).
+		 *
+		 * So, here we validate that the type of the default value either
+		 * matches the server column, or is a Nullable version of the
+		 * server column's type.
+		 */
+		if (scol->type != curcol->column_type )
+		{
+			TDS_SERVER_TYPE nntype = tds_get_conversion_type(curcol->column_type, cur_size);
+			if (nntype != scol->type)
+			{
+				tdsdump_log(TDS_DBG_ERROR,
+					"Default value has unexpected type %d (need type %d)\n",
+					curcol->column_type, scol->type);
+				continue;
+			}
+			scol->default_type = nntype;
+		}
+
+		/* If the server column is non-nullable
+		 * we have to validate that the default is the right size for it.
+		 * (nullable types have a length prefix so don't need to match length).
+		 */
+		if ( !is_nullable_type(scol->default_type) && cur_size != scol->length )
+		{
+			tdsdump_log(TDS_DBG_ERROR,
+				"Default value type %d has unexpected size %d (need type %d size %d)\n",
+				curcol->column_type, cur_size, scol->type, scol->length);
+			/* We could "continue" to ignore this, but it's probably best to fail */
+			return TDS_FAIL;
+		}
+
+		scol->default_value.data = (void *)tds_new(char, cur_size);
+		if (!scol->default_value.data)
+		{
+			tdsdump_log(TDS_DBG_ERROR, "Failed to allocate memory for column %s default value\n",
+				tds_dstr_cstr(&curcol->column_name));
+			return TDS_FAIL;
+		}
+		memcpy(scol->default_value.data, curcol->column_data, cur_size);
+		scol->default_value.datalen = cur_size;
+		scol->default_value.is_null = false;
+
+		/* Log what happened. "curcol" is the information about the default value;
+		 * "scol" is the information about the server column.
+		 */
+		tdsdump_log(TDS_DBG_INFO1, "Default value for column %s has type %d size %d (server type %d size %d)\n",
+			tds_dstr_cstr(&curcol->column_name), curcol->column_type, cur_size,	scol->type, scol->length);
+
+		// tdsdump_dump_buf(__FILE__, __LINE__, "Default value:", curcol->column_data, curcol->column_cur_size);
+	}
+
+	return TDS_SUCCESS;
+}
+
 static TDSRET
 tds5_process_insert_bulk_reply(TDSSOCKET * tds, TDSBCPINFO *bcpinfo)
 {
@@ -1091,94 +1404,67 @@ tds5_process_insert_bulk_reply(TDSSOCKET * tds, TDSBCPINFO *bcpinfo)
 	TDS_INT done_flags;
 	TDSRET  rc;
 	TDSRET  ret = TDS_SUCCESS;
-	bool row_match = false;
-	TDSRESULTINFO *res_info;
-	int icol;
-	unsigned col_flags;
-	/* position of the columns in the row */
-	int cols_pos[BULKCOL_COUNT];
-	int cols_values[BULKCOL_COUNT];
-	TDS5COLINFO *colinfo;
+	bool bulkcol_formats_found = false;
+	bool bulkcol_formats_processed = false;
+	bool done_seen = false;
+	bool defaults_found = false;
+	bool defaults_processed = false;
+	BULKCOL_DEFINITION cols = { 0 };
 
 	CHECK_TDS_EXTRA(tds);
 
 	while ((rc = tds_process_tokens(tds, &res_type, &done_flags, TDS_RETURN_DONE|TDS_RETURN_ROWFMT|TDS_RETURN_ROW)) == TDS_SUCCESS) {
+		if (res_type != TDS_ROW_RESULT)
+		{
+			if (bulkcol_formats_found)
+				bulkcol_formats_processed = true;
+		}
 		switch (res_type) {
 		case TDS_ROWFMT_RESULT:
-			/* check if it's the resultset with column information and save column positions */
-			row_match = false;
-			col_flags = 0;
-			res_info = tds->current_results;
-			if (!res_info)
-				continue;
-			for (icol = 0; icol < res_info->num_cols; ++icol) {
-				const TDSCOLUMN *col = res_info->columns[icol];
-				int scol = tds5_bulk_insert_column(tds_dstr_cstr(&col->column_name));
-				if (scol < 0)
-					continue;
-				cols_pos[scol] = icol;
-				col_flags |= 1 << scol;
+			if (is_bulkcol_formats(tds->current_results, &cols))
+				bulkcol_formats_found = true;
+			/* In testing, Defaults only come after the TDS_DONE token */
+			else if (done_seen && is_defaults_formats(tds->current_results, bcpinfo))
+			{
+				extern TDSCOLUMNFUNCS tds_generic_funcs;
+				// We now have to inform FreeTDS to NOT perform any processing on the raw
+				// values of defaults. We need to just save the value exactly as received
+				// since that's what the upload expects.
+				// If we don't do this, then for example a NUMERIC()
+				// will be unpacked to a 35-byte structure in the row results.
+				//
+				// The tds5_send_record() function does not currently use the "put_data"
+				// member of the column functions , it just rolls its own packing. It
+				// might be possible to look into using put_data for bcp record packing,
+				// then we wouldn't have to do this hack here.
+				for (int i = 0; i < tds->current_results->num_cols; ++i)
+					tds->current_results->columns[i]->funcs = &tds_generic_funcs;
+				// Don't need to reset it as there is no other row data after the Defaults
+				// (they're part of the End block)
+				defaults_found = true;
 			}
-			if (col_flags == BULKCOL_ALL)
-				row_match = true;
 			break;
-		case TDS_ROW_RESULT:
-			/* get the results */
-			col_flags = 0;
-			if (!row_match)
-				continue;
-			res_info = tds->current_results;
-			if (!res_info)
-				continue;
-			for (icol = 0; icol < BULKCOL_COUNT; ++icol) {
-				const TDSCOLUMN *col = res_info->columns[cols_pos[icol]];
-				int ctype = tds_get_conversion_type(col->on_server.column_type, col->column_size);
-				unsigned char *src = col->column_data;
-				int srclen = col->column_cur_size;
-				CONV_RESULT dres;
 
-				if (tds_convert(tds_get_ctx(tds), ctype, src, srclen, SYBINT4, &dres) < 0)
-					break;
-				col_flags |= 1 << icol;
-				cols_values[icol] = dres.i;
+		case TDS_ROW_RESULT:
+			/* Defaults values will follow defaults formats */
+			if (defaults_found && !defaults_processed)
+			{
+				rc = process_defaults_row(tds->current_results, bcpinfo);
+
+				/* The defaults all arrive as a single row, one column per default value */
+				defaults_processed = true;
 			}
-			/* save information */
-			if (col_flags != BULKCOL_ALL ||
-				cols_values[BULKCOL_colcnt] < 1 ||
-				cols_values[BULKCOL_colcnt] > 4096 || /* limit of columns accepted */
-				cols_values[BULKCOL_colid] < 1 ||
-				cols_values[BULKCOL_colid] > cols_values[BULKCOL_colcnt]) {
-				rc = TDS_FAIL;
-				break;
-			}
-			if (bcpinfo->sybase_colinfo == NULL) {
-				bcpinfo->sybase_colinfo = calloc(cols_values[BULKCOL_colcnt], sizeof(*bcpinfo->sybase_colinfo));
-				if (bcpinfo->sybase_colinfo == NULL) {
-					rc = TDS_FAIL;
-					break;
-				}
-				bcpinfo->sybase_count = cols_values[BULKCOL_colcnt];
-			}
-			/* bound check, colcnt could have changed from row to row */
-			if (cols_values[BULKCOL_colid] > bcpinfo->sybase_count) {
-				rc = TDS_FAIL;
-				break;
-			}
-			colinfo = &bcpinfo->sybase_colinfo[cols_values[BULKCOL_colid] - 1];
-			colinfo->type = cols_values[BULKCOL_type];
-			colinfo->status = cols_values[BULKCOL_status];
-			colinfo->offset = cols_values[BULKCOL_offset];
-			colinfo->length = cols_values[BULKCOL_length];
-			tdsdump_log(TDS_DBG_INFO1, "gotten row information %d type %d length %d status %d offset %d\n",
-					cols_values[BULKCOL_colid],
-					colinfo->type,
-					colinfo->length,
-					colinfo->status,
-					colinfo->offset);
+
+			/* One row per column format definition */
+			if (bulkcol_formats_found && !bulkcol_formats_processed)
+				rc = process_bulkcol_row(tds_get_ctx(tds), tds->current_results, &cols, bcpinfo);
+
 			break;
+
 		case TDS_DONE_RESULT:
 		case TDS_DONEPROC_RESULT:
 		case TDS_DONEINPROC_RESULT:
+			done_seen = true;
 			if ((done_flags & TDS_DONE_ERROR) != 0)
 				ret = TDS_FAIL;
 		default:

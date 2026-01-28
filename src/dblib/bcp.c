@@ -643,12 +643,6 @@ bcp_gethostcolcount(DBPROCESS *dbproc)
 RETCODE
 bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen)
 {
-	int i;
-	static const char *const hints[] = {
-		"ORDER", "ROWS_PER_BATCH", "KILOBYTES_PER_BATCH", "TABLOCK", "CHECK_CONSTRAINTS",
-		"FIRE_TRIGGERS", "KEEP_NULLS", NULL
-	};
-
 	tdsdump_log(TDS_DBG_FUNC, "bcp_options(%p, %d, %p, %d)\n", dbproc, option, value, valuelen);
 	CHECK_CONN(FAIL);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI, FAIL);
@@ -662,15 +656,15 @@ bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen)
 		if (!value || valuelen <= 0)
 			break;
 
-		for (i = 0; hints[i]; i++) {	/* look up hint */
-			if (strncasecmp((char *) value, hints[i], strlen(hints[i])) == 0) {
-				if (!tds_dstr_copy(&dbproc->bcpinfo->hint, hints[i]))
-					return FAIL;
-				return SUCCEED;
-			}
-		}
-		tdsdump_log(TDS_DBG_FUNC, "failed, no such hint\n");
-		break;
+		// Hint documentation: https://learn.microsoft.com/en-us/sql/t-sql/statements/bulk-insert-transact-sql
+		if (!tds_dstr_copyn(&dbproc->bcpinfo->hint, (char *)value, valuelen))
+			return FAIL;
+
+		if (strstr(tds_dstr_cstr(&dbproc->bcpinfo->hint), "KEEP_NULLS"))
+			dbproc->bcpinfo->ignore_defaults = true;
+
+		return SUCCEED;
+
 	default:
 		tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED bcp option: %u\n", option);
 		break;
@@ -765,9 +759,18 @@ _bcp_convert_out(DBPROCESS * dbproc, TDSCOLUMN *curcol, BCP_HOSTCOLINFO *hostcol
 	if (is_datetime_type(srctype) && is_ascii_type(hostcol->datatype)) {
 		TDSDATEREC when;
 
+		/* Some date/time types have variable precision (e.g. MS datetime2),
+		 * and set curcol->column_prec with that precision.
+		 * DATETIME is printed with precision 3 by MS BCP & ASE BCP however
+		 * curcol->column_prec is not set for that type.
+		 * (It might be better to set column_prec at load time for all
+		 * of the datetime types...)
+		 */
+		int prec = curcol->column_prec ? curcol->column_prec : 3;
+
 		tds_datecrack(srctype, src, &when);
-		buflen = (int)tds_strftime((TDS_CHAR *)(*p_data), 256,
-					 bcpdatefmt, &when, 3);
+		buflen = (int)tds_strftime((TDS_CHAR*)(*p_data), 256,
+			bcpdatefmt, &when, prec);
 	} else if (srclen == 0 && is_variable_type(curcol->column_type)
 		   && is_ascii_type(hostcol->datatype)) {
 		/*
@@ -1206,8 +1209,18 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool sk
 		if (bcpcol && hostcol->prefix_len == -1)
 			bcp_cache_prefix_len(hostcol, bcpcol);
 
+		/*
+		 * Work out how many bytes to read from the data file for this column.
+		 *
+		 * Firstly, hostcol->column_len == 0 is supposed to indicate that
+		 * the value for this column is always NULL and
+		 * so the data file contains no data for it.
+		 */
+		if (hostcol->column_len == 0)
+			data_is_null = true;
+
 		/* a prefix length, if extant, specifies how many bytes to read */
-		if (hostcol->prefix_len > 0) {
+		else if (hostcol->prefix_len > 0) {
 			union {
 				TDS_TINYINT ti;
 				TDS_SMALLINT si;
@@ -1236,31 +1249,41 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool sk
 				break;
 			}
 
-			/* TODO test all NULL types */
-			/* TODO for < -1 error */
-			if (collen <= -1) {
+			/* Length prefix of -1 is used by MSSQL to encode null data in variable fields */
+			if (collen <= -1)
 				data_is_null = true;
-				collen = 0;
-			}
 		}
 
-		/* if (Max) column length specified take that into consideration. (Meaning what, exactly?) */
-
-		if (!data_is_null && hostcol->column_len >= 0) {
-			if (hostcol->column_len == 0)
-				data_is_null = true;
-			else if (collen)
-				collen = TDS_MIN(hostcol->column_len, collen);
-			else
-				collen = hostcol->column_len;
-		}
-
-		tdsdump_log(TDS_DBG_FUNC, "prefix_len = %d collen = %d \n", hostcol->prefix_len, collen);
-
-		/* Fixed Length data - this overrides anything else specified */
-
-		if (is_fixed_type(hostcol->datatype))
+		/* Fixed-width types have the size determined by the type */
+		else if (is_fixed_type(hostcol->datatype))
 			collen = tds_get_size_by_type(hostcol->datatype);
+
+		/* Failing all else, the Maximum Column Length field might help */
+		else
+			collen = hostcol->column_len;
+
+		/* Note: it's still possible collen = -1 at this stage, the
+		 * field might for example be a VARCHAR with no maximum size
+		 * but the data file uses a delimited format.
+		 */
+
+		/* Don't read data for null values */
+		if (data_is_null)
+			collen = 0;
+
+		tdsdump_log(TDS_DBG_FUNC, "prefix_len = %d collen = %d column_len(max) = %d\n", hostcol->prefix_len, collen, hostcol->column_len);
+
+		/* I don't think it makes sense to use the maximum field width to truncate
+		 * data whose length is known; that should indicate the data file is erroneous.
+		 */
+		if (collen > 0 && hostcol->column_len > 0 && collen > hostcol->column_len) {
+			tdsdump_log(TDS_DBG_FUNC, "col %d: length %d exceeds field maximum %d\n",
+				(i + 1), collen, (int)hostcol->column_len);
+			*row_error = true;
+			free(coldata);
+			dbperror(dbproc, SYBEBCOR, 0);
+			return FAIL;
+		}
 
 		col_start = ftello(hostfile);
 
@@ -2140,7 +2163,8 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 	}
 
 	if (is_fixed_type(vartype) && (varlen != -1 && varlen != 0)) {
-		dbperror(dbproc, SYBEBCIT, 0);
+		tdsdump_log(TDS_DBG_FUNC, "bcp_bind(): varlen must be -1 or 0 for fixed type %d\n", vartype);
+		dbperror(dbproc, SYBETYPE, 0);
 		return FAIL;
 	}
 

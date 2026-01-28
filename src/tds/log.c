@@ -49,6 +49,7 @@
 #include <freetds/checks.h>
 #include <freetds/thread.h>
 #include <freetds/utils.h>
+#include <freetds/convert.h>    /* tds_strftime */
 
 /* for now all messages go to the log */
 int tds_debug_flags = TDS_DBGFLAG_ALL | TDS_DBGFLAG_SOURCE;
@@ -485,49 +486,72 @@ tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...)
 void
 tdsdump_col(const TDSCOLUMN *col)
 {
-	const char* type_name;
-	char* data;
+	char buf[30] = "NULL";
+	char* data = buf;
+	int data_len = -1;
 	TDS_SMALLINT type;
-	
+	TDSDATEREC dr;
+	TDS_NUMERIC* pnumeric;
+	TDS_MONEY* pmoney;
+	TDS_MONEY4* pmoney4;
+
 	assert(col);
 	assert(col->column_data);
 	
-	type_name = tds_prtype(col->column_type);
 	type = tds_get_conversion_type(col->column_type, col->column_size);
 	
 	switch(type) {
 	case SYBCHAR: 
 	case SYBVARCHAR:
 		if (col->column_cur_size >= 0) {
-			data = tds_new0(char, 1 + col->column_cur_size);
-			if (!data) {
-				tdsdump_log(TDS_DBG_FUNC, "no memory to log data for type %s\n", type_name);
-				return;
-			}
-			memcpy(data, col->column_data, col->column_cur_size);
-			tdsdump_log(TDS_DBG_FUNC, "type %s has value \"%s\"\n", type_name, data);
-			free(data);
-		} else {
-			tdsdump_log(TDS_DBG_FUNC, "type %s has value NULL\n", type_name);
+			data = (char *)col->column_data;
+			data_len = col->column_cur_size;
 		}
 		break;
 	case SYBINT1:
-		tdsdump_log(TDS_DBG_FUNC, "type %s has value %d\n", type_name, (int)*(TDS_TINYINT*)col->column_data);
+		snprintf(buf, sizeof buf, "%d", (int)*(TDS_TINYINT*)col->column_data);
 		break;
 	case SYBINT2:
-		tdsdump_log(TDS_DBG_FUNC, "type %s has value %d\n", type_name, (int)*(TDS_SMALLINT*)col->column_data);
+		snprintf(buf, sizeof buf, "%d", (int)*(TDS_SMALLINT*)col->column_data);
 		break;
 	case SYBINT4:
-		tdsdump_log(TDS_DBG_FUNC, "type %s has value %d\n", type_name, (int)*(TDS_INT*)col->column_data);
+		snprintf(buf, sizeof buf, "%d", (int)*(TDS_INT*)col->column_data);
 		break;
 	case SYBREAL:
-		tdsdump_log(TDS_DBG_FUNC, "type %s has value %f\n", type_name, (double)*(TDS_REAL*)col->column_data);
+		snprintf(buf, sizeof buf, "%f", (double)*(TDS_REAL*)col->column_data);
 		break;
 	case SYBFLT8:
-		tdsdump_log(TDS_DBG_FUNC, "type %s has value %f\n", type_name, (double)*(TDS_FLOAT*)col->column_data);
+		snprintf(buf, sizeof buf, "%f", (double)*(TDS_FLOAT*)col->column_data);
+		break;
+	case SYBDATETIME:
+	case SYBDATETIME4:
+		if (TDS_SUCCESS == tds_datecrack(type, col->column_data, &dr))
+			tds_strftime(buf, sizeof buf, "%b %d %Y %H:%M:%S", &dr, 3);
+		break;
+	case SYBMONEY:
+		pmoney = (TDS_MONEY*)col->column_data;
+		snprintf(buf, sizeof buf, "$%u%04u.%04u",
+			pmoney->tdsoldmoney.mnyhigh,
+			pmoney->tdsoldmoney.mnylow / 10000u,
+			pmoney->tdsoldmoney.mnylow % 10000u
+			);
+		break;
+	case SYBMONEY4:
+		pmoney4 = (TDS_MONEY4*)col->column_data;
+		snprintf(buf, sizeof buf, "$%u.%04u", pmoney4->mny4 / 10000, pmoney4->mny4 % 10000);
+		break;
+	case SYBDECIMAL:
+	case SYBNUMERIC:
+		pnumeric = (TDS_NUMERIC*)col->column_data;
+		snprintf(buf, sizeof buf, "(%d,%d) numeric", pnumeric->precision, pnumeric->scale);
 		break;
 	default:
-		tdsdump_log(TDS_DBG_FUNC, "cannot log data for type %s\n", type_name);
-		break;
+		data = "(unsupported data format for log dump)";
 	}
+
+	tdsdump_log(TDS_DBG_FUNC, "Column \"%s\" type \"%s\" has value \"%.*s\"\n",
+		col->column_name ? tds_dstr_cstr(&col->column_name) : "",
+		tds_prtype(col->column_type),
+		(data_len >= 0 ? data_len : (int)strlen(data)),
+		data);
 }
