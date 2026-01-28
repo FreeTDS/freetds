@@ -765,9 +765,17 @@ _bcp_convert_out(DBPROCESS * dbproc, TDSCOLUMN *curcol, BCP_HOSTCOLINFO *hostcol
 	if (is_datetime_type(srctype) && is_ascii_type(hostcol->datatype)) {
 		TDSDATEREC when;
 
+		/* Some date/time types have variable precision (e.g. MS datetime2),
+		 * and set curcol->column_prec with that precision.
+		 * DATETIME is printed with precision 3 by MS BCP & ASE BCP however
+		 * curcol->column_prec is not set for that type.
+		 * (It might be better to set column_prec at load time for all
+		 * of the datetime types...)
+		 */
+		int prec = curcol->column_prec ? curcol->column_prec : 3;
+
 		tds_datecrack(srctype, src, &when);
-		buflen = (int)tds_strftime((TDS_CHAR *)(*p_data), 256,
-					 bcpdatefmt, &when, 3);
+		buflen = (int) tds_strftime((TDS_CHAR *) (*p_data), 256, bcpdatefmt, &when, prec);
 	} else if (srclen == 0 && is_variable_type(curcol->column_type)
 		   && is_ascii_type(hostcol->datatype)) {
 		/*
