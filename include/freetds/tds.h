@@ -693,7 +693,7 @@ struct tds_column
 					 */
 	TDS_TINYINT column_varint_size;	/**< size of length when reading from wire (0, 1, 2 or 4) */
 
-	TDS_TINYINT column_prec;	/**< precision for decimal/numeric */
+	TDS_TINYINT column_prec;	/**< precision for decimal/numeric and some datetime types */
 	TDS_TINYINT column_scale;	/**< scale for decimal/numeric */
 
 	struct
