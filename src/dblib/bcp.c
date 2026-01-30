@@ -1155,7 +1155,8 @@ rtrim_bcpcol(TDSCOLUMN *bcpcol)
  *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param hostfile 
- * \param row_error 
+ * \param row_error set to true if an error is detected in the row
+ * \param skip skip the row
  * 
  * \return MORE_ROWS, NO_MORE_ROWS, or FAIL.
  * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
