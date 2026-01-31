@@ -221,7 +221,6 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 			if (size != sizeof(mars_header))
 				goto Severe_Error;
 			/* this socket shold now not start another session */
-//			tds_set_state(tds, TDS_DEAD);
 		} else
 			goto Severe_Error;
 
