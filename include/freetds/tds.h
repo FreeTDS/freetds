@@ -1199,7 +1199,7 @@ struct tds_socket
 	 * The buffer is actually a bit larger to make possible to do some
 	 * optimizations (at least TDS_ADDITIONAL_SPACE bytes).
 	 */
-	unsigned int out_buf_max;
+	unsigned out_buf_max;
 	unsigned in_pos;		/**< current position in in_buf */
 	unsigned out_pos;		/**< current position in out_buf */
 	unsigned in_len;		/**< input buffer length */
