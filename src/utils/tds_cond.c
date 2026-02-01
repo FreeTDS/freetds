@@ -114,9 +114,12 @@ detect_cond(void)
 	/* detect if this Windows support condition variables */
 	HMODULE mod = GetModuleHandle(TEXT("kernel32"));
 
-	init_cv  = (init_cv_t)  GetProcAddress(mod, "InitializeConditionVariable");
-	sleep_cv = (sleep_cv_t) GetProcAddress(mod, "SleepConditionVariableCS");
-	wake_cv  = (wake_cv_t)  GetProcAddress(mod, "WakeConditionVariable");
+	if (mod)
+	{
+		init_cv = (init_cv_t)GetProcAddress(mod, "InitializeConditionVariable");
+		sleep_cv = (sleep_cv_t)GetProcAddress(mod, "SleepConditionVariableCS");
+		wake_cv = (wake_cv_t)GetProcAddress(mod, "WakeConditionVariable");
+	}
 
 	if (init_cv && sleep_cv && wake_cv) {
 		tds_raw_cond_init      = new_cond_init;
