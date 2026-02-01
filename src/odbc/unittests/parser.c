@@ -270,7 +270,8 @@ odbc_init_parser_func(odbc_read_line_p read_func, void *param)
 static char *
 read_file(void *param, char *s, size_t size)
 {
-	return fgets(s, size, (FILE *) param);
+	/* we don't expect "size" to be huge, cast is fine */
+	return fgets(s, (int) size, (FILE *) param);
 }
 
 odbc_parser *
