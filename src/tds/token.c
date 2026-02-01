@@ -1971,7 +1971,9 @@ tds_process_nbcrow(TDSSOCKET * tds)
 	unsigned int i;
 	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
-	char *nbcbuf;
+	enum { MAXCOLS = 1024 };	/* Limit for MSVC and Sybase, other than sparse tables */
+	char nbcbuf0[(MAXCOLS + 7) / 8];
+	char* nbcbuf = nbcbuf0;
 
 	CHECK_TDS_EXTRA(tds);
 
@@ -1979,7 +1981,19 @@ tds_process_nbcrow(TDSSOCKET * tds)
 	if (!info || info->num_cols <= 0)
 		return TDS_FAIL;
 
-	nbcbuf = (char *) alloca((info->num_cols + 7) / 8);
+	/* Using fixed buffer instead of alloca because of error handling and
+	 * cross platform issues Alternatively we could save an allocated
+	 * buffer in the TDSSOCKET. */
+
+	if (info->num_cols > MAXCOLS)
+	{
+		nbcbuf = tds_new(char, (info->num_cols + 7) / 8);
+		if (!nbcbuf)
+		{
+			tdsdump_log(TDS_DBG_ERROR, "tds_process_nbcrow(): out of memory");
+			return TDS_FAIL;
+		}
+	}
 	tds_get_n(tds, nbcbuf, (info->num_cols + 7) / 8);
 	for (i = 0; i < info->num_cols; i++) {
 		curcol = info->columns[i];
@@ -1990,6 +2004,9 @@ tds_process_nbcrow(TDSSOCKET * tds)
 			TDS_PROPAGATE(curcol->funcs->get_data(tds, curcol));
 		}
 	}
+	if (info->num_cols > MAXCOLS)
+		free(nbcbuf);
+
 	return TDS_SUCCESS;
 }
 
