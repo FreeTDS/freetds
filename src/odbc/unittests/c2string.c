@@ -36,7 +36,7 @@ odbc_c2string(char *out, SQLSMALLINT out_c_type, const void *in, SQLLEN in_len)
 	} buf_t;
 #undef IN
 #define IN (*((const buf_t*) in))
-	size_t i;
+	SQLLEN i;
 	const SQL_NUMERIC_STRUCT *num;
 	char *s;
 
@@ -67,7 +67,7 @@ odbc_c2string(char *out, SQLSMALLINT out_c_type, const void *in, SQLLEN in_len)
 	case SQL_C_WCHAR:
 		assert(in_len >=0 && (in_len % sizeof(SQLWCHAR)) == 0);
 		s += sprintf(s, "%u ", (unsigned int) (in_len / sizeof(SQLWCHAR)));
-		for (i = 0; i < in_len / sizeof(SQLWCHAR); ++i)
+		for (i = 0; i < in_len / (SQLLEN)sizeof(SQLWCHAR); ++i)
 			s = add_char(s, IN.ws[i]);
 		*s = 0;
 		break;

@@ -4,6 +4,7 @@
 #include "common.h"
 #include <assert.h>
 #include <ctype.h>
+#include <limits.h>
 #include "parser.h"
 
 enum
@@ -270,7 +271,7 @@ odbc_init_parser_func(odbc_read_line_p read_func, void *param)
 static char *
 read_file(void *param, char *s, size_t size)
 {
-	return fgets(s, size, (FILE *) param);
+	return fgets(s, size > INT_MAX ? INT_MAX : (int)size, (FILE*)param);
 }
 
 odbc_parser *
