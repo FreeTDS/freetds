@@ -54,6 +54,7 @@ typedef struct tds_connection TDSCONNECTION;
 typedef struct tds_socket TDSSOCKET;
 typedef struct tds_column TDSCOLUMN;
 typedef struct tds_bcpinfo TDSBCPINFO;
+typedef struct tds_result_info TDSRESULTINFO;
 
 #include <freetds/version.h>
 #include <freetds/sysdep_private.h>
@@ -759,7 +760,7 @@ struct tds_column
 
 
 /** Hold information for any results */
-typedef struct tds_result_info
+struct tds_result_info
 {
 	/* TODO those fields can became a struct */
 	TDSCOLUMN **columns;
@@ -768,7 +769,7 @@ typedef struct tds_result_info
 	TDS_INT ref_count;
 	TDSSOCKET *attached_to;
 	unsigned char *current_row;
-	void (*row_free)(struct tds_result_info* result, unsigned char *row);
+	void (*row_free)(TDSRESULTINFO* result, unsigned char *row);
 	TDS_INT row_size;
 
 	TDS_SMALLINT *bycolumns;
@@ -776,7 +777,7 @@ typedef struct tds_result_info
 	bool rows_exist;
 	/* TODO remove ?? used only in dblib */
 	bool more_results;
-} TDSRESULTINFO;
+};
 
 /** values for tds->state */
 typedef enum tds_states
@@ -862,7 +863,7 @@ enum TDS_DBG_LOG_STATE
 };
 #endif
 
-typedef struct tds_result_info TDSCOMPUTEINFO;
+typedef TDSRESULTINFO TDSCOMPUTEINFO;
 
 typedef TDSRESULTINFO TDSPARAMINFO;
 
@@ -1130,7 +1131,7 @@ struct tds_connection
 
 #define BUSY_SOCKET ((TDSSOCKET*)(TDS_UINTPTR)1)
 #define TDSSOCKET_VALID(tds) (((TDS_UINTPTR)(tds)) > 1)
-	struct tds_socket **sessions;
+	TDSSOCKET **sessions;
 	unsigned num_sessions;
 #endif
 	tds_mutex list_mtx;
