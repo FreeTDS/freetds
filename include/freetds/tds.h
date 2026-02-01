@@ -541,24 +541,24 @@ typedef struct tds_login
 
 	unsigned char option_flag2;
 
-	unsigned int bulk_copy:1;	/**< if bulk copy should be enabled */
-	unsigned int suppress_language:1;
-	unsigned int gssapi_use_delegation:1;
-	unsigned int mutual_authentication:1;
-	unsigned int use_ntlmv2:1;
-	unsigned int use_ntlmv2_specified:1;
-	unsigned int use_lanman:1;
-	unsigned int mars:1;
-	unsigned int use_utf16:1;
-	unsigned int use_new_password:1;
-	unsigned int valid_configuration:1;
-	unsigned int check_ssl_hostname:1;
-	unsigned int readonly_intent:1;
-	unsigned int enable_tls_v1:1;
-	unsigned int enable_tls_v1_specified:1;
-	unsigned int enable_tls_v1_1:1;
-	unsigned int enable_tls_v1_1_specified:1;
-	unsigned int server_is_valid:1;
+	uint8_t bulk_copy:1;	/**< if bulk copy should be enabled */
+	uint8_t suppress_language:1;
+	uint8_t gssapi_use_delegation:1;
+	uint8_t mutual_authentication:1;
+	uint8_t use_ntlmv2:1;
+	uint8_t use_ntlmv2_specified:1;
+	uint8_t use_lanman:1;
+	uint8_t mars:1;
+	uint8_t use_utf16:1;
+	uint8_t use_new_password:1;
+	uint8_t valid_configuration:1;
+	uint8_t check_ssl_hostname:1;
+	uint8_t readonly_intent:1;
+	uint8_t enable_tls_v1:1;
+	uint8_t enable_tls_v1_specified:1;
+	uint8_t enable_tls_v1_1:1;
+	uint8_t enable_tls_v1_1_specified:1;
+	uint8_t server_is_valid:1;
 } TDSLOGIN;
 
 typedef struct tds_headers
@@ -709,18 +709,18 @@ struct tds_column
 	DSTR table_column_name;
 
 	unsigned char *column_data;
-	void (*column_data_free)(struct tds_column *column);
-	unsigned char column_nullable:1;
-	unsigned char column_writeable:1;
-	unsigned char column_identity:1;
-	unsigned char column_key:1;
-	unsigned char column_hidden:1;
-	unsigned char column_output:1;
-	unsigned char column_timestamp:1;
-	unsigned char column_computed:1;
+	void (*column_data_free)(struct tds_column * column);
+	uint8_t column_nullable:1;
+	uint8_t column_writeable:1;
+	uint8_t column_identity:1;
+	uint8_t column_key:1;
+	uint8_t column_hidden:1;
+	uint8_t column_output:1;
+	uint8_t column_timestamp:1;
+	uint8_t column_computed:1;
 	TDS_UCHAR column_collation[5];
 
-	unsigned char use_iconv_out:1;
+	uint8_t use_iconv_out:1;
 
 	/* additional fields flags for compute results */
 	TDS_SMALLINT column_operand;
@@ -1116,12 +1116,12 @@ struct tds_connection
 	TDS_UCHAR tds72_transaction[8];
 
 	TDS_CAPABILITIES capabilities;
-	unsigned int use_iconv_in:1;
-	unsigned int tds71rev1:1;
-	unsigned int pending_close:1;	/**< true is connection has pending closing (cursors or dynamic) */
-	unsigned int encrypt_single_packet:1;
+	uint8_t use_iconv_in:1;
+	uint8_t tds71rev1:1;
+	uint8_t pending_close:1;	/**< true is connection has pending closing (cursors or dynamic) */
+	uint8_t encrypt_single_packet:1;
 #if ENABLE_ODBC_MARS
-	unsigned int mars:1;
+	uint8_t mars:1;
 
 	TDSSOCKET *in_net_tds;
 	TDSPACKET *packets;
