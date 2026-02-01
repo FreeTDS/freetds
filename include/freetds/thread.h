@@ -210,10 +210,12 @@ static inline int tds_thread_create(tds_thread *ret, tds_thread_proc proc, void 
 static inline int tds_thread_create_detached(tds_thread_proc proc, void *arg)
 {
 	HANDLE h = CreateThread(NULL, 0, proc, arg, 0, NULL);
-	if (h)
-		return 0;
+	if (!h)
+		return 11 /* EAGAIN */;
+
+	/* Avoids leaking the handle - Thread continues to run */
 	CloseHandle(h);
-	return 11 /* EAGAIN */;
+	return 0;
 }
 
 static inline int tds_thread_join(tds_thread th, void **ret)
