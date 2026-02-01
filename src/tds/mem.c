@@ -1098,7 +1098,10 @@ TDSPACKET *
 tds_realloc_packet(TDSPACKET *packet, unsigned len)
 {
 	if (packet->capacity < len) {
-		packet = (TDSPACKET *) realloc(packet, len + TDS_OFFSET(TDSPACKET, buf));
+		void* newpacket = realloc(packet, len + TDS_OFFSET(TDSPACKET, buf));
+		if (!newpacket)
+			free(packet);
+		packet = newpacket;
 		if (TDS_LIKELY(packet))
 			packet->capacity = len;
 	}
