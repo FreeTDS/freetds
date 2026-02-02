@@ -65,12 +65,16 @@ TEST_MAIN()
 	dbloginfree(login);
 	printf("After logon\n");
 
+	/* First testcase already had SQL opened by read_login_info() */
 	strcpy(in_file, INFILE_NAME);
+	test_file(in_file);
+
+	/* Execute other testcases */
 	for (n = 1; n <= 100; ++n) {
-		test_file(in_file);
 		sprintf(in_file, "%s_%d", INFILE_NAME, n);
 		if (sql_reopen(in_file) != SUCCEED)
 			break;
+		test_file(in_file);
 	}
 
 	dbclose(dbproc);
