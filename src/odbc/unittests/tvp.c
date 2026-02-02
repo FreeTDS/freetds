@@ -7,7 +7,7 @@
 #undef MEMORY_TESTS
 #if defined(HAVE_MALLOC_H)
 #  include <malloc.h>
-#  if defined(HAVE_MALLINFO2) || defined(HAVE_MALLINFO) || defined(HAVE__HEAPWALK)
+#  if defined(HAVE_MALLINFO2) || defined(HAVE_MALLINFO) || defined(HAVE__HEAPWALK) || defined(__VMS)
 #    define MEMORY_TESTS 1
 #  endif
 #endif
@@ -524,8 +524,25 @@ memory_usage(void)
 	}
 #elif defined(HAVE_MALLINFO2)
 	ret = mallinfo2().uordblks;
-#else
+
+#elif defined(HAVE_MALLINFO)
 	ret = (size_t) (mallinfo().uordblks);
+
+#elif defined(__VMS)
+	{
+		ILE3 jpi_items[2] = { 0 };
+		unsigned long ppgcnt;
+		unsigned short ppgcnt_len;
+		int status;
+
+		jpi_items[0].ile3$w_length = sizeof(ppgcnt);
+		jpi_items[0].ile3$w_code = JPI$_PPGCNT;
+		jpi_items[0].ile3$ps_bufaddr = &ppgcnt;
+		jpi_items[0].ile3$ps_retlen_addr = &ppgcnt_len;
+		status = SYS$GETJPIW(0, 0, 0, &jpi_items, 0, 0, 0);
+
+		ret = $VMS_STATUS_SUCCESS(status) ? ppgcnt : 0;
+	}
 #endif
 	return ret;
 }
