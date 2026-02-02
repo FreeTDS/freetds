@@ -260,8 +260,6 @@ sql_reopen(const char *fn)
 	if (input_file)
 		fclose(input_file);
 	if ((input_file = fopen(sql_file, "r")) == NULL) {
-		fflush(stdout);
-		fprintf(stderr, "could not open SQL input file \"%s\"\n", sql_file);
 		sql_file[0] = 0;
 		return FAIL;
 	}
