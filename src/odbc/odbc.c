@@ -1681,6 +1681,9 @@ SQLAllocHandle(SQLSMALLINT HandleType, SQLHANDLE InputHandle, SQLHANDLE * Output
 {
 	tdsdump_log(TDS_DBG_FUNC, "SQLAllocHandle(%d, %p, %p)\n", HandleType, InputHandle, OutputHandle);
 
+	if (OutputHandle)
+		*OutputHandle = SQL_NULL_HANDLE;
+
 	switch (HandleType) {
 	case SQL_HANDLE_STMT:
 		return odbc_SQLAllocStmt(InputHandle, OutputHandle);
