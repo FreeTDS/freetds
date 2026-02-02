@@ -82,4 +82,15 @@
 #define tds_new(type, n) ((type *) malloc(sizeof(type) * (n)))
 #define tds_new0(type, n) ((type *) calloc(n, sizeof(type)))
 
+/* Tell the compiler that a function never returns. Use before the prototype */
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
+#define TDS_NORETURN _Noreturn
+#elif defined(__GNUC__) || defined(__clang__)
+#define TDS_NORETURN __attribute__((noreturn))
+#elif defined(_MSC_VER) && (_MSC_VER >= 1200)
+#define TDS_NORETURN __declspec(noreturn)
+#else
+#define TDS_NORETURN
+#endif
+
 #endif
