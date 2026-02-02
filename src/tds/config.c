@@ -736,7 +736,7 @@ tds_config_login(TDSLOGIN * connection, TDSLOGIN * login)
 	DSTR *res = &login->server_name;
 
 	if (!tds_dstr_isempty(&login->server_name)) {
-		if (1 || tds_dstr_isempty(&connection->server_name))
+		if (tds_dstr_isempty(&connection->server_name))
 			res = tds_dstr_dup(&connection->server_name, &login->server_name);
 	}
 
