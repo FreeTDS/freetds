@@ -337,7 +337,7 @@ odbc_db_is_microsoft(void)
 
 	if (ms_db < 0) {
 		buf[0] = 0;
-		SQLGetInfo(odbc_conn, SQL_DBMS_NAME, buf, sizeof(buf), &len);
+		CHKGetInfo(SQL_DBMS_NAME, buf, sizeof(buf), &len, "S");
 		for (i = 0; buf[i]; ++i)
 			buf[i] = tolower(buf[i]);
 		ms_db = (strstr(C(buf), "microsoft") != NULL);
@@ -356,7 +356,7 @@ odbc_driver_is_freetds(void)
 
 	if (freetds_driver < 0) {
 		buf[0] = 0;
-		SQLGetInfo(odbc_conn, SQL_DRIVER_NAME, buf, sizeof(buf), &len);
+		CHKGetInfo(SQL_DRIVER_NAME, buf, sizeof(buf), &len, "S");
 		for (i = 0; buf[i]; ++i)
 			buf[i] = tolower(buf[i]);
 		freetds_driver = (strstr(C(buf), "tds") != NULL);
@@ -455,7 +455,7 @@ odbc_tds_version(void)
 	if (odbc_driver_is_freetds() && tds_version < 0) {
 		version = 0;
 		len = 0;
-		SQLGetInfo(odbc_conn, 1300 /* SQL_INFO_FREETDS_TDS_VERSION */, &version, sizeof(version), &len);
+		CHKGetInfo(1300 /* SQL_INFO_FREETDS_TDS_VERSION */, &version, sizeof(version), &len, "S");
 		if (len == sizeof(version))
 			tds_version = (version >> 16) << 8 | (version & 0xff);
 	}
