@@ -609,6 +609,9 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 
 	tdsdump_log(TDS_DBG_INFO1, "\t%s = '%s'\n", option, value);
 
+	if (!param)
+		return false;
+
 	if (!strcmp(option, TDS_STR_VERSION)) {
 		tds_config_verstr(value, login);
 	} else if (!strcmp(option, TDS_STR_BLKSZ)) {
