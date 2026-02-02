@@ -66,12 +66,17 @@ TEST_MAIN()
 	dbloginfree(login);
 	printf("After logon\n");
 
+	/* First testcase already had SQL opened by read_login_info() */
 	strcpy(in_file, INFILE_NAME);
+
+	/* Execute all testcases (carry on even if one fails) */
 	for (n = 1; n <= 100; ++n) {
 		test_file(in_file);
 		sprintf(in_file, "%s_%d", INFILE_NAME, n);
-		if (sql_reopen(in_file) != SUCCEED)
+		if (sql_reopen(in_file) != SUCCEED) {
+			printf("===== End of t0016 subtests =====\n");
 			break;
+		}
 	}
 
 	dbclose(dbproc);
@@ -128,6 +133,7 @@ test_file(const char *fn)
 	strlcpy(table_name, TABLE_NAME, sizeof(table_name));
 	hints[0] = 0;
 
+	printf("===== %s =====\n", fn);
 	input_file = fopen(in_file, "r");
 	if (!input_file) {
 		sprintf(in_file, "%s.in", fn);
@@ -184,8 +190,10 @@ test_file(const char *fn)
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
-	if (got_error)
+	if (got_error) {
+		printf("Skipping %s due to table creation failure.\n", fn);
 		return;
+	}
 
 	ret = sql_cmd(dbproc);
 	printf("return from dbcmd = %d\n", ret);
