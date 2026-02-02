@@ -1680,6 +1680,7 @@ SQLRETURN ODBC_PUBLIC ODBC_API
 SQLAllocHandle(SQLSMALLINT HandleType, SQLHANDLE InputHandle, SQLHANDLE * OutputHandle)
 {
 	tdsdump_log(TDS_DBG_FUNC, "SQLAllocHandle(%d, %p, %p)\n", HandleType, InputHandle, OutputHandle);
+	*OutputHandle = SQL_NULL_HANDLE;
 
 	switch (HandleType) {
 	case SQL_HANDLE_STMT:
