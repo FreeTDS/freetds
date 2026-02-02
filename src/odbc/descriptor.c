@@ -226,6 +226,10 @@ SQLTVP *
 tvp_alloc(TDS_STMT *stmt)
 {
 	SQLTVP *tvp = tds_new0(SQLTVP, 1);
+
+	if (!tvp)
+		return NULL;
+
 	tds_dstr_init(&tvp->type_name);
 	tvp->ipd = desc_alloc(stmt, DESC_IPD, SQL_DESC_ALLOC_AUTO);
 	tvp->apd = desc_alloc(stmt, DESC_APD, SQL_DESC_ALLOC_AUTO);

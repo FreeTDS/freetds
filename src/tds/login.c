@@ -376,7 +376,7 @@ tds_parse_login_results(TDSSOCKET * tds, bool ignore_errors)
 
 		switch (result_type) {
 		case TDS_ROW_RESULT:
-			if (!tds->res_info && tds->res_info->num_cols < 1)
+			if (!tds->res_info || tds->res_info->num_cols < 1)
 				return TDS_FAIL;
 			curcol = tds->res_info->columns[0];
 			if (tds->res_info->num_cols == 1 && strcmp(tds_dstr_cstr(&curcol->column_name), "spid") == 0)
