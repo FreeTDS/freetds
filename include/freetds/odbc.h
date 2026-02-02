@@ -103,6 +103,7 @@ struct _sql_error
 
 struct _sql_errors
 {
+	_Field_size_(num_errors)
 	struct _sql_error *errs;
 	int num_errors;
 	SQLRETURN lastrc;

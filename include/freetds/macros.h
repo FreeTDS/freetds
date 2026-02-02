@@ -66,6 +66,11 @@
 #define TDS_WUR
 #endif
 
+ /* Microsoft Static Analyzer Language (windows.h defines _Field_size_) */
+#ifndef _Field_size_
+#define _Field_size_(x)
+#endif
+
 #if defined(__GNUC__) && __GNUC__ >= 2
 #define TDS_UNUSED __attribute__ ((unused))
 #else

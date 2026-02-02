@@ -186,9 +186,12 @@ typedef struct tds_save_context
 	TDSCONTEXT ctx;
 
 	unsigned num_msg;
+
+	_Field_size_(num_msg)
 	struct tds_save_msg msgs[10];
 
 	unsigned num_env;
+	_Field_size_(num_env)
 	struct tds_save_env envs[10];
 } TDSSAVECONTEXT;
 
