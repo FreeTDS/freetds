@@ -1159,9 +1159,8 @@ tds71_read_table_names(TDSSOCKET *tds, int remainder, struct namelist **p_head)
 		/* allocate full name */
 		p = tds_new(char, len);
 		if (!p) {
-			i = elements;
-			while (i > 0)
-				free(partials[--i]);
+			for (i = 0; i < elements; ++i)
+				free(partials[i]);
 			tds_free_namelist(head);
 			return -1;
 		}

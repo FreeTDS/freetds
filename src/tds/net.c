@@ -381,12 +381,13 @@ tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int ti
 
 	/* fill all structures */
 	curr_time = start_time = tds_gettime_ms();
-	for (len = 0, curr_addr = addr; curr_addr != NULL; curr_addr = curr_addr->ai_next) {
-		fds[len].fd = INVALID_SOCKET;
-		addresses[len].addr = curr_addr;
-		addresses[len].next_retry_time = curr_time;
-		addresses[len].retry_count = 0;
-		++len;
+	for (i = 0, curr_addr = addr; i < len; curr_addr = curr_addr->ai_next)
+	{
+		fds[i].fd = INVALID_SOCKET;
+		addresses[i].addr = curr_addr;
+		addresses[i].next_retry_time = curr_time;
+		addresses[i].retry_count = 0;
+		++i;
 	}
 
 	/* if we have only one address means that availability groups feature is not
@@ -1141,8 +1142,8 @@ tds7_get_instance_ports(FILE *output, struct addrinfo *addr)
 	 */
 	for (num_try = 0; num_try < 16 && msg_len == 0; ++num_try) {
 		/* send the request */
-		msg[0] = 3;
-		if (sendto(s, msg, 1, 0, addr->ai_addr, addr->ai_addrlen) < 0)
+		char msg_type = 3;
+		if (sendto(s, &msg_type, 1, 0, addr->ai_addr, addr->ai_addrlen) < 0)
 			break;
 
 		fd.fd = s;

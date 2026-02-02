@@ -109,12 +109,13 @@ tds_vstrbuild(char *buffer, int buflen, int *resultlen, const char *text, int te
 	}
 	free(newformat);
 	for (token = strtok_r(params, sep, &lasts); token != NULL; token = strtok_r(NULL, sep, &lasts)) {
-		if ((*tail = tds_new(struct string_linked_list, 1)) == NULL) {
+		struct string_linked_list* new_node = tds_new(struct string_linked_list, 1);
+		if ( new_node == NULL )
 			goto out;
-		}
-		(*tail)->str = token;
-		(*tail)->next = NULL;
-		tail = &((*tail)->next);
+		new_node->str = token;
+		new_node->next = NULL;
+		*tail = new_node;
+		tail = &new_node->next;
 		tokcount++;
 	}
 	if ((string_array = tds_new(char *, tokcount + 1)) == NULL) {
