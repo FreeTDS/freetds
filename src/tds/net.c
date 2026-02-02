@@ -1180,7 +1180,7 @@ tds7_get_instance_ports(FILE *output, struct addrinfo *addr)
 
 		/* got data, read and parse */
 		if ((msg_len = recv(s, msg, sizeof(msg) - 1, 0)) > 3 && msg[0] == 5) {
-			char *name, sep[2] = ";", *save;
+			char *name, sep[2] = ";", *save = NULL;
 
 			/* assure null terminated */
 			msg[msg_len] = 0;

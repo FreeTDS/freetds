@@ -2096,7 +2096,7 @@ string_to_datetime(const char *instr, TDS_UINT len, int desttype, CONV_RESULT * 
 
 	char *in;
 	char *tok;
-	char *lasts;
+	char *lasts = NULL;
 	char last_token[32];
 	int monthdone = 0;
 	int yeardone = 0;

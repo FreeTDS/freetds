@@ -1136,7 +1136,7 @@ search_interface_file(TDSLOGIN * login, const tds_dir_char *dir, const tds_dir_c
 	char *field;
 	bool found = false;
 	bool server_found = false;
-	char *lasts;
+	char *lasts = NULL;
 
 	line[0] = '\0';
 	tmp_ip[0] = '\0';
