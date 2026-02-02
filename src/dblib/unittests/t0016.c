@@ -101,6 +101,29 @@ ignore_err_handler(DBPROCESS * dbproc TDS_UNUSED, int severity TDS_UNUSED, int d
 static char line1[1024*16];
 static char line2[1024*16];
 
+static unsigned int helper_file(char filename_out[256], char const* fn, char const* ext)
+{
+	FILE* fp;
+	unsigned int num_rows = 0;
+
+	snprintf(filename_out, 256, "%s/%s.%s", FREETDS_SRCDIR, fn, ext);
+	fp = fopen(filename_out, "rb");
+
+	if (!fp)
+	{
+		snprintf(filename_out, 256, "%s.%s", fn, ext);
+		fp = fopen(filename_out, "rb");
+	}
+
+	if (fp)
+	{
+		num_rows = count_file_rows(fp);
+		fclose(fp);
+	}
+	
+	return num_rows;
+}
+
 static void
 test_file(const char *fn)
 {
@@ -110,24 +133,19 @@ test_file(const char *fn)
 	const char *out_file = "t0016.out";
 	const char *err_file = "t0016.err";
 	DBINT rows_copied;
-	unsigned num_rows = 2;
-
-	FILE *input_file;
-
+	unsigned num_rows, expect_rows;
 	char in_file[256];
-	snprintf(in_file, sizeof(in_file), "%s/%s.in", FREETDS_SRCDIR, fn);
+	char expect_file[sizeof in_file];
 
-	input_file = fopen(in_file, "rb");
-	if (!input_file) {
-		sprintf(in_file, "%s.in", fn);
-		input_file = fopen(in_file, "rb");
+	num_rows = helper_file(in_file, fn, "in");
+	/* Optional expected output (if not present, expect output to match input) */
+	expect_rows = helper_file(expect_file, fn, "expect");
+
+	if (num_rows == 0)
+	{
+		fprintf(stderr, "could not read %s\n", in_file);
+		exit(EXIT_FAILURE);
 	}
-	if (!input_file) {
-		fprintf(stderr, "could not open %s\n", in_file);
-		exit(1);
-	}
-	num_rows = count_file_rows(input_file);
-	fclose(input_file);
 
 	dberrhandle(ignore_err_handler);
 	dbmsghandle(ignore_msg_handler);
@@ -142,6 +160,8 @@ test_file(const char *fn)
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
+	/* Skip test if setup failed (this lets our test suite have cases for
+	 * specific databases) */
 	if (got_error)
 		return;
 
@@ -230,8 +250,8 @@ test_file(const char *fn)
 	if (failed)
 		return;
 
-	if (compare_files(in_file, out_file))
-		printf("Input and output files are equal\n");
+	if (compare_files(expect_rows ? expect_file : in_file, out_file))
+		printf("Output file matches expectation.\n");
 	else
 		failed = true;
 }
