@@ -1566,9 +1566,11 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 			}
 		}
 
-		/* this formula taken from sybase manual... */
+		/* this formula taken from sybase manual...
+		 * (with extra 4 bytes possibly for datarows locked) */
 
 		bcp_record_size =  	4 +
+							(bcpinfo->datarows_locking ? 4 : 0) +
 							fixed_col_len_tot +
 							variable_col_len_tot +
 							( (int)(variable_col_len_tot / 256 ) + 1 ) +
