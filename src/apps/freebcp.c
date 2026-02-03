@@ -517,6 +517,7 @@ static int
 file_process(BCPPARAMDATA *pdata, DBPROCESS *dbproc, DBINT dir)
 {
 	DBINT li_rowsread = 0;
+	DBINT li_rowscopied = 0;
 	int i;
 	int li_numcols;
 
@@ -568,12 +569,15 @@ file_process(BCPPARAMDATA *pdata, DBPROCESS *dbproc, DBINT dir)
 
 	printf("\nStarting copy...\n\n");
 
-	if (FAIL == bcp_exec(dbproc, &li_rowsread)) {
+	if (FAIL == bcp_exec(dbproc, &li_rowscopied)) {
 		fprintf(stderr, "bcp copy %s failed\n", (dir == DB_IN) ? "in" : "out");
 		return FALSE;
 	}
 
-	printf("%d rows copied.\n", li_rowsread);
+	if (li_rowsread > li_rowscopied)
+		printf("%d rows unable to be copied.\n", li_rowsread - li_rowscopied);
+
+	printf("%d rows copied.\n", li_rowscopied);
 
 	return TRUE;
 }
