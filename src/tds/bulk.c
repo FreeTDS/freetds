@@ -258,8 +258,18 @@ probe_sap_locking(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	else
 		tablename = full_tablename;
 
-	TDS_PROPAGATE(tds_submit_queryf(tds, "select sysstat2 from %.*ssysobjects where type='U' and name='%s'",
-					(int) (rdot ? (rdot - full_tablename + 1) : 0), full_tablename, tablename));
+	/* Temporary tables attributes are stored differently */
+	if (rdot == NULL && tablename[0] == '#')
+	{
+		TDS_PROPAGATE(tds_submit_queryf(tds,
+			"select sysstat2 from tempdb..sysobjects where id = object_id('tempdb..%s')",
+			tablename));
+	}
+	else
+	{
+		TDS_PROPAGATE(tds_submit_queryf(tds, "select sysstat2 from %.*ssysobjects where type='U' and name='%s'",
+			(int)(rdot ? (rdot - full_tablename + 1) : 0), full_tablename, tablename));
+	}
 
 	value = 0;
 	value_found = false;
