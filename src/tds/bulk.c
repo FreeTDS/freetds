@@ -131,7 +131,12 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		goto cleanup;
 	}
 
+	/* This is the size of our internal buffer for storing the unpacked row
+	 * data. It may differ from the actual BCP packed data size, for example
+	 * we unpack date/time values into structures like TDS_DATETIMEALL.
+	 */
 	bindinfo->row_size = resinfo->row_size;
+	tdsdump_log(TDS_DBG_INFO1, "[BCP] Internal row buffer size is %d\n", bindinfo->row_size);
 
 	/* Copy the column metadata */
 	rc = TDS_FAIL;
@@ -538,7 +543,8 @@ tds5_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 	unsigned char *record = bcpinfo->bindinfo->current_row;
 	int i;
 
-	memset(record, '\0', old_record_size);	/* zero the rowbuffer */
+	/* Zero the buffer, because some data types only write part of their fixed size */
+	memset(record, '\0', old_record_size);
 
 	/* SAP ASE Datarows-locked tables expect additional 4 blank bytes before everything else */
 	if (bcpinfo->datarows_locking)
@@ -562,6 +568,13 @@ tds5_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 	if (row_pos < 0)
 		return TDS_FAIL;
 
+	if (row_pos > old_record_size)
+	{
+		/* Reaching this means we already wrote out of bounds of "record" */
+		tdsdump_log(TDS_DBG_ERROR, "Adding columns wrote %d bytes, exceeding buffer size of %d bytes\n",
+			row_pos, old_record_size);
+		return TDS_FAIL;
+	}
 
 	if (var_cols_written) {
 		TDS_PUT_UA2LE(&record[row_sz_pos], row_pos);
@@ -637,6 +650,28 @@ tds5_swap_data(const TDSCOLUMN *col TDS_UNUSED, void *p TDS_UNUSED)
 #endif
 }
 
+static TDS_INT column_bcp_max_size(TDSCOLUMN* bcpcol)
+{
+	/*
+	 * work out maximum storage required for this datatype
+	 * (in the packed BCP row, that is, excluding blob bodies)
+	 * rest can be taken from the server
+	 *
+	 * Blobs use a 16 byte "pointer" in the row data and then
+	 * send the blob body after the row.
+	 *
+	 * Numerics may vary in size. ASE doesn't have any variable
+	 * precision datetime types, only variable precision numerics.
+	 */
+	if (is_blob_type(bcpcol->on_server.column_type))
+		return 16;
+	else if (is_numeric_type(bcpcol->on_server.column_type))
+		return tds_numeric_bytes_per_prec[bcpcol->column_prec];
+	else
+		return bcpcol->column_size;
+	/* note: column_size should not be negative (unlike column_cur_size) */
+}
+
 /**
  * Add fixed size columns to the row
  * \param bcpinfo BCP information
@@ -653,7 +688,6 @@ tds5_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_dat
 {
 	TDS_NUMERIC *num;
 	int row_pos = start;
-	int cpbytes;
 	TDS_INT i;
 	int bitleft = 0, bitpos = 0;
 
@@ -667,6 +701,7 @@ tds5_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_dat
 		TDSCOLUMN *const bcpcol = bcpinfo->bindinfo->columns[i];
 		TDS5COLINFO* const sycol = i < bcpinfo->sybase_count ? &bcpinfo->sybase_colinfo[i] : NULL;
 		const TDS_INT column_size = bcpcol->on_server.column_size;
+		const TDS_INT expect = column_bcp_max_size(bcpcol);
 
 		/* if possible check information from server */
 		if (sycol) {
@@ -679,6 +714,7 @@ tds5_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_dat
 
 		tdsdump_log(TDS_DBG_FUNC, "tds5_bcp_add_fixed_columns column %d (%s) is a fixed column\n", i + 1, tds_dstr_cstr(&bcpcol->column_name));
 
+		/* Load the column data into bcpcol->column_data */
 		if (TDS_FAILED(get_col_data(bcpinfo, bcpcol, offset))) {
 			tdsdump_log(TDS_DBG_INFO1, "get_col_data (column %d) failed\n", i + 1);
 			return -1;
@@ -716,8 +752,14 @@ tds5_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_dat
 		}
 
 		if (is_numeric_type(bcpcol->on_server.column_type)) {
+			TDS_INT cpbytes;
 			num = (TDS_NUMERIC *) bcpcol->bcp_column_data->data;
 			cpbytes = tds_numeric_bytes_per_prec[num->precision];
+			if (cpbytes > expect)
+			{
+				tdsdump_log(TDS_DBG_ERROR, "Fixed numeric column %d packs size %d, but we expected %d\n", i, cpbytes , expect);
+				return -1;
+			}
 			memcpy(&rowbuffer[row_pos], num->array, cpbytes);
 		} else if (bcpcol->column_type == SYBBIT) {
 			/* all bit are collapsed together */
@@ -731,8 +773,17 @@ tds5_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_dat
 			--bitleft;
 			continue;
 		} else {
+			/* note: this branch also includes BLOBs, where column_size
+			 * is the logical data size, but bcp_column_data is the
+			 * 16-byte "pointer" */
+			TDS_INT cpbytes;
 			cpbytes = bcpcol->bcp_column_data->datalen > column_size ?
 				  column_size : bcpcol->bcp_column_data->datalen;
+			if (cpbytes > expect)	/* Would cause buffer overflow */
+			{
+				tdsdump_log(TDS_DBG_ERROR, "Fixed column %d packs size %d, but we expected %d\n", i, cpbytes, expect);
+				return -1;
+			}
 			memcpy(&rowbuffer[row_pos], bcpcol->bcp_column_data->data, cpbytes);
 			tds5_swap_data(bcpcol, &rowbuffer[row_pos]);
 
@@ -790,12 +841,14 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 	row_pos = start + 2;
 	offsets[0] = row_pos;
 
-	tdsdump_log(TDS_DBG_FUNC, "%4s %8s %8s %8s\n", "col", "ncols", "row_pos", "cpbytes");
+	tdsdump_log(TDS_DBG_FUNC, "%4s %8s %8s %8s\n", "col", "ncols", "row_pos", "max bytes");
 
 	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
-		unsigned int cpbytes = 0;
+		TDS_INT cpbytes = 0;
 		TDSCOLUMN *bcpcol = bcpinfo->bindinfo->columns[i];
 		TDS5COLINFO* const sycol = i < bcpinfo->sybase_count ? &bcpinfo->sybase_colinfo[i] : NULL;
+		TDS_INT expect = column_bcp_max_size(bcpcol);
+
 		/*
 		 * Is this column of "variable" type, i.e. NULLable
 		 * or naturally variable length e.g. VARCHAR
@@ -808,7 +861,7 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 				continue;
 		}
 
-		tdsdump_log(TDS_DBG_FUNC, "%4d %8d %8d %8d\n", i, ncols, row_pos, cpbytes);
+		tdsdump_log(TDS_DBG_FUNC, "%4d %8d %8d %8d\n", i, ncols, row_pos, expect);
 
 		if (TDS_FAILED(get_col_data(bcpinfo, bcpcol, offset)))
 			return -1;
@@ -830,6 +883,11 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 			}
 #endif
 			cpbytes = sycol->default_value.datalen;
+			if (cpbytes > expect)
+			{
+				tdsdump_log(TDS_DBG_ERROR, "Default value for column %d had size %d, but we expected at most %d\n", i, cpbytes, expect);
+				return -1;
+			}
 			memcpy(&rowbuffer[row_pos], sycol->default_value.data, cpbytes);
 		}
 		else
@@ -853,10 +911,13 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 					cpbytes = tds_numeric_bytes_per_prec[num->precision];
 					memcpy(&rowbuffer[row_pos], num->array, cpbytes);
 				} else {
-					/* TODO: I'm not sure we should be truncating if data is unexpected size,
-					 * should log an error instead? */
-					cpbytes = bcpcol->bcp_column_data->datalen > bcpcol->column_size ?
-						bcpcol->column_size : bcpcol->bcp_column_data->datalen;
+					cpbytes = bcpcol->bcp_column_data->datalen;
+					if (cpbytes > expect)
+					{
+						tdsdump_log(TDS_DBG_ERROR, "Value for column %d had size %d, but we expected at most %d\n", i, cpbytes, expect);
+						return -1;
+					}
+
 					memcpy(&rowbuffer[row_pos], bcpcol->bcp_column_data->data, cpbytes);
 					tds5_swap_data(bcpcol, &rowbuffer[row_pos]);
 				}
@@ -1513,10 +1574,10 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 {
 	TDSCOLUMN *bcpcol;
 	int i;
-	int fixed_col_len_tot     = 0;
-	int variable_col_len_tot  = 0;
-	int column_bcp_data_size  = 0;
-	int bcp_record_size       = 0;
+	TDS_INT fixed_col_len_tot     = 0;
+	TDS_INT variable_col_len_tot  = 0;
+	TDS_INT column_bcp_data_size  = 0;
+	TDS_INT bcp_record_size       = 0;
 	TDSRET rc;
 	TDS_INT var_cols;
 	
@@ -1542,25 +1603,12 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
 	
 			bcpcol = bcpinfo->bindinfo->columns[i];
-
-			/*
-			 * work out storage required for this datatype
-			 * blobs always require 16, numerics vary, the
-			 * rest can be taken from the server
-			 */
-
-			if (is_blob_type(bcpcol->on_server.column_type))
-				column_bcp_data_size  = 16;
-			else if (is_numeric_type(bcpcol->on_server.column_type))
-				column_bcp_data_size  = tds_numeric_bytes_per_prec[bcpcol->column_prec];
-			else
-				column_bcp_data_size  = bcpcol->column_size;
+			column_bcp_data_size = column_bcp_max_size(bcpcol);
 
 			/*
 			 * now add that size into either fixed or variable
 			 * column totals...
 			 */
-
 			if (is_nullable_type(bcpcol->on_server.column_type) || bcpcol->column_nullable) {
 				var_cols++;
 				variable_col_len_tot += column_bcp_data_size;
@@ -1584,8 +1632,12 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		tdsdump_log(TDS_DBG_FUNC, "bcp_record_size     = %d\n", bcp_record_size);
 
 		if (bcp_record_size > bcpinfo->bindinfo->row_size) {
+			/* Expand our internal row buffer to be able to hold all of BCP-packed row
+			 * (We re-use the internal row buffer for BCP packing, since we don't need
+			 *  to read it again after the BCP upload)
+			 */
 			if (!TDS_RESIZE(bcpinfo->bindinfo->current_row, bcp_record_size)) {
-				tdsdump_log(TDS_DBG_FUNC, "could not realloc current_row\n");
+				tdsdump_log(TDS_DBG_WARN, "could not realloc current_row\n");
 				return TDS_FAIL;
 			}
 			bcpinfo->bindinfo->row_free = tds_bcp_row_free;
