@@ -194,12 +194,13 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 			goto cleanup;
 	}
 
-	if (!IS_TDS7_PLUS(tds->conn)) {
-		bindinfo->current_row = tds_new(unsigned char, bindinfo->row_size);
-		if (!bindinfo->current_row)
-			goto cleanup;
-		bindinfo->row_free = tds_bcp_row_free;
-	}
+	/* bindinfo->current_row is used to hold TDS5 BCP row packing buffer, we will
+	 * allocate some space later once we know how big the row will be. 
+	 * Not to be confused with the same members of "resinfo"
+	 * in a normal (non-bcp) query,  which holds unpacked row data.
+	 */
+	bindinfo->current_row = NULL;
+	bindinfo->row_size = 0;
 
 	if (bcpinfo->identity_insert_on) {
 
@@ -1529,9 +1530,11 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		return rc;
 	}
 
-	/* 
-	 * Work out the number of "variable" columns.  These are either nullable or of 
-	 * varying length type e.g. varchar.   
+	/*
+	 * TDS5 BCP is coded to pack all columns into an internal buffer and
+	 * then send the buffer (as opposed to TDS7 BCP which just calls wire
+	 * put functions for each column). So we have to work out the maximum
+	 * possible required buffer size.
 	 */
 	var_cols = 0;
 
