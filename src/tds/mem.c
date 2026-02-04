@@ -1831,7 +1831,13 @@ tds_alloc_bcp_column_data(unsigned int column_size)
 {
 	BCPCOLDATA *coldata;
 
-	TEST_MALLOC(coldata, BCPCOLDATA);
+    /* Initialize fields to NULL, otherwise any field with value not
+     * explicitly set will behave as a non-null value of length 0,
+     * which is not really what we ever want.
+     * ASE BCP treats uninitialized fields as null.
+     */
+	TEST_CALLOC(coldata, BCPCOLDATA, 1);
+    coldata->is_null = true;
 
 	if (column_size > 4 * 1024)
 		column_size = 4 * 1024;
@@ -1868,6 +1874,19 @@ Cleanup:
 	return NULL;
 }
 
+static void sybase_colinfo_free(TDS5COLINFO** colinfo, int n_cols)
+{
+	if (!*colinfo)
+		return;
+
+	for (int i = 0; i < n_cols; ++i)
+		if ((*colinfo)[i].default_value.data)
+			free((*colinfo)[i].default_value.data);
+
+	free(*colinfo);
+	*colinfo = NULL;
+}
+
 void
 tds_deinit_bcpinfo(TDSBCPINFO *bcpinfo)
 {
@@ -1876,7 +1895,7 @@ tds_deinit_bcpinfo(TDSBCPINFO *bcpinfo)
 	TDS_ZERO_FREE(bcpinfo->insert_stmt);
 	tds_free_results(bcpinfo->bindinfo);
 	bcpinfo->bindinfo = NULL;
-	TDS_ZERO_FREE(bcpinfo->sybase_colinfo);
+	sybase_colinfo_free(&bcpinfo->sybase_colinfo, bcpinfo->sybase_count);
 	bcpinfo->sybase_count = 0;
 }
 

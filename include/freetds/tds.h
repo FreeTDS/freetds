@@ -693,7 +693,7 @@ struct tds_column
 					 */
 	TDS_TINYINT column_varint_size;	/**< size of length when reading from wire (0, 1, 2 or 4) */
 
-	TDS_TINYINT column_prec;	/**< precision for decimal/numeric */
+	TDS_TINYINT column_prec;	/**< precision for decimal/numeric and some datetime types */
 	TDS_TINYINT column_scale;	/**< scale for decimal/numeric */
 
 	struct
@@ -1695,6 +1695,10 @@ typedef struct tds5_colinfo
 	TDS_TINYINT status;
 	TDS_SMALLINT offset;
 	TDS_INT length;
+	/* These fields pertain to a Default Value for bulk uploads */
+	TDS_TINYINT has_default;
+	TDS_SERVER_TYPE default_type;
+	BCPCOLDATA default_value;
 } TDS5COLINFO;
 
 struct tds_bcpinfo
@@ -1707,9 +1711,10 @@ struct tds_bcpinfo
 	bool identity_insert_on;
 	bool xfer_init;
 	bool datarows_locking;
+	bool ignore_defaults;
 	TDS_INT bind_count;
-	TDSRESULTINFO *bindinfo;
-	TDS5COLINFO *sybase_colinfo;
+	TDSRESULTINFO *bindinfo;      /* Array - length is bind_count */
+	TDS5COLINFO *sybase_colinfo;  /* Array - length is sybase_count */
 	TDS_INT sybase_count;
 };
 

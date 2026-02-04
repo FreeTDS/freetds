@@ -1336,8 +1336,10 @@ tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
 		return TDS_FAIL;
 
 	token = curparam->funcs->get_data(tds, curparam);
+#if 0	/* Enable to log all column values */
 	if (TDS_UNLIKELY(tds_write_dump))
 		tdsdump_col(curparam);
+#endif
 
 	/*
 	 * Real output parameters will either be unnamed or will have a valid
@@ -1651,9 +1653,10 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 	CHECK_TDS_EXTRA(tds);
 	CHECK_COLUMN_EXTRA(curcol);
 
-	tdsdump_log(TDS_DBG_INFO1, "tds_get_data_info(%p, %p, %d) %s\n", tds, curcol, is_param, is_param? "[for parameter]" : "");
+	tdsdump_log(TDS_DBG_INFO1, "tds_get_data_info(%p, %p, %d)%s\n", tds, curcol, is_param, is_param? " [for parameter]" : "");
 
 	tds_dstr_get(tds, &curcol->column_name, tds_get_byte(tds));
+	tdsdump_log(TDS_DBG_INFO1, "processing result. name=\"%s\"\n", tds_dstr_cstr(&curcol->column_name));
 
 	curcol->column_flags = tds_get_byte(tds);	/*  Flags */
 	if (!is_param) {
@@ -1887,7 +1890,7 @@ tds5_process_result2(TDSSOCKET * tds)
 		tdsdump_log(TDS_DBG_INFO1, "\tcatalog=[%s] schema=[%s] table=[%s]\n",
 			    curcol->catalog_name, curcol->schema_name, curcol->table_name, curcol->column_colname);
 */
-		tdsdump_log(TDS_DBG_INFO1, "\tflags=%x utype=%d type=%d server type %d varint=%d\n",
+		tdsdump_log(TDS_DBG_INFO1, "\tflags=%x utype=%d type=%d server-type %d varint=%d\n",
 			    curcol->column_flags, curcol->column_usertype, curcol->column_type, curcol->on_server.column_type,
 			    curcol->column_varint_size);
 
@@ -1955,9 +1958,11 @@ tds_process_row(TDSSOCKET * tds)
 		return TDS_FAIL;
 
 	for (i = 0; i < info->num_cols; i++) {
-		tdsdump_log(TDS_DBG_INFO1, "tds_process_row(): reading column %d \n", i);
+		tdsdump_log(TDS_DBG_INFO1, "tds_process_row(): reading column %d\n", i);
 		curcol = info->columns[i];
 		TDS_PROPAGATE(curcol->funcs->get_data(tds, curcol));
+	    if (TDS_UNLIKELY(tds_write_dump))
+		    tdsdump_col(curcol);
 	}
 	return TDS_SUCCESS;
 }

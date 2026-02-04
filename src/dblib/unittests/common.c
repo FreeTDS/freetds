@@ -333,6 +333,8 @@ syb_msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, cha
 
 	if (severity) {
 		fprintf(stderr, "exit: no unanticipated messages allowed in unit tests\n");
+		dbclose(dbproc);
+		dbexit();
 		exit(EXIT_FAILURE);
 	}
 	return 0;
