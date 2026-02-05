@@ -33,23 +33,19 @@
 #include <freetds/tds.h>
 #include <freetds/replacements.h>
 
-struct string_linked_list
-{
-	char *str;
-	struct string_linked_list *next;
-};
-
 /*
  * XXX The magic use of \xFF is bletcherous, but I can't think of anything
  *     better right now.
  */
+#define CHARSEP '\377'
 
 static char *
-norm_fmt(const char *fmt, ptrdiff_t fmtlen)
+norm_fmt(const char *fmt, ptrdiff_t fmtlen, size_t *p_tokcount)
 {
 	char *newfmt;
 	char *cp;
 	bool skip = false;
+	size_t tokcount = 1;
 
 	if (fmtlen == TDS_NULLTERM) {
 		fmtlen = strlen(fmt);
@@ -62,7 +58,8 @@ norm_fmt(const char *fmt, ptrdiff_t fmtlen)
 		case ',':
 		case ' ':
 			if (!skip) {
-				*cp++ = '\377';
+				tokcount++;
+				*cp++ = CHARSEP;
 				skip = true;
 			}
 			break;
@@ -73,59 +70,49 @@ norm_fmt(const char *fmt, ptrdiff_t fmtlen)
 		}
 	}
 	*cp = '\0';
+	*p_tokcount = tokcount;
 	return newfmt;
 }
 
 TDSRET
-tds_vstrbuild(char *buffer, int buflen, int *resultlen, const char *text, int textlen, const char *formats, int formatlen, va_list ap)
+tds_vstrbuild(char *buffer, int buflen, int *resultlen, const char *text, int textlen, const char *formats, int formatlen,
+	      va_list ap)
 {
 	char *newformat;
 	char *params;
 	char *token;
-	const char *sep = "\377";
+	static const char strsep[2] = { CHARSEP, 0 };
+	const char *sep = strsep;
 	char *lasts;
-	unsigned int tokcount = 0;
-	struct string_linked_list *head = NULL;
-	struct string_linked_list *item = NULL;
-	struct string_linked_list **tail = &head;
-	unsigned int i;
+	size_t tokcount, i;
 	int state;
 	char **string_array = NULL;
 	unsigned int pnum = 0;
-	int pdigit;
 	char *paramp = NULL;
+	char *const orig_buffer = buffer;
 	TDSRET rc = TDS_FAIL;
 
 	*resultlen = 0;
-	if (textlen == TDS_NULLTERM) {
-		textlen = (int)strlen(text);
-	}
-	if ((newformat = norm_fmt(formats, formatlen)) == NULL) {
+	if (textlen == TDS_NULLTERM)
+		textlen = (int) strlen(text);
+
+	newformat = norm_fmt(formats, formatlen, &tokcount);
+	if (newformat == NULL)
 		return TDS_FAIL;
-	}
+
 	if (vasprintf(&params, newformat, ap) < 0) {
 		free(newformat);
 		return TDS_FAIL;
 	}
 	free(newformat);
-	for (token = strtok_r(params, sep, &lasts); token != NULL; token = strtok_r(NULL, sep, &lasts)) {
-		if ((*tail = tds_new(struct string_linked_list, 1)) == NULL) {
-			goto out;
-		}
-		(*tail)->str = token;
-		(*tail)->next = NULL;
-		tail = &((*tail)->next);
-		tokcount++;
-	}
 	if ((string_array = tds_new(char *, tokcount + 1)) == NULL) {
 		goto out;
 	}
-	for (item = head, i = 0; i < tokcount; item = item->next, i++) {
-		if (item == NULL) {
-			goto out;
-		}
-		string_array[i] = item->str;
+	for (token = strtok_r(params, sep, &lasts), i = 0; token != NULL && i < tokcount; token = strtok_r(NULL, sep, &lasts)) {
+		string_array[i] = token;
+		i++;
 	}
+	tokcount = i;
 
 #define COPYING 1
 #define CALCPARAM 2
@@ -135,68 +122,52 @@ tds_vstrbuild(char *buffer, int buflen, int *resultlen, const char *text, int te
 	while ((buflen > 0) && (textlen > 0 || state == OUTPARAM)) {
 		switch (state) {
 		case COPYING:
-			switch (*text) {
-			case '%':
+			if (*text == '%') {
 				state = CALCPARAM;
-				text++;
-				textlen--;
 				pnum = 0;
-				break;
-			default:
-				*buffer++ = *text++;
+			} else {
+				*buffer++ = *text;
 				buflen--;
-				textlen--;
-				(*resultlen)++;
-				break;
 			}
+			text++;
+			textlen--;
 			break;
 		case CALCPARAM:
-			switch (*text) {
-			case '!':
+			if (*text == '!') {
 				if (pnum <= 0 || pnum > tokcount)
 					goto out;
 				paramp = string_array[pnum - 1];
 				state = OUTPARAM;
-				text++;
-				textlen--;
-				break;
-			default:
-				pdigit = *text++ - '0';
+			} else {
+				int pdigit = *text - '0';
+
 				if ((pdigit >= 0) && (pdigit <= 9)) {
 					pnum *= 10;
 					pnum += pdigit;
 				}
-				textlen--;
-				break;
 			}
+			text++;
+			textlen--;
 			break;
 		case OUTPARAM:
-			switch (*paramp) {
-			case 0:
+			if (*paramp == 0) {
 				state = COPYING;
-				break;
-			default:
+			} else {
 				*buffer++ = *paramp++;
 				buflen--;
-				(*resultlen)++;
 			}
 			break;
 		default:
 			/* unknown state */
 			goto out;
-			break;
-
 		}
 	}
 
 	rc = TDS_SUCCESS;
 
       out:
+	*resultlen = (int) (buffer - orig_buffer);
 	free(string_array);
-	for (item = head; item != NULL; item = head) {
-		head = head->next;
-		free(item);
-	}
 	free(params);
 
 	return rc;
