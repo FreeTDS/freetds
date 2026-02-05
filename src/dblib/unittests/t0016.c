@@ -294,7 +294,7 @@ compare_files(const char *fn1, const char *fn2)
 			if (s1 != s2 || memcmp(line1, line2, s1) != 0) {
 				equal = false;
 				failure("File different at line %d\n"
-					" input: %s"
+					"  input: %s"
 					" output: %s",
 					line, line1, line2);
 			}
