@@ -259,7 +259,7 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 Memory_Error:
 Severe_Error:
 	tds_connection_close(conn);
-	tds_free_packets(packet);
+	tds_free_packets(conn->recv_packet);
 	conn->recv_packet = NULL;
 	return false;
 }
