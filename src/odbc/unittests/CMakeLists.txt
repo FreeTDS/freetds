@@ -44,6 +44,9 @@ endif()
 
 add_library(o_common STATIC common.c common.h c2string.c parser.c parser.h
 	fake_thread.c fake_thread.h)
+if (ENABLE_ODBC_WIDE)
+	set_property(TARGET o_common APPEND PROPERTY COMPILE_DEFINITIONS UNICODE=1 _UNICODE=1)
+endif()
 
 set(static_tests all_types utf8_4 connection_string_parse)
 set(unicode_tests utf8)
@@ -61,7 +64,7 @@ foreach(target ${tests})
 				      ${lib_NETWORK} ${lib_BASE})
 	endif()
 	if (ENABLE_ODBC_WIDE AND NOT target IN_LIST unicode_tests)
-		set_property(TARGET o_${target} APPEND PROPERTY COMPILE_DEFINITIONS UNICODE=1 _UNICODE=1_)
+		set_property(TARGET o_${target} APPEND PROPERTY COMPILE_DEFINITIONS UNICODE=1 _UNICODE=1)
 	endif()
 	if (target STREQUAL "tokens")
 		set_property(TARGET o_${target} APPEND PROPERTY LINK_LIBRARIES tdssrv tds)
