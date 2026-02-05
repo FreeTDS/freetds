@@ -215,6 +215,9 @@ set_current_tds(TDSCONNECTION *conn TDS_UNUSED, TDSSOCKET *tds TDS_UNUSED)
 static const char *
 wanted_certificate_hostname(TDSLOGIN *login)
 {
+	if (!login)
+		return "";
+
 	if (!tds_dstr_isempty(&login->certificate_host_name))
 		return tds_dstr_cstr(&login->certificate_host_name);
 
@@ -1071,14 +1074,22 @@ tds_ssl_init(TDSSOCKET *tds, bool full)
 
 	tds_ssl_deinit(tds->conn);
 
+	/* Does not make sense to try and initialize TLS without a LOGIN */
+	if (!tds->login)
+	{
+		tdsdump_log(TDS_DBG_ERROR, "tds_ssl_init() called without login info\n");
+		return TDS_FAIL;
+	}
+
+
 	tls_msg = "initializing tls";
 	ctx = tds_init_openssl();
 	if (!ctx)
 		goto cleanup;
 
-	if (tds->login && tds->login->enable_tls_v1)
+	if (tds->login->enable_tls_v1)
 		ctx_options &= ~SSL_OP_NO_TLSv1;
-	if (tds->login && tds->login->enable_tls_v1_1)
+	if (tds->login->enable_tls_v1_1)
 		ctx_options &= ~SSL_OP_NO_TLSv1_1;
 	SSL_CTX_set_options(ctx, ctx_options);
 

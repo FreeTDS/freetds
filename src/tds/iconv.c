@@ -631,7 +631,9 @@ tds_iconv(TDSSOCKET * tds, TDSICONV * conv, TDS_ICONV_DIRECTION io,
 	default:
 		tdsdump_log(TDS_DBG_FUNC, "tds_iconv: unable to determine if %d means in or out.  \n", io);
 		assert(io == to_server || io == to_client);
-		break;
+		/* the rest of this function assumes from & to are not null */
+		errno = EINVAL;
+		return -1;
 	}
 
 	/* silly case, memcpy */

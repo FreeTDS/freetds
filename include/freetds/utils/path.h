@@ -34,7 +34,8 @@ typedef wchar_t tds_dir_char;
 #define tds_dir_dup _wcsdup
 #define tds_dir_len wcslen
 #define tds_dir_cmp wcscmp
-#define tds_dir_snprintf _snwprintf
+/* note: MS _snwprintf does not null terminate if buffer length exceeded */
+#define tds_dir_snprintf(buf, sz, ...) _snwprintf_s(buf, sz, _TRUNCATE, __VA_ARGS__)
 #define TDS_DIR_(s) L ## s
 #define TDS_DIR(s) TDS_DIR_(s)
 #define tdsPRIdir "ls"

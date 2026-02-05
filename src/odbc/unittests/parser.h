@@ -2,12 +2,8 @@
 
 typedef struct odbc_parser odbc_parser;
 
-void
-odbc_fatal(odbc_parser *parser, const char *msg, ...)
-#ifdef __GNUC__
-	__attribute__((noreturn))
-#endif
-;
+TDS_NORETURN void 
+odbc_fatal(odbc_parser *parser, const char *msg, ...);
 
 const char *odbc_get_tok(char **p);
 const char *odbc_get_str(odbc_parser *parser, char **p);

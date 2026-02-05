@@ -66,6 +66,11 @@
 #define TDS_WUR
 #endif
 
+ /* Microsoft Static Analyzer Language (windows.h defines _Field_size_) */
+#ifndef _Field_size_
+#define _Field_size_(x)
+#endif
+
 #if defined(__GNUC__) && __GNUC__ >= 2
 #define TDS_UNUSED __attribute__ ((unused))
 #else
@@ -81,5 +86,16 @@
 
 #define tds_new(type, n) ((type *) malloc(sizeof(type) * (n)))
 #define tds_new0(type, n) ((type *) calloc(n, sizeof(type)))
+
+/* Tell the compiler that a function never returns. Use before the prototype */
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
+#define TDS_NORETURN _Noreturn
+#elif defined(__GNUC__) || defined(__clang__)
+#define TDS_NORETURN __attribute__((noreturn))
+#elif defined(_MSC_VER) && (_MSC_VER >= 1200)
+#define TDS_NORETURN __declspec(noreturn)
+#else
+#define TDS_NORETURN
+#endif
 
 #endif

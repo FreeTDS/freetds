@@ -434,7 +434,7 @@ odbc_set_string_flag(TDS_DBC *dbc TDS_UNUSED, SQLPOINTER buffer, SQLINTEGER cbBu
 			result = SQL_ERROR;
 		out_len = cbBuffer - (int) ol;
 		while (result != SQL_ERROR && il) {
-			char discard[128];
+			char discard[128] = { 0 };	/* tds_iconv sometimes does not write output, e.g. if il==0 */
 			ol = sizeof(discard);
 			ob = discard;
 			char_conv->suppress.e2big = 1;

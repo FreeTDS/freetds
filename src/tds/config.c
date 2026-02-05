@@ -609,6 +609,9 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 
 	tdsdump_log(TDS_DBG_INFO1, "\t%s = '%s'\n", option, value);
 
+	if (!param)
+		return false;
+
 	if (!strcmp(option, TDS_STR_VERSION)) {
 		tds_config_verstr(value, login);
 	} else if (!strcmp(option, TDS_STR_BLKSZ)) {
@@ -736,7 +739,7 @@ tds_config_login(TDSLOGIN * connection, TDSLOGIN * login)
 	DSTR *res = &login->server_name;
 
 	if (!tds_dstr_isempty(&login->server_name)) {
-		if (1 || tds_dstr_isempty(&connection->server_name))
+		if (tds_dstr_isempty(&connection->server_name))
 			res = tds_dstr_dup(&connection->server_name, &login->server_name);
 	}
 
@@ -1133,7 +1136,7 @@ search_interface_file(TDSLOGIN * login, const tds_dir_char *dir, const tds_dir_c
 	char *field;
 	bool found = false;
 	bool server_found = false;
-	char *lasts;
+	char *lasts = NULL;
 
 	line[0] = '\0';
 	tmp_ip[0] = '\0';

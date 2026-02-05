@@ -202,6 +202,9 @@ unsigned int
 tds_gettime_ms(void)
 {
 #ifdef _WIN32
+	/* note: static analysis warns that this will loop every 49 days,
+	 * however elsewhere we take care to use this return value in a way
+	 * that allows for unsigned wraparound */
 	return GetTickCount();
 #elif defined(HAVE_GETHRTIME)
 	return (unsigned int) (gethrtime() / 1000000u);

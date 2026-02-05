@@ -1680,6 +1680,7 @@ SQLRETURN ODBC_PUBLIC ODBC_API
 SQLAllocHandle(SQLSMALLINT HandleType, SQLHANDLE InputHandle, SQLHANDLE * OutputHandle)
 {
 	tdsdump_log(TDS_DBG_FUNC, "SQLAllocHandle(%d, %p, %p)\n", HandleType, InputHandle, OutputHandle);
+	*OutputHandle = SQL_NULL_HANDLE;
 
 	switch (HandleType) {
 	case SQL_HANDLE_STMT:
@@ -1742,7 +1743,9 @@ odbc_SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 	tds_dstr_init(&dbc->attr.current_catalog);
 	dbc->attr.login_timeout = 0;	/* TODO */
 	dbc->attr.metadata_id = SQL_FALSE;
+	/* This is deprecated and Microsoft recommends allowing the default to apply.
 	dbc->attr.odbc_cursors = SQL_CUR_USE_IF_NEEDED;
+	*/
 	dbc->attr.packet_size = 0;
 	dbc->attr.quite_mode = NULL;	/* We don't support GUI dialogs yet */
 #ifdef TDS_NO_DM

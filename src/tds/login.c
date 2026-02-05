@@ -186,9 +186,12 @@ typedef struct tds_save_context
 	TDSCONTEXT ctx;
 
 	unsigned num_msg;
+
+	_Field_size_(num_msg)
 	struct tds_save_msg msgs[10];
 
 	unsigned num_env;
+	_Field_size_(num_env)
 	struct tds_save_env envs[10];
 } TDSSAVECONTEXT;
 
@@ -376,7 +379,7 @@ tds_parse_login_results(TDSSOCKET * tds, bool ignore_errors)
 
 		switch (result_type) {
 		case TDS_ROW_RESULT:
-			if (!tds->res_info && tds->res_info->num_cols < 1)
+			if (!tds->res_info || tds->res_info->num_cols < 1)
 				return TDS_FAIL;
 			curcol = tds->res_info->columns[0];
 			if (tds->res_info->num_cols == 1 && strcmp(tds_dstr_cstr(&curcol->column_name), "spid") == 0)

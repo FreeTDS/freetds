@@ -395,6 +395,7 @@ tds_connection_network(TDSCONNECTION *conn, TDSSOCKET *tds, int send)
 			/* try to read a packet */
 			if (!tds_packet_read(conn, tds))
 				continue;	/* packet not complete */
+			assert(conn->recv_packet);		/* Guaranteed by tds_packet_read succeeding */
 			packet = conn->recv_packet;
 			conn->recv_packet = NULL;
 			conn->recv_pos = 0;
@@ -429,7 +430,9 @@ tds_connection_network(TDSCONNECTION *conn, TDSSOCKET *tds, int send)
 static TDSRET
 tds_connection_put_packet(TDSSOCKET *tds, TDSPACKET *packet)
 {
-	TDSCONNECTION *conn = tds->conn;
+	TDSCONNECTION* conn;
+	assert(tds != NULL);
+	conn = tds->conn;
 
 	CHECK_TDS_EXTRA(tds);
 
