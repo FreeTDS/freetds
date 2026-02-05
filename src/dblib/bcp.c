@@ -1549,6 +1549,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 
 				while (error_row_size > 0) {
 					size_t chunk = TDS_MIN((size_t) error_row_size, chunk_size);
+					size_t written;
 
 					if (!row_in_error) {
 						if ((row_in_error = tds_new(char, chunk)) == NULL) {
@@ -1556,13 +1557,13 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 						}
 					}
 
-					if (fread(row_in_error, chunk, 1, hostfile) != 1) {
+					if (fread(row_in_error, 1, chunk, hostfile) != chunk)
 						tdsdump_log(TDS_DBG_ERROR, "BILL fread failed after fseek\n");
-					}
-					count = (int)fwrite(row_in_error, chunk, 1, errfile);
-					if( (size_t)count < chunk ) {
+
+					written = fwrite(row_in_error, 1, chunk, errfile);
+					if (written < chunk)
 						dbperror(dbproc, SYBEBWEF, errno);
-					}
+
 					error_row_size -= chunk;
 				}
 				free(row_in_error);
