@@ -8242,40 +8242,42 @@ dbperror(DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 	assert(_dblib_err_handler != NULL);	/* always installed by dbinit() or dberrhandle() */
 
 	/* look up the error message */
-	for (i=0; i < TDS_VECTOR_SIZE(dblib_error_messages); i++ ) {
-		if (dblib_error_messages[i].msgno == msgno) {
+	for (i = 0; i < TDS_VECTOR_SIZE(dblib_error_messages); i++) {
+		const char *ptext, *pformats;
 
-			/* 
-			 * See if the message has placeholders.  If so, build a message string on the heap.  
-			 * The presence of placeholders is indicated by the existence of a "string after the string", 
-			 * i.e., a format string (for dbstrbuild) after a null "terminator" in the message. 
-			 * On error -- can't allocate, can't build the string -- give up and call the client handler anyway. 
-			 */
-			const char * ptext = dblib_error_messages[i].msgtext;
-			const char * pformats = ptext + strlen(ptext) + 1;
-			msg = &dblib_error_messages[i];
-			assert(*(pformats - 1) == '\0'); 
-			if(*pformats != '\0') {
-				va_list ap;
-				int result_len, len = 2 * (int)strlen(ptext);
-				char * buffer = tds_new0(char, len);
+		if (dblib_error_messages[i].msgno != msgno)
+			continue;
 
-				if (buffer == NULL)
-					break;
-				va_start(ap, errnum);
-				rc = tds_vstrbuild(buffer, len, &result_len, ptext, TDS_NULLTERM, pformats, TDS_NULLTERM, ap);
-				buffer[result_len] = '\0';
-				va_end(ap);
-				if (TDS_FAILED(rc)) {
-					free(buffer);
-					break;
-				}
-				constructed_message.msgtext = buffer;
-				constructed_message.severity = msg->severity;
-				msg = &constructed_message;
+		/*
+		 * See if the message has placeholders.  If so, build a message string on the heap.
+		 * The presence of placeholders is indicated by the existence of a "string after the string",
+		 * i.e., a format string (for dbstrbuild) after a null "terminator" in the message.
+		 * On error -- can't allocate, can't build the string -- give up and call the client handler anyway.
+		 */
+		ptext = dblib_error_messages[i].msgtext;
+		pformats = ptext + strlen(ptext) + 1;
+		msg = &dblib_error_messages[i];
+		assert(*(pformats - 1) == '\0');
+		if (*pformats != '\0') {
+			va_list ap;
+			int result_len, len = 2 * (int) strlen(ptext);
+			char *buffer = tds_new0(char, len);
+
+			if (buffer == NULL)
+				break;
+			va_start(ap, errnum);
+			rc = tds_vstrbuild(buffer, len, &result_len, ptext, TDS_NULLTERM, pformats, TDS_NULLTERM, ap);
+			buffer[result_len] = '\0';
+			va_end(ap);
+			if (TDS_FAILED(rc)) {
+				free(buffer);
+				break;
 			}
-			break;
+			constructed_message.msgtext = buffer;
+			constructed_message.severity = msg->severity;
+			msg = &constructed_message;
 		}
+		break;
 	}
 
 	if (dbproc && dbproc->tds_socket && dbproc->tds_socket->login) {
