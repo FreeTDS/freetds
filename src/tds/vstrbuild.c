@@ -125,9 +125,6 @@ tds_vstrbuild(char *buffer, int buflen, int *resultlen, const char *text, int te
 			goto out;
 		}
 		string_array[i] = item->str;
-		while (*(string_array[i]) == ' ') {
-			string_array[i]++;
-		}
 	}
 
 #define COPYING 1
@@ -135,7 +132,7 @@ tds_vstrbuild(char *buffer, int buflen, int *resultlen, const char *text, int te
 #define OUTPARAM 3
 
 	state = COPYING;
-	while ((buflen > 0) && (textlen > 0)) {
+	while ((buflen > 0) && (textlen > 0 || state == OUTPARAM)) {
 		switch (state) {
 		case COPYING:
 			switch (*text) {
@@ -156,10 +153,10 @@ tds_vstrbuild(char *buffer, int buflen, int *resultlen, const char *text, int te
 		case CALCPARAM:
 			switch (*text) {
 			case '!':
-				if (pnum > 0 && pnum <= tokcount) {
-					paramp = string_array[pnum - 1];
-					state = OUTPARAM;
-				}
+				if (pnum <= 0 || pnum > tokcount)
+					goto out;
+				paramp = string_array[pnum - 1];
+				state = OUTPARAM;
 				text++;
 				textlen--;
 				break;

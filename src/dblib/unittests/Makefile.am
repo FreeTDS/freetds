@@ -1,3 +1,4 @@
+NULL=
 TESTS =	\
 	t0001$(EXEEXT) \
 	t0002$(EXEEXT) \
@@ -44,7 +45,9 @@ TESTS =	\
 	string_bind$(EXEEXT) \
 	colinfo$(EXEEXT) \
 	bcp2$(EXEEXT) \
-	proc_limit$(EXEEXT)
+	proc_limit$(EXEEXT) \
+	strbuild$(EXEEXT) \
+	$(NULL)
 
 check_PROGRAMS	=	$(TESTS)
 
@@ -100,6 +103,7 @@ string_bind_SOURCES	=	string_bind.c
 colinfo_SOURCES	=	colinfo.c colinfo.sql
 bcp2_SOURCES	=	bcp2.c bcp2.sql
 proc_limit_SOURCES	=	proc_limit.c
+strbuild_SOURCES	=	strbuild.c
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h
