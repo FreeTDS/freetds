@@ -7381,7 +7381,7 @@ dbsetavail(DBPROCESS * dbproc)
  * \remarks Following \a formats are the arguments, the values to substitute for the placeholders.  
  * \sa dbconvert(), dbdatename(), dbdatepart().  
  */
-RETCODE
+int
 dbstrbuild(DBPROCESS * dbproc, char *charbuf, int bufsize, char *text, char *formats, ...)
 {
 	va_list ap;
@@ -7397,7 +7397,7 @@ dbstrbuild(DBPROCESS * dbproc, char *charbuf, int bufsize, char *text, char *for
 	rc = tds_vstrbuild(charbuf, bufsize, &resultlen, text, TDS_NULLTERM, formats, TDS_NULLTERM, ap);
 	charbuf[resultlen] = '\0';
 	va_end(ap);
-	return TDS_SUCCEED(rc) ? SUCCEED : FAIL;
+	return TDS_SUCCEED(rc) ? resultlen : -1;
 }
 
 static char *
