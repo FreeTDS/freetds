@@ -44,7 +44,7 @@ norm_fmt(const char *fmt, ptrdiff_t fmtlen, size_t *p_tokcount)
 {
 	char *newfmt;
 	char *cp;
-	bool skip = false;
+	bool skip = true;
 	size_t tokcount = 1;
 
 	if (fmtlen == TDS_NULLTERM) {
