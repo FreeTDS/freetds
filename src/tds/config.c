@@ -604,8 +604,10 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 	variable = tds_parse_boolean_option(option, value, variable, &got_error); \
 } while(0)
 	TDSLOGIN *login = (TDSLOGIN *) param;
-	void *s = param;
 	bool got_error = false;
+
+	/* this is used to catch error copying strings, just a not NULL pointer */
+	void *dstr_copied = (void *) -1;
 
 	tdsdump_log(TDS_DBG_INFO1, "\t%s = '%s'\n", option, value);
 
@@ -613,6 +615,7 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		tds_config_verstr(value, login);
 	} else if (!strcmp(option, TDS_STR_BLKSZ)) {
 		int val = atoi(value);
+
 		if (val >= 512 && val < 65536)
 			login->block_size = val;
 	} else if (!strcmp(option, TDS_STR_SWAPDT)) {
@@ -628,14 +631,15 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		if (value[0]) {
 			login->dump_file = tds_dir_from_cstr(value);
 			if (!login->dump_file)
-				s = NULL;
+				got_error = true;
 		}
 	} else if (!strcmp(option, TDS_STR_DEBUGFLAGS)) {
 		char *end;
 		long flags;
+
 		flags = strtol(value, &end, 0);
 		if (*value != '\0' && *end == '\0' && flags > INT_MIN && flags < INT_MAX)
-		    login->debug_flags = (int) flags;
+			login->debug_flags = (int) flags;
 	} else if (!strcmp(option, TDS_STR_TIMEOUT) || !strcmp(option, TDS_STR_QUERY_TIMEOUT)) {
 		if (atoi(value) > 0)
 			login->query_timeout = atoi(value);
@@ -652,7 +656,7 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		}
 
 		tdsdump_log(TDS_DBG_INFO1, "Found host entry %s \n", value);
-		s = tds_dstr_copy(&login->server_host_name, value);
+		dstr_copied = tds_dstr_copy(&login->server_host_name, value);
 		for (addrs = login->ip_addrs; addrs != NULL; addrs = addrs->ai_next)
 			tdsdump_log(TDS_DBG_INFO1, "IP addr is %s.\n", tds_addrinfo2str(addrs, tmp, sizeof(tmp)));
 
@@ -666,52 +670,52 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		if (atoi(value) > 0)
 			login->text_size = atoi(value);
 	} else if (!strcmp(option, TDS_STR_CHARSET)) {
-		s = tds_dstr_copy(&login->server_charset, value);
+		dstr_copied = tds_dstr_copy(&login->server_charset, value);
 		tdsdump_log(TDS_DBG_INFO1, "%s is %s.\n", option, tds_dstr_cstr(&login->server_charset));
 	} else if (!strcmp(option, TDS_STR_CLCHARSET)) {
-		s = tds_dstr_copy(&login->client_charset, value);
+		dstr_copied = tds_dstr_copy(&login->client_charset, value);
 		tdsdump_log(TDS_DBG_INFO1, "tds_parse_conf_section: %s is %s.\n", option, tds_dstr_cstr(&login->client_charset));
 	} else if (!strcmp(option, TDS_STR_USE_UTF_16)) {
 		parse_boolean(option, value, login->use_utf16);
 	} else if (!strcmp(option, TDS_STR_LANGUAGE)) {
-		s = tds_dstr_copy(&login->language, value);
+		dstr_copied = tds_dstr_copy(&login->language, value);
 	} else if (!strcmp(option, TDS_STR_APPENDMODE)) {
 		parse_boolean(option, value, tds_append_mode);
 	} else if (!strcmp(option, TDS_STR_INSTANCE)) {
-		s = tds_dstr_copy(&login->instance_name, value);
+		dstr_copied = tds_dstr_copy(&login->instance_name, value);
 	} else if (!strcmp(option, TDS_STR_ENCRYPTION)) {
 		if (!tds_config_encryption(value, login))
-			s = NULL;
+			got_error = true;
 	} else if (!strcmp(option, TDS_STR_ASA_DATABASE)) {
-		s = tds_dstr_copy(&login->server_name, value);
+		dstr_copied = tds_dstr_copy(&login->server_name, value);
 	} else if (!strcmp(option, TDS_STR_USENTLMV2)) {
 		parse_boolean(option, value, login->use_ntlmv2);
 		login->use_ntlmv2_specified = 1;
 	} else if (!strcmp(option, TDS_STR_USELANMAN)) {
 		parse_boolean(option, value, login->use_lanman);
 	} else if (!strcmp(option, TDS_STR_REALM)) {
-		s = tds_dstr_copy(&login->server_realm_name, value);
+		dstr_copied = tds_dstr_copy(&login->server_realm_name, value);
 	} else if (!strcmp(option, TDS_STR_SPN)) {
-		s = tds_dstr_copy(&login->server_spn, value);
+		dstr_copied = tds_dstr_copy(&login->server_spn, value);
 	} else if (!strcmp(option, TDS_STR_CAFILE)) {
-		s = tds_dstr_copy(&login->cafile, value);
+		dstr_copied = tds_dstr_copy(&login->cafile, value);
 	} else if (!strcmp(option, TDS_STR_CRLFILE)) {
-		s = tds_dstr_copy(&login->crlfile, value);
+		dstr_copied = tds_dstr_copy(&login->crlfile, value);
 	} else if (!strcmp(option, TDS_STR_CHECKSSLHOSTNAME)) {
 		parse_boolean(option, value, login->check_ssl_hostname);
 	} else if (!strcmp(option, TDS_STR_SSLHOSTNAME)) {
-		s = tds_dstr_copy(&login->certificate_host_name, value);
+		dstr_copied = tds_dstr_copy(&login->certificate_host_name, value);
 	} else if (!strcmp(option, TDS_STR_DBFILENAME)) {
-		s = tds_dstr_copy(&login->db_filename, value);
+		dstr_copied = tds_dstr_copy(&login->db_filename, value);
 	} else if (!strcmp(option, TDS_STR_DATABASE)) {
-		s = tds_dstr_copy(&login->database, value);
+		dstr_copied = tds_dstr_copy(&login->database, value);
 	} else if (!strcmp(option, TDS_STR_READONLY_INTENT)) {
 		parse_boolean(option, value, login->readonly_intent);
 		tdsdump_log(TDS_DBG_FUNC, "Setting ReadOnly Intent to '%s'.\n", value);
 	} else if (!strcmp(option, TLS_STR_OPENSSL_CIPHERS)) {
-		s = tds_dstr_copy(&login->openssl_ciphers, value);
+		dstr_copied = tds_dstr_copy(&login->openssl_ciphers, value);
 	} else if (!strcmp(option, TLS_STR_GNUTLS_CIPHERS)) {
-		s = tds_dstr_copy(&login->gnutls_ciphers, value);
+		dstr_copied = tds_dstr_copy(&login->gnutls_ciphers, value);
 	} else if (!strcmp(option, TDS_STR_ENABLE_TLS_V1)) {
 		parse_boolean(option, value, login->enable_tls_v1);
 		login->enable_tls_v1_specified = 1;
@@ -722,7 +726,7 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		tdsdump_log(TDS_DBG_INFO1, "UNRECOGNIZED option '%s' ... ignoring.\n", option);
 	}
 
-	if (!s || got_error) {
+	if (!dstr_copied || got_error) {
 		login->valid_configuration = 0;
 		return false;
 	}
