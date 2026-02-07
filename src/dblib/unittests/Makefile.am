@@ -69,11 +69,14 @@ t0016_SOURCES	=	t0016.c \
 			t0016.sql t0016_1.sql t0016_2.sql t0016_3.sql \
 			t0016_4.sql t0016_5.sql t0016_6.sql t0016_7.sql \
 			t0016_8.sql t0016_9.sql t0016_10.sql t0016_11.sql \
-			t0016_12.sql t0016_13.sql t0016_14.sql \
+			t0016_12.sql t0016_13.sql t0016_14.sql t0016_15.sql \
+			t0016_16.sql t0016_17.sql \
 			t0016.in t0016_1.in t0016_2.in t0016_3.in \
 			t0016_4.in t0016_5.in t0016_6.in t0016_7.in \
 			t0016_8.in t0016_9.in t0016_10.in t0016_11.in \
-			t0016_12.in t0016_13.in t0016_14.in
+			t0016_12.in t0016_13.in t0016_14.in t0016_15.in \
+			t0016_16.in t0016_17.in \
+			t0016_17.exp
 t0017_SOURCES	=	t0017.c t0017.sql t0017.in t0017.in.be
 t0018_SOURCES	=	t0018.c t0018.sql
 t0019_SOURCES	=	t0019.c
