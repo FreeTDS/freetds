@@ -31,7 +31,7 @@ do
 done
 
 # go to main distro dir
-DIR=`dirname $0`
+DIR="$(dirname "$0")"
 cd "$DIR/.."
 
 DIR="$PWD/misc"
@@ -57,11 +57,11 @@ output_save () {
 
 # output information
 if test $HEADER = yes; then
-	log "INFO HOSTNAME `hostname`"
-	VER=`gcc --version 2> /dev/null | grep 'GCC'`
+	log "INFO HOSTNAME $(hostname)"
+	VER="$(gcc --version 2> /dev/null | grep -iw gcc)"
 	log "INFO GCC $VER"
-	log "INFO UNAME `uname -a`"
-	log "INFO DATE `date '+%Y-%m-%d'`"
+	log "INFO UNAME $(uname -a)"
+	log "INFO DATE $(date '+%Y-%m-%d  %H-%M')"
 fi
 
 MAKE=make
