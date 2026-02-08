@@ -115,11 +115,14 @@ test_file(const char *fn)
 	FILE *input_file;
 
 	char in_file[256];
+	char exp_file[256];
 	snprintf(in_file, sizeof(in_file), "%s/%s.in", FREETDS_SRCDIR, fn);
+	snprintf(exp_file, sizeof(exp_file), "%s/%s.exp", FREETDS_SRCDIR, fn);
 
 	input_file = fopen(in_file, "rb");
 	if (!input_file) {
 		sprintf(in_file, "%s.in", fn);
+		sprintf(exp_file, "%s.exp", fn);
 		input_file = fopen(in_file, "rb");
 	}
 	if (!input_file) {
@@ -128,6 +131,12 @@ test_file(const char *fn)
 	}
 	num_rows = count_file_rows(input_file);
 	fclose(input_file);
+
+	input_file = fopen(exp_file, "rb");
+	if (!input_file)
+		strcpy(exp_file, in_file);
+	else
+		fclose(input_file);
 
 	dberrhandle(ignore_err_handler);
 	dbmsghandle(ignore_msg_handler);
@@ -230,7 +239,7 @@ test_file(const char *fn)
 	if (failed)
 		return;
 
-	if (compare_files(in_file, out_file))
+	if (compare_files(exp_file, out_file))
 		printf("Input and output files are equal\n");
 	else
 		failed = true;
