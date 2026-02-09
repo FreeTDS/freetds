@@ -785,7 +785,7 @@ typedef enum tds_states
 	TDS_IDLE,	/**< no data expected */
 	TDS_WRITING,	/**< client is writing data */
 	TDS_SENDING,	/**< client would send data */
-	TDS_PENDING,	/**< cilent is waiting for data */
+	TDS_PENDING,	/**< client is waiting for data */
 	TDS_READING,	/**< client is reading data */
 	TDS_DEAD	/**< no connection */
 } TDS_STATE;
