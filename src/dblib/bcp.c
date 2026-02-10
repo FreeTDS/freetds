@@ -23,6 +23,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <assert.h>
+#include <ctype.h>
 
 #if HAVE_STRING_H
 #include <string.h>
@@ -1074,8 +1075,10 @@ _bcp_check_eof(DBPROCESS * dbproc, FILE *file, int icol)
  * Convert column for input to a table
  */
 static TDSRET
-_bcp_convert_in(DBPROCESS *dbproc, TDS_SERVER_TYPE srctype, const TDS_CHAR *src, TDS_UINT srclen,
-		TDS_SERVER_TYPE desttype, BCPCOLDATA *coldata)
+_bcp_convert_in(DBPROCESS *dbproc, TDS_SERVER_TYPE srctype,
+		const TDS_CHAR *src, TDS_UINT srclen,
+		TDS_SERVER_TYPE desttype, BCPCOLDATA *coldata,
+		TDS_UINT destlen)
 {
 	bool variable = true;
 	CONV_RESULT cr, *p_cr;
@@ -1091,9 +1094,45 @@ _bcp_convert_in(DBPROCESS *dbproc, TDS_SERVER_TYPE srctype, const TDS_CHAR *src,
 	}
 
 	len = tds_convert(dbproc->tds_socket->conn->tds_ctx, srctype, src, srclen, desttype, p_cr);
+	if (len == TDS_CONVERT_SYNTAX  &&  is_binary_type(desttype)) {
+		char * s = (char *) src;
+		int srclen2 = destlen * 2;
+		if (srclen > 1 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X'))
+			srclen2 += 2;
+		/* Match full input's low order bit to get correct phase. */
+		if (srclen & 1)
+			--srclen2;
+		if (srclen2 < srclen) {
+			len = tds_convert(dbproc->tds_socket->conn->tds_ctx,
+					  srctype, src, srclen2, desttype,
+					  p_cr);
+		}
+		/*
+		 * Check the last character to avoid interference from
+		 * space and NUL stripping.
+		 */
+		if (len == destlen  &&  isxdigit(s[srclen2 - 1])) {
+			free(p_cr->ib);
+			dbperror(dbproc, SYBECOFL, 0);
+			return TDS_FAIL;
+		} else {
+			if (len >= 0)
+				free(p_cr->ib);
+			len = TDS_CONVERT_SYNTAX;
+		}
+	}
 	if (len < 0) {
 		_dblib_convert_err(dbproc, len);
 		return TDS_FAIL;
+	} else if (len > destlen) {
+		if ((is_binary_type(srctype)  &&  is_binary_type(desttype))
+		    ||  (is_char_type(srctype)  &&  is_char_type(desttype))) {
+			dbperror(dbproc, SYBEBCOR, 0);
+			/* Proceed anyway */
+		} else {
+			dbperror(dbproc, SYBECOFL, 0);
+			return TDS_FAIL;
+		}
 	}
 
 	coldata->datalen = len;
@@ -1358,8 +1397,11 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool sk
 
 				desttype = tds_get_conversion_type(bcpcol->column_type, bcpcol->column_size);
 
-				rc = _bcp_convert_in(dbproc, hostcol->datatype, (const TDS_CHAR*) coldata, collen,
-						     desttype, bcpcol->bcp_column_data);
+				rc = _bcp_convert_in(dbproc, hostcol->datatype,
+						     (const TDS_CHAR*) coldata,
+						     collen, desttype,
+						     bcpcol->bcp_column_data,
+						     bcpcol->column_size);
 				if (TDS_FAILED(rc)) {
 					hostcol->column_error = HOST_COL_CONV_ERROR;
 					*row_error = true;
@@ -2281,8 +2323,9 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset TDS_UNUSED
 	if (collen < 0)
 		collen = (int) strlen((char *) dataptr);
 
-	rc = _bcp_convert_in(dbproc, coltype, (const TDS_CHAR*) dataptr, collen,
-					    desttype, bindcol->bcp_column_data);
+	rc = _bcp_convert_in(dbproc, coltype, (const TDS_CHAR*) dataptr,
+			     collen, desttype, bindcol->bcp_column_data,
+			     bindcol->column_size);
 	if (TDS_FAILED(rc))
 		return rc;
 	rtrim_bcpcol(bindcol);
