@@ -1720,6 +1720,11 @@ odbc_SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 
 	tdsdump_log(TDS_DBG_FUNC, "odbc_SQLAllocConnect(%p, %p)\n", henv, phdbc);
 
+	if (!phdbc) {
+		odbc_errs_add(&env->errs, "HY009", NULL);
+		ODBC_EXIT_(env);
+	}
+
 	dbc = tds_new0(TDS_DBC, 1);
 	if (!dbc) {
 		odbc_errs_add(&env->errs, "HY001", NULL);
@@ -1786,6 +1791,9 @@ odbc_SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version)
 	tdsdump_log(TDS_DBG_FUNC, "odbc_SQLAllocEnv(%p, %d)\n",
 			phenv, (int) odbc_version);
 
+	if (!phenv)
+		return SQL_ERROR;
+
 	env = tds_new0(TDS_ENV, 1);
 	if (!env)
 		return SQL_ERROR;
@@ -1835,6 +1843,11 @@ odbc_SQLAllocDesc(SQLHDBC hdbc, SQLHDESC FAR * phdesc)
 
 	tdsdump_log(TDS_DBG_FUNC, "odbc_SQLAllocDesc(%p, %p)\n", hdbc, phdesc);
 
+	if (!phdesc) {
+		odbc_errs_add(&dbc->errs, "HY009", NULL);
+		ODBC_EXIT_(dbc);
+	}
+
 	for (i = 0; ; ++i) {
 		if (i >= TDS_MAX_APP_DESC) {
 			odbc_errs_add(&dbc->errs, "HY014", NULL);
@@ -1863,6 +1876,11 @@ odbc_SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 	ODBC_ENTER_HDBC;
 
 	tdsdump_log(TDS_DBG_FUNC, "odbc_SQLAllocStmt(%p, %p)\n", hdbc, phstmt);
+
+	if (!phstmt) {
+		odbc_errs_add(&dbc->errs, "HY009", NULL);
+		ODBC_EXIT_(dbc);
+	}
 
 	stmt = tds_new0(TDS_STMT, 1);
 	if (!stmt) {
