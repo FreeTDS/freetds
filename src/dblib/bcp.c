@@ -917,8 +917,8 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 
 	TDS_INT result_type;
 
-	int row_of_query;
-	int rows_written;
+	TDS_INT row_of_query;
+	DBINT rows_written;
 	const char *bcpdatefmt;
 	TDSRET tdsret;
 
@@ -989,9 +989,15 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 		row_of_query++;
 
 		/* skip rows outside of the firstrow/lastrow range, if specified */
-		if (dbproc->hostfileinfo->firstrow > row_of_query ||
-						      row_of_query > TDS_MAX(dbproc->hostfileinfo->lastrow, 0x7FFFFFFF))
+		if (dbproc->hostfileinfo->firstrow > row_of_query)
 			continue;
+		if (dbproc->hostfileinfo->lastrow > 0 && row_of_query > dbproc->hostfileinfo->lastrow) {
+			/* TODO: If this is freebcp we could now just return success,
+			 * rather than waste time processing the rest of data.
+			 * In other cases we could perhaps send a cancel request.
+			 */
+			continue;
+		}
 
 		/* Go through the hostfile columns, finding those that relate to database columns. */
 		for (i = 0; i < dbproc->hostfileinfo->host_colcount; i++) {
@@ -1488,7 +1494,8 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 	BCP_HOSTCOLINFO *hostcol;
 	STATUS ret;
 
-	int i, row_of_hostfile, rows_written_so_far;
+	int i, rows_written_so_far;
+	TDS_INT row_of_hostfile;
 	int row_error_count;
 	bool row_error;
 	offset_type row_start, row_end;
@@ -1525,7 +1532,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 
 		row_of_hostfile++;
 
-		if (row_of_hostfile > TDS_MAX(dbproc->hostfileinfo->lastrow, 0x7FFFFFFF))
+		if (dbproc->hostfileinfo->lastrow > 0 && row_of_hostfile > dbproc->hostfileinfo->lastrow)
 			break;
 
 		skip = dbproc->hostfileinfo->firstrow > row_of_hostfile;
@@ -1550,10 +1557,10 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 				for (i = 0; i < dbproc->hostfileinfo->host_colcount; i++) {
 					hostcol = dbproc->hostfileinfo->host_columns[i];
 					if (hostcol->column_error == HOST_COL_CONV_ERROR) {
-						count = fprintf(errfile, 
-							"#@ data conversion error on host data file Row %d Column %d\n",
-							row_of_hostfile, i + 1);
-						if( count < 0 ) {
+						count = fprintf(errfile,
+								"#@ data conversion error on host data file Row %d Column %d\n",
+								(int) row_of_hostfile, i + 1);
+						if (count < 0) {
 							dbperror(dbproc, SYBEBWEF, errno);
 						}
 					} else if (hostcol->column_error == HOST_COL_NULL_ERROR) {
