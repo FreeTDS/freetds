@@ -1548,8 +1548,8 @@ void tdsdump_log_impl(const char* file, unsigned int level_line, const char *fmt
 #endif
 #endif
 ;
-#define tdsdump_log if (TDS_UNLIKELY(tds_write_dump)) tdsdump_log_impl
-#define tdsdump_dump_buf if (TDS_UNLIKELY(tds_write_dump)) tdsdump_dump_buf_impl
+#define tdsdump_log if (!TDS_UNLIKELY(tds_write_dump)) {} else tdsdump_log_impl
+#define tdsdump_dump_buf if (!TDS_UNLIKELY(tds_write_dump)) {} else tdsdump_dump_buf_impl
 
 extern bool tds_write_dump;
 extern int tds_debug_flags;
