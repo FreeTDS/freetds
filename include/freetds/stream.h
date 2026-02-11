@@ -119,19 +119,20 @@ typedef struct tds_file_stream {
 	/** file to read from */
 	FILE* f;
 
-	/** Circular input buffer followed by 2 copies of the terminator
-	 * so that we can easily "memcmp" the circular buffer against it
-	 */
-	char* cbuf;
-	size_t cpos;		// Offset in circular buffer of last-read character
+	/** Circular buffer; assume nobody is going to use a gigantic terminator... */
+	char cbuf[50];
+	size_t cpos;
 
-	/** terminator length in bytes -- cbuf length is 3*term_len */
+	/** Terminator to compare against - Memory not owned by the TDSFILESTREAM;
+	 * make sure to not leave danging pointers here.
+	 */
+	char const* terminator;
 	size_t term_len;
 } TDSFILESTREAM;
 
 TDSRET tds_file_stream_init(TDSFILESTREAM * stream, FILE* f);
-TDSRET tds_file_stream_set_terminator(TDSFILESTREAM* stream, const char* term, size_t term_len);
-TDSRET tds_file_stream_destroy(TDSFILESTREAM* stream);
+/** Use a terminator for subsequent reads - Does not strdup the terminator, so be careful not to leave dangling */
+TDSRET tds_file_stream_use_terminator(TDSFILESTREAM* stream, const char* term, size_t term_len);
 
 #include <freetds/popvis.h>
 
