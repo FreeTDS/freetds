@@ -1433,6 +1433,18 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 #endif
 /** \endcond */
 
+/** Check if a circular buffer matches a string of same length. Requires length > 0.  */
+static int cbuf_match(char const* cbuf, size_t cbuf_size, size_t cpos, char const* match)
+{
+	if (cbuf_size == 1)
+		return cbuf[0] == match[0];
+	else if (cbuf_size == 2)
+		return cbuf[cpos] == match[0] && cbuf[!cpos] == match[1];
+
+	return !memcmp(cbuf + cpos, match, cbuf_size - cpos)
+		&& !memcmp(cbuf, match + cbuf_size - cpos, cpos);
+}
+
 /**
  * Reads a chunk of data from file stream checking for terminator
  * \param stream file stream
@@ -1447,8 +1459,7 @@ tds_file_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
 	char *p = (char *) ptr;
 
 	while (len) {
-		/* Check if the circular buffer contains a terminator */
-		if (memcmp(s->cbuf, s->cbuf + 2*s->term_len - s->cpos, s->term_len) == 0)
+		if ( cbuf_match(s->cbuf, s->term_len, s->cpos, s->terminator) )
 			return p - (char *) ptr;
 
 		/* It didn't; output from the circular buffer and input a new character */
@@ -1474,47 +1485,30 @@ TDSRET tds_file_stream_init(TDSFILESTREAM* stream, FILE* f)
 	return TDS_SUCCESS;
 }
 
-TDSRET tds_file_stream_destroy(TDSFILESTREAM* stream)
-{
-	free(stream->cbuf);
-	stream->cbuf = NULL;
-	return TDS_SUCCESS;
-}
-
 /** Sets the terminator and also performs an initial population of the circular buffer */
-TDSRET tds_file_stream_set_terminator(TDSFILESTREAM* stream, const char* term, size_t term_len)
+TDSRET tds_file_stream_use_terminator(TDSFILESTREAM* stream, const char* term, size_t term_len)
 {
 	size_t readed;
-	void *newbuf;
 
-	if (!term_len)
-	{
-		stream->term_len = 0;
-		return TDS_SUCCESS;
-	}
-
-	/* Allocate the circular buffer */
-	newbuf = realloc(stream->cbuf, term_len * 3);
-	if (!newbuf)
+	if (term_len > sizeof stream->cbuf)
 		return TDS_FAIL;
+
+	stream->terminator = term;
+	stream->term_len = term_len;
+	stream->cpos = 0;
+
+	if (term_len == 0)
+		return TDS_SUCCESS;
 
 	/* Have to have initial data to populate the circular buffer (if the file contains
 	 * less data than the length of 1 expected terminator, it means file is corrupt)
 	 */
-	readed = fread(newbuf, 1, term_len, stream->f);
+	readed = fread(stream->cbuf, 1, term_len, stream->f);
 	if (readed != term_len) {
-		free(newbuf);
 		if (readed == 0 && feof(stream->f))
 			return TDS_NO_MORE_RESULTS;
 		return TDS_FAIL;
 	}
-
-	/* Finish setting up the stream structure */
-	stream->cpos = 0;
-	stream->cbuf = newbuf;
-	stream->term_len = term_len;
-	memcpy(stream->cbuf + term_len, term, term_len);
-	memcpy(stream->cbuf + term_len * 2, term, term_len);
 
 	return TDS_SUCCESS;
 }
@@ -1534,15 +1528,11 @@ tds_bcp_fread(TDSSOCKET * tds, TDSICONV * char_conv, FILE * stream, const char *
 
 	/* prepare streams */
 	TDS_PROPAGATE(tds_file_stream_init(&r, stream));
-	res = tds_file_stream_set_terminator(&r, terminator, term_len);
+	res = tds_file_stream_use_terminator(&r, terminator, term_len);
 	if (res != TDS_SUCCESS)	/* Also return if TDS_NO_MORE_RESULTS */
 		return res;
 
-	res = tds_dynamic_stream_init(&w, (void**) outbuf, 0);
-	if (TDS_FAILED(res)) {
-		tds_file_stream_destroy(&r);
-		return res;
-	}
+	TDS_PROPAGATE(tds_dynamic_stream_init(&w, (void**)outbuf, 0));
 
 	/* convert/copy from input stream to output one */
 	flockfile(stream);
@@ -1551,7 +1541,6 @@ tds_bcp_fread(TDSSOCKET * tds, TDSICONV * char_conv, FILE * stream, const char *
 	else
 		res = tds_convert_stream(tds, char_conv, to_server, &r.stream, &w.stream);
 	funlockfile(stream);
-	tds_file_stream_destroy(&r);
 
 	TDS_PROPAGATE(res);
 
