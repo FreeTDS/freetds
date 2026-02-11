@@ -1548,8 +1548,18 @@ void tdsdump_log_impl(const char* file, unsigned int level_line, const char *fmt
 #endif
 #endif
 ;
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+/* If available use C99 and __VA_ARGS__ */
+#define tdsdump_log(...) do { \
+	if (TDS_UNLIKELY(tds_write_dump)) tdsdump_log_impl(__VA_ARGS__); \
+} while(0)
+#define tdsdump_dump_buf(...) do { \
+	if (TDS_UNLIKELY(tds_write_dump)) tdsdump_dump_buf_impl(__VA_ARGS__); \
+} while(0)
+#else
 #define tdsdump_log if (!TDS_UNLIKELY(tds_write_dump)) {} else tdsdump_log_impl
 #define tdsdump_dump_buf if (!TDS_UNLIKELY(tds_write_dump)) {} else tdsdump_dump_buf_impl
+#endif
 
 extern bool tds_write_dump;
 extern int tds_debug_flags;
