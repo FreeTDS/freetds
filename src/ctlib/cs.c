@@ -504,7 +504,7 @@ cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 }
 
 TDS_INT
-_cs_cs2tds(CS_CONTEXT *ctx, const CS_DATAFMT_COMMON *srcfmt, CS_VOID *srcdata, int desttype, CONV_RESULT *cres)
+_cs_cs2tds(CS_CONTEXT *ctx, const CS_DATAFMT_COMMON *srcfmt, const void *srcdata, int desttype, CONV_RESULT *cres)
 {
 	TDS_SERVER_TYPE src_type;
 	int src_len, len;
@@ -517,7 +517,7 @@ _cs_cs2tds(CS_CONTEXT *ctx, const CS_DATAFMT_COMMON *srcfmt, CS_VOID *srcdata, i
 
 	src_len = srcfmt->maxlength;
 	if (datatype == CS_VARCHAR_TYPE || datatype == CS_VARBINARY_TYPE) {
-		CS_VARCHAR *vc = (CS_VARCHAR *) srcdata;
+		const CS_VARCHAR *vc = (const CS_VARCHAR *) srcdata;
 
 		/* Prevent overflows, Sybase accept wrong values as correct */
 		src_len = TDS_CLAMP(vc->len, 0, sizeof(vc->str));
