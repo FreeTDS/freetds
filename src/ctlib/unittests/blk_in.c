@@ -274,12 +274,11 @@ sendrow(CS_BLKDESC *blkdesc, const char *tok)
 	CS_INT number;
 	const char *message;
 
-	if (strcmp(tok, "SENDROWERROR") == 0) {
+	ct_reset_last_message();
+	if (strcmp(tok, "SENDROWERROR") == 0)
 		check_fail(blk_rowxfer, (blkdesc));
-	} else {
-		ct_reset_last_message();
+	else
 		check_call(blk_rowxfer, (blkdesc));
-	}
 
 	errtype_str = strtok(NULL, " \t\n");
 	if (!errtype_str) {
@@ -338,6 +337,9 @@ TEST_MAIN()
 	}
 	in = open_test_file(argc > 1 ? argv[1] : NULL);
 	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));
+
+	check_call(cs_config, (ctx, CS_SET, CS_MESSAGE_CB, (CS_VOID *) cslibmsg_cb, CS_UNUSED, NULL));
+	check_call(ct_callback, (NULL, conn, CS_SET, CS_CLIENTMSG_CB, (CS_VOID *) clientmsg_cb2));
 
 	for (;;) {
 		part = read_part_type(in);

@@ -429,9 +429,9 @@ CS_CHAR_TYPE	10	123
 SENDROW
 -- truncated data
 CS_CHAR_TYPE	10	hello
-SENDROWERROR	CLIENT	0x102011a	Failed in conversion routine - syntax error.  col = 1 row = 2
+SENDROWERROR	CLIENT2	0x102011a	Failed in conversion routine - syntax error.  col = 1 row = 2
 CS_CHAR_TYPE	10	12345678
-SENDROWERROR	CLIENT	0x1020119	Failed in conversion routine - condition overflow.  col = 1 row = 2
+SENDROWERROR	CLIENT2	0x1020119	Failed in conversion routine - condition overflow.  col = 1 row = 2
 CS_CHAR_TYPE	10	45
 --
 output
