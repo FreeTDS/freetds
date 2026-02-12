@@ -86,8 +86,9 @@ CONV_RESULT;
 unsigned char tds_willconvert(int srctype, int desttype);
 
 TDS_SERVER_TYPE tds_get_null_type(TDS_SERVER_TYPE srctype);
-ptrdiff_t tds_char2hex(TDS_CHAR *dest, size_t destlen, const TDS_CHAR * src, size_t srclen);
-TDS_INT tds_convert(const TDSCONTEXT *context, int srctype, const void *src, TDS_UINT srclen, int desttype, CONV_RESULT *cr);
+ptrdiff_t tds_char2hex(TDS_CHAR * dest, size_t destlen, const TDS_CHAR * src, size_t srclen);
+size_t tds_hex_trim(const TDS_CHAR ** p_src, size_t srclen);
+TDS_INT tds_convert(const TDSCONTEXT * context, int srctype, const void *src, TDS_UINT srclen, int desttype, CONV_RESULT * cr);
 
 size_t tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * timeptr, int prec);
 

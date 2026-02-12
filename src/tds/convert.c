@@ -310,8 +310,33 @@ tds_convert_binary(const TDS_UCHAR * src, TDS_INT srclen, int desttype, CONV_RES
 	return TDS_CONVERT_NOAVAIL;
 }
 
+size_t
+tds_hex_trim(const TDS_CHAR **p_src, size_t srclen)
+{
+	const TDS_CHAR *src = *p_src;
+
+	/* skip leading spaces and tabs */
+	while (srclen > 0 && (src[0] == ' ' || src[0] == '\t')) {
+		src++;
+		srclen--;
+	}
+
+	/* skip leading "0x" or "0X" */
+	if (srclen >= 2 && src[0] == '0' && (src[1] == 'x' || src[1] == 'X')) {
+		src += 2;
+		srclen -= 2;
+	}
+
+	/* ignore trailing spaces and tabs */
+	while (srclen > 0 && (src[srclen - 1] == ' ' || src[srclen - 1] == '\t'))
+		--srclen;
+
+	*p_src = src;
+	return srclen;
+}
+
 ptrdiff_t
-tds_char2hex(TDS_CHAR *dest, size_t destlen, const TDS_CHAR * src, size_t srclen)
+tds_char2hex(TDS_CHAR *dest, size_t destlen, const TDS_CHAR *src, size_t srclen)
 {
 	size_t i;
 	unsigned char hex1, c = 0;
@@ -2001,21 +2026,7 @@ tds_convert_to_binary(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int de
 		len = sizeof(TDS_UNIQUE);
 		break;
 	case CASE_ALL_CHAR:
-		/* skip leading spaces and tabs */
-		while (srclen > 0 && (src[0] == ' ' || src[0] == '\t')) {
-			src++;
-			srclen--;
-		}
-
-		/* skip leading "0x" or "0X" */
-		if (srclen >= 2 && src[0] == '0' && (src[1] == 'x' || src[1] == 'X')) {
-			src += 2;
-			srclen -= 2;
-		}
-
-		/* ignore trailing spaces and tabs */
-		while (srclen > 0 && (src[srclen - 1] == ' ' || src[srclen - 1] == '\t'))
-			--srclen;
+		srclen = (TDS_UINT) tds_hex_trim(&src, srclen);
 
 		/* a binary string output will be half the length of */
 		/* the string which represents it in hexadecimal     */
