@@ -524,6 +524,21 @@ _cs_cs2tds(CS_CONTEXT *ctx, const CS_DATAFMT_COMMON *srcfmt, const void *srcdata
 		srcdata = vc->str;
 	}
 
+	/* conversion from char to binary are a bit peculiar */
+	if (desttype == TDS_CONVERT_BINARY && is_char_type(src_type)) {
+		const char *src = srcdata;
+		TDS_INT full_len;
+
+		src_len = tds_hex_trim(&src, src_len);
+
+		full_len = ((unsigned int) src_len + 1) / 2;
+		if (full_len > cres->cb.len)
+			src_len = 2 * cres->cb.len - (src_len & 1);
+
+		len = tds_char2hex(cres->cb.ib, cres->cb.len, src, src_len);
+		return len < 0 ? len : full_len;
+	}
+
 	tdsdump_log(TDS_DBG_FUNC, "converting type %d (%d bytes) to type = %d\n", src_type, src_len, desttype);
 
 	len = tds_convert(ctx->tds_ctx, src_type, srcdata, src_len, desttype, cres);

@@ -99,6 +99,9 @@ DoTest(
 	}
 
 	/* test other part of buffer */
+	/* skip test in case of failure, in some cases the buffer is written */
+	if (tores == CS_FAIL && !todata && tolen == 0)
+		memset(buffer, 23, sizeof(buffer));
 	if (todata)
 		memset(buffer, 23, tolen);
 	for (i = 0; i < sizeof(buffer); ++i)
@@ -305,8 +308,15 @@ TEST_MAIN()
 	check_last_message(CTMSG_CSLIB, 0x2040124, "The result is truncated");
 	DO_TEST(CS_CHAR test[] = "96162ignored";
 		CS_CHAR test2[] = "\tab", CS_CHAR_TYPE, test, 5, CS_IMAGE_TYPE, 3, CS_SUCCEED, test2, 3);
-	DO_TEST(CS_CHAR test[] = "hello";
-		CS_CHAR test2[] = "abc", CS_CHAR_TYPE, test, 5, CS_BINARY_TYPE, 10, CS_FAIL, test2, 0);
+	DO_TEST(CS_CHAR test[] = "616263zxzxzxzxzx";
+		CS_CHAR test2[] = "abc", CS_CHAR_TYPE, test, 12, CS_BINARY_TYPE, 3, CS_FAIL, test2, 3);
+	check_last_message(CTMSG_CSLIB, 0x2040124, "The result is truncated");
+	DO_TEST(CS_CHAR test[] = "961626zxzxzxzxzx";
+		CS_CHAR test2[] = "\tab", CS_CHAR_TYPE, test, 11, CS_BINARY_TYPE, 3, CS_FAIL, test2, 3);
+	check_last_message(CTMSG_CSLIB, 0x2040124, "The result is truncated");
+	DO_TEST(CS_CHAR test[] = "61626xzxzxzxzxzx", CS_CHAR_TYPE, test, 12, CS_BINARY_TYPE, 3, CS_FAIL, NULL, 0);
+	check_last_message(CTMSG_CSLIB, 0x2040118, "syntax error in the source field");
+	DO_TEST(CS_CHAR test[] = "hello"; CS_CHAR test2[] = "abc", CS_CHAR_TYPE, test, 5, CS_BINARY_TYPE, 10, CS_FAIL, test2, 0);
 	/* spaces, tabs and initial "0x" are ignored */
 	DO_TEST(CS_CHAR test[] = " \t \t0x616263";
 		CS_CHAR test2[] = "abc", CS_CHAR_TYPE, test, 12, CS_BINARY_TYPE, 3, CS_SUCCEED, test2, 3);
