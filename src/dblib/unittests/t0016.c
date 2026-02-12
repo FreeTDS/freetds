@@ -28,6 +28,7 @@ failure(const char *fmt, ...)
 static void test_file(const char *fn);
 static bool compare_files(const char *fn1, const char *fn2);
 static unsigned count_file_rows(FILE *f);
+static size_t fgets_raw(char *s, int len, FILE * f);
 static DBPROCESS *dbproc;
 
 TEST_MAIN()
@@ -111,15 +112,23 @@ test_file(const char *fn)
 	const char *err_file = "t0016.err";
 	DBINT rows_copied;
 	unsigned num_rows = 2;
+	char table_name[64];
+	char hints[64];
 
 	FILE *input_file;
 
+	char sql_file[256];
 	char in_file[256];
 	char exp_file[256];
+
+	snprintf(sql_file, sizeof(sql_file), "%s/%s.sql", FREETDS_SRCDIR, fn);
 	snprintf(in_file, sizeof(in_file), "%s/%s.in", FREETDS_SRCDIR, fn);
 	snprintf(exp_file, sizeof(exp_file), "%s/%s.exp", FREETDS_SRCDIR, fn);
 
-	input_file = fopen(in_file, "rb");
+	strlcpy(table_name, TABLE_NAME, sizeof(table_name));
+	hints[0] = 0;
+
+	input_file = fopen(in_file, "r");
 	if (!input_file) {
 		sprintf(in_file, "%s.in", fn);
 		sprintf(exp_file, "%s.exp", fn);
@@ -132,16 +141,40 @@ test_file(const char *fn)
 	num_rows = count_file_rows(input_file);
 	fclose(input_file);
 
-	input_file = fopen(exp_file, "rb");
+	input_file = fopen(exp_file, "r");
 	if (!input_file)
 		strcpy(exp_file, in_file);
 	else
 		fclose(input_file);
 
+	input_file = fopen(sql_file, "r");
+	assert(input_file);
+	for (;;) {
+		const char *param;
+		size_t len = fgets_raw(line1, sizeof(line1), input_file);
+
+		if (len && line1[len - 1] == '\n')
+			line1[len - 1] = '\0';
+		if (len == 0 || strncmp(line1, "-- PARAM:", 9) != 0)
+			break;
+		param = line1 + 9;
+		if (strncmp(param, "table ", 6) == 0) {
+			param += 6;
+			strlcpy(table_name, param, sizeof(table_name));
+		} else if (strncmp(param, "hints ", 6) == 0) {
+			param += 6;
+			strlcpy(hints, param, sizeof(hints));
+		} else {
+			fprintf(stderr, "invalid parameter: %s\n", param);
+			exit(1);
+		}
+	}
+	fclose(input_file);
+
 	dberrhandle(ignore_err_handler);
 	dbmsghandle(ignore_msg_handler);
 
-	printf("Creating table '%s'\n", TABLE_NAME);
+	printf("Creating table '%s'\n", table_name);
 	got_error = false;
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
@@ -164,16 +197,19 @@ test_file(const char *fn)
 		num_cols = dbnumcols(dbproc);
 		printf("Number of columns = %d\n", num_cols);
 
-		while (dbnextrow(dbproc) != NO_MORE_ROWS) {
-		}
+		while (dbnextrow(dbproc) != NO_MORE_ROWS)
+			continue;
 	}
 
 	/* BCP in */
 
 	printf("bcp_init with in_file as '%s'\n", in_file);
-	ret = bcp_init(dbproc, TABLE_NAME, in_file, (char*) err_file, DB_IN);
+	ret = bcp_init(dbproc, table_name, in_file, (char*) err_file, DB_IN);
 	if (ret != SUCCEED)
 		failure("bcp_init failed\n");
+
+	if (hints[0])
+		bcp_options(dbproc, BCPHINTS, (BYTE *) hints, strlen(hints));
 
 	printf("return from bcp_init = %d\n", ret);
 
@@ -200,7 +236,7 @@ test_file(const char *fn)
 	/* BCP out */
 
 	rows_copied = 0;
-	ret = bcp_init(dbproc, TABLE_NAME, (char *) out_file, (char *) err_file, DB_OUT);
+	ret = bcp_init(dbproc, table_name, (char *) out_file, (char *) err_file, DB_OUT);
 	if (ret != SUCCEED)
 		failure("bcp_int failed\n");
 
@@ -210,8 +246,8 @@ test_file(const char *fn)
 
 	if (dbresults(dbproc) != FAIL) {
 		num_cols = dbnumcols(dbproc);
-		while (dbnextrow(dbproc) != NO_MORE_ROWS) {
-		}
+		while (dbnextrow(dbproc) != NO_MORE_ROWS)
+			continue;
 	}
 
 	ret = bcp_columns(dbproc, num_cols);
@@ -230,7 +266,7 @@ test_file(const char *fn)
 
 	printf("%d rows copied out\n", rows_copied);
 
-	printf("Dropping table '%s'\n", TABLE_NAME);
+	printf("Dropping table '%s'\n", table_name);
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS)
