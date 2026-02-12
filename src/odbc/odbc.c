@@ -38,6 +38,7 @@
 #include <freetds/odbc.h>
 #include <freetds/iconv.h>
 #include <freetds/utils/string.h>
+#include <freetds/utils/ascii.h>
 #include <freetds/convert.h>
 #include <freetds/encodings.h>
 #include <freetds/replacements.h>
@@ -6233,14 +6234,6 @@ SQLGetInfoW(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSM
 	ODBC_EXIT(dbc, odbc_SQLGetInfo(dbc, fInfoType, rgbInfoValue, cbInfoValueMax, pcbInfoValue, 1));
 }
 #endif
-
-static void
-tds_ascii_strupr(char *s)
-{
-	for (; *s; ++s)
-		if ('a' <= *s && *s <= 'z')
-			*s = *s & (~0x20);
-}
 
 static void
 odbc_upper_column_names(TDS_STMT * stmt)

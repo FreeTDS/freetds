@@ -18,6 +18,7 @@ libtdsutils_la_SOURCES = \
 	net.c \
 	smp.c \
 	path.c \
+	ascii.c \
 	$(NULL)
 if WIN32
 libtdsutils_la_SOURCES += win_mutex.c
