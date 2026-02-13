@@ -1477,14 +1477,31 @@ tds_file_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
 	return p - (char *) ptr;
 }
 
+/* Read raw data from stream (no terminator or iconv) */
+size_t tds_file_stream_read_raw(TDSFILESTREAM* stream, void* ptr, size_t n)
+{
+	size_t n_read = fread(ptr, 1, n, stream->f);
+	return n_read;
+}
+
+
 TDSRET tds_file_stream_init(TDSFILESTREAM* stream, FILE* f)
 {
 	memset(stream, 0, sizeof * stream);
+	if (!f)
+		return TDS_FAIL;
+
 	stream->f = f;
 	stream->stream.read = tds_file_stream_read;
 	return TDS_SUCCESS;
 }
 
+TDSRET tds_file_stream_close(TDSFILESTREAM* stream)
+{
+	int ret = stream->f ? fclose(stream->f) : 0;
+	memset(stream, 0, sizeof * stream);
+	return ret;
+}
 /** Sets the terminator and also performs an initial population of the circular buffer */
 TDSRET tds_file_stream_use_terminator(TDSFILESTREAM* stream, const char* term, size_t term_len)
 {
@@ -1513,6 +1530,22 @@ TDSRET tds_file_stream_use_terminator(TDSFILESTREAM* stream, const char* term, s
 	return TDS_SUCCESS;
 }
 
+TDSRET tds_file_stream_seek_set(TDSFILESTREAM* stream, offset_type seek_to)
+{
+	fseeko(stream->f, seek_to, SEEK_SET);
+
+	/* TODO: maybe check for fseeko errors ? Original code didn't. */
+	return TDS_SUCCESS;
+}
+offset_type tds_file_stream_tell(TDSFILESTREAM* stream)
+{
+	/* Tried caching this to avoid overhead of system call, but it turns out we can't
+	 * do that accurately because hostfile is opened in text mode and will transparently
+	 * read \r\n as \n and so on. 
+	 */
+	return ftello(stream->f);
+}
+
 /**
  * Read a data file, passing the data through iconv().
  * \retval TDS_SUCCESS  success
@@ -1520,27 +1553,35 @@ TDSRET tds_file_stream_use_terminator(TDSFILESTREAM* stream, const char* term, s
  * \retval TDS_NO_MORE_RESULTS end of file detected
  */
 TDSRET
-tds_bcp_fread(TDSSOCKET * tds, TDSICONV * char_conv, FILE * stream, const char *terminator, size_t term_len, char **outbuf, size_t * outbytes)
+tds_bcp_fread(TDSSOCKET* tds, TDSICONV* char_conv, TDSFILESTREAM* stream,
+	const char* terminator, size_t term_len, char** outbuf, size_t* outbytes)
 {
 	TDSRET res;
-	TDSFILESTREAM r;
 	TDSDYNAMICSTREAM w;
 
-	/* prepare streams */
-	TDS_PROPAGATE(tds_file_stream_init(&r, stream));
-	res = tds_file_stream_use_terminator(&r, terminator, term_len);
-	if (res != TDS_SUCCESS)	/* Also return if TDS_NO_MORE_RESULTS */
+	/* Prepare input stream, returning TDS_NO_MORE_RESULTS if there
+	 * is not enough data in the stream for even one terminator -- this
+	 * indicates a clean end-of-file being reached, as opposed to
+	 * ending the file while looking for a terminator, which will generate
+	 * a TDS_FAIL from tds_copy_stream().
+	 */
+	res = tds_file_stream_use_terminator(stream, terminator, term_len);
+	if (res != TDS_SUCCESS)
 		return res;
 
+	/* prepare output streams */
 	TDS_PROPAGATE(tds_dynamic_stream_init(&w, (void**)outbuf, 0));
 
 	/* convert/copy from input stream to output one */
-	flockfile(stream);
+	flockfile(stream->f);
 	if (char_conv == NULL)
-		res = tds_copy_stream(&r.stream, &w.stream);
+		res = tds_copy_stream(&stream->stream, &w.stream);
 	else
-		res = tds_convert_stream(tds, char_conv, to_server, &r.stream, &w.stream);
-	funlockfile(stream);
+		res = tds_convert_stream(tds, char_conv, to_server, &stream->stream, &w.stream);
+	funlockfile(stream->f);
+
+	/* Avoid any dangling pointers */
+	tds_file_stream_use_terminator(stream, NULL, 0);
 
 	TDS_PROPAGATE(res);
 
