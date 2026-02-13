@@ -1464,7 +1464,7 @@ static int
 tds_file_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
 {
 	TDSFILESTREAM *s = (TDSFILESTREAM *) stream;
-	int c;
+	char ch;
 	char *p = (char *) ptr;
 
 	while (len) {
@@ -1472,14 +1472,13 @@ tds_file_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
 			return p - (char *) ptr;
 
 		/* It didn't; output from the circular buffer and input a new character */
-		c = getc_unlocked(s->f);
-		if (c == EOF)
+		if (tds_file_stream_read_raw(s, &ch, 1) != 1)
 			return -1;
 
 		*p++ = s->cbuf[s->cpos];
 		--len;
 
-		s->cbuf[s->cpos++] = c;
+		s->cbuf[s->cpos++] = ch;
 		if (s->cpos == s->term_len)
 			s->cpos = 0;
 	}
@@ -1490,9 +1489,31 @@ tds_file_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
 size_t
 tds_file_stream_read_raw(TDSFILESTREAM *stream, void *ptr, size_t n)
 {
-	size_t n_read = fread(ptr, 1, n, stream->f);
+	char *cptr = ptr;
 
-	return n_read;
+	while (n) {
+		size_t chunk;
+
+		/* Buffer some more data if we consumed it all */
+		if (stream->inlen == stream->inpos) {
+			stream->inpos = 0;
+			stream->inlen = fread(stream->inbuf, 1, sizeof(stream->inbuf), stream->f);
+			if (stream->inlen == 0)
+				break;
+		}
+
+		/* Output data from buffer */
+		chunk = TDS_MIN(stream->inlen - stream->inpos, n);
+
+		if (chunk > 0) {
+			memcpy(cptr, stream->inbuf + stream->inpos, chunk);
+			cptr += chunk;
+			stream->inpos += chunk;
+			n -= chunk;
+		}
+	}
+
+	return cptr - (char *) ptr;
 }
 
 
@@ -1536,7 +1557,7 @@ tds_file_stream_use_terminator(TDSFILESTREAM *stream, const char *term, size_t t
 	/* Have to have initial data to populate the circular buffer (if the file contains
 	 * less data than the length of 1 expected terminator, it means file is corrupt)
 	 */
-	readed = fread(stream->cbuf, 1, term_len, stream->f);
+	readed = tds_file_stream_read_raw(stream, stream->cbuf, term_len);
 	if (readed != term_len) {
 		if (readed == 0 && feof(stream->f))
 			return TDS_NO_MORE_RESULTS;
@@ -1561,8 +1582,14 @@ tds_file_stream_tell(TDSFILESTREAM *stream)
 	/* Tried caching this to avoid overhead of system call, but it turns out we can't
 	 * do that accurately because hostfile is opened in text mode and will transparently
 	 * read \r\n as \n and so on.
+	 *
+	 * Instead we will adjust it by the size of buffered data (not 100% accurate...)
 	 */
-	return ftello(stream->f);
+	offset_type ret = ftello(stream->f);
+
+	if (ret > 0)
+		ret -= (stream->inlen - stream->inpos);
+	return ret;
 }
 
 /**
