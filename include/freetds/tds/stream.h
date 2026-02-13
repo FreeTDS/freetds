@@ -28,8 +28,31 @@
 #include <freetds/tds/iconv.h>	/* TDS_ICONV_DIRECTION */
 #include <freetds/pushvis.h>
 
+ /* Support 64-bit file seek if possible */
+#ifdef HAVE_FSEEKO
+typedef off_t offset_type;
+#elif defined(_WIN32) || defined(_WIN64)
+/* win32 version */
+typedef __int64 offset_type;
+
+#if defined(HAVE__FSEEKI64) && defined(HAVE__FTELLI64)
+#define fseeko(f,o,w) _fseeki64((f),o,w)
+#define ftello(f) _ftelli64((f))
+#else
+#define fseeko(f,o,w) (_lseeki64(fileno(f),o,w) == -1 ? -1 : 0)
+#define ftello(f) _telli64(fileno(f))
+#endif
+#else
+/* use old version */
+#define fseeko(f,o,w) fseek(f,o,w)
+#define ftello(f) ftell(f)
+typedef long offset_type;
+#endif
+
+
 /** define a stream of data used for input */
-typedef struct tds_input_stream {
+typedef struct tds_input_stream
+{
 	/** read some data
 	 * Return 0 if end of stream
 	 * Return <0 if error (actually not defined)
@@ -129,7 +152,11 @@ typedef struct tds_dynamic_stream {
 TDSRET tds_dynamic_stream_init(TDSDYNAMICSTREAM * stream, void **ptr, size_t allocated);
 
 /* input stream to read a file with option to terminate the read
- * when a delimiter sequence is read
+ * when a delimiter sequence is read.
+ *
+ * This structure may read more byte from the file than are consumed by this
+ * operation. This structure expects no other seek, read or write operations
+ * are performed on the file pointer while it's active in this structure.
  */
 typedef struct tds_file_stream
 {
@@ -154,6 +181,12 @@ TDSRET tds_file_stream_init(TDSFILESTREAM * stream, FILE * f);
 
 /** Use a terminator for subsequent reads - Does not strdup the terminator, so be careful not to leave dangling */
 TDSRET tds_file_stream_use_terminator(TDSFILESTREAM * stream, const char *term, size_t term_len);
+
+/* Read raw data from stream (no terminator or iconv). Return number of bytes read. */
+size_t tds_file_stream_read_raw(TDSFILESTREAM * stream, void *ptr, size_t n);
+TDSRET tds_file_stream_seek_set(TDSFILESTREAM * stream, offset_type seek_to);
+offset_type tds_file_stream_tell(TDSFILESTREAM * stream);
+TDSRET tds_file_stream_close(TDSFILESTREAM * stream);
 
 #include <freetds/popvis.h>
 
