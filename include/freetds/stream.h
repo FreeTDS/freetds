@@ -24,6 +24,7 @@
 #error Include tds.h first
 #endif
 
+#include <stdio.h>		/* FILE * */
 #include <freetds/pushvis.h>
 
 /** define a stream of data used for input */
@@ -107,6 +108,30 @@ typedef struct tds_dynamic_stream {
 } TDSDYNAMICSTREAM;
 
 TDSRET tds_dynamic_stream_init(TDSDYNAMICSTREAM * stream, void **ptr, size_t allocated);
+
+/* input stream to read a file with option to terminate the read
+ * when a delimiter sequence is read
+ */
+typedef struct tds_file_stream {
+	/** common fields, must be the first field */
+	TDSINSTREAM stream;
+
+	/** file to read from */
+	FILE* f;
+
+	/** Circular input buffer followed by 2 copies of the terminator
+	 * so that we can easily "memcmp" the circular buffer against it
+	 */
+	char* cbuf;
+	size_t cpos;		// Offset in circular buffer of last-read character
+
+	/** terminator length in bytes -- cbuf length is 3*term_len */
+	size_t term_len;
+} TDSFILESTREAM;
+
+TDSRET tds_file_stream_init(TDSFILESTREAM * stream, FILE* f);
+TDSRET tds_file_stream_set_terminator(TDSFILESTREAM* stream, const char* term, size_t term_len);
+TDSRET tds_file_stream_destroy(TDSFILESTREAM* stream);
 
 #include <freetds/popvis.h>
 

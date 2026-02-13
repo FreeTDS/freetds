@@ -1412,23 +1412,6 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	return TDS_SUCCESS;
 }
 
-/** input stream to read a file */
-typedef struct tds_file_stream {
-	/** common fields, must be the first field */
-	TDSINSTREAM stream;
-	/** file to read from */
-	FILE *f;
-
-	/** terminator */
-	const char *terminator;
-	/** terminator length in bytes */
-	size_t term_len;
-
-	/** buffer for store bytes readed that could be the terminator */
-	char *left;
-	size_t left_pos;
-} TDSFILESTREAM;
-
 /** \cond HIDDEN_SYMBOLS */
 #if defined(_WIN32) && defined(HAVE__LOCK_FILE) && defined(HAVE__UNLOCK_FILE)
 #define TDS_HAVE_STDIO_LOCKED 1
@@ -1464,20 +1447,76 @@ tds_file_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
 	char *p = (char *) ptr;
 
 	while (len) {
-		if (memcmp(s->left, s->terminator - s->left_pos, s->term_len) == 0)
+		/* Check if the circular buffer contains a terminator */
+		if (memcmp(s->cbuf, s->cbuf + 2*s->term_len - s->cpos, s->term_len) == 0)
 			return p - (char *) ptr;
 
+		/* It didn't; output from the circular buffer and input a new character */
 		c = getc_unlocked(s->f);
 		if (c == EOF)
 			return -1;
 
-		*p++ = s->left[s->left_pos];
+		*p++ = s->cbuf[s->cpos];
 		--len;
 
-		s->left[s->left_pos++] = c;
-		s->left_pos %= s->term_len;
+		s->cbuf[s->cpos++] = c;
+		if (s->cpos == s->term_len)
+			s->cpos = 0;
 	}
 	return p - (char *) ptr;
+}
+
+TDSRET tds_file_stream_init(TDSFILESTREAM* stream, FILE* f)
+{
+	memset(stream, 0, sizeof * stream);
+	stream->f = f;
+	stream->stream.read = tds_file_stream_read;
+	return TDS_SUCCESS;
+}
+
+TDSRET tds_file_stream_destroy(TDSFILESTREAM* stream)
+{
+	free(stream->cbuf);
+	stream->cbuf = NULL;
+	return TDS_SUCCESS;
+}
+
+/** Sets the terminator and also performs an initial population of the circular buffer */
+TDSRET tds_file_stream_set_terminator(TDSFILESTREAM* stream, const char* term, size_t term_len)
+{
+	size_t readed;
+	void *newbuf;
+
+	if (!term_len)
+	{
+		stream->term_len = 0;
+		return TDS_SUCCESS;
+	}
+
+	/* Allocate the circular buffer */
+	newbuf = realloc(stream->cbuf, term_len * 3);
+	if (!newbuf)
+		return TDS_FAIL;
+
+	/* Have to have initial data to populate the circular buffer (if the file contains
+	 * less data than the length of 1 expected terminator, it means file is corrupt)
+	 */
+	readed = fread(newbuf, 1, term_len, stream->f);
+	if (readed != term_len) {
+		free(newbuf);
+		if (readed == 0 && feof(stream->f))
+			return TDS_NO_MORE_RESULTS;
+		return TDS_FAIL;
+	}
+
+	/* Finish setting up the stream structure */
+	stream->cpos = 0;
+	stream->cbuf = newbuf;
+	stream->term_len = term_len;
+	memcpy(stream->cbuf + term_len, term, term_len);
+	memcpy(stream->cbuf + term_len * 2, term, term_len);
+
+	return TDS_SUCCESS;
 }
 
 /**
@@ -1492,33 +1531,16 @@ tds_bcp_fread(TDSSOCKET * tds, TDSICONV * char_conv, FILE * stream, const char *
 	TDSRET res;
 	TDSFILESTREAM r;
 	TDSDYNAMICSTREAM w;
-	size_t readed;
 
 	/* prepare streams */
-	r.stream.read = tds_file_stream_read;
-	r.f = stream;
-	r.term_len = term_len;
-	r.left = tds_new0(char, term_len*3);
-	r.left_pos = 0;
-	if (!r.left) return TDS_FAIL;
-
-	/* copy terminator twice, let terminator points to second copy */
-	memcpy(r.left + term_len, terminator, term_len);
-	memcpy(r.left + term_len*2u, terminator, term_len);
-	r.terminator = r.left + term_len*2u;
-
-	/* read initial buffer to test with terminator */
-	readed = fread(r.left, 1, term_len, stream);
-	if (readed != term_len) {
-		free(r.left);
-		if (readed == 0 && feof(stream))
-			return TDS_NO_MORE_RESULTS;
-		return TDS_FAIL;
-	}
+	TDS_PROPAGATE(tds_file_stream_init(&r, stream));
+	res = tds_file_stream_set_terminator(&r, terminator, term_len);
+	if (res != TDS_SUCCESS)	/* Also return if TDS_NO_MORE_RESULTS */
+		return res;
 
 	res = tds_dynamic_stream_init(&w, (void**) outbuf, 0);
 	if (TDS_FAILED(res)) {
-		free(r.left);
+		tds_file_stream_destroy(&r);
 		return res;
 	}
 
@@ -1529,7 +1551,7 @@ tds_bcp_fread(TDSSOCKET * tds, TDSICONV * char_conv, FILE * stream, const char *
 	else
 		res = tds_convert_stream(tds, char_conv, to_server, &r.stream, &w.stream);
 	funlockfile(stream);
-	free(r.left);
+	tds_file_stream_destroy(&r);
 
 	TDS_PROPAGATE(res);
 
