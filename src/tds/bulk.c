@@ -1412,23 +1412,6 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	return TDS_SUCCESS;
 }
 
-/** input stream to read a file */
-typedef struct tds_file_stream {
-	/** common fields, must be the first field */
-	TDSINSTREAM stream;
-	/** file to read from */
-	FILE *f;
-
-	/** terminator */
-	const char *terminator;
-	/** terminator length in bytes */
-	size_t term_len;
-
-	/** buffer for store bytes readed that could be the terminator */
-	char *left;
-	size_t left_pos;
-} TDSFILESTREAM;
-
 /** \cond HIDDEN_SYMBOLS */
 #if defined(_WIN32) && defined(HAVE__LOCK_FILE) && defined(HAVE__UNLOCK_FILE)
 #define TDS_HAVE_STDIO_LOCKED 1
@@ -1450,6 +1433,18 @@ typedef struct tds_file_stream {
 #endif
 /** \endcond */
 
+/** Check if a circular buffer matches a string of same length. Requires length > 0.  */
+static int cbuf_match(char const* cbuf, size_t cbuf_size, size_t cpos, char const* match)
+{
+	if (cbuf_size == 1)
+		return cbuf[0] == match[0];
+	else if (cbuf_size == 2)
+		return cbuf[cpos] == match[0] && cbuf[!cpos] == match[1];
+
+	return !memcmp(cbuf + cpos, match, cbuf_size - cpos)
+		&& !memcmp(cbuf, match + cbuf_size - cpos, cpos);
+}
+
 /**
  * Reads a chunk of data from file stream checking for terminator
  * \param stream file stream
@@ -1460,24 +1455,127 @@ static int
 tds_file_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
 {
 	TDSFILESTREAM *s = (TDSFILESTREAM *) stream;
-	int c;
+	char ch;
 	char *p = (char *) ptr;
 
 	while (len) {
-		if (memcmp(s->left, s->terminator - s->left_pos, s->term_len) == 0)
+		if ( cbuf_match(s->cbuf, s->term_len, s->cpos, s->terminator) )
 			return p - (char *) ptr;
 
-		c = getc_unlocked(s->f);
-		if (c == EOF)
+		/* It didn't; output from the circular buffer and input a new character */
+		if (tds_file_stream_read_raw(s, &ch, 1) != 1)
 			return -1;
 
-		*p++ = s->left[s->left_pos];
+		*p++ = s->cbuf[s->cpos];
 		--len;
 
-		s->left[s->left_pos++] = c;
-		s->left_pos %= s->term_len;
+		s->cbuf[s->cpos++] = ch;
+		if (s->cpos == s->term_len)
+			s->cpos = 0;
 	}
 	return p - (char *) ptr;
+}
+
+/* Read raw data from stream (no terminator or iconv) */
+size_t tds_file_stream_read_raw(TDSFILESTREAM* stream, void* ptr, size_t n)
+{
+	char* cptr = ptr;
+
+	while (n)
+	{
+		size_t chunk;
+
+		/* Buffer some more data if we consumed it all */
+		if (stream->inlen == stream->inpos)
+		{
+			stream->inpos = 0;
+			stream->inlen = fread(stream->inbuf, 1, TDSFILESTREAM_BLOCKSIZE, stream->f);
+			if (stream->inlen == 0)
+				break;
+		}
+
+		/* Output data from buffer */
+		chunk = stream->inlen - stream->inpos;
+		if (chunk > n)
+			chunk = n;
+
+		if (chunk > 0)
+		{
+			memcpy(cptr, stream->inbuf + stream->inpos, chunk);
+			cptr += chunk;
+			stream->inpos += chunk;
+			n -= chunk;
+		}
+	}
+
+	return cptr - (char*)ptr;
+}
+
+
+TDSRET tds_file_stream_init(TDSFILESTREAM* stream, FILE* f)
+{
+	memset(stream, 0, sizeof * stream);
+	if (!f)
+		return TDS_FAIL;
+
+	stream->f = f;
+	stream->stream.read = tds_file_stream_read;
+	return TDS_SUCCESS;
+}
+
+TDSRET tds_file_stream_close(TDSFILESTREAM* stream)
+{
+	int ret = stream->f ? fclose(stream->f) : 0;
+	memset(stream, 0, sizeof * stream);
+	return ret;
+}
+/** Sets the terminator and also performs an initial population of the circular buffer */
+TDSRET tds_file_stream_use_terminator(TDSFILESTREAM* stream, const char* term, size_t term_len)
+{
+	size_t readed;
+
+	if (term_len > sizeof stream->cbuf)
+		return TDS_FAIL;
+
+	stream->terminator = term;
+	stream->term_len = term_len;
+	stream->cpos = 0;
+
+	if (term_len == 0)
+		return TDS_SUCCESS;
+
+	/* Have to have initial data to populate the circular buffer (if the file contains
+	 * less data than the length of 1 expected terminator, it means file is corrupt)
+	 */
+	readed = tds_file_stream_read_raw(stream, stream->cbuf, term_len);
+	if (readed != term_len) {
+		if (readed == 0 && feof(stream->f))
+			return TDS_NO_MORE_RESULTS;
+		return TDS_FAIL;
+	}
+
+	return TDS_SUCCESS;
+}
+
+TDSRET tds_file_stream_seek_set(TDSFILESTREAM* stream, offset_type seek_to)
+{
+	fseeko(stream->f, seek_to, SEEK_SET);
+
+	/* TODO: maybe check for fseeko errors ? Original code didn't. */
+	return TDS_SUCCESS;
+}
+offset_type tds_file_stream_tell(TDSFILESTREAM* stream)
+{
+	/* Tried caching this to avoid overhead of system call, but it turns out we can't
+	 * do that accurately because hostfile is opened in text mode and will transparently
+	 * read \r\n as \n and so on. 
+	 *
+	 * Instead we will adjust it by the size of buffered data (not 100% accurate...)
+	 */
+	offset_type ret = ftello(stream->f);
+	if (ret > 0)
+		ret -= (stream->inlen - stream->inpos);
+	return ret;
 }
 
 /**
@@ -1487,49 +1585,35 @@ tds_file_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
  * \retval TDS_NO_MORE_RESULTS end of file detected
  */
 TDSRET
-tds_bcp_fread(TDSSOCKET * tds, TDSICONV * char_conv, FILE * stream, const char *terminator, size_t term_len, char **outbuf, size_t * outbytes)
+tds_bcp_fread(TDSSOCKET* tds, TDSICONV* char_conv, TDSFILESTREAM* stream,
+	const char* terminator, size_t term_len, char** outbuf, size_t* outbytes)
 {
 	TDSRET res;
-	TDSFILESTREAM r;
 	TDSDYNAMICSTREAM w;
-	size_t readed;
 
-	/* prepare streams */
-	r.stream.read = tds_file_stream_read;
-	r.f = stream;
-	r.term_len = term_len;
-	r.left = tds_new0(char, term_len*3);
-	r.left_pos = 0;
-	if (!r.left) return TDS_FAIL;
-
-	/* copy terminator twice, let terminator points to second copy */
-	memcpy(r.left + term_len, terminator, term_len);
-	memcpy(r.left + term_len*2u, terminator, term_len);
-	r.terminator = r.left + term_len*2u;
-
-	/* read initial buffer to test with terminator */
-	readed = fread(r.left, 1, term_len, stream);
-	if (readed != term_len) {
-		free(r.left);
-		if (readed == 0 && feof(stream))
-			return TDS_NO_MORE_RESULTS;
-		return TDS_FAIL;
-	}
-
-	res = tds_dynamic_stream_init(&w, (void**) outbuf, 0);
-	if (TDS_FAILED(res)) {
-		free(r.left);
+	/* Prepare input stream, returning TDS_NO_MORE_RESULTS if there
+	 * is not enough data in the stream for even one terminator -- this
+	 * indicates a clean end-of-file being reached, as opposed to
+	 * ending the file while looking for a terminator, which will generate
+	 * a TDS_FAIL from tds_copy_stream().
+	 */
+	res = tds_file_stream_use_terminator(stream, terminator, term_len);
+	if (res != TDS_SUCCESS)
 		return res;
-	}
+
+	/* prepare output streams */
+	TDS_PROPAGATE(tds_dynamic_stream_init(&w, (void**)outbuf, 0));
 
 	/* convert/copy from input stream to output one */
-	flockfile(stream);
+	flockfile(stream->f);
 	if (char_conv == NULL)
-		res = tds_copy_stream(&r.stream, &w.stream);
+		res = tds_copy_stream(&stream->stream, &w.stream);
 	else
-		res = tds_convert_stream(tds, char_conv, to_server, &r.stream, &w.stream);
-	funlockfile(stream);
-	free(r.left);
+		res = tds_convert_stream(tds, char_conv, to_server, &stream->stream, &w.stream);
+	funlockfile(stream->f);
+
+	/* Avoid any dangling pointers */
+	tds_file_stream_use_terminator(stream, NULL, 0);
 
 	TDS_PROPAGATE(res);
 
