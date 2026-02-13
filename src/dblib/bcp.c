@@ -1186,7 +1186,7 @@ _bcp_read_hostfile(DBPROCESS *dbproc, TDSFILESTREAM *stream, bool *row_error, bo
 		TDS_CHAR *coldata;
 		int collen = 0;
 		bool data_is_null = false;
-		offset_type col_start;
+		offset_type col_start = 0;
 
 		tdsdump_log(TDS_DBG_FUNC, "parsing host column %d\n", i + 1);
 		hostcol = dbproc->hostfileinfo->host_columns[i];
@@ -1270,8 +1270,10 @@ _bcp_read_hostfile(DBPROCESS *dbproc, TDSFILESTREAM *stream, bool *row_error, bo
 		if (is_fixed_type(hostcol->datatype))
 			collen = tds_get_size_by_type(hostcol->datatype);
 
+#if ENABLE_EXTRA_CHECKS
+		/* Expensive operation for a hot loop */
 		col_start = tds_file_stream_tell(stream);
-
+#endif
 		/*
 		 * The data file either contains prefixes stating the length, or is delimited.  
 		 * If delimited, we "measure" the field by looking for the terminator, then read it, 
@@ -1375,9 +1377,11 @@ _bcp_read_hostfile(DBPROCESS *dbproc, TDSFILESTREAM *stream, bool *row_error, bo
 				if (TDS_FAILED(rc)) {
 					hostcol->column_error = HOST_COL_CONV_ERROR;
 					*row_error = true;
-					tdsdump_log(TDS_DBG_FUNC, 
-						"_bcp_read_hostfile failed to convert %d bytes at offset 0x%" PRIx64 " in the data file.\n",
-						    collen, (TDS_INT8) col_start);
+					if (col_start == 0)
+						col_start = tds_file_stream_tell(stream) - collen;
+					tdsdump_log(TDS_DBG_FUNC,
+						    "_bcp_read_hostfile failed to convert %d bytes at offset about 0x%" PRIx64
+						    " in the data file.\n", collen, (TDS_INT8) col_start);
 				}
 
 				rtrim_bcpcol(bcpcol);
