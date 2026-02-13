@@ -156,6 +156,8 @@ TDSRET tds_dynamic_stream_init(TDSDYNAMICSTREAM * stream, void **ptr, size_t all
  * operation. This structure expects no other seek, read or write operations
  * are performed on the file pointer while it's active in this structure.
  */
+enum { TDSFILESTREAM_BLOCKSIZE = 512 };
+
 typedef struct tds_file_stream
 {
 	/** common fields, must be the first field */
@@ -174,6 +176,12 @@ typedef struct tds_file_stream
 	 */
 	char const* terminator;
 	size_t term_len;
+
+	/* Read buffering */
+	char inbuf[TDSFILESTREAM_BLOCKSIZE];
+	size_t inpos;
+	size_t inlen;
+
 } TDSFILESTREAM;
 
 TDSRET
