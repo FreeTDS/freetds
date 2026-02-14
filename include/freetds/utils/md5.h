@@ -25,6 +25,7 @@ typedef struct MD5Context MD5_CTX;
 #else
 
 #include <nettle/md5.h>
+#include <nettle/version.h>
 
 typedef struct md5_ctx MD5_CTX;
 
@@ -40,7 +41,11 @@ static inline void MD5Update(MD5_CTX *ctx, const uint8_t *buf, size_t len)
 
 static inline void MD5Final(MD5_CTX *ctx, uint8_t *digest)
 {
+#if defined(NETTLE_VERSION_MAJOR) && NETTLE_VERSION_MAJOR >= 4
+	nettle_md5_digest(ctx, digest);
+#else
 	nettle_md5_digest(ctx, 16, digest);
+#endif
 }
 
 #endif
