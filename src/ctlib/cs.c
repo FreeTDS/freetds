@@ -657,11 +657,11 @@ _cs_convert(CS_CONTEXT *ctx, const CS_DATAFMT_COMMON *srcfmt, CS_VOID *srcdata,
 			if (destfmt->scale == CS_SRC_VALUE)
 				scale = srcfmt->scale;
 			if (precision < 1 || precision > MAXPRECISION) {
-				_csclient_msg(ctx, "cs_convert", 2, 1, 1, 18, "%d, %s", maxlength, "precision");
+				_csclient_msg(ctx, "cs_convert", 2, 1, 1, 18, "%d, %s", precision, "precision");
 				return CS_FAIL;
 			}
 			if (scale < 0 || scale > precision) {
-				_csclient_msg(ctx, "cs_convert", 2, 1, 1, 18, "%d, %s", maxlength, "scale");
+				_csclient_msg(ctx, "cs_convert", 2, 1, 1, 18, "%d, %s", scale, "scale");
 				return CS_FAIL;
 			}
 			cr.n.precision = precision;

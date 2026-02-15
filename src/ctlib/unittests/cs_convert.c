@@ -12,6 +12,8 @@ static int allSuccess = 1;
 typedef const char *STR;
 
 static CS_INT dest_format = CS_FMT_UNUSED;
+static CS_INT dest_precision = 0;
+static CS_INT dest_scale = 0;
 
 static int
 DoTest(
@@ -40,6 +42,8 @@ DoTest(
 	destfmt.datatype = totype;
 	destfmt.maxlength = tomaxlen;
 	destfmt.format = dest_format;
+	destfmt.precision = dest_precision;
+	destfmt.scale = dest_scale;
 
 	memset(&srcfmt, 0, sizeof(srcfmt));
 	srcfmt.datatype = fromtype;
@@ -347,6 +351,45 @@ TEST_MAIN()
 		CS_VARBINARY test2; test2.len = 6; memset(test2.array, 23, 256); memcpy(test2.array, "abcdef", 6),
 		CS_CHAR_TYPE, test, 12, CS_VARBINARY_TYPE, 12, CS_SUCCEED, &test2, 258);
 	dest_format = CS_FMT_UNUSED;
+
+	dest_precision = 30;
+	dest_scale = 2;
+	{
+		CS_NUMERIC test = {
+			30, 2, {0, 0, 0, 1, 2, 3, 4}
+		};
+		DO_TEST(CS_CHAR test2[30] = "12184261810429657455001.60",
+			CS_NUMERIC_TYPE, &test, sizeof(test), CS_CHAR_TYPE, sizeof(test2), CS_SUCCEED, test2, 26);
+	}
+
+	{
+		CS_NUMERIC test2 = {
+			30, 2, {0, 0, 0, 1, 2, 3, 4}
+		};
+		DO_TEST(CS_CHAR test[] = "12184261810429657455001.60",
+			CS_CHAR_TYPE, test, sizeof(test) - 1, CS_NUMERIC_TYPE, sizeof(test2), CS_SUCCEED, &test2, 16);
+	}
+
+	dest_precision = 78;
+	{
+		CS_NUMERIC test2 = {
+			30, 2, {0, 0, 0, 1, 2, 3, 4}
+		};
+		DO_TEST(CS_CHAR test[] = "12184261810429657455001.60",
+			CS_CHAR_TYPE, test, sizeof(test) - 1, CS_NUMERIC_TYPE, sizeof(test2), CS_FAIL, &test2, 0);
+		check_last_message(CTMSG_CSLIB, 0x2010112, "An illegal value of 78 was placed in the precision field");
+	}
+
+	dest_precision = 30;
+	dest_scale = 31;
+	{
+		CS_NUMERIC test2 = {
+			30, 2, {0, 0, 0, 1, 2, 3, 4}
+		};
+		DO_TEST(CS_CHAR test[] = "12184261810429657455001.60",
+			CS_CHAR_TYPE, test, sizeof(test) - 1, CS_NUMERIC_TYPE, sizeof(test2), CS_FAIL, &test2, 0);
+		check_last_message(CTMSG_CSLIB, 0x2010112, "An illegal value of 31 was placed in the scale field");
+	}
 
 	check_call(ct_exit, (ctx, CS_UNUSED));
 	check_call(cs_ctx_drop, (ctx));
