@@ -518,6 +518,12 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 	tdsdump_log(TDS_DBG_FUNC, "cs_convert(%p, %p, %p, %p, %p, %p, %d)\n",
 		    ctx, srcfmt, srcdata, destfmt, destdata, resultlen, desttype);
 
+	/* If srcfmt is NULL we have a problem */
+	if (srcfmt == NULL) {
+		_csclient_msg(ctx, "cs_convert", 2, 1, 1, 4, "srcfmt");
+		return CS_FAIL;
+	}
+
 	/* If destfmt is NULL we have a problem */
 	if (destfmt == NULL) {
 		_csclient_msg(ctx, "cs_convert", 2, 1, 1, 4, "destfmt");
