@@ -579,6 +579,7 @@ test_cs_convert(void)
 		{-1, -1, false},
 	};
 	const format_test *p_format_test;
+	CS_NUMERIC num = { 1, 1, {0, 1,} };
 
 	CS_DATAFMT destfmt, srcfmt;
 
@@ -632,6 +633,37 @@ test_cs_convert(void)
 			check_last_message(CTMSG_CSLIB, 0x2010112, "was placed in the format field of the CS_DATAFMT structure");
 		}
 	}
+	destfmt.format = CS_FMT_UNUSED;
+	destfmt.maxlength = 0;
+	srcfmt.maxlength = 0;
+
+	/* test invalid scale/precision for numeric */
+	destfmt.datatype = CS_NUMERIC_TYPE;
+	destfmt.precision = 1;
+	check_call(cs_convert, (ctx, &srcfmt, &num, &destfmt, outbuf, &retlen));
+
+	destfmt.precision = 0;
+	check_fail(cs_convert, (ctx, &srcfmt, &num, &destfmt, outbuf, &retlen));
+	check_last_message(CTMSG_CSLIB, 0x2010112, "was placed in the precision field of the CS_DATAFMT structure");
+
+	destfmt.precision = 78;
+	check_fail(cs_convert, (ctx, &srcfmt, &num, &destfmt, outbuf, &retlen));
+	check_last_message(CTMSG_CSLIB, 0x2010112, "was placed in the precision field of the CS_DATAFMT structure");
+
+	destfmt.precision = 30;
+	destfmt.scale = -1;
+	check_fail(cs_convert, (ctx, &srcfmt, &num, &destfmt, outbuf, &retlen));
+	check_last_message(CTMSG_CSLIB, 0x2010112, "was placed in the scale field of the CS_DATAFMT structure");
+
+	destfmt.scale = 0;
+	check_call(cs_convert, (ctx, &srcfmt, &num, &destfmt, outbuf, &retlen));
+
+	destfmt.scale = 30;
+	check_call(cs_convert, (ctx, &srcfmt, &num, &destfmt, outbuf, &retlen));
+
+	destfmt.scale = 31;
+	check_fail(cs_convert, (ctx, &srcfmt, &num, &destfmt, outbuf, &retlen));
+	check_last_message(CTMSG_CSLIB, 0x2010112, "was placed in the scale field of the CS_DATAFMT structure");
 }
 
 static void

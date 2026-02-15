@@ -503,20 +503,71 @@ cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 	return CS_FAIL;
 }
 
-CS_RETCODE
-_cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdata,
-	    const CS_DATAFMT_COMMON * destfmt, CS_VOID * destdata, CS_INT * resultlen, TDS_SERVER_TYPE desttype)
+TDS_INT
+_cs_cs2tds(CS_CONTEXT *ctx, const CS_DATAFMT_COMMON *srcfmt, CS_VOID *srcdata, int desttype, CONV_RESULT *cres)
 {
 	TDS_SERVER_TYPE src_type;
-	int src_len, destlen, len;
-	CONV_RESULT cres;
-	unsigned char *dest;
-	CS_RETCODE ret;
-	CS_INT dummy, datatype;
-	CS_VARCHAR *destvc = NULL;
+	int src_len, len;
+	CS_INT datatype;
 
-	tdsdump_log(TDS_DBG_FUNC, "cs_convert(%p, %p, %p, %p, %p, %p, %d)\n",
-		    ctx, srcfmt, srcdata, destfmt, destdata, resultlen, desttype);
+	datatype = srcfmt->datatype;
+	src_type = _ct_get_server_type(NULL, datatype);
+	if (src_type == TDS_INVALID_TYPE)
+		return TDS_CONVERT_NOAVAIL;
+
+	src_len = srcfmt->maxlength;
+	if (datatype == CS_VARCHAR_TYPE || datatype == CS_VARBINARY_TYPE) {
+		CS_VARCHAR *vc = (CS_VARCHAR *) srcdata;
+
+		src_len = vc->len;
+		srcdata = vc->str;
+	}
+
+	tdsdump_log(TDS_DBG_FUNC, "converting type %d (%d bytes) to type = %d\n", src_type, src_len, desttype);
+
+	tdsdump_log(TDS_DBG_FUNC, "cs_convert() calling tds_convert\n");
+	len = tds_convert(ctx->tds_ctx, src_type, srcdata, src_len, desttype, cres);
+
+	tdsdump_log(TDS_DBG_FUNC, "cs_convert() tds_convert returned %d\n", len);
+
+	switch (len) {
+	case TDS_CONVERT_NOAVAIL:
+		break;
+	case TDS_CONVERT_SYNTAX:
+		_csclient_msg(ctx, "cs_convert", 2, 4, 1, 24, "");
+		break;
+	case TDS_CONVERT_NOMEM:
+		_csclient_msg(ctx, "cs_convert", 2, 4, 1, 3, "");
+		break;
+	case TDS_CONVERT_OVERFLOW:
+		_csclient_msg(ctx, "cs_convert", 2, 4, 1, 20, "");
+		break;
+	case TDS_CONVERT_FAIL:
+		/* TODO error reporting */
+		break;
+	}
+	return len;
+}
+
+static inline bool
+is_power_of_two_or_zero(CS_INT value)
+{
+	return (value & (value - 1)) == 0;
+}
+
+CS_RETCODE
+_cs_convert(CS_CONTEXT *ctx, const CS_DATAFMT_COMMON *srcfmt, CS_VOID *srcdata,
+	    const CS_DATAFMT_COMMON *destfmt, CS_VOID *destdata, CS_INT *resultlen)
+{
+	CONV_RESULT cr, *p_cr = &cr;
+	TDS_INT res;
+	CS_INT dummy, format;
+	CS_VARCHAR *destvc = NULL;
+	CS_RETCODE rc = CS_SUCCEED;
+	CS_INT maxlength = -1;
+	TDS_SERVER_TYPE desttype;
+
+	tdsdump_log(TDS_DBG_FUNC, "cs_convert(%p, %p, %p, %p, %p, %p)\n", ctx, srcfmt, srcdata, destfmt, destdata, resultlen);
 
 	/* If srcfmt is NULL we have a problem */
 	if (srcfmt == NULL) {
@@ -530,6 +581,8 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 		return CS_FAIL;
 	}
 
+	format = destfmt->format;
+
 	/* If destination is NULL we have a problem */
 	if (destdata == NULL) {
 		_csclient_msg(ctx, "cs_convert", 2, 1, 1, 4, "destdata");
@@ -537,7 +590,7 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 
 	}
 
-	if (resultlen == NULL) 
+	if (resultlen == NULL)
 		resultlen = &dummy;
 
 	/* If source is indicated to be NULL, set dest to low values */
@@ -549,368 +602,152 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 		return CS_SUCCEED;
 	}
 
-	datatype = srcfmt->datatype;
-	src_type = _ct_get_server_type(NULL, datatype);
-	if (src_type == TDS_INVALID_TYPE) {
-		_csclient_msg(ctx, "cs_convert", 2, 1, 1, 16, "%d, %d", srcfmt->datatype, destfmt->datatype);
-		return CS_FAIL;
-	}
-	src_len = srcfmt->maxlength;
-	if (datatype == CS_VARCHAR_TYPE || datatype == CS_VARBINARY_TYPE) {
-		CS_VARCHAR *vc = (CS_VARCHAR *) srcdata;
-		src_len = vc->len;
-		srcdata = vc->str;
-	}
-
-	datatype = destfmt->datatype;
-	if (desttype == TDS_INVALID_TYPE) {
-		desttype = _ct_get_server_type(NULL, datatype);
-		if (desttype == TDS_INVALID_TYPE) {
-			_csclient_msg(ctx, "cs_convert", 2, 1, 1, 16, "%d, %d",
-				      srcfmt->datatype, destfmt->datatype);
+	/* more or less from _ct_get_server_type */
+	switch (destfmt->datatype) {
+	case CS_VARCHAR_TYPE:
+		desttype = TDS_CONVERT_CHAR;
+		goto cs_var_common;
+	case CS_VARBINARY_TYPE:
+		desttype = TDS_CONVERT_BINARY;
+	      cs_var_common:
+		destvc = (CS_VARCHAR *) destdata;
+		cr.cc.c = destvc->str;
+		cr.cc.len = sizeof(destvc->str);
+		maxlength = sizeof(destvc->str);
+		format = CS_FMT_UNUSED;
+		break;
+	case CS_BINARY_TYPE:
+	case CS_IMAGE_TYPE:
+	case CS_LONGBINARY_TYPE:
+		desttype = TDS_CONVERT_BINARY;
+		if ((format & (~CS_FMT_PADNULL)) != 0) {
+			_csclient_msg(ctx, "cs_convert", 2, 1, 1, 18, "%d, %s", format, "format");
 			return CS_FAIL;
 		}
-	}
-	destlen = destfmt->maxlength;
-	if (datatype == CS_VARCHAR_TYPE || datatype == CS_VARBINARY_TYPE) {
-		destvc = (CS_VARCHAR *) destdata;
-		destlen  = sizeof(destvc->str);
-		destdata = destvc->str;
-	} else if (is_numeric_type(desttype)) {
-		destlen = sizeof(TDS_NUMERIC);
-	}
-
-	tdsdump_log(TDS_DBG_FUNC, "converting type %d (%d bytes) to type = %d (%d bytes)\n",
-		    src_type, src_len, desttype, destlen);
-
-	if (!is_fixed_type(desttype) && destlen < 0) {
-		_csclient_msg(ctx, "cs_convert", 2, 1, 1, 18, "%d, %s", destlen, "maxlength");
-		return CS_FAIL;
-	}
-
-	dest = (unsigned char *) destdata;
-
-	/* many times we are asked to convert a data type to itself */
-
-	if (src_type == desttype) {
-		int minlen = src_len < destlen? src_len : destlen;
-
-		tdsdump_log(TDS_DBG_FUNC, "cs_convert() srctype == desttype\n");
-		switch (desttype) {
-
-		case SYBLONGBINARY:
-		case SYBBINARY:
-		case SYBVARBINARY:
-		case SYBIMAGE:
-			memcpy(dest, srcdata, minlen);
-			*resultlen = minlen;
-
-			if (src_len > destlen) {
-				tdsdump_log(TDS_DBG_FUNC, "error: src_len > destlen\n");
-				_csclient_msg(ctx, "cs_convert", 2, 4, 1, 36, "");
-				ret = CS_FAIL;
-			} else {
-				switch (destfmt->format) {
-				case CS_FMT_PADNULL:
-					memset(dest + src_len, '\0', destlen - src_len);
-					*resultlen = destlen;
-					/* fall through */
-				case CS_FMT_UNUSED:
-					ret = CS_SUCCEED;
-					break;
-				default:
-					_csclient_msg(ctx, "cs_convert", 2, 1, 1, 18, "%d, %s", destfmt->format, "format");
-					ret = CS_FAIL;
-					break;
-				}
-			}
-			if (destvc) {
-				destvc->len = minlen;
-				*resultlen = sizeof(*destvc);
-			}
-			break;
-
-		case SYBCHAR:
-		case SYBVARCHAR:
-		case SYBTEXT:
-			tdsdump_log(TDS_DBG_FUNC, "cs_convert() desttype = character\n");
-
-			memcpy(dest, srcdata, minlen);
-			*resultlen = minlen;
-
-			if (src_len > destlen) {
-				tdsdump_log(TDS_DBG_FUNC, "error: src_len > destlen\n");
-				_csclient_msg(ctx, "cs_convert", 2, 4, 1, 36, "");
-				ret = CS_FAIL;
-			} else {
-				switch (destfmt->format) {
-				case CS_FMT_NULLTERM:
-					if (src_len == destlen) {
-						*resultlen = src_len;
-						tdsdump_log(TDS_DBG_FUNC, "error: no room for null terminator\n");
-						ret = CS_FAIL;
-					} else {
-						dest[src_len] = '\0';
-						*resultlen = src_len + 1;
-						ret = CS_SUCCEED;
-					}
-					break;
-
-				case CS_FMT_PADBLANK:
-					memset(dest + src_len, ' ', destlen - src_len);
-					*resultlen = destlen;
-					ret = CS_SUCCEED;
-					break;
-				case CS_FMT_PADNULL:
-					memset(dest + src_len, '\0', destlen - src_len);
-					*resultlen = destlen;
-					ret = CS_SUCCEED;
-					break;
-				case CS_FMT_UNUSED:
-					ret = CS_SUCCEED;
-					break;
-				default:
-					_csclient_msg(ctx, "cs_convert", 2, 1, 1, 18, "%d, %s", destfmt->format, "format");
-					ret = CS_FAIL;
-					break;
-				}
-			}
-			if (destvc) {
-				destvc->len = minlen;
-				*resultlen = sizeof(*destvc);
-			}
-			break;
-		case SYBINT1:
-		case SYBUINT1:
-		case SYBINT2:
-		case SYBUINT2:
-		case SYBINT4:
-		case SYBUINT4:
-		case SYBINT8:
-		case SYBUINT8:
-		case SYBFLT8:
-		case SYBREAL:
-		case SYBBIT:
-		case SYBMONEY:
-		case SYBMONEY4:
-		case SYBDATETIME:
-		case SYBDATETIME4:
-		case SYBTIME:
-		case SYBDATE:
-		case SYB5BIGDATETIME:
-		case SYB5BIGTIME:
-			*resultlen = tds_get_size_by_type(src_type);
-			if (*resultlen > 0)
-				memcpy(dest, srcdata, *resultlen);
-			ret = CS_SUCCEED;
-			break;
-
-		case SYBNUMERIC:
-		case SYBDECIMAL:
-			src_len = tds_numeric_bytes_per_prec[((TDS_NUMERIC *) srcdata)->precision] + 2;
-		case SYBBITN:
-		case SYBUNIQUE:
-			memcpy(dest, srcdata, minlen);
-			*resultlen = minlen;
-
-			if (src_len > destlen) {
-				tdsdump_log(TDS_DBG_FUNC, "error: src_len > destlen\n");
-				_csclient_msg(ctx, "cs_convert", 2, 4, 1, 36, "");
-				ret = CS_FAIL;
-			} else {
-				ret = CS_SUCCEED;
-			}
-			break;
-
-		default:
-			tdsdump_log(TDS_DBG_FUNC, "error: unrecognized type\n");
-			ret = CS_FAIL;
-			break;
+		goto cs_char_binary_common;
+	case CS_CHAR_TYPE:
+	case CS_TEXT_TYPE:
+	case CS_UNICHAR_TYPE:
+	case CS_LONGCHAR_TYPE:
+		desttype = TDS_CONVERT_CHAR;
+		if ((format & (~(CS_FMT_NULLTERM | CS_FMT_PADNULL | CS_FMT_PADBLANK))) != 0 || !is_power_of_two_or_zero(format)) {
+			_csclient_msg(ctx, "cs_convert", 2, 1, 1, 18, "%d, %s", format, "format");
+			return CS_FAIL;
 		}
-
-		tdsdump_log(TDS_DBG_FUNC, "cs_convert() returning  %s\n", cs_prretcode(ret));
-		return ret;
-
-	}
-
-	assert(src_type != desttype);
-	
-	/* set the output precision/scale for conversions to numeric type */
-	if (is_numeric_type(desttype)) {
-		cres.n.precision = destfmt->precision;
-		cres.n.scale = destfmt->scale;
-		if (destfmt->precision == CS_SRC_VALUE)
-			cres.n.precision = srcfmt->precision;
-		if (destfmt->scale == CS_SRC_VALUE)
-			cres.n.scale = srcfmt->scale;
-	}
-
-	tdsdump_log(TDS_DBG_FUNC, "cs_convert() calling tds_convert\n");
-	len = tds_convert(ctx->tds_ctx, src_type, srcdata, src_len, desttype, &cres);
-
-	tdsdump_log(TDS_DBG_FUNC, "cs_convert() tds_convert returned %d\n", len);
-
-	switch (len) {
-	case TDS_CONVERT_NOAVAIL:
-		_csclient_msg(ctx, "cs_convert", 2, 1, 1, 16, "%d, %d", src_type, desttype);
-		return CS_FAIL;
+	      cs_char_binary_common:
+		cr.cc.c = destdata;
+		cr.cc.len = destfmt->maxlength;
+		maxlength = destfmt->maxlength;
+		if (maxlength < 0) {
+			_csclient_msg(ctx, "cs_convert", 2, 1, 1, 18, "%d, %s", maxlength, "maxlength");
+			return CS_FAIL;
+		}
 		break;
-	case TDS_CONVERT_SYNTAX:
-		_csclient_msg(ctx, "cs_convert", 2, 4, 1, 24, "");
-		return CS_FAIL;
-		break;
-	case TDS_CONVERT_NOMEM:
-		_csclient_msg(ctx, "cs_convert", 2, 4, 1, 3, "");
-		return CS_FAIL;
-		break;
-	case TDS_CONVERT_OVERFLOW:
-		_csclient_msg(ctx, "cs_convert", 2, 4, 1, 20, "");
-		return CS_FAIL;
-		break;
-	case TDS_CONVERT_FAIL:
-		return CS_FAIL;
+	case CS_NUMERIC_TYPE:
+	case CS_DECIMAL_TYPE:
+		desttype = SYBNUMERIC;
+		format = CS_FMT_UNUSED;
+		{
+			/* set the output precision/scale for conversions to numeric type */
+			CS_INT precision = destfmt->precision;
+			CS_INT scale = destfmt->scale;
+
+			if (destfmt->precision == CS_SRC_VALUE)
+				precision = srcfmt->precision;
+			if (destfmt->scale == CS_SRC_VALUE)
+				scale = srcfmt->scale;
+			if (precision < 1 || precision > MAXPRECISION) {
+				_csclient_msg(ctx, "cs_convert", 2, 1, 1, 18, "%d, %s", maxlength, "precision");
+				return CS_FAIL;
+			}
+			if (scale < 0 || scale > precision) {
+				_csclient_msg(ctx, "cs_convert", 2, 1, 1, 18, "%d, %s", maxlength, "scale");
+				return CS_FAIL;
+			}
+			cr.n.precision = precision;
+			cr.n.scale = scale;
+		}
 		break;
 	default:
-		if (len < 0) {
+		desttype = _ct_get_server_type(NULL, destfmt->datatype);
+		if (desttype == TDS_INVALID_TYPE) {
+			_csclient_msg(ctx, "cs_convert", 2, 1, 1, 16, "%d, %d", srcfmt->datatype, destfmt->datatype);
 			return CS_FAIL;
 		}
+		p_cr = (CONV_RESULT *) destdata;
 		break;
 	}
 
-	switch (desttype) {
-	case SYBBINARY:
-	case SYBVARBINARY:
-	case SYBIMAGE:
-		ret = CS_SUCCEED;
-		if (len > destlen) {
-			tdsdump_log(TDS_DBG_FUNC, "error_handler: Data-conversion resulted in overflow\n");
-			_csclient_msg(ctx, "cs_convert", 2, 4, 1, 36, "");
-			ret = CS_FAIL;
-			len = destlen;
-		}
-		memcpy(dest, cres.ib, len);
-		free(cres.ib);
-		*resultlen = len;
-		if (destvc) {
-			destvc->len = len;
-			*resultlen = sizeof(*destvc);
-		} else if (destfmt->format == CS_FMT_PADNULL) {
-			*resultlen = destlen;
-			memset(dest + len, '\0', destlen - len);
-		} else if (destfmt->format != CS_FMT_UNUSED) {
-			_csclient_msg(ctx, "cs_convert", 2, 1, 1, 18, "%d, %s", destfmt->format, "format");
-			ret = CS_FAIL;
-		}
-		break;
-	case SYBBIT:
-	case SYBBITN:
-		/* fall trough, act same way of TINYINT */
-	case SYBINT1:
-	case SYBUINT1:
-	case SYBINT2:
-	case SYBUINT2:
-	case SYBINT4:
-	case SYBUINT4:
-	case SYBINT8:
-	case SYBUINT8:
-	case SYBFLT8:
-	case SYBREAL:
-	case SYBMONEY:
-	case SYBMONEY4:
-	case SYBDATETIME:
-	case SYBDATETIME4:
-	case SYBTIME:
-	case SYBDATE:
-	case SYBUNIQUE:
-	case SYB5BIGDATETIME:
-	case SYB5BIGTIME:
-		*resultlen = tds_get_size_by_type(desttype);
-		memcpy(dest, &(cres.ti), *resultlen);
-		ret = CS_SUCCEED;
-		break;
-	case SYBNUMERIC:
-	case SYBDECIMAL:
-		src_len = tds_numeric_bytes_per_prec[cres.n.precision] + 2;
-		memcpy(dest, &(cres.n), src_len);
-		*resultlen = src_len;
-		ret = CS_SUCCEED;
-		break;
-	case SYBMSTIME:
-	case SYBMSDATE:
-	case SYBMSDATETIME2:
-	case SYBMSDATETIMEOFFSET:
-		*resultlen = sizeof(TDS_DATETIMEALL);
-		memcpy(dest, &(cres.dta), *resultlen);
-		ret = CS_SUCCEED;
-		break;
-	case SYBCHAR:
-	case SYBVARCHAR:
-	case SYBTEXT:
-		ret = CS_SUCCEED;
-		if (len > destlen) {
+	res = _cs_cs2tds(ctx, srcfmt, srcdata, desttype, p_cr);
+	if (res < 0) {
+		/* other errors are already reported */
+		if (res == TDS_CONVERT_NOAVAIL)
+			_csclient_msg(ctx, "cs_convert", 2, 1, 1, 16, "%d, %d", srcfmt->datatype, destfmt->datatype);
+		return CS_FAIL;
+	}
+
+	if (maxlength >= 0) {
+		/* overflow check */
+		if (res > maxlength) {
 			tdsdump_log(TDS_DBG_FUNC, "Data-conversion resulted in overflow\n");
 			_csclient_msg(ctx, "cs_convert", 2, 4, 1, 36, "");
-			len = destlen;
-			ret = CS_FAIL;
+			res = maxlength;
+			rc = CS_FAIL;
 		}
-		switch (destfmt->format) {
 
+		/* padding */
+		switch (format) {
 		case CS_FMT_NULLTERM:
 			tdsdump_log(TDS_DBG_FUNC, "cs_convert() FMT_NULLTERM\n");
-			if (len == destlen) {
+			if (res == maxlength) {
 				tdsdump_log(TDS_DBG_FUNC, "not enough room for data + a null terminator - error\n");
-				ret = CS_FAIL;	/* not enough room for data + a null terminator - error */
+				_csclient_msg(ctx, "cs_convert", 2, 4, 1, 36, "");
+				rc = CS_FAIL;	/* not enough room for data + a null terminator - error */
 			} else {
-				memcpy(dest, cres.c, len);
-				dest[len] = 0;
-				*resultlen = len + 1;
+				cr.cc.c[res] = 0;
+				res++;
 			}
 			break;
-
 		case CS_FMT_PADBLANK:
 			tdsdump_log(TDS_DBG_FUNC, "cs_convert() FMT_PADBLANK\n");
-			/* strcpy here can lead to a small buffer overflow */
-			memcpy(dest, cres.c, len);
-			memset(dest + len, ' ', destlen - len);
-			*resultlen = destlen;
+			memset(cr.cc.c + res, ' ', maxlength - res);
+			res = maxlength;
 			break;
-
 		case CS_FMT_PADNULL:
 			tdsdump_log(TDS_DBG_FUNC, "cs_convert() FMT_PADNULL\n");
-			/* strcpy here can lead to a small buffer overflow */
-			memcpy(dest, cres.c, len);
-			memset(dest + len, '\0', destlen - len);
-			*resultlen = destlen;
+			memset(cr.cc.c + res, '\0', maxlength - res);
+			res = maxlength;
 			break;
 		case CS_FMT_UNUSED:
 			tdsdump_log(TDS_DBG_FUNC, "cs_convert() FMT_UNUSED\n");
-			memcpy(dest, cres.c, len);
-			*resultlen = len;
 			break;
 		default:
-			_csclient_msg(ctx, "cs_convert", 2, 1, 1, 18, "%d, %s", destfmt->format, "format");
-			ret = CS_FAIL;
+			rc = CS_FAIL;
 			break;
 		}
-		if (destvc) {
-			destvc->len = len;
-			*resultlen = sizeof(*destvc);
-		}
-		free(cres.c);
-		break;
-	default:
-		ret = CS_FAIL;
-		break;
 	}
-	tdsdump_log(TDS_DBG_FUNC, "cs_convert() returning  %s\n", cs_prretcode(ret));
-	return (ret);
+
+	/* fix varchar_type/varbinary_type */
+	if (destvc) {
+		destvc->len = TDS_MIN(res, sizeof(destvc->str));
+		res = sizeof(*destvc);
+	}
+
+	/* numeric */
+	if (desttype == SYBNUMERIC) {
+		res = tds_numeric_bytes_per_prec[cr.n.precision] + 2;
+		memcpy(destdata, &(cr.n), res);
+	}
+
+	*resultlen = res;
+	tdsdump_log(TDS_DBG_FUNC, "cs_convert() returning  %s\n", cs_prretcode(rc));
+	return rc;
 }
 
 CS_RETCODE
-cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT * destfmt, CS_VOID * destdata, CS_INT * resultlen)
+cs_convert(CS_CONTEXT *ctx, CS_DATAFMT *srcfmt, CS_VOID *srcdata, CS_DATAFMT *destfmt, CS_VOID *destdata, CS_INT *resultlen)
 {
-	return _cs_convert(ctx, _ct_datafmt_common(ctx, srcfmt), srcdata,
-			   _ct_datafmt_common(ctx, destfmt), destdata, resultlen, TDS_INVALID_TYPE);
+	return _cs_convert(ctx, _ct_datafmt_common(ctx, srcfmt), srcdata, _ct_datafmt_common(ctx, destfmt), destdata, resultlen);
 }
 
 CS_RETCODE

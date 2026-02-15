@@ -401,8 +401,9 @@ CS_INT _ct_get_string_length(const char *buf, CS_INT buflen);
 
 int _cs_convert_not_client(CS_CONTEXT *ctx, const TDSCOLUMN *curcol, CONV_RESULT *convert_buffer, unsigned char **p_src);
 
+TDS_INT _cs_cs2tds(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdata, int desttype, CONV_RESULT * cres);
 CS_RETCODE _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdata,
-	const CS_DATAFMT_COMMON * destfmt, CS_VOID * destdata, CS_INT * resultlen, TDS_SERVER_TYPE desttype);
+		       const CS_DATAFMT_COMMON * destfmt, CS_VOID * destdata, CS_INT * resultlen);
 bool _ct_is_large_identifiers_version(CS_INT version);
 const CS_DATAFMT_COMMON * _ct_datafmt_common(CS_CONTEXT * ctx, const CS_DATAFMT * datafmt);
 const CS_DATAFMT_LARGE *_ct_datafmt_conv_in(CS_CONTEXT * ctx, const CS_DATAFMT * datafmt, CS_DATAFMT_LARGE * fmtbuf);

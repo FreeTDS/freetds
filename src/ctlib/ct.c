@@ -2003,10 +2003,12 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 
 		destfmt.datatype = bindcol->column_bindtype;
 		destfmt.maxlength = bindcol->column_bindlen;
+		destfmt.precision = bindcol->column_prec;
+		destfmt.scale = bindcol->column_scale;
 		destfmt.format = bindcol->column_bindfmt;
 
 		/* if convert return FAIL mark error but process other columns */
-		ret = _cs_convert(ctx, &srcfmt, src, &destfmt, dest, pdatalen, TDS_INVALID_TYPE);
+		ret = _cs_convert(ctx, &srcfmt, src, &destfmt, dest, pdatalen);
 		if (ret != CS_SUCCEED) {
 			tdsdump_log(TDS_DBG_FUNC, "cs_convert-result = %d\n", ret);
 			result = 1;

@@ -633,13 +633,12 @@ _blk_null_error(TDSBCPINFO *bcpinfo, int index, int offset)
 static TDSRET
 _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 {
-	int result = 0;
 	bool null_column = false;
 	unsigned char *src = NULL;
 
 	CS_INT      srctype = 0;
 	CS_INT      srclen  = 0;
-	CS_INT      destlen  = 0;
+	TDS_INT     destlen  = 0;
 	CS_SMALLINT *nullind = NULL;
 	CS_INT      *datalen = NULL;
 	CS_BLKDESC *blkdesc = (CS_BLKDESC *) bulk;
@@ -709,34 +708,52 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 	}
 
 	if (!null_column) {
-		CS_DATAFMT_COMMON srcfmt, destfmt;
-		CS_INT desttype;
-		TDS_SERVER_TYPE tds_desttype = TDS_INVALID_TYPE;
+		CS_DATAFMT_COMMON srcfmt;
+		TDS_SERVER_TYPE desttype;
+		CONV_RESULT cres, *p_cres = &cres;
+		bool replace = false;
 
 		srcfmt.datatype = srctype;
 		srcfmt.maxlength = srclen;
 
-		desttype = _cs_convert_not_client(NULL, bindcol, NULL, NULL);
-		if (desttype == CS_ILLEGAL_TYPE)
-			desttype = _ct_get_client_type(bindcol, false);
-		else
-			tds_desttype = bindcol->column_type;
-		if (desttype == CS_ILLEGAL_TYPE)
-			return TDS_FAIL;
+		desttype = tds_get_conversion_type(bindcol->on_server.column_type, bindcol->on_server.column_size);
 
-		destfmt.datatype  = desttype;
-		destfmt.maxlength = bindcol->on_server.column_size;
-		destfmt.precision = bindcol->column_prec;
-		destfmt.scale     = bindcol->column_scale;
-		destfmt.format    = CS_FMT_UNUSED;
+		switch (desttype) {
+		case SYBCHAR:
+		case SYBVARCHAR:
+		case SYBTEXT:
+		case XSYBCHAR:
+		case XSYBVARCHAR:
+		case SYBBINARY:
+		case SYBVARBINARY:
+		case SYBIMAGE:
+		case XSYBBINARY:
+		case XSYBVARBINARY:
+		case SYBLONGBINARY:
+			replace = true;
+			break;
+		case SYBNUMERIC:
+		case SYBDECIMAL:
+			p_cres = (CONV_RESULT *) bindcol->bcp_column_data->data;
+			p_cres->n.precision = bindcol->column_prec;
+			p_cres->n.scale = bindcol->column_scale;
+			break;
+		default:
+			p_cres = (CONV_RESULT *) bindcol->bcp_column_data->data;
+			break;
+		}
 
 		/* if convert return FAIL mark error but process other columns */
-		result = _cs_convert(ctx, &srcfmt, (CS_VOID *) src,
-				     &destfmt, (CS_VOID *) bindcol->bcp_column_data->data, &destlen, tds_desttype);
-		if (result != CS_SUCCEED) {
-			tdsdump_log(TDS_DBG_ERROR, "conversion from srctype %d to desttype %d failed\n",
+		destlen = _cs_cs2tds(ctx, &srcfmt, src, desttype, p_cres);
+		if (destlen < 0) {
+			tdsdump_log(TDS_DBG_ERROR, "conversion from srctype %d to TDS type %d failed\n",
 				    srctype, desttype);
 			return TDS_FAIL;
+		}
+
+		if (replace) {
+			free(bindcol->bcp_column_data->data);
+			bindcol->bcp_column_data->data = (void *) cres.c;
 		}
 	}
 
