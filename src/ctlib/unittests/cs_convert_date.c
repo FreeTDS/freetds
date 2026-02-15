@@ -80,6 +80,7 @@ static const TEST tests[] = {
 	{0, NULL, NULL, NULL, NULL}
 };
 
+/* Test a single value conversion */
 static void
 single_value(CS_INT type, void *input, size_t input_size, const char *expected)
 {
@@ -115,6 +116,7 @@ single_value(CS_INT type, void *input, size_t input_size, const char *expected)
 	}
 }
 
+/* Test a single client date format */
 static void
 single_test(const TEST *test)
 {
