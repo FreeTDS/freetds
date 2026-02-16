@@ -1224,8 +1224,12 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool sk
 		if (bcpcol && hostcol->prefix_len == -1)
 			bcp_cache_prefix_len(hostcol, bcpcol);
 
+		/* A datafile column size of 0 indicates to always send NULL */
+		if (hostcol->column_len == 0)
+			data_is_null = true;
+
 		/* a prefix length, if extant, specifies how many bytes to read */
-		if (hostcol->prefix_len > 0) {
+		else if (hostcol->prefix_len > 0) {
 			union {
 				TDS_TINYINT ti;
 				TDS_SMALLINT si;
@@ -1254,11 +1258,9 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool sk
 				break;
 			}
 
-			/* TODO test all NULL types */
-			/* TODO for < -1 error */
+			/* Length prefix of -1 is used by MSSQL to encode null data in variable fields */
 			if (collen <= -1) {
 				data_is_null = true;
-				collen = 0;
 			}
 		}
 
@@ -1268,17 +1270,20 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool sk
 		else if (is_fixed_type(hostcol->datatype))
 			collen = tds_get_size_by_type(hostcol->datatype);
 
-		/* if (Max) column length specified take that into consideration. (Meaning what, exactly?) */
-		if (!data_is_null && hostcol->column_len >= 0) {
-			if (hostcol->column_len == 0)
-				data_is_null = true;
-			else if (collen)
-				collen = TDS_MIN(hostcol->column_len, collen);
-			else
-				collen = hostcol->column_len;
-		}
+		/* Variable column with no prefix -- might extend up to the column maximum */
+		else
+			collen = hostcol->column_len;
 
-		tdsdump_log(TDS_DBG_FUNC, "prefix_len = %d collen = %d \n", hostcol->prefix_len, collen);
+		/* note: at this point it is still possible collen = -1, for example VARCHAR
+		 * in a delimiated hostfile
+		 */
+
+		/* Don't read data for null values */
+		if (data_is_null)
+			collen = 0;
+
+		tdsdump_log(TDS_DBG_FUNC, "prefix_len = %d collen = %d column_len = %d\n",
+			hostcol->prefix_len, collen, hostcol->column_len);
 
 		col_start = ftello(hostfile);
 
