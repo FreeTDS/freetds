@@ -1320,7 +1320,10 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool sk
 							(i+1), (long) collen);
 				*row_error = true;
 				free(coldata);
-				dbperror(dbproc, SYBEBCOR, 0);
+				/* This case can include columns missing a terminator, and
+				 * wrong number of columns in the row, as well as the data not
+				 * being of valid form for the column type. */
+				dbperror(dbproc, SYBECSYN, 0);
 				return FAIL;
 			}
 
