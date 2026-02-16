@@ -900,7 +900,9 @@ tds_convert_uint8(const TDS_UINT8 *src, int desttype, CONV_RESULT * cr)
 static TDS_INT
 tds_convert_numeric(const TDS_NUMERIC * src, int desttype, CONV_RESULT * cr)
 {
-	char tmpstr[MAXPRECISION];
+	/* if the number has precision == scale == MAXPRECISION and it's negative a "-0." is prefixed
+	 * to the digits. Also account for terminator and possible invalid out of range number. */
+	char tmpstr[MAXPRECISION + 5];
 	TDS_INT i, ret;
 	TDS_UINT ui;
 	TDS_INT8 bi;
