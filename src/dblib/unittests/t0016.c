@@ -99,13 +99,74 @@ ignore_err_handler(DBPROCESS * dbproc TDS_UNUSED, int severity TDS_UNUSED, int d
 	return INT_CANCEL;
 }
 
+/* T0016 data files are all tab-delimited char columns, but we support omitting
+ * columns in order to simulate testing of BCP with a format file that omits
+ * columns (feature supported by ASE, but not MSSQL)
+ */
+static void
+format_columns(int table_cols, char* col_list)
+{
+	char const* seps = ", ";
+	int colnum = 1;	/* bcp_colfmt uses 1-based indexing */
+	RETCODE ret;
+	char const* tok = NULL;
+	int num_cols;
+
+	/* Count number of columns wanted */
+	if (col_list && col_list[0])
+	{
+		printf("Custom columns: %s\n", col_list);
+		num_cols = 0;
+		char* dup = strdup(col_list);
+		for (tok = strtok(dup, seps); tok; tok = strtok(NULL, seps))
+			++num_cols;
+		free(dup);
+
+		tok = strtok(col_list, seps);
+	}
+	else
+		num_cols = table_cols;
+
+	if ( num_cols == 0 )
+	{ 
+		failure("PARAM cols contained no valid items.\n");
+		return;
+	}
+
+	ret = bcp_columns(dbproc, num_cols);
+	if ( ret != SUCCEED )
+	{
+		failure("return from bcp_columns = %d\n", ret);
+		return;
+	}
+
+	for (colnum = 1; colnum <= num_cols; ++colnum)
+	{
+		int host_column;
+
+		if (tok)
+		{
+			host_column = atoi(tok);
+			if (host_column < 1 || host_column > table_cols)
+				failure("PARAM cols %d out of range (1-%d)\n", host_column, table_cols);
+			tok = strtok(NULL, seps);
+		}
+		else
+			host_column = colnum;
+
+		ret = bcp_colfmt(dbproc, host_column, SYBCHAR, 0, -1,
+			(BYTE*)(colnum == num_cols ? "\n" : "\t"), sizeof(char), colnum);
+
+		if (ret == FAIL)
+			failure("return from bcp_colfmt(%d,%d) = FAIL\n", host_column, colnum);
+	}
+}
 static char line1[1024*16];
 static char line2[1024*16];
 
 static void
 test_file(const char *fn)
 {
-	int i;
 	RETCODE ret;
 	int num_cols = 0;
 	const char *out_file = "t0016.out";
@@ -114,6 +175,8 @@ test_file(const char *fn)
 	unsigned num_rows = 2;
 	char table_name[64];
 	char hints[64];
+	char colin[64] = { 0 };
+	char colout[64] = { 0 };
 
 	FILE *input_file;
 
@@ -164,6 +227,12 @@ test_file(const char *fn)
 		} else if (strncmp(param, "hints ", 6) == 0) {
 			param += 6;
 			strlcpy(hints, param, sizeof(hints));
+		} else if (strncmp(param, "colin ", 6) == 0) {
+			param += 6;
+			strlcpy(colin, param, sizeof(colin));
+		} else if (strncmp(param, "colout ", 7) == 0) {
+			param += 7;
+			strlcpy(colout, param, sizeof(colout));
 		} else {
 			fprintf(stderr, "invalid parameter: %s\n", param);
 			exit(1);
@@ -202,7 +271,6 @@ test_file(const char *fn)
 	}
 
 	/* BCP in */
-
 	printf("bcp_init with in_file as '%s'\n", in_file);
 	ret = bcp_init(dbproc, table_name, in_file, (char*) err_file, DB_IN);
 	if (ret != SUCCEED)
@@ -213,19 +281,7 @@ test_file(const char *fn)
 
 	printf("return from bcp_init = %d\n", ret);
 
-	ret = bcp_columns(dbproc, num_cols);
-	if (ret != SUCCEED)
-		failure("bcp_columns failed\n");
-	printf("return from bcp_columns = %d\n", ret);
-
-	for (i = 1; i < num_cols; i++) {
-		if ((ret = bcp_colfmt(dbproc, i, SYBCHAR, 0, -1, (BYTE *) "\t", sizeof(char), i)) == FAIL)
-			failure("return from bcp_colfmt = %d\n", ret);
-	}
-
-	if ((ret = bcp_colfmt(dbproc, num_cols, SYBCHAR, 0, -1, (BYTE *) "\n", sizeof(char), num_cols)) == FAIL)
-		failure("return from bcp_colfmt = %d\n", ret);
-
+	format_columns(num_cols, colin);
 
 	ret = bcp_exec(dbproc, &rows_copied);
 	if (ret != SUCCEED || rows_copied != num_rows)
@@ -238,7 +294,7 @@ test_file(const char *fn)
 	rows_copied = 0;
 	ret = bcp_init(dbproc, table_name, (char *) out_file, (char *) err_file, DB_OUT);
 	if (ret != SUCCEED)
-		failure("bcp_int failed\n");
+		failure("bcp_init failed\n");
 
 	printf("select\n");
 	sql_cmd(dbproc);
@@ -250,15 +306,7 @@ test_file(const char *fn)
 			continue;
 	}
 
-	ret = bcp_columns(dbproc, num_cols);
-
-	for (i = 1; i < num_cols; i++) {
-		if ((ret = bcp_colfmt(dbproc, i, SYBCHAR, 0, -1, (BYTE *) "\t", sizeof(char), i)) == FAIL)
-			failure("return from bcp_colfmt = %d\n", ret);
-	}
-
-	if ((ret = bcp_colfmt(dbproc, num_cols, SYBCHAR, 0, -1, (BYTE *) "\n", sizeof(char), num_cols)) == FAIL)
-		failure("return from bcp_colfmt = %d\n", ret);
+	format_columns(num_cols, colout);
 
 	ret = bcp_exec(dbproc, &rows_copied);
 	if (ret != SUCCEED || rows_copied != num_rows)
