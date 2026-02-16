@@ -1,4 +1,4 @@
-create table #dblib0016 (f0 datetime2(3) not null)
+create table #dblib0016 (f0 datetime2(3) not null, f1 datetime2 not null)
 go
 select * from #dblib0016 where 0=1
 go
