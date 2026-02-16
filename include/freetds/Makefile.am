@@ -45,6 +45,7 @@ noinst_HEADERS = \
 
 DISTCLEANFILES = sysconfdir.h \
 	sysdep_types.h \
+	odbc_attributes_sorted \
 	$(NULL)
 
 sysconfdir.h: Makefile
