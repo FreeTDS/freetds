@@ -61,6 +61,13 @@ test -d "$DIR"
 cd "$DIR"
 echo "untar ok" >&3
 
+# test all t0016 test data files are included
+find src/dblib/unittests/ -maxdepth 1 -name t0016_\* | LANG=C sort > tar_list.tmp
+(cd .. && exec find src/dblib/unittests/ -maxdepth 1 -name t0016_\*) | LANG=C sort > source_list.tmp
+diff -u tar_list.tmp source_list.tmp
+rm -f tar_list.tmp source_list.tmp
+echo "t0016 data ok" >&3
+
 # assure you do not compile documentation again
 mkdir fakebin
 PATH="$PWD/fakebin:$PATH"
