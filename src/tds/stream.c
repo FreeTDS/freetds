@@ -375,3 +375,124 @@ tds_dynamic_stream_init(TDSDYNAMICSTREAM * stream, void **ptr, size_t allocated)
 }
 
 
+static int
+tds_fileout_stream_write(TDSOUTSTREAM *stream, size_t n)
+{
+	/* The meaning of this function is that the caller has placed "n" bytes
+	 * at the memory location stream->buffer, and they want that flushed
+	 * to the actual output.
+	 *
+	 * In the context of our buffered stream, this implies also writing
+	 * any earlier buffered data.
+	 */
+	size_t extent, n_written;
+
+	TDSFILEOUTSTREAM *s = (TDSFILEOUTSTREAM *) stream;
+
+	if (!s->fp)
+		return n;
+
+	/* Don't read off the end of buffer */
+	if (n > stream->buf_len)
+		n = stream->buf_len;
+
+	/* How much data to output (the buffered data and the new data) */
+	extent = (stream->buffer - s->block) + n;
+	if (extent == 0)
+		return 0;
+
+	n_written = fwrite(s->block, 1, extent, s->fp);
+
+	if (n_written == 0)
+		return -1;
+
+	if (n_written >= extent) {
+		/* All stored data written; full block available */
+		stream->buffer = s->block;
+		stream->buf_len = sizeof(s->block);
+	} else {
+		/* If they requested to not write the whole buffer for some reason,
+		 * or the write partially failed,  we'll have to keep the remaining
+		 * data buffered.
+		 */
+		extent -= n_written;
+		memmove(s->block, s->block + n_written, extent);
+		stream->buffer = s->block + extent;
+		stream->buf_len = sizeof(s->block) - extent;
+	}
+
+	/* Returning how many characters were written to the file, which might
+	 * be greater than n. (This seems compatible with how this function
+	 * is used at existing call sites). */
+	return n_written;
+}
+
+void
+tds_fileout_stream_init(TDSFILEOUTSTREAM *s, FILE *fp, int buff_mode)
+{
+	s->buff_mode = buff_mode;
+	s->fp = fp;
+	s->stream.write = tds_fileout_stream_write;
+	s->stream.buffer = s->block;
+	s->stream.buf_len = sizeof(s->block);
+}
+
+TDSRET
+tds_fileout_stream_flush(TDSFILEOUTSTREAM *s)
+{
+	return s->stream.write(&s->stream, 0) >= 0 ? TDS_SUCCESS : TDS_FAIL;
+}
+
+static TDSRET
+tds_fileout_stream_putbuf(TDSFILEOUTSTREAM *s, void const *src, size_t n)
+{
+	/* Optimization - If data fully fits in output buffer
+	 * we can bypass the stream copy method */
+	if (n <= s->stream.buf_len) {
+		memcpy(s->stream.buffer, src, n);
+		s->stream.buffer += n;
+		s->stream.buf_len -= n;
+		if (s->stream.buf_len == 0)
+			return tds_fileout_stream_flush(s);
+		return TDS_SUCCESS;
+	} else {
+		TDSSTATICINSTREAM is;
+
+		/* Copy all of the source data to the output */
+		tds_staticin_stream_init(&is, src, n);
+		return tds_copy_stream(&is.stream, &s->stream);
+	}
+}
+
+TDSRET
+tds_fileout_stream_put(TDSFILEOUTSTREAM *s, void const *src, size_t n)
+{
+	size_t len;
+
+	if (!s->fp || !n)
+		return TDS_SUCCESS;
+
+	if (s->buff_mode == _IONBF)
+		return fwrite(src, 1, n, s->fp) == n ? TDS_SUCCESS : TDS_FAIL;
+
+	if (s->buff_mode == _IOFBF)
+		return tds_fileout_stream_putbuf(s, src, n);
+
+	/* Otherwise, line buffered */
+
+	/* Flush everything up to the last new-line in the source */
+	for (len = n; len; --len)
+		if (((char const *) src)[len - 1] == '\n')
+			break;
+
+	if (len) {
+		TDS_PROPAGATE(tds_fileout_stream_putbuf(s, src, len));
+		TDS_PROPAGATE(tds_fileout_stream_flush(s));
+	}
+
+	/* Buffer any remaining partial line */
+	if (len == n)
+		return TDS_SUCCESS;
+
+	return tds_fileout_stream_putbuf(s, (char const *) src + len, n - len);
+}

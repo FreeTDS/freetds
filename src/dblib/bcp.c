@@ -44,6 +44,7 @@
 #include <freetds/iconv.h>
 #include <freetds/convert.h>
 #include <freetds/bytes.h>
+#include <freetds/stream.h>
 #include <freetds/utils/string.h>
 #include <freetds/encodings.h>
 #include <freetds/replacements.h>
@@ -855,7 +856,7 @@ bcp_cache_prefix_len(BCP_HOSTCOLINFO *hostcol, const TDSCOLUMN *curcol)
 }
 
 static RETCODE
-bcp_write_prefix(FILE *hostfile, BCP_HOSTCOLINFO *hostcol, TDSCOLUMN *curcol, int buflen)
+bcp_write_prefix(TDSFILEOUTSTREAM *hoststream, BCP_HOSTCOLINFO *hostcol, TDSCOLUMN *curcol, int buflen)
 {
 	union {
 		TDS_TINYINT ti;
@@ -882,10 +883,7 @@ bcp_write_prefix(FILE *hostfile, BCP_HOSTCOLINFO *hostcol, TDSCOLUMN *curcol, in
 		u.li = buflen;
 		break;
 	}
-	if (fwrite(&u, plen, 1, hostfile) == 1)
-		return SUCCEED;
-
-	return FAIL;
+	return TDS_SUCCEED(tds_fileout_stream_put(hoststream, &u, plen)) ? SUCCEED : FAIL;
 }
 
 /**
@@ -902,7 +900,8 @@ bcp_write_prefix(FILE *hostfile, BCP_HOSTCOLINFO *hostcol, TDSCOLUMN *curcol, in
 static RETCODE
 _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 {
-	FILE *hostfile = NULL;
+	TDSFILEOUTSTREAM hoststream;
+	FILE *hostfp = NULL;
 	TDS_UCHAR *data = NULL;
 	int i;
 
@@ -965,11 +964,11 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	 * TODO above we allocate many buffer just to convert and store
 	 * to file.. avoid all that passages...
 	 */
-
-	if (!(hostfile = fopen(dbproc->hostfileinfo->hostfile, "w"))) {
+	if (!(hostfp = fopen(dbproc->hostfileinfo->hostfile, "w"))) {
 		dbperror(dbproc, SYBEBCUO, errno);
 		goto Cleanup;
 	}
+	tds_fileout_stream_init(&hoststream, hostfp, _IOFBF);
 
 	/* fetch a row of data from the server */
 
@@ -1005,7 +1004,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 			}
 
 			/* The prefix */
-			if (bcp_write_prefix(hostfile, hostcol, curcol, buflen) != SUCCEED)
+			if (bcp_write_prefix(&hoststream, hostcol, curcol, buflen) != SUCCEED)
 				goto write_error;
 
 			/* The data */
@@ -1014,23 +1013,24 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 			}
 
 			if (buflen > 0) {
-				if (fwrite(data, buflen, 1, hostfile) != 1)
+				if (!TDS_SUCCEED(tds_fileout_stream_put(&hoststream, data, buflen)))
 					goto write_error;
 			}
 
 			/* The terminator */
 			if (hostcol->terminator && hostcol->term_len > 0) {
-				if (fwrite(hostcol->terminator, hostcol->term_len, 1, hostfile) != 1)
+				if (!TDS_SUCCEED(tds_fileout_stream_put(&hoststream, hostcol->terminator, hostcol->term_len)))
 					goto write_error;
 			}
 		}
 		rows_written++;
 	}
-	if (fclose(hostfile) != 0) {
+
+	if (TDS_FAILED(tds_fileout_stream_flush(&hoststream)) || fclose(hostfp) != 0) {
 		dbperror(dbproc, SYBEBCUC, errno);
 		goto Cleanup;
 	}
-	hostfile = NULL;
+	hostfp = NULL;
 
 	if (row_of_query + 1 < dbproc->hostfileinfo->firstrow) {
 		/*
@@ -1051,8 +1051,8 @@ write_error:
 	dbperror(dbproc, SYBEBCWE, errno);
 
 Cleanup:
-	if (hostfile)
-		fclose(hostfile);
+	if (hostfp)
+		fclose(hostfp);
 	free(data);
 	return FAIL;
 }
