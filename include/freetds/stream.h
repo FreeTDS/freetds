@@ -24,6 +24,8 @@
 #error Include tds.h first
 #endif
 
+#include <stdio.h>		/* FILE * */
+#include <freetds/iconv.h>	/* TDS_ICONV_DIRECTION */
 #include <freetds/pushvis.h>
 
 /** define a stream of data used for input */
@@ -50,6 +52,23 @@ typedef struct tds_output_stream {
 	char *buffer;
 	size_t buf_len;
 } TDSOUTSTREAM;
+
+/** Output stream that writes to file.
+ * Does not open/close fp; and fp can be NULL.
+ */
+typedef struct tds_fileout_stream {
+	TDSOUTSTREAM stream;
+	FILE* fp;
+	char block[512];
+	/** How to buffer the data -- _IONBF, _IOLBF or _IOFBF (default). 
+	 * In _IOLBF line will still be flushed on reaching block size. */
+	int buff_type;
+} TDSFILEOUTSTREAM;
+
+void tds_fileout_stream_init(TDSFILEOUTSTREAM* s, FILE* fp, int buff_type);
+
+TDSRET tds_fileout_stream_flush(TDSFILEOUTSTREAM* s);
+TDSRET tds_fileout_stream_put(TDSFILEOUTSTREAM* s, void const *src, size_t n);
 
 /** Convert a stream from istream to ostream using a specific conversion */
 TDSRET tds_convert_stream(TDSSOCKET * tds, TDSICONV * char_conv, TDS_ICONV_DIRECTION direction,
