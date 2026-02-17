@@ -1157,6 +1157,8 @@ tds5_read_bulk_defaults(TDSRESULTINFO *res_info, TDSBCPINFO *bcpinfo)
 	TDS5COLINFO *syb_info = bcpinfo->sybase_colinfo;
 	TDS5COLINFO *const syb_info_end = syb_info + bcpinfo->sybase_count;
 
+	tdsdump_log(TDS_DBG_INFO1, "Reading default value row.\n");
+
 	for (i = 0; i < res_info->num_cols; ++i, ++syb_info) {
 		TDSCOLUMN *col = res_info->columns[i];
 		TDS_UCHAR *src = col->column_data;
@@ -1175,7 +1177,10 @@ tds5_read_bulk_defaults(TDSRESULTINFO *res_info, TDSBCPINFO *bcpinfo)
 				break;
 			++syb_info;
 		}
-
+#if ENABLE_EXTRA_CHECKS
+		if (TDS_UNLIKELY(tds_write_dump))
+			tdsdump_col(col);
+#endif
 		syb_info->dflt_size = len;
 		if (TDS_RESIZE(syb_info->dflt_value, len))
 			memcpy(syb_info->dflt_value, src, len);
