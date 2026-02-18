@@ -56,6 +56,8 @@ int tds_append_mode = 0;
 static tds_dir_char *g_dump_filename = NULL;
 /** Tell if TDS debug logging is turned on or off */
 bool tds_write_dump = false;
+static bool dumpfile_fflush = false;
+
 /** List of threads excluded from logging, used to exclude some sensitive data */
 static TDSDUMP_OFF_ITEM *off_list;
 static FILE *g_dumpfile = NULL;	/* file pointer for dump log          */
@@ -176,6 +178,9 @@ tdsdump_open(const tds_dir_char *filename)
 
 	if (result)
 		tds_write_dump = true;
+
+	dumpfile_fflush = (getenv("TDSDUMP_FLUSH") != NULL);
+
 	tds_mutex_unlock(&g_dump_mutex);
 
 	if (result) {
@@ -400,7 +405,8 @@ tdsdump_dump_buf_impl(const char* file, unsigned int level_line, const char *msg
 	}
 	fputs("\n", dumpfile);
 
-	fflush(dumpfile);
+	if (dumpfile_fflush)
+		fflush(dumpfile);
 
 #ifndef TDS_HAVE_MUTEX
 	if (tds_append_mode) {
@@ -462,7 +468,8 @@ tdsdump_log_impl(const char* file, unsigned int level_line, const char *fmt, ...
 	vfprintf(dumpfile, fmt, ap);
 	va_end(ap);
 
-	fflush(dumpfile);
+	if (dumpfile_fflush)
+		fflush(dumpfile);
 
 #ifndef TDS_HAVE_MUTEX
 	if (tds_append_mode) {
