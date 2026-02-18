@@ -643,6 +643,83 @@ tds_convert_int8_numeric(unsigned char scale,
 	return tds_numeric_change_prec_scale(&(cr->n), orig_prec, orig_scale);
 }
 
+static const char DIG2[200] =
+"00010203040506070809"
+"10111213141516171819"
+"20212223242526272829"
+"30313233343536373839"
+"40414243444546474849"
+"50515253545556575859"
+"60616263646566676869"
+"70717273747576777879"
+"80818283848586878889"
+"90919293949596979899";
+
+static inline void tds02dfast(char out[2], int v)
+{
+	out[0] = DIG2[v * 2];
+	out[1] = DIG2[v * 2 + 1];
+}
+
+void tds_02dfast(char out[2], int v)
+{
+	tds02dfast(out, v);
+}
+
+/** Format an unsigned int32 right-justified on a char[10] buffer.
+ * Returns the amount of leading padding. */
+size_t tds_u32toafast_right(char out[10], uint32_t v)
+{
+	char* p = out + 10;
+
+	/* Fill buffer from the end so it comes out in the right order */
+	while (v >= 100u) {
+		uint32_t q = v / 100u;
+		uint32_t r = v - q * 100u;
+		p -= 2;
+		tds02dfast(p, r);
+		v = q;
+	}
+
+	if (v >= 10u)
+	{
+		p -= 2;
+		tds02dfast(p, v);
+	}
+	else if (v > 0u)
+		*--p = (char)('0' + v);
+
+	return p - out;
+}
+
+/* Returns number of digits written */
+size_t tds_u32toafast(char out[10], uint32_t v)
+{
+	char buf[10];
+	size_t pad;
+
+	/* Small case optimizations */
+	if (v < 10u) { *out = (char)('0' + v); return 1; }
+	if (v < 100u) { tds02dfast(out, v); return 2; }
+
+	pad = tds_u32toafast_right(buf, v);
+
+	memcpy(out, buf + pad, 10 - pad);
+	return 10 - pad;
+}
+
+size_t tds_i32toafast(char out[11], int32_t x)
+{
+	size_t sign_length = 0;
+	if (x < 0) {
+		*out++ = '-';
+		sign_length = 1;
+		if (TDS_LIKELY(x != (-2147483647 - 1)))
+			x = -x;
+	}
+	return tds_u32toafast(out, x) + sign_length;
+}
+
 static TDS_INT
 tds_convert_int(TDS_INT num, int desttype, CONV_RESULT * cr)
 {
@@ -651,7 +728,7 @@ tds_convert_int(TDS_INT num, int desttype, CONV_RESULT * cr)
 	switch (desttype) {
 	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
-		sprintf(tmp_str, "%d", num);
+		tmp_str[tds_i32toafast(tmp_str, num)] = 0;
 		return string_to_result(desttype, tmp_str, cr);
 		break;
 	case SYBSINT1:
@@ -3077,8 +3154,9 @@ two_digit(char *out, int num)
 		num = 1;
 	if (num > 31)
 		num = 31;
-	out[0] = num < 10 ? ' ' : num/10 + '0';
-	out[1] = num%10 + '0';
+	tds02dfast(out, num);
+	if (out[0] == '0')
+		out[0] = ' ';
 }
 
 /**
@@ -3123,7 +3201,7 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 #endif
 
 	/* more characters are required because we replace %z with up to 7 digits */
-	our_format = tds_new(char, strlen(format) + 1 + 5 + 1);
+	our_format = tds_new(char, strlen(format) + 7);		
 	if (!our_format)
 		return 0;
 
@@ -3178,9 +3256,16 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 
 			--pz;
 			if (prec || pz <= our_format || pz[-1] != '.') {
-				char buf[12];
-
-				sprintf(buf, "%010d", dr->decimicrosecond & 0x7fffffff);
+				char buf[10];
+				/* decimicrosecond should be a number from 0 to 9,999,999
+				 * (regardless of prec, which is just the requested
+				 * display precision). In case we are erroneously passed a
+				 * sign, discard the sign. If erroneously given a number
+				 * too big, discard leading digits.
+				 */
+				size_t pad = tds_u32toafast_right(buf, dr->decimicrosecond & 0x7fffffff);
+				if (pad > 3)
+					memset(buf + 3, '0', pad - 3);
 				memcpy(pz, buf + 3, prec);
 				strcpy(pz + prec, format + (pz - our_format) + z_opt_len);
 				pz += prec;
