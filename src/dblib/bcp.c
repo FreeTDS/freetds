@@ -621,7 +621,7 @@ bcp_gethostcolcount(DBPROCESS *dbproc)
 
 /** 
  * \ingroup dblib_bcp
- * \brief Set "hints" for uploading a file.  A FreeTDS-only function.  
+ * \brief Set bulk copy options.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param option symbolic constant indicating the option to be set, one of:
@@ -634,12 +634,12 @@ bcp_gethostcolcount(DBPROCESS *dbproc)
  * 		- \b TABLOCK Lock the table
  * 		- \b CHECK_CONSTRAINTS Apply constraints
  * 		- \b FIRE_TRIGGERS Fire any INSERT triggers on the target table
- * \param valuelen The strlen of \a value.  
+ * \param valuelen The length of \a value. Ignored for fixed-length option types.
  * 
  * \return SUCCEED or FAIL.
  * \sa 	bcp_control(), 
  * 	bcp_exec(), 
- * \todo Simplify.  Remove \a valuelen.
+ * \todo Simplify.
  */
 RETCODE
 bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen)
