@@ -63,6 +63,8 @@ static tds_mutex g_dump_mutex = TDS_MUTEX_INITIALIZER;
 
 static FILE* tdsdump_append(void);
 
+static bool g_dumpfile_fflush = false;
+
 #ifdef TDS_ATTRIBUTE_DESTRUCTOR
 static void __attribute__((destructor))
 tds_util_deinit(void)
@@ -176,6 +178,9 @@ tdsdump_open(const tds_dir_char *filename)
 
 	if (result)
 		tds_write_dump = true;
+
+	g_dumpfile_fflush = (getenv("TDSDUMP_FFLUSH") != NULL);
+
 	tds_mutex_unlock(&g_dump_mutex);
 
 	if (result) {
@@ -400,7 +405,8 @@ tdsdump_dump_buf_impl(const char* file, unsigned int level_line, const char *msg
 	}
 	fputs("\n", dumpfile);
 
-	fflush(dumpfile);
+	if ( g_dumpfile_fflush )
+		fflush(dumpfile);
 
 #ifndef TDS_HAVE_MUTEX
 	if (tds_append_mode) {
@@ -462,7 +468,8 @@ tdsdump_log_impl(const char* file, unsigned int level_line, const char *fmt, ...
 	vfprintf(dumpfile, fmt, ap);
 	va_end(ap);
 
-	fflush(dumpfile);
+	if (g_dumpfile_fflush)
+		fflush(dumpfile);
 
 #ifndef TDS_HAVE_MUTEX
 	if (tds_append_mode) {
