@@ -91,6 +91,14 @@ TDS_INT tds_convert(const TDSCONTEXT *context, int srctype, const void *src, TDS
 
 size_t tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * timeptr, int prec);
 
+/* Fast int to string (massively outperforms sprintf in hot loop).
+ * No null termination; returns number of characters read.
+ */
+size_t tds_u32toa_fast_right(char out[10], uint32_t v);
+size_t tds_u32toa_fast(char out[10], uint32_t v);
+size_t tds_i32toa_fast(char out[11], int32_t v);
+void tds_02d_fast(char out[2], int v);	/* v must be 0-99 (non negative) */
+
 #ifdef __cplusplus
 #if 0
 {
