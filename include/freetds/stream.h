@@ -60,7 +60,7 @@ typedef struct tds_fileout_stream
 {
 	TDSOUTSTREAM stream;
 	FILE *fp;
-	char block[512];
+	char block[4096];
 	/** How to buffer the data -- _IONBF, _IOLBF or _IOFBF (default).
 	 * In _IOLBF line will still be flushed on reaching block size. */
 	int buff_mode;
