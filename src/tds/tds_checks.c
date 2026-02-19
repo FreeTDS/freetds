@@ -351,6 +351,7 @@ tds_check_freeze_extra(const TDSFREEZE * freeze)
 			break; /* found */
 	}
 }
+#endif /* ENABLE_EXTRA_CHECKS */
 
 void
 tds_extra_assert_check(const char *fn, int line, int cond, const char *cond_str)
@@ -362,5 +363,3 @@ tds_extra_assert_check(const char *fn, int line, int cond, const char *cond_str)
 
 	abort();
 }
-
-#endif /* ENABLE_EXTRA_CHECKS */

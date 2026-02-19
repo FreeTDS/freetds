@@ -57,8 +57,8 @@ void tds_check_freeze_extra(const TDSFREEZE * freeze);
 #  define TDS_MARK_UNDEFINED(ptr, len) do {} while(0)
 #endif
 
+void tds_extra_assert_check(const char* fn, int line, int cond, const char* cond_str);
 #if ENABLE_EXTRA_CHECKS
-void tds_extra_assert_check(const char *fn, int line, int cond, const char *cond_str);
 #  define tds_extra_assert(cond) \
 	tds_extra_assert_check(__FILE__, __LINE__, cond, #cond)
 #else
