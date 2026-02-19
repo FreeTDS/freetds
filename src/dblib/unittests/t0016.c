@@ -115,9 +115,10 @@ format_columns(int table_cols, char* col_list)
 	/* Count number of columns wanted */
 	if (col_list && col_list[0])
 	{
+		char *dup;
 		printf("Custom columns: %s\n", col_list);
 		num_cols = 0;
-		char* dup = strdup(col_list);
+		dup = strdup(col_list);
 		for (tok = strtok(dup, seps); tok; tok = strtok(NULL, seps))
 			++num_cols;
 		free(dup);
