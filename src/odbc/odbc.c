@@ -1751,7 +1751,7 @@ odbc_SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 	tds_dstr_init(&dbc->attr.current_catalog);
 	dbc->attr.login_timeout = 0;	/* TODO */
 	dbc->attr.metadata_id = SQL_FALSE;
-	dbc->attr.odbc_cursors = SQL_CUR_USE_IF_NEEDED;
+	dbc->attr.odbc_cursors = SQL_CUR_USE_DRIVER;
 	dbc->attr.packet_size = 0;
 	dbc->attr.quite_mode = NULL;	/* We don't support GUI dialogs yet */
 #ifdef TDS_NO_DM
