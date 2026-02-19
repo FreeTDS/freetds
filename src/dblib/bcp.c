@@ -41,6 +41,7 @@
 #endif
 
 #include <freetds/tds.h>
+#include <freetds/checks.h>
 #include <freetds/iconv.h>
 #include <freetds/convert.h>
 #include <freetds/bytes.h>
@@ -52,6 +53,8 @@
 #include <sybdb.h>
 #include <syberror.h>
 #include <dblib.h>
+
+#define BCP_DEFAULT_DATEFMT "%Y-%m-%d %H:%M:%S.%z"
 
 #define HOST_COL_CONV_ERROR 1
 #define HOST_COL_NULL_ERROR 2
@@ -86,6 +89,7 @@ static int rtrim_u16(uint16_t *str, int len, uint16_t space);
 static STATUS _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool skip);
 static int _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci);
 static int _bcp_get_term_var(const BYTE * pdata, const BYTE * term, int term_len);
+static int _bcp_strftime(TDS_UCHAR* buf, size_t maxsize, const char* format, const TDSDATEREC* dr, int prec);
 
 /*
  * "If a host file is being used ... the default data formats are as follows:
@@ -776,8 +780,7 @@ _bcp_convert_out(DBPROCESS * dbproc, TDSCOLUMN *curcol, BCP_HOSTCOLINFO *hostcol
 		int prec = curcol->column_prec ? curcol->column_prec : 3;
 
 		tds_datecrack(srctype, src, &when);
-		buflen = (int)tds_strftime((TDS_CHAR*)(*p_data), 256,
-			bcpdatefmt, &when, prec);
+		buflen = _bcp_strftime(*p_data, 256, bcpdatefmt, &when, prec);
 	} else if (srclen == 0 && is_variable_type(curcol->column_type)
 		   && is_ascii_type(hostcol->datatype)) {
 		/*
@@ -926,9 +929,13 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	tds = dbproc->tds_socket;
 	assert(tds);
 
+	/* See if they want a BCP date format different from the default.
+	 * The ASE bcp client does use the locale for bcp out; but all bcp clients
+	 * appear to successfully read this format for input, regardless of locale.
+	 */
 	bcpdatefmt = getenv("FREEBCP_DATEFMT");
-	if (!bcpdatefmt)
-		bcpdatefmt = "%Y-%m-%d %H:%M:%S.%z";
+	if (bcpdatefmt && !strcmp(bcpdatefmt, BCP_DEFAULT_DATEFMT))
+		bcpdatefmt = NULL;
 
 	if (dbproc->bcpinfo->direction == DB_QUERYOUT ) {
 		if (TDS_FAILED(tds_submit_query(tds, tds_dstr_cstr(&dbproc->bcpinfo->tablename))))
@@ -2431,3 +2438,59 @@ _bcp_free_storage(DBPROCESS * dbproc)
 	dbproc->bcpinfo = NULL;
 }
 
+/** Fast strftime for default bcp format */
+static int _bcp_strftime(TDS_UCHAR* buf, size_t maxsize, const char* format, const TDSDATEREC* dr, int prec)
+{
+	char* cbuf = (char*)buf;
+
+	if (format)
+		return (int)tds_strftime(cbuf, maxsize, format, dr, prec);
+
+	cbuf += tds_u32toafast(cbuf, dr->year);
+
+	*cbuf++ = '-';
+	tds_02dfast(cbuf, dr->month + 1);
+	cbuf += 2;
+
+	*cbuf++ = '-';
+	tds_02dfast(cbuf, dr->day);
+	cbuf += 2;
+
+	*cbuf++ = ' ';
+	tds_02dfast(cbuf, dr->hour);
+	cbuf += 2;
+
+	*cbuf++ = ':';
+	tds_02dfast(cbuf, dr->minute);
+	cbuf += 2;
+
+	*cbuf++ = ':';
+	tds_02dfast(cbuf, dr->second);
+	cbuf += 2;
+
+	if (prec > 0)
+	{
+		char ibuf[10];
+		*cbuf++ = '.';
+
+		/* Mask off a negative sign (input should not contain this anyway) */
+		memset(ibuf, '0', tds_u32toafast_right(ibuf, dr->decimicrosecond & 0x7FFFFFFF));
+		/* Skip first 3 digits here, as decimicrosecond should not exceed 9,999,999 */
+		memcpy(cbuf, ibuf + 3, prec);
+		cbuf += prec;
+	}
+	*cbuf = '\0';
+
+#if ENABLE_EXTRA_CHECKS
+	{
+		char tbuf[256];
+		tds_strftime(tbuf, sizeof tbuf, BCP_DEFAULT_DATEFMT, dr, prec);
+		if (strcmp(tbuf, (char*)buf))
+		{
+			fprintf(stderr, "_bcp_strftime(%s) does not match tds_strftime(%s)\n", tbuf, (char *)buf);
+			tds_extra_assert(!"_bcp_strftime mismatch");
+		}
+	}
+#endif
+	return (int)(cbuf - (char*)buf);
+}
