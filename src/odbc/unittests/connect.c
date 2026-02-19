@@ -151,6 +151,12 @@ main(void)
 		odbc_disconnect();
 	}
 
+	/* test invalid string, it should not leak memory */
+	init_connect();
+	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;test={unfinished", odbc_server, odbc_user, odbc_password, odbc_database);
+	CHKDriverConnect(NULL, T(tmp), SQL_NTS, (SQLTCHAR *) tmp, sizeof(tmp) / sizeof(SQLTCHAR), &len, SQL_DRIVER_NOPROMPT, "E");
+	odbc_disconnect();
+
 	/* at least one should success.. */
 	if (succeeded < 3) {
 		ODBC_REPORT_ERROR("Too few successes");

@@ -621,6 +621,7 @@ ODBC_FUNC(SQLDriverConnect, (P(SQLHDBC,hdbc), P(SQLHWND,hwnd), PCHARIN(ConnStrIn
 	/* parse the DSN string */
 	if (!odbc_parse_connect_string(&dbc->errs, tds_dstr_buf(&conn_str), tds_dstr_buf(&conn_str) + tds_dstr_len(&conn_str),
 				       login, params)) {
+		tds_free_login(login);
 		tds_dstr_free(&conn_str);
 		ODBC_EXIT_(dbc);
 	}
