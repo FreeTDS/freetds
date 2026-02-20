@@ -259,6 +259,7 @@ TEST_MAIN()
 	odbc_disconnect();
 
 	odbc_use_version3 = true;
+	odbc_conn_additional_params = "ClientCharset=UTF-8;";
 	odbc_connect();
 
 	/* test error from SQLGetData */
@@ -346,6 +347,43 @@ TEST_MAIN()
 		}
 
 		CHKGetData(1, SQL_C_BINARY, buf, 1, NULL, "No");
+	}
+
+	odbc_reset_statement();
+
+	/* test splitting UTF-8 from mssql 2019 */
+	if (odbc_driver_is_freetds() && odbc_db_is_microsoft() && odbc_db_version_int() >= 0x0f000000u
+	    && odbc_tds_version() >= 0x704) {
+		void *buf;
+
+		type = SQL_C_CHAR;
+
+		odbc_command("SELECT CONVERT(VARCHAR(100), CONVERT(NVARCHAR(10), 0xc200c300c4003200) "
+			     "COLLATE Latin1_General_100_CI_AI_SC_UTF8)");
+
+		CHKFetch("S");
+
+		buf = ODBC_GET(4);
+		len = 1234;
+		CHKGetData(1, type, buf, 4, &len, "SI");
+
+		if (len != 7) {
+			fprintf(stderr, "Wrong len returned, returned %ld\n", (long) len);
+			return 1;
+		}
+
+		buf = ODBC_GET(10);
+		len = 1234;
+		CHKGetData(1, type, buf, 10, &len, "SI");
+
+		if (len != 4) {
+			fprintf(stderr, "Wrong len returned, returned %ld\n", (long) len);
+			return 1;
+		}
+
+		CHKGetData(1, type, buf, lc, NULL, "No");
+		odbc_reset_statement();
+		ODBC_FREE();
 	}
 
 	odbc_disconnect();
