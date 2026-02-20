@@ -4,6 +4,12 @@
 #include "common.h"
 #include <assert.h>
 
+/**
+ * Test various errors from SQLGetData
+ * @param data    string to return from server
+ * @param c_type  destination SQL C type
+ * @param state   expected SQL state
+ */
 static void
 test_err(const char *data, int c_type, const char *state)
 {
@@ -48,6 +54,10 @@ mycmp(const char *s1, const char *s2)
 	return memcmp(s1, buf, l * lc + lc);
 }
 
+/**
+ * Test returning a string and splitting into multiple parts using SQLGetData
+ * @param n_flag  Either "" or "N" to test Nxxx or xxx types (ie NVARCHAR/VARCHAR).
+ */
 static void
 test_split(const char *n_flag)
 {
@@ -63,7 +73,6 @@ test_split(const char *n_flag)
 	const char *collate = "";
 	SQLLEN len;
 
-	/* TODO test with VARCHAR too */
 	if (odbc_db_is_microsoft())
 		collate = " COLLATE Latin1_General_CI_AS";
 	sql = odbc_buf_asprintf(&odbc_buf, "SELECT CONVERT(%sTEXT,'Prova'%s + REPLICATE('x',500))%s", n_flag, collate, collate);
