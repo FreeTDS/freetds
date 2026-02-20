@@ -45,20 +45,16 @@ compute_len_char(void)
 static int
 mycmp(const char *s1, const char *s2)
 {
-	SQLWCHAR buf[128], *wp;
-	size_t l;
-
-	if (type == SQL_C_CHAR)
-		return strcmp(s1, s2);
+	size_t i, l;
 
 	l = strlen(s2);
-	assert(l < TDS_VECTOR_SIZE(buf));
-	wp = buf;
-	do {
-		*wp++ = *s2;
-	} while (*s2++);
+	for (i = 0; i <= l; ++i) {
+		SQLWCHAR wc = (type == SQL_C_CHAR) ? s1[i] : ((const SQLWCHAR *) s1)[i];
 
-	return memcmp(s1, buf, l * lc + lc);
+		if (s2[i] != wc)
+			return 1;
+	}
+	return 0;
 }
 
 /**
