@@ -32,8 +32,15 @@ test_err(const char *data, int c_type, const char *state)
 	odbc_reset_statement();
 }
 
-static int lc;
 static int type;
+
+static inline int
+compute_len_char(void)
+{
+	return type == SQL_C_CHAR ? 1 : (int) sizeof(SQLWCHAR);
+}
+
+#define lc compute_len_char()
 
 static int
 mycmp(const char *s1, const char *s2)
@@ -150,20 +157,16 @@ TEST_MAIN()
 
 	odbc_connect();
 
-	lc = 1;
 	type = SQL_C_CHAR;
 	test_split("");
 
-	lc = sizeof(SQLWCHAR);
 	type = SQL_C_WCHAR;
 	test_split("");
 
 	if (odbc_db_is_microsoft() && odbc_db_version_int() >= 0x07000000u) {
-		lc = 1;
 		type = SQL_C_CHAR;
 		test_split("N");
 
-		lc = sizeof(SQLWCHAR);
 		type = SQL_C_WCHAR;
 		test_split("N");
 	}
@@ -286,7 +289,6 @@ TEST_MAIN()
 
 	/* test for empty string from mssql */
 	if (odbc_db_is_microsoft()) {
-		lc = 1;
 		type = SQL_C_CHAR;
 
 		for (;;) {
@@ -328,7 +330,6 @@ TEST_MAIN()
 
 			if (type != SQL_C_CHAR)
 				break;
-			lc = sizeof(SQLWCHAR);
 			type = SQL_C_WCHAR;
 		}	
 
