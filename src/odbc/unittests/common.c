@@ -432,17 +432,40 @@ odbc_tds_version_long(void)
 	}
 	CHKDescribeCol(1, NULL, 0, NULL, &type, &prec, &scale, &nullable, "S");
 	odbc_reset_statement();
-	if (scale == 4)
+	if (scale == 0 && type == SQL_WVARCHAR) {
+		ODBC_FREE();
+		return 0x702;
+	}
+	if (scale != 4) {
+		fprintf(stderr, "Strange scale returned trying to detect protocol version\n");
+		odbc_disconnect();
+		ODBC_FREE();
+		exit(1);
+	}
+
+	/* select convert(varchar(10), 'hi' collate Latin1_General_100_CI_AI_SC_UTF8) ->
+	 * NVARCHAR('hi') is 7.3 else 7.4, at least from MSSQL 2019 */
+	ret = CHKExecDirect(T("select convert(varchar(10), 'hi' collate Latin1_General_100_CI_AI_SC_UTF8)"), SQL_NTS, "SE");
+	if (ret == SQL_ERROR) {
+		odbc_reset_statement();
+		ODBC_FREE();
 		return 0x703;
-	if (scale != 0 || type != SQL_WVARCHAR) {
-		fprintf(stderr, "Strange type or scale returned trying to detect protocol version\n");
+	}
+	CHKDescribeCol(1, NULL, 0, NULL, &type, &prec, &scale, &nullable, "S");
+	odbc_reset_statement();
+	if (type == SQL_WVARCHAR) {
+		ODBC_FREE();
+		return 0x703;
+	}
+	if (type != SQL_VARCHAR) {
+		fprintf(stderr, "Strange type returned trying to detect protocol version\n");
 		odbc_disconnect();
 		ODBC_FREE();
 		exit(1);
 	}
 
 	ODBC_FREE();
-	return 0x702;
+	return 0x704;
 }
 
 int
