@@ -114,9 +114,11 @@ odbc_read_login_info(void)
 		return 0;
 #ifdef __VMS
 	{
-	    /* A hard-coded driver path has to be in unix syntax to be recognized as such. */
-	    const char *unixspec = decc$translate_vms(path);
-	    if ( (int)unixspec != 0 && (int)unixspec != -1 ) strcpy(path, unixspec);
+		/* A hard-coded driver path has to be in unix syntax to be recognized as such. */
+		const char *unixspec = decc$translate_vms(path);
+
+		if ((int) unixspec != 0 && (int) unixspec != -1)
+			strcpy(path, unixspec);
 	}
 #endif
 	len = strlen(path);
