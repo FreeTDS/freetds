@@ -61,7 +61,7 @@ if test $HEADER = yes; then
 	VER="$(gcc --version 2> /dev/null | grep -iw gcc)"
 	log "INFO GCC $VER"
 	log "INFO UNAME $(uname -a)"
-	log "INFO DATE $(date '+%Y-%m-%d  %H-%M')"
+	log "INFO DATE $(date '+%Y-%m-%d  %H:%M')"
 fi
 
 MAKE=make
