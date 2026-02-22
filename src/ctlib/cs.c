@@ -556,7 +556,9 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 		return CS_FAIL;
 	}
 	src_len = srcfmt->maxlength;
-	if (datatype == CS_VARCHAR_TYPE || datatype == CS_VARBINARY_TYPE) {
+	if (datatype == CS_VARCHAR_TYPE ||
+	    datatype == CS_NVARCHAR_TYPE ||
+	    datatype == CS_VARBINARY_TYPE) {
 		CS_VARCHAR *vc = (CS_VARCHAR *) srcdata;
 		src_len = vc->len;
 		srcdata = vc->str;
@@ -572,7 +574,9 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 		}
 	}
 	destlen = destfmt->maxlength;
-	if (datatype == CS_VARCHAR_TYPE || datatype == CS_VARBINARY_TYPE) {
+	if (datatype == CS_VARCHAR_TYPE ||
+	    datatype == CS_NVARCHAR_TYPE ||
+	    datatype == CS_VARBINARY_TYPE) {
 		destvc = (CS_VARCHAR *) destdata;
 		destlen  = sizeof(destvc->str);
 		destdata = destvc->str;
@@ -633,6 +637,8 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 		case SYBCHAR:
 		case SYBVARCHAR:
 		case SYBTEXT:
+		case SYBNVARCHAR:
+		case SYBNTEXT:
 			tdsdump_log(TDS_DBG_FUNC, "cs_convert() desttype = character\n");
 
 			memcpy(dest, srcdata, minlen);
@@ -846,6 +852,8 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 	case SYBCHAR:
 	case SYBVARCHAR:
 	case SYBTEXT:
+	case SYBNVARCHAR:
+	case SYBNTEXT:
 		ret = CS_SUCCEED;
 		if (len > destlen) {
 			tdsdump_log(TDS_DBG_FUNC, "Data-conversion resulted in overflow\n");
