@@ -297,7 +297,7 @@ TEST_MAIN()
 	DO_TEST(CS_CHAR test[] = "616263646566";
 		CS_CHAR test2[] = "abc", CS_CHAR_TYPE, test, 12, CS_BINARY_TYPE, 3, CS_FAIL, test2, 3);
 	DO_TEST(CS_CHAR test[] = "hello";
-		CS_CHAR test2[] = "abc", CS_CHAR_TYPE, test, 12, CS_BINARY_TYPE, 10, CS_FAIL, test2, 0);
+		CS_CHAR test2[] = "abc", CS_CHAR_TYPE, test, 5, CS_BINARY_TYPE, 10, CS_FAIL, test2, 0);
 
 	/* to char */
 	DO_TEST(CS_INT test = 1234567;

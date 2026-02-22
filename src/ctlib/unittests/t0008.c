@@ -16,17 +16,14 @@ TEST_MAIN()
 	CS_DATAFMT srcfmt;
 	CS_INT src = 32768;
 	CS_DATAFMT dstfmt;
-	CS_SMALLINT dst;
+	CS_DATETIME dst;
 
 	printf("%s: Testing context callbacks\n", __FILE__);
 	srcfmt.datatype = CS_INT_TYPE;
 	srcfmt.maxlength = sizeof(CS_INT);
 	srcfmt.locale = NULL;
-#if 0
-	dstfmt.datatype = CS_SMALLINT_TYPE;
-#else
+
 	dstfmt.datatype = CS_DATETIME_TYPE;
-#endif
 	dstfmt.maxlength = sizeof(CS_SMALLINT);
 	dstfmt.locale = NULL;
 
