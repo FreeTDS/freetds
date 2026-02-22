@@ -898,11 +898,15 @@ tds_convert_uint8(const TDS_UINT8 *src, int desttype, CONV_RESULT * cr)
 }
 
 static TDS_INT
-tds_convert_numeric(const TDS_NUMERIC * src, int desttype, CONV_RESULT * cr)
+tds_convert_numeric(const TDS_NUMERIC *src, int desttype, CONV_RESULT *cr)
 {
-	/* if the number has precision == scale == MAXPRECISION and it's negative a "-0." is prefixed
-	 * to the digits. Also account for terminator and possible invalid out of range number. */
-	char tmpstr[MAXPRECISION + 5];
+	union
+	{
+		/* if the number has precision == scale == MAXPRECISION and it's negative a "-0." is prefixed
+		 * to the digits. Also account for terminator and possible invalid out of range number. */
+		char tmpstr[MAXPRECISION + 5];
+		TDS_NUMERIC num;
+	} u;
 	TDS_INT i, ret;
 	TDS_UINT ui;
 	TDS_INT8 bi;
@@ -910,112 +914,112 @@ tds_convert_numeric(const TDS_NUMERIC * src, int desttype, CONV_RESULT * cr)
 	switch (desttype) {
 	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
-		if (tds_numeric_to_string(src, tmpstr) < 0)
+		if (tds_numeric_to_string(src, u.tmpstr) < 0)
 			return TDS_CONVERT_FAIL;
-		return string_to_result(desttype, tmpstr, cr);
+		return string_to_result(desttype, u.tmpstr, cr);
 		break;
 	case SYBSINT1:
-		cr->n = *src;
-		ret = tds_numeric_change_prec_scale(&(cr->n), 3, 0);
+		u.num = *src;
+		ret = tds_numeric_change_prec_scale(&u.num, 3, 0);
 		if (ret < 0)
 			return ret;
-		if (cr->n.array[1])
+		if (u.num.array[1])
 			return TDS_CONVERT_OVERFLOW;
-		i = cr->n.array[2];
-		if (cr->n.array[0])
+		i = u.num.array[2];
+		if (u.num.array[0])
 			i = -i;
-		if (i != 0 && ((i >> 7) ^ cr->n.array[0]) & 1)
+		if (i != 0 && ((i >> 7) ^ u.num.array[0]) & 1)
 			return TDS_CONVERT_OVERFLOW;
 		cr->ti = (TDS_TINYINT) i;
 		return sizeof(TDS_TINYINT);
 		break;
 	case SYBINT1:
 	case SYBUINT1:
-		cr->n = *src;
-		ret = tds_numeric_change_prec_scale(&(cr->n), 3, 0);
+		u.num = *src;
+		ret = tds_numeric_change_prec_scale(&(u.num), 3, 0);
 		if (ret < 0)
 			return ret;
-		if (cr->n.array[1] || (cr->n.array[0] && cr->n.array[2]))
+		if (u.num.array[1] || (u.num.array[0] && u.num.array[2]))
 			return TDS_CONVERT_OVERFLOW;
-		cr->ti = cr->n.array[2];
+		cr->ti = u.num.array[2];
 		return sizeof(TDS_TINYINT);
 		break;
 	case SYBINT2:
-		cr->n = *src;
-		ret = tds_numeric_change_prec_scale(&(cr->n), 5, 0);
+		u.num = *src;
+		ret = tds_numeric_change_prec_scale(&(u.num), 5, 0);
 		if (ret < 0)
 			return ret;
-		if (cr->n.array[1])
+		if (u.num.array[1])
 			return TDS_CONVERT_OVERFLOW;
-		i = TDS_GET_UA2BE(&(cr->n.array[2]));
-		if (cr->n.array[0])
+		i = TDS_GET_UA2BE(&(u.num.array[2]));
+		if (u.num.array[0])
 			i = -i;
-		if (i != 0 && ((i >> 15) ^ cr->n.array[0]) & 1)
+		if (i != 0 && ((i >> 15) ^ u.num.array[0]) & 1)
 			return TDS_CONVERT_OVERFLOW;
 		cr->si = (TDS_SMALLINT) i;
 		return sizeof(TDS_SMALLINT);
 		break;
 	case SYBUINT2:
-		cr->n = *src;
-		ret = tds_numeric_change_prec_scale(&(cr->n), 5, 0);
+		u.num = *src;
+		ret = tds_numeric_change_prec_scale(&(u.num), 5, 0);
 		if (ret < 0)
 			return ret;
-		i = TDS_GET_UA2BE(&(cr->n.array[2]));
-		if ((i != 0 && cr->n.array[0]) || cr->n.array[1])
+		i = TDS_GET_UA2BE(&(u.num.array[2]));
+		if ((i != 0 && u.num.array[0]) || u.num.array[1])
 			return TDS_CONVERT_OVERFLOW;
 		cr->usi = (TDS_USMALLINT) i;
 		return sizeof(TDS_USMALLINT);
 		break;
 	case SYBINT4:
-		cr->n = *src;
-		ret = tds_numeric_change_prec_scale(&(cr->n), 10, 0);
+		u.num = *src;
+		ret = tds_numeric_change_prec_scale(&(u.num), 10, 0);
 		if (ret < 0)
 			return ret;
-		if (cr->n.array[1])
+		if (u.num.array[1])
 			return TDS_CONVERT_OVERFLOW;
-		i = (TDS_INT) TDS_GET_UA4BE(&(cr->n.array[2]));
-		if (cr->n.array[0])
+		i = (TDS_INT) TDS_GET_UA4BE(&(u.num.array[2]));
+		if (u.num.array[0])
 			i = -i;
-		if (i != 0 && ((i >> 31) ^ cr->n.array[0]) & 1)
+		if (i != 0 && ((i >> 31) ^ u.num.array[0]) & 1)
 			return TDS_CONVERT_OVERFLOW;
 		cr->i = i;
 		return sizeof(TDS_INT);
 		break;
 	case SYBUINT4:
-		cr->n = *src;
-		ret = tds_numeric_change_prec_scale(&(cr->n), 10, 0);
+		u.num = *src;
+		ret = tds_numeric_change_prec_scale(&(u.num), 10, 0);
 		if (ret < 0)
 			return ret;
-		ui = TDS_GET_UA4BE(&(cr->n.array[2]));
-		if ((ui != 0 && cr->n.array[0]) || cr->n.array[1])
+		ui = TDS_GET_UA4BE(&(u.num.array[2]));
+		if ((ui != 0 && u.num.array[0]) || u.num.array[1])
 			return TDS_CONVERT_OVERFLOW;
 		cr->ui = ui;
 		return sizeof(TDS_UINT);
 		break;
 	case SYBINT8:
-		cr->n = *src;
-		ret = tds_numeric_change_prec_scale(&(cr->n), 20, 0);
+		u.num = *src;
+		ret = tds_numeric_change_prec_scale(&(u.num), 20, 0);
 		if (ret < 0)
 			return ret;
-		if (cr->n.array[1])
+		if (u.num.array[1])
 			return TDS_CONVERT_OVERFLOW;
-		bi = TDS_GET_UA4BE(&(cr->n.array[2]));
-		bi = (bi << 32) + TDS_GET_UA4BE(&(cr->n.array[6]));
-		if (cr->n.array[0])
+		bi = TDS_GET_UA4BE(&(u.num.array[2]));
+		bi = (bi << 32) + TDS_GET_UA4BE(&(u.num.array[6]));
+		if (u.num.array[0])
 			bi = -bi;
-		if (bi != 0 && ((bi >> 63) ^ cr->n.array[0]) & 1)
+		if (bi != 0 && ((bi >> 63) ^ u.num.array[0]) & 1)
 			return TDS_CONVERT_OVERFLOW;
 		cr->bi = bi;
 		return sizeof(TDS_INT8);
 		break;
 	case SYBUINT8:
-		cr->n = *src;
-		ret = tds_numeric_change_prec_scale(&(cr->n), 20, 0);
+		u.num = *src;
+		ret = tds_numeric_change_prec_scale(&(u.num), 20, 0);
 		if (ret < 0)
 			return ret;
-		bi = TDS_GET_UA4BE(&(cr->n.array[2]));
-		bi = (bi << 32) + TDS_GET_UA4BE(&(cr->n.array[6]));
-		if ((bi != 0 && cr->n.array[0]) || cr->n.array[1])
+		bi = TDS_GET_UA4BE(&(u.num.array[2]));
+		bi = (bi << 32) + TDS_GET_UA4BE(&(u.num.array[6]));
+		if ((bi != 0 && u.num.array[0]) || u.num.array[1])
 			return TDS_CONVERT_OVERFLOW;
 		cr->ubi = bi;
 		return sizeof(TDS_UINT8);
@@ -1031,32 +1035,32 @@ tds_convert_numeric(const TDS_NUMERIC * src, int desttype, CONV_RESULT * cr)
 		return sizeof(TDS_TINYINT);
 		break;
 	case SYBMONEY4:
-		cr->n = *src;
-		ret = tds_numeric_change_prec_scale(&(cr->n), 10, 4);
+		u.num = *src;
+		ret = tds_numeric_change_prec_scale(&(u.num), 10, 4);
 		if (ret < 0)
 			return ret;
-		if (cr->n.array[1])
+		if (u.num.array[1])
 			return TDS_CONVERT_OVERFLOW;
-		i = (TDS_INT) TDS_GET_UA4BE(&(cr->n.array[2]));
-		if (cr->n.array[0])
+		i = (TDS_INT) TDS_GET_UA4BE(&(u.num.array[2]));
+		if (u.num.array[0])
 			i = -i;
-		if (i != 0 && ((i >> 31) ^ cr->n.array[0]) & 1)
+		if (i != 0 && ((i >> 31) ^ u.num.array[0]) & 1)
 			return TDS_CONVERT_OVERFLOW;
 		cr->m4.mny4 = i;
 		return sizeof(TDS_MONEY4);
 		break;
 	case SYBMONEY:
-		cr->n = *src;
-		ret = tds_numeric_change_prec_scale(&(cr->n), 20, 4);
+		u.num = *src;
+		ret = tds_numeric_change_prec_scale(&(u.num), 20, 4);
 		if (ret < 0)
 			return ret;
-		if (cr->n.array[1])
+		if (u.num.array[1])
 			return TDS_CONVERT_OVERFLOW;
-		bi = TDS_GET_UA4BE(&(cr->n.array[2]));
-		bi = (bi << 32) + TDS_GET_UA4BE(&(cr->n.array[6]));
-		if (cr->n.array[0])
+		bi = TDS_GET_UA4BE(&(u.num.array[2]));
+		bi = (bi << 32) + TDS_GET_UA4BE(&(u.num.array[6]));
+		if (u.num.array[0])
 			bi = -bi;
-		if (bi != 0 && ((bi >> 63) ^ cr->n.array[0]) & 1)
+		if (bi != 0 && ((bi >> 63) ^ u.num.array[0]) & 1)
 			return TDS_CONVERT_OVERFLOW;
 		cr->m.mny = bi;
 		return sizeof(TDS_MONEY);
@@ -1065,20 +1069,21 @@ tds_convert_numeric(const TDS_NUMERIC * src, int desttype, CONV_RESULT * cr)
 	case SYBDECIMAL:
 		{
 			unsigned char prec = cr->n.precision, scale = cr->n.scale;
+
 			cr->n = *src;
 			return tds_numeric_change_prec_scale(&(cr->n), prec, scale);
 		}
 		break;
 	case SYBFLT8:
-		if (tds_numeric_to_string(src, tmpstr) < 0)
+		if (tds_numeric_to_string(src, u.tmpstr) < 0)
 			return TDS_CONVERT_FAIL;
-		cr->f = atof(tmpstr);
+		cr->f = atof(u.tmpstr);
 		return 8;
 		break;
 	case SYBREAL:
-		if (tds_numeric_to_string(src, tmpstr) < 0)
+		if (tds_numeric_to_string(src, u.tmpstr) < 0)
 			return TDS_CONVERT_FAIL;
-		cr->r = (TDS_REAL) atof(tmpstr);
+		cr->r = (TDS_REAL) atof(u.tmpstr);
 		return 4;
 		break;
 		/* conversions not allowed */
@@ -1955,20 +1960,27 @@ tds_convert_to_binary(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int de
 
 /**
  * tds_convert
- * convert a type to another.
- * If you convert to SYBDECIMAL/SYBNUMERIC you MUST initialize precision 
- * and scale of cr.
+ * converts a type to another.
+ * @p srctype and @p desttype should be SYB* TDS types, or, in case of @p desttype you can use
+ * TDS_CONVERT_CHAR/TDS_CONVERT_BINARY. Nullable types are not supported, use tds_get_conversion_type
+ * to get a not-nullable type.
+ *
+ * If you convert to SYBDECIMAL/SYBNUMERIC you MUST initialize precision and scale of cr->n.
+ *
+ * In case of fixed type you can pass directly the pointer to the value.
+ *
  * Do not expect strings to be zero terminated. Databases support zero inside
  * string. Using strlen may result on data loss or even a segmentation fault.
  * Instead, use memcpy to copy destination using length returned.
- * This function does not handle NULL, srclen should be >0.  Client libraries handle NULLs each in their own way. 
+ *
+ * This function does not handle NULL, @p srclen should be >0.  Client libraries handle NULLs each in their own way.
  * @param tds_ctx  context (used in conversion to data and to return messages)
  * @param srctype  type of source
  * @param src      pointer to source data to convert
  * @param srclen   length in bytes of source (not counting terminator or strings)
  * @param desttype type of destination
  * @param cr       structure to hold result
- * @return length of result or TDS_CONVERT_* failure code on failure. All TDS_CONVERT_* constants are <0.
+ * @return length of result or TDS_CONVERT_* failure code on failure. All TDS_CONVERT_* error constants are <0.
  */
 TDS_INT
 tds_convert(const TDSCONTEXT *tds_ctx, int srctype, const void *src, TDS_UINT srclen, int desttype, CONV_RESULT *cr)
@@ -2072,7 +2084,7 @@ tds_convert(const TDSCONTEXT *tds_ctx, int srctype, const void *src, TDS_UINT sr
 	case SYBNTEXT:
 	case SYBMSTABLE:
 	default:
-		return TDS_CONVERT_NOAVAIL;
+		length = TDS_CONVERT_NOAVAIL;
 		break;
 	}
 
