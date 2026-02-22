@@ -619,6 +619,7 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 					ret = CS_SUCCEED;
 					break;
 				default:
+					_csclient_msg(ctx, "cs_convert", 2, 1, 1, 18, "%d, %s", destfmt->format, "format");
 					ret = CS_FAIL;
 					break;
 				}
@@ -669,7 +670,7 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 					ret = CS_SUCCEED;
 					break;
 				default:
-					tdsdump_log(TDS_DBG_FUNC, "no destination format specified!\n");
+					_csclient_msg(ctx, "cs_convert", 2, 1, 1, 18, "%d, %s", destfmt->format, "format");
 					ret = CS_FAIL;
 					break;
 				}
@@ -796,6 +797,9 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 		} else if (destfmt->format == CS_FMT_PADNULL) {
 			*resultlen = destlen;
 			memset(dest + len, '\0', destlen - len);
+		} else if (destfmt->format != CS_FMT_UNUSED) {
+			_csclient_msg(ctx, "cs_convert", 2, 1, 1, 18, "%d, %s", destfmt->format, "format");
+			ret = CS_FAIL;
 		}
 		break;
 	case SYBBIT:
@@ -884,6 +888,7 @@ _cs_convert(CS_CONTEXT * ctx, const CS_DATAFMT_COMMON * srcfmt, CS_VOID * srcdat
 			*resultlen = len;
 			break;
 		default:
+			_csclient_msg(ctx, "cs_convert", 2, 1, 1, 18, "%d, %s", destfmt->format, "format");
 			ret = CS_FAIL;
 			break;
 		}

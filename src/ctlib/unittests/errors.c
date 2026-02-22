@@ -546,9 +546,42 @@ static void
 test_cs_convert(void)
 {
 	CS_INT retlen;
-	char outbuf[32];
+	char outbuf[64];
+	typedef struct format_test
+	{
+		CS_INT datatype;
+		CS_INT format;
+		bool success;
+	} format_test;
+
+	static const format_test format_tests[] = {
+		{CS_CHAR_TYPE, CS_FMT_UNUSED, true},
+		{CS_CHAR_TYPE, CS_FMT_NULLTERM, true},
+		{CS_CHAR_TYPE, CS_FMT_PADNULL, true},
+		{CS_CHAR_TYPE, CS_FMT_PADBLANK, true},
+		{CS_CHAR_TYPE, CS_FMT_JUSTIFY_RT, false},
+		{CS_CHAR_TYPE, CS_FMT_STRIPBLANKS, false},
+#if 0
+		/* supported by Sybase, not FreeTDS currently */
+		{CS_CHAR_TYPE, CS_FMT_SAFESTR, true},
+		{CS_CHAR_TYPE, CS_FMT_SUBS_ILL_CHAR, true},
+#endif
+
+		{CS_BINARY_TYPE, CS_FMT_UNUSED, true},
+		{CS_BINARY_TYPE, CS_FMT_NULLTERM, false},
+		{CS_BINARY_TYPE, CS_FMT_PADNULL, true},
+		{CS_BINARY_TYPE, CS_FMT_PADBLANK, false},
+		{CS_BINARY_TYPE, CS_FMT_JUSTIFY_RT, false},
+		{CS_BINARY_TYPE, CS_FMT_STRIPBLANKS, false},
+		{CS_BINARY_TYPE, CS_FMT_SAFESTR, false},
+		{CS_BINARY_TYPE, CS_FMT_SUBS_ILL_CHAR, false},
+
+		{-1, -1, false},
+	};
+	const format_test *p_format_test;
 
 	CS_DATAFMT destfmt, srcfmt;
+
 	memset(&srcfmt, 0, sizeof(srcfmt));
 	memset(&destfmt, 0, sizeof(destfmt));
 
@@ -585,6 +618,20 @@ test_cs_convert(void)
 	check_last_message(CTMSG_CSLIB, 0x2010112,
 			   "An illegal value of -1 was placed in the maxlength field of the CS_DATAFMT structure");
 	destfmt.maxlength = 0;
+
+	/* invalid formats */
+	for (p_format_test = format_tests; p_format_test->datatype >= 0; ++p_format_test) {
+		destfmt.datatype = p_format_test->datatype;
+		destfmt.format = p_format_test->format;
+		destfmt.maxlength = 20;
+		srcfmt.maxlength = 4;
+		if (p_format_test->success) {
+			check_call(cs_convert, (ctx, &srcfmt, "3234", &destfmt, outbuf, &retlen));
+		} else {
+			check_fail(cs_convert, (ctx, &srcfmt, "3234", &destfmt, outbuf, &retlen));
+			check_last_message(CTMSG_CSLIB, 0x2010112, "was placed in the format field of the CS_DATAFMT structure");
+		}
+	}
 }
 
 static void
