@@ -39,7 +39,7 @@ Makefile.in
 /test-driver
 # VMS intermediate files
 *.OLB
-/descrip.mms
+/*.mms
 /openssl.opt
 /src/utils/UTIL_NET.C
 /src/replacements/libiconv.c

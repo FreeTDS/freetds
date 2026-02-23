@@ -133,90 +133,23 @@ $ close vmsconfigtmp
 $ @vmsconfigtmp.com
 $ delete/noconfirm/nolog vmsconfigtmp.com;
 $!
-$! Generate descrip.mms from template
+$! Options for descrip.mms
 $!
-$ if d_asprintf .eqs. "1" 
-$ then
-$   asprintfobj = " "
-$ else
-$   asprintfobj = "[.src.replacements]asprintf$(OBJ),"
-$ endif
-$!
-$ if d_vasprintf .eqs. "1" 
-$ then
-$   vasprintfobj = " "
-$ else
-$   vasprintfobj = "[.src.replacements]vasprintf$(OBJ),"
-$ endif
-$!
-$ if d_strtok_r .eqs. "1" 
-$ then
-$   strtok_robj = " "
-$ else
-$   strtok_robj = "[.src.replacements]strtok_r$(OBJ),"
-$ endif
-$!
-$ if d_have_iconv .eqs. "1" 
-$ then
-$   libiconvobj = " "
-$ else
-$   libiconvobj = "[.src.replacements]libiconv$(OBJ),"
-$   copy/noconfirm/nolog [.src.replacements]iconv.c [.src.replacements]libiconv.c
-$ endif
-$!
-$ if d_snprintf .eqs. "1" 
-$ then
-$   snprintfobj = " "
-$ else
-$   snprintfobj = "[.src.replacements]snprintf$(OBJ),"
-$ endif
-$!
-$ if d_socketpair .eqs. "1"
-$ then
-$   socketpairobj = " "
-$ else
-$   socketpairobj = "[.src.replacements]socketpair$(OBJ),"
-$ endif
-$!
-$ if P1 .eqs. "--disable-thread-safe"
-$ then
-$   enable_thread_safe = " "
-$ else
-$   enable_thread_safe = "ENABLE_THREAD_SAFE = 1"
-$ endif
-$!
-$ open/write vmsconfigtmp vmsconfigtmp.com
-$ write vmsconfigtmp "$ define/user_mode/nolog SYS$OUTPUT _NLA0:"
-$ write vmsconfigtmp "$ edit/tpu/nodisplay/noinitialization -"
-$ write vmsconfigtmp "/section=sys$library:eve$section.tpu$section -"
-$ write vmsconfigtmp "/command=sys$input/output=[]descrip.mms [.vms]descrip_mms.template"
-$ write vmsconfigtmp "input_file := GET_INFO (COMMAND_LINE, ""file_name"");"
-$ write vmsconfigtmp "main_buffer:= CREATE_BUFFER (""main"", input_file);"
-$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
-$ write vmsconfigtmp "eve_global_replace(""@ASPRINTFOBJ@"",""''asprintfobj'"");"
-$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
-$ write vmsconfigtmp "eve_global_replace(""@VASPRINTFOBJ@"",""''vasprintfobj'"");"
-$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
-$ write vmsconfigtmp "eve_global_replace(""@STRTOK_ROBJ@"",""''strtok_robj'"");"
-$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
-$ write vmsconfigtmp "eve_global_replace(""@LIBICONVOBJ@"",""''libiconvobj'"");"
-$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
-$ write vmsconfigtmp "eve_global_replace(""@SNPRINTFOBJ@"",""''snprintfobj'"");"
-$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
-$ write vmsconfigtmp "eve_global_replace(""@SOCKETPAIROBJ@"",""''socketpairobj'"");"
-$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
-$ write vmsconfigtmp "eve_global_replace(""@ENABLE_THREAD_SAFE@"",""''enable_thread_safe'"");"
-$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
-$ write vmsconfigtmp "eve_global_replace(""@D_OPENSSL@"",""''d_openssl'"");"
-$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
-$ write vmsconfigtmp "eve_global_replace(""@D_STDINT@"",""''d_stdint'"");"
-$ write vmsconfigtmp "out_file := GET_INFO (COMMAND_LINE, ""output_file"");"
-$ write vmsconfigtmp "WRITE_FILE (main_buffer, out_file);"
-$ write vmsconfigtmp "quit;"
-$ write vmsconfigtmp "$ exit"
+$ open/write vmsconfigtmp config.mms
+$ write vmsconfigtmp "D_OPENSSL = ''d_openssl'"
+$ write vmsconfigtmp "D_STDINT = ''d_stdint'"
+$ write vmsconfigtmp "D_ASPRINTF = ''d_asprintf'"
+$ write vmsconfigtmp "D_VASPRINTF = ''d_vasprintf'"
+$ write vmsconfigtmp "D_STRTOK_R = ''d_strtok_r'"
+$ write vmsconfigtmp "D_ICONV = ''d_have_iconv'"
+$ write vmsconfigtmp "D_SNPRINTF = ''d_snprintf'"
+$ write vmsconfigtmp "D_SOCKETPAIR = ''d_socketpair'"
+$ if P1 .nes. "--disable-thread-safe" then write vmsconfigtmp  "ENABLE_THREAD_SAFE = 1"
 $ close vmsconfigtmp
-$ @vmsconfigtmp.com
-$ delete/noconfirm/nolog vmsconfigtmp.com;
+$ open/write vmsconfigtmp descrip.mms
+$ write vmsconfigtmp "include config.mms"
+$ write vmsconfigtmp "include [.vms]descrip.mms"
+$ close vmsconfigtmp
 $!
 $ Say ""
 $ Say "Configuration complete; run MMK to build."
