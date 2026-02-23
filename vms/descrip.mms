@@ -207,6 +207,7 @@ clean :
 	@[.vms]clean_delete [.include.readline]history.h;*
 	@[.vms]clean_delete [.src.utils]util_net.c;*
 	@[.vms]clean_delete [.src.replacements]libiconv.c;*
+	@[.vms]clean_delete []stage.com;*
 	#! Build output and artifacts; test artifacts
 	@[.vms]clean_delete [...]*$(OBJ);*
 	@[.vms]clean_delete [...]*.LIS;*
@@ -474,8 +475,21 @@ $(TDSODBCSHR) : []libtdsodbc$(OLB)
 
 # Build the utility programs and the pool server
 
-apps : freebcp$(E) tsql$(E) bsqldb$(E) defncopy$(E) tdspool$(E) fisql$(E)
+apps : freebcp$(E) tsql$(E) bsqldb$(E) defncopy$(E) tdspool$(E) fisql$(E) stage.com
 	@ continue
+
+# Generate a script to stage the apps
+# (VMS does not allow pushing symbols to parent; caller must run script after)
+stage.com :
+	@ open/write staging stage.com
+	@ write staging "$ freebcp  :== $''f$environment("DEFAULT")'freebcp.exe"
+	@ write staging "$ tsql     :== $''f$environment("DEFAULT")'tsql.exe"
+	@ write staging "$ bsqldb   :== $''f$environment("DEFAULT")'bsqldb.exe"
+	@ write staging "$ defncopy :== $''f$environment("DEFAULT")'defncopy.exe"
+	@ write staging "$ tdspool  :== $''f$environment("DEFAULT")'tdspool.exe"
+	@ write staging "$ fisql    :== $''f$environment("DEFAULT")'fisql.exe"
+	@ close staging
+	@ write sys$output "Now run @stage.com to define foreign commands."
 
 []vmsarg_parse$(OBJ) : [.vms]vmsarg_parse.c
        $(CC) $(CFLAGS)/INCLUDE=([.vms],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
