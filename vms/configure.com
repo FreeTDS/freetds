@@ -149,15 +149,26 @@ $ write vmsconfigtmp "D_SNPRINTF = ''d_snprintf'"
 $ write vmsconfigtmp "D_SOCKETPAIR = ''d_socketpair'"
 $ if P1 .nes. "--disable-thread-safe" then write vmsconfigtmp  "ENABLE_THREAD_SAFE = 1"
 $ close vmsconfigtmp
+$! User configuration (create if doesn't exist)
+$ if f$search("[]user.mms") .eqs. ""
+$ then
+$   open/write vmsconfigtmp user.mms
+$   write vmsconfigtmp "# No user-defined options."
+$   close vmsconfigtmp
+$ endif
+$!
 $ open/write vmsconfigtmp descrip.mms
 $ write vmsconfigtmp "include config.mms"
+$ write vmsconfigtmp "include user.mms"
 $ write vmsconfigtmp "include [.vms]descrip.mms"
 $ close vmsconfigtmp
 $!
 $ Say ""
 $ Say "Configuration complete; run MMK to build."
-$ Say "Sample build command: mmk/MACRO=(""MSDBLIB""=1,""ODBC""=1,""ODBC_MARS""=1,""ODBC_WIDE""=1)"
 $ Say "  append 'check' to run tests"
+$ Say "  append 'clean' or 'distclean' to clean."
+$ Say "User-defined build options (user.mms):"
+$ type user.mms
 $ EXIT
 $!
 $ CHECK_CRTL:
