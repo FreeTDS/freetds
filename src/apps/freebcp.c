@@ -86,6 +86,7 @@ static int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, c
 static int msg_handler(DBPROCESS * dbproc TDS_UNUSED, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname,
 		       char *procname, int line);
 static int set_bcp_hints(BCPPARAMDATA *pdata, DBPROCESS *pdbproc);
+static void bcpparamdata_free(BCPPARAMDATA* params);
 
 int
 main(int argc, char **argv)
@@ -122,9 +123,11 @@ main(int argc, char **argv)
 
 	ok = file_process(&params, dbproc, params.direction);
 
-	exit((ok == TRUE) ? EXIT_SUCCESS : EXIT_FAILURE);
+	dbclose(dbproc);
+	dbexit();
+	bcpparamdata_free(&params);
 
-	return 0;
+	return (ok == TRUE) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 static BCPFORMAT
@@ -362,11 +365,11 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 	if (pdata->cflag) {
 
 		if (!pdata->tflag || !pdata->fieldterm) {	/* field terminator not specified */
-			pdata->fieldterm = "\t";
+			pdata->fieldterm = strdup("\t");
 			pdata->fieldtermlen = 1;
 		}
 		if (!pdata->rflag || !pdata->rowterm) {		/* row terminator not specified */
-			pdata->rowterm =  "\n";
+			pdata->rowterm =  strdup("\n");
 			pdata->rowtermlen = 1;
 		}
 	}
@@ -514,6 +517,7 @@ static int
 file_process(BCPPARAMDATA *pdata, DBPROCESS *dbproc, DBINT dir)
 {
 	DBINT li_rowsread = 0;
+	DBINT li_rowscopied = 0;
 	int i;
 	int li_numcols;
 
@@ -565,12 +569,15 @@ file_process(BCPPARAMDATA *pdata, DBPROCESS *dbproc, DBINT dir)
 
 	printf("\nStarting copy...\n\n");
 
-	if (FAIL == bcp_exec(dbproc, &li_rowsread)) {
+	if (FAIL == bcp_exec(dbproc, &li_rowscopied)) {
 		fprintf(stderr, "bcp copy %s failed\n", (dir == DB_IN) ? "in" : "out");
 		return FALSE;
 	}
 
-	printf("%d rows copied.\n", li_rowsread);
+	if (li_rowsread > li_rowscopied)
+		printf("%d rows unable to be copied.\n", li_rowsread - li_rowscopied);
+
+	printf("%d rows copied.\n", li_rowscopied);
 
 	return TRUE;
 }
@@ -710,4 +717,24 @@ msg_handler(DBPROCESS *dbproc TDS_UNUSED, DBINT msgno, int msgstate, int severit
 	fprintf(stderr, "\n\t%s\n", msgtext);
 
 	return (0);
+}
+
+static void bcpparamdata_free(BCPPARAMDATA* params)
+{
+	free(params->dbobject);
+	free(params->hostfilename);
+	free(params->formatfile);
+	free(params->errorfile);
+	free(params->interfacesfile);
+	free(params->fieldterm);
+	free(params->rowterm);
+	free(params->user);
+	free(params->pass);
+	free(params->server);
+	free(params->dbname);
+	free(params->hint);
+	free(params->options);
+	free(params->charset);
+	free(params->inputfile);
+	free(params->outputfile);
 }

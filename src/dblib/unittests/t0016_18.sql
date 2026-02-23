@@ -1,7 +1,7 @@
 -- PARAM:table dblib0016view
 -- PARAM:hints fire_triggers
 
--- test default values for Sybase
+-- test triggers for Sybase
 if object_id('dblib0016trigger') is not null drop trigger dblib0016trigger
 if object_id('dblib0016view') is not null drop view dblib0016view
 if object_id('dblib0016table') is not null drop table dblib0016table

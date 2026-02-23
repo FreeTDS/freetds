@@ -260,8 +260,6 @@ sql_reopen(const char *fn)
 	if (input_file)
 		fclose(input_file);
 	if ((input_file = fopen(sql_file, "r")) == NULL) {
-		fflush(stdout);
-		fprintf(stderr, "could not open SQL input file \"%s\"\n", sql_file);
 		sql_file[0] = 0;
 		return FAIL;
 	}
@@ -333,6 +331,8 @@ syb_msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, cha
 
 	if (severity) {
 		fprintf(stderr, "exit: no unanticipated messages allowed in unit tests\n");
+		dbclose(dbproc);
+		dbexit();
 		exit(EXIT_FAILURE);
 	}
 	return 0;
@@ -384,6 +384,8 @@ syb_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *db
 
 	if (severity) {
 		fprintf(stderr, "error: no unanticipated errors allowed in unit tests\n");
+		dbclose(dbproc);
+		dbexit();
 		exit(EXIT_FAILURE);
 	}
 
