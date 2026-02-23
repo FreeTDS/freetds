@@ -33,6 +33,12 @@ OBJ = .OBJ
 E = .EXE
 OLB = .OLB
 
+.SUFFIXES :
+.SUFFIXES : $(E) $(OLB) $(OBJ) .C .H
+
+all : _all
+	@ continue
+
 .IFDEF ODBC
 ODBC_INC=,[.src.odbc],ODBC_INCDIR
 TDSODBCSHR=[]libtdsodbc$(E)
@@ -59,11 +65,7 @@ DBLIB_DEFINE = define SYBDBLIB 1
 
 CC = CC/DECC
 
-.SUFFIXES :
-.SUFFIXES : $(E) $(OLB) $(OBJ) .C .H
-
-@ENABLE_THREAD_SAFE@
-.IFDEF ENABLE_THREAD_SAFE
+.IF $(ENABLE_THREAD_SAFE) .EQ 1
 PTHREAD_CDEFINE = "_THREAD_SAFE"=1
 PTHREAD_LINK_FLAGS = /THREADS=UPCALLS
 .ELSE
@@ -71,13 +73,13 @@ PTHREAD_CDEFINE =
 PTHREAD_LINK_FLAGS =
 .ENDIF
 
-.IF @D_OPENSSL@ .EQ 1
+.IF $(D_OPENSSL) .EQ 1
 OPENSSL_OPTIONS = ,[]openssl.opt/OPTIONS
 .ELSE
 OPENSSL_OPTIONS =
 .ENDIF
 
-.IF @D_STDINT@ .EQ 1
+.IF $(D_STDINT) .EQ 1
 STDINT_H = [.vms]discard.tmp
 .ELSE
 STDINT_H = [.include]stdint.h
@@ -145,13 +147,28 @@ $(OBJ)$(OLB) :
 		THEN LIBRARY/CREATE/LOG $(MMS$TARGET)
    	@ LIBRARY /REPLACE /LOG $(MMS$TARGET) $(MMS$SOURCE)
 
+# Objects that are only included if configure.com detected they were needed
+# (Several of these are always present on OpenVMS versions still in support)
+.IF $(D_ASPRINTF) .NE 1
+ASPRINTFOBJ = [.src.replacements]asprintf$(OBJ)
+.ENDIF
+.IF $(D_VASPRINTF) .NE 1
+VASPRINTFOBJ = [.src.replacements]vasprintf$(OBJ)
+.ENDIF
+.IF $(D_STRTOK_R) .NE 1
+STRTOK_ROBJ = [.src.replacements]strtok_r$(OBJ)
+.ENDIF
+.IF $(D_ICONV) .NE 1
+LIBICONVOBJ = [.src.replacements]libiconv$(OBJ)
+$(LIBICONVOBJ) : [.src.replacements]libiconv.c
+.ENDIF
+.IF $(D_SNPRINTF) .NE 1
+SNPRINTFOBJ = [.src.replacements]snprintf$(OBJ)
+.ENDIF
+.IF $(D_SOCKETPAIR) .NE 1
+SOCKETPAIROBJ = [.src.replacements]socketpair$(OBJ)
+.ENDIF
 
-ASPRINTFOBJ = @ASPRINTFOBJ@
-VASPRINTFOBJ = @VASPRINTFOBJ@
-STRTOK_ROBJ = @STRTOK_ROBJ@
-LIBICONVOBJ = @LIBICONVOBJ@
-SNPRINTFOBJ = @SNPRINTFOBJ@
-SOCKETPAIROBJ = @SOCKETPAIROBJ@
 
 TDSOBJS = [.src.tds]bulk$(OBJ), [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ), \
 	[.src.tds]convert$(OBJ), [.src.tds]data$(OBJ), [.src.tds]getmac$(OBJ), \
@@ -209,7 +226,7 @@ TDSODBCOBJS = \
 
 # This is the top-level target
 
-all : []libtds$(OLB) []libct$(OLB) []libsybdb$(OLB) []libtdssrv$(OLB) $(TDSODBCSHR) buildchecks apps
+_all : []libtds$(OLB) []libct$(OLB) []libsybdb$(OLB) []libtdssrv$(OLB) $(TDSODBCSHR) buildchecks apps
 	@ write sys$output " "
         @ QUALIFIERS := $(MMSQUALIFIERS)
         @ QUALIFIERS = QUALIFIERS - """" - """"
@@ -380,6 +397,9 @@ $(STDINT_H) :
 # Hack to avoid having two modules named net in the same library
 [.src.utils]util_net.c : [.src.utils]net.c
 	COPY $(MMS$SOURCE) $(MMS$TARGET)
+
+[.src.replacements]libiconv.c : [.src.replacements]iconv.c
+	copy [.src.replacements]iconv.c [.src.replacements]libiconv.c
 
 # Build the libraries
 
