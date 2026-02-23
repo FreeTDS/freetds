@@ -169,6 +169,51 @@ SNPRINTFOBJ = [.src.replacements]snprintf$(OBJ)
 SOCKETPAIROBJ = [.src.replacements]socketpair$(OBJ)
 .ENDIF
 
+maintainer-clean-extra : maintainer-clean
+	#! Files needed to manually import, since we don't have VMS gperf
+	@[.vms]clean_delete [.include.freetds]encodings.h;*
+	@[.vms]clean_delete [.include.freetds]charset_lookup.h;*
+
+maintainer-clean : distclean
+	#! Files created by configure_trunk.com
+	@[.vms]clean_delete [.include.freetds]version.h;*
+	@[.vms]clean_delete [.src.tds]tds_willconvert.h;*
+	@[.vms]clean_delete [.src.tds]num_limits.h;*
+	@[.vms]clean_delete [.src.tds]tds_types.h;*
+	@[.vms]clean_delete [.src.replacements]iconv_charsets.h;*
+	@[.vms]clean_delete [.src.odbc]odbc_export.h;*
+	@[.vms]clean_delete [.src.odbc]error_export.h;*
+
+distclean : clean
+	#! Files created by configure.com (including descrip.mms)
+	@[.vms]clean_delete [.src.odbc]config.h;*
+	@[.vms]clean_delete []config.mms;*
+	@[.vms]clean_delete []user.mms;*
+	@[.vms]clean_delete []descrip.mms;*
+	@[.vms]clean_delete []openssl.opt;*
+
+clean :
+	#! Files created by descrip.mms
+	@[.vms]clean_delete [.include.freetds]sysconfdir.h;*
+	@[.vms]clean_delete $(STDINT_H);*
+	@[.vms]clean_delete [.include]tds_sysdep_public.h_in;*
+	@[.vms]clean_delete [.include]tds_sysdep_public.h;*
+	@[.vms]clean_delete [.include]tds_sysdep_types.h_in;*
+	@[.vms]clean_delete [.include]tds_sysdep_types.h;*
+	@[.vms]clean_delete [.include]readline.h;*
+	@[.vms]clean_delete [.include]history.h;*
+	@[.vms]clean_delete [.src.utils]util_net.c;*
+	@[.vms]clean_delete [.src.replacements]libiconv.c;*
+	#! Build output and artifacts; test artifacts
+	@[.vms]clean_delete [...]*$(OBJ);*
+	@[.vms]clean_delete [...]*.LIS;*
+	@[.vms]clean_delete [...]*$(OLB);*
+	if f$search("[...]*$(E)") .nes. "" then delete/noconfirm [...]*$(E);*/exclude=[.misc...]$(E)
+	@[.vms]clean_delete [...unittests]*.ini;*
+	@[.vms]clean_delete [...unittests]*.out;*
+	@[.vms]clean_delete [...unittests]*.log;*
+	if f$search("[...]*.MAP") .nes. "" then delete/noconfirm [...]*.MAP;*/exclude=[.doc...]*.MAP
+
 
 TDSOBJS = [.src.tds]bulk$(OBJ), [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ), \
 	[.src.tds]convert$(OBJ), [.src.tds]data$(OBJ), [.src.tds]getmac$(OBJ), \
@@ -232,7 +277,6 @@ _all : []libtds$(OLB) []libct$(OLB) []libsybdb$(OLB) []libtdssrv$(OLB) $(TDSODBC
         @ QUALIFIERS = QUALIFIERS - """" - """"
         @ write sys$output " "
         @ write sys$output " Everything is up to date. '$(MMS)''QUALIFIERS' check' to run test suite."
-
 
 # Configuration dependencies
 
@@ -1877,34 +1921,4 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 
 [.src.odbc.unittests]mars1$(OBJ) : [.src.odbc.unittests]mars1.c [.src.odbc.unittests]common.h
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.odbc.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
-
-# Clean up
-
-distclean :
-	@ if f$search("[...]*$(OBJ)") .nes. "" then delete/noconfirm [...]*$(OBJ);*
-	@ if f$search("[...]*.LIS") .nes. "" then delete/noconfirm [...]*.LIS;*
-	@ if f$search("[...]*.MAP") .nes. "" then delete/noconfirm [...]*.MAP;*/exclude=[.doc...]*.MAP
-	@ if f$search("[...unittests]*$(E)") .nes. "" then delete/noconfirm [...unittests]*$(E);*
-	@ if f$search("[.src.odbc._libs]*$(E)") .nes. "" then delete/noconfirm [.src.odbc._libs]*$(E);*
-	@ if f$search("[...unittests]*.ini") .nes. "" then delete/noconfirm [...unittests]*.ini;*
-	@ if f$search("[...unittests]*.out") .nes. "" then delete/noconfirm [...unittests]*.out;*
-	@ if f$search("[...unittests]*.log") .nes. "" then delete/noconfirm [...unittests]*.log;*
-	@ if f$search("*$(OLB)") .nes. "" then purge/noconfirm *$(OLB)
-	@ if f$search("*$(E)") .nes. "" then purge/noconfirm *$(E)
-
-clean : distclean
-	@ if f$search("*$(OLB)") .nes. "" then delete/noconfirm *$(OLB);*
-	@ if f$search("*$(E)") .nes. "" then delete/noconfirm *$(E);*
-	@ if f$search("[.include]config.h") .nes. "" then delete/noconfirm [.include]config.h;*
-	@ if f$search("[.include]readline.h") .nes. "" then delete/noconfirm [.include]readline.h;*
-	@ if f$search("[.include]history.h") .nes. "" then delete/noconfirm [.include]history.h;*
-	@ if f$search("[.include]tds_sysdep_public.h_in") .nes. "" then delete/noconfirm [.include]tds_sysdep_public.h_in;*
-	@ if f$search("[.include.freetds]sysdep_types.h_in") .nes. "" then delete/noconfirm [.include.freetds]sysdep_types.h_in;*
-	@ if f$search("[]openssl.opt") .nes. "" then delete/noconfirm []openssl.opt;*
-	@ if f$search("[]descrip.mms") .nes. "" then delete/noconfirm []descrip.mms;*
-	@ if f$search("[.include.freetds]sysconfdir.h") .nes. "" then delete/noconfirm [.include.freetds]sysconfdir.h;*
-	@ if f$search("[.include]tds_sysdep_public.h") .nes. "" then delete/noconfirm [.include]tds_sysdep_public.h;*
-	@ if f$search("[.include.freetds]sysdep_types.h") .nes. "" then delete/noconfirm [.include.freetds]sysdep_types.h;*
-	@ if f$search("[.src.replacements]libiconv.c") .nes. "" then delete/noconfirm [.src.replacements]libiconv.c;*
-
 
