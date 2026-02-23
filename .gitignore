@@ -40,6 +40,7 @@ Makefile.in
 # VMS intermediate files
 *.OLB
 /*.mms
+/stage.com
 /openssl.opt
 /src/utils/UTIL_NET.C
 /src/replacements/libiconv.c
