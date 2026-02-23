@@ -504,7 +504,6 @@ if(NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
 	configure_file(${CMAKE_SOURCE_DIR}/src/odbc/version.rc.in ${CMAKE_SOURCE_DIR}/src/odbc/version.rc)
 endif(NOT EXISTS "${CMAKE_SOURCE_DIR}/configure")
 
-
 set(FREETDS_PUBLIC_INCLUDE
 	${CMAKE_SOURCE_DIR}/include/bkpublic.h
 	${CMAKE_SOURCE_DIR}/include/cspublic.h
