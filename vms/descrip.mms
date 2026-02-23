@@ -36,8 +36,11 @@ OLB = .OLB
 .SUFFIXES :
 .SUFFIXES : $(E) $(OLB) $(OBJ) .C .H
 
-all : _all
+all : prelim _all
 	@ continue
+
+prelim :
+	@ type user.mms
 
 .IFDEF ODBC
 ODBC_INC=,[.src.odbc],ODBC_INCDIR
