@@ -218,7 +218,6 @@ clean :
 	@[.vms]clean_delete [...unittests]*.log;*
 	if f$search("[...]*.MAP") .nes. "" then delete/noconfirm [...]*.MAP;*/exclude=[.doc...]*.MAP
 
-
 TDSOBJS = [.src.tds]bulk$(OBJ), [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ), \
 	[.src.tds]convert$(OBJ), [.src.tds]data$(OBJ), [.src.tds]getmac$(OBJ), \
 	[.src.tds]gssapi$(OBJ), [.src.tds]iconv$(OBJ), [.src.tds]locale$(OBJ), \
@@ -275,7 +274,7 @@ TDSODBCOBJS = \
 
 # This is the top-level target
 
-_all : []libtds$(OLB) []libct$(OLB) []libsybdb$(OLB) []libtdssrv$(OLB) $(TDSODBCSHR) buildchecks apps
+_all : libs apps buildchecks stage.com
 	@ write sys$output " "
         @ QUALIFIERS := $(MMSQUALIFIERS)
         @ QUALIFIERS = QUALIFIERS - """" - """"
@@ -297,22 +296,22 @@ $(TDSSRVOBJS) : $(CONFIGS)
 
 [.src.pool]config$(OBJ) : [.src.pool]config.c
 	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE),[.src.pool]) $(MMS$SOURCE)
-	
+
 [.src.pool]main$(OBJ) : [.src.pool]main.c
 	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE),[.src.pool]) $(MMS$SOURCE)
-	
+
 [.src.pool]member$(OBJ) : [.src.pool]member.c
 	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE),[.src.pool]) $(MMS$SOURCE)
-	
+
 [.src.pool]stream$(OBJ) : [.src.pool]stream.c
 	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE),[.src.pool]) $(MMS$SOURCE)
-	
+
 [.src.pool]user$(OBJ) : [.src.pool]user.c
 	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE),[.src.pool]) $(MMS$SOURCE)
-	
+
 [.src.pool]util$(OBJ) : [.src.pool]util.c
 	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE),[.src.pool]) $(MMS$SOURCE)
-	
+
 $(TDSPOOLOBJS) : $(CONFIGS)
 
 $(TDSODBCOBJS) : $(CONFIGS)
@@ -472,10 +471,15 @@ $(TDSODBCSHR) : []libtdsodbc$(OLB)
     $(OPENSSL_OPTIONS) -
     /share=$(MMS$TARGET)
 
+LIBS = []libtds$(OLB) []libct$(OLB) []libsybdb$(OLB) []libtdssrv$(OLB) []libtdsodbc$(OLB) $(TDSODBCSHR)
 
+libs : $(LIBS)
+	@ continue
+
+#
 # Build the utility programs and the pool server
-
-apps : freebcp$(E) tsql$(E) bsqldb$(E) defncopy$(E) tdspool$(E) fisql$(E) stage.com
+#
+apps : freebcp$(E) tsql$(E) bsqldb$(E) defncopy$(E) tdspool$(E) fisql$(E)
 	@ continue
 
 # Generate a script to stage the apps
@@ -495,10 +499,13 @@ stage.com :
        $(CC) $(CFLAGS)/INCLUDE=([.vms],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
 
-freebcp$(E) : [.src.apps]freebcp$(OBJ) []vmsarg_mapping_bcp$(OBJ) []vmsarg_command_bcp$(OBJ) []vmsarg_parse$(OBJ)
-	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library, []libtds$(OLB)/library $(OPENSSL_OPTIONS)
+FREEBCP_OBJS = [.src.apps]freebcp$(OBJ), []vmsarg_mapping_bcp$(OBJ), []vmsarg_command_bcp$(OBJ), []vmsarg_parse$(OBJ)
+$(FREEBCP_OBJS) : $(CONFIGS)
 
-[.src.apps]freebcp$(OBJ) : [.src.apps]freebcp.c []libsybdb$(OLB) []libtds$(OLB)
+freebcp$(E) : []libsybdb$(OLB) []libtds$(OLB) $(FREEBCP_OBJS)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(FREEBCP_OBJS),[]libsybdb$(OLB)/library, []libtds$(OLB)/library $(OPENSSL_OPTIONS)
+
+[.src.apps]freebcp$(OBJ) : [.src.apps]freebcp.c
 
 []vmsarg_mapping_bcp$(OBJ) : [.vms]vmsarg_mapping_bcp.c
        $(CC) $(CFLAGS)/INCLUDE=([.vms],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
@@ -510,18 +517,22 @@ freebcp$(E) : [.src.apps]freebcp$(OBJ) []vmsarg_mapping_bcp$(OBJ) []vmsarg_comma
 tsql$(E) : [.src.apps]tsql$(OBJ) []libsybdb$(OLB) []libtds$(OLB)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE),[]libsybdb$(OLB)/library, []libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
-[.src.apps]tsql$(OBJ) : [.src.apps]tsql.c
+[.src.apps]tsql$(OBJ) : [.src.apps]tsql.c $(CONFIGS)
 	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE)) $(MMS$SOURCE)
 
 
 bsqldb$(E) : [.src.apps]bsqldb$(OBJ) []libsybdb$(OLB) []libtds$(OLB)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE),[]libsybdb$(OLB)/library, []libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
-[.src.apps]bsqldb$(OBJ) : [.src.apps]bsqldb.c
+[.src.apps]bsqldb$(OBJ) : [.src.apps]bsqldb.c $(CONFIGS)
 
 
-defncopy$(E) : [.src.apps]defncopy$(OBJ) []vmsarg_mapping_defncopy$(OBJ) []vmsarg_command_defncopy$(OBJ) []vmsarg_parse$(OBJ)
-	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library, []libtds$(OLB)/library $(OPENSSL_OPTIONS)
+DEFNCOPY_OBJS = [.src.apps]defncopy$(OBJ), []vmsarg_mapping_defncopy$(OBJ), \
+				 []vmsarg_command_defncopy$(OBJ), []vmsarg_parse$(OBJ)
+$(DEFNCOPY_OBJS) : $(CONFIGS)
+
+defncopy$(E) : []libsybdb$(OLB) []libtds$(OLB) $(DEFNCOPY_OBJS)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(DEFNCOPY_OBJS),[]libsybdb$(OLB)/library, []libtds$(OLB)/library $(OPENSSL_OPTIONS)
  
 [.src.apps]defncopy$(OBJ) : [.src.apps]defncopy.c []libsybdb$(OLB) []libtds$(OLB)
 
@@ -532,13 +543,17 @@ defncopy$(E) : [.src.apps]defncopy$(OBJ) []vmsarg_mapping_defncopy$(OBJ) []vmsar
        SET COMMAND/OBJECT=$(MMS$TARGET) $(MMS$SOURCE)
 
 
-tdspool$(E) : $(TDSPOOLOBJS) []libtdssrv$(OLB) []libtds$(OLB)
+tdspool$(E) : []libtdssrv$(OLB) []libtds$(OLB) $(TDSPOOLOBJS)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(TDSPOOLOBJS), []libtdssrv$(OLB)/library, []libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 
-fisql$(E) : [.src.apps.fisql]fisql$(OBJ) [.src.apps.fisql]interrupt$(OBJ) [.src.apps.fisql]handlers$(OBJ) [.vms]edit$(OBJ) \
-    []vmsarg_mapping_isql$(OBJ) []vmsarg_command_isql$(OBJ) []vmsarg_parse$(OBJ)
-	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library, []libtds$(OLB)/library $(OPENSSL_OPTIONS)
+FISQL_OBJS = [.src.apps.fisql]fisql$(OBJ), [.src.apps.fisql]interrupt$(OBJ), \
+			 [.src.apps.fisql]handlers$(OBJ), [.vms]edit$(OBJ), \
+			 []vmsarg_mapping_isql$(OBJ), []vmsarg_command_isql$(OBJ), []vmsarg_parse$(OBJ)
+$(FISQL_OBJS) : $(CONFIGS)
+
+fisql$(E) : []libsybdb$(OLB), []libtds$(OLB), $(FISQL_OBJS)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(FISQL_OBJS),[]libsybdb$(OLB)/library, []libtds$(OLB)/library $(OPENSSL_OPTIONS)
  
 [.src.apps.fisql]fisql$(OBJ) : [.src.apps.fisql]fisql.c []libsybdb$(OLB) []libtds$(OLB)
 	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE)) $(MMS$SOURCE)
@@ -766,10 +781,10 @@ tdsodbccheck : PWD FREETDSCONF
 	-@ @[---.vms]full-test.com []mars1$(E)
 	@ set default [---]
 
-buildchecks : libtdstests ctlibtests dblibtests $(ODBCTESTS)
+buildchecks : $(CONFIGS) libtdstests ctlibtests dblibtests $(TDSODBCSHR) $(ODBCTESTS)
 	@ continue
 
-libtdstests : [.src.tds.unittests]dynamic1$(E) [.src.tds.unittests]iconv_fread$(E) \
+LIBTDSTEST_TARGETS = [.src.tds.unittests]dynamic1$(E) [.src.tds.unittests]iconv_fread$(E) \
 	[.src.tds.unittests]numeric$(E) [.src.tds.unittests]t0001$(E) [.src.tds.unittests]t0002$(E) \
 	[.src.tds.unittests]t0003$(E) [.src.tds.unittests]t0004$(E) [.src.tds.unittests]t0005$(E) \
 	[.src.tds.unittests]t0006$(E) [.src.tds.unittests]t0007$(E) [.src.tds.unittests]t0008$(E) \
@@ -780,9 +795,8 @@ libtdstests : [.src.tds.unittests]dynamic1$(E) [.src.tds.unittests]iconv_fread$(
 	[.src.tds.unittests]declarations$(E) [.src.tds.unittests]portconf$(E) [.src.tds.unittests]freeze$(E) \
 	[.src.tds.unittests]strftime$(E) [.src.tds.unittests]log_elision$(E) \
 	[.src.tds.unittests]convert_bounds$(E) [.src.tds.unittests]tls$(E)
-	@ continue
 
-ctlibtests : [.src.ctlib.unittests]t0001$(E) [.src.ctlib.unittests]t0002$(E) [.src.ctlib.unittests]t0003$(E) \
+CTLIBTEST_TARGETS = [.src.ctlib.unittests]t0001$(E) [.src.ctlib.unittests]t0002$(E) [.src.ctlib.unittests]t0003$(E) \
 	[.src.ctlib.unittests]t0004$(E) [.src.ctlib.unittests]t0005$(E) [.src.ctlib.unittests]cs_convert$(E) \
 	[.src.ctlib.unittests]t0007$(E) [.src.ctlib.unittests]t0008$(E) [.src.ctlib.unittests]t0009$(E) \
 	[.src.ctlib.unittests]connect_fail$(E) [.src.ctlib.unittests]ct_options$(E) \
@@ -799,9 +813,8 @@ ctlibtests : [.src.ctlib.unittests]t0001$(E) [.src.ctlib.unittests]t0002$(E) [.s
 	[.src.ctlib.unittests]all_types$(E) [.src.ctlib.unittests]long_binary$(E) \
 	[.src.ctlib.unittests]will_convert$(E) [.src.ctlib.unittests]variant$(E) [.src.ctlib.unittests]errors$(E) \
 	[.src.ctlib.unittests]ct_command$(E) [.src.ctlib.unittests]timeout$(E) [.src.ctlib.unittests]has_for_update$(E)
-	@ continue
 
-dblibtests : [.src.dblib.unittests]rpc$(E)  [.src.dblib.unittests]t0001$(E) [.src.dblib.unittests]t0002$(E) \
+DBLIBTEST_TARGETS = [.src.dblib.unittests]rpc$(E)  [.src.dblib.unittests]t0001$(E) [.src.dblib.unittests]t0002$(E) \
 	[.src.dblib.unittests]t0003$(E) [.src.dblib.unittests]t0004$(E) [.src.dblib.unittests]t0005$(E) \
 	[.src.dblib.unittests]t0006$(E) [.src.dblib.unittests]t0007$(E) [.src.dblib.unittests]t0008$(E) \
 	[.src.dblib.unittests]t0009$(E) [.src.dblib.unittests]t0011$(E) \
@@ -822,9 +835,7 @@ dblibtests : [.src.dblib.unittests]rpc$(E)  [.src.dblib.unittests]t0001$(E) [.sr
 	[.src.dblib.unittests]bcp2$(E) [.src.dblib.unittests]proc_limit$(E) \
 	[.src.dblib.unittests]strbuild$(E)
 
-	@ continue
-
-odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.odbc.unittests]t0003$(E) \
+ODBCTEST_TARGETS = [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.odbc.unittests]t0003$(E) \
 	[.src.odbc.unittests]moreresults$(E) [.src.odbc.unittests]connect$(E) [.src.odbc.unittests]print$(E) \
 	[.src.odbc.unittests]date$(E) [.src.odbc.unittests]norowset$(E) [.src.odbc.unittests]funccall$(E) \
 	[.src.odbc.unittests]lang_error$(E) [.src.odbc.unittests]tables$(E) \
@@ -848,6 +859,17 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 	[.src.odbc.unittests]cancel$(E) [.src.odbc.unittests]wchar$(E) [.src.odbc.unittests]rowset$(E) \
 	[.src.odbc.unittests]transaction2$(E) [.src.odbc.unittests]reexec$(E) \
 	[.src.odbc.unittests]mars1$(E)
+
+libtdstests : []libtds$(OLB) $(LIBTDSTEST_TARGETS)
+	@ continue
+
+ctlibtests : []libtds$(OLB) []libct$(OLB) $(CTLIBTEST_TARGETS)
+	@ continue
+
+dblibtests : []libtds$(OLB) []libsybdb$(OLB) $(DBLIBTEST_TARGETS)
+	@ continue
+
+odbctests : []libtds$(OLB) $(ODBCTEST_TARGETS)
 	@ continue
 
 # Used by all the unit tests
