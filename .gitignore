@@ -42,6 +42,7 @@ Makefile.in
 /*.mms
 /stage.com
 /openssl.opt
+/openssl_static.opt
 /src/utils/UTIL_NET.C
 /src/replacements/libiconv.c
 /include/readline/HISTORY.H
