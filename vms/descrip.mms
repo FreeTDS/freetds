@@ -200,8 +200,8 @@ clean :
 	@[.vms]clean_delete [.include]tds_sysdep_public.h;*
 	@[.vms]clean_delete [.include]tds_sysdep_types.h_in;*
 	@[.vms]clean_delete [.include]tds_sysdep_types.h;*
-	@[.vms]clean_delete [.include]readline.h;*
-	@[.vms]clean_delete [.include]history.h;*
+	@[.vms]clean_delete [.include.readline]readline.h;*
+	@[.vms]clean_delete [.include.readline]history.h;*
 	@[.vms]clean_delete [.src.utils]util_net.c;*
 	@[.vms]clean_delete [.src.replacements]libiconv.c;*
 	#! Build output and artifacts; test artifacts
@@ -281,7 +281,7 @@ _all : []libtds$(OLB) []libct$(OLB) []libsybdb$(OLB) []libtdssrv$(OLB) $(TDSODBC
 # Configuration dependencies
 
 CONFIGS = [.include]config.h [.include.freetds]sysconfdir.h [.include]tds_sysdep_public.h \
-	[.include]readline.h [.include]history.h [.include.freetds]sysdep_types.h
+	[.include.readline]readline.h [.include.readline]history.h [.include.freetds]sysdep_types.h
 
 $(TDSOBJS) : $(CONFIGS)
 
@@ -391,7 +391,7 @@ $(STDINT_H) :
 	@ @vmsconfigtmp.com
 	@ delete/noconfirm/nolog vmsconfigtmp.com;
 
-[.include]readline.h :
+[.include.readline]readline.h :
 	@ open/write readlineh $(MMS$TARGET)
 	@ write readlineh "char *readline(char *prompt);"
 	@ write readlineh "int rl_inhibit_completion;"
@@ -406,7 +406,7 @@ $(STDINT_H) :
 	@ write readlineh "#define rl_on_new_line()      do {} while(0)"
 	@ close readlineh 
 
-[.include]history.h :
+[.include.readline]history.h :
 	@ open/write historyh $(MMS$TARGET)
 	@ write historyh "void add_history(const char *s);"
 	@ close historyh
@@ -494,7 +494,6 @@ tsql$(E) : [.src.apps]tsql$(OBJ) []libsybdb$(OLB) []libtds$(OLB)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE),[]libsybdb$(OLB)/library, []libtds$(OLB)/library $(OPENSSL_OPTIONS)
 
 [.src.apps]tsql$(OBJ) : [.src.apps]tsql.c
-	@ define/nolog/user_mode readline [.include]
 	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE)) $(MMS$SOURCE)
 
 
@@ -525,7 +524,6 @@ fisql$(E) : [.src.apps.fisql]fisql$(OBJ) [.src.apps.fisql]interrupt$(OBJ) [.src.
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library, []libtds$(OLB)/library $(OPENSSL_OPTIONS)
  
 [.src.apps.fisql]fisql$(OBJ) : [.src.apps.fisql]fisql.c []libsybdb$(OLB) []libtds$(OLB)
-	@ define/nolog/user_mode readline [.include]
 	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE)) $(MMS$SOURCE)
 
 [.src.apps.fisql]interrupt$(OBJ) : [.src.apps.fisql]interrupt.c
