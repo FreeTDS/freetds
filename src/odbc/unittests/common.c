@@ -4,6 +4,10 @@
 #include <assert.h>
 #include <ctype.h>
 
+#ifdef __VMS
+#include <unixlib.h>
+#endif
+
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif /* HAVE_SYS_SOCKET_H */

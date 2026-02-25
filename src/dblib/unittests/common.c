@@ -4,6 +4,10 @@
 #include <unistd.h>
 #endif
 
+#ifdef __VMS
+#include <unixlib.h>
+#endif
+
 #if HAVE_LIBGEN_H
 #include <libgen.h>
 #endif /* HAVE_LIBGEN_H */

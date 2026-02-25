@@ -12,6 +12,14 @@
 #  endif
 #endif
 
+#ifdef __VMS
+#define __NEW_STARLET
+#include <starlet.h>
+#include <iledef.h>
+#include <jpidef.h>
+#include <stsdef.h>
+#endif
+
 #if defined(HAVE_VALGRIND_MEMCHECK_H)
 #  include <valgrind/valgrind.h>
 #else
