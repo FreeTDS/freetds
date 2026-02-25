@@ -39,6 +39,9 @@ $ write sys$output "Version: ''versionstring'"
 $ if versionstring .EQS. "" THEN EXIT 44
 $ gosub check_crtl
 $!
+$! descrip.mms will build some 
+$ if f$search("[.include]readline.DIR") .eqs. "" then create/dir [.include.readline]
+$!
 $! The system-supplied iconv() is fine, but unless the internationalization
 $! kit has been installed, we may not have the conversions we need.  Check
 $! for their presence and use the homegrown iconv() if necessary.

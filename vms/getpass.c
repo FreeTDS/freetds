@@ -41,7 +41,7 @@
 #include <unistd.h>
 
 #include <freetds/replacements/readpassphrase.h>
-#include "readline.h"
+#include "readline/readline.h"
 
 static FILE *tds_rl_instream = NULL;
 static FILE *tds_rl_outstream = NULL;
