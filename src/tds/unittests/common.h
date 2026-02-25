@@ -33,7 +33,4 @@ extern int utf8_max_len;
 int get_unichar(const char **psrc);
 char *to_utf8(const char *src, char *dest);
 
-typedef void tds_any_type_t(TDSSOCKET *tds, TDSCOLUMN *col);
-void tds_all_types(TDSSOCKET *tds, tds_any_type_t *func);
-
 #endif
