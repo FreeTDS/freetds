@@ -83,18 +83,14 @@ $!  The version number; could be blank string if they are just using
 $!  SSL$ROOT without version number
 $   sslver = F$EXTRACT(3,F$LENGTH(sslval)-3,sslval)
 $   d_openssl = "1"
-$   SAY "Found OpenSSL ''sslver' and creating linker options file..."
-$   OPEN/WRITE sslopt openssl.opt
-$   IF F$TRNLNM("FREETDS_OPENSSL_STATIC") .NE. 0
-$   THEN
-$     SAY "OpenSSL static linking."
+$   SAY "Found OpenSSL ''sslver' and creating linker options files..."
+$   OPEN/WRITE sslopt openssl_static.opt
 $     WRITE sslopt "SSL''sslver'$LIB:SSL''sslver'$LIBSSL32.OLB/LIB"
 $     WRITE sslopt "SSL''sslver'$LIB:SSL''sslver'$LIBCRYPTO32.OLB/LIB"
-$   ELSE
-$     SAY "OpenSSL linking to shared image."
+$   CLOSE sslopt
+$   OPEN/WRITE sslopt openssl.opt
 $     WRITE sslopt "SYS$SHARE:SSL''sslver'$LIBSSL_SHR32.EXE/SHARE"
 $     WRITE sslopt "SYS$SHARE:SSL''sslver'$LIBCRYPTO_SHR32.EXE/SHARE"
-$   ENDIF
 $   CLOSE sslopt
 $ ELSE
 $   d_openssl = "0"

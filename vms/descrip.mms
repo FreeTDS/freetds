@@ -87,7 +87,12 @@ PTHREAD_LINK_FLAGS =
 .ENDIF
 
 .IF $(D_OPENSSL) .EQ 1
-OPENSSL_OPTIONS = ,[]openssl.opt/OPTIONS
+OPENSSL_TEST = ,[]openssl.opt/OPT
+.IF $(OPENSSL_STATIC) .EQ 1
+OPENSSL_OPTIONS = ,[]openssl_static.opt/OPT
+.ELSE
+OPENSSL_OPTIONS = ,[]openssl.opt/OPT
+.ENDIF
 .ELSE
 OPENSSL_OPTIONS =
 .ENDIF
@@ -687,7 +692,7 @@ $(LIBTDSTEST_OBJS) : $(TTDIR)common.h $(CONFIGS)
 $(LIBTDSTEST_TARGETS) : $(LIBTDSTEST_COMMON_OBJS)
 
 {$(TTDIR)}$(OBJ){$(TTDIR)}$(E)
-	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_TEST)
 
 # Extra libraries and include path used by tls test
 LOCALINCLUDE = "./src/tds/unittests",
@@ -696,7 +701,7 @@ $(TTDIR)tls$(OBJ) : $(TTDIR)tls.c
 LOCALINCLUDE =
 
 $(TTDIR)tls$(E) : $(TTDIR)tls$(OBJ)
-	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options,[]libtdsodbc$(OLB)/lib $(OPENSSL_OPTIONS)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options,[]libtdsodbc$(OLB)/lib $(OPENSSL_TEST)
 
 # ctlib test extra dependencies
 $(CTDIR)all_types$(E) : $(CTDIR)all_types$(OBJ) $(TTDIR)allcolumns$(OBJ)
@@ -710,7 +715,7 @@ $(CTLIBTEST_OBJS) : $(CTDIR)common.h $(CONFIGS)
 $(CTLIBTEST_TARGETS) : $(CTLIBTEST_COMMON_OBJS)
 
 {$(CTDIR)}$(OBJ){$(CTDIR)}$(E)
-	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_TEST)
 
 #
 # dblib test rules
@@ -721,7 +726,7 @@ $(DBLIBTEST_OBJS) : $(DTDIR)common.h $(CONFIGS)
 $(DBLIBTEST_TARGETS) : $(DBLIBTEST_COMMON_OBJS)
 
 {$(DTDIR)}$(OBJ){$(DTDIR)}$(E)
-	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_OPTIONS)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_TEST)
 
 #
 # tdsodbc test rules
@@ -738,7 +743,7 @@ $(ODBCTEST_OBJS) : $(OTDIR)common.h $(CONFIGS)
 # MMS$SOURCE_LIST doesn't add the /LIBRARY switch to the link command.
 
 {$(OTDIR)}$(OBJ){$(OTDIR)}$(E)
-	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options,[]libtdsodbc$(OLB)/lib $(OPENSSL_OPTIONS)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options,[]libtdsodbc$(OLB)/lib $(OPENSSL_TEST)
 
 # tdsodbc test extra dependencies
 $(OTDIR)timeout3$(E) : $(OTDIR)timeout3$(OBJ) $(OTDIR)fake_thread$(OBJ)
