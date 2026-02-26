@@ -19,14 +19,19 @@
 
 # OpenVMS description file for FreeTDS
 
-# To build with ODBC support do MM(K|S)/MACRO="ODBC"=1
+# To build with ODBC support, add ODBC = 1 to user.mms
+#
 # This presupposes the existence of an ODBC library in the location pointed to
 # by the logical name ODBC_LIBDIR and ODBC include files in the location pointed
 # to by ODBC_INCDIR
 #
-# To build in debug, do MM(K|S)/MACRO="__DEBUG__"=1
-#
-# To build with MSDBLIB-compatible dblib structures, do MM(K|S)/MACRO="MSDBLIB"=1
+# Other options that can be added to user.mms:
+#   To enable MARS, add ODBC_MARS = 1
+#   To build ODBC UTF-16 API (as well as UTF-8 API), add ODBC_WIDE = 1
+#   To test the UTF-16 API (instead of UTF-8), add ODBC_WIDETEST = 1
+#   To build in debug, add __DEBUG__ = 1
+#   To build with MSDBLIB-compatible dblib structures, add MSDBLIB = 1
+#   To static link against OpenSSL , add OPENSSL_STATIC = 1
 #
 # Other notes:
 #  - CC/INCLUDE paths need to be Unix-style path, otherwise a #include
@@ -57,17 +62,10 @@ ODBC_INC=,"./src/odbc",ODBC_INCDIR
 TDSODBCSHR=[]libtdsodbc$(E)
 TDSODBCCHECK=TDSODBCCHECK
 ODBCTESTS=ODBCTESTS
-.ELSE
-ODBC_INC=
-TDSODBCSHR=
-TDSODBCCHECK=
-ODBCTESTS=
 .ENDIF
 
 .IFDEF SYBASE_COMPAT
-DBOPENOBJ = [.src.dblib]dbopen$(OBJ), 
-.ELSE
-DBOPENOBJ =
+DBOPENOBJ = , [.src.dblib]dbopen$(OBJ)
 .ENDIF
 
 .IFDEF MSDBLIB
@@ -79,11 +77,8 @@ DBLIB_DEFINE = define SYBDBLIB 1
 CC = CC/DECC
 
 .IF $(ENABLE_THREAD_SAFE) .EQ 1
-PTHREAD_CDEFINE = "_THREAD_SAFE"=1
+PTHREAD_CDEFINE = _THREAD_SAFE=1
 PTHREAD_LINK_FLAGS = /THREADS=UPCALLS
-.ELSE
-PTHREAD_CDEFINE =
-PTHREAD_LINK_FLAGS =
 .ENDIF
 
 .IF $(D_OPENSSL) .EQ 1
@@ -93,8 +88,6 @@ OPENSSL_OPTIONS = ,[]openssl_static.opt/OPT
 .ELSE
 OPENSSL_OPTIONS = ,[]openssl.opt/OPT
 .ENDIF
-.ELSE
-OPENSSL_OPTIONS =
 .ENDIF
 
 .IF $(D_STDINT) .EQ 1
@@ -103,45 +96,38 @@ STDINT_H = [.vms]discard.tmp
 STDINT_H = [.include]stdint.h
 .ENDIF
 
-CDEFINE =
-
-.IFDEF ODBC_WIDE
-ODBC_WIDE_DEFINE = ,"ENABLE_ODBC_WIDE"
-.ENDIF
-
-.IFDEF ODBC_MARS
-ODBC_MARS_DEFINE = ,"ENABLE_ODBC_MARS"
-.ENDIF
-
 .IFDEF ODBC
-ODBC_CDEFINE = "UNIXODBC"$(ODBC_WIDE_DEFINE)$(ODBC_MARS_DEFINE)
+.IFDEF ODBC_WIDE
+ODBC_WIDE_CDEFINE = ,ENABLE_ODBC_WIDE
+.ENDIF
+.IFDEF ODBC_MARS
+ODBC_MARS_CDEFINE = ,ENABLE_ODBC_MARS
+.ENDIF
+ODBC_CDEFINE = UNIXODBC$(ODBC_WIDE_CDEFINE)$(ODBC_MARS_CDEFINE)
 CODBCFLAGS = /NAMES=(AS_IS,SHORTENED)
 .ELSE
-ODBC_CDEFINE =
 CODBCFLAGS = /NAMES=SHORTENED
 .ENDIF
 
+.IFDEF ODBC_WIDETEST
+ODBC_WIDETEST_CDEFINE = UNICODE=1,_UNICODE=1,
+.ENDIF
+
 .IFDEF ODBC_CDEFINE
-.IFDEF CDEFINE
-CDEFINE = $(CDEFINE),$(ODBC_CDEFINE)
-.ELSE
-CDEFINE = $(ODBC_CDEFINE)
-.ENDIF
-.ENDIF
-
 .IFDEF PTHREAD_CDEFINE
-.IFDEF CDEFINE
-CDEFINE = $(CDEFINE),$(PTHREAD_CDEFINE)
+CDEFINE=$(PTHREAD_CDEFINE),$(ODBC_CDEFINE)
 .ELSE
-CDEFINE = $(PTHREAD_CDEFINE)
+CDEFINE=$(ODBC_CDEFINE)
 .ENDIF
+.ELSE
+CDEFINE=$(PTHREAD_CDEFINE)
 .ENDIF
 
 .IFDEF CDEFINE
-CDEFINE_QUAL = /DEFINE=($(CDEFINE))
-.ELSE
-CDEFINE_QUAL =
+CDEFINE_QUAL_BASE = /DEFINE=($(CDEFINE))
+CDEFINE_QUAL_WIDETEST = /DEFINE=($(ODBC_WIDETEST_CDEFINE)$(CDEFINE))
 .ENDIF
+CDEFINE_QUAL = $(CDEFINE_QUAL_BASE)
 
 CPREFIX = ALL
 CINCLUDE = "./include"$(ODBC_INC)
@@ -154,10 +140,11 @@ CDBGFLAGS =
 LDBGFLAGS = /NOTRACE
 .ENDIF
 
-CFLAGS = $(CDEFINE_QUAL)/PREFIX=($(CPREFIX))/MAIN=POSIX_EXIT/FLOAT=IEEE/IEEE=DENORM/OBJECT=$(MMS$TARGET_NAME)$(OBJ) $(CODBCFLAGS) $(CDBGFLAGS)
+CFLAGS = /PREFIX=($(CPREFIX))/MAIN=POSIX_EXIT/FLOAT=IEEE/IEEE=DENORM/OBJECT=$(MMS$TARGET_NAME)$(OBJ) $(CODBCFLAGS) $(CDBGFLAGS)
 LINKFLAGS = $(LDBGFLAGS)$(PTHREAD_LINK_FLAGS)
 
-CC_COMMAND = $(CC) $(CFLAGS)/INCLUDE=(${LOCALINCLUDE}$(CINCLUDE)) $(MMS$SOURCE)
+CC_COMMAND = $(CC) $(CDEFINE_QUAL)$(CFLAGS)/INCLUDE=(${LOCALINCLUDE}$(CINCLUDE)) $(MMS$SOURCE)
+
 .c$(OBJ) :
 	$(CC_COMMAND)
 
@@ -268,8 +255,8 @@ TDSOBJS = [.src.tds]bulk$(OBJ), [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ
 CTLIBOBJS = [.src.ctlib]blk$(OBJ), [.src.ctlib]cs$(OBJ), [.src.ctlib]ct$(OBJ), \
 	[.src.ctlib]ctutil$(OBJ)
 
-DBLIBOBJS = [.src.dblib]bcp$(OBJ), [.src.dblib]dblib$(OBJ), [.src.dblib]dbpivot$(OBJ), $(DBOPENOBJ) \
-	[.src.dblib]dbutil$(OBJ), [.src.dblib]rpc$(OBJ), [.src.dblib]xact$(OBJ)
+DBLIBOBJS = [.src.dblib]bcp$(OBJ), [.src.dblib]dblib$(OBJ), [.src.dblib]dbpivot$(OBJ) \
+	[.src.dblib]dbutil$(OBJ), [.src.dblib]rpc$(OBJ), [.src.dblib]xact$(OBJ) $(DBOPENOBJ)
 
 TDSSRVOBJS = [.src.server]query$(OBJ), [.src.server]server$(OBJ), [.src.server]login$(OBJ)
 
@@ -473,7 +460,10 @@ $(TDSODBCSHR) : []libtdsodbc$(OLB)
 	$(OPENSSL_OPTIONS) -
 	/share=$(MMS$TARGET)
 
-LIBS = []libtds$(OLB) []libct$(OLB) []libsybdb$(OLB) []libtdssrv$(OLB) []libtdsodbc$(OLB) $(TDSODBCSHR)
+.IFDEF ODBC
+ODBCLIBS = []libtdsodbc$(OLB) $(TDSODBCSHR)
+.ENDIF
+LIBS = []libtds$(OLB) []libct$(OLB) []libsybdb$(OLB) []libtdssrv$(OLB) $(ODBCLIBS)
 
 libs : $(LIBS)
 	@ continue
@@ -586,6 +576,11 @@ tdsodbccheck : PWD FREETDSCONF $(TDSODBCSHR)
 	@ write sys$output "Make sure odbc.ini and odbcinst.ini are world-readable, since the tests run under minimal privileges."
 	@ create/directory/nolog [.src.odbc._libs]
 	@ copy $(TDSODBCSHR) [.src.odbc._libs]
+.IFDEF ODBC_WIDE
+.IFNDEF ODBC_WIDETEST
+	@ write sys$output "Running narrow ODBC API tests. Add ODBC_WIDETEST to user.mms to build wide tests instead."
+.ENDIF
+.ENDIF
 	@ @[.vms]run_tests_in.com $(OTDIR)
 
 buildchecks : $(CONFIGS) libtdstests ctlibtests dblibtests $(TDSODBCSHR) $(ODBCTESTS)
@@ -659,8 +654,7 @@ CTLIBTEST_TARGETS ~= $(ADDPREFIX $(CTDIR),$(ADDSUFFIX $(E),$(CTLIBTEST_NAMES)))
 DBLIBTEST_TARGETS ~= $(ADDPREFIX $(DTDIR),$(ADDSUFFIX $(E),$(DBLIBTEST_NAMES)))
 ODBCTEST_TARGETS ~= $(ADDPREFIX $(OTDIR),$(ADDSUFFIX $(E),$(ODBCTEST_NAMES)))
 
-# note: libtds test "tls" requires libtdsodbc.olb (even if not an ODBC build)
-libtdstests : []libtds$(OLB) []libtdsodbc$(OLB) $(LIBTDSTEST_TARGETS)
+libtdstests : []libtds$(OLB) $(LIBTDSTEST_TARGETS)
 	@ continue
 
 ctlibtests : []libtds$(OLB) []libct$(OLB) $(CTLIBTEST_TARGETS)
@@ -686,15 +680,11 @@ $(LIBTDSTEST_TARGETS) : $(LIBTDSTEST_COMMON_OBJS)
 {$(TTDIR)}$(OBJ){$(TTDIR)}$(E)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_TEST)
 
-# Extra libraries and include path used by tls test
-$(TTDIR)tls$(E) : $(TTDIR)tls$(OBJ)
-	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options,[]libtdsodbc$(OLB)/lib $(OPENSSL_TEST)
-
 # "parsing" and "tls" tests #include ../file.c to test private functions,
 # so we need to put that location on the include path. (by default, VMS CC
 # will only search relative to the source file, if it's a .H file)
 {$(TTDIR)}.c{$(TTDIR)}$(OBJ)
-	$(CC) $(CFLAGS)/INCLUDE=("./src/tds/unittests",$(CINCLUDE)) $(MMS$SOURCE)
+	$(CC) $(CDEFINE_QUAL)$(CFLAGS)/INCLUDE=("./src/tds/unittests",$(CINCLUDE)) $(MMS$SOURCE)
 
 # ctlib test extra dependencies
 $(CTDIR)all_types$(E) : $(CTDIR)all_types$(OBJ) $(TTDIR)allcolumns$(OBJ)
@@ -738,6 +728,10 @@ $(ODBCTEST_OBJS) : $(OTDIR)common.h $(CONFIGS)
 {$(OTDIR)}$(OBJ){$(OTDIR)}$(E)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/lib,[.vms]libodbc.opt/options $(OPENSSL_TEST)
 
+# Test Wide API for ODBC tests
+{$(OTDIR)}.c{$(OTDIR)}$(OBJ)
+	$(CC) $(CDEFINE_QUAL_WIDETEST)$(CFLAGS)/INCLUDE=($(CINCLUDE)) $(MMS$SOURCE)
+
 #
 # tdsodbc test extra dependencies
 #
@@ -760,18 +754,12 @@ $(OTDIR)all_types$(E) : $(OTDIR)all_types$(OBJ)
 $(OTDIR)utf8_4$(E) : $(OTDIR)utf8_4$(OBJ)
 $(OTDIR)connection_string_parse$(E) : $(OTDIR)connection_string_parse$(OBJ)
 
-$(STATIC_ODBC_TARGETS) : $(TTDIR)allcolumns$(OBJ) #$(OTDIR)error$(OBJ)
+$(STATIC_ODBC_TARGETS) : $(TTDIR)allcolumns$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST) $(STATIC_ODBC_LIBS) $(OPENSSL_TEST)
 
 # tokens
 $(OTDIR)tokens$(E) : $(OTDIR)tokens$(OBJ), $(OTDIR)fake_thread$(OBJ),\
 		[.src.server]query$(OBJ), [.src.server]server$(OBJ), [.src.server]login$(OBJ)
-
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST) \
 		,[.vms]libodbc.opt/options,[]libtds$(OLB)/lib $(OPENSSL_TEST)
-
-#UTF-8 - ODBC Wide enabled
-# TODO
-#$(OTDIR)utf8$(OBJ) : $(OTDIR) utf8.c
-	#CC_COMMAND = $(CC) $(CFLAGS)/INCLUDE=(${LOCALINCLUDE}$(CINCLUDE)) $(MMS$SOURCE)
 
