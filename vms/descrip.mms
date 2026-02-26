@@ -591,81 +591,73 @@ tdsodbccheck : PWD FREETDSCONF $(TDSODBCSHR)
 buildchecks : $(CONFIGS) libtdstests ctlibtests dblibtests $(TDSODBCSHR) $(ODBCTESTS)
 	@ continue
 
-LIBTDSTEST_TARGETS = $(TTDIR)dynamic1$(E) $(TTDIR)iconv_fread$(E) \
-	$(TTDIR)numeric$(E) $(TTDIR)t0001$(E) $(TTDIR)t0002$(E) \
-	$(TTDIR)t0003$(E) $(TTDIR)t0004$(E) $(TTDIR)t0005$(E) \
-	$(TTDIR)t0006$(E) $(TTDIR)t0007$(E) $(TTDIR)t0008$(E) \
-	$(TTDIR)convert$(E) $(TTDIR)dataread$(E) \
-	$(TTDIR)utf8_1$(E) $(TTDIR)utf8_2$(E) $(TTDIR)utf8_3$(E) \
-	$(TTDIR)toodynamic$(E) $(TTDIR)readconf$(E) \
-	$(TTDIR)charconv$(E) $(TTDIR)nulls$(E) $(TTDIR)corrupt$(E) \
-	$(TTDIR)declarations$(E) $(TTDIR)portconf$(E) $(TTDIR)freeze$(E) \
-	$(TTDIR)strftime$(E) $(TTDIR)log_elision$(E) \
-	$(TTDIR)convert_bounds$(E) $(TTDIR)tls$(E)
+LIBTDSTEST_NAMES = t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 dynamic1 \
+	convert dataread utf8_1 utf8_2 utf8_3 numeric iconv_fread toodynamic \
+	readconf charconv nulls corrupt declarations portconf \
+	parsing freeze strftime log_elision convert_bounds tls sec_negotiate
 
-CTLIBTEST_TARGETS = $(CTDIR)t0001$(E) $(CTDIR)t0002$(E) $(CTDIR)t0003$(E) \
-	$(CTDIR)t0004$(E) $(CTDIR)t0005$(E) $(CTDIR)cs_convert$(E) \
-	$(CTDIR)t0007$(E) $(CTDIR)t0008$(E) $(CTDIR)t0009$(E) \
-	$(CTDIR)connect_fail$(E) $(CTDIR)ct_options$(E) \
-	$(CTDIR)lang_ct_param$(E) $(CTDIR)array_bind$(E) \
-	$(CTDIR)cs_diag$(E) $(CTDIR)get_send_data$(E) \
-	$(CTDIR)rpc_ct_param$(E) $(CTDIR)rpc_ct_setparam$(E) \
-	$(CTDIR)ct_diagclient$(E) $(CTDIR)ct_diagserver$(E) \
-	$(CTDIR)ct_diagall$(E) $(CTDIR)cs_config$(E) \
-	$(CTDIR)cancel$(E) $(CTDIR)blk_in$(E) \
-	$(CTDIR)blk_out$(E) $(CTDIR)ct_cursor$(E) \
-	$(CTDIR)ct_cursors$(E) $(CTDIR)ct_dynamic$(E) \
-	$(CTDIR)blk_in2$(E) $(CTDIR)datafmt$(E) $(CTDIR)data$(E) \
-	$(CTDIR)rpc_fail$(E) $(CTDIR)row_count$(E) \
-	$(CTDIR)all_types$(E) $(CTDIR)long_binary$(E) \
-	$(CTDIR)will_convert$(E) $(CTDIR)variant$(E) $(CTDIR)errors$(E) \
-	$(CTDIR)ct_command$(E) $(CTDIR)timeout$(E) $(CTDIR)has_for_update$(E)
+# omitting libtds test "collations" as it takes 10 minutes to run.
 
-DBLIBTEST_TARGETS = $(DTDIR)rpc$(E)  $(DTDIR)t0001$(E) $(DTDIR)t0002$(E) \
-	$(DTDIR)t0003$(E) $(DTDIR)t0004$(E) $(DTDIR)t0005$(E) \
-	$(DTDIR)t0006$(E) $(DTDIR)t0007$(E) $(DTDIR)t0008$(E) \
-	$(DTDIR)t0009$(E) $(DTDIR)t0011$(E) \
-	$(DTDIR)t0012$(E) $(DTDIR)t0013$(E) $(DTDIR)t0014$(E) \
-	$(DTDIR)t0015$(E) $(DTDIR)t0016$(E) $(DTDIR)t0017$(E) \
-	$(DTDIR)t0018$(E) $(DTDIR)t0019$(E) $(DTDIR)t0020$(E) \
-	$(DTDIR)dbsafestr$(E) $(DTDIR)t0022$(E) $(DTDIR)t0023$(E) \
-	$(DTDIR)dbmorecmds$(E) $(DTDIR)bcp$(E) \
-	$(DTDIR)thread$(E) $(DTDIR)text_buffer$(E) \
-	$(DTDIR)done_handling$(E) $(DTDIR)timeout$(E) \
-	$(DTDIR)hang$(E) $(DTDIR)null$(E) \
-	$(DTDIR)null2$(E) $(DTDIR)setnull$(E) \
-	$(DTDIR)numeric$(E) $(DTDIR)pending$(E) \
-	$(DTDIR)cancel$(E) $(DTDIR)spid$(E) $(DTDIR)canquery$(E) \
-	$(DTDIR)batch_stmt_ins_sel$(E) $(DTDIR)batch_stmt_ins_upd$(E) \
-	$(DTDIR)bcp_getl$(E) $(DTDIR)empty_rowsets$(E) \
-	$(DTDIR)string_bind$(E) $(DTDIR)colinfo$(E) \
-	$(DTDIR)bcp2$(E) $(DTDIR)proc_limit$(E) \
-	$(DTDIR)strbuild$(E)
+CTLIBTEST_NAMES = t0001 t0002 t0003 t0004 \
+	t0005 cs_convert t0007 t0008 \
+	t0009 connect_fail ct_options \
+	lang_ct_param array_bind cs_diag \
+	get_send_data rpc_ct_param rpc_ct_setparam \
+	ct_diagclient ct_diagserver ct_diagall \
+	cs_config cancel blk_in \
+	blk_out ct_cursor ct_cursors \
+	ct_dynamic blk_in2 data datafmt rpc_fail row_count \
+	all_types long_binary will_convert \
+	variant errors ct_command timeout has_for_update \
+	cs_convert_date
 
-ODBCTEST_TARGETS = $(OTDIR)t0001$(E) $(OTDIR)t0002$(E) $(OTDIR)t0003$(E) \
-	$(OTDIR)moreresults$(E) $(OTDIR)connect$(E) $(OTDIR)print$(E) \
-	$(OTDIR)date$(E) $(OTDIR)norowset$(E) $(OTDIR)funccall$(E) \
-	$(OTDIR)lang_error$(E) $(OTDIR)tables$(E) \
-	$(OTDIR)binary_test$(E) $(OTDIR)moreandcount$(E) \
-	$(OTDIR)earlybind$(E) $(OTDIR)putdata$(E) $(OTDIR)params$(E) \
-	$(OTDIR)raiserror$(E) $(OTDIR)getdata$(E) $(OTDIR)type$(E) \
-	$(OTDIR)transaction$(E) $(OTDIR)genparams$(E) $(OTDIR)preperror$(E) \
-	$(OTDIR)prepare_results$(E) $(OTDIR)testodbc$(E) \
-	$(OTDIR)data$(E) $(OTDIR)error$(E) $(OTDIR)rebindpar$(E) \
-	$(OTDIR)rpc$(E) $(OTDIR)convert_error$(E) $(OTDIR)typeinfo$(E) \
-	$(OTDIR)const_params$(E) $(OTDIR)insert_speed$(E) \
-	$(OTDIR)compute$(E) $(OTDIR)timeout$(E) \
-	$(OTDIR)array$(E) $(OTDIR)array_out$(E) \
-	$(OTDIR)cursor1$(E) $(OTDIR)scroll$(E) $(OTDIR)cursor2$(E) \
-	$(OTDIR)describecol$(E) $(OTDIR)copydesc$(E) \
-	$(OTDIR)prepclose$(E) $(OTDIR)warning$(E) \
-	$(OTDIR)paramcore$(E) $(OTDIR)timeout2$(E) $(OTDIR)timeout3$(E) \
-	$(OTDIR)connect2$(E) $(OTDIR)timeout4$(E) $(OTDIR)freeclose$(E) \
-	$(OTDIR)cursor3$(E) $(OTDIR)cursor4$(E) $(OTDIR)cursor5$(E) \
-	$(OTDIR)attributes$(E) $(OTDIR)hidden$(E) $(OTDIR)blob1$(E) \
-	$(OTDIR)cancel$(E) $(OTDIR)wchar$(E) $(OTDIR)rowset$(E) \
-	$(OTDIR)transaction2$(E) $(OTDIR)reexec$(E) \
-	$(OTDIR)mars1$(E)
+DBLIBTEST_NAMES = t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 t0009 \
+	t0011 t0012 t0013 t0014 t0015 t0016 t0017 t0018 t0019 t0020 \
+	dbsafestr t0022 t0023 rpc dbmorecmds bcp thread text_buffer \
+	done_handling timeout hang null null2 setnull numeric pending \
+	cancel spid canquery batch_stmt_ins_sel batch_stmt_ins_upd bcp_getl \
+	empty_rowsets string_bind colinfo bcp2 proc_limit strbuild
+
+ODBCTEST_NAMES = \
+	t0001 t0002 t0003 \
+	moreresults connect print \
+	date norowset funccall \
+	lang_error tables \
+	binary_test moreandcount \
+	earlybind putdata params \
+	raiserror getdata \
+	transaction type genparams \
+	preperror prepare_results \
+	testodbc data error \
+	rebindpar rpc convert_error \
+	typeinfo const_params \
+	insert_speed compute \
+	timeout array array_out \
+	cursor1 scroll cursor2 \
+	describecol copydesc \
+	prepclose warning \
+	paramcore timeout2 timeout3 \
+	connect2 timeout4 freeclose \
+	cursor3 cursor4 cursor5 \
+	attributes hidden blob1 \
+	cancel wchar rowset transaction2 \
+	cursor6 cursor7 utf8 utf8_2 \
+	stats descrec peter test64 \
+	prepare_warn long_error mars1 \
+	array_error closestmt bcp \
+	all_types utf8_3 empty_query \
+	transaction3 transaction4 \
+	utf8_4 qn connection_string_parse \
+	tvp tokens \
+	describeparam \
+	reexec \
+	oldpwd
+
+
+LIBTDSTEST_TARGETS ~= $(ADDPREFIX $(TTDIR),$(ADDSUFFIX $(E),$(LIBTDSTEST_NAMES)))
+CTLIBTEST_TARGETS ~= $(ADDPREFIX $(CTDIR),$(ADDSUFFIX $(E),$(CTLIBTEST_NAMES)))
+DBLIBTEST_TARGETS ~= $(ADDPREFIX $(DTDIR),$(ADDSUFFIX $(E),$(DBLIBTEST_NAMES)))
+ODBCTEST_TARGETS ~= $(ADDPREFIX $(OTDIR),$(ADDSUFFIX $(E),$(ODBCTEST_NAMES)))
 
 # note: libtds test "tls" requires libtdsodbc.olb (even if not an ODBC build)
 libtdstests : []libtds$(OLB) []libtdsodbc$(OLB) $(LIBTDSTEST_TARGETS)
@@ -695,13 +687,14 @@ $(LIBTDSTEST_TARGETS) : $(LIBTDSTEST_COMMON_OBJS)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_TEST)
 
 # Extra libraries and include path used by tls test
-LOCALINCLUDE = "./src/tds/unittests",
-$(TTDIR)tls$(OBJ) : $(TTDIR)tls.c
-	$(CC_COMMAND)
-LOCALINCLUDE =
-
 $(TTDIR)tls$(E) : $(TTDIR)tls$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options,[]libtdsodbc$(OLB)/lib $(OPENSSL_TEST)
+
+# "parsing" and "tls" tests #include ../file.c to test private functions,
+# so we need to put that location on the include path. (by default, VMS CC
+# will only search relative to the source file, if it's a .H file)
+{$(TTDIR)}.c{$(TTDIR)}$(OBJ)
+	$(CC) $(CFLAGS)/INCLUDE=("./src/tds/unittests",$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
 # ctlib test extra dependencies
 $(CTDIR)all_types$(E) : $(CTDIR)all_types$(OBJ) $(TTDIR)allcolumns$(OBJ)
@@ -743,8 +736,42 @@ $(ODBCTEST_OBJS) : $(OTDIR)common.h $(CONFIGS)
 # MMS$SOURCE_LIST doesn't add the /LIBRARY switch to the link command.
 
 {$(OTDIR)}$(OBJ){$(OTDIR)}$(E)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/lib,[.vms]libodbc.opt/options $(OPENSSL_TEST)
+
+#
+# tdsodbc test extra dependencies
+#
+# note: the Windows build makes various static libraries that the VMS
+# build doesn't, so these rules look a bit different.
+
+# timeout3 and cancel need tds_sleep_s which is in libtdsodbc
+$(OTDIR)timeout3$(E) : $(OTDIR)timeout3$(OBJ) $(OTDIR)fake_thread$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options,[]libtdsodbc$(OLB)/lib $(OPENSSL_TEST)
 
-# tdsodbc test extra dependencies
-$(OTDIR)timeout3$(E) : $(OTDIR)timeout3$(OBJ) $(OTDIR)fake_thread$(OBJ)
+$(OTDIR)cancel$(E) : $(OTDIR)cancel$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options,[]libtdsodbc$(OLB)/lib $(OPENSSL_TEST)
+
+# some of these tests link statically 
+# libodbcinst provides SQLGetPrivateProfileString
+STATIC_ODBC_TARGETS = $(OTDIR)all_types$(E) $(OTDIR)utf8_4$(E) $(OTDIR)connection_string_parse$(E)
+STATIC_ODBC_LIBS = ,[]libtds$(OLB)/lib,[]libtdsodbc$(OLB)/lib,[.vms]libodbcinst.opt/options
+
+$(OTDIR)all_types$(E) : $(OTDIR)all_types$(OBJ)
+$(OTDIR)utf8_4$(E) : $(OTDIR)utf8_4$(OBJ)
+$(OTDIR)connection_string_parse$(E) : $(OTDIR)connection_string_parse$(OBJ)
+
+$(STATIC_ODBC_TARGETS) : $(TTDIR)allcolumns$(OBJ) #$(OTDIR)error$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST) $(STATIC_ODBC_LIBS) $(OPENSSL_TEST)
+
+# tokens
+$(OTDIR)tokens$(E) : $(OTDIR)tokens$(OBJ), $(OTDIR)fake_thread$(OBJ),\
+		[.src.server]query$(OBJ), [.src.server]server$(OBJ), [.src.server]login$(OBJ)
+
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST) \
+		,[.vms]libodbc.opt/options,[]libtds$(OLB)/lib $(OPENSSL_TEST)
+
+#UTF-8 - ODBC Wide enabled
+# TODO
+#$(OTDIR)utf8$(OBJ) : $(OTDIR) utf8.c
+	#CC_COMMAND = $(CC) $(CFLAGS)/INCLUDE=(${LOCALINCLUDE}$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
