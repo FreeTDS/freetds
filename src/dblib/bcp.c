@@ -644,12 +644,6 @@ bcp_gethostcolcount(DBPROCESS *dbproc)
 RETCODE
 bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen)
 {
-	int i;
-	static const char *const hints[] = {
-		"ORDER", "ROWS_PER_BATCH", "KILOBYTES_PER_BATCH", "TABLOCK", "CHECK_CONSTRAINTS",
-		"FIRE_TRIGGERS", "KEEP_NULLS", NULL
-	};
-
 	tdsdump_log(TDS_DBG_FUNC, "bcp_options(%p, %d, %p, %d)\n", dbproc, option, value, valuelen);
 	CHECK_CONN(FAIL);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI, FAIL);
@@ -663,15 +657,11 @@ bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen)
 		if (!value || valuelen <= 0)
 			break;
 
-		for (i = 0; hints[i]; i++) {	/* look up hint */
-			if (strncasecmp((char *) value, hints[i], strlen(hints[i])) == 0) {
-				if (!tds_dstr_copy(&dbproc->bcpinfo->hint, hints[i]))
-					return FAIL;
-				return SUCCEED;
-			}
-		}
-		tdsdump_log(TDS_DBG_FUNC, "failed, no such hint\n");
+		// Hint documentation: https://learn.microsoft.com/en-us/sql/t-sql/statements/bulk-insert-transact-sql
+		if (tds_dstr_copyn(&dbproc->bcpinfo->hint, (char *)value, valuelen))
+			return SUCCEED;
 		break;
+
 	default:
 		tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED bcp option: %u\n", option);
 		break;
