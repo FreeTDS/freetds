@@ -135,7 +135,7 @@ CHECK(password_bug_report,
 
 /* unfinished "pwd", the "Port" before "pwd" is to reveal a leak */
 CHECK_ERROR(unfinished,
-	"Driver=FreeTDS;Server=1.2.3.4;Port=1433;pwd={p@ssw0rd");
+	"Driver=FreeTDS;Server=1.2.3.4;Port=1433;pwd={p@ssw0rd")
 
 TEST_MAIN()
 {
