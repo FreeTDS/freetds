@@ -1,4 +1,9 @@
-#include "common.h"
+/* This test requires no wide characters */
+#undef UNICODE
+#undef _UNICODE
+
+/* Use common.c functions compiled without wide characters in all cases */
+#include "common.c"
 
 /* test binding with UTF-8 encoding */
 

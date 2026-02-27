@@ -153,11 +153,8 @@ wchar_SOURCES = wchar.c
 transaction2_SOURCES = transaction2.c
 cursor6_SOURCES	= cursor6.c
 cursor7_SOURCES	= cursor7.c
-utf8_SOURCES	= utf8.c common.c
 # this test cannot work using wide characters as use UTF-8 and single byte encoding
-utf8_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
-utf8_LDADD	=	../../utils/unittests/libtds_test_base.a \
-			$(ODBC_LDFLAGS) ../../replacements/libreplacements.la $(NETWORK_LIBS) $(ODBCINST_LDFLAGS)
+utf8_SOURCES	= utf8.c
 utf8_2_SOURCES	= utf8_2.c
 utf8_3_SOURCES	= utf8_3.c
 utf8_4_SOURCES	= utf8_4.c
@@ -189,8 +186,7 @@ noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h c2string.c parser.c parser.h \
 	fake_thread.c fake_thread.h
 
-GLOBAL_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC) -DFREETDS_TOPDIR=\"$(top_srcdir)\"
-AM_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
+AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC) -DFREETDS_TOPDIR=\"$(top_srcdir)\"
 if ODBC_WIDE_TESTS
 AM_CPPFLAGS	+=	-DUNICODE -D_UNICODE
 endif
