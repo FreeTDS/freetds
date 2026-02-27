@@ -747,9 +747,17 @@ _bcp_convert_out(DBPROCESS * dbproc, TDSCOLUMN *curcol, BCP_HOSTCOLINFO *hostcol
 	if (is_datetime_type(srctype) && is_ascii_type(hostcol->datatype)) {
 		TDSDATEREC when;
 
+		/* Some date/time types have variable precision (e.g. MS datetime2),
+		 * and set curcol->column_prec with that precision.
+		 * DATETIME is printed with precision 3 by MS BCP & ASE BCP however
+		 * curcol->column_prec is not set for that type.
+		 * (It might be better to set column_prec at load time for all
+		 * of the datetime types...)
+		 */
+		int prec = curcol->column_prec ? curcol->column_prec : 3;
+
 		tds_datecrack(srctype, src, &when);
-		buflen = (int)tds_strftime((TDS_CHAR *)(*p_data), 256,
-					 bcpdatefmt, &when, 3);
+		buflen = (int) tds_strftime((TDS_CHAR *) (*p_data), 256, bcpdatefmt, &when, prec);
 	} else if (srclen == 0 && is_variable_type(curcol->column_type)
 		   && is_ascii_type(hostcol->datatype)) {
 		/*
@@ -829,7 +837,7 @@ bcp_cache_prefix_len(BCP_HOSTCOLINFO *hostcol, const TDSCOLUMN *curcol)
 }
 
 static RETCODE
-bcp_write_prefix(FILE *hostfile, BCP_HOSTCOLINFO *hostcol, TDSCOLUMN *curcol, int buflen)
+bcp_write_prefix(TDSFILEOUTSTREAM *hoststream, BCP_HOSTCOLINFO *hostcol, TDSCOLUMN *curcol, int buflen)
 {
 	union {
 		TDS_TINYINT ti;
@@ -856,10 +864,7 @@ bcp_write_prefix(FILE *hostfile, BCP_HOSTCOLINFO *hostcol, TDSCOLUMN *curcol, in
 		u.li = buflen;
 		break;
 	}
-	if (fwrite(&u, plen, 1, hostfile) == 1)
-		return SUCCEED;
-
-	return FAIL;
+	return TDS_SUCCEED(tds_fileout_stream_put(hoststream, &u, plen)) ? SUCCEED : FAIL;
 }
 
 /**
@@ -876,7 +881,8 @@ bcp_write_prefix(FILE *hostfile, BCP_HOSTCOLINFO *hostcol, TDSCOLUMN *curcol, in
 static RETCODE
 _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 {
-	FILE *hostfile = NULL;
+	TDSFILEOUTSTREAM hoststream;
+	FILE *hostfp = NULL;
 	TDS_UCHAR *data = NULL;
 	int i;
 
@@ -939,11 +945,11 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	 * TODO above we allocate many buffer just to convert and store
 	 * to file.. avoid all that passages...
 	 */
-
-	if (!(hostfile = fopen(dbproc->hostfileinfo->hostfile, "w"))) {
+	if (!(hostfp = fopen(dbproc->hostfileinfo->hostfile, "w"))) {
 		dbperror(dbproc, SYBEBCUO, errno);
 		goto Cleanup;
 	}
+	tds_fileout_stream_init(&hoststream, hostfp, _IOFBF);
 
 	/* fetch a row of data from the server */
 
@@ -979,7 +985,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 			}
 
 			/* The prefix */
-			if (bcp_write_prefix(hostfile, hostcol, curcol, buflen) != SUCCEED)
+			if (bcp_write_prefix(&hoststream, hostcol, curcol, buflen) != SUCCEED)
 				goto write_error;
 
 			/* The data */
@@ -988,23 +994,24 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 			}
 
 			if (buflen > 0) {
-				if (fwrite(data, buflen, 1, hostfile) != 1)
+				if (!TDS_SUCCEED(tds_fileout_stream_put(&hoststream, data, buflen)))
 					goto write_error;
 			}
 
 			/* The terminator */
 			if (hostcol->terminator && hostcol->term_len > 0) {
-				if (fwrite(hostcol->terminator, hostcol->term_len, 1, hostfile) != 1)
+				if (!TDS_SUCCEED(tds_fileout_stream_put(&hoststream, hostcol->terminator, hostcol->term_len)))
 					goto write_error;
 			}
 		}
 		rows_written++;
 	}
-	if (fclose(hostfile) != 0) {
+
+	if (TDS_FAILED(tds_fileout_stream_flush(&hoststream)) || fclose(hostfp) != 0) {
 		dbperror(dbproc, SYBEBCUC, errno);
 		goto Cleanup;
 	}
-	hostfile = NULL;
+	hostfp = NULL;
 
 	if (row_of_query + 1 < dbproc->hostfileinfo->firstrow) {
 		/*
@@ -1025,8 +1032,8 @@ write_error:
 	dbperror(dbproc, SYBEBCWE, errno);
 
 Cleanup:
-	if (hostfile)
-		fclose(hostfile);
+	if (hostfp)
+		fclose(hostfp);
 	free(data);
 	return FAIL;
 }
