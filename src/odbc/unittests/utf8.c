@@ -51,14 +51,14 @@ TestBinding(bool minimun)
 		unsigned int len;
 
 		len = minimun ? ((int) strlen(strings_hex[p-strings]) - 2) / 4 : 40;
-		CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_CHAR,
-			SQL_WCHAR, len, 0, (void *) p[0], 0, &s1_len, "S");
+		CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_TCHAR,
+			SQL_WCHAR, len, 0, T(p[0]), 0, &s1_len, "S");
 		len = minimun ? ((int) strlen(strings_hex[p+1-strings]) - 2) / 4 : 40;
 		/* FIXME this with SQL_VARCHAR produce wrong protocol data */
-		CHKBindParameter(3, SQL_PARAM_INPUT, SQL_C_CHAR,
-			SQL_WVARCHAR, len, 0, (void *) p[1], 0, &s2_len, "S");
-		s1_len = strlen(p[0]);
-		s2_len = strlen(p[1]);
+		CHKBindParameter(3, SQL_PARAM_INPUT, SQL_C_TCHAR,
+			SQL_WVARCHAR, len, 0, T(p[1]), 0, &s2_len, "S");
+		s1_len = SQL_NTS;
+		s2_len = SQL_NTS;
 		printf("insert #%d\n", (int) n);
 		CHKExecute("S");
 	}
