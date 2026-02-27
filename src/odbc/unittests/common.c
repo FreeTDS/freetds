@@ -693,13 +693,51 @@ odbc_read_error(void)
 	printf("Message: '%s' %s\n", odbc_sqlstate, odbc_err);
 }
 
+/* Used by ODBC test "utf8" which is built with UNICODE (ie. wide API).
+ * Partial implementation of UTF-8 to UCS-4
+ * (SQLWCHAR might either be 2-byte or 4-byte)
+ */
+static const char* utf8_to_wchar(SQLWCHAR *dst, const char* s, size_t s_len)
+{
+    unsigned char c = (unsigned char)s[0];
+
+    if (c < 0x80) {
+        *dst = c;
+        return s + 1;
+    } 
+    else if (c < 0xE0 && s_len > 1) {
+        *dst = ((c & 0x1F) << 6) | 
+               (s[1] & 0x3F);
+        return s + 2;
+    } 
+    else if (c < 0xF0 && s_len > 2) {
+        *dst = ((c & 0x0F) << 12) | 
+               ((s[1] & 0x3F) << 6) | 
+               (s[2] & 0x3F);
+        return s + 3;
+    } 
+    else if (c < 0xF8 && s_len > 3) {
+        *dst = ((c & 0x07) << 18) | 
+               ((s[1] & 0x3F) << 12) | 
+               ((s[2] & 0x3F) << 6) | 
+               (s[3] & 0x3F);
+        return s + 4;
+    }
+
+	/* Shouldn't happen; but ignore bogus values */
+    return s + 1;
+}
+
 SQLLEN
 odbc_to_sqlwchar(SQLWCHAR *dst, const char *src, SQLLEN n)
 {
-	SQLLEN i = n;
-	while (--i >= 0)
-		dst[i] = (unsigned char) src[i];
-	return n * sizeof(SQLWCHAR);
+	SQLWCHAR *out = dst;
+	const char *end = src + n;
+	while (src < end)
+		src = utf8_to_wchar(out++, src, end - src);
+
+	*out = 0;
+	return (out - dst) * sizeof(SQLWCHAR);
 }
 
 SQLLEN
