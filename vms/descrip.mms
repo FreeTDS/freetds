@@ -105,10 +105,18 @@ CODBCFLAGS = /NAMES=(AS_IS,SHORTENED)
 CODBCFLAGS = /NAMES=SHORTENED
 .ENDIF
 
-CDEFINE1=$(PTHREAD_CDEFINE) $(ODBC_CDEFINE)
-.IFDEF CDEFINE1
+.IFDEF ODBC_CDEFINE
+.IFDEF PTHREAD_CDEFINE
+CDEFINE=$(PTHREAD_CDEFINE),$(ODBC_CDEFINE)
+.ELSE
+CDEFINE=$(ODBC_CDEFINE)
+.ENDIF
+.ELSE
+CDEFINE=$(PTHREAD_CDEFINE)
+.ENDIF
+
+.IFDEF CDEFINE
 # MMK operator - Replace space with comma
-CDEFINE = $(CDEFINE1:: =,)
 CDEFINE_QUAL_BASE = /DEFINE=($(CDEFINE))
 CDEFINE_QUAL_WIDETEST = /DEFINE=($(ODBC_WIDETEST_CDEFINE)$(CDEFINE))
 .ENDIF
@@ -444,7 +452,10 @@ $(TDSODBCSHR) : []libtdsodbc$(OLB)
 	$(OPENSSL_OPTIONS) -
 	/share=$(MMS$TARGET)
 
-LIBS = []libtds$(OLB) []libct$(OLB) []libsybdb$(OLB) []libtdssrv$(OLB) []libtdsodbc$(OLB) $(TDSODBCSHR)
+.IFDEF ODBC
+ODBCLIBS = []libtdsodbc$(OLB) $(TDSODBCSHR)
+.ENDIF
+LIBS = []libtds$(OLB) []libct$(OLB) []libsybdb$(OLB) []libtdssrv$(OLB) $(ODBCLIBS)
 
 libs : $(LIBS)
 	@ continue
@@ -630,8 +641,7 @@ CTLIBTEST_TARGETS ~= $(ADDPREFIX $(CTDIR),$(ADDSUFFIX $(E),$(CTLIBTEST_NAMES)))
 DBLIBTEST_TARGETS ~= $(ADDPREFIX $(DTDIR),$(ADDSUFFIX $(E),$(DBLIBTEST_NAMES)))
 ODBCTEST_TARGETS ~= $(ADDPREFIX $(OTDIR),$(ADDSUFFIX $(E),$(ODBCTEST_NAMES)))
 
-# note: libtds test "tls" requires libtdsodbc.olb (even if not an ODBC build)
-libtdstests : []libtds$(OLB) []libtdsodbc$(OLB) $(LIBTDSTEST_TARGETS)
+libtdstests : []libtds$(OLB) $(LIBTDSTEST_TARGETS)
 	@ continue
 
 ctlibtests : []libtds$(OLB) []libct$(OLB) $(CTLIBTEST_TARGETS)
@@ -656,10 +666,6 @@ $(LIBTDSTEST_TARGETS) : $(LIBTDSTEST_COMMON_OBJS)
 
 {$(TTDIR)}$(OBJ){$(TTDIR)}$(E)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_TEST)
-
-# Extra libraries and include path used by tls test
-$(TTDIR)tls$(E) : $(TTDIR)tls$(OBJ)
-	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options,[]libtdsodbc$(OLB)/lib $(OPENSSL_TEST)
 
 # "parsing" and "tls" tests #include ../file.c to test private functions,
 # so we need to put that location on the include path. (by default, VMS CC
