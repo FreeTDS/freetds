@@ -388,6 +388,11 @@ TEST_MAIN()
 		test2("-123456789", SYBINT8, SYBBINARY, "len=8 EB 32 A4 F8 FF FF FF FF");
 	}
 
+	/* various zeroes to char */
+	test2("0", SYBINT4, SYBCHAR, "len=1 0");
+	test2("0", SYBUINT4, SYBCHAR, "len=1 0");
+	test2("0", SYBUINT8, SYBCHAR, "len=1 0");
+
 	/* now try many int conversion operations */
 	for (value = int_values; *value; ++value)
 	for (type1 = int_types; *type1 >= 0; ++type1)
