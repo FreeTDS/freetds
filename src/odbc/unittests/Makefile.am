@@ -185,7 +185,6 @@ transaction3_SOURCES = transaction3.c
 transaction4_SOURCES = transaction4.c
 qn_SOURCES = qn.c
 connection_string_parse_SOURCES = connection_string_parse.c
-connection_string_parse_CPPFLAGS = $(GLOBAL_CPPFLAGS)
 connection_string_parse_LDFLAGS = -static ../libtdsodbc.la ../../tds/unittests/libcommon.a -shared $(GLOBAL_LD_ADD)
 tokens_SOURCES	= tokens.c
 tokens_LDADD = ../../utils/unittests/libtds_test_base.a \
