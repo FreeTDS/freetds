@@ -2448,24 +2448,26 @@ _bcp_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC *d
 
 	pbuf += tds_u32toa_fast(pbuf, dr->year);
 
+	/* The following "& 63" are to avoid overflows if values are corrupted */
+
 	*pbuf++ = '-';
-	tds_02d_fast(pbuf, dr->month + 1);
+	tds_02d_fast(pbuf, (dr->month + 1) & 63);
 	pbuf += 2;
 
 	*pbuf++ = '-';
-	tds_02d_fast(pbuf, dr->day);
+	tds_02d_fast(pbuf, dr->day & 63);
 	pbuf += 2;
 
 	*pbuf++ = ' ';
-	tds_02d_fast(pbuf, dr->hour);
+	tds_02d_fast(pbuf, dr->hour & 63);
 	pbuf += 2;
 
 	*pbuf++ = ':';
-	tds_02d_fast(pbuf, dr->minute);
+	tds_02d_fast(pbuf, dr->minute & 63);
 	pbuf += 2;
 
 	*pbuf++ = ':';
-	tds_02d_fast(pbuf, dr->second);
+	tds_02d_fast(pbuf, dr->second & 63);
 	pbuf += 2;
 
 	if (prec > 0) {
