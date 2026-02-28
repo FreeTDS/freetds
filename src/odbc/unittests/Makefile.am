@@ -96,11 +96,6 @@ t0002_SOURCES	=	t0002.c
 t0003_SOURCES	=	t0003.c
 moreresults_SOURCES	=	moreresults.c
 connect_SOURCES	=	connect.c
-if FAST_INSTALL
-connect_LDFLAGS = $(GLOBAL_LD_ADD) -no-fast-install
-else
-connect_LDFLAGS = $(GLOBAL_LD_ADD) -no-install
-endif
 print_SOURCES	=	print.c
 date_SOURCES	=	date.c
 norowset_SOURCES	= norowset.c
@@ -166,7 +161,7 @@ utf8_LDADD	=	../../utils/unittests/libtds_test_base.a \
 utf8_2_SOURCES	= utf8_2.c
 utf8_3_SOURCES	= utf8_3.c
 utf8_4_SOURCES	= utf8_4.c
-utf8_4_LDFLAGS = -static ../libtdsodbc.la ../../tds/unittests/libcommon.a -shared $(GLOBAL_LD_ADD)
+utf8_4_LDFLAGS = -static ../libtdsodbc.la ../../tds/unittests/libcommon.a -shared
 stats_SOURCES	= stats.c
 descrec_SOURCES	= descrec.c
 peter_SOURCES	= peter.c
@@ -179,17 +174,15 @@ closestmt_SOURCES = closestmt.c
 oldpwd_SOURCES = oldpwd.c
 bcp_SOURCES = bcp.c
 all_types_SOURCES = all_types.c
-all_types_LDFLAGS = -static ../libtdsodbc.la ../../tds/unittests/libcommon.a -shared $(GLOBAL_LD_ADD)
+all_types_LDFLAGS = -static ../libtdsodbc.la ../../tds/unittests/libcommon.a -shared
 empty_query_SOURCES = empty_query.c
 transaction3_SOURCES = transaction3.c
 transaction4_SOURCES = transaction4.c
 qn_SOURCES = qn.c
 connection_string_parse_SOURCES = connection_string_parse.c
-connection_string_parse_LDFLAGS = -static ../libtdsodbc.la ../../tds/unittests/libcommon.a -shared $(GLOBAL_LD_ADD)
+connection_string_parse_LDFLAGS = -static ../libtdsodbc.la ../../tds/unittests/libcommon.a -shared
 tokens_SOURCES	= tokens.c
-tokens_LDADD = ../../utils/unittests/libtds_test_base.a \
-		libcommon.a $(ODBC_LDFLAGS) ../../replacements/libreplacements.la \
-		../../server/libtdssrv.la $(GLOBAL_LD_ADD)
+tokens_LDFLAGS = ../../server/libtdssrv.la $(INSTALL_FLAG)
 reexec_SOURCES = reexec.c
 
 noinst_LIBRARIES = libcommon.a
@@ -197,20 +190,21 @@ libcommon_a_SOURCES = common.c common.h c2string.c parser.c parser.h \
 	fake_thread.c fake_thread.h
 
 GLOBAL_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC) -DFREETDS_TOPDIR=\"$(top_srcdir)\"
-GLOBAL_LD_ADD =	$(NETWORK_LIBS) $(ODBCINST_LDFLAGS) $(LTLIBICONV)
 AM_CPPFLAGS	=	$(GLOBAL_CPPFLAGS)
 if ODBC_WIDE_TESTS
 AM_CPPFLAGS	+=	-DUNICODE -D_UNICODE
 endif
 
 if FAST_INSTALL
-AM_LDFLAGS	=	-no-fast-install
+INSTALL_FLAG = -no-fast-install
 else
-AM_LDFLAGS	=	-no-install -L../.libs -R "$(abs_builddir)/../.libs"
+INSTALL_FLAG = -no-install
 endif
+
+AM_LDFLAGS	=	$(INSTALL_FLAG)
 LDADD		=	libcommon.a ../../utils/unittests/libtds_test_base.a \
 			$(ODBC_LDFLAGS) ../../replacements/libreplacements.la \
-			$(GLOBAL_LD_ADD)
+			$(NETWORK_LIBS) $(ODBCINST_LDFLAGS) $(LTLIBICONV)
 DISTCLEANFILES	=	odbc.ini odbcinst.ini
 EXTRA_DIST	=	CMakeLists.txt
 
