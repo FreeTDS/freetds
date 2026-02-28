@@ -325,8 +325,8 @@ tds_char2hex(TDS_CHAR *dest, size_t destlen, const TDS_CHAR * src, size_t srclen
 			if ('A' <= hex1 && hex1 <= 'F') {
 				hex1 -= ('A' - 10);
 			} else {
-				tdsdump_log(TDS_DBG_INFO1,
-					    "error_handler:  attempt to convert data stopped by syntax error in source field \n");
+				tdsdump_log(TDS_DBG_ERROR,
+					    "error_handler: attempt to convert data stopped by syntax error in source field\n");
 				return TDS_CONVERT_SYNTAX;
 			}
 		}
