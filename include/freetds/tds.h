@@ -684,14 +684,29 @@ struct tds_column
 	TDS_INT column_usertype;
 	TDS_INT column_flags;
 
-	TDS_INT column_size;		/**< maximun size of data. For fixed is the size. */
+	/**
+	 * Maximun size of data. For fixed types is the size.
+	 */
+	TDS_INT column_size;
 
-	TDS_SERVER_TYPE column_type;	/**< This type can be different from wire type because
-	 				 * conversion (e.g. UCS-2->Ascii) can be applied.
-					 * I'm beginning to wonder about the wisdom of this, however.
-					 * April 2003 jkl
-					 */
-	TDS_TINYINT column_varint_size;	/**< size of length when reading from wire (0, 1, 2 or 4) */
+	/**
+	 * This type can be different from wire type because
+	 * conversion (e.g. UCS-2->Ascii) can be applied.
+	 * I'm beginning to wonder about the wisdom of this, however.
+	 * April 2003 jkl
+	 */
+	TDS_SERVER_TYPE column_type;
+
+	/**
+	 * Size of length when reading from wire (0, 1, 2, 4, 5 or 8).
+	 * 0 means fixed type.
+	 * 1, 2 and 4 means the data stream contains a length exactly these bytes.
+	 * 5 means old BLOB types having TEXTPTR on them. 5 as they contain 2 lengths,
+	 * one 4 bytes for data length and another 1 byte for TEXTPTR length.
+	 * 8 are MSSQL VARBINARY/VARCHAR(MAX) which have a 8 byte length, although
+	 * data types are still limited to 2GB.
+	 */
+	TDS_TINYINT column_varint_size;
 
 	TDS_TINYINT column_prec;	/**< precision for decimal/numeric and some datetime types */
 	TDS_TINYINT column_scale;	/**< scale for decimal/numeric */
