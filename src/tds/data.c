@@ -424,7 +424,7 @@ tds_generic_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 	}
 
 	/* Only read table_name for blob columns (eg. not for SYBLONGBINARY) */
-	if (is_blob_type(col->on_server.column_type)) {
+	if (type_has_textptr(col->on_server.column_type)) {
 		/* discard this additional byte */
 		if (IS_TDS72_PLUS(tds->conn)) {
 			unsigned char num_parts = tds_get_byte(tds);
@@ -888,7 +888,7 @@ tds_generic_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 	}
 
 	/* TDS5 wants a table name for LOBs */
-	if (IS_TDS50(tds->conn) && is_blob_type(col->on_server.column_type))
+	if (IS_TDS50(tds->conn) && type_has_textptr(col->on_server.column_type))
 		tds_put_smallint(tds, 0);
 
 	/* TDS7.1 output collate information */
@@ -924,7 +924,7 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, bool bcp7)
 		tdsdump_log(TDS_DBG_INFO1, "tds_generic_put: null param\n");
 		switch (curcol->column_varint_size) {
 		case 5:
-			if ((bcp7 || !IS_TDS7_PLUS(tds->conn)) && is_blob_type(curcol->on_server.column_type))
+			if ((bcp7 || !IS_TDS7_PLUS(tds->conn)) && type_has_textptr(curcol->on_server.column_type))
 				tds_put_byte(tds, 0);
 			else
 				tds_put_int(tds, -1);
@@ -1003,7 +1003,7 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, bool bcp7)
 		case 5:	/* It's a BLOB... */
 			colsize = TDS_MIN(colsize, size);
 			/* mssql require only size */
-			if (bcp7 && is_blob_type(curcol->on_server.column_type)) {
+			if (bcp7 && type_has_textptr(curcol->on_server.column_type)) {
 				static const unsigned char textptr[] = {
 					0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 					0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
@@ -1605,7 +1605,7 @@ tds_sybbigtime_check(const TDSCOLUMN *col)
 	assert(col->on_server.column_size == col->column_size);
 	assert(!is_numeric_type(col->column_type));
 	assert(!is_fixed_type(col->column_type));
-	assert(!is_blob_type(col->column_type));
+	assert(!type_has_textptr(col->column_type));
 	assert(!is_variable_type(col->column_type));
 	assert(is_nullable_type(col->column_type));
 	assert(col->column_varint_size == 1);
@@ -1638,7 +1638,7 @@ tds_msdatetime_check(const TDSCOLUMN *col)
 	} else {
 		assert(!is_fixed_type(col->column_type));
 	}
-	assert(!is_blob_type(col->column_type));
+	assert(!type_has_textptr(col->column_type));
 	assert(!is_variable_type(col->column_type));
 	assert(is_nullable_type(col->column_type));
 	assert(col->column_varint_size == 1);
@@ -1661,7 +1661,7 @@ tds_numeric_check(const TDSCOLUMN *col)
 	assert(col->on_server.column_size == col->column_size);
 	assert(is_numeric_type(col->column_type));
 	assert(!is_fixed_type(col->column_type));
-	assert(!is_blob_type(col->column_type));
+	assert(!type_has_textptr(col->column_type));
 	assert(!is_variable_type(col->column_type));
 	assert(col->column_varint_size == 1);
 	assert(col->column_prec >= 1 && col->column_prec <= MAXPRECISION);

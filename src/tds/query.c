@@ -3260,7 +3260,7 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 
 	if (src_len < 0) {
 		/* on TDS 4 TEXT/IMAGE cannot be NULL, use empty */
-		if (!IS_TDS50_PLUS(tds->conn) && is_blob_type(curcol->on_server.column_type))
+		if (!IS_TDS50_PLUS(tds->conn) && type_has_textptr(curcol->on_server.column_type))
 			tds_put_string(tds, "''", 2);
 		else
 			tds_put_string(tds, "NULL", 4);

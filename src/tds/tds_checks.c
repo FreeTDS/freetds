@@ -223,7 +223,7 @@ tds_check_column_extra(const TDSCOLUMN * column)
 		    || column->on_server.column_type == XSYBVARBINARY
 		    || column->on_server.column_type == XSYBNVARCHAR)
 			varint_ok = 1;
-	} else if (is_blob_type(column->column_type)) {
+	} else if (type_has_textptr(column->column_type)) {
 		assert(column_varint_size >= 4);
 	} else if (column->column_type == SYBVARIANT) {
 		assert(column_varint_size == 5);

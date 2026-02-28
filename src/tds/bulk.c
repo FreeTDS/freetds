@@ -588,7 +588,7 @@ tds5_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 
 	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
 		TDSCOLUMN  *bindcol = bcpinfo->bindinfo->columns[i];
-		if (is_blob_type(bindcol->on_server.column_type)) {
+		if (type_has_textptr(bindcol->on_server.column_type)) {
 			TDSRET rc;
 			/* Elide trailing NULLs */
 			if (bindcol->bcp_column_data->is_null) {
@@ -597,7 +597,7 @@ tds5_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 				for (j = i + 1; j < bcpinfo->bindinfo->num_cols; ++j) {
 					TDSCOLUMN *bindcol2 = bcpinfo->bindinfo->columns[j];
 
-					if (is_blob_type(bindcol2->column_type) && !bindcol2->bcp_column_data->is_null)
+					if (type_has_textptr(bindcol2->column_type) && !bindcol2->bcp_column_data->is_null)
 						break;
 				}
 				if (j == bcpinfo->bindinfo->num_cols)
@@ -829,7 +829,7 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 
 		/* move the column buffer into the rowbuffer */
 		if (!bcpcol->bcp_column_data->is_null) {
-			if (is_blob_type(bcpcol->on_server.column_type)) {
+			if (type_has_textptr(bcpcol->on_server.column_type)) {
 				cpbytes = 16;
 				bcpcol->column_textpos = row_pos;               /* save for data write */
 			} else if (is_numeric_type(bcpcol->on_server.column_type)) {
@@ -846,7 +846,7 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 				memcpy(&rowbuffer[row_pos], bcpcol->bcp_column_data->data, cpbytes);
 				tds5_swap_data(bcpcol, &rowbuffer[row_pos]);
 			}
-		} else if (is_blob_type(bcpcol->column_type)) {
+		} else if (type_has_textptr(bcpcol->column_type)) {
 			bcpcol->column_textpos = row_pos;
 		}
 
@@ -988,7 +988,7 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		/* TODO put this in put_info. It seems that parameter format is
 		 * different from BCP format
 		 */
-		if (is_blob_type(bcpcol->on_server.column_type)) {
+		if (type_has_textptr(bcpcol->on_server.column_type)) {
 			converted_name = tds_convert_string(tds, tds->conn->char_convs[client2ucs2],
 							    tds_dstr_cstr(&bcpinfo->tablename),
 							    (int) tds_dstr_len(&bcpinfo->tablename), &converted_len);
@@ -1150,7 +1150,7 @@ tds5_read_bulk_defaults(TDSRESULTINFO *res_info, TDSBCPINFO *bcpinfo)
 		TDS_UCHAR *src = col->column_data;
 		TDS_INT len = col->column_cur_size;
 
-		if (is_blob_type(col->column_type))
+		if (type_has_textptr(col->column_type))
 			src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
 
 		/* find next column having a default */
@@ -1293,7 +1293,7 @@ tds5_get_col_data_or_dflt(tds_bcp_get_col_data get_col_data, TDSBCPINFO *bulk, T
 
 	ret = get_col_data(bulk, bcpcol, offset);
 	coldata = bcpcol->bcp_column_data;
-	if (coldata->is_null && bulk->sybase_colinfo != NULL && !is_blob_type(bcpcol->column_type)) {
+	if (coldata->is_null && bulk->sybase_colinfo != NULL && !type_has_textptr(bcpcol->column_type)) {
 		const TDS5COLINFO *syb_info = &bulk->sybase_colinfo[colnum];
 
 		if (!syb_info->dflt) {
@@ -1367,7 +1367,7 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 			 * rest can be taken from the server
 			 */
 
-			if (is_blob_type(bcpcol->on_server.column_type))
+			if (type_has_textptr(bcpcol->on_server.column_type))
 				column_bcp_data_size  = 16;
 			else if (is_numeric_type(bcpcol->on_server.column_type))
 				column_bcp_data_size  = tds_numeric_bytes_per_prec[bcpcol->column_prec];

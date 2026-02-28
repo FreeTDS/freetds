@@ -845,7 +845,7 @@ bcp_cache_prefix_len(BCP_HOSTCOLINFO *hostcol, const TDSCOLUMN *curcol)
 {
 	int plen;
 
-	if (is_blob_type(hostcol->datatype))
+	if (type_has_textptr(hostcol->datatype))
 		plen = 4;
 	else if (is_numeric_type(hostcol->datatype))
 		plen = 1;
