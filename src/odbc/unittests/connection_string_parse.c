@@ -55,17 +55,17 @@ test_common(const char *name, const char *connect_string, check_func_t *check_fu
 }
 
 #define CHECK(name, s) \
-	static const char *name ## _connect_string = s; \
 	static void name ## _check(TDSLOGIN *login, TDS_PARSED_PARAM *parsed_params); \
 	static void name(void) { \
-		test_common(#name, name ## _connect_string, name ## _check); \
+		static const char connect_string[] = s; \
+		test_common(#name, connect_string, name ## _check); \
 	} \
 	static void name ## _check(TDSLOGIN *login, TDS_PARSED_PARAM *parsed_params)
 
 #define CHECK_ERROR(name, s) \
-	static const char *name ## _connect_string = s; \
 	static void name(void) { \
-		test_common(#name, name ## _connect_string, NULL); \
+		static const char connect_string[] = s; \
+		test_common(#name, connect_string, NULL); \
 	}
 
 CHECK(simple_string,
