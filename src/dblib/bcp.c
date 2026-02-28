@@ -59,25 +59,6 @@
 #define HOST_COL_CONV_ERROR 1
 #define HOST_COL_NULL_ERROR 2
 
-#ifdef HAVE_FSEEKO
-typedef off_t offset_type;
-#elif defined(_WIN32) || defined(_WIN64)
-/* win32 version */
-typedef __int64 offset_type;
-# if defined(HAVE__FSEEKI64) && defined(HAVE__FTELLI64)
-#  define fseeko(f,o,w) _fseeki64((f),o,w)
-#  define ftello(f) _ftelli64((f))
-# else
-#  define fseeko(f,o,w) (_lseeki64(fileno(f),o,w) == -1 ? -1 : 0)
-#  define ftello(f) _telli64(fileno(f))
-# endif
-#else
-/* use old version */
-#define fseeko(f,o,w) fseek(f,o,w)
-#define ftello(f) ftell(f)
-typedef long offset_type;
-#endif
-
 static void _bcp_free_storage(DBPROCESS * dbproc);
 static void _bcp_free_columns(DBPROCESS * dbproc);
 static void _bcp_null_error(TDSBCPINFO *bcpinfo, int index, int offset);
@@ -86,7 +67,7 @@ static TDSRET _bcp_no_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int 
 
 static int rtrim(char *, int);
 static int rtrim_u16(uint16_t *str, int len, uint16_t space);
-static STATUS _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool skip);
+static STATUS _bcp_read_hostfile(DBPROCESS * dbproc, TDSFILESTREAM * hostfile, bool *row_error, bool skip);
 static int _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci);
 static int _bcp_get_term_var(const BYTE * pdata, const BYTE * term, int term_len);
 static int _bcp_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * dr, int prec);
@@ -1183,13 +1164,12 @@ rtrim_bcpcol(TDSCOLUMN *bcpcol)
  * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
  */
 static STATUS
-_bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool skip)
+_bcp_read_hostfile(DBPROCESS * dbproc, TDSFILESTREAM *stream, bool *row_error, bool skip)
 {
 	int i;
 
-	tdsdump_log(TDS_DBG_FUNC, "_bcp_read_hostfile(%p, %p, %p, %d)\n", dbproc, hostfile, row_error, skip);
+	tdsdump_log(TDS_DBG_FUNC, "_bcp_read_hostfile(%p, %p, %p, %d)\n", dbproc, stream, row_error, skip);
 	assert(dbproc);
-	assert(hostfile);
 	assert(row_error);
 
 	/* for each host file column defined by calls to bcp_colfmt */
@@ -1200,7 +1180,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool sk
 		TDS_CHAR *coldata;
 		int collen = 0;
 		bool data_is_null = false;
-		offset_type col_start;
+		offset_type col_start = 0;
 
 		tdsdump_log(TDS_DBG_FUNC, "parsing host column %d\n", i + 1);
 		hostcol = dbproc->hostfileinfo->host_columns[i];
@@ -1238,18 +1218,18 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool sk
 
 			switch (hostcol->prefix_len) {
 			case 1:
-				if (fread(&u.ti, 1, 1, hostfile) != 1)
-					return _bcp_check_eof(dbproc, hostfile, i);
+				if (tds_file_stream_read_raw(stream, &u.ti, 1) != 1)
+					return _bcp_check_eof(dbproc, stream->f, i);
 				collen = u.ti ? u.ti : -1;
 				break;
 			case 2:
-				if (fread(&u.si, 2, 1, hostfile) != 1)
-					return _bcp_check_eof(dbproc, hostfile, i);
+				if (tds_file_stream_read_raw(stream, &u.si, 2) != 2)
+					return _bcp_check_eof(dbproc, stream->f, i);
 				collen = u.si;
 				break;
 			case 4:
-				if (fread(&u.li, 4, 1, hostfile) != 1)
-					return _bcp_check_eof(dbproc, hostfile, i);
+				if (tds_file_stream_read_raw(stream, &u.li, 4) != 4)
+					return _bcp_check_eof(dbproc, stream->f, i);
 				collen = u.li;
 				break;
 			default:
@@ -1284,8 +1264,10 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool sk
 		if (is_fixed_type(hostcol->datatype))
 			collen = tds_get_size_by_type(hostcol->datatype);
 
-		col_start = ftello(hostfile);
-
+#if ENABLE_EXTRA_CHECKS
+		/* Expensive operation for a hot loop */
+		col_start = tds_file_stream_tell(stream);
+#endif
 		/*
 		 * The data file either contains prefixes stating the length, or is delimited.  
 		 * If delimited, we "measure" the field by looking for the terminator, then read it, 
@@ -1295,11 +1277,8 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool sk
 			size_t col_bytes;
 			TDSRET conv_res;
 
-			/* 
-			 * Read and convert the data
-			 */
 			coldata = NULL;
-			conv_res = tds_bcp_fread(dbproc->tds_socket, bcpcol ? bcpcol->char_conv : NULL, hostfile,
+			conv_res = tds_bcp_fread(dbproc->tds_socket, bcpcol ? bcpcol->char_conv : NULL, stream,
 						 (const char *) hostcol->terminator, hostcol->term_len, &coldata, &col_bytes);
 
 			if (TDS_FAILED(conv_res)) {
@@ -1313,7 +1292,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool sk
 
 			if (conv_res == TDS_NO_MORE_RESULTS) {
 				free(coldata);
-				return _bcp_check_eof(dbproc, hostfile, i);
+				return _bcp_check_eof(dbproc, stream->f, i);
 			}
 
 			if (col_bytes > 0x7fffffffl) {
@@ -1358,9 +1337,9 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool sk
 				 *	 call and test it. 
 				 */
 				tdsdump_log(TDS_DBG_FUNC, "Reading %d bytes from hostfile.\n", collen);
-				if (fread(coldata, collen, 1, hostfile) != 1) {
+				if (tds_file_stream_read_raw(stream, coldata, collen) != collen) {
 					free(coldata);
-					return _bcp_check_eof(dbproc, hostfile, i);
+					return _bcp_check_eof(dbproc, stream->f, i);
 				}
 			}
 		}
@@ -1384,8 +1363,10 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool sk
 				if (TDS_FAILED(rc)) {
 					hostcol->column_error = HOST_COL_CONV_ERROR;
 					*row_error = true;
+					if ( col_start == 0 )
+						col_start = tds_file_stream_tell(stream) - collen;
 					tdsdump_log(TDS_DBG_FUNC, 
-						"_bcp_read_hostfile failed to convert %d bytes at offset 0x%" PRIx64 " in the data file.\n",
+						"_bcp_read_hostfile failed to convert %d bytes at offset about 0x%" PRIx64 " in the data file.\n",
 						    collen, (TDS_INT8) col_start);
 				}
 
@@ -1478,7 +1459,8 @@ bcp_sendrow(DBPROCESS * dbproc)
 static RETCODE
 _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 {
-	FILE *hostfile, *errfile = NULL;
+	FILE *errfile = NULL;
+	TDSFILESTREAM hoststream;
 	TDSSOCKET *tds = dbproc->tds_socket;
 	BCP_HOSTCOLINFO *hostcol;
 	STATUS ret;
@@ -1496,13 +1478,16 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 
 	*rows_copied = 0;
 	
-	if (!(hostfile = fopen(dbproc->hostfileinfo->hostfile, "r"))) {
+	if (!TDS_SUCCEED(tds_file_stream_init(&hoststream, 
+			fopen(dbproc->hostfileinfo->hostfile, "r"))))
+	{
+		tdsdump_log(TDS_DBG_FUNC, "error: cannot initialize hostfile stream");
 		dbperror(dbproc, SYBEBCUO, 0);
 		return FAIL;
 	}
 
 	if (TDS_FAILED(tds_bcp_start_copy_in(tds, dbproc->bcpinfo))) {
-		fclose(hostfile);
+		tds_file_stream_close(&hoststream);
 		return FAIL;
 	}
 
@@ -1515,7 +1500,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 	for (;;) {
 		bool skip;
 
-		row_start = ftello(hostfile);
+		row_start = tds_file_stream_tell(&hoststream);
 		row_error = false;
 
 		row_of_hostfile++;
@@ -1524,7 +1509,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 			break;
 
 		skip = dbproc->hostfileinfo->firstrow > row_of_hostfile;
-		ret = _bcp_read_hostfile(dbproc, hostfile, &row_error, skip);
+		ret = _bcp_read_hostfile(dbproc, &hoststream, &row_error, skip);
 		if (ret != MORE_ROWS)
 			break;
 
@@ -1533,7 +1518,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 
 			if (errfile == NULL && dbproc->hostfileinfo->errorfile) {
 				if (!(errfile = fopen(dbproc->hostfileinfo->errorfile, "w"))) {
-					fclose(hostfile);
+					tds_file_stream_close(&hoststream);
 					dbperror(dbproc, SYBEBUOE, 0);
 					return FAIL;
 				}
@@ -1562,11 +1547,11 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 					}
 				}
 
-				row_end = ftello(hostfile);
+				row_end = tds_file_stream_tell(&hoststream);
 
 				/* error data can be very long so split in chunks */
 				error_row_size = row_end - row_start;
-				fseeko(hostfile, row_start, SEEK_SET);
+				tds_file_stream_seek_set(&hoststream, row_start);
 
 				while (error_row_size > 0) {
 					size_t chunk = TDS_MIN((size_t) error_row_size, chunk_size);
@@ -1578,7 +1563,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 						}
 					}
 
-					if (fread(row_in_error, 1, chunk, hostfile) != chunk)
+					if (tds_file_stream_read_raw(&hoststream, row_in_error, chunk) != chunk)
 						tdsdump_log(TDS_DBG_ERROR, "BILL fread failed after fseek\n");
 
 					written = fwrite(row_in_error, 1, chunk, errfile);
@@ -1589,7 +1574,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 				}
 				free(row_in_error);
 
-				fseeko(hostfile, row_end, SEEK_SET);
+				tds_file_stream_seek_set(&hoststream, row_start);
 				count = fprintf(errfile, "\n");
 				if( count < 0 ) {
 					dbperror(dbproc, SYBEBWEF, errno);
@@ -1613,7 +1598,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 				if (TDS_FAILED(tds_bcp_done(tds, &rows_written_so_far))) {
 					if (errfile)
 						fclose(errfile);
-					fclose(hostfile);
+					tds_file_stream_close(&hoststream);
 					return FAIL;
 				}
 
@@ -1636,7 +1621,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 		dbperror(dbproc, SYBEBUCE, 0);
 	}
 
-	if (fclose(hostfile) != 0) {
+	if (TDS_FAILED(tds_file_stream_close(&hoststream))) {
 		dbperror(dbproc, SYBEBCUC, 0);
 		ret = FAIL;
 	}

@@ -19,6 +19,7 @@
 
 #include "common.h"
 #include <freetds/iconv.h>
+#include <freetds/stream.h>
 
 #if HAVE_UNISTD_H
 #undef getpid
@@ -43,6 +44,7 @@ TEST_MAIN()
 	TDSCONTEXT *ctx = tds_alloc_context(NULL);
 	TDSSOCKET *tds = tds_alloc_socket(ctx, 512);
 	TDSICONV * conv;
+	TDSFILESTREAM stream;
 	const tds_dir_char *tdsdump;
 
 	tdsdump = tds_dir_getenv(TDS_DIR("TDSDUMP"));
@@ -65,6 +67,12 @@ TEST_MAIN()
 	f = fopen(out_file, "w+b");
 	if (!f) {
 		fprintf(stderr, "Error opening file!\n");
+		return 1;
+	}
+
+	if ( !TDS_SUCCEED(tds_file_stream_init(&stream, f)) )
+	{
+		fprintf(stderr, "Error initializing input file stream.\n");
 		return 1;
 	}
 
@@ -95,7 +103,7 @@ TEST_MAIN()
 		}
 
 		/* convert it */
-		res = tds_bcp_fread(NULL, conv, f, "!!", 2, &out, &out_len);
+		res = tds_bcp_fread(NULL, conv, &stream, "!!", 2, &out, &out_len);
 		printf("res %d out_len %u\n", (int) res, (unsigned int) out_len);
 
 		/* test */
