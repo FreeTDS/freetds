@@ -199,6 +199,9 @@ foreach my $type (sort { $$a{value} <=> $$b{value} } values %types) {
 	foreach my $n (qw(nullable fixed variable numeric collate unicode ascii datetime binary variant)) {
 		push @f, uc("TDS_TYPEFLAG_$n") if $t{$n} eq '1';
 	}
+	if ($t{varint} == 5) {
+		push @f, uc("TDS_TYPEFLAG_TEXTPTR");
+	}
 	my $f = join("|", @f);
 	$f = '0' if !$f;
 	$type->{flags} = $f;
@@ -241,6 +244,7 @@ collapse('TDS_TYPEFLAG_VARIABLE');
 collapse('TDS_TYPEFLAG_UNICODE');
 collapse('TDS_TYPEFLAG_DATETIME');
 collapse('TDS_TYPEFLAG_BINARY');
+collapse('TDS_TYPEFLAG_TEXTPTR');
 
 # output MS flags
 print q|const uint16_t tds_type_flags_ms[256] = {

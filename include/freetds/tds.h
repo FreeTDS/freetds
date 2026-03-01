@@ -347,6 +347,7 @@ enum {
 	TDS_TYPEFLAG_DATETIME = 128,
 	TDS_TYPEFLAG_NUMERIC  = 256,
 	TDS_TYPEFLAG_VARIANT  = 512,
+	TDS_TYPEFLAG_TEXTPTR  = 1024,
 };
 
 extern const uint16_t tds_type_flags_ms[256];
@@ -361,7 +362,7 @@ extern const char *const tds_type_names[256];
 #define is_variant_inner_type(x)   ((tds_type_flags_ms[x] & TDS_TYPEFLAG_VARIANT) != 0)
 
 
-#define type_has_textptr(x)   ((x)==SYBTEXT || (x)==SYBIMAGE || (x)==SYBNTEXT)
+#define type_has_textptr(x)   ((tds_type_flags_ms[(x)&255] & TDS_TYPEFLAG_TEXTPTR) != 0)
 #define is_blob_col(x)        ((x)->column_varint_size > 2)
 /* large type means it has a two byte size field */
 /* define is_large_type(x) (x>128) */

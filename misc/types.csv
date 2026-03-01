@@ -53,7 +53,7 @@ SYBUNIQUE;MS;1;1;1;0;0;0;0;0;0;0;16;0;36;0;1;# have size but is nullable
 SYBUNITEXT;SYB;5;0;1;1;1;0;0;1;0;0;-1;0;S/2;0;0;# UTF-16
 SYBVARBINARY;ALL;1;0;1;1;0;0;0;0;0;0;-1;0;2*S;1;1;
 SYBVARCHAR;ALL;1;0;1;1;0;0;0;0;1;0;-1;0;S;0;1;
-SYBVARIANT;MS;5;0;1;1;0;0;0;Depend;Depend;0;-1;0;;0;0;# varint ok ?
+SYBVARIANT;MS;4;0;1;1;0;0;0;Depend;Depend;0;-1;0;;0;0;
 SYBVOID;ALL;0;1;0;0;0;0;0;0;0;0;0;0;;0;0;
 SYBXML;SYB;5;0;1;1;1;0;0;??;??;0;-1;0;;0;0;
 XSYBBINARY;MS;2;0;1;1;0;0;0;0;0;0;-1;0;S;1;1;
