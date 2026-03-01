@@ -1738,6 +1738,7 @@ struct tds_bcpinfo
 	TDSRESULTINFO *bindinfo;
 	TDS5COLINFO *sybase_colinfo;
 	TDS_INT sybase_count;
+	TDS_INT rows_sent;
 	bool with_triggers;
 };
 

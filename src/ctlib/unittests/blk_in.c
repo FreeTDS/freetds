@@ -10,10 +10,11 @@
 
 static void
 do_bind(CS_BLKDESC * blkdesc, int colnum, CS_INT host_format, CS_INT host_type, CS_INT host_maxlen,
-	void        *var_addr,
-	CS_INT      *var_len_addr,
-	CS_SMALLINT *var_ind_addr );
+	void *var_addr, CS_INT * var_len_addr, CS_SMALLINT * var_ind_addr);
 static void do_one_bind(CS_BLKDESC * blkdesc, int col, const char *name);
+static void do_type_bind(CS_BLKDESC * blkdesc, int col, const char *tok);
+static void free_dynamic_bounded(void);
+static void sendrow(CS_BLKDESC * blkdesc, const char *tok);
 static FILE *open_test_file(const char *filename);
 typedef enum
 {
@@ -26,7 +27,7 @@ static part_t read_part_type(FILE * in);
 static char *read_part(FILE * in);
 static void read_line(char *buf, size_t buf_len, FILE * f);
 static char *append_string(char *s1, const char *s2);
-static char *get_output(CS_COMMAND * cmd);
+static char *get_output(CS_COMMAND * cmd, bool distinct);
 static void single_test(CS_CONNECTION * conn, CS_COMMAND * cmd, FILE * in);
 
 /*
@@ -132,17 +133,32 @@ static CS_INT      l_not_null_varbinary = 9;
 static CS_SMALLINT i_not_null_varbinary = 0;
 
 static void
-do_binds(CS_BLKDESC *blkdesc, FILE *in)
+do_binds(CS_BLKDESC *blkdesc, FILE *in, bool *rows_sent)
 {
 	char line[1024];
 	int col = 1;
 
+	*rows_sent = false;
 	for (;;) {
+		const char *tok;
+
 		read_line(line, sizeof(line), in);
 		if (strcmp(line, "--\n") == 0)
 			return;
-		strtok(line, "\n");
-		do_one_bind(blkdesc, col, line);
+		tok = strtok(line, " \t\n");
+
+		if (strcmp(tok, "--") == 0) {
+			/* comment */
+			continue;
+		} else if (strncmp(tok, "SENDROW", 7) == 0) {
+			sendrow(blkdesc, tok);
+			col = 0;
+			*rows_sent = true;
+		} else if (strncmp(tok, "CS_", 3) == 0) {
+			do_type_bind(blkdesc, col, tok);
+		} else {
+			do_one_bind(blkdesc, col, line);
+		}
 		++col;
 	}
 }
@@ -196,11 +212,102 @@ do_one_bind(CS_BLKDESC *blkdesc, int col, const char *name)
 	exit(1);
 }
 
+typedef struct bound_value
+{
+	struct bound_value *next;
+	CS_INT varlen;
+	CS_SMALLINT ind;
+	void *value;
+} bound_value;
+
+static bound_value *dynamic_bounded = NULL;
+
 static void
-do_bind(CS_BLKDESC * blkdesc, int colnum, CS_INT host_format, CS_INT host_type, CS_INT host_maxlen,
-	void        *var_addr,
-	CS_INT      *var_len_addr,
-	CS_SMALLINT *var_ind_addr )
+free_dynamic_bounded(void)
+{
+	while (dynamic_bounded) {
+		bound_value *next = dynamic_bounded->next;
+
+		free(dynamic_bounded->value);
+		free(dynamic_bounded);
+		dynamic_bounded = next;
+	}
+}
+
+static void
+do_type_bind(CS_BLKDESC *blkdesc, int col, const char *tok)
+{
+	if (strcmp(tok, "CS_CHAR_TYPE") == 0) {
+		CS_INT maxlen = atoi(strtok(NULL, " \t\n"));
+		char *value = strdup(strtok(NULL, "\n"));
+		bound_value *bound = calloc(1, sizeof(*bound));
+
+		assert(value);
+		assert(bound);
+
+		if (strncmp(value, "\"\"\"", 3) == 0) {
+			char *p;
+
+			memmove(value, value + 3, strlen(value + 2));
+			p = strstr(value, "\"\"\"");
+			if (p)
+				*p = '\0';
+		}
+		bound->varlen = strlen(value);
+		bound->ind = 0;
+		bound->value = value;
+		bound->next = dynamic_bounded;
+		dynamic_bounded = bound;
+		do_bind(blkdesc, col, CS_FMT_NULLTERM, CS_CHAR_TYPE, maxlen, value, &bound->varlen, &bound->ind);
+
+		return;
+	}
+	fprintf(stderr, "Unhandled type %s\n", tok);
+	exit(1);
+}
+
+static void
+sendrow(CS_BLKDESC *blkdesc, const char *tok)
+{
+	const char *errtype_str;
+	ct_message_type errtype;
+	CS_INT number;
+	const char *message;
+
+	if (strcmp(tok, "SENDROWERROR") == 0) {
+		check_fail(blk_rowxfer, (blkdesc));
+	} else {
+		ct_reset_last_message();
+		check_call(blk_rowxfer, (blkdesc));
+	}
+
+	errtype_str = strtok(NULL, " \t\n");
+	if (!errtype_str) {
+		check_last_message(CTMSG_NONE, 0, NULL);
+		return;
+	}
+
+	if (strcmp(errtype_str, "CLIENT") == 0)
+		errtype = CTMSG_CLIENT;
+	else if (strcmp(errtype_str, "CLIENT2") == 0)
+		errtype = CTMSG_CLIENT2;
+	else if (strcmp(errtype_str, "SERVER") == 0)
+		errtype = CTMSG_SERVER;
+	else if (strcmp(errtype_str, "CSLIB") == 0)
+		errtype = CTMSG_CSLIB;
+	else {
+		fprintf(stderr, "Unknown error type %s\n", errtype_str);
+		exit(1);
+	}
+
+	number = strtol(strtok(NULL, " \t\n"), NULL, 0);
+	message = strtok(NULL, "\n");
+	check_last_message(errtype, number, message);
+}
+
+static void
+do_bind(CS_BLKDESC *blkdesc, int colnum, CS_INT host_format, CS_INT host_type, CS_INT host_maxlen,
+	void *var_addr, CS_INT *var_len_addr, CS_SMALLINT *var_ind_addr)
 {
 	CS_DATAFMT datafmt;
 
@@ -259,6 +366,7 @@ single_test(CS_CONNECTION *conn, CS_COMMAND *cmd, FILE *in)
 	int i;
 	part_t part;
 	CS_RETCODE ret;
+	bool rows_sent = false;
 
 	sprintf(command, "if exists (select 1 from sysobjects where type = 'U' and name = '%s') drop table %s",
 		table_name, table_name);
@@ -291,13 +399,16 @@ single_test(CS_CONNECTION *conn, CS_COMMAND *cmd, FILE *in)
 	part = read_part_type(in);
 	assert(part == PART_BIND);
 
-	do_binds(blkdesc, in);
+	do_binds(blkdesc, in, &rows_sent);
 
 	part = read_part_type(in);
 	assert(part == PART_OUTPUT);
 
-	printf("Sending same row 10 times... \n");
-	for (i = 0; i < 10; i++) {
+	if (!rows_sent) {
+		printf("Sending same row 10 times... \n");
+		for (i = 0; i < 10; i++)
+			check_call(blk_rowxfer, (blkdesc));
+	} else {
 		check_call(blk_rowxfer, (blkdesc));
 	}
 
@@ -305,10 +416,12 @@ single_test(CS_CONNECTION *conn, CS_COMMAND *cmd, FILE *in)
 
 	blk_drop(blkdesc);
 
+	free_dynamic_bounded();
+
 	printf("%d rows copied.\n", count);
 
 	out1 = read_part(in);
-	out2 = get_output(cmd);
+	out2 = get_output(cmd, !rows_sent);
 	if (strcmp(out1, out2) != 0) {
 		fprintf(stderr, "Wrong output\n-- expected --\n%s\n-- got --\n%s\n--\n", out1, out2);
 		exit(1);
@@ -318,7 +431,7 @@ single_test(CS_CONNECTION *conn, CS_COMMAND *cmd, FILE *in)
 }
 
 static char *
-get_output(CS_COMMAND *cmd)
+get_output(CS_COMMAND *cmd, bool distinct)
 {
 	char command[512];
 
@@ -336,7 +449,7 @@ get_output(CS_COMMAND *cmd)
 
 	assert(out != NULL);
 
-	sprintf(command, "select distinct * from %s", table_name);
+	sprintf(command, "select%s * from %s", distinct ? " distinct" : "", table_name);
 	check_call(ct_command, (cmd, CS_LANG_CMD, command, CS_NULLTERM, CS_UNUSED));
 
 	check_call(ct_send, (cmd));

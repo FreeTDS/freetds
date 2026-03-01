@@ -532,15 +532,12 @@ _cs_cs2tds(CS_CONTEXT *ctx, const CS_DATAFMT_COMMON *srcfmt, CS_VOID *srcdata, i
 
 	switch (len) {
 	case TDS_CONVERT_NOAVAIL:
-		break;
 	case TDS_CONVERT_SYNTAX:
-		_csclient_msg(ctx, "cs_convert", 2, 4, 1, 24, "");
+	case TDS_CONVERT_OVERFLOW:
+		/* for these errors messages depends on caller */
 		break;
 	case TDS_CONVERT_NOMEM:
 		_csclient_msg(ctx, "cs_convert", 2, 4, 1, 3, "");
-		break;
-	case TDS_CONVERT_OVERFLOW:
-		_csclient_msg(ctx, "cs_convert", 2, 4, 1, 20, "");
 		break;
 	case TDS_CONVERT_FAIL:
 		/* TODO error reporting */
@@ -682,8 +679,17 @@ _cs_convert(CS_CONTEXT *ctx, const CS_DATAFMT_COMMON *srcfmt, CS_VOID *srcdata,
 	res = _cs_cs2tds(ctx, srcfmt, srcdata, desttype, p_cr);
 	if (res < 0) {
 		/* other errors are already reported */
-		if (res == TDS_CONVERT_NOAVAIL)
+		switch (res) {
+		case TDS_CONVERT_NOAVAIL:
 			_csclient_msg(ctx, "cs_convert", 2, 1, 1, 16, "%d, %d", srcfmt->datatype, destfmt->datatype);
+			break;
+		case TDS_CONVERT_SYNTAX:
+			_csclient_msg(ctx, "cs_convert", 2, 4, 1, 24, "");
+			break;
+		case TDS_CONVERT_OVERFLOW:
+			_csclient_msg(ctx, "cs_convert", 2, 4, 1, 20, "");
+			break;
+		}
 		return CS_FAIL;
 	}
 

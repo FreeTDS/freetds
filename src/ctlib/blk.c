@@ -610,10 +610,11 @@ _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred
 		blkdesc->bcpinfo.xfer_init = true;
 	} 
 
-	for (each_row = 0; each_row < rows_to_xfer; each_row++ ) {
+	for (each_row = 0; each_row < rows_to_xfer; each_row++) {
 
-		if (tds_bcp_send_record(tds, &blkdesc->bcpinfo, _blk_get_col_data, _blk_null_error, each_row) == TDS_SUCCESS) {
+		if (tds_bcp_send_record(tds, &blkdesc->bcpinfo, _blk_get_col_data, _blk_null_error, each_row) != TDS_SUCCESS) {
 			/* FIXME */
+			return CS_FAIL;
 		}
 	}
 
@@ -746,8 +747,18 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int index TDS_UNUSED, in
 		/* if convert return FAIL mark error but process other columns */
 		destlen = _cs_cs2tds(ctx, &srcfmt, src, desttype, p_cres);
 		if (destlen < 0) {
-			tdsdump_log(TDS_DBG_ERROR, "conversion from srctype %d to TDS type %d failed\n",
-				    srctype, desttype);
+			switch (destlen) {
+			case TDS_CONVERT_SYNTAX:
+				_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 1, 2, 1, 26, "%d, %d", index + 1,
+					      bulk->rows_sent + 1);
+				break;
+			case TDS_CONVERT_OVERFLOW:
+				_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 1, 2, 1, 25, "%d, %d", index + 1,
+					      bulk->rows_sent + 1);
+				break;
+			}
+
+			tdsdump_log(TDS_DBG_ERROR, "conversion from srctype %d to TDS type %d failed\n", srctype, desttype);
 			return TDS_FAIL;
 		}
 

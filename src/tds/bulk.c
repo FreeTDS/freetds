@@ -639,17 +639,25 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 		    tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error, int offset)
 {
 	TDSRET rc;
+	TDSFREEZE row;
 
-	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_send_bcp_record(%p, %p, %p, %p, %d)\n",
-		    tds, bcpinfo, get_col_data, null_error, offset);
+	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_send_bcp_record(%p, %p, %p, %p, %d)\n", tds, bcpinfo, get_col_data, null_error, offset);
 
 	if (tds->out_flag != TDS_BULK || tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 		return TDS_FAIL;
 
+	tds_freeze(tds, &row, 0);
 	if (IS_TDS7_PLUS(tds->conn))
 		rc = tds7_send_record(tds, bcpinfo, get_col_data, null_error, offset);
 	else
 		rc = tds5_send_record(tds, bcpinfo, get_col_data, null_error, offset);
+
+	if (TDS_SUCCEED(rc)) {
+		bcpinfo->rows_sent++;
+		tds_freeze_close(&row);
+	} else {
+		tds_freeze_abort(&row);
+	}
 
 	tds_set_state(tds, TDS_SENDING);
 	return rc;

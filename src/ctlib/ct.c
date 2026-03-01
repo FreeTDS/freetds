@@ -164,8 +164,17 @@ _ct_get_user_api_layer_error(int error)
 	case 18:
 		return "A cursor must be declared before this command type can be initialized.";
 		break;
+	case 25:
+		return "Failed in conversion routine - condition overflow.  col = %1! row = %2!.";
+		break;
+	case 26:
+		return "Failed in conversion routine - syntax error.  col = %1! row = %2!.";
+		break;
 	case 29:
 		return "This type of command cannot be batched with the command already initialized on the command structure.";
+		break;
+	case 42:
+		return "Data truncated while doing local character set conversion.  col = %1! row = %2!.";
 		break;
 	case 51:
 		return "Exactly one of context and connection must be non-NULL.";
