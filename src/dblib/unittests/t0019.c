@@ -107,6 +107,11 @@ TEST_MAIN()
 
 	TEST((SYBBINARY, "", 0, SYBBINARY, -1), "len=0 2A 2A 2A 2A 2A 2A 2A 2A 2A 2A");
 
+	/* CHAR to BINARY */
+	TEST((SYBCHAR, "616263", 6, SYBVARBINARY, 6), "len=3 61 62 63 00 00 00 2A 2A 2A 2A");
+	TEST((SYBCHAR, "0x616263", 8, SYBVARBINARY, 6), "len=3 61 62 63 00 00 00 2A 2A 2A 2A");
+	TEST((SYBCHAR, " \t \t0x616263", 12, SYBVARBINARY, 6), "len=3 61 62 63 00 00 00 2A 2A 2A 2A");
+
 	dbexit();
 	if (!failed)
 		printf("All tests passed!\n");

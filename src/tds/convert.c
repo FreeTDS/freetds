@@ -2005,6 +2005,11 @@ tds_convert_to_binary(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int de
 		len = sizeof(TDS_UNIQUE);
 		break;
 	case CASE_ALL_CHAR:
+		/* skip leading spaces and tabs */
+		while (srclen > 0 && (src[0] == ' ' || src[0] == '\t')) {
+			src++;
+			srclen--;
+		}
 
 		/* skip leading "0x" or "0X" */
 		if (srclen >= 2 && src[0] == '0' && (src[1] == 'x' || src[1] == 'X')) {

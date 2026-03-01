@@ -57,6 +57,7 @@ DoTest(
 	 */
 
 	/* do convert */
+	ct_reset_last_message();
 	memset(buffer, 23, sizeof(buffer));
 	retcode = cs_convert(ctx, &srcfmt, fromdata, &destfmt, buffer, &reslen);
 
@@ -131,6 +132,7 @@ TEST_MAIN()
 
 	check_call(cs_ctx_alloc, (CS_VERSION_150, &ctx));
 	check_call(ct_init, (ctx, CS_VERSION_150));
+	check_call(cs_config, (ctx, CS_SET, CS_MESSAGE_CB, (CS_VOID*) cslibmsg_cb, CS_UNUSED, NULL));
 
 	/* TODO For each conversion test different values of fromlen and tolen */
 
@@ -296,8 +298,15 @@ TEST_MAIN()
 		CS_CHAR test2[] = "abc", CS_CHAR_TYPE, test, 6, CS_BINARY_TYPE, 3, CS_SUCCEED, test2, 3);
 	DO_TEST(CS_CHAR test[] = "616263646566";
 		CS_CHAR test2[] = "abc", CS_CHAR_TYPE, test, 12, CS_BINARY_TYPE, 3, CS_FAIL, test2, 3);
+	check_last_message(CTMSG_CSLIB, 0x2040124, "The result is truncated");
 	DO_TEST(CS_CHAR test[] = "hello";
 		CS_CHAR test2[] = "abc", CS_CHAR_TYPE, test, 5, CS_BINARY_TYPE, 10, CS_FAIL, test2, 0);
+	/* spaces, tabs and initial "0x" are ignored */
+	DO_TEST(CS_CHAR test[] = " \t \t0x616263";
+		CS_CHAR test2[] = "abc", CS_CHAR_TYPE, test, 12, CS_BINARY_TYPE, 3, CS_SUCCEED, test2, 3);
+	/* odd number of characters */
+	DO_TEST(CS_CHAR test[] = "61626";
+		CS_CHAR test2[] = "\x06\x16\x26", CS_CHAR_TYPE, test, 5, CS_BINARY_TYPE, 3, CS_SUCCEED, test2, 3);
 
 	/* to char */
 	DO_TEST(CS_INT test = 1234567;
