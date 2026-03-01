@@ -4,8 +4,6 @@
 
 #include <ctlib.h>
 
-#define TDS_DONT_DEFINE_DEFAULT_FUNCTIONS
-#include "../../tds/unittests/common.h"
 #include <freetds/tds.h>
 
 static CS_CONTEXT *ctx = NULL;

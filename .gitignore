@@ -39,12 +39,14 @@ Makefile.in
 /test-driver
 # VMS intermediate files
 *.OLB
-/descrip.mms
+/*.mms
+/stage.com
 /openssl.opt
+/openssl_static.opt
 /src/utils/UTIL_NET.C
 /src/replacements/libiconv.c
-/include/HISTORY.H
-/include/READLINE.H
+/include/readline/HISTORY.H
+/include/readline/READLINE.H
 /include/TDS_SYSDEP_PUBLIC.H
 /include/TDS_SYSDEP_PUBLIC.H_IN
 /include/freetds/SYSDEP_TYPES.H

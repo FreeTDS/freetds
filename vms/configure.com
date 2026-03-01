@@ -39,6 +39,9 @@ $ write sys$output "Version: ''versionstring'"
 $ if versionstring .EQS. "" THEN EXIT 44
 $ gosub check_crtl
 $!
+$! descrip.mms will build some 
+$ if f$search("[.include]readline.DIR") .eqs. "" then create/dir [.include.readline]
+$!
 $! The system-supplied iconv() is fine, but unless the internationalization
 $! kit has been installed, we may not have the conversions we need.  Check
 $! for their presence and use the homegrown iconv() if necessary.
@@ -80,18 +83,14 @@ $!  The version number; could be blank string if they are just using
 $!  SSL$ROOT without version number
 $   sslver = F$EXTRACT(3,F$LENGTH(sslval)-3,sslval)
 $   d_openssl = "1"
-$   SAY "Found OpenSSL ''sslver' and creating linker options file..."
-$   OPEN/WRITE sslopt openssl.opt
-$   IF F$TRNLNM("FREETDS_OPENSSL_STATIC") .NE. 0
-$   THEN
-$     SAY "OpenSSL static linking."
+$   SAY "Found OpenSSL ''sslver' and creating linker options files..."
+$   OPEN/WRITE sslopt openssl_static.opt
 $     WRITE sslopt "SSL''sslver'$LIB:SSL''sslver'$LIBSSL32.OLB/LIB"
 $     WRITE sslopt "SSL''sslver'$LIB:SSL''sslver'$LIBCRYPTO32.OLB/LIB"
-$   ELSE
-$     SAY "OpenSSL linking to shared image."
+$   CLOSE sslopt
+$   OPEN/WRITE sslopt openssl.opt
 $     WRITE sslopt "SYS$SHARE:SSL''sslver'$LIBSSL_SHR32.EXE/SHARE"
 $     WRITE sslopt "SYS$SHARE:SSL''sslver'$LIBCRYPTO_SHR32.EXE/SHARE"
-$   ENDIF
 $   CLOSE sslopt
 $ ELSE
 $   d_openssl = "0"
@@ -133,95 +132,39 @@ $ close vmsconfigtmp
 $ @vmsconfigtmp.com
 $ delete/noconfirm/nolog vmsconfigtmp.com;
 $!
-$! Generate descrip.mms from template
+$! Options for descrip.mms
 $!
-$ if d_asprintf .eqs. "1" 
-$ then
-$   asprintfobj = " "
-$ else
-$   asprintfobj = "[.src.replacements]asprintf$(OBJ),"
-$ endif
-$!
-$ if d_vasprintf .eqs. "1" 
-$ then
-$   vasprintfobj = " "
-$ else
-$   vasprintfobj = "[.src.replacements]vasprintf$(OBJ),"
-$ endif
-$!
-$ if d_strtok_r .eqs. "1" 
-$ then
-$   strtok_robj = " "
-$ else
-$   strtok_robj = "[.src.replacements]strtok_r$(OBJ),"
-$ endif
-$!
-$ if d_have_iconv .eqs. "1" 
-$ then
-$   libiconvobj = " "
-$ else
-$   libiconvobj = "[.src.replacements]libiconv$(OBJ),"
-$   copy/noconfirm/nolog [.src.replacements]iconv.c [.src.replacements]libiconv.c
-$ endif
-$!
-$ if d_snprintf .eqs. "1" 
-$ then
-$   snprintfobj = " "
-$ else
-$   snprintfobj = "[.src.replacements]snprintf$(OBJ),"
-$ endif
-$!
-$ if d_socketpair .eqs. "1"
-$ then
-$   socketpairobj = " "
-$ else
-$   socketpairobj = "[.src.replacements]socketpair$(OBJ),"
-$ endif
-$!
-$ if P1 .eqs. "--disable-thread-safe"
-$ then
-$   enable_thread_safe = " "
-$ else
-$   enable_thread_safe = "ENABLE_THREAD_SAFE = 1"
-$ endif
-$!
-$ open/write vmsconfigtmp vmsconfigtmp.com
-$ write vmsconfigtmp "$ define/user_mode/nolog SYS$OUTPUT _NLA0:"
-$ write vmsconfigtmp "$ edit/tpu/nodisplay/noinitialization -"
-$ write vmsconfigtmp "/section=sys$library:eve$section.tpu$section -"
-$ write vmsconfigtmp "/command=sys$input/output=[]descrip.mms [.vms]descrip_mms.template"
-$ write vmsconfigtmp "input_file := GET_INFO (COMMAND_LINE, ""file_name"");"
-$ write vmsconfigtmp "main_buffer:= CREATE_BUFFER (""main"", input_file);"
-$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
-$ write vmsconfigtmp "eve_global_replace(""@ASPRINTFOBJ@"",""''asprintfobj'"");"
-$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
-$ write vmsconfigtmp "eve_global_replace(""@VASPRINTFOBJ@"",""''vasprintfobj'"");"
-$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
-$ write vmsconfigtmp "eve_global_replace(""@STRTOK_ROBJ@"",""''strtok_robj'"");"
-$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
-$ write vmsconfigtmp "eve_global_replace(""@LIBICONVOBJ@"",""''libiconvobj'"");"
-$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
-$ write vmsconfigtmp "eve_global_replace(""@SNPRINTFOBJ@"",""''snprintfobj'"");"
-$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
-$ write vmsconfigtmp "eve_global_replace(""@SOCKETPAIROBJ@"",""''socketpairobj'"");"
-$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
-$ write vmsconfigtmp "eve_global_replace(""@ENABLE_THREAD_SAFE@"",""''enable_thread_safe'"");"
-$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
-$ write vmsconfigtmp "eve_global_replace(""@D_OPENSSL@"",""''d_openssl'"");"
-$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
-$ write vmsconfigtmp "eve_global_replace(""@D_STDINT@"",""''d_stdint'"");"
-$ write vmsconfigtmp "out_file := GET_INFO (COMMAND_LINE, ""output_file"");"
-$ write vmsconfigtmp "WRITE_FILE (main_buffer, out_file);"
-$ write vmsconfigtmp "quit;"
-$ write vmsconfigtmp "$ exit"
+$ open/write vmsconfigtmp config.mms
+$ write vmsconfigtmp "D_OPENSSL = ''d_openssl'"
+$ write vmsconfigtmp "D_STDINT = ''d_stdint'"
+$ write vmsconfigtmp "D_ASPRINTF = ''d_asprintf'"
+$ write vmsconfigtmp "D_VASPRINTF = ''d_vasprintf'"
+$ write vmsconfigtmp "D_STRTOK_R = ''d_strtok_r'"
+$ write vmsconfigtmp "D_ICONV = ''d_have_iconv'"
+$ write vmsconfigtmp "D_SNPRINTF = ''d_snprintf'"
+$ write vmsconfigtmp "D_SOCKETPAIR = ''d_socketpair'"
+$ if P1 .nes. "--disable-thread-safe" then write vmsconfigtmp  "ENABLE_THREAD_SAFE = 1"
 $ close vmsconfigtmp
-$ @vmsconfigtmp.com
-$ delete/noconfirm/nolog vmsconfigtmp.com;
+$! User configuration (create if doesn't exist)
+$ if f$search("[]user.mms") .eqs. ""
+$ then
+$   open/write vmsconfigtmp user.mms
+$   write vmsconfigtmp "# No user-defined options."
+$   close vmsconfigtmp
+$ endif
+$!
+$ open/write vmsconfigtmp descrip.mms
+$ write vmsconfigtmp "include config.mms"
+$ write vmsconfigtmp "include user.mms"
+$ write vmsconfigtmp "include [.vms]descrip.mms"
+$ close vmsconfigtmp
 $!
 $ Say ""
 $ Say "Configuration complete; run MMK to build."
-$ Say "Sample build command: mmk/MACRO=(""MSDBLIB""=1,""ODBC""=1,""ODBC_MARS""=1,""ODBC_WIDE""=1)"
 $ Say "  append 'check' to run tests"
+$ Say "  append 'clean' or 'distclean' to clean."
+$ Say "User-defined build options (user.mms):"
+$ type user.mms
 $ EXIT
 $!
 $ CHECK_CRTL:

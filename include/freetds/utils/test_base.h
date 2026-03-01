@@ -77,4 +77,10 @@ extern COMMON_PWD common_pwd;
 const char *read_login_info_base(COMMON_PWD * common_pwd, const char *default_path);
 const char *try_read_login_info_base(COMMON_PWD * common_pwd, const char *default_path);
 
+/* These functions are used across the test suite */
+typedef struct tds_socket TDSSOCKET;
+typedef struct tds_column TDSCOLUMN;
+typedef void tds_any_type_t(TDSSOCKET *tds, TDSCOLUMN *col);
+void tds_all_types(TDSSOCKET *tds, tds_any_type_t *func);
+
 #endif /* _tdsguard_afBM6E9n8CuIFSBHNNblq5_ */
