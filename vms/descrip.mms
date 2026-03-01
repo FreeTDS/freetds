@@ -583,6 +583,22 @@ tdsodbccheck : PWD FREETDSCONF $(TDSODBCSHR)
 .ENDIF
 	@ @[.vms]run_tests_in.com $(OTDIR)
 
+libtdsrecheck :
+	@ @[.vms]recheck_tests_in $(TTDIR)
+
+ctlibrecheck :
+	@ @[.vms]recheck_tests_in $(CTDIR)
+
+dblibrecheck :
+	@ @[.vms]recheck_tests_in $(DTDIR)
+
+tdsodbcrecheck :
+	@ copy $(TDSODBCSHR) [.src.odbc._libs]
+	@ @[.vms]recheck_tests_in $(OTDIR)
+
+recheck : libtdsrecheck ctlibrecheck dblibrecheck tdsodbcrecheck
+	@ continue
+
 buildchecks : $(CONFIGS) libtdstests ctlibtests dblibtests $(TDSODBCSHR) $(ODBCTESTS)
 	@ continue
 

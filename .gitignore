@@ -39,6 +39,8 @@ Makefile.in
 /test-driver
 # VMS intermediate files
 *.OLB
+*.LIS
+*.lis
 /*.mms
 /stage.com
 /openssl.opt
