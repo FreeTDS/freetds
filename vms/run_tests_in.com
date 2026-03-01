@@ -8,6 +8,9 @@ $ endif
 $
 $ last = 1
 $ set default 'p1'
+$ if f$search("recheck.lis") .nes. "" THEN delete/noconfirm recheck.lis;*
+$ create recheck.lis
+$
 $ loop_files:
 $ file = f$search("*.EXE")
 $ if file .eqs. "" then goto Tidy
@@ -16,6 +19,14 @@ $ @[---.vms]full-test 'file'
 $ last = $status
 $ set on
 $ if last .eq. 1552 then goto Tidy  !Ctrl-Y
+$ if .not. last
+$ then
+$   open/append recheck recheck.lis
+$!  Strip version; the rebuilt test exe might have a different version
+$   file1 = f$element(0,";",file)
+$   write recheck "''file1'"
+$   close recheck
+$ endif
 $ goto loop_files
 $!
 $ Tidy:
