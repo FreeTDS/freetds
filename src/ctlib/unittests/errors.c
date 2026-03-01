@@ -28,14 +28,6 @@
 #define TEST(name) static void test_ ## name(void);
 ALL_TESTS
 
-static void
-report_wrong_error(int line)
-{
-	fprintf(stderr, "%d:Wrong error type %d number %d (%#x)\n", line,
-		ct_last_message.type, ct_last_message.number, ct_last_message.number);
-	exit(1);
-}
-
 static CS_CONTEXT *ctx;
 static CS_CONNECTION *conn;
 static CS_COMMAND *cmd;
@@ -70,37 +62,6 @@ TEST_MAIN()
 	}
 	return 0;
 }
-
-static void
-_check_fail(const char *name, CS_RETCODE ret, int line)
-{
-	if (ret != CS_FAIL) {
-		fprintf(stderr, "%s():%d: succeeded\n", name, line);
-		exit(1);
-	}
-}
-#define check_fail(func, args) do { \
-	ct_reset_last_message(); \
-	_check_fail(#func, func args, __LINE__); \
-} while(0)
-
-static void
-_check_last_message(ct_message_type type, CS_INT number, const char *msg, int line)
-{
-	bool type_ok = true, number_ok = true, msg_ok = true;
-
-	if (type == CTMSG_NONE && ct_last_message.type == type)
-		return;
-
-	type_ok = (ct_last_message.type == type);
-	number_ok = (ct_last_message.number == number);
-	if (msg && msg[0])
-		msg_ok = (strstr(ct_last_message.text, msg) != NULL);
-	if (!type_ok || !number_ok || !msg_ok)
-		report_wrong_error(line);
-}
-#define check_last_message(type, number, msg) \
-	_check_last_message(type, number, msg, __LINE__)
 
 static void
 test_ct_callback(void)

@@ -79,4 +79,16 @@ extern ct_message ct_last_message;
  */
 void ct_reset_last_message(void);
 
+void _check_fail(const char *name, CS_RETCODE ret, int line);
+
+#define check_fail(func, args) do { \
+	ct_reset_last_message(); \
+	_check_fail(#func, func args, __LINE__); \
+} while(0)
+
+void _check_last_message(ct_message_type type, CS_INT number, const char *msg, int line);
+
+#define check_last_message(type, number, msg) \
+	_check_last_message(type, number, msg, __LINE__)
+
 #endif
