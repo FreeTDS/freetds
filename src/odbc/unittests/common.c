@@ -718,6 +718,51 @@ odbc_from_sqlwchar(char *dst, const SQLWCHAR *src, SQLLEN n)
 	return n;
 }
 
+/**
+ * Partial implementation of UTF-8 to UCS-4
+ * (SQLWCHAR might either be 2-byte or 4-byte)
+ * Caller may assume wcslen(dst) <= strlen(s).
+ */
+static size_t utf8_to_wchar(SQLWCHAR *dst, const char* s)
+{
+    unsigned char c = (unsigned char)s[0];
+
+    if (c < 0x80) {
+        *dst = c;
+        return 1;
+    }
+    else if (c < 0xE0 && s[1]) {
+        *dst = ((c & 0x1F) << 6) |
+               (s[1] & 0x3F);
+        return 2;
+    }
+    else if (c < 0xF0 && s[1] && s[2]) {
+        *dst = ((c & 0x0F) << 12) |
+               ((s[1] & 0x3F) << 6) |
+               (s[2] & 0x3F);
+        return 3;
+    }
+    else if (c < 0xF8 && s[1] && s[2] && s[3]) {
+        *dst = ((c & 0x07) << 18) |
+               ((s[1] & 0x3F) << 12) |
+               ((s[2] & 0x3F) << 6) |
+               (s[3] & 0x3F);
+        return 4;
+    }
+
+	/* Do not expect to get bogus UTF-8 in test suite */
+	*dst = '_';
+	assert(!"Invalid UTF-8 sequence.");
+    return 1;
+}
+
+void u8string_to_sqlwchar(SQLWCHAR *dst, const char *src)
+{
+	while (*src)
+		src += utf8_to_wchar(dst++, src);
+	*dst = 0;
+}
+
 ODBC_BUF *odbc_buf = NULL;
 
 void *

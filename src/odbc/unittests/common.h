@@ -202,8 +202,27 @@ TDS_SYS_SOCKET odbc_find_last_socket(void);
  */
 void odbc_c2string(char *out, SQLSMALLINT out_c_type, const void *in, SQLLEN in_len);
 
+/** Convert Latin-1 to SQLWCHAR
+ * n is the number of bytes to read from src.
+ * Number of output characters equals number of input characters.
+ * No special null handling -- n should count the null terminator if desired.
+ * Writes n*sizeof(SQLWCHAR) bytes to dst. Returns n*sizeof(SQLWCHAR).
+ */
 SQLLEN odbc_to_sqlwchar(SQLWCHAR *dst, const char *src, SQLLEN n);
+
+/** Convert SQLWCHAR to Latin-1
+ * n is the number of SQLWCHAR to read from src.
+ * Number of output characters equals number of input characters.
+ * Generates assertion failure if any input SQLWCHAR > 255.
+ * No special null handling -- n should count the null terminator if desired.
+ * Writes n bytes to dst. Returns n.
+ */
 SQLLEN odbc_from_sqlwchar(char *dst, const SQLWCHAR *src, SQLLEN n);
+
+/** Converts a UTF-8 null-terminated string to SQLWCHAR string.
+ * Output buffer size must be sizeof(SQLWCHAR) * (strlen(src)+1)
+ */
+void u8string_to_sqlwchar(SQLWCHAR* dst, const char *src);
 
 typedef struct odbc_buf ODBC_BUF;
 extern ODBC_BUF *odbc_buf;
