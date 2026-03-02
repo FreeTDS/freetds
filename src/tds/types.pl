@@ -108,7 +108,7 @@ print q|/**
  * returned in a result string
  */
 int
-tds_get_varint_size(TDSCONNECTION * conn, int datatype)
+tds_get_varint_size(TDSCONNECTION *conn, int datatype)
 {
 	switch (datatype) {
 |;
@@ -202,7 +202,7 @@ foreach my $type (sort { $$a{value} <=> $$b{value} } values %types) {
 	if ($t{varint} == 5) {
 		push @f, uc("TDS_TYPEFLAG_TEXTPTR");
 	}
-	my $f = join("|", @f);
+	my $f = join(" | ", @f);
 	$f = '0' if !$f;
 	$type->{flags} = $f;
 }
@@ -224,7 +224,7 @@ sub collapse($) {
 	foreach my $n1 (0..511) {
 		my $n2 = ($n1 + 256) % 512;
 		if ($bynum[$n1]->{name} && !$bynum[$n2]->{name} && $bynum[$n1]->{flags} =~ /$flag/) {
-			$bynum[$n2]->{flags} .= "|$flag";
+			$bynum[$n2]->{flags} .= " | $flag";
 		}
 	}
 	# check flag are the same on both sides
@@ -253,7 +253,7 @@ foreach my $n (0..255) {
 	my %t = %{$bynum[$n]};
 	my $f = $t{flags};
 	my $name = name($t{name});
-	printf "\t/* %3d %-20s */\t%s,\n", $n, $name, $f;
+	print "\t/* $n $name */\n\t$f,\n";
 }
 print q|};
 |;
@@ -267,7 +267,7 @@ foreach my $n (0..255) {
 	my %t = %{$bynum[$n+256]};
 	my $f = $t{flags};
 	my $name = name($t{name});
-	printf "\t/* %3d %-20s */\t%s,\n", $n, $name, $f;
+	print "\t/* $n $name */\n\t$f,\n";
 }
 print q|};
 |;
@@ -287,7 +287,7 @@ foreach my $n (0..255) {
 		$name .= ' or ' if $name;
 		$name .= $t{name};
 	}
-	printf "\t/* %3d */\t\"%s\",\n", $n, $name;
+	printf "\t/* %3d */\n\t\"%s\",\n", $n, $name;
 }
 print q|};
 #endif
