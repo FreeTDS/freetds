@@ -99,6 +99,9 @@ STDINT_H = [.include]stdint.h
 .IFDEF ODBC
 .IFDEF ODBC_WIDE
 ODBC_WIDE_CDEFINE = ,ENABLE_ODBC_WIDE
+ODBC_AXP = [.vms]odbc_server_axp_wide.opt/options
+.ELSE
+ODBC_AXP = [.vms]odbc_server_axp.opt/options
 .ENDIF
 .IFDEF ODBC_MARS
 ODBC_MARS_CDEFINE = ,ENABLE_ODBC_MARS
