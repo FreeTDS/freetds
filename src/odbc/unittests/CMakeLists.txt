@@ -58,6 +58,10 @@ foreach(target ${tests})
 				      tdsodbc_static t_common tds replacements
 				      tdsutils ${lib_ODBCINST} ${lib_NETWORK}
 				      ${lib_BASE})
+	elseif(target STREQUAL "tokens")
+		target_link_libraries(o_${target} tdssrv tds o_common tds_test_base
+				      replacements tdsutils ${libs}
+				      ${lib_NETWORK} ${lib_BASE})
 	else()
 		target_link_libraries(o_${target} o_common tds_test_base
 				      replacements tdsutils ${libs}
@@ -65,9 +69,6 @@ foreach(target ${tests})
 	endif()
 	if (ENABLE_ODBC_WIDE AND NOT target IN_LIST unicode_tests)
 		set_property(TARGET o_${target} APPEND PROPERTY COMPILE_DEFINITIONS UNICODE=1 _UNICODE=1)
-	endif()
-	if (target STREQUAL "tokens")
-		set_property(TARGET o_${target} APPEND PROPERTY LINK_LIBRARIES tdssrv tds)
 	endif()
 	add_test(NAME o_${target} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND o_${target})
 	add_dependencies(build_tests o_${target})
