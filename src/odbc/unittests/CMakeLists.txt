@@ -53,18 +53,19 @@ set(unicode_tests utf8)
 foreach(target ${tests})
 	add_executable(o_${target} EXCLUDE_FROM_ALL ${target}.c)
 	set_target_properties(o_${target} PROPERTIES OUTPUT_NAME ${target})
-	if (target STREQUAL "tokens")
-		set_property(TARGET o_${target} APPEND PROPERTY LINK_LIBRARIES tdssrv tds)
-	endif()
 	if (target IN_LIST static_tests)
 		target_link_libraries(o_${target} o_common tds_test_base
 				      tdsodbc_static t_common tds replacements
 				      tdsutils ${lib_ODBCINST} ${lib_NETWORK}
 				      ${lib_BASE})
+	elseif(target STREQUAL "tokens")
+		target_link_libraries(o_${target} tdssrv tds o_common tds_test_base
+				      replacements tdsutils ${libs}
+				      ${lib_NETWORK} ${lib_BASE})
 	else()
-		set_property(TARGET o_${target} APPEND PROPERTY LINK_LIBRARIES
-			     o_common tds_test_base replacements tdsutils ${libs}
-			     ${lib_NETWORK} ${lib_BASE})
+		target_link_libraries(o_${target} o_common tds_test_base
+				      replacements tdsutils ${libs}
+				      ${lib_NETWORK} ${lib_BASE})
 	endif()
 	if (ENABLE_ODBC_WIDE AND NOT target IN_LIST unicode_tests)
 		set_property(TARGET o_${target} APPEND PROPERTY COMPILE_DEFINITIONS UNICODE=1 _UNICODE=1)
