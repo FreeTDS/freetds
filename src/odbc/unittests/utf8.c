@@ -41,24 +41,24 @@ TestBinding(bool minimun)
 
 	/* insert with SQLPrepare/SQLBindParameter/SQLExecute */
 	sprintf(tmp, "INSERT INTO %s VALUES(?,?,?)", table_name);
-	CHKPrepare(T(tmp), SQL_NTS, "S");
+	CHKPrepare(TQ(tmp), SQL_NTS, "S");
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_LONG,
 		SQL_INTEGER, 0, 0, &n, 0, &n_len, "S");
 	n_len = sizeof(n);
-	
+
 	for (n = 1, p = strings; p[0] && p[1]; p += 2, ++n) {
 		SQLLEN s1_len, s2_len;
 		unsigned int len;
 
 		len = minimun ? ((int) strlen(strings_hex[p-strings]) - 2) / 4 : 40;
-		CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_CHAR,
-			SQL_WCHAR, len, 0, (void *) p[0], 0, &s1_len, "S");
+		CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_TCHAR,
+			SQL_WCHAR, len, 0, TQ(p[0]), 0, &s1_len, "S");
 		len = minimun ? ((int) strlen(strings_hex[p+1-strings]) - 2) / 4 : 40;
 		/* FIXME this with SQL_VARCHAR produce wrong protocol data */
-		CHKBindParameter(3, SQL_PARAM_INPUT, SQL_C_CHAR,
-			SQL_WVARCHAR, len, 0, (void *) p[1], 0, &s2_len, "S");
-		s1_len = strlen(p[0]);
-		s2_len = strlen(p[1]);
+		CHKBindParameter(3, SQL_PARAM_INPUT, SQL_C_TCHAR,
+			SQL_WVARCHAR, len, 0, TQ(p[1]), 0, &s2_len, "S");
+		s1_len = SQL_NTS;
+		s2_len = SQL_NTS;
 		printf("insert #%d\n", (int) n);
 		CHKExecute("S");
 	}
@@ -79,6 +79,7 @@ TEST_MAIN()
 
 	odbc_use_version3 = true;
 	odbc_conn_additional_params = "ClientCharset=UTF-8;";
+	odbc_query_utf8 = true;
 
 	odbc_connect();
 	if (!odbc_driver_is_freetds()) {

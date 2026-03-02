@@ -51,6 +51,7 @@ extern void (*odbc_set_conn_attr)(void);
 extern const char *odbc_conn_additional_params;
 extern char odbc_err[512];
 extern char odbc_sqlstate[6];
+extern bool odbc_query_utf8;
 
 
 int odbc_read_login_info(void);
@@ -232,17 +233,25 @@ void odbc_buf_free(ODBC_BUF** buf);
 #define ODBC_GET(s)  odbc_buf_get(&odbc_buf, s)
 #define ODBC_FREE() odbc_buf_free(&odbc_buf)
 
+SQLWCHAR *odbc_get_sqlwchar_utf8(ODBC_BUF** buf, const char *s);
 SQLWCHAR *odbc_get_sqlwchar(ODBC_BUF** buf, const char *s);
 char *odbc_get_sqlchar(ODBC_BUF** buf, SQLWCHAR *s);
+
+/** Source is either UTF-8 or Latin1 based on odbc_query_utf8 flag */
+SQLWCHAR *odbc_get_query_sqlwchar(ODBC_BUF** buf, const char *s);
 
 #undef T
 #ifdef UNICODE
 /* char to TCHAR */
 #define T(s) odbc_get_sqlwchar(&odbc_buf, (s))
+#define TU8(s) odbc_get_sqlwchar_utf8(&odbc_buf, (s))
+#define TQ(s) odbc_get_query_sqlwchar(&odbc_buf, (s))
 /* TCHAR to char */
 #define C(s) odbc_get_sqlchar(&odbc_buf, (s))
 #else
 #define T(s) ((SQLCHAR*)(s))
+#define TU8(s) T(s)
+#define TQ(s) T(s)
 #define C(s) ((char*)(s))
 #endif
 

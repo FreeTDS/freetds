@@ -39,6 +39,7 @@ HSTMT odbc_stmt;
 bool odbc_use_version3 = false;
 void (*odbc_set_conn_attr)(void) = NULL;
 const char *odbc_conn_additional_params = NULL;
+extern bool odbc_query_utf8 = false;
 
 static int freetds_driver = -1;
 static int tds_version = -1;
@@ -59,6 +60,9 @@ check_lib(char *path, const char *file)
 	path[len] = 0;
 	return false;
 }
+
+SQLWCHAR *odbc_get_sqlwchar_utf8(ODBC_BUF** buf, const char *s);
+SQLWCHAR *odbc_get_sqlwchar(ODBC_BUF** buf, const char *s);
 
 /* this should be extended with all possible systems... */
 static const char *const search_driver[] = {
@@ -327,7 +331,7 @@ odbc_command_with_result(HSTMT stmt, const char *command)
 	ODBC_BUF *odbc_buf = NULL;
 
 	printf("%s\n", command);
-	ret = SQLExecDirect(stmt, T(command), SQL_NTS);
+	ret = SQLExecDirect(stmt, TQ(command), SQL_NTS);
 	ODBC_FREE();
 	return ret;
 }
@@ -666,7 +670,7 @@ odbc_command_proc(HSTMT stmt, const char *command, const char *file, int line, c
 	else
 		printf("%s\n", command);
 
-	ret = odbc_check_res(file, line, SQLExecDirect(stmt, T(command), SQL_NTS), SQL_HANDLE_STMT, stmt, "odbc_command", res);
+	ret = odbc_check_res(file, line, SQLExecDirect(stmt, TQ(command), SQL_NTS), SQL_HANDLE_STMT, stmt, "odbc_command", res);
 	ODBC_FREE();
 	return ret;
 }
@@ -797,6 +801,16 @@ odbc_buf_free(ODBC_BUF** buf)
 }
 
 SQLWCHAR *
+odbc_get_sqlwchar_utf8(ODBC_BUF** buf, const char *s)
+{
+	SQLWCHAR *buffer;
+	if (!s) return NULL;
+	buffer = (SQLWCHAR*) odbc_buf_get(buf, (strlen(s) + 1) * sizeof(SQLWCHAR));
+	u8string_to_sqlwchar(buffer, s);
+	return buffer;
+}
+
+SQLWCHAR *
 odbc_get_sqlwchar(ODBC_BUF** buf, const char *s)
 {
 	size_t l;
@@ -807,6 +821,15 @@ odbc_get_sqlwchar(ODBC_BUF** buf, const char *s)
 	buffer = (SQLWCHAR*) odbc_buf_get(buf, l * sizeof(SQLWCHAR));
 	odbc_to_sqlwchar(buffer, s, l);
 	return buffer;
+}
+
+SQLWCHAR *
+odbc_get_query_sqlwchar(ODBC_BUF** buf, const char *s)
+{
+	if (odbc_query_utf8)
+		return odbc_get_sqlwchar_utf8(buf, s);
+	else
+		return odbc_get_sqlwchar(buf, s);
 }
 
 char*
@@ -994,7 +1017,7 @@ odbc_check_no_row(const char *query)
 {
 	SQLRETURN rc;
 
-	rc = CHKExecDirect(T(query), SQL_NTS, "SINo");
+	rc = CHKExecDirect(TQ(query), SQL_NTS, "SINo");
 	if (rc == SQL_NO_DATA)
 		return;
 
