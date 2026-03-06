@@ -646,7 +646,7 @@ bcp_gethostcolcount(DBPROCESS *dbproc)
  * \todo Simplify.
  */
 RETCODE
-bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen)
+bcp_options(DBPROCESS * dbproc, int option, BYTE * value, size_t valuelen)
 {
 	int i;
 	static const char *const hints[] = {
@@ -654,7 +654,7 @@ bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen)
 		"FIRE_TRIGGERS", "KEEP_NULLS", NULL
 	};
 
-	tdsdump_log(TDS_DBG_FUNC, "bcp_options(%p, %d, %p, %d)\n", dbproc, option, value, valuelen);
+	tdsdump_log(TDS_DBG_FUNC, "bcp_options(%p, %d, %p, %d)\n", dbproc, option, value, (int)valuelen);
 	CHECK_CONN(FAIL);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI, FAIL);
 	CHECK_NULP(value, "bcp_options", 3, FAIL);
@@ -917,8 +917,8 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 
 	TDS_INT result_type;
 
-	int row_of_query;
-	int rows_written;
+	TDS_INT row_of_query;
+	DBINT rows_written;
 	const char *bcpdatefmt;
 	TDSRET tdsret;
 
@@ -989,9 +989,17 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 		row_of_query++;
 
 		/* skip rows outside of the firstrow/lastrow range, if specified */
-		if (dbproc->hostfileinfo->firstrow > row_of_query ||
-						      row_of_query > TDS_MAX(dbproc->hostfileinfo->lastrow, 0x7FFFFFFF))
+		if (dbproc->hostfileinfo->firstrow > row_of_query)
 			continue;
+		if (dbproc->hostfileinfo->lastrow > 0 &&
+				row_of_query > dbproc->hostfileinfo->lastrow)
+        {
+            /* TODO: If this is freebcp we could now just return success,
+             * rather than waste time processing the rest of data.
+             * In other cases we could perhaps send a cancel request.
+             */
+			continue;
+        }
 
 		/* Go through the hostfile columns, finding those that relate to database columns. */
 		for (i = 0; i < dbproc->hostfileinfo->host_colcount; i++) {
@@ -1228,8 +1236,12 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool sk
 		if (bcpcol && hostcol->prefix_len == -1)
 			bcp_cache_prefix_len(hostcol, bcpcol);
 
+		/* A datafile column size of 0 indicates to always send NULL */
+		if (hostcol->column_len == 0)
+			data_is_null = true;
+
 		/* a prefix length, if extant, specifies how many bytes to read */
-		if (hostcol->prefix_len > 0) {
+		else if (hostcol->prefix_len > 0) {
 			union {
 				TDS_TINYINT ti;
 				TDS_SMALLINT si;
@@ -1258,31 +1270,46 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool sk
 				break;
 			}
 
-			/* TODO test all NULL types */
-			/* TODO for < -1 error */
+			/* Length prefix of -1 is used by MSSQL to encode null data in variable fields */
 			if (collen <= -1) {
 				data_is_null = true;
-				collen = 0;
 			}
 		}
 
-		/* if (Max) column length specified take that into consideration. (Meaning what, exactly?) */
-
-		if (!data_is_null && hostcol->column_len >= 0) {
-			if (hostcol->column_len == 0)
-				data_is_null = true;
-			else if (collen)
-				collen = TDS_MIN(hostcol->column_len, collen);
-			else
-				collen = hostcol->column_len;
-		}
-
-		tdsdump_log(TDS_DBG_FUNC, "prefix_len = %d collen = %d \n", hostcol->prefix_len, collen);
-
-		/* Fixed Length data - this overrides anything else specified */
-
-		if (is_fixed_type(hostcol->datatype))
+		/* Or if data file does not use a length prefix for this column,
+		 * work out the length to read based on the size of a fixed data type.
+		 */
+		else if (is_fixed_type(hostcol->datatype))
 			collen = tds_get_size_by_type(hostcol->datatype);
+
+		/* A variable column with no prefix: use the column maximum */
+		else
+			collen = hostcol->column_len;
+
+		/* note: at this point it is still possible collen = -1,
+		 * for example VARCHAR in a delimited hostfile
+		 */
+
+		/* Don't read data for null values */
+		if (data_is_null)
+			collen = 0;
+
+		tdsdump_log(TDS_DBG_FUNC,
+			"prefix_len = %d collen = %d column_len = %d\n",
+			hostcol->prefix_len, collen, hostcol->column_len);
+
+		/* Validate that data does not exceed expected maximum (could cause
+		 * wrong row length to be sent on wire) */
+		if (hostcol->column_len > 0 && collen > hostcol->column_len)
+		{
+			tdsdump_log(TDS_DBG_WARN,
+				"col %d: length %d exceeds field maximum %d\n",
+				i + 1, collen, (int)hostcol->column_len);
+			*row_error = true;
+			free(coldata);
+			dbperror(dbproc, SYBEBCOR, 0);
+			return FAIL;
+		}
 
 		col_start = ftello(hostfile);
 
@@ -1307,7 +1334,10 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool sk
 							(i+1), (long) collen);
 				*row_error = true;
 				free(coldata);
-				dbperror(dbproc, SYBEBCOR, 0);
+				/* This case can include columns missing a terminator, and
+				 * wrong number of columns in the row, as well as the data not
+				 * being of valid form for the column type. */
+				dbperror(dbproc, SYBECSYN, 0);
 				return FAIL;
 			}
 
@@ -1483,7 +1513,8 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 	BCP_HOSTCOLINFO *hostcol;
 	STATUS ret;
 
-	int i, row_of_hostfile, rows_written_so_far;
+	int i, rows_written_so_far;
+	TDS_INT row_of_hostfile;
 	int row_error_count;
 	bool row_error;
 	offset_type row_start, row_end;
@@ -1520,7 +1551,8 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 
 		row_of_hostfile++;
 
-		if (row_of_hostfile > TDS_MAX(dbproc->hostfileinfo->lastrow, 0x7FFFFFFF))
+		if (dbproc->hostfileinfo->lastrow > 0 &&
+				row_of_hostfile > dbproc->hostfileinfo->lastrow)
 			break;
 
 		skip = dbproc->hostfileinfo->firstrow > row_of_hostfile;
@@ -1547,7 +1579,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 					if (hostcol->column_error == HOST_COL_CONV_ERROR) {
 						count = fprintf(errfile, 
 							"#@ data conversion error on host data file Row %d Column %d\n",
-							row_of_hostfile, i + 1);
+							(int)row_of_hostfile, i + 1);
 						if( count < 0 ) {
 							dbperror(dbproc, SYBEBWEF, errno);
 						}
@@ -2163,7 +2195,8 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 	}
 
 	if (is_fixed_type(vartype) && (varlen != -1 && varlen != 0)) {
-		dbperror(dbproc, SYBEBCIT, 0);
+		tdsdump_log(TDS_DBG_FUNC, "bcp_bind(): varlen must be -1 or 0 for fixed type %d\n", vartype);
+		dbperror(dbproc, SYBETYPE, 0);
 		return FAIL;
 	}
 

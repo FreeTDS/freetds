@@ -1324,7 +1324,7 @@ int bcp_getbatchsize(DBPROCESS * dbproc); /* FreeTDS only */
 int bcp_gethostcolcount(DBPROCESS * dbproc);	/* FreeTDS only */
 RETCODE bcp_exec(DBPROCESS * dbproc, DBINT * rows_copied);
 DBBOOL bcp_getl(LOGINREC * login);
-RETCODE bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen);
+RETCODE bcp_options(DBPROCESS * dbproc, int option, BYTE * value, size_t valuelen);
 RETCODE bcp_readfmt(DBPROCESS * dbproc, const char filename[]);
 RETCODE bcp_sendrow(DBPROCESS * dbproc);
 
