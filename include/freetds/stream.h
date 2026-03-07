@@ -143,7 +143,8 @@ typedef struct tds_file_stream
 	 * so that we can easily "memcmp" the circular buffer against it
 	 */
 	char *cbuf;
-	size_t cpos;		// Offset in circular buffer of last-read character
+	/** Offset in circular buffer of last-read character */
+	size_t cpos;
 
 	/** terminator length in bytes -- cbuf length is 3*term_len */
 	size_t term_len;
