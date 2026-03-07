@@ -25,7 +25,7 @@
 
 #include "common.h"
 
-#include <freetds/data.h>
+#include <freetds/tds/data.h>
 
 #if defined(HAVE_OPENSSL)
 

@@ -17,7 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 #include "common.h"
-#include <freetds/iconv.h>
+#include <freetds/tds/iconv.h>
 #include <freetds/utils/md5.h>
 
 #include <ctype.h>

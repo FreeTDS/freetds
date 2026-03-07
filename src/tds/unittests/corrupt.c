@@ -24,7 +24,7 @@
  * and how is handled the overlapping.
  */
 #include "common.h"
-#include <freetds/checks.h>
+#include <freetds/tds/checks.h>
 
 static const char select_query[] = "\nselect 'test'";
 

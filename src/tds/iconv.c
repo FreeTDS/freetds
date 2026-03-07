@@ -37,7 +37,7 @@
 #endif
 
 #include <freetds/tds.h>
-#include <freetds/iconv.h>
+#include <freetds/tds/iconv.h>
 #include <freetds/bool.h>
 #include <freetds/bytes.h>
 #if HAVE_ICONV

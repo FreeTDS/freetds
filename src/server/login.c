@@ -52,7 +52,7 @@
 #endif /* HAVE_ARPA_INET_H */
 
 #include <freetds/tds.h>
-#include <freetds/iconv.h>
+#include <freetds/tds/iconv.h>
 #include <freetds/server.h>
 #include <freetds/utils.h>
 

@@ -39,11 +39,11 @@
 #include <assert.h>
 
 #include <freetds/tds.h>
-#include <freetds/checks.h>
+#include <freetds/tds/checks.h>
 #include <freetds/bytes.h>
-#include <freetds/iconv.h>
-#include <freetds/stream.h>
-#include <freetds/convert.h>
+#include <freetds/tds/iconv.h>
+#include <freetds/tds/stream.h>
+#include <freetds/tds/convert.h>
 #include <freetds/utils/string.h>
 #include <freetds/utils/ascii.h>
 #include <freetds/replacements.h>

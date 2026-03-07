@@ -19,7 +19,7 @@
 
 #include "common.h"
 
-#include <freetds/convert.h>
+#include <freetds/tds/convert.h>
 
 static TDSLOGIN *login;
 static TDSSOCKET *tds;

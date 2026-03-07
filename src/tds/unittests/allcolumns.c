@@ -21,8 +21,8 @@
 #define TDS_DONT_DEFINE_DEFAULT_FUNCTIONS
 #include "common.h"
 #include <assert.h>
-#include <freetds/convert.h>
-#include <freetds/checks.h>
+#include <freetds/tds/convert.h>
+#include <freetds/tds/checks.h>
 #include <freetds/tds/all_types.h>
 
 static bool

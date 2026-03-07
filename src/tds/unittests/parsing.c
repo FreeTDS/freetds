@@ -23,7 +23,7 @@
 
 #include "common.h"
 
-#include <freetds/data.h>
+#include <freetds/tds/data.h>
 
 static void
 test_generic(const char *s, int expected_pos, bool comment, int line)

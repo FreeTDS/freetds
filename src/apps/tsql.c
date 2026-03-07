@@ -77,10 +77,10 @@
 #endif /* HAVE_LOCALCHARSET_H */
 
 #include <freetds/tds.h>
-#include <freetds/iconv.h>
+#include <freetds/tds/iconv.h>
 #include <freetds/utils/string.h>
-#include <freetds/convert.h>
-#include <freetds/data.h>
+#include <freetds/tds/convert.h>
+#include <freetds/tds/data.h>
 #include <freetds/utils.h>
 #include <freetds/replacements.h>
 

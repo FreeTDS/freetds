@@ -22,7 +22,7 @@
  */
 #include "common.h"
 #include <assert.h>
-#include <freetds/convert.h>
+#include <freetds/tds/convert.h>
 #include <freetds/utils/smp.h>
 
 static TDS_INT convert_and_free(int srctype, const void *src, TDS_UINT srclen, int desttype, CONV_RESULT *cr);

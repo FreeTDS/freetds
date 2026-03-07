@@ -24,7 +24,7 @@
 #include "common.h"
 
 #include <assert.h>
-#include <freetds/convert.h>
+#include <freetds/tds/convert.h>
 
 static int g_result = 0;
 static TDSLOGIN *login;

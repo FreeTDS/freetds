@@ -34,8 +34,8 @@
 
 #include <freetds/utils.h>
 #include <freetds/odbc.h>
-#include <freetds/convert.h>
-#include <freetds/iconv.h>
+#include <freetds/tds/convert.h>
+#include <freetds/tds/iconv.h>
 #include <freetds/utils/string.h>
 #include <freetds/encodings.h>
 #include <odbcss.h>

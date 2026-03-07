@@ -18,7 +18,7 @@
  */
 
 #include "common.h"
-#include <freetds/convert.h>
+#include <freetds/tds/convert.h>
 #include <assert.h>
 
 /* test numeric scale */

@@ -25,7 +25,7 @@
 #endif
 
 #include <stdio.h>		/* FILE * */
-#include <freetds/iconv.h>	/* TDS_ICONV_DIRECTION */
+#include <freetds/tds/iconv.h>	/* TDS_ICONV_DIRECTION */
 #include <freetds/pushvis.h>
 
 /** define a stream of data used for input */

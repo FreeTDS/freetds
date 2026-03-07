@@ -43,8 +43,8 @@
 #include <assert.h>
 
 #include <freetds/tds.h>
-#include <freetds/iconv.h>
-#include <freetds/stream.h>
+#include <freetds/tds/iconv.h>
+#include <freetds/tds/stream.h>
 
 /** \cond HIDDEN_SYMBOLS */
 #if ENABLE_EXTRA_CHECKS

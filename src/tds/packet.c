@@ -41,10 +41,10 @@
 
 #include <freetds/tds.h>
 #include <freetds/bytes.h>
-#include <freetds/iconv.h>
+#include <freetds/tds/iconv.h>
 #include <freetds/replacements.h>
-#include <freetds/checks.h>
-#include <freetds/tls.h>
+#include <freetds/tds/checks.h>
+#include <freetds/tds/tls.h>
 
 /**
  * \addtogroup network

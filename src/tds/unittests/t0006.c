@@ -17,7 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 #include "common.h"
-#include <freetds/convert.h>
+#include <freetds/tds/convert.h>
 
 static TDSCONTEXT ctx;
 

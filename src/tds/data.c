@@ -43,7 +43,7 @@
  *    <br>Cfr \commit{680cb3371e042bb372cbc5e6feb4054e50d40c1a}.
  *
  * <li>data. There should be some code to handle this type to/from
- *    the server. This code is implemented in \c include/freetds/data.h
+ *    the server. This code is implemented in \c include/freetds/tds/data.h
  *    and \c src/tds/data.c. You can either add a new set of functions
  *    to handle this new type or add the type handling do another set
  *    of types depending on how complicated is that type.
@@ -64,7 +64,7 @@
  *
  * <li>conversions. Conversions are not hard to write but usually
  *    require quite a bit of coding. After extending CONV_RESULT
- *    type in \c include/freetds/convert.h and adding the type to
+ *    type in \c include/freetds/tds/convert.h and adding the type to
  *    the script that generate the conversion tables in
  *    \c src/tds/tds_willconvert.pl you have to write the big part
  *    in \c src/tds/covnert.c. You have to implement all kind of
@@ -199,10 +199,10 @@
 #include <freetds/utils.h>
 #include <freetds/tds.h>
 #include <freetds/bytes.h>
-#include <freetds/iconv.h>
-#include <freetds/checks.h>
-#include <freetds/stream.h>
-#include <freetds/data.h>
+#include <freetds/tds/iconv.h>
+#include <freetds/tds/checks.h>
+#include <freetds/tds/stream.h>
+#include <freetds/tds/data.h>
 
 #define USE_ICONV_IN (tds->conn->use_iconv_in)
 

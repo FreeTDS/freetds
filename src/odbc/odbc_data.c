@@ -34,7 +34,7 @@
 #include <ctype.h>
 
 #include <freetds/odbc.h>
-#include <freetds/iconv.h>
+#include <freetds/tds/iconv.h>
 #include <odbcss.h>
 
 #define SET_INFO(type, prefix, suffix) do { \

@@ -43,7 +43,7 @@
 
 #include <freetds/tds.h>
 #include <freetds/bytes.h>
-#include <freetds/iconv.h>
+#include <freetds/tds/iconv.h>
 #include <freetds/bool.h>
 #include <freetds/utils/bjoern-utf8.h>
 

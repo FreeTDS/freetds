@@ -1,7 +1,5 @@
 NULL =
 noinst_HEADERS = \
-	iconv.h \
-	convert.h \
 	bytes.h \
 	thread.h \
 	proto.h \
@@ -13,18 +11,20 @@ noinst_HEADERS = \
 	enum_cap.h \
 	sysdep_private.h \
 	sysdep_types.h \
-	stream.h \
-	data.h \
 	pushvis.h \
 	popvis.h \
 	time.h \
-	tls.h \
 	bool.h \
-	checks.h \
 	alloca.h \
 	macros.h \
 	windows.h \
 	tds/all_types.h \
+	tds/checks.h \
+	tds/convert.h \
+	tds/data.h \
+	tds/iconv.h \
+	tds/stream.h \
+	tds/tls.h \
 	utils.h \
 	utils/string.h \
 	utils/dlist.h \

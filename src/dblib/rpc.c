@@ -40,7 +40,7 @@
 #endif /* HAVE_ERRNO_H */
 
 #include <freetds/tds.h>
-#include <freetds/convert.h>
+#include <freetds/tds/convert.h>
 #include <freetds/utils/string.h>
 #include <freetds/replacements.h>
 #include <sybfront.h>

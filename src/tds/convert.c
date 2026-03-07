@@ -45,11 +45,11 @@
 #endif /* HAVE_STRINGS_H */
 
 #include <freetds/tds.h>
-#include <freetds/convert.h>
+#include <freetds/tds/convert.h>
 #include <freetds/bytes.h>
 #include <freetds/replacements.h>
 #include <freetds/utils.h>
-#include <freetds/checks.h>
+#include <freetds/tds/checks.h>
 
 typedef unsigned short utf16_t;
 

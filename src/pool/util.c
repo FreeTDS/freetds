@@ -39,7 +39,7 @@
 
 #include "pool.h"
 #include <freetds/utils/string.h>
-#include <freetds/checks.h>
+#include <freetds/tds/checks.h>
 #include <freetds/bytes.h>
 
 void

@@ -44,11 +44,11 @@
 #include <assert.h>
 
 #include <freetds/tds.h>
-#include <freetds/iconv.h>
+#include <freetds/tds/iconv.h>
 #include <freetds/bytes.h>
-#include <freetds/stream.h>
+#include <freetds/tds/stream.h>
 #include <freetds/utils/string.h>
-#include <freetds/checks.h>
+#include <freetds/tds/checks.h>
 
 static size_t read_and_convert(TDSSOCKET * tds, TDSICONV * char_conv,
 			       size_t * wire_size, char *outbuf, size_t outbytesleft);

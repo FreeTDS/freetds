@@ -24,7 +24,7 @@
  */
 
 #include "common.h"
-#include <freetds/convert.h>
+#include <freetds/tds/convert.h>
 
 #define TO32(n) ((unsigned int)((unsigned int)(n) & 0xfffffffflu))
 

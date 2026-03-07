@@ -51,9 +51,9 @@
  */
 #include <freetds/tds.h>
 #include <freetds/thread.h>
-#include <freetds/convert.h>
+#include <freetds/tds/convert.h>
 #include <freetds/utils/string.h>
-#include <freetds/data.h>
+#include <freetds/tds/data.h>
 #include <freetds/replacements.h>
 #include <sybfront.h>
 #include <sybdb.h>

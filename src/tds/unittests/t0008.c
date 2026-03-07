@@ -19,7 +19,7 @@
  */
 
 #include "common.h"
-#include <freetds/convert.h>
+#include <freetds/tds/convert.h>
 
 static int g_result = 0;
 static TDSCONTEXT ctx;

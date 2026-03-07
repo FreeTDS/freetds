@@ -86,7 +86,7 @@
 #include <freetds/tds.h>
 #include <freetds/utils/string.h>
 #include <freetds/utils/nosigpipe.h>
-#include <freetds/tls.h>
+#include <freetds/tds/tls.h>
 #include <freetds/replacements.h>
 
 #include <signal.h>

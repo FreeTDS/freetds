@@ -29,9 +29,9 @@
 #include <assert.h>
 
 #include <freetds/tds.h>
-#include <freetds/iconv.h>
-#include <freetds/tls.h>
-#include <freetds/checks.h>
+#include <freetds/tds/iconv.h>
+#include <freetds/tds/tls.h>
+#include <freetds/tds/checks.h>
 #include <freetds/utils/string.h>
 #include <freetds/replacements.h>
 #include <freetds/enum_cap.h>

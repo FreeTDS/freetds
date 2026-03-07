@@ -51,8 +51,8 @@
 #include <freetds/utils/string.h>
 #include <freetds/bool.h>
 #include <freetds/replacements.h>
-#include <freetds/iconv.h>
-#include <freetds/tls.h>
+#include <freetds/tds/iconv.h>
+#include <freetds/tds/tls.h>
 
 /**
  * \ingroup libtds

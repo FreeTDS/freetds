@@ -24,7 +24,7 @@
 #define TDS_DONT_DEFINE_DEFAULT_FUNCTIONS
 #include <freetds/tds.h>
 #include <freetds/thread.h>
-#include <freetds/data.h>
+#include <freetds/tds/data.h>
 
 #if defined(UNIXODBC) || defined(_WIN32) || defined(TDS_NO_DM)
 #include <sql.h>

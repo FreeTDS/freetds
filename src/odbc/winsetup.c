@@ -52,7 +52,7 @@
 #include <freetds/tds.h>
 #include <freetds/odbc.h>
 #include <freetds/utils/string.h>
-#include <freetds/convert.h>
+#include <freetds/tds/convert.h>
 #include <freetds/replacements.h>
 #include <freetds/bool.h>
 

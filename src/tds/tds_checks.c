@@ -34,9 +34,9 @@
 #include <assert.h>
 
 #include <freetds/tds.h>
-#include <freetds/convert.h>
+#include <freetds/tds/convert.h>
 #include <freetds/utils/string.h>
-#include <freetds/checks.h>
+#include <freetds/tds/checks.h>
 
 #if ENABLE_EXTRA_CHECKS
 static void

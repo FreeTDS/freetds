@@ -28,7 +28,7 @@
 #endif /* HAVE_STRING_H */
 
 #include <freetds/tds.h>
-#include <freetds/convert.h>
+#include <freetds/tds/convert.h>
 #include <freetds/bytes.h>
 #include <freetds/windows.h>
 #include <stdlib.h>

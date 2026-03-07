@@ -41,10 +41,10 @@
 #endif /* HAVE_UNISTD_H */
 
 #include <freetds/tds.h>
-#include <freetds/iconv.h>
+#include <freetds/tds/iconv.h>
 #include <freetds/bytes.h>
-#include <freetds/stream.h>
-#include <freetds/checks.h>
+#include <freetds/tds/stream.h>
+#include <freetds/tds/checks.h>
 
 #if TDS_ADDITIONAL_SPACE < 8
 #error Not supported

@@ -32,8 +32,8 @@
  */
 
 #include "common.h"
-#include <freetds/iconv.h>
-#include <freetds/stream.h>
+#include <freetds/tds/iconv.h>
+#include <freetds/tds/stream.h>
 
 #if HAVE_UNISTD_H
 #undef getpid

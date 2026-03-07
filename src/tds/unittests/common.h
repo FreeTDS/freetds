@@ -15,7 +15,7 @@
 #endif /* HAVE_STRING_H */
 
 #include <freetds/tds.h>
-#include <freetds/data.h>
+#include <freetds/tds/data.h>
 
 #ifndef FREETDS_SRCDIR
 #define FREETDS_SRCDIR FREETDS_TOPDIR "/src/tds/unittests"

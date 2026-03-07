@@ -33,7 +33,7 @@
 
 #include <freetds/utils.h>
 #include <freetds/tds.h>
-#include <freetds/convert.h>
+#include <freetds/tds/convert.h>
 #include <sybdb.h>
 #include <syberror.h>
 #include <dblib.h>

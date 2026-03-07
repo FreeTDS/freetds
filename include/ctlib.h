@@ -21,7 +21,7 @@
 #define _tdsguard_gH4tOYBTzynx4DgqFzOEbB_
 
 #include <freetds/tds.h>
-#include <freetds/convert.h>
+#include <freetds/tds/convert.h>
 #include <freetds/utils/string.h>
 #include <freetds/bool.h>
 

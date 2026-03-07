@@ -33,9 +33,9 @@
 #include <assert.h>
 
 #include <freetds/odbc.h>
-#include <freetds/iconv.h>
+#include <freetds/tds/iconv.h>
 #include <freetds/utils/string.h>
-#include <freetds/convert.h>
+#include <freetds/tds/convert.h>
 #include <freetds/enum_cap.h>
 #include <freetds/utils/bjoern-utf8.h>
 #include <odbcss.h>

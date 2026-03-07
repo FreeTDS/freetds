@@ -28,7 +28,7 @@
 
 #include <freetds/odbc.h>
 
-#include <freetds/iconv.h>
+#include <freetds/tds/iconv.h>
 #include <freetds/encodings.h>
 
 /* Compile-time check that sizes are defined correctly
