@@ -22,6 +22,7 @@
  */
 #include "common.h"
 #include <assert.h>
+#include <freetds/tds/all_types.h>
 
 static void test_declaration(TDSSOCKET *tds, TDSCOLUMN *curcol)
 {

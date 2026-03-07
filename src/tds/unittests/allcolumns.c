@@ -23,6 +23,7 @@
 #include <assert.h>
 #include <freetds/convert.h>
 #include <freetds/checks.h>
+#include <freetds/tds/all_types.h>
 
 static bool
 is_convert_pointer_type(int type)
