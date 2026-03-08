@@ -2488,7 +2488,7 @@ _bcp_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC *d
 	{
 		char tbuf[256];
 
-		tds_strftime(tbuf, sizeof tbuf, BCP_DEFAULT_DATEFMT, dr, prec);
+		tds_strftime(tbuf, sizeof(tbuf), BCP_DEFAULT_DATEFMT, dr, prec);
 		if (strcmp(tbuf, (char *) buf)) {
 			fprintf(stderr, "_bcp_strftime(%s) does not match tds_strftime(%s)\n", tbuf, (char *) buf);
 			tds_extra_assert(!"_bcp_strftime mismatch");

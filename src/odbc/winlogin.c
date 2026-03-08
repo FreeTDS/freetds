@@ -140,9 +140,9 @@ LoginDlgProc(HWND hDlg, UINT message, WPARAM wParam,	/* */
 		/* If we get here, then the user hit the [OK] button */
 
 		/* get values from dialog */
-		SendDlgItemMessage(hDlg, IDC_LOGINUID, WM_GETTEXT, sizeof tmp, (LPARAM) tmp);
+		SendDlgItemMessage(hDlg, IDC_LOGINUID, WM_GETTEXT, sizeof(tmp), (LPARAM) tmp);
 		tds_dstr_copy(&login->user_name, tmp);
-		SendDlgItemMessage(hDlg, IDC_LOGINPWD, WM_GETTEXT, sizeof tmp, (LPARAM) tmp);
+		SendDlgItemMessage(hDlg, IDC_LOGINPWD, WM_GETTEXT, sizeof(tmp), (LPARAM) tmp);
 		tds_dstr_copy(&login->password, tmp);
 		if (SendDlgItemMessage(hDlg, IDC_LOGINDUMP, BM_GETCHECK, 0, 0)) {
 			tds_dir_char * filename = get_desktop_file(TDS_DIR("FreeTDS.log"));

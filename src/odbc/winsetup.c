@@ -264,20 +264,20 @@ DSNDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		/* If we get here, then the user hit the [OK] button */
 
 		/* get values from dialog */
-		SendDlgItemMessage(hDlg, IDC_DSNNAME, WM_GETTEXT, sizeof tmp, (LPARAM) tmp);
+		SendDlgItemMessage(hDlg, IDC_DSNNAME, WM_GETTEXT, sizeof(tmp), (LPARAM) tmp);
 		tds_dstr_copy(&di->dsn, tmp);
-		SendDlgItemMessage(hDlg, IDC_PROTOCOL, WM_GETTEXT, sizeof tmp, (LPARAM) tmp);
+		SendDlgItemMessage(hDlg, IDC_PROTOCOL, WM_GETTEXT, sizeof(tmp), (LPARAM) tmp);
 		minor = 0;
 		if (strcmp(tmp, "AUTO") == 0)
 			di->login->tds_version = 0;
 		else if (sscanf(tmp, "%*[^0-9]%d.%d", &major, &minor) > 1)
 			di->login->tds_version = (major << 8) | minor;
 
-		SendDlgItemMessage(hDlg, IDC_ADDRESS, WM_GETTEXT, sizeof tmp, (LPARAM) tmp);
+		SendDlgItemMessage(hDlg, IDC_ADDRESS, WM_GETTEXT, sizeof(tmp), (LPARAM) tmp);
 		tds_dstr_copy(&di->login->server_name, tmp);
-		SendDlgItemMessage(hDlg, IDC_PORT, WM_GETTEXT, sizeof tmp, (LPARAM) tmp);
+		SendDlgItemMessage(hDlg, IDC_PORT, WM_GETTEXT, sizeof(tmp), (LPARAM) tmp);
 		di->login->port = atoi(tmp);
-		SendDlgItemMessage(hDlg, IDC_DATABASE, WM_GETTEXT, sizeof tmp, (LPARAM) tmp);
+		SendDlgItemMessage(hDlg, IDC_DATABASE, WM_GETTEXT, sizeof(tmp), (LPARAM) tmp);
 		tds_dstr_copy(&di->login->database, tmp);
 
 		/* validate */
