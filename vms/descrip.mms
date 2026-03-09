@@ -739,11 +739,6 @@ $(ODBCTEST_TARGETS) : $(ODBCTEST_COMMON_OBJS)
 ODBCTEST_OBJS = $(ODBCTEST_TARGETS:$(E)=$(OBJ)) $(ODBCTEST_COMMON_OBJS) $(OTDIR)fake_thread$(OBJ)
 $(ODBCTEST_OBJS) : $(OTDIR)common.h $(CONFIGS)
 
-# The link rule includes libtdsodbc.OLB, because TIMEOUT3 and CANCEL test
-# a tds_sleep function that isn't exported by the driver.
-# Unfortunately we cannot just add the .OLB to the dependencies because
-# MMS$SOURCE_LIST doesn't add the /LIBRARY switch to the link command.
-
 {$(OTDIR)}$(OBJ){$(OTDIR)}$(E)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/lib,[.vms]libodbc.opt/options $(OPENSSL_TEST)
 
@@ -756,8 +751,10 @@ $(ODBCTEST_OBJS) : $(OTDIR)common.h $(CONFIGS)
 #
 # note: the Windows build makes various static libraries that the VMS
 # build doesn't, so these rules look a bit different.
-
+#
 # timeout3 and cancel need tds_sleep_s which is in libtdsodbc
+# Unfortunately we cannot just add the .OLB to the dependencies because
+# MMS$SOURCE_LIST doesn't add the /LIBRARY switch to the link command.
 $(OTDIR)timeout3$(E) : $(OTDIR)timeout3$(OBJ) $(OTDIR)fake_thread$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[.vms]libodbc.opt/options,[]libtdsodbc$(OLB)/lib $(OPENSSL_TEST)
 
@@ -776,9 +773,17 @@ $(OTDIR)connection_string_parse$(E) : $(OTDIR)connection_string_parse$(OBJ)
 $(STATIC_ODBC_TARGETS) : $(TTDIR)allcolumns$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST) $(STATIC_ODBC_LIBS) $(OPENSSL_TEST)
 
-# tokens
+# tokens test uses server emulation
 $(OTDIR)tokens$(E) : $(OTDIR)tokens$(OBJ), $(OTDIR)fake_thread$(OBJ),\
 		[.src.server]query$(OBJ), [.src.server]server$(OBJ), [.src.server]login$(OBJ)
-	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST) \
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST) -
+		,[.vms]libodbc.opt/options,[]libtds$(OLB)/lib $(OPENSSL_TEST)
+
+# utf8 test does not want common.obj
+# (it #include "common.c" to control unicode settings)
+$(OTDIR)utf8$(E) : $(OTDIR)utf8$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) -
+		$(MMS$TARGET_NAME)$(OBJ) -
+		,$(UTDIR)test_base$(OBJ) -
 		,[.vms]libodbc.opt/options,[]libtds$(OLB)/lib $(OPENSSL_TEST)
 
