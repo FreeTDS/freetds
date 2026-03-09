@@ -651,11 +651,12 @@ _cs_convert(CS_CONTEXT *ctx, const CS_DATAFMT_COMMON *srcfmt, CS_VOID *srcdata,
 			/* set the output precision/scale for conversions to numeric type */
 			CS_INT precision = destfmt->precision;
 			CS_INT scale = destfmt->scale;
+			bool src_is_numeric = (srcfmt->datatype == CS_NUMERIC_TYPE || srcfmt->datatype == CS_DECIMAL_TYPE);
 
-			if (destfmt->precision == CS_SRC_VALUE)
-				precision = srcfmt->precision;
-			if (destfmt->scale == CS_SRC_VALUE)
-				scale = srcfmt->scale;
+			if (destfmt->precision == CS_SRC_VALUE && src_is_numeric)
+				precision = ((TDS_NUMERIC *) srcdata)->precision;
+			if (destfmt->scale == CS_SRC_VALUE && src_is_numeric)
+				scale = ((TDS_NUMERIC *) srcdata)->scale;
 			if (precision < 1 || precision > MAXPRECISION) {
 				_csclient_msg(ctx, "cs_convert", 2, 1, 1, 18, "%d, %s", precision, "precision");
 				return CS_FAIL;

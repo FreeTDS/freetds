@@ -391,6 +391,27 @@ TEST_MAIN()
 		check_last_message(CTMSG_CSLIB, 0x2010112, "An illegal value of 31 was placed in the scale field");
 	}
 
+	dest_precision = CS_SRC_VALUE;
+	dest_scale = CS_SRC_VALUE;
+	{
+		CS_NUMERIC test = {
+			30, 2, {0, 0, 0, 1, 2, 3, 4}
+		};
+		DO_TEST(CS_NUMERIC test2 = test,
+			CS_NUMERIC_TYPE, &test, sizeof(test), CS_NUMERIC_TYPE, sizeof(test2), CS_SUCCEED, &test2, 16);
+	}
+
+	dest_precision = 31;
+	dest_scale = CS_SRC_VALUE;
+	{
+		CS_NUMERIC test = {
+			30, 2, {0, 0, 0, 1, 2, 3, 4}
+		};
+		DO_TEST(CS_NUMERIC test2 = test;
+			test2.precision = 31,
+			CS_NUMERIC_TYPE, &test, sizeof(test), CS_NUMERIC_TYPE, sizeof(test2), CS_SUCCEED, &test2, 16);
+	}
+
 	check_call(ct_exit, (ctx, CS_UNUSED));
 	check_call(cs_ctx_drop, (ctx));
 
