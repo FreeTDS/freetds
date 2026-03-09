@@ -70,7 +70,7 @@ TEST_ATTRIBUTE(t30,TDS_NUMERIC,array,DBNUMERIC,array);
 int
 _dblib_handle_info_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
-	DBPROCESS *dbproc = (tds && tds_get_parent(tds))? (DBPROCESS *) tds_get_parent(tds) : NULL;
+	DBPROCESS *dbproc = tds ? (DBPROCESS *) tds_get_parent(tds) : NULL;
 
 	tdsdump_log(TDS_DBG_FUNC, "_dblib_handle_info_message(%p, %p, %p)\n", tds_ctx, tds, msg);
 	tdsdump_log(TDS_DBG_FUNC, "msgno %d: \"%s\"\n", msg->msgno, msg->message);
@@ -127,7 +127,7 @@ _dblib_handle_info_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSA
 int
 _dblib_handle_err_message(const TDSCONTEXT * tds_ctx TDS_UNUSED, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
-	DBPROCESS *dbproc = (tds && tds_get_parent(tds))? (DBPROCESS *) tds_get_parent(tds) : NULL;
+	DBPROCESS *dbproc = tds ? (DBPROCESS *) tds_get_parent(tds) : NULL;
 	int rc = INT_CANCEL;
 
 	assert(_dblib_err_handler);

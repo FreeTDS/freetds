@@ -312,9 +312,8 @@ db_env_chg(TDSSOCKET * tds, int type, char *oldval, char *newval)
 		
 	tdsdump_log(TDS_DBG_FUNC, "db_env_chg(%p, %d, %s, %s)\n", tds, type, oldval, newval);
 
-	if (!tds || !tds_get_parent(tds))
+	if (!tds || !(dbproc = (DBPROCESS *) tds_get_parent(tds)))
 		return;
-	dbproc = (DBPROCESS *) tds_get_parent(tds);
 
 	dbproc->envchange_rcv |= (1 << (type - 1));
 	switch (type) {
