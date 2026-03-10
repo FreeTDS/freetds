@@ -331,7 +331,8 @@ syb_msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, cha
 
 	if (severity) {
 		fprintf(stderr, "exit: no unanticipated messages allowed in unit tests\n");
-		dbclose(dbproc);
+		if (dbproc != NULL)
+			dbclose(dbproc);
 		dbexit();
 		exit(EXIT_FAILURE);
 	}
@@ -384,7 +385,8 @@ syb_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *db
 
 	if (severity) {
 		fprintf(stderr, "error: no unanticipated errors allowed in unit tests\n");
-		dbclose(dbproc);
+		if (dbproc != NULL)
+			dbclose(dbproc);
 		dbexit();
 		exit(EXIT_FAILURE);
 	}
