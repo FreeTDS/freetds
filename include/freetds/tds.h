@@ -1742,7 +1742,7 @@ struct tds_bcpinfo
 };
 
 TDSRET tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
-typedef TDSRET (*tds_bcp_get_col_data) (TDSBCPINFO *bulk, TDSCOLUMN *bcpcol, int offset);
+typedef TDSRET(*tds_bcp_get_col_data) (TDSBCPINFO * bulk, TDSCOLUMN * bcpcol, int index, int offset);
 typedef void (*tds_bcp_null_error)   (TDSBCPINFO *bulk, int index, int offset);
 TDSRET tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error, int offset);
 TDSRET tds_bcp_done(TDSSOCKET *tds, int *rows_copied);

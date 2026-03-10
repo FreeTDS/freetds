@@ -48,8 +48,7 @@
 #define TDSODBC_BCP
 #include <odbcss.h>
 
-static TDSRET
-_bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset);
+static TDSRET _bcp_get_col_data(TDSBCPINFO * bcpinfo, TDSCOLUMN * bindcol, int index, int offset);
 static SQLLEN
 _bcp_get_term_var(const TDS_CHAR * pdata, const TDS_CHAR * term, int term_len);
 
@@ -569,7 +568,7 @@ _tdsodbc_dbconvert(TDS_DBC *dbc, int srctype, const TDS_CHAR * src, SQLLEN src_l
 }
 
 static TDSRET
-_bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset TDS_UNUSED)
+_bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int index TDS_UNUSED, int offset TDS_UNUSED)
 {
 	TDS_TINYINT ti;
 	TDS_SMALLINT si;

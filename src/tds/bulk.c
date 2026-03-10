@@ -498,7 +498,7 @@ tds7_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 			continue;
 		}
 
-		rc = get_col_data(bcpinfo, bindcol, offset);
+		rc = get_col_data(bcpinfo, bindcol, i, offset);
 		if (TDS_FAILED(rc)) {
 			tdsdump_log(TDS_DBG_INFO1, "get_col_data (column %d) failed\n", i + 1);
 			return rc;
@@ -1291,7 +1291,7 @@ tds5_get_col_data_or_dflt(tds_bcp_get_col_data get_col_data, TDSBCPINFO *bulk, T
 	TDSRET ret;
 	BCPCOLDATA *coldata;
 
-	ret = get_col_data(bulk, bcpcol, offset);
+	ret = get_col_data(bulk, bcpcol, colnum, offset);
 	coldata = bcpcol->bcp_column_data;
 	if (coldata->is_null && bulk->sybase_colinfo != NULL && !type_has_textptr(bcpcol->column_type)) {
 		const TDS5COLINFO *syb_info = &bulk->sybase_colinfo[colnum];

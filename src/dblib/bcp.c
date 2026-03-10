@@ -81,8 +81,8 @@ typedef long offset_type;
 static void _bcp_free_storage(DBPROCESS * dbproc);
 static void _bcp_free_columns(DBPROCESS * dbproc);
 static void _bcp_null_error(TDSBCPINFO *bcpinfo, int index, int offset);
-static TDSRET _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset);
-static TDSRET _bcp_no_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset);
+static TDSRET _bcp_get_col_data(TDSBCPINFO * bcpinfo, TDSCOLUMN * bindcol, int index, int offset);
+static TDSRET _bcp_no_get_col_data(TDSBCPINFO * bcpinfo, TDSCOLUMN * bindcol, int index, int offset);
 
 static int rtrim(char *, int);
 static int rtrim_u16(uint16_t *str, int len, uint16_t space);
@@ -2229,7 +2229,7 @@ _bcp_null_error(TDSBCPINFO *bcpinfo, int index TDS_UNUSED, int offset TDS_UNUSED
  * \sa 	_bcp_add_fixed_columns, _bcp_add_variable_columns, _bcp_send_bcp_record
  */
 static TDSRET
-_bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset TDS_UNUSED)
+_bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int index TDS_UNUSED, int offset TDS_UNUSED)
 {
 	TDS_SERVER_TYPE coltype, desttype;
 	int collen;
@@ -2320,7 +2320,7 @@ null_data:
  * are already on bcp_column_data
  */
 static TDSRET
-_bcp_no_get_col_data(TDSBCPINFO *bcpinfo TDS_UNUSED, TDSCOLUMN *bindcol TDS_UNUSED, int offset TDS_UNUSED)
+_bcp_no_get_col_data(TDSBCPINFO *bcpinfo TDS_UNUSED, TDSCOLUMN *bindcol TDS_UNUSED, int index TDS_UNUSED, int offset TDS_UNUSED)
 {
 	return TDS_SUCCESS;
 }

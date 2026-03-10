@@ -39,7 +39,7 @@
 #include "ctlib.h"
 
 static void _blk_null_error(TDSBCPINFO *bcpinfo, int index, int offset);
-static TDSRET _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bcpcol, int offset);
+static TDSRET _blk_get_col_data(TDSBCPINFO * bulk, TDSCOLUMN * bcpcol, int index, int offset);
 static CS_RETCODE _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred);
 static CS_RETCODE _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred);
 
@@ -631,7 +631,7 @@ _blk_null_error(TDSBCPINFO *bcpinfo, int index, int offset)
 }
 
 static TDSRET
-_blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
+_blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int index TDS_UNUSED, int offset)
 {
 	bool null_column = false;
 	unsigned char *src = NULL;
