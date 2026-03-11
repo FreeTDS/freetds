@@ -191,12 +191,13 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 			goto cleanup;
 	}
 
-	if (!IS_TDS7_PLUS(tds->conn)) {
-		bindinfo->current_row = tds_new(unsigned char, bindinfo->row_size);
-		if (!bindinfo->current_row)
-			goto cleanup;
-		bindinfo->row_free = tds_bcp_row_free;
-	}
+	/* bindinfo->current_row is used to hold TDS5 BCP row packing buffer, we will
+	 * allocate some space later once we know how big the row will be. 
+	 * Not to be confused with the same members of "resinfo"
+	 * in a normal (non-bcp) query,  which holds unpacked row data.
+	 */
+	bindinfo->current_row = NULL;
+	bindinfo->row_size = 0;
 
 	if (bcpinfo->identity_insert_on) {
 
@@ -255,8 +256,18 @@ probe_sap_locking(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	else
 		tablename = full_tablename;
 
-	TDS_PROPAGATE(tds_submit_queryf(tds, "select sysstat2 from %.*ssysobjects where type='U' and name='%s'",
-					(int) (rdot ? (rdot - full_tablename + 1) : 0), full_tablename, tablename));
+	/* Temporary tables attributes are stored differently */
+	if (rdot == NULL && tablename[0] == '#')
+	{
+		TDS_PROPAGATE(tds_submit_queryf(tds,
+			"select sysstat2 from tempdb..sysobjects where id = object_id('tempdb..%s')",
+			tablename));
+	}
+	else
+	{
+		TDS_PROPAGATE(tds_submit_queryf(tds, "select sysstat2 from %.*ssysobjects where type='U' and name='%s'",
+			(int)(rdot ? (rdot - full_tablename + 1) : 0), full_tablename, tablename));
+	}
 
 	value = 0;
 	value_found = false;
@@ -460,6 +471,7 @@ tds_bcp_start_insert_stmt(TDSSOCKET * tds, TDSBCPINFO * bcpinfo)
 		if (erc < 0)
 			return TDS_FAIL;
 	} else {
+		/* NOTE: Current ASE docs do not mention "insert bulk", it might be deprecated? */
 		/* NOTE: if we use "with nodescribe" for following inserts server do not send describe */
 		if (asprintf(&query, "insert bulk %s", tds_dstr_cstr(&bcpinfo->tablename)) < 0)
 			return TDS_FAIL;
@@ -1145,6 +1157,16 @@ tds5_read_bulk_defaults(TDSRESULTINFO *res_info, TDSBCPINFO *bcpinfo)
 	TDS5COLINFO *syb_info = bcpinfo->sybase_colinfo;
 	TDS5COLINFO *const syb_info_end = syb_info + bcpinfo->sybase_count;
 
+	/* testing of behaviour of --ignoredefaults in ASE BCP client appears
+	 * to show it behaves exactly as if defaults did not exist. For example
+	 * a null value or omitted value for a default non-null column will
+	 * give an error, instead of using the default. */
+	if ( !tds_dstr_isempty(&bcpinfo->hint)
+				&& strstr(tds_dstr_cstr(&bcpinfo->hint), "KEEP_NULLS") )
+		return;
+
+	tdsdump_log(TDS_DBG_INFO1, "Reading default value row.\n");
+
 	for (i = 0; i < res_info->num_cols; ++i, ++syb_info) {
 		TDSCOLUMN *col = res_info->columns[i];
 		TDS_UCHAR *src = col->column_data;
@@ -1163,7 +1185,10 @@ tds5_read_bulk_defaults(TDSRESULTINFO *res_info, TDSBCPINFO *bcpinfo)
 				break;
 			++syb_info;
 		}
-
+#if ENABLE_EXTRA_CHECKS
+		if (TDS_UNLIKELY(tds_write_dump))
+			tdsdump_col(col);
+#endif
 		syb_info->dflt_size = len;
 		if (TDS_RESIZE(syb_info->dflt_value, len))
 			memcpy(syb_info->dflt_value, src, len);
@@ -1350,9 +1375,11 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		return rc;
 	}
 
-	/* 
-	 * Work out the number of "variable" columns.  These are either nullable or of 
-	 * varying length type e.g. varchar.   
+	/*
+	 * TDS5 BCP is coded to pack all columns into an internal buffer and
+	 * then send the buffer (as opposed to TDS7 BCP which just calls wire
+	 * put functions for each column). So we have to work out the maximum
+	 * possible required buffer size.
 	 */
 	var_cols = 0;
 
@@ -1387,9 +1414,11 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 			}
 		}
 
-		/* this formula taken from sybase manual... */
+		/* this formula taken from sybase manual...
+		 * (with extra 4 bytes possibly for datarows locked) */
 
 		bcp_record_size =  	4 +
+							(bcpinfo->datarows_locking ? 4 : 0) +
 							fixed_col_len_tot +
 							variable_col_len_tot +
 							( (int)(variable_col_len_tot / 256 ) + 1 ) +
