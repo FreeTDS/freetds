@@ -9,7 +9,7 @@
  */
 TEST_MAIN()
 {
-	int verbose = 1;
+	bool verbose = true;
 	CS_CONTEXT *ctx;
 	CS_RETCODE ret;
 	CS_DATAFMT srcfmt;

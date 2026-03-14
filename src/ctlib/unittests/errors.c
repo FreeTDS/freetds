@@ -34,7 +34,7 @@ static CS_COMMAND *cmd;
 
 TEST_MAIN()
 {
-	int verbose = 1;
+	bool verbose = true;
 
 	printf("%s: Testing message callbacks\n", __FILE__);
 	if (verbose) {

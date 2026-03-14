@@ -7,7 +7,7 @@
  */
 TEST_MAIN()
 {
-	int verbose = 0;
+	bool verbose = false;
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;
 	CS_COMMAND *cmd;

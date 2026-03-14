@@ -52,7 +52,7 @@ execute_sql(CS_COMMAND * command, const char *sql)
 
 TEST_MAIN()
 {
-	int verbose = 0;
+	bool verbose = false;
 	CS_COMMAND *command;
 	CS_CONNECTION *connection;
 	CS_CONTEXT *context;

@@ -3,7 +3,7 @@
 /* Testing: Set and get options with ct_options */
 TEST_MAIN()
 {
-	int verbose = 0;
+	bool verbose = false;
 
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;

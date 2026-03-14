@@ -14,7 +14,7 @@ TEST_MAIN()
 	CS_INT count, row_count = 0;
 	CS_DATAFMT datafmt;
 	CS_SMALLINT ind;
-	int verbose = 1;
+	bool verbose = true;
 	CS_CHAR name[3];
 	CS_CHAR col1[6];
 	CS_INT datalength;

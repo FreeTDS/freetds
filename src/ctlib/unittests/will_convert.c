@@ -130,7 +130,7 @@ test(CS_INT from, CS_INT to, CS_BOOL expected)
 
 TEST_MAIN()
 {
-	int verbose = 0;
+	bool verbose = false;
 	CS_COMMAND *command;
 	CS_CONNECTION *connection;
 	CS_INT from, to;

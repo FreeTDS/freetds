@@ -9,7 +9,7 @@
  */
 TEST_MAIN()
 {
-	int verbose = 1;
+	bool verbose = true;
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;
 	CS_COMMAND *cmd;

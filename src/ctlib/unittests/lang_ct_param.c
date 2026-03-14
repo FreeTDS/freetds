@@ -15,12 +15,12 @@ TEST_MAIN()
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;
 	CS_COMMAND *cmd;
-	int verbose = 0;
+	bool verbose = false;
 
 	CS_CHAR cmdbuf[4096];
 
 	if (argc > 1 && (0 == strcmp(argv[1], "-v")))
-		verbose = 1;
+		verbose = true;
 
 	printf("%s: submit language query with variables using ct_param\n", __FILE__);
 	if (verbose) {

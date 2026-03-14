@@ -2,7 +2,7 @@
 
 #include <stdarg.h>
 
-static int verbose = 0;
+static bool verbose = false;
 
 static CS_CONTEXT *ctx;
 static CS_CONNECTION *conn;
@@ -59,7 +59,7 @@ TEST_MAIN()
 	int i;
 
 	if (argc > 1 && (0 == strcmp(argv[1], "-v")))
-		verbose = 1;
+		verbose = true;
 
 	printf("%s: use ct_dynamic to prepare and execute  a statement\n", __FILE__);
 	if (verbose) {

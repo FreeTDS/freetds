@@ -6,7 +6,7 @@ TEST_MAIN()
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;
 	CS_COMMAND *cmd;
-	int verbose = 0;
+	bool verbose = false;
 
 	CS_RETCODE ret;
 	CS_INT result_type;
@@ -28,7 +28,8 @@ TEST_MAIN()
 		printf("Trying login\n");
 	}
 	check_call(try_ctlogin_with_options, (argc, argv, &ctx, &conn, &cmd, verbose));
-	verbose += common_pwd.fverbose;
+	if (common_pwd.fverbose)
+		verbose = true;
 
 	ret = ct_con_props(conn, CS_GET, CS_TDS_VERSION, &tds_version, CS_UNUSED, NULL);
 	if (ret == CS_SUCCEED) {

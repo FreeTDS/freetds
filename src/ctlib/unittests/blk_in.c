@@ -221,7 +221,7 @@ TEST_MAIN()
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;
 	CS_COMMAND *cmd;
-	int verbose = 0;
+	bool verbose = false;
 	FILE *in;
 	part_t part;
 

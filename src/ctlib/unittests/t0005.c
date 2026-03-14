@@ -7,7 +7,7 @@ TEST_MAIN()
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;
 	CS_COMMAND *cmd;
-	int verbose = 0;
+	bool verbose = false;
 	int i;
 
 	printf("%s: Testing login, logout\n", __FILE__);

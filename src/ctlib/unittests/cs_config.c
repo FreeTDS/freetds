@@ -4,7 +4,7 @@
 
 TEST_MAIN()
 {
-	int verbose = 1;
+	bool verbose = true;
 	CS_CONTEXT *ctx;
 
 	CS_CHAR string_in[16], string_out[16];

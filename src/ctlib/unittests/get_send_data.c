@@ -9,7 +9,8 @@ TEST_MAIN()
 {
 	CS_CONTEXT *ctx;
 	CS_COMMAND *cmd;
-	int i, verbose = 0;
+	int i;
+	bool verbose = false;
 
 	CS_RETCODE ret;
 	CS_RETCODE ret2;

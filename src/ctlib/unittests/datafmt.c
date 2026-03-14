@@ -6,7 +6,7 @@ TEST_MAIN()
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;
 	CS_COMMAND *cmd;
-	int verbose = 0;
+	bool verbose = false;
 
 	CS_RETCODE ret;
 	CS_RETCODE results_ret;
@@ -27,7 +27,8 @@ TEST_MAIN()
 		printf("Trying login\n");
 	}
 	check_call(try_ctlogin_with_options, (argc, argv, &ctx, &conn, &cmd, verbose));
-	verbose += common_pwd.fverbose;
+	if (common_pwd.fverbose)
+		verbose = true;
 
 	strcpy(select, "select name from systypes where datalength(name) > 2*9 order by datalength(name)");
 	printf("%s\n", select);

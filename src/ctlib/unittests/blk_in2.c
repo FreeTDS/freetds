@@ -42,7 +42,7 @@ TEST_MAIN()
 	CS_CONNECTION *conn;
 	CS_COMMAND *cmd;
 	CS_BLKDESC *blkdesc;
-	int verbose = 0;
+	bool verbose = false;
 	int i;
 	char command[512];
 

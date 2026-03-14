@@ -142,7 +142,7 @@ single_test(const TEST *test)
 
 TEST_MAIN()
 {
-	int verbose = 1;
+	bool verbose = true;
 	const TEST *test;
 
 	/* Force default us_enlish */

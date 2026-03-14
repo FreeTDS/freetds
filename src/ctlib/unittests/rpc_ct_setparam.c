@@ -20,7 +20,7 @@ TEST_MAIN()
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;
 	CS_COMMAND *cmd;
-	int verbose = 0;
+	bool verbose = false;
 
 	CS_INT datalength;
 	CS_SMALLINT nullind;

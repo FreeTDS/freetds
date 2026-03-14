@@ -165,8 +165,8 @@ read_login_info(int argc, char **argv)
 		case 'f': /* override default PWD file */
 			PWD = strdup(optarg);
 			break;
-		case 'v': /* doesn't normally do anything */
-			common_pwd.fverbose = 1;
+		case 'v':	/* doesn't normally do anything */
+			common_pwd.fverbose = true;
 			break;
 		case '?':
 		default:

@@ -19,7 +19,7 @@ TEST_MAIN()
 	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;
 	CS_COMMAND *cmd;
-	int verbose = 0;
+	bool verbose = false;
 
 	CS_RETCODE ret;
 	CS_INT res_type;

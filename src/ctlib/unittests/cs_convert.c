@@ -130,7 +130,7 @@ DoTest(
 TEST_MAIN()
 {
 	volatile CS_BIGINT one = 1;
-	int verbose = 1;
+	bool verbose = true;
 
 	printf("%s: Testing conversion\n", __FILE__);
 

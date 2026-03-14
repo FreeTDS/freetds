@@ -15,7 +15,7 @@ TEST_MAIN()
 	CS_DATAFMT datafmt;
 	CS_DATAFMT datafmt2;
 	CS_SMALLINT ind;
-	int verbose = 1;
+	bool verbose = true;
 	CS_CHAR *name = "c1";
 	CS_CHAR *name2 = "c2";
 	CS_CHAR col1[6];

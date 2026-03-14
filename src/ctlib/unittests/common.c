@@ -18,7 +18,7 @@ bool error_to_stdout = false;
 
 ct_message ct_last_message;
 
-static CS_RETCODE continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, int verbose);
+static CS_RETCODE continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, bool verbose);
 
 CS_RETCODE
 read_login_info(void)
@@ -58,7 +58,7 @@ establish_login(int argc, char **argv)
 		case 'm':
 			common_pwd.maxlength = (CS_INT) strtol(optarg, NULL, 10);
 		case 'v':
-			common_pwd.fverbose = 1;
+			common_pwd.fverbose = true;
 			break;
 		case '?':
 		default:
@@ -76,7 +76,7 @@ establish_login(int argc, char **argv)
 }
 
 CS_RETCODE
-try_ctlogin_with_options(int argc, char **argv, CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, int verbose)
+try_ctlogin_with_options(int argc, char **argv, CS_CONTEXT **ctx, CS_CONNECTION **conn, CS_COMMAND **cmd, bool verbose)
 {
 	CS_RETCODE ret;
 
@@ -91,7 +91,7 @@ try_ctlogin_with_options(int argc, char **argv, CS_CONTEXT ** ctx, CS_CONNECTION
 
 /* old way: because I'm too lazy to change every unit test */
 CS_RETCODE
-try_ctlogin(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, int verbose)
+try_ctlogin(CS_CONTEXT **ctx, CS_CONNECTION **conn, CS_COMMAND **cmd, bool verbose)
 {
 	CS_RETCODE ret;
 
@@ -105,10 +105,10 @@ try_ctlogin(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, int ver
 }
 
 CS_RETCODE
-continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, int verbose)
+continue_logging_in(CS_CONTEXT **ctx, CS_CONNECTION **conn, CS_COMMAND **cmd, bool verbose)
 {
 	CS_RETCODE ret;
-	char query[512+10];
+	char query[512 + 10];
 	CS_INT bulk_enabled = CS_TRUE;
 	CS_INT convfmt = CS_DATES_SHORT;
 
@@ -211,7 +211,7 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 
 
 CS_RETCODE
-try_ctlogout(CS_CONTEXT * ctx, CS_CONNECTION * conn, CS_COMMAND * cmd, int verbose)
+try_ctlogout(CS_CONTEXT *ctx, CS_CONNECTION *conn, CS_COMMAND *cmd, bool verbose)
 {
 	CS_RETCODE ret;
 

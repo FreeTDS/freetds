@@ -67,7 +67,7 @@ static int test(int final_rows, int no_rows);
 TEST_MAIN()
 {
 	printf("%s: check row count returned\n", __FILE__);
-	check_call(try_ctlogin, (&ctx, &conn, &cmd, 0));
+	check_call(try_ctlogin, (&ctx, &conn, &cmd, false));
 	error_to_stdout = true;
 
 	/* do not test error */
@@ -82,7 +82,7 @@ TEST_MAIN()
 	if (test(0, 1) || test(1, 1))
 		return 1;
 
-	check_call(try_ctlogout, (ctx, conn, cmd, 0));
+	check_call(try_ctlogout, (ctx, conn, cmd, false));
 
 	return 0;
 }
