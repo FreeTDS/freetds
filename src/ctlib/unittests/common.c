@@ -424,10 +424,11 @@ _check_fail(const char *name, CS_RETCODE ret, int line)
 }
 
 static void
-report_wrong_error(int line)
+report_wrong_error(int line, ct_message_type type, CS_INT number, const char *msg)
 {
-	fprintf(stderr, "%d:Wrong error type %d number %d (%#x)\n", line,
-		ct_last_message.type, ct_last_message.number, ct_last_message.number);
+	fprintf(stderr, "%d:Wrong error type %d number %d (%#x): %s\n", line,
+		ct_last_message.type, ct_last_message.number, ct_last_message.number, ct_last_message.text);
+	fprintf(stderr, "%d:Expected type %d number %d (%#x): %s\n", line, type, number, number, msg);
 	exit(1);
 }
 
@@ -444,5 +445,5 @@ _check_last_message(ct_message_type type, CS_INT number, const char *msg, int li
 	if (msg && msg[0])
 		msg_ok = (strstr(ct_last_message.text, msg) != NULL);
 	if (!type_ok || !number_ok || !msg_ok)
-		report_wrong_error(line);
+		report_wrong_error(line, type, number, msg);
 }
