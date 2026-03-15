@@ -530,7 +530,7 @@ tds7_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 			blob.textvalue = (TDS_CHAR *) bindcol->bcp_column_data->data;
 			bindcol->column_data = (unsigned char *) &blob;
 		} else {
-			bindcol->column_cur_size = bindcol->bcp_column_data->datalen;
+			bindcol->column_cur_size = TDS_MIN(bindcol->bcp_column_data->datalen, bindcol->column_size);
 			bindcol->column_data = bindcol->bcp_column_data->data;
 		}
 		rc = bindcol->funcs->put_data(tds, bindcol, true);

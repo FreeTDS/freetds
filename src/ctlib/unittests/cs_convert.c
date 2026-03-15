@@ -284,6 +284,23 @@ TEST_MAIN()
 		CS_SUCCEED,&test2,sizeof(test2));
 	}
 #endif
+	{
+		CS_VARCHAR test = { -400, "12345" };
+		memset(test.str + 5, 23, 251);
+		DO_TEST(CS_INT test2 = 0,
+			CS_VARCHAR_TYPE, &test, sizeof(test), CS_INT_TYPE, sizeof(test2), CS_SUCCEED, &test2, sizeof(test2));
+		check_last_message(CTMSG_NONE, 0, NULL);
+	}
+
+	{
+		CS_VARCHAR test = { -258, "12345" };
+		memset(test.str + 5, 0, 251);
+		DO_TEST(CS_CHAR test2[1] = { 0 },
+			CS_VARCHAR_TYPE, &test, sizeof(test),
+			CS_CHAR_TYPE, sizeof(test2),
+			CS_SUCCEED, test2, 0);
+		check_last_message(CTMSG_NONE, 0, NULL);
+	}
 
 	DO_TEST(CS_CHAR test[] = "12345";
 		CS_INT test2 = 12345, CS_CHAR_TYPE, test, 5, CS_INT_TYPE, sizeof(test2), CS_SUCCEED, &test2, sizeof(test2));

@@ -439,5 +439,37 @@ output
 123
 45
 --
+sql
+--
+CREATE TABLE all_types_bcp_unittest (
+	not_null_varbinary varbinary(3) NOT NULL
+)
+--
+bind
+--
+CS_CHAR_TYPE	10	"""  0x313233"""
+SENDROW
+-- truncated data
+CS_CHAR_TYPE	10	"""	0x32333435"""
+SENDROW	CLIENT2	0x102012a	Data truncated while doing local character set conversion.  col = 1 row = 2
+-- truncated data are not checked for hexadecimal
+CS_CHAR_TYPE	10	0x313241zz
+SENDROW	CLIENT2	0x102012a	Data truncated while doing local character set conversion.  col = 1 row = 3
+-- data with errors
+CS_CHAR_TYPE	10	0x3132zz
+SENDROWERROR	CLIENT2	0x102011a	Failed in conversion routine - syntax error.  col = 1 row = 4
+-- not multiple of 2, 0 nibble added
+CS_CHAR_TYPE	10	31324zz
+SENDROW	CLIENT2	0x102012a	Data truncated while doing local character set conversion.  col = 1 row = 4
+CS_CHAR_TYPE	10	0x414243
+--
+output
+--
+313233
+323334
+313241
+031324
+414243
+--
 end
 

@@ -722,17 +722,43 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int index TDS_UNUSED, in
 		desttype = tds_get_conversion_type(bindcol->on_server.column_type, bindcol->on_server.column_size);
 
 		switch (desttype) {
+			/* binary types not BLOB (with limited size) */
+		case SYBBINARY:
+		case SYBVARBINARY:
+		case XSYBBINARY:
+		case XSYBVARBINARY:
+			/* conversion from char to binary are a bit peculiar */
+			switch (srctype) {
+			case CS_VARCHAR_TYPE:
+				{
+					CS_VARCHAR *vc = (CS_VARCHAR *) src;
+
+					srcfmt.maxlength = TDS_CLAMP(vc->len, 0, sizeof(vc->str));
+				}
+			case CS_CHAR_TYPE:
+			case CS_LONGCHAR_TYPE:
+			case CS_TEXT_TYPE:
+				desttype = TDS_CONVERT_BINARY;
+				cres.cb.len = (srcfmt.maxlength + 1) / 2;
+				cres.cb.len = TDS_MIN(cres.cb.len, bindcol->on_server.column_size);
+				cres.cb.ib = malloc(cres.cb.len);
+				if (!cres.cb.ib)
+					return TDS_FAIL;
+				free(bindcol->bcp_column_data->data);
+				bindcol->bcp_column_data->data = (void *) cres.cb.ib;
+				break;
+			default:
+				replace = true;
+				break;
+			}
+			break;
+		case SYBIMAGE:
+		case SYBLONGBINARY:
 		case SYBCHAR:
 		case SYBVARCHAR:
 		case SYBTEXT:
 		case XSYBCHAR:
 		case XSYBVARCHAR:
-		case SYBBINARY:
-		case SYBVARBINARY:
-		case SYBIMAGE:
-		case XSYBBINARY:
-		case XSYBVARBINARY:
-		case SYBLONGBINARY:
 			replace = true;
 			break;
 		case SYBNUMERIC:
@@ -768,6 +794,10 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int index TDS_UNUSED, in
 			free(bindcol->bcp_column_data->data);
 			bindcol->bcp_column_data->data = (void *) cres.c;
 		}
+
+		/* char -> binary conversion truncated */
+		if (desttype == TDS_CONVERT_BINARY && destlen > bindcol->on_server.column_size)
+			_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 1, 2, 1, 42, "%d, %d", index + 1, bulk->rows_sent + 1);
 	}
 
 	bindcol->bcp_column_data->datalen = destlen;
