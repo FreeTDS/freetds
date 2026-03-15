@@ -519,7 +519,8 @@ _cs_cs2tds(CS_CONTEXT *ctx, const CS_DATAFMT_COMMON *srcfmt, CS_VOID *srcdata, i
 	if (datatype == CS_VARCHAR_TYPE || datatype == CS_VARBINARY_TYPE) {
 		CS_VARCHAR *vc = (CS_VARCHAR *) srcdata;
 
-		src_len = vc->len;
+		/* Prevent overflows, Sybase accept wrong values as correct */
+		src_len = TDS_CLAMP(vc->len, 0, sizeof(vc->str));
 		srcdata = vc->str;
 	}
 
