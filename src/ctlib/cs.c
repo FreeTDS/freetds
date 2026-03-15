@@ -526,10 +526,9 @@ _cs_cs2tds(CS_CONTEXT *ctx, const CS_DATAFMT_COMMON *srcfmt, const void *srcdata
 
 	tdsdump_log(TDS_DBG_FUNC, "converting type %d (%d bytes) to type = %d\n", src_type, src_len, desttype);
 
-	tdsdump_log(TDS_DBG_FUNC, "cs_convert() calling tds_convert\n");
 	len = tds_convert(ctx->tds_ctx, src_type, srcdata, src_len, desttype, cres);
 
-	tdsdump_log(TDS_DBG_FUNC, "cs_convert() tds_convert returned %d\n", len);
+	tdsdump_log(TDS_DBG_FUNC, "_cs_cs2tds() tds_convert returned %d\n", len);
 
 	switch (len) {
 	case TDS_CONVERT_NOAVAIL:
