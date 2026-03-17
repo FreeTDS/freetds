@@ -200,7 +200,15 @@ binary_to_result(int desttype, const void *data, size_t len, CONV_RESULT * cr)
 	} else {
 		memcpy(cr->cb.ib, data, TDS_MIN(len, cr->cb.len));
 	}
-	return (TDS_INT)len;
+	return (TDS_INT) len;
+}
+
+static inline TDS_INT
+set_money(TDS_INT8 value, CONV_RESULT *cr)
+{
+	cr->m.tdsoldmoney.mnyhigh = (TDS_INT) (value >> 32);
+	cr->m.tdsoldmoney.mnylow = (TDS_UINT) value;
+	return sizeof(TDS_MONEY);
 }
 
 #define CASE_ALL_CHAR \
@@ -466,15 +474,13 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 		if ((rc = string_to_int8(mynumber, mynumber + i, &mymoney)) < 0)
 			return rc;
 
-		if (desttype == SYBMONEY) {
-			cr->m.mny = mymoney;
-			return sizeof(TDS_MONEY);
-		} else {
-			if (!INT_IS_INT(mymoney))
-				return TDS_CONVERT_OVERFLOW;
-			cr->m4.mny4 = (TDS_INT) mymoney;
-			return sizeof(TDS_MONEY4);
-		}
+		if (desttype == SYBMONEY)
+			return set_money(mymoney, cr);
+
+		if (!INT_IS_INT(mymoney))
+			return TDS_CONVERT_OVERFLOW;
+		cr->m4.mny4 = (TDS_INT) mymoney;
+		return sizeof(TDS_MONEY4);
 		break;
 	case SYBDATETIME:
 	case SYBDATETIME4:
@@ -801,9 +807,7 @@ tds_convert_int(TDS_INT num, int desttype, CONV_RESULT * cr)
 		return sizeof(TDS_MONEY4);
 		break;
 	case SYBMONEY:
-		cr->m.mny = (TDS_INT8) num *10000;
-
-		return sizeof(TDS_MONEY);
+		return set_money((TDS_INT8) num * 10000, cr);
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
@@ -882,8 +886,7 @@ tds_convert_int8(const TDS_INT8 *src, int desttype, CONV_RESULT * cr)
 	case SYBMONEY:
 		if (buf > (TDS_INT8_MAX / 10000) || buf < (TDS_INT8_MIN / 10000))
 			return TDS_CONVERT_OVERFLOW;
-		cr->m.mny = buf * 10000;
-		return sizeof(TDS_MONEY);
+		return set_money(buf * 10000, cr);
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
@@ -961,8 +964,7 @@ tds_convert_uint8(const TDS_UINT8 *src, int desttype, CONV_RESULT * cr)
 	case SYBMONEY:
 		if (buf > (TDS_INT8_MAX / 10000))
 			return TDS_CONVERT_OVERFLOW;
-		cr->m.mny = (TDS_INT8) (buf * 10000);
-		return sizeof(TDS_MONEY);
+		return set_money((TDS_INT8) (buf * 10000), cr);
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
@@ -1144,8 +1146,7 @@ tds_convert_numeric(const TDS_NUMERIC *src, int desttype, CONV_RESULT *cr)
 			bi = -bi;
 		if (bi != 0 && ((bi >> 63) ^ u.num.array[0]) & 1)
 			return TDS_CONVERT_OVERFLOW;
-		cr->m.mny = bi;
-		return sizeof(TDS_MONEY);
+		return set_money(bi, cr);
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
@@ -1281,8 +1282,7 @@ tds_convert_money4(const TDSCONTEXT * tds_ctx, const TDS_MONEY4 * src, int destt
 		return sizeof(TDS_REAL);
 		break;
 	case SYBMONEY:
-		cr->m.mny = (TDS_INT8) mny.mny4;
-		return sizeof(TDS_MONEY);
+		return set_money(mny.mny4, cr);
 		break;
 	case SYBMONEY4:
 		cr->m4 = mny;
@@ -1395,8 +1395,7 @@ tds_convert_money(const TDSCONTEXT * tds_ctx, const TDS_MONEY * src, int desttyp
 		return sizeof(TDS_MONEY4);
 		break;
 	case SYBMONEY:
-		cr->m.mny = mymoney;
-		return sizeof(TDS_MONEY);
+		return set_money(mymoney, cr);
 		break;
 	case SYBDECIMAL:
 	case SYBNUMERIC:
@@ -1665,7 +1664,6 @@ tds_convert_real(const TDS_REAL* src, int desttype, CONV_RESULT * cr)
 	/* FIXME how big should be this buffer ?? */
 	char tmp_str[128];
 	TDS_INT mymoney4;
-	TDS_INT8 mymoney;
 
 	the_value = *src;
 
@@ -1743,9 +1741,7 @@ tds_convert_real(const TDS_REAL* src, int desttype, CONV_RESULT * cr)
 	case SYBMONEY:
 		if (the_value > (TDS_REAL) (TDS_INT8_MAX / 10000) || the_value < (TDS_REAL) (TDS_INT8_MIN / 10000))
 			return TDS_CONVERT_OVERFLOW;
-		mymoney = (TDS_INT8) (the_value * 10000);
-		cr->m.mny = mymoney;
-		return sizeof(TDS_MONEY);
+		return set_money((TDS_INT8) (the_value * 10000), cr);
 		break;
 
 	case SYBMONEY4:
@@ -1848,9 +1844,7 @@ tds_convert_flt8(const TDS_FLOAT* src, int desttype, CONV_RESULT * cr)
 	case SYBMONEY:
 		if (the_value > (TDS_FLOAT) (TDS_INT8_MAX / 10000) || the_value < (TDS_FLOAT) (TDS_INT8_MIN / 10000))
 			return TDS_CONVERT_OVERFLOW;
-		cr->m.mny = (TDS_INT8) (the_value * 10000);
-
-		return sizeof(TDS_MONEY);
+		return set_money((TDS_INT8) (the_value * 10000), cr);
 		break;
 	case SYBMONEY4:
 		if (the_value > (TDS_FLOAT) (TDS_INT_MAX / 10000) || the_value < (TDS_FLOAT) (TDS_INT_MIN / 10000))
@@ -2177,14 +2171,6 @@ tds_convert(const TDSCONTEXT *tds_ctx, int srctype, const void *src, TDS_UINT sr
 		break;
 	}
 
-/* fix MONEY case */
-#if !defined(WORDS_BIGENDIAN)
-	if (length > 0 && desttype == SYBMONEY) {
-		/* swap high 32 bits with low 32 bits */
-		TDS_UINT8 n = (TDS_UINT8) cr->m.mny;
-		cr->m.mny = (TDS_INT8) ((n >> 32) | (n << 32));
-	}
-#endif
 	return length;
 }
 
