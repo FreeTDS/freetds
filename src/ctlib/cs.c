@@ -707,13 +707,13 @@ _cs_convert(CS_CONTEXT *ctx, const CS_DATAFMT_COMMON *srcfmt, CS_VOID *srcdata,
 		switch (format) {
 		case CS_FMT_NULLTERM:
 			tdsdump_log(TDS_DBG_FUNC, "cs_convert() FMT_NULLTERM\n");
-			if (res == maxlength) {
+			if (res < maxlength) {
+				cr.cc.c[res] = 0;
+				res++;
+			} else if (res == maxlength && rc == CS_SUCCEED) {
 				tdsdump_log(TDS_DBG_FUNC, "not enough room for data + a null terminator - error\n");
 				_csclient_msg(ctx, "cs_convert", 2, 4, 1, 36, "");
 				rc = CS_FAIL;	/* not enough room for data + a null terminator - error */
-			} else {
-				cr.cc.c[res] = 0;
-				res++;
 			}
 			break;
 		case CS_FMT_PADBLANK:
