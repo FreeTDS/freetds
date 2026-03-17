@@ -62,22 +62,18 @@ TDS_COMPILE_CHECK(maxprecision,
  * money is a special case of numeric really...that why its here
  */
 char *
-tds_money_to_string(const TDS_MONEY * money, char *s, bool use_2_digits)
+tds_money_to_string(TDS_INT8 money, char *s, bool use_2_digits)
 {
-	TDS_INT8 mymoney;
 	TDS_UINT8 n;
 	char *p;
 
-	/* sometimes money it's only 4-byte aligned so always compute 64-bit */
-	mymoney = (((TDS_INT8) money->tdsoldmoney.mnyhigh) << 32) | money->tdsoldmoney.mnylow;
-
 	p = s;
-	if (mymoney < 0) {
+	if (money < 0) {
 		*p++ = '-';
-		/* we use unsigned because this causes arithmetic problem for -2^63*/
-		n = (TDS_UINT8) -mymoney;
+		/* we use unsigned because this causes arithmetic problem for -2^63 */
+		n = (TDS_UINT8) - money;
 	} else {
-		n = (TDS_UINT8) mymoney;
+		n = (TDS_UINT8) money;
 	}
 	/* if machine is 64 bit you do not need to split n */
 	if (use_2_digits) {

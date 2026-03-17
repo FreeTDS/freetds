@@ -1314,12 +1314,14 @@ tds_convert_money(const TDSCONTEXT * tds_ctx, const TDS_MONEY * src, int desttyp
 	char tmpstr[64];
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_convert_money()\n");
+
+	/* sometimes money it's only 4-byte aligned so always compute 64-bit */
 	mymoney = ((TDS_INT8) src->tdsoldmoney.mnyhigh << 32) | src->tdsoldmoney.mnylow;
 
 	switch (desttype) {
 	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
-		s = tds_money_to_string((const TDS_MONEY *) src, tmpstr, tds_ctx->money_use_2_digits);
+		s = tds_money_to_string(mymoney, tmpstr, tds_ctx->money_use_2_digits);
 		return string_to_result(desttype, s, cr);
 		break;
 	case SYBSINT1:

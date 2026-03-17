@@ -1669,7 +1669,7 @@ TDSRET tds_vstrbuild(char *buffer, int buflen, int *resultlen, const char *text,
 
 
 /* numeric.c */
-char *tds_money_to_string(const TDS_MONEY * money, char *s, bool use_2_digits);
+char *tds_money_to_string(TDS_INT8 money, char *s, bool use_2_digits);
 TDS_INT tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s);
 TDS_INT tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, unsigned char new_scale);
 
