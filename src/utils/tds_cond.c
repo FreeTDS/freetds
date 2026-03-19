@@ -35,15 +35,53 @@
 
 /* implementation for systems that support Condition Variables */
 typedef VOID(WINAPI * init_cv_t) (TDS_CONDITION_VARIABLE * cv);
-typedef BOOL(WINAPI * sleep_cv_t) (TDS_CONDITION_VARIABLE * cv, CRITICAL_SECTION * crit, DWORD milli);
+typedef BOOL(WINAPI * sleep_cv_t) (TDS_CONDITION_VARIABLE * cv, PSRWLOCK lock, DWORD milli, ULONG flags);
 typedef VOID(WINAPI * wake_cv_t) (TDS_CONDITION_VARIABLE * cv);
+typedef VOID(WINAPI * srwinit_cv_t) (PSRWLOCK lock);
+typedef VOID(WINAPI * srwlock_cv_t) (PSRWLOCK lock);
+typedef VOID(WINAPI * srwunlock_cv_t) (PSRWLOCK lock);
+typedef BOOLEAN(WINAPI * srwtrylock_cv_t) (PSRWLOCK lock);
 
 static init_cv_t init_cv = NULL;
 static sleep_cv_t sleep_cv = NULL;
 static wake_cv_t wake_cv = NULL;
+static srwinit_cv_t srwinit_cv = NULL;
+static srwlock_cv_t srwlock_cv = NULL;
+static srwunlock_cv_t srwunlock_cv = NULL;
+static srwtrylock_cv_t srwtrylock_cv = NULL;
 
 static int
-new_cond_init(tds_condition * cond)
+new_mutex_init(tds_raw_mutex *mtx)
+{
+	srwinit_cv(&mtx->srwlock);
+	return 0;
+}
+
+static void
+new_mutex_free(tds_raw_mutex *mtx TDS_UNUSED)
+{
+}
+
+static void
+new_mutex_lock(tds_raw_mutex *mtx)
+{
+	srwlock_cv(&mtx->srwlock);
+}
+
+static void
+new_mutex_unlock(tds_raw_mutex *mtx)
+{
+	srwunlock_cv(&mtx->srwlock);
+}
+
+static int
+new_mutex_trylock(tds_raw_mutex *mtx)
+{
+	return srwtrylock_cv(&mtx->srwlock) ? 0 : -1;
+}
+
+static int
+new_cond_init(tds_condition *cond)
 {
 	init_cv(&cond->cv);
 	return 0;
@@ -63,17 +101,112 @@ new_cond_signal(tds_condition * cond)
 }
 
 static int
-new_cond_timedwait(tds_condition * cond, tds_raw_mutex * mtx, int timeout_sec)
+new_cond_timedwait(tds_condition *cond, tds_raw_mutex *mtx, int timeout_sec)
 {
-	if (sleep_cv(&cond->cv, &mtx->crit, timeout_sec <= 0 ? INFINITE : timeout_sec * 1000))
+	if (sleep_cv(&cond->cv, &mtx->srwlock, timeout_sec <= 0 ? INFINITE : timeout_sec * 1000, 0))
 		return 0;
 	return ETIMEDOUT;
 }
 
 
-/* implementation for systems that do not support Condition Variables */
+/* Implementation for systems that do not support Condition Variables.
+ *
+ * These are very old systems (like Windows XP), we don't care much about,
+ * just to make them run without much expectations.
+ *
+ * We reuse "srwlock.Ptr" to store a pointer to a structure with a
+ * CRITICAL_SECTION in it.
+ */
+typedef struct
+{
+	CRITICAL_SECTION crit;
+	DWORD thread_id;
+} old_mutex;
+
+static old_mutex *
+old_mutex_allocate(tds_raw_mutex *mtx)
+{
+	old_mutex *res, *old_mtx;
+
+	/* Allocate and initialize structure. */
+	old_mtx = calloc(1, sizeof(old_mutex));
+	if (!old_mtx)
+		abort();
+	InitializeCriticalSection(&old_mtx->crit);
+
+	/* Hook to srwlock.Ptr, undo if it was set in the meantime. */
+	res = InterlockedCompareExchangePointer(&mtx->srwlock.Ptr, old_mtx, NULL);
+	if (res == NULL)
+		return old_mtx;
+
+	DeleteCriticalSection(&old_mtx->crit);
+	free(old_mtx);
+	return res;
+}
+
 static int
-old_cond_init(tds_condition * cond)
+old_mutex_init(tds_raw_mutex *mtx)
+{
+	mtx->srwlock.Ptr = NULL;
+	old_mutex_allocate(mtx);
+	return 0;
+}
+
+static void
+old_mutex_free(tds_raw_mutex *mtx)
+{
+	old_mutex *old_mtx = InterlockedExchangePointer(&mtx->srwlock.Ptr, NULL);
+
+	if (old_mtx) {
+		DeleteCriticalSection(&old_mtx->crit);
+		free(old_mtx);
+	}
+}
+
+static void
+old_mutex_lock(tds_raw_mutex *mtx)
+{
+	old_mutex *old_mtx = mtx->srwlock.Ptr;
+
+	if (!old_mtx)
+		old_mtx = old_mutex_allocate(mtx);
+
+	EnterCriticalSection(&old_mtx->crit);
+	old_mtx->thread_id = GetCurrentThreadId();
+}
+
+static void
+old_mutex_unlock(tds_raw_mutex *mtx)
+{
+	old_mutex *old_mtx = mtx->srwlock.Ptr;
+
+	old_mtx->thread_id = 0;
+	LeaveCriticalSection(&old_mtx->crit);
+}
+
+static int
+old_mutex_trylock(tds_raw_mutex *mtx)
+{
+	old_mutex *old_mtx = mtx->srwlock.Ptr;
+
+	if (!old_mtx)
+		old_mtx = old_mutex_allocate(mtx);
+
+	if (TryEnterCriticalSection(&old_mtx->crit)) {
+		DWORD thread_id = GetCurrentThreadId();
+
+		if (old_mtx->thread_id == thread_id) {
+			LeaveCriticalSection(&old_mtx->crit);
+			return -1;
+		}
+		old_mtx->thread_id = thread_id;
+		return 0;
+	}
+	return -1;
+}
+
+static int
+old_cond_init(tds_condition *cond)
 {
 	cond->ev = CreateEvent(NULL, FALSE, FALSE, NULL);
 	if (!cond->ev)
@@ -96,13 +229,14 @@ old_cond_signal(tds_condition * cond)
 }
 
 static int
-old_cond_timedwait(tds_condition * cond, tds_raw_mutex * mtx, int timeout_sec)
+old_cond_timedwait(tds_condition *cond, tds_raw_mutex *mtx, int timeout_sec)
 {
+	old_mutex *old_mtx = mtx->srwlock.Ptr;
 	int res;
 
-	LeaveCriticalSection(&mtx->crit);
-	res = WaitForSingleObject(cond->ev, timeout_sec < 0 ? INFINITE : timeout_sec * 1000);
-	EnterCriticalSection(&mtx->crit);
+	LeaveCriticalSection(&old_mtx->crit);
+	res = WaitForSingleObject(cond->ev, timeout_sec <= 0 ? INFINITE : timeout_sec * 1000);
+	EnterCriticalSection(&old_mtx->crit);
 	return res == WAIT_TIMEOUT ? ETIMEDOUT : 0;
 }
 
@@ -111,30 +245,81 @@ old_cond_timedwait(tds_condition * cond, tds_raw_mutex * mtx, int timeout_sec)
 static void
 detect_cond(void)
 {
-	/* detect if this Windows support condition variables */
+	/* detect if this Windows support condition variables and SRWLocks */
 	HMODULE mod = GetModuleHandle(TEXT("kernel32"));
 
 	if (mod) {
 		init_cv = (init_cv_t) GetProcAddress(mod, "InitializeConditionVariable");
-		sleep_cv = (sleep_cv_t) GetProcAddress(mod, "SleepConditionVariableCS");
+		sleep_cv = (sleep_cv_t) GetProcAddress(mod, "SleepConditionVariableSRW");
 		wake_cv = (wake_cv_t) GetProcAddress(mod, "WakeConditionVariable");
+		srwinit_cv = (srwinit_cv_t) GetProcAddress(mod, "InitializeSRWLock");
+		srwlock_cv = (srwlock_cv_t) GetProcAddress(mod, "AcquireSRWLockExclusive");
+		srwunlock_cv = (srwunlock_cv_t) GetProcAddress(mod, "ReleaseSRWLockExclusive");
+		srwtrylock_cv = (srwtrylock_cv_t) GetProcAddress(mod, "TryAcquireSRWLockExclusive");
 	}
 
-	if (init_cv && sleep_cv && wake_cv) {
-		tds_raw_cond_init      = new_cond_init;
-		tds_raw_cond_destroy   = new_cond_destroy;
-		tds_raw_cond_signal    = new_cond_signal;
+	if (init_cv && sleep_cv && wake_cv && srwinit_cv && srwlock_cv && srwunlock_cv && srwtrylock_cv) {
+		tds_raw_mutex_init = new_mutex_init;
+		tds_raw_mutex_free = new_mutex_free;
+		tds_raw_mutex_lock = new_mutex_lock;
+		tds_raw_mutex_unlock = new_mutex_unlock;
+		tds_raw_mutex_trylock = new_mutex_trylock;
+
+		tds_raw_cond_init = new_cond_init;
+		tds_raw_cond_destroy = new_cond_destroy;
+		tds_raw_cond_signal = new_cond_signal;
 		tds_raw_cond_timedwait = new_cond_timedwait;
 	} else {
-		tds_raw_cond_init      = old_cond_init;
-		tds_raw_cond_destroy   = old_cond_destroy;
-		tds_raw_cond_signal    = old_cond_signal;
+		tds_raw_mutex_init = old_mutex_init;
+		tds_raw_mutex_free = old_mutex_free;
+		tds_raw_mutex_lock = old_mutex_lock;
+		tds_raw_mutex_unlock = old_mutex_unlock;
+		tds_raw_mutex_trylock = old_mutex_trylock;
+
+		tds_raw_cond_init = old_cond_init;
+		tds_raw_cond_destroy = old_cond_destroy;
+		tds_raw_cond_signal = old_cond_signal;
 		tds_raw_cond_timedwait = old_cond_timedwait;
 	}
 }
 
 static int
-detect_cond_init(tds_condition * cond)
+detect_mutex_init(tds_raw_mutex *mtx)
+{
+	detect_cond();
+	return tds_raw_mutex_init(mtx);
+}
+
+static void
+detect_mutex_free(tds_raw_mutex *mtx)
+{
+	detect_cond();
+	tds_raw_mutex_free(mtx);
+}
+
+static void
+detect_mutex_lock(tds_raw_mutex *mtx)
+{
+	detect_cond();
+	tds_raw_mutex_lock(mtx);
+}
+
+static void
+detect_mutex_unlock(tds_raw_mutex *mtx)
+{
+	detect_cond();
+	tds_raw_mutex_unlock(mtx);
+}
+
+static int
+detect_mutex_trylock(tds_raw_mutex *mtx)
+{
+	detect_cond();
+	return tds_raw_mutex_trylock(mtx);
+}
+
+static int
+detect_cond_init(tds_condition *cond)
 {
 	detect_cond();
 	return tds_raw_cond_init(cond);
@@ -161,9 +346,15 @@ detect_cond_timedwait(tds_condition * cond, tds_raw_mutex * mtx, int timeout_sec
 	return tds_raw_cond_timedwait(cond, mtx, timeout_sec);
 }
 
-int (*tds_raw_cond_init) (tds_condition * cond) = detect_cond_init;
-int (*tds_raw_cond_destroy) (tds_condition * cond) = detect_cond_destroy;
-int (*tds_raw_cond_signal) (tds_condition * cond) = detect_cond_signal;
+int (*tds_raw_mutex_init)(tds_raw_mutex * mtx) = detect_mutex_init;
+void (*tds_raw_mutex_free)(tds_raw_mutex * mtx) = detect_mutex_free;
+void (*tds_raw_mutex_lock)(tds_raw_mutex * mtx) = detect_mutex_lock;
+void (*tds_raw_mutex_unlock)(tds_raw_mutex * mtx) = detect_mutex_unlock;
+int (*tds_raw_mutex_trylock)(tds_raw_mutex * mtx) = detect_mutex_trylock;
+
+int (*tds_raw_cond_init)(tds_condition * cond) = detect_cond_init;
+int (*tds_raw_cond_destroy)(tds_condition * cond) = detect_cond_destroy;
+int (*tds_raw_cond_signal)(tds_condition * cond) = detect_cond_signal;
 int (*tds_raw_cond_timedwait) (tds_condition * cond, tds_raw_mutex * mtx, int timeout_sec) = detect_cond_timedwait;
 
 #elif defined(TDS_HAVE_PTHREAD_MUTEX) && !defined(TDS_NO_THREADSAFE)

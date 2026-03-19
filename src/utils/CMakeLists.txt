@@ -1,9 +1,9 @@
 add_subdirectory(unittests)
 
 if(WIN32)
-	set(add_SRCS md5.c win_mutex.c)
+	set(add_SRCS "")
 else(WIN32)
-	set(add_SRCS md4.c md5.c des.c hmac_md5.c)
+	set(add_SRCS md4.c des.c hmac_md5.c)
 endif(WIN32)
 
 add_library(tdsutils STATIC
@@ -19,6 +19,7 @@ add_library(tdsutils STATIC
 	smp.c
 	path.c
 	ascii.c
+	md5.c
 	${add_SRCS}
 )
 if (NOT WIN32)

@@ -20,10 +20,6 @@ libtdsutils_la_SOURCES = \
 	path.c \
 	ascii.c \
 	$(NULL)
-if WIN32
-libtdsutils_la_SOURCES += win_mutex.c
-endif
 EXTRA_DIST = \
 	CMakeLists.txt \
-	ptw32_MCS_lock.c \
 	$(NULL)

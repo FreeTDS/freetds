@@ -14,7 +14,7 @@ These instructions should suffice in order to set up any project file you need.
 2. Every library have a proper directory where you can include every C file you find
 inside (not recursively)
 
-  * replacements here there is an exception, do not include ptw32_MCS_lock.c file
+  * replacements
   * tds
   * dblib
   * ctlib
