@@ -2013,9 +2013,8 @@ tds_convert_to_binary(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int de
 			srclen -= 2;
 		}
 
-		/* ignore trailing blanks and nulls */
-		/* FIXME is good to ignore null ?? */
-		while (srclen > 0 && (src[srclen - 1] == ' ' || src[srclen - 1] == '\0'))
+		/* ignore trailing spaces and tabs */
+		while (srclen > 0 && (src[srclen - 1] == ' ' || src[srclen - 1] == '\t'))
 			--srclen;
 
 		/* a binary string output will be half the length of */

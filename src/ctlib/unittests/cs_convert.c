@@ -310,6 +310,9 @@ TEST_MAIN()
 	/* spaces, tabs and initial "0x" are ignored */
 	DO_TEST(CS_CHAR test[] = " \t \t0x616263";
 		CS_CHAR test2[] = "abc", CS_CHAR_TYPE, test, 12, CS_BINARY_TYPE, 3, CS_SUCCEED, test2, 3);
+	/* spaces and trailing tabs are ignored */
+	DO_TEST(CS_CHAR test[] = "616263 \t ";
+		CS_CHAR test2[] = "abc", CS_CHAR_TYPE, test, 9, CS_BINARY_TYPE, 3, CS_SUCCEED, test2, 3);
 	/* odd number of characters */
 	DO_TEST(CS_CHAR test[] = "61626";
 		CS_CHAR test2[] = "\x06\x16\x26", CS_CHAR_TYPE, test, 5, CS_BINARY_TYPE, 3, CS_SUCCEED, test2, 3);

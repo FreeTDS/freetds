@@ -1328,6 +1328,11 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, bool *row_error, bool sk
 			if (collen == 0)
 				data_is_null = true;
 
+			/* To support empty strings and keep compatibility with older files empty strings
+			 * are encoded as a single NUL byte. */
+			if (collen == 1 && coldata[0] == '\0')
+				collen = 0;
+
 			/*
 			 * TODO:  
 			 *    Dates are a problem.  In theory, we should be able to read non-English dates, which
