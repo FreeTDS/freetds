@@ -45,7 +45,7 @@ test(int srctype, const void *srcdata, int srclen, int dsttype, int dstlen)
 	char out[256];
 
 	memset(buf, '*', sizeof(buf));
-	len = dbconvert(NULL, srctype, (const BYTE*) srcdata, srclen, dsttype, (BYTE*) buf, dstlen);
+	len = dbconvert(NULL, srctype, (BYTE *) srcdata, srclen, dsttype, (BYTE *) buf, dstlen);
 
 	/* build result string */
 	sprintf(out, "len=%d", len);
