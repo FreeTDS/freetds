@@ -381,7 +381,8 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 		case SYBDATETIME4:
 			prec = 0;
 		datetime:
-			fmt = "%Y-%m-%d %H:%M:%S.%z";
+			/* note: this string initialized in odbc_SQLAllocEnv() */
+			fmt = context->locale->datetime_fmt;
 			break;
 		case SYBMSTIME:
 			prec = dta->time_prec;
@@ -392,12 +393,12 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 		case SYBTIME:
 			prec = 3;
 		time:
-			fmt = "%H:%M:%S.%z";
+			fmt = context->locale->time_fmt;
 			break;
 		case SYBMSDATE:
 		case SYBDATE:
 			prec = 0;
-			fmt = "%Y-%m-%d";
+			fmt = context->locale->date_fmt;
 			break;
 		}
 		if (!fmt) goto normal_conversion;

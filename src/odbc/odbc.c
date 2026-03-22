@@ -1810,7 +1810,7 @@ odbc_SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version)
 	ctx->msg_handler = odbc_errmsg_handler;
 	ctx->err_handler = odbc_errmsg_handler;
 
-	/* ODBC has its own format */
+	/* ODBC driver date-to-char conversion: mimic MS client */
 	free(ctx->locale->datetime_fmt);
 	ctx->locale->datetime_fmt = strdup("%Y-%m-%d %H:%M:%S.%z");
 	free(ctx->locale->date_fmt);
