@@ -311,6 +311,14 @@ struct _hdbc
 	TDS_INT default_query_timeout;
 
 	TDSBCPINFO *bcpinfo;
+
+	/* ODBC extra options. Format strings for tds_strftime()
+	 * to be applied when a client application fetches a date/time field
+	 * as a character type. (Not used for the reverse direction)
+	 */
+	DSTR datetime_fmt;
+	DSTR date_fmt;
+	DSTR time_fmt;
 };
 
 struct _hsattr

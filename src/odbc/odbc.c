@@ -1766,6 +1766,15 @@ odbc_SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 	dbc->attr.mars_enabled = SQL_MARS_ENABLED_NO;
 	dbc->attr.bulk_enabled = SQL_BCP_OFF;
 
+	/* Initial values of DBC date formats taken from environment context.
+	 * odbc_SQLAllocEnv() always initializes that. */
+	tds_dstr_init(&dbc->datetime_fmt);
+	tds_dstr_copy(&dbc->datetime_fmt, env->tds_ctx->locale->datetime_fmt);
+	tds_dstr_init(&dbc->date_fmt);
+	tds_dstr_copy(&dbc->date_fmt, env->tds_ctx->locale->date_fmt);
+	tds_dstr_init(&dbc->time_fmt);
+	tds_dstr_copy(&dbc->time_fmt, env->tds_ctx->locale->time_fmt);
+
 	tds_mutex_init(&dbc->mtx);
 	*phdbc = (SQLHDBC) dbc;
 
@@ -4349,6 +4358,11 @@ odbc_SQLFreeConnect(SQLHDBC hdbc)
 	tds_free_socket(dbc->tds_socket);
 
 	odbc_bcp_free_storage(dbc);
+
+	tds_dstr_free(&dbc->datetime_fmt);
+	tds_dstr_free(&dbc->date_fmt);
+	tds_dstr_free(&dbc->time_fmt);
+
 	/* free attributes */
 #ifdef TDS_NO_DM
 	tds_dstr_free(&dbc->attr.tracefile);
@@ -6606,6 +6620,18 @@ ODBC_FUNC(SQLSetConnectAttr, (P(SQLHDBC,hdbc), P(SQLINTEGER,Attribute), P(SQLPOI
 			odbc_bcp_init(dbc, (const ODBC_CHAR *) params->tblname, (const ODBC_CHAR *) params->hfile,
 				      (const ODBC_CHAR *) params->errfile, params->direction _wide0);
 		}
+		break;
+	case SQL_COPT_TDSODBC_DATETIME_FORMAT:
+		if (!odbc_dstr_copy(dbc, &dbc->datetime_fmt, StringLength, (ODBC_CHAR*)ValuePtr))
+			odbc_errs_add(&dbc->errs, "HY001", NULL);
+		break;
+	case SQL_COPT_TDSODBC_DATE_FORMAT:
+		if (!odbc_dstr_copy(dbc, &dbc->date_fmt, StringLength, (ODBC_CHAR*)ValuePtr))
+			odbc_errs_add(&dbc->errs, "HY001", NULL);
+		break;
+	case SQL_COPT_TDSODBC_TIME_FORMAT:
+		if (!odbc_dstr_copy(dbc, &dbc->time_fmt, StringLength, (ODBC_CHAR*)ValuePtr))
+			odbc_errs_add(&dbc->errs, "HY001", NULL);
 		break;
 #ifdef ENABLE_ODBC_WIDE
 	case SQL_COPT_TDSODBC_IMPL_BCP_INITW:
