@@ -675,7 +675,8 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int index TDS_UNUSED, in
 	tdsdump_log(TDS_DBG_INFO1, "blk_get_col_data datalen = %d\n", datalen ? *datalen : -1);
 
 	if (datalen) {
-		if (*datalen == CS_UNUSED) {
+		srclen = *datalen;
+		if (srclen == CS_UNUSED) {
 			switch (srctype) {
 			case CS_LONG_TYPE:	    srclen = 8; break;
 			case CS_FLOAT_TYPE:	    srclen = 8; break;
@@ -698,9 +699,10 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int index TDS_UNUSED, in
 					    bindcol->column_bindtype);
 				return TDS_FAIL;
 			}
-
-		} else {
-			srclen = *datalen;
+		}
+		if (srclen < 0) {
+			tdsdump_log(TDS_DBG_ERROR, "Invalid datalen specified (%d)\n", srclen);
+			return TDS_FAIL;
 		}
 	}
 	if (srclen == 0) {
