@@ -116,7 +116,7 @@ ptw32_mcs_flag_set(PVOID volatile *flag)
 {
 	HANDLE e = (HANDLE) InterlockedCompareExchangePointer(flag, (void *) -1, (void *) 0);
 
-	if ((HANDLE) 0 != e) {
+	if ((HANDLE) 0 != e && (HANDLE) (int) -1 != e) {
 		/* another thread has already stored an event handle in the flag */
 		SetEvent(e);
 	}
@@ -197,7 +197,11 @@ ptw32_mcs_lock_release(ptw32_mcs_local_node_t * node)
 
 		/* wait for successor */
 		ptw32_mcs_flag_wait(&node->nextFlag);
-		next = (ptw32_mcs_local_node_t *) InterlockedCompareExchangePointer((void * volatile*) &node->next, 0, 0);	/* MBR fence */
+		next = (ptw32_mcs_local_node_t *) InterlockedCompareExchangePointer((void *volatile *) &node->next, 0, 0);	/* MBR fence */
+	} else {
+		/* Even if the next is non-0, the successor may still be trying to set the next flag on us,
+		 * therefore we must wait. */
+		ptw32_mcs_flag_wait(&node->nextFlag);
 	}
 
 	/* pass the lock */
