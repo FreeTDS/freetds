@@ -34,6 +34,7 @@ set(tests
 	describeparam
 	reexec
 	oldpwd
+	offset_ptr
 )
 
 if(WIN32)

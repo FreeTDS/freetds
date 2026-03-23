@@ -87,6 +87,7 @@ TESTS =	\
 	describeparam$(EXEEXT) \
 	reexec$(EXEEXT) \
 	oldpwd$(EXEEXT) \
+	offset_ptr$(EXEEXT) \
 	$(NULL)
 
 check_PROGRAMS	=	$(TESTS)
@@ -181,6 +182,7 @@ connection_string_parse_LDFLAGS = -static ../libtdsodbc.la ../../tds/unittests/l
 tokens_SOURCES	= tokens.c
 tokens_LDFLAGS = ../../server/libtdssrv.la $(INSTALL_FLAG)
 reexec_SOURCES = reexec.c
+offset_ptr_SOURCES = offset_ptr.c
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h c2string.c parser.c parser.h \
