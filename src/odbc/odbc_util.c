@@ -492,16 +492,20 @@ odbc_set_return_status(struct _hstmt *stmt, unsigned int n_row)
 		if (axd->header.sql_desc_count < 1)
 			return;
 		drec = &axd->records[0];
-		data_ptr = (char*) drec->sql_desc_data_ptr;
+		data_ptr = (char *) drec->sql_desc_data_ptr;
+		if (!data_ptr)
+			return;
 
 		if (axd->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN) {
 			len_offset = axd->header.sql_desc_bind_type * n_row;
-			if (axd->header.sql_desc_bind_offset_ptr)
-				len_offset += *axd->header.sql_desc_bind_offset_ptr;
 			data_ptr += len_offset;
 		} else {
 			len_offset = sizeof(SQLLEN) * n_row;
 			data_ptr += sizeof(SQLINTEGER) * n_row;
+		}
+		if (axd->header.sql_desc_bind_offset_ptr) {
+			len_offset += *axd->header.sql_desc_bind_offset_ptr;
+			data_ptr += *axd->header.sql_desc_bind_offset_ptr;
 		}
 #define LEN(ptr) *((SQLLEN*)(((char*)(ptr)) + len_offset))
 
@@ -553,15 +557,19 @@ odbc_set_return_params(struct _hstmt *stmt, unsigned int n_row)
 				break;
 		}
 
-		data_ptr = (char*) drec_apd->sql_desc_data_ptr;
+		data_ptr = (char *) drec_apd->sql_desc_data_ptr;
+		if (!data_ptr)
+			return;
 		if (axd->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN) {
 			len_offset = axd->header.sql_desc_bind_type * n_row;
-			if (axd->header.sql_desc_bind_offset_ptr)
-				len_offset += *axd->header.sql_desc_bind_offset_ptr;
 			data_ptr += len_offset;
 		} else {
 			len_offset = sizeof(SQLLEN) * n_row;
 			data_ptr += odbc_get_octet_len(drec_apd->sql_desc_concise_type, drec_apd) * n_row;
+		}
+		if (axd->header.sql_desc_bind_offset_ptr) {
+			len_offset += *axd->header.sql_desc_bind_offset_ptr;
+			data_ptr += *axd->header.sql_desc_bind_offset_ptr;
 		}
 #define LEN(ptr) *((SQLLEN*)(((char*)(ptr)) + len_offset))
 
@@ -870,13 +878,13 @@ odbc_get_param_len(const struct _drecord *drec_axd, const struct _drecord *drec_
 	int size;
 	TDS_INTPTR len_offset;
 
-	if (axd->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN) {
+	if (axd->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN)
 		len_offset = axd->header.sql_desc_bind_type * n_row;
-		if (axd->header.sql_desc_bind_offset_ptr)
-			len_offset += *axd->header.sql_desc_bind_offset_ptr;
-	} else {
+	else
 		len_offset = sizeof(SQLLEN) * n_row;
-	}
+	if (axd->header.sql_desc_bind_offset_ptr)
+		len_offset += *axd->header.sql_desc_bind_offset_ptr;
+
 #define LEN(ptr) *((SQLLEN*)(((char*)(ptr)) + len_offset))
 
 	if (drec_axd->sql_desc_indicator_ptr && LEN(drec_axd->sql_desc_indicator_ptr) == SQL_NULL_DATA)

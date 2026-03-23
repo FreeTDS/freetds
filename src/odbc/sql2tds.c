@@ -359,20 +359,23 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 		return SQL_SUCCESS;
 
 	src = (char *) drec_axd->sql_desc_data_ptr;
-	if (src && n_row) {
-		SQLLEN len;
-		if (axd->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN) {
-			len = axd->header.sql_desc_bind_type;
-			if (axd->header.sql_desc_bind_offset_ptr)
-				src += *axd->header.sql_desc_bind_offset_ptr;
-		} else {
-			len = odbc_get_octet_len(sql_src_type, drec_axd);
-			if (len < 0)
-				/* TODO sure ? what happen to upper layer ?? */
-				/* TODO fill error */
-				return SQL_ERROR;
+	if (src) {
+		if (n_row) {
+			SQLLEN len;
+
+			if (axd->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN) {
+				len = axd->header.sql_desc_bind_type;
+			} else {
+				len = odbc_get_octet_len(sql_src_type, drec_axd);
+				if (len <= 0)
+					/* TODO sure ? what happen to upper layer ?? */
+					/* TODO fill error */
+					return SQL_ERROR;
+			}
+			src += len * n_row;
 		}
-		src += len * n_row;
+		if (axd->header.sql_desc_bind_offset_ptr)
+			src += *axd->header.sql_desc_bind_offset_ptr;
 	}
 
 	/* if only output assume input is NULL */

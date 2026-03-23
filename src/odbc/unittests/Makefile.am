@@ -85,6 +85,7 @@ TESTS =	\
 	tvp$(EXEEXT) \
 	tokens$(EXEEXT) \
 	describeparam$(EXEEXT) \
+	offset_ptr$(EXEEXT) \
 	$(NULL)
 
 check_PROGRAMS	=	$(TESTS) oldpwd$(EXEEXT)
@@ -184,6 +185,7 @@ connection_string_parse_CPPFLAGS = $(GLOBAL_CPPFLAGS)
 connection_string_parse_LDFLAGS = -static ../libtdsodbc.la ../../tds/unittests/libcommon.a -shared $(GLOBAL_LD_ADD)
 tokens_SOURCES	= tokens.c
 tokens_LDADD = libcommon.a $(ODBC_LDFLAGS) ../../replacements/libreplacements.la ../../server/libtdssrv.la $(GLOBAL_LD_ADD)
+offset_ptr_SOURCES = offset_ptr.c
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h c2string.c parser.c parser.h \

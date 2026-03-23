@@ -763,10 +763,9 @@ SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLROWOFFSET irow,
 		 SQLROWSETSIZE FAR * pcrow, SQLUSMALLINT FAR * rgfRowStatus)
 {
 	SQLRETURN ret;
-	SQLULEN * tmp_rows;
-	SQLUSMALLINT * tmp_status;
+	SQLULEN *tmp_rows;
+	SQLUSMALLINT *tmp_status;
 	SQLULEN tmp_size;
-	SQLLEN * tmp_offset;
 	SQLPOINTER tmp_bookmark;
 	SQLULEN bookmark;
 	SQLULEN out_len = 0;
@@ -788,8 +787,6 @@ SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLROWOFFSET irow,
 	stmt->ird->header.sql_desc_array_status_ptr = rgfRowStatus;
 	tmp_size = stmt->ard->header.sql_desc_array_size;
 	stmt->ard->header.sql_desc_array_size = stmt->sql_rowset_size;
-	tmp_offset = stmt->ard->header.sql_desc_bind_offset_ptr;
-	stmt->ard->header.sql_desc_bind_offset_ptr = NULL;
 	tmp_bookmark = stmt->attr.fetch_bookmark_ptr;
 
 	/* SQL_FETCH_BOOKMARK different */
@@ -809,7 +806,6 @@ SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLROWOFFSET irow,
 		*pcrow = out_len;
 	stmt->ird->header.sql_desc_array_status_ptr = tmp_status;
 	stmt->ard->header.sql_desc_array_size = tmp_size;
-	stmt->ard->header.sql_desc_bind_offset_ptr = tmp_offset;
 	stmt->attr.fetch_bookmark_ptr = tmp_bookmark;
 
 	ODBC_EXIT(stmt, ret);
@@ -4034,9 +4030,9 @@ odbc_SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 
 	SQLLEN row_offset = 0;
 
-	tdsdump_log(TDS_DBG_FUNC, "odbc_SQLFetch(%p, %d, %d)\n", stmt, (int)FetchOrientation, (int)FetchOffset);
+	tdsdump_log(TDS_DBG_FUNC, "odbc_SQLFetch(%p, %d, %d)\n", stmt, (int) FetchOrientation, (int) FetchOffset);
 
-	if (ard->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN && ard->header.sql_desc_bind_offset_ptr)
+	if (ard->header.sql_desc_bind_offset_ptr)
 		row_offset = *ard->header.sql_desc_bind_offset_ptr;
 
 	tds = stmt->tds;
