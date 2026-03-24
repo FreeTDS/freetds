@@ -289,8 +289,8 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 
 	SQLLEN ret = SQL_NULL_DATA;
 	int i;
+	bool binary_conversion = false;
 	SQLULEN cplen;
-	int binary_conversion = 0;
 	TDS_CHAR conv_buf[256];
 
 	tdsdump_log(TDS_DBG_FUNC, "odbc_tds2sql: src is %d dest = %d\n", srctype, desttype);
@@ -350,7 +350,7 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 		destlen /= sizeof(SQLWCHAR);
 	if (desttype == SQL_C_CHAR || desttype == SQL_C_WCHAR) {
 		if (is_binary_type(srctype)) {
-			binary_conversion = 1;
+			binary_conversion = true;
 			if (destlen && !(destlen % 2))
 				--destlen;
 		}
