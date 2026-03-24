@@ -387,7 +387,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 				src += *axd->header.sql_desc_bind_offset_ptr;
 		} else {
 			len = odbc_get_octet_len(sql_src_type, drec_axd);
-			if (len < 0)
+			if (len <= 0)
 				/* TODO sure ? what happen to upper layer ?? */
 				/* TODO fill error */
 				return SQL_ERROR;
