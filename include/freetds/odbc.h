@@ -156,7 +156,7 @@ struct _dheader
 	SQLULEN sql_desc_array_size;
 	SQLUSMALLINT *sql_desc_array_status_ptr;
 	SQLULEN *sql_desc_rows_processed_ptr;
-	SQLLEN *sql_desc_bind_offset_ptr;
+	const SQLLEN *sql_desc_bind_offset_ptr;
 };
 
 /** Descriptor record */

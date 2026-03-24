@@ -2789,7 +2789,7 @@ ODBC_FUNC(SQLGetDescField, (P(SQLHDESC,hdesc), P(SQLSMALLINT,icol), P(SQLSMALLIN
 		ODBC_EXIT_(desc);
 		break;
 	case SQL_DESC_BIND_OFFSET_PTR:
-		IOUT(SQLLEN *, fdesc->header.sql_desc_bind_offset_ptr);
+		IOUT(const SQLLEN *, fdesc->header.sql_desc_bind_offset_ptr);
 		ODBC_EXIT_(desc);
 		break;
 	case SQL_DESC_BIND_TYPE:
