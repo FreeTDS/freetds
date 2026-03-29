@@ -32,6 +32,9 @@ void dlist_ring_check(dlist_ring *ring);
 #define DLIST_FIELDS(name) \
 	dlist_ring name
 
+#define DLIST_INITIALIZER(var) \
+	{ { &(var).ring, &(var).ring } }
+
 #define DLIST_FOREACH(prefix, list, p) \
 	for (p = prefix ## _ ## first(list); p != NULL; p = prefix ## _ ## next(list, p))
 

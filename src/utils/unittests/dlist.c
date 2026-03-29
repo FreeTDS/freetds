@@ -45,13 +45,19 @@ typedef struct
 
 TEST_MAIN()
 {
-	test_items list[1];
+	test_items list[1] = { DLIST_INITIALIZER(list[0]) };
 	test_item items[6], *p;
 	int n;
 
+	/* check static initialization above */
+	list_check(list);
+
+	/* init again */
+	memset(list, 0xcc, sizeof(list));
 	list_init(list);
 	memset(&items, 0, sizeof(items));
 
+	/* nothing in the list */
 	assert(list_first(list) == NULL);
 	assert(list_last(list) == NULL);
 
