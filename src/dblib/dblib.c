@@ -6848,7 +6848,7 @@ dbmoretext(DBPROCESS * dbproc, DBINT size, const BYTE text[])
 void
 dbrecftos(const char filename[])
 {
-	char *f;
+	char *f, *old;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbrecftos(%s)\n", filename);
 	if (filename == NULL) { 
@@ -6863,10 +6863,11 @@ dbrecftos(const char filename[])
 	}
 	
 	tds_mutex_lock(&dblib_mutex);
-	free(g_dblib_ctx.recftos_filename);
+	old = g_dblib_ctx.recftos_filename;
 	g_dblib_ctx.recftos_filename = f;
 	g_dblib_ctx.recftos_filenum = 0;
 	tds_mutex_unlock(&dblib_mutex);
+	free(old);
 }
 
 /** \internal
