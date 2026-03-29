@@ -40,11 +40,11 @@ jobs:
 
         steps:
 
-        - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
           with:
             fetch-depth: 0
 
-        - uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
+        - uses: rainmakerv3/msvc-dev-cmd@bff138cfa73d1aa001d15799a8bf7db83bc9ff8e # v1.13.0 with Node24
 
         - name: Install OpenSSL & perf
           run: |
