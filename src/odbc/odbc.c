@@ -5665,8 +5665,7 @@ odbc_SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, 
 		break;
 #if (ODBCVER >= 0x0300)
 	case SQL_DESCRIBE_PARAMETER:
-		/* TODO */
-		p = "N";
+		p = "Y";
 		break;
 #endif /* ODBCVER >= 0x0300 */
 	case SQL_DRIVER_HDBC:
