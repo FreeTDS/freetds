@@ -48,7 +48,7 @@ jobs:
 
         - name: configure
           run: |
-            autoreconf -i
+            autoreconf -if
             ./configure --with-openssl --enable-silent-rules \
                         --prefix=${PREFIX}
 
