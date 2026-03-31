@@ -572,6 +572,19 @@ odbc_prepare(TDS_STMT *stmt)
 	ODBC_RETURN_(stmt);
 }
 
+/** Helper for SQLDriverConnect to apply DBC parameters */
+static void dbc_apply_param(TDS_DBC* dbc, DSTR* dst, const TDS_PARSED_PARAM* param)
+{
+	if (param->len > 0)
+	{
+		/* TDS_PARSED_PARAM still contains the optional {} delimiters */
+		int offset = (param->p[0] == '{' && param->p[param->len - 1] == '}');
+
+		if (!tds_dstr_copyn(dst, param->p + offset, param->len - 2 * offset))
+			odbc_errs_add(&dbc->errs, "HY001", NULL);
+	}
+}
+
 ODBC_FUNC(SQLDriverConnect, (P(SQLHDBC,hdbc), P(SQLHWND,hwnd), PCHARIN(ConnStrIn,SQLSMALLINT),
 	PCHAROUT(ConnStrOut,SQLSMALLINT), P(SQLUSMALLINT,fDriverCompletion) WIDE))
 {
@@ -632,6 +645,10 @@ ODBC_FUNC(SQLDriverConnect, (P(SQLHDBC,hdbc), P(SQLHWND,hwnd), PCHARIN(ConnStrIn
 
 	odbc_set_dstr(dbc, szConnStrOut, cbConnStrOutMax, pcbConnStrOut, &conn_str);
 	tds_dstr_free(&conn_str);
+
+	dbc_apply_param(dbc, &dbc->datetime_fmt, &params[ODBC_PARAM_DateTimeFmt]);
+	dbc_apply_param(dbc, &dbc->date_fmt, &params[ODBC_PARAM_DateFmt]);
+	dbc_apply_param(dbc, &dbc->time_fmt, &params[ODBC_PARAM_TimeFmt]);
 
 	/* add login info */
 	if (hwnd && fDriverCompletion != SQL_DRIVER_NOPROMPT

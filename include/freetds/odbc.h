@@ -515,6 +515,8 @@ bool get_login_info(HWND hwndParent, TDSLOGIN * login);
 	ODBC_PARAM(ClientCharset) \
 	ODBC_PARAM(ConnectionTimeout) \
 	ODBC_PARAM(Database) \
+	ODBC_PARAM(DateFmt) \
+	ODBC_PARAM(DateTimeFmt) \
 	ODBC_PARAM(DebugFlags) \
 	ODBC_PARAM(DSN) \
 	ODBC_PARAM(DumpFile) \
@@ -534,6 +536,7 @@ bool get_login_info(HWND hwndParent, TDSLOGIN * login);
 	ODBC_PARAM(ServerSPN) \
 	ODBC_PARAM(TDS_Version) \
 	ODBC_PARAM(TextSize) \
+	ODBC_PARAM(TimeFmt) \
 	ODBC_PARAM(Timeout) \
 	ODBC_PARAM(Trusted_Connection) \
 	ODBC_PARAM(UID) \

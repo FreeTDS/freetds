@@ -13,7 +13,15 @@ static void
 assert_equal_str(TDS_PARSED_PARAM param, const char *b)
 {
 	/* printf("param %.*s b %s\n", (int) param.len, param.p, b); */
-	assert(b && strlen(b) == param.len && strncmp(param.p, b, param.len)==0);
+	if (b && strlen(b) == param.len && strncmp(param.p, b, param.len)==0)
+		return;
+
+	if (!b)
+		b = "(null)";
+
+	fprintf(stderr, "(%d) \"%s\"\n", (int)strlen(b), b);
+	fprintf(stderr, "(%d) \"%.*s\"\n", (int)param.len, (int)param.len, param.p);
+	assert(!"Strings differ.");
 }
 
 typedef void check_func_t(TDSLOGIN *login, TDS_PARSED_PARAM *parsed_params);
@@ -137,6 +145,14 @@ CHECK(password_bug_report,
 CHECK_ERROR(unfinished,
 	"Driver=FreeTDS;Server=1.2.3.4;Port=1433;pwd={p@ssw0rd")
 
+CHECK(datetime_formats,
+	"Driver=FreeTDS;Server=1.2.3.4;Port=1433;Database=test;uid=test_user;pwd=xxxx;TIMEFMT=%H:%M:%S;DATEFMT=%Y-%m-%d;DATETIMEFMT={==%Y%m%d;%H%M%S==}")
+{
+	assert_equal_str(parsed_params[ODBC_PARAM_DateFmt], "%Y-%m-%d");
+	assert_equal_str(parsed_params[ODBC_PARAM_TimeFmt], "%H:%M:%S");
+	assert_equal_str(parsed_params[ODBC_PARAM_DateTimeFmt], "{==%Y%m%d;%H%M%S==}");
+}
+
 TEST_MAIN()
 {
 	simple_string();
@@ -152,6 +168,8 @@ TEST_MAIN()
 	password_bug_report();
 
 	unfinished();
+
+	datetime_formats();
 
 	return 0;
 }
