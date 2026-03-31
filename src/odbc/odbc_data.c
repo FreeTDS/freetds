@@ -49,7 +49,7 @@
 	} while(0)
 
 static void
-data_msdatetime_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver TDS_UNUSED)
+data_msdatetime_set_type_info(TDSCOLUMN * col, struct _drecord *drec, const TDS_DBC *dbc)
 {
 	int decimals = col->column_prec ? col->column_prec + 1: 0;
 
@@ -85,7 +85,7 @@ data_msdatetime_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER
 }
 
 static void
-data_variant_set_type_info(TDSCOLUMN * col TDS_UNUSED, struct _drecord *drec, SQLINTEGER odbc_ver TDS_UNUSED)
+data_variant_set_type_info(TDSCOLUMN * col TDS_UNUSED, struct _drecord *drec, const TDS_DBC *dbc TDS_UNUSED)
 {
 	drec->sql_desc_concise_type = SQL_SS_VARIANT;
 	drec->sql_desc_display_size = 8000;
@@ -94,7 +94,7 @@ data_variant_set_type_info(TDSCOLUMN * col TDS_UNUSED, struct _drecord *drec, SQ
 }
 
 static void
-data_numeric_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver TDS_UNUSED)
+data_numeric_set_type_info(TDSCOLUMN * col, struct _drecord *drec, const TDS_DBC* dbc TDS_UNUSED)
 {
 	const char *type_name =
 		col->on_server.column_type == SYBNUMERIC ? "numeric" : "decimal";
@@ -107,7 +107,7 @@ data_numeric_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER od
 }
 
 static void
-data_clrudt_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver TDS_UNUSED)
+data_clrudt_set_type_info(TDSCOLUMN * col, struct _drecord *drec, const TDS_DBC* dbc TDS_UNUSED)
 {
 	drec->sql_desc_concise_type = SQL_LONGVARBINARY;
 	/* TODO ??? */
@@ -115,7 +115,7 @@ data_clrudt_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odb
 }
 
 static void
-data_sybbigtime_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver TDS_UNUSED)
+data_sybbigtime_set_type_info(TDSCOLUMN * col, struct _drecord *drec, const TDS_DBC* dbc TDS_UNUSED)
 {
 	if (col->on_server.column_type == SYB5BIGTIME) {
 		drec->sql_desc_concise_type = SQL_SS_TIME2;
@@ -140,14 +140,14 @@ data_sybbigtime_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER
 }
 
 static void
-data_mstabletype_set_type_info(TDSCOLUMN *col TDS_UNUSED, struct _drecord *drec, SQLINTEGER odbc_ver TDS_UNUSED)
+data_mstabletype_set_type_info(TDSCOLUMN *col TDS_UNUSED, struct _drecord *drec, const TDS_DBC* dbc TDS_UNUSED)
 {
 	drec->sql_desc_concise_type = SQL_SS_TABLE;
 	drec->sql_desc_octet_length = 0;
 }
 
 static void
-data_generic_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
+data_generic_set_type_info(TDSCOLUMN * col, struct _drecord *drec, const TDS_DBC* dbc)
 {
 	TDS_SERVER_TYPE col_type = col->on_server.column_type;
 	int col_size = col->on_server.column_size;
@@ -260,12 +260,12 @@ data_generic_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER od
 	case SYBREAL:
 		drec->sql_desc_concise_type = SQL_REAL;
 		drec->sql_desc_display_size = 14;
-		SET_INFO2("real", "", "", odbc_ver == SQL_OV_ODBC3 ? 24 : 7);
+		SET_INFO2("real", "", "", dbc->env->attr.odbc_version == SQL_OV_ODBC3 ? 24 : 7);
 
 	case SYBFLT8:
 		drec->sql_desc_concise_type = SQL_DOUBLE;
 		drec->sql_desc_display_size = 24;	/* FIXME -- what should the correct size be? */
-		SET_INFO2("float", "", "", odbc_ver == SQL_OV_ODBC3 ? 53 : 15);
+		SET_INFO2("float", "", "", dbc->env->attr.odbc_version == SQL_OV_ODBC3 ? 53 : 15);
 
 	case SYBMONEY:
 		/* TODO check money format returned by proprietary ODBC, scale == 4 but we use 2 digits */
@@ -413,12 +413,12 @@ data_generic_set_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER od
 }
 
 static void
-data_invalid_set_type_info(TDSCOLUMN * col TDS_UNUSED, struct _drecord *drec TDS_UNUSED, SQLINTEGER odbc_ver TDS_UNUSED)
+data_invalid_set_type_info(TDSCOLUMN * col TDS_UNUSED, struct _drecord *drec TDS_UNUSED, const TDS_DBC* dbc TDS_UNUSED)
 {
 }
 
 void
-odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
+odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, const TDS_DBC *dbc)
 {
 	drec->sql_desc_precision = col->column_prec;
 	drec->sql_desc_scale     = col->column_scale;
@@ -427,7 +427,7 @@ odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_v
 	drec->sql_desc_num_prec_radix = 0;
 	drec->sql_desc_datetime_interval_code = 0;
 
-	((TDS_FUNCS *) col->funcs)->set_type_info(col, drec, odbc_ver);
+	((TDS_FUNCS *) col->funcs)->set_type_info(col, drec, dbc);
 
 	drec->sql_desc_type = drec->sql_desc_concise_type;
 	if (drec->sql_desc_concise_type == SQL_TYPE_TIMESTAMP)

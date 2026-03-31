@@ -3325,7 +3325,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 		 * is formatting function correct ??
 		 * we should not convert to string with invalid precision!
 		 */
-		odbc_set_sql_type_info(col, drec, stmt->dbc->env->attr.odbc_version);
+		odbc_set_sql_type_info(col, drec, stmt->dbc);
 
 		drec->sql_desc_fixed_prec_scale = (col->column_prec && col->column_scale) ? SQL_TRUE : SQL_FALSE;
 		if (!tds_dstr_dup(&drec->sql_desc_label, &col->column_name))
@@ -8143,7 +8143,7 @@ read_params(TDS_STMT *stmt)
 				col->column_prec = precision;
 				col->column_scale = scale;
 				drec->sql_desc_nullable = SQL_NULLABLE;
-				odbc_set_sql_type_info(col, drec, stmt->dbc->env->attr.odbc_version);
+				odbc_set_sql_type_info(col, drec, stmt->dbc);
 				break;
 			}
 			continue;
