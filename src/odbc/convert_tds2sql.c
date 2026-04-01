@@ -367,6 +367,8 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 		const char *fmt = NULL;
 		const TDS_DATETIMEALL *dta = (const TDS_DATETIMEALL *) src;
 
+		/* This logic should match odbc_datetime_display_size() in odbc_data.c */
+		/* TODO: so, instead of dta->time_prec this should be using curcol->column_prec? */
 		switch (srctype) {
 		case SYBMSDATETIMEOFFSET:
 		case SYBMSDATETIME2:
