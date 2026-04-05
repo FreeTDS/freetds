@@ -3,7 +3,7 @@ add_subdirectory(unittests)
 # TODO checks
 add_definitions(-DUNIXODBC -DHAVE_SQLGETPRIVATEPROFILESTRING)
 
-if(PERL_FOUND AND NOT EXISTS "${CMAKE_SOURCE_DIR}/src/odbc/odbc_export.h")
+if(PERL_FOUND AND NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/odbc_export.h")
 	add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/odbc_export.h"
 		COMMAND ${PERL_EXECUTABLE} odbc_export.pl odbc.c > "${CMAKE_CURRENT_BINARY_DIR}/odbc_export.h"
 		MAIN_DEPENDENCY odbc_export.pl
@@ -17,11 +17,11 @@ if(PERL_FOUND AND NOT EXISTS "${CMAKE_SOURCE_DIR}/src/odbc/odbc_export.h")
 	add_custom_target(odbc_exports_h DEPENDS
 		"${CMAKE_CURRENT_BINARY_DIR}/odbc_export.h"
 		"${CMAKE_CURRENT_BINARY_DIR}/error_export.h")
-else(PERL_FOUND AND NOT EXISTS "${CMAKE_SOURCE_DIR}/src/odbc/odbc_export.h")
+else(PERL_FOUND AND NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/odbc_export.h")
 	add_custom_target(odbc_exports_h DEPENDS
 		"${CMAKE_CURRENT_SOURCE_DIR}/odbc_export.h"
 		"${CMAKE_CURRENT_SOURCE_DIR}/error_export.h")
-endif(PERL_FOUND AND NOT EXISTS "${CMAKE_SOURCE_DIR}/src/odbc/odbc_export.h")
+endif(PERL_FOUND AND NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/odbc_export.h")
 
 if(WIN32)
 	set(win_SRCS winlogin.c winsetup.c winmain.c setup.rc)
