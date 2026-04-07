@@ -29,18 +29,33 @@ DoTest(int n)
 		break;
 
 	case 3:
-		SQLSetConnectAttr(odbc_conn, SQL_COPT_TDSODBC_DATETIME_FORMAT, T("%d-%m-%Y %H:%M:%S"), SQL_NTS);
+		SQLSetConnectAttr(odbc_conn, SQL_COPT_TDSODBC_DATETIME_FORMAT, T("**%d-%m-%Y %H:%M:%S**"), SQL_NTS);
 		odbc_command("select convert(datetime, '2002-12-27 18:43:21')");
-		expect = "27-12-2002 18:43:21";
+		expect = "**27-12-2002 18:43:21**";
 		break;
 
 	case 4:
+		/* MS datetime2 wire format introduced in TDS 7.3
+		 * (earlier TDS versions use NVARCHAR wire format here) */
+		if (odbc_tds_version() < 0x703)
+			return 0;
+		SQLSetConnectAttr(odbc_conn, SQL_COPT_TDSODBC_DATETIME_FORMAT, T("**%d-%m-%Y %H:%M:%S.%z**"), SQL_NTS);
+		odbc_command("select convert(datetime2(7), '2002-12-27 18:43:21')");
+		expect = "**27-12-2002 18:43:21.0000000**";
+		break;
+
+	case 5:
+		/* MS date-only and time-only wire formats introduced in TDS 7.3 */
+		if (odbc_tds_version() < 0x703)
+			return 0;
 		SQLSetConnectAttr(odbc_conn, SQL_COPT_TDSODBC_DATE_FORMAT, T("**%d-%m-%Y**"), SQL_NTS);
 		odbc_command("select convert(date, '2002-12-27 18:43:21')");
 		expect = "**27-12-2002**";
 		break;
 
-	case 5:
+	case 6:
+		if (odbc_tds_version() < 0x703)
+			return 0;
 		SQLSetConnectAttr(odbc_conn, SQL_COPT_TDSODBC_TIME_FORMAT, T("**%H:%M:%S**"), SQL_NTS);
 		odbc_command("select convert(time, '2002-12-27 18:43:21')");
 		expect = "**18:43:21**";
