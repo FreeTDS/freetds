@@ -87,6 +87,7 @@ static int msg_handler(DBPROCESS * dbproc TDS_UNUSED, DBINT msgno, int msgstate,
 		       char *procname, int line);
 static int set_bcp_hints(BCPPARAMDATA * pdata, DBPROCESS * pdbproc);
 static void bcpparamdata_free(BCPPARAMDATA * params);
+static char *xstrdup(const char *s);
 
 int
 main(int argc, char **argv)
@@ -204,11 +205,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 	pdata->maxerrors = 10;
 
 	/* argument 1 - the database object */
-	pdata->dbobject = strdup(argv[1]);
-	if (pdata->dbobject == NULL) {
-		fprintf(stderr, "Out of memory!\n");
-		return FALSE;
-	}
+	pdata->dbobject = xstrdup(argv[1]);
 
 	/* argument 2 - the direction */
 	strlcpy(pdata->dbdirection, argv[2], sizeof(pdata->dbdirection));
@@ -226,7 +223,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 
 	/* argument 3 - the datafile name */
 	free(pdata->hostfilename);
-	pdata->hostfilename = strdup(argv[3]);
+	pdata->hostfilename = xstrdup(argv[3]);
 
 	/*
 	 * Get the rest of the arguments
@@ -246,11 +243,11 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 		case 'f':
 			pdata->fflag++;
 			free(pdata->formatfile);
-			pdata->formatfile = strdup(optarg);
+			pdata->formatfile = xstrdup(optarg);
 			break;
 		case 'e':
 			pdata->eflag++;
-			pdata->errorfile = strdup(optarg);
+			pdata->errorfile = xstrdup(optarg);
 			break;
 		case 'F':
 			pdata->Fflag++;
@@ -278,17 +275,17 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 			break;
 		case 't':
 			pdata->tflag++;
-			pdata->fieldterm = strdup(optarg);
+			pdata->fieldterm = xstrdup(optarg);
 			pdata->fieldtermlen = unescape(pdata->fieldterm);
 			break;
 		case 'r':
 			pdata->rflag++;
-			pdata->rowterm = strdup(optarg);
+			pdata->rowterm = xstrdup(optarg);
 			pdata->rowtermlen = unescape(pdata->rowterm);
 			break;
 		case 'U':
 			pdata->Uflag++;
-			pdata->user = strdup(optarg);
+			pdata->user = xstrdup(optarg);
 			break;
 		case 'P':
 			pdata->Pflag++;
@@ -296,30 +293,30 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 			break;
 		case 'i':
 			free(pdata->inputfile);
-			pdata->inputfile = strdup(optarg);
+			pdata->inputfile = xstrdup(optarg);
 			break;
 		case 'I':
 			pdata->Iflag++;
 			free(pdata->interfacesfile);
-			pdata->interfacesfile = strdup(optarg);
+			pdata->interfacesfile = xstrdup(optarg);
 			break;
 		case 'S':
 			pdata->Sflag++;
-			pdata->server = strdup(optarg);
+			pdata->server = xstrdup(optarg);
 			break;
 		case 'D':
-			pdata->dbname = strdup(optarg);
+			pdata->dbname = xstrdup(optarg);
 			break;
 		case 'h':
-			pdata->hint = strdup(optarg);
+			pdata->hint = xstrdup(optarg);
 			break;
 		case 'o':
 			free(pdata->outputfile);
-			pdata->outputfile = strdup(optarg);
+			pdata->outputfile = xstrdup(optarg);
 			break;
 		case 'O':
 		case '0':
-			pdata->options = strdup(optarg);
+			pdata->options = xstrdup(optarg);
 			break;
 		case 'T':
 			pdata->Tflag++;
@@ -330,7 +327,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 			pdata->packetsize = atoi(optarg);
 			break;
 		case 'C':
-			pdata->charset = strdup(optarg);
+			pdata->charset = xstrdup(optarg);
 			break;
 		case '?':
 		default:
@@ -347,7 +344,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 	/* Server */
 	if (!pdata->Sflag) {
 		if ((pdata->server = getenv("DSQUERY")) != NULL) {
-			pdata->server = strdup(pdata->server);	/* can be freed */
+			pdata->server = xstrdup(pdata->server);	/* can be freed */
 			pdata->Sflag++;
 		} else {
 			fprintf(stderr, "-S must be supplied.\n");
@@ -365,11 +362,11 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 	if (pdata->cflag) {
 
 		if (!pdata->tflag || !pdata->fieldterm) {	/* field terminator not specified */
-			pdata->fieldterm = strdup("\t");
+			pdata->fieldterm = xstrdup("\t");
 			pdata->fieldtermlen = 1;
 		}
 		if (!pdata->rflag || !pdata->rowterm) {	/* row terminator not specified */
-			pdata->rowterm = strdup("\n");
+			pdata->rowterm = xstrdup("\n");
 			pdata->rowtermlen = 1;
 		}
 	}
@@ -738,4 +735,16 @@ bcpparamdata_free(BCPPARAMDATA *params)
 	free(params->charset);
 	free(params->inputfile);
 	free(params->outputfile);
+}
+
+static char *
+xstrdup(const char *s)
+{
+	char *p = strdup(s);
+
+	if (!p) {
+		fprintf(stderr, "Out of memory!\n");
+		exit(EXIT_FAILURE);
+	}
+	return p;
 }
