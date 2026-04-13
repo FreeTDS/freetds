@@ -444,7 +444,7 @@ tds_fileout_stream_flush(TDSFILEOUTSTREAM *s)
 }
 
 static TDSRET
-tds_fileout_stream_putbuf(TDSFILEOUTSTREAM *s, void const *src, size_t n)
+tds_fileout_stream_putbuf(TDSFILEOUTSTREAM *s, const void *src, size_t n)
 {
 	/* Optimization - If data fully fits in output buffer
 	 * we can bypass the stream copy method */
@@ -465,7 +465,7 @@ tds_fileout_stream_putbuf(TDSFILEOUTSTREAM *s, void const *src, size_t n)
 }
 
 TDSRET
-tds_fileout_stream_put(TDSFILEOUTSTREAM *s, void const *src, size_t n)
+tds_fileout_stream_put(TDSFILEOUTSTREAM *s, const void *src, size_t n)
 {
 	size_t len;
 
@@ -482,7 +482,7 @@ tds_fileout_stream_put(TDSFILEOUTSTREAM *s, void const *src, size_t n)
 
 	/* Flush everything up to the last new-line in the source */
 	for (len = n; len; --len)
-		if (((char const *) src)[len - 1] == '\n')
+		if (((const char *) src)[len - 1] == '\n')
 			break;
 
 	if (len) {
@@ -494,5 +494,5 @@ tds_fileout_stream_put(TDSFILEOUTSTREAM *s, void const *src, size_t n)
 	if (len == n)
 		return TDS_SUCCESS;
 
-	return tds_fileout_stream_putbuf(s, (char const *) src + len, n - len);
+	return tds_fileout_stream_putbuf(s, (const char *) src + len, n - len);
 }

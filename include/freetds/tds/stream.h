@@ -69,7 +69,7 @@ typedef struct tds_fileout_stream
 void tds_fileout_stream_init(TDSFILEOUTSTREAM * s, FILE * fp, int buff_mode);
 
 TDSRET tds_fileout_stream_flush(TDSFILEOUTSTREAM * s);
-TDSRET tds_fileout_stream_put(TDSFILEOUTSTREAM * s, void const *src, size_t n);
+TDSRET tds_fileout_stream_put(TDSFILEOUTSTREAM * s, const void *src, size_t n);
 
 /** Convert a stream from istream to ostream using a specific conversion */
 TDSRET tds_convert_stream(TDSSOCKET * tds, TDSICONV * char_conv, TDS_ICONV_DIRECTION direction,
