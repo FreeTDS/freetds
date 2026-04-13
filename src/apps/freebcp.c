@@ -146,10 +146,44 @@ get_format(BCPPARAMDATA *params)
 	return BCPFORMAT_NONE;
 }
 
-static int unescape(char arg[])
+static int
+unescape_hex(char *arg)
+{
+	char *buf;
+	size_t len;
+	DBINT out_len;
+
+	if (strncasecmp(arg, "0x", 2) != 0)
+		return -1;
+
+	len = strlen(arg);
+	buf = xstrdup(arg);
+	out_len = dbconvert(NULL, SYBVARCHAR, (void *) arg, len, SYBVARBINARY, (void *) buf, (DBINT) len);
+	if (out_len < 0) {
+		free(buf);
+		return -1;
+	}
+
+	/* As documented we stop at the first NUL character */
+	buf[out_len] = 0;
+	out_len = (int) strlen(buf);
+
+	memcpy(arg, buf, out_len);
+	free(buf);
+	return out_len;
+}
+
+static int
+unescape(char arg[])
 {
 	char *p = arg, *next;
 	char escaped;
+	int hex_res;
+
+	hex_res = unescape_hex(arg);
+	if (hex_res >= 0)
+		return hex_res;
+
 	while ((next = strchr(p, '\\')) != NULL) {
 
 		p = next;
