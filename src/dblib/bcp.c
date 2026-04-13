@@ -1053,15 +1053,19 @@ Cleanup:
 }
 
 static STATUS
-_bcp_check_eof(DBPROCESS * dbproc, FILE *file, int icol)
+_bcp_check_eof(DBPROCESS * dbproc, TDSFILESTREAM* stream, int icol)
 {
 	int errnum = errno;
+	FILE *file;
 
-	tdsdump_log(TDS_DBG_FUNC, "_bcp_check_eof(%p, %p, %d)\n", dbproc, file, icol);
+	tdsdump_log(TDS_DBG_FUNC, "_bcp_check_eof(%p, %p, %d)\n", dbproc, stream, icol);
 	assert(dbproc);
+	assert(stream);
+
+	file = stream->f;
 	assert(file);
 
-	if (feof(file)) {
+	if (stream->inpos == stream->inlen && feof(file)) {
 		if (icol == 0) {
 			tdsdump_log(TDS_DBG_FUNC, "Normal end-of-file reached while loading bcp data file.\n");
 			return NO_MORE_ROWS;
@@ -1225,17 +1229,17 @@ _bcp_read_hostfile(DBPROCESS *dbproc, TDSFILESTREAM *stream, bool *row_error, bo
 			switch (hostcol->prefix_len) {
 			case 1:
 				if (tds_file_stream_read_raw(stream, &u.ti, 1) != 1)
-					return _bcp_check_eof(dbproc, stream->f, i);
+					return _bcp_check_eof(dbproc, stream, i);
 				collen = u.ti ? u.ti : -1;
 				break;
 			case 2:
 				if (tds_file_stream_read_raw(stream, &u.si, 2) != 2)
-					return _bcp_check_eof(dbproc, stream->f, i);
+					return _bcp_check_eof(dbproc, stream, i);
 				collen = u.si;
 				break;
 			case 4:
 				if (tds_file_stream_read_raw(stream, &u.li, 4) != 4)
-					return _bcp_check_eof(dbproc, stream->f, i);
+					return _bcp_check_eof(dbproc, stream, i);
 				collen = u.li;
 				break;
 			default:
@@ -1299,7 +1303,7 @@ _bcp_read_hostfile(DBPROCESS *dbproc, TDSFILESTREAM *stream, bool *row_error, bo
 
 			if (conv_res == TDS_NO_MORE_RESULTS) {
 				free(coldata);
-				return _bcp_check_eof(dbproc, stream->f, i);
+				return _bcp_check_eof(dbproc, stream, i);
 			}
 
 			if (col_bytes > 0x7fffffffl) {
@@ -1351,7 +1355,7 @@ _bcp_read_hostfile(DBPROCESS *dbproc, TDSFILESTREAM *stream, bool *row_error, bo
 				tdsdump_log(TDS_DBG_FUNC, "Reading %d bytes from hostfile.\n", collen);
 				if (tds_file_stream_read_raw(stream, coldata, collen) != collen) {
 					free(coldata);
-					return _bcp_check_eof(dbproc, stream->f, i);
+					return _bcp_check_eof(dbproc, stream, i);
 				}
 			}
 		}
