@@ -168,6 +168,7 @@ typedef struct tds_file_stream
 
 	/** file to read from */
 	FILE *f;
+	offset_type offset;
 
 	/** Circular buffer; assume nobody is going to use a gigantic terminator... */
 	char cbuf[50];

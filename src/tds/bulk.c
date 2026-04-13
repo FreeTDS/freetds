@@ -1500,6 +1500,7 @@ tds_file_stream_read_raw(TDSFILESTREAM *stream, void *ptr, size_t n)
 			stream->inlen = fread(stream->inbuf, 1, sizeof(stream->inbuf), stream->f);
 			if (stream->inlen == 0)
 				break;
+			stream->offset += stream->inlen;
 		}
 
 		/* Output data from buffer */
@@ -1516,16 +1517,24 @@ tds_file_stream_read_raw(TDSFILESTREAM *stream, void *ptr, size_t n)
 	return cptr - (char *) ptr;
 }
 
-
 TDSRET
 tds_file_stream_init(TDSFILESTREAM *stream, FILE *f)
 {
+	offset_type offset;
+
 	memset(stream, 0, sizeof(*stream));
 	if (!f)
 		return TDS_FAIL;
 
+	offset = ftello(f);
+	if (offset == -1) {
+		fclose(f);
+		return TDS_FAIL;
+	}
+
 	stream->f = f;
 	stream->stream.read = tds_file_stream_read;
+	stream->offset = offset;
 	return TDS_SUCCESS;
 }
 
@@ -1573,6 +1582,7 @@ tds_file_stream_seek_set(TDSFILESTREAM *stream, offset_type seek_to)
 	if (fseeko(stream->f, seek_to, SEEK_SET) != 0)
 		return TDS_FAIL;
 
+	stream->offset = seek_to;
 	stream->inpos = 0;
 	stream->inlen = 0;
 	return TDS_SUCCESS;
@@ -1581,17 +1591,7 @@ tds_file_stream_seek_set(TDSFILESTREAM *stream, offset_type seek_to)
 offset_type
 tds_file_stream_tell(TDSFILESTREAM *stream)
 {
-	/* Tried caching this to avoid overhead of system call, but it turns out we can't
-	 * do that accurately because hostfile is opened in text mode and will transparently
-	 * read \r\n as \n and so on.
-	 *
-	 * Instead we will adjust it by the size of buffered data (not 100% accurate...)
-	 */
-	offset_type ret = ftello(stream->f);
-
-	if (ret > 0)
-		ret -= (stream->inlen - stream->inpos);
-	return ret;
+	return stream->offset - (stream->inlen - stream->inpos);
 }
 
 /**
