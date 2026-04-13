@@ -5133,17 +5133,13 @@ dbbylist(DBPROCESS * dbproc, int computeid, int *size)
  * \sa dberrhandle().
  */
 DBBOOL
-dbdead(DBPROCESS * dbproc)
+dbdead(DBPROCESS *dbproc)
 {
-	tdsdump_log(TDS_DBG_FUNC, "dbdead(%p) [%s]\n", dbproc, dbproc? IS_TDSDEAD(dbproc->tds_socket)? "dead":"alive" : "quite dead");
+	bool is_dead = (dbproc == NULL || IS_TDSDEAD(dbproc->tds_socket));
 
-	if( NULL == dbproc ) 
-		return TRUE;
+	tdsdump_log(TDS_DBG_FUNC, "dbdead(%p) [%s]\n", dbproc, is_dead ? "dead" : "alive");
 
-	if (IS_TDSDEAD(dbproc->tds_socket))
-		return TRUE;
-
-	return FALSE;
+	return is_dead ? TRUE : FALSE;
 }
 
 /** \internal
