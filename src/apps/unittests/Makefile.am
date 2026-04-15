@@ -1,11 +1,13 @@
 NULL=
 TESTS =	\
 	defncopy$(EXEEXT) \
+	freebcp$(EXEEXT) \
 	$(NULL)
 
 check_PROGRAMS	=	$(TESTS)
 
 defncopy_SOURCES	=	defncopy.c
+freebcp_SOURCES	=	freebcp.c
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h
