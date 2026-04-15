@@ -21,11 +21,7 @@
  * This tests execute some command using tsql and defncopy to check behaviour
  */
 
-#include <freetds/utils/test_base.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
+#include "common.h"
 
 #if HAVE_STRING_H
 #include <string.h>
@@ -35,18 +31,8 @@
 #include <unistd.h>
 #endif
 
-#ifdef _WIN32
-#include <process.h>
-#define EXE_SUFFIX ".exe"
-#else
-#define EXE_SUFFIX ""
-#endif
-
-#include <freetds/bool.h>
-#include <freetds/macros.h>
 #include <freetds/sysdep_private.h>
 #include <freetds/replacements.h>
-#include <freetds/utils/path.h>
 
 /* content of output file, from command executed */
 static char *output;
@@ -58,173 +44,12 @@ read_login_info(void)
 }
 
 static void
-no_space(void)
-{
-	fprintf(stderr, "No space left on buffer\n");
-	exit(1);
-}
-
-static void
-normalize_spaces(char *s)
-{
-	char *p, *dest, prev;
-
-	/* replace all tabs with spaces */
-	for (p = s; *p; ++p)
-		if (*p == '\t')
-			*p = ' ';
-
-	/* replace duplicate spaces with a single space */
-	prev = 'x';
-	for (dest = s, p = s; *p; ++p) {
-		if (prev == ' ' && *p == ' ')
-			continue;
-		*dest++ = prev = *p;
-	}
-	*dest = 0;
-}
-
-/* read a file and output on a stream */
-static void
-cat(const char *fn, FILE *out)
-{
-	char line[1024];
-	FILE *f = fopen(fn, "r");
-	assert(f);
-	while (fgets(line, sizeof(line), f)) {
-		fputs("  ", out);
-		fputs(line, out);
-	}
-	fclose(f);
-}
-
-/* read a text file into memory, return it as a string */
-static char *
-read_file(const char *fn)
-{
-	long pos;
-	char *buf;
-	size_t readed, size;
-
-	FILE *f = fopen(fn, "r");
-	assert(f);
-	assert(fseek(f, 0, SEEK_END) == 0);
-	pos = ftell(f);
-	assert(pos >= 0 && pos <= 0x1000000);
-	size = (size_t) pos;
-	assert(fseek(f, 0, SEEK_SET) == 0);
-	buf = malloc(size + 10); /* allocate some more space */
-	assert(buf);
-	readed = fread(buf, 1, size + 1ul, f);
-	assert(readed <= size);
-	assert(feof(f));
-	fclose(f);
-	buf[readed] = 0;
-	return buf;
-}
-
-#define CHECK(n) do {\
-	if (dest + (n) > dest_end) \
-		no_space(); \
-} while(0)
-
-static char *
-quote_arg(char *dest, char *dest_end, const char *arg)
-{
-#ifndef _WIN32
-	CHECK(1);
-	*dest++ = '\'';
-	for (; *arg; ++arg) {
-		if (*arg == '\'') {
-			CHECK(3);
-			strcpy(dest, "'\\'");
-			dest += 3;
-		}
-		CHECK(1);
-		*dest++ = *arg;
-	}
-	CHECK(1);
-	*dest++ = '\'';
-#else
-	CHECK(1);
-	*dest++ = '\"';
-	for (; *arg; ++arg) {
-		if (*arg == '\\' || *arg == '\"') {
-			CHECK(1);
-			*dest++ = '\\';
-		}
-		CHECK(1);
-		*dest++ = *arg;
-	}
-	CHECK(1);
-	*dest++ = '\"';
-#endif
-	return dest;
-}
-
-static char *
-add_string(char *dest, char *const dest_end, const char *str)
-{
-	size_t len = strlen(str);
-	CHECK(len);
-	memcpy(dest, str, len);
-	return dest + len;
-}
-
-#undef CHECK
-
-static char *
-add_server(char *dest, char *const dest_end)
-{
-	dest = add_string(dest, dest_end, " -S ");
-	dest = quote_arg(dest, dest_end, common_pwd.server);
-	dest = add_string(dest, dest_end, " -U ");
-	dest = quote_arg(dest, dest_end, common_pwd.user);
-	dest = add_string(dest, dest_end, " -P ");
-	dest = quote_arg(dest, dest_end, common_pwd.password);
-	if (common_pwd.database[0]) {
-		dest = add_string(dest, dest_end, " -D ");
-		dest = quote_arg(dest, dest_end, common_pwd.database);
-	}
-	return dest;
-}
-
-static void
 cleanup(void)
 {
 	unlink("empty");
 	unlink("output");
 	unlink("input");
 	TDS_ZERO_FREE(output);
-}
-
-static void
-tsql(const char *input_data)
-{
-	char cmd[2048];
-	char *const end = cmd + sizeof(cmd) - 1;
-	char *p;
-	FILE *f;
-
-	f = fopen("input", "w");
-	assert(f);
-	fputs(input_data, f);
-	fclose(f);
-
-	strcpy(cmd, "tsql" EXE_SUFFIX " -o q");
-	p = strchr(cmd, 0);
-	p = add_server(p, end);
-	p = add_string(p, end, "<input >output");
-	*p = 0;
-	printf("Executing: %s\n", cmd);
-	if (system(cmd) != 0) {
-		printf("Output is:\n");
-		cat("output", stdout);
-		fprintf(stderr, "Failed command\n");
-		exit(1);
-	}
-	TDS_ZERO_FREE(output);
-	output = read_file("output");
 }
 
 static void
@@ -376,51 +201,6 @@ test_weird_index_names(void)
 	tsql(clean);
 	tsql(sql);
 	tsql(clean);
-}
-
-/* Add ".." to the environment PATH */
-static void
-update_path(void)
-{
-	static const tds_dir_char name[] = TDS_DIR("PATH");
-	tds_dir_char *path = tds_dir_getenv(name);
-#ifndef _WIN32
-	int len;
-
-	if (!path) {
-		setenv(name, "..", 1);
-		return;
-	}
-
-	len = asprintf(&path, "..:%s", path);
-	assert(len > 0);
-	setenv(name, path, 1);
-#else
-	const tds_dir_char *only = L"PATH=..";
-	const tds_dir_char *start = L"PATH=..;%s";
-	tds_dir_char *p;
-	size_t len;
-
-#ifdef CMAKE_INTDIR
-	if (CMAKE_INTDIR[0]) {
-		only = L"PATH=..\\" TDS_DIR(CMAKE_INTDIR);
-		start = L"PATH=..\\" TDS_DIR(CMAKE_INTDIR) L";%s";
-	}
-#endif
-
-	if (!path) {
-		_wputenv(only);
-		return;
-	}
-
-	len = tds_dir_len(path) + 100;
-	p = tds_new(tds_dir_char, len);
-	assert(p);
-	tds_dir_snprintf(p, len, start, path);
-	path = p;
-	_wputenv(path);
-#endif
-	free(path);
 }
 
 TEST_MAIN()
