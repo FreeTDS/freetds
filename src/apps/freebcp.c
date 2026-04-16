@@ -165,7 +165,12 @@ static int unescape(char arg[])
 			escaped = '\r';
 			break;
 		case 'n':
+#ifdef _WIN32
+			memcpy(p, "\r\n", 2);
+			continue;
+#else
 			escaped = '\n';
+#endif
 			break;
 		case '\\':
 			escaped = '\\';
@@ -366,8 +371,13 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 			pdata->fieldtermlen = 1;
 		}
 		if (!pdata->rflag || !pdata->rowterm) {	/* row terminator not specified */
+#ifdef _WIN32
+			pdata->rowterm = xstrdup("\r\n");
+			pdata->rowtermlen = 2;
+#else
 			pdata->rowterm = xstrdup("\n");
 			pdata->rowtermlen = 1;
+#endif
 		}
 	}
 

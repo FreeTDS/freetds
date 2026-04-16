@@ -972,7 +972,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	 * TODO above we allocate many buffer just to convert and store
 	 * to file.. avoid all that passages...
 	 */
-	if (!(hostfp = fopen(dbproc->hostfileinfo->hostfile, "w"))) {
+	if (!(hostfp = fopen(dbproc->hostfileinfo->hostfile, "wb"))) {
 		dbperror(dbproc, SYBEBCUO, errno);
 		goto Cleanup;
 	}
@@ -1510,8 +1510,8 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 	assert(rows_copied);
 
 	*rows_copied = 0;
-	
-	if (!(hostfile = fopen(dbproc->hostfileinfo->hostfile, "r"))) {
+
+	if (!(hostfile = fopen(dbproc->hostfileinfo->hostfile, "rb"))) {
 		dbperror(dbproc, SYBEBCUO, 0);
 		return FAIL;
 	}
@@ -1547,7 +1547,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 			int count;
 
 			if (errfile == NULL && dbproc->hostfileinfo->errorfile) {
-				if (!(errfile = fopen(dbproc->hostfileinfo->errorfile, "w"))) {
+				if (!(errfile = fopen(dbproc->hostfileinfo->errorfile, "wb"))) {
 					fclose(hostfile);
 					dbperror(dbproc, SYBEBUOE, 0);
 					return FAIL;
@@ -1557,23 +1557,27 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 			if (errfile != NULL) {
 				char *row_in_error = NULL;
 
+#ifdef _WIN32
+#define TDS_EOL "\r\n"
+#else
+#define TDS_EOL "\n"
+#endif
+
 				for (i = 0; i < dbproc->hostfileinfo->host_colcount; i++) {
 					hostcol = dbproc->hostfileinfo->host_columns[i];
 					if (hostcol->column_error == HOST_COL_CONV_ERROR) {
 						count = fprintf(errfile,
-								"#@ data conversion error on host data file Row %d Column %d\n",
-								(int) row_of_hostfile, i + 1);
+								"#@ data conversion error on host data file "
+								"Row %d Column %d" TDS_EOL, (int) row_of_hostfile, i + 1);
 						if (count < 0) {
 							dbperror(dbproc, SYBEBWEF, errno);
 						}
 					} else if (hostcol->column_error == HOST_COL_NULL_ERROR) {
 						count = fprintf(errfile, "#@ Attempt to bulk-copy a NULL value into Server column"
-								" which does not accept NULL values. Row %d, Column %d\n",
+								" which does not accept NULL values. Row %d, Column %d" TDS_EOL,
 								row_of_hostfile, i + 1);
-						if( count < 0 ) {
+						if (count < 0)
 							dbperror(dbproc, SYBEBWEF, errno);
-						}
-
 					}
 				}
 
@@ -1605,10 +1609,9 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 				free(row_in_error);
 
 				fseeko(hostfile, row_end, SEEK_SET);
-				count = fprintf(errfile, "\n");
-				if( count < 0 ) {
+				count = fprintf(errfile, TDS_EOL);
+				if (count < 0)
 					dbperror(dbproc, SYBEBWEF, errno);
-				}
 			}
 			row_error_count++;
 			if (row_error_count >= dbproc->hostfileinfo->maxerrs)
