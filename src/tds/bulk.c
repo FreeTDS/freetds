@@ -1472,7 +1472,9 @@ tds_file_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
 			return p - (char *) ptr;
 
 		/* It didn't; output from the circular buffer and input a new character */
-		if (tds_file_stream_read_raw(s, &ch, 1) != 1)
+		if (s->inpos < s->inlen)
+			ch = s->inbuf[s->inpos++];
+		else if (tds_file_stream_read_raw(s, &ch, 1) != 1)
 			return -1;
 
 		*p++ = s->cbuf[s->cpos];
