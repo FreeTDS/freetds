@@ -608,7 +608,8 @@ buildchecks : $(CONFIGS) libtdstests ctlibtests dblibtests $(TDSODBCSHR) $(ODBCT
 LIBTDSTEST_NAMES = t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 dynamic1 \
 	convert dataread utf8_1 utf8_2 utf8_3 numeric iconv_fread toodynamic \
 	readconf charconv nulls corrupt declarations portconf \
-	parsing freeze strftime log_elision convert_bounds tls sec_negotiate
+	parsing freeze strftime log_elision convert_bounds tls sec_negotiate \
+	file_stream
 
 # omitting libtds test "collations" as it takes 10 minutes to run.
 
