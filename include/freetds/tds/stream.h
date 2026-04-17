@@ -189,9 +189,6 @@ typedef struct tds_file_stream
 
 TDSRET tds_file_stream_init(TDSFILESTREAM * stream, FILE * f);
 
-/** Use a terminator for subsequent reads - Does not strdup the terminator, so be careful not to leave dangling */
-TDSRET tds_file_stream_use_terminator(TDSFILESTREAM * stream, const char *term, size_t term_len);
-
 /* Read raw data from stream (no terminator or iconv). Return number of bytes read. */
 size_t tds_file_stream_read_raw(TDSFILESTREAM * stream, void *ptr, size_t n);
 TDSRET tds_file_stream_seek_set(TDSFILESTREAM * stream, offset_type seek_to);

@@ -1550,7 +1550,7 @@ tds_file_stream_close(TDSFILESTREAM *stream)
 }
 
 /** Sets the terminator and also performs an initial population of the circular buffer */
-TDSRET
+static TDSRET
 tds_file_stream_use_terminator(TDSFILESTREAM *stream, const char *term, size_t term_len)
 {
 	size_t readed;
