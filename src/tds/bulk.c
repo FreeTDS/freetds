@@ -1573,6 +1573,8 @@ tds_file_stream_seek_set(TDSFILESTREAM *stream, offset_type seek_to)
 	fseeko(stream->f, seek_to, SEEK_SET);
 
 	/* TODO: maybe check for fseeko errors ? Original code didn't. */
+	stream->inpos = 0;
+	stream->inlen = 0;
 	return TDS_SUCCESS;
 }
 
