@@ -1570,9 +1570,9 @@ tds_file_stream_use_terminator(TDSFILESTREAM *stream, const char *term, size_t t
 TDSRET
 tds_file_stream_seek_set(TDSFILESTREAM *stream, offset_type seek_to)
 {
-	fseeko(stream->f, seek_to, SEEK_SET);
+	if (fseeko(stream->f, seek_to, SEEK_SET) != 0)
+		return TDS_FAIL;
 
-	/* TODO: maybe check for fseeko errors ? Original code didn't. */
 	stream->inpos = 0;
 	stream->inlen = 0;
 	return TDS_SUCCESS;
