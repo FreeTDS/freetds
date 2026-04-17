@@ -36,6 +36,14 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
+#if HAVE_FCNTL_H
+#include <fcntl.h>
+#endif /* HAVE_FCNTL_H */
+
+#ifdef _WIN32
+#include <io.h>
+#endif
+
 #include <assert.h>
 
 #include <freetds/tds.h>
@@ -1519,6 +1527,31 @@ tds_file_stream_read_raw(TDSFILESTREAM *stream, void *ptr, size_t n)
 	return cptr - (char *) ptr;
 }
 
+#if ENABLE_EXTRA_CHECKS && (defined(__MINGW32__) || defined(_MSC_VER))
+static void
+check_binary_mode(FILE *f)
+{
+	const int mode = _setmode(fileno(f), _O_BINARY);
+
+#ifndef _O_WTEXT
+#define _O_WTEXT 0
+#endif
+#ifndef _O_U16TEXT
+#define _O_U16TEXT 0
+#endif
+#ifndef _O_U8TEXT
+#define _O_U8TEXT 0
+#endif
+	const int text_modes = _O_TEXT | _O_WTEXT | _O_U16TEXT | _O_U8TEXT;
+
+	assert((mode & _O_BINARY) != 0);
+	assert((mode & text_modes) == 0);
+	_setmode(fileno(f), mode);
+}
+#else
+#define check_binary_mode(f) do {} while(0)
+#endif
+
 TDSRET
 tds_file_stream_init(TDSFILESTREAM *stream, FILE *f)
 {
@@ -1527,6 +1560,8 @@ tds_file_stream_init(TDSFILESTREAM *stream, FILE *f)
 	memset(stream, 0, sizeof(*stream));
 	if (!f)
 		return TDS_FAIL;
+
+	check_binary_mode(f);
 
 	offset = ftello(f);
 	if (offset == -1) {
