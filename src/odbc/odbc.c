@@ -2933,6 +2933,29 @@ ODBC_FUNC(SQLGetDescField, (P(SQLHDESC,hdesc), P(SQLSMALLINT,icol), P(SQLSMALLIN
 #undef IOUT
 }
 
+static SQLRETURN
+resize_desc(TDS_DESC *desc, struct _sql_errors *errs, int n)
+{
+	if (n < 0 || n > 4000) {
+		odbc_errs_add(errs, "07009", NULL);
+		return SQL_ERROR;
+	}
+	if (desc_alloc_records(desc, n) != SQL_SUCCESS) {
+		odbc_errs_add(errs, "HY001", NULL);
+		return SQL_ERROR;
+	}
+	return SQL_SUCCESS;
+}
+
+static struct _drecord *
+get_drec(TDS_DESC *desc, struct _sql_errors *errs, SQLSMALLINT icol)
+{
+	if (icol > 0 && (icol <= desc->header.sql_desc_count || resize_desc(desc, errs, icol) == SQL_SUCCESS))
+		return &desc->records[icol - 1];
+
+	return NULL;
+}
+
 ODBC_FUNC(SQLSetDescField, (P(SQLHDESC,hdesc), P(SQLSMALLINT,icol), P(SQLSMALLINT,fDescType),
 	P(SQLPOINTER,Value), P(SQLINTEGER,BufferLength) WIDE))
 {
@@ -2955,6 +2978,10 @@ ODBC_FUNC(SQLSetDescField, (P(SQLHDESC,hdesc), P(SQLSMALLINT,icol), P(SQLSMALLIN
 #define IIN(type, dest) dest = (type)(TDS_INTPTR)Value
 #define PIN(type, dest) dest = (type)Value
 #endif
+#define GET_DREC do { \
+	drec = get_drec(fdesc, &desc->errs, icol); \
+	if (!drec) goto default_err; \
+	} while(0)
 
 	/* special case for IRD */
 	if (desc->type == DESC_IRD && fDescType != SQL_DESC_ARRAY_STATUS_PTR && fDescType != SQL_DESC_ROWS_PROCESSED_PTR) {
@@ -2987,31 +3014,15 @@ ODBC_FUNC(SQLSetDescField, (P(SQLHDESC,hdesc), P(SQLSMALLINT,icol), P(SQLSMALLIN
 		ODBC_EXIT_(desc);
 		break;
 	case SQL_DESC_COUNT:
-		{
-			int n = (int) (TDS_INTPTR) Value;
-
-			if (n < 0 || n > 4000) {
-				odbc_errs_add(&desc->errs, "07009", NULL);
-				ODBC_EXIT_(desc);
-			}
-			result = desc_alloc_records(fdesc, n);
-			if (result == SQL_ERROR)
-				odbc_errs_add(&desc->errs, "HY001", NULL);
-			ODBC_EXIT(desc, result);
-		}
+		resize_desc(fdesc, &desc->errs, (int) (TDS_INTPTR) Value);
+		ODBC_EXIT_(desc);
 		break;
 	}
 
-	if (!fdesc->header.sql_desc_count) {
-		odbc_errs_add(&desc->errs, "07005", NULL);
-		ODBC_EXIT_(desc);
-	}
-
-	if (icol <= 0 || icol > fdesc->header.sql_desc_count) {
+	if (icol <= 0) {
 		odbc_errs_add(&desc->errs, "07009", "Column out of range");
 		ODBC_EXIT_(desc);
 	}
-	drec = &fdesc->records[icol - 1];
 
 	tdsdump_log(TDS_DBG_INFO1, "SQLSetDescField: fDescType is %d\n", fDescType);
 
@@ -3025,6 +3036,7 @@ ODBC_FUNC(SQLSetDescField, (P(SQLHDESC,hdesc), P(SQLSMALLINT,icol), P(SQLSMALLIN
 		result = SQL_ERROR;
 		break;
 	case SQL_DESC_CONCISE_TYPE:
+		GET_DREC;
 		DESC_SET_NEED_REPREPARE;
 		if (fdesc->type == DESC_IPD)
 			result = odbc_set_concise_sql_type((SQLSMALLINT) (TDS_INTPTR) Value, drec, 0);
@@ -3034,6 +3046,7 @@ ODBC_FUNC(SQLSetDescField, (P(SQLHDESC,hdesc), P(SQLSMALLINT,icol), P(SQLSMALLIN
 			odbc_errs_add(&desc->errs, "HY021", NULL);
 		break;
 	case SQL_DESC_DATA_PTR:
+		GET_DREC;
 		PIN(SQLPOINTER, drec->sql_desc_data_ptr);
 		break;
 		/* TODO SQL_DESC_DATETIME_INTERVAL_CODE remember to check sql_desc_type */
@@ -3044,6 +3057,7 @@ ODBC_FUNC(SQLSetDescField, (P(SQLHDESC,hdesc), P(SQLSMALLINT,icol), P(SQLSMALLIN
 		result = SQL_ERROR;
 		break;
 	case SQL_DESC_INDICATOR_PTR:
+		GET_DREC;
 		PIN(SQLLEN *, drec->sql_desc_indicator_ptr);
 		break;
 	case SQL_DESC_LABEL:
@@ -3051,6 +3065,7 @@ ODBC_FUNC(SQLSetDescField, (P(SQLHDESC,hdesc), P(SQLSMALLINT,icol), P(SQLSMALLIN
 		result = SQL_ERROR;
 		break;
 	case SQL_DESC_LENGTH:
+		GET_DREC;
 		DESC_SET_NEED_REPREPARE;
 		IIN(SQLULEN, drec->sql_desc_length);
 		break;
@@ -3061,7 +3076,8 @@ ODBC_FUNC(SQLSetDescField, (P(SQLHDESC,hdesc), P(SQLSMALLINT,icol), P(SQLSMALLIN
 		result = SQL_ERROR;
 		break;
 	case SQL_DESC_NAME:
-		if (!odbc_dstr_copy_oct(desc_get_dbc(fdesc), &drec->sql_desc_name, BufferLength, (ODBC_CHAR*) Value)) {
+		GET_DREC;
+		if (!odbc_dstr_copy_oct(desc_get_dbc(fdesc), &drec->sql_desc_name, BufferLength, (ODBC_CHAR *) Value)) {
 			odbc_errs_add(&desc->errs, "HY001", NULL);
 			result = SQL_ERROR;
 		}
@@ -3071,20 +3087,25 @@ ODBC_FUNC(SQLSetDescField, (P(SQLHDESC,hdesc), P(SQLSMALLINT,icol), P(SQLSMALLIN
 		result = SQL_ERROR;
 		break;
 	case SQL_DESC_NUM_PREC_RADIX:
+		GET_DREC;
 		IIN(SQLINTEGER, drec->sql_desc_num_prec_radix);
 		break;
 	case SQL_DESC_OCTET_LENGTH:
+		GET_DREC;
 		DESC_SET_NEED_REPREPARE;
 		IIN(SQLLEN, drec->sql_desc_octet_length);
 		break;
 	case SQL_DESC_OCTET_LENGTH_PTR:
+		GET_DREC;
 		PIN(SQLLEN *, drec->sql_desc_octet_length_ptr);
 		break;
 	case SQL_DESC_PARAMETER_TYPE:
+		GET_DREC;
 		DESC_SET_NEED_REPREPARE;
 		IIN(SQLSMALLINT, drec->sql_desc_parameter_type);
 		break;
 	case SQL_DESC_PRECISION:
+		GET_DREC;
 		DESC_SET_NEED_REPREPARE;
 		/* TODO correct ?? */
 		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
@@ -3099,6 +3120,7 @@ ODBC_FUNC(SQLSetDescField, (P(SQLHDESC,hdesc), P(SQLSMALLINT,icol), P(SQLSMALLIN
 		break;
 #endif
 	case SQL_DESC_SCALE:
+		GET_DREC;
 		DESC_SET_NEED_REPREPARE;
 		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
 			IIN(SQLSMALLINT, drec->sql_desc_scale);
@@ -3113,6 +3135,7 @@ ODBC_FUNC(SQLSetDescField, (P(SQLHDESC,hdesc), P(SQLSMALLINT,icol), P(SQLSMALLIN
 		result = SQL_ERROR;
 		break;
 	case SQL_DESC_TYPE:
+		GET_DREC;
 		DESC_SET_NEED_REPREPARE;
 		IIN(SQLSMALLINT, drec->sql_desc_type);
 		/* FIXME what happen for interval/datetime ?? */
@@ -3123,6 +3146,7 @@ ODBC_FUNC(SQLSetDescField, (P(SQLHDESC,hdesc), P(SQLSMALLINT,icol), P(SQLSMALLIN
 		result = SQL_ERROR;
 		break;
 	case SQL_DESC_UNNAMED:
+		GET_DREC;
 		IIN(SQLSMALLINT, drec->sql_desc_unnamed);
 		break;
 	case SQL_DESC_UNSIGNED:
@@ -3139,6 +3163,9 @@ ODBC_FUNC(SQLSetDescField, (P(SQLHDESC,hdesc), P(SQLSMALLINT,icol), P(SQLSMALLIN
 #undef IIN
 
 	ODBC_EXIT(desc, result);
+
+default_err:
+	ODBC_EXIT_(desc);
 }
 
 SQLRETURN ODBC_PUBLIC ODBC_API
