@@ -17,6 +17,12 @@ TEST_MAIN()
 	odbc_command("insert into #tmp values(6)");
 	odbc_command("insert into #tmp values(7)");
 
+	odbc_command("create table #names(vc varchar(100))");
+	odbc_command("set nocount on\ndeclare @i int\nselect @i = 1\n"
+		     "while @i <= 1000 begin\n"
+		     "  insert into #names values('this is a different name ' + convert(varchar(10), @i))\n"
+		     "  select @i = @i + 1\nend\nset nocount off\n");
+
 	/* issue our command */
 	RetCode = odbc_command2("select 100 / (i - 5) from #tmp order by i", "SE");
 
@@ -42,12 +48,12 @@ TEST_MAIN()
 
 	CHKAllocStmt(&stmt, "S");
 
-	odbc_command("SELECT * FROM sysobjects");
+	odbc_command("SELECT * FROM #names");
 
 	odbc_stmt = stmt;
 
 	/* a statement is already active so you get error... */
-	if (odbc_command2("SELECT *  FROM sysobjects", "SE") == SQL_SUCCESS) {
+	if (odbc_command2("SELECT * FROM #names", "SE") == SQL_SUCCESS) {
 		SQLMoreResults(odbc_stmt);
 		/* ...or we are using MARS! */
 		odbc_command2("BEGIN TRANSACTION", "E");
