@@ -65,7 +65,7 @@ static char not_null_float[] = "12.34";
 static CS_INT      l_not_null_float = 5;
 static CS_SMALLINT i_not_null_float = 0;
 
-static char not_null_real[] = "12.34";
+static char not_null_real[] = "12.25";
 static CS_INT      l_not_null_real = 5;
 static CS_SMALLINT i_not_null_real = 0;
 

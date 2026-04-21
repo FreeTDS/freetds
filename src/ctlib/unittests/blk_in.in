@@ -67,7 +67,7 @@ VALUES ( 1 -- not_null_bit
 	, 12.34 -- not_null_smallmoney
 
 	, 12.34 -- not_null_float
-	, 12.34 -- not_null_real
+	, 12.25 -- not_null_real
 
 	, 12.34 -- not_null_decimal
 	, 12.34 -- not_null_numeric
@@ -86,7 +86,7 @@ VALUES ( 1 -- not_null_bit
 	, 12.34 -- nullable_smallmoney
 
 	, 12.34 -- nullable_float
-	, 12.34 -- nullable_real
+	, 12.25 -- nullable_real
 
 	, 12.34 -- nullable_decimal
 	, 12.34 -- nullable_numeric
@@ -130,7 +130,7 @@ VALUES (
 	, 12.34 -- not_null_smallmoney
 
 	, 12.34 -- not_null_float
-	, 12.34 -- not_null_real
+	, 12.25 -- not_null_real
 
 	, 12.34 -- not_null_decimal
 	, 12.34 -- not_null_numeric
@@ -180,7 +180,7 @@ Dec 17 2003  3:44PM
 12.3400
 12.3400
 12.34
-12.3400002
+12.25
 12.34
 12.34
 1234
@@ -284,7 +284,7 @@ VALUES ( 1 -- not_null_bit
 	, 12.34 -- not_null_smallmoney
 
 	, 12.34 -- not_null_float
-	, 12.34 -- not_null_real
+	, 12.25 -- not_null_real
 
 	, 12.34 -- not_null_decimal
 	, 12.34 -- not_null_numeric
@@ -303,7 +303,7 @@ VALUES ( 1 -- not_null_bit
 	, 12.34 -- nullable_smallmoney
 
 	, 12.34 -- nullable_float
-	, 12.34 -- nullable_real
+	, 12.25 -- nullable_real
 
 	, 12.34 -- nullable_decimal
 	, 12.34 -- nullable_numeric
@@ -347,7 +347,7 @@ VALUES (
 	, 12.34 -- not_null_smallmoney
 
 	, 12.34 -- not_null_float
-	, 12.34 -- not_null_real
+	, 12.25 -- not_null_real
 
 	, 12.34 -- not_null_decimal
 	, 12.34 -- not_null_numeric
@@ -397,7 +397,7 @@ Dec 17 2003  3:44PM
 12.3400
 12.3400
 12.34
-12.3400002
+12.25
 12.34
 12.34
 1234
