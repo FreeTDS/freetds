@@ -19,6 +19,7 @@ libtdsutils_la_SOURCES = \
 	smp.c \
 	path.c \
 	ascii.c \
+	xstrdup.c \
 	$(NULL)
 EXTRA_DIST = \
 	CMakeLists.txt \

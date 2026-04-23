@@ -87,7 +87,6 @@ static int msg_handler(DBPROCESS * dbproc TDS_UNUSED, DBINT msgno, int msgstate,
 		       char *procname, int line);
 static int set_bcp_hints(BCPPARAMDATA * pdata, DBPROCESS * pdbproc);
 static void bcpparamdata_free(BCPPARAMDATA * params);
-static char *xstrdup(const char *s);
 
 int
 main(int argc, char **argv)
@@ -779,16 +778,4 @@ bcpparamdata_free(BCPPARAMDATA *params)
 	free(params->charset);
 	free(params->inputfile);
 	free(params->outputfile);
-}
-
-static char *
-xstrdup(const char *s)
-{
-	char *p = strdup(s);
-
-	if (!p) {
-		fprintf(stderr, "Out of memory!\n");
-		exit(EXIT_FAILURE);
-	}
-	return p;
 }

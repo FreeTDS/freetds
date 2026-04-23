@@ -252,6 +252,7 @@ TDSOBJS = [.src.tds]bulk$(OBJ), [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ
 	[.src.utils]tds_cond$(OBJ), \
 	[.src.utils]util_net$(OBJ), \
 	[.src.utils]ascii$(OBJ), \
+	[.src.utils]xstrdup$(OBJ), \
 	$(ASPRINTFOBJ) $(VASPRINTFOBJ) $(SNPRINTFOBJ) $(STRTOK_ROBJ) $(LIBICONVOBJ) $(SOCKETPAIROBJ) \
 	[.vms]getpass$(OBJ)
 

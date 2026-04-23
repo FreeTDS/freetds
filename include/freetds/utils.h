@@ -47,6 +47,9 @@ int tds_socket_set_nodelay(TDS_SYS_SOCKET sock);
 
 char *tds_strndup(const void *s, TDS_INTPTR len);
 
+char *tds_xstrdup(const char *s);
+#define xstrdup(s) tds_xstrdup(s)
+
 #ifdef __cplusplus
 }
 #endif

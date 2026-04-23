@@ -20,6 +20,7 @@ add_library(tdsutils STATIC
 	path.c
 	ascii.c
 	md5.c
+	xstrdup.c
 	${add_SRCS}
 )
 if (NOT WIN32)
