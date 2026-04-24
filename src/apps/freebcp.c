@@ -275,7 +275,6 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 			return FALSE;
 			break;
 		case 'm':
-			pdata->mflag++;
 			pdata->maxerrors = atoi(optarg);
 			break;
 		case 'f':
@@ -284,19 +283,15 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 			pdata->formatfile = xstrdup(optarg);
 			break;
 		case 'e':
-			pdata->eflag++;
 			pdata->errorfile = xstrdup(optarg);
 			break;
 		case 'F':
-			pdata->Fflag++;
 			pdata->firstrow = atoi(optarg);
 			break;
 		case 'L':
-			pdata->Lflag++;
 			pdata->lastrow = atoi(optarg);
 			break;
 		case 'b':
-			pdata->bflag++;
 			pdata->batchsize = atoi(optarg);
 			break;
 		case 'n':
@@ -322,11 +317,9 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 			pdata->rowtermlen = unescape(pdata->rowterm);
 			break;
 		case 'U':
-			pdata->Uflag++;
 			pdata->user = xstrdup(optarg);
 			break;
 		case 'P':
-			pdata->Pflag++;
 			pdata->pass = tds_getpassarg(optarg);
 			break;
 		case 'i':
@@ -334,7 +327,6 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 			pdata->inputfile = xstrdup(optarg);
 			break;
 		case 'I':
-			pdata->Iflag++;
 			free(pdata->interfacesfile);
 			pdata->interfacesfile = xstrdup(optarg);
 			break;
@@ -357,7 +349,6 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 			pdata->options = xstrdup(optarg);
 			break;
 		case 'T':
-			pdata->Tflag++;
 			pdata->textsize = atoi(optarg);
 			break;
 		case 'A':
