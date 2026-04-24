@@ -279,7 +279,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 			pdata->maxerrors = atoi(optarg);
 			break;
 		case 'f':
-			pdata->fflag++;
+			pdata->fflag = true;
 			free(pdata->formatfile);
 			pdata->formatfile = xstrdup(optarg);
 			break;
@@ -296,24 +296,24 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 			pdata->batchsize = atoi(optarg);
 			break;
 		case 'n':
-			pdata->nflag++;
+			pdata->nflag = true;
 			break;
 		case 'c':
-			pdata->cflag++;
+			pdata->cflag = true;
 			break;
 		case 'E':
-			pdata->Eflag++;
+			pdata->Eflag = true;
 			break;
 		case 'd':
 			tdsdump_open("stderr");
 			break;
 		case 't':
-			pdata->tflag++;
+			pdata->tflag = true;
 			pdata->fieldterm = xstrdup(optarg);
 			pdata->fieldtermlen = unescape(pdata->fieldterm);
 			break;
 		case 'r':
-			pdata->rflag++;
+			pdata->rflag = true;
 			pdata->rowterm = xstrdup(optarg);
 			pdata->rowtermlen = unescape(pdata->rowterm);
 			break;
@@ -332,7 +332,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 			pdata->interfacesfile = xstrdup(optarg);
 			break;
 		case 'S':
-			pdata->Sflag++;
+			pdata->Sflag = true;
 			pdata->server = xstrdup(optarg);
 			break;
 		case 'D':
@@ -353,7 +353,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 			pdata->textsize = atoi(optarg);
 			break;
 		case 'A':
-			pdata->Aflag++;
+			pdata->Aflag = true;
 			pdata->packetsize = atoi(optarg);
 			break;
 		case 'C':
@@ -378,7 +378,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 	if (!pdata->Sflag) {
 		if ((pdata->server = getenv("DSQUERY")) != NULL) {
 			pdata->server = xstrdup(pdata->server);	/* can be freed */
-			pdata->Sflag++;
+			pdata->Sflag = true;
 		} else {
 			fprintf(stderr, "-S must be supplied.\n");
 			return (FALSE);
@@ -386,7 +386,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 	}
 
 	/* Only one of these can be specified */
-	if (pdata->cflag + pdata->nflag + pdata->fflag != 1) {
+	if (!!pdata->cflag + !!pdata->nflag + !!pdata->fflag != 1) {
 		fprintf(stderr, "Exactly one of options -c, -n, -f must be supplied.\n");
 		return (FALSE);
 	}

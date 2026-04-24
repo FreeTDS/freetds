@@ -51,14 +51,14 @@ typedef struct pd
 	char *options;
 	char *charset;
 	int packetsize;
-	int fflag;
-	int nflag;
-	int cflag;
-	int tflag;
-	int rflag;
-	int Sflag;
-	int Aflag;
-	int Eflag;
+	bool fflag;
+	bool nflag;
+	bool cflag;
+	bool tflag;
+	bool rflag;
+	bool Sflag;
+	bool Aflag;
+	bool Eflag;
 	bool ignoreDefaults;	/* Really insert a NULL even if default value defined */
 	char *inputfile;
 	char *outputfile;
