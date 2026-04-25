@@ -43,8 +43,8 @@ read_login_info(void)
 static void
 cleanup(void)
 {
-	unlink("output");
-	unlink("input");
+	unlink(output_fn());
+	unlink(input_fn());
 	unlink("error");
 }
 
@@ -57,7 +57,7 @@ freebcp(const char *object_name, const char *input_data, const char *added_optio
 	FILE *f;
 
 	/* empty input */
-	f = fopen("input", "w");
+	f = fopen(input_fn(), "w");
 	assert(f);
 	fputs(input_data, f);
 	fclose(f);
@@ -66,7 +66,9 @@ freebcp(const char *object_name, const char *input_data, const char *added_optio
 	p = strchr(cmd, 0);
 	p = add_string(p, end, " ");
 	p = quote_arg(p, end, object_name);
-	p = add_string(p, end, " in input ");
+	p = add_string(p, end, " in ");
+	p = add_string(p, end, input_fn());
+	p = add_string(p, end, " ");
 	p = add_string(p, end, added_options);
 	p = add_server(p, end);
 	*p = 0;
@@ -75,6 +77,7 @@ freebcp(const char *object_name, const char *input_data, const char *added_optio
 		fprintf(stderr, "Failed command\n");
 		exit(1);
 	}
+	unlink(input_fn());
 }
 
 static void

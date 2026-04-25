@@ -38,4 +38,10 @@ void tsql(const char *input_data);
 /* Execute tsql command passing input_data, return output */
 char *tsql_out(const char *input_data);
 
+/* Return filename to use as input */
+const char *input_fn(void);
+
+/* Return filename to use as output */
+const char *output_fn(void);
+
 #endif

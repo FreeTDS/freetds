@@ -47,8 +47,8 @@ static void
 cleanup(void)
 {
 	unlink("empty");
-	unlink("output");
-	unlink("input");
+	unlink(output_fn());
+	unlink(input_fn());
 	TDS_ZERO_FREE(output);
 }
 
@@ -61,7 +61,7 @@ defncopy(const char *object_name)
 	FILE *f;
 
 	/* empty input */
-	f = fopen("input", "w");
+	f = fopen(input_fn(), "w");
 	assert(f);
 	fclose(f);
 
@@ -70,17 +70,20 @@ defncopy(const char *object_name)
 	p = add_server(p, end);
 	p = add_string(p, end, " ");
 	p = quote_arg(p, end, object_name);
-	p = add_string(p, end, "<input >output");
+	p = add_string(p, end, "<");
+	p = add_string(p, end, input_fn());
+	p = add_string(p, end, " >");
+	p = add_string(p, end, output_fn());
 	*p = 0;
 	printf("Executing: %s\n", cmd);
 	if (system(cmd) != 0) {
 		printf("Output is:\n");
-		cat("output", stdout);
+		cat(output_fn(), stdout);
 		fprintf(stderr, "Failed command\n");
 		exit(1);
 	}
 	TDS_ZERO_FREE(output);
-	output = read_file("output");
+	output = read_file(output_fn());
 }
 
 /* table with a column name that is also a keyword, should be quoted */
@@ -100,7 +103,7 @@ test_keyword(void)
 "  [key]        nvarchar(4000)  NOT NULL\n"
 ")\n");
 	defncopy("dbo.table_with_column_named_key");
-	cat("output", stdout);
+	cat(output_fn(), stdout);
 	normalize_spaces(output);
 	sql =
 "CREATE TABLE [dbo].[table_with_column_named_key]\n"
@@ -133,7 +136,7 @@ test_index_name_with_space(void)
 "	)\n"
 "CREATE  nonclustered INDEX [From Date] on dbo.tblReportPeriod(FromDate)\n");
 	defncopy("dbo.tblReportPeriod");
-	cat("output", stdout);
+	cat(output_fn(), stdout);
 	normalize_spaces(output);
 	sql =
 "CREATE TABLE [dbo].[tblReportPeriod]\n"
@@ -171,7 +174,7 @@ test_weird_index_names(void)
 "	)\n"
 "CREATE  nonclustered INDEX [From Date] on dbo.tblReportPeriod2([To, ],[To, , ])\n");
 	defncopy("dbo.tblReportPeriod2");
-	cat("output", stdout);
+	cat(output_fn(), stdout);
 	normalize_spaces(output);
 	sql =
 "CREATE TABLE [dbo].[tblReportPeriod2]\n"

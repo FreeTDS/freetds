@@ -27,6 +27,7 @@
 #include <unistd.h>
 #endif
 
+#include <freetds/sysdep_private.h>
 #include <freetds/utils/path.h>
 
 static void
@@ -218,7 +219,7 @@ tsql_generic(const char *input_data, bool get_output)
 	FILE *f;
 	bool success;
 
-	f = fopen("input", "w");
+	f = fopen(input_fn(), "w");
 	assert(f);
 	fputs(input_data, f);
 	fclose(f);
@@ -226,21 +227,24 @@ tsql_generic(const char *input_data, bool get_output)
 	strcpy(cmd, "tsql" EXE_SUFFIX " -o q");
 	p = strchr(cmd, 0);
 	p = add_server(p, end);
-	p = add_string(p, end, "<input >output");
+	p = add_string(p, end, "<");
+	p = add_string(p, end, input_fn());
+	p = add_string(p, end, " >");
+	p = add_string(p, end, output_fn());
 	*p = 0;
 	printf("Executing: %s\n", cmd);
 	success = (system(cmd) == 0);
-	unlink("input");
+	unlink(input_fn());
 	if (!success) {
 		printf("Output is:\n");
-		cat("output", stdout);
-		unlink("output");
+		cat(output_fn(), stdout);
+		unlink(output_fn());
 		fprintf(stderr, "Failed command\n");
 		exit(1);
 	}
 	if (get_output)
-		output = read_file("output");
-	unlink("output");
+		output = read_file(output_fn());
+	unlink(output_fn());
 	return output;
 }
 
@@ -254,4 +258,28 @@ char *
 tsql_out(const char *input_data)
 {
 	return tsql_generic(input_data, true);
+}
+
+static const char *
+get_fn(char *buf, const char *prefix)
+{
+	if (!buf[0])
+		sprintf(buf, "%s.%d", prefix, (int) getpid());
+	return buf;
+}
+
+const char *
+input_fn(void)
+{
+	static char buf[32] = { 0 };
+
+	return get_fn(buf, "input");
+}
+
+const char *
+output_fn(void)
+{
+	static char buf[32] = { 0 };
+
+	return get_fn(buf, "output");
 }
