@@ -2,7 +2,7 @@ include_directories(..)
 
 add_library(a_common STATIC common.c common.h)
 
-foreach(target defncopy)
+foreach(target defncopy freebcp)
 	add_executable(a_${target} EXCLUDE_FROM_ALL ${target}.c)
 	# use a different name for test and executable to avoid conflicts
 	set_target_properties(a_${target} PROPERTIES OUTPUT_NAME tst_${target})
