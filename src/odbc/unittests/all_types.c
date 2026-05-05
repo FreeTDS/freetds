@@ -19,7 +19,7 @@ test_type(TDSSOCKET *tds TDS_UNUSED, TDSCOLUMN *col)
 	/* check that we can get type information from column */
 	struct _drecord drec;
 	memset(&drec, 0, sizeof(drec));
-	odbc_set_sql_type_info(col, &drec, SQL_OV_ODBC3);
+	odbc_set_sql_type_info(col, &drec, stmt->dbc);
 
 	assert(drec.sql_desc_literal_prefix);
 	assert(drec.sql_desc_literal_suffix);

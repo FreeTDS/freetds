@@ -311,6 +311,14 @@ struct _hdbc
 	TDS_INT default_query_timeout;
 
 	TDSBCPINFO *bcpinfo;
+
+	/* ODBC extra options. Format strings for tds_strftime()
+	 * to be applied when a client application fetches a date/time field
+	 * as a character type. (Not used for the reverse direction)
+	 */
+	DSTR datetime_fmt;
+	DSTR date_fmt;
+	DSTR time_fmt;
 };
 
 struct _hsattr
@@ -452,7 +460,7 @@ typedef struct _hchk TDS_CHK;
 typedef struct {
 	/* this must be the first member */
 	TDSCOLUMNFUNCS common;
-	void (*set_type_info)(TDSCOLUMN *col, struct _drecord *drec, SQLINTEGER odbc_ver);
+	void (*set_type_info)(TDSCOLUMN *col, struct _drecord *drec, const TDS_DBC *dbc);
 } TDS_FUNCS;
 
 #define IS_HENV(x) (((TDS_CHK *)x)->htype == SQL_HANDLE_ENV)
@@ -507,6 +515,8 @@ bool get_login_info(HWND hwndParent, TDSLOGIN * login);
 	ODBC_PARAM(ClientCharset) \
 	ODBC_PARAM(ConnectionTimeout) \
 	ODBC_PARAM(Database) \
+	ODBC_PARAM(DateFmt) \
+	ODBC_PARAM(DateTimeFmt) \
 	ODBC_PARAM(DebugFlags) \
 	ODBC_PARAM(DSN) \
 	ODBC_PARAM(DumpFile) \
@@ -526,6 +536,7 @@ bool get_login_info(HWND hwndParent, TDSLOGIN * login);
 	ODBC_PARAM(ServerSPN) \
 	ODBC_PARAM(TDS_Version) \
 	ODBC_PARAM(TextSize) \
+	ODBC_PARAM(TimeFmt) \
 	ODBC_PARAM(Timeout) \
 	ODBC_PARAM(Trusted_Connection) \
 	ODBC_PARAM(UID) \
@@ -646,7 +657,7 @@ SQLRETURN odbc_set_stmt_query(struct _hstmt *stmt, const ODBC_CHAR *sql, ptrdiff
 void odbc_set_return_status(struct _hstmt *stmt, unsigned int n_row);
 void odbc_set_return_params(struct _hstmt *stmt, unsigned int n_row);
 
-void odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver);
+void odbc_set_sql_type_info(TDSCOLUMN* col, struct _drecord* drec, const TDS_DBC* dbc);
 
 int odbc_sql_to_c_type_default(int sql_type);
 TDS_SERVER_TYPE odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned);

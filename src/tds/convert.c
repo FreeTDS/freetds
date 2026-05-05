@@ -3167,17 +3167,8 @@ two_digit(char *out, int num)
 		out[0] = ' ';
 }
 
-/**
- * format a date string according to an "extended" strftime(3) formatting definition.
- * @param buf     output buffer
- * @param maxsize size of buffer in bytes (space include terminator)
- * @param format  format string passed to strftime(3), except that %z represents fraction of seconds.
- * @param dr      date to convert
- * @param prec    second fraction precision (0-7).
- * @return length of string returned, 0 for error
- */
-size_t
-tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * dr, int prec)
+static size_t tds_strftime_tm
+(char* buf, size_t maxsize, const char* format, const struct tm* ptm, TDS_INT decimicrosecond, int prec)
 {
 	struct tm tm;
 
@@ -3189,24 +3180,18 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 	
 	assert(buf);
 	assert(format);
-	assert(dr);
-	if (prec < 0 || prec > 7)
-		prec = 3;
+	assert(ptm);
+	tm = *ptm;
 
-	tm.tm_sec = dr->second;
-	tm.tm_min = dr->minute;
-	tm.tm_hour = dr->hour;
-	tm.tm_mday = dr->day;
-	tm.tm_mon = dr->month;
-	tm.tm_year = dr->year - 1900;
-	tm.tm_wday = dr->weekday;
-	tm.tm_yday = dr->dayofyear;
-	tm.tm_isdst = 0;
+	/* TDS date formatting does not support time zones */
 #ifdef HAVE_STRUCT_TM_TM_ZONE
 	tm.tm_zone = NULL;
 #elif defined(HAVE_STRUCT_TM___TM_ZONE)
 	tm.__tm_zone = NULL;
 #endif
+
+	if (prec < 0 || prec > 7)
+		prec = 3;
 
 	/* more characters are required because we replace %z with up to 7 digits */
 	our_format = tds_new(char, strlen(format) + (1 + 5 + 1));
@@ -3230,13 +3215,13 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 		case 'e':
 			/* not portable: day of month, single digit preceded by a blank */
 			/* not supported on old Windows versions */
-			two_digit(pz-1, dr->day);
+			two_digit(pz-1, tm.tm_mday);
 			break;
 		case 'l':
 			/* not portable: 12-hour, single digit preceded by a blank */
 			/* not supported on: SCO Unix, AIX, HP-UX, Windows
 			 * supported on: *BSD, MacOS, Linux, Solaris */
-			two_digit(pz-1, (dr->hour + 11u) % 12u + 1);
+			two_digit(pz-1, (tm.tm_hour + 11u) % 12u + 1);
 			break;
 		case '1':
 		case '2':
@@ -3253,7 +3238,7 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 			z_opt_len = 3;
 		case 'z':
 			/*
-			 * Look for "%z" in the format string.  If found, replace it with dr->milliseconds.
+			 * Look for "%z" in the format string.  If found, replace it with decimicrosecond.
 			 * For example, if milliseconds is 124, the format string
 			 * "%b %d %Y %H:%M:%S.%z" would become
 			 * "%b %d %Y %H:%M:%S.124".
@@ -3272,7 +3257,7 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 				 * too big, discard leading digits.
 				 */
 				memset(buf, '0', sizeof(buf));
-				tds_u32toa_fast_right(buf, dr->decimicrosecond & 0x7fffffff);
+				tds_u32toa_fast_right(buf, decimicrosecond & 0x7fffffff);
 				memcpy(pz, buf + 3, prec);
 				strcpy(pz + prec, format + (pz - our_format) + z_opt_len);
 				pz += prec;
@@ -3290,6 +3275,55 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 	free(our_format);
 
 	return length;
+}
+
+/**
+ * format a date string according to an "extended" strftime(3) formatting definition.
+ * @param buf     output buffer
+ * @param maxsize size of buffer in bytes (space include terminator)
+ * @param format  format string passed to strftime(3), except that %z represents fraction of seconds.
+ * @param dr      date to convert
+ * @param prec    second fraction precision (0-7).
+ * @return length of string returned, 0 for error
+ */
+size_t
+tds_strftime(char* buf, size_t maxsize, const char* format, const TDSDATEREC* dr, int prec)
+{
+	struct tm tm = { 0 };
+
+	tm.tm_sec = dr->second;
+	tm.tm_min = dr->minute;
+	tm.tm_hour = dr->hour;
+	tm.tm_mday = dr->day;
+	tm.tm_mon = dr->month;
+	tm.tm_year = dr->year - 1900;
+	tm.tm_wday = dr->weekday;
+	tm.tm_yday = dr->dayofyear;
+	return tds_strftime_tm(buf, maxsize, format, &tm, dr->decimicrosecond, prec);
+}
+
+size_t tds_strftime_maxsize(const char* format, int prec)
+{
+	char buf[1000];
+	struct tm tm = { 0 };
+
+	/* The longest possible time.
+	 * "Wednesday" for %A,  "September" for %B.
+	 * If they use other locale specific fields... Might get wrong answer.
+	 * The consequences of an error here could be display truncation in
+	 * ODBC clients which choose to depend on this; should not lead to
+	 * buffer overflows.
+	 */
+	tm.tm_sec = 59;
+	tm.tm_min = 59;
+	tm.tm_hour = 19;
+	tm.tm_mday = 24;
+	tm.tm_mon = 9 - 1;
+	tm.tm_year = 2025 - 1900;
+	tm.tm_wday = 3;
+	tm.tm_yday = 266;
+
+	return tds_strftime_tm(buf, sizeof buf, format, &tm, 1234567, prec);
 }
 
 #if 0
