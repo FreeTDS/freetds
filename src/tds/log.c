@@ -487,74 +487,36 @@ tdsdump_log_impl(const char* file, unsigned int level_line, const char *fmt, ...
  * \param col column to dump
  */
 void
-tdsdump_col(const TDSCOLUMN *col)
+tdsdump_col(const TDSCONTEXT *tds_ctx, const TDSCOLUMN *col)
 {
-	char buf[30] = "NULL";
-	char* data = buf;
-	int data_len = -1;
-	TDS_SMALLINT type;
-	TDSDATEREC dr;
-	TDS_NUMERIC* pnumeric;
-	TDS_MONEY* pmoney;
-	TDS_MONEY4* pmoney4;
+	char data[80];
+	const char *ellipsis = "";
 
 	assert(col);
 	assert(col->column_data);
-	
-	type = tds_get_conversion_type(col->column_type, col->column_size);
-	
-	switch(type) {
-	case SYBCHAR: 
-	case SYBVARCHAR:
-		if (col->column_cur_size >= 0) {
-			data = (char *)col->column_data;
-			data_len = col->column_cur_size;
-		}
-		break;
-	case SYBINT1:
-		snprintf(buf, sizeof buf, "%d", (int)*(TDS_TINYINT*)col->column_data);
-		break;
-	case SYBINT2:
-		snprintf(buf, sizeof buf, "%d", (int)*(TDS_SMALLINT*)col->column_data);
-		break;
-	case SYBINT4:
-		snprintf(buf, sizeof buf, "%d", (int)*(TDS_INT*)col->column_data);
-		break;
-	case SYBREAL:
-		snprintf(buf, sizeof buf, "%f", (double)*(TDS_REAL*)col->column_data);
-		break;
-	case SYBFLT8:
-		snprintf(buf, sizeof buf, "%f", (double)*(TDS_FLOAT*)col->column_data);
-		break;
-	case SYBDATETIME:
-	case SYBDATETIME4:
-		if (TDS_SUCCESS == tds_datecrack(type, col->column_data, &dr))
-			tds_strftime(buf, sizeof buf, "%b %d %Y %H:%M:%S", &dr, 3);
-		break;
-	case SYBMONEY:
-		pmoney = (TDS_MONEY*)col->column_data;
-		snprintf(buf, sizeof buf, "$%u%04u.%04u",
-			pmoney->tdsoldmoney.mnyhigh,
-			pmoney->tdsoldmoney.mnylow / 10000u,
-			pmoney->tdsoldmoney.mnylow % 10000u
-			);
-		break;
-	case SYBMONEY4:
-		pmoney4 = (TDS_MONEY4*)col->column_data;
-		snprintf(buf, sizeof buf, "$%u.%04u", pmoney4->mny4 / 10000, pmoney4->mny4 % 10000);
-		break;
-	case SYBDECIMAL:
-	case SYBNUMERIC:
-		pnumeric = (TDS_NUMERIC*)col->column_data;
-		snprintf(buf, sizeof buf, "(%d,%d) numeric", pnumeric->precision, pnumeric->scale);
-		break;
-	default:
-		data = "(unsupported data format for log dump)";
+
+	if (col->column_cur_size < 0) {
+		strcpy(data, "NULL");
+	} else {
+		TDS_SERVER_TYPE type = tds_get_conversion_type(col->column_type, col->column_size);
+		CONV_RESULT cr;
+		TDS_INT len;
+		void *src = col->column_data;
+
+		cr.cc.c = data;
+		cr.cc.len = sizeof(data);
+
+		if (is_blob_col(col))
+			src = ((TDSBLOB *) src)->textvalue;
+
+		len = tds_convert(tds_ctx, type, src, col->column_cur_size, TDS_CONVERT_CHAR, &cr);
+		data[sizeof(data) - 1] = 0;
+		if (len < 0)
+			strcpy(data, "(error converting)");
+		if (len >= sizeof(data))
+			ellipsis = " ...";
 	}
 
-	tdsdump_log(TDS_DBG_FUNC, "Column \"%s\" type \"%s\" has value \"%.*s\"\n",
-		col->column_name ? tds_dstr_cstr(&col->column_name) : "",
-		tds_prtype(col->column_type),
-		(data_len >= 0 ? data_len : (int)strlen(data)),
-		data);
+	tdsdump_log(TDS_DBG_FUNC, "Column \"%s\" type \"%s\" has value \"%s\"%s\n",
+		    tds_dstr_cstr(&col->column_name), tds_prtype(col->column_type), data, ellipsis);
 }
