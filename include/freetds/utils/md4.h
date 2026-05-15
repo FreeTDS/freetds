@@ -23,6 +23,7 @@ typedef struct MD4Context MD4_CTX;
 #else
 
 #include <nettle/md4.h>
+#include <nettle/version.h>
 
 typedef struct md4_ctx MD4_CTX;
 
@@ -38,7 +39,11 @@ static inline void MD4Update(MD4_CTX *ctx, const uint8_t *buf, size_t len)
 
 static inline void MD4Final(MD4_CTX *ctx, uint8_t *digest)
 {
+#if defined(NETTLE_VERSION_MAJOR) && NETTLE_VERSION_MAJOR >= 4
+	nettle_md4_digest(ctx, digest);
+#else
 	nettle_md4_digest(ctx, 16, digest);
+#endif
 }
 
 

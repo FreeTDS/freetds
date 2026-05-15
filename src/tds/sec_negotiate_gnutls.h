@@ -35,6 +35,7 @@
 #  include <nettle/asn1.h>
 #  include <nettle/rsa.h>
 #  include <nettle/bignum.h>
+#  include <nettle/version.h>
 #endif
 
 /**
@@ -186,7 +187,11 @@ sha1(uint8_t *hash, const void *data, size_t len)
 	struct sha1_ctx ctx;
 	sha1_init(&ctx);
 	sha1_update(&ctx, len, (const uint8_t *) data);
+#if defined(NETTLE_VERSION_MAJOR) && NETTLE_VERSION_MAJOR >= 4
+	sha1_digest(&ctx, hash);
+#else
 	sha1_digest(&ctx, 20, hash);
+#endif
 }
 #endif
 
