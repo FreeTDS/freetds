@@ -472,6 +472,7 @@ tds_bcp_start_insert_stmt(TDSSOCKET * tds, TDSBCPINFO * bcpinfo)
 			return TDS_FAIL;
 	} else {
 		/* NOTE: if we use "with nodescribe" for following inserts server do not send describe */
+		/* NOTE: "insert bulk" is an undocumented feature for MSSQL and ASE. */
 		if (asprintf(&query, "insert bulk %s", tds_dstr_cstr(&bcpinfo->tablename)) < 0)
 			return TDS_FAIL;
 	}
