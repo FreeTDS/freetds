@@ -199,13 +199,6 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 			goto cleanup;
 	}
 
-	if (!IS_TDS7_PLUS(tds->conn)) {
-		bindinfo->current_row = tds_new(unsigned char, bindinfo->row_size);
-		if (!bindinfo->current_row)
-			goto cleanup;
-		bindinfo->row_free = tds_bcp_row_free;
-	}
-
 	if (bcpinfo->identity_insert_on) {
 
 		rc = tds_submit_queryf(tds, "set identity_insert %s on", tds_dstr_cstr(&bcpinfo->tablename));
@@ -1391,8 +1384,9 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	}
 
 	/* 
-	 * Work out the number of "variable" columns.  These are either nullable or of 
-	 * varying length type e.g. varchar.   
+	 * TDS5 BCP is coded to pack all columns into an internal buffer and then
+	 * send the buffer (as opposed to TDS7 BCP which just calls wire put functions
+	 * for each column). So we have to work out how big a buffer to allocate.
 	 */
 	var_cols = 0;
 
