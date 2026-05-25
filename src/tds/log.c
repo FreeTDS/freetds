@@ -47,6 +47,7 @@
 
 #include <freetds/tds.h>
 #include <freetds/tds/checks.h>
+#include <freetds/tds/convert.h>
 #include <freetds/thread.h>
 #include <freetds/utils.h>
 
@@ -486,51 +487,31 @@ tdsdump_log_impl(const char* file, unsigned int level_line, const char *fmt, ...
  * \param col column to dump
  */
 void
-tdsdump_col(const TDSCOLUMN *col)
+tdsdump_col(const TDSCONTEXT *ctx, const TDSCOLUMN *col)
 {
 	const char* type_name;
 	char* data;
-	TDS_SMALLINT type;
+	TDS_INT res;
+	CONV_RESULT cr = { 0 };
+	char buf[31];   /* Sufficient for debug display purpose */
 	
 	assert(col);
-	assert(col->column_data);
 	
 	type_name = tds_prtype(col->column_type);
-	type = tds_get_conversion_type(col->column_type, col->column_size);
-	
-	switch(type) {
-	case SYBCHAR: 
-	case SYBVARCHAR:
-		if (col->column_cur_size >= 0) {
-			data = tds_new0(char, 1 + col->column_cur_size);
-			if (!data) {
-				tdsdump_log(TDS_DBG_FUNC, "no memory to log data for type %s\n", type_name);
-				return;
-			}
-			memcpy(data, col->column_data, col->column_cur_size);
-			tdsdump_log(TDS_DBG_FUNC, "type %s has value \"%s\"\n", type_name, data);
-			free(data);
-		} else {
-			tdsdump_log(TDS_DBG_FUNC, "type %s has value NULL\n", type_name);
-		}
-		break;
-	case SYBINT1:
-		tdsdump_log(TDS_DBG_FUNC, "type %s has value %d\n", type_name, (int)*(TDS_TINYINT*)col->column_data);
-		break;
-	case SYBINT2:
-		tdsdump_log(TDS_DBG_FUNC, "type %s has value %d\n", type_name, (int)*(TDS_SMALLINT*)col->column_data);
-		break;
-	case SYBINT4:
-		tdsdump_log(TDS_DBG_FUNC, "type %s has value %d\n", type_name, (int)*(TDS_INT*)col->column_data);
-		break;
-	case SYBREAL:
-		tdsdump_log(TDS_DBG_FUNC, "type %s has value %f\n", type_name, (double)*(TDS_REAL*)col->column_data);
-		break;
-	case SYBFLT8:
-		tdsdump_log(TDS_DBG_FUNC, "type %s has value %f\n", type_name, (double)*(TDS_FLOAT*)col->column_data);
-		break;
-	default:
-		tdsdump_log(TDS_DBG_FUNC, "cannot log data for type %s\n", type_name);
-		break;
+	if (col->column_cur_size < 0)
+	{
+		tdsdump_log(TDS_DBG_FUNC, "type %s has null value.\n", type_name);
+		return;
 	}
+	assert(col->column_data);
+	
+	cr.cc.c = buf;
+	cr.cc.len = sizeof buf - 1;
+	
+	res = tds_convert(ctx, col->column_type, col->column_data, col->column_size, TDS_CONVERT_CHAR, &cr);
+	if ( res >= 0 )
+		tdsdump_log(TDS_DBG_FUNC, "type %s has value \"%.*s\"\n", type_name, (int)res, buf);
+	else
+		tdsdump_log(TDS_DBG_FUNC, "type %s failed to convert value for logging.\n");
 }
+

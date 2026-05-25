@@ -1554,7 +1554,7 @@ int tdsdump_wopen(const wchar_t *filename);
 #include <freetds/pushvis.h>
 void tdsdump_close(void);
 void tdsdump_dump_buf_impl(const char* file, unsigned int level_line, const char *msg, const void *buf, size_t length);
-void tdsdump_col(const TDSCOLUMN *col);
+void tdsdump_col(const TDSCONTEXT *ctx, const TDSCOLUMN *col);
 void tdsdump_log_impl(const char* file, unsigned int level_line, const char *fmt, ...)
 #if defined(__GNUC__) && __GNUC__ >= 2
 #if defined(__MINGW32__)
