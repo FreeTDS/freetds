@@ -179,21 +179,31 @@ test_file(const char *fn)
 	char hints[64];
 	char colin[64] = { 0 };
 	char colout[64] = { 0 };
+	bool fmt_file_exists = false;
 
 	FILE *input_file;
 
 	char sql_file[256];
 	char in_file[256];
 	char exp_file[256];
+	char fmt_file[256];
 
 	snprintf(sql_file, sizeof(sql_file), "%s/%s.sql", FREETDS_SRCDIR, fn);
 	snprintf(in_file, sizeof(in_file), "%s/%s.in", FREETDS_SRCDIR, fn);
 	snprintf(exp_file, sizeof(exp_file), "%s/%s.exp", FREETDS_SRCDIR, fn);
+	snprintf(fmt_file, sizeof(fmt_file), "%s/%s.fmt", FREETDS_SRCDIR, fn);
 
 	strlcpy(table_name, TABLE_NAME, sizeof(table_name));
 	hints[0] = 0;
 
 	printf("===== %s =====\n", fn);
+	input_file = fopen(fmt_file, "r");
+	if (input_file)
+	{
+		fmt_file_exists = true;
+		fclose(input_file);
+	}
+
 	input_file = fopen(in_file, "r");
 	if (!input_file) {
 		sprintf(in_file, "%s.in", fn);
@@ -282,11 +292,15 @@ test_file(const char *fn)
 		failure("bcp_init failed\n");
 
 	if (hints[0])
-		bcp_options(dbproc, BCPHINTS, (BYTE *) hints, strlen(hints));
+		bcp_options(dbproc, BCPHINTS, (BYTE *) hints, (int)strlen(hints));
 
 	printf("return from bcp_init = %d\n", ret);
 
-	format_columns(num_cols, colin);
+	/* Check for a format file; if not, then format all columns as SYBCHAR tab/newline delimit */
+	if ( fmt_file_exists && SUCCEED == bcp_readfmt(dbproc, fmt_file))
+		printf("Loaded %s\n", fmt_file);
+	else
+		format_columns(num_cols, colin);
 
 	ret = bcp_exec(dbproc, &rows_copied);
 	if (ret != SUCCEED || rows_copied != num_rows)
@@ -311,7 +325,10 @@ test_file(const char *fn)
 			continue;
 	}
 
-	format_columns(num_cols, colout);
+	if (fmt_file_exists && SUCCEED == bcp_readfmt(dbproc, fmt_file))
+		printf("Loaded %s\n", fmt_file);
+	else
+		format_columns(num_cols, colout);
 
 	ret = bcp_exec(dbproc, &rows_copied);
 	if (ret != SUCCEED || rows_copied != num_rows)
