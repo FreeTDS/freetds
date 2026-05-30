@@ -1188,7 +1188,7 @@ tds5_read_bulk_defaults(TDSSOCKET *tds TDS_UNUSED, TDSRESULTINFO *res_info, TDSB
 			++syb_info;
 		}
 
-#if !defined(TDS_DEBUG_DATA)
+#if defined(TDS_DEBUG_DATA)
 		if (TDS_UNLIKELY(tds_write_dump))
 			tdsdump_col(tds_get_ctx(tds), col);
 #endif
