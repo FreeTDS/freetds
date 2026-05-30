@@ -47,9 +47,9 @@
 
 #include <freetds/tds.h>
 #include <freetds/tds/checks.h>
+#include <freetds/tds/convert.h>
 #include <freetds/thread.h>
 #include <freetds/utils.h>
-#include <freetds/tds/convert.h>    /* tds_strftime */
 
 /* for now all messages go to the log */
 int tds_debug_flags = TDS_DBGFLAG_ALL | TDS_DBGFLAG_SOURCE;
