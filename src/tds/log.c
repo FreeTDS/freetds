@@ -513,8 +513,10 @@ tdsdump_col(const TDSCONTEXT *tds_ctx, const TDSCOLUMN *col)
 		data[sizeof(data) - 1] = 0;
 		if (len < 0)
 			strcpy(data, "(error converting)");
-		if (len >= sizeof(data))
+		else if (len >= sizeof(data))
 			ellipsis = " ...";
+		else
+			data[len] = 0;
 	}
 
 	tdsdump_log(TDS_DBG_FUNC, "Column \"%s\" type \"%s\" has value \"%s\"%s\n",
