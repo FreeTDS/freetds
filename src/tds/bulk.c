@@ -1154,7 +1154,7 @@ tds5_bulk_insert_column(const char *name)
 }
 
 static void
-tds5_read_bulk_defaults(TDSRESULTINFO *res_info, TDSBCPINFO *bcpinfo)
+tds5_read_bulk_defaults(TDSSOCKET *tds TDS_UNUSED, TDSRESULTINFO *res_info, TDSBCPINFO *bcpinfo)
 {
 	int i;
 	TDS5COLINFO *syb_info = bcpinfo->sybase_colinfo;
@@ -1166,6 +1166,8 @@ tds5_read_bulk_defaults(TDSRESULTINFO *res_info, TDSBCPINFO *bcpinfo)
 	 * give an error, instead of using the default. */
 	if (!tds_dstr_isempty(&bcpinfo->hint) && strstr(tds_dstr_cstr(&bcpinfo->hint), "KEEP_NULLS"))
 		return;
+
+	tdsdump_log(TDS_DBG_INFO1, "Reading default value row.\n");
 
 	for (i = 0; i < res_info->num_cols; ++i, ++syb_info) {
 		TDSCOLUMN *col = res_info->columns[i];
@@ -1185,6 +1187,11 @@ tds5_read_bulk_defaults(TDSRESULTINFO *res_info, TDSBCPINFO *bcpinfo)
 				break;
 			++syb_info;
 		}
+
+#if defined(TDS_DEBUG_DATA)
+		if (TDS_UNLIKELY(tds_write_dump))
+			tdsdump_col(tds_get_ctx(tds), col);
+#endif
 
 		syb_info->dflt_size = len;
 		if (TDS_RESIZE(syb_info->dflt_value, len))
@@ -1242,7 +1249,7 @@ tds5_process_insert_bulk_reply(TDSSOCKET * tds, TDSBCPINFO *bcpinfo)
 				continue;
 			if (!row_match) {
 				tds_extra_assert(res_info->num_cols == num_defs);
-				tds5_read_bulk_defaults(res_info, bcpinfo);
+				tds5_read_bulk_defaults(tds, res_info, bcpinfo);
 				continue;
 			}
 			for (icol = 0; icol < BULKCOL_COUNT; ++icol) {
