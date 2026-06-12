@@ -572,6 +572,19 @@ odbc_prepare(TDS_STMT *stmt)
 	ODBC_RETURN_(stmt);
 }
 
+/** Helper for SQLDriverConnect to apply DBC parameters */
+static void dbc_apply_param(TDS_DBC* dbc, DSTR* dst, const TDS_PARSED_PARAM* param)
+{
+	if (param->len > 0)
+	{
+		/* TDS_PARSED_PARAM still contains the optional {} delimiters */
+		int offset = (param->p[0] == '{' && param->p[param->len - 1] == '}');
+
+		if (!tds_dstr_copyn(dst, param->p + offset, param->len - 2 * offset))
+			odbc_errs_add(&dbc->errs, "HY001", NULL);
+	}
+}
+
 ODBC_FUNC(SQLDriverConnect, (P(SQLHDBC,hdbc), P(SQLHWND,hwnd), PCHARIN(ConnStrIn,SQLSMALLINT),
 	PCHAROUT(ConnStrOut,SQLSMALLINT), P(SQLUSMALLINT,fDriverCompletion) WIDE))
 {
@@ -632,6 +645,10 @@ ODBC_FUNC(SQLDriverConnect, (P(SQLHDBC,hdbc), P(SQLHWND,hwnd), PCHARIN(ConnStrIn
 
 	odbc_set_dstr(dbc, szConnStrOut, cbConnStrOutMax, pcbConnStrOut, &conn_str);
 	tds_dstr_free(&conn_str);
+
+	dbc_apply_param(dbc, &dbc->datetime_fmt, &params[ODBC_PARAM_DateTimeFmt]);
+	dbc_apply_param(dbc, &dbc->date_fmt, &params[ODBC_PARAM_DateFmt]);
+	dbc_apply_param(dbc, &dbc->time_fmt, &params[ODBC_PARAM_TimeFmt]);
 
 	/* add login info */
 	if (hwnd && fDriverCompletion != SQL_DRIVER_NOPROMPT
@@ -1766,6 +1783,15 @@ odbc_SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 	dbc->attr.mars_enabled = SQL_MARS_ENABLED_NO;
 	dbc->attr.bulk_enabled = SQL_BCP_OFF;
 
+	/* Initial values of DBC date formats taken from environment context.
+	 * odbc_SQLAllocEnv() always initializes that. */
+	tds_dstr_init(&dbc->datetime_fmt);
+	tds_dstr_copy(&dbc->datetime_fmt, env->tds_ctx->locale->datetime_fmt);
+	tds_dstr_init(&dbc->date_fmt);
+	tds_dstr_copy(&dbc->date_fmt, env->tds_ctx->locale->date_fmt);
+	tds_dstr_init(&dbc->time_fmt);
+	tds_dstr_copy(&dbc->time_fmt, env->tds_ctx->locale->time_fmt);
+
 	tds_mutex_init(&dbc->mtx);
 	*phdbc = (SQLHDBC) dbc;
 
@@ -1810,7 +1836,7 @@ odbc_SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version)
 	ctx->msg_handler = odbc_errmsg_handler;
 	ctx->err_handler = odbc_errmsg_handler;
 
-	/* ODBC has its own format */
+	/* ODBC driver date-to-char conversion: mimic MS client */
 	free(ctx->locale->datetime_fmt);
 	ctx->locale->datetime_fmt = strdup("%Y-%m-%d %H:%M:%S.%z");
 	free(ctx->locale->date_fmt);
@@ -3326,7 +3352,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 		 * is formatting function correct ??
 		 * we should not convert to string with invalid precision!
 		 */
-		odbc_set_sql_type_info(col, drec, stmt->dbc->env->attr.odbc_version);
+		odbc_set_sql_type_info(col, drec, stmt->dbc);
 
 		drec->sql_desc_fixed_prec_scale = (col->column_prec && col->column_scale) ? SQL_TRUE : SQL_FALSE;
 		if (!tds_dstr_dup(&drec->sql_desc_label, &col->column_name))
@@ -4376,6 +4402,11 @@ odbc_SQLFreeConnect(SQLHDBC hdbc)
 	tds_free_socket(dbc->tds_socket);
 
 	odbc_bcp_free_storage(dbc);
+
+	tds_dstr_free(&dbc->datetime_fmt);
+	tds_dstr_free(&dbc->date_fmt);
+	tds_dstr_free(&dbc->time_fmt);
+
 	/* free attributes */
 #ifdef TDS_NO_DM
 	tds_dstr_free(&dbc->attr.tracefile);
@@ -6634,6 +6665,18 @@ ODBC_FUNC(SQLSetConnectAttr, (P(SQLHDBC,hdbc), P(SQLINTEGER,Attribute), P(SQLPOI
 				      (const ODBC_CHAR *) params->errfile, params->direction _wide0);
 		}
 		break;
+	case SQL_COPT_TDSODBC_DATETIME_FORMAT:
+		if (!odbc_dstr_copy(dbc, &dbc->datetime_fmt, StringLength, (ODBC_CHAR*)ValuePtr))
+			odbc_errs_add(&dbc->errs, "HY001", NULL);
+		break;
+	case SQL_COPT_TDSODBC_DATE_FORMAT:
+		if (!odbc_dstr_copy(dbc, &dbc->date_fmt, StringLength, (ODBC_CHAR*)ValuePtr))
+			odbc_errs_add(&dbc->errs, "HY001", NULL);
+		break;
+	case SQL_COPT_TDSODBC_TIME_FORMAT:
+		if (!odbc_dstr_copy(dbc, &dbc->time_fmt, StringLength, (ODBC_CHAR*)ValuePtr))
+			odbc_errs_add(&dbc->errs, "HY001", NULL);
+		break;
 #ifdef ENABLE_ODBC_WIDE
 	case SQL_COPT_TDSODBC_IMPL_BCP_INITW:
 		if (!ValuePtr)
@@ -8127,7 +8170,7 @@ read_params(TDS_STMT *stmt)
 				col->column_prec = precision;
 				col->column_scale = scale;
 				drec->sql_desc_nullable = SQL_NULLABLE;
-				odbc_set_sql_type_info(col, drec, stmt->dbc->env->attr.odbc_version);
+				odbc_set_sql_type_info(col, drec, stmt->dbc);
 				break;
 			}
 			continue;

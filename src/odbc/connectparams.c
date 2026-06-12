@@ -492,6 +492,9 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 			   ||  strcasecmp(option, "client_charset") == 0) {
 			num_param = ODBC_PARAM_ClientCharset;
 			tds_parse_conf_section(TDS_STR_CLCHARSET, tds_dstr_cstr(&value), login);
+		} else if (CHK_PARAM(DateTimeFmt)) {
+		} else if (CHK_PARAM(DateFmt)) {
+		} else if (CHK_PARAM(TimeFmt)) {
 		} else if (CHK_PARAM(DumpFile)) {
 			tds_parse_conf_section(TDS_STR_DUMPFILE, tds_dstr_cstr(&value), login);
 		} else if (CHK_PARAM(DumpFileAppend)) {

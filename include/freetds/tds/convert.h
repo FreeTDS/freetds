@@ -92,6 +92,9 @@ TDS_INT tds_convert(const TDSCONTEXT * context, int srctype, const void *src, TD
 
 size_t tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * timeptr, int prec);
 
+/** Maximum expected size of strftime() output for a given string and precision (excluding null terminator) */
+size_t tds_strftime_maxsize(const char* format, int prec);
+
 /* Fast int to string (massively outperforms sprintf in hot loop).
  * No null termination; returns number of characters read.
  */
