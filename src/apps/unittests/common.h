@@ -29,6 +29,7 @@ char *add_string(char *dest, char *const dest_end, const char *str);
 
 char *add_server(char *dest, char *const dest_end);
 
+char *add_login(char *dest, char *const dest_end);
 /* Add ".." to the environment PATH */
 void update_path(void);
 

@@ -86,6 +86,47 @@ defncopy(const char *object_name)
 	output = read_file(output_fn());
 }
 
+/* Builds the command with Sybase syntax */
+static void
+defncopy_sybase(const char *object_name)
+{
+	char cmd[2048];
+	char *const end = cmd + sizeof(cmd) - 1;
+	char *p;
+	FILE *f;
+
+	/* empty input */
+	f = fopen(input_fn(), "w");
+	assert(f);
+	fclose(f);
+
+	strcpy(cmd, "defncopy" EXE_SUFFIX);
+	p = strchr(cmd, 0);
+	p = add_login(p, end);
+	p = add_string(p, end, " out ");
+	p = add_string(p, end, output_fn());
+	if (common_pwd.database[0]) {
+		p = add_string(p, end, " ");
+		p = quote_arg(p, end, common_pwd.database);
+	}
+	p = add_string(p, end, " ");
+	p = quote_arg(p, end, object_name);
+	*p = 0;
+	printf("Executing: %s\n", cmd);
+	printf("Setting DEFNCOPY_SYBASE_SYNTAX in the environment\n");
+	(void) setenv("DEFNCOPY_SYBASE_SYNTAX", "1", 0);
+	if (system(cmd) != 0) {
+		printf("Output is:\n");
+		cat(output_fn(), stdout);
+		fprintf(stderr, "Failed command\n");
+		exit(1);
+	}
+	TDS_ZERO_FREE(output);
+	printf("Removing DEFNCOPY_SYBASE_SYNTAX from the environment\n");
+	(void) unsetenv("DEFNCOPY_SYBASE_SYNTAX");
+	output = read_file(output_fn());
+}
+
 /* table with a column name that is also a keyword, should be quoted */
 static void
 test_keyword(void)
@@ -103,6 +144,40 @@ test_keyword(void)
 "  [key]        nvarchar(4000)  NOT NULL\n"
 ")\n");
 	defncopy("dbo.table_with_column_named_key");
+	cat(output_fn(), stdout);
+	normalize_spaces(output);
+	sql =
+"CREATE TABLE [dbo].[table_with_column_named_key]\n"
+" ( [key] nvarchar(4000) NOT NULL\n"
+" )\n"
+"GO";
+	if (strstr(output, sql) == NULL) {
+		fprintf(stderr, "Expected SQL string not found\n");
+		exit(1);
+	}
+	tsql(clean);
+	tsql(sql);
+	tsql(clean);
+}
+
+
+/* same as previous but using Sybase syntax */
+static void
+test_keyword_sybase(void)
+{
+	const char *sql;
+	static const char clean[] =
+		"IF OBJECT_ID('dbo.table_with_column_named_key') IS NOT NULL DROP TABLE dbo.table_with_column_named_key\n";
+
+	tsql(clean);
+	tsql(
+"IF OBJECT_ID('dbo.table_with_column_named_key') IS NOT NULL DROP TABLE dbo.table_with_column_named_key\n"
+"GO\n"
+"CREATE TABLE dbo.table_with_column_named_key\n"
+"(\n"
+"  [key]        nvarchar(4000)  NOT NULL\n"
+")\n");
+	defncopy_sybase("dbo.table_with_column_named_key");
 	cat(output_fn(), stdout);
 	normalize_spaces(output);
 	sql =
@@ -221,6 +296,7 @@ TEST_MAIN()
 		fclose(f);
 
 	test_keyword();
+	test_keyword_sybase();
 	test_index_name_with_space();
 	test_weird_index_names();
 
