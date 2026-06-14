@@ -164,6 +164,18 @@ add_server(char *dest, char *const dest_end)
 	return dest;
 }
 
+char *
+add_login(char *dest, char *const dest_end)
+{
+	dest = add_string(dest, dest_end, " -S ");
+	dest = quote_arg(dest, dest_end, common_pwd.server);
+	dest = add_string(dest, dest_end, " -U ");
+	dest = quote_arg(dest, dest_end, common_pwd.user);
+	dest = add_string(dest, dest_end, " -P ");
+	dest = quote_arg(dest, dest_end, common_pwd.password);
+	return dest;
+}
+
 void
 update_path(void)
 {

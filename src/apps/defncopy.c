@@ -916,32 +916,35 @@ print_results(DBPROCESS *dbproc)
 static void
 usage(const char invoked_as[])
 {
+
 	fprintf(stderr, "usage:  %s \n"
-			"        [-U username] [-P password]\n"
-			"        [-S servername] [-D database]\n"
-			"        [-i input filename] [-o output filename]\n"
-			"        [owner.]object_name [[owner.]object_name...]\n"
-			, invoked_as);
-/**
-defncopy Syntax Error
-Usage: defncopy
-    [-v]
-    [-X]
---  [-a <display_charset>]
---  [-I <interfaces_file>]
---  [-J [<client_charset>]]
---  [-K <keytab_file>]
-    [-P <password>]
---  [-R <remote_server_principal>]
-    [-S [<server_name>]]
-    [-U <user_name>]
---  [-V <security_options>]
---  [-Z <security_mechanism>]
---  [-z <language>]
-    { in <file_name> <database_name> |
-      out <file_name> <database_name> [<owner>.]<object_name>
-          [[<owner>.]<object_name>...] }
-**/
+/*
+		"        [-X]\n"
+		"        [-a <display_charset>]\n"
+		"        [-I <interfaces_file>]\n"
+		"        [-J [<client_charset>]]\n"
+		"        [-K <keytab_file>]\n"
+*/
+		"        [-P <password>]\n"
+/*
+		"        [-R <remote_server_principal>]\n"
+*/
+		"        [-S [<server_name>]]\n"
+		"        [-U <user_name>]\n"
+/*
+		"        [-V <security_options>]\n"
+		"        [-Z <security_mechanism>]\n"
+		"        [-z <language>]\n"
+*/
+		"        { in <file_name> <database_name> |\n"
+		"          out <file_name> <database_name> [<owner>.]<object_name>\n"
+		"              [[<owner>.]<object_name>...] }\n"
+		"\n            OR\n\n"
+		"        %s [-U username] [-P password]\n"
+		"        [-S servername] [-D database]\n"
+		"        [-i input filename] [-o output filename]\n"
+		"        [owner.]object_name [[owner.]object_name...]\n"
+		,invoked_as, invoked_as);
 }
 
 static LOGINREC *
@@ -954,6 +957,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 
 	extern char *optarg;
 	extern int optind;
+	bool direction_found = false;
 
 	assert(options && argv);
 
@@ -1037,6 +1041,32 @@ get_login(int argc, char *argv[], OPTIONS *options)
 	if (!options->servername) {
 		usage(options->appname);
 		exit(1);
+	}
+
+	/* If we are using Sybase syntax, then we're going to consume 3 non-switch
+	 * arguments: direction, filename, and database name.
+	 */
+
+	if (strncasecmp(argv[optind], "in", 2) == 0) {
+		optind++;		/* consume direction */
+		if (optind < argc) {
+			options->input_filename = strdup(argv[optind]);
+			optind++;	/* consume filename */
+		}
+		direction_found = true;
+	}
+	else if (strncasecmp(argv[optind], "out", 3) == 0) {
+		optind++;		/* consume direction */
+		if (optind < argc) {
+			options->output_filename = strdup(argv[optind]);
+			optind++;	/* consume filename */
+		}
+		direction_found = true;
+	}
+
+	if (direction_found && optind < argc) {
+		options->database = strdup(argv[optind]);
+		optind++;		/* consume database name*/
 	}
 
 	options->optind = optind;
