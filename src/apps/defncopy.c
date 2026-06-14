@@ -916,32 +916,38 @@ print_results(DBPROCESS *dbproc)
 static void
 usage(const char invoked_as[])
 {
-	fprintf(stderr, "usage:  %s \n"
+	if (getenv("DEFNCOPY_SYBASE_SYNTAX")) {
+		fprintf(stderr, "usage:  %s \n"
+/*
+			"        [-X]\n"
+			"        [-a <display_charset>]\n"
+			"        [-I <interfaces_file>]\n"
+			"        [-J [<client_charset>]]\n"
+			"        [-K <keytab_file>]\n"
+*/
+			"        [-P <password>]\n"
+/*
+			"        [-R <remote_server_principal>]\n"
+*/
+			"        [-S [<server_name>]]\n"
+			"        [-U <user_name>]\n"
+/*
+			"        [-V <security_options>]\n"
+			"        [-Z <security_mechanism>]\n"
+			"        [-z <language>]\n"
+*/
+			"        { in <file_name> <database_name> |\n"
+			"          out <file_name> <database_name> [<owner>.]<object_name>\n"
+			"              [[<owner>.]<object_name>...] }\n"
+			, invoked_as);
+	} else {
+		fprintf(stderr, "usage:  %s \n"
 			"        [-U username] [-P password]\n"
 			"        [-S servername] [-D database]\n"
 			"        [-i input filename] [-o output filename]\n"
 			"        [owner.]object_name [[owner.]object_name...]\n"
 			, invoked_as);
-/**
-defncopy Syntax Error
-Usage: defncopy
-    [-v]
-    [-X]
---  [-a <display_charset>]
---  [-I <interfaces_file>]
---  [-J [<client_charset>]]
---  [-K <keytab_file>]
-    [-P <password>]
---  [-R <remote_server_principal>]
-    [-S [<server_name>]]
-    [-U <user_name>]
---  [-V <security_options>]
---  [-Z <security_mechanism>]
---  [-z <language>]
-    { in <file_name> <database_name> |
-      out <file_name> <database_name> [<owner>.]<object_name>
-          [[<owner>.]<object_name>...] }
-**/
+	}
 }
 
 static LOGINREC *
@@ -1039,6 +1045,34 @@ get_login(int argc, char *argv[], OPTIONS *options)
 		exit(1);
 	}
 
+	/* If we are using Sybase syntax, then we're going to consume 3 non-switch
+	 * arguments: direction, filename, and database name.
+	 */
+	if (getenv("DEFNCOPY_SYBASE_SYNTAX")) {
+		if (strncasecmp(argv[optind], "in", 2) == 0) {
+			optind++;		/* consume direction */
+			if (optind < argc) {
+				options->input_filename = strdup(argv[optind]);
+				optind++;	/* consume filename */
+			}
+		}
+		else if (strncasecmp(argv[optind], "out", 3) == 0) {
+			optind++;		/* consume direction */
+			if (optind < argc) {
+				options->output_filename = strdup(argv[optind]);
+				optind++;	/* consume filename */
+			}
+		}
+		else {
+			fprintf(stderr, "Invalid directional parameter '%s': must be 'in' or 'out'", argv[optind]);
+			exit(1);
+		}
+
+		if (optind < argc) {
+			options->database = strdup(argv[optind]);
+			optind++;		/* consume database name*/
+		}
+	}
 	options->optind = optind;
 
 	return login;

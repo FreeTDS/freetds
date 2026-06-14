@@ -20,45 +20,35 @@
  * Mapping table for the DEFNCOPY command.
  */
 
+#include <stdlib.h>
+
 int vmsarg_mapping (int *nvargs, char *vms_arg[], char *unix_arg[],
 	char *unix_narg[], char *vms_key[], char *unix_key[],
 	char *separator[], int flags[], char *pattern[],
 	char **outverb, int *action_flags, char **arg_symbol,
 	char **image_name)
 {
- *nvargs = 12;
+ *nvargs = 8;
  *action_flags = 1301;
- vms_arg[1] = "DIRECTION";
+
+ vms_arg[1] = "USERNAME";
  flags[1] = 1;
- unix_arg[1] = "$";
+ unix_arg[1] = "-U";
 
- vms_arg[2] = "FILE_NAME";
+ vms_arg[2] = "PASSWORD";
  flags[2] = 1;
- unix_arg[2] = "$";
+ unix_arg[2] = "-P";
 
- vms_arg[3] = "DATABASE_NAME";
+ vms_arg[3] = "SERVER_NAME";
  flags[3] = 1;
- unix_arg[3] = "$";
+ unix_arg[3] = "-S";
 
- vms_arg[4] = "OBJECT_NAME";
+ vms_arg[4] = "VERSION";
  flags[4] = 1;
- unix_arg[4] = "$";
+ unix_arg[4] = "-v";
 
- vms_arg[5] = "USERNAME";
- flags[5] = 1;
- unix_arg[5] = "-U";
-
- vms_arg[6] = "PASSOWRD";
- flags[6] = 1;
- unix_arg[6] = "-P";
-
- vms_arg[7] = "SERVER_NAME";
- flags[7] = 1;
- unix_arg[7] = "-S";
-
- vms_arg[8] = "VERSION";
- flags[8] = 1;
- unix_arg[8] = "-v";
+/*
+ * not implemented
 
  vms_arg[9] = "INTERFACES";
  flags[9] = 1;
@@ -75,6 +65,28 @@ int vmsarg_mapping (int *nvargs, char *vms_arg[], char *unix_arg[],
  vms_arg[12] = "CLIENTCHARSET";
  flags[12] = 1;
  unix_arg[12] = "-J";
+*/
+
+ vms_arg[5] = "DIRECTION";
+ flags[5] = 1;
+ unix_arg[5] = "$";
+
+ vms_arg[6] = "FILE_NAME";
+ flags[6] = 1;
+ unix_arg[6] = "$";
+
+ vms_arg[7] = "DATABASE_NAME";
+ flags[7] = 1;
+ unix_arg[7] = "$";
+
+ vms_arg[8] = "OBJECT_NAME";
+ flags[8] = 1;
+ unix_arg[8] = "$";
+
+ /* We need the Sybase syntax for our parameter conversion to work.
+  */
+ if (setenv("DEFNCOPY_SYBASE_SYNTAX", "1", 0) != 0)
+	return 0;
 
  return 1;
 }
