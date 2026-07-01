@@ -556,6 +556,9 @@ bcp_control(DBPROCESS * dbproc, int field, DBINT value)
 	case BCPBATCH:
 		dbproc->hostfileinfo->batch = value;
 		break;
+	case BCPDRYRUN:
+		dbproc->bcpinfo->dry_run = value;
+		break;
 
 	default:
 		dbperror(dbproc, SYBEIFNB, 0);
@@ -1595,6 +1598,12 @@ _bcp_exec_in(DBPROCESS *dbproc, DBINT *rows_copied)
 		if (skip)
 			continue;
 
+		if (dbproc->bcpinfo->dry_run)
+		{
+			++rows_written_so_far;
+			continue;
+		}
+
 		if (TDS_SUCCEED(tds_bcp_send_record(dbproc->tds_socket, dbproc->bcpinfo,
 						    _bcp_no_get_col_data, _bcp_null_error, 0))) {
 
@@ -1632,7 +1641,9 @@ _bcp_exec_in(DBPROCESS *dbproc, DBINT *rows_copied)
 		ret = FAIL;
 	}
 
-	tds_bcp_done(tds, &rows_written_so_far);
+	if ( !dbproc->bcpinfo->dry_run )
+		tds_bcp_done(tds, &rows_written_so_far);
+
 	*rows_copied += rows_written_so_far;
 
 	return ret == NO_MORE_ROWS? SUCCEED : FAIL;	/* (ret is returned from _bcp_read_hostfile) */

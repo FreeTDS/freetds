@@ -113,6 +113,9 @@ extern "C"
 #define BCPLABELED 5
 #define BCPHINTS 6
 
+/* FreeTDS-specific BCP options */
+#define BCPDRYRUN 1001
+
 #define DBCMDNONE 0
 #define DBCMDPEND 1
 #define DBCMDSENT 2

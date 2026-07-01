@@ -1734,6 +1734,7 @@ struct tds_bcpinfo
 	bool identity_insert_on;
 	bool xfer_init;
 	bool datarows_locking;
+	bool dry_run;			/** for "bcp in", validate hostfile without uploading rows. */
 	TDS_INT bind_count;
 	TDSRESULTINFO *bindinfo;
 	TDS5COLINFO *sybase_colinfo;

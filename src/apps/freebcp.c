@@ -268,7 +268,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 	 * Get the rest of the arguments
 	 */
 	optind = 4;		/* start processing options after table, direction, & filename */
-	while ((ch = getopt(argc, argv, "m:f:e:F:L:b:t:r:U:P:i:I:S:h:T:A:o:O:0:C:ncEdvVD:k")) != -1) {
+	while ((ch = getopt(argc, argv, "m:f:e:F:L:b:t:r:U:P:i:I:S:h:T:A:o:O:0:C:ncEdvVD:kj")) != -1) {
 		switch (ch) {
 		case 'v':
 		case 'V':
@@ -361,6 +361,9 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 			break;
 		case 'k':
 			pdata->ignoreDefaults = true;
+			break;
+		case 'j':
+			pdata->dry_run = true;
 			break;
 		case '?':
 		default:
@@ -588,6 +591,7 @@ file_process(BCPPARAMDATA *pdata, DBPROCESS *dbproc, DBINT dir)
 	bcp_control(dbproc, BCPFIRST, pdata->firstrow);
 	bcp_control(dbproc, BCPLAST, pdata->lastrow);
 	bcp_control(dbproc, BCPMAXERRS, pdata->maxerrors);
+	bcp_control(dbproc, BCPDRYRUN, pdata->dry_run);
 
 	switch (file_format) {
 	case BCPFORMAT_FORMATTED:
@@ -620,7 +624,7 @@ file_process(BCPPARAMDATA *pdata, DBPROCESS *dbproc, DBINT dir)
 	if (!process_Eflag(pdata, dbproc))
 		return FALSE;
 
-	printf("\nStarting copy...\n\n");
+	printf("\nStarting copy%s...\n\n", pdata->dry_run ? " (dry run)" : "");
 
 	if (FAIL == bcp_exec(dbproc, &li_rowscopied)) {
 		fprintf(stderr, "bcp copy %s failed\n", (dir == DB_IN) ? "in" : "out");
@@ -630,7 +634,7 @@ file_process(BCPPARAMDATA *pdata, DBPROCESS *dbproc, DBINT dir)
 	if (li_rowsread > li_rowscopied)
 		printf("%d rows unable to be copied.\n", li_rowsread - li_rowscopied);
 
-	printf("%d rows copied.\n", li_rowscopied);
+	printf("%d rows %scopied.\n", li_rowscopied, pdata->dry_run ? "would have been " : "");
 
 	return TRUE;
 }
@@ -720,7 +724,7 @@ pusage(void)
 	fprintf(stderr, "        [-U username] [-P password] [-I interfaces_file] [-S server] [-D database]\n");
 	fprintf(stderr, "        [-v] [-d] [-h \"hint [,...]\" [-O \"set connection_option on|off, ...]\"\n");
 	fprintf(stderr, "        [-A packet size] [-T text or image size] [-E]\n");
-	fprintf(stderr, "        [-i input_file] [-o output_file] [-k]\n");
+	fprintf(stderr, "        [-i input_file] [-o output_file] [-k] [-j]\n");
 	fprintf(stderr, "        \n");
 	fprintf(stderr, "example: freebcp testdb.dbo.inserttest in inserttest.txt -S mssql -U guest -P password -c\n");
 }
