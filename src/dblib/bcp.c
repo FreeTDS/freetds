@@ -327,9 +327,10 @@ bcp_columns(DBPROCESS * dbproc, int host_colcount)
  * \param host_prefixlen size of the prefix in the datafile column, if any.  For delimited files: zero.  
  *			May be 0, 1, 2, or 4 bytes.  The prefix will be read as an integer (not a character string) from the 
  * 			data file, and will be interpreted the data size of that column, in bytes.  
- * \param host_collen maximum size of datafile column, exclusive of any prefix/terminator.  Just the data, ma'am.  
+ *			The value -1 means to use the default recommended prefix size for the datatype.
+ * \param host_collen maximum size of datafile column exclusive of any prefix/terminator.  Just the data, ma'am.  
  *		Special values:
- *			- \b 0 indicates NULL.  
+ *			- \b  0 indicates a null value for a variable-length field with no prefix/terminator.
  *			- \b -1 for fixed-length non-null datatypes
  *			- \b -1 for variable-length datatypes (e.g. SYBCHAR) where the length is established 
  *				by a prefix/terminator.  
@@ -390,6 +391,8 @@ bcp_colfmt(DBPROCESS * dbproc, int host_colnum, int host_type, int host_prefixle
 		return FAIL;
 	}
 
+	/* Note: MS bcp supports 1, 2, 4, and 8; but not 3; but returns SYBEVDPT on error. 
+	 * -1 is a special value that will be resolved after database connection. */
 	if (host_prefixlen != 0 && host_prefixlen != 1 && host_prefixlen != 2 && host_prefixlen != 4 && host_prefixlen != -1) {
 		dbperror(dbproc, SYBEBCPREF, 0);
 		return FAIL;
@@ -403,11 +406,6 @@ bcp_colfmt(DBPROCESS * dbproc, int host_colnum, int host_type, int host_prefixle
 
 	if (table_colnum > 0 && !is_tds_type_valid(host_type)) {
 		dbperror(dbproc, SYBEUDTY, 0);
-		return FAIL;
-	}
-
-	if (host_type && host_prefixlen == 0 && host_collen == -1 && host_termlen == -1 && !is_fixed_type(host_type)) {
-		dbperror(dbproc, SYBEVDPT, 0);
 		return FAIL;
 	}
 
@@ -430,6 +428,14 @@ bcp_colfmt(DBPROCESS * dbproc, int host_colnum, int host_type, int host_prefixle
 	 */
 	if (host_term == NULL && host_termlen > 0) {
 		dbperror(dbproc, SYBEVDPT, 0);	/* "all variable-length data must have either a length-prefix ..." */
+		return FAIL;
+	}
+
+	/* Does not make sense to have a prefix and a terminator. */
+	if ( host_prefixlen != 0 && host_termlen > 0 ) {
+		tdsdump_log(TDS_DBG_FUNC, 
+			"bcp_colfmt: host column %d has a prefix and a terminator.\n", host_colnum);
+		dbperror(dbproc, SYBEVDPT, 0);
 		return FAIL;
 	}
 
@@ -1171,6 +1177,7 @@ static STATUS
 _bcp_read_hostfile(DBPROCESS *dbproc, TDSFILESTREAM *stream, bool *row_error, bool skip)
 {
 	int i;
+	bool truncation_warning = false;
 
 	tdsdump_log(TDS_DBG_FUNC, "_bcp_read_hostfile(%p, %p, %p, %d)\n", dbproc, stream, row_error, skip);
 	assert(dbproc);
@@ -1181,8 +1188,8 @@ _bcp_read_hostfile(DBPROCESS *dbproc, TDSFILESTREAM *stream, bool *row_error, bo
 	for (i = 0; i < dbproc->hostfileinfo->host_colcount; i++) {
 		TDSCOLUMN *bcpcol = NULL;
 		BCP_HOSTCOLINFO *hostcol;
-		TDS_CHAR *coldata;
-		int collen = 0;
+		TDS_CHAR *coldata = NULL;
+		int collen = 0;		/* How many bytes to read from hostfile */
 		bool data_is_null = false;
 		offset_type col_start;
 
@@ -1208,9 +1215,30 @@ _bcp_read_hostfile(DBPROCESS *dbproc, TDSFILESTREAM *stream, bool *row_error, bo
 			assert(bcpcol != NULL);
 		}
 
-		/* detect prefix len */
+		/* detect prefix len. NOTE: requires server connection, because
+		 * it will add a prefix to a prefix-less fixed type if the column
+		 * is nullable. */
 		if (bcpcol && hostcol->prefix_len == -1)
 			bcp_cache_prefix_len(hostcol, bcpcol);
+
+		/* If a variable field has no prefix or terminator, its length can
+		 * only be set by hostcol->column_len.
+		 * 
+		 * NOTE: Must check do this after bcp_cache_prefix_len() as that
+		 * could set or unset the prefix_len. */
+		if (hostcol->prefix_len == 0 && hostcol->term_len <= 0 && !is_fixed_type(hostcol->datatype)) {
+			if (hostcol->column_len == -1) {
+				/* If no column max size given either, we can't know how much to read. */
+				dbperror(dbproc, SYBEVDPT, 0);
+				return FAIL;
+			}
+
+			/* Column size 0, special case to indicate null field. */
+			if (hostcol->column_len == 0)
+				data_is_null = true;
+
+			collen = hostcol->column_len;
+		}
 
 		/* a prefix length, if extant, specifies how many bytes to read */
 		if (hostcol->prefix_len > 0) {
@@ -1220,6 +1248,7 @@ _bcp_read_hostfile(DBPROCESS *dbproc, TDSFILESTREAM *stream, bool *row_error, bo
 				TDS_INT li;
 			} u;
 
+			/* note: prefixes are in native endianness. */
 			switch (hostcol->prefix_len) {
 			case 1:
 				if (tds_file_stream_read_raw(stream, &u.ti, 1) != 1)
@@ -1237,48 +1266,54 @@ _bcp_read_hostfile(DBPROCESS *dbproc, TDSFILESTREAM *stream, bool *row_error, bo
 				collen = u.li;
 				break;
 			default:
-				/* FIXME return error, remember that prefix_len can be 3 */
-				assert(hostcol->prefix_len <= 4);
-				break;
+				/* Should be unreachable - bcp_colfmt() also checked this. */
+				dbperror(dbproc, SYBEBCPREF, 0);
+				return FAIL;
 			}
 
 			/* TODO test all NULL types */
-			/* TODO for < -1 error */
-			if (collen <= -1) {
+			/* Length prefix of -1 means a null value. */
+			if (collen <= -1)
 				data_is_null = true;
-				collen = 0;
+		}
+
+		/* Report an error if a fixed-width type has mismatching prefix.
+		 * Note: fixed-width types are allowed a prefix in order to be nullable.
+		 */
+		if (!data_is_null && is_fixed_type(hostcol->datatype)) {
+			int fixed_size = tds_get_size_by_type(hostcol->datatype);
+
+			if (collen > 0 && collen != fixed_size) {
+				tdsdump_log(TDS_DBG_FUNC,
+					"bcp_colfmt: invalid collen %d for fixed type %d.\n",
+					collen, hostcol->datatype);
+				dbperror(dbproc, SYBECSYN, 0);
+				return FAIL;
 			}
-		}
 
-		/* if (Max) column length specified take that into consideration. (Meaning what, exactly?) */
+			collen = fixed_size;
+		}		
 
-		if (!data_is_null && hostcol->column_len >= 0) {
-			if (hostcol->column_len == 0)
-				data_is_null = true;
-			else if (collen)
-				collen = TDS_MIN(hostcol->column_len, collen);
-			else
-				collen = hostcol->column_len;
-		}
-
-		tdsdump_log(TDS_DBG_FUNC, "prefix_len = %d collen = %d \n", hostcol->prefix_len, collen);
-
-		/* Fixed Length data - this overrides anything else specified */
-
-		if (is_fixed_type(hostcol->datatype))
-			collen = tds_get_size_by_type(hostcol->datatype);
+		tdsdump_log(TDS_DBG_FUNC, "prefix_len = %d, term_len = %d, collen = %d\n", hostcol->prefix_len, hostcol->term_len, collen);
 
 		col_start = tds_file_stream_tell(stream);
 
-		/*
-		 * The data file either contains prefixes stating the length, or is delimited.  
-		 * If delimited, we "measure" the field by looking for the terminator, then read it, 
-		 * and set collen to the field's post-iconv size.  
+		/* We will perform iconv on hostfile text only when the field has a
+		 * terminator, because that indicates it's a text file and would be
+		 * in the client charset.  Prefixed fields indicate a host-native
+		 * file, and our tds_bcp_fread() function doesn't support
+		 * reading an exact number of bytes anyway.
+		 * 
+		 * NOTE: bcp_colfmt() prevents field having both prefix and terminator.
 		 */
-		if (hostcol->term_len > 0) { /* delimited data file */
+		if (data_is_null)
+			collen = 0;
+		else if (hostcol->term_len > 0) {
 			size_t col_bytes;
 			TDSRET conv_res;
 
+			/* Note: Important to not stop reading early based on a field width
+			 * setting (this would cause hostfile to get out of sync). */
 			coldata = NULL;
 			conv_res = tds_bcp_fread(dbproc->tds_socket, bcpcol ? bcpcol->char_conv : NULL, stream,
 						 (const char *) hostcol->terminator, hostcol->term_len, &coldata, &col_bytes);
@@ -1308,6 +1343,7 @@ _bcp_read_hostfile(DBPROCESS *dbproc, TDSFILESTREAM *stream, bool *row_error, bo
 				return FAIL;
 			}
 
+			/* collen is the post-iconv size of the field here */
 			collen = (int)col_bytes;
 			if (collen == 0)
 				data_is_null = true;
@@ -1326,7 +1362,8 @@ _bcp_read_hostfile(DBPROCESS *dbproc, TDSFILESTREAM *stream, bool *row_error, bo
 			 *    passed to tds_convert() without even waving to iconv().  For English dates, this works, 
 			 *    because English dates expressed as UTF-8 strings are indistinguishable from the ASCII.  
 			 */
-		} else {	/* unterminated field */
+		} else { /* Length known due to being a fixed field and/or prefixed. */
+			assert(collen > 0);	// The above logic should guarantee this.
 
 			coldata = tds_new(TDS_CHAR, 1 + collen);
 			if (coldata == NULL) {
@@ -1335,27 +1372,22 @@ _bcp_read_hostfile(DBPROCESS *dbproc, TDSFILESTREAM *stream, bool *row_error, bo
 				return FAIL;
 			}
 
-			coldata[collen] = 0;
-			if (collen) {
-				/* 
-				 * Read and convert the data
-				 * TODO: Call tds_bcp_fread() instead of fread(3).
-				 *       The columns should each have their iconv cd set, and noncharacter data
-				 *       should have -1 as the iconv cd, causing tds_bcp_fread() to not attempt
-				 * 	 any conversion.  We do not need a datatype switch here to decide what to do.  
-				 *	 As of 0.62, this *should* actually work.  All that remains is to change the
-				 *       call and test it.
-				 */
-				tdsdump_log(TDS_DBG_FUNC, "Reading %d bytes from hostfile.\n", collen);
-				if (tds_file_stream_read_raw(stream, coldata, collen) != collen) {
-					free(coldata);
-					return _bcp_check_eof(dbproc, stream, i);
-				}
+			tdsdump_log(TDS_DBG_FUNC, "Reading %d bytes from hostfile.\n", collen);
+			if (tds_file_stream_read_raw(stream, coldata, collen) != collen) {
+				free(coldata);
+				return _bcp_check_eof(dbproc, stream, i);
 			}
+
+			/* Not sure why this is here, the terminated-read branch doesn't do it. */
+			coldata[collen] = 0;
 		}
 
 		/* 
-		 * At this point, however the field was read, however big it was, its address is coldata and its size is collen.
+		 * At this point, however the field was read, however big it was, its
+		 * address is coldata (which is a dynamically allocated buffer or NULL),
+		 * and its size is collen.
+		 * NOTE: we intentionally do not force truncation to hostcol->column_len
+		 * if a prefix/terminator specified longer data; matching behaviour of MS BCP 16.0.
 		 */
 		tdsdump_log(TDS_DBG_FUNC, "Data read from hostfile: collen is now %d, data_is_null is %d\n", collen, data_is_null);
 		if (!skip && bcpcol) {
@@ -1367,6 +1399,21 @@ _bcp_read_hostfile(DBPROCESS *dbproc, TDSFILESTREAM *stream, bool *row_error, bo
 				TDS_SERVER_TYPE desttype;
 
 				desttype = tds_get_conversion_type(bcpcol->column_type, bcpcol->column_size);
+
+				/* _bcp_convert_in will give an error if our char data exceeds
+				 * the server column size, so we need to deal with that now
+				 */
+				if (desttype==SYBCHAR || desttype==SYBVARCHAR) {
+					if (collen > bcpcol->on_server.column_size) {
+						tdsdump_log(TDS_DBG_INFO1, 
+							"Warning: _bcp_read_hostfile: %d bytes at offset 0x%" PRIx64
+							" in the data file: truncated to server size %d.\n",
+							collen, (TDS_INT8)col_start, (int)bcpcol->on_server.column_size);
+
+						collen = bcpcol->on_server.column_size;
+						truncation_warning = true;
+					}
+				}
 
 				rc = _bcp_convert_in(dbproc, hostcol->datatype, (const TDS_CHAR*) coldata, collen,
 						     desttype, bcpcol);
@@ -1395,6 +1442,10 @@ _bcp_read_hostfile(DBPROCESS *dbproc, TDSFILESTREAM *stream, bool *row_error, bo
 		}
 		free(coldata);
 	}
+
+	if (dbproc->bcpinfo->dry_run && truncation_warning)
+		printf("Warning: data truncated due to server column being too small; see log file for detail.\n");
+
 	return MORE_ROWS;
 }
 
