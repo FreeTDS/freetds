@@ -1100,6 +1100,7 @@ _bcp_convert_in(DBPROCESS *dbproc, TDS_SERVER_TYPE srctype, const TDS_CHAR *src,
 	coldata->datalen = len;
 	if (variable) {
 		if (len > col->on_server.column_size) {
+			free(cr.c);
 			dbperror(dbproc, SYBECOFL, 0);
 			return TDS_FAIL;
 		}
