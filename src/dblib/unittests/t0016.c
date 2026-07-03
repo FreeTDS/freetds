@@ -36,7 +36,7 @@ TEST_MAIN()
 {
 	LOGINREC *login;
 	char in_file[30];
-	unsigned int n;
+	unsigned int n = 1, end = 100;
 
 	setbuf(stdout, NULL);
 	setbuf(stderr, NULL);
@@ -70,8 +70,20 @@ TEST_MAIN()
 	/* First testcase already had SQL opened by read_login_info() */
 	strcpy(in_file, INFILE_NAME);
 
+	/* Developer option to focus on specific tests */
+	{
+		char const* var = getenv("TDST0016_BEGIN");
+		if (var)
+			n = atoi(var);
+		var = getenv("TDST0016_END");
+		if (var)
+			end = atoi(var);
+	}
+
 	/* Execute all testcases (carry on even if one fails) */
-	for (n = 1; n <= 100; ++n) {
+	if (n < 1)
+		n = 1;
+	for (; n <= end; ++n) {
 		test_file(in_file);
 		sprintf(in_file, "%s_%d", INFILE_NAME, n);
 		if (sql_reopen(in_file) != SUCCEED) {
