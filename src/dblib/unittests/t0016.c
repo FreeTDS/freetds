@@ -32,11 +32,24 @@ static unsigned count_file_rows(FILE *f);
 static size_t fgets_raw(char *s, int len, FILE * f);
 static DBPROCESS *dbproc;
 
+/* custom error handler for clean exit */
+static int
+t0016_syb_err_handler(DBPROCESS* dbproc, int severity, int dberr, int oserr, char* dberrstr, char* oserrstr)
+{
+	int retval = syb_err_logmsg(dbproc, severity, dberr, oserr, dberrstr, oserrstr);
+	if (retval != 0)
+		return retval;
+
+	failed = true;
+	return INT_CANCEL;
+}
+
 TEST_MAIN()
 {
 	LOGINREC *login;
 	char in_file[30];
 	unsigned int n = 1, end = 100;
+	unsigned int n_pass = 0, n_fail = 0;
 
 	setbuf(stdout, NULL);
 	setbuf(stderr, NULL);
@@ -84,19 +97,22 @@ TEST_MAIN()
 	if (n < 1)
 		n = 1;
 	for (; n <= end; ++n) {
+		failed = FALSE;
 		test_file(in_file);
+		failed ? ++n_fail : ++n_pass;
+
 		sprintf(in_file, "%s_%d", INFILE_NAME, n);
-		if (sql_reopen(in_file) != SUCCEED) {
-			printf("===== End of t0016 subtests =====\n");
+		if (sql_reopen(in_file) != SUCCEED)
 			break;
-		}
 	}
+	printf("===== End of t0016 subtests =====\n");
 
 	dbclose(dbproc);
 	dbexit();
 
-	printf("dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);
-	return failed ? 1 : 0;
+	printf("dblib t0016: %d pass, %d fail.\n", n_pass, n_fail);
+	printf("=================================\n");
+	return n_fail? 1 : 0;
 }
 
 static bool got_error = false;
@@ -275,7 +291,7 @@ test_file(const char *fn)
 	while (dbresults(dbproc) != NO_MORE_RESULTS)
 		continue;
 
-	dberrhandle(syb_err_handler);
+	dberrhandle(t0016_syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
 	if (got_error) {

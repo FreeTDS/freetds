@@ -344,7 +344,7 @@ syb_msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, cha
 }
 
 int
-syb_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
+syb_err_logmsg (DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
 {
 	int *pexpected_dberr;
 
@@ -373,6 +373,16 @@ syb_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *db
 		"DB-LIBRARY error (dberr %d (severity %d): \"%s\"; oserr %d: \"%s\")\n",
 		dberr, severity, dberrstr ? dberrstr : "(null)", oserr, oserrstr ? oserrstr : "(null)");
 	fflush(stderr);
+
+	return 0;
+}
+
+int
+syb_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
+{
+	int retval = syb_err_logmsg(dbproc, severity, dberr, oserr, dberrstr, oserrstr);
+	if (retval != 0)
+		return retval;
 
 	/*
 	 * If the dbprocess is dead or the dbproc is a NULL pointer and

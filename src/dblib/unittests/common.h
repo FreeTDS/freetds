@@ -93,6 +93,7 @@ int read_login_info(int argc, char **argv);
 int syb_msg_handler(DBPROCESS * dbproc,
 		    DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line);
 int syb_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
+int syb_err_logmsg (DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 
 RETCODE sql_cmd(DBPROCESS *dbproc);
 RETCODE sql_rewind(void);
