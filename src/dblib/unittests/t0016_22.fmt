@@ -1,7 +1,8 @@
 10.0
-5
+6
 1       SYBINT4 0       4       ""      1       Foo
 2		SYBCHAR	1		50		""		2		S1
 3		SYBCHAR	0		50		"\t"	3		S2
 4		SYBCHAR	0		10		""	4		S3
-5       SYBCHAR 0       4       "\n"      5       Bar
+5		SYBCHAR	0		0		""	5		S4null
+6       SYBINT4 0       4       "\n"      6       Bar
