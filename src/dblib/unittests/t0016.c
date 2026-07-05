@@ -438,10 +438,13 @@ compare_files(const char *fn1, const char *fn2)
 				equal = false;
 				failure("File different at line %d\n"
 					" %s: %s"
-					" output: %s",
+					" output: %s%s",
 					line,
-					fn1[strlen(fn1)-1] == 'p' ? "expect" : " input",
-					line1, line2);
+					fn1[strlen(fn1) - 1] == 'p' ? "expect" : " input",
+					line1, line2,
+					/* don't double-newline if expected output had one already */
+					(line2[0] && line2[strlen(line2) - 1] == '\n') ? "" : "\n");
+
 			}
 		}
 	} else {
