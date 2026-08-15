@@ -3799,6 +3799,12 @@ tds_disconnect(TDSSOCKET * tds)
 	if (!IS_TDS50(tds->conn))
 		return TDS_SUCCESS;
 
+	/* Socket should not be busy, otherwise this can create an infinite
+	 * loop. */
+	if (tds_mutex_trylock(&tds->wire_mtx))
+		return TDS_FAIL;
+	tds_mutex_unlock(&tds->wire_mtx);
+
 	old_timeout = tds->query_timeout;
 	old_ctx = tds_get_ctx(tds);
 
