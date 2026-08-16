@@ -48,6 +48,7 @@ static TDS_SYS_SOCKET listen_sock;
 TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 {
 	TDS_SYS_SOCKET s = TDS_PTR2INT(arg);
+	int accepted = 0;
 
 	listen_sock = s;
 
@@ -60,18 +61,17 @@ TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 		fd.fd = s;
 		fd.events = POLLIN;
 		fd.revents = 0;
-		if (poll(&fd, 1, 30000) <= 0) {
-			fprintf(stderr, "poll: %d\n", sock_errno);
-			exit(1);
-		}
+		if (poll(&fd, 1, 30000) <= 0)
+			break;
 
 		memset(&sin, 0, sizeof(sin));
 		len = sizeof(sin);
 		if (TDS_IS_SOCKET_INVALID(sock = tds_accept(s, (struct sockaddr *) &sin, &len)))
 			break;
+		++accepted;
 	}
 	CLOSESOCKET(s);
-	return TDS_THREAD_RESULT(0);
+	return TDS_THREAD_RESULT(accepted);
 }
 
 TEST_MAIN()
@@ -80,7 +80,8 @@ TEST_MAIN()
 	char conn[128];
 	SQLTCHAR sqlstate[6];
 	SQLSMALLINT len;
-	int port;
+	int port, accepted;
+	void *res;
 	time_t start_time, end_time;
 
 	tds_socket_init();
@@ -135,7 +136,8 @@ TEST_MAIN()
 	CHKGetDiagRec(SQL_HANDLE_DBC, odbc_conn, 1, sqlstate, NULL, tmp, TDS_VECTOR_SIZE(tmp), NULL, "SI");
 	odbc_disconnect();
 	shutdown(listen_sock, SHUT_RDWR);
-	tds_thread_join(fake_thread, NULL);
+	tds_thread_join(fake_thread, &res);
+	accepted = TDS_PTR2INT(res);
 
 	printf("Message: %s - %s\n", C(sqlstate), C(tmp));
 	if (strcmp(C(sqlstate), "HYT00") || !strstr(C(tmp), "Timeout")) {
@@ -144,6 +146,10 @@ TEST_MAIN()
 	}
 	if (end_time - start_time != 9) {
 		fprintf(stderr, "Unexpected connect timeout (%d)\n", (int) (end_time - start_time));
+		return 1;
+	}
+	if (accepted < 2 || accepted > 4) {
+		fprintf(stderr, "Unexpected connection attempts (%d)\n", accepted);
 		return 1;
 	}
 
