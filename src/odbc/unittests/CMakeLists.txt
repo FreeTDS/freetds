@@ -35,6 +35,7 @@ set(tests
 	reexec
 	oldpwd
 	offset_ptr
+	login_timeout
 )
 
 if(WIN32)
