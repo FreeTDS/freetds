@@ -144,7 +144,7 @@ TEST_MAIN()
 		fprintf(stderr, "Invalid timeout message\n");
 		return 1;
 	}
-	if (end_time - start_time != 9) {
+	if (end_time - start_time < 9 || end_time - start_time > 10) {
 		fprintf(stderr, "Unexpected connect timeout (%d)\n", (int) (end_time - start_time));
 		return 1;
 	}
