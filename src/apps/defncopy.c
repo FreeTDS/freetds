@@ -116,6 +116,17 @@ typedef struct _options
 		*output_filename;
 } OPTIONS;
 
+static void free_options(OPTIONS* options)
+{
+	/* Memory was allocated with tds_xstrdup() which resolves to strdup(),
+	 * (not with tds_new) */ 
+	free(options->servername);
+	free(options->database);
+	free(options->input_filename);
+	free(options->output_filename);
+	/* note: options->appname points into argv[0] */
+}
+
 typedef struct _procedure
 {
 	char 	 name[512], owner[512];
@@ -226,8 +237,12 @@ quote_str(const char *str)
 /* global variables */
 static OPTIONS options;
 static char use_statement[512];
+static DBPROCESS* dbproc;
 /* end global variables */
 
+
+static int process_args(LOGINREC* login, int argc, char** argv, OPTIONS* options);
+static int main_processing(LOGINREC* login, int argc, char** argv);
 
 /**
  * The purpose of this program is to load or extract the text of a stored procedure.
@@ -238,10 +253,8 @@ int
 main(int argc, char *argv[])
 {
 	LOGINREC *login;
-	DBPROCESS *dbproc;
-	PROCEDURE procedure;
 	RETCODE erc;
-	int i, nrows;
+	int result;
 
 	setlocale(LC_ALL, "");
 
@@ -259,13 +272,35 @@ main(int argc, char *argv[])
 	if (erc == FAIL) {
 #endif /* MicrosoftsDbLib */
 		fprintf(stderr, "%s:%d: dbinit() failed\n", options.appname, __LINE__);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
-
 	memset(&options, 0, sizeof(options));
-	login = get_login(argc, argv, &options); /* get command-line parameters and call dblogin() */
-	assert(login != NULL);
+	/* get command-line parameters and call dblogin() */
+	login = get_login(argc, argv, &options);
+	result = process_args(login, argc, argv, &options);
+	if (result == 0)
+		result = main_processing(login, argc, argv);
+	else
+		usage(options.appname);
+
+	if (dbproc)
+		bcp_done(dbproc);
+	if (login)
+		dbloginfree(login);
+	dbexit();
+	free_options(&options);
+	return result;
+}
+
+static int main_processing(LOGINREC* login, int argc, char **argv)
+{
+int i, nrows;
+RETCODE erc;
+PROCEDURE procedure;
+
+	if (!login)
+		return EXIT_FAILURE;
 
 	/* Install our error and message handlers */
 	dberrhandle(err_handler);
@@ -277,14 +312,14 @@ main(int argc, char *argv[])
 	if (options.input_filename) {
 		if (freopen(options.input_filename, "rb", stdin) == NULL) {
 			fprintf(stderr, "%s: unable to open %s: %s\n", options.appname, options.input_filename, strerror(errno));
-			exit(1);
+			return EXIT_FAILURE;
 		}
 	}
 
 	if (options.output_filename) {
 		if (freopen(options.output_filename, "wb", stdout) == NULL) {
 			fprintf(stderr, "%s: unable to open %s: %s\n", options.appname, options.output_filename, strerror(errno));
-			exit(1);
+			return EXIT_FAILURE;
 		}
 	}
 
@@ -298,7 +333,7 @@ main(int argc, char *argv[])
 	dbproc = dbopen(login, options.servername);
 	if (!dbproc) {
 		fprintf(stderr, "There was a problem connecting to the server.\n");
-		exit(1);
+		return EXIT_FAILURE;
 	}
 
 	/*
@@ -331,14 +366,14 @@ main(int argc, char *argv[])
 		erc = dbsqlsend(dbproc);
 		if (erc == FAIL) {
 			fprintf(stderr, "%s:%d: dbsqlsend() failed\n", options.appname, __LINE__);
-			exit(1);
+			return EXIT_FAILURE;
 		}
 
 		/* Wait for it to execute */
 		erc = dbsqlok(dbproc);
 		if (erc == FAIL) {
 			fprintf(stderr, "%s:%d: dbsqlok() failed\n", options.appname, __LINE__);
-			exit(1);
+			return EXIT_FAILURE;
 		}
 
 		/* Write the output */
@@ -351,14 +386,14 @@ main(int argc, char *argv[])
 			erc = dbsqlexec(dbproc);
 			if (erc == FAIL) {
 				fprintf(stderr, "%s:%d: dbsqlexec() failed\n", options.appname, __LINE__);
-				exit(1);
+				return EXIT_FAILURE;
 			}
 			nrows = print_ddl(dbproc, &procedure);
 		}
 
 		switch (nrows) {
 		case -1:
-			return 1;
+			return EXIT_FAILURE;
 		case 0:
 			fprintf(stderr, "%s: error: %s.%s.%s.%s not found\n", options.appname,
 					options.servername, options.database, procedure.owner, procedure.name);
@@ -368,7 +403,7 @@ main(int argc, char *argv[])
 		}
 	}
 
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 static void
@@ -951,6 +986,29 @@ static LOGINREC *
 get_login(int argc, char *argv[], OPTIONS *options)
 {
 	LOGINREC *login;
+	assert(options && argv);
+	int result = FAIL;
+
+	options->appname = basename(argv[0]);
+
+	login = dblogin();
+
+	if (!login)
+	{
+		fprintf(stderr, "%s: unable to allocate login structure\n", options->appname);
+		return NULL;
+	}
+
+	DBSETLAPP(login, options->appname);
+
+	if (-1 != gethostname(options->hostname, sizeof(options->hostname))) {
+		DBSETLHOST(login, options->hostname);
+	}
+	return login;
+}
+
+static int process_args(LOGINREC* login, int argc, char** argv, OPTIONS* options)
+{
 	char *password;
 	int ch;
 	int fdomain = TRUE;
@@ -959,22 +1017,8 @@ get_login(int argc, char *argv[], OPTIONS *options)
 	extern int optind;
 	bool direction_found = false;
 
-	assert(options && argv);
-
-	options->appname = basename(argv[0]);
-
-	login = dblogin();
-
-	if (!login) {
-		fprintf(stderr, "%s: unable to allocate login structure\n", options->appname);
-		exit(1);
-	}
-
-	DBSETLAPP(login, options->appname);
-
-	if (-1 != gethostname(options->hostname, sizeof(options->hostname))) {
-		DBSETLHOST(login, options->hostname);
-	}
+	if (!login)
+		return EXIT_FAILURE;
 
 	while ((ch = getopt(argc, argv, "U:P:S:d:D:i:o:v")) != -1) {
 		switch (ch) {
@@ -986,7 +1030,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 			password = tds_getpassarg(optarg);
 			if (!password) {
 				fprintf(stderr, "Error getting password\n");
-				exit(1);
+				return EXIT_FAILURE;
 			}
 			DBSETLPWD(login, password);
 			memset(password, 0, strlen(password));
@@ -1022,12 +1066,10 @@ get_login(int argc, char *argv[], OPTIONS *options)
 				"License along with this library; if not, write to the\n"
 				"Free Software Foundation, Inc., 59 Temple Place - Suite 330,\n"
 				"Boston, MA 02111-1307, USA.\n");
-				exit(1);
-			break;
+			return EXIT_FAILURE;
 		case '?':
 		default:
-			usage(options->appname);
-			exit(1);
+			return EXIT_FAILURE;
 		}
 	}
 
@@ -1038,10 +1080,8 @@ get_login(int argc, char *argv[], OPTIONS *options)
 	if (fdomain)
 		DBSETLNETWORKAUTH(login, TRUE);
 #endif /* MicrosoftsDbLib */
-	if (!options->servername) {
-		usage(options->appname);
-		exit(1);
-	}
+	if (!options->servername)
+		return EXIT_FAILURE;
 
 	/* If we are using Sybase syntax, then we're going to consume 3 non-switch
 	 * arguments: direction, filename, and database name.
@@ -1069,8 +1109,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 	}
 
 	options->optind = optind;
-
-	return login;
+	return 0;
 }
 
 static int
