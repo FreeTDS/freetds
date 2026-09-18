@@ -1015,7 +1015,7 @@ static int process_args(LOGINREC* login, int argc, char** argv, OPTIONS* options
 
 	extern char *optarg;
 	extern int optind;
-	bool direction_found = false;
+	bool sybase_syntax = false;
 
 	if (!login)
 		return EXIT_FAILURE;
@@ -1080,34 +1080,62 @@ static int process_args(LOGINREC* login, int argc, char** argv, OPTIONS* options
 	if (fdomain)
 		DBSETLNETWORKAUTH(login, TRUE);
 #endif /* MicrosoftsDbLib */
+
+	/* Server name must be present */
 	if (!options->servername)
 		return EXIT_FAILURE;
 
-	/* If we are using Sybase syntax, then we're going to consume 3 non-switch
-	 * arguments: direction, filename, and database name.
-	 */
+	/* Does not make sense to specify both input and output filenames */
+	if (options->input_filename && options->output_filename)
+	{
+		fprintf(stderr, "%s: Cannot specify both input and output files.\n", options->appname);
+		return EXIT_FAILURE;
+	}
 
-	if (strncasecmp(argv[optind], "in", 2) == 0) {
-		optind++;	/* consume direction */
-		if (optind < argc) {
+	/* We support two different syntaxes: Sybase, and FreeTDS traditional.
+	 * We will take the presence of -D , -i, or -o as meaning FreeTDS syntax;
+	 * "in" or "out" as Sybase syntax; and if all are absent, treat it as
+	 * FreeTDS syntax which allows -i and -o to be omitted, meaning that
+	 * stdin/stdout should be used.
+	 */
+	if (!(options->database || options->input_filename || options->output_filename)
+		&& optind + 3 <= argc)
+	{
+		/* If we are using Sybase syntax, then we're going to consume 3
+		 * non-switch arguments: direction, filename, and database name.
+		 */
+
+		if (strncasecmp(argv[optind], "in", 2) == 0) {
+			optind++;	/* consume direction */
 			options->input_filename = xstrdup(argv[optind]);
 			optind++;	/* consume filename */
-		}
-		direction_found = true;
-	} else if (strncasecmp(argv[optind], "out", 3) == 0) {
-		optind++;	/* consume direction */
-		if (optind < argc) {
+			sybase_syntax = true;
+		} else if (strncasecmp(argv[optind], "out", 3) == 0) {
+			optind++;	/* consume direction */
 			options->output_filename = xstrdup(argv[optind]);
 			optind++;	/* consume filename */
+			sybase_syntax = true;
 		}
-		direction_found = true;
+		if (sybase_syntax) {
+			options->database = xstrdup(argv[optind]);
+			optind++;	/* consume database name */
+		}
 	}
 
-	if (direction_found && optind < argc) {
-		options->database = xstrdup(argv[optind]);
-		optind++;	/* consume database name */
+	/* Does not make sense to request input but provide objects;
+	 * or request output but not provide them */
+	if (options->input_filename && optind < argc)
+	{
+		fprintf(stderr, "%s: Cannot specify both input file and objects to output.\n", options->appname);
+		return EXIT_FAILURE;
+	}
+	if (options->output_filename && optind == argc)
+	{
+		fprintf(stderr, "%s: Output mode specified, but no object names given.\n", options->appname);
+		return EXIT_FAILURE;
 	}
 
+	/* optind should now point at the objects, if any, to read. */
 	options->optind = optind;
 	return 0;
 }
