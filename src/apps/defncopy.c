@@ -340,6 +340,38 @@ main_processing(LOGINREC *login, int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
+	/* We're in input mode if no output objects were specified. */
+	if (options.optind == argc) {
+		/* This code is only designed to support the syntax output by DEFNCOPY.
+		 * Refer to fisql.c for a more general input implementation.
+		 */
+
+		char buf[5000];
+
+		i = 0;
+		while (fgets(buf, sizeof buf, stdin)) {
+			++i;
+			/* dbcmd does not recognize directive "GO" */
+			if (buf[0] == 'G' && buf[1] == 'O')
+				continue;
+
+			erc = dbcmd(dbproc, buf);
+			if (erc != SUCCEED) {
+				fprintf(stderr, "%s: input failed on line %d\n", options.appname, i);
+				return EXIT_FAILURE;
+			}
+		}
+		erc = dbsqlexec(dbproc);
+		if (erc != SUCCEED)
+			return EXIT_FAILURE;	/* Error handler would output error messages */
+		if (dbhasretstat(dbproc)) {
+			erc = dbretstatus(dbproc);
+			printf("(return status = %d)\n", erc);
+		}
+
+		return 0;
+	}
+
 	/*
 	 * Read the procedure names and move their texts.
 	 */
