@@ -108,6 +108,7 @@ static int msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severi
 typedef struct _options
 {
 	int 	optind;
+	bool sybase_syntax;
 	char 	*servername,
 		*database,
 		*appname,
@@ -295,7 +296,7 @@ main(int argc, char *argv[])
 
 static int main_processing(LOGINREC* login, int argc, char **argv)
 {
-int i, nrows;
+int i, nrows = 0;
 RETCODE erc;
 PROCEDURE procedure;
 
@@ -518,6 +519,14 @@ find_column_name(const char *start, const DDL *columns, int num_columns)
 	return found;
 }
 
+static void definition_delimiter(void)
+{
+	if (options.sybase_syntax)
+		printf("/* ### DEFNCOPY: END OF DEFINITION */\n");
+	else
+		printf("GO\n\n");
+}
+
 /* This function split and quote index keys.
  * Index keys are separate by a command and a space (", ") however the
  * separator (very unlikely but possible can contain that separator)
@@ -639,13 +648,13 @@ parse_index_row(DBPROCESS *dbproc, PROCEDURE *procedure, char *create_index, con
 	create_index = create_index ? create_index : "";
 	if (fprimary) {
 		ret = asprintf(&create_index,
-			"%sALTER TABLE %s.%s ADD CONSTRAINT %s PRIMARY KEY %s (%s)\nGO\n\n",
+			"%sALTER TABLE %s.%s ADD CONSTRAINT %s PRIMARY KEY %s (%s)\n\n",
 			create_index,
 			quote_id(procedure->owner), quote_id(procedure->name),
 			quote_id(index_name), index_description, index_keys);
 	} else {
 		ret = asprintf(&create_index,
-			"%sCREATE %s INDEX %s on %s.%s(%s)\nGO\n\n",
+			"%sCREATE %s INDEX %s on %s.%s(%s)\n\n",
 			create_index,
 			index_description, quote_id(index_name),
 			quote_id(procedure->owner), quote_id(procedure->name), index_keys);
@@ -851,11 +860,13 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 
 		free(type);
 	}
-	printf("\t)\nGO\n\n");
+	printf("\t)\n");
 
 	/* print the CREATE INDEX statements */
 	if (create_index != NULL)
 		fputs(create_index, stdout);
+
+	definition_delimiter();
 
 cleanup:
 	p_str = (char **) ddl;
@@ -933,8 +944,6 @@ print_results(DBPROCESS *dbproc)
 				if ( -1 == sql_text_status) {
 					fprintf(stderr, "defncopy: error: unexpected NULL row in SQL text\n");
 				} else {
-					if (prior_procedure_number != procedure_number)
-						printf("\nGO\n");
 					printf("%s", sql_text);
 				}
 				break;
@@ -946,9 +955,11 @@ print_results(DBPROCESS *dbproc)
 			} /* row_code */
 
 		} /* wend dbnextrow */
-		printf("\nGO\n");
+		/* Sybase DEFNCOPY marker between definitions */
+		definition_delimiter();
 
 	} /* wend dbresults */
+
 	return nrows;
 }
 
@@ -1019,7 +1030,6 @@ static int process_args(LOGINREC* login, int argc, char** argv, OPTIONS* options
 
 	extern char *optarg;
 	extern int optind;
-	bool sybase_syntax = false;
 
 	if (!login)
 		return EXIT_FAILURE;
@@ -1113,14 +1123,14 @@ static int process_args(LOGINREC* login, int argc, char** argv, OPTIONS* options
 			optind++;	/* consume direction */
 			options->input_filename = xstrdup(argv[optind]);
 			optind++;	/* consume filename */
-			sybase_syntax = true;
+			options->sybase_syntax = true;
 		} else if (strncasecmp(argv[optind], "out", 3) == 0) {
 			optind++;	/* consume direction */
 			options->output_filename = xstrdup(argv[optind]);
 			optind++;	/* consume filename */
-			sybase_syntax = true;
+			options->sybase_syntax = true;
 		}
-		if (sybase_syntax) {
+		if (options->sybase_syntax) {
 			options->database = xstrdup(argv[optind]);
 			optind++;	/* consume database name */
 		}
