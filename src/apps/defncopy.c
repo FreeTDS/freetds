@@ -382,6 +382,10 @@ main_processing(LOGINREC *login, int argc, char **argv)
 		/* Write the output */
 		nrows = print_results(dbproc);
 
+		/* If the query to retrieve a non-table object failed, try retrieving
+		 * a table instead. Note: Sybase DEFNCOPY does not support table
+		 * definitions; this code is peculiar to FreeTDS DEFNCOPY.
+		 */
 		if (0 == nrows) {
 			erc = dbfcmd(dbproc, query_table, quote_str(procedure.owner), quote_str(procedure.name));
 			tmp_free();
@@ -804,7 +808,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 	if (nrows == 0)
 		goto cleanup;
 
-	printf("%sCREATE TABLE %s.%s\n", use_statement, quote_id(procedure->owner), quote_id(procedure->name));
+	printf("CREATE TABLE %s.%s\n", quote_id(procedure->owner), quote_id(procedure->name));
 	tmp_free();
 	for (i=0; i < nrows; i++) {
 		static const char varytypenames[] =	"char\0"
@@ -925,7 +929,6 @@ print_results(DBPROCESS *dbproc)
 		/*
 		 * Print the data to stdout.
 		 */
-		printf("%s", use_statement);
 		for (;(row_code = dbnextrow(dbproc)) != NO_MORE_ROWS; nrows++, prior_procedure_number = procedure_number) {
 			switch (row_code) {
 			case REG_ROW:
