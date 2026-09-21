@@ -186,7 +186,7 @@ test_keyword_sybase(void)
 		"CREATE TABLE [dbo].[table_with_column_named_key]\n"
 		" ( [key] nvarchar(4000) NOT NULL\n"
 		" )\n"
-		"GO";
+		"/* ### DEFNCOPY: END OF DEFINITION */";
 	/* *INDENT-ON* */
 	if (strstr(output, sql) == NULL) {
 		fprintf(stderr, "Expected SQL string not found\n");
@@ -222,8 +222,6 @@ test_index_name_with_space(void)
 " , [FromDate] nvarchar(40) NULL\n"
 " , [ToDate] nvarchar(40) NULL\n"
 " )\n"
-"GO\n"
-"\n"
 "CREATE nonclustered INDEX [From Date] on [dbo].[tblReportPeriod]([FromDate])";
 	if (strstr(output, sql) == NULL) {
 		fprintf(stderr, "Expected SQL string not found\n");
@@ -261,8 +259,6 @@ test_weird_index_names(void)
 " , [To] nvarchar(40) NULL\n"
 " , [To, , ] nvarchar(40) NULL\n"
 " )\n"
-"GO\n"
-"\n"
 "CREATE nonclustered INDEX [From Date] on [dbo].[tblReportPeriod2]([To, ],[To, , ])";
 	/* Sybase remove spaces at the end */
 	sql_sybase =
@@ -272,8 +268,6 @@ test_weird_index_names(void)
 " , [To] nvarchar(40) NULL\n"
 " , [To, ,] nvarchar(40) NULL\n"
 " )\n"
-"GO\n"
-"\n"
 "CREATE nonclustered INDEX [From Date] on [dbo].[tblReportPeriod2]([To,],[To, ,])";
 	if (strstr(output, sql) == NULL && strstr(output, sql_sybase) == NULL) {
 		fprintf(stderr, "Expected SQL string not found\n");
