@@ -33,9 +33,18 @@
 
 #include <freetds/sysdep_private.h>
 #include <freetds/replacements.h>
+#include <freetds/utils.h>
+
+/* Sybase mode using a different terminator */
+#define TERMINATOR "GO"
+#define TERMINATOR_SYBASE "/* ### DEFNCOPY: END OF DEFINITION */"
 
 /* content of output file, from command executed */
 static char *output;
+
+/* Whether using sybase syntax */
+static bool sybase_syntax;
+static bool stream_io = true;
 
 static bool
 read_login_info(void)
@@ -52,77 +61,96 @@ cleanup(void)
 	TDS_ZERO_FREE(output);
 }
 
+/* check expected output, ignoring whitespace diffs */
+static bool
+output_matches(char const *expect)
+{
+	bool result;
+	char *tmp;
+
+	if (!expect)
+		return false;
+	normalize_spaces(output);
+	tmp = xstrdup(expect);
+	normalize_spaces(tmp);
+	result = strstr(output, tmp) != NULL;
+	free(tmp);
+	return result;
+}
+
+static void
+required_output(char const *expect)
+{
+	if (!output_matches(expect)) {
+		fprintf(stderr, "Expected SQL string not found\n");
+		exit(EXIT_FAILURE);
+	}
+}
+
 static void
 defncopy(const char *object_name)
 {
 	char cmd[2048];
 	char *const end = cmd + sizeof(cmd) - 1;
 	char *p;
-	FILE *f;
-
-	/* empty input */
-	f = fopen(input_fn(), "w");
-	assert(f);
-	fclose(f);
 
 	strcpy(cmd, "defncopy" EXE_SUFFIX);
 	p = strchr(cmd, 0);
-	p = add_server(p, end);
-	p = add_string(p, end, " ");
-	p = quote_arg(p, end, object_name);
-	p = add_string(p, end, "<");
-	p = add_string(p, end, input_fn());
-	p = add_string(p, end, " >");
-	p = add_string(p, end, output_fn());
+
+	if (sybase_syntax) {
+		p = add_login(p, end);
+		p = add_string(p, end, object_name ? " out " : " in ");
+		p = add_string(p, end, object_name ? output_fn() : input_fn());
+		if (common_pwd.database[0]) {
+			p = add_string(p, end, " ");
+			p = quote_arg(p, end, common_pwd.database);
+		}
+	} else {
+		p = add_server(p, end);
+		if (!stream_io) {
+			p = add_string(p, end, object_name ? " -o " : " -i ");
+			p = add_string(p, end, object_name ? output_fn() : input_fn());
+		}
+	}
+
+	if (object_name) {
+		p = add_string(p, end, " ");
+		p = quote_arg(p, end, object_name);
+	}
+
+	/* FreeTDS defncopy syntax supports both standard streams, and input/output files.
+	 */
+	if (stream_io && !sybase_syntax) {
+		p = add_string(p, end, object_name ? " >" : " <");
+		p = add_string(p, end, object_name ? output_fn() : input_fn());
+	}
 	*p = 0;
+
 	printf("Executing: %s\n", cmd);
 	if (system(cmd) != 0) {
-		printf("Output is:\n");
-		cat(output_fn(), stdout);
+		if (object_name) {
+			printf("Output is:\n");
+			cat(output_fn(), stdout);
+		}
 		fprintf(stderr, "Failed command\n");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
+
 	TDS_ZERO_FREE(output);
-	output = read_file(output_fn());
+	if (object_name)
+		output = read_file(output_fn());
 }
 
-/* Builds the command with Sybase syntax */
 static void
-defncopy_sybase(const char *object_name)
+defncopy_in(char const *sql)
 {
-	char cmd[2048];
-	char *const end = cmd + sizeof(cmd) - 1;
-	char *p;
 	FILE *f;
 
-	/* empty input */
 	f = fopen(input_fn(), "w");
 	assert(f);
+	fputs(sql, f);
 	fclose(f);
-
-	strcpy(cmd, "defncopy" EXE_SUFFIX);
-	p = strchr(cmd, 0);
-	p = add_login(p, end);
-	p = add_string(p, end, " out ");
-	p = add_string(p, end, output_fn());
-	if (common_pwd.database[0]) {
-		p = add_string(p, end, " ");
-		p = quote_arg(p, end, common_pwd.database);
-	}
-	p = add_string(p, end, " ");
-	p = quote_arg(p, end, object_name);
-	*p = 0;
-	printf("Executing: %s\n", cmd);
-
-	if (system(cmd) != 0) {
-		printf("Output is:\n");
-		cat(output_fn(), stdout);
-		fprintf(stderr, "Failed command\n");
-		exit(1);
-	}
-	TDS_ZERO_FREE(output);
-
-	output = read_file(output_fn());
+	defncopy(NULL);
 }
 
 /* table with a column name that is also a keyword, should be quoted */
@@ -134,6 +162,7 @@ test_keyword(void)
 		"IF OBJECT_ID('dbo.table_with_column_named_key') IS NOT NULL DROP TABLE dbo.table_with_column_named_key\n";
 
 	tsql(clean);
+/* *INDENT-OFF* */
 	tsql(
 "IF OBJECT_ID('dbo.table_with_column_named_key') IS NOT NULL DROP TABLE dbo.table_with_column_named_key\n"
 "GO\n"
@@ -141,58 +170,31 @@ test_keyword(void)
 "(\n"
 "  [key]        nvarchar(4000)  NOT NULL\n"
 ")\n");
+/* *INDENT-ON* */
 	defncopy("dbo.table_with_column_named_key");
 	cat(output_fn(), stdout);
-	normalize_spaces(output);
-	sql =
-"CREATE TABLE [dbo].[table_with_column_named_key]\n"
-" ( [key] nvarchar(4000) NOT NULL\n"
-" )\n"
-"GO";
-	if (strstr(output, sql) == NULL) {
-		fprintf(stderr, "Expected SQL string not found\n");
-		exit(1);
-	}
-	tsql(clean);
-	tsql(sql);
-	tsql(clean);
-}
+#define EXPECT_KEYWORD_OUT "CREATE TABLE [dbo].[table_with_column_named_key]\n ( [key] nvarchar(4000) NOT NULL\n )\n"
+	sql = sybase_syntax ? EXPECT_KEYWORD_OUT TERMINATOR_SYBASE "\n" : EXPECT_KEYWORD_OUT TERMINATOR "\n";
 
-
-/* same as previous but using Sybase syntax */
-static void
-test_keyword_sybase(void)
-{
-	const char *sql;
-	static const char clean[] =
-		"IF OBJECT_ID('dbo.table_with_column_named_key') IS NOT NULL DROP TABLE dbo.table_with_column_named_key\n";
-
+	required_output(sql);
 	tsql(clean);
-	/* *INDENT-OFF* */
-	sql =
-		"IF OBJECT_ID('dbo.table_with_column_named_key') IS NOT NULL DROP TABLE dbo.table_with_column_named_key\n"
-		"GO\n"
-		"CREATE TABLE dbo.table_with_column_named_key\n"
-		"(\n"
-		"  [key]        nvarchar(4000)  NOT NULL\n"
-		")\n";
-	/* *INDENT-ON* */
-	tsql(sql);
-	defncopy_sybase("dbo.table_with_column_named_key");
-	cat(output_fn(), stdout);
-	normalize_spaces(output);
-	/* *INDENT-OFF* */
-	sql =
-		"CREATE TABLE [dbo].[table_with_column_named_key]\n"
-		" ( [key] nvarchar(4000) NOT NULL\n"
-		" )\n"
-		"/* ### DEFNCOPY: END OF DEFINITION */";
-	/* *INDENT-ON* */
-	if (strstr(output, sql) == NULL) {
-		fprintf(stderr, "Expected SQL string not found\n");
-		exit(1);
-	}
+
+	/* test defncopy input */
+	defncopy_in(sql);
+	unlink(output_fn());
+	defncopy("dbo.table_with_column_named_key");
+	required_output(sql);
 	tsql(clean);
+
+	/* test non-stream syntax */
+	stream_io = false;
+	defncopy_in(sql);
+	unlink(output_fn());
+	defncopy("dbo.table_with_column_named_key");
+	required_output(sql);
+	tsql(clean);
+	stream_io = true;
+
 	tsql(sql);
 	tsql(clean);
 }
@@ -202,10 +204,10 @@ static void
 test_index_name_with_space(void)
 {
 	const char *sql;
-	static const char clean[] =
-		"IF OBJECT_ID('dbo.tblReportPeriod') IS NOT NULL DROP TABLE dbo.tblReportPeriod\n";
+	static const char clean[] = "IF OBJECT_ID('dbo.tblReportPeriod') IS NOT NULL DROP TABLE dbo.tblReportPeriod\n";
 
 	tsql(clean);
+/* *INDENT-OFF* */
 	tsql(
 "CREATE TABLE dbo.tblReportPeriod\n"
 "	( RecordID   int             NOT NULL\n"
@@ -213,20 +215,21 @@ test_index_name_with_space(void)
 "	, ToDate     nvarchar(40)        NULL\n"
 "	)\n"
 "CREATE  nonclustered INDEX [From Date] on dbo.tblReportPeriod(FromDate)\n");
+/* *INDENT-ON* */
 	defncopy("dbo.tblReportPeriod");
 	cat(output_fn(), stdout);
-	normalize_spaces(output);
+/* *INDENT-OFF* */
 	sql =
 "CREATE TABLE [dbo].[tblReportPeriod]\n"
 " ( [RecordID] int NOT NULL\n"
 " , [FromDate] nvarchar(40) NULL\n"
 " , [ToDate] nvarchar(40) NULL\n"
 " )\n"
-"CREATE nonclustered INDEX [From Date] on [dbo].[tblReportPeriod]([FromDate])";
-	if (strstr(output, sql) == NULL) {
-		fprintf(stderr, "Expected SQL string not found\n");
-		exit(1);
-	}
+"CREATE nonclustered INDEX [From Date] on [dbo].[tblReportPeriod]([FromDate]) "
+TERMINATOR
+;
+/* *INDENT-ON* */
+	required_output(sql);
 	tsql(clean);
 	tsql(sql);
 	tsql(clean);
@@ -236,11 +239,11 @@ test_index_name_with_space(void)
 static void
 test_weird_index_names(void)
 {
-	const char *sql, *sql_sybase;
-	static const char clean[] =
-		"IF OBJECT_ID('dbo.tblReportPeriod2') IS NOT NULL DROP TABLE dbo.tblReportPeriod2\n";
+	const char *sql;
+	static const char clean[] = "IF OBJECT_ID('dbo.tblReportPeriod2') IS NOT NULL DROP TABLE dbo.tblReportPeriod2\n";
 
 	tsql(clean);
+/* *INDENT-OFF* */
 	tsql(
 "CREATE TABLE dbo.tblReportPeriod2\n"
 "	( RecordID   int             NOT NULL\n"
@@ -249,9 +252,11 @@ test_weird_index_names(void)
 "	, [To, , ]     nvarchar(40)        NULL\n"
 "	)\n"
 "CREATE  nonclustered INDEX [From Date] on dbo.tblReportPeriod2([To, ],[To, , ])\n");
+/* *INDENT-ON* */
 	defncopy("dbo.tblReportPeriod2");
 	cat(output_fn(), stdout);
-	normalize_spaces(output);
+
+/* *INDENT-OFF* */
 	sql =
 "CREATE TABLE [dbo].[tblReportPeriod2]\n"
 " ( [RecordID] int NOT NULL\n"
@@ -259,20 +264,11 @@ test_weird_index_names(void)
 " , [To] nvarchar(40) NULL\n"
 " , [To, , ] nvarchar(40) NULL\n"
 " )\n"
-"CREATE nonclustered INDEX [From Date] on [dbo].[tblReportPeriod2]([To, ],[To, , ])";
-	/* Sybase remove spaces at the end */
-	sql_sybase =
-"CREATE TABLE [dbo].[tblReportPeriod2]\n"
-" ( [RecordID] int NOT NULL\n"
-" , [To,] nvarchar(40) NULL\n"
-" , [To] nvarchar(40) NULL\n"
-" , [To, ,] nvarchar(40) NULL\n"
-" )\n"
-"CREATE nonclustered INDEX [From Date] on [dbo].[tblReportPeriod2]([To,],[To, ,])";
-	if (strstr(output, sql) == NULL && strstr(output, sql_sybase) == NULL) {
-		fprintf(stderr, "Expected SQL string not found\n");
-		exit(1);
-	}
+"CREATE nonclustered INDEX [From Date] on [dbo].[tblReportPeriod2]([To, ],[To, ,])\n"
+TERMINATOR
+;
+/* *INDENT-ON* */
+	required_output(sql);
 	tsql(clean);
 	tsql(sql);
 	tsql(clean);
@@ -292,8 +288,10 @@ TEST_MAIN()
 	if (f)
 		fclose(f);
 
+	sybase_syntax = true;
 	test_keyword();
-	test_keyword_sybase();
+	sybase_syntax = false;
+	test_keyword();
 	test_index_name_with_space();
 	test_weird_index_names();
 
