@@ -14,6 +14,15 @@
 #define EXE_SUFFIX ""
 #endif
 
+#ifdef __VMS
+/* OpenVMS DCL requires command to start with "pipe" in
+ * order to recognize < > stream redirects.
+ * Use path to apps we just built. */
+#	define VMS_APP_EXE_INVOKE "pipe mcr [---]"
+#else
+#	define VMS_APP_EXE_INVOKE
+#endif
+
 /* replace all space sequences with one space */
 void normalize_spaces(char *s);
 
