@@ -62,7 +62,7 @@ freebcp(const char *object_name, const char *input_data, const char *added_optio
 	fputs(input_data, f);
 	fclose(f);
 
-	strcpy(cmd, "freebcp" EXE_SUFFIX);
+	strcpy(cmd, VMS_APP_EXE_INVOKE "freebcp" EXE_SUFFIX);
 	p = strchr(cmd, 0);
 	p = add_string(p, end, " ");
 	p = quote_arg(p, end, object_name);
@@ -75,7 +75,7 @@ freebcp(const char *object_name, const char *input_data, const char *added_optio
 	printf("Executing: %s\n", cmd);
 	if (system(cmd) != 0) {
 		fprintf(stderr, "Failed command\n");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	unlink(input_fn());
 }
@@ -109,11 +109,11 @@ compare_error(const char *content)
 		expected = strsep(&tokens, "\n");
 		if (!expected) {
 			fprintf(stderr, "%d: Unexpected lines: '%s'\n", num_line, line);
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 		if (strcmp(line, expected) != 0) {
 			fprintf(stderr, "%d: Wrong line\n exp: '%s'\n got: '%s'\n", num_line, expected, line);
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 	}
 	free(lines);

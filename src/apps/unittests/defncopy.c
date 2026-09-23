@@ -90,11 +90,12 @@ required_output(char const *expect)
 static void
 defncopy(const char *object_name)
 {
-	char cmd[2048];
+	char cmd[2048] = { 0 };
 	char *const end = cmd + sizeof(cmd) - 1;
 	char *p;
+	bool redirs = stream_io && !sybase_syntax;
 
-	strcpy(cmd, "defncopy" EXE_SUFFIX);
+	strcat(cmd, VMS_APP_EXE_INVOKE "defncopy" EXE_SUFFIX);
 	p = strchr(cmd, 0);
 
 	if (sybase_syntax) {
@@ -120,7 +121,7 @@ defncopy(const char *object_name)
 
 	/* FreeTDS defncopy syntax supports both standard streams, and input/output files.
 	 */
-	if (stream_io && !sybase_syntax) {
+	if (redirs) {
 		p = add_string(p, end, object_name ? " >" : " <");
 		p = add_string(p, end, object_name ? output_fn() : input_fn());
 	}
