@@ -37,14 +37,15 @@ no_space(void)
 	exit(1);
 }
 
+/* This is used when comparing defncopy output to expected output */
 void
 normalize_spaces(char *s)
 {
 	char *p, *dest, prev;
 
-	/* replace all tabs with spaces */
+	/* replace all tabs & newlines with spaces */
 	for (p = s; *p; ++p)
-		if (*p == '\t')
+		if (*p == '\t' || *p == '\n' || *p == '\r')
 			*p = ' ';
 
 	/* replace duplicate spaces with a single space */
@@ -54,7 +55,15 @@ normalize_spaces(char *s)
 			continue;
 		*dest++ = prev = *p;
 	}
+
+	/* trailing space not significant */
+	while (dest > s && dest[-1] == ' ')
+		--dest;
 	*dest = 0;
+
+	/* spaces between , and ] not significant */
+	while ((p = strstr(s, ", ]")) != NULL)
+		memmove(p+1, p+2, strlen(p+2)+1);
 }
 
 void
