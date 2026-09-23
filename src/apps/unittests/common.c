@@ -72,7 +72,12 @@ cat(const char *fn, FILE *out)
 	char line[1024];
 	FILE *f = fopen(fn, "r");
 
-	assert(f);
+	if (!f) {
+		/* Can happen if e.g. .exe file not found, so no output */
+		fputs("<output file not found>\n", out);
+		return;
+	}
+
 	while (fgets(line, sizeof(line), f)) {
 		fputs("  ", out);
 		fputs(line, out);
@@ -114,7 +119,7 @@ read_file(const char *fn)
 char *
 quote_arg(char *dest, char *const dest_end, const char *arg)
 {
-#ifndef _WIN32
+#if (!defined _WIN32 && !defined __VMS)
 	CHECK(1);
 	*dest++ = '\'';
 	for (; *arg; ++arg) {
@@ -245,10 +250,10 @@ tsql_generic(const char *input_data, bool get_output)
 	fputs(input_data, f);
 	fclose(f);
 
-	strcpy(cmd, "tsql" EXE_SUFFIX " -o q");
+	strcpy(cmd, VMS_APP_EXE_INVOKE "tsql" EXE_SUFFIX " -o q");
 	p = strchr(cmd, 0);
 	p = add_server(p, end);
-	p = add_string(p, end, "<");
+	p = add_string(p, end, " <");
 	p = add_string(p, end, input_fn());
 	p = add_string(p, end, " >");
 	p = add_string(p, end, output_fn());
