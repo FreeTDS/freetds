@@ -704,10 +704,10 @@ odbctests : []libtds$(OLB) []libtdsodbc$(OLB) $(ODBCTEST_TARGETS)
 # Easier to link common objects into all tests, than to
 # specify exactly which tests uses which of the common objects.
 #
-LIBTDSTEST_COMMON_OBJS = $(UTDIR)test_base$(OBJ) $(TTDIR)common$(OBJ) $(TTDIR)utf8$(OBJ) $(TTDIR)allcolumns$(OBJ)
+LIBTDSTEST_COMMON_OBJS = $(TTDIR)common$(OBJ) $(TTDIR)utf8$(OBJ) $(TTDIR)allcolumns$(OBJ)
 LIBTDSTEST_OBJS = $(LIBTDSTEST_TARGETS:$(E)=$(OBJ)) $(LIBTDSTEST_COMMON_OBJS)
 $(LIBTDSTEST_OBJS) : $(TTDIR)common.h $(CONFIGS)
-$(LIBTDSTEST_TARGETS) : $(LIBTDSTEST_COMMON_OBJS)
+$(LIBTDSTEST_TARGETS) : $(UTDIR)test_base$(OBJ) $(LIBTDSTEST_COMMON_OBJS)
 
 {$(TTDIR)}$(OBJ){$(TTDIR)}$(E)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_TEST)
@@ -724,10 +724,10 @@ $(CTDIR)all_types$(E) : $(CTDIR)all_types$(OBJ) $(TTDIR)allcolumns$(OBJ)
 #
 # ctlib test rules
 #
-CTLIBTEST_COMMON_OBJS = $(UTDIR)test_base$(OBJ) $(CTDIR)common$(OBJ)
+CTLIBTEST_COMMON_OBJS = $(CTDIR)common$(OBJ)
 CTLIBTEST_OBJS = $(CTLIBTEST_TARGETS:$(E)=$(OBJ)) $(CTLIBTEST_COMMON_OBJS)
 $(CTLIBTEST_OBJS) : $(CTDIR)common.h $(CONFIGS)
-$(CTLIBTEST_TARGETS) : $(CTLIBTEST_COMMON_OBJS)
+$(CTLIBTEST_TARGETS) : $(UTDIR)test_base$(OBJ) $(CTLIBTEST_COMMON_OBJS)
 
 {$(CTDIR)}$(OBJ){$(CTDIR)}$(E)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_TEST)
@@ -735,10 +735,10 @@ $(CTLIBTEST_TARGETS) : $(CTLIBTEST_COMMON_OBJS)
 #
 # dblib test rules
 #
-DBLIBTEST_COMMON_OBJS = $(UTDIR)test_base$(OBJ) $(DTDIR)common$(OBJ)
+DBLIBTEST_COMMON_OBJS = $(DTDIR)common$(OBJ)
 DBLIBTEST_OBJS = $(DBLIBTEST_TARGETS:$(E)=$(OBJ)) $(DBLIBTEST_COMMON_OBJS)
 $(DBLIBTEST_OBJS) : $(DTDIR)common.h $(CONFIGS)
-$(DBLIBTEST_TARGETS) : $(DBLIBTEST_COMMON_OBJS)
+$(DBLIBTEST_TARGETS) : $(UTDIR)test_base$(OBJ) $(DBLIBTEST_COMMON_OBJS)
 
 {$(DTDIR)}$(OBJ){$(DTDIR)}$(E)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_TEST)
@@ -746,10 +746,10 @@ $(DBLIBTEST_TARGETS) : $(DBLIBTEST_COMMON_OBJS)
 #
 # app test rules
 #
-APPTEST_COMMON_OBJS = $(UTDIR)test_base$(OBJ) $(ATDIR)common$(OBJ)
+APPTEST_COMMON_OBJS = $(ATDIR)common$(OBJ)
 APPTEST_OBJS = $(APPTEST_TARGETS:$(E)=$(OBJ)) $(APPTEST_COMMON_OBJS)
 $(APPTEST_OBJS) : $(ATDIR)common.h $(CONFIGS)
-$(APPTEST_TARGETS) : $(APPTEST_COMMON_OBJS)
+$(APPTEST_TARGETS) : $(UTDIR)test_base$(OBJ) $(APPTEST_COMMON_OBJS)
 
 {$(ATDIR)}$(OBJ){$(ATDIR)}$(E)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_TEST)
@@ -757,9 +757,8 @@ $(APPTEST_TARGETS) : $(APPTEST_COMMON_OBJS)
 #
 # tdsodbc test rules
 #
-ODBCTEST_COMMON_OBJS = $(OTDIR)common$(OBJ), $(OTDIR)c2string$(OBJ), \
-   $(OTDIR)parser$(OBJ), $(UTDIR)test_base$(OBJ)
-$(ODBCTEST_TARGETS) : $(ODBCTEST_COMMON_OBJS)
+ODBCTEST_COMMON_OBJS = $(OTDIR)common$(OBJ) $(OTDIR)c2string$(OBJ) $(OTDIR)parser$(OBJ)
+$(ODBCTEST_TARGETS) : $(UTDIR)test_base$(OBJ) $(ODBCTEST_COMMON_OBJS)
 ODBCTEST_OBJS = $(ODBCTEST_TARGETS:$(E)=$(OBJ)) $(ODBCTEST_COMMON_OBJS) $(OTDIR)fake_thread$(OBJ)
 $(ODBCTEST_OBJS) : $(OTDIR)common.h $(CONFIGS)
 
