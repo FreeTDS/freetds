@@ -635,40 +635,30 @@ DBLIBTEST_NAMES = t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 t0009 \
 	empty_rowsets string_bind colinfo bcp2 proc_limit strbuild
 
 ODBCTEST_NAMES = \
-	t0001 t0002 t0003 \
-	moreresults connect print \
-	date norowset funccall \
-	lang_error tables \
-	binary_test moreandcount \
-	earlybind putdata params \
-	raiserror getdata \
-	transaction type genparams \
-	preperror prepare_results \
-	testodbc data error \
-	rebindpar rpc convert_error \
-	typeinfo const_params \
-	insert_speed compute \
-	timeout array array_out \
-	cursor1 scroll cursor2 \
-	describecol copydesc \
-	prepclose warning \
-	paramcore timeout2 timeout3 \
-	connect2 timeout4 freeclose \
-	cursor3 cursor4 cursor5 \
-	attributes hidden blob1 \
-	cancel wchar rowset transaction2 \
-	cursor6 cursor7 utf8 utf8_2 \
-	stats descrec peter test64 \
-	prepare_warn long_error mars1 \
-	array_error closestmt bcp \
-	all_types utf8_3 empty_query \
-	transaction3 transaction4 \
-	utf8_4 qn connection_string_parse \
-	tvp tokens \
-	describeparam \
-	reexec \
-	oldpwd
-
+	all_types array array_error array_out \
+	attributes bcp binary_test \
+	blob1 cancel closestmt \
+	compute connect connect2 \
+	connection_string_parse const_params convert_error \
+	copydesc cursor1 cursor2 cursor3 \
+	cursor4 cursor5 cursor6 cursor7 \
+	data date descrec describecol \
+	describecol2 describeparam earlybind empty_query \
+	error freeclose funccall \
+	genparams getdata hidden insert_speed \
+	lang_error long_error mars1 moreandcount \
+	moreresults norowset offset_ptr oldpwd \
+	paramcore params peter \
+	prepare_results prepare_warn prepclose preperror \
+	print putdata qn raiserror \
+	rebindpar reexec rownumber rowset \
+	rpc scroll stats t0001 \
+	t0002 t0003 tables test64 \
+	testodbc timeout timeout2 timeout3 \
+	timeout4 tokens transaction transaction2 \
+	transaction3 transaction4 tvp type \
+	typeinfo utf8 utf8_2 utf8_3 \
+	utf8_4 warning wchar
 
 LIBTDSTEST_TARGETS ~= $(ADDPREFIX $(TTDIR),$(ADDSUFFIX $(E),$(LIBTDSTEST_NAMES)))
 CTLIBTEST_TARGETS ~= $(ADDPREFIX $(CTDIR),$(ADDSUFFIX $(E),$(CTLIBTEST_NAMES)))
