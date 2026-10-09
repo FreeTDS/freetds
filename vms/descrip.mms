@@ -656,7 +656,7 @@ ODBCTEST_NAMES = \
 	t0002 t0003 tables test64 \
 	testodbc timeout timeout2 timeout3 \
 	timeout4 tokens transaction transaction2 \
-	transaction3 transaction4 tvp type \
+	transaction3 transaction4 trigger_count tvp type \
 	typeinfo utf8 utf8_2 utf8_3 \
 	utf8_4 warning wchar
 

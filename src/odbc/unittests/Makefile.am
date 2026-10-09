@@ -88,6 +88,7 @@ TESTS =	\
 	reexec$(EXEEXT) \
 	oldpwd$(EXEEXT) \
 	offset_ptr$(EXEEXT) \
+	trigger_count$(EXEEXT) \
 	$(NULL)
 
 check_PROGRAMS	=	$(TESTS)
@@ -183,6 +184,7 @@ tokens_SOURCES	= tokens.c
 tokens_LDFLAGS = ../../server/libtdssrv.la $(INSTALL_FLAG)
 reexec_SOURCES = reexec.c
 offset_ptr_SOURCES = offset_ptr.c
+trigger_count_SOURCES = trigger_count.c
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h c2string.c parser.c parser.h \
