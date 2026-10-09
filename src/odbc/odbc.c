@@ -3921,9 +3921,7 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 			if (stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3)
 				flag |= TDS_STOPAT_MSG;
 			if (done_flags & TDS_DONE_COUNT) {
-				/* correct ?? overwrite ?? */
-				if (stmt->row_count == TDS_NO_COUNT)
-					stmt->row_count = tds->rows_affected;
+				stmt->row_count = tds->rows_affected;
 			}
 			if (done_flags & TDS_DONE_ERROR)
 				stmt->errs.lastrc = SQL_ERROR;
