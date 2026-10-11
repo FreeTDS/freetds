@@ -35,6 +35,7 @@ set(tests
 	reexec
 	oldpwd
 	offset_ptr
+	trigger_count
 )
 
 if(WIN32)
