@@ -49,7 +49,7 @@ CTDIR = [.src.ctlib.unittests]
 DTDIR = [.src.dblib.unittests]
 OTDIR = [.src.odbc.unittests]
 UTDIR = [.src.utils.unittests]
-
+ATDIR = [.src.apps.unittests]
 
 all : prelim _all
 	@ continue
@@ -239,6 +239,7 @@ TDSOBJS = [.src.tds]bulk$(OBJ), [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ
 	[.src.tds]stream$(OBJ), [.src.tds]random$(OBJ), [.src.tds]sec_negotiate$(OBJ), \
 	[.src.replacements]strlcpy$(OBJ), \
 	[.src.replacements]strlcat$(OBJ), \
+	[.src.replacements]strsep$(OBJ), \
 	[.src.utils]des$(OBJ), [.src.utils]md4$(OBJ), [.src.utils]md5$(OBJ), \
 	[.src.utils]sleep$(OBJ), \
 	[.src.utils]hmac_md5$(OBJ), \
@@ -551,7 +552,7 @@ fisql$(E) : []libsybdb$(OLB), []libtds$(OLB), $(FISQL_OBJS)
 
 # Run the test suite
 
-check : buildchecks libtdscheck ctlibcheck dblibcheck $(tdsodbccheck)
+check : buildchecks libtdscheck ctlibcheck dblibcheck appscheck $(tdsodbccheck)
 	@ write sys$output ""
 	@ write sys$output "Test run complete."
 
@@ -573,6 +574,10 @@ ctlibcheck : PWD FREETDSCONF
 dblibcheck : PWD FREETDSCONF
 	@ write sys$output "Starting $(MMS$TARGET)..."
 	@ @[.vms]run_tests_in.com $(DTDIR)
+
+appscheck : PWD FREETDSCONF
+	@ write sys$output "Starting $(MMS$TARGET)..."
+	@ @[.vms]run_tests_in.com $(ATDIR)
 
 tdsodbccheck : PWD FREETDSCONF $(TDSODBCSHR)
 	@ write sys$output "Starting $(MMS$TARGET)..."
@@ -603,7 +608,7 @@ tdsodbcrecheck :
 recheck : libtdsrecheck ctlibrecheck dblibrecheck tdsodbcrecheck
 	@ continue
 
-buildchecks : $(CONFIGS) libtdstests ctlibtests dblibtests $(TDSODBCSHR) $(ODBCTESTS)
+buildchecks : $(CONFIGS) libtdstests ctlibtests dblibtests apptests $(TDSODBCSHR) $(ODBCTESTS)
 	@ continue
 
 LIBTDSTEST_NAMES = t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 dynamic1 \
@@ -634,6 +639,8 @@ DBLIBTEST_NAMES = t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 t0009 \
 	cancel spid canquery batch_stmt_ins_sel batch_stmt_ins_upd bcp_getl \
 	empty_rowsets string_bind colinfo bcp2 proc_limit strbuild
 
+APPTEST_NAMES = defncopy freebcp
+
 ODBCTEST_NAMES = \
 	all_types array array_error array_out \
 	attributes bcp binary_test \
@@ -663,6 +670,7 @@ ODBCTEST_NAMES = \
 LIBTDSTEST_TARGETS ~= $(ADDPREFIX $(TTDIR),$(ADDSUFFIX $(E),$(LIBTDSTEST_NAMES)))
 CTLIBTEST_TARGETS ~= $(ADDPREFIX $(CTDIR),$(ADDSUFFIX $(E),$(CTLIBTEST_NAMES)))
 DBLIBTEST_TARGETS ~= $(ADDPREFIX $(DTDIR),$(ADDSUFFIX $(E),$(DBLIBTEST_NAMES)))
+APPTEST_TARGETS ~= $(ADDPREFIX $(ATDIR),$(ADDSUFFIX $(E),$(APPTEST_NAMES)))
 ODBCTEST_TARGETS ~= $(ADDPREFIX $(OTDIR),$(ADDSUFFIX $(E),$(ODBCTEST_NAMES)))
 
 libtdstests : []libtds$(OLB) $(LIBTDSTEST_TARGETS)
@@ -674,6 +682,9 @@ ctlibtests : []libtds$(OLB) []libct$(OLB) $(CTLIBTEST_TARGETS)
 dblibtests : []libtds$(OLB) []libsybdb$(OLB) $(DBLIBTEST_TARGETS)
 	@ continue
 
+apptests : []libtds$(OLB) $(APPTEST_TARGETS)
+	@ continue
+
 odbctests : []libtds$(OLB) []libtdsodbc$(OLB) $(ODBCTEST_TARGETS)
 	@ continue
 
@@ -683,10 +694,10 @@ odbctests : []libtds$(OLB) []libtdsodbc$(OLB) $(ODBCTEST_TARGETS)
 # Easier to link common objects into all tests, than to
 # specify exactly which tests uses which of the common objects.
 #
-LIBTDSTEST_COMMON_OBJS = $(UTDIR)test_base$(OBJ) $(TTDIR)common$(OBJ) $(TTDIR)utf8$(OBJ) $(TTDIR)allcolumns$(OBJ)
+LIBTDSTEST_COMMON_OBJS = $(TTDIR)common$(OBJ) $(TTDIR)utf8$(OBJ) $(TTDIR)allcolumns$(OBJ)
 LIBTDSTEST_OBJS = $(LIBTDSTEST_TARGETS:$(E)=$(OBJ)) $(LIBTDSTEST_COMMON_OBJS)
 $(LIBTDSTEST_OBJS) : $(TTDIR)common.h $(CONFIGS)
-$(LIBTDSTEST_TARGETS) : $(LIBTDSTEST_COMMON_OBJS)
+$(LIBTDSTEST_TARGETS) : $(UTDIR)test_base$(OBJ) $(LIBTDSTEST_COMMON_OBJS)
 
 {$(TTDIR)}$(OBJ){$(TTDIR)}$(E)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library $(OPENSSL_TEST)
@@ -703,10 +714,10 @@ $(CTDIR)all_types$(E) : $(CTDIR)all_types$(OBJ) $(TTDIR)allcolumns$(OBJ)
 #
 # ctlib test rules
 #
-CTLIBTEST_COMMON_OBJS = $(UTDIR)test_base$(OBJ) $(CTDIR)common$(OBJ)
+CTLIBTEST_COMMON_OBJS = $(CTDIR)common$(OBJ)
 CTLIBTEST_OBJS = $(CTLIBTEST_TARGETS:$(E)=$(OBJ)) $(CTLIBTEST_COMMON_OBJS)
 $(CTLIBTEST_OBJS) : $(CTDIR)common.h $(CONFIGS)
-$(CTLIBTEST_TARGETS) : $(CTLIBTEST_COMMON_OBJS)
+$(CTLIBTEST_TARGETS) : $(UTDIR)test_base$(OBJ) $(CTLIBTEST_COMMON_OBJS)
 
 {$(CTDIR)}$(OBJ){$(CTDIR)}$(E)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libct$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_TEST)
@@ -714,20 +725,30 @@ $(CTLIBTEST_TARGETS) : $(CTLIBTEST_COMMON_OBJS)
 #
 # dblib test rules
 #
-DBLIBTEST_COMMON_OBJS = $(UTDIR)test_base$(OBJ) $(DTDIR)common$(OBJ)
+DBLIBTEST_COMMON_OBJS = $(DTDIR)common$(OBJ)
 DBLIBTEST_OBJS = $(DBLIBTEST_TARGETS:$(E)=$(OBJ)) $(DBLIBTEST_COMMON_OBJS)
 $(DBLIBTEST_OBJS) : $(DTDIR)common.h $(CONFIGS)
-$(DBLIBTEST_TARGETS) : $(DBLIBTEST_COMMON_OBJS)
+$(DBLIBTEST_TARGETS) : $(UTDIR)test_base$(OBJ) $(DBLIBTEST_COMMON_OBJS)
 
 {$(DTDIR)}$(OBJ){$(DTDIR)}$(E)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_TEST)
 
 #
+# app test rules
+#
+APPTEST_COMMON_OBJS = $(ATDIR)common$(OBJ)
+APPTEST_OBJS = $(APPTEST_TARGETS:$(E)=$(OBJ)) $(APPTEST_COMMON_OBJS)
+$(APPTEST_OBJS) : $(ATDIR)common.h $(CONFIGS)
+$(APPTEST_TARGETS) : $(UTDIR)test_base$(OBJ) $(APPTEST_COMMON_OBJS)
+
+{$(ATDIR)}$(OBJ){$(ATDIR)}$(E)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library,[]libtds$(OLB)/library $(OPENSSL_TEST)
+
+#
 # tdsodbc test rules
 #
-ODBCTEST_COMMON_OBJS = $(OTDIR)common$(OBJ), $(OTDIR)c2string$(OBJ), \
-   $(OTDIR)parser$(OBJ), $(UTDIR)test_base$(OBJ)
-$(ODBCTEST_TARGETS) : $(ODBCTEST_COMMON_OBJS)
+ODBCTEST_COMMON_OBJS = $(OTDIR)common$(OBJ) $(OTDIR)c2string$(OBJ) $(OTDIR)parser$(OBJ)
+$(ODBCTEST_TARGETS) : $(UTDIR)test_base$(OBJ) $(ODBCTEST_COMMON_OBJS)
 ODBCTEST_OBJS = $(ODBCTEST_TARGETS:$(E)=$(OBJ)) $(ODBCTEST_COMMON_OBJS) $(OTDIR)fake_thread$(OBJ)
 $(ODBCTEST_OBJS) : $(OTDIR)common.h $(CONFIGS)
 

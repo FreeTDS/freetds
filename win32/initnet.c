@@ -65,6 +65,9 @@ DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved TDS_UNUSED)
 			CloseHandle(crt_file);
 			crt_file = _CRTDBG_FILE_STDOUT;
 		}
+		/* avoid a duplicate report on process exit now */
+		_CrtSetDbgFlag(~_CRTDBG_LEAK_CHECK_DF & _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG));
+
 #endif
 		break;
 	}
