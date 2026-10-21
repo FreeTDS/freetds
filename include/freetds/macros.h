@@ -93,4 +93,15 @@
 #define TDS_NORETURN
 #endif
 
+/* OpenVMS should not use "b" flag to fopen: has no effect for Stream-LF files,
+ * but for Variable-length record files, causes newlines to be suppressed.
+ * VFC files pass through control data regardless of openmode; they cannot
+ * be used with FreeTDS.
+ */
+#ifdef __VMS
+#define TDS_FOPEN_BINARY ""
+#else
+#define TDS_FOPEN_BINARY "b"
+#endif
+
 #endif
