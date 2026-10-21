@@ -438,14 +438,14 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 	 * is specified, redirecting stdin doesn't do much yet.
 	 */
 	if (pdata->inputfile) {
-		if (freopen(pdata->inputfile, "rb", stdin) == NULL) {
+		if (freopen(pdata->inputfile, "r" TDS_FOPEN_BINARY, stdin) == NULL) {
 			fprintf(stderr, "%s: unable to open %s: %s\n", "freebcp", pdata->inputfile, strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 	}
 
 	if (pdata->outputfile) {
-		if (freopen(pdata->outputfile, "wb", stdout) == NULL) {
+		if (freopen(pdata->outputfile, "w" TDS_FOPEN_BINARY, stdout) == NULL) {
 			fprintf(stderr, "%s: unable to open %s: %s\n", "freebcp", pdata->outputfile, strerror(errno));
 			exit(EXIT_FAILURE);
 		}
