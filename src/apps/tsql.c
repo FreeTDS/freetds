@@ -729,7 +729,7 @@ print_instance_data(TDSLOGIN *login)
 		printf("connecting to instance %s on port %d\n", tds_dstr_cstr(&login->instance_name), login->port);
 }
 
-#if defined(HAVE_ALARM) && !defined(_WIN32)
+#if defined(HAVE_ALARM) && !defined(_WIN32) && !defined(__VMS)
 static void
 count_alarm(int s TDS_UNUSED)
 {
@@ -839,7 +839,7 @@ main(int argc, char **argv)
 	 * If we're able to establish an ip address for the server, we'll try to connect to it. 
 	 * If that machine is currently unreachable, show a timer connecting to the server. 
 	 */
-#if defined(HAVE_ALARM) && !defined(_WIN32)
+#if defined(HAVE_ALARM) && !defined(_WIN32) && !defined(__VMS)
 	if (connection && !QUIET) {
 		signal(SIGALRM, count_alarm);
 		fflush(stderr);
@@ -856,7 +856,7 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-#if defined(HAVE_ALARM) && !defined(_WIN32)
+#if defined(HAVE_ALARM) && !defined(_WIN32) && !defined(__VMS)
 	if (!QUIET) {
 		alarm(0);
 		signal(SIGALRM, SIG_DFL);
