@@ -181,8 +181,15 @@ tds_addrinfo2str(struct addrinfo *addr, char *name, int namemax)
 #endif
 	if (!name || namemax <= 0)
 		return "";
+
+#ifdef __VMS		/* OpenVMS TCPIP v5.7 getnameinfo() is buggy */
+	if (addr->ai_family == AF_INET && inet_ntop(AF_INET,
+				&((struct sockaddr_in *)addr->ai_addr)->sin_addr, name, namemax))
+		return name;
+#else
 	if (getnameinfo(addr->ai_addr, addr->ai_addrlen, name, namemax, NULL, 0, NI_NUMERICHOST) == 0)
 		return name;
+#endif
 	name[0] = 0;
 	return name;
 }
