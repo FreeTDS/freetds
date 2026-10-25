@@ -8,7 +8,7 @@ main(void)
 	odbc_connect();
 
 	/* issue print statement and test message returned */
-	odbc_command2("SELECT DATEADD(dd,-100000,getdate())", "E");
+	odbc_command2("SELECT DATEADD(dd,-200000,getdate())", "E");
 
 	odbc_disconnect();
 

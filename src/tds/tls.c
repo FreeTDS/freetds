@@ -912,7 +912,7 @@ check_name_match(ASN1_STRING *name, const char *hostname)
 
 	tdsdump_log(TDS_DBG_INFO1, "Got name %s\n", name_utf8);
 	ret = 0;
-	if (strlen(name_utf8) == name_len && check_wildcard(name_utf8, hostname))
+	if (strlen(name_utf8) == name_len && check_wildcard(hostname, name_utf8))
 		ret = 1;
 	free(name_utf8);
 	return ret;
