@@ -275,14 +275,14 @@ main(int argc, char *argv[])
 	 * Override stdin, stdout, and stderr, as required
 	 */
 	if (options.input_filename) {
-		if (freopen(options.input_filename, "rb", stdin) == NULL) {
+		if (freopen(options.input_filename, "r", stdin) == NULL) {
 			fprintf(stderr, "%s: unable to open %s: %s\n", options.appname, options.input_filename, strerror(errno));
 			exit(1);
 		}
 	}
 
 	if (options.output_filename) {
-		if (freopen(options.output_filename, "wb", stdout) == NULL) {
+		if (freopen(options.output_filename, "w", stdout) == NULL) {
 			fprintf(stderr, "%s: unable to open %s: %s\n", options.appname, options.output_filename, strerror(errno));
 			exit(1);
 		}

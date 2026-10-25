@@ -181,8 +181,15 @@ tds_addrinfo2str(struct addrinfo *addr, char *name, int namemax)
 #endif
 	if (!name || namemax <= 0)
 		return "";
+
+#ifdef __VMS		/* OpenVMS TCPIP v5.7 getnameinfo() is buggy */
+	if (addr->ai_family == AF_INET && inet_ntop(AF_INET,
+				&((struct sockaddr_in *)addr->ai_addr)->sin_addr, name, namemax))
+		return name;
+#else
 	if (getnameinfo(addr->ai_addr, addr->ai_addrlen, name, namemax, NULL, 0, NI_NUMERICHOST) == 0)
 		return name;
+#endif
 	name[0] = 0;
 	return name;
 }
@@ -230,7 +237,7 @@ tds_setup_socket(TDS_SYS_SOCKET *p_sock, struct addrinfo *addr, unsigned int por
 		TDS_SOCKET_KEEPALIVE_INTERVAL = 2
 	};
 	TDS_SYS_SOCKET sock;
-	char ipaddr[128];
+	char ipaddr[128] = {0};
 	int retval, len, err;
 	char *errstr;
 #if defined(_WIN32)
@@ -245,7 +252,8 @@ tds_setup_socket(TDS_SYS_SOCKET *p_sock, struct addrinfo *addr, unsigned int por
 	*p_oserr = 0;
 
 	tds_addrinfo_set_port(addr, port);
-	tds_addrinfo2str(addr, ipaddr, sizeof(ipaddr));
+	if (tds_write_dump)
+		tds_addrinfo2str(addr, ipaddr, sizeof(ipaddr));
 
 	*p_sock = sock = socket(addr->ai_family, SOCK_STREAM, 0);
 	if (TDS_IS_SOCKET_INVALID(sock)) {
@@ -1108,11 +1116,12 @@ tds7_get_instance_ports(FILE *output, struct addrinfo *addr)
 	char msg[16*1024];
 	ptrdiff_t msg_len = 0;
 	int port = 0;
-	char ipaddr[128];
+	char ipaddr[128] = { 0 };
 
 
 	tds_addrinfo_set_port(addr, 1434);
-	tds_addrinfo2str(addr, ipaddr, sizeof(ipaddr));
+	if (tds_write_dump)
+		tds_addrinfo2str(addr, ipaddr, sizeof(ipaddr));
 
 	tdsdump_log(TDS_DBG_ERROR, "tds7_get_instance_ports(%s)\n", ipaddr);
 
@@ -1245,10 +1254,11 @@ tds7_get_instance_port(struct addrinfo *addr, const char *instance)
 	char msg[1024];
 	ptrdiff_t msg_len;
 	int port = 0;
-	char ipaddr[128];
+	char ipaddr[128] = { 0 };
 
 	tds_addrinfo_set_port(addr, 1434);
-	tds_addrinfo2str(addr, ipaddr, sizeof(ipaddr));
+	if (tds_write_dump)
+		tds_addrinfo2str(addr, ipaddr, sizeof(ipaddr));
 
 	tdsdump_log(TDS_DBG_ERROR, "tds7_get_instance_port(%s, %s)\n", ipaddr, instance);
 

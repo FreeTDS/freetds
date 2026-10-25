@@ -951,7 +951,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	 * TODO above we allocate many buffer just to convert and store
 	 * to file.. avoid all that passages...
 	 */
-	if (!(hostfp = fopen(dbproc->hostfileinfo->hostfile, "wb"))) {
+	if (!(hostfp = fopen(dbproc->hostfileinfo->hostfile, "w" TDS_FOPEN_BINARY))) {
 		dbperror(dbproc, SYBEBCUO, errno);
 		goto Cleanup;
 	}
@@ -1537,7 +1537,7 @@ _bcp_exec_in(DBPROCESS *dbproc, DBINT *rows_copied)
 
 	*rows_copied = 0;
 
-	if (!TDS_SUCCEED(tds_file_stream_init(&hoststream, fopen(dbproc->hostfileinfo->hostfile, "rb")))) {
+	if (!TDS_SUCCEED(tds_file_stream_init(&hoststream, fopen(dbproc->hostfileinfo->hostfile, "r" TDS_FOPEN_BINARY)))) {
 		tdsdump_log(TDS_DBG_FUNC, "error: cannot initialize hostfile stream");
 		dbperror(dbproc, SYBEBCUO, 0);
 		return FAIL;
@@ -1574,7 +1574,7 @@ _bcp_exec_in(DBPROCESS *dbproc, DBINT *rows_copied)
 			int count;
 
 			if (errfile == NULL && dbproc->hostfileinfo->errorfile) {
-				if (!(errfile = fopen(dbproc->hostfileinfo->errorfile, "wb"))) {
+				if (!(errfile = fopen(dbproc->hostfileinfo->errorfile, "w" TDS_FOPEN_BINARY))) {
 					tds_file_stream_close(&hoststream);
 					dbperror(dbproc, SYBEBUOE, 0);
 					return FAIL;
