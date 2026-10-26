@@ -729,18 +729,25 @@ print_instance_data(TDSLOGIN *login)
 		printf("connecting to instance %s on port %d\n", tds_dstr_cstr(&login->instance_name), login->port);
 }
 
-#if defined(HAVE_ALARM) && !defined(_WIN32)
-static void
-count_alarm(int s TDS_UNUSED)
+#ifdef TDS_HAVE_MUTEX
+static tds_mutex timer_mtx = TDS_MUTEX_INITIALIZER;
+
+static
+TDS_THREAD_PROC_DECLARE(timer_proc, arg)
 {
-	static int count = 0;
-	char buf[64];
+	tds_condition *cond = (tds_condition *) arg;
+	int count = 0;
 
-	/* print the counter, do not use stderr as may be locked! */
-	sprintf(buf, "\r%2d", ++count);
-	write(STDERR_FILENO, buf, strlen(buf));
+	tds_mutex_lock(&timer_mtx);
 
-	alarm(1);
+	while (tds_cond_timedwait(cond, &timer_mtx, 1) == ETIMEDOUT) {
+		/* print the counter */
+		fprintf(stderr, "\r%2d\r", ++count);
+		fflush(stderr);
+	}
+
+	tds_mutex_unlock(&timer_mtx);
+	return TDS_THREAD_RESULT(0);
 }
 #endif
 
@@ -760,6 +767,11 @@ main(int argc, char **argv)
 	int opt_flags = 0;
 	const char *locale = NULL;
 	const char *charset = NULL;
+
+#ifdef TDS_HAVE_MUTEX
+	tds_thread timer_thread;
+	tds_condition timer_cond;
+#endif
 
 	istty = isatty(0);
 
@@ -839,11 +851,17 @@ main(int argc, char **argv)
 	 * If we're able to establish an ip address for the server, we'll try to connect to it. 
 	 * If that machine is currently unreachable, show a timer connecting to the server. 
 	 */
-#if defined(HAVE_ALARM) && !defined(_WIN32)
+#ifdef TDS_HAVE_MUTEX
 	if (connection && !QUIET) {
-		signal(SIGALRM, count_alarm);
 		fflush(stderr);
-		alarm(1);
+		if (tds_cond_init(&timer_cond)) {
+			fprintf(stderr, "failed initializing condition\n");
+			exit(1);
+		}
+		if (tds_thread_create(&timer_thread, timer_proc, &timer_cond) != 0) {
+			fprintf(stderr, "error creating thread\n");
+			exit(1);
+		}
 	}
 #endif
 	if (!connection || TDS_FAILED(tds_connect_and_login(tds, connection))) {
@@ -856,10 +874,13 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-#if defined(HAVE_ALARM) && !defined(_WIN32)
+#ifdef TDS_HAVE_MUTEX
 	if (!QUIET) {
-		alarm(0);
-		signal(SIGALRM, SIG_DFL);
+		tds_mutex_lock(&timer_mtx);
+		tds_cond_signal(&timer_cond);
+		tds_mutex_unlock(&timer_mtx);
+		tds_thread_join(timer_thread, NULL);
+		tds_cond_destroy(&timer_cond);
 		fprintf(stderr, "\r");
 	}
 #endif
