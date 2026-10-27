@@ -179,12 +179,30 @@ tds_addrinfo2str(struct addrinfo *addr, char *name, int namemax)
 #ifndef NI_NUMERICHOST
 #define NI_NUMERICHOST 0
 #endif
+	struct sockaddr *sa = (struct sockaddr *) addr->ai_addr;
+
 	if (!name || namemax <= 0)
 		return "";
-	if (getnameinfo(addr->ai_addr, addr->ai_addrlen, name, namemax, NULL, 0, NI_NUMERICHOST) == 0)
+#ifdef __VMS			/* OpenVMS TCPIP v5.7 getnameinfo() is buggy */
+	if (addr->ai_family == AF_INET && inet_ntop(AF_INET, &((struct sockaddr_in *) sa)->sin_addr, name, namemax))
 		return name;
-	name[0] = 0;
-	return name;
+#ifdef AF_INET6
+	if (addr->ai_family == AF_INET6 && inet_ntop(AF_INET6, &((struct sockaddr_in6 *) sa)->sin6_addr, name, namemax)) {
+		uint32_t scope_id = ((struct sockaddr_in6 *) sa)->sin6_scope_id;
+
+		if (scope_id) {
+			size_t len = strlen(name);
+
+			snprintf(name + len, (size_t) namemax - len, "%%%u", scope_id);
+		}
+		return name;
+	}
+#endif
+#else
+	if (getnameinfo(sa, addr->ai_addrlen, name, namemax, NULL, 0, NI_NUMERICHOST) == 0)
+		return name;
+#endif
+	return "";
 }
 
 /**
