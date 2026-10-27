@@ -46,6 +46,12 @@
 #include <unistd.h>
 #endif
 
+/* Avoid defining twice _open function for MingW */
+#ifdef _WIN32
+#include <io.h>
+#include <fcntl.h>
+#endif
+
 #if defined(DOS32X)
 #define READSOCKET(a,b,c)	recv((a), (b), (c), TDS_NOSIGNAL)
 #define WRITESOCKET(a,b,c)	send((a), (b), (c), TDS_NOSIGNAL)
