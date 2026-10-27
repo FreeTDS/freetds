@@ -31,6 +31,7 @@ TESTS =	\
 	tls$(EXEEXT) \
 	sec_negotiate$(EXEEXT) \
 	file_stream$(EXEEXT) \
+	addrinfo2str$(EXEEXT) \
 	$(NULL)
 
 # flags test commented, not necessary for 0.62
@@ -74,6 +75,7 @@ convert_bounds_SOURCES	=	convert_bounds.c
 tls_SOURCES	=	tls.c
 sec_negotiate_SOURCES	= sec_negotiate.c
 file_stream_SOURCES =       file_stream.c
+addrinfo2str_SOURCES	= addrinfo2str.c
 if !HAVE_SSPI
 TESTS += cbt$(EXEEXT)
 cbt_SOURCES = cbt.c
