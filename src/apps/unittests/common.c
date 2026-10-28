@@ -37,14 +37,15 @@ no_space(void)
 	exit(1);
 }
 
+/* This is used when comparing defncopy output to expected output */
 void
 normalize_spaces(char *s)
 {
 	char *p, *dest, prev;
 
-	/* replace all tabs with spaces */
+	/* replace all tabs & newlines with spaces */
 	for (p = s; *p; ++p)
-		if (*p == '\t')
+		if (*p == '\t' || *p == '\n' || *p == '\r')
 			*p = ' ';
 
 	/* replace duplicate spaces with a single space */
@@ -54,7 +55,15 @@ normalize_spaces(char *s)
 			continue;
 		*dest++ = prev = *p;
 	}
+
+	/* trailing space not significant */
+	while (dest > s && dest[-1] == ' ')
+		--dest;
 	*dest = 0;
+
+	/* spaces between , and ] not significant */
+	while ((p = strstr(s, ", ]")) != NULL)
+		memmove(p+1, p+2, strlen(p+2)+1);
 }
 
 void
@@ -63,7 +72,13 @@ cat(const char *fn, FILE *out)
 	char line[1024];
 	FILE *f = fopen(fn, "r");
 
-	assert(f);
+	if (!f)
+	{
+		/* Can happen if e.g. .exe file not found, so no output */
+		fputs("<output file not found>\n", out);
+		return;
+	}
+
 	while (fgets(line, sizeof(line), f)) {
 		fputs("  ", out);
 		fputs(line, out);
@@ -105,7 +120,7 @@ read_file(const char *fn)
 char *
 quote_arg(char *dest, char *const dest_end, const char *arg)
 {
-#ifndef _WIN32
+#if (!defined _WIN32 && !defined __VMS)
 	CHECK(1);
 	*dest++ = '\'';
 	for (; *arg; ++arg) {
@@ -236,10 +251,10 @@ tsql_generic(const char *input_data, bool get_output)
 	fputs(input_data, f);
 	fclose(f);
 
-	strcpy(cmd, "tsql" EXE_SUFFIX " -o q");
+	strcpy(cmd, VMS_APP_EXE_INVOKE "tsql" EXE_SUFFIX " -o q");
 	p = strchr(cmd, 0);
 	p = add_server(p, end);
-	p = add_string(p, end, "<");
+	p = add_string(p, end, " <");
 	p = add_string(p, end, input_fn());
 	p = add_string(p, end, " >");
 	p = add_string(p, end, output_fn());
