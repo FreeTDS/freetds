@@ -205,6 +205,22 @@ tds_addrinfo2str(struct addrinfo *addr, char *name, int namemax)
 	return "";
 }
 
+typedef struct
+{
+	char ipaddr[128];
+} addrinfo2str_res;
+
+static addrinfo2str_res
+addrinfo2str(struct addrinfo *addr)
+{
+	addrinfo2str_res res;
+
+	tds_addrinfo2str(addr, res.ipaddr, sizeof(res.ipaddr));
+	return res;
+}
+
+#define addrinfo2str(addr) (addrinfo2str(addr).ipaddr)
+
 /**
  * Returns error stored in the socket
  */
@@ -248,7 +264,6 @@ tds_setup_socket(TDS_SYS_SOCKET *p_sock, struct addrinfo *addr, unsigned int por
 		TDS_SOCKET_KEEPALIVE_INTERVAL = 2
 	};
 	TDS_SYS_SOCKET sock;
-	char ipaddr[128];
 	int retval, len, err;
 	char *errstr;
 #if defined(_WIN32)
@@ -263,7 +278,6 @@ tds_setup_socket(TDS_SYS_SOCKET *p_sock, struct addrinfo *addr, unsigned int por
 	*p_oserr = 0;
 
 	tds_addrinfo_set_port(addr, port);
-	tds_addrinfo2str(addr, ipaddr, sizeof(ipaddr));
 
 	*p_sock = sock = socket(addr->ai_family, SOCK_STREAM, 0);
 	if (TDS_IS_SOCKET_INVALID(sock)) {
@@ -310,12 +324,12 @@ tds_setup_socket(TDS_SYS_SOCKET *p_sock, struct addrinfo *addr, unsigned int por
 #error One should be defined
 #endif
 
-	tdsdump_log(TDS_DBG_INFO1, "Connecting to %s port %d\n", ipaddr, port);
+	tdsdump_log(TDS_DBG_INFO1, "Connecting to %s port %d\n", addrinfo2str(addr), port);
 
 #ifdef  DOS32X			/* the other connection doesn't work  on WATTCP32 */
 	if (connect(sock, addr->ai_addr, addr->ai_addrlen) < 0) {
 		*p_oserr = sock_errno;
-		tdsdump_log(TDS_DBG_ERROR, "tds_setup_socket(): %s:%d", ipaddr, port);
+		tdsdump_log(TDS_DBG_ERROR, "tds_setup_socket(): %s:%d", addrinfo2str(addr), port);
 		return TDSECONN;
 	}
 	return TDSEOK;
@@ -348,7 +362,7 @@ tds_setup_socket(TDS_SYS_SOCKET *p_sock, struct addrinfo *addr, unsigned int por
 						"\t\t\t%s = %s\n"
 						, "sin_family", addr->ai_family
 						, "port", port
-						, "address", ipaddr
+						, "address", addrinfo2str(addr)
 						);
 	}
 #endif
@@ -1126,13 +1140,10 @@ tds7_get_instance_ports(FILE *output, struct addrinfo *addr)
 	char msg[16*1024];
 	ptrdiff_t msg_len = 0;
 	int port = 0;
-	char ipaddr[128];
-
 
 	tds_addrinfo_set_port(addr, 1434);
-	tds_addrinfo2str(addr, ipaddr, sizeof(ipaddr));
 
-	tdsdump_log(TDS_DBG_ERROR, "tds7_get_instance_ports(%s)\n", ipaddr);
+	tdsdump_log(TDS_DBG_ERROR, "tds7_get_instance_ports(%s)\n", addrinfo2str(addr));
 
 	/* create an UDP socket */
 	if (TDS_IS_SOCKET_INVALID(s = socket(addr->ai_family, SOCK_DGRAM, 0))) {
@@ -1263,12 +1274,10 @@ tds7_get_instance_port(struct addrinfo *addr, const char *instance)
 	char msg[1024];
 	ptrdiff_t msg_len;
 	int port = 0;
-	char ipaddr[128];
 
 	tds_addrinfo_set_port(addr, 1434);
-	tds_addrinfo2str(addr, ipaddr, sizeof(ipaddr));
 
-	tdsdump_log(TDS_DBG_ERROR, "tds7_get_instance_port(%s, %s)\n", ipaddr, instance);
+	tdsdump_log(TDS_DBG_ERROR, "tds7_get_instance_port(%s, %s)\n", addrinfo2str(addr), instance);
 
 	/* create an UDP socket */
 	if (TDS_IS_SOCKET_INVALID(s = socket(addr->ai_family, SOCK_DGRAM, 0))) {
