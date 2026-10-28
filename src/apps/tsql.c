@@ -732,15 +732,20 @@ print_instance_data(TDSLOGIN *login)
 #ifdef TDS_HAVE_MUTEX
 static tds_mutex timer_mtx = TDS_MUTEX_INITIALIZER;
 
+typedef struct {
+	tds_condition cond;
+	volatile bool done;
+} timer_proc_arg;
+
 static
-TDS_THREAD_PROC_DECLARE(timer_proc, arg)
+TDS_THREAD_PROC_DECLARE(timer_proc, arg_p)
 {
-	tds_condition *cond = (tds_condition *) arg;
+	timer_proc_arg *arg = (timer_proc_arg *) arg_p;
 	int count = 0;
 
 	tds_mutex_lock(&timer_mtx);
 
-	while (tds_cond_timedwait(cond, &timer_mtx, 1) == ETIMEDOUT) {
+	while (!arg->done && tds_cond_timedwait(&arg->cond, &timer_mtx, 1) == ETIMEDOUT) {
 		/* print the counter */
 		fprintf(stderr, "\r%2d\r", ++count);
 		fflush(stderr);
@@ -770,7 +775,7 @@ main(int argc, char **argv)
 
 #ifdef TDS_HAVE_MUTEX
 	tds_thread timer_thread;
-	tds_condition timer_cond;
+	timer_proc_arg timer_arg;
 #endif
 
 	istty = isatty(0);
@@ -854,11 +859,12 @@ main(int argc, char **argv)
 #ifdef TDS_HAVE_MUTEX
 	if (connection && !QUIET) {
 		fflush(stderr);
-		if (tds_cond_init(&timer_cond)) {
+		timer_arg.done = false;
+		if (tds_cond_init(&timer_arg.cond)) {
 			fprintf(stderr, "failed initializing condition\n");
 			exit(1);
 		}
-		if (tds_thread_create(&timer_thread, timer_proc, &timer_cond) != 0) {
+		if (tds_thread_create(&timer_thread, timer_proc, &timer_arg) != 0) {
 			fprintf(stderr, "error creating thread\n");
 			exit(1);
 		}
@@ -877,10 +883,11 @@ main(int argc, char **argv)
 #ifdef TDS_HAVE_MUTEX
 	if (!QUIET) {
 		tds_mutex_lock(&timer_mtx);
-		tds_cond_signal(&timer_cond);
+		timer_arg.done = true;
+		tds_cond_signal(&timer_arg.cond);
 		tds_mutex_unlock(&timer_mtx);
 		tds_thread_join(timer_thread, NULL);
-		tds_cond_destroy(&timer_cond);
+		tds_cond_destroy(&timer_arg.cond);
 		fprintf(stderr, "\r");
 	}
 #endif
