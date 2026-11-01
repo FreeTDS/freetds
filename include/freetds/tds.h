@@ -1486,6 +1486,7 @@ TDSRET tds_process_tokens(TDSSOCKET * tds, /*@out@*/ TDS_INT * result_type, /*@o
 /* data.c */
 void tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE type);
 void tds_set_column_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE type);
+bool tds_try_get_int_col(TDSSOCKET *tds, const TDSCOLUMN *col, TDS_INT *value);
 TDS_INT tds_get_int_col(TDSSOCKET *tds, const TDSCOLUMN *col, TDS_INT default_value);
 #ifdef WORDS_BIGENDIAN
 void tds_swap_datatype(int coltype, void *b);

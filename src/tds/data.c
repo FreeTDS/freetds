@@ -345,6 +345,34 @@ tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE typ
 
 /**
  * Get the value of a column converted to an integer.
+ * \param tds   state information for the socket and the TDS protocol
+ * \param col   column to read
+ * \param value where to store the value, not changed on failure
+ * \return true on success, false if column is NULL or cannot be converted
+ */
+bool
+tds_try_get_int_col(TDSSOCKET *tds, const TDSCOLUMN *col, TDS_INT *value)
+{
+	TDS_SERVER_TYPE srctype = tds_get_conversion_type(col->on_server.column_type, col->on_server.column_size);
+	const TDS_CHAR *src = (const TDS_CHAR *) col->column_data;
+	TDS_INT srclen = col->column_cur_size;
+	CONV_RESULT res;
+
+	if (srclen < 0)
+		return false;
+
+	if (is_blob_col(col))
+		src = ((const TDSBLOB *) src)->textvalue;
+
+	if (tds_convert(tds_get_ctx(tds), srctype, src, (TDS_UINT) srclen, SYBINT4, &res) < 0)
+		return false;
+
+	*value = res.i;
+	return true;
+}
+
+/**
+ * Get the value of a column converted to an integer.
  * \param tds           state information for the socket and the TDS protocol
  * \param col           column to read
  * \param default_value value to return if column is NULL or cannot be converted
@@ -353,21 +381,8 @@ tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE typ
 TDS_INT
 tds_get_int_col(TDSSOCKET *tds, const TDSCOLUMN *col, TDS_INT default_value)
 {
-	TDS_SERVER_TYPE srctype = tds_get_conversion_type(col->on_server.column_type, col->on_server.column_size);
-	const TDS_CHAR *src = (const TDS_CHAR *) col->column_data;
-	TDS_INT srclen = col->column_cur_size;
-	CONV_RESULT res;
-
-	if (srclen < 0)
-		return default_value;
-
-	if (is_blob_col(col))
-		src = ((const TDSBLOB *) src)->textvalue;
-
-	if (tds_convert(tds_get_ctx(tds), srctype, src, (TDS_UINT) srclen, SYBINT4, &res) < 0)
-		return default_value;
-
-	return res.i;
+	tds_try_get_int_col(tds, col, &default_value);
+	return default_value;
 }
 
 TDS_SERVER_TYPE
