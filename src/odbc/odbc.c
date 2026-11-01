@@ -6851,26 +6851,6 @@ SQLSetScrollOptions(SQLHSTMT hstmt, SQLUSMALLINT fConcurrency, SQLLEN crowKeyset
 	ODBC_EXIT_(stmt);
 }
 
-static TDS_INT
-get_int_col(TDSSOCKET *tds, TDSCOLUMN *col, TDS_INT default_value)
-{
-	int srctype = tds_get_conversion_type(col->on_server.column_type, col->on_server.column_size);
-	TDS_CHAR *src = (TDS_CHAR *) col->column_data;
-	TDS_INT srclen = col->column_cur_size;
-	CONV_RESULT res;
-
-	if (srclen < 0)
-		return default_value;
-
-	if (is_blob_col(col))
-		src = ((TDSBLOB *) src)->textvalue;
-
-	if (tds_convert(tds_get_ctx(tds), srctype, src, (TDS_UINT) srclen, SYBINT4, &res) < 0)
-		return default_value;
-
-	return res.i;
-}
-
 /**
  * Replace placeholders ('?') inside query with @PRMxxx name.
  * @param is_func Tell if query is a ODBC function call.
@@ -7091,10 +7071,10 @@ read_params(TDS_STMT *stmt)
 					break;
 				drec = &stmt->ipd->records[idx];
 				memset(col, 0, sizeof(col));
-				tds_type = get_int_col(tds, res_info->columns[column_idx[COL_TYPE]], -2);
-				len = get_int_col(tds, res_info->columns[column_idx[COL_LENGTH]], -2);
-				precision = get_int_col(tds, res_info->columns[column_idx[COL_PRECISION]], -2);
-				scale = get_int_col(tds, res_info->columns[column_idx[COL_SCALE]], -2);
+				tds_type = tds_get_int_col(tds, res_info->columns[column_idx[COL_TYPE]], -2);
+				len = tds_get_int_col(tds, res_info->columns[column_idx[COL_LENGTH]], -2);
+				precision = tds_get_int_col(tds, res_info->columns[column_idx[COL_PRECISION]], -2);
+				scale = tds_get_int_col(tds, res_info->columns[column_idx[COL_SCALE]], -2);
 				if (tds_type < -1 || len < -1 || precision < -1 || scale < -1)
 					break;
 				tds_set_column_type(tds->conn, col, tds_type);
