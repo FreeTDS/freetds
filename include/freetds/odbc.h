@@ -135,6 +135,19 @@ static inline void odbc_check_struct_extra(void *p TDS_UNUSED) {}
 	tds_mutex_unlock(&handle->mtx); \
 	return _odbc_rc; } while(0)
 
+/* utils to check handles */
+#define INIT_HANDLE(t, n) \
+	TDS_##t *n = (TDS_##t*)h##n; \
+	if (SQL_NULL_H##t  == h##n || (n)->htype != SQL_HANDLE_##t) return SQL_INVALID_HANDLE; \
+	tds_mutex_lock(&n->mtx); \
+	CHECK_##t##_EXTRA(n); \
+	odbc_errs_reset(&n->errs);
+
+#define ODBC_ENTER_HSTMT INIT_HANDLE(STMT, stmt)
+#define ODBC_ENTER_HDBC  INIT_HANDLE(DBC,  dbc)
+#define ODBC_ENTER_HENV  INIT_HANDLE(ENV,  env)
+#define ODBC_ENTER_HDESC INIT_HANDLE(DESC, desc)
+
 
 /** reset errors */
 void odbc_errs_reset(struct _sql_errors *errs);

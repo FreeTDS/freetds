@@ -99,19 +99,6 @@ static void odbc_ird_check(TDS_STMT * stmt);
  */
 
 
-/* utils to check handles */
-#define INIT_HANDLE(t, n) \
-	TDS_##t *n = (TDS_##t*)h##n; \
-	if (SQL_NULL_H##t  == h##n || (n)->htype != SQL_HANDLE_##t) return SQL_INVALID_HANDLE; \
-	tds_mutex_lock(&n->mtx); \
-	CHECK_##t##_EXTRA(n); \
-	odbc_errs_reset(&n->errs);
-
-#define ODBC_ENTER_HSTMT INIT_HANDLE(STMT, stmt)
-#define ODBC_ENTER_HDBC  INIT_HANDLE(DBC,  dbc)
-#define ODBC_ENTER_HENV  INIT_HANDLE(ENV,  env)
-#define ODBC_ENTER_HDESC INIT_HANDLE(DESC, desc)
-
 #define IS_VALID_LEN(len) ((len) >= 0 || (len) == SQL_NTS || (len) == SQL_NULL_DATA)
 
 #define ODBC_SAFE_ERROR(stmt) \
