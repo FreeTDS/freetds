@@ -1009,6 +1009,8 @@ if test "$ac_compiler_gnu" = "yes" ; then
 fi
 
 AX_CFLAGS_GCC_OPTION([-Wdeclaration-after-statement])
+# calling undeclared functions can produce libraries with undefined symbols
+AX_CFLAGS_GCC_OPTION([-Werror=implicit-function-declaration])
 
 AC_MSG_RESULT(done)
 # ------------------------------------------------------------
