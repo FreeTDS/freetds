@@ -215,6 +215,7 @@ addrinfo2str(struct addrinfo *addr)
 {
 	addrinfo2str_res res;
 
+	res.ipaddr[0] = 0;
 	tds_addrinfo2str(addr, res.ipaddr, sizeof(res.ipaddr));
 	return res;
 }
