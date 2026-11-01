@@ -9,8 +9,8 @@ echo Function not exported by odbc driver
 (eval "$EXP" | grep '^\(SQL\|ODBC\)'; cat odbc_w.def | grep -v '^;' | grep 'SQL' | sed 's,.*SQL,SQL,g' | perl -pe 's,\r,,g') | sort | uniq -u | grep -v ODBCINSTGetProperties
 
 echo Function not declared as implemented
-(eval "$EXP" | grep '^SQL' | grep -v '[a-z]W$' | perl -pe 'tr/a-z/A-Z/'; cat odbc.c | grep 'X(SQL_API_' | sed 's,.*SQL_API_SQL,SQL,g; s,).*,,g' | sort | uniq) | sort | uniq -u
-(eval "$EXP" | grep '^SQL' | grep -v '[a-z]W$' | perl -pe 'tr/a-z/A-Z/'; cat odbc.c | grep '_(SQL_API_' | sed 's,.*SQL_API_SQL,SQL,g; s,).*,,g' | sort | uniq) | sort | uniq -d
+(eval "$EXP" | grep '^SQL' | grep -v '[a-z]W$' | perl -pe 'tr/a-z/A-Z/'; cat info.c | grep 'X(SQL_API_' | sed 's,.*SQL_API_SQL,SQL,g; s,).*,,g' | sort | uniq) | sort | uniq -u
+(eval "$EXP" | grep '^SQL' | grep -v '[a-z]W$' | perl -pe 'tr/a-z/A-Z/'; cat info.c | grep '_(SQL_API_' | sed 's,.*SQL_API_SQL,SQL,g; s,).*,,g' | sort | uniq) | sort | uniq -d
 
 echo
 echo "DBLIB"

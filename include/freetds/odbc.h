@@ -725,6 +725,12 @@ SQLLEN odbc_get_octet_len(int c_type, const struct _drecord *drec);
 void odbc_convert_err_set(struct _sql_errors *errs, TDS_INT err);
 
 /*
+ * info.c
+ */
+SQLRETURN odbc_SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMALLINT cbInfoValueMax,
+			  SQLSMALLINT FAR * pcbInfoValue _WIDE);
+
+/*
  * prepare_query.c
  */
 SQLRETURN prepare_call(struct _hstmt *stmt);

@@ -274,6 +274,7 @@ TDSODBCOBJS = \
     [.src.odbc]convert_tds2sql$(OBJ), \
     [.src.odbc]descriptor$(OBJ), \
     [.src.odbc]error$(OBJ), \
+    [.src.odbc]info$(OBJ), \
     [.src.odbc]native$(OBJ), \
     [.src.odbc]odbc$(OBJ), \
     [.src.odbc]odbc_checks$(OBJ), \

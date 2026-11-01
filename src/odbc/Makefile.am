@@ -4,7 +4,7 @@ AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC)
 lib_LTLIBRARIES	=	libtdsodbc.la
 ##EXTRA_LTLIBRARIES	=	libtdsodbc.la
 libtdsodbc_la_SOURCES =	odbc.c connectparams.c convert_tds2sql.c \
-	descriptor.c prepare_query.c odbc_util.c bcp.c \
+	descriptor.c prepare_query.c odbc_util.c bcp.c info.c \
 	native.c sql2tds.c error.c odbc_checks.c sqlwchar.c sqlwparams.h \
 	odbc_export.h error_export.h odbc_data.c unixodbc.c
 # -module is needed by Darwin (Mac OS X)
