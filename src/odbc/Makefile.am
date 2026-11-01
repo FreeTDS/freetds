@@ -4,9 +4,9 @@ AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC)
 lib_LTLIBRARIES	=	libtdsodbc.la
 ##EXTRA_LTLIBRARIES	=	libtdsodbc.la
 libtdsodbc_la_SOURCES =	odbc.c connectparams.c convert_tds2sql.c \
-	descriptor.c prepare_query.c odbc_util.c bcp.c info.c \
+	descriptor.c prepare_query.c odbc_util.c bcp.c info.c catalog.c \
 	native.c sql2tds.c error.c odbc_checks.c sqlwchar.c sqlwparams.h \
-	odbc_export.h error_export.h odbc_data.c unixodbc.c
+	odbc_export.h error_export.h catalog_export.h odbc_data.c unixodbc.c
 # -module is needed by Darwin (Mac OS X)
 libtdsodbc_la_LDFLAGS = \
 	$(ODBCINST_LDFLAGS) $(LTLIBICONV) $(FREETDS_LIBGCC) \
@@ -44,7 +44,7 @@ odbc: $(EXTRA_LTLIBRARIES)
 	@echo ''
 
 if HAVE_PERL_SOURCES
-BUILT_SOURCES = odbc_export.h error_export.h
+BUILT_SOURCES = odbc_export.h error_export.h catalog_export.h
 
 clean-local:
 	cd $(srcdir) && rm -f $(BUILT_SOURCES)
@@ -55,6 +55,10 @@ odbc_export.h: odbc_export.pl Makefile odbc.c
 
 error_export.h: odbc_export.pl Makefile error.c
 	perl $(srcdir)/odbc_export.pl $(srcdir)/error.c > $@.tmp
+	mv $@.tmp $@
+
+catalog_export.h: odbc_export.pl Makefile catalog.c
+	perl $(srcdir)/odbc_export.pl $(srcdir)/catalog.c > $@.tmp
 	mv $@.tmp $@
 
 endif

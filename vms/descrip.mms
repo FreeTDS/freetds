@@ -196,6 +196,7 @@ maintainer-clean : distclean
 	@[.vms]clean_delete [.src.replacements]iconv_charsets.h;*
 	@[.vms]clean_delete [.src.odbc]odbc_export.h;*
 	@[.vms]clean_delete [.src.odbc]error_export.h;*
+	@[.vms]clean_delete [.src.odbc]catalog_export.h;*
 
 distclean : clean
 	#! Files created by configure.com (including descrip.mms)
@@ -270,6 +271,7 @@ TDSPOOLOBJS = [.src.pool]config$(OBJ), [.src.pool]main$(OBJ), [.src.pool]member$
 
 TDSODBCOBJS = \
     [.src.odbc]bcp$(OBJ), \
+    [.src.odbc]catalog$(OBJ), \
     [.src.odbc]connectparams$(OBJ), \
     [.src.odbc]convert_tds2sql$(OBJ), \
     [.src.odbc]descriptor$(OBJ), \

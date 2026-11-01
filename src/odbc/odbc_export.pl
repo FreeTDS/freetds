@@ -41,6 +41,7 @@ while(<IN>) {
 		while ($args =~ /(P.*?)\(([^\,)]+),?([^\,)]+)\)/g) {
 			my ($type, $a, $b) = ($1,$2,$3);
 #			print "--- $1 -- $2 -- $3\n";
+			$b =~ s/^\s+//;
 			if ($type eq 'P') {
 				$a =~ s/ FAR \*$/ */;
 				die $a if !grep { $_ eq $a } @types;

@@ -14,13 +14,20 @@ if(PERL_FOUND AND NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/odbc_export.h")
 		MAIN_DEPENDENCY odbc_export.pl
 		DEPENDS error.c
 		WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
+	add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/catalog_export.h"
+		COMMAND ${PERL_EXECUTABLE} odbc_export.pl catalog.c > "${CMAKE_CURRENT_BINARY_DIR}/catalog_export.h"
+		MAIN_DEPENDENCY odbc_export.pl
+		DEPENDS catalog.c
+		WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
 	add_custom_target(odbc_exports_h DEPENDS
 		"${CMAKE_CURRENT_BINARY_DIR}/odbc_export.h"
-		"${CMAKE_CURRENT_BINARY_DIR}/error_export.h")
+		"${CMAKE_CURRENT_BINARY_DIR}/error_export.h"
+		"${CMAKE_CURRENT_BINARY_DIR}/catalog_export.h")
 else(PERL_FOUND AND NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/odbc_export.h")
 	add_custom_target(odbc_exports_h DEPENDS
 		"${CMAKE_CURRENT_SOURCE_DIR}/odbc_export.h"
-		"${CMAKE_CURRENT_SOURCE_DIR}/error_export.h")
+		"${CMAKE_CURRENT_SOURCE_DIR}/error_export.h"
+		"${CMAKE_CURRENT_SOURCE_DIR}/catalog_export.h")
 endif(PERL_FOUND AND NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/odbc_export.h")
 
 if(WIN32)
@@ -35,7 +42,7 @@ set(libs ${lib_ODBCINST})
 
 set(odbc_SRCS
 	odbc.c connectparams.c convert_tds2sql.c
-	descriptor.c prepare_query.c odbc_util.c bcp.c info.c
+	descriptor.c prepare_query.c odbc_util.c bcp.c info.c catalog.c
 	native.c sql2tds.c error.c odbc_checks.c sqlwchar.c sqlwparams.h
 	odbc_data.c unixodbc.c ${win_SRCS}
 )
