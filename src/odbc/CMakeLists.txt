@@ -33,12 +33,14 @@ if(WIN32)
 endif()
 set(libs ${lib_ODBCINST})
 
-add_library(tdsodbc SHARED
+set(odbc_SRCS
 	odbc.c connectparams.c convert_tds2sql.c
 	descriptor.c prepare_query.c odbc_util.c bcp.c
 	native.c sql2tds.c error.c odbc_checks.c sqlwchar.c sqlwparams.h
 	odbc_data.c unixodbc.c ${win_SRCS}
 )
+
+add_library(tdsodbc SHARED ${odbc_SRCS})
 target_include_directories(tdsodbc PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 add_dependencies(tdsodbc odbc_exports_h encodings_h)
 target_compile_definitions(tdsodbc PUBLIC DLL_EXPORT=1)
@@ -49,12 +51,7 @@ if(MINGW OR CYGWIN)
 	set_target_properties(tdsodbc PROPERTIES LINK_FLAGS "--static -Wl,--kill-at -Wl,--enable-stdcall-fixup")
 endif(MINGW OR CYGWIN)
 
-add_library(tdsodbc_static STATIC
-	odbc.c connectparams.c convert_tds2sql.c
-	descriptor.c prepare_query.c odbc_util.c bcp.c
-	native.c sql2tds.c error.c odbc_checks.c sqlwchar.c sqlwparams.h
-	odbc_data.c unixodbc.c ${win_SRCS}
-)
+add_library(tdsodbc_static STATIC ${odbc_SRCS})
 target_include_directories(tdsodbc_static PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 add_dependencies(tdsodbc_static odbc_exports_h encodings_h)
 if (NOT WIN32)
