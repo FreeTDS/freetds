@@ -723,6 +723,9 @@ SQLRETURN odbc_set_concise_c_type(SQLSMALLINT concise_type, struct _drecord *dre
 
 SQLLEN odbc_get_octet_len(int c_type, const struct _drecord *drec);
 void odbc_convert_err_set(struct _sql_errors *errs, TDS_INT err);
+SQLSMALLINT odbc_swap_datetime_sql_type(SQLSMALLINT sql_type, int version);
+TDSPARAMINFO *odbc_add_char_param(TDSSOCKET * tds, TDSPARAMINFO * params, const char *name, const char *value, TDS_INT len);
+TDSPARAMINFO *odbc_add_int_param(TDSSOCKET * tds, TDSPARAMINFO * params, const char *name, int value);
 
 /*
  * info.c

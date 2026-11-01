@@ -1221,4 +1221,88 @@ odbc_convert_err_set(struct _sql_errors *errs, TDS_INT err)
 	}
 }
 
+/**
+ * Change sql datatype to a specific version
+ * \param sql_type sql data type to change (any type)
+ * \param version  ODBC version to change to, 2 for ODBC 2, 3 for ODBC 3, 0 swap
+ */
+SQLSMALLINT
+odbc_swap_datetime_sql_type(SQLSMALLINT sql_type, int version)
+{
+	switch (sql_type) {
+	case SQL_TYPE_TIMESTAMP:
+		if (version != 3)
+			sql_type = SQL_TIMESTAMP;
+		break;
+	case SQL_TIMESTAMP:
+		if (version != 2)
+			sql_type = SQL_TYPE_TIMESTAMP;
+		break;
+	case SQL_TYPE_DATE:
+		if (version != 3)
+			sql_type = SQL_DATE;
+		break;
+	case SQL_DATE:
+		if (version != 2)
+			sql_type = SQL_TYPE_DATE;
+		break;
+	case SQL_TYPE_TIME:
+		if (version != 3)
+			sql_type = SQL_TIME;
+		break;
+	case SQL_TIME:
+		if (version != 2)
+			sql_type = SQL_TYPE_TIME;
+		break;
+	}
+	return sql_type;
+}
+
+TDSPARAMINFO *
+odbc_add_char_param(TDSSOCKET *tds, TDSPARAMINFO *params, const char *name, const char *value, TDS_INT len)
+{
+	TDSCOLUMN *col;
+
+	params = tds_alloc_param_result(params);
+	if (!params)
+		return NULL;
+
+	col = params->columns[params->num_cols - 1];
+	if (!tds_dstr_copy(&col->column_name, name))
+		return NULL;
+	tds_set_param_type(tds->conn, col, IS_TDS7_PLUS(tds->conn) ? XSYBNVARCHAR : SYBVARCHAR, 0);
+
+	col->column_size = len;
+	if (!tds_alloc_param_data(col))
+		return NULL;
+
+	memcpy(col->column_data, value, len);
+	col->column_cur_size = len;
+
+	return params;
+}
+
+TDSPARAMINFO *
+odbc_add_int_param(TDSSOCKET *tds, TDSPARAMINFO *params, const char *name, int value)
+{
+	TDSCOLUMN *col;
+
+	params = tds_alloc_param_result(params);
+	if (!params)
+		return NULL;
+
+	col = params->columns[params->num_cols - 1];
+	if (!tds_dstr_copy(&col->column_name, name))
+		return NULL;
+	tds_set_param_type(tds->conn, col, SYBINT4, 0);
+
+	if (!tds_alloc_param_data(col))
+		return NULL;
+
+	*((TDS_INT *) col->column_data) = value;
+	col->column_cur_size = sizeof(TDS_INT);
+
+	return params;
+}
+
 /** @} */

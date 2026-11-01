@@ -76,12 +76,11 @@ static void odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name);
 static SQLRETURN odbc_stat_execute(TDS_STMT * stmt _WIDE, const char *begin, int nparams, ...);
 static SQLRETURN odbc_free_dynamic(TDS_STMT * stmt);
 static SQLRETURN odbc_free_cursor(TDS_STMT * stmt);
-static SQLRETURN odbc_update_ird(TDS_STMT *stmt, TDS_ERRS *errs);
-static SQLRETURN odbc_prepare(TDS_STMT *stmt);
-static SQLSMALLINT odbc_swap_datetime_sql_type(SQLSMALLINT sql_type, int version);
+static SQLRETURN odbc_update_ird(TDS_STMT * stmt, TDS_ERRS * errs);
+static SQLRETURN odbc_prepare(TDS_STMT * stmt);
 static int odbc_process_tokens(TDS_STMT * stmt, unsigned flag);
-static bool odbc_lock_statement(TDS_STMT* stmt);
-static void odbc_unlock_statement(TDS_STMT* stmt);
+static bool odbc_lock_statement(TDS_STMT * stmt);
+static void odbc_unlock_statement(TDS_STMT * stmt);
 static bool read_params(TDS_STMT *stmt);
 
 #if ENABLE_EXTRA_CHECKS
@@ -5338,43 +5337,6 @@ odbc_upper_column_names(TDS_STMT * stmt)
 	}
 }
 
-/**
- * Change sql datatype to a specific version
- * \param sql_type sql data type to change (any type)
- * \param version  ODBC version to change to, 2 for ODBC 2, 3 for ODBC 3, 0 swap
- */
-static SQLSMALLINT
-odbc_swap_datetime_sql_type(SQLSMALLINT sql_type, int version)
-{
-	switch (sql_type) {
-	case SQL_TYPE_TIMESTAMP:
-		if (version != 3)
-			sql_type = SQL_TIMESTAMP;
-		break;
-	case SQL_TIMESTAMP:
-		if (version != 2)
-			sql_type = SQL_TYPE_TIMESTAMP;
-		break;
-	case SQL_TYPE_DATE:
-		if (version != 3)
-			sql_type = SQL_DATE;
-		break;
-	case SQL_DATE:
-		if (version != 2)
-			sql_type = SQL_TYPE_DATE;
-		break;
-	case SQL_TYPE_TIME:
-		if (version != 3)
-			sql_type = SQL_TIME;
-		break;
-	case SQL_TIME:
-		if (version != 2)
-			sql_type = SQL_TYPE_TIME;
-		break;
-	}
-	return sql_type;
-}
-
 SQLRETURN ODBC_PUBLIC ODBC_API
 SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 {
@@ -6514,56 +6476,8 @@ odbc_quote_metadata(TDS_DBC * dbc, char type, char *dest, DSTR * dstr)
 	return dst - dest;
 }
 
-static TDSPARAMINFO*
-odbc_add_char_param(TDSSOCKET *tds, TDSPARAMINFO *params, const char *name, const char *value, TDS_INT len)
-{
-	TDSCOLUMN *col;
-
-	params = tds_alloc_param_result(params);
-	if (!params)
-		return NULL;
-
-	col = params->columns[params->num_cols-1];
-	if (!tds_dstr_copy(&col->column_name, name))
-		return NULL;
-	tds_set_param_type(tds->conn, col, IS_TDS7_PLUS(tds->conn) ? XSYBNVARCHAR : SYBVARCHAR, 0);
-
-	col->column_size = len;
-	if (!tds_alloc_param_data(col))
-		return NULL;
-
-	memcpy(col->column_data, value, len);
-	col->column_cur_size = len;
-
-	return params;
-}
-
-static TDSPARAMINFO*
-odbc_add_int_param(TDSSOCKET *tds, TDSPARAMINFO *params, const char *name, int value)
-{
-	TDSCOLUMN *col;
-
-	params = tds_alloc_param_result(params);
-	if (!params)
-		return NULL;
-
-	col = params->columns[params->num_cols-1];
-	if (!tds_dstr_copy(&col->column_name, name))
-		return NULL;
-	tds_set_param_type(tds->conn, col, SYBINT4, 0);
-
-	if (!tds_alloc_param_data(col))
-		return NULL;
-
-	*((TDS_INT*) col->column_data) = value;
-	col->column_cur_size = sizeof(TDS_INT);
-
-	return params;
-}
-
-
 static SQLRETURN
-odbc_stat_execute(TDS_STMT * stmt _WIDE, const char *begin, int nparams, ...)
+odbc_stat_execute(TDS_STMT *stmt _WIDE, const char *begin, int nparams, ...)
 {
 	int i, param_qualifier = -1;
 	size_t len;
