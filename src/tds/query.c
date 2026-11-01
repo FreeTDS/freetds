@@ -3610,27 +3610,14 @@ tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option,
 				break;
 			case TDS_ROW_RESULT:
 				while (tds_process_tokens(tds, &resulttype, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW) == TDS_SUCCESS) {
-					TDSCOLUMN *col;
-					CONV_RESULT dres;
-					int ctype;
-					unsigned char* src;
-					int srclen;
-
 					if (resulttype != TDS_ROW_RESULT)
 						break;
 
-					if (!tds->current_results)
+					if (!tds->current_results || tds->current_results->num_cols < 1)
 						continue;
 
-					col = tds->current_results->columns[0];
-					ctype = tds_get_conversion_type(col->on_server.column_type, col->column_size);
-
-					src = col->column_data;
-					srclen = col->column_cur_size;
-
-
-					tds_convert(tds_get_ctx(tds), ctype, src, srclen, SYBINT4, &dres);
-					optionval = dres.i;
+					/* keep previous value if NULL or not convertible */
+					optionval = tds_get_int_col(tds, tds->current_results->columns[0], optionval);
 				}
 				break;
 			default:
