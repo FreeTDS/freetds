@@ -156,14 +156,12 @@ static void
 odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name)
 {
 #if ENABLE_EXTRA_CHECKS
-	TDSRESULTINFO *resinfo;
-#endif
+	odbc_ird_check(stmt);
 
-	IRD_CHECK;
+	if (colpos > 0 && stmt->tds != NULL) {
+		TDSRESULTINFO *resinfo = stmt->tds->current_results;
 
-#if ENABLE_EXTRA_CHECKS
-	if (colpos > 0 && stmt->tds != NULL && (resinfo = stmt->tds->current_results) != NULL) {
-		if (colpos <= resinfo->num_cols) {
+		if (resinfo != NULL && colpos <= resinfo->num_cols) {
 			/* no overflow possible, name is always shorter */
 			if (!tds_dstr_copy(&resinfo->columns[colpos - 1]->column_name, name))
 				odbc_errs_add(&stmt->errs, "HY001", NULL);
@@ -6281,15 +6279,14 @@ SQLGetInfoW(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSM
 static void
 odbc_upper_column_names(TDS_STMT * stmt)
 {
-#if ENABLE_EXTRA_CHECKS
-	TDSSOCKET *tds;
-#endif
 	int icol;
 	TDS_DESC *ird;
 
-	IRD_CHECK;
-
 #if ENABLE_EXTRA_CHECKS
+	TDSSOCKET *tds;
+
+	odbc_ird_check(stmt);
+
 	tds = stmt->dbc->tds_socket;
 	if (tds && tds->current_results) {
 		TDSRESULTINFO *const resinfo = tds->current_results;
