@@ -148,6 +148,8 @@ static inline void odbc_check_struct_extra(void *p TDS_UNUSED) {}
 #define ODBC_ENTER_HENV  INIT_HANDLE(ENV,  env)
 #define ODBC_ENTER_HDESC INIT_HANDLE(DESC, desc)
 
+#define IS_VALID_LEN(len) ((len) >= 0 || (len) == SQL_NTS || (len) == SQL_NULL_DATA)
+
 
 /** reset errors */
 void odbc_errs_reset(struct _sql_errors *errs);
@@ -626,6 +628,15 @@ void tvp_free(SQLTVP *tvp);
  */
 
 SQLRETURN odbc_SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow);
+SQLRETURN odbc_SQLExecute(TDS_STMT * stmt);
+
+#if ENABLE_EXTRA_CHECKS
+void odbc_ird_check(TDS_STMT * stmt);
+
+#define IRD_CHECK odbc_ird_check(stmt)
+#else
+#define IRD_CHECK
+#endif
 
 /*
  * odbc_checks.h

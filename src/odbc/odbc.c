@@ -62,7 +62,6 @@ static SQLRETURN odbc_SQLFreeConnect(SQLHDBC hdbc);
 static SQLRETURN odbc_SQLFreeEnv(SQLHENV henv);
 static SQLRETURN odbc_SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force);
 static SQLRETURN odbc_SQLFreeDesc(SQLHDESC hdesc);
-static SQLRETURN odbc_SQLExecute(TDS_STMT * stmt);
 static SQLRETURN odbc_SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength WIDE);
 static SQLRETURN odbc_SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength,
 				     SQLINTEGER * StringLength WIDE);
@@ -81,23 +80,12 @@ static SQLRETURN odbc_prepare(TDS_STMT * stmt);
 static int odbc_process_tokens(TDS_STMT * stmt, unsigned flag);
 static bool odbc_lock_statement(TDS_STMT * stmt);
 static void odbc_unlock_statement(TDS_STMT * stmt);
-static bool read_params(TDS_STMT *stmt);
-
-#if ENABLE_EXTRA_CHECKS
-static void odbc_ird_check(TDS_STMT * stmt);
-
-#define IRD_CHECK odbc_ird_check(stmt)
-#else
-#define IRD_CHECK
-#endif
+static bool read_params(TDS_STMT * stmt);
 
 /**
  * \defgroup odbc_api ODBC API
  * Functions callable by \c ODBC client programs
  */
-
-
-#define IS_VALID_LEN(len) ((len) >= 0 || (len) == SQL_NTS || (len) == SQL_NULL_DATA)
 
 #define ODBC_SAFE_ERROR(stmt) \
 	do { \
@@ -3221,8 +3209,8 @@ SQLCopyDesc(SQLHDESC hsrc, SQLHDESC hdesc)
 }
 
 #if ENABLE_EXTRA_CHECKS
-static void
-odbc_ird_check(TDS_STMT * stmt TDS_UNUSED)
+void
+odbc_ird_check(TDS_STMT *stmt TDS_UNUSED)
 {
 #if !ENABLE_ODBC_MARS
 	TDS_DESC *ird = stmt->ird;
@@ -3510,8 +3498,8 @@ odbc_init_headers(TDS_STMT * stmt, TDSHEADERS * head)
 	return head;
 }
 
-static SQLRETURN
-odbc_SQLExecute(TDS_STMT * stmt)
+SQLRETURN
+odbc_SQLExecute(TDS_STMT *stmt)
 {
 	TDSRET ret;
 	TDSSOCKET *tds;
