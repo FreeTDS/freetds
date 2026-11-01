@@ -276,9 +276,6 @@ probe_sap_locking(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		/* We must keep processing result tokens (even if we've found what we're looking for) so that the
 		 * stream is ready for subsequent queries. */
 		while ((rc = tds_process_tokens(tds, &resulttype, NULL, stop_mask)) == TDS_SUCCESS) {
-			TDSCOLUMN *col;
-			TDS_SERVER_TYPE ctype;
-			CONV_RESULT dres;
 			TDS_INT res;
 
 			if (resulttype != TDS_ROW_RESULT)
@@ -288,16 +285,10 @@ probe_sap_locking(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 			if (!tds->current_results || tds->current_results->num_cols < 1)
 				continue;
 
-			col = tds->current_results->columns[0];
-			if (col->column_cur_size < 0)
+			if (!tds_try_get_int_col(tds, tds->current_results->columns[0], &res))
 				continue;
 
-			ctype = tds_get_conversion_type(col->column_type, col->column_size);
-			res = tds_convert(tds_get_ctx(tds), ctype, col->column_data, col->column_cur_size, SYBINT4, &dres);
-			if (res < 0)
-				continue;
-
-			value = dres.i;
+			value = res;
 			value_found = true;
 		}
 	}
@@ -1254,15 +1245,13 @@ tds5_process_insert_bulk_reply(TDSSOCKET * tds, TDSBCPINFO *bcpinfo)
 			}
 			for (icol = 0; icol < BULKCOL_COUNT; ++icol) {
 				const TDSCOLUMN *col = res_info->columns[cols_pos[icol]];
-				int ctype = tds_get_conversion_type(col->on_server.column_type, col->column_size);
-				unsigned char *src = col->column_data;
-				int srclen = col->column_cur_size;
-				CONV_RESULT dres;
+				TDS_INT value = 0;
 
-				if (tds_convert(tds_get_ctx(tds), ctype, src, srclen, SYBINT4, &dres) < 0)
+				/* NULL is read as 0 */
+				if (col->column_cur_size >= 0 && !tds_try_get_int_col(tds, col, &value))
 					break;
 				col_flags |= 1 << icol;
-				cols_values[icol] = dres.i;
+				cols_values[icol] = value;
 			}
 			/* save information */
 			if (col_flags != BULKCOL_ALL ||
