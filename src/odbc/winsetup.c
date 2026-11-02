@@ -440,7 +440,27 @@ check_installer_errors(void)
 }
 
 /**
- * Allow install using regsvr32
+ * Remove any previous registration of the driver, ignoring errors.
+ * Registering a driver already registered only increments its usage count,
+ * keeping the old path.  Existing data sources are not affected.
+ */
+static void
+remove_previous_driver(void)
+{
+	/* each call only decrements the usage count; limit the loop in case the count never reaches 0 */
+	unsigned int i;
+
+	for (i = 0; i < 1000; ++i) {
+		DWORD cnt = 0;
+
+		if (!SQLRemoveDriver("FreeTDS", FALSE, &cnt) || !cnt)
+			break;
+	}
+}
+
+/**
+ * Allow install using regsvr32.
+ * The driver registered is always the library registering itself.
  */
 HRESULT WINAPI
 DllRegisterServer(void)
@@ -467,6 +487,8 @@ DllRegisterServer(void)
 
 	wsprintfW(desc, desc_fmt, 0, 0, 0, 0, 0, 0, name, 0, name, 0);
 	name[-1] = 0;
+
+	remove_previous_driver();
 
 	b_res = SQLInstallDriverExW(desc, full_fn, fn, TDS_VECTOR_SIZE(fn), &len_out, ODBC_INSTALL_COMPLETE, &cnt);
 	/* SQLInstallDriverExW returns TRUE even if encountered errors */
