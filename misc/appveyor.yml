@@ -54,6 +54,9 @@ environment:
     TDSVER: "7.2"
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
 
+  # The only job using a multi-config generator (Visual Studio), which puts binaries
+  # in a subdirectory for each configuration.  Keep it to check tests can find libraries
+  # and executables, see ENVIRONMENT_MODIFICATION in unittests/CMakeLists.txt files.
   - PLAT: Win64
     VS_VERSION: "2013"
     TDSVER: "auto"
