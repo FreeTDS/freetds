@@ -638,7 +638,7 @@ DBLIBTEST_NAMES = t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 t0009 \
 	dbsafestr t0022 t0023 rpc dbmorecmds bcp thread text_buffer \
 	done_handling timeout hang null null2 setnull numeric pending \
 	cancel spid canquery batch_stmt_ins_sel batch_stmt_ins_upd bcp_getl \
-	empty_rowsets string_bind colinfo bcp2 proc_limit strbuild
+	empty_rowsets string_bind colinfo bcp2 proc_limit strbuild iconv_partial
 
 APPTEST_NAMES = defncopy freebcp
 

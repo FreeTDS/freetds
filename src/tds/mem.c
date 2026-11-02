@@ -1518,6 +1518,7 @@ tds_alloc_client_sqlstate(int msgno)
 		SQLS_ENTRY(2401, "42000");
 		SQLS_ENTRY(2403, "42000");
 		SQLS_ENTRY(2404, "42000");
+		SQLS_ENTRY(2433, "42000");
 		SQLS_ENTRY(2402, "S1000");	/* General error */
 	}
 

@@ -151,7 +151,7 @@ static int
 err_handler(const TDSCONTEXT * tds_ctx TDS_UNUSED, TDSSOCKET * tds TDS_UNUSED, TDSMESSAGE * msg)
 {
 	int old_err = captured_errno;
-	if (msg->msgno == TDSEICONVAVAIL) {
+	if (msg->msgno == TDSEICONVPARTIAL) {
 		captured_errno = EINVAL;
 	} else if (strstr(msg->message, "could not be converted")) {
 		captured_errno = EILSEQ;

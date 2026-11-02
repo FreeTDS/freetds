@@ -252,6 +252,8 @@ static const TDS_ERROR_MESSAGE tds_error_messages[] =
 	, { TDSEICONVI,      EXCONVERSION,	"Some character(s) could not be converted into client's character set.  "
 						"Unconverted bytes were changed to question marks ('?')" }
 	, { TDSEICONV2BIG,   EXCONVERSION,	"Some character(s) could not be converted into client's character set" }
+	, { TDSEICONVPARTIAL, EXCONVERSION,	"Illegal byte sequence encountered, data ends with an incomplete "
+						"multibyte sequence" }
 	, { TDSEPORTINSTANCE,      EXUSER,      "Both port and instance specified" }
 	, { TDSERPND,           EXPROGRAM,	"Attempt to initiate a new TDS server operation with results pending" }
 	, { TDSEBTOK,              EXCOMM,	"Bad token from the server: Datastream processing out of sync" }

@@ -136,7 +136,7 @@ convert_more:
 				tdsdump_log(TDS_DBG_NETWORK, "No conversion possible: some bytes left.\n");
 				res = TDS_FAIL;
 				if (conv_errno == EINVAL && tds)
-					tdserror(tds_get_ctx(tds), tds, TDSEICONVAVAIL, 0);
+					tdserror(tds_get_ctx(tds), tds, TDSEICONVPARTIAL, 0);
 				if (conv_errno == E2BIG && tds)
 					tdserror(tds_get_ctx(tds), tds, TDSEICONVIU, 0);
 				errno = conv_errno;

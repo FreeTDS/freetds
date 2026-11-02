@@ -7836,6 +7836,8 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
 	, { SYBEICONVI,      EXCONVERSION,	"Some character(s) could not be converted into client's character set.  Unconverted "
 						"bytes were changed to question marks ('?')\0" }
 	, { SYBEICONV2BIG,   EXCONVERSION,	"Buffer overflow converting characters from client into server's character set\0" }
+	, { SYBEICONVPARTIAL, EXCONVERSION,	"Illegal byte sequence encountered, data ends with an incomplete "
+						"multibyte sequence\0" }
 	
 	
 	, { SYBEPORT, 	   	   EXUSER,	"Both port and instance specified\0" }

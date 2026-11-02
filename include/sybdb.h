@@ -924,6 +924,7 @@ DBINT dbvarylen(DBPROCESS * dbproc, int column);
 				/* cf. doc/dblib_errors.txt for more iconv error values. */
 				/* Reserve a few slots for other iconv-related issues. */
 #define SYBETDSVER	 2410 	/* Cannot bcp with TDSVER < 5.0 */
+#define SYBEICONVPARTIAL 2433	/* Illegal byte sequence encountered, data ends with an incomplete multibyte sequence */
 #define SYBEPORT	 2500	/* Both port and instance specified */
 #define SYBESYNC        20001	/* Read attempted while out of synchronization with SQL Server. */
 #define SYBEFCON        20002	/* SQL Server connection failed. */

@@ -736,7 +736,7 @@ tds_iconv(TDSSOCKET * tds, TDSICONV * conv, TDS_ICONV_DIRECTION io,
 		if (suppress->einval)
 			break;
 		/* in chunk conversion this can mean we end a chunk inside a character */
-		tds_iconv_err(tds, TDSEICONVAVAIL);
+		tds_iconv_err(tds, TDSEICONVPARTIAL);
 		suppress->einval = 1;
 		break;
 	case E2BIG:		/* output buffer has no more room */

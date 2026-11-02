@@ -47,6 +47,7 @@ TESTS =	\
 	bcp2$(EXEEXT) \
 	proc_limit$(EXEEXT) \
 	strbuild$(EXEEXT) \
+	iconv_partial$(EXEEXT) \
 	$(NULL)
 
 check_PROGRAMS	=	$(TESTS)
@@ -113,6 +114,7 @@ colinfo_SOURCES	=	colinfo.c colinfo.sql
 bcp2_SOURCES	=	bcp2.c bcp2.sql
 proc_limit_SOURCES	=	proc_limit.c
 strbuild_SOURCES	=	strbuild.c
+iconv_partial_SOURCES	=	iconv_partial.c
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h
