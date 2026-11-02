@@ -54,3 +54,4 @@
 /proc_limit
 /strbuild
 /iconv_partial
+/charset_error

@@ -278,6 +278,18 @@ replay_save_context(TDSSOCKET *tds, TDSSAVECONTEXT *ctx)
 			tds->env_chg_func(tds, ctx->envs[n].type, ctx->envs[n].oldval, ctx->envs[n].newval);
 }
 
+/** Check if any library error (not a server message) was saved */
+static bool
+has_saved_error(const TDSSAVECONTEXT *ctx)
+{
+	unsigned n;
+
+	for (n = 0; n < ctx->num_msg; ++n)
+		if (ctx->msgs[n].type != 0)
+			return true;
+	return false;
+}
+
 static void
 reset_save_context(TDSSAVECONTEXT *ctx)
 {
@@ -532,6 +544,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		const TDSCONTEXT *old_ctx = tds_get_ctx(tds);
 		typedef void (*env_chg_func_t) (TDSSOCKET * tds, int type, char *oldval, char *newval);
 		env_chg_func_t old_env_chg = tds->env_chg_func;
+		bool error_reported;
 
 		init_save_context(&save_ctx, old_ctx);
 		tds_set_ctx(tds, &save_ctx.ctx);
@@ -558,9 +571,11 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		tds->env_chg_func = old_env_chg;
 		tds_set_ctx(tds, old_ctx);
 		replay_save_context(tds, &save_ctx);
+		error_reported = has_saved_error(&save_ctx);
 		free_save_context(&save_ctx);
-		
-		if (TDS_FAILED(erc))
+
+		/* do not report the same error twice */
+		if (TDS_FAILED(erc) && !error_reported)
 			tdserror(tds_get_ctx(tds), tds, -erc, *p_oserr);
 
 		return erc;
@@ -583,8 +598,14 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 	/* set up iconv if not already initialized*/
 	if (tds->conn->char_convs[client2ucs2]->to.cd == (iconv_t) -1) {
 		if (!tds_dstr_isempty(&login->client_charset)) {
-			if (TDS_FAILED(tds_iconv_open(tds->conn, tds_dstr_cstr(&login->client_charset), login->use_utf16)))
+			if (TDS_FAILED(tds_iconv_open(tds->conn, tds_dstr_cstr(&login->client_charset), login->use_utf16))) {
+				static const char server_charset[] = "UCS-2LE";
+
+				tdserror_args(tds_get_ctx(tds), tds, TDSEICONVAVAIL, 0,
+					      (int) tds_dstr_len(&login->client_charset), tds_dstr_cstr(&login->client_charset),
+					      (int) (sizeof(server_charset) - 1), server_charset);
 				return -TDSEICONVAVAIL;
+			}
 		}
 	}
 
