@@ -1389,7 +1389,7 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 				rows_affected = tds->rows_affected = TDS_NO_COUNT;
 
 				if (cmd->command_type == CS_CUR_CMD ||
-				    cmd->command_type == CS_DYNAMIC_CMD)
+				    (cmd->command_type == CS_DYNAMIC_CMD && cmd->dynamic_cmd != CS_EXECUTE))
 					break;
 
 				/* don't process DONE tokens */
