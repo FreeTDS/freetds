@@ -27,6 +27,11 @@ environment:
 
   matrix:
   - PLAT: Win64
+    VS_VERSION: "2026"
+    TDSVER: "7.4"
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2026
+
+  - PLAT: Win32
     VS_VERSION: "2022"
     TDSVER: "7.4"
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
@@ -96,7 +101,7 @@ install:
          $ENV:GENERATOR = "NMake Makefiles"
        }
      }
-     ForEach ($v in @('v35-', 'v33-', 'v111-', '')) {
+     ForEach ($v in @('v36-', 'v35-', 'v33-', 'v111-', '')) {
        $d = "c:\openssl-${v}win$ENV:WIDTH"
        if (Test-Path $d) {
          $ENV:OPENSSL_ROOT_DIR = $d
@@ -156,6 +161,7 @@ test_script:
   - set INSTANCENAME=SQL2017
   - if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2019" set INSTANCENAME=SQL2019
   - if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2022" set INSTANCENAME=SQL2019
+  - if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2026" set INSTANCENAME=SQL2025
   - 'powershell misc\sql-server-activate-tcp-fixed-port.ps1'
   # Create freetds.conf
   - cd build_debug
