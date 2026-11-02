@@ -152,6 +152,8 @@ build_script:
   - cd ..
   - mkdir build_debug
   - cd build_debug
+  # checks are slow with Visual Studio generator, reuse the results from the release configure
+  - if "%CONFIG_OPT%"=="--config" findstr /v CMAKE_CACHEFILE_DIR ..\build\CMakeCache.txt > CMakeCache.txt
   - >-
     %WITH_COMPILER% cmake -G "%GENERATOR%" %GENERATE_DEBUG% -DENABLE_EXTRA_CHECKS=on -DENABLE_MSDBLIB=on
     -DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR% -DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR% ..
