@@ -192,6 +192,12 @@ _ct_get_user_api_layer_error(int error)
 	case 143:
 		return "parameter name(s) must be supplied for LANGUAGE command.";
 		break;
+	case 16:
+		return "This routine cannot be called while results are pending for a command that has been sent to the server.";
+		break;
+	case 49:
+		return "This routine cannot be called because another command structure has results pending.";
+		break;
 	case 155:
 		return "This routine cannot be called when the command structure is idle.";
 		break;
@@ -1126,6 +1132,8 @@ _ct_initialise_cmd(CS_COMMAND *cmd)
 		param_clear(cmd->input_params);
 		cmd->input_params = NULL;
 	}
+	if (cmd->results_state == _CS_RES_RESULTSET_ENDED)
+		cmd->results_state = _CS_RES_INIT;
 	ct_set_command_state(cmd, _CS_COMMAND_IDLE);
 
 	rpc_clear(cmd->rpc);
@@ -1162,6 +1170,11 @@ ct_send(CS_COMMAND * cmd)
 	}
 
 	for (other = cmd->con->cmds; other; other = other->next) {
+		/* server has nothing else to send but these results have still to be reported */
+		if (other->results_state == _CS_RES_RESULTSET_ENDED) {
+			_ctclient_msg(NULL, cmd->con, "ct_send()", 1, 1, 1, other == cmd ? 16 : 49, "");
+			return CS_FAIL;
+		}
 		/* the other command has nothing left to read, pending results will be from this one */
 		if (other != cmd && other->command_state == _CS_COMMAND_SENT && tds->state == TDS_IDLE)
 			ct_set_command_state(other, _CS_COMMAND_READY);
@@ -1461,6 +1474,10 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 		*result_type = CS_DESCRIBE_RESULT;
 		cmd->results_state = _CS_RES_CMD_DONE;
 		return CS_SUCCEED;
+	case _CS_RES_RESULTSET_ENDED:
+		*result_type = CS_CMD_DONE;
+		cmd->results_state = _CS_RES_INIT;
+		return CS_SUCCEED;
 	case _CS_RES_NONE:				/* first time in after ct_send */
 		cmd->results_state = _CS_RES_INIT;
 		tds->rows_affected = TDS_NO_COUNT;
@@ -1488,6 +1505,28 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 
 		tdsdump_log(TDS_DBG_FUNC, "ct_results() process_result_tokens returned %d (type %d) \n",
 			    tdsret, res_type);
+
+		/*
+		 * A result set without rows. Read the token we stopped at to know if there was an error.
+		 * If so there's no result set to report. DONEINPROC does not end the command so the
+		 * error is not reported. Remember the token was read, ct_fetch must not try to read it.
+		 */
+		if (tdsret == TDS_SUCCESS && (process_flags & TDS_STOPAT_DONE)
+		    && cmd->results_state == _CS_RES_RESULTSET_EMPTY
+		    && (res_type == TDS_DONE_RESULT || res_type == TDS_DONEPROC_RESULT || res_type == TDS_DONEINPROC_RESULT)) {
+			tdsret = tds_process_tokens(tds, &res_type, &done_flags, TDS_TOKEN_RESULTS);
+			if (tdsret == TDS_SUCCESS) {
+				if ((done_flags & TDS_DONE_ERROR) != 0 && res_type != TDS_DONEINPROC_RESULT) {
+					cmd->curr_result_type = res_type;
+					*result_type = CS_CMD_FAIL;
+					cmd->results_state = _CS_RES_CMD_DONE;
+				} else {
+					*result_type = CS_ROW_RESULT;
+					cmd->results_state = _CS_RES_RESULTSET_ENDED;
+				}
+				return CS_SUCCEED;
+			}
+		}
 
 		switch (tdsret) {
 
@@ -1641,6 +1680,11 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 					break;
 
 				case _CS_RES_RESULTSET_ROWS:
+					if ((done_flags & TDS_DONE_ERROR) != 0 && cmd->command_type != CS_CUR_CMD) {
+						*result_type = CS_CMD_FAIL;
+						cmd->results_state = _CS_RES_CMD_DONE;
+						break;
+					}
 					*result_type = CS_CMD_DONE;
 					cmd->results_state = _CS_RES_INIT;
 					break;
@@ -1696,13 +1740,6 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 				if (tds->rows_affected != TDS_NO_COUNT)
 					rows_affected = tds->rows_affected;
 				tds->rows_affected = rows_affected;
-
-				/* no rows, token was not read, see CS_ROWFMT_RESULT, it will be read by next call */
-				if ((process_flags & TDS_STOPAT_DONE) && cmd->results_state == _CS_RES_RESULTSET_EMPTY) {
-					*result_type = CS_ROW_RESULT;
-					cmd->results_state = _CS_RES_RESULTSET_ROWS;
-					return CS_SUCCEED;
-				}
 
 				/* end of the result set */
 				if (cmd->results_state == _CS_RES_RESULTSET_ROWS && cmd->command_type != CS_CUR_CMD
@@ -1931,6 +1968,9 @@ ct_fetch(CS_COMMAND *cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT *pro
 	if (cmd->curr_result_type == CS_CMD_FAIL)
 		return CS_CMD_FAIL;
 
+	/* the token ending the result set was already read by ct_results */
+	if (cmd->results_state == _CS_RES_RESULTSET_ENDED)
+		return CS_END_DATA;
 
 	marker = _ct_peek_token(tds);
 	if (marker < 0)
@@ -2720,6 +2760,8 @@ _ct_cancel_cleanup(CS_COMMAND * cmd)
 	cmd->cancel_state = _CS_CANCEL_NOCANCEL;
 	if (cmd->command_state == _CS_COMMAND_SENT)
 		ct_set_command_state(cmd, _CS_COMMAND_READY);
+	if (cmd->results_state == _CS_RES_RESULTSET_ENDED)
+		cmd->results_state = _CS_RES_INIT;
 
 	return CS_SUCCEED;
 
@@ -2833,6 +2875,9 @@ ct_res_info(CS_COMMAND * cmd, CS_INT type, CS_VOID * buffer, CS_INT buflen, CS_I
 			return CS_FAIL;
 		/* 64 -> 32 bit conversion saturate to the maximum */
 		int_val = tds->rows_affected > 0x7fffffff ? 0x7fffffff : (CS_INT) tds->rows_affected;
+		/* token already read by ct_results, count is available only after CS_CMD_DONE */
+		if (cmd->results_state == _CS_RES_RESULTSET_ENDED)
+			int_val = TDS_NO_COUNT;
 		tdsdump_log(TDS_DBG_FUNC, "ct_res_info(): Number of rows is %d\n", int_val);
 		memcpy(buffer, &int_val, sizeof(CS_INT));
 		break;

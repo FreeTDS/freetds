@@ -12,6 +12,7 @@
 	TEST(ct_cancel) \
 	TEST(ct_send) \
 	TEST(ct_cmd_drop) \
+	TEST(ct_results_error) \
 	TEST(cs_config) \
 	TEST(blk_init) \
 	TEST(blk_bind) \
@@ -316,6 +317,68 @@ test_ct_cmd_drop(void)
 			fprintf(stderr, "ct_results() unexpected return %d.\n", (int) ret);
 			exit(1);
 		}
+	}
+}
+
+static void
+test_ct_results_error(void)
+{
+	CS_RETCODE ret;
+	CS_INT result_type;
+	CS_INT count;
+	int failures = 0;
+
+	check_call(run_command, (cmd, "SET ARITHABORT ON"));
+
+	/* the query fails while computing the first row */
+	check_call(ct_command, (cmd, CS_LANG_CMD, "SELECT 100 / (1 - 1) AS x", CS_NULLTERM, CS_UNUSED));
+	check_call(ct_send, (cmd));
+	while ((ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
+		switch (result_type) {
+		case CS_CMD_FAIL:
+			++failures;
+			break;
+		case CS_CMD_DONE:
+			break;
+		case CS_ROW_RESULT:
+			fprintf(stderr, "ct_results() unexpected CS_ROW_RESULT.\n");
+			exit(1);
+		default:
+			fprintf(stderr, "ct_results() unexpected result_type %d.\n", (int) result_type);
+			exit(1);
+		}
+	}
+	if (ret != CS_END_RESULTS) {
+		fprintf(stderr, "ct_results() unexpected return %d.\n", (int) ret);
+		exit(1);
+	}
+	if (failures != 1) {
+		fprintf(stderr, "expected a CS_CMD_FAIL from ct_results, got %d\n", failures);
+		exit(1);
+	}
+
+	/* a query without rows is still reported as a result set */
+	check_call(ct_command, (cmd, CS_LANG_CMD, "SELECT 1 AS x WHERE 1 = 0", CS_NULLTERM, CS_UNUSED));
+	check_call(ct_send, (cmd));
+	check_call(ct_results, (cmd, &result_type));
+	if (result_type != CS_ROW_RESULT) {
+		fprintf(stderr, "ct_results() unexpected result_type %d.\n", (int) result_type);
+		exit(1);
+	}
+	ret = ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, &count);
+	if (ret != CS_END_DATA) {
+		fprintf(stderr, "ct_fetch() unexpected return %d.\n", (int) ret);
+		exit(1);
+	}
+	check_call(ct_results, (cmd, &result_type));
+	if (result_type != CS_CMD_DONE) {
+		fprintf(stderr, "ct_results() unexpected result_type %d.\n", (int) result_type);
+		exit(1);
+	}
+	ret = ct_results(cmd, &result_type);
+	if (ret != CS_END_RESULTS) {
+		fprintf(stderr, "ct_results() unexpected return %d.\n", (int) ret);
+		exit(1);
 	}
 }
 

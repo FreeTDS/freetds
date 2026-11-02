@@ -271,6 +271,7 @@ struct _cs_dynamic
 #define _CS_RES_CMD_SUCCEED     5
 #define _CS_RES_END_RESULTS     6
 #define _CS_RES_DESCRIBE_RESULT 7
+#define _CS_RES_RESULTSET_ENDED 8
 
 /* values for cs_command.command_state */
 
