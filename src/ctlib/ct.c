@@ -1729,8 +1729,26 @@ ct_bind(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt_arg, CS_VOID * buffe
 	return CS_SUCCEED;
 }
 
+/**
+ * Get next token without consuming it.
+ * Does not wait for data if server has nothing else to send, tds_peek would block forever.
+ * \return the token or -1 if no data is expected
+ */
+static int
+_ct_peek_token(TDSSOCKET *tds)
+{
+	int marker;
+
+	if (tds_set_state(tds, TDS_READING) != TDS_READING)
+		return -1;
+	marker = tds_peek(tds);
+	tds_set_state(tds, TDS_PENDING);
+
+	return marker;
+}
+
 CS_RETCODE
-ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * prows_read)
+ct_fetch(CS_COMMAND *cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT *prows_read)
 {
 	TDS_INT ret_type;
 	TDSRET ret;
@@ -1792,9 +1810,12 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * p
 		return CS_CMD_FAIL;
 
 
-	marker = tds_peek(tds);
-	if ((cmd->curr_result_type == CS_ROW_RESULT    && marker != TDS_ROW_TOKEN && marker != TDS_NBC_ROW_TOKEN)
-	||  (cmd->curr_result_type == CS_STATUS_RESULT && marker != TDS_RETURNSTATUS_TOKEN) )
+	marker = _ct_peek_token(tds);
+	if (marker < 0)
+		return CS_FAIL;
+
+	if ((cmd->curr_result_type == CS_ROW_RESULT && marker != TDS_ROW_TOKEN && marker != TDS_NBC_ROW_TOKEN)
+	    || (cmd->curr_result_type == CS_STATUS_RESULT && marker != TDS_RETURNSTATUS_TOKEN))
 		return CS_END_DATA;
 
 	/* Array Binding Code changes start here */
@@ -1832,11 +1853,12 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * p
 
 		/* have we reached the end of the rows ? */
 
-		marker = tds_peek(tds);
+		marker = _ct_peek_token(tds);
+		if (marker < 0)
+			break;
 
 		if (cmd->curr_result_type == CS_ROW_RESULT && marker != TDS_ROW_TOKEN && marker != TDS_NBC_ROW_TOKEN)
 			break;
-
 	}
 
 	/* Array Binding Code changes end here */
