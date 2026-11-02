@@ -898,6 +898,8 @@ typedef struct tds_message
 	TDS_TINYINT severity;
 	/* for library-generated errors */
 	int oserr;
+	/* message was allocated, otherwise is a constant string or owned by the caller */
+	bool message_allocated;
 } TDSMESSAGE;
 
 typedef struct tds_upd_col
@@ -1531,8 +1533,9 @@ DSTR* tds_dstr_get(TDSSOCKET * tds, DSTR * s, size_t len);
 
 
 /* util.c */
-int tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum);
-TDS_STATE tds_set_state(TDSSOCKET * tds, TDS_STATE state);
+int tdserror(const TDSCONTEXT *tds_ctx, TDSSOCKET *tds, int msgno, int errnum);
+int tdserror_args(const TDSCONTEXT *tds_ctx, TDSSOCKET *tds, int msgno, int errnum, ...);
+TDS_STATE tds_set_state(TDSSOCKET *tds, TDS_STATE state);
 void tds_swap_bytes(void *buf, size_t bytes);
 unsigned int tds_gettime_ms(void);
 

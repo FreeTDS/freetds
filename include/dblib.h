@@ -172,13 +172,13 @@ enum {
  */
 RETCODE dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr);
 void copy_data_to_host_var(DBPROCESS * dbproc, TDS_SERVER_TYPE srctype, const BYTE * src, DBINT srclen,
-			   BYTE * dest, DBINT destlen,
-			   int bindtype, DBINT *indicator);
+			   BYTE * dest, DBINT destlen, int bindtype, DBINT * indicator);
 
-int dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...);
-int _dblib_handle_info_message(const TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE* msgptr);
-int _dblib_handle_err_message(const TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE* msgptr);
-int _dblib_check_and_handle_interrupt(void * vdbproc);
+int dbperror(DBPROCESS * dbproc, DBINT msgno, long errnum, ...);
+int _dblib_report_error(DBPROCESS * dbproc, DBINT msgno, long errnum, int severity, const char *msgtext);
+int _dblib_handle_info_message(const TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE * msgptr);
+int _dblib_handle_err_message(const TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE * msgptr);
+int _dblib_check_and_handle_interrupt(void *vdbproc);
 
 void _dblib_setTDS_version(TDSLOGIN * tds_login, DBINT version);
 void _dblib_convert_err(DBPROCESS * dbproc, TDS_INT len);

@@ -205,7 +205,9 @@ tds_save(TDSSAVECONTEXT *ctx, char type, TDSMESSAGE *msg)
 	dest_msg->msg = *msg;
 #define COPY(name) if (msg->name) dest_msg->msg.name = strdup(msg->name);
 	COPY(server);
-	COPY(message);
+	/* constant messages can be used as is */
+	if (msg->message_allocated)
+		COPY(message);
 	COPY(proc_name);
 	COPY(sql_state);
 #undef COPY

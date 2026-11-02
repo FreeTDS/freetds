@@ -1492,7 +1492,10 @@ tds_free_msg(TDSMESSAGE * message)
 		message->state = 0;
 		message->severity = 0;
 		message->line_number = 0;
-		TDS_ZERO_FREE(message->message);
+		if (message->message_allocated)
+			free(message->message);
+		message->message = NULL;
+		message->message_allocated = false;
 		TDS_ZERO_FREE(message->server);
 		TDS_ZERO_FREE(message->proc_name);
 		TDS_ZERO_FREE(message->sql_state);

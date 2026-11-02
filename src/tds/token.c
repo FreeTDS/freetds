@@ -2350,6 +2350,8 @@ tds_process_info(TDSSOCKET * tds, int marker)
 
 	/* make sure message has been freed */
 	memset(&msg, 0, sizeof(TDSMESSAGE));
+	/* the text received from the server is always allocated */
+	msg.message_allocated = true;
 
 	/* packet length */
 	packet_len = tds_get_usmallint(tds);

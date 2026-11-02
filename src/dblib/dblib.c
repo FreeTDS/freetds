@@ -8196,7 +8196,7 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
  * -#		db-lib function
  * -#			libtds function (encounters error)
  * -#		_dblib_handle_err_message
- * -#		dbperror
+ * -#		_dblib_report_error
  * -# 	error handler (installed by application)
  *
  * Because different client libraries specify their handler semantics differently, 
@@ -8208,34 +8208,13 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
 int
 dbperror(DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 {
-	static const char int_exit_text[] = "FreeTDS: db-lib: exiting because client error handler returned %s for msgno %d\n";
-	static const char int_invalid_text[] = "%s (%d) received from client-installed error handler for nontimeout for error %d."
-					       "  Treating as INT_EXIT\n";
 	static const DBLIB_ERROR_MESSAGE default_message = { 0, EXCONSISTENCY, "unrecognized msgno" };
 	DBLIB_ERROR_MESSAGE constructed_message = { 0, EXCONSISTENCY, NULL };
 	const DBLIB_ERROR_MESSAGE *msg = &default_message;
-	
+
 	int i, rc = INT_CANCEL;
-	const char *os_msgtext = strerror((int) errnum);
-	const char *rc_name = "logic error";
-	char rc_buf[16];
 
 	tdsdump_log(TDS_DBG_FUNC, "dbperror(%p, %d, %ld)\n", dbproc, msgno, errnum);	/* dbproc can be NULL */
-
-#ifdef _WIN32
-	/*
-	 * Unfortunately MinGW uses the "old" msvcrt.dll (Visual C++ 2005 uses
-	 * a newer version) which does not set errno when allocation functions
-	 * cannot allocate memory, so we do it for them.
-	 */
-	if (msgno == SYBEMEM)
-		errnum = ENOMEM;
-#endif
-
-	if (os_msgtext == NULL)
-		os_msgtext = "no OS error";
-	
-	assert(_dblib_err_handler != NULL);	/* always installed by dbinit() or dberrhandle() */
 
 	/* look up the error message */
 	for (i = 0; i < TDS_VECTOR_SIZE(dblib_error_messages); i++) {
@@ -8276,28 +8255,71 @@ dbperror(DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 		break;
 	}
 
+	rc = _dblib_report_error(dbproc, msgno, errnum, msg->severity, msg->msgtext);
+
+	/* we're done with the dynamic string now. */
+	free((char *) constructed_message.msgtext);
+
+	return rc;
+}
+
+/**  \internal
+ * \ingroup dblib_internal
+ * \brief Call client-installed error handler with an already built message
+ *
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param msgno	identifies the error message to be passed to the client's handler.
+ * \param errnum identifies the OS error (errno), if any.  Use 0 if not applicable.
+ * \param severity severity of the error, passed to the client's handler.
+ * \param msgtext text of the message, the server name is added if known.
+ * \returns the handler's return code, see dbperror().
+ * \sa dbperror(), _dblib_handle_err_message().
+ */
+int
+_dblib_report_error(DBPROCESS *dbproc, DBINT msgno, long errnum, int severity, const char *msgtext)
+{
+	static const char int_exit_text[] = "FreeTDS: db-lib: exiting because client error handler returned %s for msgno %d\n";
+	static const char int_invalid_text[] = "%s (%d) received from client-installed error handler for nontimeout for error %d."
+		"  Treating as INT_EXIT\n";
+	int rc;
+	const char *os_msgtext = strerror((int) errnum);
+	const char *rc_name = "logic error";
+	char rc_buf[16];
+	char *buffer = NULL;
+
+#ifdef _WIN32
+	/*
+	 * Unfortunately MinGW uses the "old" msvcrt.dll (Visual C++ 2005 uses
+	 * a newer version) which does not set errno when allocation functions
+	 * cannot allocate memory, so we do it for them.
+	 */
+	if (msgno == SYBEMEM)
+		errnum = ENOMEM;
+#endif
+
+	if (os_msgtext == NULL)
+		os_msgtext = "no OS error";
+
+	assert(_dblib_err_handler != NULL);	/* always installed by dbinit() or dberrhandle() */
+
 	if (dbproc && dbproc->tds_socket && dbproc->tds_socket->login) {
 		DSTR server_name_dstr = dbproc->tds_socket->login->server_name;
+
 		if (!tds_dstr_isempty(&server_name_dstr)) {
-			char * buffer = NULL;
-			if (asprintf(&buffer, "%s (%s)", msg->msgtext,
-			             tds_dstr_cstr(&server_name_dstr)) >= 0) {
-				free((char*) constructed_message.msgtext);
-				constructed_message.msgtext = buffer;
-				constructed_message.severity = msg->severity;
-				msg = &constructed_message;
-			}
+			if (asprintf(&buffer, "%s (%s)", msgtext, tds_dstr_cstr(&server_name_dstr)) >= 0)
+				msgtext = buffer;
+			else
+				buffer = NULL;
 		}
 	}
 
-	tdsdump_log(TDS_DBG_FUNC, "dbperror: Calling dblib_err_handler with msgno = %d; msg->msgtext = \"%s\"\n",
-		msgno, msg->msgtext);
+	tdsdump_log(TDS_DBG_FUNC, "dbperror: Calling dblib_err_handler with msgno = %d; msg->msgtext = \"%s\"\n", msgno, msgtext);
 
 	/* call the error handler */
-	rc = (*_dblib_err_handler)(dbproc, msg->severity, msgno, (int) errnum, (char*) msg->msgtext, (char*) os_msgtext);
+	rc = (*_dblib_err_handler) (dbproc, severity, msgno, (int) errnum, (char *) msgtext, (char *) os_msgtext);
 	switch (rc) {
 	case INT_EXIT:
-		rc_name = "INT_EXIT";	
+		rc_name = "INT_EXIT";
 		break;
 	case INT_CONTINUE:	
 		rc_name = "INT_CONTINUE";
@@ -8313,12 +8335,12 @@ dbperror(DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 		break;
 	}
 	tdsdump_log(TDS_DBG_FUNC, "dbperror: dblib_err_handler for msgno = %d; msg->msgtext = \"%s\" -- returns %d (%s)\n",
-		msgno, msg->msgtext, rc, rc_name);
+		    msgno, msgtext, rc, rc_name);
 
 	/* we're done with the dynamic string now. */
-	free((char*) constructed_message.msgtext);
-	
-      	/* Timeout return codes are errors for non-timeout conditions. */
+	free(buffer);
+
+	/* Timeout return codes are errors for non-timeout conditions. */
 	if (msgno != SYBETIME) {
 		switch (rc) {
 		case INT_CONTINUE:

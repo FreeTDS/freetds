@@ -255,6 +255,9 @@ static const TDS_ERROR_MESSAGE tds_error_messages[] =
 	, { TDSEICONVPARTIAL, EXCONVERSION,	"Illegal byte sequence encountered, data ends with an incomplete "
 						"multibyte sequence" }
 	, { TDSEPORTINSTANCE,      EXUSER,      "Both port and instance specified" }
+	, { TDSEVERDOWN,           EXINFO,	"TDS version downgraded to 7.1!" }
+	, { TDSEMEM,            EXRESOURCE,	"Unable to allocate sufficient memory" }
+	, { TDSEPWD,               EXUSER,	"Login incorrect" }
 	, { TDSERPND,           EXPROGRAM,	"Attempt to initiate a new TDS server operation with results pending" }
 	, { TDSEBTOK,              EXCOMM,	"Bad token from the server: Datastream processing out of sync" }
 	, { TDSECAP,               EXCOMM,	"DB-Library capabilities not accepted by the Server" }
@@ -281,6 +284,10 @@ static const TDS_ERROR_MESSAGE tds_error_messages[] =
 	/* last, with msgno == TDSEOK */
 	, { TDSEOK,              EXCONSISTENCY,	"unrecognized msgno" }
 	};
+
+static const TDS_ERROR_MESSAGE *tds_find_error(int msgno);
+static int tds_report_error(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, const TDS_ERROR_MESSAGE * err,
+			    int msgno, int errnum, char *message);
 
 static const char *
 retname(int retcode)
@@ -323,25 +330,70 @@ retname(int retcode)
  * \returns client library function's return code
  */
 int
-tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
+tdserror(const TDSCONTEXT *tds_ctx, TDSSOCKET *tds, int msgno, int errnum)
 {
-#if 0
-	static const char int_exit_text[] = "FreeTDS: libtds: exiting because client error handler returned %d for msgno %d\n";
-	static const char int_invalid_text[] = "%s (%d) received from client library error handler for nontimeout for error %d."
-					       "  Treating as INT_EXIT\n";
-#endif
+	return tds_report_error(tds_ctx, tds, tds_find_error(msgno), msgno, errnum, NULL);
+}
+
+/**
+ * \brief Call the client library's error handler for a message with placeholders.
+ *
+ * Same as tdserror() but the error message is used as a format for the additional arguments.
+ * If the message cannot be formatted, the handler receives the message with the placeholders.
+ *
+ * \param tds_ctx	points to a TDSCONTEXT structure
+ * \param tds		the connection structure, may be NULL if not connected
+ * \param msgno		an enumerated libtds msgno, cf. tds.h
+ * \param errnum	the OS errno, if it matters, else zero
+ * \returns same as tdserror()
+ */
+int
+tdserror_args(const TDSCONTEXT *tds_ctx, TDSSOCKET *tds, int msgno, int errnum, ...)
+{
+	const TDS_ERROR_MESSAGE *err = tds_find_error(msgno);
+	char *message = NULL;
+	va_list ap;
+	int rc;
+
+	va_start(ap, errnum);
+	if (vasprintf(&message, err->msgtext, ap) < 0)
+		message = NULL;
+	va_end(ap);
+
+	rc = tds_report_error(tds_ctx, tds, err, msgno, errnum, message);
+	free(message);
+	return rc;
+}
+
+/** Look up an error message, returns a generic one if not found. */
+static const TDS_ERROR_MESSAGE *
+tds_find_error(int msgno)
+{
 	const TDS_ERROR_MESSAGE *err;
 
-	TDSMESSAGE msg;
-	int rc = TDS_INT_CANCEL;
-
-	tdsdump_log(TDS_DBG_FUNC, "tdserror(%p, %p, %d, %d)\n", tds_ctx, tds, msgno, errnum);
-
-	/* look up the error message */
 	for (err = tds_error_messages; err->msgno != TDSEOK; ++err) {
 		if (err->msgno == msgno)
 			break;
 	}
+	return err;
+}
+
+/**
+ * Call the client library's error handler.
+ * \param message allocated text of the message, still owned by the caller, NULL to use the text in \a err
+ */
+static int
+tds_report_error(const TDSCONTEXT *tds_ctx, TDSSOCKET *tds, const TDS_ERROR_MESSAGE *err, int msgno, int errnum, char *message)
+{
+#if 0
+	static const char int_exit_text[] = "FreeTDS: libtds: exiting because client error handler returned %d for msgno %d\n";
+	static const char int_invalid_text[] = "%s (%d) received from client library error handler for nontimeout for error %d."
+		"  Treating as INT_EXIT\n";
+#endif
+	TDSMESSAGE msg;
+	int rc = TDS_INT_CANCEL;
+
+	tdsdump_log(TDS_DBG_FUNC, "tdserror(%p, %p, %d, %d)\n", tds_ctx, tds, msgno, errnum);
 
 	CHECK_CONTEXT_EXTRA(tds_ctx);
 
@@ -355,9 +407,10 @@ tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
 		msg.state = -1;
 		msg.server = "OpenClient";
 		msg.line_number = -1;
-		msg.message = (TDS_CHAR*) err->msgtext;
+		msg.message = message ? message : (TDS_CHAR *) err->msgtext;
+		msg.message_allocated = (message != NULL);
 		msg.sql_state = tds_alloc_client_sqlstate(msgno);
-		
+
 		msg.oserr = errnum;
 
 		/*

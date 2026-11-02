@@ -117,7 +117,7 @@ _dblib_handle_info_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSA
  *		libtds
  *			tds_ctx->err_handler (pointer to _dblib_handle_err_message)
  *			_dblib_handle_err_message
- *				dbperror
+ *				_dblib_report_error
  *					client (or default) error handler
  *					returns db-lib defined return code INT_something.
  *				returns db-lib return code with Sybase semantics (adjusting client's code if need be)
@@ -133,7 +133,7 @@ _dblib_handle_err_message(const TDSCONTEXT * tds_ctx TDS_UNUSED, TDSSOCKET * tds
 	assert(_dblib_err_handler);
 	assert(msg);
 
-	rc = dbperror(dbproc, msg->msgno, msg->oserr, 0, 0, 0, 0);
+	rc = _dblib_report_error(dbproc, msg->msgno, msg->oserr, msg->severity, msg->message);
 
 	/*
 	 * Preprocess the return code to handle INT_TIMEOUT/INT_CONTINUE
