@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Windows Installer package for FreeTDS, WiX Toolset v3 format.
+  See misc/build-msi.ps1 for how to build it and for the variables used.
+
+  Silent installation:
+    msiexec /i freetds.msi /qn
+  Other properties can be added to the command:
+    INSTALLDIR="C:\FreeTDS"  change the installation directory
+    ADDLOCAL=ALL             install also headers and libraries
+
+  etc\freetds.conf is only an example, it is not in a directory searched
+  by default, cf. tds_read_conf_file.
+-->
+<?if $(var.Arch) = x64 ?>
+  <?define ProgramFilesDir = "ProgramFiles64Folder" ?>
+  <?define SystemDir = "System64Folder" ?>
+  <?define ProductTitle = "FreeTDS (64-bit)" ?>
+  <?define UpgradeGuid = "62A213C8-CA5D-4347-8B94-AF42A9AF3386" ?>
+  <?define LicenseGuid = "A41F6C52-0E3B-47D8-B1A6-93C5D2E80F14" ?>
+<?elseif $(var.Arch) = arm64 ?>
+  <?define ProgramFilesDir = "ProgramFiles64Folder" ?>
+  <?define SystemDir = "System64Folder" ?>
+  <?define ProductTitle = "FreeTDS (ARM64)" ?>
+  <?define UpgradeGuid = "99E3D4BB-EA66-49CD-AB16-97C7BE3E222A" ?>
+  <?define LicenseGuid = "AB9F83F2-384B-4499-BAE9-D864D4B50739" ?>
+<?elseif $(var.Arch) = arm ?>
+  <?define ProgramFilesDir = "ProgramFilesFolder" ?>
+  <?define SystemDir = "SystemFolder" ?>
+  <?define ProductTitle = "FreeTDS (ARM)" ?>
+  <?define UpgradeGuid = "95E53450-F3BA-40D3-A582-B6E458F92602" ?>
+  <?define LicenseGuid = "367CFFCE-7E05-4018-95BD-B49ABDCD6E5D" ?>
+<?else ?>
+  <?define ProgramFilesDir = "ProgramFilesFolder" ?>
+  <?define SystemDir = "SystemFolder" ?>
+  <?define ProductTitle = "FreeTDS (32-bit)" ?>
+  <?define UpgradeGuid = "5558797E-5067-4AE6-AF4F-4DA463D9C72D" ?>
+  <?define LicenseGuid = "E06B8D34-92C7-4E1A-8F53-1A7C4D69B2E0" ?>
+<?endif ?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" Name="$(var.ProductTitle)" Language="1033" Version="$(var.Version)"
+           Manufacturer="FreeTDS" UpgradeCode="$(var.UpgradeGuid)">
+    <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine"
+             Description="$(var.ProductTitle) $(var.Version)" />
+    <Media Id="1" Cabinet="freetds.cab" EmbedCab="yes" />
+
+    <!-- development builds have the same version, allow to upgrade them -->
+    <MajorUpgrade AllowSameVersionUpgrades="yes"
+                  DowngradeErrorMessage="A newer version of FreeTDS is already installed." />
+
+    <Property Id="ARPURLINFOABOUT" Value="https://www.freetds.org" />
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="$(var.ProgramFilesDir)">
+        <Directory Id="INSTALLDIR" Name="FreeTDS">
+          <Component Id="License" Guid="$(var.LicenseGuid)">
+            <File Id="COPYING.txt" Source="$(var.SourceDir)\COPYING.txt" KeyPath="yes" />
+            <File Id="COPYING_LIB.txt" Source="$(var.SourceDir)\COPYING_LIB.txt" />
+          </Component>
+          <Directory Id="BINDIR" Name="bin" />
+          <Directory Id="ETCDIR" Name="etc" />
+          <Directory Id="INCLUDEDIR" Name="include" />
+          <Directory Id="LIBDIR" Name="lib" />
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <Feature Id="Runtime" Title="FreeTDS" Description="ODBC driver, libraries and utilities." Level="1"
+             Absent="disallow" AllowAdvertise="no">
+      <ComponentRef Id="License" />
+      <ComponentGroupRef Id="BinFiles" />
+      <ComponentGroupRef Id="EtcFiles" />
+    </Feature>
+    <Feature Id="Development" Title="Development files" Description="Headers and libraries to build applications."
+             Level="2" AllowAdvertise="no">
+      <ComponentGroupRef Id="IncludeFiles" />
+      <ComponentGroupRef Id="LibFiles" />
+    </Feature>
+
+    <!-- registration needs the file installed and administrator rights -->
+    <CustomAction Id="RegisterOdbc" Directory="BINDIR" Execute="deferred" Impersonate="no" Return="check"
+                  ExeCommand="&quot;[$(var.SystemDir)]regsvr32.exe&quot; /s &quot;[BINDIR]tdsodbc.dll&quot;" />
+    <CustomAction Id="RollbackRegisterOdbc" Directory="BINDIR" Execute="rollback" Impersonate="no" Return="ignore"
+                  ExeCommand="&quot;[$(var.SystemDir)]regsvr32.exe&quot; /s /u &quot;[BINDIR]tdsodbc.dll&quot;" />
+    <!-- do not prevent the removal of the package if this fails -->
+    <CustomAction Id="UnregisterOdbc" Directory="BINDIR" Execute="deferred" Impersonate="no" Return="ignore"
+                  ExeCommand="&quot;[$(var.SystemDir)]regsvr32.exe&quot; /s /u &quot;[BINDIR]tdsodbc.dll&quot;" />
+    <InstallExecuteSequence>
+      <Custom Action="UnregisterOdbc" Before="RemoveFiles">REMOVE="ALL"</Custom>
+      <Custom Action="RollbackRegisterOdbc" After="InstallFiles">NOT Installed</Custom>
+      <Custom Action="RegisterOdbc" After="RollbackRegisterOdbc">NOT Installed</Custom>
+    </InstallExecuteSequence>
+
+    <UIRef Id="WixUI_FeatureTree" />
+    <WixVariable Id="WixUILicenseRtf" Value="$(var.LicenseRtf)" />
+  </Product>
+</Wix>

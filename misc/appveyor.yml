@@ -30,11 +30,13 @@ environment:
     VS_VERSION: "2026"
     TDSVER: "7.4"
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2026
+    BUILD_MSI: "1"
 
   - PLAT: Win32
     VS_VERSION: "2022"
     TDSVER: "7.4"
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+    BUILD_MSI: "1"
 
   - PLAT: Win64
     VS_VERSION: "2019"
@@ -218,7 +220,13 @@ after_test:
   - if exist %OPENSSL_ROOT_DIR%\ssleay32.dll copy %OPENSSL_ROOT_DIR%\ssleay32.dll %DEST_DIR%\bin\
   - 7z a ..\%DEST_DIR%.zip %DEST_DIR%
   # END of non-test code specifically related to creation of artifacts published via GitHub  - 7z a ..\%DEST_DIR%.zip %DEST_DIR%
+  # Create and test MSI artifact, done after the zipball as adds runtime libraries to the installed files
+  - if "%WIDTH%"=="64" (set MSI_ARCH=x64) else (set MSI_ARCH=x86)
+  - >-
+    if defined BUILD_MSI %WITH_COMPILER% powershell -NoProfile -ExecutionPolicy Bypass -File ..\misc\build-msi.ps1
+    -SourceDir .. -InstallDir %DEST_DIR% -Arch %MSI_ARCH% -OutFile ..\%DEST_DIR%.msi -Test
   - cd ..
 
 artifacts:
   - path: vs*.zip
+  - path: vs*.msi

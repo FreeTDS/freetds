@@ -626,6 +626,30 @@ The list of builds is at
 You can find there builds of code in the master branch and (from time to
 time) builds from the post-1.5 release fixes-only Branch-1_5 branch.
 Every build matrix element generates its artifact.</para>
+
+<para>The Visual Studio 2026 64 bit and Visual Studio 2022 32 bit builds also provide
+a .msi installer.  It installs the utilities and libraries and registers the ODBC driver.
+Headers and libraries to build applications are optional.
+The <filename>freetds.conf</filename> file in the <filename>etc</filename> installation directory
+is only an example and is not read.  If you need a configuration file, you can copy it
+to <filename>%APPDATA%\.freetds.conf</filename> for a single user.</para>
+
+<para>The installer also supports silent installation, for instance
+<screen>
+<userinput>msiexec /i freetds.msi /qn ADDLOCAL=ALL INSTALLDIR="C:\FreeTDS"</userinput>
+</screen>
+Use <userinput>ADDLOCAL=ALL</userinput> to install also the development files.</para>
+
+<para>AppVeyor provides only x86 and x64 installers.  You can build your own, also for
+ARM and ARM64, using <filename>misc/build-msi.ps1</filename> which requires
+WiX Toolset v3 (at least version 3.14 for ARM64).
+From a Visual Studio environment for the target architecture, install FreeTDS using an
+absolute <varname>CMAKE_INSTALL_PREFIX</varname>, copy any additional library
+needed, like OpenSSL, to its <filename>bin</filename> directory, then run
+<screen>
+<userinput>powershell -ExecutionPolicy Bypass -File misc\build-msi.ps1 -SourceDir . -InstallDir C:\freetds-arm64 -Arch arm64 -OutFile freetds.msi</userinput>
+</screen>
+</para>
 				</sect3>
 
 			<sect3 id="regsvr32"><title>ODBC driver registration</title>
