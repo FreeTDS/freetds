@@ -11,6 +11,7 @@
 	TEST(ct_results) \
 	TEST(ct_cancel) \
 	TEST(ct_send) \
+	TEST(ct_cmd_drop) \
 	TEST(cs_config) \
 	TEST(blk_init) \
 	TEST(blk_bind) \
@@ -262,6 +263,60 @@ test_ct_send(void)
 	/* this should fail, invalid command state */
 	check_fail(ct_send, (cmd));
 	check_last_message(CTMSG_CLIENT2, 0x0101019b, "idle");
+}
+
+static void
+test_ct_cmd_drop(void)
+{
+	CS_INT result_type;
+	CS_INT count;
+	CS_RETCODE ret;
+
+	/* command sent, results not read yet, results are discarded */
+	check_call(ct_command, (cmd, CS_LANG_CMD, "SELECT 'hi' AS greeting", CS_NULLTERM, CS_UNUSED));
+	check_call(ct_send, (cmd));
+	check_call(ct_cmd_drop, (cmd));
+	check_call(ct_cmd_alloc, (conn, &cmd));
+	check_call(run_command, (cmd, "DECLARE @n INT"));
+
+	/* rows pending */
+	check_call(ct_command, (cmd, CS_LANG_CMD, "SELECT 'hi' AS greeting", CS_NULLTERM, CS_UNUSED));
+	check_call(ct_send, (cmd));
+	check_call(ct_results, (cmd, &result_type));
+	check_call(ct_cmd_drop, (cmd));
+	check_call(ct_cmd_alloc, (conn, &cmd));
+	check_call(run_command, (cmd, "DECLARE @n INT"));
+
+	/* a command with nothing left to read does not affect results of another one */
+	{
+		CS_COMMAND *other;
+
+		check_call(ct_cmd_alloc, (conn, &other));
+		check_call(ct_command, (other, CS_LANG_CMD, "DECLARE @n INT", CS_NULLTERM, CS_UNUSED));
+		check_call(ct_send, (other));
+		check_call(ct_results, (other, &result_type));
+		check_call(ct_results, (other, &result_type));
+		check_call(ct_command, (cmd, CS_LANG_CMD, "SELECT 'hi' AS greeting", CS_NULLTERM, CS_UNUSED));
+		check_call(ct_send, (cmd));
+		check_call(ct_cmd_drop, (other));
+		check_call(ct_results, (cmd, &result_type));
+		if (result_type != CS_ROW_RESULT) {
+			fprintf(stderr, "ct_results() unexpected result_type %d.\n", (int) result_type);
+			exit(1);
+		}
+		while ((ret = ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, &count)) == CS_SUCCEED)
+			continue;
+		if (ret != CS_END_DATA) {
+			fprintf(stderr, "ct_fetch() unexpected return %d.\n", (int) ret);
+			exit(1);
+		}
+		while ((ret = ct_results(cmd, &result_type)) == CS_SUCCEED)
+			continue;
+		if (ret != CS_END_RESULTS) {
+			fprintf(stderr, "ct_results() unexpected return %d.\n", (int) ret);
+			exit(1);
+		}
+	}
 }
 
 static void

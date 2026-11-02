@@ -1087,6 +1087,7 @@ ct_send(CS_COMMAND * cmd)
 {
 	TDSSOCKET *tds;
 	TDSPARAMINFO *pparam_info;
+	CS_COMMAND *other;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_send(%p)\n", cmd);
 
@@ -1108,6 +1109,12 @@ ct_send(CS_COMMAND * cmd)
 		tdsdump_log(TDS_DBG_FUNC, "ct_send() command_state = IDLE\n");
 		_ctclient_msg(NULL, cmd->con, "ct_send", 1, 1, 1, 155, "");
 		return CS_FAIL;
+	}
+
+	for (other = cmd->con->cmds; other; other = other->next) {
+		/* the other command has nothing left to read, pending results will be from this one */
+		if (other != cmd && other->command_state == _CS_COMMAND_SENT && tds->state == TDS_IDLE)
+			ct_set_command_state(other, _CS_COMMAND_READY);
 	}
 
 	cmd->results_state = _CS_RES_NONE;
@@ -1192,10 +1199,10 @@ ct_send(CS_COMMAND * cmd)
 
 		tds_free_param_results(pparam_info);
 
-		ct_set_command_state(cmd, _CS_COMMAND_SENT);
-
 		if (TDS_FAILED(ret))
 			return CS_FAIL;
+
+		ct_set_command_state(cmd, _CS_COMMAND_SENT);
 
 		return CS_SUCCEED;
 	}
@@ -1213,12 +1220,13 @@ ct_send(CS_COMMAND * cmd)
 			ret = tds_submit_query(tds, cmd->query);
 		}
 
-		ct_set_command_state(cmd, _CS_COMMAND_SENT);
-
 		if (TDS_FAILED(ret)) {
 			tdsdump_log(TDS_DBG_WARN, "ct_send() failed\n");
 			return CS_FAIL;
 		}
+
+		ct_set_command_state(cmd, _CS_COMMAND_SENT);
+
 		tdsdump_log(TDS_DBG_INFO2, "ct_send() succeeded\n");
 		return CS_SUCCEED;
 	}
@@ -1686,6 +1694,8 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 				cmd->command_type == CS_CUR_CMD ||
 				cmd->command_type == CS_DYNAMIC_CMD) {
 				ct_set_command_state(cmd, _CS_COMMAND_READY);
+			} else {
+				ct_set_command_state(cmd, _CS_COMMAND_IDLE);
 			}
 			/* if we have just completed processing a dynamic deallocate */
 			/* get rid of our dynamic statement structure...             */
@@ -1700,6 +1710,8 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 
 		case TDS_CANCELLED:
 			cmd->cancel_state = _CS_CANCEL_NOCANCEL;
+			if (cmd->command_state == _CS_COMMAND_SENT)
+				ct_set_command_state(cmd, _CS_COMMAND_READY);
 			return CS_CANCELED;
 			break;
 
@@ -2105,6 +2117,16 @@ ct_cmd_drop(CS_COMMAND * cmd)
 	tdsdump_log(TDS_DBG_FUNC, "ct_cmd_drop(%p)\n", cmd);
 
 	if (cmd) {
+		/*
+		 * Discard pending results, nobody could read them anymore
+		 * and the connection could not be used for other commands.
+		 */
+		con = cmd->con;
+		if (cmd->command_state == _CS_COMMAND_SENT && con && !IS_TDSDEAD(con->tds_socket)) {
+			tds_send_cancel(con->tds_socket);
+			tds_process_cancel(con->tds_socket);
+		}
+
 		free(cmd->query);
 		if (cmd->input_params)
 			param_clear(cmd->input_params);
@@ -2118,7 +2140,6 @@ ct_cmd_drop(CS_COMMAND * cmd)
 		free(cmd->iodesc);
 
 		/* now remove this command from the list of commands in the connection */
-		con = cmd->con;
 		if (con) {
 			CS_COMMAND **pvictim;
 
@@ -2632,6 +2653,8 @@ _ct_cancel_cleanup(CS_COMMAND * cmd)
 		tds_process_cancel(con->tds_socket);
 
 	cmd->cancel_state = _CS_CANCEL_NOCANCEL;
+	if (cmd->command_state == _CS_COMMAND_SENT)
+		ct_set_command_state(cmd, _CS_COMMAND_READY);
 
 	return CS_SUCCEED;
 
