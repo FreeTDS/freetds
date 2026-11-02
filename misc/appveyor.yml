@@ -135,7 +135,7 @@ build_script:
   - set DEST_DIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
   - >-
     %WITH_COMPILER% cmake -G "%GENERATOR%" %GENERATE_RELEASE% -DENABLE_MSDBLIB=on
-    -DCMAKE_INSTALL_PREFIX:PATH=%DEST_DIR% -DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR% ..
+    -DCMAKE_INSTALL_PREFIX:PATH=%CD:\=/%/%DEST_DIR% -DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR% ..
   - '%WITH_COMPILER% cmake --build . --verbose %CONFIG_OPT% %CONFIG_RELEASE:~2,-1%'
   - set PATH=%OPENSSL_ROOT_DIR%\bin;%PATH%
   - 'src\apps\%CONFIG_RELEASE:~2%tsql.exe -C'
@@ -202,6 +202,12 @@ after_test:
   - set DEST_DIR=vs%VS_VERSION%_%WIDTH%-%APPVEYOR_REPO_BRANCH%
   - if exist %OPENSSL_ROOT_DIR%\libssl-3-x64.dll copy %OPENSSL_ROOT_DIR%\libssl-3-x64.dll %DEST_DIR%\bin\
   - if exist %OPENSSL_ROOT_DIR%\libcrypto-3-x64.dll copy %OPENSSL_ROOT_DIR%\libcrypto-3-x64.dll %DEST_DIR%\bin\
+  - if exist %OPENSSL_ROOT_DIR%\libssl-3.dll copy %OPENSSL_ROOT_DIR%\libssl-3.dll %DEST_DIR%\bin\
+  - if exist %OPENSSL_ROOT_DIR%\libcrypto-3.dll copy %OPENSSL_ROOT_DIR%\libcrypto-3.dll %DEST_DIR%\bin\
+  - if exist %OPENSSL_ROOT_DIR%\libssl-1_1-x64.dll copy %OPENSSL_ROOT_DIR%\libssl-1_1-x64.dll %DEST_DIR%\bin\
+  - if exist %OPENSSL_ROOT_DIR%\libcrypto-1_1-x64.dll copy %OPENSSL_ROOT_DIR%\libcrypto-1_1-x64.dll %DEST_DIR%\bin\
+  - if exist %OPENSSL_ROOT_DIR%\libssl-1_1.dll copy %OPENSSL_ROOT_DIR%\libssl-1_1.dll %DEST_DIR%\bin\
+  - if exist %OPENSSL_ROOT_DIR%\libcrypto-1_1.dll copy %OPENSSL_ROOT_DIR%\libcrypto-1_1.dll %DEST_DIR%\bin\
   - if exist %OPENSSL_ROOT_DIR%\libeay32.dll copy %OPENSSL_ROOT_DIR%\libeay32.dll %DEST_DIR%\bin\
   - if exist %OPENSSL_ROOT_DIR%\ssleay32.dll copy %OPENSSL_ROOT_DIR%\ssleay32.dll %DEST_DIR%\bin\
   - 7z a ..\%DEST_DIR%.zip %DEST_DIR%
