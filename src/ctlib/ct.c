@@ -1647,6 +1647,21 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 					rows_affected = tds->rows_affected;
 				tds->rows_affected = rows_affected;
 
+				/* no rows, token was not read, see CS_ROWFMT_RESULT, it will be read by next call */
+				if ((process_flags & TDS_STOPAT_DONE) && cmd->results_state == _CS_RES_RESULTSET_EMPTY) {
+					*result_type = CS_ROW_RESULT;
+					cmd->results_state = _CS_RES_RESULTSET_ROWS;
+					return CS_SUCCEED;
+				}
+
+				/* end of the result set */
+				if (cmd->results_state == _CS_RES_RESULTSET_ROWS && cmd->command_type != CS_CUR_CMD
+				    && !(done_flags & TDS_DONE_ERROR)) {
+					*result_type = CS_CMD_DONE;
+					cmd->results_state = _CS_RES_INIT;
+					return CS_SUCCEED;
+				}
+
 				if (done_flags & TDS_DONE_ERROR)
 					*result_type = CS_CMD_FAIL;
 				else
