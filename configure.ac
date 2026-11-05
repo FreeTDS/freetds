@@ -123,6 +123,10 @@ if test "$use_libiconv" = "yes" ; then
 	if test "$am_cv_func_iconv" != "yes"; then
 		AC_MSG_ERROR([iconv library not found])
 	fi
+	# iconv is present but does not work, our replacement always uses const
+	if test "$am_func_iconv" != "yes"; then
+		AC_DEFINE_UNQUOTED(ICONV_CONST, const, [Define as const if the declaration of iconv() needs const.])
+	fi
 else
 	AC_MSG_NOTICE(libiconv disabled)
 	AC_DEFINE_UNQUOTED(ICONV_CONST, const, [Define as const if the declaration of iconv() needs const.])
