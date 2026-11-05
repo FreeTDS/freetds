@@ -56,4 +56,8 @@ jobs:
           run: make
 
         - name: make check
-          run: make check LOG_COMPILE=true
+          run: |
+            make check LOG_COMPILE=true
+            make -C src/utils/unittests check VERBOSE=1
+            make -C src/replacements/unittests check VERBOSE=1
+            make -C src/tds/unittests check TESTS="convert numeric charconv" VERBOSE=1

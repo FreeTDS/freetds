@@ -63,6 +63,9 @@ environment:
     TDSVER: "7.0"
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
 
+  - APPVEYOR_BUILD_WORKER_IMAGE: macos-sonoma
+    TDSVER: "auto"
+
 configuration:
   - release
 
@@ -222,6 +225,44 @@ after_test:
     -SourceDir .. -InstallDir %DEST_DIR% -Arch %MSI_ARCH% -OutFile ..\%DEST_DIR%.msi -Test
   - cd ..
 
-artifacts:
-  - path: vs*.zip
-  - path: vs*.msi
+# All steps above are Windows only, a "for" section replaces only the settings it names
+# so each of them must be overridden here.
+# There's no SQL Server on macOS, run only tests not requiring a server.
+for:
+  - matrix:
+      except:
+        - APPVEYOR_BUILD_WORKER_IMAGE: macos-sonoma
+
+    artifacts:
+      - path: vs*.zip
+      - path: vs*.msi
+
+  - matrix:
+      only:
+        - APPVEYOR_BUILD_WORKER_IMAGE: macos-sonoma
+
+    install:
+      - sh: >-
+          HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_UPGRADE=1 HOMEBREW_NO_INSTALL_CLEANUP=1
+          brew install autoconf automake libtool gettext gperf openssl@3 libiconv
+      # The source is downloaded as an archive, avoid calling git log to generate this
+      - sh: touch doc/userguide_desc.xml
+
+    build_script:
+      - sh: autoreconf -if
+      - sh: ./configure --with-openssl --enable-silent-rules --enable-extra-checks --with-libiconv-prefix=$(brew --prefix libiconv)
+      - sh: make -j4
+      # Build all tests without running them
+      - sh: make check LOG_COMPILE=true
+      - sh: src/apps/tsql -C
+
+    test_script:
+      - sh: make -C src/utils/unittests check VERBOSE=1
+      - sh: make -C src/replacements/unittests check VERBOSE=1
+      - sh: make -C src/tds/unittests check TESTS="convert numeric charconv" VERBOSE=1
+
+    after_test:
+      - sh: echo done
+
+    artifacts:
+      - path: config.log
