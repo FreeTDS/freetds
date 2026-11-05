@@ -623,10 +623,18 @@ main(int argc, char **argv)
 	TDS_ZERO_FREE(config_path);
 #ifdef HAVE_FORK
 	if (daemonize) {
+/* daemon() is deprecated on macOS but still works, replacing it requires re-executing the program */
+#ifdef __APPLE__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 		if (daemon(0, 0) < 0) {
 			fprintf(stderr, "Failed to daemonize %s\n", argv[0]);
 			return EXIT_FAILURE;
 		}
+#ifdef __APPLE__
+#pragma GCC diagnostic pop
+#endif
 	}
 #endif
 	pool_main_loop(pool);
