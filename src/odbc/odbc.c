@@ -6526,7 +6526,7 @@ odbc_add_char_param(TDSSOCKET *tds, TDSPARAMINFO *params, const char *name, cons
 	col = params->columns[params->num_cols-1];
 	if (!tds_dstr_copy(&col->column_name, name))
 		return NULL;
-	tds_set_param_type(tds->conn, col, IS_TDS7_PLUS(tds->conn) ? XSYBNVARCHAR : SYBVARCHAR);
+	tds_set_param_type(tds->conn, col, IS_TDS7_PLUS(tds->conn) ? XSYBNVARCHAR : SYBVARCHAR, 0);
 
 	col->column_size = len;
 	if (!tds_alloc_param_data(col))
@@ -6550,7 +6550,7 @@ odbc_add_int_param(TDSSOCKET *tds, TDSPARAMINFO *params, const char *name, int v
 	col = params->columns[params->num_cols-1];
 	if (!tds_dstr_copy(&col->column_name, name))
 		return NULL;
-	tds_set_param_type(tds->conn, col, SYBINT4);
+	tds_set_param_type(tds->conn, col, SYBINT4, 0);
 
 	if (!tds_alloc_param_data(col))
 		return NULL;

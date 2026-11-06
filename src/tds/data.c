@@ -203,6 +203,7 @@
 #include <freetds/tds/convert.h>
 #include <freetds/tds/checks.h>
 #include <freetds/tds/stream.h>
+#include <freetds/enum_cap.h>
 #include <freetds/tds/data.h>
 
 #define USE_ICONV_IN (tds->conn->use_iconv_in)
@@ -233,27 +234,45 @@ tds_set_column_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE ty
 }
 
 /**
- * Set type of column initializing all dependency
- * \param tds    state information for the socket and the TDS protocol
+ * Set type and size of a parameter initializing all dependency.
+ *
+ * Like in a SQL declaration the size is part of the type: if the type
+ * requested cannot hold data of the given size a larger type is used
+ * (for instance VARCHAR(MAX) instead of VARCHAR for more than 8000 bytes).
+ * \param conn   connection, used to know protocol version and server capabilities
  * \param curcol column to set
  * \param type   type to set
+ * \param size   maximum size of the data in bytes, 0 if not known or not
+ *               applicable (fixed size types)
  */
 void
-tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE type)
+tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE type, size_t size)
 {
 	if (IS_TDS7_PLUS(conn)) {
 		switch (type) {
 		case SYBVARCHAR:
-			type = XSYBVARCHAR;
-			break;
 		case SYBCHAR:
-			type = XSYBCHAR;
+		case XSYBVARCHAR:
+		case XSYBCHAR:
+			/* TEXT is sent as VARCHAR(MAX) for TDS 7.2+ */
+			if (size > 8000)
+				type = SYBTEXT;
+			else
+				type = (type == SYBVARCHAR || type == XSYBVARCHAR) ? XSYBVARCHAR : XSYBCHAR;
 			break;
 		case SYBVARBINARY:
-			type = XSYBVARBINARY;
-			break;
 		case SYBBINARY:
-			type = XSYBBINARY;
+		case XSYBVARBINARY:
+		case XSYBBINARY:
+			/*
+			 * IMAGE is sent as VARBINARY(MAX) for TDS 7.2+.
+			 * Before TDS 7.2 IMAGE cannot be converted to the VARCHAR used to
+			 * declare parameters of unknown type, so keep BINARY there.
+			 */
+			if (size > 8000 && IS_TDS72_PLUS(conn))
+				type = SYBIMAGE;
+			else
+				type = (type == SYBVARBINARY || type == XSYBVARBINARY) ? XSYBVARBINARY : XSYBBINARY;
 			break;
 		case SYBBIT:
 			type = SYBBITN;
@@ -267,6 +286,17 @@ tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE typ
 		case SYBINT8:
 			type = SYB5INT8;
 			break;
+		/* CHAR/BINARY are limited to 255 bytes, use LONGCHAR/LONGBINARY if supported */
+		case SYBCHAR:
+		case SYBVARCHAR:
+			if (size > 255 && tds_capability_has_req(conn, TDS_REQ_DATA_LCHAR))
+				type = SYBLONGCHAR;
+			break;
+		case SYBBINARY:
+		case SYBVARBINARY:
+			if (size > 255 && tds_capability_has_req(conn, TDS_REQ_DATA_LBIN))
+				type = SYBLONGBINARY;
+			break;
 			/* avoid warning on other types */
 		default:
 			break;
@@ -278,6 +308,10 @@ tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE typ
 		curcol->char_conv = conn->char_convs[is_unicode_type(type) ? client2ucs2 : client2server_chardata];
 		memcpy(curcol->column_collation, conn->collation, sizeof(conn->collation));
 	}
+
+	/* types with a size on the wire take the size given */
+	if (size > 0 && curcol->column_varint_size != 0)
+		curcol->on_server.column_size = curcol->column_size = TDS_MIN(size, 0x7fffffff);
 
 	/* special case, GUID, varint != 0 but only a size */
 	/* TODO VARIANT, when supported */

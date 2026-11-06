@@ -75,12 +75,11 @@ prepared_rpc(struct _hstmt *stmt, bool compute_row)
 		switch (*p) {
 		case ',':
 			if (IS_TDS7_PLUS(conn)) {
-				tds_set_param_type(conn, curcol, SYBVOID);
+				tds_set_param_type(conn, curcol, SYBVOID, 0);
 				curcol->column_size = curcol->column_cur_size = 0;
 			} else {
 				/* TODO is there a better type ? */
-				tds_set_param_type(conn, curcol, SYBINTN);
-				curcol->column_size = curcol->on_server.column_size = 4;
+				tds_set_param_type(conn, curcol, SYBINTN, 4);
 				curcol->column_cur_size = -1;
 			}
 			if (compute_row)
@@ -98,7 +97,7 @@ prepared_rpc(struct _hstmt *stmt, bool compute_row)
 				tds_free_param_result(temp_params);
 				return SQL_ERROR;
 			}
-			tds_set_param_type(conn, curcol, type);
+			tds_set_param_type(conn, curcol, type, 0);
 			switch (type) {
 			case SYBVARCHAR:
 				curcol->column_size = p - start;

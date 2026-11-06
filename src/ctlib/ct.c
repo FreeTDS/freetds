@@ -4510,7 +4510,7 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 			if (!tds_dstr_copy(&pcol->column_name, p->name))
 				goto memory_error;
 
-		tds_set_param_type(tds->conn, pcol, tds_type);
+		tds_set_param_type(tds->conn, pcol, tds_type, 0);
 
 		if (temp_datalen == CS_NULLTERM && temp_value)
 			temp_datalen = strlen((const char*) temp_value);

@@ -307,7 +307,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 	if (sql_src_type == SQL_C_DEFAULT)
 		sql_src_type = odbc_sql_to_c_type_default(drec_ixd->sql_desc_concise_type);
 
-	tds_set_param_type(conn, curcol, dest_type);
+	tds_set_param_type(conn, curcol, dest_type, 0);
 
 	/* TODO what happen for unicode types ?? */
 	if (is_char_type(dest_type)) {
@@ -363,7 +363,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 		}
 	} else if (dest_type != SYBBIT) {
 		/* TODO only a trick... */
-		tds_set_param_type(conn, curcol, tds_get_null_type(dest_type));
+		tds_set_param_type(conn, curcol, tds_get_null_type(dest_type), 0);
 	}
 
 	/* test source type */

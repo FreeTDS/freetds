@@ -41,7 +41,7 @@ test(TDSSOCKET * tds, TDSDYNAMIC * dyn, TDS_INT n, const char *s)
 	dyn->params = params;
 
 	curcol = params->columns[0];
-	tds_set_param_type(tds->conn, curcol, SYBINT4);
+	tds_set_param_type(tds->conn, curcol, SYBINT4, 0);
 
 	/* TODO test error */
 	tds_alloc_param_data(curcol);
@@ -53,7 +53,7 @@ test(TDSSOCKET * tds, TDSDYNAMIC * dyn, TDS_INT n, const char *s)
 	dyn->params = params;
 
 	curcol = params->columns[1];
-	tds_set_param_type(tds->conn, curcol, SYBVARCHAR);
+	tds_set_param_type(tds->conn, curcol, SYBVARCHAR, 0);
 	curcol->column_size = 40;
 	curcol->column_cur_size = len;
 
