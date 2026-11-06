@@ -4456,7 +4456,7 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 	for (i = 0, p = first_param; p != NULL; p = p->next, i++) {
 		const unsigned char *prow;
 		CS_BYTE *temp_value = NULL;
-		CS_INT temp_datalen = 0;
+		CS_INT temp_datalen = 0, size;
 
 		if (!(new_params = tds_alloc_param_result(params)))
 			goto memory_error;
@@ -4510,16 +4510,21 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 			if (!tds_dstr_copy(&pcol->column_name, p->name))
 				goto memory_error;
 
-		tds_set_param_type(tds->conn, pcol, tds_type, 0);
-
 		if (temp_datalen == CS_NULLTERM && temp_value)
 			temp_datalen = strlen((const char*) temp_value);
+
+		/*
+		 * Pass size of input data to use a type able to contain it.
+		 * Do not change type of output parameters, it would change the value returned.
+		 */
+		size = (p->status == CS_RETURN) ? 0 : TDS_MAX(temp_datalen, 0);
+		tds_set_param_type(tds->conn, pcol, tds_type, size);
 
 		pcol->column_prec = p->precision;
 		pcol->column_scale = p->scale;
 		if (pcol->column_varint_size) {
-			if ((pcol->column_varint_size == 2 && *(p->datalen) > 8000)
-			    || (pcol->column_varint_size == 1 && *(p->datalen) > 255)) {
+			if ((pcol->column_varint_size == 2 && temp_datalen > 8000)
+			    || (pcol->column_varint_size == 1 && temp_datalen > 255)) {
 				_ctclient_msg(NULL, (CS_CONNECTION*) tds_get_parent(tds),
 					      "paraminfoalloc", 1, 1, 10, 36, "");
 			}
