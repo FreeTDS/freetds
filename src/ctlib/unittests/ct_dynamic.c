@@ -38,6 +38,139 @@ chk(int check, const char *fmt, ...)
 	exit(1);
 }
 
+enum
+{ BIG_SIZE = 20000 };
+
+static void
+consume_results(CS_COMMAND *command, const char *what)
+{
+	CS_RETCODE ret;
+	CS_INT res_type;
+
+	while ((ret = ct_results(command, &res_type)) == CS_SUCCEED) {
+		switch ((int) res_type) {
+		case CS_CMD_SUCCEED:
+		case CS_CMD_DONE:
+			break;
+		default:
+			chk(0, "%s: unexpected ct_results result type: %d\n", what, (int) res_type);
+		}
+	}
+	chk(ret == CS_END_RESULTS, "%s: ct_results() unexpected return %d.\n", what, (int) ret);
+}
+
+/*
+ * Prepare an INSERT with a blob parameter and execute it with a mix
+ * of NULL and not NULL values, then check what got stored.
+ */
+static void
+test_blob_param(const char *sql_type, CS_INT param_type)
+{
+	enum
+	{ NUM_ROWS = 4 };
+	static const int sizes[NUM_ROWS] = { -1, 5, -1, BIG_SIZE };
+	char sql[256];
+	char *data, *out;
+	CS_DATAFMT datafmt;
+	CS_INT id, id_len, data_len;
+	CS_SMALLINT id_ind, data_ind;
+	CS_RETCODE ret;
+	CS_INT res_type, count;
+	int i, rows = 0;
+
+	printf("Testing blob parameter of type %s\n", sql_type);
+
+	data = (char *) malloc(BIG_SIZE);
+	out = (char *) malloc(BIG_SIZE);
+	chk(data != NULL && out != NULL, "out of memory\n");
+	memset(data, 'x', BIG_SIZE);
+
+	run_command(cmd, "IF OBJECT_ID('tempdb..#ct_dynamic_blob') IS NOT NULL DROP TABLE #ct_dynamic_blob");
+	sprintf(sql, "CREATE TABLE #ct_dynamic_blob (id INT NOT NULL, t %s NULL)", sql_type);
+	check_call(run_command, (cmd, sql));
+
+	check_call(ct_dynamic, (cmd, CS_PREPARE, "blob", CS_NULLTERM,
+				"INSERT INTO #ct_dynamic_blob (id, t) VALUES (?, ?)", CS_NULLTERM));
+	check_call(ct_send, (cmd));
+	consume_results(cmd, "prepare");
+
+	for (i = 0; i < NUM_ROWS; i++) {
+		check_call(ct_dynamic, (cmd, CS_EXECUTE, "blob", CS_NULLTERM, NULL, CS_UNUSED));
+
+		id = i + 1;
+		id_len = sizeof(id);
+		id_ind = 0;
+		memset(&datafmt, 0, sizeof(datafmt));
+		datafmt.datatype = CS_INT_TYPE;
+		datafmt.status = CS_INPUTVALUE;
+		check_call(ct_setparam, (cmd, &datafmt, &id, &id_len, &id_ind));
+
+		data_len = sizes[i] < 0 ? 0 : sizes[i];
+		data_ind = sizes[i] < 0 ? -1 : 0;
+		memset(&datafmt, 0, sizeof(datafmt));
+		datafmt.datatype = param_type;
+		datafmt.status = CS_INPUTVALUE;
+		datafmt.maxlength = BIG_SIZE;
+		check_call(ct_setparam, (cmd, &datafmt, data, &data_len, &data_ind));
+
+		check_call(ct_send, (cmd));
+		consume_results(cmd, "execute");
+	}
+
+	check_call(ct_dynamic, (cmd, CS_DEALLOC, "blob", CS_NULLTERM, NULL, CS_UNUSED));
+	check_call(ct_send, (cmd));
+	consume_results(cmd, "deallocate");
+
+	/*
+	 * Check stored values.
+	 * Fetch the column itself as ASE 15.0 returns 0 for DATALENGTH of a
+	 * NULL TEXT and does not accept IS NULL on it.
+	 */
+	check_call(ct_command, (cmd, CS_LANG_CMD, "SET TEXTSIZE 65536 SELECT id, t FROM #ct_dynamic_blob ORDER BY id",
+				CS_NULLTERM, CS_UNUSED));
+	check_call(ct_send, (cmd));
+	while ((ret = ct_results(cmd, &res_type)) == CS_SUCCEED) {
+		switch ((int) res_type) {
+		case CS_CMD_SUCCEED:
+		case CS_CMD_DONE:
+			break;
+		case CS_ROW_RESULT:
+			memset(&datafmt, 0, sizeof(datafmt));
+			datafmt.datatype = CS_INT_TYPE;
+			datafmt.maxlength = sizeof(CS_INT);
+			datafmt.count = 1;
+			check_call(ct_bind, (cmd, 1, &datafmt, &id, NULL, &id_ind));
+			memset(&datafmt, 0, sizeof(datafmt));
+			datafmt.datatype = param_type;
+			datafmt.maxlength = BIG_SIZE;
+			datafmt.count = 1;
+			check_call(ct_bind, (cmd, 2, &datafmt, out, &data_len, &data_ind));
+			memset(out, 0, BIG_SIZE);
+			while ((ret = ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, &count)) == CS_SUCCEED) {
+				chk(rows < NUM_ROWS && id == rows + 1, "%s: unexpected row id %d\n", sql_type, (int) id);
+				if (sizes[rows] < 0)
+					chk(data_ind == -1, "%s: row %d expected NULL\n", sql_type, (int) id);
+				else
+					chk(data_ind == 0 && data_len == sizes[rows] && memcmp(out, data, data_len) == 0,
+					    "%s: row %d wrong data, length %d expected %d\n", sql_type, (int) id,
+					    (int) data_len, sizes[rows]);
+				memset(out, 0, BIG_SIZE);
+				++rows;
+			}
+			chk(ret == CS_END_DATA, "ct_fetch() unexpected return %d.\n", (int) ret);
+			break;
+		default:
+			chk(0, "invalid ct_results result type: %d\n", (int) res_type);
+		}
+	}
+	chk(ret == CS_END_RESULTS, "ct_results() unexpected return %d.\n", (int) ret);
+	chk(rows == NUM_ROWS, "%s: got %d rows, expected %d\n", sql_type, rows, NUM_ROWS);
+
+	check_call(run_command, (cmd, "DROP TABLE #ct_dynamic_blob"));
+	free(out);
+	free(data);
+}
+
 TEST_MAIN()
 {
 	CS_RETCODE ret;
@@ -55,6 +188,8 @@ TEST_MAIN()
 	CS_INT intvarsize;
 	CS_SMALLINT intvarind;
 	CS_INT res_type;
+	CS_INT tds_version;
+	bool test_blobs;
 
 	int i;
 
@@ -326,6 +461,23 @@ TEST_MAIN()
 	while ((ret = ct_results(cmd, &res_type)) == CS_SUCCEED)
 		chk(res_type != CS_ROW_RESULT, "Rows not expected\n");
 	chk(ret == CS_END_RESULTS, "ct_results() unexpected return.\n", (int) ret);
+
+	/*
+	 * Blob parameters, mixing NULL and not NULL values.
+	 * Under MSSQL the statement is prepared before parameters are known.
+	 * Before TDS 7.2 they are declared as varchar(4000) so the server
+	 * truncates longer values and rejects IMAGE parameters.
+	 */
+	check_call(ct_con_props, (conn, CS_GET, CS_TDS_VERSION, &tds_version, CS_UNUSED, NULL));
+	test_blobs = true;
+#ifdef CS_TDS_71
+	if (tds_version == CS_TDS_70 || tds_version == CS_TDS_71)
+		test_blobs = false;
+#endif
+	if (test_blobs) {
+		test_blob_param("TEXT", CS_TEXT_TYPE);
+		test_blob_param("IMAGE", CS_IMAGE_TYPE);
+	}
 
 	check_call(ct_dynamic, (cmd2, CS_EXECUTE, "age", CS_NULLTERM, NULL, CS_UNUSED));
 
