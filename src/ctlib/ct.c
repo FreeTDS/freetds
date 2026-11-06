@@ -326,6 +326,7 @@ ct_init(CS_CONTEXT * ctx, CS_INT version)
 	ctx->tds_ctx->msg_handler = _ct_handle_server_message;
 	ctx->tds_ctx->err_handler = _ct_handle_client_message;
 	ctx->use_large_identifiers = _ct_is_large_identifiers_version(version);
+	ctx->version = version;
 
 	return CS_SUCCEED;
 }
@@ -346,6 +347,10 @@ ct_con_alloc(CS_CONTEXT * ctx, CS_CONNECTION ** con)
 		tds_free_login(login);
 		return CS_FAIL;
 	}
+
+	/* like SAP library, support UNITEXT starting from version 15.0 */
+	if (ctx->version >= 15000)
+		tds_capability_set_req(&login->capabilities, TDS_REQ_DATA_UNITEXT);
 
 	*con = tds_new0(CS_CONNECTION, 1);
 	if (!*con) {
@@ -2229,6 +2234,9 @@ _ct_get_client_type(const TDSCOLUMN *col, bool describe)
 	case SYBTEXT:
 		return CS_TEXT_TYPE;
 		break;
+	case SYBUNITEXT:
+		return CS_UNITEXT_TYPE;
+		break;
 	case SYBUNIQUE:
 		return CS_UNIQUE_TYPE;
 		break;
@@ -2301,7 +2309,6 @@ _ct_get_client_type(const TDSCOLUMN *col, bool describe)
 	case SYBMSTABLE:
 	case SYBINTERVAL:
 	case SYBSINT1:
-	case SYBUNITEXT:
 	case SYBXML:
 	case SYBNTEXT:
 		break;
@@ -2351,6 +2358,8 @@ _ct_get_server_type(TDSSOCKET *tds, int datatype)
 	case CS_UNIQUE_TYPE:		return SYBUNIQUE;
 	case CS_LONGBINARY_TYPE:	return SYBLONGBINARY;
 	case CS_UNICHAR_TYPE:		return SYBVARCHAR;
+	/* data are converted to client charset by libTDS */
+	case CS_UNITEXT_TYPE:		return SYBTEXT;
 	case CS_LONGCHAR_TYPE:
 		if (!tds || IS_TDS7_PLUS(tds->conn))
 			return SYBVARCHAR;
@@ -2378,7 +2387,6 @@ _ct_get_server_type(TDSSOCKET *tds, int datatype)
 	case CS_VOID_TYPE:
 	case CS_USHORT_TYPE:
 	case CS_BLOB_TYPE:
-	case CS_UNITEXT_TYPE:
 	case CS_XML_TYPE:
 	case CS_TEXTLOCATOR_TYPE:
 	case CS_IMAGELOCATOR_TYPE:
@@ -3339,6 +3347,7 @@ ct_capability(CS_CONNECTION * con, CS_INT action, CS_INT type, CS_INT capability
 		CONV_CAP(CS_RES_NOTDSDEBUG,	TDS_RES_NOTDSDEBUG);
 		CONV_CAP(CS_RES_NOSTRIPBLANKS,	TDS_RES_NOSTRIPBLANKS);
 		CONV_CAP(CS_DATA_NOINT8,	TDS_RES_DATA_NOINT8);
+		CONV_CAP(CS_DATA_NOUNITEXT,	TDS_RES_DATA_NOUNITEXT);
 
 		CONV_CAP(CS_DATA_NOINTN,	TDS_RES_DATA_INTN);
 		CONV_CAP(CS_DATA_NODATETIMEN,	TDS_RES_DATA_NODATETIMEN);
@@ -3396,6 +3405,7 @@ ct_capability(CS_CONNECTION * con, CS_INT action, CS_INT type, CS_INT capability
 		CONV_CAP(CS_DATA_BITN,		TDS_REQ_DATA_BITN);
 		CONV_CAP(CS_DATA_INT8,		TDS_REQ_DATA_INT8);
 		CONV_CAP(CS_DATA_VOID,		TDS_REQ_DATA_VOID);
+		CONV_CAP(CS_DATA_UNITEXT,	TDS_REQ_DATA_UNITEXT);
 
 		CONV_CAP(CS_CON_INBAND,		TDS_REQ_CON_INBAND);
 		CONV_CAP(CS_CON_LOGICAL,	TDS_REQ_CON_LOGICAL);

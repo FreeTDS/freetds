@@ -136,6 +136,7 @@ typedef struct _cs_blkdesc CS_BLKDESC;
 #define CS_OPTION_GET	51
 #define CS_DATA_INT8	52
 #define CS_DATA_VOID	53
+#define CS_DATA_UNITEXT	81
 
 /* CS_CAP_RESPONSE values */
 #define CS_RES_NOMSG	1
@@ -173,6 +174,7 @@ typedef struct _cs_blkdesc CS_BLKDESC;
 #define CS_RES_NOTDSDEBUG	33
 #define CS_RES_NOSTRIPBLANKS	34
 #define CS_DATA_NOINT8	35
+#define CS_DATA_NOUNITEXT	54
 
 /* Properties */
 enum

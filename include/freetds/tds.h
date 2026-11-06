@@ -376,7 +376,7 @@ extern const char *const tds_type_names[256];
 #define is_binary_type(x)     ((tds_type_flags_ms[x] & TDS_TYPEFLAG_BINARY) != 0)
 #define is_char_type(x)       ((tds_type_flags_ms[x] & (TDS_TYPEFLAG_ASCII|TDS_TYPEFLAG_UNICODE)) != 0)
 #define is_similar_type(x, y) (is_char_type(x) && is_char_type(y))
-inline static bool
+static inline bool
 is_tds_type_valid(int type)
 {
 	return (unsigned) type < 256u && tds_type_flags_ms[type] != 0;
@@ -1777,6 +1777,14 @@ tds_capability_enabled(const TDS_CAPABILITY_TYPE *cap, unsigned cap_num)
 	tds_capability_enabled(&conn->capabilities.types[0], cap)
 #define tds_capability_has_res(conn, cap) \
 	tds_capability_enabled(&conn->capabilities.types[1], cap)
+
+inline static void
+tds_capability_set(TDS_CAPABILITY_TYPE *cap, unsigned cap_num)
+{
+	cap->values[sizeof(cap->values)-1-(cap_num>>3)] |= 1 << (cap_num&7);
+}
+#define tds_capability_set_req(caps, cap) \
+	tds_capability_set(&(caps)->types[0], cap)
 
 #define IS_TDS42(x) (x->tds_version==0x402)
 #define IS_TDS46(x) (x->tds_version==0x406)

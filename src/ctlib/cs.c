@@ -342,6 +342,7 @@ cs_ctx_alloc(CS_INT version, CS_CONTEXT ** out_ctx)
 	if (!ctx)
 		return CS_FAIL;
 	ctx->use_large_identifiers = _ct_is_large_identifiers_version(version);
+	ctx->version = version;
 	tds_ctx = tds_alloc_context(ctx);
 	if (!tds_ctx) {
 		free(ctx);
@@ -640,6 +641,7 @@ _cs_convert(CS_CONTEXT *ctx, const CS_DATAFMT_COMMON *srcfmt, CS_VOID *srcdata,
 	case CS_CHAR_TYPE:
 	case CS_TEXT_TYPE:
 	case CS_UNICHAR_TYPE:
+	case CS_UNITEXT_TYPE:
 	case CS_LONGCHAR_TYPE:
 		desttype = TDS_CONVERT_CHAR;
 		if ((format & (~(CS_FMT_NULLTERM | CS_FMT_PADNULL | CS_FMT_PADBLANK))) != 0 || !is_power_of_two_or_zero(format)) {

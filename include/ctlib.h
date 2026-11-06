@@ -164,6 +164,9 @@ struct _cs_context
 
 	/** structures uses large identifiers */
 	bool use_large_identifiers;
+
+	/** version passed to cs_ctx_alloc/ct_init (CS_VERSION_xxx) */
+	CS_INT version;
 };
 
 static inline size_t cs_servermsg_len(CS_CONTEXT *ctx)
