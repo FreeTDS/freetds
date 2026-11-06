@@ -50,6 +50,7 @@ static const char * ct_describe_cmd_state(CS_INT state);
 static int _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * rows_read);
 static int _ct_fetchable_results(CS_COMMAND * cmd);
 static TDSRET _ct_process_return_status(TDSSOCKET * tds);
+static int _ct_peek_token(TDSSOCKET * tds);
 
 static int _ct_fill_param(CS_INT cmd_type, CS_PARAM * param, const CS_DATAFMT_LARGE * datafmt, CS_VOID * data,
 			  CS_INT * datalen, CS_SMALLINT * indicator, CS_BYTE byvalue);
@@ -203,6 +204,9 @@ _ct_get_user_api_layer_error(int error)
 		break;
 	case 155:
 		return "This routine cannot be called when the command structure is idle.";
+		break;
+	case 163:
+		return "This routine cannot be called until all fetchable results have been completely processed.";
 		break;
 	case 171:
 		return "A cursor must be opened before this command type can be initialized.";
@@ -1337,6 +1341,20 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 	context = cmd->con->ctx;
 
 	tds = cmd->con->tds_socket;
+
+	/*
+	 * Rows not fetched yet, application should fetch them or cancel.
+	 * Do not process tokens, it would return the same rows again.
+	 */
+	if (cmd->results_state == _CS_RES_RESULTSET_ROWS && cmd->curr_result_type == CS_ROW_RESULT && !cmd->row_prefetched) {
+		int marker = _ct_peek_token(tds);
+
+		if (marker == TDS_ROW_TOKEN || marker == TDS_NBC_ROW_TOKEN) {
+			_ctclient_msg(NULL, cmd->con, "ct_results", 1, 1, 1, 163, "");
+			return CS_FAIL;
+		}
+	}
+
 	cmd->row_prefetched = 0;
 
 	/*

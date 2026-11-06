@@ -8,6 +8,7 @@
 #define ALL_TESTS \
 	TEST(ct_callback) \
 	TEST(ct_res_info) \
+	TEST(ct_results) \
 	TEST(ct_send) \
 	TEST(cs_config) \
 	TEST(blk_init) \
@@ -146,6 +147,72 @@ test_ct_res_info(void)
 			exit(1);
 		}
 	}
+	if (ret != CS_END_RESULTS) {
+		fprintf(stderr, "ct_results() unexpected return %d.\n", (int) ret);
+		exit(1);
+	}
+}
+
+static void
+check_results(CS_INT expected_type)
+{
+	CS_INT result_type;
+
+	check_call(ct_results, (cmd, &result_type));
+	if (result_type != expected_type) {
+		fprintf(stderr, "ct_results() unexpected result_type %d, expected %d.\n", (int) result_type, (int) expected_type);
+		exit(1);
+	}
+}
+
+static void
+check_fetch(CS_RETCODE expected_ret)
+{
+	CS_RETCODE ret;
+	CS_INT count;
+
+	ret = ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, &count);
+	if (ret != expected_ret) {
+		fprintf(stderr, "ct_fetch() unexpected return %d, expected %d.\n", (int) ret, (int) expected_ret);
+		exit(1);
+	}
+}
+
+static void
+test_ct_results(void)
+{
+	CS_RETCODE ret;
+	CS_INT result_type;
+
+	check_call(ct_command, (cmd, CS_LANG_CMD, "SELECT 1 UNION ALL SELECT 2 SELECT 3 WHERE 1 = 0 SELECT 4",
+				CS_NULLTERM, CS_UNUSED));
+	check_call(ct_send, (cmd));
+
+	check_results(CS_ROW_RESULT);
+
+	/* this should fail, rows are not fetched */
+	check_fail(ct_results, (cmd, &result_type));
+	check_last_message(CTMSG_CLIENT2, 0x010101a3, "fetchable results");
+
+	/* this should fail, not all rows are fetched */
+	check_fetch(CS_SUCCEED);
+	check_fail(ct_results, (cmd, &result_type));
+	check_last_message(CTMSG_CLIENT2, 0x010101a3, "fetchable results");
+
+	check_fetch(CS_SUCCEED);
+	check_fetch(CS_END_DATA);
+	check_results(CS_CMD_DONE);
+
+	/* empty result set, no rows to fetch */
+	check_results(CS_ROW_RESULT);
+	check_results(CS_CMD_DONE);
+
+	check_results(CS_ROW_RESULT);
+	check_fetch(CS_SUCCEED);
+	check_fetch(CS_END_DATA);
+	check_results(CS_CMD_DONE);
+
+	ret = ct_results(cmd, &result_type);
 	if (ret != CS_END_RESULTS) {
 		fprintf(stderr, "ct_results() unexpected return %d.\n", (int) ret);
 		exit(1);
