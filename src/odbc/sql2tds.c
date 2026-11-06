@@ -289,6 +289,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 	int len;
 	ODBC_CONVERT_BUF convert_buf;
 	SQLLEN sql_len;
+	size_t size;
 	bool need_data = false;
 
 	/* TODO handle bindings of char like "{d '2002-11-12'}" */
@@ -308,18 +309,26 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 		sql_src_type = odbc_sql_to_c_type_default(drec_ixd->sql_desc_concise_type);
 
 	/*
-	 * Pass declared size to use a type able to contain it.
+	 * Pass declared size (in bytes on the server) to use a type able to contain it.
 	 * Do not change type of output parameters, it would change the value returned.
 	 */
-	tds_set_param_type(conn, curcol, dest_type,
-			   drec_ixd->sql_desc_parameter_type == SQL_PARAM_INPUT && drec_ixd->sql_desc_length > 0
-			   ? drec_ixd->sql_desc_length : 0);
+	size = 0;
+	if (drec_ixd->sql_desc_parameter_type == SQL_PARAM_INPUT && drec_ixd->sql_desc_length > 0) {
+		size = drec_ixd->sql_desc_length;
+		if (is_unicode_type(dest_type))
+			size *= 2u;
+	}
+	tds_set_param_type(conn, curcol, dest_type, size);
 	/* type could have been changed to a larger one to hold the data, convert to it */
 	if (is_blob_col(curcol)) {
 		switch (dest_type) {
 		case SYBCHAR:
 		case SYBVARCHAR:
 			dest_type = SYBTEXT;
+			break;
+		case XSYBNCHAR:
+		case XSYBNVARCHAR:
+			dest_type = SYBNTEXT;
 			break;
 		case SYBBINARY:
 		case SYBVARBINARY:

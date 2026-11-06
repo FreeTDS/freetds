@@ -260,6 +260,12 @@ tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE typ
 			else
 				type = (type == SYBVARCHAR || type == XSYBVARCHAR) ? XSYBVARCHAR : XSYBCHAR;
 			break;
+		case XSYBNVARCHAR:
+		case XSYBNCHAR:
+			/* NTEXT is sent as NVARCHAR(MAX) for TDS 7.2+, size is in bytes (UCS-2) */
+			if (size > 8000)
+				type = SYBNTEXT;
+			break;
 		case SYBVARBINARY:
 		case SYBBINARY:
 		case XSYBVARBINARY:
