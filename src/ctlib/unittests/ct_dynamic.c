@@ -477,6 +477,12 @@ TEST_MAIN()
 	if (test_blobs) {
 		test_blob_param("TEXT", CS_TEXT_TYPE);
 		test_blob_param("IMAGE", CS_IMAGE_TYPE);
+		/*
+		 * Sybase only. Use text, CS_UNITEXT_TYPE data are client charset
+		 * for FreeTDS but UTF-16 for SAP library.
+		 */
+		if (tds_version == CS_TDS_50)
+			test_blob_param("UNITEXT", CS_TEXT_TYPE);
 	}
 
 	check_call(ct_dynamic, (cmd2, CS_EXECUTE, "age", CS_NULLTERM, NULL, CS_UNUSED));
