@@ -9,6 +9,7 @@
 	TEST(ct_callback) \
 	TEST(ct_res_info) \
 	TEST(ct_results) \
+	TEST(ct_cancel) \
 	TEST(ct_send) \
 	TEST(cs_config) \
 	TEST(blk_init) \
@@ -207,6 +208,37 @@ test_ct_results(void)
 	check_results(CS_ROW_RESULT);
 	check_results(CS_CMD_DONE);
 
+	check_results(CS_ROW_RESULT);
+	check_fetch(CS_SUCCEED);
+	check_fetch(CS_END_DATA);
+	check_results(CS_CMD_DONE);
+
+	ret = ct_results(cmd, &result_type);
+	if (ret != CS_END_RESULTS) {
+		fprintf(stderr, "ct_results() unexpected return %d.\n", (int) ret);
+		exit(1);
+	}
+}
+
+static void
+test_ct_cancel(void)
+{
+	CS_RETCODE ret;
+	CS_INT result_type;
+
+	check_call(ct_command, (cmd, CS_LANG_CMD, "SELECT 1 UNION ALL SELECT 2", CS_NULLTERM, CS_UNUSED));
+	check_call(ct_send, (cmd));
+	check_results(CS_ROW_RESULT);
+
+	check_call(ct_cancel, (NULL, cmd, CS_CANCEL_ALL));
+
+	/* this should fail, command is idle after a cancel */
+	check_fail(ct_fetch, (cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, NULL));
+	check_last_message(CTMSG_CLIENT2, 0x0101019b, "idle");
+
+	/* a new command can be sent after a cancel */
+	check_call(ct_command, (cmd, CS_LANG_CMD, "SELECT 3", CS_NULLTERM, CS_UNUSED));
+	check_call(ct_send, (cmd));
 	check_results(CS_ROW_RESULT);
 	check_fetch(CS_SUCCEED);
 	check_fetch(CS_END_DATA);

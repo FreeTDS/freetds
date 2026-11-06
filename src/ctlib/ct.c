@@ -1075,10 +1075,12 @@ ct_send(CS_COMMAND * cmd)
 
 	tds = cmd->con->tds_socket;
 
-	if (cmd->cancel_state == _CS_CANCEL_PENDING) {
+	/*
+	 * A command can be sent after a cancel, just complete the cancel.
+	 * The pending state is there only to return CS_CANCELED from ct_results.
+	 */
+	if (cmd->cancel_state == _CS_CANCEL_PENDING)
 		_ct_cancel_cleanup(cmd);
-		return CS_CANCELED;
-	}
 
 	if (cmd->command_state == _CS_COMMAND_IDLE) {
 		tdsdump_log(TDS_DBG_FUNC, "ct_send() command_state = IDLE\n");
