@@ -307,7 +307,28 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 	if (sql_src_type == SQL_C_DEFAULT)
 		sql_src_type = odbc_sql_to_c_type_default(drec_ixd->sql_desc_concise_type);
 
-	tds_set_param_type(conn, curcol, dest_type, 0);
+	/*
+	 * Pass declared size to use a type able to contain it.
+	 * Do not change type of output parameters, it would change the value returned.
+	 */
+	tds_set_param_type(conn, curcol, dest_type,
+			   drec_ixd->sql_desc_parameter_type == SQL_PARAM_INPUT && drec_ixd->sql_desc_length > 0
+			   ? drec_ixd->sql_desc_length : 0);
+	/* type could have been changed to a larger one to hold the data, convert to it */
+	if (is_blob_col(curcol)) {
+		switch (dest_type) {
+		case SYBCHAR:
+		case SYBVARCHAR:
+			dest_type = SYBTEXT;
+			break;
+		case SYBBINARY:
+		case SYBVARBINARY:
+			dest_type = SYBIMAGE;
+			break;
+		default:
+			break;
+		}
+	}
 
 	/* TODO what happen for unicode types ?? */
 	if (is_char_type(dest_type)) {
