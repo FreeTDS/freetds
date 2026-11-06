@@ -428,7 +428,11 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 				return NULL;
 			}
 
-		tds_set_param_type(tds->conn, pcol, temp_type, 0);
+		/*
+		 * Pass size of input data to use a type able to contain it.
+		 * Do not change type of output parameters, it would change the value returned.
+		 */
+		tds_set_param_type(tds->conn, pcol, temp_type, (p->status & DBRPCRETURN) ? 0 : TDS_MAX(temp_datalen, 0));
 
 		if (p->maxlen > 0)
 			pcol->column_size = p->maxlen;
