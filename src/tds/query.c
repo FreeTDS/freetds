@@ -1000,9 +1000,10 @@ tds7_write_param_def_from_query(TDSSOCKET * tds, const char* converted_query, si
 			*p++ = ',';
 
 		/* get this parameter declaration */
-		p += sprintf(p, "@P%d ", i+1);
+		p += sprintf(p, "@P%d ", i + 1);
 		if (!params || i >= params->num_cols) {
-			strcpy(p, "varchar(4000)");
+			/* type unknown, use a type able to hold any value */
+			strcpy(p, IS_TDS72_PLUS(tds->conn) ? "varchar(max)" : "varchar(4000)");
 		} else if (TDS_FAILED(tds_get_column_declaration(tds, params->columns[i], p))) {
 			tds_freeze_abort(&inner);
 			tds_freeze_abort(&outer);
