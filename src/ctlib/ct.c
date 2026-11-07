@@ -138,6 +138,9 @@ _ct_get_user_api_layer_error(int error)
 	tdsdump_log(TDS_DBG_FUNC, "_ct_get_user_api_layer_error(%d)\n", error);
 
 	switch (error) {
+	case 1:
+		return "Cannot call API %1! from this state: %2!.";
+		break;
 	case 2:
 		return "Memory allocation failure.";
 		break;
@@ -152,6 +155,9 @@ _ct_get_user_api_layer_error(int error)
 		break;
 	case 6:
 		return "The parameter %1! cannot be NULL.";
+		break;
+	case 7:
+		return "The given buffer of %1! bytes exceeds the total length of the value to be transferred.";
 		break;
 	case 8:
 		return "The %1! parameter must be NULL.";
@@ -179,6 +185,9 @@ _ct_get_user_api_layer_error(int error)
 		       " conversion/operation resulted in overflow.";
 	case 42:
 		return "Data truncated while doing local character set conversion.  col = %1! row = %2!.";
+		break;
+	case 49:
+		return "The number of times blk_textxfer() has been called exceeds the number of unbound text or image columns.";
 		break;
 	case 51:
 		return "Exactly one of context and connection must be non-NULL.";

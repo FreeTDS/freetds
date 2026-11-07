@@ -257,6 +257,12 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 
 	tds = CONN(blkdesc)->tds_socket;
 
+	/* text/image data still to be sent with blk_textxfer */
+	if ((type == CS_BLK_BATCH || type == CS_BLK_ALL) && blkdesc->bcpinfo.blob_pending) {
+		_ctclient_msg(NULL, CONN(blkdesc), "blk_done", 1, 1, 1, 1, "%s, %s", "blk_done()", "text data pending");
+		return CS_FAIL;
+	}
+
 	switch (type) {
 	case CS_BLK_BATCH:
 		if (TDS_FAILED(tds_bcp_done(tds, &rows_copied))) {
@@ -491,6 +497,12 @@ blk_rowxfer_mult(CS_BLKDESC * blkdesc, CS_INT * row_count)
 	if (blkdesc->bcpinfo.direction == CS_BLK_IN) {
 		if (row_count != NULL && *row_count < rows_to_xfer)
 			rows_to_xfer = *row_count;
+		/* text/image data still to be sent with blk_textxfer */
+		if (blkdesc->bcpinfo.blob_pending) {
+			_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 1, 1, 1, 1, "%s, %s", "blk_rowxfer()",
+				      "text data pending");
+			return CS_FAIL;
+		}
 		ret = _blk_rowxfer_in(blkdesc, rows_to_xfer, &rows_xferred);
 	} else {
 		ret = _blk_rowxfer_out(blkdesc, rows_to_xfer, &rows_xferred);
@@ -530,12 +542,47 @@ blk_srvinit(SRV_PROC * srvproc, CS_BLKDESC * blkdescp)
 }
 
 CS_RETCODE
-blk_textxfer(CS_BLKDESC * blkdesc, CS_BYTE * buffer, CS_INT buflen, CS_INT * outlen)
+blk_textxfer(CS_BLKDESC *blkdesc, CS_BYTE *buffer, CS_INT buflen, CS_INT *outlen)
 {
+	TDSBCPINFO *bcpinfo;
+	bool end;
+
 	tdsdump_log(TDS_DBG_FUNC, "blk_textxfer(%p, %p, %d, %p)\n", blkdesc, buffer, buflen, outlen);
 
-	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED blk_textxfer()\n");
-	return CS_FAIL;
+	if (!blkdesc)
+		return CS_FAIL;
+
+	bcpinfo = &blkdesc->bcpinfo;
+	if (bcpinfo->direction != CS_BLK_IN) {
+		tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED blk_textxfer() for copy out\n");
+		return CS_FAIL;
+	}
+
+	if (!bcpinfo->blob_pending) {
+		if (!bcpinfo->xfer_init)
+			_ctclient_msg(NULL, CONN(blkdesc), "blk_textxfer", 1, 1, 1, 1, "%s, %s", "blk_textxfer()", "no row sent");
+		else
+			_ctclient_msg(NULL, CONN(blkdesc), "blk_textxfer", 1, 1, 1, 49, "");
+		return CS_FAIL;
+	}
+
+	if (buflen < 0 || (buflen > 0 && !buffer)) {
+		_ctclient_msg(NULL, CONN(blkdesc), "blk_textxfer", 1, 1, 1, 5, "%d, %s", buflen, "buflen");
+		return CS_FAIL;
+	}
+
+	if (buflen > bcpinfo->blob_left) {
+		_ctclient_msg(NULL, CONN(blkdesc), "blk_textxfer", 1, 1, 1, 7, "%d", buflen);
+		return CS_FAIL;
+	}
+
+	end = (buflen == bcpinfo->blob_left);
+	if (TDS_FAILED(tds_bcp_send_blob_data(CONN(blkdesc)->tds_socket, bcpinfo, buffer, buflen))) {
+		_ctclient_msg(NULL, CONN(blkdesc), "blk_textxfer", 2, 5, 1, 140, "");
+		return CS_FAIL;
+	}
+
+	return end ? CS_END_DATA : CS_SUCCEED;
 }
 
 static CS_RETCODE
@@ -651,6 +698,12 @@ _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred
 			/* FIXME */
 			return CS_FAIL;
 		}
+		if (rows_xferred)
+			*rows_xferred = each_row + 1;
+
+		/* data to be sent with blk_textxfer, stop here */
+		if (blkdesc->bcpinfo.blob_pending)
+			break;
 	}
 
 	return CS_SUCCEED;
@@ -687,14 +740,6 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int index TDS_UNUSED, in
 	 * and increment it if offset specified
 	 */
 
-	src = (unsigned char *) bindcol->column_varaddr;
-	if (!src) {
-		tdsdump_log(TDS_DBG_ERROR, "error source field not addressable\n");
-		return TDS_FAIL;
-	}
-
-	src += offset * bindcol->column_bindlen;
-	
 	if (bindcol->column_nullbind) {
 		nullind = bindcol->column_nullbind;
 		nullind += offset;
@@ -704,7 +749,26 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int index TDS_UNUSED, in
 		datalen += offset;
 	}
 
-	srctype = bindcol->column_bindtype; 		/* passes to cs_convert */
+	src = (unsigned char *) bindcol->column_varaddr;
+	if (!src) {
+		/*
+		 * Text/image columns bound with a NULL buffer, data will be
+		 * sent using blk_textxfer, bound length is the total length.
+		 */
+		if (is_blob_col(bindcol) && datalen && *datalen >= 0) {
+			bindcol->bcp_column_data->is_null = (nullind && *nullind == -1);
+			bindcol->bcp_column_data->datalen = bindcol->bcp_column_data->is_null ? 0 : *datalen;
+			/* empty data, nothing to send later */
+			bindcol->bcp_column_data->deferred = (bindcol->bcp_column_data->datalen > 0);
+			return TDS_SUCCESS;
+		}
+		tdsdump_log(TDS_DBG_ERROR, "error source field not addressable\n");
+		return TDS_FAIL;
+	}
+
+	src += offset * bindcol->column_bindlen;
+
+	srctype = bindcol->column_bindtype;	/* passes to cs_convert */
 
 	tdsdump_log(TDS_DBG_INFO1, "blk_get_col_data srctype = %d\n", srctype);
 	tdsdump_log(TDS_DBG_INFO1, "blk_get_col_data datalen = %d\n", datalen ? *datalen : -1);
