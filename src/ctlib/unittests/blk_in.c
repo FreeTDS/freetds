@@ -22,13 +22,16 @@ typedef enum
 	PART_SQL,
 	PART_BIND,
 	PART_OUTPUT,
+	PART_SELECT,
 } part_t;
 static part_t read_part_type(FILE * in);
 static char *read_part(FILE * in);
 static void read_line(char *buf, size_t buf_len, FILE * f);
 static char *append_string(char *s1, const char *s2);
-static char *get_output(CS_COMMAND * cmd, bool distinct);
+static char *get_output(CS_COMMAND * cmd, bool distinct, const char *select);
 static void single_test(CS_CONNECTION * conn, CS_COMMAND * cmd, FILE * in);
+
+static CS_CONTEXT *ctx;
 
 /*
  * Static data for insertion
@@ -234,36 +237,71 @@ free_dynamic_bounded(void)
 	}
 }
 
+static CS_INT
+type_from_name(const char *name)
+{
+#define TYPE(t) if (strcmp(name, #t) == 0) return t;
+	TYPE(CS_CHAR_TYPE);
+	TYPE(CS_DATETIME_TYPE);
+	TYPE(CS_DATETIME4_TYPE);
+	TYPE(CS_DATE_TYPE);
+	TYPE(CS_TIME_TYPE);
+	TYPE(CS_BIGDATETIME_TYPE);
+	TYPE(CS_BIGTIME_TYPE);
+#undef TYPE
+	fprintf(stderr, "Unhandled type %s\n", name);
+	exit(1);
+}
+
+/*
+ * Bind a value of a given type.
+ * Syntax is "<type> <maxlen> <value>", value is converted from string.
+ */
 static void
 do_type_bind(CS_BLKDESC *blkdesc, int col, const char *tok)
 {
-	if (strcmp(tok, "CS_CHAR_TYPE") == 0) {
-		CS_INT maxlen = atoi(strtok(NULL, " \t\n"));
-		char *value = strdup(strtok(NULL, "\n"));
-		bound_value *bound = calloc(1, sizeof(*bound));
+	CS_INT type = type_from_name(tok);
+	CS_INT maxlen = atoi(strtok(NULL, " \t\n"));
+	char *value = strdup(strtok(NULL, "\n"));
+	bound_value *bound = calloc(1, sizeof(*bound));
 
-		assert(value);
-		assert(bound);
+	assert(value);
+	assert(bound);
 
-		if (strncmp(value, "\"\"\"", 3) == 0) {
-			char *p;
+	if (strncmp(value, "\"\"\"", 3) == 0) {
+		char *p;
 
-			memmove(value, value + 3, strlen(value + 2));
-			p = strstr(value, "\"\"\"");
-			if (p)
-				*p = '\0';
-		}
-		bound->varlen = strlen(value);
-		bound->ind = 0;
-		bound->value = value;
-		bound->next = dynamic_bounded;
-		dynamic_bounded = bound;
-		do_bind(blkdesc, col, CS_FMT_NULLTERM, CS_CHAR_TYPE, maxlen, value, &bound->varlen, &bound->ind);
-
-		return;
+		memmove(value, value + 3, strlen(value + 2));
+		p = strstr(value, "\"\"\"");
+		if (p)
+			*p = '\0';
 	}
-	fprintf(stderr, "Unhandled type %s\n", tok);
-	exit(1);
+	bound->varlen = strlen(value);
+	bound->ind = 0;
+	bound->value = value;
+	bound->next = dynamic_bounded;
+	dynamic_bounded = bound;
+
+	if (type == CS_CHAR_TYPE) {
+		do_bind(blkdesc, col, CS_FMT_NULLTERM, CS_CHAR_TYPE, maxlen, value, &bound->varlen, &bound->ind);
+		return;
+	} else {
+		CS_DATAFMT srcfmt, destfmt;
+		void *data = calloc(1, 64);
+
+		assert(data);
+		memset(&srcfmt, 0, sizeof(srcfmt));
+		srcfmt.datatype = CS_CHAR_TYPE;
+		srcfmt.maxlength = bound->varlen;
+		memset(&destfmt, 0, sizeof(destfmt));
+		destfmt.datatype = type;
+		destfmt.maxlength = 64;
+		destfmt.format = CS_FMT_UNUSED;
+		check_call(cs_convert, (ctx, &srcfmt, value, &destfmt, data, &bound->varlen));
+		bound->value = data;
+		free(value);
+		do_bind(blkdesc, col, CS_FMT_UNUSED, type, maxlen, data, &bound->varlen, &bound->ind);
+	}
 }
 
 static void
@@ -324,7 +362,6 @@ static const char table_name[] = "all_types_bcp_unittest";
 
 TEST_MAIN()
 {
-	CS_CONTEXT *ctx;
 	CS_CONNECTION *conn;
 	CS_COMMAND *cmd;
 	bool verbose = false;
@@ -362,7 +399,7 @@ static void
 single_test(CS_CONNECTION *conn, CS_COMMAND *cmd, FILE *in)
 {
 	char command[512];
-	char *create_table_sql, *out1, *out2;
+	char *create_table_sql, *out1, *out2, *select = NULL;
 	CS_BLKDESC *blkdesc;
 	int count = 0;
 	int i;
@@ -386,6 +423,10 @@ single_test(CS_CONNECTION *conn, CS_COMMAND *cmd, FILE *in)
 		free(read_part(in));
 
 		part = read_part_type(in);
+		if (part == PART_SELECT) {
+			free(read_part(in));
+			part = read_part_type(in);
+		}
 		assert(part == PART_OUTPUT);
 		free(read_part(in));
 		return;
@@ -404,6 +445,10 @@ single_test(CS_CONNECTION *conn, CS_COMMAND *cmd, FILE *in)
 	do_binds(blkdesc, in, &rows_sent);
 
 	part = read_part_type(in);
+	if (part == PART_SELECT) {
+		select = read_part(in);
+		part = read_part_type(in);
+	}
 	assert(part == PART_OUTPUT);
 
 	if (!rows_sent) {
@@ -423,7 +468,8 @@ single_test(CS_CONNECTION *conn, CS_COMMAND *cmd, FILE *in)
 	printf("%d rows copied.\n", count);
 
 	out1 = read_part(in);
-	out2 = get_output(cmd, !rows_sent);
+	out2 = get_output(cmd, !rows_sent, select);
+	free(select);
 	if (strcmp(out1, out2) != 0) {
 		fprintf(stderr, "Wrong output\n-- expected --\n%s\n-- got --\n%s\n--\n", out1, out2);
 		exit(1);
@@ -433,7 +479,7 @@ single_test(CS_CONNECTION *conn, CS_COMMAND *cmd, FILE *in)
 }
 
 static char *
-get_output(CS_COMMAND *cmd, bool distinct)
+get_output(CS_COMMAND *cmd, bool distinct, const char *select)
 {
 	char command[512];
 
@@ -451,8 +497,12 @@ get_output(CS_COMMAND *cmd, bool distinct)
 
 	assert(out != NULL);
 
-	sprintf(command, "select%s * from %s", distinct ? " distinct" : "", table_name);
-	check_call(ct_command, (cmd, CS_LANG_CMD, command, CS_NULLTERM, CS_UNUSED));
+	if (select) {
+		check_call(ct_command, (cmd, CS_LANG_CMD, (CS_CHAR *) select, CS_NULLTERM, CS_UNUSED));
+	} else {
+		sprintf(command, "select%s * from %s", distinct ? " distinct" : "", table_name);
+		check_call(ct_command, (cmd, CS_LANG_CMD, command, CS_NULLTERM, CS_UNUSED));
+	}
 
 	check_call(ct_send, (cmd));
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
@@ -570,6 +620,8 @@ read_part_type(FILE *in)
 		part = PART_BIND;
 	else if (strcmp(line, "output\n") == 0)
 		part = PART_OUTPUT;
+	else if (strcmp(line, "select\n") == 0)
+		part = PART_SELECT;
 	else {
 		fprintf(stderr, "Invalid part: %s\n", line);
 		exit(1);
