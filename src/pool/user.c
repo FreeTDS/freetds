@@ -139,6 +139,21 @@ login_execute(TDS_POOL_EVENT *base_event)
 }
 
 
+/**
+ * Check if an error returned by accept() is permanent.
+ * \param err socket error code
+ * \return true if the listening socket cannot be used anymore
+ */
+static inline bool
+accept_error_is_fatal(int err)
+{
+#ifdef _WIN32
+	return err == WSAEINVAL || err == WSAENOTSOCK || err == WSAEBADF;
+#else
+	return err == EINVAL || err == ENOTSOCK || err == EBADF;
+#endif
+}
+
 /*
  * pool_user_create
  * accepts a client connection and adds it to the users list and returns it
@@ -153,8 +168,19 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s)
 
 	tdsdump_log(TDS_DBG_NETWORK, "accepting connection\n");
 	if (TDS_IS_SOCKET_INVALID(fd = tds_accept(s, NULL, NULL))) {
-		char *errstr = sock_strerror(errno);
-		tdsdump_log(TDS_DBG_ERROR, "error calling assert :%s\n", errstr);
+		int err = sock_errno;
+		char *errstr = sock_strerror(err);
+
+		tdsdump_log(TDS_DBG_ERROR, "error calling accept: %s\n", errstr);
+		/*
+		 * These errors mean the listening socket is not usable
+		 * (for instance not a listening socket), retrying would
+		 * just loop forever.
+		 */
+		if (accept_error_is_fatal(err)) {
+			fprintf(stderr, "Error: accept failed, %s\n", errstr);
+			exit(EXIT_FAILURE);
+		}
 		sock_strerror_free(errstr);
 		return NULL;
 	}
