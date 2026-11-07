@@ -285,7 +285,7 @@ pool_open_logfile(void)
 	return true;
 }
 
-/* listening socket received from inetd/xinetd, if any */
+/* listening socket received from inetd/xinetd or systemd, if any */
 static TDS_SYS_SOCKET inherited_listen_fd = INVALID_SOCKET;
 
 static void
@@ -428,6 +428,24 @@ print_usage(const char *progname)
 
 #ifndef _WIN32
 /**
+ * Check that a file descriptor is a listening socket.
+ * \param fd file descriptor to check
+ * \return true if fd is a listening socket or if it cannot be checked
+ */
+static bool
+pool_is_listen_socket(int fd)
+{
+#ifdef SO_ACCEPTCONN
+	int accept_conn = 0;
+	SOCKLEN_T len = sizeof(accept_conn);
+
+	if (getsockopt(fd, SOL_SOCKET, SO_ACCEPTCONN, (void *) &accept_conn, &len) < 0 || !accept_conn)
+		return false;
+#endif
+	return true;
+}
+
+/**
  * Set up the process when started by inetd/xinetd in "wait" mode.
  * In this mode the listening socket is passed as file descriptors 0, 1 and 2;
  * keep a copy of it and redirect standard streams to /dev/null.
@@ -439,15 +457,11 @@ pool_inetd_init(void)
 {
 	TDS_SYS_SOCKET s;
 	int fd;
-#ifdef SO_ACCEPTCONN
-	int accept_conn = 0;
-	SOCKLEN_T len = sizeof(accept_conn);
 
-	if (getsockopt(0, SOL_SOCKET, SO_ACCEPTCONN, (void *) &accept_conn, &len) < 0 || !accept_conn) {
+	if (!pool_is_listen_socket(0)) {
 		fprintf(stderr, "Standard input is not a listening socket, check inetd service is configured with \"wait\"\n");
 		return false;
 	}
-#endif
 
 	s = dup(0);
 	if (TDS_IS_SOCKET_INVALID(s)) {
@@ -473,6 +487,57 @@ pool_inetd_init(void)
 		close(fd);
 
 	inherited_listen_fd = s;
+	return true;
+}
+
+/* first file descriptor passed by systemd, see sd_listen_fds(3) */
+#define SYSTEMD_LISTEN_FDS_START 3
+
+/**
+ * Detect systemd socket activation (see sd_listen_fds(3)).
+ * The socket unit must have Accept=no and a single ListenStream.
+ * \param found set to true if a listening socket was passed
+ * \return true on success, false on error
+ */
+static bool
+pool_systemd_init(bool *found)
+{
+	const char *env;
+	char *end;
+	long val;
+	int fd = SYSTEMD_LISTEN_FDS_START;
+
+	*found = false;
+
+	/* the variables are for us only if LISTEN_PID is our pid */
+	env = getenv("LISTEN_PID");
+	if (!env)
+		return true;
+	val = strtol(env, &end, 10);
+	if (end == env || *end || val != (long) getpid())
+		return true;
+
+	env = getenv("LISTEN_FDS");
+	if (!env)
+		return true;
+	val = strtol(env, &end, 10);
+	if (end == env || *end || val <= 0)
+		return true;
+	if (val != 1) {
+		fprintf(stderr, "systemd passed %ld sockets, only one is supported\n", val);
+		return false;
+	}
+
+	if (!pool_is_listen_socket(fd)) {
+		fprintf(stderr, "File descriptor %d is not a listening socket, check systemd socket is configured with Accept=no\n", fd);
+		return false;
+	}
+
+	/* do not leak the socket to other programs, as sd_listen_fds does */
+	fcntl(fd, F_SETFD, FD_CLOEXEC);
+
+	inherited_listen_fd = fd;
+	*found = true;
 	return true;
 }
 #  define INETD_OPT "x"
@@ -545,6 +610,13 @@ main(int argc, char **argv)
 #endif
 		if (!pool_inetd_init())
 			return EXIT_FAILURE;
+	} else {
+		bool found;
+
+		if (!pool_systemd_init(&found))
+			return EXIT_FAILURE;
+		if (found)
+			fprintf(stderr, "Using listening socket passed by systemd\n");
 	}
 #endif
 	pool = pool_init(argv[optind], config_path);

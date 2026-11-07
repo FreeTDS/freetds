@@ -2742,6 +2742,28 @@ The <option>-d</option> option cannot be used together with <option>-x</option>.
 				</example>
 </para>
 
+<para><command>tdspool</command> also supports <application>systemd</application> socket activation; no option is needed, the socket passed by <application>systemd</application> is detected automatically.
+The socket unit must use <literal>Accept=no</literal> and a single <literal>ListenStream</literal>.
+As with <application>xinetd</application>, the <literal>port</literal> setting in <filename>pool.conf</filename> is ignored.
+			<example id="e.g.pool.systemd">
+				<title>systemd units for tdspool</title>
+<programlisting>
+	# /etc/systemd/system/tdspool.socket
+	[Socket]
+	ListenStream=5000
+	Accept=no
+
+	[Install]
+	WantedBy=sockets.target
+
+	# /etc/systemd/system/tdspool.service
+	[Service]
+	ExecStart=/usr/local/bin/tdspool mypool
+	User=nobody
+	</programlisting>
+				</example>
+</para>
+
 <para>Before your clients connect to the pool, you must edit your &freetdsconf; to include the host and port of the pooling server, and point your clients at it.</para>
 		</sect1>
 	</chapter>
