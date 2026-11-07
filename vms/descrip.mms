@@ -630,7 +630,7 @@ CTLIBTEST_NAMES = t0001 t0002 t0003 t0004 \
 	ct_diagclient ct_diagserver ct_diagall \
 	cs_config cancel blk_in \
 	blk_out ct_cursor ct_cursors \
-	ct_dynamic blk_in2 data datafmt rpc_fail row_count \
+	ct_dynamic blk_in2 blk_cancel data datafmt rpc_fail row_count \
 	all_types long_binary will_convert \
 	variant errors ct_command timeout has_for_update \
 	cs_convert_date

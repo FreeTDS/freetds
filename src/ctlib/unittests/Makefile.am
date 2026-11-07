@@ -28,6 +28,7 @@ TESTS = \
 	ct_cursors$(EXEEXT) \
 	ct_dynamic$(EXEEXT) \
 	blk_in2$(EXEEXT) \
+	blk_cancel$(EXEEXT) \
 	datafmt$(EXEEXT) \
 	data$(EXEEXT) \
 	rpc_fail$(EXEEXT) \
@@ -73,6 +74,7 @@ ct_cursor_SOURCES	= ct_cursor.c
 ct_cursors_SOURCES	= ct_cursors.c
 ct_dynamic_SOURCES	= ct_dynamic.c
 blk_in2_SOURCES		= blk_in2.c
+blk_cancel_SOURCES	= blk_cancel.c
 datafmt_SOURCES		= datafmt.c
 data_SOURCES		= data.c
 rpc_fail_SOURCES	= rpc_fail.c

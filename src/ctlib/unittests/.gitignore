@@ -27,6 +27,7 @@
 /ct_cursors
 /ct_dynamic
 /blk_in2
+/blk_cancel
 /datafmt
 /rpc_fail
 /row_count
