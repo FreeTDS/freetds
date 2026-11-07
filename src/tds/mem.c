@@ -1896,6 +1896,8 @@ tds_deinit_bcpinfo(TDSBCPINFO *bcpinfo)
 		}
 	}
 
+	bcpinfo->blob_pending = false;
+
 	tds_dstr_free(&bcpinfo->tablename);
 	TDS_ZERO_FREE(bcpinfo->insert_stmt);
 	tds_free_results(bcpinfo->bindinfo);

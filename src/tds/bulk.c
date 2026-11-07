@@ -469,14 +469,62 @@ tds_bcp_start_insert_stmt(TDSSOCKET * tds, TDSBCPINFO * bcpinfo)
 	return TDS_SUCCESS;
 }
 
+/**
+ * Check if a column is not sent to server.
+ * Timestamp columns and identity columns (unless identity_insert is enabled)
+ * are not sent.
+ */
+static bool
+tds7_bcp_column_skipped(TDSBCPINFO *bcpinfo, TDSCOLUMN *bcpcol)
+{
+	return (!bcpinfo->identity_insert_on && bcpcol->column_identity) || bcpcol->column_timestamp
+		|| (bcpcol->column_computed && !bcpinfo->with_triggers);
+}
+
+/**
+ * Check if a column can be sent using tds_bcp_send_blob_data (TDS 7+).
+ * Data are sent as they are so Unicode columns are not supported.
+ */
+static bool
+tds7_bcp_column_deferrable(TDSCOLUMN *bcpcol)
+{
+	return is_blob_col(bcpcol) && !is_unicode_type(bcpcol->on_server.column_type);
+}
+
+/**
+ * Send header of a column whose data will be sent using tds_bcp_send_blob_data.
+ */
+static void
+tds7_put_deferred_header(TDSSOCKET *tds, TDSCOLUMN *bindcol)
+{
+	if (bindcol->column_varint_size == 8) {
+		/* PLP, length unknown, data sent in chunks */
+		tds_put_int8(tds, -2);
+		return;
+	}
+	if (type_has_textptr(bindcol->on_server.column_type)) {
+		static const unsigned char textptr[] = {
+			0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+			0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+		};
+		tds_put_byte(tds, 16);
+		tds_put_n(tds, textptr, 16);
+		tds_put_n(tds, textptr, 8);
+	}
+	tds_put_int(tds, bindcol->bcp_column_data->datalen);
+}
+
+/**
+ * Send columns of a row, starting from a given column.
+ * Data must be already retrieved.
+ * Stops at the first deferred column.
+ */
 static TDSRET
-tds7_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
-		 tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error, int offset)
+tds7_send_columns(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, int start_col)
 {
 	int i;
 
-	tds_put_byte(tds, TDS_ROW_TOKEN);	/* 0xd1 */
-	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
+	for (i = start_col; i < bcpinfo->bindinfo->num_cols; i++) {
 
 		TDS_INT save_size, save_col_size;
 		unsigned char *save_data;
@@ -486,34 +534,22 @@ tds7_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 
 		bindcol = bcpinfo->bindinfo->columns[i];
 
-		/*
-		 * Don't send the (meta)data for timestamp columns or
-		 * identity columns unless indentity_insert is enabled.
-		 */
-
-		if ((!bcpinfo->identity_insert_on && bindcol->column_identity) || bindcol->column_timestamp
-		    || (bindcol->column_computed && !bcpinfo->with_triggers)) {
+		if (tds7_bcp_column_skipped(bcpinfo, bindcol))
 			continue;
-		}
 
-		rc = get_col_data(bcpinfo, bindcol, i, offset);
-		if (TDS_FAILED(rc)) {
-			tdsdump_log(TDS_DBG_INFO1, "get_col_data (column %d) failed\n", i + 1);
-			return rc;
+		if (bindcol->bcp_column_data->deferred) {
+			tds7_put_deferred_header(tds, bindcol);
+			bcpinfo->blob_pending = true;
+			bcpinfo->blob_col = i;
+			bcpinfo->blob_left = bindcol->bcp_column_data->datalen;
+			return TDS_SUCCESS;
 		}
-		tdsdump_log(TDS_DBG_INFO1, "gotten column %d length %d null %d\n",
-			    i + 1, bindcol->bcp_column_data->datalen, bindcol->bcp_column_data->is_null);
 
 		save_col_size = bindcol->column_size;
 		save_size = bindcol->column_cur_size;
 		save_data = bindcol->column_data;
 		assert(bindcol->column_data == NULL);
 		if (bindcol->bcp_column_data->is_null) {
-			if (!bindcol->column_nullable && !is_nullable_type(bindcol->on_server.column_type)) {
-				if (null_error)
-					null_error(bcpinfo, i, offset);
-				return TDS_FAIL;
-			}
 			bindcol->column_cur_size = -1;
 		} else if (is_blob_col(bindcol)) {
 			bindcol->column_cur_size = bindcol->bcp_column_data->datalen;
@@ -537,17 +573,111 @@ tds7_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 }
 
 static TDSRET
-tds5_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
-		 tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error, int offset)
+tds7_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error, int offset)
+{
+	int i;
+
+	/*
+	 * Retrieve all data before sending, a deferred column can stop
+	 * sending in the middle of the row.
+	 */
+	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
+		TDSCOLUMN *bindcol = bcpinfo->bindinfo->columns[i];
+		TDSRET rc;
+
+		if (tds7_bcp_column_skipped(bcpinfo, bindcol))
+			continue;
+
+		bindcol->bcp_column_data->deferred = false;
+		rc = get_col_data(bcpinfo, bindcol, i, offset);
+		if (TDS_FAILED(rc)) {
+			tdsdump_log(TDS_DBG_INFO1, "get_col_data (column %d) failed\n", i + 1);
+			return rc;
+		}
+		tdsdump_log(TDS_DBG_INFO1, "gotten column %d length %d null %d deferred %d\n",
+			    i + 1, bindcol->bcp_column_data->datalen, bindcol->bcp_column_data->is_null,
+			    bindcol->bcp_column_data->deferred);
+
+		if (bindcol->bcp_column_data->is_null) {
+			if (!bindcol->column_nullable && !is_nullable_type(bindcol->on_server.column_type)) {
+				if (null_error)
+					null_error(bcpinfo, i, offset);
+				return TDS_FAIL;
+			}
+		} else if (bindcol->bcp_column_data->deferred && !tds7_bcp_column_deferrable(bindcol)) {
+			tdsdump_log(TDS_DBG_ERROR, "column %d cannot be deferred\n", i + 1);
+			return TDS_FAIL;
+		}
+	}
+
+	tds_put_byte(tds, TDS_ROW_TOKEN);	/* 0xd1 */
+	return tds7_send_columns(tds, bcpinfo, 0);
+}
+
+/**
+ * Send text/image columns of a row (TDS 5.0), starting from a given column.
+ * Stops at the first deferred column.
+ * \param get_col_data function to retrieve data, NULL if data are already retrieved
+ */
+static TDSRET
+tds5_send_blobs(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, int offset, int start_col)
+{
+	int i;
+
+	for (i = start_col; i < bcpinfo->bindinfo->num_cols; i++) {
+		TDSCOLUMN *bindcol = bcpinfo->bindinfo->columns[i];
+
+		if (!type_has_textptr(bindcol->on_server.column_type))
+			continue;
+
+		/* Elide trailing NULLs */
+		if (bindcol->bcp_column_data->is_null) {
+			int j;
+
+			for (j = i + 1; j < bcpinfo->bindinfo->num_cols; ++j) {
+				TDSCOLUMN *bindcol2 = bcpinfo->bindinfo->columns[j];
+
+				if (type_has_textptr(bindcol2->column_type) && !bindcol2->bcp_column_data->is_null)
+					break;
+			}
+			if (j == bcpinfo->bindinfo->num_cols)
+				break;
+		}
+
+		if (get_col_data)
+			TDS_PROPAGATE(tds5_get_col_data_or_dflt(get_col_data, bcpinfo, bindcol, offset, i));
+
+		/* unknown but zero */
+		tds_put_smallint(tds, 0);
+		TDS_PUT_BYTE(tds, bindcol->on_server.column_type);
+		tds_put_byte(tds, 0xff - bcpinfo->blob_count);
+		/*
+		 * offset of txptr we stashed during variable
+		 * column processing
+		 */
+		tds_put_smallint(tds, bindcol->column_textpos);
+		tds_put_int(tds, bindcol->bcp_column_data->datalen);
+		if (bindcol->bcp_column_data->deferred) {
+			bcpinfo->blob_pending = true;
+			bcpinfo->blob_col = i;
+			bcpinfo->blob_left = bindcol->bcp_column_data->datalen;
+			return TDS_SUCCESS;
+		}
+		tds_put_n(tds, bindcol->bcp_column_data->data, bindcol->bcp_column_data->datalen);
+		bcpinfo->blob_count++;
+	}
+	return TDS_SUCCESS;
+}
+
+static TDSRET
+tds5_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error, int offset)
 {
 	int row_pos = 0;
 	int row_sz_pos;
-	int blob_cols = 0;
 	int var_cols_pos;
 	int var_cols_written = 0;
-	TDS_INT	 old_record_size = bcpinfo->bindinfo->row_size;
+	TDS_INT old_record_size = bcpinfo->bindinfo->row_size;
 	unsigned char *record = bcpinfo->bindinfo->current_row;
-	int i;
 
 	memset(record, '\0', old_record_size);	/* zero the rowbuffer */
 
@@ -585,46 +715,8 @@ tds5_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 	tds_put_n(tds, record, row_pos);
 
 	/* row is done, now handle any text/image data */
-
-	blob_cols = 0;
-
-	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
-		TDSCOLUMN  *bindcol = bcpinfo->bindinfo->columns[i];
-		if (type_has_textptr(bindcol->on_server.column_type)) {
-			TDSRET rc;
-			/* Elide trailing NULLs */
-			if (bindcol->bcp_column_data->is_null) {
-				int j;
-
-				for (j = i + 1; j < bcpinfo->bindinfo->num_cols; ++j) {
-					TDSCOLUMN *bindcol2 = bcpinfo->bindinfo->columns[j];
-
-					if (type_has_textptr(bindcol2->column_type) && !bindcol2->bcp_column_data->is_null)
-						break;
-				}
-				if (j == bcpinfo->bindinfo->num_cols)
-					break;
-			}
-
-			rc = tds5_get_col_data_or_dflt(get_col_data, bcpinfo, bindcol, offset, i);
-			TDS_PROPAGATE(rc);
-
-			/* unknown but zero */
-			tds_put_smallint(tds, 0);
-			TDS_PUT_BYTE(tds, bindcol->on_server.column_type);
-			tds_put_byte(tds, 0xff - blob_cols);
-			/*
-			 * offset of txptr we stashed during variable
-			 * column processing
-			 */
-			tds_put_smallint(tds, bindcol->column_textpos);
-			tds_put_int(tds, bindcol->bcp_column_data->datalen);
-			tds_put_n(tds, bindcol->bcp_column_data->data, bindcol->bcp_column_data->datalen);
-			blob_cols++;
-
-		}
-	}
-	return TDS_SUCCESS;
+	bcpinfo->blob_count = 0;
+	return tds5_send_blobs(tds, bcpinfo, get_col_data, offset, 0);
 }
 
 /**
@@ -645,6 +737,10 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_send_bcp_record(%p, %p, %p, %p, %d)\n", tds, bcpinfo, get_col_data, null_error, offset);
 
+	/* previous row not completed */
+	if (bcpinfo->blob_pending)
+		return TDS_FAIL;
+
 	if (tds->out_flag != TDS_BULK || tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 		return TDS_FAIL;
 
@@ -655,10 +751,71 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 		rc = tds5_send_record(tds, bcpinfo, get_col_data, null_error, offset);
 
 	if (TDS_SUCCEED(rc)) {
-		bcpinfo->rows_sent++;
+		/* row will be completed by tds_bcp_send_blob_data */
+		if (!bcpinfo->blob_pending)
+			bcpinfo->rows_sent++;
 		tds_freeze_close(&row);
 	} else {
+		bcpinfo->blob_pending = false;
 		tds_freeze_abort(&row);
+	}
+
+	tds_set_state(tds, TDS_SENDING);
+	return rc;
+}
+
+/**
+ * Send data for a deferred blob column.
+ * tds_bcp_send_record stops sending a row at the first deferred column
+ * (see BCPCOLDATA::deferred), data for that column are then sent with
+ * this function, possibly in multiple chunks. When all data for the
+ * column are sent the rest of the row is sent, stopping at the next
+ * deferred column, if any.
+ * Data are sent as they are, they must be already in server format.
+ * \tds
+ * \param bcpinfo BCP information
+ * \param data    data to send
+ * \param len     length of data, cannot exceed data still to be sent
+ *                for the column (bcpinfo->blob_left)
+ * \return TDS_SUCCESS or TDS_FAIL.
+ */
+TDSRET
+tds_bcp_send_blob_data(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, const void *data, TDS_INT len)
+{
+	TDSCOLUMN *bindcol;
+	TDSRET rc = TDS_SUCCESS;
+
+	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_send_blob_data(%p, %p, %p, %d)\n", tds, bcpinfo, data, len);
+
+	if (!bcpinfo->blob_pending || len < 0 || len > bcpinfo->blob_left || (len > 0 && !data))
+		return TDS_FAIL;
+
+	if (tds->out_flag != TDS_BULK || tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
+		return TDS_FAIL;
+
+	bindcol = bcpinfo->bindinfo->columns[bcpinfo->blob_col];
+	if (len > 0) {
+		/* PLP chunk */
+		if (IS_TDS7_PLUS(tds->conn) && bindcol->column_varint_size == 8)
+			tds_put_int(tds, len);
+		tds_put_n(tds, data, len);
+		bcpinfo->blob_left -= len;
+	}
+
+	if (bcpinfo->blob_left == 0) {
+		/* column completed, send the rest of the row */
+		bcpinfo->blob_pending = false;
+		if (IS_TDS7_PLUS(tds->conn)) {
+			/* PLP terminator */
+			if (bindcol->column_varint_size == 8)
+				tds_put_int(tds, 0);
+			rc = tds7_send_columns(tds, bcpinfo, bcpinfo->blob_col + 1);
+		} else {
+			bcpinfo->blob_count++;
+			rc = tds5_send_blobs(tds, bcpinfo, NULL, 0, bcpinfo->blob_col + 1);
+		}
+		if (TDS_SUCCEED(rc) && !bcpinfo->blob_pending)
+			bcpinfo->rows_sent++;
 	}
 
 	tds_set_state(tds, TDS_SENDING);
@@ -960,10 +1117,8 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	num_cols = 0;
 	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
 		bcpcol = bcpinfo->bindinfo->columns[i];
-		if ((!bcpinfo->identity_insert_on && bcpcol->column_identity) || bcpcol->column_timestamp
-		    || (bcpcol->column_computed && !bcpinfo->with_triggers)) {
+		if (tds7_bcp_column_skipped(bcpinfo, bcpcol))
 			continue;
-		}
 		num_cols++;
 	}
 
@@ -975,15 +1130,8 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 
 		bcpcol = bcpinfo->bindinfo->columns[i];
 
-		/*
-		 * dont send the (meta)data for timestamp columns, or
-		 * identity columns (unless indentity_insert is enabled
-		 */
-
-		if ((!bcpinfo->identity_insert_on && bcpcol->column_identity) || bcpcol->column_timestamp
-		    || (bcpcol->column_computed && !bcpinfo->with_triggers)) {
+		if (tds7_bcp_column_skipped(bcpinfo, bcpcol))
 			continue;
-		}
 
 		if (IS_TDS72_PLUS(tds->conn))
 			tds_put_int(tds, bcpcol->column_usertype);
@@ -1107,6 +1255,8 @@ tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 
 	if (!IS_TDS50_PLUS(tds->conn))
 		return TDS_FAIL;
+
+	bcpinfo->blob_pending = false;
 
 	TDS_PROPAGATE(tds_submit_query(tds, bcpinfo->insert_stmt));
 
@@ -1347,8 +1497,14 @@ tds5_get_col_data_or_dflt(tds_bcp_get_col_data get_col_data, TDSBCPINFO *bulk, T
 	TDSRET ret;
 	BCPCOLDATA *coldata;
 
+	bcpcol->bcp_column_data->deferred = false;
 	ret = get_col_data(bulk, bcpcol, colnum, offset);
 	coldata = bcpcol->bcp_column_data;
+	if (TDS_SUCCEED(ret) && coldata->deferred && !coldata->is_null
+	    && (!type_has_textptr(bcpcol->on_server.column_type) || is_unicode_type(bcpcol->on_server.column_type))) {
+		tdsdump_log(TDS_DBG_ERROR, "column %d cannot be deferred\n", colnum + 1);
+		return TDS_FAIL;
+	}
 	if (coldata->is_null && bulk->sybase_colinfo != NULL && !type_has_textptr(bcpcol->column_type)) {
 		const TDS5COLINFO *syb_info = &bulk->sybase_colinfo[colnum];
 

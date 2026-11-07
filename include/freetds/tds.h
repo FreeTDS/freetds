@@ -622,8 +622,13 @@ typedef struct tds_encoding
 typedef struct tds_bcpcoldata
 {
 	TDS_UCHAR *data;
-	TDS_INT    datalen;
-	bool       is_null;
+	TDS_INT datalen;
+	bool is_null;
+	/**
+	 * Blob data will be sent later using tds_bcp_send_blob_data,
+	 * datalen contains the total length.
+	 */
+	bool deferred;
 } BCPCOLDATA;
 
 
@@ -1747,15 +1752,24 @@ struct tds_bcpinfo
 	TDS_INT sybase_count;
 	TDS_INT rows_sent;
 	bool with_triggers;
+	/** a deferred blob column is waiting for data, see tds_bcp_send_blob_data */
+	bool blob_pending;
+	/** index of column waiting for data */
+	TDS_INT blob_col;
+	/** bytes still to be sent for column waiting for data */
+	TDS_INT blob_left;
+	/** number of blob columns already sent in current row (TDS 5.0) */
+	TDS_INT blob_count;
 };
 
-TDSRET tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
+TDSRET tds_bcp_init(TDSSOCKET * tds, TDSBCPINFO * bcpinfo);
 typedef TDSRET(*tds_bcp_get_col_data) (TDSBCPINFO * bulk, TDSCOLUMN * bcpcol, int index, int offset);
 typedef void (*tds_bcp_null_error)   (TDSBCPINFO *bulk, int index, int offset);
 TDSRET tds_bcp_send_record(TDSSOCKET * tds, TDSBCPINFO * bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error,
 			   int offset);
 TDSRET tds_bcp_done(TDSSOCKET * tds, int *rows_copied);
 TDSRET tds_bcp_cancel(TDSSOCKET * tds);
+TDSRET tds_bcp_send_blob_data(TDSSOCKET * tds, TDSBCPINFO * bcpinfo, const void *data, TDS_INT len);
 TDSRET tds_bcp_start(TDSSOCKET * tds, TDSBCPINFO * bcpinfo);
 TDSRET tds_bcp_start_copy_in(TDSSOCKET * tds, TDSBCPINFO * bcpinfo);
 
