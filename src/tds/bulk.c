@@ -1059,6 +1059,40 @@ tds_bcp_done(TDSSOCKET *tds, int *rows_copied)
 }
 
 /**
+ * Cancel sending BCP data to server.
+ * Data not already sent are discarded, data already sent in the
+ * current batch are not inserted.
+ * \tds
+ */
+TDSRET
+tds_bcp_cancel(TDSSOCKET *tds)
+{
+	TDSRET rc;
+
+	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_cancel(%p)\n", tds);
+
+	if (tds->out_flag != TDS_BULK || tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
+		return TDS_FAIL;
+
+	/* discard data not sent yet */
+	tds_init_write_buf(tds);
+
+	/*
+	 * Packets could be already sent, for MSSQL terminate the
+	 * message with the ignore flag so the server discards it.
+	 * Sybase accepts the cancel request in the middle of a message.
+	 */
+	rc = TDS_SUCCESS;
+	if (IS_TDS7_PLUS(tds->conn))
+		rc = tds_write_packet(tds, TDS_STATUS_EOM | TDS_STATUS_IGNORE);
+	tds_set_state(tds, TDS_PENDING);
+	TDS_PROPAGATE(rc);
+
+	TDS_PROPAGATE(tds_send_cancel(tds));
+	return tds_process_cancel(tds);
+}
+
+/**
  * Start sending BCP data to server.
  * Initialize stream to accept data.
  * \tds

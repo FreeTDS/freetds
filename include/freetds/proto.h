@@ -396,8 +396,10 @@ typedef struct
 	TDS_UCHAR window;
 } TDS_HEADER;
 
-enum {
+enum
+{
 	TDS_STATUS_EOM = 1,
+	TDS_STATUS_IGNORE = 2,
 	TDS_STATUS_RESETCONNECTION = 8,
 };
 

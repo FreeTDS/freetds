@@ -42,6 +42,7 @@ static void _blk_null_error(TDSBCPINFO *bcpinfo, int index, int offset);
 static TDSRET _blk_get_col_data(TDSBCPINFO * bulk, TDSCOLUMN * bcpcol, int index, int offset);
 static CS_RETCODE _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred);
 static CS_RETCODE _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred);
+static void _blk_clean_desc(CS_BLKDESC * blkdesc);
 
 #define CONN(bulk) ((CS_CONNECTION *) (bulk)->bcpinfo.parent)
 
@@ -280,23 +281,58 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 		
 		if (outrow) 
 			*outrow = rows_copied;
-		
-		/* free allocated storage in blkdesc & initialise flags, etc. */
-		tds_deinit_bcpinfo(&blkdesc->bcpinfo);
-	
-		blkdesc->bcpinfo.direction = 0;
-		blkdesc->bcpinfo.bind_count = CS_UNUSED;
-		blkdesc->bcpinfo.xfer_init = false;
 
+		/* free allocated storage in blkdesc & initialise flags, etc. */
+		_blk_clean_desc(blkdesc);
 		break;
 
+	case CS_BLK_CANCEL:
+		if (blkdesc->bcpinfo.xfer_init) {
+			TDSRET rc;
+
+			if (blkdesc->bcpinfo.direction == CS_BLK_IN) {
+				rc = tds_bcp_cancel(tds);
+			} else {
+				rc = tds_send_cancel(tds);
+				if (TDS_SUCCEED(rc))
+					rc = tds_process_cancel(tds);
+			}
+			if (TDS_FAILED(rc)) {
+				_ctclient_msg(NULL, CONN(blkdesc), "blk_done", 2, 5, 1, 140, "");
+				return CS_FAIL;
+			}
+		}
+
+		if (outrow)
+			*outrow = 0;
+
+		/* free allocated storage in blkdesc & initialise flags, etc. */
+		_blk_clean_desc(blkdesc);
+		break;
+
+	default:
+		_ctclient_msg(NULL, CONN(blkdesc), "blk_done", 1, 1, 1, 5, "%d, type", type);
+		return CS_FAIL;
 	}
 
 	return CS_SUCCEED;
 }
 
+/**
+ * Free allocated storage in blkdesc and reset flags to allow a new blk_init.
+ */
+static void
+_blk_clean_desc(CS_BLKDESC *blkdesc)
+{
+	tds_deinit_bcpinfo(&blkdesc->bcpinfo);
+
+	blkdesc->bcpinfo.direction = 0;
+	blkdesc->bcpinfo.bind_count = CS_UNUSED;
+	blkdesc->bcpinfo.xfer_init = false;
+}
+
 CS_RETCODE
-blk_drop(CS_BLKDESC * blkdesc)
+blk_drop(CS_BLKDESC *blkdesc)
 {
 	tdsdump_log(TDS_DBG_FUNC, "blk_drop(%p)\n", blkdesc);
 
