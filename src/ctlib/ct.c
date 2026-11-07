@@ -180,9 +180,11 @@ _ct_get_user_api_layer_error(int error)
 	case 29:
 		return "This type of command cannot be batched with the command already initialized on the command structure.";
 		break;
+	case 33:
+		return "Cannot set row count greater than the array bind count.";
+		break;
 	case 36:
-		return "The result is truncated because the"
-		       " conversion/operation resulted in overflow.";
+		return "The result is truncated because the conversion/operation resulted in overflow.";
 	case 42:
 		return "Data truncated while doing local character set conversion.  col = %1! row = %2!.";
 		break;

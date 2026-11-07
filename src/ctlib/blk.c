@@ -263,6 +263,15 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 		return CS_FAIL;
 	}
 
+	/* nothing transferred, nothing to complete */
+	if ((type == CS_BLK_BATCH || type == CS_BLK_ALL) && !blkdesc->bcpinfo.xfer_init) {
+		if (outrow)
+			*outrow = 0;
+		if (type == CS_BLK_ALL)
+			_blk_clean_desc(blkdesc);
+		return CS_SUCCEED;
+	}
+
 	switch (type) {
 	case CS_BLK_BATCH:
 		if (TDS_FAILED(tds_bcp_done(tds, &rows_copied))) {
@@ -495,8 +504,14 @@ blk_rowxfer_mult(CS_BLKDESC * blkdesc, CS_INT * row_count)
 	rows_to_xfer = blkdesc->bcpinfo.bind_count;
 
 	if (blkdesc->bcpinfo.direction == CS_BLK_IN) {
-		if (row_count != NULL && *row_count < rows_to_xfer)
+		/* a positive row count limits rows to send, zero or negative values send all rows bound */
+		if (row_count != NULL && *row_count > 0) {
+			if (*row_count > rows_to_xfer) {
+				_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 1, 1, 1, 33, "");
+				return CS_FAIL;
+			}
 			rows_to_xfer = *row_count;
+		}
 		/* text/image data still to be sent with blk_textxfer */
 		if (blkdesc->bcpinfo.blob_pending) {
 			_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 1, 1, 1, 1, "%s, %s", "blk_rowxfer()",

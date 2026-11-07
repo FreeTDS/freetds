@@ -30,6 +30,7 @@ TESTS = \
 	blk_in2$(EXEEXT) \
 	blk_cancel$(EXEEXT) \
 	blk_textxfer$(EXEEXT) \
+	blk_in_array$(EXEEXT) \
 	datafmt$(EXEEXT) \
 	data$(EXEEXT) \
 	rpc_fail$(EXEEXT) \
@@ -77,6 +78,7 @@ ct_dynamic_SOURCES	= ct_dynamic.c
 blk_in2_SOURCES		= blk_in2.c
 blk_cancel_SOURCES	= blk_cancel.c
 blk_textxfer_SOURCES	= blk_textxfer.c
+blk_in_array_SOURCES	= blk_in_array.c
 datafmt_SOURCES		= datafmt.c
 data_SOURCES		= data.c
 rpc_fail_SOURCES	= rpc_fail.c

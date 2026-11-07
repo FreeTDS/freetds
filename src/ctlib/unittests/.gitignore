@@ -29,6 +29,7 @@
 /blk_in2
 /blk_cancel
 /blk_textxfer
+/blk_in_array
 /datafmt
 /rpc_fail
 /row_count
