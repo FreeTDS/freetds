@@ -384,6 +384,36 @@ TEST_MAIN()
 		CS_CHAR_TYPE, test, 12, CS_VARBINARY_TYPE, 12, CS_SUCCEED, &test2, 258);
 	dest_format = CS_FMT_UNUSED;
 
+	/* numeric to binary, sign and digits like Sybase, not precision and scale */
+	{
+		CS_NUMERIC test = {
+			10, 2, {0, 0, 0, 0x12, 0xd6, 0x87}
+		};
+		static CS_BYTE expected[33] = { 0x00, 0x00, 0x00, 0x12, 0xd6, 0x87 };
+
+		DO_TEST(CS_BYTE * test2 = expected,
+			CS_NUMERIC_TYPE, &test, sizeof(test), CS_BINARY_TYPE, 33, CS_SUCCEED, test2, 33);
+	}
+	{
+		CS_NUMERIC test = {
+			10, 2, {1, 0, 0, 0x12, 0xd6, 0x87}
+		};
+		static CS_BYTE expected[33] = { 0x01, 0x00, 0x00, 0x12, 0xd6, 0x87 };
+
+		DO_TEST(CS_BYTE * test2 = expected,
+			CS_NUMERIC_TYPE, &test, sizeof(test), CS_BINARY_TYPE, 33, CS_SUCCEED, test2, 33);
+	}
+	/* bytes after the digits for the precision are not copied */
+	{
+		CS_NUMERIC test = {
+			1, 0, {0, 5, 0xff, 0xff}
+		};
+		static CS_BYTE expected[33] = { 0x00, 0x05 };
+
+		DO_TEST(CS_BYTE * test2 = expected,
+			CS_NUMERIC_TYPE, &test, sizeof(test), CS_BINARY_TYPE, 33, CS_SUCCEED, test2, 33);
+	}
+
 	dest_precision = 30;
 	dest_scale = 2;
 	{

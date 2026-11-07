@@ -1990,8 +1990,20 @@ tds_convert_to_binary(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int de
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
-		len = sizeof(TDS_NUMERIC);
-		break;
+		{
+			/*
+			 * Same format as Sybase library: sign and digits (as in
+			 * protocol) padded with zeroes, no precision and scale.
+			 */
+			const TDS_NUMERIC *num = (const TDS_NUMERIC *) src;
+			unsigned char buf[sizeof(num->array)];
+
+			if (num->precision < 1 || num->precision > MAXPRECISION)
+				return TDS_CONVERT_FAIL;
+			memset(buf, 0, sizeof(buf));
+			memcpy(buf, num->array, tds_numeric_bytes_per_prec[num->precision]);
+			return binary_to_result(desttype, buf, sizeof(buf), cr);
+		}
 	case SYBREAL:
 		len = sizeof(TDS_REAL);
 		break;
