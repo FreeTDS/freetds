@@ -263,12 +263,41 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 		return CS_FAIL;
 	}
 
+	if (blkdesc->bcpinfo.direction == CS_BLK_OUT && type == CS_BLK_BATCH) {
+		_ctclient_msg(NULL, CONN(blkdesc), "blk_done", 1, 1, 1, 16, "");
+		return CS_FAIL;
+	}
+
 	/* nothing transferred, nothing to complete */
 	if ((type == CS_BLK_BATCH || type == CS_BLK_ALL) && !blkdesc->bcpinfo.xfer_init) {
 		if (outrow)
 			*outrow = 0;
 		if (type == CS_BLK_ALL)
 			_blk_clean_desc(blkdesc);
+		return CS_SUCCEED;
+	}
+
+	if (blkdesc->bcpinfo.direction == CS_BLK_OUT && type == CS_BLK_ALL) {
+		TDSRET rc;
+		TDS_INT result_type;
+
+		/* rows still to retrieve, client can continue or cancel */
+		if (!blkdesc->bcpinfo.out_done) {
+			_ctclient_msg(NULL, CONN(blkdesc), "blk_done", 1, 1, 1, 163, "");
+			return CS_FAIL;
+		}
+
+		/* discard the rest of the results */
+		while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS)) == TDS_SUCCESS)
+			continue;
+		if (rc != TDS_NO_MORE_RESULTS) {
+			_ctclient_msg(NULL, CONN(blkdesc), "blk_done", 2, 5, 1, 140, "");
+			return CS_FAIL;
+		}
+
+		if (outrow)
+			*outrow = blkdesc->bcpinfo.rows_sent;
+		_blk_clean_desc(blkdesc);
 		return CS_SUCCEED;
 	}
 
@@ -344,6 +373,7 @@ _blk_clean_desc(CS_BLKDESC *blkdesc)
 	blkdesc->bcpinfo.direction = 0;
 	blkdesc->bcpinfo.bind_count = CS_UNUSED;
 	blkdesc->bcpinfo.xfer_init = false;
+	blkdesc->bcpinfo.out_done = false;
 }
 
 CS_RETCODE
@@ -411,6 +441,8 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 	blkdesc->bcpinfo.direction = direction;
 	blkdesc->bcpinfo.bind_count = CS_UNUSED;
 	blkdesc->bcpinfo.xfer_init = false;
+	blkdesc->bcpinfo.rows_sent = 0;
+	blkdesc->bcpinfo.out_done = false;
 
 	if (TDS_FAILED(tds_bcp_init(CONN(blkdesc)->tds_socket, &blkdesc->bcpinfo))) {
 		_ctclient_msg(NULL, CONN(blkdesc), "blk_init", 2, 5, 1, 140, "");
@@ -643,6 +675,9 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 	if (rows_xferred)
 		*rows_xferred = 0;
 
+	if (blkdesc->bcpinfo.out_done)
+		return CS_END_DATA;
+
 	for (temp_count = 0; temp_count < rows_to_xfer; temp_count++) {
 
 		ret = tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_STOPAT_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE);
@@ -653,16 +688,19 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 		case TDS_SUCCESS:
 			if (result_type == TDS_ROW_RESULT || result_type == TDS_COMPUTE_RESULT) {
 				if (result_type == TDS_ROW_RESULT) {
-					if (_ct_bind_data( CONN(blkdesc)->ctx, tds->current_results, blkdesc->bcpinfo.bindinfo, temp_count))
+					blkdesc->bcpinfo.rows_sent++;
+					if (_ct_bind_data
+					    (CONN(blkdesc)->ctx, tds->current_results, blkdesc->bcpinfo.bindinfo, temp_count))
 						return CS_ROW_FAIL;
 					if (rows_xferred)
 						*rows_xferred = *rows_xferred + 1;
 				}
 				break;
 			}
-		case TDS_NO_MORE_RESULTS: 
-			return CS_END_DATA;
-			break;
+		case TDS_NO_MORE_RESULTS:
+			blkdesc->bcpinfo.out_done = true;
+			/* return rows retrieved, CS_END_DATA is returned by next call */
+			return (rows_xferred && *rows_xferred > 0) ? CS_SUCCEED : CS_END_DATA;
 
 		default:
 			_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");

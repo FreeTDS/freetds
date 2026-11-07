@@ -1744,6 +1744,8 @@ struct tds_bcpinfo
 	TDS_INT direction;
 	bool identity_insert_on;
 	bool xfer_init;
+	/** copy out, all rows were retrieved */
+	bool out_done;
 	bool datarows_locking;
 	bool dry_run;			/** for "bcp in", validate hostfile without uploading rows. */
 	TDS_INT bind_count;

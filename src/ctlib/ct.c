@@ -168,6 +168,9 @@ _ct_get_user_api_layer_error(int error)
 	case 15:
 		return "Use direction CS_BLK_IN or CS_BLK_OUT for a bulk copy operation.";
 		break;
+	case 16:
+		return "Use option CS_BLK_ALL to end a bulk copy OUT.";
+		break;
 	case 18:
 		return "A cursor must be declared before this command type can be initialized.";
 		break;

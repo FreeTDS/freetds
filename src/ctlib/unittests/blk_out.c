@@ -14,9 +14,9 @@ TEST_MAIN()
 	CS_RETCODE ret;
 
 	CS_DATAFMT datafmt;
-	CS_INT count = 0;
+	CS_INT count = 0, total = 0;
 
-	CS_INT  col1[2];
+	CS_INT col1[2];
 	CS_CHAR col2[2][5];
 	CS_CHAR col3[2][32];
 	CS_INT      lencol1[2];
@@ -77,30 +77,48 @@ TEST_MAIN()
 
 	check_call(blk_bind, (blkdesc, 3, &datafmt, col3[0], &lencol3[0], &indcol3[0]));
 
-	while((ret = blk_rowxfer_mult(blkdesc, &count)) == CS_SUCCEED) {
-		for(i = 0; i < count; i++) {
-			printf("retrieved %d (%d,%d) %s (%d,%d) %s (%d,%d)\n", 
-				col1[i], lencol1[i], indcol1[i],
-				col2[i], lencol2[i], indcol2[i],
-				col3[i], lencol3[i], indcol3[i] );
+	while ((ret = blk_rowxfer_mult(blkdesc, &count)) == CS_SUCCEED) {
+		if (count < 1 || count > 2) {
+			fprintf(stderr, "blk_rowxfer_mult() returned %d rows\n", (int) count);
+			return 1;
+		}
+		for (i = 0; i < count; i++) {
+			printf("retrieved %d (%d,%d) %s (%d,%d) %s (%d,%d)\n",
+			       col1[i], lencol1[i], indcol1[i], col2[i], lencol2[i], indcol2[i], col3[i], lencol3[i], indcol3[i]);
+		}
+		total += count;
+
+		if (total == 2) {
+			/* batches are not supported for copy out */
+			check_fail(blk_done, (blkdesc, CS_BLK_BATCH, &count));
+			check_last_message(CTMSG_CLIENT, 0x01010110, "CS_BLK_ALL");
+
+			/* rows still to retrieve, copy can continue */
+			check_fail(blk_done, (blkdesc, CS_BLK_ALL, &count));
+			check_last_message(CTMSG_CLIENT, 0x010101a3, "completely processed");
 		}
 	}
-	switch (ret) {
-	case CS_END_DATA:
-		for(i = 0; i < count; i++) {
-			printf("retrieved %d (%d,%d) %s (%d,%d) %s (%d,%d)\n", 
-				col1[i], lencol1[i], indcol1[i],
-				col2[i], lencol2[i], indcol2[i],
-				col3[i], lencol3[i], indcol3[i] );
-		}
-		break;
-	case CS_FAIL:
-	case CS_ROW_FAIL:
+	if (ret != CS_END_DATA) {
 		fprintf(stderr, "blk_rowxfer_mult() failed\n");
+		return 1;
+	}
+	/* rows are returned with CS_SUCCEED, last call returns no rows */
+	if (count != 0 || total != 5) {
+		fprintf(stderr, "wrong rows, last count %d total %d\n", (int) count, (int) total);
+		return 1;
+	}
+
+	count = -1;
+	check_call(blk_done, (blkdesc, CS_BLK_ALL, &count));
+	if (count != 5) {
+		fprintf(stderr, "blk_done() returned %d rows\n", (int) count);
 		return 1;
 	}
 
 	blk_drop(blkdesc);
+
+	/* connection can be used */
+	check_call(run_command, (cmd, "DROP TABLE #ctlibarray"));
 
 	check_call(try_ctlogout, (ctx, conn, cmd, verbose));
 
