@@ -8,14 +8,14 @@ static const CS_INT unused = CS_UNUSED, nullterm = CS_NULLTERM;
 static CS_INT result_len = -1;
 
 static CS_RETCODE
-csmsg_callback(CS_CONTEXT *ctx TDS_UNUSED, CS_CLIENTMSG * emsgp)
+csmsg_callback(CS_CONTEXT *ctx TDS_UNUSED, CS_CLIENTMSG *emsgp)
 {
 	printf("message from csmsg_callback(): %s\n", emsgp->msgstring);
 	return CS_SUCCEED;
 }
 
 static int
-fetch_results(CS_COMMAND * command)
+fetch_results(CS_COMMAND *command)
 {
 	CS_INT result_type, int_result, copied, rows_read;
 	CS_SMALLINT ind = 0;
@@ -42,7 +42,7 @@ fetch_results(CS_COMMAND * command)
 }
 
 static int
-execute_sql(CS_COMMAND * command, const char *sql)
+execute_sql(CS_COMMAND *command, const char *sql)
 {
 	printf("executing sql: %s\n", sql);
 	check_call(ct_command, (command, CS_LANG_CMD, (CS_CHAR *) sql, nullterm, unused));
@@ -72,7 +72,7 @@ TEST_MAIN()
 	execute_sql(command, "if object_id('mps_rpc') is not null drop procedure mps_rpc");
 	/* if this query fails probably we are using wrong database vendor or version */
 	ret = execute_sql(command, "create procedure mps_rpc (@varbinary_param varbinary(max)) as "
-		    "insert mps_table values (@varbinary_param) " "select len(varbinary_data) from mps_table");
+			  "insert mps_table values (@varbinary_param) " "select len(varbinary_data) from mps_table");
 	if (ret != 0) {
 		try_ctlogout(context, connection, command, verbose);
 		return 0;

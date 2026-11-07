@@ -24,7 +24,8 @@
 #include <assert.h>
 #include <freetds/tds/all_types.h>
 
-static void test_declaration(TDSSOCKET *tds, TDSCOLUMN *curcol)
+static void
+test_declaration(TDSSOCKET *tds, TDSCOLUMN *curcol)
 {
 	char declaration[128];
 	TDSRET ret;

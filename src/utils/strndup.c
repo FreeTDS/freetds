@@ -62,10 +62,10 @@ tds_strndup(const void *s, TDS_INTPTR len)
 		ulen = (size_t) (end - (const char *) s);
 
 	out = tds_new(char, ulen + 1);
+
 	if (out) {
 		memcpy(out, s, ulen);
 		out[ulen] = 0;
 	}
 	return out;
 }
-

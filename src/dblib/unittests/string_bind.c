@@ -44,13 +44,15 @@ test_row(int vartype, const char *vartype_name, const char *expected, int line)
 	if (vartype == CHARBIND) {
 		/* not terminated space padded */
 		char *p = strchr(str, '$');
+
 		i = p ? p - str : sizeof(str);
 	} else {
 		/* terminated */
 		char *p = strchr(str, 0);
+
 		i = p - str + 1;
 	}
-	for (; i < sizeof(str)-1; ++i) {
+	for (; i < sizeof(str) - 1; ++i) {
 		assert(str[i] == '$');
 		str[i] = 0;
 	}
@@ -101,7 +103,7 @@ TEST_MAIN()
 	}
 	dbloginfree(login);
 
-	dbsetuserdata(dbproc, (BYTE*) &expected_error);
+	dbsetuserdata(dbproc, (BYTE *) & expected_error);
 
 	row(NTBSTRINGBIND, "foo");
 	row(STRINGBIND, "foo  ");

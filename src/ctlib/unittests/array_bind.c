@@ -32,7 +32,8 @@ TEST_MAIN()
 	}
 	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));
 
-	check_call(run_command, (cmd, "CREATE TABLE #ctlibarray (col1 int not null,  col2 char(4) not null, col3 datetime not null)"));
+	check_call(run_command,
+		   (cmd, "CREATE TABLE #ctlibarray (col1 int not null,  col2 char(4) not null, col3 datetime not null)"));
 	check_call(run_command, (cmd, "insert into #ctlibarray values (1, 'AAAA', 'Jan  1 2002 10:00:00AM')"));
 	check_call(run_command, (cmd, "insert into #ctlibarray values (2, 'BBBB', 'Jan  2 2002 10:00:00AM')"));
 	check_call(run_command, (cmd, "insert into #ctlibarray values (3, 'CCCC', 'Jan  3 2002 10:00:00AM')"));
@@ -100,8 +101,7 @@ TEST_MAIN()
 				} else {	/* ret == CS_SUCCEED */
 					printf("ct_fetch returned %d rows\n", count);
 					for (cv = 0; cv < count; cv++)
-						printf("col1 = %d col2= '%s', col3 = '%s'\n", col1[cv], col2[cv],
-							col3[cv]);
+						printf("col1 = %d col2= '%s', col3 = '%s'\n", col1[cv], col2[cv], col3[cv]);
 				}
 				count = 0;
 			}

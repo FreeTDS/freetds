@@ -62,6 +62,7 @@ byteReverse(uint32_t *buf, unsigned longs)
 #define rotl32(x,n)   (((x) << ((uint32_t)(n))) | ((x) >> (32 - (uint32_t)(n))))
 
 static void MD4Transform(uint32_t buf[4], const uint32_t in[16]);
+
 /*
  * Start MD4 accumulation.  Set bit count to 0 and buffer to mysterious
  * initialization constants.

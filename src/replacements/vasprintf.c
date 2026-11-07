@@ -102,9 +102,9 @@ tds_vasprintf(char **ret, const char *fmt, va_list ap)
 
 #ifdef _REENTRANT
 
-# ifdef _WIN32
-#  error Win32 do not have /dev/null, should use vsnprintf version
-# endif
+#ifdef _WIN32
+#error Win32 do not have /dev/null, should use vsnprintf version
+#endif
 
 	if ((fp = fopen(_PATH_DEVNULL, "w")) == NULL)
 		return -1;

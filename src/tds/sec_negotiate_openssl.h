@@ -100,7 +100,7 @@ tds5_rsa_encrypt(const void *pem_key, size_t pem_key_len, const void *nonce, siz
 
 	ret = em;
 
-      error:
+error:
 #if OPENSSL_VERSION_NUMBER < 0x3000000FL
 	RSA_free(rsa);
 #endif

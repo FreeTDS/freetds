@@ -27,10 +27,11 @@
 #include <freetds/time.h>
 
 static void
-test(const TDSDATEREC* dr, int prec, const char *fmt, const char *expected, int line)
+test(const TDSDATEREC *dr, int prec, const char *fmt, const char *expected, int line)
 {
 	char out[256];
 	char *format = strdup(fmt);
+
 	assert(format != NULL);
 
 	tds_strftime(out, sizeof(out), format, dr, prec);

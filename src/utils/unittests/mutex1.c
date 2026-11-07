@@ -32,7 +32,8 @@
 
 static tds_mutex mtx = TDS_MUTEX_INITIALIZER;
 
-static TDS_THREAD_PROC_DECLARE(trylock_proc, arg)
+static
+TDS_THREAD_PROC_DECLARE(trylock_proc, arg)
 {
 	tds_mutex *mtx = (tds_mutex *) arg;
 
@@ -119,4 +120,3 @@ TEST_MAIN()
 }
 
 #endif
-

@@ -12,7 +12,7 @@ TEST_MAIN()
 
 	printf("%s: Testing login, logout\n", __FILE__);
 
-	for (i =0; i < 100; ++i) {
+	for (i = 0; i < 100; ++i) {
 
 		if (verbose)
 			printf("Trying login\n");

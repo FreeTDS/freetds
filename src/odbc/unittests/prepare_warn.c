@@ -38,7 +38,7 @@ TEST_MAIN()
 	CHKExecute("I");
 
 #if 0
-	CHKMoreResults("S");	/* skip warning*/
+	CHKMoreResults("S");	/* skip warning */
 #endif
 
 	CHKBindCol(1, SQL_C_CHAR, v_dec, 21, v_ind, "S");
@@ -58,4 +58,3 @@ TEST_MAIN()
 
 	return 0;
 }
-

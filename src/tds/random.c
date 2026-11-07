@@ -48,6 +48,7 @@ tds_random_buffer(unsigned char *out, int len)
 		return;
 #elif defined(HAVE_GNUTLS)
 	void *p = gcry_random_bytes(len, GCRY_STRONG_RANDOM);
+
 	if (p) {
 		memcpy(out, p, len);
 		free(p);

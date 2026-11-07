@@ -12,14 +12,14 @@ static DBPROCESS *dbproc = NULL;
 static int failed = 0;
 
 static int
-ignore_msg_handler(DBPROCESS * dbproc TDS_UNUSED, DBINT msgno TDS_UNUSED, int state TDS_UNUSED, int severity TDS_UNUSED,
+ignore_msg_handler(DBPROCESS *dbproc TDS_UNUSED, DBINT msgno TDS_UNUSED, int state TDS_UNUSED, int severity TDS_UNUSED,
 		   char *text TDS_UNUSED, char *server TDS_UNUSED, char *proc TDS_UNUSED, int line TDS_UNUSED)
 {
 	return 0;
 }
 
 static int
-ignore_err_handler(DBPROCESS * dbproc TDS_UNUSED, int severity TDS_UNUSED, int dberr TDS_UNUSED,
+ignore_err_handler(DBPROCESS *dbproc TDS_UNUSED, int severity TDS_UNUSED, int dberr TDS_UNUSED,
 		   int oserr TDS_UNUSED, char *dberrstr TDS_UNUSED, char *oserrstr TDS_UNUSED)
 {
 	return INT_CANCEL;
@@ -39,7 +39,7 @@ query(const char *query)
 static int use_nullbind = 0;
 
 static void
-test0(int n,  const char * expected)
+test0(int n, const char *expected)
 {
 	DBINT ind, expected_ind;
 	char text_buf[16];
@@ -55,7 +55,7 @@ test0(int n,  const char * expected)
 		return;
 	}
 
-	dbbind(dbproc, 1, NTBSTRINGBIND, 0, (BYTE *)text_buf);
+	dbbind(dbproc, 1, NTBSTRINGBIND, 0, (BYTE *) text_buf);
 	if (use_nullbind)
 		dbnullbind(dbproc, 1, &ind);
 
@@ -199,4 +199,3 @@ TEST_MAIN()
 
 	return failed ? 1 : 0;
 }
-

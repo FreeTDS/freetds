@@ -66,6 +66,7 @@ tds_sleep_ms(unsigned ms)
 	usleep(ms * 1000u);
 #else
 	struct pollfd fd;
+
 	poll(&fd, 0, ms);
 #endif
 }

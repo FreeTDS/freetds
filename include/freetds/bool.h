@@ -32,6 +32,7 @@
 #undef false
 #undef bool
 typedef unsigned char freetds_boolean_t;
+
 #define bool freetds_boolean_t
 #define true 1
 #define false 0

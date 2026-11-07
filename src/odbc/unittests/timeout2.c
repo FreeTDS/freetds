@@ -38,7 +38,7 @@ TEST_MAIN()
 
 		do {
 			while (CHKFetch("SNo") == SQL_SUCCESS)
-				;
+				continue;
 		} while (CHKMoreResults("SNo") == SQL_SUCCESS);
 
 		if (i == 0) {

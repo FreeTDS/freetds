@@ -91,7 +91,7 @@ TEST_MAIN()
 }
 
 static int
-do_fetch(CS_COMMAND * cmd)
+do_fetch(CS_COMMAND *cmd)
 {
 	CS_INT count, row_count = 0;
 	CS_RETCODE ret;
@@ -111,7 +111,7 @@ do_fetch(CS_COMMAND * cmd)
 }
 
 static CS_RETCODE
-do_results(CS_COMMAND * cmd, CS_INT * results)
+do_results(CS_COMMAND *cmd, CS_INT *results)
 {
 	int result_num;
 	CS_RETCODE results_ret, result_type;
@@ -142,7 +142,7 @@ do_results(CS_COMMAND * cmd, CS_INT * results)
 		}
 		result_num++;
 	}
-	if ( !done ) {
+	if (!done) {
 		fputs("Never saw CS_CMD_DONE\n", stderr);
 		return CS_FAIL;
 	}

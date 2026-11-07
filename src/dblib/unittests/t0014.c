@@ -141,7 +141,8 @@ test(int argc, char **argv, bool over4k)
 			 * Use #ifndef for big buffer version (32-bit)
 			 */
 			if (over4k) {
-				if (dbwritetext(blobproc, objname, textPtr, DBTXPLEN, timeStamp, TRUE, isiz, (BYTE*) blob) != SUCCEED)
+				if (dbwritetext(blobproc, objname, textPtr, DBTXPLEN, timeStamp, TRUE, isiz, (BYTE *) blob) !=
+				    SUCCEED)
 					return 5;
 			} else {
 				if (dbwritetext(blobproc, objname, textPtr, DBTXPLEN, timeStamp, TRUE, isiz, NULL) != SUCCEED)
@@ -220,7 +221,7 @@ test(int argc, char **argv, bool over4k)
 		while ((result = dbreadtext(blobproc, rbuf, BLOB_BLOCK_SIZE)) != NO_MORE_ROWS) {
 			assert(result >= 0);
 			if (result != 0) {	/* this indicates not end of row */
-				rblob = (char*) realloc(rblob, result + numread);
+				rblob = (char *) realloc(rblob, result + numread);
 				assert(rblob);
 				memcpy((void *) (rblob + numread), (void *) rbuf, result);
 				numread += result;
@@ -277,6 +278,7 @@ test(int argc, char **argv, bool over4k)
 TEST_MAIN()
 {
 	int res = test(argc, argv, false);
+
 	if (!res)
 		res = test(argc, argv, true);
 	if (res)
@@ -285,4 +287,3 @@ TEST_MAIN()
 	printf("dblib okay on %s\n", __FILE__);
 	return 0;
 }
-

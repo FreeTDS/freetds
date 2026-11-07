@@ -14,14 +14,12 @@ static void
 test(const char *query, bool expected, int line)
 {
 	bool res = query_has_for_update(query);
+
 	if (res == expected)
 		return;
 
 	fprintf(stderr, "%d:Wrong result: %s instead of %s\nQuery: %s\n",
-		line,
-		res ? "true": "false",
-		expected ? "true": "false",
-		query);
+		line, res ? "true" : "false", expected ? "true" : "false", query);
 	exit(1);
 }
 
@@ -41,7 +39,7 @@ TEST_MAIN()
 	test("SELECT * FROM table /* FOR UPDATE */", false);
 
 	check_call(ct_exit, (ctx, CS_UNUSED));
-	check_call(cs_ctx_drop,(ctx));
+	check_call(cs_ctx_drop, (ctx));
 
 	return 0;
 }
@@ -54,4 +52,3 @@ TEST_MAIN()
 }
 
 #endif
-

@@ -399,7 +399,7 @@ TEST_MAIN()
 }
 
 static int
-update_second_table(CS_COMMAND * cmd2, char *value)
+update_second_table(CS_COMMAND *cmd2, char *value)
 {
 
 	CS_RETCODE ret;
@@ -478,4 +478,3 @@ update_second_table(CS_COMMAND * cmd2, char *value)
 	}
 	return 0;
 }
-

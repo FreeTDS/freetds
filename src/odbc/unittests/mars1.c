@@ -26,7 +26,8 @@ EndTransaction(SQLSMALLINT type)
 static void
 my_attrs(void)
 {
-	SQLSetConnectAttr(odbc_conn, 1224 /*SQL_COPT_SS_MARS_ENABLED*/, (SQLPOINTER) 1 /*SQL_MARS_ENABLED_YES*/, SQL_IS_UINTEGER);
+	SQLSetConnectAttr(odbc_conn, 1224 /*SQL_COPT_SS_MARS_ENABLED */ , (SQLPOINTER) 1 /*SQL_MARS_ENABLED_YES */ ,
+			  SQL_IS_UINTEGER);
 }
 
 TEST_MAIN()
@@ -50,7 +51,7 @@ TEST_MAIN()
 
 	out = 0;
 	len = sizeof(out);
-	CHKGetConnectAttr(1224, (SQLPOINTER) &out, sizeof(out), &len, "SE");
+	CHKGetConnectAttr(1224, (SQLPOINTER) & out, sizeof(out), &len, "SE");
 
 	/* test we really support MARS on this connection */
 	/* TODO should out be correct ?? */
@@ -71,6 +72,7 @@ TEST_MAIN()
 	odbc_command("create table #mars1 (n int, v varchar(100))");
 	for (i = 0; i < 60; ++i) {
 		char cmd[120], buf[80];
+
 		memset(buf, 'a' + (i % 26), sizeof(buf));
 		buf[i * 7 % 73] = 0;
 		sprintf(cmd, "insert into #mars1 values(%d, '%s')", i, buf);
@@ -152,4 +154,3 @@ TEST_MAIN()
 	odbc_disconnect();
 	return 0;
 }
-

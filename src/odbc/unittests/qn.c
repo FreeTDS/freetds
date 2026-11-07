@@ -15,7 +15,8 @@ static HENV env = SQL_NULL_HENV;
 static HDBC dbc = SQL_NULL_HDBC;
 static HSTMT stmt = SQL_NULL_HSTMT;
 
-static TDS_THREAD_PROC_DECLARE(change_thread_proc, arg TDS_UNUSED)
+static
+TDS_THREAD_PROC_DECLARE(change_thread_proc, arg TDS_UNUSED)
 {
 	SQLHSTMT odbc_stmt = stmt;
 
@@ -103,7 +104,8 @@ TEST_MAIN()
 			}
 			if (col == 13) {
 				int i;
-				for (i = 2; i < len; i+= 2)
+
+				for (i = 2; i < len; i += 2)
 					buf[i / 2 - 1] = buf[i];
 				buf[len / 2 - 1] = 0;
 				strcpy(message, buf);

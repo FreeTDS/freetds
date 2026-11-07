@@ -6,11 +6,13 @@
 #include "common.h"
 
 static int failed = 0;
-static void set_failed(int line)
+static void
+set_failed(int line)
 {
 	failed = 1;
 	fprintf(stderr, "Failed check at line %d\n", line);
 }
+
 #define set_failed() set_failed(__LINE__)
 
 TEST_MAIN()

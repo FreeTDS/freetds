@@ -22,6 +22,7 @@
 
 #ifdef HAVE_STRSEP
 char *tds_strsep(char **stringp, const char *delim);
+
 #include "../strsep.c"
 
 #include <freetds/utils/test_base.h>
@@ -59,6 +60,7 @@ test(char *s, const char *sep, ...)
 	do {
 		out = tds_strsep(&s, sep);
 		expected = va_arg(ap, const char *);
+
 		if (expected) {
 			assert(out && strcmp(out, expected) == 0);
 		} else {
@@ -80,6 +82,7 @@ test2(void)
 {
 	char buf[] = "one;two=value";
 	char *s = buf;
+
 	assert(strcmp(tds_strsep(&s, ";:"), "one") == 0);
 	assert(strcmp(tds_strsep(&s, "="), "two") == 0);
 	assert(strcmp(tds_strsep(&s, ""), "value") == 0);

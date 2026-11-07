@@ -29,7 +29,7 @@ test(bool odbc3)
 		CHKFetch("E");
 		CHKMoreResults("S");
 	}
-    
+
 	ODBC_CHECK_COLS(1);
 	ODBC_CHECK_ROWS(-1);
 
@@ -102,4 +102,3 @@ TEST_MAIN()
 	printf("Done.\n");
 	return 0;
 }
-

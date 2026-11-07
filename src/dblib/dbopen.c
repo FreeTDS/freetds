@@ -33,7 +33,7 @@
  * Cf. sybdb.h dbopen() macros, and dbdatecrack(). 
  */
 DBPROCESS *
-dbopen(LOGINREC * login, const char *server)
+dbopen(LOGINREC *login, const char *server)
 {
 	return tdsdbopen(login, server, dblib_msdblib);
 }

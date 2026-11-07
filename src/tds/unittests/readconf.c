@@ -25,6 +25,7 @@ static bool
 conf_parse(const char *option, const char *value, void *param)
 {
 	const char *entry = (const char *) param;
+
 	if (strcmp(option, entry) == 0)
 		return_value = strdup(value);
 	return true;
@@ -80,4 +81,3 @@ TEST_MAIN()
 	fclose(f);
 	return 0;
 }
-

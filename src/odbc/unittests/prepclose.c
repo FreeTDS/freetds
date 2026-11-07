@@ -75,6 +75,7 @@ Test(int direct, int long_query)
 		CHKExecDirect(T(sql), SQL_NTS, "E");
 	} else {
 		SQLSMALLINT cols;
+
 		/* use prepare, force dialog with server */
 		if (CHKPrepare(T(sql), SQL_NTS, "SE") == SQL_SUCCESS)
 			CHKNumResultCols(&cols, "E");
@@ -83,7 +84,7 @@ Test(int direct, int long_query)
 	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, buf, TDS_VECTOR_SIZE(buf), NULL, "SI");
 	sqlstate[5] = 0;
 	printf("state=%s err=%s\n", C(sqlstate), C(buf));
-	
+
 	odbc_disconnect();
 
 	printf("Done.\n");

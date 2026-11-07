@@ -42,7 +42,8 @@ tds_getpassarg(char *arg)
 		if (fgets(pwd, sizeof(pwd), stdin) == NULL)
 			return NULL;
 		ptr = strchr(pwd, '\n');
-		if (ptr) *ptr = '\0';
+		if (ptr)
+			*ptr = '\0';
 		arg = pwd;
 	}
 
@@ -54,4 +55,3 @@ tds_getpassarg(char *arg)
 
 	return ptr;
 }
-

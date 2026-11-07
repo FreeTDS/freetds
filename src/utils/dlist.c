@@ -22,9 +22,11 @@
 #include <freetds/utils/dlist.h>
 
 #if ENABLE_EXTRA_CHECKS
-void dlist_ring_check(dlist_ring *ring)
+void
+dlist_ring_check(dlist_ring *ring)
 {
 	const dlist_ring *item = ring;
+
 	do {
 		assert(item->prev->next == item);
 		assert(item->next->prev == item);

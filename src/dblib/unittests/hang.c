@@ -40,7 +40,8 @@ static int end_socket = -1;
 static int
 shutdown_socket(DBPROCESS *dbproc)
 {
-	union {
+	union
+	{
 		struct sockaddr sa;
 		char data[256];
 	} u;
@@ -100,7 +101,7 @@ test(int close_socket)
 	printf("About to open\n");
 
 	dbproc = dbopen(login, SERVER);
-	dbsetuserdata(dbproc, (BYTE*) &expected_error);
+	dbsetuserdata(dbproc, (BYTE *) & expected_error);
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
 	dbloginfree(login);
@@ -155,4 +156,3 @@ TEST_MAIN()
 	return 0;
 }
 #endif
-

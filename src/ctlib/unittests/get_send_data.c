@@ -23,10 +23,10 @@ TEST_MAIN()
 	CS_SMALLINT ind;
 	CS_INT count, row_count = 0;
 
-	CS_INT  id;
+	CS_INT id;
 	CS_CHAR name[600];
 	CS_CHAR *nameptr;
-	CS_INT  getlen;
+	CS_INT getlen;
 
 	char large_sql[1024];
 	char len600[601];
@@ -111,7 +111,7 @@ TEST_MAIN()
 					}
 
 					nameptr = name;
-					while ((ret2 = ct_get_data(cmd, 2 , nameptr, 200, &getlen )) == CS_SUCCEED) {
+					while ((ret2 = ct_get_data(cmd, 2, nameptr, 200, &getlen)) == CS_SUCCEED) {
 						nameptr += getlen;
 					}
 					if (ret2 != CS_END_DATA) {
@@ -175,7 +175,7 @@ TEST_MAIN()
 
 	check_call(ct_data_info, (cmd, CS_SET, CS_UNUSED, &iodesc));
 
-	for ( i = 0 ; i < 800 ; i += 200 ) {
+	for (i = 0; i < 800; i += 200) {
 		textptr = &len800[i];
 
 		check_call(ct_send_data, (cmd, textptr, (CS_INT) 200));

@@ -35,8 +35,8 @@ static void
 test(const char *s, const char *sep)
 {
 	size_t len = strlen(s);
-	char *c1 = (char*) malloc(len+1);
-	char *c2 = (char*) malloc(len+1);
+	char *c1 = (char *) malloc(len + 1);
+	char *c2 = (char *) malloc(len + 1);
 	char *last = NULL, *s1, *s2;
 	const char *p1, *p2;
 

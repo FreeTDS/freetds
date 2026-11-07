@@ -48,8 +48,8 @@ static struct hostent *tds_gethostbyname_r(const char *servername, struct hosten
  * just assume the standard BSD netdb interface is reentrant and use it.
  */
 #ifndef _REENTRANT
-# undef NETDB_REENTRANT
-# define NETDB_REENTRANT 1
+#undef NETDB_REENTRANT
+#define NETDB_REENTRANT 1
 #endif /* _REENTRANT */
 
 #if defined(NETDB_REENTRANT)

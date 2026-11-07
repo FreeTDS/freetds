@@ -24,8 +24,7 @@ Test(const char *bind1, SQLSMALLINT type1, const char *bind2, SQLSMALLINT type2)
 	if (bind1[0] == '?')
 		CHKBindParameter(id++, SQL_PARAM_INPUT, SQL_C_LONG, type1, 3, 0, &test_num, 0, &ind, "S");
 	if (bind2[0] == '?')
-		CHKBindParameter(id++, SQL_PARAM_INPUT, SQL_C_CHAR, type2, strlen(val) + 1, 0, (SQLCHAR *) val,
-					 0, &ind, "S");
+		CHKBindParameter(id++, SQL_PARAM_INPUT, SQL_C_CHAR, type2, strlen(val) + 1, 0, (SQLCHAR *) val, 0, &ind, "S");
 	CHKExecute("S");
 	ODBC_FREE();
 }

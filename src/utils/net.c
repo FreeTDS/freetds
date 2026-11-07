@@ -61,10 +61,10 @@
 
 #if !defined(SOL_TCP) && (defined(IPPROTO_TCP) || defined(_WIN32))
 /* fix incompatibility between MS headers */
-# ifndef IPPROTO_TCP
-#  define IPPROTO_TCP IPPROTO_TCP
-# endif
-# define SOL_TCP IPPROTO_TCP
+#ifndef IPPROTO_TCP
+#define IPPROTO_TCP IPPROTO_TCP
+#endif
+#define SOL_TCP IPPROTO_TCP
 #endif
 
 /* under VMS we have to define TCP_NODELAY */
@@ -110,4 +110,3 @@ tds_socket_set_nodelay(TDS_SYS_SOCKET sock)
 }
 
 /** @} */
-

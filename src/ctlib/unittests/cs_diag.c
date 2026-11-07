@@ -57,9 +57,9 @@ TEST_MAIN()
 
 	check_call(cs_diag, (ctx, CS_STATUS, CS_CLIENTMSG_TYPE, CS_UNUSED, &num_msgs));
 
-	for (i = 0; i < num_msgs; i++ ) {
+	for (i = 0; i < num_msgs; i++) {
 		check_call(cs_diag, (ctx, CS_GET, CS_CLIENTMSG_TYPE, i + 1, &client_message));
-	
+
 		cslibmsg_cb(NULL, &client_message);
 	}
 

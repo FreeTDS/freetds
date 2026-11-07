@@ -35,6 +35,7 @@ static void
 same_smp(smp n, const char *s, int line)
 {
 	char *out = smp_to_string(n);
+
 	if (strcmp(s, out) != 0) {
 		fprintf(stderr, "%d: Wrong number, expected %s got %s\n", line, s, out);
 		free(out);
@@ -42,6 +43,7 @@ same_smp(smp n, const char *s, int line)
 	}
 	free(out);
 }
+
 #define same_smp(n, s) same_smp(n, s, __LINE__)
 
 static void
@@ -52,6 +54,7 @@ same_int(int n, int expected, int line)
 		exit(1);
 	}
 }
+
 #define same_int(n, e) same_int(n, e, __LINE__)
 
 
@@ -107,4 +110,3 @@ TEST_MAIN()
 	same_int(smp_cmp(smp_from_int(-123), smp_from_int(123)), -1);
 	return 0;
 }
-

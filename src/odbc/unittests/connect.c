@@ -12,7 +12,7 @@ init_connect(void)
 
 TEST_MAIN()
 {
-	char tmp[1024*4];
+	char tmp[1024 * 4];
 	SQLSMALLINT len;
 	int succeeded = 0;
 	bool is_freetds;
@@ -72,7 +72,7 @@ TEST_MAIN()
 	init_connect();
 	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;", common_pwd.server,
 		common_pwd.user, common_pwd.password, common_pwd.database);
-	CHKDriverConnect(NULL, T(tmp), SQL_NTS, (SQLTCHAR *) tmp, sizeof(tmp)/sizeof(SQLTCHAR), &len, SQL_DRIVER_NOPROMPT, "SI");
+	CHKDriverConnect(NULL, T(tmp), SQL_NTS, (SQLTCHAR *) tmp, sizeof(tmp) / sizeof(SQLTCHAR), &len, SQL_DRIVER_NOPROMPT, "SI");
 	odbc_disconnect();
 	++succeeded;
 

@@ -53,7 +53,7 @@ maybe_handle_active_interrupt(void)
 }
 
 int
-active_interrupt_pending(DBPROCESS * dbproc TDS_UNUSED)
+active_interrupt_pending(DBPROCESS *dbproc TDS_UNUSED)
 {
 	if (os_interrupt) {
 		return TRUE;
@@ -62,7 +62,7 @@ active_interrupt_pending(DBPROCESS * dbproc TDS_UNUSED)
 }
 
 int
-active_interrupt_servhandler(DBPROCESS * dbproc TDS_UNUSED)
+active_interrupt_servhandler(DBPROCESS *dbproc TDS_UNUSED)
 {
 	return INT_CANCEL;
 }

@@ -28,7 +28,7 @@
 int global_errorlevel = -1;
 
 int
-err_handler(DBPROCESS * dbproc, int severity TDS_UNUSED, int dberr, int oserr, char *dberrstr, char *oserrstr)
+err_handler(DBPROCESS *dbproc, int severity TDS_UNUSED, int dberr, int oserr, char *dberrstr, char *oserrstr)
 {
 	if ((dbproc == NULL) || (DBDEAD(dbproc))) {
 		return (INT_EXIT);
@@ -43,7 +43,8 @@ err_handler(DBPROCESS * dbproc, int severity TDS_UNUSED, int dberr, int oserr, c
 }
 
 int
-msg_handler(DBPROCESS * dbproc TDS_UNUSED, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line)
+msg_handler(DBPROCESS *dbproc TDS_UNUSED, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname,
+	    int line)
 {
 	if (severity > 10) {
 		if ((global_errorlevel == -1) || (severity >= global_errorlevel)) {

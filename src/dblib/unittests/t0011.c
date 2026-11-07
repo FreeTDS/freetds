@@ -64,7 +64,7 @@ TEST_MAIN()
 }
 
 static int
-select_rows(DBPROCESS * dbproc, int bind_type)
+select_rows(DBPROCESS *dbproc, int bind_type)
 {
 	char teststr[1024];
 	char teststr2[1024];
@@ -123,7 +123,7 @@ select_rows(DBPROCESS * dbproc, int bind_type)
 }
 
 static void
-insert_row(DBPROCESS * dbproc)
+insert_row(DBPROCESS *dbproc)
 {
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);

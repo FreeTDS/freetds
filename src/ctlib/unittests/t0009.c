@@ -240,7 +240,7 @@ TEST_MAIN()
 }
 
 static CS_RETCODE
-ex_servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * srvmsg)
+ex_servermsg_cb(CS_CONTEXT *context, CS_CONNECTION *connection, CS_SERVERMSG *srvmsg)
 {
 	if (strstr(srvmsg->text, "compute")) {
 		compute_supported = 0;

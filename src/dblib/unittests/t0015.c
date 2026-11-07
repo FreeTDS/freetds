@@ -102,7 +102,7 @@ TEST_MAIN()
 	}
 
 	for (i = 26; i < rows_to_add; i++) {
-	char expected[1024];
+		char expected[1024];
 
 		sprintf(expected, "row %03d", i);
 

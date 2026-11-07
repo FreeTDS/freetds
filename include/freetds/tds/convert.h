@@ -59,11 +59,13 @@ typedef union conv_result
 	TDS_CHAR *ib;
 
 	/* sized buffer types */
-	struct cc_t {
+	struct cc_t
+	{
 		TDS_CHAR *c;
 		TDS_UINT len;
 	} cc;
-	struct cb_t {
+	struct cb_t
+	{
 		TDS_CHAR *ib;
 		TDS_UINT len;
 	} cb;

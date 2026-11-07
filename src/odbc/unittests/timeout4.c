@@ -82,6 +82,7 @@ Test(int direct)
 		CHKExecDirect(T("SELECT 1"), SQL_NTS, "E");
 	} else {
 		SQLSMALLINT cols;
+
 		/* force dialog with server */
 		if (CHKPrepare(T("SELECT 1"), SQL_NTS, "SE") == SQL_SUCCESS)
 			CHKNumResultCols(&cols, "E");

@@ -28,11 +28,11 @@ fatal_error(const char *msg)
 }
 
 static void
-test(TDSSOCKET * tds, TDSDYNAMIC * dyn, TDS_INT n, const char *s)
+test(TDSSOCKET *tds, TDSDYNAMIC *dyn, TDS_INT n, const char *s)
 {
 	TDSPARAMINFO *params;
 	TDSCOLUMN *curcol;
-	int len = (int)strlen(s);
+	int len = (int) strlen(s);
 
 	tds_free_input_params(dyn);
 
@@ -133,7 +133,7 @@ TEST_MAIN()
 }
 
 static int
-discard_result(TDSSOCKET * tds)
+discard_result(TDSSOCKET *tds)
 {
 	int rc;
 	int result_type;

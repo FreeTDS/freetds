@@ -20,7 +20,7 @@
 #include <freetds/replacements.h>
 
 static char *
-varchar_as_string(TDSSOCKET * tds, int col_idx)
+varchar_as_string(TDSSOCKET *tds, int col_idx)
 {
 	static char result[256];
 	const void *value = tds->res_info->columns[col_idx]->column_data;
@@ -42,11 +42,11 @@ TEST_MAIN()
 
 	const char *len200 =
 		"01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
-	char *long_query = (char*) malloc(5000);
+	char *long_query = (char *) malloc(5000);
 
 	strcpy(long_query, "SELECT name FROM #longquerytest WHERE (");
 	for (i = 0; i < 20; ++i)
-		sprintf(strchr(long_query, 0), "name = '%c%s' OR ", 'A'+i, len200);
+		sprintf(strchr(long_query, 0), "name = '%c%s' OR ", 'A' + i, len200);
 	strcat(long_query, "name = 'correct')");
 
 	printf("%s: Test large (>4096 bytes) queries\n", __FILE__);
@@ -78,7 +78,7 @@ TEST_MAIN()
 		printf("block size %d\n", tds->conn->env.block_size);
 	}
 	rc = tds_submit_query(tds, long_query);
-	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_RETURN_ROWFMT|TDS_RETURN_ROW)) == TDS_SUCCESS) {
+	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_RETURN_ROWFMT | TDS_RETURN_ROW)) == TDS_SUCCESS) {
 		switch (result_type) {
 		case TDS_ROWFMT_RESULT:
 			if (tds->res_info->columns[0]->column_type != SYBVARCHAR) {

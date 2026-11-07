@@ -56,13 +56,12 @@ check_dbname(const char *dbname)
 static void
 set_dbname(const char *dbname)
 {
-	CHKSetConnectAttr(SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) T(dbname),
-			  (SQLINTEGER) strlen(dbname) * sizeof(SQLTCHAR), "SI");
+	CHKSetConnectAttr(SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) T(dbname), (SQLINTEGER) strlen(dbname) * sizeof(SQLTCHAR), "SI");
 }
 
 TEST_MAIN()
 {
-	char tmp[1024*3];
+	char tmp[1024 * 3];
 
 	odbc_use_version3 = false;
 

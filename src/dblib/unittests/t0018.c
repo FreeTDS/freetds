@@ -74,7 +74,7 @@ TEST_MAIN()
 		exit(1);
 	}
 
-	if(DBROWS(dbproc) != FAIL) {
+	if (DBROWS(dbproc) != FAIL) {
 		failed = true;
 		printf("Was expecting no rows to be available.\n");
 		exit(1);
@@ -102,7 +102,7 @@ TEST_MAIN()
 	}
 
 	for (i = 0; i < rows_to_add; i++) {
-	char expected[1024];
+		char expected[1024];
 
 		sprintf(expected, "row %03d", i);
 

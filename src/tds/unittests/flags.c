@@ -32,7 +32,7 @@ fatal_error(const char *msg)
 }
 
 static void
-check_flags(TDSCOLUMN * curcol, int n, const char *possible_results)
+check_flags(TDSCOLUMN *curcol, int n, const char *possible_results)
 {
 	char msg[256];
 	char flags[256];
@@ -128,7 +128,7 @@ TEST_MAIN()
 		info = tds->current_results;
 
 		if (info->num_cols != 3) {
-			sprintf(mymsg,"wrong number of columns returned expected 3 got %d", info->num_cols);
+			sprintf(mymsg, "wrong number of columns returned expected 3 got %d", info->num_cols);
 			fatal_error(mymsg);
 		}
 

@@ -37,9 +37,8 @@
  * @param data_len data length. 
  * @param digest   The HMAC-MD5 hash of the given data.
  */
-void hmac_md5(const unsigned char key[16],
-              const unsigned char* data, size_t data_len,
-              unsigned char* digest)
+void
+hmac_md5(const unsigned char key[16], const unsigned char *data, size_t data_len, unsigned char *digest)
 {
 	int i;
 	MD5_CTX ctx;
@@ -49,7 +48,7 @@ void hmac_md5(const unsigned char key[16],
 	/* compute ipad and opad */
 	memset(k_ipad, 0x36, sizeof(k_ipad));
 	memset(k_opad, 0x5c, sizeof(k_opad));
-	for (i=0; i<16; ++i) {
+	for (i = 0; i < 16; ++i) {
 		k_ipad[i] ^= key[i];
 		k_opad[i] ^= key[i];
 	}
@@ -65,4 +64,3 @@ void hmac_md5(const unsigned char key[16],
 	MD5Update(&ctx, digest, 16);
 	MD5Final(&ctx, digest);
 }
-

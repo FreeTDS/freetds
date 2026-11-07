@@ -28,7 +28,7 @@ failure(const char *fmt, ...)
 
 static void test_file(const char *fn);
 static bool compare_files(const char *fn1, const char *fn2);
-static unsigned count_file_rows(FILE *f);
+static unsigned count_file_rows(FILE * f);
 static size_t fgets_raw(char *s, int len, FILE * f);
 static DBPROCESS *dbproc;
 
@@ -120,7 +120,7 @@ TEST_MAIN()
 static bool got_error = false;
 
 static int
-ignore_msg_handler(DBPROCESS * dbproc TDS_UNUSED, DBINT msgno TDS_UNUSED, int state TDS_UNUSED, int severity TDS_UNUSED,
+ignore_msg_handler(DBPROCESS *dbproc TDS_UNUSED, DBINT msgno TDS_UNUSED, int state TDS_UNUSED, int severity TDS_UNUSED,
 		   char *text TDS_UNUSED, char *server TDS_UNUSED, char *proc TDS_UNUSED, int line TDS_UNUSED)
 {
 	got_error = true;
@@ -128,7 +128,7 @@ ignore_msg_handler(DBPROCESS * dbproc TDS_UNUSED, DBINT msgno TDS_UNUSED, int st
 }
 
 static int
-ignore_err_handler(DBPROCESS * dbproc TDS_UNUSED, int severity TDS_UNUSED, int dberr TDS_UNUSED,
+ignore_err_handler(DBPROCESS *dbproc TDS_UNUSED, int severity TDS_UNUSED, int dberr TDS_UNUSED,
 		   int oserr TDS_UNUSED, char *dberrstr TDS_UNUSED, char *oserrstr TDS_UNUSED)
 {
 	got_error = true;
@@ -387,6 +387,7 @@ fgets_raw(char *s, int len, FILE *f)
 
 	while (len > 1) {
 		int c = getc(f);
+
 		if (c == EOF) {
 			if (ferror(f))
 				return 0;
@@ -467,7 +468,7 @@ count_file_rows(FILE *f)
 	assert(f);
 
 	while ((s = fgets_raw(line1, sizeof(line1), f)) != 0) {
-		last = line1[s-1];
+		last = line1[s - 1];
 		if (last == '\n')
 			++rows;
 	}

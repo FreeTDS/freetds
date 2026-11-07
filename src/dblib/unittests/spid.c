@@ -44,9 +44,8 @@ TEST_MAIN()
 		erc = dbuse(dbproc, DATABASE);
 		assert(erc == SUCCEED);
 	}
-
 #ifdef DBQUOTEDIDENT
-	printf("QUOTED_IDENTIFIER is %s\n", (dbisopt(dbproc, DBQUOTEDIDENT, NULL))? "ON":"OFF");
+	printf("QUOTED_IDENTIFIER is %s\n", (dbisopt(dbproc, DBQUOTEDIDENT, NULL)) ? "ON" : "OFF");
 #endif
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);

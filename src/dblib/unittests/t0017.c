@@ -192,7 +192,7 @@ TEST_MAIN()
 		sql_cmd(dbproc);
 		dbsqlexec(dbproc);
 		while (dbresults(dbproc) != NO_MORE_RESULTS) {
-			while ((ret=dbnextrow(dbproc)) != NO_MORE_ROWS) {
+			while ((ret = dbnextrow(dbproc)) != NO_MORE_ROWS) {
 				fprintf(stderr, "Invalid dbnextrow result %d executing query\n", ret);
 				failed = 1;
 			}

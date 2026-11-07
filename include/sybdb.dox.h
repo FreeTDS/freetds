@@ -180,7 +180,7 @@
  */
 
  /*------------------------*/
- 
+
 /** \mainpage FreeTDS Reference Manual
  *
  * \section intro_sec Introduction
@@ -212,4 +212,3 @@
    listing of the documented functions.  
  * 
  */
-

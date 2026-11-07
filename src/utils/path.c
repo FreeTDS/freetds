@@ -51,7 +51,7 @@ tds_get_home_file(const tds_dir_char *file)
 	return path;
 }
 
-tds_dir_char*
+tds_dir_char *
 tds_join_path(const tds_dir_char *dir, const tds_dir_char *file)
 {
 	tds_dir_char *ret;
@@ -87,11 +87,14 @@ tds_dir_from_cstr(const char *path)
 	 * return 0 on succesful empty strings */
 	size_t len = strlen(path) + 1;
 	tds_dir_char *res = tds_new(tds_dir_char, len);
+
 	if (res) {
 		/* avoid compiler warnings */
 		int i_len = (int) len;
+
 		/* first try UTF-8 */
 		int out_len = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, path, i_len, res, i_len);
+
 		/* if it fails try current CP setting */
 		if (!out_len)
 			out_len = MultiByteToWideChar(CP_ACP, 0, path, i_len, res, i_len);

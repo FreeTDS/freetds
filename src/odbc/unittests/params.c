@@ -15,6 +15,7 @@ static const char sp_define[] = "CREATE PROCEDURE spTestProc\n"
 	"     IF @InParam < 10\n" "          RETURN (0)\n" "     ELSE\n" "          RETURN (1)\n";
 
 static char sp_text[] = "{?=call spTestProc(?,?,?)}";
+
 #define OUTSTRING_LEN 20
 
 static int
@@ -39,13 +40,13 @@ Test(int bind_before)
 		CHKPrepare(T(sp_text), sizeof(sp_text) - 1, "S");
 
 	CHKBindParameter(1, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &ReturnCode, 0, &cbReturnCode, "S");
-	CHKBindParameter(2, SQL_PARAM_INPUT,  SQL_C_SSHORT, SQL_INTEGER, 0, 0, &InParam,    0, &cbInParam,    "S");
-	CHKBindParameter(3, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &OutParam,   0, &cbOutParam,   "S");
+	CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &InParam, 0, &cbInParam, "S");
+	CHKBindParameter(3, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &OutParam, 0, &cbOutParam, "S");
 
 	OutString[0] = '\0';
 	strcpy(OutString, "Test");	/* Comment this line and we get an error!  Why? */
-	CHKBindParameter(4, SQL_PARAM_OUTPUT, SQL_C_CHAR, SQL_VARCHAR, OUTSTRING_LEN, 0, OutString, 
-	    OUTSTRING_LEN, &cbOutString, "S");
+	CHKBindParameter(4, SQL_PARAM_OUTPUT, SQL_C_CHAR, SQL_VARCHAR, OUTSTRING_LEN, 0, OutString,
+			 OUTSTRING_LEN, &cbOutString, "S");
 
 	if (bind_before)
 		CHKPrepare(T(sp_text), sizeof(sp_text) - 1, "S");

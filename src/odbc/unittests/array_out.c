@@ -15,7 +15,7 @@ typedef struct
 } Record;
 
 static void
-query_test(const char* expected, const char *expected_status)
+query_test(const char *expected, const char *expected_status)
 {
 #define ARRAY_SIZE 10
 

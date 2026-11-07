@@ -17,7 +17,7 @@ static void extract_error(SQLHANDLE handle, SQLSMALLINT type);
 TEST_MAIN()
 {
 	int i;
-	char cmd[128 + 110*10];
+	char cmd[128 + 110 * 10];
 
 	printf("SQLWCHAR size is: %d\n", (int) sizeof(SQLWCHAR));
 
@@ -59,9 +59,7 @@ extract_error(SQLHANDLE handle, SQLSMALLINT type)
 		ret = CHKGetDiagRec(type, handle, ++i, state, &native, text, 256, &len, "SINo");
 		state[5] = 0;
 		if (SQL_SUCCEEDED(ret))
-			printf("%s:%ld:%ld:%s\n", C(state), (long) i,
-			       (long) native, C(text));
+			printf("%s:%ld:%ld:%s\n", C(state), (long) i, (long) native, C(text));
 	}
 	while (ret == SQL_SUCCESS);
 }
-

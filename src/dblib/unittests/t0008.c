@@ -57,7 +57,7 @@ TEST_MAIN()
 
 	printf("insert\n");
 	for (i = 1; i <= rows_to_add; i++) {
-	char cmd[1024];
+		char cmd[1024];
 
 		sprintf(cmd, "insert into #dblib0008 values (%d, 'row %03d')", i, i);
 		dbcmd(dbproc, cmd);
@@ -83,7 +83,7 @@ TEST_MAIN()
 	dbbind(dbproc, 2, STRINGBIND, 0, (BYTE *) teststr);
 
 	for (i = 1; i <= rows_to_add; i++) {
-	char expected[1024];
+		char expected[1024];
 
 		sprintf(expected, "row %03d", i);
 
@@ -120,6 +120,6 @@ TEST_MAIN()
 
 	dbexit();
 
-	printf("%s %s (last_read: %d)\n", __FILE__, ((last_read != rows_to_add)? "failed!" : "OK"), (int) last_read);
+	printf("%s %s (last_read: %d)\n", __FILE__, ((last_read != rows_to_add) ? "failed!" : "OK"), (int) last_read);
 	return (last_read == rows_to_add) ? 0 : 1;
 }

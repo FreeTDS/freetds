@@ -112,7 +112,8 @@ TEST_MAIN()
 	/* test C types */
 	for (p = types; p->name; ++p) {
 		if (SQL_SUCCEEDED
-		    (SQLBindParameter(odbc_stmt, 1, SQL_PARAM_INPUT, p->type, SQL_VARCHAR, (SQLUINTEGER) (-1), 0, buf, 16, &lind))) {
+		    (SQLBindParameter(odbc_stmt, 1, SQL_PARAM_INPUT, p->type, SQL_VARCHAR, (SQLUINTEGER) (-1), 0, buf, 16, &lind)))
+		{
 			SQLSMALLINT concise_type, type, code;
 			SQLHDESC desc;
 
@@ -138,8 +139,7 @@ TEST_MAIN()
 			concise_type = p->type;
 			SQLGetStmtAttr(odbc_stmt, SQL_ATTR_APP_PARAM_DESC, &desc, sizeof(desc), &ind);
 			if (SQL_SUCCEEDED
-			    (SQLSetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, TDS_INT2PTR(concise_type), sizeof(SQLSMALLINT))))
-			{
+			    (SQLSetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, TDS_INT2PTR(concise_type), sizeof(SQLSMALLINT)))) {
 				fprintf(stderr, " [%sExpected]\n", (p->flags & FLAG_C) ? "" : "Not ");
 				CHKGetDescField(desc, 1, SQL_DESC_TYPE, &type, sizeof(SQLSMALLINT), &ind, "S");
 				CHKGetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, &concise_type, sizeof(SQLSMALLINT), &ind, "S");
@@ -162,8 +162,7 @@ TEST_MAIN()
 	for (p = types; p->name; ++p) {
 		SQLSMALLINT concise_type = p->type;
 
-		if (SQL_SUCCEEDED
-		    (SQLSetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, TDS_INT2PTR(concise_type), sizeof(SQLSMALLINT)))) {
+		if (SQL_SUCCEEDED(SQLSetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, TDS_INT2PTR(concise_type), sizeof(SQLSMALLINT)))) {
 			SQLSMALLINT concise_type, type, code;
 
 			concise_type = type = code = 0;

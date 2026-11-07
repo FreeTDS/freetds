@@ -12,10 +12,11 @@
  * This wrapper anticipates that behavior, and again sets the userdata, telling the handler this error is expected. 
  */
 static int
-err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
-{	
+err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
+{
 	int expected_error = 207;
-	dbsetuserdata(dbproc, (BYTE*) &expected_error);
+
+	dbsetuserdata(dbproc, (BYTE *) & expected_error);
 	return syb_err_handler(dbproc, severity, dberr, oserr, dberrstr, oserrstr);
 }
 
@@ -57,7 +58,7 @@ TEST_MAIN()
 	fprintf(stderr, "The following invalid column error is normal.\n");
 
 	expected_error = 207;
-	dbsetuserdata(dbproc, (BYTE*) &expected_error);
+	dbsetuserdata(dbproc, (BYTE *) & expected_error);
 
 	ret = dbsqlexec(dbproc);
 	if (ret != FAIL) {

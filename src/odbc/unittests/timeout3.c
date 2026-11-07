@@ -178,7 +178,7 @@ TEST_MAIN()
 	return 0;
 }
 
-#else	/* !TDS_HAVE_MUTEX */
+#else /* !TDS_HAVE_MUTEX */
 TEST_MAIN()
 {
 	printf("Not possible for this platform.\n");

@@ -90,7 +90,7 @@ tds_get_locale(void)
 			 * modifier, charset and sublanguage
 			 * ie it_IT@euro -> it_IT -> it
 			 */
-			for (;!found && *strip; ++strip) {
+			for (; !found && *strip; ++strip) {
 				s = strrchr(buf, *strip);
 				if (!s)
 					continue;

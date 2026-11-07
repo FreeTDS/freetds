@@ -40,4 +40,3 @@ TEST_MAIN()
 	odbc_disconnect();
 	return 0;
 }
-

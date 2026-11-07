@@ -40,7 +40,8 @@ TEST_MAIN()
 
 	printf("Maximum message limit is set to: %d\n", totmsgs);
 
-	check_call(run_command, (cmd, "CREATE TABLE #ctlibarray (col1 int not null,  col2 char(4) not null, col3 datetime not null)"));
+	check_call(run_command,
+		   (cmd, "CREATE TABLE #ctlibarray (col1 int not null,  col2 char(4) not null, col3 datetime not null)"));
 	check_call(run_command, (cmd, "insert into #ctlibarray values (1, 'AAAA', 'Jan  1 2002 10:00:00AM')"));
 	check_call(run_command, (cmd, "insert into #ctlibarray values (2, 'BBBB', 'Jan  2 2002 10:00:00AM')"));
 
@@ -105,7 +106,7 @@ TEST_MAIN()
 						num_msgs);
 					return 1;
 				}
-				
+
 				/* we catch error, good */
 				result = 0;
 			} else {

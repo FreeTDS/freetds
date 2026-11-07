@@ -12,12 +12,12 @@ static int failed = 0;
 
 
 static void
-get_results(DBPROCESS * dbproc, int start)
+get_results(DBPROCESS *dbproc, int start)
 {
 	int current = start - 1;
 
 	while (REG_ROW == dbnextrow(dbproc)) {
-	char expected[1024];
+		char expected[1024];
 
 		current++;
 		sprintf(expected, "row %04d", current);

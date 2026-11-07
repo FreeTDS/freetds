@@ -18,13 +18,11 @@
 extern const uint8_t utf8_table[];
 
 static inline uint32_t
-decode_utf8(uint32_t* state, uint32_t* codep, uint32_t byte)
+decode_utf8(uint32_t *state, uint32_t *codep, uint32_t byte)
 {
 	uint32_t type = utf8_table[byte];
 
-	*codep = (*state != UTF8_ACCEPT) ?
-		(byte & 0x3fu) | (*codep << 6) :
-		(0xff >> type) & (byte);
+	*codep = (*state != UTF8_ACCEPT) ? (byte & 0x3fu) | (*codep << 6) : (0xff >> type) & (byte);
 
 	*state = utf8_table[256 + *state + type];
 	return *state;

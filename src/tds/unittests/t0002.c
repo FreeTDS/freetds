@@ -22,7 +22,7 @@
 #include <freetds/replacements.h>
 
 static char *
-value_as_string(TDSSOCKET * tds, int col_idx)
+value_as_string(TDSSOCKET *tds, int col_idx)
 {
 	static char result[256];
 	const int type = tds->res_info->columns[col_idx]->column_type;
@@ -52,6 +52,7 @@ TEST_MAIN()
 	TDS_INT result_type;
 	int rc;
 	int i, done_flags;
+	const row_token_flags = TDS_STOPAT_ROWFMT | TDS_RETURN_DONE | TDS_RETURN_ROW | TDS_RETURN_COMPUTE;
 
 	printf("%s: Test basic submit query, results\n", __FILE__);
 	rc = try_tds_login(&login, &tds, __FILE__, verbose);
@@ -86,8 +87,7 @@ TEST_MAIN()
 			break;
 
 		case TDS_ROW_RESULT:
-
-			while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) == TDS_SUCCESS) {
+			while ((rc = tds_process_tokens(tds, &result_type, NULL, row_token_flags)) == TDS_SUCCESS) {
 				if (result_type != TDS_ROW_RESULT || result_type != TDS_COMPUTE_RESULT)
 					break;
 				if (verbose) {

@@ -50,7 +50,7 @@ TEST_MAIN()
 		case CS_ROW_RESULT:
 
 			check_call(ct_res_info, (cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL));
-			fprintf(stderr, "%d column%s\n", num_cols, num_cols==1? "":"s");
+			fprintf(stderr, "%d column%s\n", num_cols, num_cols == 1 ? "" : "s");
 
 			check_call(ct_describe, (cmd, 1, &datafmt));
 
@@ -84,7 +84,7 @@ TEST_MAIN()
 
 				switch (ret) {
 				case CS_SUCCEED:
-					printf("ct_fetch returned %d row%s\n", count, count==1? "":"s");
+					printf("ct_fetch returned %d row%s\n", count, count == 1 ? "" : "s");
 					break;
 				case CS_ROW_FAIL:
 					fprintf(stderr, "error: ct_fetch() returned CS_ROW_FAIL on row %d.\n", row_count);
@@ -104,11 +104,11 @@ TEST_MAIN()
 					return 1;
 				}
 			}
-			
+
 			break;
 		}
 	}
-	
+
 	switch ((int) results_ret) {
 	case CS_END_RESULTS:
 		break;

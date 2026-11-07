@@ -165,7 +165,7 @@ tds_vstrbuild(char *buffer, int buflen, int *resultlen, const char *text, int te
 
 	rc = TDS_SUCCESS;
 
-      out:
+out:
 	*resultlen = (int) (buffer - orig_buffer);
 	free(string_array);
 	free(params);

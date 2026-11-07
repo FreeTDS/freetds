@@ -22,7 +22,8 @@
 #define FREETDS_SRCDIR FREETDS_TOPDIR "/src/ctlib/unittests"
 #endif
 
-typedef enum ct_message_type {
+typedef enum ct_message_type
+{
 	/** no message saved */
 	CTMSG_NONE,
 	/** last message from clientmsg_cb */
@@ -35,7 +36,8 @@ typedef enum ct_message_type {
 	CTMSG_CSLIB,
 } ct_message_type;
 
-typedef struct ct_message {
+typedef struct ct_message
+{
 	ct_message_type type;
 	CS_INT number;
 	char text[CS_MAX_MSG];

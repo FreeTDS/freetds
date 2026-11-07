@@ -16,7 +16,7 @@ read_login_info(void)
 TDSCONTEXT *test_context = NULL;
 
 int
-try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verbose)
+try_tds_login(TDSLOGIN **login, TDSSOCKET **tds, const char *appname, int verbose)
 {
 	TDSLOGIN *connection;
 	char *appname_copy;
@@ -52,8 +52,7 @@ try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verb
 		charset = common_pwd.charset;
 	if (!tds_set_passwd(*login, common_pwd.password)
 	    || !tds_set_user(*login, common_pwd.user)
-	    || !appname_copy
-	    || !tds_set_app(*login, basename(appname_copy))
+	    || !appname_copy || !tds_set_app(*login, basename(appname_copy))
 	    || !tds_set_host(*login, "myhost")
 	    || !tds_set_library(*login, "TDS-Library")
 	    || !tds_set_server(*login, common_pwd.server)
@@ -89,7 +88,7 @@ try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verb
 
 /* Note that this always suceeds */
 int
-try_tds_logout(TDSLOGIN * login, TDSSOCKET * tds, int verbose)
+try_tds_logout(TDSLOGIN *login, TDSSOCKET *tds, int verbose)
 {
 	if (verbose) {
 		printf("Entered tds_try_logout()\n");
@@ -104,7 +103,7 @@ try_tds_logout(TDSLOGIN * login, TDSSOCKET * tds, int verbose)
 
 /* Run query for which there should be no return results */
 int
-run_query(TDSSOCKET * tds, const char *query)
+run_query(TDSSOCKET *tds, const char *query)
 {
 	int rc;
 	int result_type;

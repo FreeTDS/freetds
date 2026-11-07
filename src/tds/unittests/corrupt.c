@@ -34,7 +34,8 @@ unfinished_query_test(TDSSOCKET *tds)
 	int char_len;
 	char *buf, *p;
 	int i, len;
-	union {
+	union
+	{
 		TDS_USMALLINT si;
 		TDS_UINT i;
 		TDS_INT8 i8;
@@ -49,14 +50,16 @@ unfinished_query_test(TDSSOCKET *tds)
 	/* try to build an invalid (unfinished) query split in two packets */
 	char_len = IS_TDS7_PLUS(tds->conn) ? 2 : 1;
 	buf = tds_new0(char, tds->out_buf_max + 200);
+
 	memset(buf, '-', tds->out_buf_max + 200);
 	strcpy(buf + (tds->out_buf_max - 8) / char_len - strlen(select_query) + 1, select_query);
 	memset(strchr(buf, 0), 0, 16);
 
 	/* convert if needed */
 	len = (int) strlen(buf);
-	for (i = len; --i >= 0; ) {
+	for (i = len; --i >= 0;) {
 		char c = buf[i];
+
 		buf[i * char_len + 0] = c;
 		if (IS_TDS7_PLUS(tds->conn))
 			buf[i * char_len + 1] = 0;

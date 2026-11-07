@@ -32,7 +32,7 @@ edit(const char *editor, const char *arg)
 {
 	int pid;
 
-      retry_fork:
+retry_fork:
 	pid = fork();
 	switch (pid) {
 	case -1:

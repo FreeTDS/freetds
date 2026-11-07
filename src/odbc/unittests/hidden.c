@@ -26,7 +26,7 @@ TEST_MAIN()
 	}
 	odbc_reset_statement();
 
-	/* test hidden column with cursors*/
+	/* test hidden column with cursors */
 	odbc_check_cursor();
 
 	CHKSetStmtAttr(SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_NONSCROLLABLE, SQL_IS_UINTEGER, "S");
@@ -45,5 +45,5 @@ TEST_MAIN()
 
 	odbc_disconnect();
 
-	return failed ? 1: 0;
+	return failed ? 1 : 0;
 }

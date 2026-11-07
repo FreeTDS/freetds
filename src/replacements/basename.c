@@ -34,7 +34,8 @@
 #define TDS_ISDIR_SEPARATOR(c) ((c) == '/')
 #endif
 
-char *tds_basename(char *path)
+char *
+tds_basename(char *path)
 {
 	char *p;
 
@@ -56,4 +57,3 @@ char *tds_basename(char *path)
 	return path;
 }
 #endif
-

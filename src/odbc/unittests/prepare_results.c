@@ -37,7 +37,7 @@ Test(int use_ird)
 
 	CHKDescribeCol(1, name, TDS_VECTOR_SIZE(name), &namelen, &type, &size, &digits, &nullable, "S");
 
-	cname = (char*) C(name);
+	cname = (char *) C(name);
 	if (type != SQL_INTEGER || strcmp(cname, "i") != 0) {
 		fprintf(stderr, "wrong column 1 information (type %d name '%s' size %d)\n", (int) type, cname, (int) size);
 		exit(1);
@@ -45,7 +45,7 @@ Test(int use_ird)
 
 	CHKDescribeCol(2, name, TDS_VECTOR_SIZE(name), &namelen, &type, &size, &digits, &nullable, "S");
 
-	cname = (char*) C(name);
+	cname = (char *) C(name);
 	if (type != SQL_CHAR || strcmp(cname, "c") != 0 || (size != 20 && (odbc_db_is_microsoft() || size != 40))) {
 		fprintf(stderr, "wrong column 2 information (type %d name '%s' size %d)\n", (int) type, cname, (int) size);
 		exit(1);
@@ -53,7 +53,7 @@ Test(int use_ird)
 
 	CHKDescribeCol(3, name, TDS_VECTOR_SIZE(name), &namelen, &type, &size, &digits, &nullable, "S");
 
-	cname = (char*) C(name);
+	cname = (char *) C(name);
 	if (type != SQL_NUMERIC || strcmp(cname, "n") != 0 || size != 34 || digits != 12) {
 		fprintf(stderr, "wrong column 3 information (type %d name '%s' size %d)\n", (int) type, cname, (int) size);
 		exit(1);

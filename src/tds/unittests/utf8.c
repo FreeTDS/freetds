@@ -30,7 +30,8 @@ get_unichar(const char **psrc)
 	const char *src = *psrc;
 	int n;
 
-	if (!*src) return -1;
+	if (!*src)
+		return -1;
 
 	if (src[0] == '&' && src[1] == '#') {
 		char *end;
@@ -40,7 +41,7 @@ get_unichar(const char **psrc)
 			radix = 16;
 			++src;
 		}
-		n = (int) strtol(src+2, &end, radix);
+		n = (int) strtol(src + 2, &end, radix);
 		assert(*end == ';' && n > 0 && n < 0x10000);
 		src = end + 1;
 	} else {
@@ -56,7 +57,7 @@ to_utf8(const char *src, char *dest)
 	unsigned char *p = (unsigned char *) dest;
 	int len = 0, n;
 
-	while ((n=get_unichar(&src)) > 0) {
+	while ((n = get_unichar(&src)) > 0) {
 		if (n >= 0x2000) {
 			*p++ = 0xe0 | ((n >> 12) & 0xf);
 			*p++ = 0x80 | ((n >> 6) & 0x3f);
@@ -74,4 +75,3 @@ to_utf8(const char *src, char *dest)
 	*p = 0;
 	return dest;
 }
-

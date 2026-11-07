@@ -52,16 +52,17 @@
 #define POOL_STR_MIN_POOL_CONN	"min pool conn"
 #define POOL_STR_MAX_POOL_USERS	"max pool users"
 
-typedef struct {
+typedef struct
+{
 	TDS_POOL *pool;
 	char **err;
 } conf_params;
 
 static bool pool_parse(const char *option, const char *value, void *param);
-static bool pool_read_conf_file(const tds_dir_char *path, const char *poolname, conf_params *params);
+static bool pool_read_conf_file(const tds_dir_char * path, const char *poolname, conf_params * params);
 
 bool
-pool_read_conf_files(const tds_dir_char *path, const char *poolname, TDS_POOL * pool, char **err)
+pool_read_conf_files(const tds_dir_char *path, const char *poolname, TDS_POOL *pool, char **err)
 {
 	bool found = false;
 	conf_params params = { pool, err };
@@ -71,6 +72,7 @@ pool_read_conf_files(const tds_dir_char *path, const char *poolname, TDS_POOL * 
 
 	if (!found) {
 		tds_dir_char *path = tds_get_home_file(TDS_DIR(".pool.conf"));
+
 		if (path) {
 			found = pool_read_conf_file(path, poolname, &params);
 			free(path);

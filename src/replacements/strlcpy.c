@@ -26,7 +26,7 @@
 #include <freetds/sysdep_private.h>
 #include <freetds/replacements.h>
 
-size_t 
+size_t
 tds_strlcpy(char *dest, const char *src, size_t len)
 {
 	size_t l = strlen(src);
@@ -41,4 +41,3 @@ tds_strlcpy(char *dest, const char *src, size_t len)
 	}
 	return l;
 }
-

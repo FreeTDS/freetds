@@ -15,7 +15,7 @@
 static const char create_table_sql[] = "CREATE TABLE hogexxx (col varchar(100))";
 
 static void
-hoge_blkin(CS_CONNECTION * con, CS_BLKDESC * blk, char *table, char *data)
+hoge_blkin(CS_CONNECTION *con, CS_BLKDESC *blk, char *table, char *data)
 {
 	CS_DATAFMT meta = { "" };
 	CS_INT length = 5;
@@ -82,4 +82,3 @@ TEST_MAIN()
 
 	return 0;
 }
-

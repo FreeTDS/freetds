@@ -66,7 +66,7 @@ TEST_MAIN()
 		/* nop */
 	}
 
-	sql_cmd(dbproc); /* select */
+	sql_cmd(dbproc);	/* select */
 	dbsqlexec(dbproc);
 
 	if (dbresults(dbproc) != SUCCEED) {
@@ -76,7 +76,7 @@ TEST_MAIN()
 
 	for (n_col = 1; n_col <= 3; ++n_col) {
 		col2.SizeOfStruct = sizeof(col2);
-		if (dbtablecolinfo(dbproc, n_col, (DBCOL *) &col2) != SUCCEED) {
+		if (dbtablecolinfo(dbproc, n_col, (DBCOL *) & col2) != SUCCEED) {
 			fprintf(stderr, "dbtablecolinfo failed for col %d\n", n_col);
 			failed = 1;
 			continue;

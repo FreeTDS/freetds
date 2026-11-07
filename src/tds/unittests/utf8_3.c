@@ -34,6 +34,7 @@ test(const char *buf)
 	int rc;
 	TDS_INT result_type;
 	int done_flags;
+	const unsigned row_token_flags = TDS_STOPAT_ROWFMT | TDS_STOPAT_DONE | TDS_RETURN_ROW | TDS_RETURN_COMPUTE;
 
 	to_utf8(buf, tmp);
 	sprintf(query, "SELECT 1 AS [%s]", tmp);
@@ -65,8 +66,7 @@ test(const char *buf)
 		exit(1);
 	}
 
-	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_STOPAT_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) == TDS_SUCCESS) {
-
+	while ((rc = tds_process_tokens(tds, &result_type, NULL, row_token_flags)) == TDS_SUCCESS) {
 		TDSCOLUMN *curcol;
 
 		if (result_type != TDS_ROW_RESULT)

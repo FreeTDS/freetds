@@ -88,7 +88,7 @@ TEST_MAIN()
 		}
 
 		/* Issue a command returning many rows */
-		check_call(ct_command, 
+		check_call(ct_command,
 			   (cmd, CS_LANG_CMD, "SELECT * FROM #t0010 t1, #t0010 t2, #t0010 t3, #t0010 t4", CS_NULLTERM, CS_UNUSED));
 
 		check_call(ct_send, (cmd));
@@ -167,7 +167,7 @@ TEST_MAIN()
 }
 
 static int
-do_fetch(CS_COMMAND * cmd, int *cnt)
+do_fetch(CS_COMMAND *cmd, int *cnt)
 {
 	CS_INT count, row_count = 0;
 	CS_RETCODE ret;
@@ -200,4 +200,3 @@ TEST_MAIN()
 	return 0;
 }
 #endif
-

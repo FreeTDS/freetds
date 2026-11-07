@@ -23,12 +23,10 @@ TEST_MAIN()
 	odbc_disconnect();
 
 	/* the second string could came from Sybase configured with UTF-8 */
-	if (strcmp(buf, "Pippo 123 ") != 0
-	    && (odbc_db_is_microsoft() || strcmp(buf, "Pippo 123                     ") != 0)) {
+	if (strcmp(buf, "Pippo 123 ") != 0 && (odbc_db_is_microsoft() || strcmp(buf, "Pippo 123                     ") != 0)) {
 		fprintf(stderr, "Wrong results '%s'\n", buf);
 		failed = true;
 	}
 
 	return failed ? 1 : 0;
 }
-

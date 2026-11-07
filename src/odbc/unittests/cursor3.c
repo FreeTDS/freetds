@@ -70,9 +70,9 @@ TEST_MAIN()
 	 * this should check a problem with SQLGetData 
 	 * fetch a data on stmt2 than fetch on stmt1 and try to get data on first one
 	 */
-	CHKFetch("S");	/* "ccccccccc" */
+	CHKFetch("S");		/* "ccccccccc" */
 	odbc_stmt = stmt1;
-	CHKFetch("S");  /* "bbbbb" */
+	CHKFetch("S");		/* "bbbbb" */
 	odbc_stmt = stmt2;
 	CHKGetData(2, SQL_C_CHAR, (SQLPOINTER) buff, sizeof(buff), &ind, "S");
 	printf(">> Fetch from 2: [%s]\n", buff);
@@ -99,4 +99,3 @@ TEST_MAIN()
 
 	return 0;
 }
-

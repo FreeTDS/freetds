@@ -874,6 +874,7 @@ CS_RETCODE cs_strbuild(CS_CONTEXT * ctx, CS_CHAR * buffer, CS_INT buflen, CS_INT
 #undef cs_dt_crack
 CS_RETCODE cs_dt_crack(CS_CONTEXT * ctx, CS_INT datetype, CS_VOID * dateval, CS_DATEREC * daterec);
 CS_RETCODE cs_dt_crack_v2(CS_CONTEXT * ctx, CS_INT datetype, CS_VOID * dateval, CS_DATEREC * daterec);
+
 #define cs_dt_crack cs_dt_crack_v2
 CS_RETCODE cs_loc_alloc(CS_CONTEXT * ctx, CS_LOCALE ** locptr);
 CS_RETCODE cs_loc_drop(CS_CONTEXT * ctx, CS_LOCALE * locale);
@@ -896,7 +897,7 @@ CS_RETCODE cs_strcmp(CS_CONTEXT * ctx, CS_LOCALE * locale, CS_INT type, CS_CHAR 
 CS_RETCODE cs_time(CS_CONTEXT * ctx, CS_LOCALE * locale, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen, CS_DATEREC * daterec);
 CS_RETCODE cs_will_convert(CS_CONTEXT * ctx, CS_INT srctype, CS_INT desttype, CS_BOOL * result);
 
-const char * cs_prretcode(int retcode);
+const char *cs_prretcode(int retcode);
 
 #ifdef __cplusplus
 #if 0

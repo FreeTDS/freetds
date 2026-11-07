@@ -110,7 +110,7 @@ readpassphrase(const char *prompt, char *pbuf, size_t buflen, int flags)
 	 * We need the file or device associated with stdin in VMS format.
 	 */
 	if (fgetname(stdin, input_fspec, 1)) {
-		ttdsc.dsc$a_pointer = (char *)&input_fspec;
+		ttdsc.dsc$a_pointer = (char *) &input_fspec;
 		ttdsc.dsc$w_length = strlen(input_fspec);
 	} else {
 		errno = EMFILE;
@@ -277,9 +277,9 @@ char *
 readline(char *prompt)
 {
 	char *buf = NULL, *s = NULL, *p = NULL, *newline = NULL;
+
 	if (tds_rl_instream == NULL)
-		s = readpassphrase((const char *) prompt, passbuf, sizeof(passbuf),
-					 RPP_ECHO_ON | RPP_TIMEOUT_OFF);
+		s = readpassphrase((const char *) prompt, passbuf, sizeof(passbuf), RPP_ECHO_ON | RPP_TIMEOUT_OFF);
 	else
 		s = fgets(passbuf, sizeof(passbuf), tds_rl_instream);
 
@@ -315,4 +315,3 @@ rl_outstream_get_addr(void)
 {
 	return &tds_rl_outstream;
 }
-

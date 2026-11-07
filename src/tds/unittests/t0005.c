@@ -98,7 +98,7 @@ TEST_MAIN()
 }
 
 static char *
-value_as_string(TDSSOCKET * tds, int col_idx)
+value_as_string(TDSSOCKET *tds, int col_idx)
 {
 	static char result[256];
 	const int type = tds->res_info->columns[col_idx]->column_type;

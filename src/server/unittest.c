@@ -122,7 +122,7 @@ main(int argc, char **argv)
 }
 
 static void
-dump_login(TDSLOGIN * login)
+dump_login(TDSLOGIN *login)
 {
 	printf("host %s\n", tds_dstr_cstr(&login->client_host_name));
 	printf("user %s\n", tds_dstr_cstr(&login->user_name));

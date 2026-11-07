@@ -20,13 +20,14 @@
 #ifndef _tdsguard_aej6DXYKBycQe7Wyg2gHaQ_
 #define _tdsguard_aej6DXYKBycQe7Wyg2gHaQ_
 
-typedef struct dlist_ring {
+typedef struct dlist_ring
+{
 	struct dlist_ring *next;
 	struct dlist_ring *prev;
 } dlist_ring;
 
 #if ENABLE_EXTRA_CHECKS
-void dlist_ring_check(dlist_ring *ring);
+void dlist_ring_check(dlist_ring * ring);
 #endif
 
 #define DLIST_FIELDS(name) \
@@ -38,7 +39,8 @@ void dlist_ring_check(dlist_ring *ring);
 #define DLIST_FOREACH(prefix, list, p) \
 	for (p = prefix ## _ ## first(list); p != NULL; p = prefix ## _ ## next(list, p))
 
-static inline void dlist_insert_after(dlist_ring *ring_pos, dlist_ring *ring_item)
+static inline void
+dlist_insert_after(dlist_ring *ring_pos, dlist_ring *ring_item)
 {
 	assert(!ring_item->next && !ring_item->prev);
 	ring_pos->next->prev = ring_item;

@@ -16,6 +16,7 @@ TEST_MAIN()
 {
 	int i;
 	SQLLEN len;
+
 #ifdef HAVE_SQLROWSETSIZE
 	SQLROWSETSIZE row_count;
 #else
@@ -53,7 +54,7 @@ TEST_MAIN()
 
 		memset(s, 'a' + i, 9);
 		s[9] = 0;
-		sprintf(sql, "INSERT INTO #rowset(n,c) VALUES(%d,'%s')", i+1, s);
+		sprintf(sql, "INSERT INTO #rowset(n,c) VALUES(%d,'%s')", i + 1, s);
 		odbc_command(sql);
 	}
 

@@ -54,7 +54,7 @@ test_insert(void *buf, SQLLEN buflen)
 
 	strlen_or_ind = buflen;
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_LONGVARBINARY, (SQLUINTEGER) (-1), 0, buf, buflen,
-			       &strlen_or_ind, "SI");
+			 &strlen_or_ind, "SI");
 
 	CHKExecute("SI");
 
@@ -67,7 +67,7 @@ test_insert(void *buf, SQLLEN buflen)
 
 
 static int
-test_select(void *buf, SQLINTEGER buflen, SQLLEN * bytes_returned)
+test_select(void *buf, SQLINTEGER buflen, SQLLEN *bytes_returned)
 {
 	SQLHSTMT odbc_stmt = SQL_NULL_HSTMT;
 	SQLLEN strlen_or_ind = 0;

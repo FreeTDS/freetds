@@ -79,7 +79,7 @@ Test(bool discard_test)
 
 	CHKMoreResults("No");
 
-      cleanup:
+cleanup:
 	/* drop table */
 	odbc_command_with_result(odbc_stmt, "DROP PROCEDURE testinsert");
 	odbc_command_with_result(odbc_stmt, "DROP PROCEDURE testerror");

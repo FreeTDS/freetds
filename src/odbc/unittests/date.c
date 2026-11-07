@@ -76,7 +76,8 @@ DoTest(int n)
 	if (n == 0) {
 		memset(&ts, 0, sizeof(ts));
 		CHKGetData(1, SQL_C_TIMESTAMP, &ts, sizeof(ts), &dataSize, "S");
-		sprintf((char *) output, "%04d-%02d-%02d %02d:%02d:%02d.000", ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second);
+		sprintf((char *) output, "%04d-%02d-%02d %02d:%02d:%02d.000", ts.year, ts.month, ts.day, ts.hour, ts.minute,
+			ts.second);
 	} else {
 		CHKGetData(1, SQL_C_CHAR, output, sizeof(output), &dataSize, "S");
 	}

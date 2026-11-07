@@ -43,16 +43,15 @@ TEST_MAIN()
 		fprintf(stderr, "Unable to connect to %s\n", SERVER);
 		return 1;
 	}
-	dbloginfree(login);  
+	dbloginfree(login);
 
 	printf("Using database \"%s\"\n", DATABASE);
 	if (strlen(DATABASE)) {
 		erc = dbuse(dbproc, DATABASE);
 		assert(erc == SUCCEED);
 	}
-
 #ifdef DBQUOTEDIDENT
-	printf("QUOTED_IDENTIFIER is %s\n", (dbisopt(dbproc, DBQUOTEDIDENT, NULL))? "ON":"OFF");
+	printf("QUOTED_IDENTIFIER is %s\n", (dbisopt(dbproc, DBQUOTEDIDENT, NULL)) ? "ON" : "OFF");
 #endif
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
@@ -91,7 +90,7 @@ TEST_MAIN()
 	}
 
 	for (i = 0; i < rows_to_add; i++) {
-	char expected[1024];
+		char expected[1024];
 
 		sprintf(expected, "row %03d", i);
 

@@ -29,7 +29,7 @@
 
 /* Ensure assert is always active. */
 #if defined(assert) && defined(NDEBUG)
-#  error "Include test_base.h (or common.h) earlier"
+#error "Include test_base.h (or common.h) earlier"
 #endif
 
 #undef NDEBUG

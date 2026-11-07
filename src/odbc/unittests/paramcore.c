@@ -34,7 +34,7 @@ TEST_MAIN()
 	odbc_command("create proc sp_paramcore_test @s numeric(10,2) output as select @s = 12345.6");
 	odbc_reset_statement();
 
-#if 0	/* this fails even on native platforms */
+#if 0				/* this fails even on native platforms */
 	/* here we pass a NULL buffer for output */
 	cb = sizeof(SQL_NUMERIC_STRUCT);
 	SQLBindParameter(odbc_stmt, 1, SQL_PARAM_OUTPUT, SQL_C_NUMERIC, SQL_NUMERIC, 18, 0, NULL, OUTSTRING_LEN, &cb);

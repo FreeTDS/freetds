@@ -40,7 +40,7 @@ TEST_MAIN()
 
 	rc = tds_submit_query(tds, "SELECT NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL");
 
-	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) == TDS_SUCCESS) {
+	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_RETURN_ROW | TDS_RETURN_COMPUTE)) == TDS_SUCCESS) {
 		switch (result_type) {
 		case TDS_ROW_RESULT:
 			resinfo = tds->res_info;
@@ -67,7 +67,7 @@ TEST_MAIN()
 	}
 
 	rc = tds_submit_query(tds, "SELECT 12, 'abc', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL");
-	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) == TDS_SUCCESS) {
+	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_RETURN_ROW | TDS_RETURN_COMPUTE)) == TDS_SUCCESS) {
 		switch (result_type) {
 		case TDS_ROW_RESULT:
 			resinfo = tds->res_info;
@@ -77,7 +77,7 @@ TEST_MAIN()
 				fprintf(stderr, "SYBINT value expected\n");
 				return 1;
 			}
-			if (*(TDS_INT*)curcol->column_data != 12) {
+			if (*(TDS_INT *) curcol->column_data != 12) {
 				fprintf(stderr, "invalid integer returned\n");
 				return 1;
 			}

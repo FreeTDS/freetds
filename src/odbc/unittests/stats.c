@@ -92,7 +92,7 @@ str(char *buf, int n)
 static void
 set_dbname(const char *dbname)
 {
-	CHKSetConnectAttr(SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) T(dbname), strlen(dbname)*sizeof(SQLTCHAR), "SI");
+	CHKSetConnectAttr(SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) T(dbname), strlen(dbname) * sizeof(SQLTCHAR), "SI");
 }
 
 TEST_MAIN()

@@ -23,7 +23,8 @@
 #include <tds_sysdep_public.h>
 #include <freetds/bool.h>
 
-typedef struct {
+typedef struct
+{
 	uint16_t comp[8];
 } smp;
 

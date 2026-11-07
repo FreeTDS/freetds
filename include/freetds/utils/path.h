@@ -29,6 +29,7 @@
 #ifdef _WIN32
 #define TDS_SDIR_SEPARATOR L"\\"
 typedef wchar_t tds_dir_char;
+
 #define tds_dir_open _wfopen
 #define tds_dir_getenv _wgetenv
 #define tds_dir_dup _wcsdup
@@ -43,6 +44,7 @@ tds_dir_char *tds_dir_from_cstr(const char *path);
 #else
 #define TDS_SDIR_SEPARATOR "/"
 typedef char tds_dir_char;
+
 #define tds_dir_open fopen
 #define tds_dir_getenv getenv
 #define tds_dir_dup strdup
@@ -55,8 +57,8 @@ typedef char tds_dir_char;
 #endif
 
 tds_dir_char *tds_get_homedir(void);
-tds_dir_char* tds_join_path(const tds_dir_char *dir, const tds_dir_char *file);
-tds_dir_char *tds_get_home_file(const tds_dir_char *file);
+tds_dir_char *tds_join_path(const tds_dir_char * dir, const tds_dir_char * file);
+tds_dir_char *tds_get_home_file(const tds_dir_char * file);
 
 #include <freetds/popvis.h>
 

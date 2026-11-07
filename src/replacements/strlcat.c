@@ -26,7 +26,7 @@
 #include <freetds/sysdep_private.h>
 #include <freetds/replacements.h>
 
-size_t 
+size_t
 tds_strlcat(char *dest, const char *src, size_t len)
 {
 	size_t dest_len = strlen(dest);

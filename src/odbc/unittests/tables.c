@@ -69,8 +69,8 @@ DoTest(const char *type, int row_returned, int line)
 	CHKTables(T(catalog), LEN(catalog), T(schema), LEN(schema), T(table_buf), table_len, T(type), LEN(type), "SI");
 
 	/* test column name (for DBD::ODBC) */
-	TestName(1, odbc_use_version3 || !odbc_driver_is_freetds() ? "TABLE_CAT" : "TABLE_QUALIFIER");
-	TestName(2, odbc_use_version3 || !odbc_driver_is_freetds() ? "TABLE_SCHEM" : "TABLE_OWNER");
+	TestName(1, odbc_use_version3 || !odbc_driver_is_freetds()? "TABLE_CAT" : "TABLE_QUALIFIER");
+	TestName(2, odbc_use_version3 || !odbc_driver_is_freetds()? "TABLE_SCHEM" : "TABLE_OWNER");
 	TestName(3, "TABLE_NAME");
 	TestName(4, "TABLE_TYPE");
 	TestName(5, "REMARKS");

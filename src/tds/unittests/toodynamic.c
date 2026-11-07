@@ -71,7 +71,7 @@ TEST_MAIN()
 		tds_release_dynamic(&dyn);
 	}
 
-	/* this should not cause duplicate IDs or erros*/
+	/* this should not cause duplicate IDs or erros */
 	for (n = 0; n < 20; ++n) {
 		TDSDYNAMIC *dyn2 = NULL;
 
@@ -95,4 +95,3 @@ TEST_MAIN()
 	try_tds_logout(login, tds, verbose);
 	return 0;
 }
-

@@ -51,6 +51,7 @@ void tds_send_eed(TDSSOCKET * tds, int msgno, int msgstate, int severity, const 
 void tds_send_err(TDSSOCKET * tds, int msgno, int msgstate, int severity, const char *msgtext, const char *srvname,
 		  const char *procname, int line);
 void tds_send_capabilities_token(TDSSOCKET * tds);
+
 /* TODO remove, use tds_send_done */
 void tds_send_done_token(TDSSOCKET * tds, TDS_SMALLINT flags, TDS_INT numrows);
 void tds_send_done(TDSSOCKET * tds, int token, TDS_SMALLINT flags, TDS_INT numrows);

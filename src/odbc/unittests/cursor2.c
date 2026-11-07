@@ -40,6 +40,6 @@ TEST_MAIN()
 	odbc_command("drop proc sp_test");
 
 	odbc_disconnect();
-	
+
 	return 0;
 }

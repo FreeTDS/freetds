@@ -21,9 +21,8 @@
 #define _tdsguard_cKNGa1szdpreKWqKpKKcAA_
 
 #include <freetds/pushvis.h>
-void hmac_md5(const unsigned char key[16],
-              const unsigned char* data, size_t data_len,
-              unsigned char* digest);
+void hmac_md5(const unsigned char key[16], const unsigned char *data, size_t data_len, unsigned char *digest);
+
 #include <freetds/popvis.h>
 
 #endif

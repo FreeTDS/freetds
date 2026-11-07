@@ -43,7 +43,7 @@
 #include <freetds/bytes.h>
 
 void
-dump_login(TDSLOGIN * login)
+dump_login(TDSLOGIN *login)
 {
 	fprintf(stderr, "host %s\n", tds_dstr_cstr(&login->client_host_name));
 	fprintf(stderr, "user %s\n", tds_dstr_cstr(&login->user_name));
@@ -125,6 +125,7 @@ pool_packet_read(TDSSOCKET *tds)
 		/* error */
 		if (readed < 0) {
 			int err = sock_errno;
+
 			if (err == EINTR)
 				continue;
 			if (TDSSOCK_WOULDBLOCK(err))
@@ -151,11 +152,12 @@ pool_write(TDS_SYS_SOCKET sock, const void *buf, size_t len)
 		ret = WRITESOCKET(sock, p, len);
 		if (ret <= 0) {
 			int err = errno;
+
 			if (TDSSOCK_WOULDBLOCK(err) || err == EINTR)
 				break;
 			return -1;
 		}
-		p   += ret;
+		p += ret;
 		len -= ret;
 	}
 	return p - (const unsigned char *) buf;

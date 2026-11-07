@@ -84,7 +84,7 @@ TEST_MAIN()
 	dbbind(dbproc, 2, STRINGBIND, 0, (BYTE *) teststr);
 
 	for (i = 1; i < rows_to_add; i++) {
-	char expected[1024];
+		char expected[1024];
 
 		sprintf(expected, "row %03d", i);
 
