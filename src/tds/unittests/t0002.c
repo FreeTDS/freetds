@@ -52,7 +52,7 @@ TEST_MAIN()
 	TDS_INT result_type;
 	int rc;
 	int i, done_flags;
-	const row_token_flags = TDS_STOPAT_ROWFMT | TDS_RETURN_DONE | TDS_RETURN_ROW | TDS_RETURN_COMPUTE;
+	const unsigned row_token_flags = TDS_STOPAT_ROWFMT | TDS_RETURN_DONE | TDS_RETURN_ROW | TDS_RETURN_COMPUTE;
 
 	printf("%s: Test basic submit query, results\n", __FILE__);
 	rc = try_tds_login(&login, &tds, __FILE__, verbose);
