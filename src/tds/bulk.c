@@ -1499,8 +1499,10 @@ tds5_get_col_data_or_dflt(tds_bcp_get_col_data get_col_data, TDSBCPINFO *bulk, T
 
 	bcpcol->bcp_column_data->deferred = false;
 	ret = get_col_data(bulk, bcpcol, colnum, offset);
+	/* errors must be reported, defaults are used only for NULL values */
+	TDS_PROPAGATE(ret);
 	coldata = bcpcol->bcp_column_data;
-	if (TDS_SUCCEED(ret) && coldata->deferred && !coldata->is_null
+	if (coldata->deferred && !coldata->is_null
 	    && (!type_has_textptr(bcpcol->on_server.column_type) || is_unicode_type(bcpcol->on_server.column_type))) {
 		tdsdump_log(TDS_DBG_ERROR, "column %d cannot be deferred\n", colnum + 1);
 		return TDS_FAIL;

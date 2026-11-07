@@ -473,6 +473,40 @@ output
 --
 sql
 --
+-- conversion errors on nullable columns must fail the row, not insert NULL
+-- errors are in the first rows as column data are initially NULL
+CREATE TABLE all_types_bcp_unittest (
+	  nullable_varbinary	varbinary(3) NULL
+	, nullable_int		int NULL
+)
+--
+bind
+--
+CS_CHAR_TYPE	10	hello
+CS_CHAR_TYPE	10	1
+SENDROWERROR	CLIENT2	0x102011a	Failed in conversion routine - syntax error.  col = 1 row = 1
+CS_CHAR_TYPE	10	0x41
+CS_CHAR_TYPE	10	abc
+SENDROWERROR	CLIENT2	0x102011a	Failed in conversion routine - syntax error.  col = 2 row = 1
+CS_CHAR_TYPE	10	0x313233
+CS_CHAR_TYPE	10	1
+SENDROW
+CS_CHAR_TYPE	10	0x42
+CS_CHAR_TYPE	10	4
+--
+select
+--
+SELECT nullable_varbinary, nullable_int FROM all_types_bcp_unittest ORDER BY nullable_int
+--
+output
+--
+313233
+1
+42
+4
+--
+sql
+--
 -- before TDS 7.3 these columns are seen as NVARCHAR, so binding
 -- date/time types is not supported, skip the test
 IF (SELECT protocol_version FROM sys.dm_exec_connections WHERE session_id = @@SPID) < 1929379840
