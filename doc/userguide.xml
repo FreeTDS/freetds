@@ -2719,6 +2719,29 @@ To avoid this problem, choose a threading model in <filename>odbcinst.ini</filen
 <screen>
 	<prompt>$ </prompt><userinput> tdspool mypool</userinput></screen></para>
 
+<para>On Unix systems <command>tdspool</command> can also be started by <application>inetd</application> or <application>xinetd</application> using the <option>-x</option> option.
+The service must be configured in <literal>wait</literal> mode, so that the listening socket (not an accepted connection) is passed to <command>tdspool</command> as standard input.
+In this mode the <literal>port</literal> setting in <filename>pool.conf</filename> is ignored (but still required); the port is the one configured in <application>xinetd</application>.
+Standard output and error are redirected to <filename>/dev/null</filename>; use the <option>-l</option> option to specify a log file.
+The <option>-d</option> option cannot be used together with <option>-x</option>.
+			<example id="e.g.pool.xinetd">
+				<title>xinetd service for tdspool</title>
+<programlisting>
+	service tdspool
+	{
+		type        = UNLISTED
+		socket_type = stream
+		protocol    = tcp
+		port        = 5000
+		wait        = yes
+		user        = nobody
+		server      = /usr/local/bin/tdspool
+		server_args = -x -l /var/log/tdspool.log mypool
+	}
+	</programlisting>
+				</example>
+</para>
+
 <para>Before your clients connect to the pool, you must edit your &freetdsconf; to include the host and port of the pooling server, and point your clients at it.</para>
 		</sect1>
 	</chapter>

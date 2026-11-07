@@ -285,6 +285,9 @@ pool_open_logfile(void)
 	return true;
 }
 
+/* listening socket received from inetd/xinetd, if any */
+static TDS_SYS_SOCKET inherited_listen_fd = INVALID_SOCKET;
+
 static void
 pool_socket_init(TDS_POOL * pool)
 {
@@ -297,20 +300,26 @@ pool_socket_init(TDS_POOL * pool)
 	sin.sin_port = htons(pool->port);
 	sin.sin_family = AF_INET;
 
-	if (TDS_IS_SOCKET_INVALID(s = socket(AF_INET, SOCK_STREAM, 0))) {
-		perror("socket");
-		exit(1);
-	}
-	tds_socket_set_nonblocking(s);
-	/* don't keep addr in use from s.craig@andronics.com */
-	setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (const void *) &socktrue, sizeof(socktrue));
+	if (!TDS_IS_SOCKET_INVALID(inherited_listen_fd)) {
+		s = inherited_listen_fd;
+		inherited_listen_fd = INVALID_SOCKET;
+		tds_socket_set_nonblocking(s);
+	} else {
+		if (TDS_IS_SOCKET_INVALID(s = socket(AF_INET, SOCK_STREAM, 0))) {
+			perror("socket");
+			exit(1);
+		}
+		tds_socket_set_nonblocking(s);
+		/* don't keep addr in use from s.craig@andronics.com */
+		setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (const void *) &socktrue, sizeof(socktrue));
 
-	fprintf(stderr, "Listening on port %d\n", pool->port);
-	if (bind(s, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
-		perror("bind");
-		exit(1);
+		fprintf(stderr, "Listening on port %d\n", pool->port);
+		if (bind(s, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
+			perror("bind");
+			exit(1);
+		}
+		listen(s, 5);
 	}
-	listen(s, 5);
 	pool->listen_fd = s;
 
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, event_pair) < 0) {
@@ -414,8 +423,62 @@ pool_main_loop(TDS_POOL * pool)
 static void
 print_usage(const char *progname)
 {
-	fprintf(stderr, "Usage:\t%s [-l <log file>] [-c <conf file>] [-d] <pool name>\n", progname);
+	fprintf(stderr, "Usage:\t%s [-l <log file>] [-c <conf file>] [-d] [-x] <pool name>\n", progname);
 }
+
+#ifndef _WIN32
+/**
+ * Set up the process when started by inetd/xinetd in "wait" mode.
+ * In this mode the listening socket is passed as file descriptors 0, 1 and 2;
+ * keep a copy of it and redirect standard streams to /dev/null.
+ * Logging can be enabled with the -l option.
+ * \return true on success, false on error
+ */
+static bool
+pool_inetd_init(void)
+{
+	TDS_SYS_SOCKET s;
+	int fd;
+#ifdef SO_ACCEPTCONN
+	int accept_conn = 0;
+	SOCKLEN_T len = sizeof(accept_conn);
+
+	if (getsockopt(0, SOL_SOCKET, SO_ACCEPTCONN, (void *) &accept_conn, &len) < 0 || !accept_conn) {
+		fprintf(stderr, "Standard input is not a listening socket, check inetd service is configured with \"wait\"\n");
+		return false;
+	}
+#endif
+
+	s = dup(0);
+	if (TDS_IS_SOCKET_INVALID(s)) {
+		perror("dup");
+		return false;
+	}
+
+	fd = open("/dev/null", O_RDWR);
+	if (fd < 0) {
+		perror("open /dev/null");
+		CLOSESOCKET(s);
+		return false;
+	}
+	fflush(stdout);
+	fflush(stderr);
+	while (dup2(fd, 0) < 0 && errno == EINTR)
+		continue;
+	while (dup2(fd, 1) < 0 && errno == EINTR)
+		continue;
+	while (dup2(fd, 2) < 0 && errno == EINTR)
+		continue;
+	if (fd > 2)
+		close(fd);
+
+	inherited_listen_fd = s;
+	return true;
+}
+#  define INETD_OPT "x"
+#else
+#  define INETD_OPT ""
+#endif
 
 int
 main(int argc, char **argv)
@@ -427,6 +490,9 @@ main(int argc, char **argv)
 #else
 #  define DAEMON_OPT ""
 #endif
+#ifndef _WIN32
+	bool inetd = false;
+#endif
 	TDS_POOL *pool;
 	tds_dir_char *config_path = NULL;
 
@@ -437,7 +503,7 @@ main(int argc, char **argv)
 	signal(SIGPIPE, SIG_IGN);
 #endif
 
-	while ((opt = getopt(argc, argv, "l:c:" DAEMON_OPT)) != -1) {
+	while ((opt = getopt(argc, argv, "l:c:" DAEMON_OPT INETD_OPT)) != -1) {
 		switch (opt) {
 		case 'l':
 			logfile_name = optarg;
@@ -454,6 +520,11 @@ main(int argc, char **argv)
 				return EXIT_FAILURE;
 			}
 			break;
+#ifndef _WIN32
+		case 'x':
+			inetd = true;
+			break;
+#endif
 		default:
 			print_usage(argv[0]);
 			return EXIT_FAILURE;
@@ -463,6 +534,19 @@ main(int argc, char **argv)
 		print_usage(argv[0]);
 		return EXIT_FAILURE;
 	}
+#ifndef _WIN32
+	if (inetd) {
+#ifdef HAVE_FORK
+		/* inetd waits for the process it started, it must not go away */
+		if (daemonize) {
+			fprintf(stderr, "Options -d and -x cannot be used together\n");
+			return EXIT_FAILURE;
+		}
+#endif
+		if (!pool_inetd_init())
+			return EXIT_FAILURE;
+	}
+#endif
 	pool = pool_init(argv[optind], config_path);
 	TDS_ZERO_FREE(config_path);
 #ifdef HAVE_FORK
