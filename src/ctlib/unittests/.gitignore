@@ -28,6 +28,7 @@
 /ct_dynamic
 /blk_in2
 /blk_cancel
+/blk_textxfer
 /datafmt
 /rpc_fail
 /row_count
