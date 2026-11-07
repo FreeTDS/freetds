@@ -716,7 +716,60 @@ _blk_null_error(TDSBCPINFO *bcpinfo, int index, int offset)
 
 	tdsdump_log(TDS_DBG_FUNC, "_blk_null_error(%p, %d, %d)\n", bcpinfo, index, offset);
 
-	_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 2, 7, 1, 142, "%d, %d",  index + 1, offset + 1);
+	_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 2, 7, 1, 142, "%d, %d", index + 1, offset + 1);
+}
+
+/** How to handle data too long for a character or binary column */
+typedef enum
+{
+	/** truncate data */
+	BLK_TRUNC_SILENT,
+	/** truncate data and report a warning */
+	BLK_TRUNC_WARN,
+	/** report an error, row is not sent */
+	BLK_TRUNC_FAIL,
+} blk_truncation_mode;
+
+static bool
+_blk_is_binary_source(CS_INT srctype)
+{
+	return srctype == CS_BINARY_TYPE || srctype == CS_LONGBINARY_TYPE || srctype == CS_IMAGE_TYPE;
+}
+
+/**
+ * Tell how to handle data too long for a character or binary column.
+ * Follows Sybase/SAP library, which depends on source type.
+ */
+static blk_truncation_mode
+_blk_truncation_mode(CS_INT srctype, bool binary_dest)
+{
+	switch (srctype) {
+	case CS_CHAR_TYPE:
+	case CS_LONGCHAR_TYPE:
+	case CS_TEXT_TYPE:
+	case CS_UNICHAR_TYPE:
+	case CS_UNITEXT_TYPE:
+		return binary_dest ? BLK_TRUNC_WARN : BLK_TRUNC_SILENT;
+	case CS_VARCHAR_TYPE:
+		return binary_dest ? BLK_TRUNC_FAIL : BLK_TRUNC_WARN;
+	case CS_BINARY_TYPE:
+	case CS_IMAGE_TYPE:
+		return binary_dest ? BLK_TRUNC_SILENT : BLK_TRUNC_WARN;
+	case CS_LONGBINARY_TYPE:
+		return BLK_TRUNC_WARN;
+	case CS_VARBINARY_TYPE:
+		return BLK_TRUNC_FAIL;
+	case CS_DATETIME_TYPE:
+	case CS_DATETIME4_TYPE:
+	case CS_DATE_TYPE:
+	case CS_TIME_TYPE:
+	case CS_BIGDATETIME_TYPE:
+	case CS_BIGTIME_TYPE:
+		return binary_dest ? BLK_TRUNC_SILENT : BLK_TRUNC_WARN;
+	default:
+		/* numeric types */
+		return binary_dest ? BLK_TRUNC_WARN : BLK_TRUNC_FAIL;
+	}
 }
 
 static TDSRET
@@ -910,9 +963,32 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int index TDS_UNUSED, in
 			destlen = (TDS_INT) out_len;
 		}
 
-		/* char -> binary conversion truncated */
-		if (desttype == TDS_CONVERT_BINARY && destlen > bindcol->on_server.column_size)
-			_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 1, 2, 1, 42, "%d, %d", index + 1, bulk->rows_sent + 1);
+		/* data too long for character or binary column */
+		if (!is_blob_col(bindcol) && destlen > bindcol->on_server.column_size
+		    && (desttype == TDS_CONVERT_BINARY || is_binary_type(desttype) || is_char_type(desttype))) {
+			bool binary_dest = (desttype == TDS_CONVERT_BINARY || is_binary_type(desttype));
+
+			switch (_blk_truncation_mode(srctype, binary_dest)) {
+			case BLK_TRUNC_FAIL:
+				_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 1, 2, 1, 25, "%d, %d", index + 1,
+					      bulk->rows_sent + 1);
+				return TDS_FAIL;
+			case BLK_TRUNC_WARN:
+				_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 1, 2, 1, 42, "%d, %d", index + 1,
+					      bulk->rows_sent + 1);
+				break;
+			case BLK_TRUNC_SILENT:
+				break;
+			}
+			destlen = bindcol->on_server.column_size;
+
+			/* do not split bytes in hexadecimal representation of binary data */
+			if (!binary_dest && _blk_is_binary_source(srctype)) {
+				int digit_size = is_unicode_type(bindcol->on_server.column_type) ? 2 : 1;
+
+				destlen -= destlen % (digit_size * 2);
+			}
+		}
 	}
 
 	bindcol->bcp_column_data->datalen = destlen;

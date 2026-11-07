@@ -473,6 +473,131 @@ output
 --
 sql
 --
+-- data too long for a character column, behaviour depends on source type
+CREATE TABLE all_types_bcp_unittest (
+	  id		int NOT NULL
+	, vc		varchar(3) NULL
+)
+--
+bind
+--
+-- character data are truncated
+CS_CHAR_TYPE	10	1
+CS_CHAR_TYPE	10	abcd
+SENDROW
+CS_CHAR_TYPE	10	2
+CS_LONGCHAR_TYPE	10	abcd
+SENDROW
+-- CS_VARCHAR is truncated with a warning
+CS_CHAR_TYPE	10	3
+CS_VARCHAR_TYPE	10	abcd
+SENDROW	CLIENT2	0x102012a	Data truncated while doing local character set conversion.  col = 2 row = 3
+-- binary is truncated with a warning, not splitting hexadecimal digits of a byte
+CS_CHAR_TYPE	10	4
+CS_BINARY_TYPE	10	0x010203
+SENDROW	CLIENT2	0x102012a	Data truncated while doing local character set conversion.  col = 2 row = 4
+CS_CHAR_TYPE	10	5
+CS_LONGBINARY_TYPE	10	0x010203
+SENDROW	CLIENT2	0x102012a	Data truncated while doing local character set conversion.  col = 2 row = 5
+-- CS_VARBINARY fails
+CS_CHAR_TYPE	10	6
+CS_VARBINARY_TYPE	10	0x010203
+SENDROWERROR	CLIENT2	0x1020119	Failed in conversion routine - condition overflow.  col = 2 row = 6
+-- dates are truncated with a warning
+CS_CHAR_TYPE	10	6
+CS_DATETIME_TYPE	8	2024-05-10 12:34:56
+SENDROW	CLIENT2	0x102012a	Data truncated while doing local character set conversion.  col = 2 row = 6
+-- numbers fail
+CS_CHAR_TYPE	10	7
+CS_INT_TYPE	4	1234
+SENDROWERROR	CLIENT2	0x1020119	Failed in conversion routine - condition overflow.  col = 2 row = 7
+-- data fitting the column
+CS_CHAR_TYPE	10	7
+CS_INT_TYPE	4	123
+SENDROW
+CS_CHAR_TYPE	10	8
+CS_VARBINARY_TYPE	10	0x01
+--
+select
+--
+SELECT id, vc FROM all_types_bcp_unittest ORDER BY id
+--
+output
+--
+1
+abc
+2
+abc
+3
+abc
+4
+01
+5
+01
+6
+May
+7
+123
+8
+01
+--
+sql
+--
+-- data too long for a binary column, behaviour depends on source type
+CREATE TABLE all_types_bcp_unittest (
+	  id		int NOT NULL
+	, vb		varbinary(2) NULL
+)
+--
+bind
+--
+-- character data are truncated with a warning
+CS_CHAR_TYPE	10	1
+CS_CHAR_TYPE	10	0x010203
+SENDROW	CLIENT2	0x102012a	Data truncated while doing local character set conversion.  col = 2 row = 1
+-- CS_VARCHAR fails
+CS_CHAR_TYPE	10	2
+CS_VARCHAR_TYPE	10	0x010203
+SENDROWERROR	CLIENT2	0x1020119	Failed in conversion routine - condition overflow.  col = 2 row = 2
+-- binary is truncated
+CS_CHAR_TYPE	10	2
+CS_BINARY_TYPE	10	0x010203
+SENDROW
+-- long binary is truncated with a warning
+CS_CHAR_TYPE	10	3
+CS_LONGBINARY_TYPE	10	0x010203
+SENDROW	CLIENT2	0x102012a	Data truncated while doing local character set conversion.  col = 2 row = 3
+-- CS_VARBINARY fails
+CS_CHAR_TYPE	10	4
+CS_VARBINARY_TYPE	10	0x010203
+SENDROWERROR	CLIENT2	0x1020119	Failed in conversion routine - condition overflow.  col = 2 row = 4
+-- numbers are truncated with a warning (bytes are the same in any byte order)
+CS_CHAR_TYPE	10	4
+CS_INT_TYPE	4	16843009
+SENDROW	CLIENT2	0x102012a	Data truncated while doing local character set conversion.  col = 2 row = 4
+-- data fitting the column
+CS_CHAR_TYPE	10	5
+CS_VARBINARY_TYPE	10	0x0102
+--
+select
+--
+SELECT id, vb FROM all_types_bcp_unittest ORDER BY id
+--
+output
+--
+1
+0102
+2
+0102
+3
+0102
+4
+0101
+5
+0102
+--
+sql
+--
 -- fixed length types bound without specifying length (CS_UNUSED)
 CREATE TABLE all_types_bcp_unittest (
 	  id		int NOT NULL

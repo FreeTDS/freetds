@@ -242,6 +242,12 @@ type_from_name(const char *name)
 {
 #define TYPE(t) if (strcmp(name, #t) == 0) return t;
 	TYPE(CS_CHAR_TYPE);
+	TYPE(CS_LONGCHAR_TYPE);
+	TYPE(CS_VARCHAR_TYPE);
+	TYPE(CS_BINARY_TYPE);
+	TYPE(CS_LONGBINARY_TYPE);
+	TYPE(CS_VARBINARY_TYPE);
+	TYPE(CS_INT_TYPE);
 	TYPE(CS_DATETIME_TYPE);
 	TYPE(CS_DATETIME4_TYPE);
 	TYPE(CS_DATE_TYPE);
@@ -292,7 +298,9 @@ do_type_bind(CS_BLKDESC *blkdesc, int col, const char *tok)
 		return;
 	} else {
 		CS_DATAFMT srcfmt, destfmt;
-		void *data = calloc(1, 64);
+
+		/* large enough for CS_VARCHAR/CS_VARBINARY */
+		void *data = calloc(1, 512);
 
 		assert(data);
 		memset(&srcfmt, 0, sizeof(srcfmt));
@@ -300,7 +308,7 @@ do_type_bind(CS_BLKDESC *blkdesc, int col, const char *tok)
 		srcfmt.maxlength = bound->varlen;
 		memset(&destfmt, 0, sizeof(destfmt));
 		destfmt.datatype = type;
-		destfmt.maxlength = 64;
+		destfmt.maxlength = (type == CS_VARCHAR_TYPE || type == CS_VARBINARY_TYPE) ? 512 : 64;
 		destfmt.format = CS_FMT_UNUSED;
 		if (type == CS_NUMERIC_TYPE) {
 			destfmt.precision = 10;
