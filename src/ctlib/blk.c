@@ -720,6 +720,12 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int index TDS_UNUSED, in
 		srcfmt.maxlength = srclen;
 
 		desttype = tds_get_conversion_type(bindcol->on_server.column_type, bindcol->on_server.column_size);
+		/*
+		 * For Unicode columns convert to client character type
+		 * and later convert to server encoding
+		 */
+		if (is_unicode_type(bindcol->on_server.column_type))
+			desttype = tds_get_conversion_type(bindcol->column_type, bindcol->column_size);
 
 		switch (desttype) {
 			/* binary types not BLOB (with limited size) */
@@ -793,6 +799,25 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int index TDS_UNUSED, in
 		if (replace) {
 			free(bindcol->bcp_column_data->data);
 			bindcol->bcp_column_data->data = (void *) cres.c;
+		}
+
+		/* convert character data to server encoding */
+		if (is_unicode_type(bindcol->on_server.column_type) && is_char_type(desttype) && bindcol->char_conv && destlen > 0) {
+			size_t out_len;
+			const char *converted;
+
+			converted = tds_convert_string(CONN(blkdesc)->tds_socket, bindcol->char_conv,
+						       (const char *) bindcol->bcp_column_data->data, destlen, &out_len);
+			if (!converted) {
+				_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 1, 2, 1, 26, "%d, %d", index + 1,
+					      bulk->rows_sent + 1);
+				return TDS_FAIL;
+			}
+			if (converted != (const char *) bindcol->bcp_column_data->data) {
+				free(bindcol->bcp_column_data->data);
+				bindcol->bcp_column_data->data = (TDS_UCHAR *) converted;
+			}
+			destlen = (TDS_INT) out_len;
 		}
 
 		/* char -> binary conversion truncated */

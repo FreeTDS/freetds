@@ -475,13 +475,13 @@ tds7_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 {
 	int i;
 
-	tds_put_byte(tds, TDS_ROW_TOKEN);   /* 0xd1 */
+	tds_put_byte(tds, TDS_ROW_TOKEN);	/* 0xd1 */
 	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
 
-		TDS_INT save_size;
+		TDS_INT save_size, save_col_size;
 		unsigned char *save_data;
 		TDSBLOB blob;
-		TDSCOLUMN  *bindcol;
+		TDSCOLUMN *bindcol;
 		TDSRET rc;
 
 		bindcol = bcpinfo->bindinfo->columns[i];
@@ -502,8 +502,9 @@ tds7_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 			return rc;
 		}
 		tdsdump_log(TDS_DBG_INFO1, "gotten column %d length %d null %d\n",
-				i + 1, bindcol->bcp_column_data->datalen, bindcol->bcp_column_data->is_null);
+			    i + 1, bindcol->bcp_column_data->datalen, bindcol->bcp_column_data->is_null);
 
+		save_col_size = bindcol->column_size;
 		save_size = bindcol->column_cur_size;
 		save_data = bindcol->column_data;
 		assert(bindcol->column_data == NULL);
@@ -520,10 +521,13 @@ tds7_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 			blob.textvalue = (TDS_CHAR *) bindcol->bcp_column_data->data;
 			bindcol->column_data = (unsigned char *) &blob;
 		} else {
-			bindcol->column_cur_size = TDS_MIN(bindcol->bcp_column_data->datalen, bindcol->column_size);
+			/* data are already in server format */
+			bindcol->column_cur_size = TDS_MIN(bindcol->bcp_column_data->datalen, bindcol->on_server.column_size);
 			bindcol->column_data = bindcol->bcp_column_data->data;
+			bindcol->column_size = TDS_MAX(bindcol->column_size, bindcol->on_server.column_size);
 		}
 		rc = bindcol->funcs->put_data(tds, bindcol, true);
+		bindcol->column_size = save_col_size;
 		bindcol->column_cur_size = save_size;
 		bindcol->column_data = save_data;
 
