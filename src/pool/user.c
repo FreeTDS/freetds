@@ -186,6 +186,7 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s)
 	}
 
 	tds_socket_set_nodelay(fd);
+	tds_socket_set_nosigpipe(fd, 1);
 
 	if (tds_socket_set_nonblocking(fd) != 0) {
 		CLOSESOCKET(fd);
