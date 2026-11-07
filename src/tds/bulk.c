@@ -1009,7 +1009,15 @@ tds5_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_
 				rowbuffer[row_pos] = ' ';
 			} else {
 				cpbytes = bcpcol->bcp_column_data->datalen > bcpcol->column_size ?
-				bcpcol->column_size : bcpcol->bcp_column_data->datalen;
+					bcpcol->column_size : bcpcol->bcp_column_data->datalen;
+				/*
+				 * Sybase stores variable binary data without trailing
+				 * zeroes (keeping at least a byte), do the same as
+				 * a normal insert.
+				 */
+				if (is_binary_type(bcpcol->on_server.column_type))
+					while (cpbytes > 1 && bcpcol->bcp_column_data->data[cpbytes - 1] == 0)
+						--cpbytes;
 				memcpy(&rowbuffer[row_pos], bcpcol->bcp_column_data->data, cpbytes);
 				tds5_swap_data(bcpcol, &rowbuffer[row_pos]);
 			}

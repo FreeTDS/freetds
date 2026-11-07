@@ -473,6 +473,84 @@ output
 --
 sql
 --
+-- Sybase stores variable binary data without trailing zeroes, keeping
+-- at least a byte, also for bulk copy
+CREATE TABLE all_types_bcp_unittest (
+	  vb_char	varbinary(10) NULL
+	, vb_bin	varbinary(10) NULL
+	, vb_varbin	varbinary(10) NULL
+	, vb_int	varbinary(10) NULL
+	, b		binary(4) NULL
+)
+lock allpages
+--
+bind
+--
+CS_CHAR_TYPE	10	0x010000
+CS_BINARY_TYPE	10	0x020000
+CS_VARBINARY_TYPE	10	0x0000
+CS_INT_TYPE	4	0
+CS_CHAR_TYPE	10	0x0300
+--
+select
+--
+SELECT DISTINCT vb_char, datalength(vb_char), vb_bin, datalength(vb_bin), vb_varbin, datalength(vb_varbin),
+	vb_int, datalength(vb_int), b, datalength(b) FROM all_types_bcp_unittest
+--
+output
+--
+01
+1
+02
+1
+00
+1
+00
+1
+03
+1
+--
+sql
+--
+-- Sybase stores variable binary data without trailing zeroes, keeping
+-- at least a byte, also for bulk copy (data rows locking)
+CREATE TABLE all_types_bcp_unittest (
+	  vb_char	varbinary(10) NULL
+	, vb_bin	varbinary(10) NULL
+	, vb_varbin	varbinary(10) NULL
+	, vb_int	varbinary(10) NULL
+	, b		binary(4) NULL
+)
+lock datarows
+--
+bind
+--
+CS_CHAR_TYPE	10	0x010000
+CS_BINARY_TYPE	10	0x020000
+CS_VARBINARY_TYPE	10	0x0000
+CS_INT_TYPE	4	0
+CS_CHAR_TYPE	10	0x0300
+--
+select
+--
+SELECT DISTINCT vb_char, datalength(vb_char), vb_bin, datalength(vb_bin), vb_varbin, datalength(vb_varbin),
+	vb_int, datalength(vb_int), b, datalength(b) FROM all_types_bcp_unittest
+--
+output
+--
+01
+1
+02
+1
+00
+1
+00
+1
+03
+1
+--
+sql
+--
 -- data too long for a character column, behaviour depends on source type
 CREATE TABLE all_types_bcp_unittest (
 	  id		int NOT NULL
