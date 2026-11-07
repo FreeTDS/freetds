@@ -776,27 +776,18 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int index TDS_UNUSED, in
 	if (datalen) {
 		srclen = *datalen;
 		if (srclen == CS_UNUSED) {
-			switch (srctype) {
-			case CS_LONG_TYPE:	    srclen = 8; break;
-			case CS_FLOAT_TYPE:	    srclen = 8; break;
-			case CS_MONEY_TYPE:	    srclen = 8; break;
-			case CS_DATETIME_TYPE:  srclen = 8; break;
-			case CS_INT_TYPE:	    srclen = 4; break;
-			case CS_UINT_TYPE:	    srclen = 4; break;
-			case CS_REAL_TYPE:	    srclen = 4; break;
-			case CS_MONEY4_TYPE:	srclen = 4; break;
-			case CS_DATETIME4_TYPE: srclen = 4; break;
-			case CS_SMALLINT_TYPE:  srclen = 2; break;
-			case CS_USMALLINT_TYPE:  srclen = 2; break;
-			case CS_TINYINT_TYPE:   srclen = 1; break;
-			case CS_BIT_TYPE:   srclen = 1; break;
-			case CS_BIGINT_TYPE:	    srclen = 8; break;
-			case CS_UBIGINT_TYPE:	    srclen = 8; break;
-			case CS_UNIQUE_TYPE:	    srclen = 16; break;
-			default:
-				tdsdump_log(TDS_DBG_ERROR, "Not fixed length type (%d) and datalen not specified\n",
-					    bindcol->column_bindtype);
-				return TDS_FAIL;
+			/* length of fixed types is implicit */
+			if (srctype == CS_NUMERIC_TYPE || srctype == CS_DECIMAL_TYPE) {
+				srclen = sizeof(CS_NUMERIC);
+			} else {
+				TDS_SERVER_TYPE type = _ct_get_server_type(NULL, srctype);
+
+				srclen = type == TDS_INVALID_TYPE ? -1 : tds_get_size_by_type(type);
+				if (srclen <= 0) {
+					tdsdump_log(TDS_DBG_ERROR, "Not fixed length type (%d) and datalen not specified\n",
+						    bindcol->column_bindtype);
+					return TDS_FAIL;
+				}
 			}
 		}
 		if (srclen < 0) {

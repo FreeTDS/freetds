@@ -248,6 +248,7 @@ type_from_name(const char *name)
 	TYPE(CS_TIME_TYPE);
 	TYPE(CS_BIGDATETIME_TYPE);
 	TYPE(CS_BIGTIME_TYPE);
+	TYPE(CS_NUMERIC_TYPE);
 #undef TYPE
 	fprintf(stderr, "Unhandled type %s\n", name);
 	exit(1);
@@ -261,7 +262,11 @@ static void
 do_type_bind(CS_BLKDESC *blkdesc, int col, const char *tok)
 {
 	CS_INT type = type_from_name(tok);
-	CS_INT maxlen = atoi(strtok(NULL, " \t\n"));
+	const char *maxlen_str = strtok(NULL, " \t\n");
+
+	/* "UNUSED" means length not specified (CS_UNUSED), only for fixed types */
+	bool unused_len = strcmp(maxlen_str, "UNUSED") == 0;
+	CS_INT maxlen = unused_len ? 64 : atoi(maxlen_str);
 	char *value = strdup(strtok(NULL, "\n"));
 	bound_value *bound = calloc(1, sizeof(*bound));
 
@@ -297,7 +302,13 @@ do_type_bind(CS_BLKDESC *blkdesc, int col, const char *tok)
 		destfmt.datatype = type;
 		destfmt.maxlength = 64;
 		destfmt.format = CS_FMT_UNUSED;
+		if (type == CS_NUMERIC_TYPE) {
+			destfmt.precision = 10;
+			destfmt.scale = 2;
+		}
 		check_call(cs_convert, (ctx, &srcfmt, value, &destfmt, data, &bound->varlen));
+		if (unused_len)
+			bound->varlen = CS_UNUSED;
 		bound->value = data;
 		free(value);
 		do_bind(blkdesc, col, CS_FMT_UNUSED, type, maxlen, data, &bound->varlen, &bound->ind);
