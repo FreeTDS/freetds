@@ -620,6 +620,10 @@ tds7_send_auth(TDSSOCKET * tds,
 	return tds_flush_packet(tds);
 }
 
+/* AV_PAIR identifiers, see MS-NLMP */
+#define MSV_AV_TARGET_NAME 0x0009
+#define MSV_AV_CHANNEL_BINDINGS 0x000A
+
 #define AV_PAIR_CBT_BYTES 20
 
 typedef struct tds_ntlm_auth
@@ -627,6 +631,9 @@ typedef struct tds_ntlm_auth
 	TDSAUTHENTICATION tds_auth;
 	uint8_t cbt[16];
 	bool has_cbt;
+	/** service principal name, UTF-16LE */
+	char *spn;
+	size_t spn_len;
 } TDSNTLMAUTH;
 
 static TDSRET
@@ -635,6 +642,7 @@ tds_ntlm_free(TDSCONNECTION * conn TDS_UNUSED, TDSAUTHENTICATION * tds_auth)
 	TDSNTLMAUTH *auth = (TDSNTLMAUTH *) tds_auth;
 
 	free(auth->tds_auth.packet);
+	free(auth->spn);
 	free(auth);
 
 	return TDS_SUCCESS;
@@ -705,40 +713,73 @@ get_cbt(TDSSOCKET *tds, TDSNTLMAUTH *auth)
 }
 
 /**
- * Add channel binding token (CBT) AV_PAIR to target_info in names_blob
- * @param tds TDSSOCKET structure
- * @param names_blob pointer to names_blob buffer
- * @param names_blob_len pointer to current length (will be updated)
- * @return TDS_SUCCESS or TDS_FAIL
+ * Compute the service principal name to send to the server.
+ * SQL Server checks it when Extended Protection is enabled.
  */
 static void
-add_cbt_data(TDSNTLMAUTH *auth, unsigned char *names_blob, int *names_blob_len, int target_info_len)
+get_spn(TDSSOCKET *tds, TDSNTLMAUTH *auth)
 {
-	int new_blob_len;
-	int target_info_offset;
-	unsigned char *cbt_av_pair;
+	char *spn;
+	size_t spn_len;
 
-	/* No CBT, skip channel binding */
-	if (!auth->has_cbt)
+	spn = tds_get_spn(tds);
+	if (!spn)
 		return;
 
-	target_info_offset = TDS_OFFSET(names_blob_prefix_t, target_info);
+	tdsdump_log(TDS_DBG_INFO1, "NTLM target name %s\n", spn);
+	spn_len = strlen(spn);
+	auth->spn = tds_new(char, spn_len * 2);
 
-	/* Add CBT AV_PAIR (4 bytes header + 16 bytes CBT) */
-	new_blob_len = *names_blob_len + 4 + 16;	/* +20 for CBT AV_PAIR */
+	if (auth->spn) {
+		auth->spn_len = convert_to_usc2le_string(tds, spn, spn_len, auth->spn);
+		/* AvLen is 16 bit */
+		if (auth->spn_len == (size_t) -1 || auth->spn_len > 0xfff0) {
+			free(auth->spn);
+			auth->spn = NULL;
+			auth->spn_len = 0;
+		}
+	}
+	free(spn);
+}
 
-	/* Insert CBT AV_PAIR */
+/**
+ * Add an AV_PAIR to target_info in names_blob.
+ * target_info is at the end of names_blob and ends with a MsvAvEOL terminator.
+ * @param names_blob     names_blob buffer, must have space for the new pair
+ * @param names_blob_len current length (will be updated)
+ * @param av_id          AvId of the new pair
+ * @param data           data of the new pair
+ * @param data_len       length of data
+ */
+static void
+add_av_pair(unsigned char *names_blob, int *names_blob_len, uint16_t av_id, const void *data, size_t data_len)
+{
 	/* The -4 is to override the old terminator */
-	cbt_av_pair = names_blob + target_info_offset + target_info_len - 4;
+	unsigned char *av_pair = names_blob + *names_blob_len - 4;
 
-	TDS_PUT_UA2LE(cbt_av_pair, 0x000A);	/* AvId = 0xA (little endian) */
-	TDS_PUT_UA2LE(cbt_av_pair + 2, 16);	/* AvLen = 16 (little endian) */
-	memcpy(cbt_av_pair + 4, auth->cbt, 16);	/* CBT (16 bytes) */
-	memset(cbt_av_pair + 20, 0, 4);	/* Terminator */
+	TDS_PUT_UA2LE(av_pair, av_id);
+	TDS_PUT_UA2LE(av_pair + 2, data_len);
+	memcpy(av_pair + 4, data, data_len);
+	memset(av_pair + 4 + data_len, 0, 4);	/* Terminator */
 
-	tdsdump_dump_buf(TDS_DBG_INFO1, "New names_blob\n", names_blob, new_blob_len);
-	/* Update names_blob_len */
-	*names_blob_len = new_blob_len;
+	*names_blob_len += 4 + (int) data_len;
+}
+
+/**
+ * Add channel binding token (CBT) and target name AV_PAIRs to target_info in names_blob
+ * @param auth           NTLM authentication data
+ * @param names_blob     names_blob buffer
+ * @param names_blob_len current length (will be updated)
+ */
+static void
+add_av_pairs(TDSNTLMAUTH *auth, unsigned char *names_blob, int *names_blob_len)
+{
+	if (auth->has_cbt)
+		add_av_pair(names_blob, names_blob_len, MSV_AV_CHANNEL_BINDINGS, auth->cbt, sizeof(auth->cbt));
+	if (auth->spn)
+		add_av_pair(names_blob, names_blob_len, MSV_AV_TARGET_NAME, auth->spn, auth->spn_len);
+
+	tdsdump_dump_buf(TDS_DBG_INFO1, "New names_blob\n", names_blob, *names_blob_len);
 }
 
 static void
@@ -837,7 +878,8 @@ tds_ntlm_handle_next(TDSSOCKET *tds, TDSAUTHENTICATION *tds_auth TDS_UNUSED, siz
 			names_blob_len = TDS_OFFSET(names_blob_prefix_t, target_info) + target_info_len;
 
 			/* read Target Info */
-			names_blob = tds_new0(unsigned char, names_blob_len + AV_PAIR_CBT_BYTES);
+			names_blob = tds_new0(unsigned char, names_blob_len + AV_PAIR_CBT_BYTES + 4 + auth->spn_len);
+
 			if (!names_blob)
 				return TDS_FAIL;
 
@@ -850,8 +892,8 @@ tds_ntlm_handle_next(TDSSOCKET *tds, TDSAUTHENTICATION *tds_auth TDS_UNUSED, siz
 			}
 			where += target_info_len;
 
-			/* Add channel binding token (CBT) AV_PAIR to target_info in names_blob */
-			add_cbt_data(auth, names_blob, &names_blob_len, target_info_len);
+			/* Add channel binding token (CBT) and target name AV_PAIRs to target_info in names_blob */
+			add_av_pairs(auth, names_blob, &names_blob_len);
 		}
 	}
 	/* discard anything left */
@@ -946,6 +988,7 @@ tds_ntlm_get_auth(TDSSOCKET * tds)
 	memcpy(packet + 40 + host_name_len, domain, domain_len);
 
 	get_cbt(tds, auth);
+	get_spn(tds, auth);
 
 	return (TDSAUTHENTICATION *) auth;
 }
