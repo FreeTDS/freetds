@@ -33,5 +33,6 @@
 /tls
 /sec_negotiate
 /cbt
+/ntlm
 /file_stream
 /addrinfo2str

@@ -192,6 +192,7 @@ maintainer-clean : distclean
 	@[.vms]clean_delete [.include.freetds]version.h;*
 	@[.vms]clean_delete [.src.tds]tds_willconvert.h;*
 	@[.vms]clean_delete [.src.tds]num_limits.h;*
+	@[.vms]clean_delete [.src.tds]ucs2_upper.h;*
 	@[.vms]clean_delete [.src.tds]tds_types.h;*
 	@[.vms]clean_delete [.src.replacements]iconv_charsets.h;*
 	@[.vms]clean_delete [.src.odbc]odbc_export.h;*

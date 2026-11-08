@@ -79,6 +79,8 @@ addrinfo2str_SOURCES	= addrinfo2str.c
 if !HAVE_SSPI
 TESTS += cbt$(EXEEXT)
 cbt_SOURCES = cbt.c
+TESTS += ntlm$(EXEEXT)
+ntlm_SOURCES = ntlm.c
 endif
 
 noinst_LIBRARIES = libcommon.a

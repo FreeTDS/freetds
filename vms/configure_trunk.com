@@ -10,6 +10,7 @@ $ perl [.vms]generate_version.pl
 $
 $ perl [.src.tds]tds_willconvert.pl include/freetds/proto.h >[.src.tds]tds_willconvert.h
 $ perl [.src.tds]num_limits.pl >[.src.tds]num_limits.h
+$ perl [.src.tds]ucs2_upper.pl >[.src.tds]ucs2_upper.h
 $ perl [.src.tds]types.pl misc/types.csv include/freetds/proto.h >[.src.tds]tds_types.h
 $ perl [.src.replacements]iconv_charsets.pl >[.src.replacements]iconv_charsets.h
 $ perl [.src.odbc]odbc_export.pl [.src.odbc]odbc.c >[.src.odbc]odbc_export.h

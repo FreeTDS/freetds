@@ -5,7 +5,7 @@ add_library(t_common STATIC common.c common.h utf8.c allcolumns.c)
 if(WIN32)
 	set(add_tests)
 else(WIN32)
-	set(add_tests cbt)
+	set(add_tests cbt ntlm)
 endif(WIN32)
 
 foreach(target t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 dynamic1

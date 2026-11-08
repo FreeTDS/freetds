@@ -91,13 +91,55 @@ tds_answer_challenge(TDSSOCKET * tds,
 static void tds_encrypt_answer(const unsigned char *hash, const unsigned char *challenge, unsigned char *answer);
 static void tds_convert_key(const unsigned char *key_56, DES_KEY * ks);
 
-static void
-convert_to_upper(char *buf, size_t len)
-{
-	size_t i;
+#include "ucs2_upper.h"
 
-	for (i = 0; i < len; i++)
-		buf[i] = toupper((unsigned char) buf[i]);
+/**
+ * Convert a UTF-16 code unit to upper case, using Unicode simple case mapping
+ * like Windows does.
+ */
+static uint16_t
+ucs2_upper(uint16_t c)
+{
+	size_t low = 0, high = TDS_VECTOR_SIZE(ucs2_upper_ranges);
+
+	if (c < 0x80)
+		return (c >= 'a' && c <= 'z') ? c - ('a' - 'A') : c;
+
+	/* binary search the range containing the character */
+	while (low < high) {
+		size_t mid = (low + high) / 2;
+		const ucs2_upper_range *r = &ucs2_upper_ranges[mid];
+
+		if (c < r->first) {
+			high = mid;
+		} else if (c > r->last) {
+			low = mid + 1;
+		} else {
+			/* delta 0xffff (-1) ranges contain every other character */
+			if (r->delta != 0xffff || ((c - r->first) & 1) == 0)
+				return (uint16_t) (c + r->delta);
+			return c;
+		}
+	}
+	return c;
+}
+
+/**
+ * Convert a UTF-16LE string to upper case.
+ * Surrogates are not changed, characters outside the BMP have no simple mapping
+ * to upper case in Windows.
+ */
+static void
+ucs2le_to_upper(char *buf, size_t len)
+{
+	unsigned char *p = (unsigned char *) buf;
+
+	for (; len >= 2; len -= 2, p += 2) {
+		uint16_t c = TDS_GET_UA2LE(p);
+
+		c = ucs2_upper(c);
+		TDS_PUT_UA2LE(p, c);
+	}
 }
 
 static size_t
@@ -168,8 +210,7 @@ make_ntlm_v2_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_v2_has
 	const char *p;
 
 	unsigned char ntlm_hash[16];
-	char buf[128];
-	char buf_usc2le[512];
+	char *buf_usc2le;
 	TDSRET res;
 
 	user_name = tds_dstr_cstr(&tds->login->user_name);
@@ -183,33 +224,38 @@ make_ntlm_v2_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_v2_has
 	user_name = p + 1;
 	user_name_len = strlen(user_name);
 
-	if (user_name_len > 128)
-		user_name_len = 128;
-	memcpy(buf, user_name, user_name_len);
-	convert_to_upper(buf, user_name_len);
+	/* each byte can produce at most one UTF-16 code unit */
+	buf_usc2le = tds_new(char, (user_name_len + domain_len) * 2 + 2);
 
-	len = convert_to_usc2le_string(tds, buf, user_name_len, buf_usc2le);
-	if (len == (size_t) -1)
+	if (!buf_usc2le)
 		return TDS_FAIL;
+
+	/* user name is converted to upper case, after converting to UTF-16 */
+	len = convert_to_usc2le_string(tds, user_name, user_name_len, buf_usc2le);
+	if (len == (size_t) -1) {
+		free(buf_usc2le);
+		return TDS_FAIL;
+	}
+	ucs2le_to_upper(buf_usc2le, len);
 	buf_usc2le_len = len;
 
-	if (domain_len > 128)
-		domain_len = 128;
 	/* Target is supposed to be case-sensitive */
 
 	len = convert_to_usc2le_string(tds, domain, domain_len, buf_usc2le + len);
-	if (len == (size_t) -1)
+	if (len == (size_t) -1) {
+		memset(buf_usc2le, 0, buf_usc2le_len);
+		free(buf_usc2le);
 		return TDS_FAIL;
+	}
 	buf_usc2le_len += len;
-
 
 	res = make_ntlm_hash(tds, passwd, ntlm_hash);
 	hmac_md5(ntlm_hash, (const unsigned char *) buf_usc2le, buf_usc2le_len, ntlm_v2_hash);
 
 	/* with security is best be pedantic */
 	memset(&ntlm_hash, 0, sizeof(ntlm_hash));
-	memset(buf, 0, sizeof(buf));
-	memset((char *) buf_usc2le, 0, buf_usc2le_len);
+	memset(buf_usc2le, 0, buf_usc2le_len);
+	free(buf_usc2le);
 	return res;
 }
 

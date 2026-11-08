@@ -40,7 +40,7 @@ endif
 libtds_la_LDFLAGS =
 libtds_la_LIBADD = $(NETWORK_LIBS)
 
-GENERATED_HEADER_FILES = tds_willconvert.h num_limits.h tds_types.h
+GENERATED_HEADER_FILES = tds_willconvert.h num_limits.h tds_types.h ucs2_upper.h
 noinst_HEADERS = $(GENERATED_HEADER_FILES)
 EXTRA_DIST = $(GENERATED_HEADER_FILES) \
 	CMakeLists.txt \
@@ -55,6 +55,7 @@ EXTRA_DIST = $(GENERATED_HEADER_FILES) \
 ## dependency (on num_limits.pl).  
 
 data.c:	tds_types.h
+challenge.c:	ucs2_upper.h
 
 if HAVE_PERL_SOURCES
 BUILT_SOURCES = $(GENERATED_HEADER_FILES)
@@ -68,6 +69,10 @@ tds_willconvert.h: tds_willconvert.pl Makefile
 
 num_limits.h: num_limits.pl Makefile
 	perl $(srcdir)/num_limits.pl > $@.tmp
+	mv $@.tmp $@
+
+ucs2_upper.h: ucs2_upper.pl Makefile
+	perl $(srcdir)/ucs2_upper.pl > $@.tmp
 	mv $@.tmp $@
 
 tds_types.h: types.pl Makefile $(top_srcdir)/misc/types.csv
