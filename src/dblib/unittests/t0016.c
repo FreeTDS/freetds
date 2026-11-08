@@ -32,11 +32,23 @@ static unsigned count_file_rows(FILE * f);
 static size_t fgets_raw(char *s, int len, FILE * f);
 static DBPROCESS *dbproc;
 
+/* error expected as a warning (data copied anyway), 0 if none */
+static int expected_warning = 0;
+static unsigned num_warnings = 0;
+
 /* custom error handler for clean exit */
 static int
 t0016_syb_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
 {
-	int retval = syb_err_logmsg(dbproc, severity, dberr, oserr, dberrstr, oserrstr);
+	int retval;
+
+	if (expected_warning && dberr == expected_warning) {
+		printf("OK: expected warning %d (%s) arrived\n", dberr, dberrstr);
+		++num_warnings;
+		return INT_CANCEL;
+	}
+
+	retval = syb_err_logmsg(dbproc, severity, dberr, oserr, dberrstr, oserrstr);
 
 	if (retval != 0)
 		return retval;
@@ -225,6 +237,8 @@ test_file(const char *fn)
 
 	strlcpy(table_name, TABLE_NAME, sizeof(table_name));
 	hints[0] = 0;
+	expected_warning = 0;
+	num_warnings = 0;
 
 	printf("===== %s =====\n", fn);
 	input_file = fopen(fmt_file, "r");
@@ -275,6 +289,9 @@ test_file(const char *fn)
 		} else if (strncmp(param, "colout ", 7) == 0) {
 			param += 7;
 			strlcpy(colout, param, sizeof(colout));
+		} else if (strncmp(param, "warning ", 8) == 0) {
+			param += 8;
+			expected_warning = atoi(param);
 		} else {
 			fprintf(stderr, "invalid parameter: %s\n", param);
 			exit(1);
@@ -336,6 +353,10 @@ test_file(const char *fn)
 		failure("bcp_exec failed\n");
 
 	printf("%d rows copied in\n", rows_copied);
+
+	if (expected_warning && !num_warnings)
+		failure("expected warning %d not received\n", expected_warning);
+	expected_warning = 0;
 
 	/* BCP out */
 

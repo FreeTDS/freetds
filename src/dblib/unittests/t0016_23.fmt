@@ -1,0 +1,6 @@
+10.0
+4
+1	SYBCHAR	0	-1	"\t"	1	id
+2	SYBCHAR	0	-1	"\t"	2	vc
+3	SYBBINARY	1	-1	""	3	vb
+4	SYBCHAR	0	-1	"\n"	4	c

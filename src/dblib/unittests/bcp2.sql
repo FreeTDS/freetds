@@ -9,6 +9,8 @@ select * from bcp_test where
 	(s1 = 'test short' and s2 = '' and s3 is null)
 	or
 	(s1 = 'test short' and s2 = 'x' and s3 = '')
+	or
+	(s1 = 'test short' and s2 = 'y' and s3 = 'z')
 go
 drop table bcp_test
 go

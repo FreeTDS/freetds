@@ -45,13 +45,14 @@ TEST_MAIN()
 	LOGINREC *login;
 	DBPROCESS *dbproc;
 	DBINT msgno;
-	int num_rows, expected = 2;
+	int num_rows, expected = 3;
 	static const char table_name[] = "bcp_test";
 
 	/* Variables for host file data to be copied to database. */
 	char s1[11];
 	char s2[11];
 	char s3[11];
+	char long_s1[] = "test short but too long";
 
 	set_malloc_options();
 
@@ -107,6 +108,23 @@ TEST_MAIN()
 		fprintf(stderr, "send failed\n");
 		doexit(1);
 	}
+
+	/* data too long are truncated with a warning */
+	bcp_bind(dbproc, (BYTE *) long_s1, 0, -1, (BYTE *) "", 1, SYBCHAR, 1);
+	strcpy(s2, "y");
+	strcpy(s3, "z");
+	msgno = 20074;
+	dbsetuserdata(dbproc, (BYTE *) & msgno);
+	if (bcp_sendrow(dbproc) == FAIL) {
+		fprintf(stderr, "send truncated failed\n");
+		doexit(1);
+	}
+	dbsetuserdata(dbproc, NULL);
+	if (msgno != 0) {
+		fprintf(stderr, "expected truncation warning not received\n");
+		doexit(1);
+	}
+	bcp_bind(dbproc, (BYTE *) s1, 0, -1, (BYTE *) "", 1, SYBCHAR, 1);
 
 	/* In MSSQL the error is reported during bcp_done but all inserts are ignored */
 	if (DBTDS_5_0 == DBTDS(dbproc)) {

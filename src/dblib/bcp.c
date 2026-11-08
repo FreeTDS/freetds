@@ -1077,10 +1077,17 @@ _bcp_check_eof(DBPROCESS * dbproc, TDSFILESTREAM* stream, int icol)
 
 /**
  * Convert column for input to a table
+ *
+ * Character data copied to a character column, or binary data copied to a
+ * binary column, which is too long for the server column is truncated and
+ * SYBEBCOR is reported, as Sybase library does. Any other conversion
+ * producing data too long is an error (SYBECOFL).
+ *
+ * \param truncated if not NULL, set to true if data were truncated, false otherwise.
  */
 static TDSRET
 _bcp_convert_in(DBPROCESS *dbproc, TDS_SERVER_TYPE srctype, const TDS_CHAR *src, TDS_UINT srclen,
-		TDS_SERVER_TYPE desttype, TDSCOLUMN *col)
+		TDS_SERVER_TYPE desttype, TDSCOLUMN *col, bool *truncated)
 {
 	bool variable = true;
 	CONV_RESULT cr, *p_cr;
@@ -1088,6 +1095,8 @@ _bcp_convert_in(DBPROCESS *dbproc, TDS_SERVER_TYPE srctype, const TDS_CHAR *src,
 	BCPCOLDATA *coldata = col->bcp_column_data;
 
 	coldata->is_null = false;
+	if (truncated)
+		*truncated = false;
 
 	if (!is_variable_type(desttype)) {
 		variable = false;
@@ -1102,13 +1111,23 @@ _bcp_convert_in(DBPROCESS *dbproc, TDS_SERVER_TYPE srctype, const TDS_CHAR *src,
 		return TDS_FAIL;
 	}
 
-	coldata->datalen = len;
-	if (variable) {
-		if (len > col->on_server.column_size) {
+	if (variable && len > col->on_server.column_size) {
+		if ((is_char_type(srctype) && is_char_type(desttype))
+		    || (is_binary_type(srctype) && is_binary_type(desttype))) {
+			/* not an error, data are truncated */
+			dbperror(dbproc, SYBEBCOR, 0);
+			len = col->on_server.column_size;
+			if (truncated)
+				*truncated = true;
+		} else {
 			free(cr.c);
 			dbperror(dbproc, SYBECOFL, 0);
 			return TDS_FAIL;
 		}
+	}
+
+	coldata->datalen = len;
+	if (variable) {
 		free(coldata->data);
 		coldata->data = (TDS_UCHAR *) cr.c;
 	}
@@ -1396,26 +1415,20 @@ _bcp_read_hostfile(DBPROCESS *dbproc, TDSFILESTREAM *stream, bool *row_error, bo
 			} else {
 				TDSRET rc;
 				TDS_SERVER_TYPE desttype;
+				bool truncated;
 
 				desttype = tds_get_conversion_type(bcpcol->column_type, bcpcol->column_size);
 
-				/* _bcp_convert_in will give an error if our char data exceeds
-				 * the server column size, so we need to deal with that now
-				 */
-				if (desttype == SYBCHAR || desttype == SYBVARCHAR) {
-					if (collen > bcpcol->on_server.column_size) {
-						tdsdump_log(TDS_DBG_INFO1,
-							    "Warning: _bcp_read_hostfile: %d bytes at offset 0x%" PRIx64
-							    " in the data file: truncated to server size %d.\n",
-							    collen, (TDS_INT8) col_start, (int) bcpcol->on_server.column_size);
-
-						collen = bcpcol->on_server.column_size;
-						truncation_warning = true;
-					}
-				}
-
+				/* _bcp_convert_in truncates data too long for the server column */
 				rc = _bcp_convert_in(dbproc, hostcol->datatype, (const TDS_CHAR *) coldata, collen,
-						     desttype, bcpcol);
+						     desttype, bcpcol, &truncated);
+				if (truncated) {
+					tdsdump_log(TDS_DBG_INFO1,
+						    "Warning: _bcp_read_hostfile: %d bytes at offset 0x%" PRIx64
+						    " in the data file: truncated to server size %d.\n",
+						    collen, (TDS_INT8) col_start, (int) bcpcol->on_server.column_size);
+					truncation_warning = true;
+				}
 				if (TDS_FAILED(rc)) {
 					hostcol->column_error = HOST_COL_CONV_ERROR;
 					*row_error = true;
@@ -2353,7 +2366,7 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int index TDS_UNUSED,
 	if (collen < 0)
 		collen = (int) strlen((char *) dataptr);
 
-	rc = _bcp_convert_in(dbproc, coltype, (const TDS_CHAR *) dataptr, collen, desttype, bindcol);
+	rc = _bcp_convert_in(dbproc, coltype, (const TDS_CHAR *) dataptr, collen, desttype, bindcol, NULL);
 	if (TDS_FAILED(rc))
 		return rc;
 	rtrim_bcpcol(bindcol);
