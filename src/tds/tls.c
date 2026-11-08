@@ -223,8 +223,20 @@ wanted_certificate_hostname(TDSLOGIN *login)
 
 #ifdef HAVE_GNUTLS
 
+/**
+ * Error for GnuTLS when pull functions fail.
+ * Our pull functions block, so a failure is never a temporary one;
+ * returning a fixed error avoids GnuTLS reporting GNUTLS_E_AGAIN or
+ * GNUTLS_E_INTERRUPTED due to a stale errno.
+ */
+static int
+tds_pull_errno(gnutls_transport_ptr_t ptr TDS_UNUSED)
+{
+	return EIO;
+}
+
 static void
-tds_tls_log( int level, const char* s)
+tds_tls_log(int level, const char *s)
 {
 	tdsdump_log(TDS_DBG_INFO1, "GNUTLS: level %d:\n  %s", level, s);
 }
@@ -528,6 +540,7 @@ tds_ssl_init(TDSSOCKET *tds, bool full)
 	ret = gnutls_init(&session, GNUTLS_CLIENT);
 	if (ret != 0)
 		goto cleanup;
+	gnutls_transport_set_errno_function(session, tds_pull_errno);
 
 	if (!full) {
 		gnutls_transport_set_ptr(session, tds);

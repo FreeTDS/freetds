@@ -63,7 +63,20 @@ tds_ssl_pending(TDSCONNECTION *conn)
 static inline int
 tds_ssl_read(TDSCONNECTION *conn, unsigned char *buf, int buflen)
 {
-	return gnutls_record_recv((gnutls_session_t) conn->tls_session, buf, buflen);
+	int rc;
+
+	/*
+	 * GNUTLS_E_AGAIN is returned also after processing a post handshake
+	 * message (like TLS 1.3 NewSessionTicket) with no application data,
+	 * in this case try again.
+	 * Pull functions block and their failures are reported as
+	 * GNUTLS_E_PULL_ERROR (see tds_pull_errno), so each retry consumes
+	 * data from the network.
+	 */
+	do {
+		rc = gnutls_record_recv((gnutls_session_t) conn->tls_session, buf, buflen);
+	} while ((rc == GNUTLS_E_AGAIN || rc == GNUTLS_E_INTERRUPTED) && !TDS_IS_SOCKET_INVALID(conn->s));
+	return rc;
 }
 
 static inline int
