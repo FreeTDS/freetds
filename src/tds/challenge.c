@@ -874,11 +874,13 @@ tds_ntlm_get_auth(TDSSOCKET * tds)
 	TDS_PUT_A4  (packet + 28, TDS_HOST4LE(40));
 
 	/*
-	 * here XP put version like 05 01 28 0a (5.1.2600),
-	 * similar to GetVersion result
-	 * and some unknown bytes like 00 00 00 0f
+	 * Version: product major and minor version, build number (16 bit),
+	 * 3 reserved bytes and NTLM revision (15).
+	 * Report Windows 10.0 build 20348 (Windows Server 2022), it's informational only.
 	 */
-	TDS_PUT_A4(packet + 32, TDS_HOST4LE(0x0a280105));
+	packet[32] = 10;
+	packet[33] = 0;
+	TDS_PUT_A2LE(packet + 34, 20348);
 	TDS_PUT_A4(packet + 36, TDS_HOST4LE(0x0f000000));
 
 	/* hostname and domain */
