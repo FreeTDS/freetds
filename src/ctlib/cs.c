@@ -44,9 +44,10 @@
 #undef cs_dt_crack
 
 static CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);
-static CS_INT cs_diag_clearmsg(CS_CONTEXT *context, CS_INT type);
-static CS_INT cs_diag_getmsg(CS_CONTEXT *context, CS_INT idx, CS_CLIENTMSG *message);
-static CS_INT cs_diag_countmsg(CS_CONTEXT *context, CS_INT *count);
+static CS_INT cs_diag_clearmsg(CS_CONTEXT * context, CS_INT type);
+static CS_INT cs_diag_getmsg(CS_CONTEXT * context, CS_INT idx, CS_CLIENTMSG * message);
+static CS_INT cs_diag_countmsg(CS_CONTEXT * context, CS_INT * count);
+static CS_RETCODE _cs_set_locale_convfmt(CS_CONTEXT * ctx, TDSLOCALE * loc, CS_INT convfmt);
 
 const char *
 cs_prretcode(int retcode)
@@ -350,8 +351,12 @@ cs_ctx_alloc(CS_INT version, CS_CONTEXT ** out_ctx)
 	}
 	ctx->tds_ctx = tds_ctx;
 	if (tds_ctx->locale && !tds_ctx->locale->datetime_fmt) {
-		/* set default in case there's no locale file */
-		tds_ctx->locale->datetime_fmt = strdup(STD_DATETIME_FMT);
+		/* set default in case there's no locale file, same default as Sybase library */
+		if (_cs_set_locale_convfmt(ctx, tds_ctx->locale, CS_DATES_SHORT) != CS_SUCCEED) {
+			tds_free_context(tds_ctx);
+			free(ctx);
+			return CS_FAIL;
+		}
 	}
 
 	ctx->login_timeout = -1;

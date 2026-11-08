@@ -4,6 +4,14 @@
 #include "common.h"
 
 #include <freetds/replacements.h>
+#include <freetds/utils/path.h>
+
+/* same location libTDS uses, see freetds/configs.h */
+#ifndef _WIN32
+#include <freetds/sysconfdir.h>
+#else
+#define FREETDS_SYSCONFDIR TDS_DIR("c:")
+#endif
 
 static CS_CONTEXT *ctx;
 static bool failed = false;
@@ -116,9 +124,9 @@ single_value(CS_INT type, void *input, size_t input_size, const char *expected)
 	}
 }
 
-/* Test a single client date format */
+/* Test conversions of all date types with current client date format */
 static void
-single_test(const TEST *test)
+test_values(const TEST *test)
 {
 	/* 2025-09-07 16:32:53.490000
 	 * This date was chosen for different reasons:
@@ -128,6 +136,16 @@ single_test(const TEST *test)
 	 * - month and day are one digit so we can distinguish padding.
 	 */
 	CS_DATETIME date = { 45905, ((16 * 60 + 32) * 60 + 53) * 300 + 147 };
+
+	single_value(CS_DATETIME_TYPE, &date, sizeof(date), test->datetime);
+	single_value(CS_DATE_TYPE, &date.dtdays, sizeof(date.dtdays), test->date);
+	single_value(CS_TIME_TYPE, &date.dttime, sizeof(date.dttime), test->time);
+}
+
+/* Test a single client date format */
+static void
+single_test(const TEST *test)
+{
 	CS_INT i_value;
 
 	test_name = test->convfmt_name;
@@ -135,9 +153,29 @@ single_test(const TEST *test)
 	i_value = test->convfmt;
 	check_call(cs_dt_info, (ctx, CS_SET, NULL, CS_DT_CONVFMT, CS_UNUSED, &i_value, sizeof(i_value), NULL));
 
-	single_value(CS_DATETIME_TYPE, &date, sizeof(date), test->datetime);
-	single_value(CS_DATE_TYPE, &date.dtdays, sizeof(date.dtdays), test->date);
-	single_value(CS_TIME_TYPE, &date.dttime, sizeof(date.dttime), test->time);
+	test_values(test);
+}
+
+/* Test default client date format, same as Sybase library (CS_DATES_SHORT) */
+static void
+default_test(void)
+{
+	const TEST *test;
+	FILE *f;
+
+	/* date format from locales.conf would override the default */
+	f = tds_dir_open(FREETDS_SYSCONFDIR TDS_SDIR_SEPARATOR TDS_DIR("locales.conf"), TDS_DIR("r"));
+	if (f) {
+		fclose(f);
+		printf("locales.conf file found, skipping default format test\n");
+		return;
+	}
+
+	for (test = tests; test->convfmt != CS_DATES_SHORT; ++test)
+		continue;
+
+	test_name = "default";
+	test_values(test);
 }
 
 TEST_MAIN()
@@ -152,6 +190,9 @@ TEST_MAIN()
 	printf("%s: Testing date conversions\n", __FILE__);
 
 	check_call(cs_ctx_alloc, (CS_VERSION_100, &ctx));
+
+	/* must be done before setting any format */
+	default_test();
 
 	for (test = tests; test->convfmt_name != NULL; ++test)
 		single_test(test);
