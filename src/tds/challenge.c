@@ -1147,6 +1147,9 @@ tds_ntlm_get_auth(TDSSOCKET * tds)
 		| NTLMSSP_NEGOTIATE_OEM_DOMAIN_SUPPLIED | NTLMSSP_NEGOTIATE_OEM_WORKSTATION_SUPPLIED
 		| NTLMSSP_NEGOTIATE_ALWAYS_SIGN | NTLMSSP_NEGOTIATE_EXTENDED_SESSIONSECURITY
 		| NTLMSSP_NEGOTIATE_SIGN | NTLMSSP_NEGOTIATE_KEY_EXCH | NTLMSSP_NEGOTIATE_128 | NTLMSSP_NEGOTIATE_VERSION;
+	/* no domain, like using an user principal name ("\\user@domain"), Windows rejects the flag with an empty domain */
+	if (domain_len == 0)
+		flags &= ~NTLMSSP_NEGOTIATE_OEM_DOMAIN_SUPPLIED;
 	TDS_PUT_A4(packet + 12, TDS_HOST4LE(flags));
 
 	/* domain info */

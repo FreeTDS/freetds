@@ -2519,7 +2519,9 @@ logins instead of standard server logins.  Passwords are encrypted on the wire u
 	</example>
 	
 <para>When &freetds; sees the <quote><literal>\</literal></quote> character, it automatically chooses a domain login.</para>
-		
+
+<para>To log in with a user principal name (UPN), like <literal>lancelot@nottingham.example.com</literal>, leave the domain empty: <literal>'\lancelot@nottingham.example.com'</literal>.  Without the leading <quote><literal>\</literal></quote> the name is used for a normal SQL Server login, for instance the <literal>user@server</literal> form used by Azure SQL.</para>
+
 		<sect2 id="domaindetails">
 			<title>Implementation details</title>
 
