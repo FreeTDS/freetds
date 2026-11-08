@@ -134,6 +134,13 @@ blk_bind(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt_arg, CS_VOID * 
 	if (datafmt == NULL)
 		return CS_FAIL;
 
+	/* types we can't convert */
+	if (_ct_get_server_type(NULL, datafmt->datatype) == TDS_INVALID_TYPE) {
+		colinfo = blkdesc->bcpinfo.bindinfo->columns[item - 1];
+		_ctclient_msg(NULL, con, "blk_bind", 1, 1, 1, 10, "%d, %d", _ct_get_client_type(colinfo, true), datafmt->datatype);
+		return CS_FAIL;
+	}
+
 	/*
 	 * check whether the request is for array binding and ensure that user
 	 * supplies the same datafmt->count to the subsequent ct_bind calls

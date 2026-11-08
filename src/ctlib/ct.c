@@ -165,6 +165,9 @@ _ct_get_user_api_layer_error(int error)
 	case 9:
 		return "The %1! parameter must be set to CS_UNUSED.";
 		break;
+	case 10:
+		return "A table column of type %1! cannot be bound to a program variable of type %2!.";
+		break;
 	case 15:
 		return "Use direction CS_BLK_IN or CS_BLK_OUT for a bulk copy operation.";
 		break;

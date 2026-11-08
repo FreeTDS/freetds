@@ -13,6 +13,7 @@
 	TEST(ct_send) \
 	TEST(cs_config) \
 	TEST(blk_init) \
+	TEST(blk_bind) \
 	TEST(cs_loc_alloc) \
 	TEST(cs_loc_drop) \
 	TEST(cs_locale) \
@@ -358,7 +359,38 @@ test_blk_init(void)
 	check_fail(blk_init, (blkdesc, CS_BLK_IN, "testname", -4));
 	check_last_message(CTMSG_CLIENT2, 0x01010104, "tblnamelen has an illegal value of -4");
 
-        check_call(blk_drop, (blkdesc));
+	check_call(blk_drop, (blkdesc));
+}
+
+static void
+test_blk_bind(void)
+{
+	CS_BLKDESC *blkdesc;
+	CS_DATAFMT datafmt;
+	CS_INT value = 1234;
+	CS_INT datalen = sizeof(value);
+
+	check_call(run_command, (cmd, "CREATE TABLE #blk_bind_errors(i INT NOT NULL)"));
+	check_call(blk_alloc, (conn, BLK_VERSION_100, &blkdesc));
+	check_call(blk_init, (blkdesc, CS_BLK_IN, "#blk_bind_errors", CS_NULLTERM));
+
+	memset(&datafmt, 0, sizeof(datafmt));
+	datafmt.count = 1;
+
+	/* type which cannot be converted */
+	datafmt.datatype = CS_USHORT_TYPE;
+	datafmt.maxlength = sizeof(value);
+	check_fail(blk_bind, (blkdesc, 1, &datafmt, &value, &datalen, NULL));
+	check_last_message(CTMSG_CLIENT2, 0x0101010a, "cannot be bound to a program variable of type 24");
+
+	/* bind state is not changed by the failure, a valid bind works */
+	datafmt.datatype = CS_INT_TYPE;
+	check_call(blk_bind, (blkdesc, 1, &datafmt, &value, &datalen, NULL));
+	check_call(blk_rowxfer, (blkdesc));
+	check_call(blk_done, (blkdesc, CS_BLK_ALL, NULL));
+
+	check_call(blk_drop, (blkdesc));
+	check_call(run_command, (cmd, "DROP TABLE #blk_bind_errors"));
 }
 
 static void
