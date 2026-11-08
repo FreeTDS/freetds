@@ -18,7 +18,8 @@
  */
 
 /*
- * Purpose: test NTLM code (user name upper case conversion).
+ * Purpose: test NTLMv2 code (session key, key exchange, MIC and client blob).
+ * Values are from MS-NLMP section 4.2.4 (NTLMv2 authentication).
  */
 #undef NDEBUG
 #include "../challenge.c"
@@ -49,6 +50,124 @@ check(const char *name, const void *data, size_t len, const char *expected)
 		fprintf(stderr, "Wrong %s: got %s expected %s\n", name, buf, expected);
 		exit(1);
 	}
+}
+
+/* NTOWFv2("Password", "User", "Domain") */
+static const unsigned char ntowfv2[16] = {
+	0x0c, 0x86, 0x8a, 0x40, 0x3b, 0xfd, 0x7a, 0x93, 0xa3, 0x00, 0x1e, 0xf2, 0x2e, 0xf0, 0x2e, 0x3f
+};
+
+static const unsigned char server_challenge[8] = { 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef };
+
+static const unsigned char client_challenge[8] = { 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa };
+
+/* MsvAvNbDomainName "Domain", MsvAvNbComputerName "Server", MsvAvEOL */
+static const unsigned char target_info[] = {
+	0x02, 0x00, 0x0c, 0x00, 'D', 0, 'o', 0, 'm', 0, 'a', 0, 'i', 0, 'n', 0,
+	0x01, 0x00, 0x0c, 0x00, 'S', 0, 'e', 0, 'r', 0, 'v', 0, 'e', 0, 'r', 0,
+	0x00, 0x00, 0x00, 0x00
+};
+
+#define TARGET_INFO_PAIRS_LEN (sizeof(target_info) - 4)
+#define PREFIX_LEN TDS_OFFSET(names_blob_prefix_t, target_info)
+
+static void
+test_responses(void)
+{
+	unsigned char temp[PREFIX_LEN + sizeof(target_info) + 4];
+	unsigned char *response;
+	unsigned char session_base_key[16], encrypted_key[16], random_key[16];
+
+	/* LMv2 response */
+	response = make_lm_v2_response(ntowfv2, client_challenge, 8, server_challenge);
+	assert(response);
+	check("LMv2 response", response, 16, "86c35097ac9cec102554764a57cccc19");
+	free(response);
+
+	/* temp of the example: version, Z(6), time 0, client challenge, Z(4), target info, Z(4) */
+	memset(temp, 0, sizeof(temp));
+	temp[0] = temp[1] = 1;
+	memcpy(temp + 16, client_challenge, 8);
+	memcpy(temp + PREFIX_LEN, target_info, sizeof(target_info));
+
+	/* NTProofStr is the first part of NTLMv2 response */
+	response = make_lm_v2_response(ntowfv2, temp, sizeof(temp), server_challenge);
+	assert(response);
+	check("NTProofStr", response, 16, "68cd0ab851e51c96aabc927bebef6a1c");
+
+	/* SessionBaseKey, computed like tds_answer_challenge_ntlmv2 */
+	hmac_md5(ntowfv2, response, 16, session_base_key);
+	check("SessionBaseKey", session_base_key, 16, "8de40ccadbc14a82f15cb0ad0de95ca3");
+	free(response);
+
+	/* EncryptedRandomSessionKey */
+	memset(random_key, 0x55, sizeof(random_key));
+	tds_rc4(session_base_key, 16, random_key, 16, encrypted_key);
+	check("EncryptedRandomSessionKey", encrypted_key, 16, "c5dad2544fc9799094ce1ce90bc9d03e");
+}
+
+static void
+test_mic(void)
+{
+	unsigned char key[16], mic[16];
+
+	memset(key, 0x11, sizeof(key));
+	assert(tds_ntlm_mic(key, (const unsigned char *) "NEGOTIATE", 9, (const unsigned char *) "CHALLENGE", 9,
+			    (const unsigned char *) "AUTHENTICATE", 12, mic));
+	check("MIC", mic, 16, "762ceb6c2e0cd518d0de6c88e1c57f3f");
+}
+
+static void
+test_names_blob(void)
+{
+	TDSNTLMAUTH auth;
+	unsigned char info[sizeof(target_info) + 12];
+	unsigned char *blob;
+	int blob_len;
+	bool use_mic;
+	const unsigned char *p;
+
+	memset(&auth, 0, sizeof(auth));
+
+	/* no timestamp, no MIC, server pairs, terminator and Z(4) */
+	assert(TDS_SUCCEED(build_names_blob(&auth, target_info, sizeof(target_info), true, &blob, &blob_len, &use_mic)));
+	assert(!use_mic);
+	assert(blob_len == PREFIX_LEN + sizeof(target_info) + 4);
+	assert(memcmp(blob + PREFIX_LEN, target_info, sizeof(target_info)) == 0);
+	assert(TDS_GET_UA4LE(blob + blob_len - 4) == 0);
+	free(blob);
+
+	/* add a timestamp, MIC should be used */
+	memcpy(info, target_info, TARGET_INFO_PAIRS_LEN);
+	memcpy(info + TARGET_INFO_PAIRS_LEN, "\x07\x00\x08\x00\x01\x02\x03\x04\x05\x06\x07\x08\x00\x00\x00\x00", 16);
+	auth.has_cbt = true;
+	memset(auth.cbt, 0xcc, sizeof(auth.cbt));
+	auth.spn = (char *) "S\0P\0N\0";
+	auth.spn_len = 6;
+	assert(TDS_SUCCEED(build_names_blob(&auth, info, sizeof(info), true, &blob, &blob_len, &use_mic)));
+	assert(use_mic);
+	/* server timestamp is used */
+	check("timestamp", blob + TDS_OFFSET(names_blob_prefix_t, timestamp), 8, "0102030405060708");
+	/* server pairs, MsvAvFlags with MIC bit, channel binding, target name, terminator, Z(4) */
+	p = blob + PREFIX_LEN + TARGET_INFO_PAIRS_LEN + 12;
+	check("added pairs", p, blob + blob_len - p,
+	      "0600040002000000" "0a001000cccccccccccccccccccccccccccccccc" "0900060053005000" "4e00" "00000000" "00000000");
+	free(blob);
+
+	/* MIC not allowed (NTLMv2 not used) */
+	auth.has_cbt = false;
+	auth.spn = NULL;
+	auth.spn_len = 0;
+	assert(TDS_SUCCEED(build_names_blob(&auth, info, sizeof(info), false, &blob, &blob_len, &use_mic)));
+	assert(!use_mic);
+	assert(blob_len == PREFIX_LEN + sizeof(info) + 4);
+	free(blob);
+
+	/* malformed pairs are rejected */
+	assert(TDS_FAILED(build_names_blob(&auth, target_info, sizeof(target_info) - 4, true, &blob, &blob_len, &use_mic)));
+	memcpy(info, target_info, sizeof(target_info));
+	info[2] = 0x40;
+	assert(TDS_FAILED(build_names_blob(&auth, info, sizeof(target_info), true, &blob, &blob_len, &use_mic)));
 }
 
 static void
@@ -96,5 +215,8 @@ test_upper(void)
 TEST_MAIN()
 {
 	test_upper();
+	test_responses();
+	test_mic();
+	test_names_blob();
 	return 0;
 }

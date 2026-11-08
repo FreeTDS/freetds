@@ -66,15 +66,39 @@ typedef struct tds_answer
 {
 	unsigned char lm_resp[24];
 	unsigned char nt_resp[24];
+	/** NTLMv2 session base key, valid if has_session_key is set */
+	unsigned char session_key[16];
+	bool has_session_key;
 } TDSANSWER;
 
 /* NTLM negotiate flags, see MS-NLMP */
 #define NTLMSSP_NEGOTIATE_UNICODE 0x00000001u
+#define NTLMSSP_NEGOTIATE_SIGN 0x00000010u
+#define NTLMSSP_NEGOTIATE_SEAL 0x00000020u
 #define NTLMSSP_NEGOTIATE_NTLM 0x00000200u
 #define NTLMSSP_NEGOTIATE_OEM_DOMAIN_SUPPLIED 0x00001000u
 #define NTLMSSP_NEGOTIATE_OEM_WORKSTATION_SUPPLIED 0x00002000u
+#define NTLMSSP_NEGOTIATE_LOCAL_CALL 0x00004000u
 #define NTLMSSP_NEGOTIATE_ALWAYS_SIGN 0x00008000u
 #define NTLMSSP_NEGOTIATE_EXTENDED_SESSIONSECURITY 0x00080000u
+#define NTLMSSP_NEGOTIATE_VERSION 0x02000000u
+#define NTLMSSP_NEGOTIATE_128 0x20000000u
+#define NTLMSSP_NEGOTIATE_KEY_EXCH 0x40000000u
+
+/* AV_PAIR identifiers, see MS-NLMP */
+#define MSV_AV_EOL 0x0000
+#define MSV_AV_FLAGS 0x0006
+#define MSV_AV_TIMESTAMP 0x0007
+#define MSV_AV_TARGET_NAME 0x0009
+#define MSV_AV_CHANNEL_BINDINGS 0x000A
+
+/* MsvAvFlags value, MIC is present */
+#define MSV_AV_FLAG_MIC 0x00000002u
+
+/* AUTHENTICATE_MESSAGE header sizes, without and with Version and MIC fields */
+#define NTLM_AUTH_HEADER_LEN 64
+#define NTLM_AUTH_HEADER_MIC_LEN 88
+#define NTLM_AUTH_MIC_OFFSET 72
 
 typedef struct
 {
@@ -86,8 +110,25 @@ typedef struct
 	uint8_t  challenge[8];
 	uint32_t reserved3;
 	/* target info block - variable length */
-	uint8_t  target_info[4];
+	uint8_t target_info[4];
 } names_blob_prefix_t;
+
+#define AV_PAIR_CBT_BYTES 20
+
+typedef struct
+{
+	TDSAUTHENTICATION tds_auth;
+	uint8_t cbt[16];
+	bool has_cbt;
+	/** service principal name, UTF-16LE */
+	char *spn;
+	size_t spn_len;
+	/** CHALLENGE_MESSAGE received from server, used to compute MIC */
+	unsigned char *challenge;
+	size_t challenge_len;
+} TDSNTLMAUTH;
+
+static const unsigned char ntlm_id[] = "NTLMSSP";
 
 static TDSRET
 tds_answer_challenge(TDSSOCKET * tds,
@@ -333,10 +374,14 @@ tds_answer_challenge_ntlmv2(TDSSOCKET * tds,
 	if (!*ntlm_v2_response)
 		return TDS_FAIL;
 
+	/* SessionBaseKey = HMAC_MD5(ResponseKeyNT, NTProofStr), NTProofStr is the first 16 bytes of the response */
+	hmac_md5(ntlm_v2_hash, *ntlm_v2_response, 16, answer->session_key);
+	answer->has_session_key = true;
+
 	memset(ntlm_v2_hash, 0, sizeof(ntlm_v2_hash));
 
 	/* local not supported */
-	*flags &= ~0x4000;
+	*flags &= ~NTLMSSP_NEGOTIATE_LOCAL_CALL;
 	return TDS_SUCCESS;
 }
 
@@ -471,11 +516,97 @@ tds_convert_key(const unsigned char *key_56, DES_KEY * ks)
 	memset(&key, 0, sizeof(key));
 }
 
-static TDSRET
-tds7_send_auth(TDSSOCKET * tds,
-	       const unsigned char *challenge, uint32_t flags, const unsigned char *names_blob, int names_blob_len)
+/**
+ * RC4 encryption, used to encrypt NTLM exported session key.
+ * @param key     encryption key
+ * @param key_len encryption key length
+ * @param in      data to encrypt
+ * @param len     length of data
+ * @param out     output buffer, len bytes
+ */
+static void
+tds_rc4(const unsigned char *key, size_t key_len, const unsigned char *in, size_t len, unsigned char *out)
 {
-	size_t current_pos;
+	unsigned char s[256], t;
+	unsigned int i, j;
+	size_t n;
+
+	for (i = 0; i < 256; ++i)
+		s[i] = (unsigned char) i;
+	for (i = j = 0; i < 256; ++i) {
+		j = (j + s[i] + key[i % key_len]) & 0xff;
+		t = s[i];
+		s[i] = s[j];
+		s[j] = t;
+	}
+	for (i = j = 0, n = 0; n < len; ++n) {
+		i = (i + 1) & 0xff;
+		j = (j + s[i]) & 0xff;
+		t = s[i];
+		s[i] = s[j];
+		s[j] = t;
+		out[n] = in[n] ^ s[(s[i] + s[j]) & 0xff];
+	}
+	memset(s, 0, sizeof(s));
+}
+
+/**
+ * Compute NTLM message integrity code.
+ * MIC = HMAC_MD5(ExportedSessionKey, NEGOTIATE_MESSAGE + CHALLENGE_MESSAGE + AUTHENTICATE_MESSAGE)
+ * where AUTHENTICATE_MESSAGE has the MIC field set to zero.
+ * @return false on memory error
+ */
+static bool
+tds_ntlm_mic(const unsigned char key[16], const unsigned char *negotiate, size_t negotiate_len,
+	     const unsigned char *challenge, size_t challenge_len, const unsigned char *authenticate, size_t authenticate_len,
+	     unsigned char mic[16])
+{
+	unsigned char *buf;
+	size_t len = negotiate_len + challenge_len + authenticate_len;
+
+	buf = tds_new(unsigned char, len);
+
+	if (!buf)
+		return false;
+	memcpy(buf, negotiate, negotiate_len);
+	memcpy(buf + negotiate_len, challenge, challenge_len);
+	memcpy(buf + negotiate_len + challenge_len, authenticate, authenticate_len);
+	hmac_md5(key, buf, len, mic);
+	memset(buf, 0, len);
+	free(buf);
+	return true;
+}
+
+/**
+ * Fill a field (length, maximum length and offset) of a NTLM message header and copy its data in the payload.
+ * @param msg       message buffer
+ * @param field_pos position of the field in the header
+ * @param data_pos  position of data in the payload, updated
+ * @param data      field data
+ * @param len       field data length
+ */
+static void
+put_ntlm_field(unsigned char *msg, size_t field_pos, size_t *data_pos, const void *data, size_t len)
+{
+	TDS_PUT_UA2LE(msg + field_pos, len);
+	TDS_PUT_UA2LE(msg + field_pos + 2, len);
+	TDS_PUT_UA4LE(msg + field_pos + 4, *data_pos);
+	memcpy(msg + *data_pos, data, len);
+	*data_pos += len;
+}
+
+/**
+ * Send AUTHENTICATE_MESSAGE.
+ * @param challenge      server challenge (8 bytes)
+ * @param flags          negotiate flags from server
+ * @param names_blob     NTLMv2 client blob, NULL if not available
+ * @param names_blob_len length of names_blob
+ * @param use_mic        add message integrity code, names_blob must have MsvAvFlags with MIC bit set
+ */
+static TDSRET
+tds7_send_auth(TDSSOCKET *tds, TDSNTLMAUTH *auth, const unsigned char *challenge, uint32_t flags,
+	       const unsigned char *names_blob, int names_blob_len, bool use_mic)
+{
 	TDSANSWER answer;
 
 	/* FIXME: stuff duplicate in tds7_send_login */
@@ -490,6 +621,10 @@ tds7_send_auth(TDSSOCKET * tds,
 	unsigned char *ntlm_v2_response = NULL;
 	unsigned int ntlm_response_len = 24;
 	const unsigned int lm_response_len = 24;
+	unsigned int session_key_len = 0;
+	unsigned char exported_key[16], encrypted_key[16];
+	unsigned char *msg;
+	size_t header_len, msg_len, data_pos;
 
 	TDSLOGIN *login = tds->login;
 
@@ -544,111 +679,111 @@ tds7_send_auth(TDSSOCKET * tds,
 	}
 
 	ntlm_response_len = ntlm_v2_response ? 16 + names_blob_len : 24;
-	/* ntlm_response_len = 0; */
 
-	tds->out_flag = TDS7_AUTH;
-	tds_put_n(tds, "NTLMSSP", 8);
-	tds_put_int(tds, 3);	/* sequence 3 */
-
-	current_pos = 64u + domain_len + user_name_len + host_name_len;
-
-	/* LM/LMv2 Response */
-	tds_put_smallint(tds, lm_response_len);	/* lan man resp length */
-	tds_put_smallint(tds, lm_response_len);	/* lan man resp length */
-	TDS_PUT_INT(tds, current_pos);	/* resp offset */
-	current_pos += lm_response_len;
-
-	/* NTLM/NTLMv2 Response */
-	tds_put_smallint(tds, ntlm_response_len);	/* nt resp length */
-	tds_put_smallint(tds, ntlm_response_len);	/* nt resp length */
-	TDS_PUT_INT(tds, current_pos);	/* nt resp offset */
-
-	current_pos = 64;
-
-	/* Target Name - domain or server name */
-	TDS_PUT_SMALLINT(tds, domain_len);
-	TDS_PUT_SMALLINT(tds, domain_len);
-	TDS_PUT_INT(tds, current_pos);
-	current_pos += domain_len;
-
-	/* username */
-	TDS_PUT_SMALLINT(tds, user_name_len);
-	TDS_PUT_SMALLINT(tds, user_name_len);
-	TDS_PUT_INT(tds, current_pos);
-	current_pos += user_name_len;
-
-	/* Workstation Name */
-	TDS_PUT_SMALLINT(tds, host_name_len);
-	TDS_PUT_SMALLINT(tds, host_name_len);
-	TDS_PUT_INT(tds, current_pos);
-	current_pos += host_name_len;
-
-	/* Session Key (optional) */
-	tds_put_smallint(tds, 0);
-	tds_put_smallint(tds, 0);
-	TDS_PUT_INT(tds, current_pos + lm_response_len + ntlm_response_len);
-
-	/* flags */
-	/* "challenge" is 8 bytes long */
-	/* tds_answer_challenge(tds_dstr_cstr(&login->password), challenge, &flags, &answer); */
-	tds_put_int(tds, flags);
-
-	/* OS Version Structure (Optional) */
-
-	/* Data itself */
-	tds_put_n(tds, domain, domain_len);
-	tds_put_n(tds, user_name, user_name_len);
-	tds_put_n(tds, host_name, host_name_len);
-
-	/* data block */
-	tds_put_n(tds, answer.lm_resp, lm_response_len);
-
-	if (ntlm_v2_response == NULL) {
-		/* NTLMv1 */
-		tds_put_n(tds, answer.nt_resp, ntlm_response_len);
+	/*
+	 * compute exported session key, encrypting a random one if key exchange was negotiated;
+	 * key exchange is done only if signing or sealing is negotiated too (MS-NLMP 3.1.5.1.2)
+	 */
+	if (answer.has_session_key) {
+		if ((flags & NTLMSSP_NEGOTIATE_KEY_EXCH) != 0 && (flags & (NTLMSSP_NEGOTIATE_SIGN | NTLMSSP_NEGOTIATE_SEAL)) != 0) {
+			tds_random_buffer(exported_key, sizeof(exported_key));
+			tds_rc4(answer.session_key, sizeof(answer.session_key), exported_key, sizeof(exported_key), encrypted_key);
+			session_key_len = sizeof(encrypted_key);
+		} else {
+			memcpy(exported_key, answer.session_key, sizeof(exported_key));
+		}
 	} else {
-		/* NTLMv2 */
-		tds_put_n(tds, ntlm_v2_response, ntlm_response_len);
+		flags &= ~NTLMSSP_NEGOTIATE_KEY_EXCH;
+		if (use_mic) {
+			free(ntlm_v2_response);
+			free(convert_buffer);
+			return TDS_FAIL;
+		}
+	}
+
+	if (use_mic) {
+		/* MIC requires Version field, server sent a timestamp, LmChallengeResponse should be zero */
+		header_len = NTLM_AUTH_HEADER_MIC_LEN;
+		flags |= NTLMSSP_NEGOTIATE_VERSION;
+		memset(answer.lm_resp, 0, sizeof(answer.lm_resp));
+	} else {
+		header_len = NTLM_AUTH_HEADER_LEN;
+		flags &= ~NTLMSSP_NEGOTIATE_VERSION;
+	}
+
+	msg_len = header_len + domain_len + user_name_len + host_name_len + lm_response_len + ntlm_response_len + session_key_len;
+	msg = tds_new0(unsigned char, msg_len);
+
+	if (!msg) {
+		if (ntlm_v2_response) {
+			memset(ntlm_v2_response, 0, ntlm_response_len);
+			free(ntlm_v2_response);
+		}
+		memset(&answer, 0, sizeof(answer));
+		free(convert_buffer);
+		return TDS_FAIL;
+	}
+
+	memcpy(msg, ntlm_id, 8);
+	TDS_PUT_UA4LE(msg + 8, 3);	/* sequence 3 */
+
+	data_pos = header_len;
+	/* Target Name - domain or server name */
+	put_ntlm_field(msg, 28, &data_pos, domain, domain_len);
+	put_ntlm_field(msg, 36, &data_pos, user_name, user_name_len);
+	/* Workstation Name */
+	put_ntlm_field(msg, 44, &data_pos, host_name, host_name_len);
+	/* LM/LMv2 Response */
+	put_ntlm_field(msg, 12, &data_pos, answer.lm_resp, lm_response_len);
+	/* NTLM/NTLMv2 Response */
+	put_ntlm_field(msg, 20, &data_pos, ntlm_v2_response ? ntlm_v2_response : answer.nt_resp, ntlm_response_len);
+	/* Encrypted Random Session Key */
+	put_ntlm_field(msg, 52, &data_pos, encrypted_key, session_key_len);
+
+	TDS_PUT_UA4LE(msg + 60, flags);
+
+	if (use_mic) {
+		/* same version we sent in NEGOTIATE_MESSAGE */
+		memcpy(msg + 64, auth->tds_auth.packet + 32, 8);
+		if (!tds_ntlm_mic(exported_key, auth->tds_auth.packet, auth->tds_auth.packet_len,
+				  auth->challenge, auth->challenge_len, msg, msg_len, msg + NTLM_AUTH_MIC_OFFSET))
+			rc = TDS_FAIL;
+	}
+
+	if (TDS_SUCCEED(rc)) {
+		tds->out_flag = TDS7_AUTH;
+		tds_put_n(tds, msg, msg_len);
+	}
+
+	/* for security reason clear sensitive data */
+	if (ntlm_v2_response) {
 		memset(ntlm_v2_response, 0, ntlm_response_len);
 		free(ntlm_v2_response);
 	}
-
-	/* for security reason clear structure */
-	memset(&answer, 0, sizeof(TDSANSWER));
-
+	memset(&answer, 0, sizeof(answer));
+	memset(exported_key, 0, sizeof(exported_key));
+	memset(encrypted_key, 0, sizeof(encrypted_key));
+	memset(msg, 0, msg_len);
+	free(msg);
 	free(convert_buffer);
+
+	if (TDS_FAILED(rc))
+		return rc;
 	return tds_flush_packet(tds);
 }
 
-/* AV_PAIR identifiers, see MS-NLMP */
-#define MSV_AV_TARGET_NAME 0x0009
-#define MSV_AV_CHANNEL_BINDINGS 0x000A
-
-#define AV_PAIR_CBT_BYTES 20
-
-typedef struct tds_ntlm_auth
-{
-	TDSAUTHENTICATION tds_auth;
-	uint8_t cbt[16];
-	bool has_cbt;
-	/** service principal name, UTF-16LE */
-	char *spn;
-	size_t spn_len;
-} TDSNTLMAUTH;
-
 static TDSRET
-tds_ntlm_free(TDSCONNECTION * conn TDS_UNUSED, TDSAUTHENTICATION * tds_auth)
+tds_ntlm_free(TDSCONNECTION *conn TDS_UNUSED, TDSAUTHENTICATION *tds_auth)
 {
 	TDSNTLMAUTH *auth = (TDSNTLMAUTH *) tds_auth;
 
 	free(auth->tds_auth.packet);
 	free(auth->spn);
+	free(auth->challenge);
 	free(auth);
 
 	return TDS_SUCCESS;
 }
-
-static const unsigned char ntlm_id[] = "NTLMSSP";
 
 /**
  * put a 8 byte filetime from a time_t
@@ -804,105 +939,154 @@ fill_names_blob_prefix(names_blob_prefix_t * prefix)
 	prefix->reserved3 = 0x00000000;
 }
 
+/**
+ * Build NTLMv2 client blob (names_blob) from server target information.
+ * Server AV_PAIRs are kept, MsvAvFlags (if MIC is used), channel binding token and
+ * target name are added. The server timestamp, if present, is used.
+ * @param auth            NTLM authentication data
+ * @param target_info     target information from CHALLENGE_MESSAGE
+ * @param target_info_len length of target_info
+ * @param mic_allowed     whether we can provide a MIC
+ * @param p_names_blob    output names_blob, to be freed
+ * @param p_names_blob_len output length of names_blob
+ * @param p_use_mic       output, whether MIC should be sent
+ */
 static TDSRET
-tds_ntlm_handle_next(TDSSOCKET *tds, TDSAUTHENTICATION *tds_auth TDS_UNUSED, size_t len)
+build_names_blob(TDSNTLMAUTH *auth, const unsigned char *target_info, size_t target_info_len, bool mic_allowed,
+		 unsigned char **p_names_blob, int *p_names_blob_len, bool *p_use_mic)
+{
+	const unsigned char *timestamp = NULL;
+	size_t flags_pos = 0, pos = 0, pairs_len, alloc_len;
+	const size_t prefix_len = TDS_OFFSET(names_blob_prefix_t, target_info);
+	unsigned char *names_blob;
+	int names_blob_len;
+	bool use_mic;
+
+	/* parse AV_PAIRs, checking they are well formed */
+	for (;;) {
+		unsigned int av_id, av_len;
+
+		if (target_info_len - pos < 4)
+			return TDS_FAIL;
+		av_id = TDS_GET_UA2LE(target_info + pos);
+		av_len = TDS_GET_UA2LE(target_info + pos + 2);
+		if (av_id == MSV_AV_EOL)
+			break;
+		if (target_info_len - pos - 4 < av_len)
+			return TDS_FAIL;
+		if (av_id == MSV_AV_TIMESTAMP && av_len == 8)
+			timestamp = target_info + pos + 4;
+		if (av_id == MSV_AV_FLAGS && av_len == 4)
+			flags_pos = pos + 4;
+		pos += 4 + av_len;
+	}
+	pairs_len = pos;
+
+	/* MIC should be provided if server sent a timestamp */
+	use_mic = mic_allowed && timestamp != NULL;
+
+	/* prefix + pairs + MsvAvFlags + CBT + target name + MsvAvEOL + Z(4) */
+	alloc_len = prefix_len + pairs_len + 8 + AV_PAIR_CBT_BYTES + 4 + auth->spn_len + 4 + 4;
+	names_blob = tds_new0(unsigned char, alloc_len);
+
+	if (!names_blob)
+		return TDS_FAIL;
+
+	fill_names_blob_prefix((names_blob_prefix_t *) names_blob);
+	if (timestamp)
+		memcpy(names_blob + TDS_OFFSET(names_blob_prefix_t, timestamp), timestamp, 8);
+
+	/* copy server AV_PAIRs, the terminator is already zeroed */
+	memcpy(names_blob + prefix_len, target_info, pairs_len);
+	names_blob_len = (int) (prefix_len + pairs_len + 4);
+
+	if (use_mic) {
+		if (flags_pos) {
+			unsigned char *p = names_blob + prefix_len + flags_pos;
+
+			TDS_PUT_UA4LE(p, TDS_GET_UA4LE(p) | MSV_AV_FLAG_MIC);
+		} else {
+			unsigned char av_flags[4];
+
+			TDS_PUT_UA4LE(av_flags, MSV_AV_FLAG_MIC);
+			add_av_pair(names_blob, &names_blob_len, MSV_AV_FLAGS, av_flags, sizeof(av_flags));
+		}
+	}
+
+	/* Add channel binding token (CBT) and target name AV_PAIRs */
+	add_av_pairs(auth, names_blob, &names_blob_len);
+
+	/* blob ends with Z(4) after AV_PAIRs, already zeroed */
+	names_blob_len += 4;
+
+	*p_names_blob = names_blob;
+	*p_names_blob_len = names_blob_len;
+	*p_use_mic = use_mic;
+	return TDS_SUCCESS;
+}
+
+static TDSRET
+tds_ntlm_handle_next(TDSSOCKET *tds, TDSAUTHENTICATION *tds_auth, size_t len)
 {
 	TDSNTLMAUTH *auth = (TDSNTLMAUTH *) tds_auth;
-
-	const int length = (int)len;
-	unsigned char nonce[8];
+	const unsigned char *msg;
 	uint32_t flags;
-	int where;
-
-	int data_block_offset;
+	size_t data_block_offset;
 
 	int names_blob_len = 0;
 	unsigned char *names_blob = NULL;
+	bool use_mic = false;
 
 	TDSRET rc;
 
 	/* at least 32 bytes (till context) */
-	if (len < 32)
+	if (len < 32 || len > 0xffff)
 		return TDS_FAIL;
 
-	tds_get_n(tds, nonce, 8);	/* NTLMSSP\0 */
-	if (memcmp(nonce, ntlm_id, 8) != 0)
-		return TDS_FAIL;
-	if (tds_get_int(tds) != 2)	/* sequence -> 2 */
-		return TDS_FAIL;
-	tds_get_smallint(tds);	/* domain len */
-	tds_get_smallint(tds);	/* domain len */
-	data_block_offset = tds_get_int(tds);	/* domain offset */
-	flags = tds_get_int(tds);	/* flags */
-	tds_get_n(tds, nonce, 8);
-	tdsdump_dump_buf(TDS_DBG_INFO1, "TDS_AUTH_TOKEN nonce", nonce, 8);
-	where = 32;
+	/* read the entire CHALLENGE_MESSAGE, it is needed to compute MIC */
+	free(auth->challenge);
+	auth->challenge_len = 0;
+	auth->challenge = tds_new(unsigned char, len);
 
-	/*data_block_offset == 32 */
+	if (!auth->challenge)
+		return TDS_FAIL;
+	if (!tds_get_n(tds, auth->challenge, len))
+		return TDS_FAIL;
+	auth->challenge_len = len;
+	msg = auth->challenge;
+
+	if (memcmp(msg, ntlm_id, 8) != 0)
+		return TDS_FAIL;
+	if (TDS_GET_UA4LE(msg + 8) != 2)	/* sequence -> 2 */
+		return TDS_FAIL;
+	data_block_offset = TDS_GET_UA4LE(msg + 16);	/* domain offset */
+	flags = TDS_GET_UA4LE(msg + 20);
+	tdsdump_dump_buf(TDS_DBG_INFO1, "TDS_AUTH_TOKEN nonce", msg + 24, 8);
+
 	/* Version 1 -- The Context, Target Information, and OS Version structure are all omitted */
+	/* Version 2 -- The Context and Target Information fields are present, but the OS Version structure is not. */
+	if (data_block_offset >= 48 && len >= 48) {
+		size_t target_info_len, target_info_offset;
 
-	if (data_block_offset >= 48 && where + 16 <= length) {
-		int target_info_len, target_info_offset;
-
-		/* Version 2 -- The Context and Target Information fields are present, but the OS Version structure is not. */
-		tds_get_n(tds, NULL, 8);	/* Context (two consecutive longs) */
-
-		target_info_len = tds_get_smallint(tds);	/* Target Information len */
-		target_info_len = tds_get_smallint(tds);	/* Target Information len */
-		target_info_offset = tds_get_int(tds);	/* Target Information offset */
-
-		where += 16;
-
-		if (data_block_offset >= 56 && where + 8 <= length) {
-			/* Version 3 -- The Context, Target Information, and OS Version structure are all present. */
-			tds_get_n(tds, NULL, 8);	/* OS Version Structure */
-#if 0
-			/* if we have a version server handle NTLMv2 */
-			if (target_info_len > 0)
-				flags &= ~0x80000;
-#endif
-			where += 8;
-		}
+		target_info_len = TDS_GET_UA2LE(msg + 40);
+		target_info_offset = TDS_GET_UA4LE(msg + 44);
 
 		/* read Target Info if possible */
-		if (target_info_len > 0 && target_info_offset >= where && target_info_offset + target_info_len <= length) {
-			uint32_t terminator;
-
-			tds_get_n(tds, NULL, target_info_offset - where);
-			where = target_info_offset;
-
-			/* target info must include terminator */
-			if (target_info_len < 4)
-				return TDS_FAIL;
-
-			names_blob_len = TDS_OFFSET(names_blob_prefix_t, target_info) + target_info_len;
-
-			/* read Target Info */
-			names_blob = tds_new0(unsigned char, names_blob_len + AV_PAIR_CBT_BYTES + 4 + auth->spn_len);
-
-			if (!names_blob)
-				return TDS_FAIL;
-
-			fill_names_blob_prefix((names_blob_prefix_t *) names_blob);
-			tds_get_n(tds, names_blob + TDS_OFFSET(names_blob_prefix_t, target_info), target_info_len);
-			terminator = TDS_GET_UA4(names_blob + TDS_OFFSET(names_blob_prefix_t, target_info) + target_info_len - 4);
-			if (terminator != 0) {
-				free(names_blob);
-				return TDS_FAIL;
-			}
-			where += target_info_len;
-
-			/* Add channel binding token (CBT) and target name AV_PAIRs to target_info in names_blob */
-			add_av_pairs(auth, names_blob, &names_blob_len);
+		if (target_info_len > 0 && target_info_offset >= 48 && target_info_offset <= len
+		    && target_info_len <= len - target_info_offset) {
+			rc = build_names_blob(auth, msg + target_info_offset, target_info_len, tds->login->use_ntlmv2,
+					      &names_blob, &names_blob_len, &use_mic);
+			if (TDS_FAILED(rc))
+				return rc;
 		}
 	}
-	/* discard anything left */
-	tds_get_n(tds, NULL, length - where);
-	tdsdump_log(TDS_DBG_INFO1, "Draining %d bytes\n", (int) (len - where));
 
-	rc = tds7_send_auth(tds, nonce, flags, names_blob, names_blob_len);
+	rc = tds7_send_auth(tds, auth, msg + 24, flags, names_blob, names_blob_len, use_mic);
 
-	free(names_blob);
+	if (names_blob) {
+		memset(names_blob, 0, names_blob_len);
+		free(names_blob);
+	}
 
 	return rc;
 }
@@ -923,7 +1107,7 @@ tds_ntlm_get_auth(TDSSOCKET * tds)
 	int domain_len;
 	int auth_len;
 	uint32_t flags;
-	struct tds_ntlm_auth *auth;
+	TDSNTLMAUTH *auth;
 
 	if (!tds->login)
 		return NULL;
@@ -936,9 +1120,9 @@ tds_ntlm_get_auth(TDSSOCKET * tds)
 		return NULL;
 
 	domain = user_name;
-	domain_len = (int)(p - user_name);
+	domain_len = (int) (p - user_name);
 
-	auth = tds_new0(struct tds_ntlm_auth, 1);
+	auth = tds_new0(TDSNTLMAUTH, 1);
 
 	if (!auth)
 		return NULL;
@@ -958,9 +1142,11 @@ tds_ntlm_get_auth(TDSSOCKET * tds)
 	/* sequence 1 client -> server */
 	TDS_PUT_A4(packet + 8, TDS_HOST4LE(1));
 	/* flags */
+	/* key exchange requires signing (we don't sign messages, TDS uses TLS for integrity) */
 	flags = NTLMSSP_NEGOTIATE_UNICODE | NTLMSSP_NEGOTIATE_NTLM
 		| NTLMSSP_NEGOTIATE_OEM_DOMAIN_SUPPLIED | NTLMSSP_NEGOTIATE_OEM_WORKSTATION_SUPPLIED
-		| NTLMSSP_NEGOTIATE_ALWAYS_SIGN | NTLMSSP_NEGOTIATE_EXTENDED_SESSIONSECURITY;
+		| NTLMSSP_NEGOTIATE_ALWAYS_SIGN | NTLMSSP_NEGOTIATE_EXTENDED_SESSIONSECURITY
+		| NTLMSSP_NEGOTIATE_SIGN | NTLMSSP_NEGOTIATE_KEY_EXCH | NTLMSSP_NEGOTIATE_128 | NTLMSSP_NEGOTIATE_VERSION;
 	TDS_PUT_A4(packet + 12, TDS_HOST4LE(flags));
 
 	/* domain info */
