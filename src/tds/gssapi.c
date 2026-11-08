@@ -357,16 +357,15 @@ tds_error_message(OM_uint32 e)
 static gss_channel_bindings_t
 tds_gss_get_channel_binding(TDSSOCKET *tds)
 {
-	/* Get tls-unique from OpenSSL */
-	unsigned char tls_unique_buf[256];
-	size_t tls_unique_len;
+	unsigned char app_data[256];
+	size_t app_data_len;
 	gss_channel_bindings_t cb;
 
-	tls_unique_len = tds_ssl_get_cb(tds->conn, tls_unique_buf, sizeof(tls_unique_buf));
-	if (tls_unique_len == 0)
+	app_data_len = tds_ssl_get_cb(tds->conn, app_data, sizeof(app_data));
+	if (app_data_len == 0)
 		return GSS_C_NO_CHANNEL_BINDINGS;
 
-	cb = calloc(sizeof(struct gss_channel_bindings_struct) + 11 + tls_unique_len, sizeof(char));
+	cb = calloc(sizeof(struct gss_channel_bindings_struct) + app_data_len, sizeof(char));
 
 	if (!cb) {
 		tdsdump_log(TDS_DBG_NETWORK, "tds_gss_get_channel_binding: failed to allocate channel bindings\n");
@@ -379,10 +378,9 @@ tds_gss_get_channel_binding(TDSSOCKET *tds)
 	cb->acceptor_address.length = 0;
 	cb->application_data.value = (void *) (cb + 1);
 
-	cb->application_data.length = tls_unique_len + 11;
+	cb->application_data.length = app_data_len;
 
-	memcpy(cb->application_data.value, "tls-unique:", 11);
-	memcpy((char *) cb->application_data.value + 11, tls_unique_buf, tls_unique_len);
+	memcpy(cb->application_data.value, app_data, app_data_len);
 
 	tdsdump_dump_buf(TDS_DBG_NETWORK, "gss_channel_bindings_struct", cb, sizeof(struct gss_channel_bindings_struct));
 	tdsdump_dump_buf(TDS_DBG_NETWORK,

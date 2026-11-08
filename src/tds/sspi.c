@@ -243,18 +243,15 @@ convert_to_ucs2le_string(TDSSOCKET * tds, const char *s, size_t len, WCHAR *out,
 static PSEC_CHANNEL_BINDINGS
 tds_sspi_get_channel_binding(TDSSOCKET *tds)
 {
-	unsigned char tls_unique_buf[256];
-	size_t tls_unique_len;
+	unsigned char app_data[256];
 	const size_t struct_offset = sizeof(SEC_CHANNEL_BINDINGS);
 	size_t app_data_len;
 	PSEC_CHANNEL_BINDINGS cb;
 
-	/* Get tls-unique */
-	tls_unique_len = tds_ssl_get_cb(tds->conn, tls_unique_buf, sizeof(tls_unique_buf));
-	if (tls_unique_len == 0)
+	/* Get channel binding data */
+	app_data_len = tds_ssl_get_cb(tds->conn, app_data, sizeof(app_data));
+	if (app_data_len == 0)
 		return NULL;
-
-	app_data_len = 11 + tls_unique_len;
 
 	cb = (SEC_CHANNEL_BINDINGS *) calloc(1, struct_offset + app_data_len);
 	if (!cb) {
@@ -270,8 +267,7 @@ tds_sspi_get_channel_binding(TDSSOCKET *tds)
 	cb->cbApplicationDataLength = app_data_len;
 	cb->dwApplicationDataOffset = struct_offset;
 
-	memcpy((char *) cb + struct_offset, "tls-unique:", 11);
-	memcpy((char *) cb + struct_offset + 11, tls_unique_buf, tls_unique_len);
+	memcpy((char *) cb + struct_offset, app_data, app_data_len);
 
 	tdsdump_dump_buf(TDS_DBG_NETWORK, "SEC_CHANNEL_BINDINGS", cb, struct_offset + app_data_len);
 	tdsdump_dump_buf(TDS_DBG_NETWORK, "SEC_CHANNEL_BINDINGS application_data",

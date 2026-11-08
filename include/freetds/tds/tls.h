@@ -33,6 +33,7 @@
 #  endif
 #  include <gnutls/gnutls.h>
 #  include <gnutls/x509.h>
+#  include <gnutls/crypto.h>
 #elif defined(HAVE_OPENSSL)
 #  include <openssl/ssl.h>
 #  include <openssl/x509v3.h>
@@ -48,6 +49,12 @@
  */
 TDSRET tds_ssl_init(TDSSOCKET *tds, bool full);
 void tds_ssl_deinit(TDSCONNECTION *conn);
+/**
+ * Get TLS channel binding application data (RFC 5929).
+ * The data includes the type prefix, either "tls-unique:" or, for TLS 1.3
+ * where tls-unique is not defined, "tls-server-end-point:".
+ * @return length of data, 0 if not available
+ */
 size_t tds_ssl_get_cb(TDSCONNECTION * conn, void *cb, size_t cblen);
 
 #  ifdef HAVE_GNUTLS

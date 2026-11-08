@@ -119,6 +119,33 @@ BIO_get_data(const BIO *b)
 #define TDS8_ALPN_ARRAY 't', 'd', 's', '/', '8', '.', '0'
 #define TDS8_ALPN_ARRAY_LEN 7
 
+/* channel binding types, see RFC 5929 */
+#define TDS_CB_TLS_UNIQUE "tls-unique:"
+#define TDS_CB_TLS_SERVER_END_POINT "tls-server-end-point:"
+
+/**
+ * Fill channel binding application data with given prefix and data.
+ * @param cb      output buffer
+ * @param cblen   output buffer size
+ * @param prefix  channel binding type prefix, including the final colon
+ * @param data    channel binding data
+ * @param data_len channel binding data length
+ * @return length of application data or 0 on error
+ */
+static size_t
+tds_ssl_fill_cb(void *cb, size_t cblen, const char *prefix, const void *data, size_t data_len)
+{
+	size_t prefix_len = strlen(prefix);
+
+	if (data_len == 0 || prefix_len + data_len > cblen) {
+		tdsdump_log(TDS_DBG_ERROR, "tds_ssl_get_cb: no space for %s channel binding\n", prefix);
+		return 0;
+	}
+	memcpy(cb, prefix, prefix_len);
+	memcpy((char *) cb + prefix_len, data, data_len);
+	return prefix_len + data_len;
+}
+
 static SSL_RET
 tds_pull_func_login(SSL_PULL_ARGS)
 {
@@ -681,28 +708,95 @@ tds_ssl_deinit(TDSCONNECTION *conn)
 	conn->encrypt_single_packet = 0;
 }
 
+#if GNUTLS_VERSION_NUMBER >= 0x030603
+/**
+ * Compute the "tls-server-end-point" hash of a certificate (RFC 5929, section 4.1).
+ * The hash function is the one used by the certificate signature, MD5 and SHA-1 are replaced by SHA-256.
+ * @param der      certificate in DER format
+ * @param hash     output buffer
+ * @param hash_len output buffer size
+ * @return hash length or 0 on error
+ */
+static size_t
+tds_ssl_end_point_hash(const gnutls_datum_t *der, unsigned char *hash, size_t hash_len)
+{
+	gnutls_x509_crt_t cert;
+	gnutls_digest_algorithm_t dig;
+	int sign_algo;
+	size_t len;
+
+	if (gnutls_x509_crt_init(&cert) < 0)
+		return 0;
+	if (gnutls_x509_crt_import(cert, der, GNUTLS_X509_FMT_DER) < 0) {
+		gnutls_x509_crt_deinit(cert);
+		return 0;
+	}
+	sign_algo = gnutls_x509_crt_get_signature_algorithm(cert);
+	gnutls_x509_crt_deinit(cert);
+	if (sign_algo < 0)
+		return 0;
+
+	dig = gnutls_sign_get_hash_algorithm((gnutls_sign_algorithm_t) sign_algo);
+	if (dig == GNUTLS_DIG_MD5 || dig == GNUTLS_DIG_SHA1)
+		dig = GNUTLS_DIG_SHA256;
+	if (dig == GNUTLS_DIG_UNKNOWN)
+		return 0;
+	len = gnutls_hash_get_len(dig);
+	if (len == 0 || len > hash_len)
+		return 0;
+	if (gnutls_hash_fast(dig, der->data, der->size, hash) < 0)
+		return 0;
+	return len;
+}
+
+static size_t
+tds_ssl_get_cb_end_point(gnutls_session_t session, void *cb, size_t cblen)
+{
+	const gnutls_datum_t *cert_list;
+	unsigned int list_size = 0;
+	unsigned char hash[64];
+	size_t hash_len;
+
+	cert_list = gnutls_certificate_get_peers(session, &list_size);
+	if (!cert_list || list_size == 0) {
+		tdsdump_log(TDS_DBG_ERROR, "tds_ssl_get_cb: no server certificate for tls-server-end-point\n");
+		return 0;
+	}
+	hash_len = tds_ssl_end_point_hash(&cert_list[0], hash, sizeof(hash));
+	if (hash_len == 0) {
+		tdsdump_log(TDS_DBG_ERROR, "tds_ssl_get_cb: failed to compute tls-server-end-point hash\n");
+		return 0;
+	}
+	return tds_ssl_fill_cb(cb, cblen, TDS_CB_TLS_SERVER_END_POINT, hash, hash_len);
+}
+#endif
+
 size_t
 tds_ssl_get_cb(TDSCONNECTION *conn, void *cb, size_t cblen)
 {
 	int rc;
 	gnutls_datum_t unique;
+	gnutls_session_t session = (gnutls_session_t) conn->tls_session;
+	size_t len;
 
 	/* No CBT, skip channel binding */
-	if (!conn->tls_session)
+	if (!session)
 		return 0;
 
-	rc = gnutls_session_channel_binding((gnutls_session_t) conn->tls_session, GNUTLS_CB_TLS_UNIQUE, &unique);
+#if GNUTLS_VERSION_NUMBER >= 0x030603
+	/* tls-unique is not defined for TLS 1.3 */
+	if (gnutls_protocol_get_version(session) == GNUTLS_TLS1_3)
+		return tds_ssl_get_cb_end_point(session, cb, cblen);
+#endif
+
+	rc = gnutls_session_channel_binding(session, GNUTLS_CB_TLS_UNIQUE, &unique);
 	if (rc) {
 		tdsdump_log(TDS_DBG_ERROR, "tds_ssl_get_cb: failed to get tls-unique: %s\n", gnutls_strerror(rc));
 		return 0;
 	}
-	if (unique.size > cblen) {
-		tdsdump_log(TDS_DBG_ERROR, "tds_ssl_get_cb: buffer overflow getting get tls-unique\n");
-		return 0;
-	}
-	memcpy(cb, unique.data, unique.size);
+	len = tds_ssl_fill_cb(cb, cblen, TDS_CB_TLS_UNIQUE, unique.data, unique.size);
 	gnutls_free(unique.data);
-	return unique.size;
+	return len;
 }
 
 #else /* !HAVE_GNUTLS */
@@ -1241,10 +1335,67 @@ tds_ssl_deinit(TDSCONNECTION *conn)
 	conn->encrypt_single_packet = 0;
 }
 
+#ifdef TLS1_3_VERSION
+/**
+ * Compute the "tls-server-end-point" hash of a certificate (RFC 5929, section 4.1).
+ * The hash function is the one used by the certificate signature, MD5 and SHA-1 are replaced by SHA-256.
+ * @param cert     certificate
+ * @param hash     output buffer
+ * @param hash_len output buffer size
+ * @return hash length or 0 on error
+ */
+static size_t
+tds_ssl_end_point_hash(X509 *cert, unsigned char *hash, size_t hash_len)
+{
+	const EVP_MD *md;
+	int md_nid = NID_undef;
+	unsigned int len = 0;
+
+#ifndef LIBRESSL_VERSION_NUMBER
+	/* this handles also RSA-PSS signatures */
+	if (!X509_get_signature_info(cert, &md_nid, NULL, NULL, NULL))
+		return 0;
+#else
+	if (!OBJ_find_sigid_algs(X509_get_signature_nid(cert), &md_nid, NULL))
+		return 0;
+#endif
+	if (md_nid == NID_md5 || md_nid == NID_sha1)
+		md_nid = NID_sha256;
+	md = EVP_get_digestbynid(md_nid);
+	if (!md || EVP_MD_size(md) <= 0 || (size_t) EVP_MD_size(md) > hash_len)
+		return 0;
+	if (!X509_digest(cert, md, hash, &len))
+		return 0;
+	return len;
+}
+
+static size_t
+tds_ssl_get_cb_end_point(SSL *ssl, void *cb, size_t cblen)
+{
+	X509 *cert;
+	unsigned char hash[EVP_MAX_MD_SIZE];
+	size_t hash_len;
+
+	cert = SSL_get_peer_certificate(ssl);
+	if (!cert) {
+		tdsdump_log(TDS_DBG_ERROR, "tds_ssl_get_cb: no server certificate for tls-server-end-point\n");
+		return 0;
+	}
+	hash_len = tds_ssl_end_point_hash(cert, hash, sizeof(hash));
+	X509_free(cert);
+	if (hash_len == 0) {
+		tdsdump_log(TDS_DBG_ERROR, "tds_ssl_get_cb: failed to compute tls-server-end-point hash\n");
+		return 0;
+	}
+	return tds_ssl_fill_cb(cb, cblen, TDS_CB_TLS_SERVER_END_POINT, hash, hash_len);
+}
+#endif
+
 size_t
 tds_ssl_get_cb(TDSCONNECTION *conn, void *cb, size_t cblen)
 {
 	SSL *ssl;
+	unsigned char tls_unique[EVP_MAX_MD_SIZE];
 	size_t tls_unique_len;
 
 	/* No CBT, skip channel binding */
@@ -1253,18 +1404,24 @@ tds_ssl_get_cb(TDSCONNECTION *conn, void *cb, size_t cblen)
 
 	ssl = (SSL *) conn->tls_session;
 
+#ifdef TLS1_3_VERSION
+	/* tls-unique is not defined for TLS 1.3 */
+	if (SSL_version(ssl) >= TLS1_3_VERSION)
+		return tds_ssl_get_cb_end_point(ssl, cb, cblen);
+#endif
+
 	/* Get tls-unique from OpenSSL */
-	tls_unique_len = SSL_get_finished(ssl, cb, cblen);
+	tls_unique_len = SSL_get_finished(ssl, tls_unique, sizeof(tls_unique));
 	if (tls_unique_len == 0) {
 		/* Try peer finished as fallback */
-		tls_unique_len = SSL_get_peer_finished(ssl, cb, cblen);
-		if (tls_unique_len == 0) {
-			tdsdump_log(TDS_DBG_ERROR, "tds_ssl_get_cb: failed to get tls-unique from OpenSSL\n");
-			/* No tls-unique available, skip channel binding */
-			return 0;
-		}
+		tls_unique_len = SSL_get_peer_finished(ssl, tls_unique, sizeof(tls_unique));
 	}
-	return tls_unique_len;
+	if (tls_unique_len == 0 || tls_unique_len > sizeof(tls_unique)) {
+		tdsdump_log(TDS_DBG_ERROR, "tds_ssl_get_cb: failed to get tls-unique from OpenSSL\n");
+		/* No tls-unique available, skip channel binding */
+		return 0;
+	}
+	return tds_ssl_fill_cb(cb, cblen, TDS_CB_TLS_UNIQUE, tls_unique, tls_unique_len);
 }
 #endif
 

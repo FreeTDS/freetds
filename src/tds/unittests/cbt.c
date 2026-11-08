@@ -38,23 +38,24 @@ bin2ascii(char *dest, const void *data, size_t len)
 }
 
 static void
-calc_cbt_from_tls_unique_test(const char *tls_unique, const char *cbt)
+calc_cbt_test(const char *app_data, const char *cbt)
 {
 	unsigned char cbt_buf[16];
 	char cbt_str[33];
 
-	tds_calc_cbt_from_tls_unique(tls_unique, strlen(tls_unique), cbt_buf);
+	tds_calc_cbt(app_data, strlen(app_data), cbt_buf);
 
 	/* convert to hex string and compare */
 	bin2ascii(cbt_str, cbt_buf, 16);
 	if (strcasecmp(cbt_str, cbt) != 0) {
-		fprintf(stderr, "Wrong calc_cbt_from_tls_unique(%s) -> %s expected %s\n", tls_unique, cbt_buf, cbt);
+		fprintf(stderr, "Wrong tds_calc_cbt(%s) -> %s expected %s\n", app_data, cbt_str, cbt);
 		exit(1);
 	}
 }
 
 TEST_MAIN()
 {
-	calc_cbt_from_tls_unique_test("0123456789abcdef", "1eb7620a5e38cb1f50478b1690621a03");
+	calc_cbt_test("tls-unique:0123456789abcdef", "1eb7620a5e38cb1f50478b1690621a03");
+	calc_cbt_test("tls-server-end-point:0123456789abcdef0123456789abcdef", "5eda5394c965f26697e73da2828a7ad0");
 	return 0;
 }

@@ -603,49 +603,44 @@ unix_to_nt_time(uint64_t * nt, struct timeval *tv)
 	*nt = t2;
 }
 
+/**
+ * Compute channel binding token (MD5 of gss_channel_bindings_struct).
+ * @param app_data     channel binding application data, like "tls-unique:" followed by data
+ * @param app_data_len application data length
+ * @param cbt          output token
+ */
 static void
-tds_calc_cbt_from_tls_unique(const void *tls_unique_buf, size_t tls_unique_len, unsigned char cbt[16])
+tds_calc_cbt(const void *app_data, size_t app_data_len, unsigned char cbt[16])
 {
 	MD5_CTX md5_ctx;
-	unsigned char channel_binding_struct[20 + 11];
-	size_t struct_len;
-	size_t application_data_raw_len;
+	unsigned char channel_binding_struct[20];
 
 	/* Build channel binding structure */
 	/* initiator_address: 8 bytes of zeros */
 	/* acceptor_address: 8 bytes of zeros */
-	/* application_data: 4 bytes length (little endian) + "tls-unique:" + tls_unique */
-	application_data_raw_len = 11 + tls_unique_len;
-	struct_len = 8 + 8 + 4 + 11;
-
+	/* application_data: 4 bytes length (little endian) + data */
 	memset(channel_binding_struct, 0, sizeof(channel_binding_struct));
-
-	/* initiator_address: 8 bytes of zeros (already zeroed by memset) */
-	/* acceptor_address: 8 bytes of zeros (already zeroed by memset) */
-	/* Offset is 16 at this point */
-
-	/* Build application_data: length + "tls-unique:" + tls_unique */
-	TDS_PUT_UA4LE(channel_binding_struct + 16, application_data_raw_len);	/* length (4 bytes) */
-	memcpy(channel_binding_struct + 20, "tls-unique:", 11);	/* "tls-unique:" prefix */
+	TDS_PUT_UA4LE(channel_binding_struct + 16, app_data_len);
 
 	/* Calculate MD5 hash */
 	MD5Init(&md5_ctx);
-	MD5Update(&md5_ctx, channel_binding_struct, struct_len);
-	MD5Update(&md5_ctx, tls_unique_buf, tls_unique_len);	/* tls_unique data */
+	MD5Update(&md5_ctx, channel_binding_struct, sizeof(channel_binding_struct));
+	MD5Update(&md5_ctx, app_data, app_data_len);
 	MD5Final(&md5_ctx, cbt);
 }
 
 static void
 get_cbt(TDSSOCKET *tds, TDSNTLMAUTH *auth)
 {
-	unsigned char tls_unique_buf[256];
-	size_t tls_unique_len;
+	unsigned char app_data[256];
+	size_t app_data_len;
 
-	tls_unique_len = tds_ssl_get_cb(tds->conn, tls_unique_buf, sizeof(tls_unique_buf));
-	if (tls_unique_len == 0)
+	app_data_len = tds_ssl_get_cb(tds->conn, app_data, sizeof(app_data));
+	if (app_data_len == 0)
 		return;
 
-	tds_calc_cbt_from_tls_unique(tls_unique_buf, tls_unique_len, auth->cbt);
+	tdsdump_dump_buf(TDS_DBG_INFO1, "Channel Binding application data", app_data, app_data_len);
+	tds_calc_cbt(app_data, app_data_len, auth->cbt);
 	auth->has_cbt = true;
 	tdsdump_dump_buf(TDS_DBG_INFO1, "Channel Binding Token", auth->cbt, 16);
 }
