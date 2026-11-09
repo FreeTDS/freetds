@@ -179,17 +179,23 @@ convert_to_usc2le_string(TDSSOCKET * tds, const char *s, size_t len, char *out)
 }
 
 static TDSRET
-make_ntlm_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_hash[16])
+make_ntlm_hash(TDSSOCKET *tds, const char *passwd, unsigned char ntlm_hash[16])
 {
+/*
+ * Windows limits passwords to about 128 characters; a character can take
+ * up to 4 bytes in client charset (like UTF-8), so allow 4 bytes per character.
+ * Conversion needs an output buffer twice the input length.
+ */
+#define MAX_NTLM_PASSWD_BYTES (128 * 4)
 	MD4_CTX context;
 	size_t passwd_len = 0;
-	char passwd_usc2le[256];
+	char passwd_usc2le[MAX_NTLM_PASSWD_BYTES * 2];
 	size_t passwd_usc2le_len = 0;
 
 	passwd_len = strlen(passwd);
 
-	if (passwd_len > 128)
-		passwd_len = 128;
+	if (passwd_len > MAX_NTLM_PASSWD_BYTES)
+		passwd_len = MAX_NTLM_PASSWD_BYTES;
 
 	passwd_usc2le_len = convert_to_usc2le_string(tds, passwd, passwd_len, passwd_usc2le);
 	if (passwd_usc2le_len == (size_t) -1) {
