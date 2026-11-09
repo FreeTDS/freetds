@@ -288,9 +288,8 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 	ULONG attrs;
 	TimeStamp ts;
 	SEC_WINNT_AUTH_IDENTITY identity;
-	const char *server_name;
+	char *spn;
 	WCHAR *p, *user_name, *passwd;
-	struct addrinfo *addrs = NULL;
 	static WCHAR sec_package[] = L"Negotiate";
 	WCHAR user_ucs2[512], password_ucs2[256];
 
@@ -348,42 +347,26 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 
 	buf.BufferType = SECBUFFER_TOKEN;
 	buf.pvBuffer   = NULL;
-	buf.cbBuffer   = 0;
+	buf.cbBuffer = 0;
 
 	/* build SPN */
-	server_name = tds_dstr_cstr(&login->server_host_name);
-	if (strchr(server_name, '.') == NULL) {
-		struct addrinfo hints;
-		int res;
+	spn = tds_get_spn(tds);
+	if (spn) {
+		int len = MultiByteToWideChar(CP_ACP, 0, spn, -1, NULL, 0);
 
-		memset(&hints, 0, sizeof(hints));
-		hints.ai_family = AF_UNSPEC;
-		hints.ai_socktype = SOCK_STREAM;
-		hints.ai_flags = AI_V4MAPPED|AI_ADDRCONFIG|AI_CANONNAME|AI_FQDN;
-		res = getaddrinfo(server_name, NULL, &hints, &addrs);
-		if (res) {
-			/* some version of Windows does not support V4MAPPED
-			 * and ADDRCONFIG, try without them
-			 */
-			hints.ai_flags = AI_CANONNAME|AI_FQDN;
-			res = getaddrinfo(server_name, NULL, &hints, &addrs);
+		if (len > 0)
+			auth->sname = tds_new(TCHAR, len);
+		if (auth->sname && MultiByteToWideChar(CP_ACP, 0, spn, -1, auth->sname, len) != len) {
+			free(auth->sname);
+			auth->sname = NULL;
 		}
-		if (!res && addrs->ai_canonname && strchr(addrs->ai_canonname, '.') != NULL)
-			server_name = addrs->ai_canonname;
+		free(spn);
 	}
-	if (strchr(server_name, '.') != NULL) {
-		auth->sname = malloc((strlen(server_name) + 24) * sizeof(TCHAR));
-		if (!auth->sname) {
-			if (addrs)
-				freeaddrinfo(addrs);
-			tds_sspi_free(tds->conn, &auth->tds_auth);
-			return NULL;
-		}
-		wsprintf(auth->sname, TEXT("MSSQLSvc/%S:%d"), server_name, login->port);
-		tdsdump_log(TDS_DBG_NETWORK, "kerberos name %S\n", auth->sname);
+	if (!auth->sname) {
+		tds_sspi_free(tds->conn, &auth->tds_auth);
+		return NULL;
 	}
-	if (addrs)
-		freeaddrinfo(addrs);
+	tdsdump_log(TDS_DBG_NETWORK, "kerberos name %ls\n", auth->sname);
 
 	status = sec_fn->InitializeSecurityContext(&auth->cred, NULL, auth->sname,
 		ISC_REQ_CONFIDENTIALITY | ISC_REQ_REPLAY_DETECT | ISC_REQ_CONNECTION | ISC_REQ_ALLOCATE_MEMORY,
