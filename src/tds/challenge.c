@@ -68,6 +68,13 @@ typedef struct tds_answer
 	unsigned char nt_resp[24];
 } TDSANSWER;
 
+/* NTLM negotiate flags, see MS-NLMP */
+#define NTLMSSP_NEGOTIATE_UNICODE 0x00000001u
+#define NTLMSSP_NEGOTIATE_NTLM 0x00000200u
+#define NTLMSSP_NEGOTIATE_OEM_DOMAIN_SUPPLIED 0x00001000u
+#define NTLMSSP_NEGOTIATE_OEM_WORKSTATION_SUPPLIED 0x00002000u
+#define NTLMSSP_NEGOTIATE_ALWAYS_SIGN 0x00008000u
+#define NTLMSSP_NEGOTIATE_EXTENDED_SESSIONSECURITY 0x00080000u
 
 typedef struct
 {
@@ -867,6 +874,7 @@ tds_ntlm_get_auth(TDSSOCKET * tds)
 	int host_name_len;
 	int domain_len;
 	int auth_len;
+	uint32_t flags;
 	struct tds_ntlm_auth *auth;
 
 	if (!tds->login)
@@ -902,7 +910,10 @@ tds_ntlm_get_auth(TDSSOCKET * tds)
 	/* sequence 1 client -> server */
 	TDS_PUT_A4(packet + 8, TDS_HOST4LE(1));
 	/* flags */
-	TDS_PUT_A4(packet + 12, TDS_HOST4LE(0x08b201));
+	flags = NTLMSSP_NEGOTIATE_UNICODE | NTLMSSP_NEGOTIATE_NTLM
+		| NTLMSSP_NEGOTIATE_OEM_DOMAIN_SUPPLIED | NTLMSSP_NEGOTIATE_OEM_WORKSTATION_SUPPLIED
+		| NTLMSSP_NEGOTIATE_ALWAYS_SIGN | NTLMSSP_NEGOTIATE_EXTENDED_SESSIONSECURITY;
+	TDS_PUT_A4(packet + 12, TDS_HOST4LE(flags));
 
 	/* domain info */
 	TDS_PUT_A2LE(packet + 16, domain_len);
