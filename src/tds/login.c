@@ -805,8 +805,71 @@ tds_connect_and_login(TDSSOCKET * tds, TDSLOGIN * login)
 	return tds_connect(tds, login, &oserr);
 }
 
+/**
+ * Compute the service principal name (SPN) of the server, used by
+ * Kerberos (GSSAPI), SSPI and NTLM authentication.
+ * The "spn" configuration value is used if set.
+ * Otherwise, for Microsoft SQL Server, "MSSQLSvc/<host>:<instance>",
+ * or "MSSQLSvc/<host>:<port>" if no instance name is used; host is
+ * expanded to a fully qualified domain name if possible.
+ * For Sybase the server name is returned.
+ * @param tds  connection to the server
+ * @return SPN (to be freed) or NULL on error
+ */
+char *
+tds_get_spn(TDSSOCKET *tds)
+{
+	TDSLOGIN *login = tds->login;
+	const char *server_name;
+	struct addrinfo *addrs = NULL;
+	char *spn = NULL;
+	int len;
+
+	if (!tds_dstr_isempty(&login->server_spn))
+		return strdup(tds_dstr_cstr(&login->server_spn));
+
+	/* TDS 5.0, Sybase */
+	if (!IS_TDS7_PLUS(tds->conn))
+		return strdup(tds_dstr_cstr(&login->server_name));
+
+	/* try to get a fully qualified domain name */
+	server_name = tds_dstr_cstr(&login->server_host_name);
+	if (strchr(server_name, '.') == NULL) {
+		struct addrinfo hints;
+		int res;
+
+		memset(&hints, 0, sizeof(hints));
+		hints.ai_family = AF_UNSPEC;
+		hints.ai_socktype = SOCK_STREAM;
+		/* do not use AI_FQDN, Windows does not allow it with AI_CANONNAME */
+		hints.ai_flags = AI_V4MAPPED | AI_ADDRCONFIG | AI_CANONNAME;
+		res = getaddrinfo(server_name, NULL, &hints, &addrs);
+		if (res) {
+			/* some versions of Windows do not support V4MAPPED and ADDRCONFIG, try without them */
+			addrs = NULL;
+			hints.ai_flags = AI_CANONNAME;
+			res = getaddrinfo(server_name, NULL, &hints, &addrs);
+		}
+		if (res)
+			addrs = NULL;
+		else if (addrs->ai_canonname && strchr(addrs->ai_canonname, '.') != NULL)
+			server_name = addrs->ai_canonname;
+	}
+
+	if (!tds_dstr_isempty(&login->instance_name))
+		len = asprintf(&spn, "MSSQLSvc/%s:%s", server_name, tds_dstr_cstr(&login->instance_name));
+	else
+		len = asprintf(&spn, "MSSQLSvc/%s:%d", server_name, login->port);
+	if (len < 0)
+		spn = NULL;
+
+	if (addrs)
+		freeaddrinfo(addrs);
+	return spn;
+}
+
 static void
-tds_put_buf(TDSSOCKET * tds, const unsigned char *buf, size_t dsize, size_t ssize)
+tds_put_buf(TDSSOCKET *tds, const unsigned char *buf, size_t dsize, size_t ssize)
 {
 	size_t cpsize;
 

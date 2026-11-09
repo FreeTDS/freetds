@@ -243,12 +243,6 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	/* same as GSS_KRB5_NT_PRINCIPAL_NAME but do not require .so library */
 	static gss_OID_desc nt_principal = { 10, (void*) "\x2a\x86\x48\x86\xf7\x12\x01\x02\x02\x01" };
 #endif
-	const char *server_name;
-	const char *realm_separator, *realm;
-	/* Storage for getaddrinfo calls */
-	struct addrinfo *addrs = NULL;
-	int len = 0;
-
 	TDSGSSAUTH *auth;
 
 	if (!tds->login)
@@ -263,42 +257,18 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	auth->gss_context = GSS_C_NO_CONTEXT;
 	auth->last_stat = GSS_S_COMPLETE;
 
-	server_name = tds_dstr_cstr(&tds->login->server_host_name);
-	if (IS_TDS7_PLUS(tds->conn) && strchr(server_name, '.') == NULL) {
-		struct addrinfo hints;
-		memset(&hints, 0, sizeof(hints));
-		hints.ai_family = AF_UNSPEC;
-		hints.ai_socktype = SOCK_STREAM;
-		hints.ai_flags = AI_V4MAPPED|AI_ADDRCONFIG|AI_CANONNAME|AI_FQDN;
-		if (!getaddrinfo(server_name, NULL, &hints, &addrs) && addrs->ai_canonname
-		    && strchr(addrs->ai_canonname, '.') != NULL)
-			server_name = addrs->ai_canonname;
-	}
+	auth->sname = tds_get_spn(tds);
+	if (auth->sname && tds_dstr_isempty(&tds->login->server_spn)
+	    && !tds_dstr_isempty(&tds->login->server_realm_name)) {
+		/* add Kerberos realm */
+		char *sname = NULL;
 
-	if (!tds_dstr_isempty(&tds->login->server_realm_name)) {
-		realm_separator = "@";
-		realm = tds_dstr_cstr(&tds->login->server_realm_name);
-	} else {
-		realm_separator = "";
-		realm = "";
+		if (asprintf(&sname, "%s@%s", auth->sname, tds_dstr_cstr(&tds->login->server_realm_name)) < 0)
+			sname = NULL;
+		free(auth->sname);
+		auth->sname = sname;
 	}
-	if (!tds_dstr_isempty(&tds->login->server_spn)) {
-		auth->sname = strdup(tds_dstr_cstr(&tds->login->server_spn));
-	} else if (IS_TDS7_PLUS(tds->conn)) {
-		if (!tds_dstr_isempty(&tds->login->instance_name)) {
-			len = asprintf(&auth->sname, "MSSQLSvc/%s:%s%s%s", server_name, tds_dstr_cstr(&tds->login->instance_name),
-				       realm_separator, realm);
-		} else {
-			len = asprintf(&auth->sname, "MSSQLSvc/%s:%d%s%s", server_name, tds->login->port, realm_separator, realm);
-		}
-	} else {
-		/* TDS 5.0, Sybase */
-		server_name = tds_dstr_cstr(&tds->login->server_name);
-		len = asprintf(&auth->sname, "%s%s%s", server_name, realm_separator, realm);
-	}
-	if (addrs)
-		freeaddrinfo(addrs);
-	if (len < 0 || auth->sname == NULL) {
+	if (auth->sname == NULL) {
 		tds_gss_free(tds->conn, (TDSAUTHENTICATION *) auth);
 		return NULL;
 	}
