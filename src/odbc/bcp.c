@@ -378,10 +378,9 @@ odbc_bcp_bind(TDS_DBC *dbc, const void * varaddr, int prefixlen, int varlen,
 	if (vartype != 0 && !is_tds_type_valid(vartype))
 		ODBCBCP_ERROR_RETURN("HY004");
 
-	if (prefixlen == 0 && varlen == SQL_VARLEN_DATA && termlen == -1 && !is_fixed_type(vartype)) {
-		tdsdump_log(TDS_DBG_FUNC, "bcp_bind(): non-fixed type %d requires prefix or terminator\n", vartype);
+	/* like MS, a NULL terminator is an error */
+	if (termlen > 0 && terminator == NULL)
 		ODBCBCP_ERROR_RETURN("HY009");
-	}
 
 	if (table_column <= 0 ||  table_column > dbc->bcpinfo->bindinfo->num_cols)
 		ODBCBCP_ERROR_RETURN("HY009");
@@ -390,6 +389,19 @@ odbc_bcp_bind(TDS_DBC *dbc, const void * varaddr, int prefixlen, int varlen,
 		ODBCBCP_ERROR_RETURN("HY009");
 
 	colinfo = dbc->bcpinfo->bindinfo->columns[table_column - 1];
+
+	/* without length, prefix or terminator there is no way to know the size of variable data */
+	if (prefixlen == 0 && varlen == SQL_VARLEN_DATA && termlen <= 0) {
+		TDS_SERVER_TYPE type = (TDS_SERVER_TYPE) vartype;
+
+		/* type 0 means the program variable has the same type as the column */
+		if (type == 0)
+			type = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
+		if (!is_fixed_type(type)) {
+			tdsdump_log(TDS_DBG_FUNC, "bcp_bind(): non-fixed type %d requires prefix or terminator\n", type);
+			ODBCBCP_ERROR_RETURN("HY009");
+		}
+	}
 
 	/* If varaddr is NULL and varlen greater than 0, the table column type must be SYBTEXT or SYBIMAGE
 		and the program variable type must be SYBTEXT, SYBCHAR, SYBIMAGE or SYBBINARY */

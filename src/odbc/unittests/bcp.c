@@ -259,11 +259,64 @@ static void special_select(void);
 
 static const char table_name[] = "all_types_bcp_unittest";
 
+static void
+check_bind(int line, const void *varaddr, int varlen, const void *terminator, int termlen, int vartype, int table_column,
+	   const char *sqlstate)
+{
+	RETCODE rc;
+	SQLHSTMT stmt = odbc_stmt;
+
+	rc = bcp_bind(odbc_conn, (const unsigned char *) varaddr, 0, varlen, (const unsigned char *) terminator, termlen,
+		      vartype, table_column);
+	if (!sqlstate) {
+		if (rc != SUCCEED)
+			report_bcp_error("bcp_bind", line, __FILE__);
+		return;
+	}
+	if (rc != FAIL) {
+		fprintf(stderr, "line %d: bcp_bind succeeded unexpectedly\n", line);
+		exit(1);
+	}
+	odbc_stmt = NULL;
+	odbc_read_error();
+	odbc_stmt = stmt;
+	if (strcmp(odbc_sqlstate, sqlstate) != 0) {
+		fprintf(stderr, "line %d: wrong SQLSTATE %s, expected %s\n", line, odbc_sqlstate, sqlstate);
+		exit(1);
+	}
+}
+
+/* bindings rejected as data size cannot be computed (used to crash) */
+static void
+bind_errors(void)
+{
+	static const char str[] = "hello";
+	static const int num = 1234;
+
+	if (bcp_init(odbc_conn, (bcp_init_char_t *) T(table_name), NULL, NULL, BCP_DIRECTION_IN) == FAIL)
+		report_bcp_error("bcp_init", __LINE__, __FILE__);
+
+	/* NULL terminator */
+	check_bind(__LINE__, &num, SQL_VARLEN_DATA, NULL, 1, BCP_TYPE_SQLINT4, 12, "HY009");
+	check_bind(__LINE__, str, SQL_VARLEN_DATA, NULL, 1, BCP_TYPE_SQLVARCHAR, 3, "HY009");
+
+	/* no length, prefix or terminator */
+	check_bind(__LINE__, str, SQL_VARLEN_DATA, NULL, 0, BCP_TYPE_SQLVARCHAR, 3, "HY009");
+	check_bind(__LINE__, str, SQL_VARLEN_DATA, "", 0, BCP_TYPE_SQLVARCHAR, 3, "HY009");
+	check_bind(__LINE__, str, SQL_VARLEN_DATA, NULL, -1, BCP_TYPE_SQLVARCHAR, 3, "HY009");
+	check_bind(__LINE__, str, SQL_VARLEN_DATA, NULL, 0, BCP_TYPE_SQLDECIMAL, 10, "HY009");
+
+	/* fixed types do not need it */
+	check_bind(__LINE__, &num, SQL_VARLEN_DATA, NULL, 0, BCP_TYPE_SQLINT4, 12, NULL);
+	check_bind(__LINE__, &num, SQL_VARLEN_DATA, NULL, 0, 0, 12, NULL);
+
+	bcp_done(odbc_conn);
+}
+
 TEST_MAIN()
 {
 	const char *s;
 
-	odbc_use_version3 = false;
 	odbc_set_conn_attr = set_attr;
 	odbc_conn_additional_params = "ClientCharset=ISO-8859-1;";
 	odbc_connect();
@@ -271,6 +324,8 @@ TEST_MAIN()
 	tds_version = odbc_tds_version();
 
 	init();
+
+	bind_errors();
 
 	normal_inserts(0);
 	if (tds_version >= 0x703)
