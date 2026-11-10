@@ -132,15 +132,17 @@ _ct_get_origin(int origin)
 	return "unrecognized origin";
 }
 
+/**
+ * Get text of a user API layer error of Client-Library (ct_* functions).
+ * Note that BLK-Library uses the same numbers with different texts,
+ * see _blk_get_user_api_layer_error.
+ */
 static const char *
 _ct_get_user_api_layer_error(int error)
 {
 	tdsdump_log(TDS_DBG_FUNC, "_ct_get_user_api_layer_error(%d)\n", error);
 
 	switch (error) {
-	case 1:
-		return "Cannot call API %1! from this state: %2!.";
-		break;
 	case 2:
 		return "Memory allocation failure.";
 		break;
@@ -153,50 +155,21 @@ _ct_get_user_api_layer_error(int error)
 	case 5:
 		return "An illegal value of %1! given for parameter %2!.";
 		break;
-	case 6:
-		return "The parameter %1! cannot be NULL.";
-		break;
-	case 7:
-		return "The given buffer of %1! bytes exceeds the total length of the value to be transferred.";
-		break;
 	case 8:
 		return "The %1! parameter must be NULL.";
 		break;
 	case 9:
 		return "The %1! parameter must be set to CS_UNUSED.";
 		break;
-	case 10:
-		return "A table column of type %1! cannot be bound to a program variable of type %2!.";
-		break;
-	case 15:
-		return "Use direction CS_BLK_IN or CS_BLK_OUT for a bulk copy operation.";
-		break;
-	case 16:
-		return "Use option CS_BLK_ALL to end a bulk copy OUT.";
-		break;
 	case 18:
 		return "A cursor must be declared before this command type can be initialized.";
-		break;
-	case 25:
-		return "Failed in conversion routine - condition overflow.  col = %1! row = %2!.";
-		break;
-	case 26:
-		return "Failed in conversion routine - syntax error.  col = %1! row = %2!.";
 		break;
 	case 29:
 		return "This type of command cannot be batched with the command already initialized on the command structure.";
 		break;
-	case 33:
-		return "Cannot set row count greater than the array bind count.";
-		break;
 	case 36:
-		return "The result is truncated because the conversion/operation resulted in overflow.";
-	case 42:
-		return "Data truncated while doing local character set conversion.  col = %1! row = %2!.";
-		break;
-	case 49:
-		return "The number of times blk_textxfer() has been called exceeds the number of unbound text or image columns.";
-		break;
+		return "The result is truncated because the"
+		       " conversion/operation resulted in overflow.";
 	case 51:
 		return "Exactly one of context and connection must be non-NULL.";
 		break;
@@ -234,32 +207,84 @@ _ct_get_user_api_layer_error(int error)
 	return "unrecognized error";
 }
 
+/**
+ * Get text of a user API layer error of BLK-Library (blk_* functions).
+ * Errors not specific to BLK-Library use Client-Library texts.
+ */
+static const char *
+_blk_get_user_api_layer_error(int error)
+{
+	tdsdump_log(TDS_DBG_FUNC, "_blk_get_user_api_layer_error(%d)\n", error);
+
+	switch (error) {
+	case 1:
+		return "Cannot call API %1! from this state: %2!.";
+		break;
+	case 4:
+		return "Parameter %1! has an illegal value of %2!.";
+		break;
+	case 6:
+		return "The parameter %1! cannot be NULL.";
+		break;
+	case 7:
+		return "The given buffer of %1! bytes exceeds the total length of the value to be transferred.";
+		break;
+	case 10:
+		return "A table column of type %1! cannot be bound to a program variable of type %2!.";
+		break;
+	case 15:
+		return "Use direction CS_BLK_IN or CS_BLK_OUT for a bulk copy operation.";
+		break;
+	case 16:
+		return "Use option CS_BLK_ALL to end a bulk copy OUT.";
+		break;
+	case 25:
+		return "Failed in conversion routine - condition overflow.  col = %1! row = %2!.";
+		break;
+	case 26:
+		return "Failed in conversion routine - syntax error.  col = %1! row = %2!.";
+		break;
+	case 33:
+		return "Cannot set row count greater than the array bind count.";
+		break;
+	case 42:
+		return "Data truncated while doing local character set conversion.  col = %1! row = %2!.";
+		break;
+	case 49:
+		return "The number of times blk_textxfer() has been called exceeds the number of unbound text or image columns.";
+		break;
+	default:
+		break;
+	}
+	return _ct_get_user_api_layer_error(error);
+}
+
 static char *
-_ct_get_msgstr(const char *funcname, int layer, int origin, int severity, int number)
+_ct_get_msgstr(const char *funcname, int layer, int origin, int severity, int number, bool blk)
 {
 	char *m;
 
 	tdsdump_log(TDS_DBG_FUNC, "_ct_get_msgstr(%s, %d, %d, %d, %d)\n", funcname, layer, origin, severity, number);
 
 	if (asprintf(&m,
-		     "%s: %s: %s: %s", funcname, _ct_get_layer(layer), _ct_get_origin(origin), _ct_get_user_api_layer_error(number)
+		     "%s: %s: %s: %s", funcname, _ct_get_layer(layer), _ct_get_origin(origin),
+		     blk ? _blk_get_user_api_layer_error(number) : _ct_get_user_api_layer_error(number)
 	    ) < 0) {
 		return NULL;
 	}
 	return m;
 }
 
-void
-_ctclient_msg(CS_CONTEXT *ctx, CS_CONNECTION * con, const char *funcname,
-	      int layer, int origin, int severity, int number, const char *fmt, ...)
+static void
+_ctclient_vmsg(CS_CONTEXT *ctx, CS_CONNECTION * con, const char *funcname, bool blk,
+	       int layer, int origin, int severity, int number, const char *fmt, va_list ap)
 {
-	va_list ap;
 	CS_CLIENTMSG cm;
 	char *msgstr;
 	CS_CLIENTMSG_FUNC clientmsg_cb = NULL;
 
-	tdsdump_log(TDS_DBG_FUNC, "_ctclient_msg(%p, %p, %s, %d, %d, %d, %d, %s)\n",
-		    ctx, con, funcname, layer, origin, severity, number, fmt);
+	tdsdump_log(TDS_DBG_FUNC, "_ctclient_vmsg(%p, %p, %s, %d, %d, %d, %d, %d, %s)\n",
+		    ctx, con, funcname, (int) blk, layer, origin, severity, number, fmt);
 
 	if (!con && !ctx)
 		return;
@@ -271,15 +296,13 @@ _ctclient_msg(CS_CONTEXT *ctx, CS_CONNECTION * con, const char *funcname,
 	if (!clientmsg_cb)
 		clientmsg_cb = ctx->clientmsg_cb;
 
-	va_start(ap, fmt);
-
 	if (clientmsg_cb) {
 		cm.severity = severity;
 		cm.msgnumber = (((layer << 24) & 0xFF000000)
 				| ((origin << 16) & 0x00FF0000)
 				| ((severity << 8) & 0x0000FF00)
 				| ((number) & 0x000000FF));
-		msgstr = _ct_get_msgstr(funcname, layer, origin, severity, number);
+		msgstr = _ct_get_msgstr(funcname, layer, origin, severity, number, blk);
 		tds_vstrbuild(cm.msgstring, CS_MAX_MSG, &(cm.msgstringlen), msgstr, CS_NULLTERM, fmt, CS_NULLTERM, ap);
 		cm.msgstring[cm.msgstringlen] = '\0';
 		free(msgstr);
@@ -291,7 +314,34 @@ _ctclient_msg(CS_CONTEXT *ctx, CS_CONNECTION * con, const char *funcname,
 		cm.sqlstatelen = 0;
 		clientmsg_cb(ctx, con, &cm);
 	}
+}
 
+/**
+ * Report a Client-Library error to the application.
+ */
+void
+_ctclient_msg(CS_CONTEXT *ctx, CS_CONNECTION * con, const char *funcname,
+	      int layer, int origin, int severity, int number, const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	_ctclient_vmsg(ctx, con, funcname, false, layer, origin, severity, number, fmt, ap);
+	va_end(ap);
+}
+
+/**
+ * Report a BLK-Library error to the application.
+ * Same as _ctclient_msg but uses BLK-Library error texts.
+ */
+void
+_blkclient_msg(CS_CONNECTION * con, const char *funcname,
+	       int layer, int origin, int severity, int number, const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	_ctclient_vmsg(NULL, con, funcname, true, layer, origin, severity, number, fmt, ap);
 	va_end(ap);
 }
 

@@ -112,7 +112,7 @@ blk_bind(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt_arg, CS_VOID * 
 	/* check item value */
 
 	if (item < 1 || item > blkdesc->bcpinfo.bindinfo->num_cols) {
-		_ctclient_msg(NULL, con, "blk_bind", 2, 5, 1, 141, "%s, %d", "colnum", item);
+		_blkclient_msg(con, "blk_bind", 2, 5, 1, 141, "%s, %d", "colnum", item);
 		return CS_FAIL;
 	}
 
@@ -137,7 +137,7 @@ blk_bind(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt_arg, CS_VOID * 
 	/* types we can't convert */
 	if (_ct_get_server_type(NULL, datafmt->datatype) == TDS_INVALID_TYPE) {
 		colinfo = blkdesc->bcpinfo.bindinfo->columns[item - 1];
-		_ctclient_msg(NULL, con, "blk_bind", 1, 1, 1, 10, "%d, %d", _ct_get_client_type(colinfo, true), datafmt->datatype);
+		_blkclient_msg(con, "blk_bind", 1, 1, 1, 10, "%d, %d", _ct_get_client_type(colinfo, true), datafmt->datatype);
 		return CS_FAIL;
 	}
 
@@ -155,7 +155,7 @@ blk_bind(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt_arg, CS_VOID * 
 	} else {
 		/* all subsequent binds for this result set - the bind counts must be the same */
 		if (blkdesc->bcpinfo.bind_count != bind_count) {
-			_ctclient_msg(NULL, con, "blk_bind", 1, 1, 1, 137, "%d, %d", bind_count, blkdesc->bcpinfo.bind_count);
+			_blkclient_msg(con, "blk_bind", 1, 1, 1, 137, "%d, %d", bind_count, blkdesc->bcpinfo.bind_count);
 			return CS_FAIL;
 		}
 	}
@@ -215,7 +215,7 @@ blk_describe(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt_arg)
 	datafmt = _ct_datafmt_conv_prepare(CONN(blkdesc)->ctx, datafmt_arg, &datafmt_buf);
 
 	if (item < 1 || item > blkdesc->bcpinfo.bindinfo->num_cols) {
-		_ctclient_msg(NULL, CONN(blkdesc), "blk_describe", 2, 5, 1, 141, "%s, %d", "colnum", item);
+		_blkclient_msg(CONN(blkdesc), "blk_describe", 2, 5, 1, 141, "%s, %d", "colnum", item);
 		return CS_FAIL;
 	}
 
@@ -266,12 +266,12 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 
 	/* text/image data still to be sent with blk_textxfer */
 	if ((type == CS_BLK_BATCH || type == CS_BLK_ALL) && blkdesc->bcpinfo.blob_pending) {
-		_ctclient_msg(NULL, CONN(blkdesc), "blk_done", 1, 1, 1, 1, "%s, %s", "blk_done()", "text data pending");
+		_blkclient_msg(CONN(blkdesc), "blk_done", 1, 1, 1, 1, "%s, %s", "blk_done()", "text data pending");
 		return CS_FAIL;
 	}
 
 	if (blkdesc->bcpinfo.direction == CS_BLK_OUT && type == CS_BLK_BATCH) {
-		_ctclient_msg(NULL, CONN(blkdesc), "blk_done", 1, 1, 1, 16, "");
+		_blkclient_msg(CONN(blkdesc), "blk_done", 1, 1, 1, 16, "");
 		return CS_FAIL;
 	}
 
@@ -290,7 +290,7 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 
 		/* rows still to retrieve, client can continue or cancel */
 		if (!blkdesc->bcpinfo.out_done) {
-			_ctclient_msg(NULL, CONN(blkdesc), "blk_done", 1, 1, 1, 163, "");
+			_blkclient_msg(CONN(blkdesc), "blk_done", 1, 1, 1, 163, "");
 			return CS_FAIL;
 		}
 
@@ -298,7 +298,7 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 		while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS)) == TDS_SUCCESS)
 			continue;
 		if (rc != TDS_NO_MORE_RESULTS) {
-			_ctclient_msg(NULL, CONN(blkdesc), "blk_done", 2, 5, 1, 140, "");
+			_blkclient_msg(CONN(blkdesc), "blk_done", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 
@@ -311,7 +311,7 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 	switch (type) {
 	case CS_BLK_BATCH:
 		if (TDS_FAILED(tds_bcp_done(tds, &rows_copied))) {
-			_ctclient_msg(NULL, CONN(blkdesc), "blk_done", 2, 5, 1, 140, "");
+			_blkclient_msg(CONN(blkdesc), "blk_done", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 		
@@ -319,14 +319,14 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 			*outrow = rows_copied;
 		
 		if (TDS_FAILED(tds_bcp_start(tds, &blkdesc->bcpinfo))) {
-			_ctclient_msg(NULL, CONN(blkdesc), "blk_done", 2, 5, 1, 140, "");
+			_blkclient_msg(CONN(blkdesc), "blk_done", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 		break;
 		
 	case CS_BLK_ALL:
 		if (TDS_FAILED(tds_bcp_done(tds, &rows_copied))) {
-			_ctclient_msg(NULL, CONN(blkdesc), "blk_done", 2, 5, 1, 140, "");
+			_blkclient_msg(CONN(blkdesc), "blk_done", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 		
@@ -349,7 +349,7 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 					rc = tds_process_cancel(tds);
 			}
 			if (TDS_FAILED(rc)) {
-				_ctclient_msg(NULL, CONN(blkdesc), "blk_done", 2, 5, 1, 140, "");
+				_blkclient_msg(CONN(blkdesc), "blk_done", 2, 5, 1, 140, "");
 				return CS_FAIL;
 			}
 		}
@@ -362,7 +362,7 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 		break;
 
 	default:
-		_ctclient_msg(NULL, CONN(blkdesc), "blk_done", 1, 1, 1, 5, "%d, type", type);
+		_blkclient_msg(CONN(blkdesc), "blk_done", 1, 1, 1, 5, "%d, type", type);
 		return CS_FAIL;
 	}
 
@@ -423,17 +423,17 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 	}
 
 	if (direction != CS_BLK_IN && direction != CS_BLK_OUT ) {
-		_ctclient_msg(NULL, CONN(blkdesc), "blk_init", 1, 1, 1, 15, "");
+		_blkclient_msg(CONN(blkdesc), "blk_init", 1, 1, 1, 15, "");
 		return CS_FAIL;
 	}
 
 	if (!tablename) {
-		_ctclient_msg(NULL, CONN(blkdesc), "blk_init", 1, 1, 1, 6, "tblname");
+		_blkclient_msg(CONN(blkdesc), "blk_init", 1, 1, 1, 6, "tblname");
 		return CS_FAIL;
 	}
 	tnamelen = _ct_get_string_length(tablename, tnamelen);
 	if (tnamelen < 0) {
-		_ctclient_msg(NULL, CONN(blkdesc), "blk_init", 1, 1, 1, 4, "tblnamelen, %d", tnamelen);
+		_blkclient_msg(CONN(blkdesc), "blk_init", 1, 1, 1, 4, "tblnamelen, %d", tnamelen);
 		return CS_FAIL;
 	}
 
@@ -452,7 +452,7 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 	blkdesc->bcpinfo.out_done = false;
 
 	if (TDS_FAILED(tds_bcp_init(CONN(blkdesc)->tds_socket, &blkdesc->bcpinfo))) {
-		_ctclient_msg(NULL, CONN(blkdesc), "blk_init", 2, 5, 1, 140, "");
+		_blkclient_msg(CONN(blkdesc), "blk_init", 2, 5, 1, 140, "");
 		return CS_FAIL;
 	}
 	blkdesc->bcpinfo.bind_count = CS_UNUSED;
@@ -490,7 +490,7 @@ blk_props(CS_BLKDESC * blkdesc, CS_INT action, CS_INT property, CS_VOID * buffer
 			return CS_SUCCEED;
 			break;
 		default:
-			_ctclient_msg(NULL, CONN(blkdesc), "blk_props", 2, 5, 1, 141, "%s, %d", "action", action);
+			_blkclient_msg(CONN(blkdesc), "blk_props", 2, 5, 1, 141, "%s, %d", "action", action);
 			break;
 		}
 		break;
@@ -499,7 +499,7 @@ blk_props(CS_BLKDESC * blkdesc, CS_INT action, CS_INT property, CS_VOID * buffer
 		return _ct_props_dstr(CONN(blkdesc), &blkdesc->bcpinfo.hint, action, buffer, buflen, outlen);
 
 	default:
-		_ctclient_msg(NULL, CONN(blkdesc), "blk_props", 2, 5, 1, 141, "%s, %d", "property", property);
+		_blkclient_msg(CONN(blkdesc), "blk_props", 2, 5, 1, 141, "%s, %d", "property", property);
 		break;
 	}
 	return CS_FAIL;
@@ -546,14 +546,14 @@ blk_rowxfer_mult(CS_BLKDESC * blkdesc, CS_INT * row_count)
 		/* a positive row count limits rows to send, zero or negative values send all rows bound */
 		if (row_count != NULL && *row_count > 0) {
 			if (*row_count > rows_to_xfer) {
-				_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 1, 1, 1, 33, "");
+				_blkclient_msg(CONN(blkdesc), "blk_rowxfer", 1, 1, 1, 33, "");
 				return CS_FAIL;
 			}
 			rows_to_xfer = *row_count;
 		}
 		/* text/image data still to be sent with blk_textxfer */
 		if (blkdesc->bcpinfo.blob_pending) {
-			_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 1, 1, 1, 1, "%s, %s", "blk_rowxfer()",
+			_blkclient_msg(CONN(blkdesc), "blk_rowxfer", 1, 1, 1, 1, "%s, %s", "blk_rowxfer()",
 				      "text data pending");
 			return CS_FAIL;
 		}
@@ -614,25 +614,25 @@ blk_textxfer(CS_BLKDESC *blkdesc, CS_BYTE *buffer, CS_INT buflen, CS_INT *outlen
 
 	if (!bcpinfo->blob_pending) {
 		if (!bcpinfo->xfer_init)
-			_ctclient_msg(NULL, CONN(blkdesc), "blk_textxfer", 1, 1, 1, 1, "%s, %s", "blk_textxfer()", "no row sent");
+			_blkclient_msg(CONN(blkdesc), "blk_textxfer", 1, 1, 1, 1, "%s, %s", "blk_textxfer()", "no row sent");
 		else
-			_ctclient_msg(NULL, CONN(blkdesc), "blk_textxfer", 1, 1, 1, 49, "");
+			_blkclient_msg(CONN(blkdesc), "blk_textxfer", 1, 1, 1, 49, "");
 		return CS_FAIL;
 	}
 
 	if (buflen < 0 || (buflen > 0 && !buffer)) {
-		_ctclient_msg(NULL, CONN(blkdesc), "blk_textxfer", 1, 1, 1, 5, "%d, %s", buflen, "buflen");
+		_blkclient_msg(CONN(blkdesc), "blk_textxfer", 1, 1, 1, 5, "%d, %s", buflen, "buflen");
 		return CS_FAIL;
 	}
 
 	if (buflen > bcpinfo->blob_left) {
-		_ctclient_msg(NULL, CONN(blkdesc), "blk_textxfer", 1, 1, 1, 7, "%d", buflen);
+		_blkclient_msg(CONN(blkdesc), "blk_textxfer", 1, 1, 1, 7, "%d", buflen);
 		return CS_FAIL;
 	}
 
 	end = (buflen == bcpinfo->blob_left);
 	if (TDS_FAILED(tds_bcp_send_blob_data(CONN(blkdesc)->tds_socket, bcpinfo, buffer, buflen))) {
-		_ctclient_msg(NULL, CONN(blkdesc), "blk_textxfer", 2, 5, 1, 140, "");
+		_blkclient_msg(CONN(blkdesc), "blk_textxfer", 2, 5, 1, 140, "");
 		return CS_FAIL;
 	}
 
@@ -662,7 +662,7 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 	if (!blkdesc->bcpinfo.xfer_init) {
 
 		if (TDS_FAILED(tds_submit_queryf(tds, "select * from %s", tds_dstr_cstr(&blkdesc->bcpinfo.tablename)))) {
-			_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
+			_blkclient_msg(CONN(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 
@@ -672,7 +672,7 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 		}
 	
 		if (ret != TDS_SUCCESS || result_type != TDS_ROW_RESULT) {
-			_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
+			_blkclient_msg(CONN(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 
@@ -710,7 +710,7 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 			return (rows_xferred && *rows_xferred > 0) ? CS_SUCCEED : CS_END_DATA;
 
 		default:
-			_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
+			_blkclient_msg(CONN(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
 			return CS_FAIL;
 			break;
 		}
@@ -745,7 +745,7 @@ _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred
 		 */
 
 		if (TDS_FAILED(tds_bcp_start_copy_in(tds, &blkdesc->bcpinfo))) {
-			_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
+			_blkclient_msg(CONN(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 
@@ -776,7 +776,7 @@ _blk_null_error(TDSBCPINFO *bcpinfo, int index, int offset)
 
 	tdsdump_log(TDS_DBG_FUNC, "_blk_null_error(%p, %d, %d)\n", bcpinfo, index, offset);
 
-	_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 2, 7, 1, 142, "%d, %d", index + 1, offset + 1);
+	_blkclient_msg(CONN(blkdesc), "blk_rowxfer", 2, 7, 1, 142, "%d, %d", index + 1, offset + 1);
 }
 
 /** How to handle data too long for a character or binary column */
@@ -986,11 +986,11 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int index TDS_UNUSED, in
 		if (destlen < 0) {
 			switch (destlen) {
 			case TDS_CONVERT_SYNTAX:
-				_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 1, 2, 1, 26, "%d, %d", index + 1,
+				_blkclient_msg(CONN(blkdesc), "blk_rowxfer", 1, 2, 1, 26, "%d, %d", index + 1,
 					      bulk->rows_sent + 1);
 				break;
 			case TDS_CONVERT_OVERFLOW:
-				_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 1, 2, 1, 25, "%d, %d", index + 1,
+				_blkclient_msg(CONN(blkdesc), "blk_rowxfer", 1, 2, 1, 25, "%d, %d", index + 1,
 					      bulk->rows_sent + 1);
 				break;
 			}
@@ -1012,7 +1012,7 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int index TDS_UNUSED, in
 			converted = tds_convert_string(CONN(blkdesc)->tds_socket, bindcol->char_conv,
 						       (const char *) bindcol->bcp_column_data->data, destlen, &out_len);
 			if (!converted) {
-				_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 1, 2, 1, 26, "%d, %d", index + 1,
+				_blkclient_msg(CONN(blkdesc), "blk_rowxfer", 1, 2, 1, 26, "%d, %d", index + 1,
 					      bulk->rows_sent + 1);
 				return TDS_FAIL;
 			}
@@ -1030,11 +1030,11 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int index TDS_UNUSED, in
 
 			switch (_blk_truncation_mode(srctype, binary_dest)) {
 			case BLK_TRUNC_FAIL:
-				_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 1, 2, 1, 25, "%d, %d", index + 1,
+				_blkclient_msg(CONN(blkdesc), "blk_rowxfer", 1, 2, 1, 25, "%d, %d", index + 1,
 					      bulk->rows_sent + 1);
 				return TDS_FAIL;
 			case BLK_TRUNC_WARN:
-				_ctclient_msg(NULL, CONN(blkdesc), "blk_rowxfer", 1, 2, 1, 42, "%d, %d", index + 1,
+				_blkclient_msg(CONN(blkdesc), "blk_rowxfer", 1, 2, 1, 42, "%d, %d", index + 1,
 					      bulk->rows_sent + 1);
 				break;
 			case BLK_TRUNC_SILENT:

@@ -396,6 +396,9 @@ int _ct_get_client_type(const TDSCOLUMN *col, bool describe);
 void _ctclient_msg(CS_CONTEXT *ctx, CS_CONNECTION * con, const char *funcname,
 		   int layer, int origin, int severity, int number,
 		   const char *fmt, ...);
+void _blkclient_msg(CS_CONNECTION * con, const char *funcname,
+		    int layer, int origin, int severity, int number,
+		    const char *fmt, ...);
 CS_INT _ct_diag_clearmsg(CS_CONTEXT * context, CS_INT type);
 void _cs_locale_free(CS_LOCALE *locale);
 CS_LOCALE *_cs_locale_copy(CS_LOCALE *orig);
