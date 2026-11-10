@@ -49,6 +49,7 @@ TESTS =	\
 	strbuild$(EXEEXT) \
 	iconv_partial$(EXEEXT) \
 	charset_error$(EXEEXT) \
+	bcp_bind$(EXEEXT) \
 	$(NULL)
 
 check_PROGRAMS	=	$(TESTS)
@@ -117,6 +118,7 @@ proc_limit_SOURCES	=	proc_limit.c
 strbuild_SOURCES	=	strbuild.c
 iconv_partial_SOURCES	=	iconv_partial.c
 charset_error_SOURCES	=	charset_error.c
+bcp_bind_SOURCES	=	bcp_bind.c
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h

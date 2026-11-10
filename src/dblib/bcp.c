@@ -2190,7 +2190,7 @@ RETCODE
 bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 	 BYTE * terminator, int termlen, int db_vartype, int table_column)
 {
-	TDS_SERVER_TYPE vartype;
+	TDS_SERVER_TYPE vartype, vartype_check;
 	TDSCOLUMN *colinfo;
 
 	tdsdump_log(TDS_DBG_FUNC, "bcp_bind(%p, %p, %d, %d -- %p, %d, %s, %d)\n", 
@@ -2221,16 +2221,6 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 		return FAIL;
 	}
 
-	if (prefixlen == 0 && varlen == -1 && termlen == -1 && !is_fixed_type(vartype)) {
-		tdsdump_log(TDS_DBG_FUNC, "bcp_bind(): non-fixed type %d requires prefix or terminator\n", vartype);
-		return FAIL;
-	}
-
-	if (is_fixed_type(vartype) && (varlen != -1 && varlen != 0)) {
-		dbperror(dbproc, SYBEBCIT, 0);
-		return FAIL;
-	}
-
 	if (table_column <= 0 ||  table_column > dbproc->bcpinfo->bindinfo->num_cols) {
 		dbperror(dbproc, SYBECNOR, 0);
 		return FAIL;
@@ -2242,6 +2232,36 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 	}
 
 	colinfo = dbproc->bcpinfo->bindinfo->columns[table_column - 1];
+
+	/* type 0 means the program variable has the same type as the column */
+	vartype_check = vartype;
+	if (vartype_check == 0)
+		vartype_check = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
+
+	/*
+	 * Like MS, a terminator is accepted (and ignored) for types other
+	 * than character and binary, but, like Sybase, not a NULL one.
+	 */
+	if (termlen > 0 && terminator == NULL && !is_char_type(vartype_check) && !is_binary_type(vartype_check)) {
+		tdsdump_log(TDS_DBG_FUNC, "bcp_bind(): terminator not allowed for type %d\n", vartype_check);
+		dbperror(dbproc, SYBEBCIT, 0);
+		return FAIL;
+	}
+
+	/* A NULL terminator or a non-positive termlen means no terminator. */
+	if (terminator == NULL || termlen <= 0)
+		termlen = 0;
+
+	/*
+	 * Character and binary data need a way to know their length.
+	 * Note that a varlen for fixed types is checked by bcp_sendrow(), as
+	 * it can be changed by bcp_collen().
+	 */
+	if (prefixlen == 0 && varlen == -1 && termlen == 0 && (is_char_type(vartype_check) || is_binary_type(vartype_check))) {
+		tdsdump_log(TDS_DBG_FUNC, "bcp_bind(): type %d requires prefix, length or terminator\n", vartype_check);
+		dbperror(dbproc, SYBEVDPT, 0);
+		return FAIL;
+	}
 
 	/* If varaddr is NULL and varlen greater than 0, the table column type must be SYBTEXT or SYBIMAGE 
 		and the program variable type must be SYBTEXT, SYBCHAR, SYBIMAGE or SYBBINARY */
@@ -2332,28 +2352,43 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int index TDS_UNUSED,
 			goto null_data;
 	}
 
-	/* if (Max) column length specified take that into consideration. */
-
-	if (bindcol->column_bindlen >= 0) {
-		if (bindcol->column_bindlen == 0)
-			goto null_data;
-		if (collen)
-			collen = TDS_MIN(bindcol->column_bindlen, collen);
-		else
-			collen = bindcol->column_bindlen;
-	}
-
 	desttype = tds_get_conversion_type(bindcol->column_type, bindcol->column_size);
 
 	coltype = bindcol->column_bindtype == 0 ? desttype : (TDS_SERVER_TYPE) bindcol->column_bindtype;
 
+	/*
+	 * If (Max) column length specified take that into consideration.
+	 * Like MS, for variable types a prefix takes precedence.
+	 */
+	if (bindcol->column_bindlen >= 0) {
+		if (bindcol->column_bindlen == 0)
+			goto null_data;
+		if (!collen)
+			collen = bindcol->column_bindlen;
+		else if (is_fixed_type(coltype))
+			collen = TDS_MIN(bindcol->column_bindlen, collen);
+	}
+
 	/* Fixed Length data - this overrides anything else specified */
-	if (is_fixed_type(coltype))
-		collen = tds_get_size_by_type(coltype);
+	if (is_fixed_type(coltype)) {
+		int fixed_size = tds_get_size_by_type(coltype);
+
+		/*
+		 * Like Sybase, a given length must match the type size.
+		 * A larger length is accepted only if it came from a prefix.
+		 */
+		if (collen > 0 && (collen < fixed_size || (collen > fixed_size && bindcol->bcp_prefix_len <= 0))) {
+			tdsdump_log(TDS_DBG_FUNC, "_bcp_get_col_data: length %d invalid for fixed type %d\n", collen, coltype);
+			dbperror(dbproc, SYBEBCIS, 0);
+			return TDS_FAIL;
+		}
+		collen = fixed_size;
+	}
 
 	/* read the data, finally */
 
-	if (bindcol->bcp_term_len > 0) {	/* terminated field */
+	/* terminators are used only for character and binary types */
+	if (bindcol->bcp_term_len > 0 && (is_char_type(coltype) || is_binary_type(coltype))) {	/* terminated field */
 		bytes_read = _bcp_get_term_var(dataptr, (BYTE *)bindcol->bcp_terminator, bindcol->bcp_term_len);
 
 		if (collen <= 0 || bytes_read < collen)
@@ -2365,6 +2400,13 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int index TDS_UNUSED,
 
 	if (collen < 0)
 		collen = (int) strlen((char *) dataptr);
+
+	/*
+	 * Like MS, binary data is copied as is to character columns, not
+	 * converted to hexadecimal. Unicode columns are not changed.
+	 */
+	if (is_binary_type(coltype) && is_ascii_type(desttype))
+		coltype = SYBCHAR;
 
 	rc = _bcp_convert_in(dbproc, coltype, (const TDS_CHAR *) dataptr, collen, desttype, bindcol, NULL);
 	if (TDS_FAILED(rc))
