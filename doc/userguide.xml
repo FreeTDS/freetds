@@ -13,7 +13,7 @@
 	<!ENTITY odbc  '<systemitem class="library">ODBC</systemitem>'> 
 	<!ENTITY iODBC '<systemitem class="library">iODBC</systemitem>'>
 	<!ENTITY unixODBC '<systemitem class="library">unixODBC</systemitem>'>
-	<!ENTITY version "1.5">
+	<!ENTITY version "1.6">
 	<!ENTITY freetdsconf "<filename>freetds.conf</filename>">
 ]>
 <book>
@@ -60,6 +60,7 @@
 		<year>2023</year>
 		<year>2024</year>
 		<year>2025</year>
+		<year>2026</year>
 		<holder>Frediano Ziglio</holder>
 		</copyright>
 	<legalnotice><para>Permission is granted to copy, distribute and/or modify this document
@@ -389,8 +390,8 @@ Cf. <link linkend="withOdbcNoDM"><option>--with-odbc-nodm</option></link>.</para
 						<term><option>--with-libiconv-prefix=<replaceable>DIR</replaceable>
 							</option></term>
 						<listitem><para>Specifies the location of the iconv library to use.  <command>configure</command> will search for libiconv in the usual places; use <option>--with-libiconv-prefix</option>  if it's unsuccessful (assuming you want to use iconv, of course).  Overridden by <option>--disable-libiconv</option>, below.</para>
-<para>Version 0.95 removed support for iconv which cannot convert from any encoding to any encoding.
-This affect potentially systems like Tru64, HP-UX or Solaris were iconv mainly convert from/to UCS2.
+<para>If no iconv library is found <command>configure</command> stops with an error, unless <option>--disable-libiconv</option> is specified.</para>
+<para>An iconv implementation able to convert only from/to UCS-2 (as on some old Tru64, HP-UX or Solaris systems) is not supported.
 It's recommended to use GNU libiconv in this case.</para>
 							</listitem>
 						</varlistentry>
@@ -463,7 +464,10 @@ It's recommended to use GNU libiconv in this case.</para>
 						</varlistentry>
 					<varlistentry>
 						<term><option>--disable-libiconv</option></term>
-						<listitem><para>By default, <command>configure</command> will search your system for an <systemitem class="library">iconv</systemitem> library for use with Microsoft servers (because TDS 7.0 employs Unicode).  This switch prevents that search.  If no <systemitem class="library">iconv</systemitem> library is used, &freetds; relies on its built-in iconv emulation, which is capable of converting ISO-8859-1 to UCS-2, sufficient for many applications.</para>
+						<listitem><para>By default, <command>configure</command> will search your system for an <systemitem class="library">iconv</systemitem> library.
+							This switch prevents that search.
+							If no <systemitem class="library">iconv</systemitem> library is used, &freetds; relies on its built-in iconv emulation, which is capable of converting only among ISO-8859-1, UTF-8, CP1252, UCS-2, UCS-4 and UTF-16.
+							Using an iconv library is strongly recommended.</para>
 							</listitem>
 						</varlistentry>
 					<varlistentry>
@@ -725,7 +729,7 @@ Try to use GNU iconv.</para>
 				know it is easily done:
 				
 <screen>
-	<prompt>$ </prompt><userinput>rpmbuild -ta freetds-1.5.tar.bz2</userinput></screen></para>
+	<prompt>$ </prompt><userinput>rpmbuild -ta freetds-&version;.tar.bz2</userinput></screen></para>
 			</sect2>
 	
 		</sect1>
@@ -816,12 +820,12 @@ Try to use GNU iconv.</para>
 							<entry>Includes support for time, date, datetime2, datetimeoffset.</entry>
 							</row>
 						<row>
-							<entry>Microsoft SQL Server 2012, 2014, 2016 or 2019</entry>
+							<entry>Microsoft SQL Server 2012, 2014, 2016, 2017 or 2019</entry>
 							<entry>7.4</entry>
 							<entry>Includes support for session recovery.</entry>
 							</row>
 						<row>
-							<entry>Microsoft SQL Server 2022</entry>
+							<entry>Microsoft SQL Server 2022 or 2025</entry>
 							<entry>8.0</entry>
 							<entry>Includes support for TLS 1.3.</entry>
 							</row>
@@ -830,104 +834,18 @@ Try to use GNU iconv.</para>
 				</table></para>
 
 <sect2>
-	<title>Choosing protocol version since &freetds; 1.1</title>
+	<title>Automatic protocol version</title>
 
-	<para>Version 1.1 improved the discovery of the protocol version.
-	If you are using Microsoft SQL Server is recommended to leave the version to <userinput>auto</userinput> (the default).
+	<para>If you are using Microsoft SQL Server it is recommended to leave the version to <userinput>auto</userinput> (the default),
+	&freetds; will use the highest 7.x version supported by the server.
 	If you are using any Sybase product you could set version to 5.0 to get faster connections (although <userinput>auto</userinput> will work too).
-	</para>
-</sect2>
-
-<sect2>
-	<title>Choosing protocol version before &freetds; 1.1</title>
-
-<para>
-	Choosing the correct <acronym>TDS</acronym> protocol version for use with SQL Server can be confusing. Hopefully, these steps will lead you to the correct version. If you have a Sybase server, you should be able to use version 5.0, otherwise, if you have Microsoft SQL Server refer to the following section.
-</para>
-
-<para>
-	<itemizedlist>
-		<listitem><para>Step 1: Find out which FreeTDS version you are running. You can use the command: `tsql -C`</para></listitem>
-		<listitem><para>Step 2: Find out what version of Microsoft SQL Server you are running.</para></listitem>
-		<listitem><para>Step 3: Pick the lower TDS Version number out of what matches steps 1 and 2 from the table below.</para></listitem>
-	</itemizedlist>
-
-	<table id="tab.Protocol.by.SQLServerProduct">
-		<title>What Version of the <acronym>TDS</acronym> Protocol Should I use with Microsoft SQL Server?</title>
-		<tgroup cols="4">
-			<thead>
-				<row>
-					<entry>FreeTDS Version</entry>
-					<entry>Microsoft SQL Server Version Supported</entry>
-					<entry>Highest TDS Version Supported</entry>
-					<entry>Microsoft Extended Support End Date</entry>
-				</row>
-			</thead>
-			<tbody>
-				<row>
-					<entry>1.00</entry>
-					<entry>2016</entry>
-					<entry>7.4</entry>
-					<entry>July 9th, 2024</entry>
-				</row>
-				<row>
-					<entry>1.00</entry>
-					<entry>2014</entry>
-					<entry>7.4</entry>
-					<entry>July 9th, 2024</entry>
-				</row>
-				<row>
-					<entry>1.00</entry>
-					<entry>2012</entry>
-					<entry>7.4</entry>
-					<entry>July 12th, 2022</entry>
-				</row>
-				<row>
-					<entry>0.95</entry>
-					<entry>2008</entry>
-					<entry>7.3</entry>
-					<entry>July 9th, 2019</entry>
-				</row>
-				<row>
-					<entry>0.91</entry>
-					<entry>2005</entry>
-					<entry>7.2</entry>
-					<entry>April 12th, 2016</entry>
-				</row>
-				<row>
-					<entry>0.82</entry>
-					<entry>2000</entry>
-					<entry>7.1</entry>
-					<entry>April 9th, 2013</entry>
-				</row>
-				<row>
-					<entry>0.64</entry>
-					<entry>2000</entry>
-					<entry>7.1</entry>
-					<entry>April 9th, 2013</entry>
-				</row>
-			</tbody>
-		</tgroup>
-	</table>
-</para>
-
-<para>
-NOTE FOR USERS WHO NEED SQL SERVER 2000 SUPPORT (VERY RARE; SQL SERVER HAS BEEN OUT OF EXTENDED SUPPORT SINCE 2013 AND SHOULD *NEVER* BE USED IN PRODUCTION):
-
-Years ago, Microsoft didn't officially create a TDS version number until after FreeTDS was released, and it was assumed 8.0 would be the next version; it turned out to be 7.1. Because of this:
-
-	<itemizedlist>
-		<listitem><para>If you are running FreeTDS Version 0.64 or 0.82 with Microsoft SQL Server 2000, use TDS Version 8.0 instead of 7.1.</para></listitem>
-		<listitem><para>If you are running FreeTDS Version 0.91 or greater with Microsoft SQL Server 2000, use TDS Version 7.1.</para></listitem>
-		<listitem><para>Please note, this is ONLY if you need Microsoft SQL Server 2000 support.</para></listitem>
-	</itemizedlist>
-</para>
-
-<para>For best results, use the highest version of the protocol supported by your server.
+	For best results, use the highest version of the protocol supported by your server.
 	If you encounter problems, try a lower version.
 	If that works, though, please report it!
 	</para>
 
+	<para>For Microsoft servers protocol 8.0 and <literal>strict</literal> encryption go together: specifying one implies the other.
+	See the <literal>encryption</literal> setting in <link linkend="freetdsconfformat">&freetdsconf;</link>.</para>
 </sect2>
 
 <sect2>
@@ -940,9 +858,8 @@ So the &freetds; developers adopted that version for &freetds;.
 Years later, when Microsoft started releasing official specs of the protocol, it became obvious that the TDS
 versions that &freetds; had labeled 8.0 and 9.0 were actually versions 7.1 and 7.2 respectively.</para>
 
-	<para>Version 8.0 cannot be used from &freetds; version 1.3.
-	With &freetds; version 1.5 you can again specify protocol 8.0 but it's the protocol
-	for MSSQL 2022.</para>
+	<para>Since &freetds; 1.5, version 8.0 is the protocol introduced with MSSQL 2022, not the old name of version 7.1.
+	If you are still using an old configuration specifying version 8.0 for MSSQL 2000, change it to 7.1.</para>
 
 <para><itemizedlist>
 			<title>TDS 4.2 has limitations</title>
@@ -1132,7 +1049,9 @@ versions that &freetds; had labeled 8.0 and 9.0 were actually versions 7.1 and 7
 								</entrytbl>
 							<entry>	The port number that the servername is listening to.
 								<emphasis>Please note:</emphasis>
-								The "defaults" to the left are the server's default settings.   &freetds; chooses its default port based on the TDS protocol version: <literal>5000</literal> for <acronym>TDS</acronym> <literal>5.0</literal>, and <literal>1433</literal> for everything else.  Mutually exclusive with <emphasis>instance</emphasis>, below.
+								The "defaults" to the left are the server's default settings.
+								If no port is specified &freetds; uses <literal>4000</literal> if it was configured with <option>--with-tdsver=5.0</option>, and <literal>1433</literal> otherwise.
+								Mutually exclusive with <emphasis>instance</emphasis>, below.
 								Overridden by <link  linkend="TDSPORT">TDSPORT</link>. </entry>
 							</row>
 						
@@ -1192,13 +1111,6 @@ This is the name of the database container in the server you are connecting to.<
 							<entry>Sets period to wait for response from connect before timing out.</entry>
 							</row>
 						<row>
-							<entry><literal>emulate little endian</literal></entry>
-							<entry>yes/no</entry>
-							<entry>yes</entry>
-							<entry>Forces big endian machines (Sparc, PPC, PARISC, MIPS) to act as little endian to communicate with server.
-								Ignored, always use little endian at protocol level.</entry>
-							</row>
-						<row>
 							<entry id="clientcharset"><literal>client charset</literal></entry>
 							<entry>any valid iconv character set</entry>
 							<entry>ISO-8859-1<footnote><para>Valid for ISO 8859-1 character set.  See <link linkend="Localization">Localization and <acronym>TDS</acronym> 7.0</link> for more information.</para></footnote></entry>
@@ -1220,12 +1132,16 @@ This is the name of the database container in the server you are connecting to.<
 						<row>
 							<entry><literal>encryption</literal></entry>
 							<entry>off/request/require/strict</entry>
-							<entry>request (if tds version &gt; 7.1 otherwise off)</entry>
-							<entry>Specify if encryption is desired. Supported for Microsoft servers.
+							<entry>request for TDS 7.1 and later, otherwise off</entry>
+							<entry>Specify if encryption is desired.
 								<symbol>off</symbol> disables encryption;
 								<symbol>request</symbol> means use if available;
 								<symbol>require</symbol> means create and allow encrypted connections only;
-								<symbol>strict</symbol> is like require but uses TLS 8.0 and force certificate validation.
+								<symbol>strict</symbol> is like require but uses TDS 8.0 (encrypting the whole connection, supporting TLS 1.3)
+								and forces certificate validation (using the system certificates if <literal>ca file</literal> is not specified).
+								For Sybase servers (TDS 5.0) <symbol>request</symbol> and <symbol>require</symbol> encrypt only the password;
+								use <symbol>strict</symbol> with <literal>tds version</literal> 5.0 to connect to a server
+								with SSL enabled, the whole connection is encrypted.
 								</entry>
 							</row>
 						<row>
@@ -1243,8 +1159,9 @@ This is the name of the database container in the server you are connecting to.<
 						<row>
 							<entry><literal>SPN</literal></entry>
 							<entry>any</entry>
-							<entry>MSSQLSvc/fqdn:port</entry>
-							<entry>Specify Kerberos SPN.</entry>
+							<entry>MSSQLSvc/fqdn:port or MSSQLSvc/fqdn:instance</entry>
+							<entry>Specify service principal name for Kerberos and SSPI authentication.
+								By default the instance name is used if specified, otherwise the port.</entry>
 							</row>
 						<row>
 							<entry><literal>mutual authentication</literal></entry>
@@ -1325,6 +1242,22 @@ Useful to connection to some old servers.</entry>
 							<entry>no</entry>
 							<entry>Enable or disable TLS version 1.1.
 Useful to connection to some old servers.</entry>
+							</row>
+						<row>
+							<entry><literal>openssl ciphers</literal></entry>
+							<entry>OpenSSL cipher list</entry>
+							<entry>none</entry>
+							<entry>Cipher list passed to OpenSSL, for instance <literal>HIGH:!SSLv2:!aNULL:-DH</literal>.
+Used only if &freetds; was built with OpenSSL.</entry>
+							</row>
+						<row>
+							<entry><literal>gnutls ciphers</literal></entry>
+							<entry>GnuTLS priority string</entry>
+							<entry>none</entry>
+							<entry>Priority string passed to GnuTLS, for instance <literal>SECURE128</literal>,
+see <ulink url="https://gnutls.org/manual/html_node/Priority-Strings.html">GnuTLS priority strings</ulink>.
+If not specified the system default priorities are used.
+Used only if &freetds; was built with GnuTLS.</entry>
 							</row>
 						</tbody>
 					</tgroup>
@@ -1416,6 +1349,7 @@ Useful to connection to some old servers.</entry>
 					<listitem><para><symbol>nt domain</symbol></para></listitem>
 					<listitem><para><symbol>cross domain login</symbol></para></listitem>
 					<listitem><para><symbol>debug level</symbol></para></listitem>
+					<listitem><para><symbol>emulate little endian</symbol> (ignored, little endian is always used)</para></listitem>
 					</itemizedlist>
 				</sect3>
 			
@@ -1455,7 +1389,10 @@ Useful to connection to some old servers.</entry>
 
 <para>This entry will be passed (almost) literally to <function>strftime(3)</function> to convert dates to strings.</para>
 
-<para>For the most part, see you system documentation for <function>strftime(3)</function> (<command>man 3 strftime</command>).  You will see there though that <function>strftime(3)</function> has no provision for milliseconds.  The <filename>locales.conf</filename> format string uses <literal>%z</literal> for milliseconds.  <note><para>If your system's <function>strftime(3)</function> does employ <literal>%z</literal> for its own use, it will not be given that chance by &freetds;.  &freetds; will consume the <literal>%z</literal> for its milliseconds needs, and will not pass it on to <function>strftime(3)</function>.</para></note></para>
+<para>For the most part, see you system documentation for <function>strftime(3)</function> (<command>man 3 strftime</command>).
+	You will see there though that <function>strftime(3)</function> has no provision for milliseconds.
+	The <filename>locales.conf</filename> format string uses <literal>%z</literal> for fractions of seconds, using the precision of the type; a digit can be used to specify the precision, for instance <literal>%3z</literal> for milliseconds.
+	<note><para>If your system's <function>strftime(3)</function> does employ <literal>%z</literal> for its own use, it will not be given that chance by &freetds;.  &freetds; will consume the <literal>%z</literal> for its milliseconds needs, and will not pass it on to <function>strftime(3)</function>.</para></note></para>
 							</listitem>
 						</varlistentry>
 					<varlistentry>
@@ -1673,7 +1610,7 @@ The server responds with a port number.
                         	      iODBC: no
                         	   unixodbc: no
         	      SSPI "trusted" logins: no
-                        	    Keberos: no
+                                   Kerberos: no
                                     OpenSSL: yes
                                      GnuTLS: no
                                        MARS: yes </computeroutput></screen>
@@ -1974,6 +1911,28 @@ The ODBC tests all build their own <filename>odbc.ini</filename> and try to redi
 							<entry>Computer name</entry>
 							<entry>The name of the local computer, sent to server.   Can be specified only for a DSN-less connection.</entry>
 							</row>
+						<row>
+							<entry><literal>DateTimeFmt</literal></entry>
+							<entry><function>strftime(3)</function> format, <literal>%z</literal> for fractions of seconds</entry>
+							<entry><literal>%Y-%m-%d %H:%M:%S.%z</literal></entry>
+							<entry>Format used to convert <type>datetime</type>, <type>datetime2</type> and similar types to character.
+								Can also be set with the <literal>SQL_COPT_TDSODBC_DATETIME_FORMAT</literal> connection attribute (see <filename>odbcss.h</filename>).
+								A precision can be specified for fractions of seconds, for instance <literal>%3z</literal> for milliseconds.</entry>
+							</row>
+						<row>
+							<entry><literal>DateFmt</literal></entry>
+							<entry>as above</entry>
+							<entry><literal>%Y-%m-%d</literal></entry>
+							<entry>Format used to convert <type>date</type> to character.
+								Can also be set with the <literal>SQL_COPT_TDSODBC_DATE_FORMAT</literal> connection attribute.</entry>
+							</row>
+						<row>
+							<entry><literal>TimeFmt</literal></entry>
+							<entry>as above</entry>
+							<entry><literal>%H:%M:%S.%z</literal></entry>
+							<entry>Format used to convert <type>time</type> to character.
+								Can also be set with the <literal>SQL_COPT_TDSODBC_TIME_FORMAT</literal> connection attribute.</entry>
+							</row>
 						</tbody>
 					</tgroup>
 				</table>
@@ -2115,8 +2074,8 @@ Note that is not possible to specify a directory as usually database servers doe
 						<row>
 							<entry><literal>ServerSPN</literal></entry>
 							<entry>Any valid SPN</entry>
-							<entry>MSSQLSvc/server FQDN:port</entry>
-							<entry>Full server Kerberos SPN.</entry>
+							<entry>MSSQLSvc/server FQDN:port or MSSQLSvc/server FQDN:instance</entry>
+							<entry>Full server Kerberos SPN. See <literal>SPN</literal> on &freetdsconf;.</entry>
 							</row>
 						<row>
 							<entry><literal>AttachDbFilename</literal></entry>
@@ -2135,10 +2094,10 @@ This setting allow to do it. You should specify <literal>Database</literal> attr
 							<entry><literal>DumpFileAppend</literal></entry>
 							<entry>Yes/No</entry>
 							<entry>No</entry>
-							<entry/>
+							<entry>Append to dump file instead of overwriting it.</entry>
 							</row>
 						<row>
-							<entry><literal>DumpFlags</literal></entry>
+							<entry><literal>DebugFlags</literal></entry>
 							<entry>Any</entry>
 							<entry/>
 							<entry>Debug flags. See freetds.conf entries.</entry>
@@ -2414,7 +2373,7 @@ If it behaves strangely, try &freetds;'s <command>bsqlodbc</command> before you 
 the client to other character sets.
 The mechanism used is determined by the <filename>configure</filename> script, which looks for a <function>iconv(3)</function> function,
 an implementation of the <ulink url="https://pubs.opengroup.org/onlinepubs/7908799/xsh/iconv.html">iconv</ulink> standard.
-If no <function>iconv</function> library is found, or if it is explicitly disabled, &freetds; will use its built-in
+If <function>iconv</function> is explicitly disabled, &freetds; will use its built-in
 <function>iconv</function> substitute, and will be capable of converting among only <acronym>ISO 8859-1</acronym>, <acronym>UTF-8</acronym>,
 <acronym>UCS-2</acronym>, <acronym>UCS-4</acronym> and <acronym>UTF-16</acronym>.</para>
 
@@ -2528,8 +2487,24 @@ logins instead of standard server logins.  Passwords are encrypted on the wire u
 <para>Support for domain logins in &freetds; is limited to the TCP/IP network protocol stack.   &freetds; does not currently implement support for Named Pipe-based SQL connections &mdash; that is, connections transported over the DCE/RPC interface, which uses TCP port 139, 445, or 135 on Win32 machines depending on the type of encapsulation used for DCE/RPC itself. Supporting this would require a fairly extensive DCE/RPC library for Unix.   <productname>Samba</productname> has one that is licensed under the GPL and therefore not usable by LGPL-licensed projects such as &freetds; .</para>
 			
 
+<para>&freetds; uses NTLMv2 (unless disabled with <literal>use ntlmv2</literal>), including the message integrity code (MIC) and the target name, like recent Windows clients.
+	Non-ASCII user names and passwords are supported.</para>
+
 <para>For a technical description of the protocol used for domain logins, see
-	<ulink url="https://davenport.sourceforge.net/ntlm.html">https://davenport.sourceforge.net/ntlm.html</ulink></para>
+	<ulink url="https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-nlmp/b38c36ed-2804-4868-a9ff-8dd3182128e4">[MS-NLMP]</ulink>.</para>
+			</sect2>
+		<sect2 id="epa">
+			<title>Extended Protection for Authentication</title>
+
+<para>Microsoft SQL Server can be configured to require <firstterm>Extended Protection for Authentication</firstterm> (EPA).
+	In this case the client must bind the authentication (NTLM, Kerberos or SSPI) to the encrypted channel used,
+	providing a <firstterm>channel binding token</firstterm> and the service principal name of the server.
+	&freetds; supports EPA with all these methods, using <literal>tls-unique</literal> channel binding up to TLS 1.2 and
+	<literal>tls-server-end-point</literal> with TLS 1.3 (used with <literal>strict</literal> encryption).
+	No configuration is required, but the connection must be encrypted.
+	With TDS 7.x the server checks the channel binding token, with <literal>strict</literal> encryption it checks the
+	service principal name, so the host name used to connect must match the one registered for the server
+	(see <literal>SPN</literal> on &freetdsconf;).</para>
 			</sect2>
 		</sect1>
 	<sect1 id="kerberos">
@@ -2819,6 +2794,9 @@ As with <application>xinetd</application>, the <literal>port</literal> setting i
 					
 
 <para><command>defncopy</command> reads the text of a stored procedure or view, and writes a script suitable for recreating the procedure or view. For tables, it reads  the output of <command>sp_help</command> and constructs a <literal>CREATE TABLE</literal> statement, complete with <literal>CREATE INDEX</literal>, too.</para>
+
+<para>It can also read such a script and apply it to a database (input mode).
+	Both the &freetds; syntax (<option>-i</option>/<option>-o</option> options) and the Sybase syntax (<literal>in</literal>/<literal>out</literal> arguments) are accepted.</para>
 					</listitem>
 				</varlistentry>
 			
@@ -2836,7 +2814,9 @@ As with <application>xinetd</application>, the <literal>port</literal> setting i
 
 <para>Replicates the functionality of the <symbol>bcp</symbol> utility programs distributed by Sybase and Microsoft.</para>
 
-<para><command>freebcp</command> makes use of the &dblib; bcp <acronym>API</acronym>.</para>
+<para><command>freebcp</command> makes use of the &dblib; bcp <acronym>API</acronym>.
+	It supports character, native and format files, hints (<option>-h</option>, <option>-k</option> to keep NULL values),
+	hexadecimal field and row terminators (like <literal>0x0a</literal>) and a dry-run mode (<option>-j</option>) to check a data file without copying it.</para>
 
 <para>The manual pages or online help for Sybase or Microsoft SQL Server can be referenced for more detailed information on bcp functionality.</para>
 					</listitem>
@@ -3215,15 +3195,14 @@ data returned by queries.</para>
 
 <para>&freetds; may be unable to connect to the server.  The error message will be <computeroutput>"Login failed for user 'example'.  Reason: Not associated with a trusted SQL Server connection"</computeroutput>.  To solve this, turn on <productname>SQL Server</productname> authentication:</para>
 			<itemizedlist>
-				<listitem><para>Open the <emphasis><productname>Microsoft SQL Server</productname> Enterprise Manager</emphasis>,</para></listitem>
-				<listitem><para>Select the server,</para></listitem>
-				<listitem><para>Right mouse click and choose <emphasis>Properties</emphasis>.  A properties window will appear.</para></listitem>
-				<listitem><para>Choose the <emphasis>Security</emphasis> tab.  The security properties will be displayed.</para></listitem>
-				<listitem><para>Change the <emphasis>Authentication</emphasis> field to <emphasis><productname>SQL Server</productname> and Windows</emphasis>,</para></listitem>
-				<listitem><para>Apply the changes and try again.</para></listitem>
+				<listitem><para>Open <emphasis><productname>SQL Server</productname> Management Studio</emphasis> and connect to the server,</para></listitem>
+				<listitem><para>In Object Explorer, right click the server and choose <emphasis>Properties</emphasis>,</para></listitem>
+				<listitem><para>Choose the <emphasis>Security</emphasis> page,</para></listitem>
+				<listitem><para>Under <emphasis>Server authentication</emphasis> select <emphasis><productname>SQL Server</productname> and Windows Authentication mode</emphasis>,</para></listitem>
+				<listitem><para>Apply the changes and restart the server.</para></listitem>
 				</itemizedlist>
 
-<para>These instructions apply to Microsoft <productname>SQL Server 7</productname> and <productname>SQL Server 2000</productname>.</para>
+<para>On Linux the same setting can be changed with <command>mssql-conf</command>.</para>
 
 <note><para>&freetds; supports integrated security mode, too.
 If you have <productname>Microsoft SQL Server</productname> running in integrated (domain) mode along with a Windows PDC, and wish to try it, see <link linkend="domains">Domain Logins</link> in the <link linkend="configs">Advanced Configurations</link> chapter.
@@ -3341,6 +3320,12 @@ This applies only to Microsoft <productname>SQL Server</productname> and you'll 
 					equivalent passwords.</emphasis> So, if this is a concern (most likely
 				is) make sure that the files are not world readable, and avoid posting
 				them publicly.</para>
+
+<para>For performance the log file is not flushed after every line.
+	If you need a complete log in case of a crash, set the <envar>TDSDUMP_FLUSH</envar> environment variable (to any value).</para>
+
+<para>On Windows, debug builds write the C runtime debug messages (like memory leaks) to standard output;
+	set <envar>TDS_DEBUG_CRT_FILENAME</envar> to a file name to write them to that file instead.</para>
 
 <para>Once in a while, someone writes asking why &freetds; is so <emphasis>slow</emphasis>.
 	It sometimes turns out that logging was left turned on.
@@ -3501,7 +3486,7 @@ Compile-time settings (established with the "configure" script)
                               iODBC: no
                            unixodbc: no
               SSPI "trusted" logins: no
-                            Keberos: no
+                           Kerberos: no
                             OpenSSL: yes
                              GnuTLS: no
                                MARS: yes </computeroutput></screen>
