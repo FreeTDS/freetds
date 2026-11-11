@@ -670,37 +670,96 @@ and register the driver as a standard component.</para>
 
 		<sect2 id="VMS"><title>VMS&reg;</title>
 
-<para>&freetds; will probably build and run on most versions of OpenVMS Alpha 7.0 and later with DEC/Compaq C 6.0 or later.  Other prerequisites:
-				
+<para>&freetds; builds and passes its test suite on all supported versions of OpenVMS:
+	OpenVMS Alpha (8.4 and later), OpenVMS I64 (8.4 and later) and OpenVMS x86 (9.2 and later).
+	Other prerequisites:
+
 				<simplelist>
 					<member><application>gunzip</application></member>
-					<member><application>vmstar</application></member>
-					<member><application>MMS</application> or <application>MMK</application></member>
+					<member><application>vmstar</application> or another tar utility</member>
+					<member><application>MMK</application></member>
+					<member><application>Perl</application> (only to build from a git checkout)</member>
 					</simplelist></para>
-			
-			<sect3><title>Build Instructions</title>
-				
 
-<para>Decompress and unpack the source archive using gunzip and vmstar.  If
-					you are untarring on an ODS-5 disk, you should use the <parameter>/ODS2</parameter> or <parameter>-o</parameter>
-					option to create universally VMS-friendly filenames; otherwise the build will fail to locate some files.</para>
-				
+			<sect3><title>Build Instructions</title>
+
+<para>Decompress and unpack the source archive onto an ODS-5 disk.
+	Make sure extended parse is enabled in your process (<command>SET PROCESS/PARSE=EXTENDED</command>)
+	and that the feature logical name <literal>DECC$EFS_CHARSET</literal> is enabled;
+	these are not required to run &freetds;, but are necessary for the build and the test suite.</para>
 
 <para>Set default to the top-level source directory and run the configuration
 					script:</para>
-				
+
 <screen>
 	<prompt>$</prompt> <userinput>@[.vms]configure</userinput></screen>
-	
 
-<para> This creates a <filename>descrip.mms</filename> in the top-level source
-					directory which you may execute by simply running MMS (if you have the Module Management System that
-					is part of DECset) or MMK (a freeware MMS alternative available from <ulink
-						url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
-				
+<para>or, if you are building from a git checkout instead of a release tarball:</para>
 
-<para>Further information can be found in the <filename>vms/README.vms</filename> in the source distribution.</para>
-				
+<screen>
+	<prompt>$</prompt> <userinput>@[.vms]configure_trunk</userinput></screen>
+
+<para><command>configure_trunk</command> uses Perl to generate the files included in release tarballs.
+	Two headers, <filename>[.include.freetds]encodings.h</filename> and <filename>[.include.freetds]charset_lookup.h</filename>,
+	require <application>gperf</application>, which is not available on VMS;
+	copy them from a release tarball or from a build on another system before running <command>configure_trunk</command>.
+	Pass <option>--disable-thread-safe</option> to the configuration script to build without thread safety.</para>
+
+<para>The configuration script creates a <filename>descrip.mms</filename> in the top-level source
+					directory which you may execute by running MMK (a freeware MMS alternative available from <ulink
+						url="https://github.com/endlesssoftware/mmk">GitHub</ulink>).
+	The build also creates <filename>stage.com</filename>; run it to define foreign commands for the utilities.
+<screen>
+	<prompt>$</prompt> <userinput>MMK</userinput>
+	<prompt>$</prompt> <userinput>@stage.com</userinput></screen>
+	There is no install target; copy the libraries, include files and utilities where you want them.</para>
+				</sect3>
+
+			<sect3><title>Build options</title>
+
+<para>Build options are set in the <filename>user.mms</filename> file in the top-level source directory, one per line, for instance
+<programlisting>
+	ODBC = 1
+	ODBC_MARS = 1
+</programlisting>
+	The configuration script creates an empty <filename>user.mms</filename> if it does not exist, and never overwrites it.</para>
+
+				<variablelist>
+					<varlistentry><term><literal>ODBC</literal></term>
+						<listitem><para>Build the ODBC driver.  The &unixODBC; driver manager is assumed.
+	The logical names <literal>ODBC_LIBDIR</literal> and <literal>ODBC_INCDIR</literal> must point to the
+	driver manager libraries and include files, and <literal>LIBODBC</literal> and <literal>LIBODBCINST</literal>
+	to its shareable images; &unixODBC; <filename>ODBC_SETUP.COM</filename> defines all of them except <literal>ODBC_INCDIR</literal>.</para></listitem></varlistentry>
+					<varlistentry><term><literal>ODBC_MARS</literal></term>
+						<listitem><para>Enable MARS support in the ODBC driver.</para></listitem></varlistentry>
+					<varlistentry><term><literal>ODBC_WIDE</literal></term>
+						<listitem><para>Build the ODBC UTF-16 (wide) API as well as the UTF-8 one.</para></listitem></varlistentry>
+					<varlistentry><term><literal>ODBC_WIDETEST</literal></term>
+						<listitem><para>Build the ODBC tests using the UTF-16 API.</para></listitem></varlistentry>
+					<varlistentry><term><literal>MSDBLIB</literal></term>
+						<listitem><para>Microsoft behavior in &dblib;, like <option>--enable-msdblib</option>.</para></listitem></varlistentry>
+					<varlistentry><term><literal>OPENSSL_STATIC</literal></term>
+						<listitem><para>Link statically against OpenSSL.  OpenSSL is used if the logical name <literal>OPENSSL</literal> is defined.</para></listitem></varlistentry>
+					<varlistentry><term><literal>__DEBUG__</literal></term>
+						<listitem><para>Build for the OpenVMS debugger, producing compiler listings and linker maps.</para></listitem></varlistentry>
+					</variablelist>
+				</sect3>
+
+			<sect3><title>Tests and notes</title>
+
+<para>To run the tests, copy <filename>PWD.in</filename> to <filename>PWD</filename> and edit it (see <xref linkend="Tests"/>),
+	point the logical name <literal>FREETDSCONF</literal> to the &freetdsconf; to use, then run <userinput>MMK check</userinput>;
+	<userinput>MMK recheck</userinput> runs again only the failed tests.
+	For the ODBC tests <filename>odbc.ini</filename> and <filename>odbcinst.ini</filename> must be configured and world-readable,
+	as the tests run with minimal privileges.</para>
+
+<para>It's best to define the location of the configuration files with logical names, otherwise
+	&freetds; may build an unparseable mix of Unix and VMS file name syntax, for example
+<screen>
+	<prompt>$</prompt> <userinput>DEFINE FREETDSCONF DISK$USER:[TDSDIR]freetds.conf</userinput></screen></para>
+
+<para>With the ODBC option the build uses <option>/NAMES=AS_IS</option>, producing mixed-case symbol names
+	needed by &unixODBC;; this may cause problems calling the &freetds; libraries from other languages.</para>
 				</sect3>
 			</sect2>
 		
