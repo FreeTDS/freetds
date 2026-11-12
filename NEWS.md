@@ -156,7 +156,8 @@ Implementation:
 - Minor updates to RPM spec file;
 - Unit tests:
   - central test setup and `PWD` file handling, `TEST_MAIN()` entry points;
-  - more compatibility with Sybase/SAP libraries.
+  - more compatibility with Sybase/SAP libraries;
+  - ODBC tests use ODBC 3 by default (was ODBC 2).
 - Many OpenVMS build improvements (configure from trunk, ODBC with MARS
   and wide support, run full test suite);
 - CI:
