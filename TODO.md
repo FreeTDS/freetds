@@ -43,8 +43,7 @@ All
   binary_test)
   done in ODBC ??
 * Native bcp has no iconv support; character bcp files are assumed be encoded
-  with the client's charset.  More flexibility one both sides would be good.  
-* encrypted connection for Sybase
+  with the client's charset.  More flexibility on both sides would be good.
 
 db-lib
 ----
@@ -110,6 +109,3 @@ pool
 
 server
 ----
-
-* Server API needs more work. It's in a quite ugly state.
-  It's more experimental. Should be disabled by default to state it.
