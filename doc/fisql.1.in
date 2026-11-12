@@ -1,14 +1,13 @@
 .\" cf. groff_mdoc
 .Dd March 25, 2015
+.Dt FISQL 1
 .Os FreeTDS @VERSION@
-.Dt FISQL FreeTDS "FreeTDS Reference Manual"
 .\"
 .Sh NAME
 .Nm fisql
 .Nd interactive SQL shell
 .\"
 .Sh SYNOPSIS
-.Pp
 .Nm
 .Op Fl eFgpnvXY
 .Op Fl a Ar display_charset
@@ -34,11 +33,11 @@
 .Op Fl z Ar language
 .\"
 .Sh DESCRIPTION
-.Pp
 .Nm
 is very similar to the 
 .Ql isql
-utility programs distributed by Sybase and Microsoft. Like them, 
+utility programs distributed by Sybase and Microsoft.
+Like them,
 .Nm
 uses the command 
 .Ql go
@@ -47,9 +46,11 @@ on a line by itself as a separator between batches.
 .Sh OPTIONS
 .Bl -tag -width indent
 .It Fl a Ar display_charset
-The client charset name. Not implemented.
+The client charset name.
+Not implemented.
 .It Fl A Ar packet_size
-Set protocol packet size. You should not need to set this parameter.
+Set protocol packet size.
+You should not need to set this parameter.
 .It Fl c Ar cmdend
 Command terminator, defaults to
 .Ql go Ns .
@@ -59,15 +60,18 @@ Database name on the server to use.
 Echo SQL input (usually in outputfile)
 .It Fl E Ar editor
 Specify
-an editor to invoke. Defaults to vi.
+an editor to invoke.
+Defaults to vi.
 .It Fl F
-FIPS mode ON. Server returns a message (but processes the query anyway)
+FIPS mode ON.
+Server returns a message (but processes the query anyway)
 when it encounters a non-standard SQL command.
 .It Fl g
 Display a brief help message
 .It Fl h Ar headers
 Number
-of rows after which to repeat the column headers. Default is once per resultset.
+of rows after which to repeat the column headers.
+Default is once per resultset.
 .It Fl H Ar hostname
 Hostname
 of the client machine as it will be told to the server.
@@ -94,19 +98,23 @@ Suppress line numbers in echoed output.
 Name
 of output file, holding result data.
 .It Fl p
-Prints performance statistics. Not implemented.
+Prints performance statistics.
+Not implemented.
 .It Fl P Ar password
 Database
 server password.
 .It Fl s Ar colseparator
 The
-column separator. Default is space. Shell metacharacters require quoting.
+column separator.
+Default is space.
+Shell metacharacters require quoting.
 .It Fl S Ar server
 Database
 server to which to connect.
 .It Fl t Ar timeout
 The
-query timeout, in seconds. How long to wait for a query to be processed.
+query timeout, in seconds.
+How long to wait for a query to be processed.
 The default is indefinitely, or as determined by freetds.conf.
 .It Fl U Ar username
 Database
@@ -115,46 +123,53 @@ server login name.
 Display version and copyright.
 .It Fl w Ar width
 How
-many characters wide to print the output. Defaults to 80.
+many characters wide to print the output.
+Defaults to 80.
 .It Fl X
-Use encrypted login. Not implemented in FreeTDS.
+Use encrypted login.
+Not implemented in FreeTDS.
 .It Fl y Pa sybase_dir
 Sets
 the 
 .Ev SYBASE
-environment variable. Not used by FreeTDS.
+environment variable.
+Not used by FreeTDS.
 .It Fl Y
 Use chained transactions.
 .It Fl z Ar language
 Name
 of a language for fisql's prompts and messages.
-Cf. DBSETLNATLANG.
+Cf.
+DBSETLNATLANG.
 .El
 .\"
 .Sh NOTES
 .Nm
 is a filter; it reads from standard input, writes to standard output,
-and writes errors to standard error. The
-.Fl i Ns ,
-.Fl o Ns ,
+and writes errors to standard error.
+The
+.Fl i ,
+.Fl o ,
 and
 .Fl e
 options override these defaults.
 .Pp
 .Nm
-uses the DB-Library API provided by FreeTDS. It was first implemented using
-Sybase's own library and continues to work with it. Before (and after) modifying
+uses the DB-Library API provided by FreeTDS.
+It was first implemented using
+Sybase's own library and continues to work with it.
+Before (and after) modifying
 it, it would be well to test it with Sybase's library to assure compatibility
 between it and FreeTDS.
-EXIT STATUS
-.Pp
+.Sh EXIT STATUS
 .Nm
 exits 0 on success, and >0 if the server cannot process the query.
 .Pp
 .Nm
 will report any errors returned by the server, but will continue
-processing. In a production environment, this behavior may be insufficiently
-stringent. To make it extremely intolerant of errors, change the message and
+processing.
+In a production environment, this behavior may be insufficiently stringent.
+To make it extremely intolerant of errors, change the message and
 error handlers to call exit(3).
 .\"
 .Sh HISTORY
@@ -165,7 +180,7 @@ first appeared in FreeTDS 0.65.
 The 
 .Nm
 utility was written by 
-.An Nicholas S. Castellano Aq entropy@freetds.org Ns ,
+.An Nicholas S. Castellano Aq entropy@freetds.org ,
 who contributed it to the FreeTDS project under the terms of the GPL.
 .\"
 .Sh BUGS

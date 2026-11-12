@@ -1,14 +1,13 @@
 .\" cf. groff_mdoc
 .Dd April 26, 2012
+.Dt OSQL 1
 .Os FreeTDS @VERSION@
-.Dt OSQL FreeTDS "FreeTDS Reference Manual"
 .\"
 .Sh NAME
 .Nm osql
 .Nd utility to test FreeTDS connections and queries
 .\"
 .Sh SYNOPSIS
-.Pp
 .Nm
 .Fl S Ar dsn 
 .Fl U Ar username
@@ -16,11 +15,11 @@
 .Op Fl I Pa ini_directory
 .\"
 .Sh DESCRIPTION
-.Pp
 .Nm
-is a diagnostic tool provided as part of FreeTDS. It is a
-Bourne shell script that checks and reports on your configuration
-files. If everything checks out OK, it invokes isql.
+is a diagnostic tool provided as part of FreeTDS.
+It is a Bourne shell script that checks and reports on your configuration
+files.
+If everything checks out OK, it invokes isql.
 .Pp
 .Nm
 works only with the isql that comes with unixODBC.
@@ -29,7 +28,7 @@ works only with the isql that comes with unixODBC.
 .Bl -tag -width indent
 .It Fl S Ar dsn
 the Data Source Name to which to connect, as known to 
-.Pa odbc.ini Ns .
+.Pa odbc.ini .
 .It Fl U Ar username
 database
 login name.
@@ -70,9 +69,10 @@ your FreeTDS ODBC installation is working.
 .Nm
 guesses where unixODBC might look for its
 .Pa odbc.ini
-by examining the binary. This is not always an effective approach. If
-it doesn't work, you'll receive a report of candidate strings. Kindly
-pass along the output to help improve the guessing.  
+by examining the binary.
+This is not always an effective approach.
+If it doesn't work, you'll receive a report of candidate strings.
+Kindly pass along the output to help improve the guessing.
 .Pp
 If
 .Nm
@@ -81,11 +81,12 @@ cannot intuit your
 directory, you can force the issue with
 the 
 .Fl I
-option. However, you're then instructing 
+option.
+However, you're then instructing
 .Nm
-what to test, not where unixODBC will eventually look. Your override
-is therefore only as good as you are. Look carefully at the error
-output before overriding.  
+what to test, not where unixODBC will eventually look.
+Your override is therefore only as good as you are.
+Look carefully at the error output before overriding.
 .Pp
 If you have suggestions for ways to make
 .Nm
@@ -100,4 +101,4 @@ first appeared in FreeTDS 0.65.
 The 
 .Nm
 utility was written by 
-.An James K. Lowden Ns .
+.An James K. Lowden .

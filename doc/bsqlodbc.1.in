@@ -1,14 +1,13 @@
 .\" cf. groff_mdoc
 .Dd March 25, 2015
+.Dt BSQLODBC 1
 .Os FreeTDS @VERSION@
-.Dt BSQLODBC FreeTDS "FreeTDS Reference Manual"
 .\"
 .Sh NAME
 .Nm bsqlodbc
 .Nd batch SQL script processor using ODBC
 .\"
 .Sh SYNOPSIS
-.Pp
 .Nm
 .Op Fl hqv
 .Op Fl U Ar username
@@ -22,24 +21,24 @@
 .Op Fl V Ar odbc_version
 .\"
 .Sh DESCRIPTION
-.Pp
 .Nm
 is a utility program distributed with FreeTDS.
 .Pp
 .Nm
 is a non-interactive equivalent of the 
 .Ql isql
-utility programs distributed by Sybase and Microsoft. Like them, 
+utility programs distributed by Sybase and Microsoft.
+Like them,
 .Nm
 uses the command 
 .Ql go
-on a line by itself as a separator between batches. The last
-batch need not be followed by 
+on a line by itself as a separator between batches.
+The last batch need not be followed by
 .Ql go .
 .Pp
 .Nm
-makes use of the ODBC API provided by FreeTDS. This
-API is of course also available to application developers.
+makes use of the ODBC API provided by FreeTDS.
+This API is of course also available to application developers.
 .\"
 .Sh OPTIONS
 .Bl -tag -width indent
@@ -58,30 +57,27 @@ Name of output file, holding result data.
 .It Fl e Ar error_file
 Name of file for errors.
 .It Fl t Ar field_term
-Specifies the field terminator. Default is two spaces (
-.Ql \ \ 
-.Ns ).
-Recognized escape sequences are tab (
-.Ql \et
-.Ns ), 
-carriage return (
-.Ql \er
-.Ns ), 
-newline (
-.Ql \en
-.Ns ),
-and backslash (
-.Ql \e\e
-.Ns ).
+Specifies the field terminator.
+Default is two spaces
+.Pq Ql "\ \ " .
+Recognized escape sequences are tab
+.Pq Ql \et ,
+carriage return
+.Pq Ql \er ,
+newline
+.Pq Ql \en ,
+and backslash
+.Pq Ql \e\e .
 .It Fl h
 Print column headers with the data to the same file.
 .It Fl q 
-Do not print column metadata, return status, or rowcount. Overrides
+Do not print column metadata, return status, or rowcount.
+Overrides
 .Fl h .
 .It Fl v
 Verbose mode, for more information about the ODBC interaction.
-This also reports the result set metadata, including and return code. All
-verbose data are written to standard error (or 
+This also reports the result set metadata, including and return code.
+All verbose data are written to standard error (or
 .Fl e Ns ),
 so as not to interfere with the data stream.
 .It Fl V Ar odbc_version
@@ -89,10 +85,10 @@ Specify ODBC version (2 or 3).
 .El
 .\"
 .Sh NOTES
-.Pp
 .Nm
 is a filter; it reads from standard input, writes to standard output,
-and writes errors to standard error. The
+and writes errors to standard error.
+The
 .Fl i ,
 .Fl o ,
 and

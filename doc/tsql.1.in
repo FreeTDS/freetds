@@ -1,7 +1,7 @@
 .\" cf. groff_mdoc
 .Dd March 25, 2015
+.Dt TSQL 1
 .Os FreeTDS @VERSION@
-.Dt TSQL FreeTDS "FreeTDS Reference Manual"
 .Sh NAME
 .Nm tsql
 .Nd utility to test FreeTDS connections and queries
@@ -23,11 +23,13 @@
 .Fl C
 .Sh DESCRIPTION
 .Nm
-is a FreeTDS diagnostic tool. It uses the TDS protocol to connect to a
+is a FreeTDS diagnostic tool.
+It uses the TDS protocol to connect to a
 Sybase or Microsoft SQL Server, and lets the user issue queries.
 .Nm
 does
-not use the FreeTDS client libraries. Instead, it uses only the lowest level
+not use the FreeTDS client libraries.
+Instead, it uses only the lowest level
 library, libtds, to test the protocol implementation.
 .Pp
 .Nm
@@ -38,13 +40,15 @@ The
 and
 .Fl p
 parameters are provided to let the user verify a server is listening on
-the named host and port. These parameters override any configuration files
-and environment variables.
+the named host and port.
+These parameters override any configuration files and environment variables.
 The
 .Fl S
-parameter can be used to test the local configuration. FreeTDS will use
+parameter can be used to test the local configuration.
+FreeTDS will use
 freetds.conf (or equivalent) and environment variables in the normal way to
-determine the server's IP address and port. You can use
+determine the server's IP address and port.
+You can use
 .Fl I
 to specify a filename, overriding FreeTDS's configuration file search
 algorithm.
@@ -61,8 +65,8 @@ DNS hostname of the server.
 .It Fl p Ar port
 port at which SQL Server is listening.
 .It Fl U Ar username
-database login name. If username is not provided, a domain
-login is attempted for TDS 7+ connections.
+database login name.
+If username is not provided, a domain login is attempted for TDS 7+ connections.
 .It Fl P Ar password
 database password.
 .It Fl L
@@ -111,9 +115,9 @@ Typing
 or
 .Ql bye
 (or
-.Li ^D Ns )
+.Li ^D )
 exits
-.Nm Ns .
+.Nm .
 .Pp
 Typing
 .Ql version
@@ -133,11 +137,13 @@ After prompting for the password (if not provided with
 will attempt to connect to the remote server.
 .Nm
 displays a counter indicating the number
-of seconds elapsed during the connection attempt. Typically,
+of seconds elapsed during the connection attempt.
+Typically,
 .Nm
 immediately responds with a
 .Ql 1>
-prompt. If you see the counter (1, 2, 3, ...), most likely
+prompt.
+If you see the counter (1, 2, 3, ...), most likely
 .Nm
 is unable to connect to the indicated server.
 .Pp
@@ -154,6 +160,6 @@ first appeared in FreeTDS 0.60.
 The
 .Nm
 utility was written by
-.An Brian Bruns Ns .
+.An Brian Bruns .
 .Sh BUGS
 Several, to be sure, now that it's documented. :)

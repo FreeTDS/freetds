@@ -1,7 +1,7 @@
 .\" cf. groff_mdoc
 .Dd March 25, 2015
+.Dt DATACOPY 1
 .Os FreeTDS @VERSION@
-.Dt DATACOPY FreeTDS "FreeTDS Reference Manual"
 .\"
 .Sh NAME
 .Nm datacopy
@@ -34,8 +34,8 @@ intermediate files.
 is much faster and more efficient than is freebcp out/in.
 .Pp
 .Nm
-makes use of the db-lib bcp API built into FreeTDS. This API is also
-available to application developers.
+makes use of the db-lib bcp API built into FreeTDS.
+This API is also available to application developers.
 .Pp
 .Nm
 can be used to migrate data between Sybase ASE and SQL Server or vice
@@ -56,11 +56,13 @@ command on the target server using the specified owner in
 the command, e.g.
 .Ql CREATE TABLE owner.table (.\|.\|.\&).
 .It Fl b Ar batchsize
-The number of rows per batch of data copied.  Each batch of data is
-effectively 'committed' to the database. The default is 1000.
+The number of rows per batch of data copied.
+Each batch of data is effectively 'committed' to the database.
+The default is 1000.
 .It Fl p Ar packetsize
 The number of bytes, per network packet, sent to and from the
-servers. Increased packet size can enhance performance.
+servers.
+Increased packet size can enhance performance.
 .It Fl T Ar textsize
 Specify size of TEXT/IMAGE column from network.
 .It Fl v
@@ -83,11 +85,10 @@ prompts the user for the information.
 Keep identity values.
 .El
 .Sh SEE ALSO
-.Xr freebcp 1 , Xr defncopy 1 , Xr bsqldb 1 , Xr tsql 1 , 
+.Xr bsqldb 1 , Xr defncopy 1 , Xr freebcp 1 , Xr tsql 1 ,
 .%B FreeTDS User Guide.
 .\"
 .Sh HISTORY
-.Pp
 .Nm
 first appeared in FreeTDS 0.64.
 .\"

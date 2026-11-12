@@ -1,6 +1,6 @@
 .Dd May 2, 2017
+.Dt FREETDS.CONF 5
 .Os FreeTDS @VERSION@
-.Dt FREETDS.CONF "FreeTDS 5" "FreeTDS Reference Manual"
 .
 .Sh NAME
 .Nm freetds.conf
@@ -10,18 +10,21 @@
 The 
 .Pa freetds.conf
 file describes Sybase and Microsoft database servers to the FreeTDS
-library.  It comprises sections headed by a servername, followed by a
-list of connection properties denoted as name-value pairs.  Defaults
-are defined via a
+library.
+It comprises sections headed by a servername, followed by a
+list of connection properties denoted as name-value pairs.
+Defaults are defined via a
 .Bq global
-section.  This file supersedes the 
+section.
+This file supersedes the
 .Pa interfaces
 file that
 Sybase defines for the same purpose, although the latter is still supported.
 .
 .Sh DESCRIPTION
 A section begins with a servername \(em the name of the server \(em in
-square brackets. The servername is chosen at the client's descretion.
+square brackets.
+The servername is chosen at the client's descretion.
 (One exception: with Sybase ASA the servername must match the database
 name to be used.)
 .Pp
@@ -31,13 +34,16 @@ Sections contain properties, one per line, in the form
 .Pp
 where
 .Ar name
-is the connection property to be described.  Servernames and properties
-are not case sensitive.  Values are case-preserving i.e., copied literally.
+is the connection property to be described.
+Servernames and properties are not case sensitive.
+Values are case-preserving i.e., copied literally.
 Comments begin with either a semicolon
 .Pq So ; Sc
 or pound sign
 .Pq So # Sc
-and continue to end of line.  Blank lines are ignored.  Whitespace surrounding the
+and continue to end of line.
+Blank lines are ignored.
+Whitespace surrounding the
 .So = Sc is ignored.
 .
 .Sh PROPERTIES
@@ -99,7 +105,7 @@ no
 .El
 .
 .It encryption
-.Bl -tag -compact
+.Bl -tag -width "request" -compact
 .It Em off
 disables encryption
 .It Em request
