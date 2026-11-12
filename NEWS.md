@@ -1,5 +1,171 @@
 $Id$
 
+Summary of Changes in release 1.6
+--------------------------------------------
+User visible (not in a particular order):
+- Generic:
+  - (\*) Fix certificate check for hostnames with wildcards (OpenSSL);
+  - (\*) Use CORK flag correctly, do not delay partial packets (lower latency);
+  - (\*) Fix bound check converting float to unsigned integers;
+  - (\*) Avoid overflow converting numeric to string;
+  - (\*) Fix bulk copy in for Microsoft XML type;
+  - (\*) Improve support for TDS 5 (Sybase) bulk transfers (defaults,
+    empty strings, text positions, row format errors);
+  - (\*) Fix ABI breakage for `tdsdump_open` under Windows, add
+    `tdsdump_wopen`;
+  - (\*) Fix compatibility with Nettle 4 library;
+  - (\*) Prevent infinite loop when sending disconnect request;
+  - Support Extended Protection for Authentication (EPA): channel binding
+    for NTLM, Kerberos and SSPI, using `tls-server-end-point` for TLS 1.3;
+  - NTLM improvements:
+    - add MIC and key exchange;
+    - send target name (SPN), required by MSSQL in strict mode with EPA;
+    - support empty domain (user principal names, `\user@domain`);
+    - use Unicode upper case for NTLMv2 user names (non-ASCII names);
+    - allow longer passwords in multibyte client charsets.
+  - Use instance name, not port, for Kerberos/SSPI SPN;
+  - Disable TLS v1.1 by default;
+  - Do not override all GnuTLS settings, add `gnutls ciphers` configuration
+    to set the priority string;
+  - Allow `strict` encryption for TDS 5.0 (Sybase SSL);
+  - Support bulk copy into data rows locked tables for Sybase ASE;
+  - Avoid some truncation on prepared statements and BCP insert;
+  - Use proper collation for bulk inserts;
+  - Add missing SQL collations;
+  - Improve char to binary conversions (leading/trailing spaces,
+    odd number of digits);
+  - Report incomplete multibyte sequences with their own error
+    (`TDSEICONVPARTIAL`, 2433) instead of 2401;
+  - Report unavailable character set conversion at login;
+  - Do not accept negative values for port, text size and timeouts;
+  - Default to not flush the log file after each line (~3x faster logging),
+    set `TDSDUMP_FLUSH` to restore old behaviour;
+  - Option (`TDS_DEBUG_CRT_FILENAME`) to dump Windows CRT debug logging to
+    a file;
+  - Give error at configure time if iconv library is not found and not
+    explicitly disabled;
+  - Windows MSI installer in AppVeyor artifacts.
+- ODBC:
+  - (\*) Accept any variable data type using `DATA_AT_EXEC` length;
+  - (\*) Fix inserting too much data with `SQLPutData`;
+  - (\*) Re-prepare a prepared query if it never returned a handle;
+  - (\*) Fix `SQL_COPT_SS_OLDPWD` attribute;
+  - (\*) Fix leak in `SQLDriverConnect` if string is invalid;
+  - (\*) Fix `SQL_DESC_BIND_OFFSET_PTR` handling;
+  - (\*) Update `SQLGetInfo(SQL_DESCRIBE_PARAMETER)`;
+  - (\*) Make `SQLSetDescField` extend automatically the descriptor;
+  - Add `ServerCertificate` and `ConnectionTimeout` connection attributes;
+  - Load `ApplicationIntent` from `odbc.ini`;
+  - Add `SQL_COPT_SS_ATTACHDBFILENAME` connection attribute;
+  - Configurable date/time formats for conversions to character
+    (`DateTimeFmt`, `DateFmt`, `TimeFmt` options and
+    `SQL_COPT_TDSODBC_DATETIME_FORMAT`, `..._DATE_FORMAT`, `..._TIME_FORMAT`
+    attributes);
+  - Return row count correctly in presence of triggers;
+  - Tell Driver Manager we support server side cursors;
+  - More compatibility for `SQL_ATTR_QUERY_TIMEOUT` attribute;
+  - BCP: set charset conversion based on binding type, add missing types,
+    avoid crashes in `bcp_bind` with invalid terminators;
+  - MARS: fix sliding window calculation, reuse MARS session until
+    statement is freed.
+- Applications:
+  - (\*) tsql: Avoid possible invalid type formatting a message;
+  - freebcp:
+    - Fix native file format (`-n`) used together with `-E` (issue #647);
+    - Support hexadecimal syntax for row/field terminators;
+    - Implement `-k` (keep nulls) and allow multiple hints;
+    - Dry-run option `-j` for bcp in;
+    - Apply `-L` limit correctly;
+    - Report rows failed to copy to server;
+    - Better handling of exceptional cases in host files (prefix/terminator,
+      oversized data, missing terminator message matching MS bcp);
+    - Uninitialized columns default to NULL;
+    - Faster bcp in/out using buffered file streams and optimized formatting;
+    - Correct precision for variable precision date/time types.
+  - defncopy:
+    - Basic implementation of input mode (`-i`);
+    - Support Sybase command line syntax (`in`/`out`);
+    - Do not output `USE` statement, match Sybase delimiters;
+    - Sanitize arguments.
+- CT-Library:
+  - (\*) Remove leak freeing command;
+  - (\*) Fix `ct_results()` hang on empty result set with `CS_DYNAMIC_CMD`;
+  - Support `UNITEXT` for `CS_VERSION_150` and later (`CS_UNITEXT_TYPE`,
+    `CS_DATA_UNITEXT`/`CS_DATA_NOUNITEXT` capabilities);
+  - Copy binary data as is converting to `CS_UNICHAR`/`CS_UNITEXT`;
+  - Implement setting date format using `cs_dt_info`, use same default
+    date formats as Sybase library;
+  - Many fixes and improvements to `cs_convert` (numeric, char to binary,
+    length limits, error reporting);
+  - Bulk copy:
+    - implement `blk_textxfer` for copy in;
+    - fix bulk copy into `NVARCHAR` columns;
+    - handle `CS_BLK_CANCEL` in `blk_done`;
+    - fix row count handling for `blk_rowxfer_mult`;
+    - fix bulk copy out termination;
+    - support all fixed types binding with `CS_UNUSED` length;
+    - handle data too long and unsupported types like Sybase library;
+    - do not ignore conversion errors;
+    - separate error texts for BLK-Library.
+  - `ct_cursor`: predict cursor type for `CS_CURSOR_DECLARE`, improve query
+    parsing;
+  - Better parameter checks for `ct_cursor` and `ct_cmd_props(CS_CUR_STATUS)`;
+  - Report long variable-width parameter values;
+  - Allow sending a new command after `CS_CANCEL_ALL`;
+  - Fail `ct_results` if rows are not fetched (instead of looping);
+  - Do not wait for data in `ct_fetch` if none is expected;
+  - Handle `DONEPROC` token ending a result set;
+  - Report errors at the end of a result set (`CS_CMD_FAIL`);
+  - Discard pending results when dropping a command.
+- DB-library:
+  - (\*) Expand buffers to hold converted floating point;
+  - Return table column name from `dbtablecolinfo` if available;
+  - Truncate too long char and binary data for bulk copy in (`SYBEBCOR`);
+  - Check for overflow converting data for BCP copy in;
+  - BCP into computed columns again when allowing triggers;
+  - Fix `bcp_bind` checks comparing with Sybase and MS;
+  - Check parameters in `bcp_getbatchsize`;
+  - Fix writing BCP error line to error file;
+  - Fix result of `dbstrbuild` and other fixes to string formatting;
+  - Use the message from libTDS to report libTDS errors;
+  - Avoid possible overflows formatting dates;
+  - Fix `dbopts` leak.
+- pool:
+  - Allow `tdspool` to be started by inetd/xinetd (`-x`);
+  - Support systemd socket activation;
+  - Exit on permanent accept errors;
+  - Set no SIGPIPE on socket.
+
+(\*) Feature backported in stable 1.5 branch.
+
+Implementation:
+- Remove many warnings compiling with `-Wconversion` and static analyzers;
+- Make implicit function declarations an error;
+- Introduce and reuse `TDS_MAX`, `TDS_MIN` and `TDS_CLAMP`;
+- Reduce usage of deprecated OpenSSL 3 functions;
+- Move specific libTDS headers in `include/freetds/tds` directory;
+- Move `get_int_col` from ODBC to libTDS, add `tds_try_get_int_col`;
+- Allow sending blob data in chunks during bulk copy (libTDS);
+- Split ODBC sources (`info.c`, `catalog.c`, `odbc_util.c`);
+- Add and reuse `xstrdup` utility;
+- Remove usage of `WIN32`, `WIN64` and `__WIN32__` macros;
+- Remove obsolete CVS `$Id`, `mkinstalldirs`;
+- Bump minimal CMake version to 3.10, greater use of `GNUInstallDirs`;
+- CMake: allow building tests without running them, build wide tests
+  consistently with Autoconf;
+- Minor updates to RPM spec file;
+- Unit tests:
+  - central test setup and `PWD` file handling, `TEST_MAIN()` entry points;
+  - more compatibility with Sybase/SAP libraries.
+- Many OpenVMS build improvements (configure from trunk, ODBC with MARS
+  and wide support, run full test suite);
+- CI:
+  - add MSSQL 2025, enable back MSSQL 2017;
+  - build and run tests under macOS;
+  - add Visual Studio 2026, remove Visual Studio 2010 and 2015;
+  - use OpenSSL 3.3-3.6 if available;
+  - run tests in parallel.
+
 Summary of Changes in release 1.5
 --------------------------------------------
 User visible (not in a particular order):
