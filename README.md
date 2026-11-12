@@ -1,4 +1,4 @@
-README for FreeTDS 1.6.dev (development)
+README for FreeTDS 1.7.dev (development)
 ====
 
 *Release date TBD*
