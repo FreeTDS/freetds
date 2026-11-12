@@ -1,27 +1,48 @@
 .\" cf. groff_mdoc
-.Dd April 26, 2012
+.Dd November 12, 2026
 .Dt DEFNCOPY 1
 .Os FreeTDS @VERSION@
 .\"
 .Sh NAME
 .Nm defncopy
-.Nd extract procedures and views from a Microsoft server.
+.Nd extract or apply definitions of tables, procedures and views.
 .\"
 .Sh SYNOPSIS
 .Nm
 .Op Fl v
 .Op Fl U Ar username
 .Op Fl P Ar password
-.Op Fl S Ar server
+.Fl S Ar server
 .Op Fl D Ar database
-.Op Fl i Ar input_file
 .Op Fl o Ar output_file
-.Bo
 .Ar owner.object_name
 .\" Elipsis according to Werner Lemberg:
 .\" http://www.mail-archive.com/groff@gnu.org/msg03122.html
 .Op Ar owner.object_name .\|.\|.\&
-.Bc
+.Pp
+.Nm
+.Op Fl v
+.Op Fl U Ar username
+.Op Fl P Ar password
+.Fl S Ar server
+.Op Fl D Ar database
+.Op Fl i Ar input_file
+.Pp
+.Nm
+.Op Fl U Ar username
+.Op Fl P Ar password
+.Fl S Ar server
+.Cm out
+.Ar output_file database
+.Ar owner.object_name
+.Op Ar owner.object_name .\|.\|.\&
+.Pp
+.Nm
+.Op Fl U Ar username
+.Op Fl P Ar password
+.Fl S Ar server
+.Cm in
+.Ar input_file database
 .\"
 .Sh DESCRIPTION
 .Nm
@@ -43,11 +64,47 @@ is optional if you or the database owner is the owner
 of the procedure/view being copied.
 .Ar object_name
 is the name of the system object you wish to extract.
+.Pp
+If no object is given
+.Nm
+works in input mode: it reads a script, like one written in output mode,
+and applies it to the database.
+Lines starting with
+.Ql GO
+are ignored and the whole script is sent to the server as a single batch.
+.Pp
+Two syntaxes are accepted.
+The FreeTDS syntax uses the
+.Fl D ,
+.Fl i
+and
+.Fl o
+options; if
+.Fl i
+or
+.Fl o
+are omitted standard input or standard output are used.
+The Sybase syntax uses
+.Cm in
+or
+.Cm out ,
+followed by a file name and a database name, as the first arguments.
+The Sybase syntax is recognized only if none of
+.Fl D ,
+.Fl i
+and
+.Fl o
+are used.
 .\"
 .Sh OPTIONS
 .Bl -tag -width indent
 .It Fl U Ar username
 database server login name.
+If neither
+.Fl U
+nor
+.Fl P
+is given, a domain (integrated) login is attempted.
 .It Fl P Ar password
 database server password.
 .It Fl S Ar server
@@ -56,8 +113,10 @@ database server to which to connect.
 database to use.
 Optional if the procedure/view being extracted is in your default database.
 .It Fl i Ar input_file
-a script to apply to the database.
-Not currently implemented.
+a script to apply to the database, defaults to standard input.
+Cannot be used together with
+.Fl o
+or with object names.
 .It Fl o Ar output_file
 a file to hold the script, defaults to standard output.
 .It Fl v
@@ -69,10 +128,9 @@ Show version information and copyright notice.
 is a filter; it reads from standard input, writes to standard output,
 and writes errors to standard error.
 The
-.Fl i ,
-.Fl o ,
+.Fl i
 and
-.Fl e
+.Fl o
 options override these defaults.
 .Pp
 .Nm
@@ -104,5 +162,11 @@ Feel free to correct this situation.
 In theory,
 .Nm
 could apply/produce DDL for any system object,
-but at present only tables, procedures and views are supported,
-and only for extraction.
+but at present only tables, procedures and views are supported.
+Input mode supports only scripts in the format written by
+.Nm ;
+use
+.Xr fisql 1
+or
+.Xr tsql 1
+for more general scripts.

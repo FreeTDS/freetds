@@ -1,5 +1,5 @@
 .\" cf. groff_mdoc
-.Dd March 25, 2015
+.Dd November 12, 2026
 .Dt FREEBCP 1
 .Os FreeTDS @VERSION@
 .Sh NAME
@@ -40,7 +40,7 @@
 .Op Fl i Ar inputfile
 .Op Fl o Ar outputfile
 .Op Fl C Ar charset
-.Op Fl EdVv
+.Op Fl EdjkVv
 .\"
 .Sh DESCRIPTION
 .Nm
@@ -175,10 +175,27 @@ The layout of
 is identical to that understood by the Sybase and
 Microsoft bcp utilities, but is too complicated to describe here.
 .It Fl h Ar hints
-Set bcp hints.
+Set bcp hints, for instance
+.Li "-h \(dqKEEP_NULLS, ORDER(id ASC)\(dq" .
+Multiple hints are separated by commas; they are not checked by
+.Nm ,
+the server reports any invalid hint.
 For valid values, cf.\&
 .Fn bcp_options
-in the FreeTDS Reference Manual.
+in the FreeTDS Reference Manual and the server documentation.
+.It Fl j
+Dry run, for
+.Ar in
+only.
+The data file is read and converted as usual, reporting any error,
+but no row is sent to the server.
+Useful to check a data file before copying it.
+.It Fl k
+Keep NULL values: empty columns are inserted as NULL instead of
+using the column default value.
+Same as adding the
+.Li KEEP_NULLS
+hint.
 .It Fl m Ar maxerror
 Stop after encountering
 .Ar maxerror
@@ -195,6 +212,9 @@ will be able to process, but is not portable or readable.
 The row terminator for a character file.
 May be more than one character.
 Default is newline ('\\n').
+See
+.Sx TERMINATORS
+below.
 Cf.\&
 .Fl c ,
 above.
@@ -203,6 +223,9 @@ The field terminator for character file.
 Also known as a column delimiter.
 May be more than one character.
 Default is tab ('\\t').
+See
+.Sx TERMINATORS
+below.
 Cf.\&
 .Fl c ,
 above.
@@ -216,6 +239,26 @@ Write output data to file specified.
 .It Fl C Ar charset
 Specify character set to use to talk to server.
 .El
+.Sh TERMINATORS
+Field and row terminators can contain the escape sequences
+.Ql \e0
+(NUL),
+.Ql \et
+(tab),
+.Ql \er
+(carriage return),
+.Ql \en
+(newline, carriage return and newline on Windows) and
+.Ql \e\e
+(backslash).
+.Pp
+A terminator can also be specified in hexadecimal, like Microsoft bcp,
+using a
+.Ql 0x
+prefix, for instance
+.Li -t 0x7c
+for
+.Ql \&| .
 .Sh ENVIRONMENT
 .Ev DSQUERY
 default 
@@ -225,7 +268,7 @@ default
 When connecting to a Sybase database server, it is required that the
 TDS 5.0 protocol be used.
 When connecting to a Microsoft SQL Server
-2000 database server, the TDS\ 7 (or later) protocol is required.
+database server, the TDS\ 7 (or later) protocol is required.
 .Pp
 Sybase and Microsoft define different versions of the bcp portion of TDS 4.2.
 Because FreeTDS has no way of knowing which type of server it's connected to,
@@ -240,7 +283,3 @@ The
 .Nm
 utility was written by
 .An Bill Thompson Aq thompbil@exchange.uk.ml.com
-.Sh BUGS
-Currently, there is no support for text data types in
-.Nm , when
-SQL Server 2000 is the target server.

@@ -1,4 +1,4 @@
-.Dd May 2, 2017
+.Dd November 12, 2026
 .Dt FREETDS.CONF 5
 .Os FreeTDS @VERSION@
 .
@@ -47,7 +47,52 @@ Whitespace surrounding the
 .So = Sc is ignored.
 .
 .Sh PROPERTIES
-.Bl -tag -width "emulate little endian" -compact
+.Bl -tag -width "check certificate hostname" -compact
+.
+.It asa database
+name of the default database for a Sybase ASA server, sent instead of the servername
+.Bl -tag -width "default:" -compact
+.It Domain:
+database name
+.It Default:
+servername
+.El
+.
+.It ca file
+file holding root certificates (PEM format) used to verify the server certificate;
+.Em system
+uses the system wide list.
+If empty any certificate is accepted.
+.Bl -tag -width "default:" -compact
+.It Domain:
+file name or system
+.It Default:
+none
+.El
+.
+.It certificate hostname
+host name that should match the server certificate;
+used only with
+.Em ca file
+.Bl -tag -width "default:" -compact
+.It Domain:
+host name
+.It Default:
+the
+.Em host
+setting
+.El
+.
+.It check certificate hostname
+check the host name in the server certificate;
+used only with
+.Em ca file
+.Bl -tag -width "default:" -compact
+.It Domain:
+yes/no
+.It Default:
+yes
+.El
 .
 .It client charset
 encoding of client data; overrides locale(1) settings
@@ -67,8 +112,28 @@ seconds to wait for response from connect request
 none
 .El
 .
+.It crl file
+file holding a certificate revocation list;
+used only with
+.Em ca file
+.Bl -tag -width "default:" -compact
+.It Domain:
+file name
+.It Default:
+none
+.El
+.
+.It database
+name of the default database
+.Bl -tag -width "default:" -compact
+.It Domain:
+database name
+.It Default:
+none
+.El
+.
 .It debug flags
-logging granularity
+logging granularity, see below
 .Bl -tag -width "default:" -compact
 .It Domain:
 32-bit integer
@@ -94,9 +159,26 @@ yes/no
 no
 .El
 .
-.It emulate little endian
-forces big endian machines to act as little endian to communicate with
-Microsoft Servers
+.It enable gssapi delegation
+enable delegation using Kerberos
+.Bl -tag -width "default:" -compact
+.It Domain:
+yes/no
+.It Default:
+no
+.El
+.
+.It enable tls v1
+enable TLS version 1.0, needed for some old servers
+.Bl -tag -width "default:" -compact
+.It Domain:
+yes/no
+.It Default:
+no
+.El
+.
+.It enable tls v1.1
+enable TLS version 1.1, needed for some old servers
 .Bl -tag -width "default:" -compact
 .It Domain:
 yes/no
@@ -105,22 +187,47 @@ no
 .El
 .
 .It encryption
+whether to encrypt the connection
 .Bl -tag -width "request" -compact
 .It Em off
 disables encryption
 .It Em request
-use if available (default when tds version greater than 7.0)
-.It Em required
+use if available (default for TDS 7.1 and later, otherwise off)
+.It Em require
 allow encrypted connections only
+.It Em strict
+encrypt the whole connection using TDS 8.0 and verify the server certificate
+(system certificates are used if
+.Em ca file
+is not specified).
+.El
+.Pp
+With Sybase servers (TDS 5.0)
+.Em request
+and
+.Em require
+encrypt only the password; use
+.Em strict
+with
+.Em tds version
+5.0 to connect to a server with SSL enabled.
+.
+.It gnutls ciphers
+priority string passed to GnuTLS, e.g. SECURE128
+.Bl -tag -width "default:" -compact
+.It Domain:
+GnuTLS priority string
+.It Default:
+system default
 .El
 .
 .It host
-Name of the host the server is running on.
+name of the host the server is running on
 .Bl -tag -width "default:" -compact
 .It Domain:
 host name or IP address
 .It Default:
-SYBASE
+none
 .El
 .
 .It initial block size
@@ -134,12 +241,31 @@ multiple of 512
 .
 .It instance
 name of Microsoft SQL Server instance to connect to (supersedes
-.Em port )
+.Em port ) ;
+requires UDP port 1434 on the server
 .Bl -tag -width "default:" -compact
 .It Domain:
 instance name
 .It Default:
 none
+.El
+.
+.It mutual authentication
+request mutual authentication using Kerberos; always enabled for TDS 7.0 and up
+.Bl -tag -width "default:" -compact
+.It Domain:
+yes/no
+.It Default:
+no
+.El
+.
+.It openssl ciphers
+cipher list passed to OpenSSL, e.g. HIGH:!SSLv2:!aNULL:-DH
+.Bl -tag -width "default:" -compact
+.It Domain:
+OpenSSL cipher list
+.It Default:
+OpenSSL default
 .El
 .
 .It port
@@ -148,17 +274,46 @@ port number that the server is listening to
 .It Domain:
 any valid port
 .It Default:
-TDS 5.0, 5000; TDS 7.0 and up, 1433
+4000 if configured with
+.Fl -with-tdsver Ns =5.0 ,
+otherwise 1433
+.El
+.
+.It read-only intent
+tell the server only read-only queries will be done (MSSQL 2012 and later)
+.Bl -tag -width "default:" -compact
+.It Domain:
+yes/no
+.It Default:
+no
+.El
+.
+.It realm
+Kerberos realm
+.Bl -tag -width "default:" -compact
+.It Domain:
+realm name
+.It Default:
+default Kerberos realm
+.El
+.
+.It spn
+service principal name for Kerberos and SSPI
+.Bl -tag -width "default:" -compact
+.It Domain:
+SPN
+.It Default:
+MSSQLSvc/fqdn:instance or MSSQLSvc/fqdn:port
 .El
 .
 .It tds version
-TDS protocol version to use
+TDS protocol version to use; auto detects it
 .Bl -tag -width "default:" -compact
 .It Domain:
-4.2, 5.0, 7.0, 7.1, 7.2
+4.2, 5.0, 7.0, 7.1, 7.2, 7.3, 7.4, 8.0, auto
 .It Default:
 .Fl -with-tdsver
-value (5.0 if unspecified)
+value (auto if unspecified)
 .El
 .
 .It text size
@@ -177,6 +332,33 @@ seconds to wait for response to a query
 0 to MAX_INT
 .It Default:
 none (wait forever)
+.El
+.
+.It use lanman
+use LAN Manager authentication; very old and insecure
+.Bl -tag -width "default:" -compact
+.It Domain:
+yes/no
+.It Default:
+no
+.El
+.
+.It use ntlmv2
+use NTLMv2 authentication
+.Bl -tag -width "default:" -compact
+.It Domain:
+yes/no
+.It Default:
+yes
+.El
+.
+.It use utf-16
+use UTF-16 instead of UCS-2 for wide characters
+.Bl -tag -width "default:" -compact
+.It Domain:
+yes/no
+.It Default:
+yes
 .El
 .
 .El
@@ -210,7 +392,8 @@ property.
 .
 .Sh NAMES AND LOCATIONS
 The file is normally named
-.Pa /etc/freetds.conf
+.Pa @sysconfdir@/freetds.conf ,
+.Pa ${HOME}/.config/freetds.conf
 or
 .Pa ${HOME}/.freetds.conf .
 That name can be overridden with the FREETDSCONF environment variable.
@@ -221,6 +404,16 @@ FreeTDS will search conf files for a servername in the following order:
 a filename set programmatically via dbsetifile() that is in .conf format
 .It
 a filename in the environment variable FREETDSCONF that is in .conf format
+.It
+.Pa $FREETDS/etc/freetds.conf
+.Po
+.Pa %FREETDS%\efreetds.conf
+on Windows
+.Pc
+if the environment variable FREETDS is set
+.It
+.Pa ${HOME}/.config/freetds.conf
+if extant (not on Windows)
 .It
 .Pa ${HOME}/.freetds.conf
 if extant
@@ -247,20 +440,31 @@ format
 .Ev $SYBASE is an environment variable)
 .El
 .Pp
-If the requested servername is not found in any configuration file, the fallback
-mechanism is:
-.Bl -enum -offset indent -compact
-.It
-attempt to convert the name to an IP address with inet_addr(3), else
-.It
-attempt to convert the name to an IP address with gethostbyname(3), else
-.It
-attempt to look up the literal name
+If the requested servername is not found in any configuration file, it is
+taken as a host name or IP address, optionally followed by
+.Ql :port
+or
+.Ql \einstance .
+The port is taken from the [global] section, the
+.Ev TDSPORT
+environment variable or the compiled-in default.
+.Pp
+If no servername is given,
+.Ev TDSQUERY ,
+.Ev DSQUERY
+or
 .Dq SYBASE
-.El
+is used.
 .
 .Sh ENVIRONMENT
 .Bl -tag -width "TDSDUMPCONFIG" -compact
+.It Ev FREETDS
+directory containing
+.Pa etc/freetds.conf
+.Po
+.Pa freetds.conf
+on Windows
+.Pc
 .It Ev FREETDSCONF
 overrides name and location of the system-wide conf file
 .It Ev TDSDUMP
@@ -268,6 +472,8 @@ overrides the name and location of the FreeTDS log file
 .It Ev TDSDUMPCONFIG
 specifies a name and location of a file that logs the search of
 configuration files
+.It Ev TDSDUMP_FLUSH
+if set, flush the log file after every line
 .It Ev TDSHOST
 overrides the host property
 .It Ev TDSPORT
@@ -285,7 +491,7 @@ override values set by a .conf or
 file.
 .
 .Sh FILES
-.Pa @sysconfdir@/freetds.conf , ${HOME}/.freetds.conf
+.Pa @sysconfdir@/freetds.conf , ${HOME}/.config/freetds.conf , ${HOME}/.freetds.conf
 .
 .Sh SEE ALSO
 .%B FreeTDS User Guide
