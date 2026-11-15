@@ -124,7 +124,7 @@
 
 The <quote>TDS</quote> part of the name comes from name of the protocol used to communicate with such servers: the Tabular Data Stream.  </para>
 
-<para>&freetds; is distributed in source code form, and is expected to compile on just about any operating system.  That means every form of Unix&reg; and Unix-like&trade; system (including notable variants such as Interix&reg; and QNX&reg;), as well as Win32&reg;, VMS&reg;, and OS X&reg;.  If it doesn't compile on your system &mdash; and you're not using MS-DOS&reg; &mdash; it's probably considered a bug.</para>
+<para>&freetds; is distributed in source code form, and is expected to compile on just about any operating system.  That means every form of Unix&reg; and Unix-like&trade; system (including notable variants such as Interix&reg; and QNX&reg;), as well as Win32&reg;, OpenVMS&reg;, and OS X&reg;.  If it doesn't compile on your system &mdash; and you're not using MS-DOS&reg; &mdash; it's probably considered a bug.</para>
 
 	<sect1 id="tdsprotocolhist">
 		<title>Background: The <acronym>TDS</acronym> Protocol
@@ -668,25 +668,31 @@ and register the driver as a standard component.</para>
 				</sect3>
 			</sect2>
 
-		<sect2 id="VMS"><title>VMS&reg;</title>
+		<sect2 id="VMS"><title>OpenVMS&reg;</title>
 
 <para>&freetds; builds and passes its test suite on all supported versions of OpenVMS:
-	OpenVMS Alpha (8.4 and later), OpenVMS I64 (8.4 and later) and OpenVMS x86 (9.2 and later).
+	OpenVMS I64 (8.4 and later) and OpenVMS x86 (9.2 and later).
 	Other prerequisites:
 
-				<simplelist>
-					<member><application>gunzip</application></member>
-					<member><application>vmstar</application> or another tar utility</member>
-					<member><application>MMK</application></member>
-					<member><application>Perl</application> (only to build from a git checkout)</member>
-					</simplelist></para>
+			<simplelist>
+				<member><application>unzip</application></member>
+				<member><application>MMK</application></member>
+				<member><application>Perl</application> (only to build from a git checkout)</member>
+			</simplelist>
+			Testing has been performed with <application>unixODBC 2.3.8b</application>; please consult
+			the unixODBC documentation for the correct placement of odbcinst.ini and odbc.ini
+			in order that the FreeTDS test suite finds them.
+</para>
 
 			<sect3><title>Build Instructions</title>
 
 <para>Decompress and unpack the source archive onto an ODS-5 disk.
 	Make sure extended parse is enabled in your process (<command>SET PROCESS/PARSE=EXTENDED</command>)
 	and that the feature logical name <literal>DECC$EFS_CHARSET</literal> is enabled;
-	these are not required to run &freetds;, but are necessary for the build and the test suite.</para>
+	these are not required to run &freetds;, but are necessary for the build and the test suite.
+	It is also recommended to enable <literal>DECC$ARGV_PARSE_STYLE</literal>,
+	<literal>DECC$EFS_CASE_PRESERVE</literal>, and <literal>DECC$EFS_FILE_TIMESTAMPS</literal>.
+</para>
 
 <para>Set default to the top-level source directory and run the configuration
 					script:</para>
@@ -694,14 +700,14 @@ and register the driver as a standard component.</para>
 <screen>
 	<prompt>$</prompt> <userinput>@[.vms]configure</userinput></screen>
 
-<para>or, if you are building from a git checkout instead of a release tarball:</para>
+<para>or, if you are building from a git checkout instead of a release zipfile:</para>
 
 <screen>
 	<prompt>$</prompt> <userinput>@[.vms]configure_trunk</userinput></screen>
 
 <para><command>configure_trunk</command> uses Perl to generate the files included in release tarballs.
 	Two headers, <filename>[.include.freetds]encodings.h</filename> and <filename>[.include.freetds]charset_lookup.h</filename>,
-	require <application>gperf</application>, which is not available on VMS;
+	require <application>gperf</application>, which is not available on OpenVMS;
 	copy them from a release tarball or from a build on another system before running <command>configure_trunk</command>.
 	Pass <option>--disable-thread-safe</option> to the configuration script to build without thread safety.</para>
 
@@ -722,14 +728,16 @@ and register the driver as a standard component.</para>
 	ODBC = 1
 	ODBC_MARS = 1
 </programlisting>
-	The configuration script creates an empty <filename>user.mms</filename> if it does not exist, and never overwrites it.</para>
+	The configuration script creates an empty <filename>user.mms</filename> if it does not exist, and never overwrites it.
+	A sample is provided, <filename>[.vms]sample_user.mms</filename>.
+</para>
 
 				<variablelist>
 					<varlistentry><term><literal>ODBC</literal></term>
 						<listitem><para>Build the ODBC driver.  The &unixODBC; driver manager is assumed.
-	The logical names <literal>ODBC_LIBDIR</literal> and <literal>ODBC_INCDIR</literal> must point to the
-	driver manager libraries and include files, and <literal>LIBODBC</literal> and <literal>LIBODBCINST</literal>
-	to its shareable images; &unixODBC; <filename>ODBC_SETUP.COM</filename> defines all of them except <literal>ODBC_INCDIR</literal>.</para></listitem></varlistentry>
+	The logical name  <literal>ODBC_INCDIR</literal> must point to the driver manager include files,
+	and <literal>LIBODBC</literal> and <literal>LIBODBCINST</literal> to its shareable images.
+						</para></listitem></varlistentry>
 					<varlistentry><term><literal>ODBC_MARS</literal></term>
 						<listitem><para>Enable MARS support in the ODBC driver.</para></listitem></varlistentry>
 					<varlistentry><term><literal>ODBC_WIDE</literal></term>
@@ -754,7 +762,7 @@ and register the driver as a standard component.</para>
 	as the tests run with minimal privileges.</para>
 
 <para>It's best to define the location of the configuration files with logical names, otherwise
-	&freetds; may build an unparseable mix of Unix and VMS file name syntax, for example
+	&freetds; may build an unparseable mix of Unix and OpenVMS file name syntax, for example
 <screen>
 	<prompt>$</prompt> <userinput>DEFINE FREETDSCONF DISK$USER:[TDSDIR]freetds.conf</userinput></screen></para>
 
