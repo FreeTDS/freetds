@@ -9,7 +9,7 @@ the [FreeTDS Users Guide](http://www.freetds.org/userguide/)**
 FreeTDS is a free implementation of Sybase's DB-Library, CT-Library,
 and ODBC libraries. FreeTDS builds and runs on every flavor of
 unix-like systems we've heard of (and some we haven't) as well as
-Win32 (with or without Cygwin), VMS, and Mac OS X.  Failure to build
+Win32 (with or without Cygwin), OpenVMS, and Mac OS X.  Failure to build
 on your system is probably considered a bug.  It has C language
 bindings, and works also with Perl and PHP, among others.
 

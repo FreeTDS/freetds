@@ -21,9 +21,9 @@
 
 # To build with ODBC support, add ODBC = 1 to user.mms
 #
-# This presupposes the existence of an ODBC library in the location pointed to
-# by the logical name ODBC_LIBDIR and ODBC include files in the location pointed
-# to by ODBC_INCDIR
+# This presupposes the existence of unixODBC v2.3.8b include files
+# in the location pointed to by ODBC_INCDIR; and logical names
+# LIBODBC and LIBODBCINST pointing to shareable images.
 #
 # Other options that can be added to user.mms:
 #   To enable MARS, add ODBC_MARS = 1
