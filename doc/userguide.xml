@@ -124,7 +124,10 @@
 
 The <quote>TDS</quote> part of the name comes from name of the protocol used to communicate with such servers: the Tabular Data Stream.  </para>
 
-<para>&freetds; is distributed in source code form, and is expected to compile on just about any operating system.  That means every form of Unix&reg; and Unix-like&trade; system (including notable variants such as Interix&reg; and QNX&reg;), as well as Win32&reg;, OpenVMS&reg;, and OS X&reg;.  If it doesn't compile on your system &mdash; and you're not using MS-DOS&reg; &mdash; it's probably considered a bug.</para>
+<para>&freetds; is distributed in source code form, and is expected to compile on just about any operating system.
+That means every form of Unix&reg; and Unix-like&trade; system (including notable variants such as Interix&reg; and QNX&reg;),
+as well as Win32&reg;, OpenVMS&reg;, and OS X&reg;.
+If it doesn't compile on your system &mdash; and you're not using MS-DOS&reg; &mdash; it's probably considered a bug.</para>
 
 	<sect1 id="tdsprotocolhist">
 		<title>Background: The <acronym>TDS</acronym> Protocol
@@ -680,8 +683,8 @@ and register the driver as a standard component.</para>
 				<member><application>Perl</application> (only to build from a git checkout)</member>
 			</simplelist>
 			Testing has been performed with <application>unixODBC 2.3.8b</application>; please consult
-			the unixODBC documentation for the correct placement of odbcinst.ini and odbc.ini
-			in order that the FreeTDS test suite finds them.
+			the &unixODBC; documentation for the correct placement of <filename>odbc.ini</filename> and
+			<filename>odbcinst.ini</filename> in order that the &freetds; test suite finds them.
 </para>
 
 			<sect3><title>Build Instructions</title>
