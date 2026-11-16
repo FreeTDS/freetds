@@ -947,6 +947,14 @@ tds_init_openssl_thread(void)
 }
 #endif
 
+#if OPENSSL_VERSION_NUMBER < 0x40100000L || defined(LIBRESSL_VERSION_NUMBER)
+static inline size_t
+ASN1_STRING_get_length(const ASN1_STRING *s)
+{
+	return (size_t) ASN1_STRING_length((ASN1_STRING *) s);
+}
+#endif
+
 static SSL_CTX *
 tds_init_openssl(void)
 {
@@ -1042,7 +1050,7 @@ tds_check_wildcard_test(void)
 #endif
 
 static int
-check_name_match(ASN1_STRING *name, const char *hostname)
+check_name_match(const ASN1_STRING *name, const char *hostname)
 {
 	char *name_utf8 = NULL, *tmp_name;
 	int ret, name_len;
@@ -1104,7 +1112,7 @@ check_alt_names(X509 *cert, const char *hostname)
 			continue;
 
 		altptr = (const char *) ASN1_STRING_get0_data(name->d.ia5);
-		altlen = (size_t) ASN1_STRING_length(name->d.ia5);
+		altlen = ASN1_STRING_get_length(name->d.ia5);
 
 		if (name->type == GEN_DNS && ip_size == 0) {
 			if (!check_name_match(name->d.dNSName, hostname))
@@ -1126,9 +1134,9 @@ check_alt_names(X509 *cert, const char *hostname)
 static int
 check_hostname(X509 *cert, const char *hostname)
 {
-	int ret, i;
-	X509_NAME *subject;
-	ASN1_STRING *name;
+	int ret, i, j;
+	const X509_NAME *subject;
+	const ASN1_STRING *name;
 
 	/* check by subject */
 	ret = check_alt_names(cert, hostname);
@@ -1141,8 +1149,8 @@ check_hostname(X509 *cert, const char *hostname)
 		return 0;
 
 	i = -1;
-	while (X509_NAME_get_index_by_NID(subject, NID_commonName, i) >= 0)
-		i = X509_NAME_get_index_by_NID(subject, NID_commonName, i);
+	while ((j = X509_NAME_get_index_by_NID((X509_NAME *) subject, NID_commonName, i)) >= 0)
+		i = j;
 	if (i < 0)
 		return 0;
 
