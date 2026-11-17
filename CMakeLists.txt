@@ -216,7 +216,7 @@ foreach(fn char double float int short long "long int" "long double" "long long"
 	else()
 		set(${var} 0)
 	endif()
-	config_write("#define ${var} \\@${var}\\@\n\n")
+	config_write("#define ${var} @${var}@\n\n")
 endforeach(fn)
 
 foreach(fn "long long" SQLLEN SQLROWOFFSET SQLROWSETSIZE SQLSETPOSIROW)
@@ -373,7 +373,7 @@ else()
 	set(dblib_define "#define SYBDBLIB 1")
 endif()
 
-config_write("#define VERSION \"\\@VERSION\\@\"\n\n")
+config_write("#define VERSION \"@VERSION@\"\n\n")
 
 config_write("#define FREETDS_TOPDIR \"${FREETDS_TOPDIR}\"\n\n")
 
