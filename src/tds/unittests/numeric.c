@@ -94,6 +94,8 @@ int
 main(void)
 {
 	int i;
+	char very_long[90];
+
 	memset(&ctx, 0, sizeof(ctx));
 
 	/* increase scale */
@@ -125,6 +127,17 @@ main(void)
 
 	test0("10000000000000000", 30, 10, 19, 0);
 	test0("10000000000000000", 30, 10, 12, 0);
+
+	/* test potential internal buffer overflow */
+	memset(very_long, '9', sizeof(very_long));
+	very_long[76] = 0;
+	test(very_long, 77, 0, 1);
+
+	/* test potential internal buffer underflow */
+	for (i = 1; i <= 5; ++i) {
+		test("0", i, 0, 1);
+		test("0", i, 1, 0);
+	}
 
 #if 0
 	{
