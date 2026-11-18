@@ -1457,6 +1457,9 @@ tds_process_compute_result(TDSSOCKET * tds)
 
 	tdsdump_log(TDS_DBG_INFO1, "processing compute result. num_cols = %d\n", num_cols);
 
+	if (info->num_cols < num_cols)
+		return TDS_FAIL;
+
 	/* 
 	 * Iterate over compute columns returned, 
 	 * 	e.g. COMPUTE SUM(x), AVG(x) would return num_cols = 2. 
