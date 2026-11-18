@@ -425,8 +425,8 @@ tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, uns
 	numeric->precision = new_prec;
 	numeric->scale = new_scale;
 	bytes = tds_numeric_bytes_per_prec[numeric->precision] - 1;
-	for (i = bytes / sizeof(TDS_WORD); i >= packet_len; --i)
-		packet[i] = 0;
+	for (i = (bytes + sizeof(TDS_WORD) - 1) / sizeof(TDS_WORD); i > packet_len;)
+		packet[--i] = 0;
 	for (i = 0; bytes >= (int) sizeof(TDS_WORD); bytes -= sizeof(TDS_WORD), ++i) {
 		TDS_PUT_UA4BE(&numeric->array[bytes-3], packet[i]);
 	}
