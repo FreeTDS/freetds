@@ -90,6 +90,7 @@ TESTS =	\
 	offset_ptr$(EXEEXT) \
 	trigger_count$(EXEEXT) \
 	dae_integer$(EXEEXT) \
+	dae_varchar$(EXEEXT) \
 	$(NULL)
 
 check_PROGRAMS	=	$(TESTS)
@@ -187,6 +188,7 @@ reexec_SOURCES = reexec.c
 offset_ptr_SOURCES = offset_ptr.c
 trigger_count_SOURCES = trigger_count.c
 dae_integer_SOURCES = dae_integer.c
+dae_varchar_SOURCES = dae_varchar.c
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h c2string.c parser.c parser.h \
