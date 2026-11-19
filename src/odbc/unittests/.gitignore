@@ -96,6 +96,7 @@
 /dae_empty_integer
 /dae_hex_binary
 /dae_integer
+/dae_integer_long
 /dae_invalid_numeric
 /dae_varbinary
 /dae_varchar
