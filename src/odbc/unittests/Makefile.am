@@ -90,6 +90,7 @@ TESTS =	\
 	offset_ptr$(EXEEXT) \
 	trigger_count$(EXEEXT) \
 	dae_cancel$(EXEEXT) \
+	dae_conversion_errors$(EXEEXT) \
 	dae_empty_integer$(EXEEXT) \
 	dae_hex_binary$(EXEEXT) \
 	dae_integer$(EXEEXT) \
@@ -198,6 +199,7 @@ reexec_SOURCES = reexec.c
 offset_ptr_SOURCES = offset_ptr.c
 trigger_count_SOURCES = trigger_count.c
 dae_cancel_SOURCES = dae_cancel.c
+dae_conversion_errors_SOURCES = dae_conversion_errors.c
 dae_empty_integer_SOURCES = dae_empty_integer.c
 dae_hex_binary_SOURCES = dae_hex_binary.c
 dae_integer_SOURCES = dae_integer.c
