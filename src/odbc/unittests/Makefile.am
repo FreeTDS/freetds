@@ -93,6 +93,7 @@ TESTS =	\
 	dae_empty_integer$(EXEEXT) \
 	dae_hex_binary$(EXEEXT) \
 	dae_integer$(EXEEXT) \
+	dae_integer_long$(EXEEXT) \
 	dae_invalid_numeric$(EXEEXT) \
 	dae_varbinary$(EXEEXT) \
 	dae_varchar$(EXEEXT) \
@@ -197,6 +198,7 @@ dae_cancel_SOURCES = dae_cancel.c
 dae_empty_integer_SOURCES = dae_empty_integer.c
 dae_hex_binary_SOURCES = dae_hex_binary.c
 dae_integer_SOURCES = dae_integer.c
+dae_integer_long_SOURCES = dae_integer_long.c
 dae_invalid_numeric_SOURCES = dae_invalid_numeric.c
 dae_varbinary_SOURCES = dae_varbinary.c
 dae_varchar_SOURCES = dae_varchar.c
