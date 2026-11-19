@@ -98,6 +98,9 @@
 /dae_integer
 /dae_integer_long
 /dae_invalid_numeric
+/dae_multiple_params
+/dae_reexecute
+/dae_reset_params
 /dae_varbinary
 /dae_varchar
 /dae_wvarchar

@@ -95,6 +95,9 @@ TESTS =	\
 	dae_integer$(EXEEXT) \
 	dae_integer_long$(EXEEXT) \
 	dae_invalid_numeric$(EXEEXT) \
+	dae_multiple_params$(EXEEXT) \
+	dae_reexecute$(EXEEXT) \
+	dae_reset_params$(EXEEXT) \
 	dae_varbinary$(EXEEXT) \
 	dae_varchar$(EXEEXT) \
 	dae_wvarchar$(EXEEXT) \
@@ -200,6 +203,9 @@ dae_hex_binary_SOURCES = dae_hex_binary.c
 dae_integer_SOURCES = dae_integer.c
 dae_integer_long_SOURCES = dae_integer_long.c
 dae_invalid_numeric_SOURCES = dae_invalid_numeric.c
+dae_multiple_params_SOURCES = dae_multiple_params.c
+dae_reexecute_SOURCES = dae_reexecute.c
+dae_reset_params_SOURCES = dae_reset_params.c
 dae_varbinary_SOURCES = dae_varbinary.c
 dae_varchar_SOURCES = dae_varchar.c
 dae_wvarchar_SOURCES = dae_wvarchar.c
