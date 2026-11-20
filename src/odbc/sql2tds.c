@@ -271,24 +271,22 @@ static ODBC_DAE_MODE
 odbc_get_dae_mode(SQLSMALLINT source_c_type, TDS_SERVER_TYPE destination_tds_type)
 {
 	/*
-	 * Preserve only the existing source representations that the
-	 * variable-length DAE path already knows how to process.
+	 * Preserve source representations supported by the existing
+	 * variable-length DAE path. All other supported pairs retain their
+	 * source representation until SQLParamData finalizes the parameter.
 	 */
-	switch (source_c_type) {
-	case SQL_C_CHAR:
-	case SQL_C_WCHAR:
-	case SQL_C_BINARY:
-		if (is_char_type(destination_tds_type)
-				|| is_binary_type(destination_tds_type))
-			return ODBC_DAE_STREAM_CONVERT;
-		break;
-	}
+	if ((source_c_type == SQL_C_CHAR || source_c_type == SQL_C_WCHAR)
+			&& is_char_type(destination_tds_type))
+		return ODBC_DAE_STREAM_CONVERT;
+
+	if (source_c_type == SQL_C_BINARY
+			&& (is_binary_type(destination_tds_type)
+				|| is_char_type(destination_tds_type)))
+		return ODBC_DAE_STREAM_CONVERT;
 
 	/*
-	 * Every other supported pair requires whole-value conversion.
-	 * This includes native fixed values. Buffering them is slightly
-	 * less efficient but guarantees that the shared conversion path
-	 * handles the representation correctly.
+	 * Remaining supported conversions require the complete source
+	 * representation before conversion.
 	 */
 	return ODBC_DAE_BUFFER_CONVERT;
 }
@@ -532,6 +530,21 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 		return SQL_SUCCESS;
 	}
 
+	/*
+	 * The streaming DAE path uses column_size as source-buffer capacity.
+	 * SQL_DESC_LENGTH is expressed in characters for SQL_C_WCHAR, while
+	 * SQLPutData supplies byte lengths. Keep on_server.column_size
+	 * unchanged because it is the destination size advertised to the
+	 * server.
+	 */
+	if (need_data && sql_src_type == SQL_C_WCHAR && is_char_type(dest_type)) {
+		if ((size_t) curcol->column_size > (size_t) INT_MAX / sizeof(SQLWCHAR)) {
+			odbc_errs_add(&stmt->errs, "22001", NULL);
+			return SQL_ERROR;
+		}
+		curcol->column_size *= sizeof(SQLWCHAR);
+	}
+
 	/* allocate given space */
 	if (!tds_alloc_param_data(curcol)) {
 		odbc_errs_add(&stmt->errs, "HY001", NULL);
@@ -611,8 +624,8 @@ odbc_convert_param_data(TDS_STMT *stmt, const struct _drecord *drec_ixd, TDSCOLU
 		conversion_src = &empty_source;
 
 	/*
-	 * Convert ODBC wide-character input to the client character
-	 * representation expected by the libTDS conversion layer.
+	 * Convert wide-character text used by noncharacter destinations to
+	 * the narrow representation accepted by scalar conversion routines.
 	 */
 	if (sql_src_type == SQL_C_WCHAR) {
 		if (source_len % sizeof(SQLWCHAR) != 0) {
