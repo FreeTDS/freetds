@@ -267,6 +267,32 @@ Memory_Error:
 	return SQL_ERROR;
 }
 
+static ODBC_DAE_MODE
+odbc_get_dae_mode(SQLSMALLINT source_c_type, TDS_SERVER_TYPE destination_tds_type)
+{
+	/*
+	 * Preserve only the existing source representations that the
+	 * variable-length DAE path already knows how to process.
+	 */
+	switch (source_c_type) {
+	case SQL_C_CHAR:
+	case SQL_C_WCHAR:
+	case SQL_C_BINARY:
+		if (is_char_type(destination_tds_type)
+				|| is_binary_type(destination_tds_type))
+			return ODBC_DAE_STREAM_CONVERT;
+		break;
+	}
+
+	/*
+	 * Every other supported pair requires whole-value conversion.
+	 * This includes native fixed values. Buffering them is slightly
+	 * less efficient but guarantees that the shared conversion path
+	 * handles the representation correctly.
+	 */
+	return ODBC_DAE_BUFFER_CONVERT;
+}
+
 /**
  * Convert parameters to libtds format
  * @param stmt        ODBC statement
@@ -463,37 +489,14 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 		break;
 	case SQL_DATA_AT_EXEC:
 	default:
+		if (!src_type || dest_type == TDS_INVALID_TYPE) {
+			odbc_errs_add(&stmt->errs, "HY090", NULL);
+			return SQL_ERROR;
+		}
 		len = sql_len;
 		if (sql_len < 0) {
-			/* test for SQL_C_CHAR/SQL_C_BINARY */
-			switch (sql_src_type) {
-			case SQL_C_CHAR:
-			case SQL_C_WCHAR:
-			case SQL_C_BINARY:
-				break;
-			default:
-				odbc_errs_add(&stmt->errs, "HY090", NULL);
-				return SQL_ERROR;
-			}
 			len = SQL_LEN_DATA_AT_EXEC(sql_len);
 			need_data = true;
-
-			/* dynamic length allowed only for variable fields */
-			switch (drec_ixd->sql_desc_concise_type) {
-			case SQL_CHAR:
-			case SQL_VARCHAR:
-			case SQL_LONGVARCHAR:
-			case SQL_WCHAR:
-			case SQL_WVARCHAR:
-			case SQL_WLONGVARCHAR:
-			case SQL_BINARY:
-			case SQL_VARBINARY:
-			case SQL_LONGVARBINARY:
-				break;
-			default:
-				odbc_errs_add(&stmt->errs, "HY090", NULL);
-				return SQL_ERROR;
-			}
 		}
 	}
 
@@ -537,6 +540,17 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 
 	/* fill data with SQLPutData */
 	if (need_data) {
+		ODBC_DAE_PARAM_CONV *dae = &stmt->dae_param_conversion;
+
+		odbc_reset_dae_conversion(stmt);
+		dae->mode = odbc_get_dae_mode(sql_src_type, dest_type);
+		dae->parameter_index = (size_t) stmt->param_num - 1;
+		dae->row_index = (SQLULEN) stmt->curr_param_row;
+		dae->source_c_type = sql_src_type;
+		dae->destination_sql_type = drec_ixd->sql_desc_concise_type;
+		dae->source_tds_type = src_type;
+		dae->destination_tds_type = dest_type;
+
 		curcol->column_cur_size = 0;
 		return SQL_NEED_DATA;
 	}

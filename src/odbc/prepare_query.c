@@ -195,6 +195,142 @@ prepared_rpc(struct _hstmt *stmt, bool compute_row)
 	}
 }
 
+void
+odbc_reset_dae_conversion(struct _hstmt *stmt)
+{
+	if (!stmt)
+		return;
+
+	tdsdump_log(TDS_DBG_FUNC, "resetting DAE conversion\n");
+
+	free(stmt->dae_param_conversion.data);
+	memset(&stmt->dae_param_conversion, 0, sizeof(ODBC_DAE_PARAM_CONV));
+}
+
+int
+odbc_append_dae_data(struct _hstmt *stmt, const void *data, SQLLEN length)
+{
+    ODBC_DAE_PARAM_CONV *dae;
+    TDS_UCHAR *buffer;
+    size_t chunk_length;
+    size_t required;
+    size_t capacity;
+
+    if (!stmt || length < 0 || (!data && length > 0)) {
+        if (stmt)
+            odbc_errs_add(&stmt->errs, "HY090", NULL);
+        return SQL_ERROR;
+    }
+
+    tdsdump_log(TDS_DBG_FUNC, "Appending DAE data\n");
+
+    dae = &stmt->dae_param_conversion;
+    if (dae->mode != ODBC_DAE_BUFFER_CONVERT
+            || stmt->param_num <= 0
+            || dae->parameter_index != (size_t) stmt->param_num - 1
+            || dae->row_index != (SQLULEN) stmt->curr_param_row) {
+        odbc_errs_add(&stmt->errs, "HY010", NULL);
+        odbc_reset_dae_conversion(stmt);
+        return SQL_ERROR;
+    }
+
+    chunk_length = (size_t) length;
+
+    if (chunk_length > SIZE_MAX - dae->length) {
+        odbc_errs_add(&stmt->errs, "22001", NULL);
+        odbc_reset_dae_conversion(stmt);
+        return SQL_ERROR;
+    }
+    required = dae->length + chunk_length;
+
+    if (required > dae->capacity) {
+        capacity = dae->capacity ? dae->capacity : 32;
+
+        while (capacity < required) {
+            if (capacity > SIZE_MAX / 2) {
+                capacity = required;
+                break;
+            }
+            capacity *= 2;
+        }
+
+        buffer = (TDS_UCHAR *) realloc(dae->data, capacity);
+        if (!buffer) {
+            odbc_errs_add(&stmt->errs, "HY001", NULL);
+            odbc_reset_dae_conversion(stmt);
+            return SQL_ERROR;
+        }
+
+        dae->data = buffer;
+        dae->capacity = capacity;
+    }
+
+    if (chunk_length > 0) {
+        memcpy(dae->data + dae->length, data, chunk_length);
+    }
+
+    dae->length = required;
+    return SQL_SUCCESS;
+}
+
+int
+odbc_finish_dae_conversion(struct _hstmt *stmt)
+{
+    ODBC_DAE_PARAM_CONV *dae;
+    const struct _drecord *drec_ipd;
+    TDSCOLUMN *curcol;
+    size_t column_index;
+    size_t parameter_offset;
+    int result;
+
+    if (!stmt)
+        return SQL_ERROR;
+
+    dae = &stmt->dae_param_conversion;
+    if (dae->mode == ODBC_DAE_INVALID)
+        return SQL_SUCCESS;
+    if (dae->mode != ODBC_DAE_BUFFER_CONVERT) {
+        odbc_reset_dae_conversion(stmt);
+        return SQL_SUCCESS;
+    }
+
+    tdsdump_log(TDS_DBG_FUNC, "Finalizing conversion of buffered DAE data\n");
+
+    if (       stmt->param_num <= 0
+            || dae->parameter_index != (size_t) stmt->param_num - 1
+            || dae->row_index != (SQLULEN) stmt->curr_param_row
+	) {
+        odbc_errs_add(&stmt->errs, "HY010", NULL);
+        odbc_reset_dae_conversion(stmt);
+        return SQL_ERROR;
+    }
+    parameter_offset = stmt->prepared_query_is_func ? 2u : 1u;
+
+    if ((size_t) stmt->param_num < parameter_offset) {
+        odbc_errs_add(&stmt->errs, "HY010", NULL);
+        odbc_reset_dae_conversion(stmt);
+        return SQL_ERROR;
+    }
+    column_index = (size_t) stmt->param_num - parameter_offset;
+
+    if (!stmt->params
+        || !stmt->ipd
+        || column_index >= (size_t) stmt->params->num_cols
+        || dae->parameter_index >= (size_t) stmt->ipd->header.sql_desc_count
+    ) {
+        odbc_errs_add(&stmt->errs, "HY000", NULL);
+        odbc_reset_dae_conversion(stmt);
+        return SQL_ERROR;
+    }
+    drec_ipd = &stmt->ipd->records[dae->parameter_index];
+    curcol = stmt->params->columns[column_index];
+
+    result = odbc_convert_param_data(stmt, drec_ipd, curcol, dae->source_c_type, dae->source_tds_type, dae->data, dae->length, dae->destination_tds_type);
+
+    odbc_reset_dae_conversion(stmt);
+    return result;
+}
+
 int
 parse_prepared_query(struct _hstmt *stmt, bool compute_row)
 {
@@ -242,6 +378,7 @@ start_parse_prepared_query(struct _hstmt *stmt, bool compute_row)
 	/* TODO should be NULL already ?? */
 	tds_free_param_results(stmt->params);
 	stmt->params = NULL;
+	odbc_reset_dae_conversion(stmt);
 
 	stmt->param_num = stmt->prepared_query_is_func ? 2 : 1;
 	return parse_prepared_query(stmt, compute_row);
@@ -287,7 +424,6 @@ odbc_wchar2hex(TDS_CHAR *dest, size_t destlen, const SQLWCHAR * src, size_t srcl
 	}
 	return srclen / 2u;
 }
-
 
 int
 continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN StrLen_or_Ind)
@@ -363,6 +499,15 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 		len = StrLen_or_Ind;
 		break;
 	}
+
+	if (StrLen_or_Ind == SQL_NULL_DATA) {
+		curcol->column_cur_size = -1;
+		odbc_reset_dae_conversion(stmt);
+		return SQL_SUCCESS;
+	}
+
+	if (stmt->dae_param_conversion.mode == ODBC_DAE_BUFFER_CONVERT)
+		return odbc_append_dae_data(stmt, DataPtr, len);
 
 	if (!blob && len > need_bytes) {
 		odbc_errs_add(&stmt->errs, "22001", NULL);

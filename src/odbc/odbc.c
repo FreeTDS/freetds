@@ -1931,8 +1931,10 @@ SQLCancel(SQLHSTMT hstmt)
 		}
 
 		/* only if we processed cancel reset statement */
-		if (tds->state == TDS_IDLE)
+		if (tds->state == TDS_IDLE) {
+			odbc_reset_dae_conversion(stmt);
 			odbc_unlock_statement(stmt);
+		}
 
 		ODBC_EXIT_(stmt);
 	}
@@ -4296,6 +4298,7 @@ odbc_SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 
 	/* do the same for bound parameters */
 	if (fOption == SQL_DROP || fOption == SQL_RESET_PARAMS) {
+		odbc_reset_dae_conversion(stmt);
 		desc_free_records(stmt->apd);
 		desc_free_records(stmt->ipd);
 		stmt->params_set = 0;
@@ -5121,6 +5124,10 @@ odbc_SQLParamData(SQLHSTMT hstmt, SQLPOINTER FAR *prgbValue)
 			stmt->param_data_called = 1;
 			*prgbValue = stmt->apd->records[stmt->param_num - 1].sql_desc_data_ptr;
 			ODBC_EXIT(stmt, SQL_NEED_DATA);
+		}
+		res = odbc_finish_dae_conversion(stmt);
+		if (res != SQL_SUCCESS) {
+			ODBC_EXIT(stmt, res);
 		}
 		++stmt->param_num;
 		switch (res = parse_prepared_query(stmt, true)) {
