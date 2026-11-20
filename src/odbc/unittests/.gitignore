@@ -100,8 +100,11 @@
 /dae_integer_long
 /dae_invalid_numeric
 /dae_multiple_params
+/dae_null
 /dae_reexecute
 /dae_reset_params
+/dae_struct_conversions
 /dae_varbinary
 /dae_varchar
+/dae_wchar_integer
 /dae_wvarchar
