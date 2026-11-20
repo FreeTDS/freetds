@@ -30,6 +30,10 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#if HAVE_LIMITS_H
+#include <limits.h>
+#endif /* HAVE_LIMITS_H */
+
 #include <freetds/time.h>
 #include <freetds/odbc.h>
 #include <freetds/tds/convert.h>
@@ -281,13 +285,9 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 	TDS_DBC * dbc = stmt->dbc;
 	TDSCONNECTION * conn = dbc->tds_socket->conn;
 	TDS_SERVER_TYPE dest_type, src_type;
-	int sql_src_type, res;
-	CONV_RESULT ores;
-	TDSBLOB *blob;
-	char *src, *converted_src;
-	unsigned char *dest;
+	int sql_src_type;
+	char *src;
 	int len;
-	ODBC_CONVERT_BUF convert_buf;
 	SQLLEN sql_len;
 	size_t size;
 	bool need_data = false;
@@ -546,17 +546,96 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 		return SQL_ERROR;
 	}
 
-	/* convert special parameters (not libTDS compatible) */
+	/* handle TVPs */
+	if (dest_type == SYBMSTABLE) {
+		src = drec_ixd->sql_desc_data_ptr;
+		curcol->column_cur_size = sizeof(TDS_TVP);
+		return odbc_convert_table(stmt, (SQLTVP *) src, (TDS_TVP *) curcol->column_data,
+					  drec_axd->sql_desc_octet_length_ptr == NULL ? 1 : *drec_axd->sql_desc_octet_length_ptr);
+	}
+
+	if (len < 0) {
+		odbc_errs_add(&stmt->errs, "HY090", NULL);
+		return SQL_ERROR;
+	}
+	return odbc_convert_param_data(stmt, drec_ixd, curcol, sql_src_type, src_type, src, (size_t) len, dest_type);
+}
+
+SQLRETURN
+odbc_convert_param_data(TDS_STMT *stmt, const struct _drecord *drec_ixd, TDSCOLUMN *curcol,
+	SQLSMALLINT sql_src_type, TDS_SERVER_TYPE src_type, const void *src, size_t source_len,
+	TDS_SERVER_TYPE dest_type
+)
+{
+	TDS_DBC *dbc = stmt->dbc;
+	CONV_RESULT ores;
+	ODBC_CONVERT_BUF convert_buf;
+	TDS_UCHAR *dest;
+	TDSBLOB *blob;
+	char *converted_src = NULL;
+	const void *conversion_src = src;
+	static const TDS_UCHAR empty_source = 0;
+	int len;
+	int converted_len;
+	int res;
+
+	if (source_len > INT_MAX) {
+		odbc_errs_add(&stmt->errs, "22001", NULL);
+		return SQL_ERROR;
+	}
+	if (!src && source_len > 0) {
+		odbc_errs_add(&stmt->errs, "HY090", NULL);
+		return SQL_ERROR;
+	}
+	len = (int) source_len;
+
+	/*
+	 * Preserve an empty, non-NULL source value. Some conversion
+	 * routines may not accept NULL even when the source length is zero.
+	 */
+	if (!conversion_src && source_len == 0)
+		conversion_src = &empty_source;
+
+	/*
+	 * Convert ODBC wide-character input to the client character
+	 * representation expected by the libTDS conversion layer.
+	 */
+	if (sql_src_type == SQL_C_WCHAR) {
+		if (source_len % sizeof(SQLWCHAR) != 0) {
+			odbc_errs_add(&stmt->errs, "HY090", NULL);
+			return SQL_ERROR;
+		}
+		converted_src = odbc_wstr2str(stmt, (const char *) conversion_src, &len);
+		if (!converted_src)
+			return SQL_ERROR;
+		conversion_src = converted_src;
+		src_type = SYBVARCHAR;
+	}
+
+	/*
+	 * Convert ODBC C structures that are not directly compatible
+	 * with the libTDS source representation.
+	 */
 	switch (src_type) {
 	case SYBMSDATETIME2:
-		convert_datetime2server(sql_src_type, src, &convert_buf.dta);
-		src = (char *) &convert_buf.dta;
+		converted_len = convert_datetime2server(sql_src_type, conversion_src, &convert_buf.dta);
+		if (converted_len <= 0) {
+			free(converted_src);
+			odbc_errs_add(&stmt->errs, "22007", NULL);
+			return SQL_ERROR;
+		}
+		conversion_src = &convert_buf.dta;
+		len = converted_len;
 		break;
 	case SYBDECIMAL:
 	case SYBNUMERIC:
-		if (convert_numeric2server(&stmt->errs, src, &convert_buf.num) <= 0)
+		converted_len = convert_numeric2server(&stmt->errs, conversion_src, &convert_buf.num);
+		if (converted_len <= 0) {
+			free(converted_src);
 			return SQL_ERROR;
-		src = (char *) &convert_buf.num;
+		}
+		conversion_src = &convert_buf.num;
+		len = converted_len;
 		break;
 		/* TODO intervals */
 	default:
@@ -564,17 +643,8 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 		break;
 	}
 
-	converted_src = NULL;
-	if (sql_src_type == SQL_C_WCHAR) {
-		converted_src = src = odbc_wstr2str(stmt, src, &len);
-		if (!src)
-			/* TODO add proper error */
-			return SQL_ERROR;
-		src_type = SYBVARCHAR;
-	}
-
 	dest = curcol->column_data;
-	switch ((TDS_SERVER_TYPE) dest_type) {
+	switch (dest_type) {
 	case SYBCHAR:
 	case SYBVARCHAR:
 	case XSYBCHAR:
@@ -584,7 +654,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 	case SYBNVARCHAR:
 		ores.cc.c = (TDS_CHAR*) dest;
 		ores.cc.len = curcol->column_size;
-		res = tds_convert(dbc->env->tds_ctx, src_type, src, len, TDS_CONVERT_CHAR, &ores);
+		res = tds_convert(dbc->env->tds_ctx, src_type, conversion_src, len, TDS_CONVERT_CHAR, &ores);
 		if (res > curcol->column_size)
 			res = curcol->column_size;
 		break;
@@ -594,16 +664,17 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 	case XSYBVARBINARY:
 		ores.cb.ib = (TDS_CHAR*) dest;
 		ores.cb.len = curcol->column_size;
-		res = tds_convert(dbc->env->tds_ctx, src_type, src, len, TDS_CONVERT_BINARY, &ores);
+		res = tds_convert(dbc->env->tds_ctx, src_type, conversion_src, len, TDS_CONVERT_BINARY, &ores);
 		if (res > curcol->column_size)
 			res = curcol->column_size;
 		break;
 	case SYBNTEXT:
 		dest_type = SYBTEXT;
+		/* fall through */
 	case SYBTEXT:
 	case SYBLONGBINARY:
 	case SYBIMAGE:
-		res = tds_convert(dbc->env->tds_ctx, src_type, src, len, dest_type, &ores);
+		res = tds_convert(dbc->env->tds_ctx, src_type, conversion_src, len, dest_type, &ores);
 		if (res >= 0) {
 			blob = (TDSBLOB *) dest;
 			free(blob->textvalue);
@@ -614,6 +685,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 	case SYBDECIMAL:
 		((TDS_NUMERIC *) dest)->precision = (unsigned char) drec_ixd->sql_desc_precision;
 		((TDS_NUMERIC *) dest)->scale = (unsigned char) drec_ixd->sql_desc_scale;
+		/* fall through */
 	case SYBINTN:
 	case SYBINT1:
 	case SYBINT2:
@@ -642,14 +714,8 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 	case SYBMSDATETIMEOFFSET:
 	case SYB5BIGTIME:
 	case SYB5BIGDATETIME:
-		res = tds_convert(dbc->env->tds_ctx, src_type, src, len, dest_type, (CONV_RESULT*) dest);
+		res = tds_convert(dbc->env->tds_ctx, src_type, conversion_src, len, dest_type, (CONV_RESULT*) dest);
 		break;
-	case SYBMSTABLE:
-		free(converted_src);
-		src = drec_ixd->sql_desc_data_ptr;
-		curcol->column_cur_size = sizeof(TDS_TVP);
-		return odbc_convert_table(stmt, (SQLTVP *) src, (TDS_TVP *) dest,
-					  drec_axd->sql_desc_octet_length_ptr == NULL ? 1 : *drec_axd->sql_desc_octet_length_ptr);
 	default:
 	case SYBVOID:
 	case SYBVARIANT:
@@ -658,14 +724,13 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 		res = -1;
 		break;
 	}
-
 	free(converted_src);
+
 	if (res < 0) {
 		odbc_convert_err_set(&stmt->errs, res);
 		return SQL_ERROR;
 	}
 
 	curcol->column_cur_size = res;
-
 	return SQL_SUCCESS;
 }
