@@ -767,6 +767,9 @@ SQLRETURN odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const s
 		       bool compute_row, const TDS_DESC* axd, SQLSETPOSIROW n_row);
 TDS_INT convert_datetime2server(int bindtype, const void *src, TDS_DATETIMEALL * dta);
 TDS_INT convert_numeric2server(struct _sql_errors *errs, const void *src, TDS_NUMERIC *num);
+SQLRETURN odbc_convert_param_data(TDS_STMT *stmt, const struct _drecord *drec_ixd, TDSCOLUMN *curcol,
+	SQLSMALLINT sql_src_type, TDS_SERVER_TYPE src_type, const void *src, size_t source_len,
+	TDS_SERVER_TYPE dest_type);
 
 /*
  * bcp.c
