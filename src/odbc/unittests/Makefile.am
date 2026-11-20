@@ -90,8 +90,13 @@ TESTS =	\
 	offset_ptr$(EXEEXT) \
 	trigger_count$(EXEEXT) \
 	dae_cancel$(EXEEXT) \
+	dae_empty_integer$(EXEEXT) \
+	dae_hex_binary$(EXEEXT) \
 	dae_integer$(EXEEXT) \
+	dae_invalid_numeric$(EXEEXT) \
+	dae_varbinary$(EXEEXT) \
 	dae_varchar$(EXEEXT) \
+	dae_wvarchar$(EXEEXT) \
 	$(NULL)
 
 check_PROGRAMS	=	$(TESTS)
@@ -189,8 +194,13 @@ reexec_SOURCES = reexec.c
 offset_ptr_SOURCES = offset_ptr.c
 trigger_count_SOURCES = trigger_count.c
 dae_cancel_SOURCES = dae_cancel.c
+dae_empty_integer_SOURCES = dae_empty_integer.c
+dae_hex_binary_SOURCES = dae_hex_binary.c
 dae_integer_SOURCES = dae_integer.c
+dae_invalid_numeric_SOURCES = dae_invalid_numeric.c
+dae_varbinary_SOURCES = dae_varbinary.c
 dae_varchar_SOURCES = dae_varchar.c
+dae_wvarchar_SOURCES = dae_wvarchar.c
 
 noinst_LIBRARIES = libcommon.a
 libcommon_a_SOURCES = common.c common.h c2string.c parser.c parser.h \
