@@ -89,6 +89,7 @@ TESTS =	\
 	oldpwd$(EXEEXT) \
 	offset_ptr$(EXEEXT) \
 	trigger_count$(EXEEXT) \
+	dae_cancel$(EXEEXT) \
 	dae_integer$(EXEEXT) \
 	dae_varchar$(EXEEXT) \
 	$(NULL)
@@ -187,6 +188,7 @@ tokens_LDFLAGS = ../../server/libtdssrv.la $(INSTALL_FLAG)
 reexec_SOURCES = reexec.c
 offset_ptr_SOURCES = offset_ptr.c
 trigger_count_SOURCES = trigger_count.c
+dae_cancel_SOURCES = dae_cancel.c
 dae_integer_SOURCES = dae_integer.c
 dae_varchar_SOURCES = dae_varchar.c
 
