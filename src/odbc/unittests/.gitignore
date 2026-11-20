@@ -92,5 +92,6 @@
 /reexec
 /offset_ptr
 /trigger_count
+/dae_cancel
 /dae_integer
 /dae_varchar
