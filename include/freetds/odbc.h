@@ -409,6 +409,41 @@ typedef enum
 	ODBC_SPECIAL_SPECIALCOLUMNS = 4
 } TDS_ODBC_SPECIAL_ROWS;
 
+typedef enum {
+	ODBC_DAE_INVALID,
+	ODBC_DAE_DIRECT, /* Source representation can be used without streaming conversion. */
+	ODBC_DAE_STREAM_CONVERT, /* Existing variable-length path performs incremental conversion. */
+	ODBC_DAE_BUFFER_CONVERT /* Complete source is buffered before conversion. */
+} ODBC_DAE_MODE;
+
+typedef struct odbc_dae_parameter_conversion {
+	/** APD/IPD index of the active DAE parameter. */
+	size_t parameter_index;
+	/** Parameter-array row of the active DAE parameter. */
+	SQLULEN row_index;
+	/** Processing mode of the active DAE parameter. */
+	ODBC_DAE_MODE mode;
+
+	/**
+	 * Source-format data accumulated through SQLPutData().
+	 * These fields are used/valid only in ODBC_DAE_BUFFER_CONVERT mode.
+	 */
+	TDS_UCHAR *data;
+	size_t length;
+	size_t capacity;
+
+	/**
+	 * Source and destination types resolved when the parameter enters
+	 * the DAE state. The ODBC types support validation and diagnostics;
+	 * the TDS types are used by deferred conversion.
+	 */
+	SQLSMALLINT source_c_type;
+	SQLSMALLINT destination_sql_type;
+
+	TDS_SERVER_TYPE source_tds_type;
+	TDS_SERVER_TYPE destination_tds_type;
+} ODBC_DAE_PARAM_CONV;
+
 struct _hstmt
 {
 	SQLSMALLINT htype;	/* do not reorder this field */
@@ -445,6 +480,11 @@ struct _hstmt
 	int param_num;
 	/** position in prepared query to check parameters, used only in RPC */
 	size_t prepared_pos;
+	/**
+	 * Active ODBC Data-At-Execution parameter conversion.
+	 * Only one parameter may receive SQLPutData() data at a time.
+	 */
+	ODBC_DAE_PARAM_CONV dae_param_conversion;
 
 	unsigned int curr_param_row, num_param_rows;
 
@@ -754,6 +794,9 @@ int start_parse_prepared_query(struct _hstmt *stmt, bool compute_row);
 int continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN StrLen_or_Ind);
 const char *parse_const_param(const char * s, TDS_SERVER_TYPE *type);
 const char *odbc_skip_rpc_name(const char *s);
+void odbc_reset_dae_conversion(struct _hstmt *stmt);
+int odbc_append_dae_data(struct _hstmt *stmt, const void *data, SQLLEN length);
+int odbc_finish_dae_conversion(struct _hstmt *stmt);
 
 /*
  * sql2tds.c
