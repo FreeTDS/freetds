@@ -271,24 +271,20 @@ static ODBC_DAE_MODE
 odbc_get_dae_mode(SQLSMALLINT source_c_type, TDS_SERVER_TYPE destination_tds_type)
 {
 	/*
-	 * Preserve only the existing source representations that the
-	 * variable-length DAE path already knows how to process.
+	 * Stream only when the application's source bytes already match
+	 * the destination family and can be appended incrementally.
 	 */
-	switch (source_c_type) {
-	case SQL_C_CHAR:
-	case SQL_C_WCHAR:
-	case SQL_C_BINARY:
-		if (is_char_type(destination_tds_type)
-				|| is_binary_type(destination_tds_type))
-			return ODBC_DAE_STREAM_CONVERT;
-		break;
-	}
+	if (source_c_type == SQL_C_CHAR
+			&& is_char_type(destination_tds_type))
+		return ODBC_DAE_STREAM_CONVERT;
+
+	if (source_c_type == SQL_C_BINARY
+			&& is_binary_type(destination_tds_type))
+		return ODBC_DAE_STREAM_CONVERT;
 
 	/*
-	 * Every other supported pair requires whole-value conversion.
-	 * This includes native fixed values. Buffering them is slightly
-	 * less efficient but guarantees that the shared conversion path
-	 * handles the representation correctly.
+	 * Wide-character and cross-family conversions require the complete
+	 * source representation before conversion.
 	 */
 	return ODBC_DAE_BUFFER_CONVERT;
 }
