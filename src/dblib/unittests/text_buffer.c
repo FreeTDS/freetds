@@ -48,6 +48,15 @@ TEST_MAIN()
 
 	printf("creating table\n");
 	sql_cmd(dbproc);
+	if (DBTDS(dbproc) >= DBTDS_7_0) {
+		/*
+		 * Replace the SQL fixture's table-creation command on TDS 7.x
+		 * so the temporary TEXT column uses the selected database
+		 * collation.
+		 */
+		dbfreebuf(dbproc);
+		dbcmd(dbproc, "create table #dblib (i int not null, s text COLLATE database_default)");
+	}
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
