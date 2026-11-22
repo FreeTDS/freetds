@@ -64,7 +64,7 @@ consume_results(CS_COMMAND *command, const char *what)
  * of NULL and not NULL values, then check what got stored.
  */
 static void
-test_blob_param(const char *sql_type, CS_INT param_type)
+test_blob_param(const char *sql_type, CS_INT param_type, const char *coll)
 {
 	enum
 	{ NUM_ROWS = 4 };
@@ -86,7 +86,7 @@ test_blob_param(const char *sql_type, CS_INT param_type)
 	memset(data, 'x', BIG_SIZE);
 
 	run_command(cmd, "IF OBJECT_ID('tempdb..#ct_dynamic_blob') IS NOT NULL DROP TABLE #ct_dynamic_blob");
-	sprintf(sql, "CREATE TABLE #ct_dynamic_blob (id INT NOT NULL, t %s NULL)", sql_type);
+	sprintf(sql, "CREATE TABLE #ct_dynamic_blob (id INT NOT NULL, t %s%s NULL)", sql_type, coll);
 	check_call(run_command, (cmd, sql));
 
 	check_call(ct_dynamic, (cmd, CS_PREPARE, "blob", CS_NULLTERM,
@@ -190,6 +190,7 @@ TEST_MAIN()
 	CS_INT res_type;
 	CS_INT tds_version;
 	bool test_blobs;
+	const char *coll = "";
 
 	int i;
 
@@ -469,20 +470,23 @@ TEST_MAIN()
 	 * truncates longer values and rejects IMAGE parameters.
 	 */
 	check_call(ct_con_props, (conn, CS_GET, CS_TDS_VERSION, &tds_version, CS_UNUSED, NULL));
+	if (tds_version >= CS_TDS_70)
+		coll = " COLLATE database_default";
+
 	test_blobs = true;
 #ifdef CS_TDS_71
 	if (tds_version == CS_TDS_70 || tds_version == CS_TDS_71)
 		test_blobs = false;
 #endif
 	if (test_blobs) {
-		test_blob_param("TEXT", CS_TEXT_TYPE);
-		test_blob_param("IMAGE", CS_IMAGE_TYPE);
+		test_blob_param("TEXT", CS_TEXT_TYPE, coll);
+		test_blob_param("IMAGE", CS_IMAGE_TYPE, "");
 		/*
 		 * Sybase only. Use text, CS_UNITEXT_TYPE data are client charset
 		 * for FreeTDS but UTF-16 for SAP library.
 		 */
 		if (tds_version == CS_TDS_50)
-			test_blob_param("UNITEXT", CS_TEXT_TYPE);
+			test_blob_param("UNITEXT", CS_TEXT_TYPE, "");
 	}
 
 	check_call(ct_dynamic, (cmd2, CS_EXECUTE, "age", CS_NULLTERM, NULL, CS_UNUSED));
