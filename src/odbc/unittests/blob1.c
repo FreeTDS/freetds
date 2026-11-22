@@ -257,8 +257,14 @@ TEST_MAIN()
 	}
 
 	strcpy(sql, "CREATE TABLE #tt(k INT");
-	for (t = test_infos; t < test_infos+num_tests; ++t)
-		sprintf(strchr(sql, 0), ",f%u %s", t->num, t->db_type);
+	for (t = test_infos; t < test_infos+num_tests; ++t) {
+		const char *collate = "";
+
+		if (odbc_db_is_microsoft()
+				&& (strcmp(t->db_type, "TEXT") == 0 || strcmp(t->db_type, "NTEXT") == 0))
+			collate = " COLLATE database_default";
+		sprintf(strchr(sql, 0), ",f%u %s%s", t->num, t->db_type, collate);
+	}
 	strcat(sql, ",v INT)");
 	odbc_command(sql);
 

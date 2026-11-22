@@ -15,10 +15,16 @@ TEST_MAIN()
 
 	odbc_command("if object_id('tempdb..#odbctestdata') is not null drop table #odbctestdata");
 
-	command = "create table #odbctestdata ("
-		"col1 varchar(30) not null,"
-		"col2 int not null,"
-		"col3 float not null," "col4 numeric(18,6) not null," "col5 datetime not null," "col6 text not null)";
+	command = odbc_db_is_microsoft()
+		? "create table #odbctestdata ("
+		  "col1 varchar(30) not null,"
+		  "col2 int not null,"
+		  "col3 float not null," "col4 numeric(18,6) not null," "col5 datetime not null,"
+		  "col6 text COLLATE database_default not null)"
+		: "create table #odbctestdata ("
+		  "col1 varchar(30) not null,"
+		  "col2 int not null,"
+		  "col3 float not null," "col4 numeric(18,6) not null," "col5 datetime not null," "col6 text not null)";
 	odbc_command(command);
 
 	command = "insert #odbctestdata values ("

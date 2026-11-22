@@ -158,6 +158,9 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 	/* create a table with a column of that type */
 	odbc_reset_statement();
 	collate = split_collate(&odbc_buf, &param_type);
+	if (!collate[0] && odbc_db_is_microsoft()
+			&& (strcmp(param_type, "TEXT") == 0 || strcmp(param_type, "NTEXT") == 0))
+		collate = " COLLATE database_default";
 	sprintf(sbuf, "CREATE TABLE #tmp_insert (col %s%s)", param_type, collate);
 	odbc_command(sbuf);
 
@@ -227,12 +230,16 @@ NullInput(SQLSMALLINT out_c_type, SQLSMALLINT out_sql_type, const char *param_ty
 {
 	char sbuf[1024];
 	SQLLEN out_len = SQL_NULL_DATA;
+	const char *collate = "";
 
 	odbc_reset_statement();
 
 	/* create a table with a column of that type */
 	odbc_reset_statement();
-	sprintf(sbuf, "CREATE TABLE #tmp_insert (col %s NULL)", param_type);
+	if (odbc_db_is_microsoft()
+			&& (strcmp(param_type, "TEXT") == 0 || strcmp(param_type, "NTEXT") == 0))
+		collate = " COLLATE database_default";
+	sprintf(sbuf, "CREATE TABLE #tmp_insert (col %s%s NULL)", param_type, collate);
 	odbc_command(sbuf);
 
 	if (use_cursors) {
