@@ -89,6 +89,7 @@ TESTS =	\
 	oldpwd$(EXEEXT) \
 	offset_ptr$(EXEEXT) \
 	trigger_count$(EXEEXT) \
+	dae_binary_text$(EXEEXT) \
 	dae_cancel$(EXEEXT) \
 	dae_conversion_errors$(EXEEXT) \
 	dae_empty_integer$(EXEEXT) \
@@ -201,6 +202,7 @@ tokens_LDFLAGS = ../../server/libtdssrv.la $(INSTALL_FLAG)
 reexec_SOURCES = reexec.c
 offset_ptr_SOURCES = offset_ptr.c
 trigger_count_SOURCES = trigger_count.c
+dae_binary_text_SOURCES = dae_binary_text.c
 dae_cancel_SOURCES = dae_cancel.c
 dae_conversion_errors_SOURCES = dae_conversion_errors.c
 dae_empty_integer_SOURCES = dae_empty_integer.c
