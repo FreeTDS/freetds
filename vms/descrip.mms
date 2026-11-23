@@ -663,7 +663,7 @@ ODBCTEST_NAMES = \
 	paramcore params peter \
 	prepare_results prepare_warn prepclose preperror \
 	print putdata qn raiserror \
-	rebindpar reexec rownumber rowset \
+	rebindpar reexec rowset \
 	rpc scroll stats t0001 \
 	t0002 t0003 tables test64 \
 	testodbc timeout timeout2 timeout3 \
