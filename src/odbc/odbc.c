@@ -556,20 +556,27 @@ ODBC_FUNC(SQLDriverConnect, (P(SQLHDBC,hdbc), P(SQLHWND,hwnd), PCHARIN(ConnStrIn
 		ODBC_EXIT_(dbc);
 	}
 
-	if (!tds_dstr_isempty(&dbc->attr.current_catalog))
-		if (!tds_dstr_dup(&login->database, &dbc->attr.current_catalog)) {
-			tds_free_login(login);
-			tds_dstr_free(&conn_str);
-			odbc_errs_add(&dbc->errs, "HY001", NULL);
-			ODBC_EXIT_(dbc);
-		}
-
 	/* parse the DSN string */
 	if (!odbc_parse_connect_string(&dbc->errs, tds_dstr_buf(&conn_str), tds_dstr_buf(&conn_str) + tds_dstr_len(&conn_str),
 				       login, dbc, params)) {
 		tds_free_login(login);
 		tds_dstr_free(&conn_str);
 		ODBC_EXIT_(dbc);
+	}
+
+	/*
+	 * An explicit Database property in the input connection string has
+	 * the highest precedence. Otherwise, preserve a catalog assigned to
+	 * the connection handle before SQLDriverConnect, overriding a database
+	 * inherited from the DSN or freetds.conf.
+	 */
+	if (!params[ODBC_PARAM_Database].p && !tds_dstr_isempty(&dbc->attr.current_catalog)) {
+		if (!tds_dstr_dup(&login->database, &dbc->attr.current_catalog)) {
+			tds_free_login(login);
+			tds_dstr_free(&conn_str);
+			odbc_errs_add(&dbc->errs, "HY001", NULL);
+			ODBC_EXIT_(dbc);
+		}
 	}
 
 	odbc_set_dstr(dbc, szConnStrOut, cbConnStrOutMax, pcbConnStrOut, &conn_str);
