@@ -267,6 +267,22 @@ Memory_Error:
 	return SQL_ERROR;
 }
 
+static const char *
+odbc_dae_mode_name(ODBC_DAE_MODE mode)
+{
+	switch (mode) {
+	case ODBC_DAE_DIRECT:
+		return "direct";
+	case ODBC_DAE_STREAM_CONVERT:
+		return "stream-convert";
+	case ODBC_DAE_BUFFER_CONVERT:
+		return "buffer-convert";
+	case ODBC_DAE_INVALID:
+	default:
+		return "invalid";
+	}
+}
+
 static ODBC_DAE_MODE
 odbc_get_dae_mode(SQLSMALLINT source_c_type, TDS_SERVER_TYPE destination_tds_type)
 {
@@ -563,6 +579,12 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 		dae->destination_sql_type = drec_ixd->sql_desc_concise_type;
 		dae->source_tds_type = src_type;
 		dae->destination_tds_type = dest_type;
+
+		tdsdump_log(TDS_DBG_FUNC,
+			"DAE parameter %u row %u uses %s mode\n",
+			(unsigned) dae->parameter_index,
+			(unsigned) dae->row_index,
+			odbc_dae_mode_name(dae->mode));
 
 		curcol->column_cur_size = 0;
 		return SQL_NEED_DATA;
