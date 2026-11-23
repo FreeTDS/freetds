@@ -102,14 +102,19 @@ static void
 test(const char *type, int give_err)
 {
 	RETCODE ret;
+	const char *coll = "";
 
 	query("if object_id('#null') is not NULL drop table #null");
 
 	dberrhandle(ignore_err_handler);
 	dbmsghandle(ignore_msg_handler);
 
-	printf("create table #null (n int, c %s NULL)\n", type);
-	dbfcmd(dbproc, "create table #null (n int, c %s NULL)", type);
+	if (DBTDS(dbproc) >= DBTDS_7_0
+			&& (strcmp(type, "TEXT") == 0 || strcmp(type, "NTEXT") == 0))
+		coll = " COLLATE database_default";
+
+	printf("create table #null (n int, c %s%s NULL)\n", type, coll);
+	dbfcmd(dbproc, "create table #null (n int, c %s%s NULL)", type, coll);
 	dbsqlexec(dbproc);
 
 	ret = dbresults(dbproc);

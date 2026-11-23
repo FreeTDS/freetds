@@ -13,6 +13,7 @@ TEST_MAIN()
 	CS_RETCODE results_ret;
 	CS_INT result_type;
 	CS_INT num_cols;
+	CS_INT tds_version;
 
 	CS_DATAFMT datafmt;
 	CS_INT datalength;
@@ -23,6 +24,7 @@ TEST_MAIN()
 	char large_sql[1024];
 	char len600[601];
 	char temp[11];
+	const char *coll = "";
 
 	len600[0] = 0;
 	name[0] = 0;
@@ -38,7 +40,13 @@ TEST_MAIN()
 	}
 	check_call(try_ctlogin, (&ctx, &conn, &cmd, verbose));
 
-	check_call(run_command, (cmd, "CREATE TABLE #test_table (id int, name text)"));
+	check_call(ct_con_props, (conn, CS_GET, CS_TDS_VERSION,
+			&tds_version, CS_UNUSED, NULL));
+	if (tds_version >= CS_TDS_70)
+		coll = " COLLATE database_default";
+
+	sprintf(large_sql, "CREATE TABLE #test_table (id int, name text%s)", coll);
+	check_call(run_command, (cmd, large_sql));
 /*
 	check_call(run_command, (cmd, "INSERT #test_table (id, name) VALUES (1, 'name1')"));
 */

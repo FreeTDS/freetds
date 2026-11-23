@@ -3,6 +3,16 @@
 /* Test for data format returned from SQLPrepare */
 
 static void
+create_test_table(void)
+{
+	odbc_command(odbc_db_is_microsoft()
+		? "create table #odbctestdata "
+		  "(i int, c char(20) COLLATE database_default, n numeric(34,12) )"
+		: "create table #odbctestdata "
+		  "(i int, c char(20), n numeric(34,12) )");
+}
+
+static void
 Test(int use_ird)
 {
 	SQLSMALLINT count, namelen, type, digits, nullable;
@@ -68,7 +78,7 @@ TEST_MAIN()
 	odbc_use_version3 = false;
 	odbc_connect();
 
-	odbc_command("create table #odbctestdata (i int, c char(20), n numeric(34,12) )");
+	create_test_table();
 
 	/* reset state */
 	odbc_command("select * from #odbctestdata");
@@ -116,7 +126,7 @@ TEST_MAIN()
 			odbc_disconnect();
 			putenv("TDSVER=7.3");
 			odbc_connect();
-			odbc_command("create table #odbctestdata (i int, c char(20), n numeric(34,12) )");
+			create_test_table();
 		}
 		if (!odbc_db_is_microsoft() || odbc_tds_version() < 0x704) {
 			Test(0);

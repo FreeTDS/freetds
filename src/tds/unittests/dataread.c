@@ -51,6 +51,7 @@ static void
 test0(const char *type, ...)
 {
 	char buf[512];
+	const char *coll = "";
 	CONV_RESULT cr;
 	int rc;
 	TDS_INT result_type;
@@ -62,7 +63,9 @@ test0(const char *type, ...)
 	} data[10];
 	int num_data = 0, i_row;
 
-	sprintf(buf, "CREATE TABLE #tmp(a %s)", type);
+	if ( TDS_IS_MSSQL(tds) && (strcmp(type, "TEXT") == 0 || strcmp(type, "NTEXT") == 0) )
+		coll = " COLLATE database_default";
+	sprintf(buf, "CREATE TABLE #tmp(a %s%s)", type, coll);
 	exec_query(buf);
 
         va_start(ap, type);

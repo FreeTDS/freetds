@@ -32,7 +32,9 @@ Test(int direct)
 
 	/* create table to hold data */
 	odbc_command_with_result(odbc_stmt, "DROP TABLE #putdata");
-	odbc_command("CREATE TABLE #putdata (c TEXT NULL, b IMAGE NULL)");
+	odbc_command(odbc_db_is_microsoft()
+		? "CREATE TABLE #putdata (c TEXT COLLATE database_default NULL, b IMAGE NULL)"
+		: "CREATE TABLE #putdata (c TEXT NULL, b IMAGE NULL)");
 
 	sql_type = SQL_LONGVARCHAR;
 	type = SQL_C_CHAR;

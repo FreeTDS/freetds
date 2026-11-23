@@ -61,6 +61,18 @@ query(const char *sql)
 	}
 }
 
+static bool
+is_collatable_type(const char *type)
+{
+	return strcmp(type, "CHAR") == 0
+		|| strcmp(type, "VARCHAR") == 0
+		|| strcmp(type, "TEXT") == 0
+		|| strcmp(type, "NCHAR") == 0
+		|| strcmp(type, "NVARCHAR") == 0
+		|| strcmp(type, "NTEXT") == 0;
+}
+
+
 static void
 test(const char *type, const char *test_name)
 {
@@ -71,8 +83,12 @@ test(const char *type, const char *test_name)
 	int rc;
 	TDS_INT result_type;
 	int done_flags;
+	const char *coll = "";
 
-	sprintf(buf, "CREATE TABLE #tmp (i INT, t %s)", type);
+	if (TDS_IS_MSSQL(tds) && is_collatable_type(type))
+		coll = " COLLATE database_default";
+
+	sprintf(buf, "CREATE TABLE #tmp (i INT, t %s%s)", type, coll);
 	query(buf);
 
 	/* insert all test strings in table */

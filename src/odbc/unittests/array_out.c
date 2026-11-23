@@ -126,7 +126,9 @@ TEST_MAIN()
 
 	odbc_connect();
 
-	odbc_command("CREATE TABLE #odbc_test(i INT, t TEXT)");
+	odbc_command(odbc_db_is_microsoft()
+		? "CREATE TABLE #odbc_test(i INT, t TEXT COLLATE database_default)"
+		: "CREATE TABLE #odbc_test(i INT, t TEXT)");
 	for (i = 0; i < 10; ++i) {
 		char buf[128];
 

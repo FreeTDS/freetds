@@ -33,7 +33,9 @@ TEST_MAIN()
 {
 	odbc_connect();
 
-	odbc_command("create table #test_output (id int, msg text)");
+	odbc_command(odbc_db_is_microsoft()
+		? "create table #test_output (id int, msg text COLLATE database_default)"
+		: "create table #test_output (id int, msg text)");
 
 	Test("?", SQL_INTEGER, "?", SQL_LONGVARCHAR);
 	Test("123", SQL_INTEGER, "?", SQL_LONGVARCHAR);
