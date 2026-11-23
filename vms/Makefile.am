@@ -1,6 +1,7 @@
 EXTRA_DIST = \
 	config_h.vms \
 	descrip.mms \
+	sample_user.mms \
 	README.vms \
 	clean_delete.com \
 	configure.com \
