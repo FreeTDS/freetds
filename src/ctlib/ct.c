@@ -898,6 +898,12 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 			goto Cleanup;
 		if (!tds_dstr_copy(&login->server_host_name, con->server_addr))
 			goto Cleanup;
+		if (servername && (snamelen == CS_NULLTERM || snamelen > 0)) {
+			size_t len = snamelen == CS_NULLTERM ? strlen(servername) : (size_t) snamelen;
+
+			if (!tds_dstr_copyn(&login->server_name, servername, len))
+				goto Cleanup;
+		}
 	}
 
 	/* Timeouts ... */
