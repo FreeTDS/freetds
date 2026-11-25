@@ -112,7 +112,7 @@ CFLAGS='-O2 -g -pipe' $configure --host=$HOST --build=i686-pc-linux-gnu
 cp libtool libtool.tmp
 cat libtool.tmp | sed -e 's,file format pe-i386,file format pe-(x86-64|i386),' > libtool
 make -j4 2> errors.txt
-make LOG_COMPILE=true -j4 check 2>> errors.txt
+make TESTS= -j4 check 2>> errors.txt
 
 # compile dblib test against MS dblib
 if test "$NTWDBLIB" = "yes"; then

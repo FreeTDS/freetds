@@ -90,7 +90,7 @@ if test $BUILD = yes; then
 	fi
 
 	echo Making tests ...
-	output_save "make tests" maketest $MAKE check LOG_COMPILE=true
+	output_save "make tests" maketest $MAKE check TESTS=
 	if  test $RES != 0; then
 		echo "error during make test"
 		exit 1;

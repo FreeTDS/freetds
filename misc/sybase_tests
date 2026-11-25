@@ -44,7 +44,7 @@ for dir in src/dblib/unittests src/ctlib/unittests; do
 		make clean
 	fi
 	make clean
-	make check LOG_COMPILE=true
+	make check TESTS=
 	cd ../../..
 done
 
